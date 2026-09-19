@@ -50,7 +50,11 @@ def switch_comms_target(screen, event) -> None:
         session_name = session_thread_name(screen.project_path)
     except Exception:
         session_name = ""
-    if event.kind == "session" or event.target == session_name and event.kind != "channel":
+    if event.kind == "session" or (
+        event.target == session_name and session_name != ""
+    ):
+        # The session thread always returns to the agent conversation,
+        # whichever kind the sidebar assigned it.
         conversation.display = True
         chat.display = False
         return
@@ -100,8 +104,10 @@ class CommsChatView(Vertical):
         self.set_interval(1.0, self._refresh)
         self._refresh()
 
+    BINDINGS = [("escape", "back_to_session", "Back to session")]
+
     def open_target(self, target: str, kind: str, me: str | None = None) -> None:
-        """Switch this view to a target (channel name or DM peer).
+        """Switch this view to a target: channel, DM peer, or the IRC feed.
 
         ``me`` is the session thread name (DMs are logged against it).
         """
@@ -109,11 +115,22 @@ class CommsChatView(Vertical):
         self.kind = kind
         self._me = me
         header = self.query_one("#chat-header", Static)
-        label = f"→ {target}" + (" (DM)" if kind == "dm" else "")
+        if kind == "irc":
+            label = "→ IRC (everything on the wire; sends to #all)"
+            placeholder = "message the room (#all)…"
+        else:
+            label = f"→ {target}" + (" (DM)" if kind == "dm" else "")
+            placeholder = f"message {target}…"
         header.update(label)
         input_field = self.query_one("#chat-input", Input)
-        input_field.placeholder = f"message {target}…"
+        input_field.placeholder = placeholder
         self._refresh()
+
+    def action_back_to_session(self) -> None:
+        from toad.widgets.comms_sidebar import SelectTarget
+
+        me = self._me or ""
+        self.post_message(SelectTarget(me, "session"))
 
     def _refresh(self) -> None:
         if not self.target:
@@ -123,7 +140,9 @@ class CommsChatView(Vertical):
         now = time.time()
         lines: list[str] = []
         try:
-            if self.kind == "dm" and self._me:
+            if self.kind == "irc":
+                messages = list(comms.full_history())
+            elif self.kind == "dm" and self._me:
                 messages = list(comms.dm_history(self._me, self.target))
             else:
                 messages = list(comms.channel_history(self.target))

@@ -26,6 +26,7 @@ from toad.widgets.throbber import Throbber
 from toad.widgets.conversation import Conversation
 from toad.widgets.project_directory_tree import ProjectDirectoryTree
 from toad.widgets.comms_chat import CommsChatView, session_thread_name
+from toad.widgets.comms_sidebar import CommsSidebar
 from toad.widgets.comms_fork_dialog import ForkDialog
 from toad.widgets.comms_sidebar import CommsSidebar, SelectTarget
 from toad.widgets.side_bar import SideBar
@@ -75,6 +76,8 @@ class MainScreen(Screen, can_focus=False):
 
     SESSION_NAVIGATION_GROUP = Binding.Group(description="Sessions")
     BINDINGS = [
+        Binding("ctrl+g", "toggle_irc", "IRC view"),
+        Binding("ctrl+j", "toggle_dm", "DM view"),
         Binding("ctrl+b,f20", "show_sidebar", "Sidebar"),
         Binding("ctrl+h", "go_home", "Home"),
         Binding(
@@ -150,7 +153,10 @@ class MainScreen(Screen, can_focus=False):
     def compose(self) -> ComposeResult:
         with containers.Center():
             yield SideBar(
-                SideBar.Panel("Comms", CommsSidebar()),
+                SideBar.Panel(
+                    "Comms",
+                    CommsSidebar(session_thread=session_thread_name(self.project_path)),
+                ),
                 SideBar.Panel("Plan", Plan([])),
                 SideBar.Panel(
                     "Project",
@@ -185,12 +191,66 @@ class MainScreen(Screen, can_focus=False):
         except Exception:
             pass
 
+
+    _last_dm_target: str | None = None
+
+    @property
+    def _session_thread(self) -> str:
+        return session_thread_name(self.project_path)
+
+    def action_toggle_irc(self) -> None:
+        """Toggle the IRC view: everything on the wire, composer to #all."""
+        from toad.widgets.comms_chat import switch_comms_target
+
+        class _IrcEvent:
+            target = "#all"
+            kind = "irc"
+
+        chat = self.query_one("#comms-chat", CommsChatView)
+        if chat.display and chat.kind == "irc":
+            _IrcEvent.target = self._session_thread
+            _IrcEvent.kind = "session"
+        switch_comms_target(self, _IrcEvent)
+
+    def action_toggle_dm(self) -> None:
+        """Toggle the DM view of the last-selected (or first active) peer."""
+        from toad.widgets.comms_chat import switch_comms_target
+
+        class _DmEvent:
+            target = ""
+            kind = "dm"
+
+        chat = self.query_one("#comms-chat", CommsChatView)
+        if chat.display and chat.kind == "dm":
+            _DmEvent.target = self._session_thread
+            _DmEvent.kind = "session"
+        else:
+            target = self._last_dm_target
+            if not target:
+                try:
+                    sidebar = self.query_one(CommsSidebar)
+                except Exception:
+                    return
+                peers = [
+                    name
+                    for name in sorted(sidebar._comms_registry_names())
+                    if name != self._session_thread
+                ]
+                target = peers[0] if peers else ""
+            if not target:
+                return
+            _DmEvent.target = target
+        switch_comms_target(self, _DmEvent)
+
     @on(SelectTarget)
     def on_comms_select_target(self, event: SelectTarget) -> None:
         """IRC view switching: a click changes the main pane."""
+        if event.kind == "dm":
+            self._last_dm_target = event.target
         from toad.widgets.comms_chat import switch_comms_target
 
         switch_comms_target(self, event)
+
 
     @on(CommsSidebar.ThreadAction)
     async def on_comms_thread_action(self, event: CommsSidebar.ThreadAction) -> None:
