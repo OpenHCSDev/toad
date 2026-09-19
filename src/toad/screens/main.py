@@ -25,11 +25,11 @@ from toad.widgets.plan import Plan
 from toad.widgets.throbber import Throbber
 from toad.widgets.conversation import Conversation
 from toad.widgets.project_directory_tree import ProjectDirectoryTree
-from toad.widgets.comms_chat import CommsChatView, session_thread_name
-from toad.widgets.comms_sidebar import CommsSidebar
+from toad.widgets.comms_chat import session_thread_name
 from toad.widgets.comms_fork_dialog import ForkDialog
 from toad.widgets.comms_sidebar import CommsSidebar, SelectTarget
-from toad.widgets.side_bar import SideBar
+from toad.widgets.side_bar import SideBar, SideBarCollapsible
+from toad.widgets.session_tabs import SessionsTabs
 
 
 class ModeProvider(Provider):
@@ -157,7 +157,7 @@ class MainScreen(Screen, can_focus=False):
                     "Comms",
                     CommsSidebar(session_thread=session_thread_name(self.project_path)),
                 ),
-                SideBar.Panel("Plan", Plan([])),
+                SideBar.Panel("Plan", Plan([]), collapsed=True, id="plan-panel"),
                 SideBar.Panel(
                     "Project",
                     ProjectDirectoryTree(
@@ -167,22 +167,22 @@ class MainScreen(Screen, can_focus=False):
                     flex=True,
                 ),
             )
-            yield Conversation(
-                self.project_path,
-                self._agent,
-                self._agent_session_id,
-                self._session_pk,
-                initial_prompt=self._initial_prompt,
-            ).data_bind(
-                project_path=MainScreen.project_path,
-                column=MainScreen.column,
-            )
-            yield CommsChatView(id="comms-chat")
+            with containers.Vertical(id="session-content"):
+                yield SessionsTabs()
+                yield Conversation(
+                    self.project_path,
+                    self._agent,
+                    self._agent_session_id,
+                    self._session_pk,
+                    initial_prompt=self._initial_prompt,
+                ).data_bind(
+                    project_path=MainScreen.project_path,
+                    column=MainScreen.column,
+                )
         yield Footer()
 
     def run_prompt(self, prompt: str) -> None:
         self.conversation
-
 
     def on_comms_session_named(self, thread_name: str) -> None:
         """Tell the sidebar which thread is this screen's session."""
@@ -191,66 +191,52 @@ class MainScreen(Screen, can_focus=False):
         except Exception:
             pass
 
-
     _last_dm_target: str | None = None
 
     @property
     def _session_thread(self) -> str:
         return session_thread_name(self.project_path)
 
-    def action_toggle_irc(self) -> None:
-        """Toggle the IRC view: everything on the wire, composer to #all."""
-        from toad.widgets.comms_chat import switch_comms_target
+    async def _open_comms(self, target: str, kind: str) -> None:
+        if self.id is None:
+            return
+        await self.app.open_comms_session(
+            owner_mode=self.id,
+            project_path=self.project_path,
+            me=self._session_thread,
+            target=target,
+            kind=kind,
+        )
 
-        class _IrcEvent:
-            target = "#all"
-            kind = "irc"
+    async def action_toggle_irc(self) -> None:
+        """Open the IRC feed as a native Toad session."""
+        await self._open_comms("#all", "irc")
 
-        chat = self.query_one("#comms-chat", CommsChatView)
-        if chat.display and chat.kind == "irc":
-            _IrcEvent.target = self._session_thread
-            _IrcEvent.kind = "session"
-        switch_comms_target(self, _IrcEvent)
-
-    def action_toggle_dm(self) -> None:
-        """Toggle the DM view of the last-selected (or first active) peer."""
-        from toad.widgets.comms_chat import switch_comms_target
-
-        class _DmEvent:
-            target = ""
-            kind = "dm"
-
-        chat = self.query_one("#comms-chat", CommsChatView)
-        if chat.display and chat.kind == "dm":
-            _DmEvent.target = self._session_thread
-            _DmEvent.kind = "session"
-        else:
-            target = self._last_dm_target
-            if not target:
-                try:
-                    sidebar = self.query_one(CommsSidebar)
-                except Exception:
-                    return
-                peers = [
-                    name
-                    for name in sorted(sidebar._comms_registry_names())
-                    if name != self._session_thread
-                ]
-                target = peers[0] if peers else ""
-            if not target:
+    async def action_toggle_dm(self) -> None:
+        """Open the last-selected DM as a native Toad session."""
+        target = self._last_dm_target
+        if not target:
+            try:
+                sidebar = self.query_one(CommsSidebar)
+            except Exception:
                 return
-            _DmEvent.target = target
-        switch_comms_target(self, _DmEvent)
+            peers = [
+                name
+                for name in sorted(sidebar._comms_registry_names())
+                if name != self._session_thread
+            ]
+            target = peers[0] if peers else ""
+        if target:
+            await self._open_comms(target, "dm")
 
     @on(SelectTarget)
-    def on_comms_select_target(self, event: SelectTarget) -> None:
-        """IRC view switching: a click changes the main pane."""
+    async def on_comms_select_target(self, event: SelectTarget) -> None:
+        """Open channels and DMs through Toad's native session modes."""
+        if event.kind == "session":
+            return
         if event.kind == "dm":
             self._last_dm_target = event.target
-        from toad.widgets.comms_chat import switch_comms_target
-
-        switch_comms_target(self, event)
-
+        await self._open_comms(event.target, event.kind)
 
     @on(CommsSidebar.ThreadAction)
     async def on_comms_thread_action(self, event: CommsSidebar.ThreadAction) -> None:
@@ -310,6 +296,8 @@ class MainScreen(Screen, can_focus=False):
             for entry in message.entries
         ]
         self.query_one("SideBar Plan", Plan).entries = entries
+        if entries:
+            self.query_one("#plan-panel", SideBarCollapsible).collapsed = False
 
     @on(messages.SessionUpdate)
     async def on_session_update(self, event: messages.SessionUpdate) -> None:
@@ -327,27 +315,9 @@ class MainScreen(Screen, can_focus=False):
 
     @on(messages.SessionClose)
     async def on_session_close(self, event: messages.SessionClose) -> None:
-
         if self.id is None:
             return
-        current_mode = self.id
-        session_tracker = self.app.session_tracker
-
-        session_count = session_tracker.session_count
-
-        if session_count <= 1:
-
-            session_tracker.close_session(current_mode)
-            await self.app.switch_mode("store")
-
-        else:
-            if new_mode := self.app.session_tracker.session_cursor_move(
-                current_mode, -1
-            ):
-                await self.app.switch_mode(new_mode)
-            session_tracker.close_session(current_mode)
-
-        self.app.call_later(self.app.remove_mode, current_mode)
+        await self.app.close_session_mode(self.id)
 
     def on_mount(self) -> None:
         import gc

@@ -149,6 +149,10 @@ See on-screen instructions for details.
     slash_commands: var[list[SlashCommand]] = var([])
     slash_command_prefixes: var[tuple[str, ...]] = var(())
 
+    def __init__(self, *, simple_input: bool = False) -> None:
+        super().__init__()
+        self.simple_input = simple_input
+
     class Submitted(Message):
         def __init__(self, markdown: str) -> None:
             self.markdown = markdown
@@ -208,7 +212,8 @@ See on-screen instructions for details.
 
     def on_key(self, event: events.Key) -> None:
         if (
-            not self.shell_mode
+            not self.simple_input
+            and not self.shell_mode
             and self.cursor_location == (0, 0)
             and event.character in {"!", "$"}
         ):
@@ -221,6 +226,9 @@ See on-screen instructions for details.
             self.suggestion = ""
 
     def update_suggestion(self) -> None:
+        if self.simple_input:
+            self.suggestion = ""
+            return
         prompt = self.query_ancestor(Prompt)
 
         if self.selection.start == self.selection.end and self.text.startswith("/"):
@@ -284,6 +292,8 @@ See on-screen instructions for details.
         self.clear()
 
     def action_cursor_up(self, select: bool = False):
+        if self.simple_input:
+            return TextArea.action_cursor_up(self, select)
         if self.selection.is_empty and not select:
             row, _column = self.selection[0]
             if row == 0:
@@ -292,6 +302,8 @@ See on-screen instructions for details.
         super().action_cursor_up(select)
 
     def action_cursor_down(self, select: bool = False):
+        if self.simple_input:
+            return TextArea.action_cursor_down(self, select)
         if self.selection.is_empty and not select:
             row, _column = self.selection[0]
             if row == (self.wrapped_document.height - 1):
@@ -386,6 +398,8 @@ See on-screen instructions for details.
     async def watch_selection(
         self, previous_selection: Selection, selection: Selection
     ) -> None:
+        if self.simple_input:
+            return
         if previous_selection == selection:
             return
         if selection.start == selection.end:
@@ -472,10 +486,14 @@ class Prompt(containers.VerticalGroup):
         classes: str | None = None,
         disabled: bool = False,
         complete_callback: Callable[[str], list[str]] | None = None,
+        simple_input: bool = False,
+        placeholder: str | None = None,
     ):
         super().__init__(name=name, id=id, classes=classes, disabled=disabled)
         self.ask_queue: list[Ask] = []
         self.complete_callback = complete_callback
+        self.simple_input = simple_input
+        self.simple_placeholder = placeholder
 
     @property
     def text(self) -> str:
@@ -589,6 +607,12 @@ class Prompt(containers.VerticalGroup):
 
     def update_prompt(self):
         """Update the prompt according to the current mode."""
+        if self.simple_input:
+            self.prompt_label.update(self.PROMPT_AI, layout=False)
+            self.remove_class("-shell-mode")
+            self.prompt_text_area.placeholder = self.simple_placeholder or "Message thread"
+            self.prompt_text_area.highlight_language = "markdown"
+            return
         if self.shell_mode:
             self.prompt_label.update(self.PROMPT_SHELL, layout=False)
             self.add_class("-shell-mode")
@@ -669,7 +693,9 @@ class Prompt(containers.VerticalGroup):
 
         self.multi_line = "\n" in text or "```" in text
 
-        if not self.multi_line and self.likely_shell:
+        if self.simple_input:
+            self.shell_mode = False
+        elif not self.multi_line and self.likely_shell:
             self.shell_mode = True
 
         self.update_prompt()
@@ -756,7 +782,7 @@ class Prompt(containers.VerticalGroup):
             yield Question()
             with containers.HorizontalGroup(id="text-prompt"):
                 yield Label(self.PROMPT_AI, id="prompt", markup=False)
-                yield PromptTextArea().data_bind(
+                yield PromptTextArea(simple_input=self.simple_input).data_bind(
                     multi_line=Prompt.multi_line,
                     shell_mode=Prompt.shell_mode,
                     agent_ready=Prompt.agent_ready,

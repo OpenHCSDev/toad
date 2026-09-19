@@ -26,12 +26,14 @@ dependencies = [
     "textual-diff-view==0.1.5",
     "typing-extensions==4.15.0",
     "format-currency>=0.0.10",
+    "agent-comms",
 ]
 
 [tool.uv.workspace]
 members = ["toad"]
 
 [tool.uv.sources]
+agent-comms = { git = "https://github.com/OpenHCSDev/agent-comms.git" }
 #textual-serve = { path = "../textual-serve", editable = true }
 #textual = { path = "../textual", editable = true }
 #textual-dev = { path = "../textual-dev", editable = true }
@@ -48,4 +50,9 @@ build-backend = "hatchling.build"
 packages = ["src/toad"]
 
 [dependency-groups]
-dev = ["mypy>=1.19.1", "pyinstrument>=5.1.1", "textual-dev>=1.8.0"]
+dev = [
+    "mypy>=1.19.1",
+    "pyinstrument>=5.1.1",
+    "pyte>=0.8.2",
+    "textual-dev>=1.8.0",
+]

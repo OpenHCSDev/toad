@@ -10,10 +10,12 @@ SCHEMA: list[SchemaDict] = [
             {
                 "key": "theme",
                 "title": "Theme",
-                "help": "One of the builtin Textual themes.",
+                "help": "One of the builtin Textual themes. ANSI themes inherit your terminal palette.",
                 "type": "choices",
-                "default": "dracula",
+                "default": "ansi-dark",
                 "choices": [
+                    "ansi-dark",
+                    "ansi-light",
                     "atom-one-dark",
                     "atom-one-light",
                     "catppuccin-latte",
