@@ -20,6 +20,7 @@ from pathlib import Path
 
 from textual import on
 from textual.app import ComposeResult
+from textual.binding import Binding
 from textual.containers import VerticalScroll
 from textual.message import Message
 from textual.reactive import reactive
@@ -66,30 +67,69 @@ class CommsRow(Static):
     }
     CommsRow:hover { background: $surface-lighten-2; }
     CommsRow.-selected { background: $accent-darken-2; }
+    CommsRow:focus { background: $accent-darken-2; text-style: bold; }
     CommsRow.-unread .row-name { text-style: bold; }
     """
 
+    BINDINGS = [
+        Binding("down", "cursor_down", "Next", show=False),
+        Binding("up", "cursor_up", "Previous", show=False),
+        Binding("enter", "open_selected", "Open", show=False),
+    ]
+
+    can_focus = True
+
     def __init__(self, kind: str, name: str, label: str, unread: int = 0) -> None:
         super().__init__(label)
-        self.kind = kind  # "channel" | "thread"
+        self.kind = kind  # "channel" | "dm" | "session"
         self.target_name = name
         self._label = label
         self.unread = unread
         self.selected = False
+
+    def _sidebar(self):
+        parent = self.parent
+        while parent is not None and not isinstance(parent, CommsSidebar):
+            parent = parent.parent
+        return parent
+
+    # Row-level actions delegate to the sidebar so keys work even when
+    # scrollable ancestors would otherwise consume them.
+    def action_cursor_down(self) -> None:
+        sidebar = self._sidebar()
+        if sidebar is not None:
+            sidebar.action_cursor_down()
+
+    def action_cursor_up(self) -> None:
+        sidebar = self._sidebar()
+        if sidebar is not None:
+            sidebar.action_cursor_up()
+
+    def action_open_selected(self) -> None:
+        self.post_message(SelectTarget(self.target_name, self.kind))
+
+    def on_focus(self) -> None:
+        """Keep the sidebar cursor in sync with keyboard focus."""
+        sidebar = self._sidebar()
+        if sidebar is not None:
+            rows = sidebar._ordered_rows()
+            if self in rows:
+                sidebar._cursor = rows.index(self)
+                sidebar._apply_cursor(rows)
 
     def on_click(self, event) -> None:
         if event.button == 3:
             return  # right click handled by context menu in CommsSidebar
         self.post_message(SelectTarget(self.target_name, self.kind))
 
-    def _compose_prefix(self) -> str:
-        if self.kind == "channel":
-            return f"{self.target_name} " if self.target_name != "#all" else ""
-        return f"@{self.target_name} "
-
 
 class CommsSidebar(VerticalScroll):
-    """The wire: channels, threads, unread badges, live activity."""
+    """The wire: channels, threads, unread badges, live activity.
+
+    Keyboard: up/down move the selection, enter opens the selected
+    target in the main pane. Mouse: click selects+opens, right-click
+    opens the context menu.
+    """
 
     DEFAULT_CSS = """
     CommsSidebar {
@@ -102,6 +142,12 @@ class CommsSidebar(VerticalScroll):
     CommsSidebar .row-detail { color: $text-muted; }
     CommsSidebar .activity { color: $success; }
     """
+
+    BINDINGS = [
+        ("up", "cursor_up", "Previous"),
+        ("down", "cursor_down", "Next"),
+        ("enter", "open_selected", "Open"),
+    ]
 
     selected: reactive[str] = reactive("", init=False)
     session_thread: reactive[str] = reactive("", init=False)
@@ -118,10 +164,27 @@ class CommsSidebar(VerticalScroll):
         super().__init__(**kwargs)
         self.session_thread = session_thread
         self._row_map: dict[tuple[str, str], CommsRow] = {}
+        self.can_focus = True
+        self._cursor = 0
 
     def on_mount(self) -> None:
         self.set_interval(1.5, self._refresh)
         self._refresh()
+        self._run_test_hook()
+
+    def _run_test_hook(self) -> None:
+        """Opt-in test seam: TOAD_COMMS_TEST_TARGET drives the same code
+        path a row click takes (SelectTarget -> main pane switch). No-op
+        unless the env var is set."""
+        target = os.environ.get("TOAD_COMMS_TEST_TARGET", "")
+        if not target:
+            return
+        if target.startswith("#"):
+            self.post_message(SelectTarget(target, "channel"))
+        elif self.session_thread and target == self.session_thread:
+            self.post_message(SelectTarget(target, "session"))
+        else:
+            self.post_message(SelectTarget(target, "dm"))
 
     # ─── Data ─────────────────────────────────────────────────────────────────
 
@@ -216,6 +279,45 @@ class CommsSidebar(VerticalScroll):
                     )
                 )
         self.scroll_end(animate=False)
+
+    # ─── Keyboard ─────────────────────────────────────────────────────────────
+
+    def _ordered_rows(self) -> list[CommsRow]:
+        return list(self.query(CommsRow))
+
+    def action_cursor_up(self) -> None:
+        rows = self._ordered_rows()
+        if rows:
+            self._cursor = max(0, self._cursor - 1)
+            self._apply_cursor(rows)
+            rows[self._cursor].focus()
+
+    def action_cursor_down(self) -> None:
+        rows = self._ordered_rows()
+        if rows:
+            self._cursor = min(len(rows) - 1, self._cursor + 1)
+            self._apply_cursor(rows)
+            rows[self._cursor].focus()
+
+    def _apply_cursor(self, rows: list[CommsRow]) -> None:
+        for index, row in enumerate(rows):
+            row.selected = index == self._cursor
+            row.set_class(index == self._cursor, "-selected")
+        rows[self._cursor].scroll_visible(animate=False)
+
+    def action_open_selected(self) -> None:
+        rows = self._ordered_rows()
+        focused = self.app.focused if self.app else None
+        if isinstance(focused, CommsRow) and focused in rows:
+            target = focused
+            self._cursor = rows.index(target)
+        elif 0 <= self._cursor < len(rows):
+            target = rows[self._cursor]
+        else:
+            return
+        self.selected = target.target_name
+        self._apply_cursor(rows)
+        target.post_message(SelectTarget(target.target_name, target.kind))
 
     # ─── Context menu ─────────────────────────────────────────────────────────
 

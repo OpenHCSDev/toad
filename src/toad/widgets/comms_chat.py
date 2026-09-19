@@ -26,6 +26,46 @@ def _comms_root() -> Path:
     return Path(os.environ.get("AGENT_COMMS_ROOT", "~/.agent-comms")).expanduser()
 
 
+def session_thread_name(project_path) -> str:
+    """The wire thread name for a Toad project directory (ACP naming)."""
+    import re
+
+    return re.sub(r"[^A-Za-z0-9_-]+", "-", Path(project_path).name or "session").strip("-") or "session"
+
+
+def switch_comms_target(screen, event) -> None:
+    """IRC view switching: swap the conversation pane for a chat view.
+
+    A thin, self-contained function so MainScreen's handler cannot crash
+    the app: every failure is contained to the chat view's error line.
+    """
+    from toad.widgets.conversation import Conversation
+
+    try:
+        conversation = screen.query_one(Conversation)
+        chat = screen.query_one("#comms-chat", CommsChatView)
+    except Exception:
+        return
+    try:
+        session_name = session_thread_name(screen.project_path)
+    except Exception:
+        session_name = ""
+    if event.kind == "session" or event.target == session_name and event.kind != "channel":
+        conversation.display = True
+        chat.display = False
+        return
+    try:
+        chat.open_target(event.target, event.kind, me=session_name)
+        conversation.display = False
+        chat.display = True
+        from textual.widgets import Input
+
+        chat.query_one("#chat-input", Input).focus()
+    except Exception as error:
+        chat.display = True
+        chat.query_one("#chat-body", Static).update(f"view error: {error}")
+
+
 class CommsChatView(Vertical):
     """History + composer for one target (channel or DM peer)."""
 
