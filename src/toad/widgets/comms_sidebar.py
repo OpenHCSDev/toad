@@ -206,27 +206,32 @@ class CommsSidebar(VerticalScroll):
         now = time.time()
         who = list(comms.who())
         channels = comms.channels()
-        # Per-channel unread: messages to that channel newer than any read.
-        history = list(comms.full_history())
-        unread_by_channel: dict[str, int] = {}
-        for channel in channels:
-            unread_by_channel[channel] = 0
-        markers = comms.bus._read_markers()
-        oldest_read = markers.get(self.session_thread, 0)
-        for message in history:
-            target = message.target
-            if target in unread_by_channel and message.seq > oldest_read:
-                unread_by_channel[target] += 1
+        if self.session_thread in comms.registry:
+            unread_by_channel = {
+                channel: comms.pending_count(self.session_thread, channel)
+                for channel in channels
+            }
+            unread_by_person = {
+                person["name"]: comms.pending_count(self.session_thread, person["name"])
+                for person in who
+                if person["name"] != self.session_thread
+            }
+        else:
+            unread_by_channel = dict.fromkeys(channels, 0)
+            unread_by_person = {}
         activity = comms.all_activity()
         return {
             "who": who,
             "channels": channels,
             "unread_by_channel": unread_by_channel,
+            "unread_by_person": unread_by_person,
             "activity": activity,
             "now": now,
         }
 
     def _refresh(self) -> None:
+        if self.screen is not self.app.screen:
+            return
         try:
             snapshot = self._snapshot()
         except Exception:
@@ -294,10 +299,11 @@ class CommsSidebar(VerticalScroll):
             name = person["name"]
             is_session = name == self.session_thread
             kind = "session" if is_session else "dm"
+            unread = snapshot["unread_by_person"].get(name, 0)
             if person["status"] == ThreadStatus.STOPPED.value:
                 status_mark = "○"
-            elif person["pending"]:
-                status_mark = f"●{person['pending']}"
+            elif unread:
+                status_mark = f"●{unread}"
             else:
                 status_mark = "●"
             task = f" — {person['task']}" if person["task"] else ""
@@ -308,11 +314,11 @@ class CommsSidebar(VerticalScroll):
             )
             row = self._row_map[(kind, name)]
             row.update(label)
-            row.unread = person["pending"]
+            row.unread = unread
             selected = name == selection or row is focused
             row.selected = selected
             row.set_class(selected, "-selected")
-            row.set_class(bool(person["pending"]), "-unread")
+            row.set_class(bool(unread), "-unread")
 
             act = activity.get(name)
             show_activity = (
@@ -330,7 +336,8 @@ class CommsSidebar(VerticalScroll):
                 runtime += (" · " if runtime else "") + f"{percent:.1f}% context"
             activity_row.display = show_activity or bool(runtime)
             if show_activity and act is not None:
-                detail_text = f" {act.detail}" if act.detail else ""
+                detail = " ".join(act.detail.splitlines())
+                detail_text = f" {detail}" if detail else ""
                 text = f"    ⟳ {act.state.value}{detail_text} ({_fmt_age(act.timestamp, now)})"
                 if runtime:
                     text += f"\n    {runtime}"
@@ -349,7 +356,7 @@ class CommsSidebar(VerticalScroll):
     def action_cursor_up(self) -> None:
         rows = self._ordered_rows()
         if rows:
-            self._cursor = max(0, self._cursor - 1)
+            self._cursor = max(0, min(len(rows) - 1, self._cursor - 1))
             self._apply_cursor(rows)
             rows[self._cursor].focus()
 
@@ -431,8 +438,7 @@ class CommsSidebar(VerticalScroll):
         from toad.widgets.comms_menu import show_channel_menu
 
         def post(action: str) -> None:
-            target = self.session_thread if action == "ack" else name
-            self.post_message(self.ThreadAction(target, action))
+            self.post_message(self.ThreadAction(name, action))
 
         show_channel_menu(
             self.app.screen,
@@ -449,12 +455,12 @@ class CommsSidebar(VerticalScroll):
     @on(ThreadAction)
     def _do_thread_action(self, event: ThreadAction) -> None:
         name = event.name
-        comms = wire(_comms_root())
         try:
+            comms = wire(_comms_root())
             if event.action == "stop":
                 comms.stop(name)
             elif event.action == "ack":
-                comms.acknowledge(name)
+                comms.acknowledge(self.session_thread, name)
             elif event.action == "copy":
                 self.app.copy_to_clipboard(name)
         except Exception:

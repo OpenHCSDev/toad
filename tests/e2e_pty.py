@@ -6,16 +6,18 @@ the rendered frames, so layout shifts don't break the test.
 """
 
 import asyncio
+import atexit
 import os
+import signal
 import sys
 import time
 from pathlib import Path
 
 import pyte
 
-FORK_ROOT = Path("/tmp/opencode/toad-fork")
+FORK_ROOT = Path(__file__).resolve().parents[1]
 FORK_TOAD = FORK_ROOT / ".venv" / "bin" / "toad"
-AGENT_PY = Path("/home/ts/.agent-comms/.venv/bin/python")
+AGENT_PY = FORK_ROOT / ".venv" / "bin" / "python"
 WIRE = Path("/tmp/toad-e2e-wire")
 PROJECT = Path("/tmp/toad-e2e-proj")
 
@@ -39,6 +41,14 @@ class ToadSession:
         self.last_screen_lines: list[str] = []
         self.terminal = pyte.Screen(SCREEN_W, SCREEN_H)
         self.stream = pyte.Stream(self.terminal)
+        atexit.register(self.close)
+
+    def close(self) -> None:
+        if self.alive() and self.proc is not None:
+            try:
+                os.killpg(self.proc.pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
 
     async def start(self) -> None:
         import fcntl
@@ -278,8 +288,7 @@ async def main() -> None:
         assert session.alive(), f"toad died leaving IRC on soak iteration {index}"
     print("[8] resize + repeated native IRC toggles: app alive")
 
-    if session.alive() and session.proc:
-        session.proc.kill()
+    session.close()
 
 
 if __name__ == "__main__":

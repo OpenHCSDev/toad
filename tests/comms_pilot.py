@@ -40,7 +40,12 @@ async def main() -> None:
         comms.register(
             Thread(name="peer", tags=frozenset({"test"}), worktree=str(project))
         )
+        comms.register(
+            Thread(name="other-peer", tags=frozenset(), worktree=str(project))
+        )
         comms.send("peer", "#all", "hello from peer")
+        comms.send("peer", me, "private from peer")
+        comms.send("other-peer", me, "unrelated private message")
         comms.set_agent_info(
             "peer", model="openrouter/test-model", context_used=250, context_size=1000
         )
@@ -74,8 +79,11 @@ async def main() -> None:
             await pilot.press("down", "down", "enter")
             await pilot.pause()
             assert isinstance(app.screen, MainScreen)
+            assert comms.pending_count(me, "peer") == 0
+            assert comms.pending_count(me, "other-peer") == 1
+            assert comms.pending_count(me, "#all") == 1
 
-            assert comms.pending_count(me) == 1
+            assert comms.pending_count(me) == 2
             await pilot.click(row(app.screen, "#all"), button=3)
             await pilot.pause()
             assert isinstance(app.screen, ContextMenu)
@@ -86,7 +94,9 @@ async def main() -> None:
             await pilot.press("enter")
             await pilot.pause()
             assert isinstance(app.screen, MainScreen)
-            assert comms.pending_count(me) == 0
+            assert comms.pending_count(me, "#all") == 0
+            assert comms.pending_count(me, "other-peer") == 1
+            assert comms.pending_count(me) == 1
 
             await pilot.click(row(app.screen, "#all"))
             await pilot.pause()
@@ -98,6 +108,7 @@ async def main() -> None:
             assert chat.prompt.prompt_text_area.has_focus
             responses = list(chat.query(AgentResponse))
             assert any("hello from peer" in response.source for response in responses)
+            assert not any("private" in response.source for response in responses)
             assert any("test-model" in response.source for response in responses)
             assert chat.status == "1 active"
             chat.prompt.text = "message from pilot"
