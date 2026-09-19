@@ -1,85 +1,215 @@
-"""Right-click context menus for the comms sidebar."""
+"""Pointer-anchored desktop context menus for the comms sidebar."""
 
 from __future__ import annotations
 
+from collections.abc import Callable
+
+from textual import events, on
 from textual.app import ComposeResult
-from textual.containers import Vertical
+from textual.binding import Binding
+from textual.containers import Container
+from textual.dom import DOMNode
+from textual.geometry import Offset, clamp
+from textual.message import Message
 from textual.screen import ModalScreen
 from textual.widgets import Static
 
 
-class _Menu(ModalScreen[str]):
-    """Minimal popup menu: returns the chosen action id."""
+class ContextMenuItem(Static, can_focus=True):
+    """A menu item with desktop-style press and release behavior."""
 
-    DEFAULT_CSS = """
-    _Menu {
-        align: center middle;
-        background: $background 40%;
+    class Pressed(Message):
+        def __init__(self, item: ContextMenuItem) -> None:
+            self.item = item
+            super().__init__()
+
+    def __init__(self, action: str, label: str) -> None:
+        super().__init__(label, classes="item")
+        self.action = action
+        self._pressed = False
+
+    @property
+    def allow_select(self) -> bool:
+        return False
+
+    def on_mouse_down(self, event: events.MouseDown) -> None:
+        if event.button == 1:
+            self._pressed = True
+            self.add_class("-pressed")
+
+    def on_mouse_up(self, event: events.MouseUp) -> None:
+        self.remove_class("-pressed")
+        if event.button == 1 and self._pressed:
+            self._pressed = False
+            self.post_message(self.Pressed(self))
+
+    def on_leave(self) -> None:
+        self._pressed = False
+        self.remove_class("-pressed")
+
+
+class ContextMenu(ModalScreen[str]):
+    """A transparent modal with a menu anchored to a screen coordinate.
+
+    The interaction pattern follows trissim/textual-window's WindowBarMenu:
+    the modal owns dismissal while the small menu container is positioned at
+    the pointer and clamped inside the terminal viewport.
+    """
+
+    CSS = """
+    ContextMenu {
+        align: left top;
+        background: transparent;
     }
-    _Menu #items {
-        width: 34;
-        background: $surface;
+    ContextMenu #context-menu {
+        width: auto;
+        height: auto;
+        background: $background;
         border: solid $primary;
-        padding: 0 1;
+        padding: 0;
     }
-    _Menu .item {
+    ContextMenu .title {
+        height: 1;
+        padding: 0 1;
+        color: $text-muted;
+        background: $background;
+        text-style: bold reverse;
+    }
+    ContextMenu .item {
         height: 1;
         padding: 0 1;
     }
-    _Menu .item:hover {
+    ContextMenu .item:hover,
+    ContextMenu .item:focus {
         background: $accent;
-        color: $text;
+        color: $background;
+        text-style: bold;
     }
-    _Menu .title {
-        color: $text-muted;
-        padding: 0 1;
+    ContextMenu .item.-pressed {
+        background: $primary;
+        color: $background;
+    }
+    ContextMenu:ansi .item:hover,
+    ContextMenu:ansi .item:focus,
+    ContextMenu:ansi .item.-pressed {
+        background: ansi_default;
+        color: ansi_default;
+        text-style: bold reverse;
     }
     """
 
-    BINDINGS = [("escape", "cancel")]
+    BINDINGS = [
+        Binding("escape", "cancel", show=False),
+        Binding("up", "previous", show=False),
+        Binding("down", "next", show=False),
+        Binding("enter", "choose", show=False),
+    ]
 
-    def __init__(self, title: str, items: list[tuple[str, str]]) -> None:
+    def __init__(
+        self,
+        menu_offset: Offset,
+        title: str,
+        items: list[tuple[str, str]],
+    ) -> None:
         super().__init__()
+        self.menu_offset = menu_offset
         self._title = title
         self._items = items
 
     def compose(self) -> ComposeResult:
-        with Vertical(id="items"):
+        with Container(id="context-menu"):
             yield Static(self._title, classes="title")
-            for action_id, label in self._items:
-                yield Static(label, classes="item", id=f"item-{action_id}")
+            for action, label in self._items:
+                yield ContextMenuItem(action, label)
 
-    def on_click(self, event) -> None:
-        widget = self.screen.get_widget_at(event.screen_x, event.screen_y)
-        if widget is None:
+    def on_mount(self) -> None:
+        menu = self.query_one("#context-menu", Container)
+        menu_width = (
+            max(len(self._title), *(len(label) for _, label in self._items)) + 4
+        )
+        menu_width = min(menu_width, self.size.width)
+        menu_height = len(self._items) + 3
+        x = int(clamp(self.menu_offset.x, 0, max(0, self.size.width - menu_width)))
+        y = int(clamp(self.menu_offset.y, 0, max(0, self.size.height - menu_height)))
+        menu.styles.width = menu_width
+        menu.offset = Offset(x, y)
+        items = list(self.query(ContextMenuItem))
+        if items:
+            items[0].focus()
+
+    def _menu_items(self) -> list[ContextMenuItem]:
+        return list(self.query(ContextMenuItem))
+
+    def action_previous(self) -> None:
+        items = self._menu_items()
+        if not items:
             return
-        if widget.id and widget.id.startswith("item-"):
-            self.dismiss(widget.id[len("item-") :])
-        elif widget.id == "items":
-            self.dismiss("")
-        else:
-            self.dismiss("")
+        focused = self.focused
+        index = items.index(focused) if focused in items else 0
+        items[(index - 1) % len(items)].focus()
+
+    def action_next(self) -> None:
+        items = self._menu_items()
+        if not items:
+            return
+        focused = self.focused
+        index = items.index(focused) if focused in items else -1
+        items[(index + 1) % len(items)].focus()
+
+    def action_choose(self) -> None:
+        if isinstance(self.focused, ContextMenuItem):
+            self.dismiss(self.focused.action)
 
     def action_cancel(self) -> None:
         self.dismiss("")
 
+    @on(ContextMenuItem.Pressed)
+    def item_pressed(self, event: ContextMenuItem.Pressed) -> None:
+        event.stop()
+        self.dismiss(event.item.action)
 
-def _show(screen, title: str, items: list[tuple[str, str]], actions: dict) -> None:
-    """Push a menu; route the chosen action id to its callable."""
+    def on_click(self, event: events.Click) -> None:
+        widget, _ = self.get_widget_at(event.screen_x, event.screen_y)
+        node: DOMNode | None = widget
+        while node is not None:
+            if node.id == "context-menu":
+                return
+            node = node.parent
+        self.dismiss("")
+
+
+def _show(
+    screen,
+    menu_offset: Offset,
+    title: str,
+    items: list[tuple[str, str]],
+    actions: dict[str, Callable[[], None]],
+) -> None:
+    """Push an anchored menu and route its selected action."""
 
     def handle(choice: str) -> None:
         if choice and choice in actions:
             actions[choice]()
 
-    screen.app.push_screen(_Menu(title, items), callback=handle)
+    screen.app.push_screen(
+        ContextMenu(menu_offset, title, items),
+        callback=handle,
+    )
 
 
-def show_thread_menu(screen, name: str, actions: dict) -> None:
+def show_thread_menu(
+    screen,
+    menu_offset: Offset,
+    name: str,
+    actions: dict[str, Callable[[], None]],
+) -> None:
     _show(
         screen,
+        menu_offset,
         f"@{name}",
         [
             ("fork", "Fork from this thread"),
+            ("stop", "Stop thread"),
             ("ack", "Mark inbox read"),
             ("copy", "Copy name"),
         ],
@@ -87,9 +217,15 @@ def show_thread_menu(screen, name: str, actions: dict) -> None:
     )
 
 
-def show_channel_menu(screen, name: str, actions: dict) -> None:
+def show_channel_menu(
+    screen,
+    menu_offset: Offset,
+    name: str,
+    actions: dict[str, Callable[[], None]],
+) -> None:
     _show(
         screen,
+        menu_offset,
         name,
         [
             ("ack", "Mark read"),

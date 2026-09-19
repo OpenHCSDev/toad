@@ -304,6 +304,7 @@ class ToadApp(App, inherit_bindings=False):
             self, "session_update"
         )
         self._session_tracker = SessionTracker(self.session_update_signal)
+        self._comms_modes: dict[tuple[str, str, str, str, str], str] = {}
         self.temporary_background_screen: Screen | None = None
 
         super().__init__()
@@ -651,6 +652,98 @@ class ToadApp(App, inherit_bindings=False):
         self.add_mode(session_details.mode_name, make_screen)
         await self.switch_mode(session_details.mode_name)
         return session_details
+
+    async def open_comms_session(
+        self,
+        *,
+        owner_mode: str,
+        project_path: Path,
+        me: str,
+        target: str,
+        kind: str,
+    ) -> str:
+        """Open or reuse an IRC/channel/DM view as a native Toad session."""
+        from toad.screens.comms import CommsScreen
+
+        root = str(
+            Path(os.environ.get("AGENT_COMMS_ROOT", "~/.agent-comms"))
+            .expanduser()
+            .resolve()
+        )
+        key = (root, owner_mode, me, kind, target)
+        if mode_name := self._comms_modes.get(key):
+            if self.session_tracker.get_session(mode_name) is not None:
+                await self.switch_mode(mode_name)
+                return mode_name
+            del self._comms_modes[key]
+
+        def get_screen() -> Screen:
+            return CommsScreen(
+                project_path=project_path,
+                owner_mode=owner_mode,
+                me=me,
+                target=target,
+                kind=kind,
+            )
+
+        details = await self.new_session_screen(get_screen)
+        self._comms_modes[key] = details.mode_name
+        if kind == "irc":
+            title = "IRC"
+        elif kind == "dm":
+            title = f"@{target}"
+        else:
+            title = target
+        self.session_tracker.update_session(
+            details.mode_name,
+            title=title,
+            subtitle="Comms",
+            path=str(project_path),
+            state="idle",
+        )
+        return details.mode_name
+
+    async def close_session_mode(self, mode_name: str) -> None:
+        """Close any tracked mode after first switching to a safe mode."""
+        session_tracker = self.session_tracker
+        if session_tracker.get_session(mode_name) is None:
+            return
+
+        closing_modes = {mode_name}
+        for key, comms_mode in self._comms_modes.items():
+            if key[1] == mode_name:
+                closing_modes.add(comms_mode)
+
+        remaining_modes = [
+            details.mode_name
+            for details in session_tracker.ordered_sessions
+            if details.mode_name not in closing_modes
+        ]
+        if not remaining_modes:
+            await self.switch_mode("store")
+        else:
+            ordered_modes = [
+                details.mode_name for details in session_tracker.ordered_sessions
+            ]
+            current_index = ordered_modes.index(mode_name)
+            previous_modes = ordered_modes[:current_index]
+            next_mode = next(
+                (
+                    candidate
+                    for candidate in reversed(previous_modes)
+                    if candidate not in closing_modes
+                ),
+                remaining_modes[0],
+            )
+            await self.switch_mode(next_mode)
+
+        for closing_mode in closing_modes:
+            session_tracker.close_session(closing_mode)
+            self.call_later(self.remove_mode, closing_mode)
+        for key, comms_mode in list(self._comms_modes.items()):
+            if comms_mode in closing_modes:
+                del self._comms_modes[key]
+        self.update_show_sessions()
 
     async def on_mount(self) -> None:
         self.capture_event("toad-run")

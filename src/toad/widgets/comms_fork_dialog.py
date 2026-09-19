@@ -28,12 +28,17 @@ class ForkDialog(ModalScreen[tuple[str, str]]):
 
     def __init__(self, parent: str) -> None:
         super().__init__()
-        self._parent = parent
+        self._parent_thread = parent
 
     def compose(self) -> ComposeResult:
         with Vertical(id="box"):
-            yield Static(f"Fork from @{self._parent} — child name and task:", id="title")
-            yield Input(placeholder="child-name fix the flake in the viewer", id="fork-input")
+            yield Static(
+                f"Fork from @{self._parent_thread} — child name and task:",
+                id="title",
+            )
+            yield Input(
+                placeholder="child-name fix the flake in the viewer", id="fork-input"
+            )
 
     def on_mount(self) -> None:
         self.query_one(Input).focus()
@@ -42,7 +47,9 @@ class ForkDialog(ModalScreen[tuple[str, str]]):
         value = event.value.strip()
         parts = value.split(maxsplit=1)
         if len(parts) != 2:
-            self.query_one("#title", Static).update("need: child-name task (esc to cancel)")
+            self.query_one("#title", Static).update(
+                "need: child-name task (esc to cancel)"
+            )
             return
         self.dismiss((parts[0], parts[1]))
 

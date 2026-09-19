@@ -1,14 +1,3 @@
-"""E2E: drive the real toad binary on a fixed-size pty.
-
-Run: python tests/e2e_pty.py  (needs agent_comms importable; uses
-/tmp/toad-e2e-wire as the wire, /tmp/toad-e2e-proj as the project).
-
-Interaction semantics (clicks, context menus, keyboard nav, view
-switching) are covered by the pilot checks in the agent-comms suite;
-this script covers real-app launch, the composer, view switching via
-the TOAD_COMMS_TEST_TARGET seam, and crash-resilience.
-"""
-
 """End-to-end fork test: drive the REAL toad binary in a pty.
 
 No mocks: real toad-fork, real ACP server subprocess, real mouse clicks
@@ -18,10 +7,11 @@ the rendered frames, so layout shifts don't break the test.
 
 import asyncio
 import os
-import re
 import sys
 import time
 from pathlib import Path
+
+import pyte
 
 FORK_ROOT = Path("/tmp/opencode/toad-fork")
 FORK_TOAD = FORK_ROOT / ".venv" / "bin" / "toad"
@@ -30,19 +20,8 @@ WIRE = Path("/tmp/toad-e2e-wire")
 PROJECT = Path("/tmp/toad-e2e-proj")
 
 
-def ansi_clean(data: bytes) -> str:
-    text = data.decode("utf-8", "replace")
-    text = re.sub(r"\x1b\[[0-9;<>?]*[a-zA-Z]", "", text)
-    text = re.sub(r"\x1b\][^\x07]*\x07", "", text)
-    text = re.sub(r"\x1b[()][0-9A-B]", "", text)
-    return text
-
-
 def sgr_click(x: int, y: int, button: int = 0) -> bytes:
-    return (
-        f"\x1b[<{button};{x};{y}M".encode()
-        + f"\x1b[<{button};{x};{y}m".encode()
-    )
+    return f"\x1b[<{button};{x};{y}M".encode() + f"\x1b[<{button};{x};{y}m".encode()
 
 
 SCREEN_H = 40
@@ -57,6 +36,9 @@ class ToadSession:
         self.proc = None
         self.master = None
         self.buffer = b""
+        self.last_screen_lines: list[str] = []
+        self.terminal = pyte.Screen(SCREEN_W, SCREEN_H)
+        self.stream = pyte.Stream(self.terminal)
 
     async def start(self) -> None:
         import fcntl
@@ -74,7 +56,9 @@ class ToadSession:
             TERM="xterm-256color",
         )
         self.proc = await asyncio.create_subprocess_exec(
-            str(FORK_TOAD), "acp", f"{AGENT_PY} -m agent_comms.acp",
+            str(FORK_TOAD),
+            "acp",
+            f"{AGENT_PY} -m agent_comms.acp",
             cwd=str(PROJECT),
             env=env,
             stdin=slave,
@@ -87,20 +71,8 @@ class ToadSession:
         await asyncio.sleep(6)
 
     def _screen(self) -> str:
-        import select
-
-        while True:
-            ready, _, _ = select.select([self.master], [], [], 0)
-            if not ready:
-                break
-            try:
-                chunk = os.read(self.master, 65536)
-            except (BlockingIOError, OSError):
-                break
-            if not chunk:
-                break
-            self.buffer += chunk
-        return ansi_clean(self.buffer)
+        self._drain()
+        return "\n".join(self.terminal.display)
 
     def _set_size(self, h: int, w: int) -> None:
         import fcntl
@@ -108,26 +80,7 @@ class ToadSession:
         import termios
 
         fcntl.ioctl(self.master, termios.TIOCSWINSZ, struct.pack("HHHH", h, w, 0, 0))
-
-    def _force_repaint(self) -> None:
-        """SIGWINCH forces Textual to repaint the full screen.
-
-        The first toggle flushes pending diffs; the buffer is then cleared
-        so the tail contains exactly one clean full-repaint frame.
-        """
-        import select
-
-        self._set_size(SCREEN_H + 1, SCREEN_W)
-        time.sleep(0.12)
-        self._set_size(SCREEN_H, SCREEN_W)
-        time.sleep(0.12)
-        self._drain()
-        self.buffer = b""
-        self._set_size(SCREEN_H + 1, SCREEN_W)
-        time.sleep(0.12)
-        self._set_size(SCREEN_H, SCREEN_W)
-        time.sleep(0.25)
-        self._drain()
+        self.terminal.resize(lines=h, columns=w)
 
     def _drain(self) -> None:
         import select
@@ -139,22 +92,15 @@ class ToadSession:
                 break
             try:
                 chunk = os.read(self.master, 262144)
-            except (BlockingIOError, OSError):
+            except BlockingIOError, OSError:
                 break
             if not chunk:
                 break
             self.buffer += chunk
+            self.stream.feed(chunk.decode("utf-8", "replace"))
 
     def screen_lines(self) -> list[str]:
-        self._force_repaint()
-        return self._screen().splitlines()[-SCREEN_H:]
-
-    async def frame(self, seconds: float = 1.5) -> str:
-        await asyncio.sleep(seconds)
-        self.buffer = b""
-        self._force_repaint()
-        self._screen()
-        return ansi_clean(self.buffer)
+        return self._screen().splitlines()
 
     async def send(self, data: bytes) -> None:
         assert self.master is not None
@@ -165,8 +111,8 @@ class ToadSession:
         return self._screen()
 
     async def frame(self, seconds: float = 1.5) -> str:
-        self.buffer = b""
-        return await self.read_available(seconds)
+        await asyncio.sleep(seconds)
+        return self._screen()
 
     async def click(self, x: int, y: int, button: int = 0) -> None:
         await self.send(sgr_click(x, y, button))
@@ -175,10 +121,11 @@ class ToadSession:
         """Parse the CURRENT screen (fixed-size pty), find the row, click."""
         await asyncio.sleep(0.4)
         lines = self.screen_lines()
+        self.last_screen_lines = lines
         matches = [
             index
             for index, line in enumerate(lines)
-            if self._is_row(line.strip(), name)
+            if self._is_row(line.split("▎", 1)[0].strip(), name)
         ]
         if len(matches) <= occurrence:
             return False
@@ -190,8 +137,13 @@ class ToadSession:
     def _is_row(stripped: str, name: str) -> bool:
         return (
             stripped == name
+            or stripped.startswith(f"{name} ")
             or (stripped.startswith("●") and name in stripped and len(stripped) < 45)
-            or (stripped.startswith(("○", "▶")) and name in stripped and len(stripped) < 45)
+            or (
+                stripped.startswith(("○", "▶"))
+                and name in stripped
+                and len(stripped) < 45
+            )
         )
 
     async def type_text(self, text: str) -> None:
@@ -208,8 +160,15 @@ class ToadSession:
 
 
 async def main() -> None:
+    os.environ.pop("TOAD_COMMS_TEST_TARGET", None)
     os.makedirs(PROJECT, exist_ok=True)
-    for stale in ("registry.json", "bus.jsonl", "read_markers.json", "activity.jsonl"):
+    for stale in (
+        "registry.json",
+        "bus.jsonl",
+        "read_markers.json",
+        "activity.jsonl",
+        "runtime_info.json",
+    ):
         try:
             (WIRE / stale).unlink()
         except OSError:
@@ -220,7 +179,9 @@ async def main() -> None:
     from agent_comms.operations import wire
 
     comms = wire(WIRE)
-    comms.register(Thread(name="seed-peer", tags=frozenset({"seed"}), worktree=str(PROJECT)))
+    comms.register(
+        Thread(name="seed-peer", tags=frozenset({"seed"}), worktree=str(PROJECT))
+    )
     comms.send("seed-peer", "#all", "channel greeting from seed")
 
     session = ToadSession()
@@ -232,62 +193,90 @@ async def main() -> None:
     )
     print("[1] launch + sidebar render OK")
 
-    # Open '#all' through the test seam (same SelectTarget path as a click).
-    if session.proc:
-        session.proc.terminate()
-        await session.proc.wait()
-    os.environ["TOAD_COMMS_TEST_TARGET"] = "#all"
-    session = ToadSession()
-    await session.start()
-    frame = await session.frame(3.0)
-    assert "channel greeting from seed" in frame, f"channel view did not open:\n{frame[-700:]}"
-    print("[2] channel view switches + history renders OK")
+    # Open and operate the pointer-anchored context menu with real mouse/key input.
+    assert await session.click_row("seed-peer", button=2), (
+        "seed-peer row not found:\n" + "\n".join(session.last_screen_lines)
+    )
+    frame = await session.frame(1.0)
+    assert "Fork from this thread" in frame, (
+        f"context menu did not open:\n{frame[-900:]}"
+    )
+    assert session.alive(), "toad died opening the right-click menu"
+    await session.press_enter()
+    frame = await session.frame(0.8)
+    assert "Fork from @seed-peer" in frame, f"fork dialog did not open:\n{frame[-900:]}"
+    assert session.alive(), "toad died opening the fork dialog"
+    await session.key("\x1b")
+    await session.frame(0.5)
+    assert session.alive(), "toad died dismissing the fork dialog"
+    print("[2] pointer context menu + fork dialog open and dismiss OK")
+
+    # Click '#all': this must create a native tracked Toad session/mode.
+    assert await session.click_row("#all"), "#all row not found:\n" + "\n".join(
+        session.last_screen_lines
+    )
+    frame = await session.frame(1.5)
+    assert "channel greeting from seed" in frame, (
+        f"channel session did not open:\n{frame[-900:]}"
+    )
+    assert "#all" in frame, f"native channel session tab missing:\n{frame[-900:]}"
+    print("[3] channel click opens native session + history renders OK")
 
     # The chat composer should be focused; type and send.
     await session.type_text("hello from the pty test")
+    await asyncio.sleep(0.3)
     await session.press_enter()
     await asyncio.sleep(2)
+    frame = await session.frame(0.2)
     history = [m.body for m in comms.channel_history("#all")]
-    assert "hello from the pty test" in history, f"send failed; wire history: {history[-3:]}"
-    print("[3] composer send lands on wire OK")
-
-    # Back to the session view via the seam.
-    if session.proc:
-        session.proc.terminate()
-        await session.proc.wait()
-    os.environ["TOAD_COMMS_TEST_TARGET"] = "toad-e2e-proj"
-    session = ToadSession()
-    await session.start()
-    frame = await session.frame(3.0)
-    assert "How can I help you today?" in frame or "New Session" in frame, (
-        f"did not return to conversation:\n{frame[-600:]}"
+    assert "hello from the pty test" in history, (
+        f"send failed; wire history: {history[-3:]}\n{frame[-900:]}"
     )
-    print("[4] session target -> conversation restored OK")
+    print("[4] composer send lands on wire OK")
 
-    # Mouse smoke: click inside the sidebar region must not crash; a view
-    # switch is asserted generically (any target) because Textual repaints
-    # are diff-based and coordinates drift.
-    before = await session.frame(1.0)
-    await session.click(6, 8)
-    await asyncio.sleep(1.5)
-    after = await session.frame(1.0)
-    assert session.alive(), "toad died on sidebar click"
-    print("[5] sidebar mouse click: no crash OK")
+    # Escape returns to the original agent mode without closing the channel tab.
+    await session.key("\x1b")
+    frame = await session.frame(1.2)
+    assert "How can I help you today?" in frame or "New Session" in frame, (
+        f"did not return to agent session:\n{frame[-900:]}"
+    )
+    print("[5] escape restores agent session OK")
 
-    # Soak: rapid seam switching must not crash (fresh session each time
-    # is slow; instead toggle via repeated relaunch of the same target).
-    for _ in range(3):
-        if session.proc:
-            session.proc.terminate()
-            try:
-                await session.proc.wait()
-            except Exception:
-                pass
-        os.environ["TOAD_COMMS_TEST_TARGET"] = "#all"
-        session = ToadSession()
-        await session.start()
-        assert session.alive(), f"toad died on soak relaunch {_}"
-    print("[7] soak: 3 relaunches with view switching, app alive")
+    # Reopening the same target reuses its native mode; Escape returns again.
+    assert await session.click_row("#all"), (
+        "#all row not found on return:\n" + "\n".join(session.last_screen_lines)
+    )
+    frame = await session.frame(1.0)
+    assert "hello from the pty test" in frame, "reused channel lost its history"
+    await session.key("\x1b")
+    await session.frame(0.8)
+    print("[6] native channel session is reused OK")
+
+    # Open a DM as another native mode, then close it with the priority binding.
+    assert await session.click_row("seed-peer"), "seed-peer row not found for DM"
+    frame = await session.frame(1.0)
+    assert "@seed-peer" in frame and "Message seed-peer" in frame, (
+        f"DM session did not open:\n{frame[-900:]}"
+    )
+    await session.key("\x17")  # ctrl+w
+    await session.frame(1.0)
+    assert session.alive(), "toad died closing the DM session"
+    print("[7] DM native session opens and closes OK")
+
+    # Resize and repeatedly toggle the reusable IRC mode from the agent mode.
+    await session.key("\x1b")
+    await session.frame(0.8)
+    session._set_size(34, 96)
+    await asyncio.sleep(0.5)
+    session._set_size(SCREEN_H, SCREEN_W)
+    for index in range(3):
+        await session.key("\x07")  # ctrl+g: open IRC
+        await session.frame(0.5)
+        assert session.alive(), f"toad died opening IRC on soak iteration {index}"
+        await session.key("\x07")  # ctrl+g: back to agent
+        await session.frame(0.5)
+        assert session.alive(), f"toad died leaving IRC on soak iteration {index}"
+    print("[8] resize + repeated native IRC toggles: app alive")
 
     if session.alive() and session.proc:
         session.proc.kill()

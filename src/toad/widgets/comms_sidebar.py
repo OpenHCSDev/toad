@@ -2,8 +2,8 @@
 
 IRC semantics for fully-detailed agent threads:
 
-- **Click** a thread row -> composes a DM (``@name `` in the prompt).
-- **Click** a channel row -> composes into that channel (``#name ``).
+- **Click** a thread row -> opens its DM as a native Toad session.
+- **Click** a channel row -> opens that channel as a native Toad session.
 - **Right-click** -> context menu: fork, stop, acknowledge, copy name.
 - Live rows: status, unread badges, task, activity (``working bash: …``).
 
@@ -13,18 +13,16 @@ acts through ``agent_comms`` operations.
 
 from __future__ import annotations
 
-import json
 import os
 import time
 from pathlib import Path
 
 from textual import on
-from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import VerticalScroll
+from textual.dom import DOMNode
 from textual.message import Message
 from textual.reactive import reactive
-from textual.widget import Widget
 from textual.widgets import Static
 
 from agent_comms import ActivityState, ThreadStatus
@@ -68,6 +66,13 @@ class CommsRow(Static):
     CommsRow:hover { background: $surface-lighten-2; }
     CommsRow.-selected { background: $accent-darken-2; }
     CommsRow:focus { background: $accent-darken-2; text-style: bold; }
+    CommsRow:ansi:hover,
+    CommsRow:ansi.-selected,
+    CommsRow:ansi:focus {
+        background: ansi_default;
+        color: ansi_default;
+        text-style: bold reverse;
+    }
     CommsRow.-unread .row-name { text-style: bold; }
     """
 
@@ -164,6 +169,7 @@ class CommsSidebar(VerticalScroll):
         super().__init__(**kwargs)
         self.session_thread = session_thread
         self._row_map: dict[tuple[str, str], CommsRow] = {}
+        self._activity_map: dict[str, Static] = {}
         self.can_focus = True
         self._cursor = 0
 
@@ -176,7 +182,7 @@ class CommsSidebar(VerticalScroll):
         """Opt-in test seam: TOAD_COMMS_TEST_TARGET drives the same code
         path a row click takes (SelectTarget -> main pane switch). No-op
         unless the env var is set."""
-        target = os.environ.get("TOAD_COMMS_TEST_TARGET", "")
+        target = os.environ.pop("TOAD_COMMS_TEST_TARGET", "")
         if not target:
             return
         if target.startswith("#"):
@@ -206,7 +212,7 @@ class CommsSidebar(VerticalScroll):
         for channel in channels:
             unread_by_channel[channel] = 0
         markers = comms.bus._read_markers()
-        oldest_read = min(markers.values()) if markers else 0
+        oldest_read = markers.get(self.session_thread, 0)
         for message in history:
             target = message.target
             if target in unread_by_channel and message.seq > oldest_read:
@@ -231,26 +237,63 @@ class CommsSidebar(VerticalScroll):
 
     def _rebuild(self, snapshot: dict) -> None:
         selection = self.selected
-        self.remove_children()
         now = snapshot["now"]
         activity = snapshot["activity"]
+        channels = snapshot["channels"]
+        people = snapshot["who"]
+        desired_keys = [("channel", channel) for channel in channels]
+        desired_keys.extend(
+            (
+                "session" if person["name"] == self.session_thread else "dm",
+                person["name"],
+            )
+            for person in people
+        )
 
-        self.mount(Static("CHANNELS", classes="section"))
-        for channel in snapshot["channels"]:
+        focused = self.app.focused
+        focused_key = None
+        if isinstance(focused, CommsRow):
+            focused_key = (focused.kind, focused.target_name)
+
+        if list(self._row_map) != desired_keys:
+            self.remove_children()
+            self._row_map.clear()
+            self._activity_map.clear()
+
+            self.mount(Static("CHANNELS", classes="section"))
+            for channel in channels:
+                key = ("channel", channel)
+                row = CommsRow(*key, channel)
+                self._row_map[key] = row
+                self.mount(row)
+
+            self.mount(Static("WHO'S HERE", classes="section"))
+            for person in people:
+                name = person["name"]
+                kind = "session" if name == self.session_thread else "dm"
+                key = (kind, name)
+                row = CommsRow(kind, name, name)
+                detail = Static("", classes="activity")
+                detail.display = False
+                self._row_map[key] = row
+                self._activity_map[name] = detail
+                self.mount(row, detail)
+
+        for channel in channels:
             unread = snapshot["unread_by_channel"].get(channel, 0)
             label = f"{channel} ({unread})" if unread else channel
-            row = CommsRow("channel", channel, label, unread)
-            if channel == selection:
-                row.selected = True
-                row.add_class("-selected")
-            if unread:
-                row.add_class("-unread")
-            self.mount(row)
+            row = self._row_map[("channel", channel)]
+            row.update(label)
+            row.unread = unread
+            selected = channel == selection or row is focused
+            row.selected = selected
+            row.set_class(selected, "-selected")
+            row.set_class(bool(unread), "-unread")
 
-        self.mount(Static("WHO'S HERE", classes="section"))
-        for person in snapshot["who"]:
+        for person in people:
             name = person["name"]
             is_session = name == self.session_thread
+            kind = "session" if is_session else "dm"
             if person["status"] == ThreadStatus.STOPPED.value:
                 status_mark = "○"
             elif person["pending"]:
@@ -259,33 +302,44 @@ class CommsSidebar(VerticalScroll):
                 status_mark = "●"
             task = f" — {person['task']}" if person["task"] else ""
             session_mark = " (session)" if is_session else ""
-            row = CommsRow(
-                "session" if is_session else "dm",
-                name,
+            label = (
                 f"{status_mark} {name}{session_mark}{task}"
-                f" [{_fmt_age(person['last_seen'], now)}]",
-                person["pending"],
+                f" [{_fmt_age(person['last_seen'], now)}]"
             )
-            if name == selection:
-                row.selected = True
-                row.add_class("-selected")
-            if person["pending"]:
-                row.add_class("-unread")
-            self.mount(row)
+            row = self._row_map[(kind, name)]
+            row.update(label)
+            row.unread = person["pending"]
+            selected = name == selection or row is focused
+            row.selected = selected
+            row.set_class(selected, "-selected")
+            row.set_class(bool(person["pending"]), "-unread")
+
             act = activity.get(name)
-            if (
+            show_activity = (
                 act is not None
                 and act.state is not ActivityState.IDLE
                 and now - act.timestamp < 120
-            ):
-                detail = f" {act.detail}" if act.detail else ""
-                self.mount(
-                    Static(
-                        f"    ⟳ {act.state.value}{detail} ({_fmt_age(act.timestamp, now)})",
-                        classes="activity",
-                    )
-                )
-        self.scroll_end(animate=False)
+            )
+            activity_row = self._activity_map[name]
+            model = person.get("model") or ""
+            percent = person.get("context_percent")
+            runtime = ""
+            if model:
+                runtime = model
+            if percent is not None:
+                runtime += (" · " if runtime else "") + f"{percent:.1f}% context"
+            activity_row.display = show_activity or bool(runtime)
+            if show_activity and act is not None:
+                detail_text = f" {act.detail}" if act.detail else ""
+                text = f"    ⟳ {act.state.value}{detail_text} ({_fmt_age(act.timestamp, now)})"
+                if runtime:
+                    text += f"\n    {runtime}"
+                activity_row.update(text)
+            elif runtime:
+                activity_row.update(f"    {runtime}")
+
+        if focused_key is not None and focused_key in self._row_map:
+            self._row_map[focused_key].focus()
 
     # ─── Keyboard ─────────────────────────────────────────────────────────────
 
@@ -332,20 +386,22 @@ class CommsSidebar(VerticalScroll):
         """Right click anywhere -> menu on the row under the mouse."""
         if event.button != 3:
             return
-        widget = self.screen.get_widget_at(event.screen_x, event.screen_y)
+        event.stop()
+        widget, _ = self.screen.get_widget_at(event.screen_x, event.screen_y)
         row = None
-        while widget is not None:
-            if isinstance(widget, CommsRow):
-                row = widget
+        node: DOMNode | None = widget
+        while node is not None:
+            if isinstance(node, CommsRow):
+                row = node
                 break
-            widget = widget.parent
+            node = node.parent
         if row is None:
             return
         self._select(row)
-        if row.kind == "thread":
-            self._show_thread_menu(row.target_name)
+        if row.kind in {"dm", "session"}:
+            self._show_thread_menu(row.target_name, event.screen_offset)
         else:
-            self._show_channel_menu(row.target_name)
+            self._show_channel_menu(row.target_name, event.screen_offset)
 
     def _select(self, row: CommsRow) -> None:
         self.selected = row.target_name
@@ -353,29 +409,38 @@ class CommsSidebar(VerticalScroll):
             other.remove_class("-selected")
         row.add_class("-selected")
 
-    def _show_thread_menu(self, name: str) -> None:
+    def _show_thread_menu(self, name: str, menu_offset) -> None:
         from toad.widgets.comms_menu import show_thread_menu
+
+        def post(action: str) -> None:
+            self.post_message(self.ThreadAction(name, action))
 
         show_thread_menu(
             self.app.screen,
+            menu_offset,
             name,
             {
-                "fork": lambda: self.post_message(self.ThreadAction(row.name, "fork")),
-                "stop": lambda: self.post_message(self.ThreadAction(row.name, "stop")),
-                "ack": lambda: self.post_message(self.ThreadAction(row.name, "ack")),
-                "copy": lambda: self.post_message(self.ThreadAction(row.name, "copy")),
+                "fork": lambda: post("fork"),
+                "stop": lambda: post("stop"),
+                "ack": lambda: post("ack"),
+                "copy": lambda: post("copy"),
             },
         )
 
-    def _show_channel_menu(self, name: str) -> None:
+    def _show_channel_menu(self, name: str, menu_offset) -> None:
         from toad.widgets.comms_menu import show_channel_menu
+
+        def post(action: str) -> None:
+            target = self.session_thread if action == "ack" else name
+            self.post_message(self.ThreadAction(target, action))
 
         show_channel_menu(
             self.app.screen,
+            menu_offset,
             name,
             {
-                "ack": lambda: self.post_message(self.ThreadAction(row.name, "ack")),
-                "copy": lambda: self.post_message(self.ThreadAction(row.name, "copy")),
+                "ack": lambda: post("ack"),
+                "copy": lambda: post("copy"),
             },
         )
 
