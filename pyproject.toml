@@ -26,14 +26,14 @@ dependencies = [
     "textual-diff-view==0.1.5",
     "typing-extensions==4.15.0",
     "format-currency>=0.0.10",
-    "agent-comms",
+    "agent-comms[acp]",
 ]
 
 [tool.uv.workspace]
 members = ["toad"]
 
 [tool.uv.sources]
-agent-comms = { git = "https://github.com/OpenHCSDev/agent-comms.git", rev = "1825f12c1d855a2aef689e45ca00109d6b81e660" }
+agent-comms = { git = "https://github.com/OpenHCSDev/agent-comms.git", rev = "5c64041f7c63cd2fc3eb99d93ad62f38d721ed77" }
 #textual-serve = { path = "../textual-serve", editable = true }
 #textual = { path = "../textual", editable = true }
 #textual-dev = { path = "../textual-dev", editable = true }

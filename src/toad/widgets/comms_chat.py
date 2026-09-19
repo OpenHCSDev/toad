@@ -44,6 +44,28 @@ def session_thread_name(project_path) -> str:
     )
 
 
+def resolve_session_thread(
+    comms, project_path: Path, preferred: str | None = None
+) -> str | None:
+    """Resolve Toad's wire identity from the registry's authoritative worktree."""
+    project = Path(project_path).expanduser().resolve()
+    threads = comms.registry.all_threads()
+    if (
+        preferred in threads
+        and Path(threads[preferred].worktree).expanduser().resolve() == project
+    ):
+        return preferred
+    matches = [
+        name
+        for name, thread in threads.items()
+        if Path(thread.worktree).expanduser().resolve() == project
+        and "acp" in thread.tags
+    ]
+    if len(matches) == 1:
+        return matches[0]
+    return None
+
+
 def _format_context(person: Mapping) -> str:
     used = person.get("context_used")
     size = person.get("context_size")
@@ -150,7 +172,12 @@ class CommsChatView(Conversation):
         return peers
 
     async def _refresh(self) -> None:
-        if self.screen is not self.app.screen or self._refresh_lock.locked():
+        if not self.is_attached or self._refresh_lock.locked():
+            return
+        try:
+            if self.screen is not self.app.screen:
+                return
+        except Exception:
             return
         async with self._refresh_lock:
             try:
@@ -158,6 +185,8 @@ class CommsChatView(Conversation):
                 messages_on_wire = list(self._messages(comms))
                 people = list(comms.who())
                 activity = comms.all_activity()
+                if self.kind == "dm":
+                    comms.acknowledge(self._me, self.target)
             except Exception as error:
                 self.status = f"Wire error: {error}"
                 return
@@ -229,8 +258,6 @@ class CommsChatView(Conversation):
                 self.status = ""
             if follow:
                 self.window.scroll_end(animate=False)
-            if self.kind == "dm":
-                comms.acknowledge(self._me, self.target)
 
     @on(messages.UserInputSubmitted)
     async def on_user_input_submitted(self, event: messages.UserInputSubmitted) -> None:

@@ -25,11 +25,12 @@ from toad.widgets.plan import Plan
 from toad.widgets.throbber import Throbber
 from toad.widgets.conversation import Conversation
 from toad.widgets.project_directory_tree import ProjectDirectoryTree
-from toad.widgets.comms_chat import session_thread_name
+from toad.widgets.comms_chat import resolve_session_thread, session_thread_name
 from toad.widgets.comms_fork_dialog import ForkDialog
 from toad.widgets.comms_sidebar import CommsSidebar, SelectTarget
 from toad.widgets.side_bar import SideBar, SideBarCollapsible
 from toad.widgets.session_tabs import SessionsTabs
+from toad.widgets.session_sidebar import SessionSidebar
 
 
 class ModeProvider(Provider):
@@ -122,6 +123,7 @@ class MainScreen(Screen, can_focus=False):
         self._agent = agent
         self._agent_session_id = agent_session_id
         self._agent_session_title = agent_session_title
+        self._comms_thread = session_thread_name(project_path)
         self._session_pk = session_pk
         self._initial_prompt = initial_prompt
 
@@ -143,9 +145,7 @@ class MainScreen(Screen, can_focus=False):
         from toad.widgets.comms_sidebar import CommsSidebar
 
         try:
-            self.query_one(CommsSidebar).session_thread = session_thread_name(
-                self.project_path
-            )
+            self.query_one(CommsSidebar).session_thread = self._resolve_comms_thread()
         except Exception:
             pass
         self.conversation
@@ -153,6 +153,7 @@ class MainScreen(Screen, can_focus=False):
     def compose(self) -> ComposeResult:
         with containers.Center():
             yield SideBar(
+                SideBar.Panel("Sessions", SessionSidebar()),
                 SideBar.Panel(
                     "Comms",
                     CommsSidebar(session_thread=session_thread_name(self.project_path)),
@@ -186,6 +187,7 @@ class MainScreen(Screen, can_focus=False):
 
     def on_comms_session_named(self, thread_name: str) -> None:
         """Tell the sidebar which thread is this screen's session."""
+        self._comms_thread = thread_name
         try:
             self.query_one(CommsSidebar).session_thread = thread_name
         except Exception:
@@ -195,7 +197,23 @@ class MainScreen(Screen, can_focus=False):
 
     @property
     def _session_thread(self) -> str:
-        return session_thread_name(self.project_path)
+        return self._resolve_comms_thread()
+
+    def _resolve_comms_thread(self) -> str:
+        try:
+            import os
+
+            from agent_comms.operations import wire
+
+            root = os.environ.get("AGENT_COMMS_ROOT", "~/.agent-comms")
+            resolved = resolve_session_thread(
+                wire(root), self.project_path, self._comms_thread
+            )
+        except Exception:
+            resolved = None
+        if resolved is not None:
+            self._comms_thread = resolved
+        return self._comms_thread
 
     async def _open_comms(self, target: str, kind: str) -> None:
         if self.id is None:
@@ -311,6 +329,7 @@ class MainScreen(Screen, can_focus=False):
                 subtitle=event.subtitle,
                 path=event.path,
                 state=event.state,
+                summary=event.summary,
             )
 
     @on(messages.SessionClose)
@@ -323,6 +342,7 @@ class MainScreen(Screen, can_focus=False):
         import gc
 
         gc.freeze()
+        self.query_one(CommsSidebar).session_thread = self._resolve_comms_thread()
         for tree in self.query("#project_directory_tree").results(DirectoryTree):
             tree.data_bind(path=MainScreen.project_path)
         for tree in self.query(DirectoryTree):
