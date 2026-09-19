@@ -47,11 +47,12 @@ def _fmt_age(ts: float, now: float) -> str:
     return f"{int(age // 86400)}d"
 
 
-class ComposeTarget(Message):
-    """User picked a compose target; the prompt should be prefilled."""
+class SelectTarget(Message):
+    """User picked a view target: a channel, a DM peer, or the session."""
 
-    def __init__(self, target: str) -> None:
+    def __init__(self, target: str, kind: str) -> None:
         self.target = target
+        self.kind = kind  # "channel" | "dm" | "session"
         super().__init__()
 
 
@@ -79,7 +80,7 @@ class CommsRow(Static):
     def on_click(self, event) -> None:
         if event.button == 3:
             return  # right click handled by context menu in CommsSidebar
-        self.post_message(ComposeTarget(self._compose_prefix()))
+        self.post_message(SelectTarget(self.target_name, self.kind))
 
     def _compose_prefix(self) -> str:
         if self.kind == "channel":
@@ -103,6 +104,7 @@ class CommsSidebar(VerticalScroll):
     """
 
     selected: reactive[str] = reactive("", init=False)
+    session_thread: reactive[str] = reactive("", init=False)
 
     class ThreadAction(Message):
         """Context-menu action on a thread."""
@@ -112,8 +114,9 @@ class CommsSidebar(VerticalScroll):
             self.action = action
             super().__init__()
 
-    def __init__(self, **kwargs) -> None:
+    def __init__(self, session_thread: str = "", **kwargs) -> None:
         super().__init__(**kwargs)
+        self.session_thread = session_thread
         self._row_map: dict[tuple[str, str], CommsRow] = {}
 
     def on_mount(self) -> None:
@@ -177,6 +180,7 @@ class CommsSidebar(VerticalScroll):
         self.mount(Static("WHO'S HERE", classes="section"))
         for person in snapshot["who"]:
             name = person["name"]
+            is_session = name == self.session_thread
             if person["status"] == ThreadStatus.STOPPED.value:
                 status_mark = "○"
             elif person["pending"]:
@@ -184,10 +188,12 @@ class CommsSidebar(VerticalScroll):
             else:
                 status_mark = "●"
             task = f" — {person['task']}" if person["task"] else ""
+            session_mark = " (session)" if is_session else ""
             row = CommsRow(
-                "thread",
+                "session" if is_session else "dm",
                 name,
-                f"{status_mark} {name}{task} [{_fmt_age(person['last_seen'], now)}]",
+                f"{status_mark} {name}{session_mark}{task}"
+                f" [{_fmt_age(person['last_seen'], now)}]",
                 person["pending"],
             )
             if name == selection:

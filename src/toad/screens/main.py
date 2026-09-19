@@ -25,8 +25,9 @@ from toad.widgets.plan import Plan
 from toad.widgets.throbber import Throbber
 from toad.widgets.conversation import Conversation
 from toad.widgets.project_directory_tree import ProjectDirectoryTree
+from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.comms_fork_dialog import ForkDialog
-from toad.widgets.comms_sidebar import CommsSidebar, ComposeTarget
+from toad.widgets.comms_sidebar import CommsSidebar, SelectTarget
 from toad.widgets.side_bar import SideBar
 
 
@@ -162,23 +163,37 @@ class MainScreen(Screen, can_focus=False):
                 project_path=MainScreen.project_path,
                 column=MainScreen.column,
             )
+            yield CommsChatView(id="comms-chat")
         yield Footer()
 
     def run_prompt(self, prompt: str) -> None:
         self.conversation
 
 
-    @on(ComposeTarget)
-    def on_comms_compose_target(self, event: ComposeTarget) -> None:
-        """Prefill the prompt with a DM or channel target from the sidebar."""
-        from toad.widgets.prompt import PromptTextArea
-
+    def on_comms_session_named(self, thread_name: str) -> None:
+        """Tell the sidebar which thread is this screen's session."""
         try:
-            prompt_area = self.query_one(PromptTextArea)
+            self.query_one(CommsSidebar).session_thread = thread_name
         except Exception:
+            pass
+
+    @on(SelectTarget)
+    def on_comms_select_target(self, event: SelectTarget) -> None:
+        """IRC view switching: a click changes the main pane."""
+        from toad.widgets.conversation import Conversation
+
+        conversation = self.query_one(Conversation)
+        chat = self.query_one("#comms-chat", CommsChatView)
+        if event.kind == "session":
+            conversation.display = True
+            chat.display = False
             return
-        prompt_area.focus()
-        prompt_area.insert(event.target)
+        thread_name = re.sub(
+            r"[^A-Za-z0-9_-]+", "-", Path(self.project_path).name or "session"
+        ).strip("-")
+        chat.open_target(event.target, event.kind, me=thread_name)
+        conversation.display = False
+        chat.display = True
 
     @on(CommsSidebar.ThreadAction)
     async def on_comms_thread_action(self, event: CommsSidebar.ThreadAction) -> None:
