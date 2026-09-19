@@ -25,6 +25,8 @@ from toad.widgets.plan import Plan
 from toad.widgets.throbber import Throbber
 from toad.widgets.conversation import Conversation
 from toad.widgets.project_directory_tree import ProjectDirectoryTree
+from toad.widgets.comms_fork_dialog import ForkDialog
+from toad.widgets.comms_sidebar import CommsSidebar, ComposeTarget
 from toad.widgets.side_bar import SideBar
 
 
@@ -139,6 +141,7 @@ class MainScreen(Screen, can_focus=False):
     def compose(self) -> ComposeResult:
         with containers.Center():
             yield SideBar(
+                SideBar.Panel("Comms", CommsSidebar()),
                 SideBar.Panel("Plan", Plan([])),
                 SideBar.Panel(
                     "Project",
@@ -163,6 +166,43 @@ class MainScreen(Screen, can_focus=False):
 
     def run_prompt(self, prompt: str) -> None:
         self.conversation
+
+
+    @on(ComposeTarget)
+    def on_comms_compose_target(self, event: ComposeTarget) -> None:
+        """Prefill the prompt with a DM or channel target from the sidebar."""
+        from toad.widgets.prompt import PromptTextArea
+
+        try:
+            prompt_area = self.query_one(PromptTextArea)
+        except Exception:
+            return
+        prompt_area.focus()
+        prompt_area.insert(event.target)
+
+    @on(CommsSidebar.ThreadAction)
+    async def on_comms_thread_action(self, event: CommsSidebar.ThreadAction) -> None:
+        if event.action != "fork":
+            return
+        parent = event.name
+
+        def do_fork(spec: tuple[str, str] | None) -> None:
+            if not spec:
+                return
+            import os as _os
+
+            from agent_comms.operations import wire as _wire
+
+            root = _os.environ.get("AGENT_COMMS_ROOT", "~/.agent-comms")
+            from agent_comms.operations import ForkSpec
+
+            try:
+                _wire(root).fork(ForkSpec(name=spec[0], parent=parent, task=spec[1]))
+                self.notify(f"forked {spec[0]} from {parent}", title="Comms")
+            except Exception as error:
+                self.notify(str(error), title="Comms fork failed", severity="error")
+
+        self.app.push_screen(ForkDialog(parent), do_fork)
 
     def update_node_styles(self, animate: bool = True) -> None:
         self.conversation.update_node_styles(animate=animate)
