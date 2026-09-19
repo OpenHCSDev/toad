@@ -8,7 +8,7 @@ from textual.app import ComposeResult
 from textual import getters
 
 from textual.content import Content
-from textual.reactive import reactive, var
+from textual.reactive import var
 from textual.css.query import NoMatches
 from textual import containers
 from textual.widgets import Static, Markdown
@@ -178,7 +178,9 @@ class ToolCall(containers.VerticalGroup):
         if status == "pending":
             header += Content.assemble(" ⌛")
         elif status == "in_progress":
-            pass
+            header += Content.assemble(
+                " ", pill("running", "$warning-muted", "$warning")
+            )
         elif status == "failed":
             header += Content.assemble(" ", pill("failed", "$error-muted", "$error"))
         elif status == "completed":

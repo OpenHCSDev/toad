@@ -13,6 +13,7 @@ from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.comms_fork_dialog import ForkDialog
 from toad.widgets.comms_sidebar import CommsSidebar, SelectTarget
 from toad.widgets.session_tabs import SessionsTabs
+from toad.widgets.session_sidebar import SessionSidebar
 from toad.widgets.side_bar import SideBar
 
 
@@ -61,11 +62,12 @@ class CommsScreen(Screen, can_focus=False):
     def compose(self) -> ComposeResult:
         with containers.Center():
             yield SideBar(
+                SideBar.Panel("Sessions", SessionSidebar()),
                 SideBar.Panel(
                     "Comms",
                     CommsSidebar(session_thread=self.me),
                     flex=True,
-                )
+                ),
             )
             with containers.Vertical(id="comms-content"):
                 yield SessionsTabs()

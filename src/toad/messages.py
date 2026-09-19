@@ -113,6 +113,8 @@ class SessionUpdate(Message):
     """Project directory path."""
     state: SessionState | None = None
     """New session state."""
+    summary: str | None = None
+    """Current agent activity shown in session lists."""
 
 
 @dataclass

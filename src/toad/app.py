@@ -665,6 +665,17 @@ class ToadApp(App, inherit_bindings=False):
         """Open or reuse an IRC/channel/DM view as a native Toad session."""
         from toad.screens.comms import CommsScreen
 
+        from agent_comms.operations import wire
+
+        try:
+            comms = wire(Path(os.environ.get("AGENT_COMMS_ROOT", "~/.agent-comms")))
+            if kind == "dm":
+                comms.registry.require(me)
+                comms.registry.require(target)
+        except Exception as error:
+            self.notify(str(error), title="Comms target unavailable", severity="error")
+            return owner_mode
+
         root = str(
             Path(os.environ.get("AGENT_COMMS_ROOT", "~/.agent-comms"))
             .expanduser()

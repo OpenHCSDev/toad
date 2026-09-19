@@ -20,6 +20,7 @@ FORK_TOAD = FORK_ROOT / ".venv" / "bin" / "toad"
 AGENT_PY = FORK_ROOT / ".venv" / "bin" / "python"
 WIRE = Path("/tmp/toad-e2e-wire")
 PROJECT = Path("/tmp/toad-e2e-proj")
+PROGRESS_STUB = PROJECT / "pi-progress-stub"
 
 
 def sgr_click(x: int, y: int, button: int = 0) -> bytes:
@@ -63,6 +64,9 @@ class ToadSession:
         env = dict(
             os.environ,
             AGENT_COMMS_ROOT=str(WIRE),
+            AGENT_COMMS_AGENT_BIN=str(PROGRESS_STUB),
+            XDG_CONFIG_HOME=str(PROJECT / ".config"),
+            XDG_STATE_HOME=str(PROJECT / ".state"),
             TERM="xterm-256color",
         )
         self.proc = await asyncio.create_subprocess_exec(
@@ -172,6 +176,21 @@ class ToadSession:
 async def main() -> None:
     os.environ.pop("TOAD_COMMS_TEST_TARGET", None)
     os.makedirs(PROJECT, exist_ok=True)
+    PROGRESS_STUB.write_text(
+        """#!/bin/sh
+printf '%s\n' '{"type":"response","command":"get_state","success":true,"data":{"model":{"provider":"test","id":"cursor-ux","contextWindow":1000}}}'
+printf '%s\n' '{"type":"message_update","assistantMessageEvent":{"type":"thinking_delta","delta":"Inspecting workspace"}}'
+sleep 2
+printf '%s\n' '{"type":"tool_execution_start","toolCallId":"t1","toolName":"bash","args":{"command":"pwd"}}'
+printf '%s\n' '{"type":"tool_execution_update","toolCallId":"t1","toolName":"bash","partialResult":{"content":[{"type":"text","text":"checking files"}]}}'
+sleep 2
+printf '%s\n' '{"type":"tool_execution_end","toolCallId":"t1","toolName":"bash","result":{"content":[{"type":"text","text":"/tmp/toad-e2e-proj"}]},"isError":false}'
+printf '%s\n' '{"type":"message_update","assistantMessageEvent":{"type":"text_delta","delta":"Analysis complete"}}'
+printf '%s\n' '{"type":"agent_settled"}'
+printf '%s\n' '{"type":"response","command":"get_session_stats","success":true,"data":{"contextUsage":{"tokens":100,"contextWindow":1000}}}'
+"""
+    )
+    PROGRESS_STUB.chmod(0o755)
     for stale in (
         "registry.json",
         "bus.jsonl",
@@ -203,6 +222,38 @@ async def main() -> None:
     )
     print("[1] launch + sidebar render OK")
 
+    for _ in range(20):
+        frame = await session.frame(0.5)
+        if "How can I help you today?" in frame:
+            break
+    else:
+        raise AssertionError(f"agent did not become ready:\n{frame[-900:]}")
+
+    await session.click(78, 36)
+    await session.frame(0.2)
+    await session.type_text("inspect the project")
+    await asyncio.sleep(0.3)
+    await session.press_enter()
+    for _ in range(30):
+        frame = await session.frame(0.1)
+        if "Inspecting workspace" in frame:
+            break
+    else:
+        raise AssertionError(f"thinking trace missing:\n{frame}")
+    for _ in range(30):
+        frame = await session.frame(0.1)
+        if "Run pwd" in frame and "running" in frame:
+            break
+    else:
+        raise AssertionError(f"running tool progress missing:\n{frame[-900:]}")
+    for _ in range(30):
+        frame = await session.frame(0.1)
+        if "Analysis complete" in frame:
+            break
+    else:
+        raise AssertionError(f"final response missing:\n{frame[-900:]}")
+    print("[2] real ACP thinking + tool progress + response OK")
+
     # Open and operate the pointer-anchored context menu with real mouse/key input.
     assert await session.click_row("seed-peer", button=2), (
         "seed-peer row not found:\n" + "\n".join(session.last_screen_lines)
@@ -219,7 +270,7 @@ async def main() -> None:
     await session.key("\x1b")
     await session.frame(0.5)
     assert session.alive(), "toad died dismissing the fork dialog"
-    print("[2] pointer context menu + fork dialog open and dismiss OK")
+    print("[3] pointer context menu + fork dialog open and dismiss OK")
 
     # Click '#all': this must create a native tracked Toad session/mode.
     assert await session.click_row("#all"), "#all row not found:\n" + "\n".join(
@@ -230,7 +281,7 @@ async def main() -> None:
         f"channel session did not open:\n{frame[-900:]}"
     )
     assert "#all" in frame, f"native channel session tab missing:\n{frame[-900:]}"
-    print("[3] channel click opens native session + history renders OK")
+    print("[4] channel click opens native session + history renders OK")
 
     # The chat composer should be focused; type and send.
     await session.type_text("hello from the pty test")
@@ -242,7 +293,7 @@ async def main() -> None:
     assert "hello from the pty test" in history, (
         f"send failed; wire history: {history[-3:]}\n{frame[-900:]}"
     )
-    print("[4] composer send lands on wire OK")
+    print("[5] composer send lands on wire OK")
 
     # Escape returns to the original agent mode without closing the channel tab.
     await session.key("\x1b")
@@ -250,7 +301,7 @@ async def main() -> None:
     assert "How can I help you today?" in frame or "New Session" in frame, (
         f"did not return to agent session:\n{frame[-900:]}"
     )
-    print("[5] escape restores agent session OK")
+    print("[6] escape restores agent session OK")
 
     # Reopening the same target reuses its native mode; Escape returns again.
     assert await session.click_row("#all"), (
@@ -260,7 +311,7 @@ async def main() -> None:
     assert "hello from the pty test" in frame, "reused channel lost its history"
     await session.key("\x1b")
     await session.frame(0.8)
-    print("[6] native channel session is reused OK")
+    print("[7] native channel session is reused OK")
 
     # Open a DM as another native mode, then close it with the priority binding.
     assert await session.click_row("seed-peer"), "seed-peer row not found for DM"
@@ -271,7 +322,7 @@ async def main() -> None:
     await session.key("\x17")  # ctrl+w
     await session.frame(1.0)
     assert session.alive(), "toad died closing the DM session"
-    print("[7] DM native session opens and closes OK")
+    print("[8] DM native session opens and closes OK")
 
     # Resize and repeatedly toggle the reusable IRC mode from the agent mode.
     await session.key("\x1b")
@@ -286,7 +337,7 @@ async def main() -> None:
         await session.key("\x07")  # ctrl+g: back to agent
         await session.frame(0.5)
         assert session.alive(), f"toad died leaving IRC on soak iteration {index}"
-    print("[8] resize + repeated native IRC toggles: app alive")
+    print("[9] resize + repeated native IRC toggles: app alive")
 
     session.close()
 

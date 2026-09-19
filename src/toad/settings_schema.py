@@ -120,7 +120,7 @@ SCHEMA: list[SchemaDict] = [
                 "title": "Thinking animation",
                 "help": "Animation to show while waiting for the agent to respond",
                 "type": "choices",
-                "default": "quotes",
+                "default": "pulse",
                 "choices": [
                     ("Pulse", "pulse"),
                     ("Quotes", "quotes"),
@@ -227,6 +227,7 @@ SCHEMA: list[SchemaDict] = [
                 "title": "Agent thoughts",
                 "help": "Show agent's 'thoughts' in the conversation?",
                 "type": "boolean",
+                "default": True,
             },
             # {
             #     "key": "warn",

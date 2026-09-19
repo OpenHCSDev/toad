@@ -669,6 +669,7 @@ class Conversation(containers.Vertical):
                 if thought_fragment.strip():
                     self._agent_thought = AgentThought(thought_fragment)
                     await self.post(self._agent_thought, new_block=False)
+                    self._agent_thought.loading = False
             else:
                 await self._agent_thought.append_fragment(thought_fragment)
             return self._agent_thought
@@ -812,7 +813,15 @@ class Conversation(containers.Vertical):
                 return
             await self.post(UserInput(text))
             self.window.scroll_end(animate=False)
-            self._loading = await self.post(Loading("Please wait..."), loading=True)
+            waiting = (
+                "Waiting for replies…"
+                if text.lstrip().startswith(("@", "#", "!relay "))
+                else "Thinking…"
+            )
+            self.post_message(
+                messages.SessionUpdate(state="busy", summary=waiting.rstrip("…"))
+            )
+            self._loading = await self.post(Loading(waiting))
             await asyncio.sleep(0)
             self.send_prompt_to_agent(text)
 
@@ -850,8 +859,9 @@ class Conversation(containers.Vertical):
         self.turn = "client"
         if self._agent_thought is not None and self._agent_thought.loading:
             await self._agent_thought.remove()
-        if self._loading is not None:
-            await self._loading.remove()
+        pending_loading, self._loading = self._loading, None
+        if pending_loading is not None and pending_loading.is_attached:
+            await pending_loading.remove()
         self._agent_response = None
         self._agent_thought = None
 
@@ -862,7 +872,9 @@ class Conversation(containers.Vertical):
 
         self._turn_count += 1
 
-        self.post_message(messages.SessionUpdate(state="idle"))
+        self.post_message(
+            messages.SessionUpdate(state="idle", summary="Ready for review")
+        )
 
         if stop_reason != "end_turn":
             from toad.widgets.markdown_note import MarkdownNote
@@ -933,6 +945,9 @@ class Conversation(containers.Vertical):
     async def on_acp_agent_message(self, message: acp_messages.Update):
         message.stop()
         self._agent_thought = None
+        self.post_message(
+            messages.SessionUpdate(state="busy", summary="Writing response")
+        )
         await self.post_agent_response(message.text)
 
     @on(acp_messages.UserMessage)
@@ -945,6 +960,8 @@ class Conversation(containers.Vertical):
     @on(acp_messages.Thinking)
     async def on_acp_agent_thinking(self, message: acp_messages.Thinking):
         message.stop()
+        activity = " ".join(message.text.splitlines()).strip() or "Thinking"
+        self.post_message(messages.SessionUpdate(state="busy", summary=activity))
         await self.post_agent_thought(message.text)
 
     @on(acp_messages.RequestPermission)
@@ -990,8 +1007,12 @@ class Conversation(containers.Vertical):
         from toad.widgets.tool_call import ToolCall
 
         tool_call = message.tool_call
+        status = tool_call.get("status")
+        title = tool_call.get("title") or "Using tool"
+        if status in {None, "pending", "in_progress"}:
+            self.post_message(messages.SessionUpdate(state="busy", summary=title))
 
-        if tool_call.get("status", None) in (None, "completed"):
+        if status in (None, "completed"):
             self._agent_thought = None
             self._agent_response = None
 
@@ -1506,8 +1527,9 @@ class Conversation(containers.Vertical):
         Returns:
             The widget that was mounted.
         """
-        if self._loading is not None:
-            await self._loading.remove()
+        pending_loading, self._loading = self._loading, None
+        if pending_loading is not None and pending_loading.is_attached:
+            await pending_loading.remove()
         if new_block and not loading:
             self.new_block()
         if not self.contents.is_attached:
