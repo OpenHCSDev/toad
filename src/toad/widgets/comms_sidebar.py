@@ -186,6 +186,13 @@ class CommsSidebar(VerticalScroll):
         else:
             self.post_message(SelectTarget(target, "dm"))
 
+    def _comms_registry_names(self) -> list[str]:
+        """Registered thread names on the wire (for view toggles)."""
+        try:
+            return list(wire(_comms_root()).registry.active_threads())
+        except Exception:
+            return []
+
     # ─── Data ─────────────────────────────────────────────────────────────────
 
     def _snapshot(self) -> dict:
