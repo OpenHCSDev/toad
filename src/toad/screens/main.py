@@ -25,7 +25,7 @@ from toad.widgets.plan import Plan
 from toad.widgets.throbber import Throbber
 from toad.widgets.conversation import Conversation
 from toad.widgets.project_directory_tree import ProjectDirectoryTree
-from toad.widgets.comms_chat import CommsChatView
+from toad.widgets.comms_chat import CommsChatView, session_thread_name
 from toad.widgets.comms_fork_dialog import ForkDialog
 from toad.widgets.comms_sidebar import CommsSidebar, SelectTarget
 from toad.widgets.side_bar import SideBar
@@ -137,6 +137,14 @@ class MainScreen(Screen, can_focus=False):
         return super().get_loading_widget()
 
     def _on_screen_resume(self, event: ScreenResume) -> None:
+        from toad.widgets.comms_sidebar import CommsSidebar
+
+        try:
+            self.query_one(CommsSidebar).session_thread = session_thread_name(
+                self.project_path
+            )
+        except Exception:
+            pass
         self.conversation
 
     def compose(self) -> ComposeResult:
@@ -180,20 +188,9 @@ class MainScreen(Screen, can_focus=False):
     @on(SelectTarget)
     def on_comms_select_target(self, event: SelectTarget) -> None:
         """IRC view switching: a click changes the main pane."""
-        from toad.widgets.conversation import Conversation
+        from toad.widgets.comms_chat import switch_comms_target
 
-        conversation = self.query_one(Conversation)
-        chat = self.query_one("#comms-chat", CommsChatView)
-        if event.kind == "session":
-            conversation.display = True
-            chat.display = False
-            return
-        thread_name = re.sub(
-            r"[^A-Za-z0-9_-]+", "-", Path(self.project_path).name or "session"
-        ).strip("-")
-        chat.open_target(event.target, event.kind, me=thread_name)
-        conversation.display = False
-        chat.display = True
+        switch_comms_target(self, event)
 
     @on(CommsSidebar.ThreadAction)
     async def on_comms_thread_action(self, event: CommsSidebar.ThreadAction) -> None:
