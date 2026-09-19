@@ -135,7 +135,7 @@ class CommsChatView(Conversation):
 
     def _messages(self, comms):
         if self.kind == "irc":
-            return comms.full_history()
+            return comms.channel_history("#all")
         if self.kind == "dm":
             return comms.dm_history(self._me, self.target)
         return comms.channel_history(self.target)
@@ -193,6 +193,7 @@ class CommsChatView(Conversation):
                     person.get("model"),
                     person.get("context_used"),
                     person.get("context_size"),
+                    person.get("context_percent"),
                 )
                 for person, current in active
             )
@@ -201,7 +202,10 @@ class CommsChatView(Conversation):
                 for person, current in active:
                     metadata = " · ".join(
                         value
-                        for value in (person.get("model") or "", _format_context(person))
+                        for value in (
+                            person.get("model") or "",
+                            _format_context(person),
+                        )
                         if value
                     )
                     detail = current.detail or current.state.value
@@ -226,13 +230,12 @@ class CommsChatView(Conversation):
             if follow:
                 self.window.scroll_end(animate=False)
             if self.kind == "dm":
-                comms.acknowledge(self._me)
+                comms.acknowledge(self._me, self.target)
 
     @on(messages.UserInputSubmitted)
     async def on_user_input_submitted(self, event: messages.UserInputSubmitted) -> None:
         event.stop()
-        text = event.body.strip()
-        if not text:
+        if not event.body.strip():
             return
         try:
             comms = wire(_comms_root())
@@ -244,7 +247,9 @@ class CommsChatView(Conversation):
                         worktree=str(self.project_path),
                     )
                 )
-            comms.send(self._me, "#all" if self.kind == "irc" else self.target, text)
+            comms.send(
+                self._me, "#all" if self.kind == "irc" else self.target, event.body
+            )
         except Exception as error:
             self.prompt.text = event.body
             self.flash(f"Send failed: {error}", style="error")
