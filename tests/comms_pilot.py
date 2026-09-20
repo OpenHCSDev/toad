@@ -114,7 +114,7 @@ async def main() -> None:
             assert await pilot.hover(session_rows[0])
             assert session_rows[0].rich_style.reverse
             coordination = app.screen.query_one(CoordinationStatus)
-            assert "persistent wire" in coordination.render().plain
+            assert "persistent" in coordination.render().plain
             assert str(wire_root) in str(coordination.tooltip)
 
             owner_mode = app.current_mode

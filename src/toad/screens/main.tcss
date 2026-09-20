@@ -660,6 +660,10 @@ MainScreen {
             }
         }
 
+        #coordination-panel Contents {
+            padding: 0;
+        }
+
 
     }
 
