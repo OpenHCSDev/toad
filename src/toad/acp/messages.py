@@ -162,6 +162,10 @@ class CoordinationUpdate(AgentMessage):
     transport: str
 
 
+class TurnSettled(AgentMessage):
+    """The agent finished writing while trailing metadata may still arrive."""
+
+
 @dataclass
 class UsageUpdage(AgentMessage):
     """Context window change"""

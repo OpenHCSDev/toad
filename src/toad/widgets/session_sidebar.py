@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from textual.containers import VerticalScroll
 from textual.binding import Binding
-from textual.content import Content
 from textual.reactive import reactive
 from textual.widgets import Static
 
@@ -36,9 +35,9 @@ class SessionRow(Static):
     }
     SessionRow.-current { color: $text; text-style: bold; }
     SessionRow:ansi:hover, SessionRow:ansi:focus {
-        background: ansi_default;
-        color: ansi_default;
-        text-style: bold reverse;
+        background: ansi_bright_white;
+        color: ansi_black;
+        text-style: bold;
     }
     SessionRow.-busy { color: $warning; }
     SessionRow.-asking { color: $accent; }
@@ -64,15 +63,10 @@ class SessionRow(Static):
             "asking": "?",
             "idle": "✓",
         }[details.state]
-        activity = details.summary or details.subtitle or details.path or "Ready"
-        self.update(
-            Content.assemble(
-                (f"{marker} ", "$text-secondary"),
-                (details.title or "New Session", "$text"),
-                "\n  ",
-                activity.replace("\n", " ")[:44],
-            )
-        )
+        activity = (details.summary or details.subtitle or details.path or "Ready").replace(
+            "\n", " "
+        )[:44]
+        self.update(f"{marker} {details.title or 'New Session'}\n  {activity}")
 
     def _sidebar(self):
         parent = self.parent

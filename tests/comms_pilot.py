@@ -13,6 +13,7 @@ from textual.widgets import Footer, Input
 from textual.widgets._footer import FooterKey
 
 from toad import messages
+from toad.acp.agent import Agent as ACPAgent
 from toad.acp import messages as acp_messages
 from toad import paths
 from toad.app import ToadApp
@@ -31,6 +32,7 @@ from toad.widgets.comms_sidebar import (
     NewSessionButton,
 )
 from toad.widgets.conversation import Loading, make_session_title
+from toad.widgets.flash import Flash
 from toad.widgets.session_sidebar import SessionRow
 from toad.widgets.session_tabs import SessionLabel
 from toad.widgets.side_bar import SideBarCollapsible
@@ -112,7 +114,7 @@ async def main() -> None:
             assert len(session_rows) == 1
             assert session_rows[0].current
             assert await pilot.hover(session_rows[0])
-            assert session_rows[0].rich_style.reverse
+            assert session_rows[0].rich_style.color != session_rows[0].rich_style.bgcolor
             coordination = app.screen.query_one(CoordinationStatus)
             assert "persistent" in coordination.render().plain
             assert str(wire_root) in str(coordination.tooltip)
@@ -121,7 +123,12 @@ async def main() -> None:
             sidebar = app.screen.query_one(CommsSidebar)
             new_session_button = sidebar.query_one(NewSessionButton)
             assert sidebar.children[0] is new_session_button
-            assert new_session_button.region.height == 2
+            assert new_session_button.region.height == 1
+            assert await pilot.hover(new_session_button)
+            assert (
+                new_session_button.rich_style.color
+                != new_session_button.rich_style.bgcolor
+            )
             await pilot.click(new_session_button)
             await pilot.pause()
             created_mode = app.current_mode
@@ -170,6 +177,12 @@ async def main() -> None:
             assert app.session_tracker.get_session(owner_mode).title == "Pilot session"
 
             conversation = app.screen.conversation
+            flash = conversation.query_one(Flash)
+            flash.flash("Readable notification", duration=10, style="warning")
+            await pilot.pause()
+            assert flash.visible
+            assert flash.rich_style.color != flash.rich_style.bgcolor
+            flash.visible = False
             conversation.post_message(
                 messages.UserInputSubmitted("Must not replace a manual title")
             )
@@ -200,6 +213,23 @@ async def main() -> None:
             assert app.session_tracker.session_count == 1
 
             conversation._loading = await conversation.post(Loading("Thinking…"))
+            conversation.post_message(acp_messages.Update("text", "Finished answer"))
+            await pilot.pause()
+            assert app.session_tracker.get_session(owner_mode).summary == "Writing response"
+            protocol_agent = object.__new__(ACPAgent)
+            protocol_agent._message_target = conversation
+            protocol_agent.rpc_session_update(
+                "pilot-session",
+                {
+                    "sessionUpdate": "agent_message_chunk",
+                    "content": {"type": "text", "text": ""},
+                    "_meta": {"agentComms": {"turnSettled": True}},
+                },
+            )
+            await pilot.pause()
+            settled = app.session_tracker.get_session(owner_mode)
+            assert settled.state == "idle"
+            assert settled.summary == "Ready for review"
             conversation.post_message(
                 acp_messages.Thinking("agent_thought_chunk", "Inspecting the workspace")
             )
