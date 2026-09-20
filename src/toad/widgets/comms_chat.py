@@ -9,12 +9,13 @@ import time
 from collections.abc import Mapping
 from pathlib import Path
 
+from agent_comms import ActivityState, MessagePage, Thread
+from agent_comms import Message as WireMessage
+from agent_comms.operations import wire
 from textual import containers, on, work
 from textual.app import ComposeResult
 from textual.content import Content
-
-from agent_comms import ActivityState, Thread
-from agent_comms.operations import wire
+from textual.widget import Widget
 
 from toad import messages
 from toad.widgets.agent_response import AgentResponse
@@ -30,6 +31,11 @@ from toad.widgets.flash import Flash
 from toad.widgets.prompt import Prompt
 from toad.widgets.throbber import Throbber
 from toad.widgets.user_input import UserInput
+
+HISTORY_PAGE_SIZE = 40
+HISTORY_WINDOW_SIZE = 120
+HISTORY_PAGE_BYTES = 256 * 1024
+HISTORY_EDGE_THRESHOLD = 2
 
 
 def _comms_root() -> Path:
@@ -100,12 +106,16 @@ class CommsChatView(Conversation):
         self.target = target
         self.kind = kind
         self._me = me
-        self._seen_seqs: set[int] = set()
+        self._history: list[tuple[WireMessage, Widget]] = []
+        self._has_older = False
+        self._has_newer = False
+        self._history_initialized = False
+        self._poll_cursor = 0
+        self._edge_load_scheduled = False
         self._activity_snapshot: tuple = ()
         self._refresh_lock = asyncio.Lock()
 
     def compose(self) -> ComposeResult:
-        yield Throbber(id="throbber")
         with Window():
             with ContentsGrid():
                 with CursorContainer(id="cursor-container"):
@@ -113,24 +123,27 @@ class CommsChatView(Conversation):
                 with Contents(id="contents"):
                     yield containers.VerticalGroup(id="comms-activity")
         yield Flash()
-        yield Prompt(
-            simple_input=True,
-            placeholder=f"Message {self.target}",
-        ).data_bind(
-            project_path=Conversation.project_path,
-            working_directory=Conversation.working_directory,
-            agent_info=Conversation.agent_info,
-            agent_ready=Conversation.agent_ready,
-            current_mode=Conversation.current_mode,
-            modes=Conversation.modes,
-            status=Conversation.status,
-        )
+        with containers.Vertical(id="prompt-stack"):
+            yield Throbber(id="throbber")
+            yield Prompt(
+                simple_input=True,
+                placeholder=f"Message {self.target}",
+            ).data_bind(
+                project_path=Conversation.project_path,
+                working_directory=Conversation.working_directory,
+                agent_info=Conversation.agent_info,
+                agent_ready=Conversation.agent_ready,
+                current_mode=Conversation.current_mode,
+                modes=Conversation.modes,
+                status=Conversation.status,
+            )
 
     async def on_mount(self) -> None:
         self.agent_info = Content(self._target_label())
         self.agent_ready = True
         self.prepare_prompt()
         self.window.anchor()
+        self.watch(self.window, "scroll_y", self._on_window_scroll, init=False)
         self.set_interval(1.0, self._refresh)
         self.call_later(self._refresh)
 
@@ -157,12 +170,145 @@ class CommsChatView(Conversation):
             return f"@{self.target}"
         return self.target
 
-    def _messages(self, comms):
+    def _message_page(
+        self,
+        comms,
+        *,
+        before: int | None = None,
+        after: int | None = None,
+    ) -> MessagePage:
         if self.kind == "irc":
-            return comms.channel_history("#all")
-        if self.kind == "dm":
-            return comms.dm_history(self._me, self.target)
-        return comms.channel_history(self.target)
+            target = "#all"
+        elif self.kind == "dm":
+            return comms.dm_history_page(
+                self._me,
+                self.target,
+                before=before,
+                after=after,
+                limit=HISTORY_PAGE_SIZE,
+                max_bytes=HISTORY_PAGE_BYTES,
+            )
+        else:
+            target = self.target
+        return comms.channel_history_page(
+            target,
+            before=before,
+            after=after,
+            limit=HISTORY_PAGE_SIZE,
+            max_bytes=HISTORY_PAGE_BYTES,
+        )
+
+    def _message_block(self, message: WireMessage) -> Widget:
+        stamp = time.strftime("%H:%M", time.localtime(message.timestamp))
+        attribution = f"**{message.sender}** · {stamp}\n\n"
+        if message.sender == self._me:
+            return UserInput(attribution + message.body)
+        return AgentResponse(attribution + message.body)
+
+    async def _mount_page(self, page: MessagePage, *, older: bool) -> None:
+        mounted = {message.seq for message, _ in self._history}
+        records = [message for message in page.messages if message.seq not in mounted]
+        if not records:
+            if older:
+                self._has_older = page.has_older
+            else:
+                self._has_newer = page.has_newer
+            return
+
+        pairs = [(message, self._message_block(message)) for message in records]
+        anchor = self._history[0][1] if older and self._history else None
+        anchor_y = anchor.region.y if anchor is not None else None
+        tray = self.query_one("#comms-activity", containers.VerticalGroup)
+        before = self._history[0][1] if older and self._history else tray
+        await self.contents.mount(*(widget for _, widget in pairs), before=before)
+
+        if older:
+            self._history[0:0] = pairs
+            self._has_older = page.has_older
+            while len(self._history) > HISTORY_WINDOW_SIZE:
+                _, widget = self._history.pop()
+                await widget.remove()
+                self._has_newer = True
+        else:
+            self._history.extend(pairs)
+            self._has_newer = page.has_newer
+            while len(self._history) > HISTORY_WINDOW_SIZE:
+                _, widget = self._history.pop(0)
+                await widget.remove()
+                self._has_older = True
+
+        if anchor is not None and anchor_y is not None:
+            self.call_after_refresh(self._restore_anchor, anchor, anchor_y)
+
+    def _restore_anchor(self, anchor: Widget, screen_y: int) -> None:
+        if anchor.is_attached:
+            self.window.scroll_relative(
+                y=anchor.region.y - screen_y,
+                animate=False,
+                immediate=True,
+            )
+
+    def _on_window_scroll(self, scroll_y: float) -> None:
+        if not self._history_initialized or self._edge_load_scheduled:
+            return
+        near_top = scroll_y <= HISTORY_EDGE_THRESHOLD and self._has_older
+        near_bottom = (
+            self.window.max_scroll_y - scroll_y <= HISTORY_EDGE_THRESHOLD
+            and self._has_newer
+        )
+        if near_top or near_bottom:
+            self._edge_load_scheduled = True
+            self.call_later(self._load_history_edge)
+
+    async def _load_history_edge(self) -> None:
+        try:
+            if not self._history or self._refresh_lock.locked():
+                return
+            async with self._refresh_lock:
+                comms = wire(_comms_root())
+                if self.window.scroll_y <= HISTORY_EDGE_THRESHOLD and self._has_older:
+                    page = self._message_page(comms, before=self._history[0][0].seq)
+                    await self._mount_page(page, older=True)
+                elif (
+                    self.window.max_scroll_y - self.window.scroll_y
+                    <= HISTORY_EDGE_THRESHOLD
+                    and self._has_newer
+                ):
+                    page = self._message_page(comms, after=self._history[-1][0].seq)
+                    await self._mount_page(page, older=False)
+        except Exception as error:
+            self.status = f"Wire error: {error}"
+        finally:
+            self._edge_load_scheduled = False
+
+    async def _refresh_history(self, comms) -> bool:
+        """Refresh the bounded history window; return whether to follow the end."""
+        follow = (
+            not self._has_newer and self.window.scroll_y >= self.window.max_scroll_y
+        )
+        high_water = comms.message_high_water()
+        if not self._history_initialized:
+            page = self._message_page(comms)
+            await self._mount_page(page, older=False)
+            self._has_older = page.has_older
+            self._history_initialized = True
+            self._poll_cursor = high_water
+            return True
+
+        if high_water <= self._poll_cursor:
+            return follow
+
+        page = self._message_page(comms, after=self._poll_cursor)
+        if page.messages and follow:
+            await self._mount_page(page, older=False)
+            self._poll_cursor = (
+                page.newest_seq if page.has_newer else high_water
+            ) or high_water
+        else:
+            if page.messages:
+                self._has_newer = True
+            self._poll_cursor = high_water
+        return follow
 
     def _visible_people(self, people: list[Mapping]) -> list[Mapping]:
         peers = [person for person in people if person["name"] != self._me]
@@ -184,30 +330,16 @@ class CommsChatView(Conversation):
         async with self._refresh_lock:
             try:
                 comms = wire(_comms_root())
-                messages_on_wire = list(self._messages(comms))
                 people = list(comms.who())
                 activity = comms.all_activity()
+                follow = await self._refresh_history(comms)
                 if self.kind == "dm":
                     comms.acknowledge(self._me, self.target)
             except Exception as error:
                 self.status = f"Wire error: {error}"
                 return
 
-            follow = self.window.scroll_y >= self.window.max_scroll_y
             tray = self.query_one("#comms-activity", containers.VerticalGroup)
-            for message in messages_on_wire:
-                if message.seq in self._seen_seqs:
-                    continue
-                stamp = time.strftime("%H:%M", time.localtime(message.timestamp))
-                attribution = f"**{message.sender}** · {stamp}\n\n"
-                block = (
-                    UserInput(attribution + message.body)
-                    if message.sender == self._me
-                    else AgentResponse(attribution + message.body)
-                )
-                await self.contents.mount(block, before=tray)
-                self._seen_seqs.add(message.seq)
-
             visible_people = self._visible_people(people)
             active = []
             for person in visible_people:

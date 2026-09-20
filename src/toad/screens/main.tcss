@@ -55,6 +55,20 @@ Plan {
 
 
 Conversation {    
+    #prompt-stack {
+        dock: bottom;
+        height: auto;
+
+        & > Throbber {
+            offset-y: 0;
+        }
+
+        & > Prompt {
+            dock: none;
+            margin-top: 1;
+        }
+    }
+
     Window {                      
         layout: stream;
         margin: 0;                
@@ -604,12 +618,26 @@ MainScreen {
         height: 1fr;
     }
 
+    #workspace-tabs {
+        display: none;
+        height: 1;
+    }
+
+    #workspace-tabs.-has-preview {
+        display: block;
+    }
+
+    #workspace-content,
+    #conversation-view {
+        height: 1fr;
+    }
+
     SideBar {        
         border-right: tall $primary 30%;
         background: transparent;        
         dock: left;
 
-        overflow: hidden scroll;
+        overflow: hidden;
         scrollbar-size: 0 0;
         box-sizing: border-box;        
         
@@ -619,6 +647,13 @@ MainScreen {
         max-width: 45%;
         min-width: 40;
         height: 1fr;             
+
+        &.-collapsed {
+            width: 1;
+            min-width: 1;
+            max-width: 1;
+            border-right: none;
+        }
                          
         DirectoryTree {  
             height: 1fr;                                  
@@ -634,34 +669,6 @@ MainScreen {
             margin: 0 !important;
             padding: 0 1 0 0;                
             background: transparent;            
-        }
-
-
-        Collapsible {   
-        
-            width: 1fr;                  
-            height: 1fr;              
-            min-height: 3;
-
-            &.-collapsed {
-                height: auto;
-            }
-
-            &.-fixed {                
-                height: auto;
-                Contents {
-                    height: auto;
-                }
-            }
-                               
-            Contents {                
-                height: 1fr;
-                padding: 1 0 0 0;                                           
-            }
-        }
-
-        #coordination-panel Contents {
-            padding: 0;
         }
 
 

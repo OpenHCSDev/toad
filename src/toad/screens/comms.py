@@ -26,6 +26,7 @@ class CommsScreen(Screen, can_focus=False):
         Binding("escape", "back_to_agent", "Agent session", priority=True),
         Binding("ctrl+g", "toggle_irc", "IRC view"),
         Binding("ctrl+j", "toggle_dm", "DM view"),
+        Binding("ctrl+b,f20", "show_sidebar", "Sidebar"),
         Binding("ctrl+w", "close_session", "Close session", priority=True),
         Binding(
             "ctrl+left_square_bracket",
@@ -64,7 +65,10 @@ class CommsScreen(Screen, can_focus=False):
             yield SideBar(
                 SideBar.Panel(
                     "Sessions",
-                    CommsSidebar(session_thread=self.me),
+                    CommsSidebar(
+                        session_thread=self.me,
+                        selected_target=self.target,
+                    ),
                     flex=True,
                 ),
                 SideBar.Panel(
@@ -74,7 +78,10 @@ class CommsScreen(Screen, can_focus=False):
                 ),
             )
             with containers.Vertical(id="comms-content"):
-                yield SessionsTabs()
+                yield SessionsTabs(
+                    view_mode=self.id or "",
+                    view_title=self._target_title(),
+                )
                 yield CommsChatView(
                     self.project_path,
                     me=self.me,
@@ -94,7 +101,22 @@ class CommsScreen(Screen, can_focus=False):
         self.call_after_refresh(chat.prepare_prompt)
         self.set_timer(0.1, chat.prepare_prompt)
 
+    def _target_title(self) -> str:
+        if self.kind == "dm":
+            return f"@{self.target}"
+        return self.target
+
     def action_focus_prompt(self) -> None:
+        self.query_one(CommsChatView).prepare_prompt()
+
+    def action_show_sidebar(self) -> None:
+        sidebar = self.query_one(SideBar)
+        sidebar.reveal()
+        sidebar.query_one("Collapsible CollapsibleTitle").focus()
+
+    @on(SideBar.Dismiss)
+    def on_side_bar_dismiss(self, event: SideBar.Dismiss) -> None:
+        event.stop()
         self.query_one(CommsChatView).prepare_prompt()
 
     async def _open(self, target: str, kind: str) -> None:
@@ -137,12 +159,10 @@ class CommsScreen(Screen, can_focus=False):
             await self._open(peers[0], "dm")
 
     def action_session_previous(self) -> None:
-        if self.id is not None:
-            self.post_message(messages.SessionNavigate(self.id, -1))
+        self.post_message(messages.SessionNavigate(self.owner_mode, -1))
 
     def action_session_next(self) -> None:
-        if self.id is not None:
-            self.post_message(messages.SessionNavigate(self.id, +1))
+        self.post_message(messages.SessionNavigate(self.owner_mode, +1))
 
     async def action_close_session(self) -> None:
         if self.id is not None:
@@ -150,7 +170,7 @@ class CommsScreen(Screen, can_focus=False):
 
     @on(CommsSidebar.ThreadAction)
     async def on_thread_action(self, event: CommsSidebar.ThreadAction) -> None:
-        if event.action != "fork":
+        if event.action != "comms_fork":
             return
         parent = event.name
 
@@ -159,11 +179,17 @@ class CommsScreen(Screen, can_focus=False):
                 return
             import os
 
-            from agent_comms.operations import ForkSpec, wire
+            from agent_comms import invoke_context_tool
+            from agent_comms.operations import wire
 
             root = os.environ.get("AGENT_COMMS_ROOT", "~/.agent-comms")
             try:
-                wire(root).fork(ForkSpec(name=spec[0], parent=parent, task=spec[1]))
+                invoke_context_tool(
+                    wire(root),
+                    event.action,
+                    subject=parent,
+                    arguments={"name": spec[0], "task": spec[1]},
+                )
                 self.notify(f"forked {spec[0]} from {parent}", title="Comms")
             except Exception as error:
                 self.notify(str(error), title="Comms fork failed", severity="error")

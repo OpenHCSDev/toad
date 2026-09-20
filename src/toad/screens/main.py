@@ -1,4 +1,5 @@
 from functools import partial
+import hashlib
 from pathlib import Path
 import random
 
@@ -11,7 +12,15 @@ from textual.content import Content
 from textual.events import ScreenResume
 from textual.screen import Screen
 from textual.reactive import var, reactive
-from textual.widgets import Footer, OptionList, DirectoryTree, Tree
+from textual.widgets import (
+    ContentSwitcher,
+    DirectoryTree,
+    Footer,
+    OptionList,
+    Tab,
+    Tabs,
+    Tree,
+)
 from textual import containers
 from textual.widget import Widget
 
@@ -25,6 +34,7 @@ from toad.widgets.plan import Plan
 from toad.widgets.throbber import Throbber
 from toad.widgets.conversation import Conversation
 from toad.widgets.project_directory_tree import ProjectDirectoryTree
+from toad.widgets.project_panel import FilePreview, ProjectPanel, ProjectSearchButton
 from toad.widgets.comms_chat import resolve_session_thread, session_thread_name
 from toad.widgets.comms_fork_dialog import ForkDialog
 from toad.widgets.comms_sidebar import CoordinationStatus, CommsSidebar, SelectTarget
@@ -132,6 +142,10 @@ class MainScreen(Screen, can_focus=False):
         )
         self._session_pk = session_pk
         self._initial_prompt = initial_prompt
+        self._preview_tabs: dict[Path, tuple[str, str]] = {}
+        self._preview_views: dict[str, str] = {
+            "workspace-conversation": "conversation-view"
+        }
 
     def watch_title(self, title: str) -> None:
         self.app.update_terminal_title()
@@ -173,26 +187,31 @@ class MainScreen(Screen, can_focus=False):
                 SideBar.Panel("Plan", Plan([]), collapsed=True, id="plan-panel"),
                 SideBar.Panel(
                     "Project",
-                    ProjectDirectoryTree(
-                        self.project_path,
-                        id="project_directory_tree",
-                    ),
+                    ProjectPanel(self.project_path),
                     flex=True,
                 ),
             )
             with containers.Vertical(id="session-content"):
                 yield SessionsTabs()
-                yield Conversation(
-                    self.project_path,
-                    self._agent,
-                    self._agent_session_id,
-                    self._session_pk,
-                    self._agent_session_title,
-                    initial_prompt=self._initial_prompt,
-                ).data_bind(
-                    project_path=MainScreen.project_path,
-                    column=MainScreen.column,
+                yield Tabs(
+                    Tab("Conversation", id="workspace-conversation"),
+                    id="workspace-tabs",
                 )
+                with ContentSwitcher(
+                    id="workspace-content", initial="conversation-view"
+                ):
+                    with containers.Vertical(id="conversation-view"):
+                        yield Conversation(
+                            self.project_path,
+                            self._agent,
+                            self._agent_session_id,
+                            self._session_pk,
+                            self._agent_session_title,
+                            initial_prompt=self._initial_prompt,
+                        ).data_bind(
+                            project_path=MainScreen.project_path,
+                            column=MainScreen.column,
+                        )
         yield Footer(compact=True)
 
     def run_prompt(self, prompt: str) -> None:
@@ -287,7 +306,7 @@ class MainScreen(Screen, can_focus=False):
 
     @on(CommsSidebar.ThreadAction)
     async def on_comms_thread_action(self, event: CommsSidebar.ThreadAction) -> None:
-        if event.action != "fork":
+        if event.action != "comms_fork":
             return
         parent = event.name
 
@@ -296,13 +315,17 @@ class MainScreen(Screen, can_focus=False):
                 return
             import os as _os
 
+            from agent_comms import invoke_context_tool
             from agent_comms.operations import wire as _wire
 
             root = _os.environ.get("AGENT_COMMS_ROOT", "~/.agent-comms")
-            from agent_comms.operations import ForkSpec
-
             try:
-                _wire(root).fork(ForkSpec(name=spec[0], parent=parent, task=spec[1]))
+                invoke_context_tool(
+                    _wire(root),
+                    event.action,
+                    subject=parent,
+                    arguments={"name": spec[0], "task": spec[1]},
+                )
                 self.notify(f"forked {spec[0]} from {parent}", title="Comms")
             except Exception as error:
                 self.notify(str(error), title="Comms fork failed", severity="error")
@@ -327,9 +350,60 @@ class MainScreen(Screen, can_focus=False):
         await self.query_one(ProjectDirectoryTree).reload()
 
     @on(DirectoryTree.FileSelected, "ProjectDirectoryTree")
-    def on_project_directory_tree_selected(self, event: Tree.NodeSelected):
+    async def on_project_directory_tree_selected(self, event: Tree.NodeSelected):
+        event.stop()
         if (data := event.node.data) is not None:
-            self.conversation.insert_path_into_prompt(data.path)
+            await self.open_file_preview(data.path)
+
+    @on(ProjectDirectoryTree.InsertSelected)
+    def on_project_path_insert(
+        self, event: ProjectDirectoryTree.InsertSelected
+    ) -> None:
+        event.stop()
+        self._show_conversation_view()
+        self.conversation.insert_path_into_prompt(event.path)
+
+    @on(ProjectSearchButton.Requested)
+    def on_project_search_requested(self, event: ProjectSearchButton.Requested) -> None:
+        event.stop()
+        self._show_conversation_view()
+        self.conversation.prompt.open_path_search()
+
+    @on(Tabs.TabActivated, "#workspace-tabs")
+    def on_workspace_tab_activated(self, event: Tabs.TabActivated) -> None:
+        if event.tab.id is not None:
+            view_id = self._preview_views.get(event.tab.id)
+            if view_id is not None:
+                self.query_one("#workspace-content", ContentSwitcher).current = view_id
+
+    def _show_conversation_view(self) -> None:
+        tabs = self.query_one("#workspace-tabs", Tabs)
+        tabs.active = "workspace-conversation"
+        self.query_one("#workspace-content", ContentSwitcher).current = (
+            "conversation-view"
+        )
+
+    async def open_file_preview(self, path: Path) -> None:
+        path = path.resolve()
+        tab_and_view = self._preview_tabs.get(path)
+        if tab_and_view is None:
+            digest = hashlib.sha1(str(path).encode()).hexdigest()[:12]
+            tab_id = f"preview-tab-{digest}"
+            view_id = f"preview-view-{digest}"
+            tab_and_view = (tab_id, view_id)
+            self._preview_tabs[path] = tab_and_view
+            self._preview_views[tab_id] = view_id
+            await self.query_one("#workspace-content", ContentSwitcher).mount(
+                FilePreview(path, id=view_id)
+            )
+            await self.query_one("#workspace-tabs", Tabs).add_tab(
+                Tab(path.name, id=tab_id)
+            )
+        tab_id, view_id = tab_and_view
+        tabs = self.query_one("#workspace-tabs", Tabs)
+        tabs.add_class("-has-preview")
+        tabs.active = tab_id
+        self.query_one("#workspace-content", ContentSwitcher).current = view_id
 
     @on(acp_messages.Plan)
     async def on_acp_plan(self, message: acp_messages.Plan):
@@ -399,6 +473,7 @@ class MainScreen(Screen, can_focus=False):
         return True
 
     def action_show_sidebar(self) -> None:
+        self.side_bar.reveal()
         self.side_bar.query_one("Collapsible CollapsibleTitle").focus()
 
     def action_focus_prompt(self) -> None:

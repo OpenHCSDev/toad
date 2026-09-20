@@ -388,7 +388,7 @@ class Conversation(containers.Vertical):
         self._loading: Loading | None = None
         self._agent_response: AgentResponse | None = None
         self._agent_thought: AgentThought | None = None
-        self._last_escape_time: float = monotonic()
+        self._last_escape_time = 0.0
         self._agent_data = agent
         self._agent_session_id = agent_session_id
         self._session_pk = session_pk
@@ -508,22 +508,23 @@ class Conversation(containers.Vertical):
             self.prompt.prompt_text_area.post_message(event)
 
     def compose(self) -> ComposeResult:
-        yield Throbber(id="throbber")
         with Window():
             with ContentsGrid():
                 with CursorContainer(id="cursor-container"):
                     yield Cursor()
                 yield Contents(id="contents")
         yield Flash()
-        yield Prompt(complete_callback=self.shell_complete).data_bind(
-            project_path=Conversation.project_path,
-            working_directory=Conversation.working_directory,
-            agent_info=Conversation.agent_info,
-            agent_ready=Conversation.agent_ready,
-            current_mode=Conversation.current_mode,
-            modes=Conversation.modes,
-            status=Conversation.status,
-        )
+        with containers.Vertical(id="prompt-stack"):
+            yield Throbber(id="throbber")
+            yield Prompt(complete_callback=self.shell_complete).data_bind(
+                project_path=Conversation.project_path,
+                working_directory=Conversation.working_directory,
+                agent_info=Conversation.agent_info,
+                agent_ready=Conversation.agent_ready,
+                current_mode=Conversation.current_mode,
+                modes=Conversation.modes,
+                status=Conversation.status,
+            )
 
     @property
     def _terminal(self) -> Terminal | None:
@@ -1795,10 +1796,17 @@ class Conversation(containers.Vertical):
     async def action_cancel(self) -> None:
         if monotonic() - self._last_escape_time < 3:
             if (agent := self.agent) is not None:
+                self.flash("Cancelling agent turn…")
+                if self._loading is not None and self._loading.is_attached:
+                    self._loading.update("Cancelling…")
+                self.post_message(
+                    messages.SessionUpdate(state="busy", summary="Cancelling")
+                )
                 if await agent.cancel():
                     self.flash("Turn cancelled", style="success")
                 else:
                     self.flash("Agent declined to cancel. Please wait.", style="error")
+            self._last_escape_time = 0.0
         else:
             self.flash("Press [b]esc[/] again to cancel agent's turn")
             self._last_escape_time = monotonic()

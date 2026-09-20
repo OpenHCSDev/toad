@@ -132,6 +132,14 @@ See on-screen instructions for details.
             priority=True,
             show=False,
         ),
+        Binding(
+            "ctrl+c",
+            "clear_input",
+            "Clear",
+            priority=True,
+            tooltip="Clear the prompt",
+            show=False,
+        ),
     ]
 
     app = getters.app(ToadApp)
@@ -243,6 +251,8 @@ See on-screen instructions for details.
                         self.suggestion = completes[-1]
 
     def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
+        if action == "clear_input":
+            return bool(self.text)
         if action == "newline" and self.multi_line:
             return False
         if action == "submit" and self.multi_line:
@@ -250,6 +260,11 @@ See on-screen instructions for details.
         if action == "multiline_submit":
             return self.multi_line
         return True
+
+    def action_clear_input(self) -> None:
+        self.clear()
+        self.suggestions = None
+        self.suggestion = ""
 
     def action_multiline_submit(self) -> None:
         if not self.agent_ready:
@@ -621,7 +636,9 @@ class Prompt(containers.VerticalGroup):
         if self.simple_input:
             self.prompt_label.update(self.PROMPT_AI, layout=False)
             self.remove_class("-shell-mode")
-            self.prompt_text_area.placeholder = self.simple_placeholder or "Message thread"
+            self.prompt_text_area.placeholder = (
+                self.simple_placeholder or "Message thread"
+            )
             self.prompt_text_area.highlight_language = "markdown"
             return
         if self.shell_mode:
@@ -718,6 +735,9 @@ class Prompt(containers.VerticalGroup):
     @on(InvokeFileSearch)
     def on_invoke_file_search(self, event: InvokeFileSearch) -> None:
         event.stop()
+        self.open_path_search()
+
+    def open_path_search(self) -> None:
         if not self.shell_mode:
             self.show_path_search = True
             self.path_search.reset()
