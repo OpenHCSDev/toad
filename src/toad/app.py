@@ -742,6 +742,15 @@ class ToadApp(App, inherit_bindings=False):
             if status is not None:
                 status.set_thread(current)
 
+    def local_coordination_threads(self) -> set[str]:
+        """Authoritative wire identities already represented by local sessions."""
+        threads: set[str] = set()
+        for details in self.session_tracker.ordered_sessions:
+            screen = self._main_session_screen(details.mode_name)
+            if screen is not None and screen._coordination_root is not None:
+                threads.add(screen._comms_thread)
+        return threads
+
     async def close_session_mode(self, mode_name: str) -> None:
         """Close any tracked mode after first switching to a safe mode."""
         session_tracker = self.session_tracker

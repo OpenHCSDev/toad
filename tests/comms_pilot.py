@@ -283,6 +283,10 @@ async def main() -> None:
             await app.switch_mode(owner_mode)
             await pilot.pause()
             assert app.screen.query_one(SideBar).collapsed
+            assert renamed_thread not in {
+                item.target_name for item in app.screen.query(CommsRow)
+            }
+            assert len(list(app.screen.query(SessionRow))) == 2
             await app.switch_mode(created_mode)
             await pilot.pause()
             assert app.screen.query_one(SideBar).collapsed

@@ -397,7 +397,12 @@ class CommsSidebar(Vertical):
     def _comms_registry_names(self) -> list[str]:
         """Registered thread names on the wire (for view toggles)."""
         try:
-            return list(wire(_comms_root()).registry.active_threads())
+            local_threads = cast("ToadApp", self.app).local_coordination_threads()
+            return [
+                name
+                for name in wire(_comms_root()).registry.active_threads()
+                if name not in local_threads
+            ]
         except Exception:
             return []
 
@@ -406,10 +411,11 @@ class CommsSidebar(Vertical):
     def _snapshot(self) -> dict:
         comms = wire(_comms_root())
         now = time.time()
+        local_threads = cast("ToadApp", self.app).local_coordination_threads()
         who = [
             person
             for person in comms.presence()
-            if person["name"] != self.session_thread
+            if person["name"] not in local_threads
         ]
         channels = comms.channels()
         if self.session_thread in comms.registry:
