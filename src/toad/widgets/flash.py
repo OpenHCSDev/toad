@@ -43,6 +43,11 @@ class Flash(Static):
             background: $error 10%;
             color: $text-error;
         }
+        &:ansi {
+            background: ansi_bright_white;
+            color: ansi_black;
+            text-style: bold;
+        }
     }
     """
     app = getters.app(ToadApp)

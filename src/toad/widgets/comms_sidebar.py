@@ -85,9 +85,9 @@ class CommsRow(Static):
     CommsRow:ansi:hover,
     CommsRow:ansi.-selected,
     CommsRow:ansi:focus {
-        background: ansi_default;
-        color: ansi_default;
-        text-style: bold reverse;
+        background: ansi_bright_white;
+        color: ansi_black;
+        text-style: bold;
     }
     CommsRow.-unread .row-name { text-style: bold; }
     """
@@ -150,7 +150,7 @@ class NewSessionButton(Static):
     DEFAULT_CSS = """
     NewSessionButton {
         width: 1fr;
-        height: 2;
+        height: 1;
         padding: 0 1;
         color: $text-muted;
         pointer: pointer;
@@ -162,9 +162,9 @@ class NewSessionButton(Static):
     }
     NewSessionButton:ansi:hover,
     NewSessionButton:ansi:focus {
-        background: ansi_default;
-        color: ansi_default;
-        text-style: bold reverse;
+        background: ansi_bright_white;
+        color: ansi_black;
+        text-style: bold;
     }
     """
 

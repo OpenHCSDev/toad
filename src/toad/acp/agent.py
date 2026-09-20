@@ -282,6 +282,15 @@ class Agent(AgentBase):
         https://agentclientprotocol.com/protocol/schema
         """
 
+        metadata = update.get("_meta")
+        if (
+            isinstance(metadata, dict)
+            and isinstance(metadata.get("agentComms"), dict)
+            and metadata["agentComms"].get("turnSettled") is True
+        ):
+            self.post_message(messages.TurnSettled())
+            return
+
         match update:
             case {
                 "sessionUpdate": "user_message_chunk",

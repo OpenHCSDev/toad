@@ -995,6 +995,13 @@ class Conversation(containers.Vertical):
         )
         await self.post_agent_response(message.text)
 
+    @on(acp_messages.TurnSettled)
+    def on_turn_settled(self, message: acp_messages.TurnSettled) -> None:
+        message.stop()
+        self.post_message(
+            messages.SessionUpdate(state="idle", summary="Ready for review")
+        )
+
     @on(acp_messages.UserMessage)
     async def on_acp_user_message(self, message: acp_messages.UserMessage):
         self._agent_thought = None

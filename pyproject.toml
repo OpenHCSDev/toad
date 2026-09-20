@@ -33,7 +33,7 @@ dependencies = [
 members = ["toad"]
 
 [tool.uv.sources]
-agent-comms = { git = "https://github.com/OpenHCSDev/agent-comms.git", rev = "f0e98742e9b3443608e868a5201cb76b4f8b63cd" }
+agent-comms = { git = "https://github.com/OpenHCSDev/agent-comms.git", rev = "39d215ed8e3fe92d1b85d5582c07b526f53bdab7" }
 #textual-serve = { path = "../textual-serve", editable = true }
 #textual = { path = "../textual", editable = true }
 #textual-dev = { path = "../textual-dev", editable = true }
