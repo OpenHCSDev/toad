@@ -252,6 +252,7 @@ def show_thread_menu(
             ("fork", "Fork from this thread"),
             ("stop", "Stop process"),
             ("archive", "Archive stopped thread"),
+            ("delete", "Delete stopped thread"),
             ("ack", "Mark inbox read"),
             ("copy", "Copy name"),
         ],

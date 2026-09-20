@@ -51,6 +51,9 @@ async def main() -> None:
         comms.register(
             Thread(name="other-peer", tags=frozenset(), worktree=str(project))
         )
+        comms.register(
+            Thread(name="delete-peer", tags=frozenset(), worktree=str(project))
+        )
         comms.send("peer", "#all", "hello from peer")
         comms.send("peer", me, "private from peer")
         comms.send("other-peer", me, "unrelated private message")
@@ -172,10 +175,11 @@ async def main() -> None:
                 "fork",
                 "stop",
                 "archive",
+                "delete",
                 "ack",
                 "copy",
             ]
-            await pilot.press("down", "down", "down", "enter")
+            await pilot.press("down", "down", "down", "down", "enter")
             await pilot.pause()
             assert isinstance(app.screen, MainScreen)
             assert comms.pending_count(me, "peer") == 0
@@ -219,6 +223,30 @@ async def main() -> None:
             assert comms.registry.status("other-peer").value == "archived"
             assert not any(
                 item.target_name == "other-peer" for item in app.screen.query(CommsRow)
+            )
+
+            await pilot.click(row(app.screen, "delete-peer"), button=3)
+            await pilot.pause()
+            stop_item = next(
+                item
+                for item in app.screen.query(ContextMenuItem)
+                if item.action == "stop"
+            )
+            await pilot.click(stop_item)
+            await pilot.pause()
+            await pilot.click(row(app.screen, "delete-peer"), button=3)
+            await pilot.pause()
+            delete_item = next(
+                item
+                for item in app.screen.query(ContextMenuItem)
+                if item.action == "delete"
+            )
+            await pilot.click(delete_item)
+            await pilot.pause()
+            assert "delete-peer" not in comms.registry
+            assert not any(
+                item.target_name == "delete-peer"
+                for item in app.screen.query(CommsRow)
             )
 
             await pilot.click(row(app.screen, "#all"))
