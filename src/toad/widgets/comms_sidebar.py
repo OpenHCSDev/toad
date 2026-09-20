@@ -24,6 +24,7 @@ from textual.containers import Vertical
 from textual.dom import DOMNode
 from textual.message import Message
 from textual.reactive import reactive
+from textual.content import Content
 from textual.widgets import Static
 
 from agent_comms import ActivityState, ThreadStatus
@@ -39,6 +40,13 @@ if TYPE_CHECKING:
 
 def _comms_root() -> Path:
     return Path(os.environ.get("AGENT_COMMS_ROOT", "~/.agent-comms")).expanduser()
+
+
+def _display_path(path: Path) -> str:
+    try:
+        return f"~/{path.resolve().relative_to(Path.home())}"
+    except ValueError:
+        return str(path.resolve())
 
 
 def _fmt_age(ts: float, now: float) -> str:
@@ -145,11 +153,18 @@ class NewSessionButton(Static):
         height: 2;
         padding: 0 1;
         color: $text-muted;
+        pointer: pointer;
     }
     NewSessionButton:hover,
     NewSessionButton:focus {
         background: $surface-lighten-2;
         color: $text;
+    }
+    NewSessionButton:ansi:hover,
+    NewSessionButton:ansi:focus {
+        background: ansi_default;
+        color: ansi_default;
+        text-style: bold reverse;
     }
     """
 
@@ -191,6 +206,55 @@ class NewSessionButton(Static):
             if rows:
                 sidebar._cursor = len(rows)
                 sidebar.action_cursor_up()
+
+
+class CoordinationStatus(Static):
+    """Compact diagnostics for the persistent coordination wire."""
+
+    DEFAULT_CSS = """
+    CoordinationStatus {
+        height: auto;
+        padding: 0 1 1 1;
+        color: $text-muted;
+    }
+    """
+
+    def __init__(self, thread: str = "") -> None:
+        super().__init__()
+        self.thread = thread
+        self.refresh_status()
+
+    def set_thread(self, thread: str) -> None:
+        self.thread = thread
+        self.refresh_status()
+
+    def refresh_status(self) -> None:
+        root = _comms_root()
+        backend = os.environ.get("AGENT_COMMS_AGENT_BIN", "pi")
+        thread = self.thread or "connecting..."
+        self.update(
+            Content.assemble(
+                ("persistent wire", "$success"),
+                f"\nThread: {thread}",
+                f"\nRoot: {_display_path(root)}",
+                f"\nBackend: {Path(backend).name}",
+                "\nACP: one process/session",
+            )
+        )
+        args = os.environ.get(
+            "AGENT_COMMS_AGENT_ARGS",
+            "--print --no-session --provider openrouter --model z-ai/glm-5.3-flash",
+        )
+        self.tooltip = (
+            "Coordination state persists in the shared wire; the stdio ACP transport "
+            "is scoped to this Toad session.\n\n"
+            f"AGENT_COMMS_ROOT={root.resolve()}\n"
+            f"AGENT_COMMS_AGENT_BIN={backend}\n"
+            f"AGENT_COMMS_AGENT_ARGS={args}\n"
+            f"AGENT_COMMS_REPLY_WINDOW={os.environ.get('AGENT_COMMS_REPLY_WINDOW', '8.0')}\n"
+            f"AGENT_COMMS_NO_REPLY_WINDOW={os.environ.get('AGENT_COMMS_NO_REPLY_WINDOW', '2.5')}\n"
+            f"AGENT_COMMS_REPLY_QUIET={os.environ.get('AGENT_COMMS_REPLY_QUIET', '1.5')}"
+        )
 
 
 class CommsSidebar(Vertical):

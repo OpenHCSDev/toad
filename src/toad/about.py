@@ -1,5 +1,6 @@
 import os
 from importlib.metadata import version
+from pathlib import Path
 import platform
 from string import Template
 
@@ -31,6 +32,20 @@ $CONFIG
 | App data | `$DATA_PATH` |
 | App state | `$STATE_PATH` |
 | App logs | `$LOG_PATH` |
+
+## Coordination
+
+Agent Comms uses a shared on-disk wire for persistence. Each Toad conversation
+uses its own stdio ACP process and reconnects to its saved wire thread.
+
+| Setting | Effective value |
+| --- | --- |
+| Wire root (`AGENT_COMMS_ROOT`) | `$COMMS_ROOT` |
+| Backend (`AGENT_COMMS_AGENT_BIN`) | `$COMMS_AGENT_BIN` |
+| Backend args (`AGENT_COMMS_AGENT_ARGS`) | `$COMMS_AGENT_ARGS` |
+| Reply window | `$COMMS_REPLY_WINDOW` |
+| No-reply window | `$COMMS_NO_REPLY_WINDOW` |
+| Reply quiet period | `$COMMS_REPLY_QUIET` |
 
                           
 ## System
@@ -76,6 +91,17 @@ def render(app: ToadApp) -> str:
 
     template_data = {
         "COLORTERM": os.environ.get("COLORTERM", ""),
+        "COMMS_AGENT_ARGS": os.environ.get(
+            "AGENT_COMMS_AGENT_ARGS",
+            "--print --no-session --provider openrouter --model z-ai/glm-5.3-flash",
+        ),
+        "COMMS_AGENT_BIN": os.environ.get("AGENT_COMMS_AGENT_BIN", "pi"),
+        "COMMS_NO_REPLY_WINDOW": os.environ.get("AGENT_COMMS_NO_REPLY_WINDOW", "2.5"),
+        "COMMS_REPLY_QUIET": os.environ.get("AGENT_COMMS_REPLY_QUIET", "1.5"),
+        "COMMS_REPLY_WINDOW": os.environ.get("AGENT_COMMS_REPLY_WINDOW", "8.0"),
+        "COMMS_ROOT": str(
+            Path(os.environ.get("AGENT_COMMS_ROOT", "~/.agent-comms")).expanduser()
+        ),
         "CONFIG": config,
         "DATA_PATH": paths.get_data(),
         "LOG_PATH": paths.get_log(),

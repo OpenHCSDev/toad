@@ -27,7 +27,7 @@ from toad.widgets.conversation import Conversation
 from toad.widgets.project_directory_tree import ProjectDirectoryTree
 from toad.widgets.comms_chat import resolve_session_thread, session_thread_name
 from toad.widgets.comms_fork_dialog import ForkDialog
-from toad.widgets.comms_sidebar import CommsSidebar, SelectTarget
+from toad.widgets.comms_sidebar import CoordinationStatus, CommsSidebar, SelectTarget
 from toad.widgets.side_bar import SideBar, SideBarCollapsible
 from toad.widgets.session_tabs import SessionsTabs
 
@@ -124,7 +124,12 @@ class MainScreen(Screen, can_focus=False):
         self._agent = agent
         self._agent_session_id = agent_session_id
         self._agent_session_title = agent_session_title
-        self._comms_thread = session_thread_name(project_path)
+        self._coordination_root: str | None = None
+        self._comms_thread = (
+            ""
+            if agent is not None and agent["identity"] == "agent-comms.openhcs.dev"
+            else session_thread_name(project_path)
+        )
         self._session_pk = session_pk
         self._initial_prompt = initial_prompt
 
@@ -158,7 +163,12 @@ class MainScreen(Screen, can_focus=False):
             yield SideBar(
                 SideBar.Panel(
                     "Sessions",
-                    CommsSidebar(session_thread=session_thread_name(self.project_path)),
+                    CommsSidebar(session_thread=self._comms_thread),
+                ),
+                SideBar.Panel(
+                    "Coordination",
+                    CoordinationStatus(self._comms_thread),
+                    id="coordination-panel",
                 ),
                 SideBar.Panel("Plan", Plan([]), collapsed=True, id="plan-panel"),
                 SideBar.Panel(
@@ -190,11 +200,25 @@ class MainScreen(Screen, can_focus=False):
 
     def on_comms_session_named(self, thread_name: str) -> None:
         """Tell the sidebar which thread is this screen's session."""
+        previous = self._comms_thread
         self._comms_thread = thread_name
         try:
-            self.query_one(CommsSidebar).session_thread = thread_name
+            sidebar = self.query_one(CommsSidebar)
+            sidebar.session_thread = thread_name
+            sidebar._refresh()
         except Exception:
             pass
+        if self.id is not None and previous and previous != thread_name:
+            self.app.sync_coordination_identity(self.id, previous, thread_name)
+        try:
+            self.query_one(CoordinationStatus).set_thread(thread_name)
+        except Exception:
+            pass
+
+    @on(acp_messages.CoordinationUpdate)
+    def on_coordination_update(self, event: acp_messages.CoordinationUpdate) -> None:
+        self._coordination_root = event.wire_root
+        self.on_comms_session_named(event.thread)
 
     _last_dm_target: str | None = None
 
@@ -208,7 +232,9 @@ class MainScreen(Screen, can_focus=False):
 
             from agent_comms.operations import wire
 
-            root = os.environ.get("AGENT_COMMS_ROOT", "~/.agent-comms")
+            root = self._coordination_root or os.environ.get(
+                "AGENT_COMMS_ROOT", "~/.agent-comms"
+            )
             resolved = resolve_session_thread(
                 wire(root), self.project_path, self._comms_thread
             )
@@ -325,6 +351,15 @@ class MainScreen(Screen, can_focus=False):
         # TODO: May not be required
         if event.name is not None:
             self._agent_session_title = event.name
+            if self._coordination_root:
+                try:
+                    from agent_comms.operations import wire
+
+                    thread = wire(self._coordination_root).registry.require(event.name)
+                    if Path(thread.worktree).resolve() == self.project_path.resolve():
+                        self.on_comms_session_named(thread.name)
+                except Exception:
+                    pass
         if self.id is not None:
             self.app.session_tracker.update_session(
                 self.id,

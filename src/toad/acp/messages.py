@@ -153,6 +153,16 @@ class SessionInfoUpdate(AgentMessage):
 
 
 @dataclass
+class CoordinationUpdate(AgentMessage):
+    """Persistent coordination identity advertised by an ACP agent."""
+
+    thread: str
+    wire_root: str
+    persistence: str
+    transport: str
+
+
+@dataclass
 class UsageUpdage(AgentMessage):
     """Context window change"""
 

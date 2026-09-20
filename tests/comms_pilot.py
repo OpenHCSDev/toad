@@ -24,7 +24,12 @@ from toad.widgets.agent_response import AgentResponse
 from toad.widgets.agent_thought import AgentThought
 from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.comms_menu import ContextMenu, ContextMenuItem, RenameSessionDialog
-from toad.widgets.comms_sidebar import CommsRow, CommsSidebar, NewSessionButton
+from toad.widgets.comms_sidebar import (
+    CoordinationStatus,
+    CommsRow,
+    CommsSidebar,
+    NewSessionButton,
+)
 from toad.widgets.conversation import Loading, make_session_title
 from toad.widgets.session_sidebar import SessionRow
 from toad.widgets.session_tabs import SessionLabel
@@ -106,6 +111,11 @@ async def main() -> None:
             session_rows = list(app.screen.query(SessionRow))
             assert len(session_rows) == 1
             assert session_rows[0].current
+            assert await pilot.hover(session_rows[0])
+            assert session_rows[0].rich_style.reverse
+            coordination = app.screen.query_one(CoordinationStatus)
+            assert "persistent wire" in coordination.render().plain
+            assert str(wire_root) in str(coordination.tooltip)
 
             owner_mode = app.current_mode
             sidebar = app.screen.query_one(CommsSidebar)

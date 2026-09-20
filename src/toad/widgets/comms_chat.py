@@ -50,6 +50,8 @@ def resolve_session_thread(
     """Resolve Toad's wire identity from the registry's authoritative worktree."""
     project = Path(project_path).expanduser().resolve()
     threads = comms.registry.all_threads()
+    if preferred:
+        preferred = comms.registry.canonical_name(preferred)
     if (
         preferred in threads
         and Path(threads[preferred].worktree).expanduser().resolve() == project
