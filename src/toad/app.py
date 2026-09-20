@@ -766,10 +766,26 @@ class ToadApp(App, inherit_bindings=False):
             for details in session_tracker.ordered_sessions
             if details.mode_name not in closing_modes
         ]
+        closing_main = self._main_session_screen(mode_name)
         if self.current_mode not in closing_modes:
             pass
         elif not remaining_modes:
-            await self.switch_mode("store")
+            if closing_main is not None and closing_main._agent is not None:
+                from toad.screens.main import MainScreen
+
+                def get_replacement_screen() -> MainScreen:
+                    return MainScreen(
+                        closing_main.project_path,
+                        closing_main._agent,
+                    ).data_bind(
+                        column=ToadApp.column,
+                        column_width=ToadApp.column_width,
+                        scrollbar=ToadApp.scrollbar,
+                    )
+
+                await self.new_session_screen(get_replacement_screen)
+            else:
+                await self.switch_mode("store")
         else:
             ordered_modes = [
                 details.mode_name for details in session_tracker.ordered_sessions

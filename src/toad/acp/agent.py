@@ -680,6 +680,12 @@ class Agent(AgentBase):
         self._stopping = True
         process = self._process
         process_group = self._process_group_id
+        if process is not None and process.returncode is None and process.stdin is not None:
+            process.stdin.close()
+            with suppress(BrokenPipeError, ConnectionResetError):
+                await process.stdin.wait_closed()
+            with suppress(TimeoutError):
+                await asyncio.wait_for(process.wait(), timeout=1)
         if os.name != "nt" and process_group is not None:
             with suppress(OSError):
                 os.killpg(process_group, 15)

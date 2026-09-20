@@ -148,12 +148,26 @@ class ToadSession:
         await self.click(6, index + 1, button)
         return True
 
+    async def click_text(self, text: str) -> bool:
+        """Click the first visible occurrence of text at its rendered position."""
+        await asyncio.sleep(0.2)
+        for index, line in enumerate(self.screen_lines()):
+            column = line.find(text)
+            if column >= 0:
+                await self.click(column + 1, index + 1)
+                return True
+        return False
+
     @staticmethod
     def _is_row(stripped: str, name: str) -> bool:
         return (
             stripped == name
             or stripped.startswith(f"{name} ")
-            or (stripped.startswith("●") and name in stripped and len(stripped) < 45)
+            or (
+                stripped.startswith(("●", "✓", "?"))
+                and name in stripped
+                and len(stripped) < 45
+            )
             or (
                 stripped.startswith(("○", "▶"))
                 and name in stripped
@@ -347,6 +361,32 @@ printf '%s\n' '{"type":"response","command":"get_session_stats","success":true,"
         await session.frame(0.5)
         assert session.alive(), f"toad died leaving IRC on soak iteration {index}"
     print("[9] resize + repeated native IRC toggles: app alive")
+
+    # Closing the final agent session should replace it with another session
+    # for the same configured agent, not leak into Toad's generic Store.
+    assert await session.click_row("renamed-e2e", button=2), (
+        "renamed local session row not found:\n" + "\n".join(session.last_screen_lines)
+    )
+    frame = await session.frame(0.5)
+    assert "Rename session" in frame and "Archive session" in frame
+    assert await session.click_text("Archive session")
+    for _ in range(30):
+        frame = await session.frame(0.2)
+        active = comms.registry.active_threads()
+        if (
+            "Agent Store" not in frame
+            and "Thread: toad-e2e-proj-2" in frame
+            and "toad-e2e-proj-2" in active
+        ):
+            break
+    else:
+        output = session.buffer.decode("utf-8", "replace")[-4000:]
+        raise AssertionError(
+            f"closing final session failed (alive={session.alive()}):\n"
+            f"frame:\n{frame[-1200:]}\noutput:\n{output}"
+        )
+    assert comms.registry.status("renamed-e2e").value == "stopped"
+    print("[10] final close stays in Agent Comms + old thread stops cleanly OK")
 
     session.close()
 
