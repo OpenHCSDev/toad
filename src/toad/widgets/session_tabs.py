@@ -89,6 +89,17 @@ class SessionsTabs(Widget):
 
     current_session = reactive("", init=False)
 
+    def __init__(
+        self,
+        *,
+        view_mode: str = "",
+        view_title: str = "",
+        **kwargs,
+    ) -> None:
+        super().__init__(**kwargs)
+        self.view_mode = view_mode
+        self.view_title = view_title
+
     def on_mount(self) -> None:
         self.current_session = self.app.current_mode
         self.app.mode_change_signal.subscribe(self, self.handle_mode_change)
@@ -152,7 +163,21 @@ class SessionsTabs(Widget):
                     id=session.mode_name,
                     classes="-current" if session.mode_name == self.screen.id else "",
                 )
+            if self.view_mode:
+                yield SessionLabel(
+                    Content(self.view_title),
+                    id=self.view_mode,
+                    classes="-current" if self.view_mode == self.screen.id else "",
+                )
         yield Underline()
+
+    def update_view_title(self, title: str) -> None:
+        """Update the active server-backed view label."""
+        self.view_title = title
+        if self.view_mode:
+            label = self.query_one_optional(f"#{self.view_mode}", SessionLabel)
+            if label is not None:
+                label.update(Content(title))
 
     @work
     async def handle_session_update_signal(
@@ -165,7 +190,6 @@ class SessionsTabs(Widget):
             if tab_label := self.query_one_optional(f"#{mode}", SessionLabel):
                 tab_label.update(self.render_session_label(details))
             else:
-                self.query(SessionLabel).remove_class("-current")
                 await self.title_container.mount(
                     SessionLabel(
                         self.render_session_label(details),

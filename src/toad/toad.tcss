@@ -45,14 +45,6 @@ App.-hide-thoughts AgentThought {
     display: none;
 }
 
-App.-hide-sidebar SideBar {    
-    layer: sidebar;    
-    offset-x: -100%;
-    &:focus-within {
-        offset-x: 0;                    
-    }
-}
-
 App.-hide-status-line StatusLine {
     display: none;        
 }

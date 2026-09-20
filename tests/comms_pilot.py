@@ -9,7 +9,8 @@ from pathlib import Path
 
 from agent_comms import ActivityState, Thread
 from agent_comms.operations import wire
-from textual.widgets import Footer, Input
+from textual.content import Content
+from textual.widgets import Footer, Input, Markdown, Tabs
 from textual.widgets._footer import FooterKey
 
 from toad import messages
@@ -23,7 +24,11 @@ from toad.screens.comms import CommsScreen
 from toad.screens.main import MainScreen
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.agent_thought import AgentThought
-from toad.widgets.comms_chat import CommsChatView
+from toad.widgets.comms_chat import (
+    HISTORY_PAGE_SIZE,
+    HISTORY_WINDOW_SIZE,
+    CommsChatView,
+)
 from toad.widgets.comms_menu import ContextMenu, ContextMenuItem, RenameSessionDialog
 from toad.widgets.comms_sidebar import (
     CoordinationStatus,
@@ -34,9 +39,11 @@ from toad.widgets.comms_sidebar import (
 from toad.widgets.conversation import Loading, make_session_title
 from toad.widgets.flash import Flash
 from toad.widgets.session_sidebar import SessionRow
-from toad.widgets.session_tabs import SessionLabel
-from toad.widgets.side_bar import SideBarCollapsible
+from toad.widgets.session_tabs import SessionLabel, SessionsTabs
+from toad.widgets.side_bar import SideBar, SideBarCollapsible, SideBarToggle
+from toad.widgets.throbber import Throbber
 from toad.widgets.tool_call import ToolCall
+from toad.widgets.project_panel import FilePreview, ProjectSearchButton
 
 
 def row(screen, target: str) -> CommsRow:
@@ -44,7 +51,9 @@ def row(screen, target: str) -> CommsRow:
 
 
 async def main() -> None:
-    assert pill("status", "$warning-muted", "$warning", filled=False).plain == "[status]"
+    assert (
+        pill("status", "$warning-muted", "$warning", filled=False).plain == "[status]"
+    )
     assert make_session_title("  first\n\tmessage  ") == "first message"
     assert len(make_session_title("x" * 80)) == 50
     assert make_session_title("x" * 80).endswith("…")
@@ -53,6 +62,8 @@ async def main() -> None:
         root = Path(temporary)
         project = root / "project"
         project.mkdir()
+        preview_path = project / "README.md"
+        preview_path.write_text("# Preview\n\nRendered markdown.")
         wire_root = root / "wire"
         os.environ["AGENT_COMMS_ROOT"] = str(wire_root)
 
@@ -73,6 +84,9 @@ async def main() -> None:
         comms.send("peer", "#all", "hello from peer")
         comms.send("peer", me, "private from peer")
         comms.send("other-peer", me, "unrelated private message")
+        for index in range(HISTORY_WINDOW_SIZE * 2):
+            comms.send("peer", "#test", f"long history {index:03}")
+        comms.acknowledge(me, "#test")
         comms.set_agent_info(
             "peer", model="openrouter/test-model", context_used=250, context_size=1000
         )
@@ -103,6 +117,14 @@ async def main() -> None:
             info_bar = app.screen.query_one("#info-container")
             footer = app.screen.query_one(Footer)
             assert info_bar.region.bottom == footer.region.y
+            throbber = app.screen.conversation.query_one(Throbber)
+            throbber.add_class("-busy")
+            await pilot.pause()
+            assert throbber.region.bottom == app.screen.conversation.prompt.region.y, (
+                throbber.region,
+                app.screen.conversation.prompt.region,
+            )
+            throbber.remove_class("-busy")
             await pilot.click(irc_key)
             await pilot.pause()
             assert isinstance(app.screen, CommsScreen)
@@ -114,10 +136,51 @@ async def main() -> None:
             assert len(session_rows) == 1
             assert session_rows[0].current
             assert await pilot.hover(session_rows[0])
-            assert session_rows[0].rich_style.color != session_rows[0].rich_style.bgcolor
+            assert (
+                session_rows[0].rich_style.color != session_rows[0].rich_style.bgcolor
+            )
             coordination = app.screen.query_one(CoordinationStatus)
             assert "persistent" in coordination.render().plain
             assert str(wire_root) in str(coordination.tooltip)
+            shell_sidebar = app.screen.query_one(SideBar)
+            panels = list(shell_sidebar.query(SideBarCollapsible))
+            assert all(
+                panel.region.height <= 2 for panel in panels if panel.collapsed
+            ), [(panel.title, panel.collapsed, panel.region.height) for panel in panels]
+            assert panels[0].region.height < shell_sidebar.region.height
+            sidebar_toggle = shell_sidebar.query_one(SideBarToggle)
+            assert sidebar_toggle.region.width == 1
+            assert sidebar_toggle.region.height == shell_sidebar.region.height
+            await pilot.click(sidebar_toggle)
+            await pilot.pause()
+            assert shell_sidebar.collapsed
+            assert shell_sidebar.region.width == 1
+            assert shell_sidebar.content_region.width == 1
+            assert shell_sidebar.render() == ">"
+            assert sidebar_toggle.tooltip == "Expand sidebar"
+            await pilot.hover(app.screen.conversation.prompt)
+            collapsed_background = sidebar_toggle.styles.background
+            assert await pilot.hover(sidebar_toggle)
+            await pilot.pause()
+            assert sidebar_toggle.styles.background != collapsed_background
+            await pilot.click(sidebar_toggle)
+            await pilot.pause()
+            assert not shell_sidebar.collapsed
+            assert shell_sidebar.region.width == 40
+            assert sidebar_toggle.tooltip == "Collapse sidebar"
+
+            await app.screen.open_file_preview(preview_path)
+            await pilot.pause()
+            workspace_tabs = app.screen.query_one("#workspace-tabs", Tabs)
+            assert workspace_tabs.has_class("-has-preview")
+            assert workspace_tabs.active.startswith("preview-tab-")
+            assert app.screen.query_one(FilePreview).query_one(Markdown)
+            app.screen._show_conversation_view()
+            search_button = app.screen.query_one(ProjectSearchButton)
+            search_button.action_search()
+            await pilot.pause()
+            assert app.screen.conversation.prompt.show_path_search
+            app.screen.conversation.prompt.show_path_search = False
 
             owner_mode = app.current_mode
             sidebar = app.screen.query_one(CommsSidebar)
@@ -136,6 +199,23 @@ async def main() -> None:
             assert app.session_tracker.session_count == 2
             assert len(list(app.screen.query(SessionRow))) == 2
             created_conversation = app.screen.conversation
+            assert app.session_tracker.get_session(created_mode).title == "New Session"
+            startup_agent = object.__new__(ACPAgent)
+            startup_agent._message_target = created_conversation
+            startup_agent._publish_coordination_metadata(
+                {
+                    "_meta": {
+                        "agentComms": {
+                            "thread": "project-2",
+                            "wireRoot": str(wire_root),
+                            "persistence": "shared on-disk wire",
+                            "transport": "per-session stdio ACP",
+                        }
+                    }
+                }
+            )
+            await pilot.pause()
+            assert app.session_tracker.get_session(created_mode).title == "New Session"
             created_conversation.post_message(
                 messages.UserInputSubmitted("  Name this\nfrom my first prompt  ")
             )
@@ -152,11 +232,37 @@ async def main() -> None:
                 app.session_tracker.get_session(created_mode).title
                 == "Name this from my first prompt"
             )
+            created_sidebar = app.screen.query_one(SideBar)
+            created_sidebar.toggle()
+            await pilot.pause()
+            assert created_sidebar.collapsed
+            assert app.settings.get("sidebar.hide", bool)
+            await app.switch_mode(owner_mode)
+            await pilot.pause()
+            assert app.screen.query_one(SideBar).collapsed
+            await app.switch_mode(created_mode)
+            await pilot.pause()
+            assert app.screen.query_one(SideBar).collapsed
+            app.screen.query_one(SideBar).reveal()
+            await pilot.pause()
+            assert not app.settings.get("sidebar.hide", bool)
+            stopped_agents = 0
+
+            class ClosingAgent:
+                def get_info(self) -> Content:
+                    return Content("test")
+
+                async def stop(self) -> None:
+                    nonlocal stopped_agents
+                    stopped_agents += 1
+
+            created_conversation.agent = ClosingAgent()
             await app.switch_mode(owner_mode)
             await app.close_session_mode(created_mode)
             await pilot.pause()
             assert app.current_mode == owner_mode
             assert app.session_tracker.session_count == 1
+            assert stopped_agents == 1
 
             local_row = app.screen.query_one(SessionRow)
             await pilot.click(local_row, button=3)
@@ -250,6 +356,54 @@ async def main() -> None:
             assert thought.display and thought.region.height > 0
             assert conversation._loading is None
 
+            class SlowCancelAgent:
+                def __init__(self) -> None:
+                    self.called = asyncio.Event()
+                    self.release = asyncio.Event()
+
+                async def cancel(self) -> bool:
+                    self.called.set()
+                    await self.release.wait()
+                    return True
+
+                def get_info(self):
+                    return "test agent"
+
+                async def stop(self) -> None:
+                    return None
+
+            original_agent = conversation.agent
+            cancel_agent = SlowCancelAgent()
+            conversation.agent = cancel_agent
+            conversation.turn = "agent"
+            conversation._last_escape_time = 0.0
+            conversation._loading = await conversation.post(Loading("Thinking…"))
+            conversation.action_cancel()
+            await pilot.pause()
+            assert not cancel_agent.called.is_set()
+            conversation.action_cancel()
+            for _ in range(10):
+                if cancel_agent.called.is_set():
+                    break
+                await pilot.pause()
+            assert cancel_agent.called.is_set()
+            assert conversation._loading.render().plain == "Cancelling…"
+            assert conversation.turn == "agent"
+            cancel_agent.release.set()
+            await pilot.pause()
+            if conversation._loading is not None:
+                await conversation._loading.remove()
+            conversation._loading = None
+            conversation.agent = original_agent
+            conversation.turn = "client"
+
+            prompt_input = conversation.prompt.prompt_text_area
+            prompt_input.text = "clear this entire draft"
+            prompt_input.focus()
+            await pilot.press("ctrl+c")
+            await pilot.pause()
+            assert prompt_input.text == ""
+
             conversation.post_message(
                 acp_messages.ToolCall(
                     {
@@ -279,11 +433,11 @@ async def main() -> None:
             await pilot.pause()
             assert isinstance(app.screen, ContextMenu)
             assert [item.action for item in app.screen.query(ContextMenuItem)] == [
-                "fork",
-                "stop",
-                "archive",
-                "delete",
-                "ack",
+                "comms_fork",
+                "comms_stop",
+                "comms_archive",
+                "comms_delete",
+                "comms_ack",
                 "copy",
             ]
             await pilot.press("down", "down", "down", "down", "enter")
@@ -298,7 +452,7 @@ async def main() -> None:
             await pilot.pause()
             assert isinstance(app.screen, ContextMenu)
             assert [item.action for item in app.screen.query(ContextMenuItem)] == [
-                "ack",
+                "comms_ack",
                 "copy",
             ]
             await pilot.press("enter")
@@ -313,7 +467,7 @@ async def main() -> None:
             stop_item = next(
                 item
                 for item in app.screen.query(ContextMenuItem)
-                if item.action == "stop"
+                if item.action == "comms_stop"
             )
             await pilot.click(stop_item)
             await pilot.pause()
@@ -323,7 +477,7 @@ async def main() -> None:
             archive_item = next(
                 item
                 for item in app.screen.query(ContextMenuItem)
-                if item.action == "archive"
+                if item.action == "comms_archive"
             )
             await pilot.click(archive_item)
             await pilot.pause()
@@ -337,7 +491,7 @@ async def main() -> None:
             stop_item = next(
                 item
                 for item in app.screen.query(ContextMenuItem)
-                if item.action == "stop"
+                if item.action == "comms_stop"
             )
             await pilot.click(stop_item)
             await pilot.pause()
@@ -346,24 +500,24 @@ async def main() -> None:
             delete_item = next(
                 item
                 for item in app.screen.query(ContextMenuItem)
-                if item.action == "delete"
+                if item.action == "comms_delete"
             )
             await pilot.click(delete_item)
             await pilot.pause()
             assert "delete-peer" not in comms.registry
             assert not any(
-                item.target_name == "delete-peer"
-                for item in app.screen.query(CommsRow)
+                item.target_name == "delete-peer" for item in app.screen.query(CommsRow)
             )
 
             await pilot.click(row(app.screen, "#all"))
             await pilot.pause()
             assert isinstance(app.screen, CommsScreen)
             assert app.screen.target == "#all"
-            assert app.session_tracker.session_count == 2
-            assert len(list(app.screen.query(SessionRow))) == 2
+            assert row(app.screen, "#all").selected
+            assert app.session_tracker.session_count == 1
+            assert len(list(app.screen.query(SessionRow))) == 1
             owner_screen = app.get_screen_stack(owner_mode)[-1]
-            assert len(list(owner_screen.query(SessionRow))) == 2
+            assert len(list(owner_screen.query(SessionRow))) == 1
             first_channel_mode = app.current_mode
             chat = app.screen.query_one(CommsChatView)
             assert chat.prompt.prompt_text_area.has_focus
@@ -390,7 +544,47 @@ async def main() -> None:
             await pilot.click(row(app.screen, "#all"))
             await pilot.pause()
             assert app.current_mode == first_channel_mode
-            assert app.session_tracker.session_count == 2
+            assert app.session_tracker.session_count == 1
+
+            await pilot.press("escape")
+            await pilot.pause()
+            assert isinstance(app.screen, MainScreen)
+            await pilot.click(row(app.screen, "#test"))
+            await pilot.pause()
+            long_chat = app.screen.query_one(CommsChatView)
+            assert len(long_chat._history) == HISTORY_PAGE_SIZE
+            assert "long history 239" in long_chat._history[-1][1].source
+            previous_oldest = long_chat._history[0][0].seq
+            long_chat._edge_load_scheduled = True
+            long_chat.window.scroll_home(animate=False)
+            await pilot.pause()
+            anchor = long_chat._history[0][1]
+            anchor_y = anchor.region.y
+            long_chat._edge_load_scheduled = False
+            long_chat._on_window_scroll(long_chat.window.scroll_y)
+            for _ in range(10):
+                if long_chat._history[0][0].seq < previous_oldest:
+                    break
+                await pilot.pause()
+            assert long_chat._history[0][0].seq < previous_oldest
+            await pilot.pause()
+            assert abs(anchor.region.y - anchor_y) <= 1
+            while not long_chat._has_newer:
+                page = long_chat._message_page(
+                    comms, before=long_chat._history[0][0].seq
+                )
+                await long_chat._mount_page(page, older=True)
+            sequences = [message.seq for message, _ in long_chat._history]
+            assert len(sequences) == HISTORY_WINDOW_SIZE
+            assert len(sequences) == len(set(sequences))
+            assert sequences[0] < previous_oldest
+            assert long_chat._has_newer
+            newest_before = sequences[-1]
+            page = long_chat._message_page(comms, after=newest_before)
+            await long_chat._mount_page(page, older=False)
+            assert long_chat._history[-1][0].seq > newest_before
+            assert len(long_chat._history) == HISTORY_WINDOW_SIZE
+            assert long_chat._has_older
 
             await pilot.press("escape")
             await pilot.pause()
@@ -399,22 +593,43 @@ async def main() -> None:
             await pilot.pause()
             assert isinstance(app.screen, CommsScreen)
             assert app.screen.kind == "dm"
-            assert app.session_tracker.session_count == 3
+            assert row(app.screen, "peer").selected
+            tabs = app.screen.query_one(SessionsTabs)
+            assert tabs.current_session == app.current_mode
+            active_tab = tabs.query_one(f"#{app.current_mode}", SessionLabel)
+            assert active_tab.has_class("-current")
+            assert active_tab.render().plain == "@peer"
+            assert app.session_tracker.session_count == 1
+            assert len(list(app.screen.query(SessionRow))) == 1
+            assert not any(
+                session.title == "@peer"
+                for session in app.session_tracker.ordered_sessions
+            )
 
-            await pilot.press("ctrl+left_square_bracket")
+            await pilot.click(row(app.screen, "peer"), button=3)
             await pilot.pause()
-            assert app.current_mode == first_channel_mode
-            await pilot.press("ctrl+right_square_bracket")
+            assert isinstance(app.screen, ContextMenu)
+            assert [item.action for item in app.screen.query(ContextMenuItem)] == [
+                "comms_fork",
+                "comms_stop",
+                "comms_archive",
+                "comms_delete",
+                "comms_ack",
+                "copy",
+            ]
+            await pilot.press("escape")
             await pilot.pause()
             assert isinstance(app.screen, CommsScreen) and app.screen.kind == "dm"
             await pilot.press("ctrl+w")
             await pilot.pause()
-            assert app.session_tracker.session_count == 2
-            assert app.current_mode == first_channel_mode
+            assert app.session_tracker.session_count == 1
+            assert isinstance(app.screen, MainScreen)
 
+            await pilot.click(row(app.screen, "#all"))
+            await pilot.pause()
+            assert app.current_mode == first_channel_mode
             await pilot.press("escape")
             await pilot.pause()
-            assert isinstance(app.screen, MainScreen)
             owner_mode = app.current_mode
             owner_row = next(
                 item

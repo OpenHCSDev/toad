@@ -242,20 +242,14 @@ def show_thread_menu(
     screen,
     menu_offset: Offset,
     name: str,
+    items: list[tuple[str, str]],
     actions: dict[str, Callable[[], None]],
 ) -> None:
     _show(
         screen,
         menu_offset,
         f"@{name}",
-        [
-            ("fork", "Fork from this thread"),
-            ("stop", "Stop process"),
-            ("archive", "Archive stopped thread"),
-            ("delete", "Delete stopped thread"),
-            ("ack", "Mark inbox read"),
-            ("copy", "Copy name"),
-        ],
+        items,
         actions,
     )
 
@@ -291,13 +285,15 @@ def show_channel_menu(
     menu_offset: Offset,
     name: str,
     actions: dict[str, Callable[[], None]],
+    *,
+    acknowledge_label: str,
 ) -> None:
     _show(
         screen,
         menu_offset,
         name,
         [
-            ("ack", "Mark read"),
+            ("comms_ack", acknowledge_label),
             ("copy", "Copy name"),
         ],
         actions,

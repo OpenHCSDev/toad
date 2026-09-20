@@ -689,7 +689,11 @@ class Agent(AgentBase):
         self._stopping = True
         process = self._process
         process_group = self._process_group_id
-        if process is not None and process.returncode is None and process.stdin is not None:
+        if (
+            process is not None
+            and process.returncode is None
+            and process.stdin is not None
+        ):
             process.stdin.close()
             with suppress(BrokenPipeError, ConnectionResetError):
                 await process.stdin.wait_closed()
@@ -927,7 +931,6 @@ class Agent(AgentBase):
                 transport=str(coordination.get("transport", "per-session stdio ACP")),
             )
         )
-        self.post_message(messages.SessionInfoUpdate(thread))
 
     async def acp_session_prompt(
         self, prompt: list[protocol.ContentBlock]
@@ -969,9 +972,6 @@ class Agent(AgentBase):
             return None
 
         assert result is not None
-        # TODO: Where to display this?
-        token_usage = result.get("usage")
-
         return result.get("stopReason")
 
     async def acp_session_set_mode(self, mode_id: str) -> str | None:

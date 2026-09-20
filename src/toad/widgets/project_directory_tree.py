@@ -5,6 +5,7 @@ import asyncio
 
 from textual import work
 from textual.binding import Binding
+from textual.message import Message
 from textual.widgets import DirectoryTree
 from textual.widgets.directory_tree import DirEntry
 
@@ -20,7 +21,15 @@ This shows the files in your project directory.
 
 - **cursor keys** navigation
 - **Enter** expand folder
+- **Enter** preview file
+- **Shift+Enter** insert file path in prompt
 """
+
+    class InsertSelected(Message):
+        def __init__(self, path: Path) -> None:
+            self.path = path
+            super().__init__()
+
     BINDINGS = [
         Binding(
             "ctrl+c",
@@ -30,6 +39,13 @@ This shows the files in your project directory.
             show=False,
         ),
         Binding("ctrl+r", "refresh", "Refresh", tooltip="Refresh file view", show=True),
+        Binding(
+            "shift+enter",
+            "insert_selected",
+            "Insert path",
+            tooltip="Insert selected path in prompt",
+            show=False,
+        ),
     ]
 
     def __init__(
@@ -88,3 +104,9 @@ This shows the files in your project directory.
     async def action_refresh(self) -> None:
         await self.reload()
         self.notify("Project directory has been refreshed", title="Directory Tree")
+
+    def action_insert_selected(self) -> None:
+        if self.cursor_node is not None and self.cursor_node.data is not None:
+            path = self.cursor_node.data.path
+            if path.is_file():
+                self.post_message(self.InsertSelected(path))

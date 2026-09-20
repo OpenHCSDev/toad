@@ -15,6 +15,8 @@ from __future__ import annotations
 
 import os
 import time
+from collections.abc import Callable
+from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
@@ -27,7 +29,12 @@ from textual.reactive import reactive
 from textual.content import Content
 from textual.widgets import Static
 
-from agent_comms import ActivityState, ThreadStatus
+from agent_comms import (
+    ActivityState,
+    ThreadStatus,
+    context_tool_catalog,
+    invoke_context_tool,
+)
 from agent_comms.operations import wire
 
 from toad import messages
@@ -54,7 +61,7 @@ def _fmt_age(ts: float, now: float) -> str:
     if age < 10:
         return "now"
     if age < 60:
-        return f"{int(age)}s"
+        return f"{int(age // 10) * 10}s"
     if age < 3600:
         return f"{int(age // 60)}m"
     if age < 86400:
@@ -77,7 +84,7 @@ class CommsRow(Static):
     DEFAULT_CSS = """
     CommsRow {
         height: auto;
-        padding: 0 1;
+        padding: 0;
     }
     CommsRow:hover { background: $surface-lighten-2; }
     CommsRow.-selected { background: $accent-darken-2; }
@@ -107,6 +114,11 @@ class CommsRow(Static):
         self._label = label
         self.unread = unread
         self.selected = False
+
+    def set_label(self, label: str) -> None:
+        if label != self._label:
+            self._label = label
+            self.update(label)
 
     def _sidebar(self):
         parent = self.parent
@@ -151,7 +163,7 @@ class NewSessionButton(Static):
     NewSessionButton {
         width: 1fr;
         height: 1;
-        padding: 0 1;
+        padding: 0;
         color: $text-muted;
         pointer: pointer;
     }
@@ -214,7 +226,7 @@ class CoordinationStatus(Static):
     DEFAULT_CSS = """
     CoordinationStatus {
         height: auto;
-        padding: 0 1;
+        padding: 0;
         color: $text-muted;
     }
     """
@@ -270,7 +282,7 @@ class CommsSidebar(Vertical):
         height: auto;
         padding: 0 0 1 0;
     }
-    CommsSidebar .section { color: $text-muted; padding: 1 1 0 1; }
+    CommsSidebar .section { color: $text-muted; padding: 1 0 0 0; }
     CommsSidebar .row-name { color: $text; }
     CommsSidebar .row-detail { color: $text-muted; }
     CommsSidebar .activity {
@@ -305,11 +317,15 @@ class CommsSidebar(Vertical):
             self.action = action
             super().__init__()
 
-    def __init__(self, session_thread: str = "", **kwargs) -> None:
+    def __init__(
+        self, session_thread: str = "", selected_target: str = "", **kwargs
+    ) -> None:
         super().__init__(**kwargs)
         self.session_thread = session_thread
+        self.selected = selected_target
         self._row_map: dict[tuple[str, str], CommsRow] = {}
         self._activity_map: dict[str, Static] = {}
+        self._activity_text: dict[str, str] = {}
         self._session_rows: dict[str, SessionRow] = {}
         self.can_focus = True
         self._cursor = 0
@@ -391,16 +407,18 @@ class CommsSidebar(Vertical):
         comms = wire(_comms_root())
         now = time.time()
         who = [
-            person for person in comms.who() if person["name"] != self.session_thread
+            person
+            for person in comms.presence()
+            if person["name"] != self.session_thread
         ]
         channels = comms.channels()
         if self.session_thread in comms.registry:
+            unread = comms.pending_counts(self.session_thread)
             unread_by_channel = {
-                channel: comms.pending_count(self.session_thread, channel)
-                for channel in channels
+                channel: unread.get(channel, 0) for channel in channels
             }
             unread_by_person = {
-                person["name"]: comms.pending_count(self.session_thread, person["name"])
+                person["name"]: unread.get(person["name"], 0)
                 for person in who
                 if person["name"] != self.session_thread
             }
@@ -447,6 +465,7 @@ class CommsSidebar(Vertical):
             self.remove_children()
             self._row_map.clear()
             self._activity_map.clear()
+            self._activity_text.clear()
             self._session_rows.clear()
 
             self.mount(NewSessionButton())
@@ -482,7 +501,7 @@ class CommsSidebar(Vertical):
             unread = snapshot["unread_by_channel"].get(channel, 0)
             label = f"{channel} ({unread})" if unread else channel
             row = self._row_map[("channel", channel)]
-            row.update(label)
+            row.set_label(label)
             row.unread = unread
             selected = channel == selection or row is focused
             row.selected = selected
@@ -504,7 +523,7 @@ class CommsSidebar(Vertical):
                 f"{status_mark} {name}{task}" f" [{_fmt_age(person['last_seen'], now)}]"
             )
             row = self._row_map[(kind, name)]
-            row.update(label)
+            row.set_label(label)
             row.unread = unread
             selected = name == selection or row is focused
             row.selected = selected
@@ -529,12 +548,20 @@ class CommsSidebar(Vertical):
             if show_activity and act is not None:
                 activity_detail = " ".join(act.detail.splitlines())
                 detail_text = f" {activity_detail}" if activity_detail else ""
-                text = f"    ⟳ {act.state.value}{detail_text} ({_fmt_age(act.timestamp, now)})"
+                age = _fmt_age(act.timestamp, now)
+                text = f"    ⟳ {act.state.value}{detail_text} ({age})"
                 if runtime:
                     text += f"\n    {runtime}"
-                activity_row.update(text)
+                if self._activity_text.get(name) != text:
+                    self._activity_text[name] = text
+                    activity_row.update(text)
             elif runtime:
-                activity_row.update(f"    {runtime}")
+                text = f"    {runtime}"
+                if self._activity_text.get(name) != text:
+                    self._activity_text[name] = text
+                    activity_row.update(text)
+            else:
+                self._activity_text.pop(name, None)
 
         if focused_key is not None and focused_key in self._row_map:
             self._row_map[focused_key].focus()
@@ -622,18 +649,23 @@ class CommsSidebar(Vertical):
         def post(action: str) -> None:
             self.post_message(self.ThreadAction(name, action))
 
+        declared_actions = context_tool_catalog("thread")
+        actions: dict[str, Callable[[], None]] = {
+            str(declaration["name"]): partial(post, str(declaration["name"]))
+            for declaration in declared_actions
+        }
+        actions["copy"] = lambda: post("copy")
+
         show_thread_menu(
             self.app.screen,
             menu_offset,
             name,
-            {
-                "fork": lambda: post("fork"),
-                "stop": lambda: post("stop"),
-                "archive": lambda: post("archive"),
-                "delete": lambda: post("delete"),
-                "ack": lambda: post("ack"),
-                "copy": lambda: post("copy"),
-            },
+            [
+                (str(declaration["name"]), str(declaration["action_label"]))
+                for declaration in declared_actions
+            ]
+            + [("copy", "Copy name")],
+            actions,
         )
 
     def _show_session_menu(self, mode_name: str, menu_offset) -> None:
@@ -674,14 +706,20 @@ class CommsSidebar(Vertical):
         def post(action: str) -> None:
             self.post_message(self.ThreadAction(name, action))
 
+        acknowledge = next(
+            declaration
+            for declaration in context_tool_catalog("thread")
+            if declaration["name"] == "comms_ack"
+        )
         show_channel_menu(
             self.app.screen,
             menu_offset,
             name,
             {
-                "ack": lambda: post("ack"),
+                "comms_ack": lambda: post("comms_ack"),
                 "copy": lambda: post("copy"),
             },
+            acknowledge_label=str(acknowledge["action_label"]),
         )
 
     # ─── Actions ──────────────────────────────────────────────────────────────
@@ -691,16 +729,15 @@ class CommsSidebar(Vertical):
         name = event.name
         try:
             comms = wire(_comms_root())
-            if event.action == "stop":
-                comms.stop(name)
-            elif event.action == "archive":
-                comms.archive(name)
-            elif event.action == "delete":
-                comms.delete(name)
-            elif event.action == "ack":
-                comms.acknowledge(self.session_thread, name)
-            elif event.action == "copy":
+            if event.action == "copy":
                 self.app.copy_to_clipboard(name)
+            elif event.action != "comms_fork":
+                invoke_context_tool(
+                    comms,
+                    event.action,
+                    subject=name,
+                    actor=self.session_thread,
+                )
         except Exception as error:
             self.notify(str(error), title="Session action", severity="error")
         self._refresh()

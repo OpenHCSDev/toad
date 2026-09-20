@@ -26,7 +26,7 @@ class SessionRow(Static):
     DEFAULT_CSS = """
     SessionRow {
         height: 2;
-        padding: 0 1;
+        padding: 0;
         color: $text-muted;
         pointer: pointer;
     }
@@ -48,9 +48,17 @@ class SessionRow(Static):
     ) -> None:
         super().__init__(id=widget_id)
         self.mode_name = details.mode_name
+        self._details_signature: tuple[str, str, str] | None = None
         self.update_details(details)
 
     def update_details(self, details: SessionDetails) -> None:
+        activity = (
+            details.summary or details.subtitle or details.path or "Ready"
+        ).replace("\n", " ")[:44]
+        signature = (details.state, details.title, activity)
+        if signature == self._details_signature:
+            return
+        self._details_signature = signature
         self.remove_class(
             "-state-notready", "-state-busy", "-state-asking", "-state-idle"
         )
@@ -63,9 +71,6 @@ class SessionRow(Static):
             "asking": "?",
             "idle": "✓",
         }[details.state]
-        activity = (details.summary or details.subtitle or details.path or "Ready").replace(
-            "\n", " "
-        )[:44]
         self.update(f"{marker} {details.title or 'New Session'}\n  {activity}")
 
     def _sidebar(self):
