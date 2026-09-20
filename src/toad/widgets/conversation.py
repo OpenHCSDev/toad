@@ -59,6 +59,17 @@ from toad.protocol import BlockProtocol, MenuProtocol, ExpandProtocol
 from toad.menus import MenuItem
 from toad.widgets.shell_terminal import ShellTerminal
 
+AUTO_SESSION_TITLE_MAX_LENGTH = 50
+
+
+def make_session_title(prompt: str) -> str:
+    """Create a compact deterministic title from a session's first prompt."""
+    title = " ".join(prompt.split())
+    if len(title) > AUTO_SESSION_TITLE_MAX_LENGTH:
+        title = title[: AUTO_SESSION_TITLE_MAX_LENGTH - 1].rstrip() + "…"
+    return title
+
+
 if TYPE_CHECKING:
     from toad.acp.agent import Mode
     from toad.widgets.terminal import Terminal
@@ -272,12 +283,14 @@ class Conversation(containers.Vertical):
             "Block cursor up",
             priority=True,
             group=CURSOR_BINDING_GROUP,
+            show=False,
         ),
         Binding(
             "alt+down",
             "cursor_down",
             "Block cursor down",
             group=CURSOR_BINDING_GROUP,
+            show=False,
         ),
         Binding(
             "enter",
@@ -311,6 +324,7 @@ class Conversation(containers.Vertical):
             "Focus",
             tooltip="Focus the active terminal",
             priority=True,
+            show=False,
         ),
         Binding(
             "ctrl+o",
@@ -379,6 +393,9 @@ class Conversation(containers.Vertical):
         self._agent_session_id = agent_session_id
         self._session_pk = session_pk
         self._session_title = session_title
+        self._auto_title_eligible = (
+            agent_session_id is None and session_pk is None and session_title is None
+        )
         self._agent_fail = False
         self._mouse_down_offset: Offset | None = None
 
@@ -725,11 +742,21 @@ class Conversation(containers.Vertical):
         self.agent_ready = True
         self.post_message(messages.SessionUpdate(state="idle", summary="Ready"))
 
-    async def rename_session(self, name: str) -> None:
-        """Apply a user- or agent-provided title to this session."""
+    async def _apply_session_name(self, name: str) -> None:
         if self.agent is not None:
             await self.agent.set_session_name(name)
         self.post_message(messages.SessionUpdate(name=name))
+
+    async def rename_session(self, name: str) -> None:
+        """Apply an explicit user- or agent-provided title to this session."""
+        self._auto_title_eligible = False
+        await self._apply_session_name(name)
+
+    async def _auto_name_from_prompt(self, prompt: str) -> None:
+        if not self._auto_title_eligible:
+            return
+        self._auto_title_eligible = False
+        await self._apply_session_name(make_session_title(prompt))
 
     @on(acp_messages.SessionInfoUpdate)
     async def on_session_info_update(
@@ -828,6 +855,7 @@ class Conversation(containers.Vertical):
             if text.startswith("/") and await self.slash_command(text):
                 # Toad has processed the slash command.
                 return
+            await self._auto_name_from_prompt(text)
             await self.post(UserInput(text))
             self.window.scroll_end(animate=False)
             waiting = (

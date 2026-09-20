@@ -114,9 +114,17 @@ Checkbox {
 
 Footer {    
     background: transparent;
+    FooterKey {
+        background: $footer-description-background;
+
+        &:hover {
+            background: $secondary 25%;
+        }
+    }
+
     .footer-key--key {
         color: $text;
-        background: transparent;
+        background: $secondary 15%;
         # text-style: not bold;
         padding: 0 1;        
     }

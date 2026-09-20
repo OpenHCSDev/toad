@@ -249,12 +249,13 @@ class ToadApp(App, inherit_bindings=False):
         ),
         Binding("ctrl+c", "help_quit", show=False, system=True),
         Binding("ctrl+s", "sessions", "Sessions"),
-        Binding("f1", "toggle_help_panel", "Help", priority=True),
+        Binding("f1", "toggle_help_panel", "Help", show=False, priority=True),
         Binding(
             "f2,ctrl+comma",
             "settings",
             "Settings",
             tooltip="Settings screen",
+            show=False,
         ),
     ]
     ALLOW_IN_MAXIMIZED_VIEW = ""

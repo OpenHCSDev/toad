@@ -87,7 +87,7 @@ Conversation {
         background: $surface;
         
         #info-container {            
-            margin: 1 1;
+            margin: 0 1 1 1;
         }                  
     }
     
@@ -461,7 +461,7 @@ Prompt {
             background: $surface;
         }
         height: auto;
-        margin: 0 0 1 0;
+        margin: 0;
         border: tall transparent;
         border-subtitle-align: left;
         border-subtitle-style: reverse;
@@ -501,7 +501,7 @@ Prompt {
     #info-container {                
         
         height: 1;
-        margin: 1 1;
+        margin: 0 1 1 1;
         # padding: 1 0;
         
         AgentInfo {
