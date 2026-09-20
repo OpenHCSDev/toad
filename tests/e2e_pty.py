@@ -272,7 +272,7 @@ printf '%s\n' '{"type":"response","command":"get_session_stats","success":true,"
         raise AssertionError(f"final response missing:\n{frame[-900:]}")
     for _ in range(20):
         frame = await session.frame(0.1)
-        if "Thread: renamed-e2e" in frame and frame.count("renamed-e2e") >= 2:
+        if "Thread: renamed-e2e" in frame and "inspect the project" in frame.lower():
             break
     else:
         raise AssertionError(f"wire rename did not reach Toad UI:\n{frame[-1200:]}")
@@ -364,8 +364,10 @@ printf '%s\n' '{"type":"response","command":"get_session_stats","success":true,"
 
     # Closing the final agent session should replace it with another session
     # for the same configured agent, not leak into Toad's generic Store.
-    assert await session.click_row("renamed-e2e", button=2), (
-        "renamed local session row not found:\n" + "\n".join(session.last_screen_lines)
+    assert await session.click_row(
+        "inspect the project", button=2
+    ), "human-named local session row not found:\n" + "\n".join(
+        session.last_screen_lines
     )
     frame = await session.frame(0.5)
     assert "Rename session" in frame and "Archive session" in frame

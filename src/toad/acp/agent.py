@@ -145,6 +145,10 @@ class Agent(AgentBase):
         self._process_group_id: int | None = None
         self._stopping = False
         self._pending_session_name: str | None = None
+        self._coordination_thread: str | None = None
+        self._coordination_root: str | None = None
+        self._coordination_persistence = "shared on-disk wire"
+        self._coordination_transport = "per-session stdio ACP"
         self.session_ready_event = asyncio.Event()
         self.done_event = asyncio.Event()
 
@@ -358,7 +362,12 @@ class Agent(AgentBase):
                 self.post_message(messages.ModeUpdate(mode_id))
 
             case {"sessionUpdate": "session_info_update"} if "title" in update:
-                self.post_message(messages.SessionInfoUpdate(update.get("title")))
+                title = update.get("title")
+                if self._coordination_root is not None and isinstance(title, str):
+                    self._coordination_thread = title
+                    self._post_coordination_update()
+                else:
+                    self.post_message(messages.SessionInfoUpdate(title))
 
             case {"sessionUpdate": "usage_update", "used": used, "size": size}:
                 match update.get("cost"):
@@ -923,14 +932,50 @@ class Agent(AgentBase):
         wire_root = coordination.get("wireRoot")
         if not isinstance(thread, str) or not isinstance(wire_root, str):
             return
+        self._coordination_thread = thread
+        self._coordination_root = wire_root
+        self._coordination_persistence = str(
+            coordination.get("persistence", "shared on-disk wire")
+        )
+        self._coordination_transport = str(
+            coordination.get("transport", "per-session stdio ACP")
+        )
+        pending_name = getattr(self, "_pending_session_name", None)
+        if pending_name:
+            self._rename_coordination_thread(pending_name)
+        else:
+            self._post_coordination_update()
+
+    def _post_coordination_update(self) -> None:
+        thread = self._coordination_thread
+        wire_root = self._coordination_root
+        if thread is None or wire_root is None:
+            return
         self.post_message(
             messages.CoordinationUpdate(
                 thread=thread,
                 wire_root=wire_root,
-                persistence=str(coordination.get("persistence", "shared on-disk wire")),
-                transport=str(coordination.get("transport", "per-session stdio ACP")),
+                persistence=self._coordination_persistence,
+                transport=self._coordination_transport,
             )
         )
+
+    def _rename_coordination_thread(self, display_name: str) -> None:
+        thread = self._coordination_thread
+        wire_root = self._coordination_root
+        process = self._process
+        if thread is None or wire_root is None or process is None:
+            return
+
+        from agent_comms.operations import wire
+
+        result = wire(wire_root).rename_managed_thread(
+            thread,
+            display_name,
+            owner_pid=process.pid,
+        )
+        self._coordination_thread = result.current
+        self._post_coordination_update()
 
     async def acp_session_prompt(
         self, prompt: list[protocol.ContentBlock]
@@ -993,6 +1038,7 @@ class Agent(AgentBase):
 
     async def set_session_name(self, name: str) -> None:
         self._pending_session_name = name
+        self._rename_coordination_thread(name)
         if self.session_pk is None:
             return
         db = DB()
