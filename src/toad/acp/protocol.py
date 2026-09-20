@@ -321,6 +321,12 @@ class UsageUpdate(SchemaDict, total=False, extra_items=object):
     cost: Cost
 
 
+class SessionInfoUpdate(SchemaDict, total=False, extra_items=Any):
+    sessionUpdate: Required[Literal["session_info_update"]]
+    title: str | None
+    updatedAt: str | None
+
+
 type SessionUpdate = (
     UserMessageChunk
     | AgentMessageChunk
@@ -331,6 +337,7 @@ type SessionUpdate = (
     | AvailableCommandsUpdate
     | CurrentModeUpdate
     | UsageUpdate
+    | SessionInfoUpdate
 )
 
 

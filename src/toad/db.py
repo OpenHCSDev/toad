@@ -142,6 +142,16 @@ class DB:
             return False
         return True
 
+    async def session_delete(self, id: int) -> bool:
+        """Delete a saved agent session."""
+        try:
+            async with self.open() as db:
+                await db.execute("DELETE FROM sessions WHERE id = ?", (id,))
+                await db.commit()
+        except aiosqlite.Error:
+            return False
+        return True
+
     async def session_get(self, id: int) -> Session | None:
         """Get a sesison from its ID (PK).
 

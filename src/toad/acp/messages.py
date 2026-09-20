@@ -146,6 +146,13 @@ class ModeUpdate(AgentMessage):
 
 
 @dataclass
+class SessionInfoUpdate(AgentMessage):
+    """Agent-provided title for its current session."""
+
+    title: str | None
+
+
+@dataclass
 class UsageUpdage(AgentMessage):
     """Context window change"""
 

@@ -712,6 +712,14 @@ class ToadApp(App, inherit_bindings=False):
             path=str(project_path),
             state="idle",
         )
+        try:
+            from toad.widgets.comms_sidebar import CommsSidebar
+
+            await self.get_screen_stack(owner_mode)[-1].query_one(
+                CommsSidebar
+            ).sync_sessions()
+        except Exception:
+            pass
         return details.mode_name
 
     async def close_session_mode(self, mode_name: str) -> None:
@@ -730,7 +738,9 @@ class ToadApp(App, inherit_bindings=False):
             for details in session_tracker.ordered_sessions
             if details.mode_name not in closing_modes
         ]
-        if not remaining_modes:
+        if self.current_mode not in closing_modes:
+            pass
+        elif not remaining_modes:
             await self.switch_mode("store")
         else:
             ordered_modes = [
@@ -895,6 +905,82 @@ class ToadApp(App, inherit_bindings=False):
             event.agent, project_path=Path(event.path), initial_prompt=event.prompt
         )
 
+    @on(messages.SessionCreate)
+    async def on_session_create(self, event: messages.SessionCreate) -> None:
+        source = self._main_session_screen(event.source_mode)
+        if source is None:
+            try:
+                from toad.screens.comms import CommsScreen
+
+                screen = self.get_screen_stack(event.source_mode)[-1]
+                if isinstance(screen, CommsScreen):
+                    source = self._main_session_screen(screen.owner_mode)
+            except KeyError, IndexError:
+                pass
+        if source is not None and source._agent is not None:
+            from toad.screens.main import MainScreen
+
+            def get_screen() -> MainScreen:
+                return MainScreen(source.project_path, source._agent).data_bind(
+                    column=ToadApp.column,
+                    column_width=ToadApp.column_width,
+                    scrollbar=ToadApp.scrollbar,
+                )
+
+            await self.new_session_screen(get_screen)
+        else:
+            await self.new_session_screen(self.get_main_screen)
+
+    def _main_session_screen(self, mode_name: str) -> "MainScreen | None":
+        from toad.screens.main import MainScreen
+
+        try:
+            screen = self.get_screen_stack(mode_name)[-1]
+        except KeyError, IndexError:
+            return None
+        return screen if isinstance(screen, MainScreen) else None
+
+    @on(messages.SessionRename)
+    async def on_session_rename(self, event: messages.SessionRename) -> None:
+        name = event.name.strip()
+        screen = self._main_session_screen(event.mode_name)
+        if not name or screen is None:
+            return
+        await screen.conversation.rename_session(name)
+
+    @on(messages.SessionArchive)
+    async def on_session_archive(self, event: messages.SessionArchive) -> None:
+        await self.close_session_mode(event.mode_name)
+
+    @on(messages.SessionDelete)
+    async def on_session_delete(self, event: messages.SessionDelete) -> None:
+        screen = self._main_session_screen(event.mode_name)
+        session_pk = None
+        if screen is not None:
+            agent = screen.conversation.agent
+            if agent is not None and not agent.session_ready_event.is_set():
+                try:
+                    await asyncio.wait_for(agent.session_ready_event.wait(), timeout=5)
+                except TimeoutError:
+                    self.notify(
+                        "The agent is still starting; try delete again in a moment",
+                        title="Delete session",
+                        severity="warning",
+                    )
+                    return
+            session_pk = screen._session_pk
+            if agent is not None:
+                session_pk = agent.session_pk or session_pk
+        if session_pk is not None:
+            if not await DB().session_delete(session_pk):
+                self.notify(
+                    "Unable to delete the saved session",
+                    title="Delete session",
+                    severity="error",
+                )
+                return
+        await self.close_session_mode(event.mode_name)
+
     @on(messages.SessionClose)
     def on_session_close(self) -> None:
         self.update_show_sessions()
@@ -931,10 +1017,12 @@ class ToadApp(App, inherit_bindings=False):
         from toad.agents import read_agents
 
         agent: Agent | None = None
+        session_title: str | None = None
         if session_pk is not None:
             db = DB()
             session = await db.session_get(session_pk)
             if session is not None:
+                session_title = session["title"]
                 meta = json.loads(session["meta_json"])
                 if agent_data := meta.get("agent_data"):
                     agent = agent_data
@@ -954,6 +1042,7 @@ class ToadApp(App, inherit_bindings=False):
                 project_path,
                 agent,
                 agent_session_id,
+                agent_session_title=session_title,
                 session_pk=session_pk,
                 initial_prompt=initial_prompt,
             ).data_bind(

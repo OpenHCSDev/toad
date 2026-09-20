@@ -13,13 +13,13 @@ from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.comms_fork_dialog import ForkDialog
 from toad.widgets.comms_sidebar import CommsSidebar, SelectTarget
 from toad.widgets.session_tabs import SessionsTabs
-from toad.widgets.session_sidebar import SessionSidebar
 from toad.widgets.side_bar import SideBar
 
 
 class CommsScreen(Screen, can_focus=False):
     """A channel or DM represented as a native concurrent Toad session."""
 
+    AUTO_FOCUS = "CommsChatView Prompt TextArea"
     CSS_PATH = ["main.tcss", "comms.tcss"]
     SESSION_NAVIGATION_GROUP = Binding.Group(description="Sessions")
     BINDINGS = [
@@ -62,9 +62,8 @@ class CommsScreen(Screen, can_focus=False):
     def compose(self) -> ComposeResult:
         with containers.Center():
             yield SideBar(
-                SideBar.Panel("Sessions", SessionSidebar()),
                 SideBar.Panel(
-                    "Comms",
+                    "Sessions",
                     CommsSidebar(session_thread=self.me),
                     flex=True,
                 ),
@@ -85,6 +84,7 @@ class CommsScreen(Screen, can_focus=False):
         self.set_timer(0.1, chat.prepare_prompt)
 
     def _on_screen_resume(self, event: ScreenResume) -> None:
+        self.call_after_refresh(self.query_one(CommsSidebar).sync_sessions)
         chat = self.query_one(CommsChatView)
         self.call_after_refresh(chat.prepare_prompt)
         self.set_timer(0.1, chat.prepare_prompt)

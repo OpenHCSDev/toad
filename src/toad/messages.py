@@ -104,6 +104,29 @@ class SessionNew(Message):
 
 
 @dataclass
+class SessionCreate(Message):
+    """Create another session with the app's configured agent and project."""
+
+    source_mode: str
+
+
+@dataclass
+class SessionRename(Message):
+    mode_name: str
+    name: str
+
+
+@dataclass
+class SessionArchive(Message):
+    mode_name: str
+
+
+@dataclass
+class SessionDelete(Message):
+    mode_name: str
+
+
+@dataclass
 class SessionUpdate(Message):
     name: str | None = None
     """Name of the session, or `None` for no change."""
