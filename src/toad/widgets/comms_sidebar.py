@@ -214,7 +214,7 @@ class CoordinationStatus(Static):
     DEFAULT_CSS = """
     CoordinationStatus {
         height: auto;
-        padding: 0 1 1 1;
+        padding: 0 1;
         color: $text-muted;
     }
     """
@@ -234,11 +234,11 @@ class CoordinationStatus(Static):
         thread = self.thread or "connecting..."
         self.update(
             Content.assemble(
-                ("persistent wire", "$success"),
+                "Wire: ",
+                (_display_path(root), "$text"),
+                (" · persistent", "$success"),
                 f"\nThread: {thread}",
-                f"\nRoot: {_display_path(root)}",
-                f"\nBackend: {Path(backend).name}",
-                "\nACP: one process/session",
+                f"\nACP/session · {Path(backend).name}",
             )
         )
         args = os.environ.get(
