@@ -29,11 +29,17 @@ class SessionRow(Static):
         height: 2;
         padding: 0 1;
         color: $text-muted;
+        pointer: pointer;
     }
     SessionRow:hover, SessionRow:focus, SessionRow.-current {
         background: $surface-lighten-2;
     }
     SessionRow.-current { color: $text; text-style: bold; }
+    SessionRow:ansi:hover, SessionRow:ansi:focus {
+        background: ansi_default;
+        color: ansi_default;
+        text-style: bold reverse;
+    }
     SessionRow.-busy { color: $warning; }
     SessionRow.-asking { color: $accent; }
     """

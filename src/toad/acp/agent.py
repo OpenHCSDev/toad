@@ -1,5 +1,6 @@
 import asyncio
 
+from collections.abc import Mapping
 from contextlib import suppress
 from datetime import datetime
 import json
@@ -860,6 +861,7 @@ class Agent(AgentBase):
                 for mode in available_modes
             }
             self.post_message(messages.SetModes(current_mode, modes_update))
+        self._publish_coordination_metadata(response)
 
     async def acp_load_session(self) -> None:
         assert self.session_id is not None, "Session id must be set"
@@ -877,6 +879,7 @@ class Agent(AgentBase):
         with self.request():
             session_load_response = api.session_load(cwd, [], self.session_id)
         response = await session_load_response.wait()
+        assert response is not None
 
         if (modes := response.get("modes", None)) is not None:
             current_mode = modes["currentModeId"]
@@ -888,6 +891,28 @@ class Agent(AgentBase):
                 for mode in available_modes
             }
             self.post_message(messages.SetModes(current_mode, modes_update))
+        self._publish_coordination_metadata(response)
+
+    def _publish_coordination_metadata(self, response: Mapping[str, object]) -> None:
+        metadata = response.get("_meta")
+        if not isinstance(metadata, dict):
+            return
+        coordination = metadata.get("agentComms")
+        if not isinstance(coordination, dict):
+            return
+        thread = coordination.get("thread")
+        wire_root = coordination.get("wireRoot")
+        if not isinstance(thread, str) or not isinstance(wire_root, str):
+            return
+        self.post_message(
+            messages.CoordinationUpdate(
+                thread=thread,
+                wire_root=wire_root,
+                persistence=str(coordination.get("persistence", "shared on-disk wire")),
+                transport=str(coordination.get("transport", "per-session stdio ACP")),
+            )
+        )
+        self.post_message(messages.SessionInfoUpdate(thread))
 
     async def acp_session_prompt(
         self, prompt: list[protocol.ContentBlock]

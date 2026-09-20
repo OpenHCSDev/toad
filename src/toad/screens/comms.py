@@ -11,7 +11,7 @@ from toad import messages
 from toad.app import ToadApp
 from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.comms_fork_dialog import ForkDialog
-from toad.widgets.comms_sidebar import CommsSidebar, SelectTarget
+from toad.widgets.comms_sidebar import CoordinationStatus, CommsSidebar, SelectTarget
 from toad.widgets.session_tabs import SessionsTabs
 from toad.widgets.side_bar import SideBar
 
@@ -66,6 +66,11 @@ class CommsScreen(Screen, can_focus=False):
                     "Sessions",
                     CommsSidebar(session_thread=self.me),
                     flex=True,
+                ),
+                SideBar.Panel(
+                    "Coordination",
+                    CoordinationStatus(self.me),
+                    id="coordination-panel",
                 ),
             )
             with containers.Vertical(id="comms-content"):

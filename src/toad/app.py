@@ -723,6 +723,33 @@ class ToadApp(App, inherit_bindings=False):
             pass
         return details.mode_name
 
+    def sync_coordination_identity(
+        self, owner_mode: str, previous: str, current: str
+    ) -> None:
+        """Move open communication views to a renamed canonical thread."""
+        from toad.screens.comms import CommsScreen
+        from toad.widgets.comms_chat import CommsChatView
+        from toad.widgets.comms_sidebar import CoordinationStatus, CommsSidebar
+
+        for key, mode_name in list(self._comms_modes.items()):
+            root, owner, me, kind, target = key
+            if owner != owner_mode or me != previous:
+                continue
+            del self._comms_modes[key]
+            self._comms_modes[(root, owner, current, kind, target)] = mode_name
+            try:
+                screen = self.get_screen_stack(mode_name)[-1]
+            except KeyError, IndexError:
+                continue
+            if not isinstance(screen, CommsScreen):
+                continue
+            screen.me = current
+            screen.query_one(CommsChatView)._me = current
+            screen.query_one(CommsSidebar).session_thread = current
+            status = screen.query_one_optional(CoordinationStatus)
+            if status is not None:
+                status.set_thread(current)
+
     async def close_session_mode(self, mode_name: str) -> None:
         """Close any tracked mode after first switching to a safe mode."""
         session_tracker = self.session_tracker

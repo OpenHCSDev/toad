@@ -18,6 +18,7 @@ import pyte
 FORK_ROOT = Path(__file__).resolve().parents[1]
 FORK_TOAD = FORK_ROOT / ".venv" / "bin" / "toad"
 AGENT_PY = FORK_ROOT / ".venv" / "bin" / "python"
+COMMS_CLI = FORK_ROOT / ".venv" / "bin" / "agent-comms"
 WIRE = Path("/tmp/toad-e2e-wire")
 PROJECT = Path("/tmp/toad-e2e-proj")
 PROGRESS_STUB = PROJECT / "pi-progress-stub"
@@ -184,6 +185,9 @@ sleep 2
 printf '%s\n' '{"type":"tool_execution_start","toolCallId":"t1","toolName":"bash","args":{"command":"pwd"}}'
 printf '%s\n' '{"type":"tool_execution_update","toolCallId":"t1","toolName":"bash","partialResult":{"content":[{"type":"text","text":"checking files"}]}}'
 sleep 2
+"""
+        + f'"{COMMS_CLI}" rename-self --to renamed-e2e >/dev/null\n'
+        + """
 printf '%s\n' '{"type":"tool_execution_end","toolCallId":"t1","toolName":"bash","result":{"content":[{"type":"text","text":"/tmp/toad-e2e-proj"}]},"isError":false}'
 printf '%s\n' '{"type":"message_update","assistantMessageEvent":{"type":"text_delta","delta":"Analysis complete"}}'
 printf '%s\n' '{"type":"agent_settled"}'
@@ -252,6 +256,12 @@ printf '%s\n' '{"type":"response","command":"get_session_stats","success":true,"
             break
     else:
         raise AssertionError(f"final response missing:\n{frame[-900:]}")
+    for _ in range(20):
+        frame = await session.frame(0.1)
+        if "Thread: renamed-e2e" in frame and frame.count("renamed-e2e") >= 2:
+            break
+    else:
+        raise AssertionError(f"wire rename did not reach Toad UI:\n{frame[-1200:]}")
     print("[2] real ACP thinking + tool progress + response OK")
 
     # Open and operate the pointer-anchored context menu with real mouse/key input.
