@@ -87,7 +87,7 @@ Conversation {
         background: $surface;
         
         #info-container {            
-            margin: 0 1 1 1;
+            margin: 0 1;
         }                  
     }
     
@@ -501,7 +501,7 @@ Prompt {
     #info-container {                
         
         height: 1;
-        margin: 0 1 1 1;
+        margin: 0 1;
         # padding: 1 0;
         
         AgentInfo {

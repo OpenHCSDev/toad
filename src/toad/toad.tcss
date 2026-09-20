@@ -163,6 +163,12 @@ Footer {
         }
     }
 
+    &:ansi FooterKey .footer-key--key {
+        color: ansi_default;
+        background: ansi_default;
+        text-style: reverse;
+    }
+
     &:ansi FooterKey:hover {
         background: ansi_default;
 
@@ -266,7 +272,19 @@ SessionsTabs {
         Label {
             text-style: dim;
             pointer: pointer;
-            padding: 0 1;            
+            padding: 0 1;
+
+            &:hover {
+                background: $foreground 10%;
+                text-style: not dim;
+            }
+
+            &:ansi:hover {
+                color: ansi_default;
+                background: ansi_default;
+                text-style: reverse;
+            }
+
             &.-current {
                 text-style: not dim;                
             }

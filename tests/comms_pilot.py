@@ -9,7 +9,7 @@ from pathlib import Path
 
 from agent_comms import ActivityState, Thread
 from agent_comms.operations import wire
-from textual.widgets import Input
+from textual.widgets import Footer, Input
 from textual.widgets._footer import FooterKey
 
 from toad import messages
@@ -27,6 +27,7 @@ from toad.widgets.comms_menu import ContextMenu, ContextMenuItem, RenameSessionD
 from toad.widgets.comms_sidebar import CommsRow, CommsSidebar, NewSessionButton
 from toad.widgets.conversation import Loading, make_session_title
 from toad.widgets.session_sidebar import SessionRow
+from toad.widgets.session_tabs import SessionLabel
 from toad.widgets.side_bar import SideBarCollapsible
 from toad.widgets.tool_call import ToolCall
 
@@ -79,12 +80,22 @@ async def main() -> None:
             assert not app.screen.query(CommsChatView)
             footer_keys = list(app.screen.query(FooterKey))
             footer_actions = {key.action for key in footer_keys}
+            assert all(
+                key.get_component_rich_style("footer-key--key").reverse
+                for key in footer_keys
+            )
             assert any(action.endswith("toggle_irc") for action in footer_actions)
             assert not any(action.endswith("go_home") for action in footer_actions)
             assert not any(action.endswith("settings") for action in footer_actions)
             irc_key = next(
                 key for key in footer_keys if key.action.endswith("toggle_irc")
             )
+            session_label = app.screen.query_one(SessionLabel)
+            assert await pilot.hover(session_label)
+            assert session_label.rich_style.reverse
+            info_bar = app.screen.query_one("#info-container")
+            footer = app.screen.query_one(Footer)
+            assert info_bar.region.bottom == footer.region.y
             await pilot.click(irc_key)
             await pilot.pause()
             assert isinstance(app.screen, CommsScreen)
