@@ -136,14 +136,13 @@ class SessionsTabs(Widget):
                 self.scroll_to_center(current_label, animate=False)
 
     def render_session_label(self, session: SessionDetails) -> Content:
+        title = session.title or "New Session"
         match session.state:
             case "asking":
-                return Content.assemble(
-                    ("❯ ", "not dim $text-secondary"), session.title
-                )
+                return Content.assemble(("❯ ", "not dim $text-secondary"), title)
             case "busy":
-                return Content(f"⌛ {session.title}")
-        return Content(session.title)
+                return Content(f"⌛ {title}")
+        return Content(title)
 
     def compose(self) -> ComposeResult:
         with containers.HorizontalGroup(id="title-container"):

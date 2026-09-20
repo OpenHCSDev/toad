@@ -141,6 +141,10 @@ class Agent(AgentBase):
         self._agent_task: asyncio.Task | None = None
         self._task: asyncio.Task | None = None
         self._process: asyncio.subprocess.Process | None = None
+        self._process_group_id: int | None = None
+        self._stopping = False
+        self._pending_session_name: str | None = None
+        self.session_ready_event = asyncio.Event()
         self.done_event = asyncio.Event()
 
         self.agent_capabilities: protocol.AgentCapabilities = {
@@ -342,6 +346,9 @@ class Agent(AgentBase):
 
             case {"sessionUpdate": "current_mode_update", "currentModeId": mode_id}:
                 self.post_message(messages.ModeUpdate(mode_id))
+
+            case {"sessionUpdate": "session_info_update"} if "title" in update:
+                self.post_message(messages.SessionInfoUpdate(update.get("title")))
 
             case {"sessionUpdate": "usage_update", "used": used, "size": size}:
                 match update.get("cost"):
@@ -561,7 +568,10 @@ class Agent(AgentBase):
                 env=env,
                 cwd=str(self.project_root_path),
                 limit=10 * 1024 * 1024,
+                start_new_session=os.name != "nt",
             )
+            if os.name != "nt":
+                self._process_group_id = process.pid
         except Exception as error:
             self.post_message(AgentFail("Failed to start agent", details=str(error)))
             return
@@ -636,7 +646,7 @@ class Agent(AgentBase):
         if tasks:
             await asyncio.gather(*tasks, return_exceptions=True)
 
-        if process.returncode:
+        if process.returncode and not self._stopping:
             assert process.stderr is not None
             fail_details = (await process.stderr.read()).decode("utf-8", "replace")
             self.post_message(
@@ -646,6 +656,18 @@ class Agent(AgentBase):
                 )
             )
 
+        if (
+            not self._stopping
+            and self._process_group_id is not None
+            and self._process_group_alive(self._process_group_id)
+        ):
+            with suppress(OSError):
+                os.killpg(self._process_group_id, 15)
+            await asyncio.sleep(0.1)
+            if self._process_group_alive(self._process_group_id):
+                with suppress(OSError):
+                    os.killpg(self._process_group_id, 9)
+        self._process_group_id = None
         self._process = None
 
     async def stop(self) -> None:
@@ -654,11 +676,65 @@ class Agent(AgentBase):
             db = DB()
             await db.session_update_last_used(self.session_pk)
 
-        if self._process is not None:
+        self._stopping = True
+        process = self._process
+        process_group = self._process_group_id
+        if os.name != "nt" and process_group is not None:
+            with suppress(OSError):
+                os.killpg(process_group, 15)
+            if process is not None and process.returncode is None:
+                with suppress(TimeoutError):
+                    await asyncio.wait_for(process.wait(), timeout=3)
+            if self._process_group_alive(process_group):
+                with suppress(OSError):
+                    os.killpg(process_group, 9)
+                deadline = asyncio.get_running_loop().time() + 1
+                while (
+                    self._process_group_alive(process_group)
+                    and asyncio.get_running_loop().time() < deadline
+                ):
+                    await asyncio.sleep(0.05)
+            if process is not None and process.returncode is None:
+                with suppress(TimeoutError):
+                    await asyncio.wait_for(process.wait(), timeout=1)
+        elif process is not None and process.returncode is None:
             try:
-                self._process.terminate()
+                process.terminate()
             except OSError:
                 pass
+            try:
+                await asyncio.wait_for(process.wait(), timeout=3)
+            except TimeoutError:
+                try:
+                    process.kill()
+                except OSError:
+                    pass
+                with suppress(TimeoutError):
+                    await asyncio.wait_for(process.wait(), timeout=1)
+
+        current = asyncio.current_task()
+        for task in (self._task, self._agent_task):
+            if task is not None and task is not current and not task.done():
+                task.cancel()
+        pending = [
+            task
+            for task in (self._task, self._agent_task)
+            if task is not None and task is not current
+        ]
+        if pending:
+            await asyncio.gather(*pending, return_exceptions=True)
+        self._process_group_id = None
+        self._process = None
+
+    @staticmethod
+    def _process_group_alive(process_group: int) -> bool:
+        try:
+            os.killpg(process_group, 0)
+        except ProcessLookupError:
+            return False
+        except PermissionError:
+            return True
+        return True
 
     async def run(self) -> None:
         """The main logic of the Agent."""
@@ -680,6 +756,7 @@ class Agent(AgentBase):
                                 help="no_resume",
                             )
                         )
+                        self.session_ready_event.set()
                         return
                     await self.acp_load_session()
                     if self.session_pk is not None:
@@ -698,6 +775,7 @@ class Agent(AgentBase):
                     details = ""
                 self.post_message(AgentFail(reason, details))
 
+        self.session_ready_event.set()
         self.post_message(AgentReady())
 
     async def send_prompt(self, prompt: str) -> str | None:
@@ -767,6 +845,10 @@ class Agent(AgentBase):
                     "agent_data": self._agent_data,
                 },
             )
+            if self.session_pk is not None and self._pending_session_name is not None:
+                await db.session_update_title(
+                    self.session_pk, self._pending_session_name
+                )
 
         if (modes := response.get("modes", None)) is not None:
             current_mode = modes["currentModeId"]
@@ -870,6 +952,7 @@ class Agent(AgentBase):
         return await self.acp_session_set_mode(mode_id)
 
     async def set_session_name(self, name: str) -> None:
+        self._pending_session_name = name
         if self.session_pk is None:
             return
         db = DB()

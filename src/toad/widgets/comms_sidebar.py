@@ -1,4 +1,4 @@
-"""Comms sidebar: the agent-comms wire as a rich, interactive Toad panel.
+"""Agent-comms channels and remote sessions for Toad's session panel.
 
 IRC semantics for fully-detailed agent threads:
 
@@ -16,10 +16,11 @@ from __future__ import annotations
 import os
 import time
 from pathlib import Path
+from typing import TYPE_CHECKING, cast
 
 from textual import on
 from textual.binding import Binding
-from textual.containers import VerticalScroll
+from textual.containers import Vertical
 from textual.dom import DOMNode
 from textual.message import Message
 from textual.reactive import reactive
@@ -27,6 +28,13 @@ from textual.widgets import Static
 
 from agent_comms import ActivityState, ThreadStatus
 from agent_comms.operations import wire
+
+from toad import messages
+from toad.session_tracker import SessionDetails
+from toad.widgets.session_sidebar import SessionRow
+
+if TYPE_CHECKING:
+    from toad.app import ToadApp
 
 
 def _comms_root() -> Path:
@@ -128,8 +136,65 @@ class CommsRow(Static):
         self.post_message(SelectTarget(self.target_name, self.kind))
 
 
-class CommsSidebar(VerticalScroll):
-    """The wire: channels, threads, unread badges, live activity.
+class NewSessionButton(Static):
+    """Create another agent session for the current project."""
+
+    DEFAULT_CSS = """
+    NewSessionButton {
+        width: 1fr;
+        height: 2;
+        padding: 0 1;
+        color: $text-muted;
+    }
+    NewSessionButton:hover,
+    NewSessionButton:focus {
+        background: $surface-lighten-2;
+        color: $text;
+    }
+    """
+
+    can_focus = True
+    BINDINGS = [
+        Binding("enter", "create", show=False),
+        Binding("down", "cursor_down", show=False),
+        Binding("up", "cursor_up", show=False),
+    ]
+
+    def __init__(self) -> None:
+        super().__init__("+ New Session")
+
+    def action_create(self) -> None:
+        source_mode = self.screen.id or cast("ToadApp", self.app).current_mode
+        self.app.post_message(messages.SessionCreate(source_mode))
+
+    def on_mouse_up(self, event) -> None:
+        if event.button == 1:
+            self.action_create()
+
+    def _sidebar(self):
+        parent = self.parent
+        while parent is not None and not isinstance(parent, CommsSidebar):
+            parent = parent.parent
+        return parent
+
+    def on_focus(self) -> None:
+        if (sidebar := self._sidebar()) is not None:
+            sidebar._cursor = -1
+
+    def action_cursor_down(self) -> None:
+        if (sidebar := self._sidebar()) is not None:
+            sidebar.action_cursor_down()
+
+    def action_cursor_up(self) -> None:
+        if (sidebar := self._sidebar()) is not None:
+            rows = sidebar._ordered_rows()
+            if rows:
+                sidebar._cursor = len(rows)
+                sidebar.action_cursor_up()
+
+
+class CommsSidebar(Vertical):
+    """Local and remote sessions with wire channels and live activity.
 
     Keyboard: up/down move the selection, enter opens the selected
     target in the main pane. Mouse: click selects+opens, right-click
@@ -139,13 +204,16 @@ class CommsSidebar(VerticalScroll):
     DEFAULT_CSS = """
     CommsSidebar {
         height: auto;
-        max-height: 100%;
         padding: 0 0 1 0;
     }
     CommsSidebar .section { color: $text-muted; padding: 1 1 0 1; }
     CommsSidebar .row-name { color: $text; }
     CommsSidebar .row-detail { color: $text-muted; }
-    CommsSidebar .activity { color: $success; }
+    CommsSidebar .activity {
+        color: $success;
+        text-wrap: nowrap;
+        text-overflow: ellipsis;
+    }
     """
 
     BINDINGS = [
@@ -165,18 +233,72 @@ class CommsSidebar(VerticalScroll):
             self.action = action
             super().__init__()
 
+    class SessionAction(Message):
+        """Context-menu action on a local Toad session."""
+
+        def __init__(self, mode_name: str, action: str) -> None:
+            self.mode_name = mode_name
+            self.action = action
+            super().__init__()
+
     def __init__(self, session_thread: str = "", **kwargs) -> None:
         super().__init__(**kwargs)
         self.session_thread = session_thread
         self._row_map: dict[tuple[str, str], CommsRow] = {}
         self._activity_map: dict[str, Static] = {}
+        self._session_rows: dict[str, SessionRow] = {}
         self.can_focus = True
         self._cursor = 0
 
     def on_mount(self) -> None:
+        app = cast("ToadApp", self.app)
+        app.session_update_signal.subscribe(self, self._session_updated)
+        app.mode_change_signal.subscribe(self, self._mode_changed)
         self.set_interval(1.5, self._refresh)
         self._refresh()
         self._run_test_hook()
+
+    async def _session_updated(self, update: tuple[str, SessionDetails | None]) -> None:
+        mode_name, details = update
+        row = self._session_rows.get(mode_name)
+        if details is None:
+            if row is not None:
+                del self._session_rows[mode_name]
+                await row.remove()
+            return
+        if row is None:
+            row = SessionRow(details)
+            self._session_rows[mode_name] = row
+            channels_heading = next(
+                (
+                    child
+                    for child in self.children
+                    if isinstance(child, Static) and child.has_class("section")
+                ),
+                None,
+            )
+            if channels_heading is None:
+                await self.mount(row)
+            else:
+                await self.mount(row, before=channels_heading)
+        else:
+            row.update_details(details)
+        self._mode_changed(cast("ToadApp", self.app).current_mode)
+
+    async def sync_sessions(self) -> None:
+        """Reconcile tracked rows before a resumed screen can accept input."""
+        sessions = cast("ToadApp", self.app).session_tracker.ordered_sessions
+        desired = {details.mode_name for details in sessions}
+        for mode_name, row in list(self._session_rows.items()):
+            if mode_name not in desired:
+                del self._session_rows[mode_name]
+                await row.remove()
+        for details in sessions:
+            await self._session_updated((details.mode_name, details))
+
+    def _mode_changed(self, mode_name: str) -> None:
+        for row in self._session_rows.values():
+            row.current = row.mode_name == mode_name
 
     def _run_test_hook(self) -> None:
         """Opt-in test seam: TOAD_COMMS_TEST_TARGET drives the same code
@@ -204,7 +326,9 @@ class CommsSidebar(VerticalScroll):
     def _snapshot(self) -> dict:
         comms = wire(_comms_root())
         now = time.time()
-        who = list(comms.who())
+        who = [
+            person for person in comms.who() if person["name"] != self.session_thread
+        ]
         channels = comms.channels()
         if self.session_thread in comms.registry:
             unread_by_channel = {
@@ -246,14 +370,9 @@ class CommsSidebar(VerticalScroll):
         activity = snapshot["activity"]
         channels = snapshot["channels"]
         people = snapshot["who"]
-        desired_keys = [("channel", channel) for channel in channels]
-        desired_keys.extend(
-            (
-                "session" if person["name"] == self.session_thread else "dm",
-                person["name"],
-            )
-            for person in people
-        )
+        sessions = cast("ToadApp", self.app).session_tracker.ordered_sessions
+        desired_keys = [("dm", person["name"]) for person in people]
+        desired_keys.extend(("channel", channel) for channel in channels)
 
         focused = self.app.focused
         focused_key = None
@@ -264,6 +383,25 @@ class CommsSidebar(VerticalScroll):
             self.remove_children()
             self._row_map.clear()
             self._activity_map.clear()
+            self._session_rows.clear()
+
+            self.mount(NewSessionButton())
+
+            for person in people:
+                name = person["name"]
+                kind = "dm"
+                key = (kind, name)
+                row = CommsRow(kind, name, name)
+                detail = Static("", classes="activity")
+                detail.display = False
+                self._row_map[key] = row
+                self._activity_map[name] = detail
+                self.mount(row, detail)
+
+            for details in sessions:
+                session_row = SessionRow(details)
+                self._session_rows[details.mode_name] = session_row
+                self.mount(session_row)
 
             self.mount(Static("CHANNELS", classes="section"))
             for channel in channels:
@@ -272,17 +410,9 @@ class CommsSidebar(VerticalScroll):
                 self._row_map[key] = row
                 self.mount(row)
 
-            self.mount(Static("WHO'S HERE", classes="section"))
-            for person in people:
-                name = person["name"]
-                kind = "session" if name == self.session_thread else "dm"
-                key = (kind, name)
-                row = CommsRow(kind, name, name)
-                detail = Static("", classes="activity")
-                detail.display = False
-                self._row_map[key] = row
-                self._activity_map[name] = detail
-                self.mount(row, detail)
+        for details in sessions:
+            self._session_rows[details.mode_name].update_details(details)
+        self._mode_changed(cast("ToadApp", self.app).current_mode)
 
         for channel in channels:
             unread = snapshot["unread_by_channel"].get(channel, 0)
@@ -297,8 +427,7 @@ class CommsSidebar(VerticalScroll):
 
         for person in people:
             name = person["name"]
-            is_session = name == self.session_thread
-            kind = "session" if is_session else "dm"
+            kind = "dm"
             unread = snapshot["unread_by_person"].get(name, 0)
             if person["status"] == ThreadStatus.STOPPED.value:
                 status_mark = "○"
@@ -307,10 +436,8 @@ class CommsSidebar(VerticalScroll):
             else:
                 status_mark = "●"
             task = f" — {person['task']}" if person["task"] else ""
-            session_mark = " (session)" if is_session else ""
             label = (
-                f"{status_mark} {name}{session_mark}{task}"
-                f" [{_fmt_age(person['last_seen'], now)}]"
+                f"{status_mark} {name}{task}" f" [{_fmt_age(person['last_seen'], now)}]"
             )
             row = self._row_map[(kind, name)]
             row.update(label)
@@ -336,8 +463,8 @@ class CommsSidebar(VerticalScroll):
                 runtime += (" · " if runtime else "") + f"{percent:.1f}% context"
             activity_row.display = show_activity or bool(runtime)
             if show_activity and act is not None:
-                detail = " ".join(act.detail.splitlines())
-                detail_text = f" {detail}" if detail else ""
+                activity_detail = " ".join(act.detail.splitlines())
+                detail_text = f" {activity_detail}" if activity_detail else ""
                 text = f"    ⟳ {act.state.value}{detail_text} ({_fmt_age(act.timestamp, now)})"
                 if runtime:
                     text += f"\n    {runtime}"
@@ -350,8 +477,10 @@ class CommsSidebar(VerticalScroll):
 
     # ─── Keyboard ─────────────────────────────────────────────────────────────
 
-    def _ordered_rows(self) -> list[CommsRow]:
-        return list(self.query(CommsRow))
+    def _ordered_rows(self) -> list[CommsRow | SessionRow]:
+        return cast(
+            list[CommsRow | SessionRow], list(self.query("CommsRow, SessionRow"))
+        )
 
     def action_cursor_up(self) -> None:
         rows = self._ordered_rows()
@@ -367,25 +496,29 @@ class CommsSidebar(VerticalScroll):
             self._apply_cursor(rows)
             rows[self._cursor].focus()
 
-    def _apply_cursor(self, rows: list[CommsRow]) -> None:
+    def _apply_cursor(self, rows: list[CommsRow | SessionRow]) -> None:
         for index, row in enumerate(rows):
-            row.selected = index == self._cursor
-            row.set_class(index == self._cursor, "-selected")
+            if isinstance(row, CommsRow):
+                row.selected = index == self._cursor
+                row.set_class(index == self._cursor, "-selected")
         rows[self._cursor].scroll_visible(animate=False)
 
     def action_open_selected(self) -> None:
         rows = self._ordered_rows()
         focused = self.app.focused if self.app else None
-        if isinstance(focused, CommsRow) and focused in rows:
+        if isinstance(focused, (CommsRow, SessionRow)) and focused in rows:
             target = focused
             self._cursor = rows.index(target)
         elif 0 <= self._cursor < len(rows):
             target = rows[self._cursor]
         else:
             return
-        self.selected = target.target_name
         self._apply_cursor(rows)
-        target.post_message(SelectTarget(target.target_name, target.kind))
+        if isinstance(target, SessionRow):
+            target.post_message(messages.SessionSwitch(target.mode_name))
+        else:
+            self.selected = target.target_name
+            target.post_message(SelectTarget(target.target_name, target.kind))
 
     # ─── Context menu ─────────────────────────────────────────────────────────
 
@@ -398,11 +531,14 @@ class CommsSidebar(VerticalScroll):
         row = None
         node: DOMNode | None = widget
         while node is not None:
-            if isinstance(node, CommsRow):
+            if isinstance(node, (CommsRow, SessionRow)):
                 row = node
                 break
             node = node.parent
         if row is None:
+            return
+        if isinstance(row, SessionRow):
+            self._show_session_menu(row.mode_name, event.screen_offset)
             return
         self._select(row)
         if row.kind in {"dm", "session"}:
@@ -429,9 +565,42 @@ class CommsSidebar(VerticalScroll):
             {
                 "fork": lambda: post("fork"),
                 "stop": lambda: post("stop"),
+                "archive": lambda: post("archive"),
                 "ack": lambda: post("ack"),
                 "copy": lambda: post("copy"),
             },
+        )
+
+    def _show_session_menu(self, mode_name: str, menu_offset) -> None:
+        from toad.widgets.comms_menu import RenameSessionDialog, show_session_menu
+
+        details = cast("ToadApp", self.app).session_tracker.get_session(mode_name)
+        if details is None:
+            return
+
+        def rename() -> None:
+            def apply_name(name: str | None) -> None:
+                if name:
+                    self.app.post_message(messages.SessionRename(mode_name, name))
+
+            self.app.push_screen(RenameSessionDialog(details.title), apply_name)
+
+        def post(action: str) -> None:
+            self.post_message(self.SessionAction(mode_name, action))
+
+        is_agent_session = (
+            cast("ToadApp", self.app)._main_session_screen(mode_name) is not None
+        )
+        show_session_menu(
+            self.app.screen,
+            menu_offset,
+            details.title,
+            {
+                "rename": rename,
+                "archive": lambda: post("archive"),
+                "delete": lambda: post("delete"),
+            },
+            is_agent_session=is_agent_session,
         )
 
     def _show_channel_menu(self, name: str, menu_offset) -> None:
@@ -459,10 +628,19 @@ class CommsSidebar(VerticalScroll):
             comms = wire(_comms_root())
             if event.action == "stop":
                 comms.stop(name)
+            elif event.action == "archive":
+                comms.archive(name)
             elif event.action == "ack":
                 comms.acknowledge(self.session_thread, name)
             elif event.action == "copy":
                 self.app.copy_to_clipboard(name)
-        except Exception:
-            pass
+        except Exception as error:
+            self.notify(str(error), title="Session action", severity="error")
         self._refresh()
+
+    @on(SessionAction)
+    def _do_session_action(self, event: SessionAction) -> None:
+        if event.action == "archive":
+            self.app.post_message(messages.SessionArchive(event.mode_name))
+        elif event.action == "delete":
+            self.app.post_message(messages.SessionDelete(event.mode_name))

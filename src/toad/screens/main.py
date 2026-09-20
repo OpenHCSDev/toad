@@ -30,7 +30,6 @@ from toad.widgets.comms_fork_dialog import ForkDialog
 from toad.widgets.comms_sidebar import CommsSidebar, SelectTarget
 from toad.widgets.side_bar import SideBar, SideBarCollapsible
 from toad.widgets.session_tabs import SessionsTabs
-from toad.widgets.session_sidebar import SessionSidebar
 
 
 class ModeProvider(Provider):
@@ -145,7 +144,9 @@ class MainScreen(Screen, can_focus=False):
         from toad.widgets.comms_sidebar import CommsSidebar
 
         try:
-            self.query_one(CommsSidebar).session_thread = self._resolve_comms_thread()
+            sidebar = self.query_one(CommsSidebar)
+            sidebar.session_thread = self._resolve_comms_thread()
+            self.call_after_refresh(sidebar.sync_sessions)
         except Exception:
             pass
         self.conversation
@@ -153,9 +154,8 @@ class MainScreen(Screen, can_focus=False):
     def compose(self) -> ComposeResult:
         with containers.Center():
             yield SideBar(
-                SideBar.Panel("Sessions", SessionSidebar()),
                 SideBar.Panel(
-                    "Comms",
+                    "Sessions",
                     CommsSidebar(session_thread=session_thread_name(self.project_path)),
                 ),
                 SideBar.Panel("Plan", Plan([]), collapsed=True, id="plan-panel"),
@@ -175,6 +175,7 @@ class MainScreen(Screen, can_focus=False):
                     self._agent,
                     self._agent_session_id,
                     self._session_pk,
+                    self._agent_session_title,
                     initial_prompt=self._initial_prompt,
                 ).data_bind(
                     project_path=MainScreen.project_path,

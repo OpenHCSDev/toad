@@ -14,6 +14,7 @@ from textual.binding import Binding
 from textual.content import Content
 from textual import getters
 from textual.message import Message
+from textual.timer import Timer
 from textual.widgets import OptionList, TextArea, Label
 from textual import containers
 from textual.widget import Widget
@@ -152,6 +153,7 @@ See on-screen instructions for details.
     def __init__(self, *, simple_input: bool = False) -> None:
         super().__init__()
         self.simple_input = simple_input
+        self._submit_timer: Timer | None = None
 
     class Submitted(Message):
         def __init__(self, markdown: str) -> None:
@@ -266,6 +268,15 @@ See on-screen instructions for details.
         self.insert("\n")
 
     def action_submit(self) -> None:
+        # Terminal drivers may queue a pasted text burst and Enter together.
+        # Let those character events update the TextArea before reading it.
+        if self._submit_timer is None:
+            self._submit_timer = self.set_timer(0.05, self._submit)
+
+    def _submit(self) -> None:
+        self._submit_timer = None
+        if not self.has_focus:
+            return
         if not self.agent_ready and not self.shell_mode:
             self.app.bell()
             self.post_message(

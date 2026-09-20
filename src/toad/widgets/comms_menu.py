@@ -12,7 +12,7 @@ from textual.dom import DOMNode
 from textual.geometry import Offset, clamp
 from textual.message import Message
 from textual.screen import ModalScreen
-from textual.widgets import Static
+from textual.widgets import Input, Static
 
 
 class ContextMenuItem(Static, can_focus=True):
@@ -178,6 +178,47 @@ class ContextMenu(ModalScreen[str]):
         self.dismiss("")
 
 
+class RenameSessionDialog(ModalScreen[str | None]):
+    """Small name editor used from a local session row."""
+
+    CSS = """
+    RenameSessionDialog {
+        align: center middle;
+        background: $background 40%;
+    }
+    RenameSessionDialog #rename-session {
+        width: 48;
+        height: auto;
+        padding: 1;
+        border: solid $primary;
+        background: $background;
+    }
+    RenameSessionDialog Static { height: 1; margin-bottom: 1; }
+    """
+    BINDINGS = [("escape", "cancel", "Cancel")]
+
+    def __init__(self, current_name: str) -> None:
+        super().__init__()
+        self.current_name = current_name
+
+    def compose(self) -> ComposeResult:
+        with Container(id="rename-session"):
+            yield Static("Rename session")
+            yield Input(self.current_name, select_on_focus=True, compact=True)
+
+    def on_mount(self) -> None:
+        self.query_one(Input).focus()
+
+    @on(Input.Submitted)
+    def submit_name(self, event: Input.Submitted) -> None:
+        name = event.value.strip()
+        if name:
+            self.dismiss(name)
+
+    def action_cancel(self) -> None:
+        self.dismiss(None)
+
+
 def _show(
     screen,
     menu_offset: Offset,
@@ -209,10 +250,37 @@ def show_thread_menu(
         f"@{name}",
         [
             ("fork", "Fork from this thread"),
-            ("stop", "Stop thread"),
+            ("stop", "Stop process"),
+            ("archive", "Archive stopped thread"),
             ("ack", "Mark inbox read"),
             ("copy", "Copy name"),
         ],
+        actions,
+    )
+
+
+def show_session_menu(
+    screen,
+    menu_offset: Offset,
+    title: str,
+    actions: dict[str, Callable[[], None]],
+    *,
+    is_agent_session: bool,
+) -> None:
+    items = (
+        [
+            ("rename", "Rename session"),
+            ("archive", "Archive session"),
+            ("delete", "Delete saved session"),
+        ]
+        if is_agent_session
+        else [("archive", "Close view")]
+    )
+    _show(
+        screen,
+        menu_offset,
+        title,
+        items,
         actions,
     )
 

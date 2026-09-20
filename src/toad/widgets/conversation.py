@@ -360,6 +360,7 @@ class Conversation(containers.Vertical):
         agent: AgentData | None = None,
         agent_session_id: str | None = None,
         session_pk: int | None = None,
+        session_title: str | None = None,
         initial_prompt: str | None = None,
     ) -> None:
         super().__init__()
@@ -377,6 +378,7 @@ class Conversation(containers.Vertical):
         self._agent_data = agent
         self._agent_session_id = agent_session_id
         self._session_pk = session_pk
+        self._session_title = session_title
         self._agent_fail = False
         self._mouse_down_offset: Offset | None = None
 
@@ -721,6 +723,20 @@ class Conversation(containers.Vertical):
                 )
 
         self.agent_ready = True
+        self.post_message(messages.SessionUpdate(state="idle", summary="Ready"))
+
+    async def rename_session(self, name: str) -> None:
+        """Apply a user- or agent-provided title to this session."""
+        if self.agent is not None:
+            await self.agent.set_session_name(name)
+        self.post_message(messages.SessionUpdate(name=name))
+
+    @on(acp_messages.SessionInfoUpdate)
+    async def on_session_info_update(
+        self, message: acp_messages.SessionInfoUpdate
+    ) -> None:
+        message.stop()
+        await self.rename_session(message.title or "")
 
     async def on_unmount(self) -> None:
         if self._directory_watcher is not None:
@@ -743,6 +759,7 @@ class Conversation(containers.Vertical):
     async def on_agent_fail(self, message: AgentFail) -> None:
         self.agent_ready = True
         self._agent_fail = True
+        self.post_message(messages.SessionUpdate(state="idle", summary="Agent failed"))
         self.notify(message.message, title="Agent failure", severity="error", timeout=5)
 
         if self._agent_data is not None:
@@ -1405,7 +1422,9 @@ class Conversation(containers.Vertical):
                 )
                 await self.agent.start(self)
                 self.post_message(
-                    messages.SessionUpdate("New Session", self.agent_title)
+                    messages.SessionUpdate(
+                        self._session_title or "New Session", self.agent_title
+                    )
                 )
 
             self.call_after_refresh(start_agent)
@@ -1923,10 +1942,8 @@ class Conversation(containers.Vertical):
                     severity="error",
                 )
                 return True
-            if self.agent is not None:
-                await self.agent.set_session_name(name)
-                self.post_message(messages.SessionUpdate(name=name))
-                self.flash(f"Renamed session to [b]'{name}'", style="success")
+            await self.rename_session(name)
+            self.flash(f"Renamed session to [b]'{name}'", style="success")
             return True
         elif command == "toad:session-close":
             if self.turn == "agent" and self.agent is not None:

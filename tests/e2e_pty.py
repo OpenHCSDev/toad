@@ -217,7 +217,7 @@ printf '%s\n' '{"type":"response","command":"get_session_stats","success":true,"
     await session.start()
     assert session.alive(), "toad died on launch"
     frame = await session.frame(2.5)
-    assert "CHANNELS" in frame and "WHO'S HERE" in frame and "seed-peer" in frame, (
+    assert "CHANNELS" in frame and "WHO'S HERE" not in frame and "seed-peer" in frame, (
         f"sidebar missing at launch:\n{frame[-600:]}"
     )
     print("[1] launch + sidebar render OK")
@@ -285,7 +285,6 @@ printf '%s\n' '{"type":"response","command":"get_session_stats","success":true,"
 
     # The chat composer should be focused; type and send.
     await session.type_text("hello from the pty test")
-    await asyncio.sleep(0.3)
     await session.press_enter()
     await asyncio.sleep(2)
     frame = await session.frame(0.2)
