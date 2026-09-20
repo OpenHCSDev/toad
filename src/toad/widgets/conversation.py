@@ -990,9 +990,10 @@ class Conversation(containers.Vertical):
     async def on_acp_agent_message(self, message: acp_messages.Update):
         message.stop()
         self._agent_thought = None
-        self.post_message(
-            messages.SessionUpdate(state="busy", summary="Writing response")
-        )
+        if self.turn == "agent":
+            self.post_message(
+                messages.SessionUpdate(state="busy", summary="Writing response")
+            )
         await self.post_agent_response(message.text)
 
     @on(acp_messages.TurnSettled)

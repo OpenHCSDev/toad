@@ -213,9 +213,20 @@ async def main() -> None:
             assert app.session_tracker.session_count == 1
 
             conversation._loading = await conversation.post(Loading("Thinking…"))
+            current_summary = app.session_tracker.get_session(owner_mode).summary
+            conversation.turn = "client"
+            conversation.post_message(acp_messages.Update("text", "Background message"))
+            await pilot.pause()
+            assert (
+                app.session_tracker.get_session(owner_mode).summary == current_summary
+            )
+            conversation.turn = "agent"
             conversation.post_message(acp_messages.Update("text", "Finished answer"))
             await pilot.pause()
-            assert app.session_tracker.get_session(owner_mode).summary == "Writing response"
+            assert (
+                app.session_tracker.get_session(owner_mode).summary
+                == "Writing response"
+            )
             protocol_agent = object.__new__(ACPAgent)
             protocol_agent._message_target = conversation
             protocol_agent.rpc_session_update(
