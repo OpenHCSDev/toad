@@ -162,6 +162,17 @@ Footer {
             text-opacity: 0.6;       
         }
     }
+
+    &:ansi FooterKey:hover {
+        background: ansi_default;
+
+        .footer-key--key,
+        .footer-key--description {
+            color: ansi_default;
+            background: ansi_default;
+            text-style: reverse;
+        }
+    }
 }
 
 HelpPanel {    

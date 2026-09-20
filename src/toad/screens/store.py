@@ -144,7 +144,12 @@ class AgentItem(containers.VerticalGroup):
         agent = self._agent
         with containers.Grid():
             yield widgets.Label(agent["name"], id="name")
-            tag = pill(agent["type"], "$primary-muted 50%", "$text-primary")
+            tag = pill(
+                agent["type"],
+                "$primary-muted 50%",
+                "$text-primary",
+                filled=not self.app.theme.startswith("ansi-"),
+            )
             yield widgets.Label(tag, id="type")
         yield widgets.Label(agent["author_name"], id="author")
         yield widgets.Static(agent["description"], id="description")
@@ -391,9 +396,15 @@ class StoreScreen(Screen):
 
     def get_info(self) -> Content:
         toad_version = toad.get_version()
+        version = pill(
+            f"v{toad_version}",
+            "$primary-muted",
+            "$text-primary",
+            filled=not self.app.theme.startswith("ansi-"),
+        )
         content = Content.assemble(
             Content.from_markup("🐸 Toad"),
-            pill(f"v{toad_version}", "$primary-muted", "$text-primary"),
+            version,
             ("\nThe universal interface for AI in your terminal", "$text-success"),
             (
                 "\nSoftware lovingly crafted by hand (with a dash of AI) in Edinburgh, Scotland",

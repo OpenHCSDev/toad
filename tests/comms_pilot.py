@@ -17,6 +17,7 @@ from toad.acp import messages as acp_messages
 from toad import paths
 from toad.app import ToadApp
 from toad.db import DB
+from toad.pill import pill
 from toad.screens.comms import CommsScreen
 from toad.screens.main import MainScreen
 from toad.widgets.agent_response import AgentResponse
@@ -35,6 +36,7 @@ def row(screen, target: str) -> CommsRow:
 
 
 async def main() -> None:
+    assert pill("status", "$warning-muted", "$warning", filled=False).plain == "[status]"
     assert make_session_title("  first\n\tmessage  ") == "first message"
     assert len(make_session_title("x" * 80)) == 50
     assert make_session_title("x" * 80).endswith("…")

@@ -179,10 +179,24 @@ class ToolCall(containers.VerticalGroup):
             header += Content.assemble(" ⌛")
         elif status == "in_progress":
             header += Content.assemble(
-                " ", pill("running", "$warning-muted", "$warning")
+                " ",
+                pill(
+                    "running",
+                    "$warning-muted",
+                    "$warning",
+                    filled=not self.app.theme.startswith("ansi-"),
+                ),
             )
         elif status == "failed":
-            header += Content.assemble(" ", pill("failed", "$error-muted", "$error"))
+            header += Content.assemble(
+                " ",
+                pill(
+                    "failed",
+                    "$error-muted",
+                    "$error",
+                    filled=not self.app.theme.startswith("ansi-"),
+                ),
+            )
         elif status == "completed":
             header += Content.from_markup(" [$success]✔")
         return header
