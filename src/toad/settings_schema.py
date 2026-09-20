@@ -94,7 +94,7 @@ SCHEMA: list[SchemaDict] = [
                 "title": "Enable column?",
                 "help": "Enable for a fixed column size. Disable to use the full screen width.",
                 "type": "boolean",
-                "default": True,
+                "default": False,
             },
             {
                 "key": "column-width",

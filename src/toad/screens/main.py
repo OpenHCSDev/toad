@@ -79,18 +79,20 @@ class MainScreen(Screen, can_focus=False):
         Binding("ctrl+g", "toggle_irc", "IRC view"),
         Binding("ctrl+j", "toggle_dm", "DM view"),
         Binding("ctrl+b,f20", "show_sidebar", "Sidebar"),
-        Binding("ctrl+h", "go_home", "Home"),
+        Binding("ctrl+h", "go_home", "Home", show=False),
         Binding(
             "ctrl+left_square_bracket",
             "session_previous",
             "Previous session",
             group=SESSION_NAVIGATION_GROUP,
+            show=False,
         ),
         Binding(
             "ctrl+right_square_bracket",
             "session_next",
             "Next session",
             group=SESSION_NAVIGATION_GROUP,
+            show=False,
         ),
     ]
 
@@ -181,7 +183,7 @@ class MainScreen(Screen, can_focus=False):
                     project_path=MainScreen.project_path,
                     column=MainScreen.column,
                 )
-        yield Footer()
+        yield Footer(compact=True)
 
     def run_prompt(self, prompt: str) -> None:
         self.conversation
