@@ -566,6 +566,7 @@ class CommsSidebar(Vertical):
                 "fork": lambda: post("fork"),
                 "stop": lambda: post("stop"),
                 "archive": lambda: post("archive"),
+                "delete": lambda: post("delete"),
                 "ack": lambda: post("ack"),
                 "copy": lambda: post("copy"),
             },
@@ -630,6 +631,8 @@ class CommsSidebar(Vertical):
                 comms.stop(name)
             elif event.action == "archive":
                 comms.archive(name)
+            elif event.action == "delete":
+                comms.delete(name)
             elif event.action == "ack":
                 comms.acknowledge(self.session_thread, name)
             elif event.action == "copy":
