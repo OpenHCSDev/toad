@@ -6,6 +6,7 @@ import asyncio
 import os
 import tempfile
 from pathlib import Path
+from types import SimpleNamespace
 
 from agent_comms import ActivityState, Thread
 from agent_comms.operations import wire
@@ -200,13 +201,25 @@ async def main() -> None:
             assert len(list(app.screen.query(SessionRow))) == 2
             created_conversation = app.screen.conversation
             assert app.session_tracker.get_session(created_mode).title == "New Session"
+            managed_thread = "managed-test-thread"
+            comms.register(
+                Thread(
+                    name=managed_thread,
+                    tags=frozenset({"acp"}),
+                    worktree=str(project),
+                    pid=os.getpid(),
+                )
+            )
             startup_agent = object.__new__(ACPAgent)
             startup_agent._message_target = created_conversation
+            startup_agent._pending_session_name = None
+            startup_agent._process = SimpleNamespace(pid=os.getpid())
+            startup_agent.session_pk = None
             startup_agent._publish_coordination_metadata(
                 {
                     "_meta": {
                         "agentComms": {
-                            "thread": "project-2",
+                            "thread": managed_thread,
                             "wireRoot": str(wire_root),
                             "persistence": "shared on-disk wire",
                             "transport": "per-session stdio ACP",
@@ -216,6 +229,36 @@ async def main() -> None:
             )
             await pilot.pause()
             assert app.session_tracker.get_session(created_mode).title == "New Session"
+            await startup_agent.set_session_name("Name this from my first prompt")
+            created_conversation.post_message(
+                messages.SessionUpdate(name="Name this from my first prompt")
+            )
+            await pilot.pause()
+            renamed_thread = "Name-this-from-my-first-prompt"
+            assert comms.registry.require(managed_thread).name == renamed_thread
+            assert app.screen._session_thread == renamed_thread
+            assert (
+                renamed_thread
+                in app.screen.query_one(CoordinationStatus).render().plain
+            )
+            visible_targets = {item.target_name for item in app.screen.query(CommsRow)}
+            assert not {managed_thread, renamed_thread} & visible_targets
+            assert (
+                app.session_tracker.get_session(created_mode).title
+                == "Name this from my first prompt"
+            )
+            startup_agent.rpc_session_update(
+                sessionId=managed_thread,
+                update={
+                    "sessionUpdate": "session_info_update",
+                    "title": renamed_thread,
+                },
+            )
+            await pilot.pause()
+            assert (
+                app.session_tracker.get_session(created_mode).title
+                == "Name this from my first prompt"
+            )
             created_conversation.post_message(
                 messages.UserInputSubmitted("  Name this\nfrom my first prompt  ")
             )
