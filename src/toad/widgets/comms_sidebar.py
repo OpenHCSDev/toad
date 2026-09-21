@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import os
 import time
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, cast
@@ -413,9 +413,7 @@ class CommsSidebar(Vertical):
         now = time.time()
         local_threads = cast("ToadApp", self.app).local_coordination_threads()
         who = [
-            person
-            for person in comms.presence()
-            if person["name"] not in local_threads
+            person for person in comms.presence() if person["name"] not in local_threads
         ]
         channels = comms.channels()
         if self.session_thread in comms.registry:
@@ -441,6 +439,10 @@ class CommsSidebar(Vertical):
             "now": now,
         }
 
+    @staticmethod
+    def _person_kind(person: Mapping) -> str:
+        return "thread" if person.get("resumable") else "dm"
+
     def _refresh(self) -> None:
         if self.screen is not self.app.screen:
             return
@@ -459,7 +461,9 @@ class CommsSidebar(Vertical):
         channels = snapshot["channels"]
         people = snapshot["who"]
         sessions = cast("ToadApp", self.app).session_tracker.ordered_sessions
-        desired_keys = [("dm", person["name"]) for person in people]
+        desired_keys = [
+            (self._person_kind(person), person["name"]) for person in people
+        ]
         desired_keys.extend(("channel", channel) for channel in channels)
 
         focused = self.app.focused
@@ -478,7 +482,7 @@ class CommsSidebar(Vertical):
 
             for person in people:
                 name = person["name"]
-                kind = "dm"
+                kind = self._person_kind(person)
                 key = (kind, name)
                 row = CommsRow(kind, name, name)
                 detail = Static("", classes="activity")
@@ -516,7 +520,7 @@ class CommsSidebar(Vertical):
 
         for person in people:
             name = person["name"]
-            kind = "dm"
+            kind = self._person_kind(person)
             unread = snapshot["unread_by_person"].get(name, 0)
             if person["status"] == ThreadStatus.STOPPED.value:
                 status_mark = "○"
@@ -524,11 +528,14 @@ class CommsSidebar(Vertical):
                 status_mark = f"●{unread}"
             else:
                 status_mark = "●"
-            task = f" — {person['task']}" if person["task"] else ""
+            task_text = " ".join((person["task"] or "").split())
+            task_preview = task_text[:72] + ("…" if len(task_text) > 72 else "")
+            task = f" — {task_preview}" if task_preview else ""
             label = (
                 f"{status_mark} {name}{task}" f" [{_fmt_age(person['last_seen'], now)}]"
             )
             row = self._row_map[(kind, name)]
+            row.tooltip = task_text or name
             row.set_label(label)
             row.unread = unread
             selected = name == selection or row is focused
@@ -638,7 +645,7 @@ class CommsSidebar(Vertical):
             self._show_session_menu(row.mode_name, event.screen_offset)
             return
         self._select(row)
-        if row.kind in {"dm", "session"}:
+        if row.kind in {"dm", "thread", "session"}:
             self._show_thread_menu(row.target_name, event.screen_offset)
         else:
             self._show_channel_menu(row.target_name, event.screen_offset)

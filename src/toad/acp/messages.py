@@ -40,6 +40,14 @@ class Update(AgentMessage):
 
 
 @dataclass
+class IncomingMessage(AgentMessage):
+    sender: str
+    target: str
+    text: str
+    sequence: int
+
+
+@dataclass
 class UserMessage(Message):
     type: str
     text: str
@@ -162,8 +170,18 @@ class CoordinationUpdate(AgentMessage):
     transport: str
 
 
+@dataclass
+class TurnStarted(AgentMessage):
+    """A server-owned turn began, regardless of who supplied the input."""
+
+    turn_id: str
+
+
+@dataclass
 class TurnSettled(AgentMessage):
     """The agent finished writing while trailing metadata may still arrive."""
+
+    turn_id: str | None = None
 
 
 @dataclass

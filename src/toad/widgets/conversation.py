@@ -387,6 +387,7 @@ class Conversation(containers.Vertical):
         self.terminals: dict[str, TerminalTool] = {}
         self._loading: Loading | None = None
         self._agent_response: AgentResponse | None = None
+        self._managed_turn_id: str | None = None
         self._agent_thought: AgentThought | None = None
         self._last_escape_time = 0.0
         self._agent_data = agent
@@ -741,7 +742,8 @@ class Conversation(containers.Vertical):
                 )
 
         self.agent_ready = True
-        self.post_message(messages.SessionUpdate(state="idle", summary="Ready"))
+        if self._managed_turn_id is None:
+            self.post_message(messages.SessionUpdate(state="idle", summary="Ready"))
 
     async def _apply_session_name(self, name: str) -> None:
         if self.agent is not None:
@@ -875,9 +877,12 @@ class Conversation(containers.Vertical):
     async def send_prompt_to_agent(self, prompt: str) -> None:
         if self.agent is not None:
             stop_reason: str | None = None
-            self.busy_count += 1
+            uses_turn_events = getattr(self.agent, "uses_turn_events", False)
+            if not uses_turn_events:
+                self.busy_count += 1
             try:
-                self.turn = "agent"
+                if not uses_turn_events:
+                    self.turn = "agent"
                 stop_reason = await self.agent.send_prompt(prompt)
             except jsonrpc.APIError as error:
                 from toad.widgets.markdown_note import MarkdownNote
@@ -893,8 +898,10 @@ class Conversation(containers.Vertical):
                     )
                 )
             finally:
-                self.busy_count -= 1
-            self.call_later(self.agent_turn_over, stop_reason)
+                if not uses_turn_events:
+                    self.busy_count -= 1
+            if not getattr(self.agent, "uses_turn_events", False):
+                self.call_later(self.agent_turn_over, stop_reason)
 
     async def agent_turn_over(self, stop_reason: str | None) -> None:
         """Called when the agent's turn is over.
@@ -997,12 +1004,48 @@ class Conversation(containers.Vertical):
             )
         await self.post_agent_response(message.text)
 
-    @on(acp_messages.TurnSettled)
-    def on_turn_settled(self, message: acp_messages.TurnSettled) -> None:
+    @on(acp_messages.TurnStarted)
+    async def on_turn_started(self, message: acp_messages.TurnStarted) -> None:
         message.stop()
+        if message.turn_id == self._managed_turn_id:
+            return
+        if self._managed_turn_id is None:
+            self.busy_count += 1
+        self._managed_turn_id = message.turn_id
+        self.new_block()
+        self.turn = "agent"
+        self.post_message(messages.SessionUpdate(state="busy", summary="Thinking"))
+        if self._loading is None:
+            self._loading = await self.post(Loading("Thinking…"))
+
+    @on(acp_messages.TurnSettled)
+    async def on_turn_settled(self, message: acp_messages.TurnSettled) -> None:
+        message.stop()
+        if message.turn_id is not None:
+            if message.turn_id and message.turn_id != self._managed_turn_id:
+                return
+            if self._managed_turn_id is not None:
+                self._managed_turn_id = None
+                self.busy_count -= 1
+                await self.agent_turn_over("end_turn")
+                return
+            self.new_block()
+            self.turn = "client"
         self.post_message(
             messages.SessionUpdate(state="idle", summary="Ready for review")
         )
+
+    @on(acp_messages.IncomingMessage)
+    async def on_incoming_message(self, message: acp_messages.IncomingMessage) -> None:
+        from toad.widgets.incoming_message import IncomingMessage
+
+        message.stop()
+        if message.sequence <= getattr(self, "_last_incoming_sequence", 0):
+            return
+        self._last_incoming_sequence = message.sequence
+        self._agent_response = None
+        self._agent_thought = None
+        await self.post(IncomingMessage(message.sender, message.text))
 
     @on(acp_messages.UserMessage)
     async def on_acp_user_message(self, message: acp_messages.UserMessage):

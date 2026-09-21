@@ -19,8 +19,9 @@ FORK_ROOT = Path(__file__).resolve().parents[1]
 FORK_TOAD = FORK_ROOT / ".venv" / "bin" / "toad"
 AGENT_PY = FORK_ROOT / ".venv" / "bin" / "python"
 COMMS_CLI = FORK_ROOT / ".venv" / "bin" / "agent-comms"
-WIRE = Path("/tmp/toad-e2e-wire")
-PROJECT = Path("/tmp/toad-e2e-proj")
+TEST_ROOT = Path(os.environ.get("TOAD_E2E_ROOT", "/tmp"))
+WIRE = TEST_ROOT / "toad-e2e-wire"
+PROJECT = TEST_ROOT / "toad-e2e-proj"
 PROGRESS_STUB = PROJECT / "pi-progress-stub"
 
 
@@ -235,9 +236,9 @@ printf '%s\n' '{"type":"response","command":"get_session_stats","success":true,"
     await session.start()
     assert session.alive(), "toad died on launch"
     frame = await session.frame(2.5)
-    assert "CHANNELS" in frame and "WHO'S HERE" not in frame and "seed-peer" in frame, (
-        f"sidebar missing at launch:\n{frame[-600:]}"
-    )
+    assert (
+        "CHANNELS" in frame and "WHO'S HERE" not in frame and "seed-peer" in frame
+    ), f"sidebar missing at launch:\n{frame[-600:]}"
     print("[1] launch + sidebar render OK")
 
     for _ in range(20):
@@ -279,13 +280,13 @@ printf '%s\n' '{"type":"response","command":"get_session_stats","success":true,"
     print("[2] real ACP thinking + tool progress + response OK")
 
     # Open and operate the pointer-anchored context menu with real mouse/key input.
-    assert await session.click_row("seed-peer", button=2), (
-        "seed-peer row not found:\n" + "\n".join(session.last_screen_lines)
-    )
+    assert await session.click_row(
+        "seed-peer", button=2
+    ), "seed-peer row not found:\n" + "\n".join(session.last_screen_lines)
     frame = await session.frame(1.0)
-    assert "Fork from this thread" in frame, (
-        f"context menu did not open:\n{frame[-900:]}"
-    )
+    assert (
+        "Fork from this thread" in frame
+    ), f"context menu did not open:\n{frame[-900:]}"
     assert session.alive(), "toad died opening the right-click menu"
     await session.press_enter()
     frame = await session.frame(0.8)
@@ -301,9 +302,9 @@ printf '%s\n' '{"type":"response","command":"get_session_stats","success":true,"
         session.last_screen_lines
     )
     frame = await session.frame(1.5)
-    assert "channel greeting from seed" in frame, (
-        f"channel session did not open:\n{frame[-900:]}"
-    )
+    assert (
+        "channel greeting from seed" in frame
+    ), f"channel session did not open:\n{frame[-900:]}"
     assert "#all" in frame, f"native channel session tab missing:\n{frame[-900:]}"
     print("[4] channel click opens native session + history renders OK")
 
@@ -313,23 +314,23 @@ printf '%s\n' '{"type":"response","command":"get_session_stats","success":true,"
     await asyncio.sleep(2)
     frame = await session.frame(0.2)
     history = [m.body for m in comms.channel_history("#all")]
-    assert "hello from the pty test" in history, (
-        f"send failed; wire history: {history[-3:]}\n{frame[-900:]}"
-    )
+    assert (
+        "hello from the pty test" in history
+    ), f"send failed; wire history: {history[-3:]}\n{frame[-900:]}"
     print("[5] composer send lands on wire OK")
 
     # Escape returns to the original agent mode without closing the channel tab.
     await session.key("\x1b")
     frame = await session.frame(1.2)
-    assert "How can I help you today?" in frame or "New Session" in frame, (
-        f"did not return to agent session:\n{frame[-900:]}"
-    )
+    assert (
+        "How can I help you today?" in frame or "New Session" in frame
+    ), f"did not return to agent session:\n{frame[-900:]}"
     print("[6] escape restores agent session OK")
 
     # Reopening the same target reuses its native mode; Escape returns again.
-    assert await session.click_row("#all"), (
-        "#all row not found on return:\n" + "\n".join(session.last_screen_lines)
-    )
+    assert await session.click_row(
+        "#all"
+    ), "#all row not found on return:\n" + "\n".join(session.last_screen_lines)
     frame = await session.frame(1.0)
     assert "hello from the pty test" in frame, "reused channel lost its history"
     await session.key("\x1b")
@@ -339,9 +340,9 @@ printf '%s\n' '{"type":"response","command":"get_session_stats","success":true,"
     # Open a DM as another native mode, then close it with the priority binding.
     assert await session.click_row("seed-peer"), "seed-peer row not found for DM"
     frame = await session.frame(1.0)
-    assert "@seed-peer" in frame and "Message seed-peer" in frame, (
-        f"DM session did not open:\n{frame[-900:]}"
-    )
+    assert (
+        "@seed-peer" in frame and "Message seed-peer" in frame
+    ), f"DM session did not open:\n{frame[-900:]}"
     await session.key("\x17")  # ctrl+w
     await session.frame(1.0)
     assert session.alive(), "toad died closing the DM session"
