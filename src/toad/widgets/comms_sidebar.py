@@ -349,18 +349,11 @@ class CommsSidebar(Vertical):
         if row is None:
             row = SessionRow(details)
             self._session_rows[mode_name] = row
-            channels_heading = next(
-                (
-                    child
-                    for child in self.children
-                    if isinstance(child, Static) and child.has_class("section")
-                ),
-                None,
-            )
-            if channels_heading is None:
+            new_session_button = self.query_one_optional(NewSessionButton)
+            if new_session_button is None:
                 await self.mount(row)
             else:
-                await self.mount(row, before=channels_heading)
+                await self.mount(row, after=new_session_button)
         else:
             row.update_details(details)
         self._mode_changed(cast("ToadApp", self.app).current_mode)
@@ -460,7 +453,9 @@ class CommsSidebar(Vertical):
         activity = snapshot["activity"]
         channels = snapshot["channels"]
         people = snapshot["who"]
-        sessions = cast("ToadApp", self.app).session_tracker.ordered_sessions
+        sessions = list(
+            reversed(cast("ToadApp", self.app).session_tracker.ordered_sessions)
+        )
         desired_keys = [
             (self._person_kind(person), person["name"]) for person in people
         ]
@@ -480,6 +475,11 @@ class CommsSidebar(Vertical):
 
             self.mount(NewSessionButton())
 
+            for details in sessions:
+                session_row = SessionRow(details)
+                self._session_rows[details.mode_name] = session_row
+                self.mount(session_row)
+
             for person in people:
                 name = person["name"]
                 kind = self._person_kind(person)
@@ -490,11 +490,6 @@ class CommsSidebar(Vertical):
                 self._row_map[key] = row
                 self._activity_map[name] = detail
                 self.mount(row, detail)
-
-            for details in sessions:
-                session_row = SessionRow(details)
-                self._session_rows[details.mode_name] = session_row
-                self.mount(session_row)
 
             self.mount(Static("CHANNELS", classes="section"))
             for channel in channels:
