@@ -316,7 +316,10 @@ for line in sys.stdin:
             created_mode = app.current_mode
             assert created_mode != owner_mode
             assert app.session_tracker.session_count == 2
-            assert len(list(app.screen.query(SessionRow))) == 2
+            session_rows = list(app.screen.query(SessionRow))
+            assert len(session_rows) == 2
+            assert session_rows[0].mode_name == created_mode
+            assert app.screen.query_one(CommsSidebar).children[1] is session_rows[0]
             created_conversation = app.screen.conversation
             assert app.session_tracker.get_session(created_mode).title == "New Session"
             managed_thread = "managed-test-thread"
