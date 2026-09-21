@@ -167,6 +167,12 @@ def run(
 @click.argument("command", metavar="COMMAND")
 @click.argument("project_dir", metavar="PATH", default=None)
 @click.option(
+    "--session",
+    "session_id",
+    default=None,
+    help="Resume an existing ACP session instead of creating a new one.",
+)
+@click.option(
     "-t",
     "--title",
     metavar="TITLE",
@@ -197,6 +203,7 @@ def acp(
     title: str | None,
     project_dir: str | None,
     serve: bool = False,
+    session_id: str | None = None,
 ) -> None:
     """Run an ACP agent from a command."""
 
@@ -229,6 +236,8 @@ def acp(
         from textual_serve.server import Server
 
         command_components = [sys.argv[0], "acp", command]
+        if session_id:
+            command_components.extend(["--session", session_id])
         if project_dir:
             command_components.append(f"--project-dir={project_dir}")
         serve_command = shlex.join(command_components)
@@ -243,7 +252,9 @@ def acp(
         server.serve()
 
     else:
-        app = ToadApp(agent_data=agent_data, project_dir=project_dir)
+        app = ToadApp(
+            agent_data=agent_data, project_dir=project_dir, agent_session_id=session_id
+        )
         app.run()
         app.run_on_exit()
 

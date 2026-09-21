@@ -27,11 +27,12 @@ The Sidebar contains additonal information associated with the conversation.
 """
 
     DEFAULT_CSS = """
-    SideBarCollapsible {
+    SideBarCollapsible, SideBarCollapsible:ansi {
         width: 1fr;
         height: auto;
         min-height: 1;
         padding: 0;
+        margin: 0;
         border-top: none;
         background: transparent;
     }
@@ -49,6 +50,10 @@ The Sidebar contains additonal information associated with the conversation.
     }
     SideBarCollapsible.-flex > Contents {
         height: 1fr;
+    }
+    SideBarCollapsible.-collapsed {
+        height: auto;
+        min-height: 1;
     }
     """
 
@@ -118,6 +123,7 @@ class SideBar(containers.Vertical):
         layer: sidebar-content;
         overflow-y: auto;
         scrollbar-size: 1 1;
+        scrollbar-gutter: stable;
     }
     SideBar.-collapsed {
         width: 1;

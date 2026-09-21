@@ -229,6 +229,10 @@ class MainScreen(Screen, can_focus=False):
             pass
         if self.id is not None and previous and previous != thread_name:
             self.app.sync_coordination_identity(self.id, previous, thread_name)
+            details = self.app.session_tracker.get_session(self.id)
+            if details is not None and details.title == previous:
+                self._agent_session_title = thread_name
+                self.app.session_tracker.update_session(self.id, title=thread_name)
         try:
             self.query_one(CoordinationStatus).set_thread(thread_name)
         except Exception:
@@ -246,6 +250,7 @@ class MainScreen(Screen, can_focus=False):
         return self._resolve_comms_thread()
 
     def _resolve_comms_thread(self) -> str:
+        resolved: str | None
         try:
             import os
 
@@ -254,9 +259,12 @@ class MainScreen(Screen, can_focus=False):
             root = self._coordination_root or os.environ.get(
                 "AGENT_COMMS_ROOT", "~/.agent-comms"
             )
-            resolved = resolve_session_thread(
-                wire(root), self.project_path, self._comms_thread
-            )
+            if self._coordination_root is not None:
+                resolved = wire(root).registry.require(self._comms_thread).name
+            else:
+                resolved = resolve_session_thread(
+                    wire(root), self.project_path, self._comms_thread
+                )
         except Exception:
             resolved = None
         if resolved is not None:
@@ -425,15 +433,6 @@ class MainScreen(Screen, can_focus=False):
         # TODO: May not be required
         if event.name is not None:
             self._agent_session_title = event.name
-            if self._coordination_root:
-                try:
-                    from agent_comms.operations import wire
-
-                    thread = wire(self._coordination_root).registry.require(event.name)
-                    if Path(thread.worktree).resolve() == self.project_path.resolve():
-                        self.on_comms_session_named(thread.name)
-                except Exception:
-                    pass
         if self.id is not None:
             self.app.session_tracker.update_session(
                 self.id,

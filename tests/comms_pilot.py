@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import os
+import sys
 import tempfile
 from pathlib import Path
 from types import SimpleNamespace
 
-from agent_comms import ActivityState, Thread
+from agent_comms import ActivityState, ForkSpec, Thread
 from agent_comms.operations import wire
 from textual.content import Content
 from textual.widgets import Footer, Input, Markdown, Tabs
@@ -45,6 +47,8 @@ from toad.widgets.side_bar import SideBar, SideBarCollapsible, SideBarToggle
 from toad.widgets.throbber import Throbber
 from toad.widgets.tool_call import ToolCall
 from toad.widgets.project_panel import FilePreview, ProjectSearchButton
+from toad.widgets.user_input import UserInput
+from toad.widgets.incoming_message import IncomingMessage, IncomingSender
 
 
 def row(screen, target: str) -> CommsRow:
@@ -61,12 +65,41 @@ async def main() -> None:
 
     with tempfile.TemporaryDirectory(prefix="toad-comms-pilot-") as temporary:
         root = Path(temporary)
+        os.environ["XDG_CONFIG_HOME"] = str(root / ".config")
+        os.environ["XDG_STATE_HOME"] = str(root / ".state")
+        os.environ["XDG_DATA_HOME"] = str(root / ".data")
         project = root / "project"
         project.mkdir()
         preview_path = project / "README.md"
         preview_path.write_text("# Preview\n\nRendered markdown.")
         wire_root = root / "wire"
         os.environ["AGENT_COMMS_ROOT"] = str(wire_root)
+        gates = root / "backend-gates"
+        gates.mkdir()
+        os.environ["TOAD_TEST_GATES"] = str(gates)
+        backend_stub = root / "pi-turn-state"
+        backend_stub.write_text(f"#!{sys.executable}\n" + """
+import json, os, sys, time
+from pathlib import Path
+def emit(value):
+    print(json.dumps(value), flush=True)
+for line in sys.stdin:
+    command = json.loads(line)
+    kind = command.get("type")
+    if kind == "prompt":
+        text = command["message"].splitlines()[-1]
+        emit({"type": "message_update", "assistantMessageEvent": {"type": "thinking_delta", "delta": "reasoning for " + text}})
+        gate = Path(os.environ["TOAD_TEST_GATES"]) / os.environ["AGENT_COMMS_THREAD"]
+        while gate.exists():
+            time.sleep(0.02)
+        emit({"type": "message_update", "assistantMessageEvent": {"type": "text_delta", "delta": "response for " + text}})
+        emit({"type": "agent_settled"})
+    else:
+        emit({"type": "response", "command": kind, "success": True, "data": {}})
+""")
+        backend_stub.chmod(0o755)
+        os.environ["AGENT_COMMS_AGENT_BIN"] = str(backend_stub)
+        os.environ["AGENT_COMMS_AGENT_ARGS"] = ""
 
         comms = wire(wire_root)
         me = project.name
@@ -81,6 +114,65 @@ async def main() -> None:
         )
         comms.register(
             Thread(name="delete-peer", tags=frozenset(), worktree=str(project))
+        )
+        resumable_session = root / "resumable-session.jsonl"
+        resumable_session.write_text(
+            "\n".join(
+                json.dumps(record)
+                for record in [
+                    {
+                        "type": "message",
+                        "message": {
+                            "role": "user",
+                            "content": [
+                                {"type": "text", "text": "thread transcript request"}
+                            ],
+                        },
+                    },
+                    {
+                        "type": "message",
+                        "message": {
+                            "role": "assistant",
+                            "content": [
+                                {"type": "thinking", "thinking": "thread reasoning"},
+                                {
+                                    "type": "toolCall",
+                                    "id": "thread-tool",
+                                    "name": "comms_send",
+                                    "arguments": {"to": "peer"},
+                                },
+                            ],
+                        },
+                    },
+                    {
+                        "type": "message",
+                        "message": {
+                            "role": "toolResult",
+                            "toolCallId": "thread-tool",
+                            "toolName": "comms_send",
+                            "content": [{"type": "text", "text": "thread tool result"}],
+                            "isError": False,
+                        },
+                    },
+                    {
+                        "type": "message",
+                        "message": {
+                            "role": "assistant",
+                            "content": [
+                                {"type": "text", "text": "thread transcript complete"}
+                            ],
+                        },
+                    },
+                ]
+            )
+        )
+        comms.register(
+            Thread(
+                name="resumable-peer",
+                tags=frozenset({"test"}),
+                worktree=str(project),
+                session_file=str(resumable_session),
+            )
         )
         comms.send("peer", "#all", "hello from peer")
         comms.send("peer", me, "private from peer")
@@ -129,7 +221,7 @@ async def main() -> None:
             await pilot.click(irc_key)
             await pilot.pause()
             assert isinstance(app.screen, CommsScreen)
-            await pilot.press("ctrl+w")
+            assert await pilot.click(f"#close-{app.current_mode}")
             await pilot.pause()
             assert isinstance(app.screen, MainScreen)
             assert app.session_tracker.session_count == 1
@@ -145,10 +237,36 @@ async def main() -> None:
             assert str(wire_root) in str(coordination.tooltip)
             shell_sidebar = app.screen.query_one(SideBar)
             panels = list(shell_sidebar.query(SideBarCollapsible))
+            assert (
+                panels[0].query_one("CollapsibleTitle").region.y == panels[0].region.y
+            )
+            conversation = app.screen.conversation
+            assert conversation.prompt.region.x == conversation.region.x
+            assert conversation.contents.region.x == conversation.region.x + 1
             assert all(
                 panel.region.height <= 2 for panel in panels if panel.collapsed
             ), [(panel.title, panel.collapsed, panel.region.height) for panel in panels]
             assert panels[0].region.height < shell_sidebar.region.height
+            await pilot.click(panels[0].query_one("CollapsibleTitle"))
+            await pilot.click(panels[1].query_one("CollapsibleTitle"))
+            await pilot.pause()
+            assert all(panel.region.height <= 2 for panel in panels[:2]), [
+                (panel.title, panel.region.height) for panel in panels[:2]
+            ]
+            await pilot.click(panels[0].query_one("CollapsibleTitle"))
+            await pilot.click(panels[1].query_one("CollapsibleTitle"))
+            await pilot.pause()
+            await pilot.click(panels[-1].query_one("CollapsibleTitle"))
+            await pilot.pause()
+            assert panels[-1].region.height <= 2
+            await pilot.click(panels[-1].query_one("CollapsibleTitle"))
+            await pilot.pause()
+            panel_scroller = shell_sidebar.query_one("#sidebar-panels")
+            assert panel_scroller.max_scroll_y > 0
+            panel_scroller.scroll_end(animate=False)
+            await pilot.pause()
+            assert panel_scroller.scroll_y > 0
+            panel_scroller.scroll_home(animate=False)
             sidebar_toggle = shell_sidebar.query_one(SideBarToggle)
             assert sidebar_toggle.region.width == 1
             assert sidebar_toggle.region.height == shell_sidebar.region.height
@@ -305,13 +423,17 @@ async def main() -> None:
 
             created_conversation.agent = ClosingAgent()
             await app.switch_mode(owner_mode)
-            await app.close_session_mode(created_mode)
+            assert await pilot.click(f"SessionLabel#{created_mode}", button=2)
             await pilot.pause()
             assert app.current_mode == owner_mode
             assert app.session_tracker.session_count == 1
             assert stopped_agents == 1
 
+            app.screen.query_one(CommsSidebar)._refresh()
+            await pilot.pause()
             local_row = app.screen.query_one(SessionRow)
+            local_row.scroll_visible(animate=False)
+            await pilot.pause()
             await pilot.click(local_row, button=3)
             await pilot.pause()
             assert isinstance(app.screen, ContextMenu)
@@ -671,6 +793,379 @@ async def main() -> None:
             await pilot.pause()
             assert app.session_tracker.session_count == 1
             assert isinstance(app.screen, MainScreen)
+
+            owner_mode = app.current_mode
+            owner_agent = app.screen._agent
+            app.screen._agent = {
+                "identity": "agent-comms.openhcs.dev",
+                "name": "Agent Comms",
+                "short_name": "agent-comms",
+                "url": "https://github.com/OpenHCSDev/agent-comms",
+                "protocol": "acp",
+                "type": "coding",
+                "author_name": "OpenHCSDev",
+                "author_url": "https://github.com/OpenHCSDev",
+                "publisher_name": "OpenHCSDev",
+                "publisher_url": "https://github.com/OpenHCSDev",
+                "description": "Test agent-comms ACP server",
+                "tags": [],
+                "help": "",
+                "run_command": {"*": f"{sys.executable} -m agent_comms.acp"},
+                "actions": {},
+            }
+            resumable_row = row(app.screen, "resumable-peer")
+            assert resumable_row.kind == "thread"
+            resumable_row.scroll_visible(animate=False)
+            await pilot.pause()
+            assert await pilot.click(resumable_row)
+            for _ in range(20):
+                await pilot.pause()
+                if any(
+                    "thread transcript complete" in response.source
+                    for response in app.screen.query(AgentResponse)
+                ):
+                    break
+            assert isinstance(app.screen, MainScreen)
+            assert not isinstance(app.screen, CommsScreen)
+            thread_mode = app.current_mode
+            assert thread_mode != owner_mode
+            assert app.session_tracker.session_count == 2
+            assert (
+                app.session_tracker.get_session(thread_mode).title == "resumable-peer"
+            )
+            assert any(
+                "thread transcript request" in user_input.content
+                for user_input in app.screen.query(UserInput)
+            )
+            assert any(
+                "thread reasoning" in thought.source
+                for thought in app.screen.query(AgentThought)
+            )
+            assert any(
+                "thread transcript complete" in response.source
+                for response in app.screen.query(AgentResponse)
+            )
+            assert app.screen.query(ToolCall)
+            reused_mode = await app.open_thread_session(
+                owner_mode=owner_mode,
+                project_path=project,
+                target="resumable-peer",
+            )
+            assert reused_mode == thread_mode
+            assert app.session_tracker.session_count == 2
+            assert not any(
+                session.title.startswith("@resumable-peer")
+                for session in app.session_tracker.ordered_sessions
+            )
+            second_file = root / "second-session.jsonl"
+            second_file.write_text(resumable_session.read_text())
+            comms.register(
+                Thread(
+                    name="second-peer",
+                    tags=frozenset(),
+                    worktree=str(project),
+                    session_file=str(second_file),
+                )
+            )
+            app.screen.query_one(CommsSidebar)._refresh()
+            await pilot.pause()
+            second_row = row(app.screen, "second-peer")
+            second_row.scroll_visible(animate=False)
+            await pilot.pause()
+            assert await pilot.click(second_row)
+            for _ in range(30):
+                await pilot.pause(0.1)
+                if (
+                    app.current_mode != thread_mode
+                    and app.screen.conversation.agent.session_ready_event.is_set()
+                ):
+                    break
+            second_mode = app.current_mode
+            assert second_mode != thread_mode
+            assert app.session_tracker.session_count == 3
+            first_pid = comms.registry.require("resumable-peer").pid
+            second_pid = comms.registry.require("second-peer").pid
+            assert first_pid != second_pid
+            for target_mode in [thread_mode, second_mode] * 3:
+                label = app.screen.query_one(f"SessionLabel#{target_mode}")
+                assert await pilot.click(label)
+                await pilot.pause()
+                assert app.current_mode == target_mode
+                assert app.session_tracker.session_count == 3
+            assert comms.registry.require("resumable-peer").pid == first_pid
+            assert comms.registry.require("second-peer").pid == second_pid
+            assert "resumable-peer-2" not in comms.registry
+            assert "second-peer-2" not in comms.registry
+            hold = gates / "second-peer"
+            hold.touch()
+            comms.send("resumable-peer", "second-peer", "live round one")
+            for _ in range(40):
+                await pilot.pause(0.1)
+                if any(
+                    "reasoning for live round one" in item.source
+                    for item in app.screen.query(AgentThought)
+                ):
+                    break
+            assert app.screen.conversation.turn == "agent"
+            assert app.screen.conversation.busy_count == 1
+            active_turn = app.screen.conversation._managed_turn_id
+            app.screen.conversation.post_message(acp_messages.TurnStarted(active_turn))
+            app.screen.conversation.post_message(
+                acp_messages.TurnSettled("previous-turn")
+            )
+            await pilot.pause()
+            assert app.screen.conversation._managed_turn_id == active_turn
+            assert app.screen.conversation.busy_count == 1
+            assert app.screen.query_one(Throbber).has_class("-busy")
+            assert app.session_tracker.get_session(second_mode).state == "busy"
+            assert "⌛" in str(
+                app.screen.query_one(f"SessionLabel#{second_mode}").render()
+            )
+            hold.unlink()
+            for _ in range(40):
+                await pilot.pause(0.1)
+                if app.screen.conversation._managed_turn_id is None:
+                    break
+            assert app.screen.conversation.busy_count == 0
+            assert app.screen.conversation.turn == "client"
+            assert app.session_tracker.get_session(second_mode).state == "idle"
+            assert not app.screen.query_one(Throbber).has_class("-busy")
+            assert (
+                len(
+                    [
+                        item
+                        for item in app.screen.query(AgentThought)
+                        if "reasoning for live round one" in item.source
+                    ]
+                )
+                == 1
+            )
+            incoming = [
+                item
+                for item in app.screen.query(IncomingMessage)
+                if item.text == "live round one"
+            ]
+            assert len(incoming) == 1
+            sender_link = incoming[0].query_one(IncomingSender)
+            sender_link.scroll_visible(animate=False)
+            await pilot.pause()
+            assert await pilot.click(sender_link)
+            await pilot.pause()
+            assert app.current_mode == thread_mode
+            assert app.session_tracker.session_count == 3
+            comms.send("second-peer", "resumable-peer", "live round two")
+            for _ in range(40):
+                await pilot.pause(0.1)
+                if any(
+                    item.text == "live round two"
+                    for item in app.screen.query(IncomingMessage)
+                ):
+                    break
+            assert (
+                len(
+                    [
+                        item
+                        for item in app.screen.query(IncomingMessage)
+                        if item.text == "live round two"
+                    ]
+                )
+                == 1
+            )
+            for _ in range(40):
+                await pilot.pause(0.1)
+                if app.screen.conversation._managed_turn_id is None and any(
+                    "response for live round two" in item.source
+                    for item in app.screen.query(AgentResponse)
+                ):
+                    break
+            first_thoughts = list(app.screen.query(AgentThought))
+            hold = gates / "resumable-peer"
+            hold.touch()
+            app.screen.conversation.post_message(
+                messages.UserInputSubmitted("user turn lifecycle")
+            )
+            for _ in range(40):
+                await pilot.pause(0.1)
+                if any(
+                    "reasoning for user turn lifecycle" in item.source
+                    for item in app.screen.query(AgentThought)
+                ):
+                    break
+            assert app.screen.conversation.busy_count == 1
+            assert app.screen.conversation.turn == "agent"
+            assert "⌛" in str(
+                app.screen.query_one(f"SessionLabel#{thread_mode}").render()
+            )
+            assert all(
+                "user turn lifecycle" not in item.source for item in first_thoughts
+            )
+            hold.unlink()
+            for _ in range(40):
+                await pilot.pause(0.1)
+                if app.screen.conversation._managed_turn_id is None:
+                    break
+            assert app.screen.conversation.busy_count == 0
+            assert app.session_tracker.get_session(thread_mode).state == "idle"
+            # Also exercise the saved-session resume entry point. Registry-only
+            # attachments do not insert another copy into Toad's saved list.
+            first_pk = await DB().session_new(
+                "resumable-peer",
+                "Agent Comms",
+                "agent-comms.openhcs.dev",
+                "resumable-peer",
+                meta={"cwd": str(project), "agent_data": app.screen._agent},
+            )
+            assert first_pk is not None
+            app.screen.conversation.agent.session_pk = first_pk
+            await app.switch_mode(second_mode)
+            await app.launch_agent(
+                "agent-comms.openhcs.dev",
+                agent_session_id="resumable-peer",
+                session_pk=first_pk,
+                project_path=project,
+            ).wait()
+            await pilot.pause()
+            assert app.current_mode == thread_mode
+            assert app.session_tracker.session_count == 3
+            assert await pilot.click(f"#close-{second_mode}")
+            await pilot.pause()
+            assert app.current_mode == thread_mode
+            assert app.session_tracker.get_session(second_mode) is None
+            assert "second-peer" in comms.registry
+            comms.stop("second-peer")
+            comms.delete("second-peer")
+
+            external = comms.fork(
+                ForkSpec(
+                    name="external-peer",
+                    parent="resumable-peer",
+                    task="external initial turn",
+                ),
+                pi_bin="/bin/echo",
+            )
+            try:
+                from agent_comms.runtime import socket_path
+
+                for _ in range(40):
+                    await pilot.pause(0.1)
+                    if socket_path(comms.root, external.pid).exists():
+                        break
+                external_file = root / "external-session.jsonl"
+                external_file.write_text(resumable_session.read_text())
+                comms.attach_session(external.name, str(external_file))
+                external_mode = await app.open_thread_session(
+                    owner_mode=thread_mode, project_path=project, target=external.name
+                )
+                for _ in range(40):
+                    await pilot.pause(0.1)
+                    if app.screen.conversation.agent.session_ready_event.is_set():
+                        break
+                assert external_mode != thread_mode
+                assert comms.registry.require(external.name).pid == external.pid
+                comms.send("resumable-peer", external.name, "live external attachment")
+                for _ in range(40):
+                    await pilot.pause(0.1)
+                    if any(
+                        item.text == "live external attachment"
+                        for item in app.screen.query(IncomingMessage)
+                    ):
+                        break
+                assert (
+                    len(
+                        [
+                            item
+                            for item in app.screen.query(IncomingMessage)
+                            if item.text == "live external attachment"
+                        ]
+                    )
+                    == 1
+                )
+                app.post_message(messages.SessionDelete(external_mode))
+                for _ in range(80):
+                    await pilot.pause(0.1)
+                    if app.session_tracker.get_session(external_mode) is None:
+                        break
+                assert app.session_tracker.get_session(external_mode) is None
+                assert external.name not in comms.registry
+                assert app.current_mode == thread_mode
+            finally:
+                if external.name in comms.registry:
+                    await asyncio.to_thread(comms.stop, external.name)
+                    comms.delete(external.name)
+                await asyncio.to_thread(os.waitpid, external.pid, 0)
+            await app.screen.conversation.rename_session("delete once")
+            await pilot.pause()
+            deleted_name = app.screen._comms_thread
+            assert deleted_name == "delete-once"
+            comms.register(
+                Thread(
+                    name="surviving-child",
+                    parent=deleted_name,
+                    tags=frozenset(),
+                    worktree=str(project),
+                    session_file=str(second_file),
+                )
+            )
+            app.screen.query_one(CommsSidebar)._refresh()
+            await pilot.pause()
+            deleted_pid = comms.registry.require(deleted_name).pid
+            deleted_pk = app.screen.conversation.agent.session_pk
+            thread_row = next(
+                item
+                for item in app.screen.query(SessionRow)
+                if item.mode_name == thread_mode
+            )
+            thread_row.scroll_visible(animate=False)
+            await pilot.pause()
+            assert await pilot.click(thread_row, button=3)
+            await pilot.pause()
+            assert isinstance(app.screen, ContextMenu)
+            delete_item = next(
+                item
+                for item in app.screen.query(ContextMenuItem)
+                if item.action == "delete"
+            )
+            assert await pilot.click(delete_item)
+            for _ in range(30):
+                await pilot.pause(0.1)
+                if app.session_tracker.get_session(thread_mode) is None:
+                    break
+            assert app.current_mode == owner_mode, (
+                app.current_mode,
+                [
+                    (item.mode_name, item.title)
+                    for item in app.session_tracker.ordered_sessions
+                ],
+                (
+                    comms.thread_detail(deleted_name)
+                    if deleted_name in comms.registry
+                    else "deleted"
+                ),
+            )
+            assert app.session_tracker.session_count == 1
+            assert not comms._process_alive(deleted_pid)
+            assert deleted_name not in comms.registry
+            assert "resumable-peer" not in comms.registry
+            assert comms.registry.require("surviving-child").parent is None
+            assert comms.registry.require("surviving-child").session_file == str(
+                second_file
+            )
+            assert await DB().session_get(deleted_pk) is None
+            await pilot.pause(2)
+            assert not {deleted_name, "resumable-peer"} & {
+                item.target_name for item in app.screen.query(CommsRow)
+            }
+            replacement = comms.claim_thread(
+                deleted_name, tags=frozenset(), worktree=str(project)
+            )
+            assert replacement.name == deleted_name
+            comms.stop(replacement.name)
+            comms.delete(replacement.name)
+            comms.stop("surviving-child")
+            comms.delete("surviving-child")
+            app.screen._agent = owner_agent
+            app.screen.query_one(CommsSidebar)._refresh()
+            await pilot.pause()
 
             await pilot.click(row(app.screen, "#all"))
             await pilot.pause()

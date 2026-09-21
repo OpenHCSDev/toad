@@ -282,6 +282,7 @@ class ToadApp(App, inherit_bindings=False):
         agent_data: AgentData | None = None,
         project_dir: str | None = None,
         mode: str | None = None,
+        agent_session_id: str | None = None,
     ) -> None:
         """Toad app.
 
@@ -297,6 +298,7 @@ class ToadApp(App, inherit_bindings=False):
         self.agent_data = agent_data
 
         self._initial_mode = mode
+        self._initial_agent_session_id = agent_session_id
         self.version_meta: VersionMeta | None = None
         self._supports_pyperclip: bool | None = None
         self._terminal_title_flash_timer: Timer | None = None
@@ -665,6 +667,13 @@ class ToadApp(App, inherit_bindings=False):
         kind: str,
     ) -> str:
         """Open or reuse an internal IRC/channel/DM view for one agent session."""
+        if kind == "thread":
+            return await self.open_thread_session(
+                owner_mode=owner_mode,
+                project_path=project_path,
+                target=target,
+            )
+
         from agent_comms.operations import wire
 
         from toad.screens.comms import CommsScreen
@@ -715,6 +724,107 @@ class ToadApp(App, inherit_bindings=False):
         await self.switch_mode(mode_name)
         return mode_name
 
+    async def open_thread_session(
+        self,
+        *,
+        owner_mode: str,
+        project_path: Path,
+        target: str,
+    ) -> str:
+        """Open or reuse a resumable wire thread as a tracked agent session."""
+        from agent_comms.operations import wire
+
+        from toad.screens.main import MainScreen
+
+        root = Path(os.environ.get("AGENT_COMMS_ROOT", "~/.agent-comms"))
+        coordination_root = str(root.expanduser().resolve())
+        try:
+            thread = wire(root).registry.require(target)
+        except Exception as error:
+            self.notify(str(error), title="Thread unavailable", severity="error")
+            return owner_mode
+        for details in self.session_tracker.ordered_sessions:
+            screen = self._main_session_screen(details.mode_name)
+            if (
+                screen is not None
+                and screen._coordination_root == coordination_root
+                and screen._session_thread == thread.name
+            ):
+                await self.switch_mode(details.mode_name)
+                return details.mode_name
+
+        if not thread.session_file:
+            self.notify(
+                f"Thread {thread.name!r} has no resumable session",
+                title="Thread unavailable",
+                severity="warning",
+            )
+            return owner_mode
+        if not Path(thread.session_file).is_file():
+            self.notify(
+                f"The saved session for thread {thread.name!r} no longer exists",
+                title="Thread unavailable",
+                severity="error",
+            )
+            return owner_mode
+
+        source = self._main_session_screen(owner_mode)
+        if source is None:
+            try:
+                from toad.screens.comms import CommsScreen
+
+                owner_screen = self.get_screen_stack(owner_mode)[-1]
+                if isinstance(owner_screen, CommsScreen):
+                    source = self._main_session_screen(owner_screen.owner_mode)
+            except KeyError, IndexError:
+                pass
+        if source is None or source._agent is None:
+            self.notify(
+                "The owning agent session is unavailable",
+                title="Thread unavailable",
+                severity="error",
+            )
+            return owner_mode
+
+        def get_screen() -> MainScreen:
+            screen = MainScreen(
+                (
+                    Path(thread.worktree)
+                    if Path(thread.worktree).is_dir()
+                    else project_path
+                ),
+                source._agent,
+                agent_session_id=thread.name,
+                agent_session_title=thread.name,
+            )
+            screen._coordination_root = coordination_root
+            screen._comms_thread = thread.name
+            screen.set_reactive(MainScreen.column, self.column)
+            screen.set_reactive(MainScreen.column_width, self.column_width)
+            screen.set_reactive(MainScreen.scrollbar, self.scrollbar)
+            screen.watch(
+                self,
+                "column",
+                lambda value: setattr(screen, "column", value),
+                init=False,
+            )
+            screen.watch(
+                self,
+                "column_width",
+                lambda value: setattr(screen, "column_width", value),
+                init=False,
+            )
+            screen.watch(
+                self,
+                "scrollbar",
+                lambda value: setattr(screen, "scrollbar", value),
+                init=False,
+            )
+            return screen
+
+        details = await self.new_session_screen(get_screen)
+        return details.mode_name
+
     def sync_coordination_identity(
         self, owner_mode: str, previous: str, current: str
     ) -> None:
@@ -748,7 +858,7 @@ class ToadApp(App, inherit_bindings=False):
         for details in self.session_tracker.ordered_sessions:
             screen = self._main_session_screen(details.mode_name)
             if screen is not None and screen._coordination_root is not None:
-                threads.add(screen._comms_thread)
+                threads.add(screen._session_thread)
         return threads
 
     async def close_session_mode(self, mode_name: str) -> None:
@@ -900,7 +1010,14 @@ class ToadApp(App, inherit_bindings=False):
         from toad.screens.main import MainScreen
 
         project_path = Path(self.project_dir or "./").resolve().absolute()
-        return MainScreen(project_path, self.agent_data).data_bind(
+        session_id = self._initial_agent_session_id
+        self._initial_agent_session_id = None
+        return MainScreen(
+            project_path,
+            self.agent_data,
+            agent_session_id=session_id,
+            agent_session_title=session_id,
+        ).data_bind(
             column=ToadApp.column,
             column_width=ToadApp.column_width,
             scrollbar=ToadApp.scrollbar,
@@ -996,10 +1113,13 @@ class ToadApp(App, inherit_bindings=False):
         from toad.screens.main import MainScreen
 
         try:
-            screen = self.get_screen_stack(mode_name)[-1]
+            stack = self.get_screen_stack(mode_name)
         except KeyError, IndexError:
             return None
-        return screen if isinstance(screen, MainScreen) else None
+        return next(
+            (screen for screen in reversed(stack) if isinstance(screen, MainScreen)),
+            None,
+        )
 
     @on(messages.SessionRename)
     async def on_session_rename(self, event: messages.SessionRename) -> None:
@@ -1033,6 +1153,22 @@ class ToadApp(App, inherit_bindings=False):
             session_pk = screen._session_pk
             if agent is not None:
                 session_pk = getattr(agent, "session_pk", None) or session_pk
+            if screen._coordination_root is not None:
+                from agent_comms.operations import wire
+
+                comms = wire(screen._coordination_root)
+                thread_name = screen._session_thread
+                try:
+                    # The local ACP process owns this thread. Finish its shutdown
+                    # before the shared operation removes the persistent record.
+                    if agent is not None:
+                        await agent.stop()
+                    if thread_name in comms.registry:
+                        await asyncio.to_thread(comms.stop, thread_name)
+                        comms.delete(thread_name)
+                except Exception as error:
+                    self.notify(str(error), title="Delete thread", severity="error")
+                    return
         if session_pk is not None:
             if not await DB().session_delete(session_pk):
                 self.notify(
@@ -1098,6 +1234,31 @@ class ToadApp(App, inherit_bindings=False):
                 return
         if project_path is None:
             project_path = Path(self.project_dir or os.getcwd())
+
+        if agent_session_id is not None:
+            for details in self.session_tracker.ordered_sessions:
+                existing = self._main_session_screen(details.mode_name)
+                if existing is None or existing._agent is None:
+                    continue
+                if existing._agent["identity"] != agent_identity:
+                    continue
+                live_agent = existing.conversation.agent
+                session_ids = {
+                    existing._agent_session_id,
+                    getattr(live_agent, "session_id", None),
+                }
+                matches = agent_session_id in session_ids
+                if existing._coordination_root is not None:
+                    from agent_comms.operations import wire
+
+                    comms = wire(existing._coordination_root)
+                    matches = matches or (
+                        comms.registry.canonical_name(agent_session_id)
+                        == existing._session_thread
+                    )
+                if matches:
+                    await self.switch_mode(details.mode_name)
+                    return
 
         def get_screen():
             screen = MainScreen(

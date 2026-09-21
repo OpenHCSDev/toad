@@ -144,6 +144,7 @@ class Agent(AgentBase):
         self._process: asyncio.subprocess.Process | None = None
         self._process_group_id: int | None = None
         self._stopping = False
+        self.uses_turn_events = False
         self._pending_session_name: str | None = None
         self._coordination_thread: str | None = None
         self._coordination_root: str | None = None
@@ -287,14 +288,29 @@ class Agent(AgentBase):
         """
 
         metadata = update.get("_meta")
-        if (
-            isinstance(metadata, dict)
-            and isinstance(metadata.get("agentComms"), dict)
-            and metadata["agentComms"].get("turnSettled") is True
-        ):
-            self.post_message(messages.TurnSettled())
-            return
-
+        if isinstance(metadata, dict) and isinstance(metadata.get("agentComms"), dict):
+            state = metadata["agentComms"]
+            turn_id = state.get("turnId")
+            if state.get("turnStarted") is True and isinstance(turn_id, str):
+                self.uses_turn_events = True
+                self.post_message(messages.TurnStarted(turn_id))
+                return
+            if state.get("turnSettled") is True:
+                if isinstance(turn_id, str):
+                    self.uses_turn_events = True
+                self.post_message(messages.TurnSettled(turn_id))
+                return
+            incoming = metadata["agentComms"].get("incoming")
+            if isinstance(incoming, dict):
+                self.post_message(
+                    messages.IncomingMessage(
+                        sender=str(incoming["sender"]),
+                        target=str(incoming["target"]),
+                        text=str(incoming["body"]),
+                        sequence=int(incoming["sequence"]),
+                    )
+                )
+                return
         match update:
             case {
                 "sessionUpdate": "user_message_chunk",
@@ -934,6 +950,8 @@ class Agent(AgentBase):
             return
         self._coordination_thread = thread
         self._coordination_root = wire_root
+        self.uses_turn_events = coordination.get("turnLifecycle") is True
+        self._coordination_owner_pid = coordination.get("ownerPid")
         self._coordination_persistence = str(
             coordination.get("persistence", "shared on-disk wire")
         )
@@ -972,7 +990,7 @@ class Agent(AgentBase):
         result = wire(wire_root).rename_managed_thread(
             thread,
             display_name,
-            owner_pid=process.pid,
+            owner_pid=getattr(self, "_coordination_owner_pid", None) or process.pid,
         )
         self._coordination_thread = result.current
         self._post_coordination_update()

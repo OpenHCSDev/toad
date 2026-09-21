@@ -24,9 +24,45 @@ from toad import messages
 class SessionLabel(widgets.Label):
     ALLOW_SELECT = False
 
-    def on_click(self) -> None:
+    def on_click(self, event: events.Click) -> None:
         if self.id is not None:
-            self.post_message(messages.SessionSwitch(self.id))
+            if event.button == 2:
+                event.stop()
+                self.app.post_message(messages.SessionArchive(self.id))
+            elif event.button == 1:
+                self.post_message(messages.SessionSwitch(self.id))
+
+
+class SessionTabClose(widgets.Static, can_focus=True):
+    """Close a tab without selecting it or deleting its saved thread."""
+
+    ALLOW_SELECT = False
+    BINDINGS = [("enter,space", "close_tab", "Close tab")]
+    DEFAULT_CSS = """
+    SessionTabClose {
+        width: 2;
+        height: 1;
+        color: $text-muted;
+        pointer: pointer;
+    }
+    SessionTabClose:hover, SessionTabClose:focus {
+        color: $error;
+        text-style: bold reverse;
+    }
+    """
+
+    def __init__(self, mode_name: str) -> None:
+        super().__init__("×", id=f"close-{mode_name}")
+        self.mode_name = mode_name
+        self.tooltip = "Close tab (or middle-click its label)"
+
+    def action_close_tab(self) -> None:
+        self.app.post_message(messages.SessionArchive(self.mode_name))
+
+    def on_click(self, event: events.Click) -> None:
+        if event.button in {1, 2}:
+            event.stop()
+            self.action_close_tab()
 
 
 class Underline(Widget):
@@ -163,12 +199,14 @@ class SessionsTabs(Widget):
                     id=session.mode_name,
                     classes="-current" if session.mode_name == self.screen.id else "",
                 )
+                yield SessionTabClose(session.mode_name)
             if self.view_mode:
                 yield SessionLabel(
                     Content(self.view_title),
                     id=self.view_mode,
                     classes="-current" if self.view_mode == self.screen.id else "",
                 )
+                yield SessionTabClose(self.view_mode)
         yield Underline()
 
     def update_view_title(self, title: str) -> None:
@@ -185,7 +223,7 @@ class SessionsTabs(Widget):
     ) -> None:
         mode, details = update
         if details is None:
-            await self.query(f"#{mode}").remove()
+            await self.query(f"#{mode}, #close-{mode}").remove()
         else:
             if tab_label := self.query_one_optional(f"#{mode}", SessionLabel):
                 tab_label.update(self.render_session_label(details))
@@ -197,7 +235,8 @@ class SessionsTabs(Widget):
                         classes=(
                             "-current" if details.mode_name == self.screen.id else ""
                         ),
-                    )
+                    ),
+                    SessionTabClose(details.mode_name),
                 )
         await asyncio.sleep(0.05)
         self.call_after_refresh(self.update_underline, self.current_session)
