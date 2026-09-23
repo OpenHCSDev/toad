@@ -10,6 +10,12 @@ API = jsonrpc.API()
 
 
 @API.method()
+def authenticate(methodId: str) -> dict:
+    """Use an agent-advertised protocol authentication method."""
+    ...
+
+
+@API.method()
 def initialize(
     protocolVersion: int,
     clientCapabilities: protocol.ClientCapabilities,
@@ -43,7 +49,7 @@ def session_cancel(sessionId: str, _meta: dict):
 
 @API.method(name="session/prompt")
 def session_prompt(
-    prompt: list[protocol.ContentBlock], sessionId: str
+    prompt: list[protocol.ContentBlock], sessionId: str, _meta: dict | None = None
 ) -> protocol.SessionPromptResponse:
     """https://agentclientprotocol.com/protocol/prompt-turn#1-user-message"""
     ...
@@ -52,4 +58,12 @@ def session_prompt(
 @API.method(name="session/set_mode")
 def session_set_mode(sessionId: str, modeId: str) -> protocol.SetSessionModeResponse:
     """https://agentclientprotocol.com/protocol/session-modes#from-the-client"""
+    ...
+
+
+@API.method(name="session/set_config_option")
+def session_set_config_option(
+    sessionId: str, configId: str, value: str
+) -> protocol.SetSessionConfigOptionResponse:
+    """https://agentclientprotocol.com/protocol/session-config-options"""
     ...

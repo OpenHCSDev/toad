@@ -7,6 +7,7 @@ from typing import Mapping, TYPE_CHECKING
 from textual.message import Message
 
 import rich.repr
+from agent_comms import TranscriptCursor, TranscriptEvent, TranscriptPage, MessageRoute
 
 from toad.answer import Answer
 from toad.acp import protocol
@@ -14,12 +15,34 @@ from toad.acp.encode_tool_call_id import encode_tool_call_id
 
 if TYPE_CHECKING:
     from textual.content import Content
-    from toad.acp.agent import Mode
+    from toad.acp.agent import Mode, Model
     from toad.widgets.terminal_tool import ToolState
 
 
 class AgentMessage(Message):
     """Base class for agent messages."""
+
+
+@dataclass
+class PromptQueueUpdate(AgentMessage):
+    queued: list[str]
+    restored: list[str]
+
+
+@dataclass
+class InputStarted(AgentMessage):
+    text: str | None
+
+
+@dataclass
+class TranscriptSnapshot(AgentMessage):
+    events: tuple[TranscriptEvent, ...]
+    page: TranscriptPage | None = None
+
+
+@dataclass
+class TranscriptChanged(AgentMessage):
+    cursor: TranscriptCursor | None = None
 
 
 @dataclass
@@ -37,6 +60,7 @@ class UpdateStatusLine(AgentMessage):
 class Update(AgentMessage):
     type: str
     text: str
+    route: MessageRoute | None = None
 
 
 @dataclass
@@ -153,6 +177,23 @@ class ModeUpdate(AgentMessage):
     current_mode: str
 
 
+@rich.repr.auto
+@dataclass
+class SetModels(AgentMessage):
+    """Set selectable models from an agent's session configuration."""
+
+    current_model: str
+    models: dict[str, Model]
+
+
+@dataclass
+class SetThinkingLevels(AgentMessage):
+    """Set the current and available model-specific thinking levels."""
+
+    current_level: str
+    levels: list[str]
+
+
 @dataclass
 class SessionInfoUpdate(AgentMessage):
     """Agent-provided title for its current session."""
@@ -168,6 +209,8 @@ class CoordinationUpdate(AgentMessage):
     wire_root: str
     persistence: str
     transport: str
+    worktree: str | None = None
+    prompt_queue: bool = False
 
 
 @dataclass
@@ -175,6 +218,9 @@ class TurnStarted(AgentMessage):
     """A server-owned turn began, regardless of who supplied the input."""
 
     turn_id: str
+    started_at: float | None = None
+    activity: str | None = None
+    activity_detail: str | None = None
 
 
 @dataclass

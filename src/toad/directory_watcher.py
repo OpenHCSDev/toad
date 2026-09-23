@@ -4,6 +4,7 @@ import rich.repr
 import threading
 
 from textual.message import Message
+from textual.dom import NoScreen
 from textual.widget import Widget
 
 
@@ -31,10 +32,13 @@ class DirectoryChanged(Message):
 class _PathEventDispatcher(FileSystemEventHandler):
     """Dispatches file system events to multiple DirectoryWatcher instances."""
 
+    QUIET_INTERVAL = 0.12
+
     def __init__(self, path: Path) -> None:
         self._path = path
         self._watchers: set[DirectoryWatcher] = set()
         self._lock = threading.Lock()
+        self._pending: threading.Timer | None = None
 
     def add_watcher(self, watcher: "DirectoryWatcher") -> None:
         """Add a watcher to receive events."""
@@ -45,6 +49,9 @@ class _PathEventDispatcher(FileSystemEventHandler):
         """Remove a watcher from receiving events."""
         with self._lock:
             self._watchers.discard(watcher)
+            if not self._watchers and self._pending is not None:
+                self._pending.cancel()
+                self._pending = None
 
     @property
     def has_watchers(self) -> bool:
@@ -53,10 +60,25 @@ class _PathEventDispatcher(FileSystemEventHandler):
             return bool(self._watchers)
 
     def on_any_event(self, event: FileSystemEvent) -> None:
-        """Dispatch events to all registered watchers."""
-        with self._lock:
-            watchers = list(self._watchers)
+        """Coalesce a filesystem burst into one eventual directory update.
 
+        A single rename or write can generate many inotify events, and each
+        open tab has its own watcher. The event payload is not consumed by
+        DirectoryChanged; one notification after the burst observes the final
+        filesystem state without posting N events to every mounted screen.
+        """
+        with self._lock:
+            if not self._watchers or self._pending is not None:
+                return
+            timer = threading.Timer(self.QUIET_INTERVAL, self._flush, args=(event,))
+            timer.daemon = True
+            self._pending = timer
+            timer.start()
+
+    def _flush(self, event: FileSystemEvent) -> None:
+        with self._lock:
+            self._pending = None
+            watchers = tuple(self._watchers)
         for watcher in watchers:
             watcher.on_any_event(event)
 
@@ -165,6 +187,8 @@ class DirectoryWatcher(threading.Thread):
         self._widget = widget
         self._stop_event = threading.Event()
         self._enabled = False
+        self._dirty = False
+        self._delivery_lock = threading.Lock()
         super().__init__(name=repr(self))
 
     @property
@@ -177,6 +201,24 @@ class DirectoryWatcher(threading.Thread):
 
         Called by the _PathEventDispatcher when file system events occur.
         """
+        with self._delivery_lock:
+            self._dirty = True
+        self.notify_if_visible()
+
+    def notify_if_visible(self) -> None:
+        """Deliver one deferred invalidation when a hidden tab becomes active."""
+        if self._stop_event.is_set() or not self._widget.is_attached:
+            return
+        try:
+            screen = self._widget.screen
+        except NoScreen:
+            return
+        if not screen.is_active or screen is not self._widget.app.screen:
+            return
+        with self._delivery_lock:
+            if not self._dirty:
+                return
+            self._dirty = False
         self._widget.post_message(DirectoryChanged())
 
     def __rich_repr__(self) -> rich.repr.Result:

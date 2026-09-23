@@ -9,6 +9,10 @@ from textual.message import Message
 class AgentReady(Message):
     """Agent is ready."""
 
+    def __init__(self, *, reconnected: bool = False):
+        super().__init__()
+        self.reconnected = reconnected
+
 
 @dataclass
 class AgentFail(Message):
@@ -55,6 +59,9 @@ class AgentBase(ABC):
 
         """
         return False
+
+    async def set_model(self, model_id: str) -> str | None:
+        return "This agent does not support model selection"
 
     async def set_session_name(self, name: str) -> None:
         """Set the session name.

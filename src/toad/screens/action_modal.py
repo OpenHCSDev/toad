@@ -12,12 +12,13 @@ from textual.widget import Widget
 from toad.app import ToadApp
 from toad.widgets.command_pane import CommandPane
 
-
 UV_INSTALL = "curl -LsSf https://astral.sh/uv/install.sh | sh"
 
 
 class ActionModal(ModalScreen):
     """Executes an action command."""
+
+    CSS_PATH = "store.tcss"
 
     command_pane = getters.query_one(CommandPane)
     ok_button = getters.query_one("#ok", widgets.Button)
@@ -34,6 +35,8 @@ class ActionModal(ModalScreen):
         command: str,
         *,
         bootstrap_uv: bool = False,
+        env: dict[str, str] | None = None,
+        cwd: str | None = None,
         name: str | None = None,
         id: str | None = None,
         classes: str | None = None,
@@ -43,6 +46,8 @@ class ActionModal(ModalScreen):
         self._title = title
         self._command = command
         self._bootstrap_uv = bootstrap_uv
+        self._env = env
+        self._cwd = cwd
         super().__init__(name=name, id=id, classes=classes)
 
     def get_loading_widget(self) -> Widget:
@@ -51,7 +56,9 @@ class ActionModal(ModalScreen):
     def compose(self) -> ComposeResult:
         with containers.VerticalGroup(id="container"):
             yield CommandPane()
-            yield widgets.Button("OK", id="ok", disabled=True)
+            with containers.HorizontalGroup(id="action-buttons"):
+                yield widgets.Button("Cancel", id="cancel")
+                yield widgets.Button("OK", id="ok", disabled=True)
 
     def enable_button(self) -> None:
         self.ok_button.loading = False
@@ -60,11 +67,15 @@ class ActionModal(ModalScreen):
 
     @on(CommandPane.CommandComplete)
     def on_command_complete(self, event: CommandPane.CommandComplete) -> None:
-        self.enable_button()
+        if self._action == "login" and event.return_code == 0:
+            self.dismiss(0)
+        else:
+            self.enable_button()
 
     def on_mount(self) -> None:
         self.ok_button.loading = True
         self.command_pane.border_title = Content(self._title)
+        self.command_pane.focus()
         self.run_command()
 
     @work()
@@ -77,7 +88,9 @@ class ActionModal(ModalScreen):
             await self.command_pane.execute(UV_INSTALL, final=False)
 
         await self.command_pane.write(f"$ {self._command}\n")
-        action_task = self.command_pane.execute(self._command)
+        action_task = self.command_pane.execute(
+            self._command, env=self._env, cwd=self._cwd
+        )
         await action_task
         self.app.capture_event(
             "agent-action",
@@ -87,8 +100,12 @@ class ActionModal(ModalScreen):
         )
 
     @on(widgets.Button.Pressed)
-    def on_button_pressed(self) -> None:
-        self.action_dismiss_modal()
+    async def on_button_pressed(self, event: widgets.Button.Pressed) -> None:
+        if event.button.id == "cancel":
+            await self.command_pane.cancel_command()
+            self.dismiss(None)
+        else:
+            self.action_dismiss_modal()
 
     def action_dismiss_modal(self) -> None:
         self.dismiss(self.command_pane.return_code)

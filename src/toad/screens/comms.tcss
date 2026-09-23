@@ -2,6 +2,8 @@ CommsScreen {
     background: $background;
     layers: sidebar screen base;
 
+    & > Center { height: 1fr; }
+
     #comms-content {
         width: 1fr;
         height: 1fr;
@@ -27,23 +29,4 @@ CommsScreen {
         }
     }
 
-    SideBar {
-        border-right: tall $primary 30%;
-        background: transparent;
-        dock: left;
-        overflow: hidden;
-        scrollbar-size: 0 0;
-        width: 40;
-        max-width: 45%;
-        min-width: 40;
-        height: 1fr;
-
-        &.-collapsed {
-            width: 1;
-            min-width: 1;
-            max-width: 1;
-            border-right: none;
-        }
-
-    }
 }

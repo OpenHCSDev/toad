@@ -8,7 +8,7 @@ from operator import itemgetter
 import os
 from pathlib import Path
 
-from typing import Sequence
+from typing import Self, Sequence
 
 
 from textual import on
@@ -38,6 +38,7 @@ from toad.path_filter import PathFilter
 from toad.widgets.project_directory_tree import ProjectDirectoryTree
 from toad._path_fuzzy_search import PathFuzzySearch
 from toad._path_match import match_path
+from toad.widgets.selection import SelectionOptionList
 
 
 class PathContent(Content):
@@ -83,7 +84,7 @@ class PathContent(Content):
         return strip_lines
 
 
-class FuzzyPathOptionList(OptionList):
+class FuzzyPathOptionList(SelectionOptionList):
     """Option list with loading indicator override."""
 
     def get_loading_widget(self) -> Widget:
@@ -170,6 +171,8 @@ class PathSearch(containers.VerticalGroup):
         self.set_reactive(PathSearch.root, root)
         self.root = root
         self.fuzzy_index = FuzzyIndex()
+        self._paths_dirty = True
+        self._tree_mount_lock = asyncio.Lock()
         self.pool = concurrent.futures.InterpreterPoolExecutor(
             thread_name_prefix=f"fuzzy-path-search-{root}"
         )
@@ -191,20 +194,21 @@ class PathSearch(containers.VerticalGroup):
                     ).expand_tabs(),
                     classes="message",
                 )
-                yield ProjectDirectoryTree(self.root).data_bind(path=PathSearch.root)
 
-    def on_mount(self) -> None:
-        tree = self.tree_view
-        tree.guide_depth = 2
-        tree.center_scroll = True
-
-    def watch_show_tree_picker(self, show_tree_picker: bool) -> None:
+    async def watch_show_tree_picker(self, show_tree_picker: bool) -> None:
         content_switcher = self.query_one(widgets.ContentSwitcher)
         content_switcher.current = (
             "path-search-tree" if show_tree_picker else "path-search-fuzzy"
         )
         if show_tree_picker:
-            self.tree_view.focus()
+            async with self._tree_mount_lock:
+                if self.query_one_optional(ProjectDirectoryTree) is None:
+                    tree = ProjectDirectoryTree(self.root).data_bind(path=PathSearch.root)
+                    tree.guide_depth = 2
+                    tree.center_scroll = True
+                    await self.query_one("#path-search-tree").mount(tree)
+            if self.show_tree_picker:
+                self.tree_view.focus()
 
         else:
             self.input.focus()
@@ -286,13 +290,15 @@ class PathSearch(containers.VerticalGroup):
 
     def action_cursor_down(self) -> None:
         if self.show_tree_picker:
-            self.tree_view.action_cursor_down()
+            if tree := self.query_one_optional(ProjectDirectoryTree):
+                tree.action_cursor_down()
         else:
             self.option_list.action_cursor_down()
 
     def action_cursor_up(self) -> None:
         if self.show_tree_picker:
-            self.tree_view.action_cursor_up()
+            if tree := self.query_one_optional(ProjectDirectoryTree):
+                tree.action_cursor_up()
         else:
             self.option_list.action_cursor_up()
 
@@ -301,17 +307,26 @@ class PathSearch(containers.VerticalGroup):
         self.filter = ""
 
     def on_show(self) -> None:
+        if self._paths_dirty:
+            self.refresh_paths()
         self.focus()
 
+    def invalidate_paths(self) -> None:
+        self._paths_dirty = True
+        if self.is_on_screen and self.screen is self.app.screen:
+            self.refresh_paths()
+
+    def on_unmount(self) -> None:
+        self.pool.shutdown(wait=False, cancel_futures=True)
+
     def focus(self, scroll_visible: bool = False) -> Self:
-        if self.show_tree_picker:
-            return self.tree_view.focus(scroll_visible=scroll_visible)
-        else:
-            return self.input.focus(scroll_visible=scroll_visible)
+        if self.show_tree_picker and (tree := self.query_one_optional(ProjectDirectoryTree)):
+            return tree.focus(scroll_visible=scroll_visible)
+        return self.input.focus(scroll_visible=scroll_visible)
 
     def on_descendant_blur(self, event: events.DescendantBlur) -> None:
         if self.show_tree_picker:
-            if event.widget == self.tree_view:
+            if event.widget == self.query_one_optional(ProjectDirectoryTree):
                 self.post_message(Dismiss(self))
         else:
             if event.widget == self.input:
@@ -333,6 +348,8 @@ class PathSearch(containers.VerticalGroup):
     @on(DirectoryTree.NodeHighlighted)
     async def on_node_highlighted(self, event: DirectoryTree.NodeHighlighted) -> None:
         event.stop()
+        if not self.show_tree_picker:
+            return
 
         dir_entry = event.node.data
         if dir_entry is not None:
@@ -369,7 +386,7 @@ class PathSearch(containers.VerticalGroup):
     @on(OptionList.OptionHighlighted)
     async def on_option_list_changed(self, event: OptionList.OptionHighlighted):
         event.stop()
-        if event.option:
+        if event.option and not self.show_tree_picker:
             self.post_message(PromptSuggestion(event.option.id))
 
     @on(OptionList.OptionSelected)
@@ -405,13 +422,14 @@ class PathSearch(containers.VerticalGroup):
 
     @work(exclusive=True)
     async def refresh_paths(self):
+        self._paths_dirty = False
         self.option_list.set_loading(True)
         root = self.root
         try:
             path_filter = await asyncio.to_thread(self.get_path_filter, root)
-            self.tree_view.path_filter = path_filter
-            self.tree_view.clear()
-            self.tree_view.reload()
+            if tree := self.query_one_optional(ProjectDirectoryTree):
+                tree.path_filter = path_filter
+                tree.invalidate()
             paths = await directory.scan(
                 root, path_filter=path_filter, add_directories=True
             )

@@ -1,7 +1,7 @@
 from functools import partial
-import hashlib
 from pathlib import Path
 import random
+from agent_comms import Comms
 
 from textual import on
 from textual.app import ComposeResult
@@ -11,14 +11,11 @@ from textual.command import Hit, Hits, Provider, DiscoveryHit
 from textual.content import Content
 from textual.events import ScreenResume
 from textual.screen import Screen
+from toad.screens.session_view import SessionView
 from textual.reactive import var, reactive
 from textual.widgets import (
-    ContentSwitcher,
     DirectoryTree,
-    Footer,
     OptionList,
-    Tab,
-    Tabs,
     Tree,
 )
 from textual import containers
@@ -34,12 +31,17 @@ from toad.widgets.plan import Plan
 from toad.widgets.throbber import Throbber
 from toad.widgets.conversation import Conversation
 from toad.widgets.project_directory_tree import ProjectDirectoryTree
-from toad.widgets.project_panel import FilePreview, ProjectPanel, ProjectSearchButton
+from toad.widgets.project_panel import ProjectPanel, ProjectSearchButton
+from toad.widgets.recovery_view import RecoveryView
+from toad.widgets.thread_comms import RelationshipSort, ThreadCommsSidebar
 from toad.widgets.comms_chat import resolve_session_thread, session_thread_name
 from toad.widgets.comms_fork_dialog import ForkDialog
 from toad.widgets.comms_sidebar import CoordinationStatus, CommsSidebar, SelectTarget
-from toad.widgets.side_bar import SideBar, SideBarCollapsible
+from toad.widgets.side_bar import SideBar, SideBarCollapsible, TabHistoryControls
+from toad.widgets.session_sort import ChannelListSort
 from toad.widgets.session_tabs import SessionsTabs
+from toad.widgets.footer import Footer
+from toad.session_tracker import SidebarState
 
 
 class ModeProvider(Provider):
@@ -77,7 +79,7 @@ class ModeProvider(Provider):
             )
 
 
-class MainScreen(Screen, can_focus=False):
+class MainScreen(SessionView, can_focus=False):
     AUTO_FOCUS = "Conversation Prompt TextArea"
 
     CSS_PATH = "main.tcss"
@@ -87,7 +89,6 @@ class MainScreen(Screen, can_focus=False):
     SESSION_NAVIGATION_GROUP = Binding.Group(description="Sessions")
     BINDINGS = [
         Binding("ctrl+g", "toggle_irc", "IRC view"),
-        Binding("ctrl+j", "toggle_dm", "DM view"),
         Binding("ctrl+b,f20", "show_sidebar", "Sidebar"),
         Binding("ctrl+h", "go_home", "Home", show=False),
         Binding(
@@ -135,6 +136,7 @@ class MainScreen(Screen, can_focus=False):
         self._agent_session_id = agent_session_id
         self._agent_session_title = agent_session_title
         self._coordination_root: str | None = None
+        self._identity_wire: Comms | None = None
         self._comms_thread = (
             ""
             if agent is not None and agent["identity"] == "agent-comms.openhcs.dev"
@@ -142,10 +144,8 @@ class MainScreen(Screen, can_focus=False):
         )
         self._session_pk = session_pk
         self._initial_prompt = initial_prompt
-        self._preview_tabs: dict[Path, tuple[str, str]] = {}
-        self._preview_views: dict[str, str] = {
-            "workspace-conversation": "conversation-view"
-        }
+        self._thread_sidebar_state = SidebarState()
+        self._project_panel: ProjectPanel | None = None
 
     def watch_title(self, title: str) -> None:
         self.app.update_terminal_title()
@@ -166,52 +166,57 @@ class MainScreen(Screen, can_focus=False):
 
         try:
             sidebar = self.query_one(CommsSidebar)
-            sidebar.session_thread = self._resolve_comms_thread()
-            self.call_after_refresh(sidebar.sync_sessions)
+            # The identity is updated by ACP's coordination notification and
+            # cached on this screen. Resolving it through the wire here can
+            # block the first frame of every navigation on store I/O.
+            sidebar.session_thread = self._comms_thread
         except Exception:
             pass
         self.conversation
+        if watcher := self.conversation._directory_watcher:
+            self.call_after_refresh(watcher.notify_if_visible)
+        if self._project_panel is not None:
+            self.call_after_refresh(self._project_panel.refresh_if_visible)
 
     def compose(self) -> ComposeResult:
+        self._project_panel = ProjectPanel(self.project_path)
+        with containers.Horizontal(id="tab-navigation-header"):
+            yield TabHistoryControls()
+            yield SessionsTabs()
         with containers.Center():
             yield SideBar(
                 SideBar.Panel(
-                    "Sessions",
+                    "Channels",
                     CommsSidebar(session_thread=self._comms_thread),
-                ),
-                SideBar.Panel(
-                    "Coordination",
-                    CoordinationStatus(self._comms_thread),
-                    id="coordination-panel",
-                ),
-                SideBar.Panel("Plan", Plan([]), collapsed=True, id="plan-panel"),
-                SideBar.Panel(
-                    "Project",
-                    ProjectPanel(self.project_path),
                     flex=True,
+                    header_control=ChannelListSort(),
                 ),
+                id="channels-sidebar",
+            )
+            yield SideBar(
+                SideBar.Panel("Thread", CoordinationStatus(self._comms_thread), id="coordination-panel"),
+                SideBar.Panel("Comms", ThreadCommsSidebar(
+                    self._comms_thread, wire_root=self._coordination_root, live=True),
+                    id="thread-comms-panel", header_control=RelationshipSort()),
+                SideBar.Panel("Plan", Plan([]), collapsed=True, id="plan-panel"),
+                SideBar.Panel("Project", self._project_panel, flex=True, collapsed=True),
+                SideBar.Panel("Recovery", RecoveryView(self._comms_thread,
+                                                       wire_root=self._coordination_root), collapsed=True,
+                              id="recovery-panel"),
+                id="thread-sidebar", right=True, hide=True, navigation=self._thread_sidebar_state,
             )
             with containers.Vertical(id="session-content"):
-                yield SessionsTabs()
-                yield Tabs(
-                    Tab("Conversation", id="workspace-conversation"),
-                    id="workspace-tabs",
+                yield Conversation(
+                    self.project_path,
+                    self._agent,
+                    self._agent_session_id,
+                    self._session_pk,
+                    self._agent_session_title,
+                    initial_prompt=self._initial_prompt,
+                ).data_bind(
+                    project_path=MainScreen.project_path,
+                    column=MainScreen.column,
                 )
-                with ContentSwitcher(
-                    id="workspace-content", initial="conversation-view"
-                ):
-                    with containers.Vertical(id="conversation-view"):
-                        yield Conversation(
-                            self.project_path,
-                            self._agent,
-                            self._agent_session_id,
-                            self._session_pk,
-                            self._agent_session_title,
-                            initial_prompt=self._initial_prompt,
-                        ).data_bind(
-                            project_path=MainScreen.project_path,
-                            column=MainScreen.column,
-                        )
         yield Footer(compact=True)
 
     def run_prompt(self, prompt: str) -> None:
@@ -227,21 +232,44 @@ class MainScreen(Screen, can_focus=False):
             sidebar._refresh()
         except Exception:
             pass
-        if self.id is not None and previous and previous != thread_name:
+        if self.id is not None:
             self.app.sync_coordination_identity(self.id, previous, thread_name)
             details = self.app.session_tracker.get_session(self.id)
-            if details is not None and details.title == previous:
+            if (
+                previous != thread_name
+                and details is not None
+                and details.title == previous
+            ):
                 self._agent_session_title = thread_name
                 self.app.session_tracker.update_session(self.id, title=thread_name)
         try:
             self.query_one(CoordinationStatus).set_thread(thread_name)
         except Exception:
             pass
+        if recovery := self.query_one_optional(RecoveryView):
+            recovery.set_identity(thread_name, self._coordination_root)
+        if comms_tree := self.query_one_optional(ThreadCommsSidebar):
+            comms_tree.set_identity(thread_name, self._coordination_root)
+        if self.id is not None:
+            self.app.sync_recovery_root(self.id, self._coordination_root)
 
     @on(acp_messages.CoordinationUpdate)
-    def on_coordination_update(self, event: acp_messages.CoordinationUpdate) -> None:
+    async def on_coordination_update(
+        self, event: acp_messages.CoordinationUpdate
+    ) -> None:
         self._coordination_root = event.wire_root
+        self.conversation.queue_supported = event.prompt_queue
+        if event.worktree is not None:
+            project = Path(event.worktree)
+            if project != self.project_path:
+                self.project_path = project
+                if self._project_panel is not None:
+                    self._project_panel.path = project
+                await self.conversation.sync_project_path(project)
+                if self.id is not None:
+                    self.app.sync_coordination_project(self.id, project)
         self.on_comms_session_named(event.thread)
+        self.conversation.set_prompt_history_scope(f"thread:{event.thread}")
 
     _last_dm_target: str | None = None
 
@@ -259,11 +287,15 @@ class MainScreen(Screen, can_focus=False):
             root = self._coordination_root or os.environ.get(
                 "AGENT_COMMS_ROOT", "~/.agent-comms"
             )
+            root_path = Path(root).expanduser()
+            if self._identity_wire is None or self._identity_wire.root != root_path:
+                shared = self.app.coordination_wire
+                self._identity_wire = shared if shared.root == root_path else wire(root_path)
             if self._coordination_root is not None:
-                resolved = wire(root).registry.require(self._comms_thread).name
+                resolved = self._identity_wire.registry.require(self._comms_thread).name
             else:
                 resolved = resolve_session_thread(
-                    wire(root), self.project_path, self._comms_thread
+                    self._identity_wire, self.project_path, self._comms_thread
                 )
         except Exception:
             resolved = None
@@ -284,7 +316,9 @@ class MainScreen(Screen, can_focus=False):
 
     async def action_toggle_irc(self) -> None:
         """Open the IRC feed as a native Toad session."""
-        await self._open_comms("#all", "irc")
+        from toad.constants import ALL_COMMS_TARGET
+
+        await self._open_comms(ALL_COMMS_TARGET, "irc")
 
     async def action_toggle_dm(self) -> None:
         """Open the last-selected DM as a native Toad session."""
@@ -340,11 +374,6 @@ class MainScreen(Screen, can_focus=False):
 
         self.app.push_screen(ForkDialog(parent), do_fork)
 
-    def update_node_styles(self, animate: bool = True) -> None:
-        self.conversation.update_node_styles(animate=animate)
-        self.query_one(Footer).update_node_styles(animate=animate)
-        self.query_one(SideBar).update_node_styles(animate=animate)
-
     def action_session_previous(self) -> None:
         if self.screen.id is not None:
             self.post_message(messages.SessionNavigate(self.screen.id, -1))
@@ -355,7 +384,8 @@ class MainScreen(Screen, can_focus=False):
 
     @on(messages.ProjectDirectoryUpdated)
     async def on_project_directory_update(self) -> None:
-        await self.query_one(ProjectDirectoryTree).reload()
+        if self._project_panel is not None:
+            self._project_panel.invalidate()
 
     @on(DirectoryTree.FileSelected, "ProjectDirectoryTree")
     async def on_project_directory_tree_selected(self, event: Tree.NodeSelected):
@@ -368,50 +398,15 @@ class MainScreen(Screen, can_focus=False):
         self, event: ProjectDirectoryTree.InsertSelected
     ) -> None:
         event.stop()
-        self._show_conversation_view()
         self.conversation.insert_path_into_prompt(event.path)
 
     @on(ProjectSearchButton.Requested)
     def on_project_search_requested(self, event: ProjectSearchButton.Requested) -> None:
         event.stop()
-        self._show_conversation_view()
         self.conversation.prompt.open_path_search()
 
-    @on(Tabs.TabActivated, "#workspace-tabs")
-    def on_workspace_tab_activated(self, event: Tabs.TabActivated) -> None:
-        if event.tab.id is not None:
-            view_id = self._preview_views.get(event.tab.id)
-            if view_id is not None:
-                self.query_one("#workspace-content", ContentSwitcher).current = view_id
-
-    def _show_conversation_view(self) -> None:
-        tabs = self.query_one("#workspace-tabs", Tabs)
-        tabs.active = "workspace-conversation"
-        self.query_one("#workspace-content", ContentSwitcher).current = (
-            "conversation-view"
-        )
-
     async def open_file_preview(self, path: Path) -> None:
-        path = path.resolve()
-        tab_and_view = self._preview_tabs.get(path)
-        if tab_and_view is None:
-            digest = hashlib.sha1(str(path).encode()).hexdigest()[:12]
-            tab_id = f"preview-tab-{digest}"
-            view_id = f"preview-view-{digest}"
-            tab_and_view = (tab_id, view_id)
-            self._preview_tabs[path] = tab_and_view
-            self._preview_views[tab_id] = view_id
-            await self.query_one("#workspace-content", ContentSwitcher).mount(
-                FilePreview(path, id=view_id)
-            )
-            await self.query_one("#workspace-tabs", Tabs).add_tab(
-                Tab(path.name, id=tab_id)
-            )
-        tab_id, view_id = tab_and_view
-        tabs = self.query_one("#workspace-tabs", Tabs)
-        tabs.add_class("-has-preview")
-        tabs.active = tab_id
-        self.query_one("#workspace-content", ContentSwitcher).current = view_id
+        await self.app.open_file_preview(path)
 
     @on(acp_messages.Plan)
     async def on_acp_plan(self, message: acp_messages.Plan):
@@ -450,9 +445,6 @@ class MainScreen(Screen, can_focus=False):
         await self.app.close_session_mode(self.id)
 
     def on_mount(self) -> None:
-        import gc
-
-        gc.freeze()
         self.query_one(CommsSidebar).session_thread = self._resolve_comms_thread()
         for tree in self.query("#project_directory_tree").results(DirectoryTree):
             tree.data_bind(path=MainScreen.project_path)
@@ -473,7 +465,7 @@ class MainScreen(Screen, can_focus=False):
 
     def action_show_sidebar(self) -> None:
         self.side_bar.reveal()
-        self.side_bar.query_one("Collapsible CollapsibleTitle").focus()
+        self.side_bar.query_one("SideBarCollapsible CollapsibleTitle").focus()
 
     def action_focus_prompt(self) -> None:
         self.conversation.focus_prompt()
@@ -484,7 +476,7 @@ class MainScreen(Screen, can_focus=False):
     @on(SideBar.Dismiss)
     def on_side_bar_dismiss(self, message: SideBar.Dismiss):
         message.stop()
-        self.conversation.focus_prompt()
+        self.conversation.focus_prompt(scroll_end=False)
 
     def watch_column(self, column: bool) -> None:
         self.conversation.styles.max_width = (

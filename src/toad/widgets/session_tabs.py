@@ -1,8 +1,6 @@
-import asyncio
 from functools import partial
 from rich.style import Style as RichStyle
 
-from textual import work
 from textual.app import ComposeResult, RenderResult
 
 from textual import events
@@ -17,7 +15,7 @@ from textual import getters
 from textual.message import Message
 
 from toad.app import ToadApp
-from toad.session_tracker import SessionDetails
+from toad.session_tracker import SessionDetails, OpenTab
 from toad import messages
 
 
@@ -30,7 +28,11 @@ class SessionLabel(widgets.Label):
                 event.stop()
                 self.app.post_message(messages.SessionArchive(self.id))
             elif event.button == 1:
-                self.post_message(messages.SessionSwitch(self.id))
+                # A second message-pump hop lets the old screen's pending
+                # full-layout timer run ahead of the user's tab click. The
+                # ordinary app mode-switch boundary already captures sidebar
+                # navigation and queues its serialized transition.
+                self.app.switch_mode(self.id)
 
 
 class SessionTabClose(widgets.Static, can_focus=True):
@@ -124,17 +126,7 @@ class SessionsTabs(Widget):
     title_container = getters.query_one("#title-container", Widget)
 
     current_session = reactive("", init=False)
-
-    def __init__(
-        self,
-        *,
-        view_mode: str = "",
-        view_title: str = "",
-        **kwargs,
-    ) -> None:
-        super().__init__(**kwargs)
-        self.view_mode = view_mode
-        self.view_title = view_title
+    _last_tabs: tuple[OpenTab, ...] | None = None
 
     def on_mount(self) -> None:
         self.current_session = self.app.current_mode
@@ -142,11 +134,13 @@ class SessionsTabs(Widget):
         self.app.session_update_signal.subscribe(
             self, self.handle_session_update_signal
         )
+        self.app.open_tabs_changed.subscribe(self, self._tabs_changed)
         self.update_underline(self.current_session, animate=False)
         self.call_after_refresh(self.update_underline, self.current_session)
 
     def handle_mode_change(self, mode: str) -> None:
-        self.current_session = mode
+        if self.screen.is_active:
+            self.call_later(self._sync_tabs)
 
     def watch_current_session(self, old_session: str, new_session: str) -> None:
         self.query(".-current").remove_class("-current")
@@ -154,7 +148,7 @@ class SessionsTabs(Widget):
         if old_session:
             self.update_underline(old_session, animate=False)
 
-        self.update_underline(new_session, animate=True)
+        self.update_underline(new_session, animate=False)
 
     def update_underline(self, session: str | None = None, animate: bool = True):
         if not self.is_mounted or not self.is_attached:
@@ -182,61 +176,57 @@ class SessionsTabs(Widget):
                 underline.highlight_end = end
                 self.scroll_to_center(current_label, animate=False)
 
-    def render_session_label(self, session: SessionDetails) -> Content:
-        title = session.title or "New Session"
-        match session.state:
-            case "asking":
-                return Content.assemble(("❯ ", "not dim $text-secondary"), title)
-            case "busy":
-                return Content(f"⌛ {title}")
-        return Content(title)
+    def render_session_label(self, session: OpenTab) -> Content:
+        if session.unread:
+            return Content.assemble(session.title, (f" ({session.unread})", "bold $accent"))
+        return Content(session.title)
 
     def compose(self) -> ComposeResult:
         with containers.HorizontalGroup(id="title-container"):
-            for session in self.app.session_tracker.ordered_sessions:
+            for session in self.app.open_tabs:
                 yield SessionLabel(
                     self.render_session_label(session),
                     id=session.mode_name,
                     classes="-current" if session.mode_name == self.screen.id else "",
                 )
                 yield SessionTabClose(session.mode_name)
-            if self.view_mode:
-                yield SessionLabel(
-                    Content(self.view_title),
-                    id=self.view_mode,
-                    classes="-current" if self.view_mode == self.screen.id else "",
-                )
-                yield SessionTabClose(self.view_mode)
         yield Underline()
 
-    def update_view_title(self, title: str) -> None:
-        """Update the active server-backed view label."""
-        self.view_title = title
-        if self.view_mode:
-            label = self.query_one_optional(f"#{self.view_mode}", SessionLabel)
-            if label is not None:
-                label.update(Content(title))
-
-    @work
     async def handle_session_update_signal(
         self, update: tuple[str, SessionDetails | None]
     ) -> None:
-        mode, details = update
-        if details is None:
-            await self.query(f"#{mode}, #close-{mode}").remove()
-        else:
-            if tab_label := self.query_one_optional(f"#{mode}", SessionLabel):
-                tab_label.update(self.render_session_label(details))
+        if self.screen.is_active:
+            await self._sync_tabs()
+
+    async def _tabs_changed(self, _update: None) -> None:
+        if self.screen.is_active:
+            await self._sync_tabs()
+
+    async def _sync_tabs(self) -> None:
+        if not self.is_attached or not self.screen.is_active:
+            return
+        tabs = self.app.open_tabs
+        if tabs == self._last_tabs and self.current_session == self.app.current_mode:
+            return
+        labels = {label.id: label for label in self.query(SessionLabel)}
+        desired = {tab.mode_name for tab in tabs}
+        for label in labels.values():
+            if label.id not in desired:
+                await self.query(f"#{label.id}, #close-{label.id}").remove()
+        for tab in tabs:
+            content = self.render_session_label(tab)
+            if label := labels.get(tab.mode_name):
+                if label.render().plain != content.plain:
+                    label.update(content)
             else:
                 await self.title_container.mount(
-                    SessionLabel(
-                        self.render_session_label(details),
-                        id=details.mode_name,
-                        classes=(
-                            "-current" if details.mode_name == self.screen.id else ""
-                        ),
-                    ),
-                    SessionTabClose(details.mode_name),
+                    SessionLabel(content, id=tab.mode_name), SessionTabClose(tab.mode_name)
                 )
-        await asyncio.sleep(0.05)
-        self.call_after_refresh(self.update_underline, self.current_session)
+        order = {identity: index for index, identity in enumerate(
+            identity for tab in tabs for identity in (tab.mode_name, f"close-{tab.mode_name}")
+        )}
+        if [widget.id for widget in self.title_container.children] != list(order):
+            self.title_container.sort_children(key=lambda widget: order[widget.id])
+        self.current_session = self.app.current_mode
+        self._last_tabs = tabs
+        self.call_after_refresh(self.update_underline, self.current_session, False)

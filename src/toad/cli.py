@@ -1,4 +1,11 @@
+import os
 import sys
+
+# Textual's default 60 Hz update timer can wait 16.7 ms before starting even
+# a trivial paint. Use its supported higher-frequency setting for Toad, while
+# respecting an explicit terminal/user override. This must precede importing
+# ToadApp, which imports Textual's module-level update interval.
+os.environ.setdefault("TEXTUAL_FPS", "120")
 
 import click
 from toad.app import ToadApp

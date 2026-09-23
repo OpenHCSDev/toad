@@ -1,20 +1,20 @@
 # Toad agent-comms UI: WIP evidence and source-freeze gates (2026-09-23)
 
-**Document-only WIP, not an implemented feature PR.** This draft branch is based
-on `OpenHCSDev/toad` `main` at
-`1188944cbc54ae27c0cbdae70ab944eae859d10b`. It contains this **one new
-file only**. None of the 179 dirty UI/source/test paths in the developer's
-separate `/tmp/opencode/toad-fork` worktree is in this branch. Do not merge,
-mark ready, deploy, or mistake the historical development results below for
-source included in this PR.
+**Implementation-bearing draft, not merge acceptance.** This branch is based
+on `OpenHCSDev/toad` `main` at `1188944cbc54ae27c0cbdae70ab944eae859d10b`.
+The existing docs-only PR was updated with all 190 tracked/untracked
+Toad source and test changes from the shared development checkout, preserving
+its original audit note. The scope has not been independently reviewed as one
+stopped whole, and a clean pinned startup is still outstanding.
 
 This Toad PR is separate from the [agent-comms stages 3–6 evidence draft][core]
 and from the Textual performance fork's own PR. `trissim/textual-window` is an
 interaction inspiration mentioned in a local menu docstring, **not** a runtime
-dependency or a fourth PR. At this document's preparation there was no Toad
-fork PR to link; add a real Textual PR URL after that separate PR exists.
+dependency or a fourth PR. The related performance work is tracked in the
+existing [Textual fork draft][textual].
 
 [core]: https://github.com/OpenHCSDev/agent-comms/pull/1
+[textual]: https://github.com/OpenHCSDev/textual/pull/1
 
 ## Intended UI authority boundary
 
@@ -27,15 +27,16 @@ cross-root false attribution and stale identity are in scope under the core
 trust boundary; same-UID forgery is not this gate. Production publication,
 monitoring, automatic retry, and `SILENT` remain **OFF**.
 
-## Historical observations; none approves this PR's absent code
+## Historical observations; none approves current code
 
 - A stopped, historical **21-file** right-Comms-sidebar functional manifest
   `/tmp/opencode/right-comms-functional-manifest.md` SHA-256
   `1ac23ac19dcc90f5b9e449edef6becc41f79d144c5a765f639b259192859e7e6`
   received narrow independent CLEAN for its exact typed-route dev bytes; an
   earlier PTY run passed 12/12 workflows. It subsequently drifted with
-  user-requested closeable preview tabs and Copy full path. The current preview
-  failure and changed 21-file subset still need a new stopped manifest/review.
+  user-requested closeable preview tabs, Copy full path and navigation controls.
+  The expanded draft requires a new whole-source review. The original specific
+  `preview.py` failure still lacks its path/error; bounded Python previews pass.
 - A genuine unannotated saved DM rendered FROM+TO in an actual dev widget
   (local log SHA `730861d322f974b18b46c3146a204f8433b01f8c6c63eceb553b7d66af08a907`);
   a header-only negative remained hidden (SHA
@@ -50,30 +51,39 @@ monitoring, automatic retry, and `SILENT` remain **OFF**.
   control passed. Usage formatting in a test bridge is not a live ACP socket
   feeding actual widgets.
 
-## Current fork inventory and blocked source PR
+## Current source snapshot and remaining release gates
 
-At 18:48 UTC, `/tmp/opencode/toad-fork` resolved to
-`/home/ts/.agent-comms/.test-tmp/toad-worktree`, dirty `main` at the same
-`1188944…` base with **179** status entries (51 modified, four deleted,
-124 untracked). This is **not** an attributable source manifest: sidebar and
-maintenance owners share screens; no moving files were copied into this PR.
+The source/test snapshot includes **55 tracked changes** (51 modifications,
+four deletions) and **135 legitimate untracked Toad source/test files**. The
+original `/tmp/opencode/toad-fork` development checkout remains untouched and
+dirty; the draft was built in a separate worktree on the existing PR head.
+This is publication of work in progress, not a claim of 190 independent clean
+reviews or of any particular authorship for shared source hunks.
+
+The mounted right-Comms panel, typed In/out filter, file-preview tabs, visited
+Back/Forward navigation, scrollable tabs and the new centered, proportional
+thread-attachment spinner have focused disposable UI pilots. The latest real
+disposable PTY `tests/e2e_pty.py` passed 12/12 workflows with the latest fake
+Pi prompt-ACK/user-start/final-stop control and default-expanded Comms panel.
+That run used development Textual/backend code; its cold channel route was
+48.2 ms. `tests/async_thread_open_pilot.py` also verifies the large spinner
+remains visible and rescales while the owner/history reads are blocked, then
+leaves drafts and switching intact after readiness.
+
 `pyproject.toml` and `uv.lock` still pinned agent-comms `aa18e45c…`, which
 lacks the experimental transcript/gateway APIs. An injected development
 `PYTHONPATH` is not a compatible immutable pinned startup.
 
-Before a separate curated source commit may join this draft (or a new code PR),
-stop every relevant UI writer, obtain a complete owned SHA-256 source/test
-manifest with exclusive owner handoff, compare exact bytes before/after review,
-and stage **only** the reviewed attributable subset in an isolated branch.
-Do not stage the dirty 179 paths wholesale. Resolve preview tabs/Copy-path
-failure without silently reverting another owner's work; re-run mounted
+Before merge or release, freeze the complete source/test diff, obtain independent
+review of shared code and current backend compatibility, then re-run mounted
 Main/Comms sidebar navigation, typed In/out and historical-root negative,
 renamed/deleted peers, drafts, Recovery gateway, and focused/broad PTY pilots
-against that exact manifest. Then use a compatible reviewed immutable
+against that exact snapshot. Use a compatible reviewed immutable
 agent-comms revision **in both manifest and lock**, prove clean pinned startup,
 and capture live ACP socket → actual widget positive/unknown usage,
 compaction lifecycle/summary and abort, routing, and Recovery without Retry or
-read ACK.
+read ACK. The current Toad ACP adapter still needs typed mid-turn compaction
+status/summary handling; merely showing a synthetic usage zero is not proof.
 
 The separate strict target is **worst completed semantic frame presented by a
 real terminal emulator <16 ms** across busy scrolling, selection, tab/sidebar,
@@ -82,6 +92,6 @@ cold channel and Recovery. Historical cold useful-pixel observations roughly
 prove this target. A scoped functional review need not claim it passed.
 
 Local `/var/tmp` logs/manifests may not be available on another machine; a
-future source PR must preserve sanitized reproducible tests and stopped hashes.
-This docs-only draft has **no passing implementation test**, compatible pinned
-startup, production approval, or release authority.
+future release must preserve sanitized reproducible tests and stopped hashes.
+This implementation-bearing draft has no compatible pinned startup, production
+approval, <16 ms frame result, or release authority.

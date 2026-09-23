@@ -1,5 +1,5 @@
 .block {
-    margin: 1 1 1 0;  
+    margin: 0 1 1 0;
 }
 
 
@@ -14,11 +14,6 @@ LoadingIndicator {
 Throbber {
     width: 100%;
     height: 1;    
-    layer: base;    
-    visibility: hidden;
-    &.-busy {
-        visibility: visible;
-    }    
 } 
 
 .-hidden {
@@ -191,9 +186,6 @@ HelpPanel {
         MarkdownH2 {
             margin: 0 0 1 0;
         }
-        MarkdownBlock:last-child {
-            margin: 0 0 0 0;
-        }
     }
 
     KeyPanel {
@@ -244,12 +236,13 @@ SessionsTabs {
     layout: grid;
     grid-columns: auto auto;
     grid-size: 1 ;
-    overflow: scroll scroll;
-    scrollbar-size: 0 0;
+    overflow: auto hidden;
+    scrollbar-size-horizontal: 1;
+    scrollbar-size-vertical: 0;
     width: 1fr;
     display: none;
         
-    height: 2;
+    height: 3;
     box-sizing: content-box;
     Underline {
         width: 1fr;
@@ -282,4 +275,9 @@ SessionsTabs {
             }
         }
     }
+}
+
+#tab-navigation-header {
+    width: 1fr;
+    height: auto;
 }

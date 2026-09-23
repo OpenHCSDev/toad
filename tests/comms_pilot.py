@@ -13,14 +13,14 @@ from types import SimpleNamespace
 from agent_comms import ActivityState, ForkSpec, Thread
 from agent_comms.operations import wire
 from textual.content import Content
-from textual.widgets import Footer, Input, Markdown, Tabs
+from textual.widgets import Footer, Markdown
 from textual.widgets._footer import FooterKey
 
 from toad import messages
 from toad.acp.agent import Agent as ACPAgent
 from toad.acp import messages as acp_messages
 from toad import paths
-from toad.app import ToadApp
+from runtime_fixture import ToadApp
 from toad.db import DB
 from toad.pill import pill
 from toad.screens.comms import CommsScreen
@@ -28,11 +28,11 @@ from toad.screens.main import MainScreen
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.agent_thought import AgentThought
 from toad.widgets.comms_chat import (
-    HISTORY_PAGE_SIZE,
+    INITIAL_HISTORY_PAGE_SIZE,
     HISTORY_WINDOW_SIZE,
     CommsChatView,
 )
-from toad.widgets.comms_menu import ContextMenu, ContextMenuItem, RenameSessionDialog
+from toad.widgets.comms_menu import ContextMenu, ContextMenuItem
 from toad.widgets.comms_sidebar import (
     CoordinationStatus,
     CommsRow,
@@ -41,14 +41,17 @@ from toad.widgets.comms_sidebar import (
 )
 from toad.widgets.conversation import Loading, make_session_title
 from toad.widgets.flash import Flash
+from toad.widgets.prompt import Prompt
 from toad.widgets.session_sidebar import SessionRow
 from toad.widgets.session_tabs import SessionLabel, SessionsTabs
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SideBarToggle
-from toad.widgets.throbber import Throbber
+from toad.widgets.throbber import Throbber, ThrobberVisual
+from textual.style import Style
 from toad.widgets.tool_call import ToolCall
 from toad.widgets.project_panel import FilePreview, ProjectSearchButton
 from toad.widgets.user_input import UserInput
 from toad.widgets.incoming_message import IncomingMessage, IncomingSender
+from toad.widgets.irc_message import IRCMessage, ThreadLink
 
 
 def row(screen, target: str) -> CommsRow:
@@ -62,6 +65,10 @@ async def main() -> None:
     assert make_session_title("  first\n\tmessage  ") == "first message"
     assert len(make_session_title("x" * 80)) == 50
     assert make_session_title("x" * 80).endswith("…")
+    throbber_segments = ThrobberVisual(get_time=lambda: 0).make_segments(Style(), 24)
+    assert {segment.style.color.number for segment in throbber_segments} == set(
+        range(1, 7)
+    )
 
     with tempfile.TemporaryDirectory(prefix="toad-comms-pilot-") as temporary:
         root = Path(temporary)
@@ -231,7 +238,8 @@ for line in sys.stdin:
             assert await pilot.hover(session_rows[0])
             assert (
                 session_rows[0].rich_style.color != session_rows[0].rich_style.bgcolor
-            )
+            ), (session_rows[0].rich_style, session_rows[0].classes, app.focused,
+                app.sidebar_state, app.screen.query_one(CommsSidebar).navigation_ready.is_set())
             coordination = app.screen.query_one(CoordinationStatus)
             assert "persistent" in coordination.render().plain
             assert str(wire_root) in str(coordination.tooltip)
@@ -246,35 +254,41 @@ for line in sys.stdin:
             assert all(
                 panel.region.height <= 2 for panel in panels if panel.collapsed
             ), [(panel.title, panel.collapsed, panel.region.height) for panel in panels]
-            assert panels[0].region.height < shell_sidebar.region.height
+            assert shell_sidebar.region.bottom - panels[0].region.bottom <= 1
             await pilot.click(panels[0].query_one("CollapsibleTitle"))
-            await pilot.click(panels[1].query_one("CollapsibleTitle"))
             await pilot.pause()
-            assert all(panel.region.height <= 2 for panel in panels[:2]), [
-                (panel.title, panel.region.height) for panel in panels[:2]
-            ]
+            assert panels[0].region.height <= 2
             await pilot.click(panels[0].query_one("CollapsibleTitle"))
-            await pilot.click(panels[1].query_one("CollapsibleTitle"))
+            thread_sidebar = app.screen.query_one("#thread-sidebar", SideBar)
+            await pilot.click(thread_sidebar.query_one(SideBarToggle))
             await pilot.pause()
-            await pilot.click(panels[-1].query_one("CollapsibleTitle"))
+            assert thread_sidebar.region.x >= conversation.region.right
+            thread_panels = list(thread_sidebar.query(SideBarCollapsible))
+            assert [panel.title for panel in thread_panels] == ["Thread", "Comms", "Plan", "Project", "Recovery"]
+            assert not thread_panels[-1].display, "Optional recovery view must remain default-off"
+            project_panel = thread_panels[-2]
+            await pilot.click(project_panel.query_one("CollapsibleTitle"))
             await pilot.pause()
-            assert panels[-1].region.height <= 2
-            await pilot.click(panels[-1].query_one("CollapsibleTitle"))
+            assert project_panel.region.height > 2
+            await pilot.click(project_panel.query_one("CollapsibleTitle"))
             await pilot.pause()
-            panel_scroller = shell_sidebar.query_one("#sidebar-panels")
-            assert panel_scroller.max_scroll_y > 0
-            panel_scroller.scroll_end(animate=False)
+            assert project_panel.region.height <= 2
+            await pilot.click(thread_sidebar.query_one(SideBarToggle))
             await pilot.pause()
-            assert panel_scroller.scroll_y > 0
-            panel_scroller.scroll_home(animate=False)
+            assert thread_sidebar.collapsed and not shell_sidebar.collapsed
             sidebar_toggle = shell_sidebar.query_one(SideBarToggle)
-            assert sidebar_toggle.region.width == 1
+            assert sidebar_toggle.region.width == 3
             assert sidebar_toggle.region.height == shell_sidebar.region.height
+            assert sidebar_toggle.rich_style.bgcolor.number in {0, 8}
             await pilot.click(sidebar_toggle)
             await pilot.pause()
             assert shell_sidebar.collapsed
-            assert shell_sidebar.region.width == 1
-            assert shell_sidebar.content_region.width == 1
+            assert shell_sidebar.region.width == 3
+            assert shell_sidebar.content_region.width == 3
+            assert sidebar_toggle.region.width == 3
+            assert conversation.window.styles.padding.left == 1
+            assert conversation.prompt.region.x == conversation.region.x
+            assert app.screen.query_one(SessionsTabs).region.x == conversation.region.x
             assert shell_sidebar.render() == ">"
             assert sidebar_toggle.tooltip == "Expand sidebar"
             await pilot.hover(app.screen.conversation.prompt)
@@ -286,15 +300,37 @@ for line in sys.stdin:
             await pilot.pause()
             assert not shell_sidebar.collapsed
             assert shell_sidebar.region.width == 40
+            assert conversation.window.styles.padding.left == 0
+            assert sidebar_toggle.region.width == 3
             assert sidebar_toggle.tooltip == "Collapse sidebar"
+            assert sidebar_toggle.rich_style.bgcolor.number in {0, 8}
 
+            shell_sidebar.toggle()
+            await pilot.pause()
+            assert shell_sidebar.collapsed
+            await pilot.press("ctrl+s")
+            await pilot.pause()
+            assert isinstance(app.screen, MainScreen)
+            assert not shell_sidebar.collapsed
+            focused_session = app.screen.query_one(SessionRow)
+            assert focused_session.has_focus
+            shortcut_snapshot = app.screen.query_one(CommsSidebar)._snapshot()
+            assert focused_session.has_class("-wire-thread"), (
+                shortcut_snapshot.session_threads,
+                shortcut_snapshot.all_people,
+                app.screen._session_thread,
+            )
+
+            preview_owner_mode = app.current_mode
             await app.screen.open_file_preview(preview_path)
             await pilot.pause()
-            workspace_tabs = app.screen.query_one("#workspace-tabs", Tabs)
-            assert workspace_tabs.has_class("-has-preview")
-            assert workspace_tabs.active.startswith("preview-tab-")
+            from toad.screens.file_preview import FilePreviewScreen
+            assert isinstance(app.screen, FilePreviewScreen)
+            preview_mode = app.current_mode
+            assert any(tab.mode_name == preview_mode for tab in app.open_tabs)
             assert app.screen.query_one(FilePreview).query_one(Markdown)
-            app.screen._show_conversation_view()
+            await app.close_session_mode(preview_mode)
+            assert app.current_mode == preview_owner_mode
             search_button = app.screen.query_one(ProjectSearchButton)
             search_button.action_search()
             await pilot.pause()
@@ -317,9 +353,9 @@ for line in sys.stdin:
             assert created_mode != owner_mode
             assert app.session_tracker.session_count == 2
             session_rows = list(app.screen.query(SessionRow))
-            assert len(session_rows) == 2
-            assert session_rows[0].mode_name == created_mode
-            assert app.screen.query_one(CommsSidebar).children[1] is session_rows[0]
+            # An unbound local view is a tab, not a second authoritative thread.
+            assert len(session_rows) == 1
+            assert app.screen.query_one(f"SessionLabel#{created_mode}")
             created_conversation = app.screen.conversation
             assert app.session_tracker.get_session(created_mode).title == "New Session"
             managed_thread = "managed-test-thread"
@@ -372,7 +408,8 @@ for line in sys.stdin:
                 sessionId=managed_thread,
                 update={
                     "sessionUpdate": "session_info_update",
-                    "title": renamed_thread,
+                    "title": "Name this from my first prompt",
+                    "_meta": {"agentComms": {"thread": renamed_thread}},
                 },
             )
             await pilot.pause()
@@ -432,27 +469,47 @@ for line in sys.stdin:
             assert app.session_tracker.session_count == 1
             assert stopped_agents == 1
 
-            app.screen.query_one(CommsSidebar)._refresh()
+            owner_sidebar = app.screen.query_one(CommsSidebar)
+            owner_sidebar._refresh()
             await pilot.pause()
+            owner_snapshot = owner_sidebar._snapshot()
+            assert owner_mode in owner_snapshot.session_threads, (
+                owner_snapshot.session_threads,
+                app.screen._coordination_root,
+                app.screen._agent_session_id,
+                app.screen._session_thread,
+            )
             local_row = app.screen.query_one(SessionRow)
             local_row.scroll_visible(animate=False)
             await pilot.pause()
             await pilot.click(local_row, button=3)
             await pilot.pause()
             assert isinstance(app.screen, ContextMenu)
-            assert [item.action for item in app.screen.query(ContextMenuItem)] == [
-                "rename",
-                "archive",
-                "delete",
+            menu_items = list(app.screen.query(ContextMenuItem))
+            assert [item.action for item in menu_items] == [
+                "pin",
+                "comms_fork",
+                "comms_stop",
+                "comms_start",
+                "comms_archive",
+                "comms_delete",
+                "comms_ack",
+                "copy",
+                "close_view",
             ]
-            await pilot.press("enter")
+            assert menu_items[0].has_focus
+            assert await pilot.hover(menu_items[1])
             await pilot.pause()
-            assert isinstance(app.screen, RenameSessionDialog)
-            rename_input = app.screen.query_one(Input)
-            rename_input.value = "Pilot session"
-            await pilot.press("enter")
+            assert menu_items[1].has_focus and not menu_items[0].has_focus
+            await pilot.press("down")
             await pilot.pause()
-            assert app.session_tracker.get_session(owner_mode).title == "Pilot session"
+            assert menu_items[2].has_focus and not menu_items[1].has_focus
+            assert sum(bool(item.rich_style.reverse) for item in menu_items) == 1
+            assert await pilot.hover(menu_items[0])
+            await pilot.pause()
+            assert menu_items[0].has_focus and not menu_items[1].has_focus
+            await pilot.press("escape")
+            await pilot.pause()
 
             conversation = app.screen.conversation
             flash = conversation.query_one(Flash)
@@ -461,12 +518,6 @@ for line in sys.stdin:
             assert flash.visible
             assert flash.rich_style.color != flash.rich_style.bgcolor
             flash.visible = False
-            conversation.post_message(
-                messages.UserInputSubmitted("Must not replace a manual title")
-            )
-            await pilot.pause()
-            assert app.session_tracker.get_session(owner_mode).title == "Pilot session"
-
             conversation.post_message(
                 acp_messages.SessionInfoUpdate("Agent-owned title")
             )
@@ -477,7 +528,7 @@ for line in sys.stdin:
             conversation.post_message(acp_messages.SessionInfoUpdate(None))
             await pilot.pause()
             assert app.session_tracker.get_session(owner_mode).title == ""
-            assert "New Session" in app.screen.query_one(SessionRow).render().plain
+            assert me in app.screen.query_one(SessionRow).render().plain
 
             opened = await app.open_comms_session(
                 owner_mode=owner_mode,
@@ -594,45 +645,60 @@ for line in sys.stdin:
             assert app.session_tracker.get_session(owner_mode).summary == "Run tests"
             plan_panel = app.screen.query_one("#plan-panel", SideBarCollapsible)
             assert plan_panel.collapsed
+            thread_sidebar = app.screen.query_one("#thread-sidebar", SideBar)
+            await pilot.click(thread_sidebar.query_one(SideBarToggle))
+            await pilot.pause()
             await pilot.click("#plan-panel CollapsibleTitle")
             await pilot.pause()
             assert not plan_panel.collapsed
             await pilot.click("#plan-panel CollapsibleTitle")
             await pilot.pause()
             assert plan_panel.collapsed
+            await pilot.click(thread_sidebar.query_one(SideBarToggle))
+            await pilot.pause()
 
+            viewer = comms.user_identity(str(project)).name
+            comms.send("peer", viewer, "Unread message for human view")
+            comms.send("peer", "#all", "Unread channel message for human view")
+            pending_before_mark = {
+                target: comms.pending_count(me, target)
+                for target in ("peer", "other-peer", "#all")
+            }
+            assert comms.viewer_snapshot(str(project)).unread["peer"] == 1
+            assert comms.viewer_snapshot(str(project)).channel_unread["#all"] >= 1
             await pilot.click(row(app.screen, "peer"), button=3)
             await pilot.pause()
             assert isinstance(app.screen, ContextMenu)
             assert [item.action for item in app.screen.query(ContextMenuItem)] == [
+                "pin",
                 "comms_fork",
                 "comms_stop",
+                "comms_start",
                 "comms_archive",
                 "comms_delete",
                 "comms_ack",
                 "copy",
             ]
-            await pilot.press("down", "down", "down", "down", "enter")
+            await pilot.press("down", "down", "down", "down", "down", "down", "enter")
             await pilot.pause()
             assert isinstance(app.screen, MainScreen)
-            assert comms.pending_count(me, "peer") == 0
-            assert comms.pending_count(me, "other-peer") == 1
-            assert comms.pending_count(me, "#all") == 1
-
-            assert comms.pending_count(me) == 2
+            assert comms.viewer_snapshot(str(project)).unread.get("peer", 0) == 0
+            assert {target: comms.pending_count(me, target)
+                    for target in pending_before_mark} == pending_before_mark
             await pilot.click(row(app.screen, "#all"), button=3)
             await pilot.pause()
             assert isinstance(app.screen, ContextMenu)
             assert [item.action for item in app.screen.query(ContextMenuItem)] == [
+                "pin",
                 "comms_ack",
                 "copy",
             ]
-            await pilot.press("enter")
+            await pilot.press("down", "enter")
             await pilot.pause()
             assert isinstance(app.screen, MainScreen)
-            assert comms.pending_count(me, "#all") == 0
-            assert comms.pending_count(me, "other-peer") == 1
-            assert comms.pending_count(me) == 1
+            assert comms.viewer_snapshot(str(project)).channel_unread["#all"] == 0
+            assert {target: comms.pending_count(me, target)
+                    for target in pending_before_mark} == pending_before_mark
 
             await pilot.click(row(app.screen, "other-peer"), button=3)
             await pilot.pause()
@@ -693,11 +759,18 @@ for line in sys.stdin:
             first_channel_mode = app.current_mode
             chat = app.screen.query_one(CommsChatView)
             assert chat.prompt.prompt_text_area.has_focus
-            responses = list(chat.query(AgentResponse))
+            responses = list(chat.query(IRCMessage))
             assert any("hello from peer" in response.source for response in responses)
             assert not any("private" in response.source for response in responses)
-            assert any("test-model" in response.source for response in responses)
-            assert chat.status == "1 active"
+            assert not any("test-model" in response.source for response in responses)
+            assert chat.status == ""
+            assert not chat.query(AgentThought)
+            await app.screen.action_message_style()
+            await pilot.pause()
+            assert chat.query(AgentResponse)
+            await app.screen.action_message_style()
+            await pilot.pause()
+            assert chat.query(IRCMessage)
             chat.prompt.text = "message from pilot"
             await pilot.press("enter")
             await pilot.pause()
@@ -724,7 +797,13 @@ for line in sys.stdin:
             await pilot.click(row(app.screen, "#test"))
             await pilot.pause()
             long_chat = app.screen.query_one(CommsChatView)
-            assert len(long_chat._history) == HISTORY_PAGE_SIZE
+            # First paint uses a small tail; short records can trigger further
+            # bounded pages to fill the viewport before this observation.
+            assert INITIAL_HISTORY_PAGE_SIZE <= len(long_chat._history) <= HISTORY_WINDOW_SIZE
+            assert [message.body for message, _ in long_chat._history] == [
+                f"long history {index:03}"
+                for index in range(240 - len(long_chat._history), 240)
+            ]
             assert "long history 239" in long_chat._history[-1][1].source
             previous_oldest = long_chat._history[0][0].seq
             long_chat._edge_load_scheduled = True
@@ -782,8 +861,10 @@ for line in sys.stdin:
             await pilot.pause()
             assert isinstance(app.screen, ContextMenu)
             assert [item.action for item in app.screen.query(ContextMenuItem)] == [
+                "pin",
                 "comms_fork",
                 "comms_stop",
+                "comms_start",
                 "comms_archive",
                 "comms_delete",
                 "comms_ack",
@@ -792,7 +873,14 @@ for line in sys.stdin:
             await pilot.press("escape")
             await pilot.pause()
             assert isinstance(app.screen, CommsScreen) and app.screen.kind == "dm"
+            dm_mode = app.current_mode
+            dm_prompt = app.screen.query_one(Prompt)
+            dm_prompt.text = "keep delete"
+            dm_prompt.focus()
             await pilot.press("ctrl+w")
+            await pilot.pause()
+            assert dm_prompt.text == "keep " and app.current_mode == dm_mode
+            await pilot.click(f"#close-{dm_mode}")
             await pilot.pause()
             assert app.session_tracker.session_count == 1
             assert isinstance(app.screen, MainScreen)
@@ -876,7 +964,7 @@ for line in sys.stdin:
             second_row.scroll_visible(animate=False)
             await pilot.pause()
             assert await pilot.click(second_row)
-            for _ in range(30):
+            for _ in range(300):
                 await pilot.pause(0.1)
                 if (
                     app.current_mode != thread_mode
@@ -902,14 +990,18 @@ for line in sys.stdin:
             hold = gates / "second-peer"
             hold.touch()
             comms.send("resumable-peer", "second-peer", "live round one")
-            for _ in range(40):
+            for _ in range(80):
                 await pilot.pause(0.1)
                 if any(
                     "reasoning for live round one" in item.source
                     for item in app.screen.query(AgentThought)
                 ):
                     break
-            assert app.screen.conversation.turn == "agent"
+            assert app.screen.conversation.turn == "agent", (
+                [item.source for item in app.screen.query(AgentThought)],
+                hold.exists(),
+                comms.activity_of("second-peer"),
+            )
             assert app.screen.conversation.busy_count == 1
             active_turn = app.screen.conversation._managed_turn_id
             app.screen.conversation.post_message(acp_messages.TurnStarted(active_turn))
@@ -919,7 +1011,8 @@ for line in sys.stdin:
             await pilot.pause()
             assert app.screen.conversation._managed_turn_id == active_turn
             assert app.screen.conversation.busy_count == 1
-            assert app.screen.query_one(Throbber).has_class("-busy")
+            assert app.screen.query_one(Throbber).busy
+            assert app.screen.query_one(Throbber).render() != ""
             assert app.session_tracker.get_session(second_mode).state == "busy"
             assert "⌛" in str(
                 app.screen.query_one(f"SessionLabel#{second_mode}").render()
@@ -927,12 +1020,16 @@ for line in sys.stdin:
             hold.unlink()
             for _ in range(40):
                 await pilot.pause(0.1)
-                if app.screen.conversation._managed_turn_id is None:
+                if (
+                    app.screen.conversation._managed_turn_id is None
+                    and app.session_tracker.get_session(second_mode).state == "idle"
+                ):
                     break
             assert app.screen.conversation.busy_count == 0
             assert app.screen.conversation.turn == "client"
             assert app.session_tracker.get_session(second_mode).state == "idle"
-            assert not app.screen.query_one(Throbber).has_class("-busy")
+            assert not app.screen.query_one(Throbber).busy
+            assert app.screen.query_one(Throbber).render() == ""
             assert (
                 len(
                     [
@@ -996,16 +1093,27 @@ for line in sys.stdin:
                     break
             assert app.screen.conversation.busy_count == 1
             assert app.screen.conversation.turn == "agent"
-            assert "⌛" in str(
-                app.screen.query_one(f"SessionLabel#{thread_mode}").render()
-            )
+            try:
+                async with asyncio.timeout(3):
+                    while "⌛" not in str(
+                        app.screen.query_one(f"SessionLabel#{thread_mode}").render()
+                    ):
+                        await pilot.pause(.02)
+            except TimeoutError:
+                raise AssertionError((
+                    "Busy thread tab did not observe the activity snapshot within 3 seconds",
+                    app.open_tabs, comms.activity_of("resumable-peer"), app.screen._session_thread,
+                )) from None
             assert all(
                 "user turn lifecycle" not in item.source for item in first_thoughts
             )
             hold.unlink()
             for _ in range(40):
                 await pilot.pause(0.1)
-                if app.screen.conversation._managed_turn_id is None:
+                if (
+                    app.screen.conversation._managed_turn_id is None
+                    and app.session_tracker.get_session(thread_mode).state == "idle"
+                ):
                     break
             assert app.screen.conversation.busy_count == 0
             assert app.session_tracker.get_session(thread_mode).state == "idle"
@@ -1113,6 +1221,7 @@ for line in sys.stdin:
             await pilot.pause()
             deleted_pid = comms.registry.require(deleted_name).pid
             deleted_pk = app.screen.conversation.agent.session_pk
+            await asyncio.to_thread(comms.stop, deleted_name)
             thread_row = next(
                 item
                 for item in app.screen.query(SessionRow)
@@ -1126,7 +1235,7 @@ for line in sys.stdin:
             delete_item = next(
                 item
                 for item in app.screen.query(ContextMenuItem)
-                if item.action == "delete"
+                if item.action == "comms_delete"
             )
             assert await pilot.click(delete_item)
             for _ in range(30):
@@ -1183,7 +1292,12 @@ for line in sys.stdin:
             )
             await pilot.click(owner_row, button=3)
             await pilot.pause()
-            await pilot.press("down", "enter")
+            close_view = next(
+                item
+                for item in app.screen.query(ContextMenuItem)
+                if item.action == "close_view"
+            )
+            await pilot.click(close_view)
             await pilot.pause()
             assert app.session_tracker.session_count == 0
             assert app.current_mode == "store"
@@ -1211,11 +1325,16 @@ for line in sys.stdin:
             )
             await pilot.click(delete_row, button=3)
             await pilot.pause()
-            await pilot.press("down", "down", "enter")
+            close_view = next(
+                item
+                for item in app.screen.query(ContextMenuItem)
+                if item.action == "close_view"
+            )
+            await pilot.click(close_view)
             await pilot.pause()
             assert app.session_tracker.session_count == 0
             assert app.current_mode == "store"
-            assert await saved_db.session_get(saved_pk) is None
+            assert await saved_db.session_get(saved_pk) is not None
 
     print("comms pilot: all interactions passed")
 
