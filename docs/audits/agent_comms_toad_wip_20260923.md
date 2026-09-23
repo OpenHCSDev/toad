@@ -82,8 +82,12 @@ against that exact snapshot. Use a compatible reviewed immutable
 agent-comms revision **in both manifest and lock**, prove clean pinned startup,
 and capture live ACP socket → actual widget positive/unknown usage,
 compaction lifecycle/summary and abort, routing, and Recovery without Retry or
-read ACK. The current Toad ACP adapter still needs typed mid-turn compaction
-status/summary handling; merely showing a synthetic usage zero is not proof.
+read ACK. The Toad draft now consumes typed mid-turn compaction metadata;
+`tests/midturn_compaction_pilot.py` proves mounted start/end/abort, bounded
+summary, unknown usage and fresh positive restoration without a provider.
+`tests/compaction_pilot.py` retains idle `/compact` and its full visible summary.
+These fixtures do not prove a clean pinned live ACP socket or authorize a
+fabricated zero as measured context usage.
 
 The separate strict target is **worst completed semantic frame presented by a
 real terminal emulator <16 ms** across busy scrolling, selection, tab/sidebar,

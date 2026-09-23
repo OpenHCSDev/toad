@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from asyncio import Future
-from typing import Mapping, TYPE_CHECKING
+from typing import Literal, Mapping, TYPE_CHECKING
 from textual.message import Message
 
 import rich.repr
@@ -43,6 +43,16 @@ class TranscriptSnapshot(AgentMessage):
 @dataclass
 class TranscriptChanged(AgentMessage):
     cursor: TranscriptCursor | None = None
+
+
+@dataclass
+class CompactionUpdate(AgentMessage):
+    """Typed mid-turn lifecycle from agent-comms; not a new user turn."""
+
+    phase: Literal["start", "end", "abort"]
+    reason: str
+    summary: str = ""
+    will_retry: bool = False
 
 
 @dataclass

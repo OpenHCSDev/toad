@@ -313,6 +313,21 @@ class Agent(AgentBase):
         route: MessageRoute | None = None
         if isinstance(metadata, dict) and isinstance(metadata.get("agentComms"), dict):
             state = metadata["agentComms"]
+            compaction = state.get("compaction")
+            if isinstance(compaction, dict) and compaction.get("phase") in {"start", "end", "abort"}:
+                if (compaction.get("contextState") == "unknown"
+                        and compaction.get("contextUsed") is None):
+                    self._context_usage = None
+                    self.post_message(messages.UpdateStatusLine(Content("Context estimate unavailable")))
+                summary = compaction.get("summary")
+                self.post_message(messages.CompactionUpdate(
+                    compaction["phase"],
+                    compaction.get("reason") if isinstance(compaction.get("reason"), str)
+                    else "unknown",
+                    " ".join(summary.split())[:400] if isinstance(summary, str) else "",
+                    compaction.get("willRetry") is True,
+                ))
+                return
             if state.get("transcriptChanged") is True:
                 from agent_comms import TranscriptCursor
 

@@ -1542,6 +1542,26 @@ class Conversation(containers.Vertical):
             self._needs_transcript_checkpoint = True
         self._compact_committed_history()
 
+    @on(acp_messages.CompactionUpdate)
+    async def on_acp_compaction_update(self, message: acp_messages.CompactionUpdate) -> None:
+        """Display one typed mid-turn notice without settling the current turn."""
+        from toad.widgets.agent_response import AgentResponse
+
+        message.stop()
+        if message.phase == "start":
+            self.activity = "Compacting context…"
+            self.post_message(messages.SessionUpdate(state="busy", summary="Compacting context"))
+            return
+        active = self.turn == "agent"
+        self.activity = "Thinking…" if active else ""
+        title = "Context compacted" if message.phase == "end" else "Compaction aborted"
+        self.post_message(messages.SessionUpdate(
+            state="busy" if active else "idle", summary=title,
+        ))
+        detail = (message.summary or "Context estimate unavailable until a new measurement arrives."
+                  if message.phase == "end" else "Context estimate unavailable")
+        await self.post(AgentResponse(f"## {title}\n\n{detail}"))
+
     @work(exclusive=True, group="transcript-window")
     async def _compact_committed_history(self) -> None:
         from agent_comms import UnregisteredThreadError

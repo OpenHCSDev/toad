@@ -63,11 +63,21 @@ async def main():
             finally:
                 agent.release.set()
             await pilot.pause()
-            frame = "\n".join(strip.text for strip in app.screen._compositor.render_strips())
-            assert "COMPACTION-SUMMARY-END" in frame, frame
+            async with asyncio.timeout(8):
+                while True:
+                    summaries = [block for block in conversation.contents.children
+                                 if isinstance(block, AgentResponse) and "## Context compacted" in block.source]
+                    if len(summaries) == 1 and "COMPACTION-SUMMARY-END" in summaries[0].source:
+                        break
+                    await pilot.pause(.05)
+            async with asyncio.timeout(8):
+                while True:
+                    conversation.window.scroll_end(animate=False, immediate=True)
+                    await pilot.pause(.05)
+                    frame = "\n".join(strip.text for strip in app.screen._compositor.render_strips())
+                    if "COMPACTION-SUMMARY-END" in frame:
+                        break
             assert conversation.busy_count == 0 and not status.display
-            assert sum("## Context compacted" in block.source
-                       for block in conversation.contents.children if isinstance(block, AgentResponse)) == 1
     print("compaction: summary visible once, event handling remains responsive")
 
 
