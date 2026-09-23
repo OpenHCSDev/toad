@@ -29,7 +29,7 @@ monitoring, automatic retry, and `SILENT` remain **OFF**.
 
 ## Historical observations; none approves this PR's absent code
 
-- A stopped, historical **21-file** sidebar/Recovery functional manifest
+- A stopped, historical **21-file** right-Comms-sidebar functional manifest
   `/tmp/opencode/right-comms-functional-manifest.md` SHA-256
   `1ac23ac19dcc90f5b9e449edef6becc41f79d144c5a765f639b259192859e7e6`
   received narrow independent CLEAN for its exact typed-route dev bytes; an
