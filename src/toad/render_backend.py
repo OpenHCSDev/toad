@@ -16,6 +16,9 @@ ResultT = TypeVar("ResultT")
 
 
 class Renderer(ABC):
+    async def warm_up(self, *, project: Path, ansi: bool, dark: bool) -> None:
+        """Optional off-loop preparation after the application presents its UI."""
+
     @abstractmethod
     async def submit(self, task: RenderTask[ResultT]) -> ResultT:
         """Prepare one typed result, retaining admission until execution finishes."""

@@ -19,8 +19,11 @@ TOAD_RENDERER=persistent toad acp 'python -m agent_comms.acp' /path/to/project -
 
 Use `--renderer local` or unset `TOAD_RENDERER` to retain app-local workers.
 `ToadApp(renderer=...)` also accepts an explicit `Renderer` instance, which the app
-closes on unmount. Construction starts no service; fingerprinting and connection
-I/O run off the UI loop when the first rendering task needs them.
+closes on unmount. Construction starts no service. After the first completed UI
+display, the app schedules the renderer's optional `warm_up` hook. The persistent
+backend uses small Markdown/Python/JSON and diff tasks to prepare worker imports;
+fingerprinting, connection and preparation run off the UI loop. Local workers
+retain their lazy behavior. Typing and navigation do not await warm-up.
 
 This WIP PR still has a separately tracked compatible `agent-comms` pin/startup
 gate. Tests below used development core dependencies and the paired Textual fork;
@@ -38,6 +41,17 @@ Installing the optional extra alone does not resolve that independent gate.
 - Each client owns its requests. Cancellation does not release a running slot
   before work finishes. Completed results stay until acknowledged; disconnected
   clients' leases expire so abandoned results can be reclaimed.
+- Auto-expanded diffs in hidden open views prepare data before viewport activation.
+  A typed per-source/theme future lets the visible view consume the same completed
+  or in-flight work. One app-owned background admission remains occupied until
+  actual completion, including when its widget waiter is cancelled; stale source
+  and theme generations cannot publish. Rich widgets remain viewport-bounded.
+- Inactive open channel/DM views prefetch a bounded history page through a shared
+  I/O reader. Only one hidden read runs at a time; foreground reads do not queue
+  behind unrelated inactive tabs. A ready or in-flight matching page is reused
+  on activation. Prefetch does not mount messages or acknowledge read markers.
+  Revision, route, cursor and follow intent identify prepared data, so changes
+  invalidate stale results. Watermark/page reads run off the UI loop.
 - A failed RPC ends that client session. The application adapter drains/releases
   it before later requests create a new client. Failed requests are reported and
   are not silently replayed. Existing failed widgets do not automatically retry.
@@ -56,13 +70,19 @@ python tests/render_identity_pilot.py
 python tests/render_service_pilot.py
 python tests/persistent_renderer_lifecycle_pilot.py
 python tests/render_runtime_pilot.py
+python tests/renderer_warmup_pilot.py
+python tests/hidden_diff_warmup_pilot.py
+python tests/channel_history_reader_pilot.py
+python tests/channel_background_warmup_pilot.py
 python tests/renderer_selection_pilot.py
 python tests/persistent_render_pilot.py
 python tests/persistent_renderer_ui_pilot.py
 ```
 
 The real UI pilot creates two Toad instances using the supported constructor,
-renders Markdown and a native tool diff, and checks reuse of the same service.
+verifies warm-up succeeds, renders Markdown and a native tool diff, and checks
+reuse of the same service. The warm-up lifecycle pilot holds preparation behind
+a gate and verifies typing, tab navigation, drafts and shutdown still work.
 Existing process/transcript, Markdown lifecycle/row parity, diff lifecycle/style,
 retained text and footer pilots are the compatibility checks for this checkpoint.
 

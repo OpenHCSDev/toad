@@ -1,5 +1,6 @@
 import asyncio
 from copy import deepcopy
+from dataclasses import dataclass
 import re  # re2 doesn't have MULTILINE
 from typing import TYPE_CHECKING, Iterable
 from rich.text import Text
@@ -56,6 +57,13 @@ class ToolCallItem(containers.HorizontalGroup):
         yield Static(classes="icon")
 
 
+@dataclass(frozen=True)
+class PatchWarmup:
+    source: str
+    theme: tuple[bool, bool]
+    result: "asyncio.Future[PreparedPatch | None]"
+
+
 class ToolCallDiff(containers.VerticalGroup):
     DEFAULT_CSS = """
     ToolCallDiff {
@@ -63,16 +71,21 @@ class ToolCallDiff(containers.VerticalGroup):
     }
     """
 
-    def __init__(self, patch: str) -> None:
+    def __init__(self, patch: str, *, warmup: PatchWarmup | None = None) -> None:
         self.patch = patch
-        self._prepared_patch: PreparedPatch | None = None
-        self._requested_theme: tuple[bool, bool] | None = None
+        self._warmup = warmup
+        prepared = (warmup.result.result() if warmup is not None and warmup.source == patch
+                    and warmup.result.done() and not warmup.result.cancelled() else None)
+        self._prepared_patch: PreparedPatch | None = prepared
+        self._requested_theme: tuple[bool, bool] | None = None if prepared is None else prepared.theme
         self._preparation_generation = 0
         self._preparation_worker: Worker[None] | None = None
         self._visibility_signal: Signal[Screen] | None = None
-        self._presentable = False
+        self._presentable = prepared is not None
         self.prepared = asyncio.Event()
         """Prepared data accepted for composition, not a terminal-paint receipt."""
+        if prepared is not None:
+            self.prepared.set()
         super().__init__()
 
     def compose(self) -> ComposeResult:
@@ -80,7 +93,13 @@ class ToolCallDiff(containers.VerticalGroup):
 
         prepared = self._prepared_patch
         if not self._presentable or prepared is None or prepared.theme != self._theme_key():
+            from toad.widgets.throbber import Throbber
+
             yield Static("Preparing diff…")
+            indicator = Throbber()
+            indicator.busy = True
+            indicator.styles.height = 1
+            yield indicator
         elif prepared.patch is None:
             assert prepared.fallback is not None
             highlighted = Content.from_rich_text(prepared.fallback)
@@ -98,6 +117,7 @@ class ToolCallDiff(containers.VerticalGroup):
 
     def on_mount(self) -> None:
         self._ensure_preparation()
+        self.publish_if_ready()
 
     def on_show(self) -> None:
         self._ensure_preparation()
@@ -126,7 +146,13 @@ class ToolCallDiff(containers.VerticalGroup):
         from toad.render_tasks import PatchRenderTask
 
         try:
-            prepared = await self.app.render_processes.submit(PatchRenderTask(source, *theme))
+            warmup = self._warmup
+            prepared = None
+            if warmup is not None and warmup.source == source and warmup.theme == theme:
+                await asyncio.wait((warmup.result,))
+                prepared = warmup.result.result()
+            if prepared is None:
+                prepared = await self.app.render_processes.submit(PatchRenderTask(source, *theme))
             if (generation != self._preparation_generation or self.patch != source
                     or not self.is_attached or self._pruning):
                 return
@@ -165,6 +191,7 @@ class ToolCallDiff(containers.VerticalGroup):
         self._preparation_generation += 1
         self._requested_theme = None
         self._prepared_patch = None
+        self._warmup = None
         self._presentable = False
         self.prepared.clear()
         if self._preparation_worker is not None:
@@ -212,6 +239,11 @@ class ToolCall(containers.VerticalGroup):
         self._awaiting_visible_content = False
         self._auto_expanded = False
         self._hydration_scheduled = False
+        self._warm_patch_sources: tuple[str, ...] = ()
+        self._warm_patch_theme: tuple[bool, bool] | None = None
+        self._warm_patches: dict[str, PatchWarmup] = {}
+        self._warm_patch_generation = 0
+        self._warm_patch_worker: Worker[None] | None = None
 
     async def update_tool_call(self, tool_call: protocol.ToolCall) -> None:
         """Update metadata in place; materialize output only when expanded.
@@ -282,6 +314,7 @@ class ToolCall(containers.VerticalGroup):
     async def on_mount(self) -> None:
         from toad.widgets.conversation import Conversation
 
+        self.watch(self.app, "theme", self._warm_theme_changed, init=False)
         try:
             conversation = self.query_ancestor(Conversation)
         except NoMatches:
@@ -317,6 +350,7 @@ class ToolCall(containers.VerticalGroup):
                 # construct every rich diff and Read tree in hidden tabs or
                 # far beyond the visible transcript. A Show event hydrates it
                 # when this header first reaches the viewport.
+                self._schedule_patch_warmup(content)
                 if not self._awaiting_visible_content:
                     self._awaiting_visible_content = True
                     from toad.widgets.conversation import Window
@@ -337,6 +371,7 @@ class ToolCall(containers.VerticalGroup):
             except NoMatches:
                 pass
             if not self.expanded:
+                self._cancel_patch_warmup()
                 if body.children:
                     await body.remove_children()
                 self._rendered_content = None
@@ -364,6 +399,74 @@ class ToolCall(containers.VerticalGroup):
                 self._rendered_simple_text = text is not None
                 # ACP adapters may mutate the same payload on subsequent updates.
                 self._rendered_content = deepcopy(content)
+
+    def _schedule_patch_warmup(self, content: list[protocol.ToolCallContent]) -> None:
+        # Decode only the same ACP resource branch used by _compose_content.
+        patches: list[str] = []
+        for item in content:
+            match item:
+                case {"type": "content", "content": {"type": "resource", "resource": {
+                    "mimeType": "text/x-diff", "text": str(source),
+                }}}:
+                    patches.append(source)
+        sources = tuple(dict.fromkeys(patches))
+        theme = (self.app.current_theme.ansi, self.app.current_theme.dark)
+        if sources == self._warm_patch_sources and theme == self._warm_patch_theme:
+            return
+        self._cancel_patch_warmup()
+        self._warm_patch_sources, self._warm_patch_theme = sources, theme
+        if sources:
+            loop = asyncio.get_running_loop()
+            self._warm_patches = {source: PatchWarmup(source, theme, loop.create_future()) for source in sources}
+            self._warm_patch_worker = self.run_worker(
+                self._warm_patch_data(self._warm_patch_generation, tuple(self._warm_patches.values())),
+                group="hidden-patch-warmup", exclusive=True, exit_on_error=False,
+            )
+
+    async def _warm_patch_data(
+        self, generation: int, entries: tuple[PatchWarmup, ...],
+    ) -> None:
+        from toad.render_tasks import PatchRenderTask
+
+        # App-owned admission remains occupied even if this widget waiter is
+        # cancelled. Visible jobs keep the renderer's other submission slots.
+        try:
+            for entry in entries:
+                if generation != self._warm_patch_generation or not self.is_attached:
+                    return
+                prepared = await self.app.prepare_background(PatchRenderTask(entry.source, *entry.theme))
+                if generation != self._warm_patch_generation or not self.is_attached:
+                    return
+                if not entry.result.done():
+                    entry.result.set_result(prepared)
+        except Exception as error:
+            self.log.warning("Background diff preparation failed", error)
+        finally:
+            # A failed background attempt is a cache miss, not a lost foreground
+            # result. The native visible preparation path can report/retry it.
+            for entry in entries:
+                if not entry.result.done():
+                    entry.result.set_result(None)
+
+    def _cancel_patch_warmup(self) -> None:
+        self._warm_patch_generation += 1
+        if self._warm_patch_worker is not None:
+            self._warm_patch_worker.cancel()
+            self._warm_patch_worker = None
+        for entry in self._warm_patches.values():
+            if not entry.result.done():
+                entry.result.cancel()
+        self._warm_patch_sources = ()
+        self._warm_patch_theme = None
+        self._warm_patches.clear()
+
+    def notify_style_update(self) -> None:
+        super().notify_style_update()
+        self._warm_theme_changed()
+
+    def _warm_theme_changed(self) -> None:
+        if self.is_mounted and self.is_attached and self._awaiting_visible_content and self.expanded:
+            self._schedule_patch_warmup((self.tool_call or {}).get("content") or [])
 
     def _simple_text_payload(self, content: list[protocol.ToolCallContent]) -> str | None:
         """Recognize the single plain/ANSI branch of the ordinary renderer."""
@@ -401,6 +504,7 @@ class ToolCall(containers.VerticalGroup):
     def on_unmount(self) -> None:
         from toad.widgets.conversation import Window
 
+        self._cancel_patch_warmup()
         try:
             self.query_ancestor(Window).pending_tool_content.discard(self)
         except NoMatches:
@@ -538,7 +642,9 @@ class ToolCall(containers.VerticalGroup):
         ) -> ComposeResult:
             match content_block:
                 case {"type": "resource", "resource": {"mimeType": "text/x-diff", "text": patch}}:
-                    yield ToolCallDiff(patch)
+                    theme = (self.app.current_theme.ansi, self.app.current_theme.dark)
+                    warmup = self._warm_patches.get(patch) if self._warm_patch_theme == theme else None
+                    yield ToolCallDiff(patch, warmup=warmup)
                 # TODO: This may need updating
                 # Docs claim this should be "plain" text
                 # However, I have seen simple text, text with ansi escape sequences, and Markdown returned

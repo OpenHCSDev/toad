@@ -11,12 +11,13 @@ from runtime_fixture import ToadApp
 from tool_diff_fixture import wait_for_tool_diff
 from toad.widgets.patch_diff import PatchDiffView
 from toad.render_tasks import execute_render_task
+from toad.render_backend import Renderer
 from toad.widgets.tool_call import ToolCall, ToolCallDiff
 
 PATCH = "--- x.py\n+++ x.py\n@@ -1,2 +1,2 @@\n context\n-old = 1\n+new = 2\n"
 
 
-class ControlledPool:
+class ControlledPool(Renderer):
     def __init__(self):
         self.requests = []
 
@@ -101,6 +102,9 @@ async def main():
                 auto = await app.screen.conversation.post(ToolCall(tool_data("auto")))
                 auto.scroll_visible(animate=False)
                 await requested(pool, 6, pilot)
+                async with asyncio.timeout(5):
+                    while not auto.query(ToolCallDiff):
+                        await pilot.pause()
                 pending = auto.query_one(ToolCallDiff)
                 await app.switch_mode("store")
                 await pilot.pause()

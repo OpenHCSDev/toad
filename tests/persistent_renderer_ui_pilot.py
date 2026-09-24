@@ -8,6 +8,7 @@ import tempfile
 from runtime_fixture import ToadApp
 from tool_diff_fixture import wait_for_tool_diff
 from textual.widgets._markdown import MarkdownFence
+from textual.worker import Worker, WorkerState
 from toad.render_runtime import PersistentRenderer
 from toad.render_service import RenderServiceConfig
 from toad.render_zmq import PersistentRendererPool
@@ -33,7 +34,18 @@ async def main() -> None:
                 renderer = PersistentRenderer(root / "renderer", config)
                 assert renderer.resolved_pool is None
                 app = ToadApp(project_dir=str(current), renderer=renderer)
-                async with app.run_test(size=(110, 35)) as pilot:
+                warmed = asyncio.Event()
+                warm_states = []
+
+                def observe_warmup(message):
+                    if (isinstance(message, Worker.StateChanged) and message.worker.group == "renderer-warmup"
+                            and message.state in {WorkerState.SUCCESS, WorkerState.ERROR, WorkerState.CANCELLED}):
+                        warm_states.append(message.state)
+                        warmed.set()
+
+                async with app.run_test(size=(110, 35), message_hook=observe_warmup) as pilot:
+                    await asyncio.wait_for(warmed.wait(), 10)
+                    assert warm_states == [WorkerState.SUCCESS], warm_states
                     await pilot.pause()
                     source = "```python\n" + "value = 123\n" * 100 + "```\n"
                     response = await app.screen.conversation.post(AgentResponse(paginate=False))
@@ -57,7 +69,7 @@ async def main() -> None:
                     identities.append(client.connected_endpoint.process_identity)
                 assert pool is not None and not pool._pending
             assert identities[0] == identities[1]
-            print("persistent UI: two Toad instances reused one renderer; Markdown and native tool diff completed")
+            print("persistent UI: two Toad instances warmed and reused one renderer; Markdown and native tool diff completed")
         finally:
             if renderer is not None:
                 pool = renderer.resolved_pool or pool

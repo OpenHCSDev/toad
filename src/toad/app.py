@@ -9,7 +9,7 @@ from pathlib import Path
 import platform
 import json
 from time import monotonic
-from typing import Any, Callable, ClassVar, TYPE_CHECKING
+from typing import Any, Callable, ClassVar, TYPE_CHECKING, TypeVar, cast
 
 from rich import terminal_theme
 
@@ -36,13 +36,17 @@ from toad.version import VersionMeta
 from toad import paths
 from toad import atomic
 from toad.render_backend import Renderer, create_renderer
+from toad.channel_preparation import ChannelHistoryReader
 from toad.session_tracker import SessionTracker, SessionDetails, OpenTab, CommsViewKey, SidebarState
 
 if TYPE_CHECKING:
+    from toad.render_tasks import RenderTask
     from toad.screens.main import MainScreen
     from toad.screens.settings import SettingsScreen
     from toad.screens.store import StoreScreen
     from toad.db import DB
+
+RenderResultT = TypeVar("RenderResultT")
 
 
 DRACULA_TERMINAL_THEME = terminal_theme.TerminalTheme(
@@ -325,6 +329,10 @@ class ToadApp(App, inherit_bindings=False):
             renderer: Optional renderer client; this app owns and closes it.
         """
         self.render_processes: Renderer = create_renderer() if renderer is None else renderer
+        self._renderer_warmup_started = False
+        self.background_render_slots = asyncio.Semaphore(1)
+        self._background_render_tasks: set[asyncio.Task[object]] = set()
+        self.channel_history_reader = ChannelHistoryReader()
         self.settings_changed_signal: Signal[tuple[int, object]] = Signal(
             self, "settings_changed"
         )
@@ -371,6 +379,29 @@ class ToadApp(App, inherit_bindings=False):
 
     async def on_unmount(self) -> None:
         await self.render_processes.aclose()
+        if self._background_render_tasks:
+            await asyncio.gather(*tuple(self._background_render_tasks), return_exceptions=True)
+        await self.channel_history_reader.aclose()
+
+    async def prepare_background(self, task: "RenderTask[RenderResultT]") -> RenderResultT:
+        """Keep background admission occupied until the renderer really finishes."""
+        await self.background_render_slots.acquire()
+        try:
+            pending = asyncio.create_task(self.render_processes.submit(task), name="background-render-preparation")
+        except BaseException:
+            self.background_render_slots.release()
+            raise
+        tracked = cast(asyncio.Task[object], pending)
+        self._background_render_tasks.add(tracked)
+        tracked.add_done_callback(self._background_render_finished)
+        await asyncio.wait((pending,))
+        return pending.result()
+
+    def _background_render_finished(self, task: asyncio.Task[object]) -> None:
+        self._background_render_tasks.discard(task)
+        if not task.cancelled():
+            task.exception()
+        self.background_render_slots.release()
 
     @property
     def settings_path(self) -> Path:
@@ -833,6 +864,10 @@ class ToadApp(App, inherit_bindings=False):
         from toad.screens.comms import CommsScreen
 
         super()._display(screen, renderable)
+        if (not self._renderer_warmup_started and renderable is not None
+                and not self._batch_count and screen is self.screen):
+            self._renderer_warmup_started = True
+            self._warm_renderer()
         if (renderable is not None and not self._batch_count and screen is self.screen
                 and isinstance(screen, CommsScreen)):
             # call_after_refresh may run on an unpainted update. A real Linux
@@ -853,6 +888,12 @@ class ToadApp(App, inherit_bindings=False):
                 after_flush(release_hydration)
             elif after_flush is None or self.is_headless:
                 screen._start_hydration()
+
+    @work(group="renderer-warmup", exit_on_error=False)
+    async def _warm_renderer(self) -> None:
+        await self.render_processes.warm_up(
+            project=self.project_dir, ansi=self.native_ansi_color, dark=self.current_theme.dark,
+        )
 
     def _load_screen_css(self, screen: Screen) -> None:
         from toad.screens.session_view import SessionView

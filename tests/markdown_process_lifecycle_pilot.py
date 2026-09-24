@@ -10,9 +10,10 @@ from runtime_fixture import ToadApp
 from textual.widgets._markdown import MarkdownFence
 from toad.widgets.agent_response import AgentResponse
 from toad.render_tasks import execute_render_task
+from toad.render_backend import Renderer
 
 
-class ControlledPool:
+class ControlledPool(Renderer):
     def __init__(self):
         self.requests = []
 

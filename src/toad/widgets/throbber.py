@@ -1,5 +1,5 @@
 from collections.abc import Callable
-from functools import lru_cache
+from functools import cached_property, lru_cache
 from time import monotonic
 
 from rich.segment import Segment
@@ -92,6 +92,12 @@ class Throbber(Widget):
     # The row is always reserved; only its paint and animation change.
     busy = reactive(False, layout=False)
 
+    @cached_property
+    def _busy_visual(self) -> ThrobberVisual:
+        # Animation time is read while rendering. Keep the immutable color table
+        # warm across repaint invalidations instead of caching fresh Visual IDs.
+        return ThrobberVisual()
+
     def on_mount(self) -> None:
         self.watch_busy(self.busy)
 
@@ -116,4 +122,4 @@ class Throbber(Widget):
                 self.refresh()
 
     def render(self) -> ThrobberVisual | str:
-        return ThrobberVisual() if self.busy else ""
+        return self._busy_visual if self.busy else ""

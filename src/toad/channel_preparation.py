@@ -1,0 +1,110 @@
+"""Typed, bounded channel-history reads, independent of widget publication."""
+
+from __future__ import annotations
+
+import asyncio
+from dataclasses import dataclass
+from enum import Enum
+from pathlib import Path
+
+from agent_comms import Comms, MessagePage, WireRevision
+
+
+class HistoryKind(str, Enum):
+    CHANNEL = "channel"
+    DIRECT = "dm"
+    ALL = "irc"
+
+
+@dataclass(frozen=True)
+class HistoryReadRequest:
+    comms: Comms
+    kind: HistoryKind
+    target: str
+    project: Path
+    initialized: bool
+    after: int
+    follow_tail: bool
+    known_revision: WireRevision | None
+    initial_limit: int
+    page_limit: int
+    max_bytes: int
+
+    def page(self, *, after: int | None = None, limit: int) -> MessagePage:
+        if self.kind is HistoryKind.ALL:
+            return self.comms.full_history_page(after=after, limit=limit, max_bytes=self.max_bytes)
+        if self.kind is HistoryKind.DIRECT:
+            actor = self.comms.user_identity(str(self.project)).name
+            return self.comms.dm_history_page(actor, self.target, after=after,
+                                              limit=limit, max_bytes=self.max_bytes)
+        return self.comms.channel_history_page(self.target, after=after,
+                                              limit=limit, max_bytes=self.max_bytes)
+
+    def read(self, previous: HistoryReadResult | None = None) -> HistoryReadResult:
+        """Perform all revision/watermark/page I/O on the reader thread."""
+        revision = self.comms.revision()
+        if previous is not None and previous.request == self and previous.revision == revision:
+            return previous
+        if self.initialized and revision == self.known_revision:
+            return HistoryReadResult(self, revision, self.after, None, False)
+        high_water = self.comms.message_high_water()
+        if not self.initialized:
+            return HistoryReadResult(self, revision, high_water, self.page(limit=self.initial_limit), False)
+        if high_water <= self.after:
+            return HistoryReadResult(self, revision, high_water, None, False)
+        page = self.page(after=self.after, limit=self.page_limit)
+        replace_tail = bool(page.messages and page.has_newer and self.follow_tail)
+        if replace_tail:
+            page = self.page(limit=self.initial_limit)
+        return HistoryReadResult(self, revision, high_water, page, replace_tail)
+
+
+@dataclass(frozen=True)
+class HistoryReadResult:
+    request: HistoryReadRequest
+    revision: WireRevision
+    high_water: int
+    page: MessagePage | None
+    replace_tail: bool
+
+
+class ChannelHistoryReader:
+    """One hidden read at a time; current-view reads do not queue behind other tabs.
+
+    A cancelled widget waiter cannot release a running background read early.
+    The underlying I/O task owns admission until it really completes.
+    """
+
+    def __init__(self) -> None:
+        self._background = asyncio.Semaphore(1)
+        self._pending: set[asyncio.Task[HistoryReadResult]] = set()
+        self._closed = False
+
+    async def read(
+        self, request: HistoryReadRequest, previous: HistoryReadResult | None = None,
+        *, background: bool = False,
+    ) -> HistoryReadResult:
+        if background:
+            await self._background.acquire()
+        if self._closed:
+            if background:
+                self._background.release()
+            raise RuntimeError("Channel history reader is closed")
+        task = asyncio.create_task(asyncio.to_thread(request.read, previous), name="channel-history-read")
+        self._pending.add(task)
+
+        def finished(completed: asyncio.Task[HistoryReadResult]) -> None:
+            self._pending.discard(completed)
+            if not completed.cancelled():
+                completed.exception()
+            if background:
+                self._background.release()
+
+        task.add_done_callback(finished)
+        await asyncio.wait((task,))
+        return task.result()
+
+    async def aclose(self) -> None:
+        self._closed = True
+        if self._pending:
+            await asyncio.gather(*tuple(self._pending), return_exceptions=True)

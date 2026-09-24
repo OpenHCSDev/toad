@@ -7,7 +7,7 @@ import os
 import re
 from pathlib import Path
 
-from agent_comms import MessagePage, OBSERVATION_INTERVAL, WireRevision
+from agent_comms import Comms, MessagePage, OBSERVATION_INTERVAL, WireRevision
 from agent_comms import Message as WireMessage
 from agent_comms.operations import wire
 from textual import containers, on, work
@@ -18,6 +18,7 @@ from textual.widget import Widget
 
 from toad import messages
 from toad.constants import ALL_COMMS_TARGET
+from toad.channel_preparation import HistoryKind, HistoryReadRequest, HistoryReadResult
 from toad.widgets.conversation import (
     Contents,
     ContentsGrid,
@@ -103,8 +104,11 @@ class CommsChatView(Conversation):
         self._refresh_lock = asyncio.Lock()
         # This widget is constructed during screen composition; the App's
         # revision-aware reader becomes available when the view mounts.
-        self._wire = None
+        self._wire: Comms | None = None
         self._revision: WireRevision | None = None
+        self._prepared_history: HistoryReadResult | None = None
+        self._history_warm_task: asyncio.Task[HistoryReadResult] | None = None
+        self._history_warm_request: HistoryReadRequest | None = None
         self.irc_style = True
 
     def compose(self) -> ComposeResult:
@@ -230,6 +234,62 @@ class CommsChatView(Conversation):
             return IRCMessage(message)
         return WireMarkdownMessage(message)
 
+    def _history_request(self) -> HistoryReadRequest:
+        assert self._wire is not None
+        return HistoryReadRequest(
+            self._wire, HistoryKind(self.kind), self.target, Path(self.project_path),
+            self._history_initialized, self._poll_cursor,
+            not self._has_newer and self.window.follows_tail, self._revision,
+            INITIAL_HISTORY_PAGE_SIZE, HISTORY_PAGE_SIZE, HISTORY_PAGE_BYTES,
+        )
+
+    def _warm_history(self) -> None:
+        if self._history_warm_task is not None and not self._history_warm_task.done():
+            return
+        request = self._history_request()
+        self._history_warm_request = request
+        self._history_warm_task = asyncio.create_task(
+            self.app.channel_history_reader.read(request, self._prepared_history, background=True),
+            name="warm-channel-history",
+        )
+        self._history_warm_task.add_done_callback(self._history_warmed)
+
+    def _history_warmed(self, task: asyncio.Task[HistoryReadResult]) -> None:
+        if task.cancelled():
+            return
+        try:
+            result = task.result()
+        except Exception:
+            # Active loading reports failures through the existing visible path.
+            return
+        if self.is_attached and result.request == self._history_request():
+            self._prepared_history = result
+
+    async def _read_history(self) -> HistoryReadResult:
+        request = self._history_request()
+        prepared = self._prepared_history
+        if prepared is not None and prepared.request == request:
+            self._prepared_history = None
+            if self._history_warm_task is not None and self._history_warm_task.done():
+                self._history_warm_task = None
+                self._history_warm_request = None
+            return prepared
+        warming = self._history_warm_task
+        if warming is not None and self._history_warm_request == request:
+            self._history_warm_task = None
+            await asyncio.wait((warming,))
+            return warming.result()
+        return await self.app.channel_history_reader.read(request)
+
+    async def on_unmount(self) -> None:
+        if self._history_warm_task is not None:
+            task = self._history_warm_task
+            task.cancel()
+            self._history_warm_task = None
+            await asyncio.gather(task, return_exceptions=True)
+        self._history_warm_request = None
+        self._prepared_history = None
+
     async def toggle_message_style(self) -> None:
         """Re-render only the bounded visible history when switching styles."""
         async with self._refresh_lock:
@@ -336,12 +396,13 @@ class CommsChatView(Conversation):
             self._edge_load_scheduled = False
             self.call_after_refresh(self._on_window_scroll)
 
-    async def _refresh_history(self, comms) -> bool:
+    async def _refresh_history(self, read: HistoryReadResult) -> bool:
         """Refresh the bounded history window; return whether to follow the end."""
         follow = not self._has_newer and self.window.follows_tail
-        high_water = comms.message_high_water()
+        high_water = read.high_water
         if not self._history_initialized:
-            page = await asyncio.to_thread(self._message_page, comms, limit=INITIAL_HISTORY_PAGE_SIZE)
+            page = read.page
+            assert page is not None
             await self._mount_page(page, older=False)
             if loading := self.query_one_optional("#history-loading"):
                 await loading.remove()
@@ -354,11 +415,12 @@ class CommsChatView(Conversation):
         if high_water <= self._poll_cursor:
             return follow
 
-        page = await asyncio.to_thread(self._message_page, comms, after=self._poll_cursor)
+        page = read.page
+        if page is None:
+            return follow
         follow = not self._has_newer and self.window.follows_tail
         if page.messages and follow:
-            if page.has_newer:
-                page = await asyncio.to_thread(self._message_page, comms, limit=INITIAL_HISTORY_PAGE_SIZE)
+            if read.replace_tail:
                 await self.contents.remove_children(widget for _, widget in self._history)
                 self._history.clear()
                 self._has_older = page.has_older
@@ -373,22 +435,39 @@ class CommsChatView(Conversation):
         return follow
 
     async def _refresh(self) -> None:
-        if not self.is_attached or self._refresh_lock.locked():
+        if not self.is_attached or self._wire is None:
             return
         try:
             if self.screen is not self.app.screen:
-                return
-            revision = self._wire.revision()
-            if revision == self._revision:
+                self._warm_history()
                 return
         except Exception:
+            return
+        if self._refresh_lock.locked():
             return
         async with self._refresh_lock:
             try:
                 comms = self._wire
+                show_loading = (not self._history_initialized or
+                                self._history_warm_task is not None and not self._history_warm_task.done())
+                if show_loading:
+                    self.throbber.busy = True
+                try:
+                    read = await self._read_history()
+                finally:
+                    if show_loading and self.is_attached:
+                        self.throbber.busy = False
+                if not self.is_attached or read.request != self._history_request():
+                    return
+                if self.screen is not self.app.screen:
+                    self._prepared_history = read
+                    return
+                revision = read.revision
+                if revision == self._revision:
+                    return
                 # Show the bounded tail before computing roster/sort metadata,
                 # which can scan a much larger coordination history.
-                follow = await self._refresh_history(comms)
+                follow = await self._refresh_history(read)
                 if self.kind != "dm":
                     snapshot = await asyncio.to_thread(comms.coordination_snapshot)
                     self.query_one(ChannelParticipants).update_participants(
@@ -400,9 +479,15 @@ class CommsChatView(Conversation):
                 if not self.is_attached or not self.screen.is_active:
                     return
                 if self.kind == "dm":
-                    user = (await asyncio.to_thread(comms.user_identity, str(self.project_path))).name
-                    if comms.pending_count(user, self.target):
-                        await asyncio.to_thread(comms.acknowledge, user, self.target)
+                    target, project = self.target, Path(self.project_path)
+                    user = (await asyncio.to_thread(comms.user_identity, str(project))).name
+                    pending = await asyncio.to_thread(comms.pending_count, user, target)
+                    if (not self.is_attached or self.screen is not self.app.screen
+                            or self.target != target or Path(self.project_path) != project
+                            or self._wire is not comms):
+                        return
+                    if pending:
+                        await asyncio.to_thread(comms.acknowledge, user, target)
                 else:
                     await asyncio.to_thread(
                         comms.mark_channel_view_read, self.target,
@@ -417,7 +502,11 @@ class CommsChatView(Conversation):
 
             self._revision = revision
 
-            if self.kind == "dm" and (info := comms.agent_info_of(self.target)) is not None:
+            target = self.target
+            info = await asyncio.to_thread(comms.agent_info_of, target) if self.kind == "dm" else None
+            if not self.is_attached or self.target != target:
+                return
+            if info is not None:
                 self.status = " · ".join(
                     value
                     for value in (info.model or "", info.context_label)
