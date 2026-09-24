@@ -234,15 +234,19 @@ def show_channel_menu(
     *,
     acknowledge_label: str,
     pin_label: str,
+    any_mode_label: str | None = None,
 ) -> None:
+    items = [("pin", pin_label)]
+    if any_mode_label is not None:
+        items.append(("any_mode", any_mode_label))
+    items.extend([
+        ("comms_ack", acknowledge_label),
+        ("copy", "Copy name"),
+    ])
     show_target_menu(
         screen,
         menu_offset,
         name,
-        [
-            ("pin", pin_label),
-            ("comms_ack", acknowledge_label),
-            ("copy", "Copy name"),
-        ],
+        items,
         actions,
     )
