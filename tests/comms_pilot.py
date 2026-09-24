@@ -88,21 +88,28 @@ async def main() -> None:
         backend_stub.write_text(f"#!{sys.executable}\n" + """
 import json, os, sys, time
 from pathlib import Path
+from agent_comms.native_pi import CAPABILITY
 def emit(value):
     print(json.dumps(value), flush=True)
 for line in sys.stdin:
     command = json.loads(line)
     kind = command.get("type")
-    if kind == "prompt":
+    if kind == "get_state":
+        emit({"id": command.get("id"), "type": "response", "command": kind,
+              "success": True, "data": {"nativeInputProofCapability": CAPABILITY}})
+    elif kind == "prompt":
+        emit({"id": command["id"], "type": "response", "command": kind, "success": True})
+        emit({"type": "message_start", "message": {"role": "user", "content": command["message"], "inputId": command["inputId"]}})
         text = command["message"].splitlines()[-1]
         emit({"type": "message_update", "assistantMessageEvent": {"type": "thinking_delta", "delta": "reasoning for " + text}})
         gate = Path(os.environ["TOAD_TEST_GATES"]) / os.environ["AGENT_COMMS_THREAD"]
         while gate.exists():
             time.sleep(0.02)
         emit({"type": "message_update", "assistantMessageEvent": {"type": "text_delta", "delta": "response for " + text}})
+        emit({"type": "message_end", "message": {"role": "assistant", "stopReason": "stop"}})
         emit({"type": "agent_settled"})
     else:
-        emit({"type": "response", "command": kind, "success": True, "data": {}})
+        emit({"id": command.get("id"), "type": "response", "command": kind, "success": True, "data": {}})
 """)
         backend_stub.chmod(0o755)
         os.environ["AGENT_COMMS_AGENT_BIN"] = str(backend_stub)
