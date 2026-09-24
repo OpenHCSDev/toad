@@ -16,6 +16,26 @@ class HistoryKind(str, Enum):
     ALL = "irc"
 
 
+def display_identity(kind: HistoryKind, page: MessagePage) -> tuple | None:
+    """The inclusion basis, excluding read markers and changing bus cursors."""
+    if kind is HistoryKind.DIRECT:
+        basis = page.display_basis
+        if basis is None:
+            return None
+        return (
+            basis.root_identity, basis.worktree, basis.requested_peer,
+            basis.viewer, basis.viewer_epoch, basis.viewer_created_at, basis.viewer_names,
+            basis.peer, basis.peer_epoch, basis.peer_created_at, basis.peer_names,
+        )
+    scope = page.display_scope
+    if scope is None:
+        return None
+    return (
+        scope.channel, scope.targets, scope.any_mode,
+        scope.participant_names if scope.any_mode else frozenset(),
+    )
+
+
 @dataclass(frozen=True)
 class HistoryReadRequest:
     comms: Comms
@@ -29,6 +49,7 @@ class HistoryReadRequest:
     initial_limit: int
     page_limit: int
     max_bytes: int
+    known_display: tuple | None = None
 
     def page(self, *, after: int | None = None, limit: int) -> MessagePage:
         if self.kind is HistoryKind.ALL:
@@ -57,8 +78,25 @@ class HistoryReadRequest:
         if not self.initialized:
             return HistoryReadResult(self, revision, high_water, self.page(limit=self.initial_limit), False)
         if high_water <= self.after:
+            if (
+                self.known_display is not None
+                and self.known_revision is not None
+                and revision.files != self.known_revision.files
+            ):
+                probe = self.page(limit=1)
+                if display_identity(self.kind, probe) != self.known_display:
+                    return HistoryReadResult(
+                        self, revision, high_water, self.page(limit=self.initial_limit), True
+                    )
             return HistoryReadResult(self, revision, high_water, None, False)
         page = self.page(after=self.after, limit=self.page_limit)
+        if (
+            self.known_display is not None
+            and display_identity(self.kind, page) != self.known_display
+        ):
+            return HistoryReadResult(
+                self, revision, high_water, self.page(limit=self.initial_limit), True
+            )
         replace_tail = bool(page.messages and page.has_newer and self.follow_tail)
         if replace_tail:
             page = self.page(limit=self.initial_limit)

@@ -18,7 +18,9 @@ from textual.widget import Widget
 
 from toad import messages
 from toad.constants import ALL_COMMS_TARGET
-from toad.channel_preparation import HistoryKind, HistoryReadRequest, HistoryReadResult
+from toad.channel_preparation import (
+    HistoryKind, HistoryReadRequest, HistoryReadResult, display_identity,
+)
 from toad.widgets.conversation import (
     Contents,
     ContentsGrid,
@@ -106,6 +108,7 @@ class CommsChatView(Conversation):
         # revision-aware reader becomes available when the view mounts.
         self._wire: Comms | None = None
         self._revision: WireRevision | None = None
+        self._display_identity: tuple | None = None
         self._prepared_history: HistoryReadResult | None = None
         self._history_warm_task: asyncio.Task[HistoryReadResult] | None = None
         self._history_warm_request: HistoryReadRequest | None = None
@@ -255,6 +258,7 @@ class CommsChatView(Conversation):
             self._history_initialized, self._poll_cursor,
             not self._has_newer and self.window.follows_tail, self._revision,
             INITIAL_HISTORY_PAGE_SIZE, HISTORY_PAGE_SIZE, HISTORY_PAGE_BYTES,
+            self._display_identity,
         )
 
     def _warm_history(self) -> None:
@@ -424,23 +428,31 @@ class CommsChatView(Conversation):
             if loading := self.query_one_optional("#history-loading"):
                 await loading.remove()
             self._has_older = page.has_older
+            self._display_identity = display_identity(HistoryKind(self.kind), page)
             self._history_initialized = True
             self._poll_cursor = high_water
             self.call_after_refresh(self._on_window_scroll)
             return True
 
+        page = read.page
+        if read.replace_tail:
+            assert page is not None
+            self._ack_page = None
+            await self.contents.remove_children(widget for _, widget in self._history)
+            self._history.clear()
+            self._has_older = page.has_older
+            self._has_newer = False
+            await self._mount_page(page, older=False)
+            self._display_identity = display_identity(HistoryKind(self.kind), page)
+            self._poll_cursor = (page.newest_seq if page.has_newer else high_water) or high_water
+            return True
         if high_water <= self._poll_cursor:
             return follow
-
-        page = read.page
         if page is None:
             return follow
+        self._display_identity = display_identity(HistoryKind(self.kind), page)
         follow = not self._has_newer and self.window.follows_tail
         if page.messages and follow:
-            if read.replace_tail:
-                await self.contents.remove_children(widget for _, widget in self._history)
-                self._history.clear()
-                self._has_older = page.has_older
             await self._mount_page(page, older=False)
             self._poll_cursor = (
                 page.newest_seq if page.has_newer else high_water
@@ -513,6 +525,7 @@ class CommsChatView(Conversation):
                     self._history_initialized = False
                     self._poll_cursor = 0
                     self._revision = None
+                    self._display_identity = None
                     self._has_older = False
                     self._has_newer = False
             self._ack_page = None
