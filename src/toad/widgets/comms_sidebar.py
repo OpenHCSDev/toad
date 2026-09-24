@@ -1163,20 +1163,36 @@ class CommsSidebar(TargetTree):
             for declaration in context_tool_catalog("thread")
             if declaration["name"] == "comms_ack"
         )
-        snapshot = self._last_snapshot or self._snapshot()
-        view = next(view for view in snapshot.wire.channels if view.channel.name == name)
+        channel = self._wire.channel_catalog.resolve(name)
+        actions = {
+            "pin": partial(self._set_pin, name, not channel.pinned),
+            "comms_ack": lambda: post("comms_ack"),
+            "copy": lambda: post("copy"),
+        }
+        any_mode_label = None
+        if channel.exact:
+            actions["any_mode"] = partial(
+                self._set_any_mode, name, not channel.any_mode
+            )
+            any_mode_label = (
+                "Show channel only" if channel.any_mode else "Show member activity"
+            )
         show_channel_menu(
             self.app.screen,
             menu_offset,
             name,
-            {
-                "pin": partial(self._set_pin, name, not view.channel.pinned),
-                "comms_ack": lambda: post("comms_ack"),
-                "copy": lambda: post("copy"),
-            },
+            actions,
             acknowledge_label=str(acknowledge["action_label"]),
-            pin_label="Unpin channel" if view.channel.pinned else "Pin channel",
+            pin_label="Unpin channel" if channel.pinned else "Pin channel",
+            any_mode_label=any_mode_label,
         )
+
+    def _set_any_mode(self, channel: str, enabled: bool) -> None:
+        try:
+            self._wire.set_channel_any_mode(channel, enabled)
+        except (OSError, ValueError) as error:
+            self.notify(str(error), title="Channel activity", severity="error")
+        self._refresh()
 
     def _set_pin(self, channel: str, pinned: bool, *, thread: str | None = None) -> None:
         try:
