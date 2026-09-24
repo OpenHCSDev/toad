@@ -1,6 +1,7 @@
 """Pinned agent-comms public types and ACP metadata used by Toad."""
 
 import asyncio
+from contextlib import nullcontext
 from dataclasses import asdict
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -11,6 +12,8 @@ from agent_comms import Comms, Goal, MessageRoute, TranscriptCursor, TranscriptP
 
 from toad.acp.agent import Agent
 from toad.acp.messages import CoordinationUpdate, Update
+from toad.agent import AgentFail
+from toad.jsonrpc import APIError
 from toad.conversation_markdown import _path_parser
 
 
@@ -89,12 +92,29 @@ async def main() -> None:
             captured.append((blocks, metadata))
             return "ok"
 
+        original_prompt = agent.acp_session_prompt
         agent.acp_session_prompt = capture_prompt
         assert await agent.send_prompt("hello", delivery="direct", defer_display=True) == "ok"
         assert captured[0][1] == {
             "agentComms": {"delivery": "direct", "deferDisplay": True, "userText": "hello"}
         }
         assert agent.prompt_in_flight == 0
+        agent.acp_session_prompt = original_prompt
+
+        class RejectedPrompt:
+            async def wait(self):
+                raise APIError(-32602, "Invalid params", {
+                    "reason": "Pi native input-ID capability preflight failed."
+                })
+
+        sent.clear()
+        with patch.object(agent, "request", return_value=nullcontext()), patch(
+            "toad.acp.agent.api.session_prompt", return_value=RejectedPrompt()
+        ):
+            assert await agent.acp_session_prompt([]) is None
+        assert len(sent) == 1 and isinstance(sent[0], AgentFail)
+        assert sent[0].details == "Pi native input-ID capability preflight failed."
+        assert sent[0].help == "prompt"
 
 
 if __name__ == "__main__":

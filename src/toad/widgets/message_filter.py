@@ -15,9 +15,12 @@ def is_routed_event(event: TranscriptEvent) -> bool:
 def keep_live_block(widget) -> bool:
     from toad.widgets.agent_response import AgentResponse
     from toad.widgets.incoming_message import IncomingMessage
+    from toad.widgets.note import Note
     from toad.widgets.transcript_history import TranscriptHistory
 
     # Keep the pager itself; its saved semantic fragments are classified
     # separately. Nested pagers within an already-routed body stay untouched.
     return (isinstance(widget, (IncomingMessage, TranscriptHistory))
-            or isinstance(widget, AgentResponse) and widget.route is not None)
+            or isinstance(widget, Note) and widget.has_class("-error")
+            or isinstance(widget, AgentResponse)
+            and (widget.route is not None or widget.has_class("-error-log-link")))
