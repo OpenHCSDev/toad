@@ -17,11 +17,11 @@ class OpenTab:
 
 @dataclass(frozen=True)
 class CommsViewKey:
-    """A wire destination has one view; its navigation context is not identity."""
+    """A wire destination belongs to one owner session and sending identity."""
 
     root: str
-    owner_mode: str = field(compare=False)
-    me: str = field(compare=False)
+    owner_mode: str
+    me: str
     kind: str
     target: str
 

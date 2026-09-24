@@ -138,16 +138,25 @@ async def main():
             assert {label.id for label in app.screen.query(SessionLabel)} == {owner, engineering}
             second = await app.new_session_screen(lambda: MainScreen(root))
             await pilot.pause()
-            # The same channel opened from another agent tab must select the
-            # existing mode and preserve its composer rather than create a copy.
+            # Two owner tabs cannot share a channel's sender or Back target.
             duplicate = await app.open_comms_session(
                 owner_mode=second.mode_name, project_path=root,
                 me="api-agent", target="#engineering", kind="channel",
             )
             await pilot.pause()
-            assert duplicate == engineering
+            assert duplicate != engineering
+            assert isinstance(app.screen, CommsScreen)
+            assert (app.screen.owner_mode, app.screen.me) == (second.mode_name, "api-agent")
+            assert sum(tab.title == "#engineering" for tab in app.open_tabs) == 2
+            await app.screen.action_back_to_agent()
+            assert app.current_mode == second.mode_name
+            # Within one owner, the original view and its draft are reusable.
+            original = await app.open_comms_session(
+                owner_mode=owner, project_path=root,
+                me=root.name, target="#engineering", kind="channel",
+            )
+            assert original == engineering
             assert app.screen.query_one("Prompt").text == "draft stays here"
-            assert sum(tab.title == "#engineering" for tab in app.open_tabs) == 1
             # An old sidebar and a newly opened view must use the same model
             # order even when channels were created after the first view.
             comms.create_tag("z-last")
@@ -182,7 +191,7 @@ async def main():
             await pilot.click(group.row)
             await pilot.pause()
             assert app.current_mode == engineering
-            assert sum(tab.title == "#engineering" for tab in app.open_tabs) == 1
+            assert sum(tab.title == "#engineering" for tab in app.open_tabs) == 2
             # The channel header must glow while any member is mid-turn or busy.
             comms.set_activity("ui-agent", ActivityState.WORKING, "Rendering")
             sidebar = app.screen.query_one(CommsSidebar)

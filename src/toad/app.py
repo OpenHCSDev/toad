@@ -908,7 +908,7 @@ class ToadApp(App, inherit_bindings=False):
         target: str,
         kind: str,
     ) -> str:
-        """Open or reuse one view of a wire destination across all agent tabs."""
+        """Open or reuse one view of a wire destination for this owner tab."""
         from toad.constants import ALL_COMMS_TARGET
 
         if kind == "irc" or (kind == "channel" and target == ALL_COMMS_TARGET):
@@ -930,14 +930,31 @@ class ToadApp(App, inherit_bindings=False):
             if comms.root != root_path:
                 comms = wire(root_path)
             if kind == "dm":
-                comms.registry.require(me)
+                # DM routing needs a registered peer identity. A late action
+                # may still carry a pre-rename alias; bind the canonical name.
+                me = comms.registry.require(me).name
                 target = comms.registry.require(target).name
             else:
+                # A channel can be viewed from a local session before an ACP
+                # executor is registered. Do not make that read-only view
+                # depend on a non-existent worker; canonicalize when known.
+                if me in comms.registry:
+                    me = comms.registry.require(me).name
                 target = comms.channel_catalog.resolve(target).name
         except Exception as error:
             self.notify(str(error), title="Comms target unavailable", severity="error")
             return owner_mode
 
+        owner_screen = self._main_session_screen(owner_mode)
+        if owner_screen is None or self.session_tracker.get_session(owner_mode) is None:
+            # A late sidebar action must not resurrect a channel under a
+            # deleted owner, or bind its Back action to an unrelated tab.
+            self.notify(
+                "The owning agent tab was closed",
+                title="Comms target unavailable",
+                severity="error",
+            )
+            return self.current_mode
         root = str(root_path)
         key = CommsViewKey(root, owner_mode, me, kind, target)
         if mode_name := self._comms_modes.get(key):
@@ -946,13 +963,20 @@ class ToadApp(App, inherit_bindings=False):
             except KeyError:
                 del self._comms_modes[key]
             else:
-                await self.switch_mode(mode_name)
                 screen = self.get_screen_stack(mode_name)[0]
-                if isinstance(screen, CommsScreen):
-                    await screen.wait_content_ready()
+                if not isinstance(screen, CommsScreen) or (
+                    screen.owner_mode, screen.me, screen.kind, screen.target
+                ) != (owner_mode, me, kind, target):
+                    # A stale mapping is not authority to navigate through an
+                    # obsolete sending identity or return to the wrong owner.
+                    self.notify(
+                        "Comms view changed; reopen it from the owner tab", severity="error"
+                    )
+                    return self.current_mode
+                await self.switch_mode(mode_name)
+                await screen.wait_content_ready()
                 return mode_name
 
-        owner_screen = self._main_session_screen(owner_mode)
         owner_root = owner_screen._coordination_root if owner_screen is not None else None
         recovery_root = (
             owner_root if owner_root is not None

@@ -9,7 +9,7 @@ from textual import getters
 from textual.binding import Binding
 from textual.command import Hit, Hits, Provider, DiscoveryHit
 from textual.content import Content
-from textual.events import ScreenResume
+from textual.events import Resize, ScreenResume
 from textual.screen import Screen
 from toad.screens.session_view import SessionView
 from textual.reactive import var, reactive
@@ -172,6 +172,11 @@ class MainScreen(SessionView, can_focus=False):
             sidebar.session_thread = self._comms_thread
         except Exception:
             pass
+        # Hidden screens may defer sidebar geometry until they resume. Rebind
+        # the header before the resumed screen's first paint, not on a timer.
+        self._align_tabs_with_sidebar(
+            self.query_one("#channels-sidebar", SideBar).collapsed
+        )
         self.conversation
         if watcher := self.conversation._directory_watcher:
             self.call_after_refresh(watcher.notify_if_visible)
@@ -446,10 +451,34 @@ class MainScreen(SessionView, can_focus=False):
 
     def on_mount(self) -> None:
         self.query_one(CommsSidebar).session_thread = self._resolve_comms_thread()
+        # The tab header sits above (not inside) the resizable left sidebar.
+        # Use its current computed width so the first frame and every toggle
+        # align the tabs with the conversation without a deferred paint.
+        self.watch(
+            self.query_one("#channels-sidebar", SideBar),
+            "collapsed",
+            self._align_tabs_with_sidebar,
+        )
         for tree in self.query("#project_directory_tree").results(DirectoryTree):
             tree.data_bind(path=MainScreen.project_path)
         for tree in self.query(DirectoryTree):
             tree.guide_depth = 3
+
+    def on_resize(self, _event: Resize) -> None:
+        if sidebar := self.query_one_optional("#channels-sidebar", SideBar):
+            self._align_tabs_with_sidebar(sidebar.collapsed)
+
+    def _align_tabs_with_sidebar(self, _collapsed: bool) -> None:
+        sidebar = self.query_one("#channels-sidebar", SideBar)
+        header = self.query_one("#tab-navigation-header", containers.Horizontal)
+        width = sidebar.styles.width.resolve(self.size, self.app.size)
+        # On narrow terminals the CSS max-width (45%) clips the expanded
+        # sidebar below its nominal 40 cells; use that same cap on the header.
+        if maximum := sidebar.styles.max_width:
+            width = min(width, maximum.resolve(self.size, self.app.size))
+        left = int(width)
+        if header.styles.padding.left != left:
+            header.styles.padding = (0, 0, 0, left)
 
     @on(OptionList.OptionHighlighted)
     def on_option_list_option_highlighted(
