@@ -802,7 +802,8 @@ class ToadApp(App, inherit_bindings=False):
     def switch_mode(self, mode: str, *, history_index: int | None = None) -> AwaitComplete:
         from toad.screens.session_view import SessionView
 
-        self.navigation_reader.invalidate()
+        if mode != self.current_mode:
+            self.navigation_reader.invalidate()
         if mode in self._file_preview_modes.values() and mode != self.current_mode:
             self._file_preview_return[mode] = self.current_mode
         if self.is_running and mode != self.current_mode:

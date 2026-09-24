@@ -220,10 +220,10 @@ selection tests pass. These are not terminal-presented frame measurements.
 
 Tab-return traces still show two full reflows after some hidden Markdown updates;
 the first uses transcript invalidations and the second arrives after new response
-layout invalidation. A quiet unchanged return can use zero. Since Toad PR #10
-currently edits `screens/session_view.py` and sidebar geometry, this branch has
-not suppressed or delayed those reflows without first proving geometry/scroll
-parity on integrated bytes.
+layout invalidation. A quiet unchanged return can use zero. Toad PR #10 is now
+merged into this branch. Even with the integrated sidebar geometry, this branch
+has not suppressed or delayed those reflows without first proving geometry/scroll
+parity. Prepared data is not the same as fully mounted, current geometry.
 
 Additional checks pass: the file-link/preview pilot, worker-preview gate pilot,
 post-spinner worker gate, Markdown process/lifecycle/row pilots, renderer service
@@ -256,7 +256,8 @@ its stopped/unresumable DM. Duplicate clicks share one resolution. Closing or
 leaving the pending tab invalidates stale publication, and closing its owner
 cannot strand or reopen a deleted view. A gated regression confirms a completed
 loading frame and visible tab while registry I/O is still blocked. No unverified
-identity is used to send messages or acknowledge a read.
+identity is used to send messages or acknowledge a read. Clicking the already
+selected loading tab does not cancel its in-flight metadata request.
 
 For closing a large tab, an isolated four-round headless fixture observed about
 20–25ms before teardown and 59–93ms for the whole close handler. Toad now removes

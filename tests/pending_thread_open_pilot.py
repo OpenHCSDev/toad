@@ -83,6 +83,8 @@ async def main():
 
                 opening, pending, release, mocked = await blocked_open("first-peer")
                 try:
+                    await app.switch_mode(pending)
+                    assert not opening.done(), "Selecting the current loading tab cancelled its read"
                     duplicate = asyncio.create_task(app.open_thread_session(
                         owner_mode=owner, project_path=root, target="first-peer"))
                     await asyncio.sleep(0)
