@@ -7,7 +7,7 @@ import os
 import re
 from pathlib import Path
 
-from agent_comms import Comms, MessagePage, OBSERVATION_INTERVAL, WireRevision
+from agent_comms import Comms, MessagePage, OBSERVATION_INTERVAL, ThreadRole, WireRevision
 from agent_comms import Message as WireMessage
 from agent_comms.operations import wire
 from textual import containers, on, work
@@ -227,9 +227,11 @@ class CommsChatView(Conversation):
     def _message_block(self, message: WireMessage) -> Widget:
         if message.membership is not None:
             return MembershipNotice(message)
+        direction = ("User" if message.sender_role is ThreadRole.USER else
+                     "Outbound" if message.sender == self._me else "Inbound")
         if self.irc_style:
-            return IRCMessage(message)
-        return WireMarkdownMessage(message)
+            return IRCMessage(message, direction=direction)
+        return WireMarkdownMessage(message, direction=direction)
 
     def _painted_message_sequences(self) -> tuple[int, ...]:
         """Rows in the committed viewport, adapted from the sidebar worktree."""

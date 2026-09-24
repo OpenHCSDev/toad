@@ -3,6 +3,7 @@ from textual.widget import Widget
 from toad.widgets.streaming_markdown import StreamingMarkdown
 from agent_comms import MessageRoute
 from toad.widgets.route_header import RouteHeader
+from toad.widgets.message_divider import MessageDivider
 
 
 SYSTEM = """\
@@ -17,8 +18,11 @@ class AgentResponse(StreamingMarkdown):
     block_cursor_offset = var(-1)
 
     def __init__(self, markdown: str | None = None, *, route: MessageRoute | None = None,
-                 paginate: bool = True) -> None:
-        prefix = (RouteHeader(route),) if route is not None else ()
+                 paginate: bool = True, show_divider: bool = True) -> None:
+        prefix = ((MessageDivider("Outbound" if route is not None else "Agent"),)
+                  if show_divider else ())
+        if route is not None:
+            prefix += (RouteHeader(route),)
         super().__init__(markdown, paginate=paginate, prefix=prefix)
         self.route = route
         if route is not None:

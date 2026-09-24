@@ -1,6 +1,5 @@
 """Compact wire messages with keyboard- and pointer-accessible routing names."""
 
-import time
 from textual import events
 from textual.app import ComposeResult
 from textual.containers import HorizontalGroup, VerticalGroup
@@ -10,6 +9,7 @@ from textual.widgets import Static
 from agent_comms import Message
 from toad.widgets.comms_sidebar import SelectTarget
 from toad.widgets.inline_message import inline_message
+from toad.widgets.message_divider import MessageDivider
 
 
 class ThreadLink(Static, can_focus=True):
@@ -58,7 +58,7 @@ class IRCMessageText(Static):
         self.app.open_url(url)
 
 
-class IRCMessage(HorizontalGroup, can_focus=True):
+class IRCMessage(VerticalGroup, can_focus=True):
     BINDINGS = [
         ("enter", "open_sender", "Open sender"),
         ("shift+enter", "open_destination", "Open destination"),
@@ -66,33 +66,31 @@ class IRCMessage(HorizontalGroup, can_focus=True):
     DEFAULT_CSS = """
     IRCMessage {
         width: 1fr; height: auto; margin: 0; padding: 0;
-        .irc-time { width: 7; height: 1; color: $text-muted; }
+        .irc-body { width: 1fr; height: auto; }
         IRCMessageText { width: 1fr; height: auto; text-wrap: wrap; }
     }
     """
 
-    def __init__(self, message: Message):
+    def __init__(self, message: Message, *, direction: str = "Inbound"):
         super().__init__()
         self.message = message
+        self.direction = direction
         self.source = message.body
 
     def compose(self) -> ComposeResult:
         message = self.message
-        yield Static(
-            time.strftime("%H:%M", time.localtime(message.timestamp)),
-            markup=False,
-            classes="irc-time",
-        )
-        yield IRCMessageText(
-            Content.assemble(
-                self._link(message.sender),
-                (" → ", "$text-muted"),
-                self._link(message.target),
-                " ",
-                self.mentioned_body(),
-            ),
-            markup=False,
-        )
+        yield MessageDivider(self.direction, timestamp=message.timestamp)
+        with HorizontalGroup(classes="irc-body"):
+            yield IRCMessageText(
+                Content.assemble(
+                    self._link(message.sender),
+                    (" → ", "$text-muted"),
+                    self._link(message.target),
+                    " ",
+                    self.mentioned_body(),
+                ),
+                markup=False,
+            )
 
     @staticmethod
     def _link(target: str) -> Content:
@@ -121,23 +119,21 @@ class IRCMessage(HorizontalGroup, can_focus=True):
 class WireMarkdownMessage(VerticalGroup):
     DEFAULT_CLASSES = "block"
 
-    def __init__(self, message: Message):
+    def __init__(self, message: Message, *, direction: str = "Inbound"):
         super().__init__()
         self.message = message
+        self.direction = direction
         self.source = message.body
 
     def compose(self) -> ComposeResult:
         from toad.widgets.agent_response import AgentResponse
 
+        yield MessageDivider(self.direction, timestamp=self.message.timestamp)
         with HorizontalGroup():
             yield ThreadLink(self.message.sender)
             yield Static(" → ", markup=False, expand=False)
             yield ThreadLink(self.message.target)
-            yield Static(
-                time.strftime(" · %H:%M", time.localtime(self.message.timestamp)),
-                expand=False,
-            )
-        yield AgentResponse(self.message.body)
+        yield AgentResponse(self.message.body, show_divider=False)
         if self.message.mentions:
             with HorizontalGroup():
                 yield Static("Mentioned: ", expand=False)
