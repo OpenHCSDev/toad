@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 from textual.app import App, ComposeResult
 from textual.containers import VerticalScroll
-from textual.geometry import Offset
+from textual.geometry import Offset, Region
 from textual.selection import SELECT_ALL, Selection
 from textual_diff_view import DiffView
 from textual_diff_view._diff_view import DiffCode
@@ -79,6 +79,11 @@ async def main():
                                         actual, expected = code.render_line(y), original.render_line(y)
                                         assert actual.cell_length == expected.cell_length
                                         assert list(actual) == list(expected)
+                                    crop = Region(0, 0, code.size.width, min(8, code.size.height))
+                                    for actual, expected in zip(code.render_lines(crop), original.render_lines(crop)):
+                                        assert actual.cell_length == expected.cell_length
+                                        assert list(actual) == list(expected)
+                                    assert code._paint is None, "Paint state survived its synchronous crop"
                                     if selection is not None:
                                         assert code.get_selection(selection) == original.get_selection(selection)
                 assert app._exception is None

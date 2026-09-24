@@ -82,6 +82,41 @@ independent startup/feature-review gates.
 
 ## Remaining work
 
+### Prepared diff row painting (September 24)
+
+The renderer worker now computes ordered syntax-style intervals alongside the
+prepared patch. The native `Content` and its spans remain available for wrapping,
+copying and fallback rendering. Interval styles are blended only at paint time,
+in native order, so alpha backgrounds and current theme/selection remain correct.
+One synchronous crop shares its base style, selection options and link treatment;
+the context is released at the end of that crop, including on errors.
+
+In a 160×64-cell native diff scene, 40 interleaved samples per case compared the
+previous implementation with the prepared painter on the same mounted widgets:
+
+| Full compositor + escape serialization CPU | Previous median / worst | Prepared median / worst |
+| --- | ---: | ---: |
+| Unselected, invalidated style cache | 39.681 / 49.304 ms | 26.715 / 34.440 ms |
+| Selected, invalidated style cache | 44.854 / 49.791 ms | 27.476 / 37.763 ms |
+
+Every paired terminal escape output matched exactly. These are CPU-stage
+measurements, not terminal-presented latency; both worst cases remain above 16ms.
+Fixture: `/tmp/opencode/benchmark-diff-paint-interleaved.py`.
+
+Checks include 784 exact native row cases (overlap, alpha, Unicode, empty rows,
+selection and click metadata), process round-trip plus mounted crop parity across
+four themes/split/wrap/resizes, 20,000-line viewport bounds, hidden/stale diff
+lifecycle, and two actual Toad apps reusing the persistent renderer.
+
+### Live observation
+
+Read-only capture of warm-tabs PID 1963228: 45 seconds at 50Hz, 1337 samples,
+zero errors, 895 main-thread samples. Main-thread inclusive costs included
+layout 30.73% and rendering 24.58% (overlapping categories). CPU observations
+ranged 25.0–52.0%; RSS rose 261.0→326.2MiB during interaction. This does not
+establish an idle baseline or a memory leak. The captured app ran the older
+frozen warming snapshot, not this newer prepared-paint checkpoint.
+
 ### Off-loop route discovery (September 24)
 
 Thread/channel/DM opens now pass typed immutable requests to an app-owned
