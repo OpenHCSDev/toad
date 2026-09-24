@@ -325,6 +325,8 @@ class Agent(AgentBase):
         route: MessageRoute | None = None
         if isinstance(metadata, dict) and isinstance(metadata.get("agentComms"), dict):
             state = metadata["agentComms"]
+            if isinstance(state.get("thread"), str) and isinstance(state.get("wireRoot"), str):
+                self._publish_coordination_metadata({"_meta": metadata})
             compaction = state.get("compaction")
             if isinstance(compaction, dict) and compaction.get("phase") in {"start", "end", "abort"}:
                 if (compaction.get("contextState") == "unknown"
@@ -421,7 +423,8 @@ class Agent(AgentBase):
                 "sessionUpdate": "agent_message_chunk",
                 "content": {"type": type, "text": text},
             }:
-                self.post_message(messages.Update(type, text, route))
+                if text:
+                    self.post_message(messages.Update(type, text, route))
 
             case {
                 "sessionUpdate": "agent_thought_chunk",
