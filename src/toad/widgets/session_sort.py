@@ -13,8 +13,11 @@ class SortControl[Order: (ThreadSort, ChannelSort)](Static, can_focus=True):
     DEFAULT_CSS = """
     SortControl {
         width: auto;
+        max-width: 60%;
         height: 1;
         margin-left: 1;
+        text-wrap: nowrap;
+        text-overflow: ellipsis;
         color: $text-muted;
         pointer: pointer;
     }

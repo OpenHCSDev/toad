@@ -41,13 +41,13 @@ async def main() -> None:
             assert app.sidebar_layout.get("channels-sidebar").width_percent == 41
             assert left.region.width >= 40
 
-            left.query_one("#sidebar-move", SidebarAction).action_activate()
+            left.query_one("#sidebar-right", SidebarAction).action_activate()
             await pilot.pause()
             assert left.right and right.right
             assert right.region.x > left.region.x, "New right bar belongs inside the existing outer one"
             assert content.region.x == 0
             assert tabs.region.x == app.screen.query_one(TabHistoryControls).region.right
-            left.query_one("#sidebar-swap", SidebarAction).action_activate()
+            left.query_one("#sidebar-right", SidebarAction).action_activate()
             await pilot.pause()
             assert left.region.x > right.region.x
             assert content.region.x == 0
@@ -90,7 +90,10 @@ async def main() -> None:
                 comms_bar.region, comms_tabs.region, chat.region,
                 app.sidebar_layout.ordered(), app.screen.query_one("#tab-navigation-header").styles.padding,
             )
-            comms_bar.query_one("#sidebar-move", SidebarAction).action_activate()
+            comms_bar.query_one("#sidebar-left", SidebarAction).action_activate()
+            await pilot.pause()
+            assert comms_bar.right  # Swap with the inner neighbor before crossing the center.
+            comms_bar.query_one("#sidebar-left", SidebarAction).action_activate()
             await pilot.pause()
             assert not comms_bar.right
             assert chat.region.x == comms_bar.region.width

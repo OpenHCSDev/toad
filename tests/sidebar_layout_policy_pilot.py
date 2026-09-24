@@ -25,6 +25,23 @@ def main() -> None:
     assert layout.float_mode("thread-sidebar") is True
     assert layout.float_mode("thread-sidebar") is False
     assert set(layout.ordered()) == {"thread-sidebar", "channels-sidebar"}
+    for side in ("left", "right"):
+        pair = SidebarLayout()
+        pair.move("channels-sidebar", side)
+        pair.move("thread-sidebar", side)
+        outer, inner = sorted(pair.placements, key=lambda key: pair.get(key).order)
+        inward = "right" if side == "left" else "left"
+        assert pair.directions(outer)[side] is None
+        assert pair.directions(outer)[inward] == "swap"
+        assert pair.directions(inner)[side] == "swap"
+        assert pair.directions(inner)[inward] == "move"
+        before = dict(pair.placements)
+        assert not pair.shift(outer, side) and pair.placements == before
+        assert pair.shift(outer, inward)
+        assert pair.get(outer).side == pair.get(inner).side == side
+        assert pair.get(outer).order == 1 and pair.get(inner).order == 0
+        assert pair.shift(outer, inward) and pair.get(outer).side == inward
+        assert pair.directions(outer)[inward] is None
     for side, width, hide_left, hide_right in product(("left", "right"), (76, 120), (False, True), (False, True)):
         pair = SidebarLayout()
         pair.move("channels-sidebar", side)

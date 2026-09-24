@@ -64,6 +64,29 @@ class SidebarLayout:
         self.placements[other] = replace(self.placements[other], order=current.order)
         return True
 
+    def directions(self, identity: str) -> dict[Side, Literal["move", "swap"] | None]:
+        """Resolve spatial arrows against the current neighbors and outside wall."""
+        current = self.get(identity)
+        actions: dict[Side, Literal["move", "swap"] | None] = {"left": None, "right": None}
+        for direction in actions:
+            inward = direction != current.side
+            neighbor_order = current.order + (1 if inward else -1)
+            if any(key != identity and peer.side == current.side and peer.order == neighbor_order
+                   for key, peer in self.placements.items()):
+                actions[direction] = "swap"
+            elif inward:
+                actions[direction] = "move"
+        return actions
+
+    def shift(self, identity: str, direction: Side) -> bool:
+        """One arrow step: swap with a neighbor, cross the center, or stop at a wall."""
+        action = self.directions(identity)[direction]
+        if action == "swap":
+            return self.swap(identity)
+        if action == "move":
+            return self.move(identity, direction)
+        return False
+
     def width(self, identity: str, percentage: int) -> bool:
         if type(percentage) is not int:
             raise ValueError("Sidebar width must be an integer percentage.")

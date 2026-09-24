@@ -14,7 +14,7 @@ requests. All items below are implemented and covered by mounted checks.
 | Menu/history controls appeared on the right, leaving tabs offset. | Removed right docking and sidebar-dependent header padding. Controls start at the screen's left edge; tabs fill the remaining row on native and channel screens. |
 | Shrinking a sidebar hid its vertical scrollbar. | Long rows widened an inner scroll container past the viewport. One fixed sidebar viewport now owns both native scrollbars; content can grow inside it. |
 | A duplicate horizontal slider appeared below the controls. | Removed the separate scroll slider; retain the native horizontal scrollbar, shown only when needed. |
-| Move/Float controls lacked visible hover feedback; arrows were too small. | Added explicit ANSI/RGB hover/focus styles and wider multi-character arrows. Same-side swap uses the opposite arrow; arrows are ordered left then right. Narrow bars put Float/Push on the next control row. |
+| Move/Float controls lacked visible hover feedback; arrows were too small. | Added explicit ANSI/RGB hover/focus styles and wider multi-character arrows. Arrows are ordered left then right; batch 2 below refines their spatial behavior. Narrow bars put Float/Push on the next control row. |
 | Collapsing one bar left a gap beside its floating peer; Float could reorder bars. | Resolve both bars from actual widths, including collapsed handles. All bars pack together independently of Float/Push; only the conversation gutter changes. A pushed inner bar reserves space through its inside edge. |
 | Width slider direction was wrong on the right. | Mirror track, label, pointer mapping and arrow keys. Moving toward the screen center increases width on either side. Freeze the pointer mapping while dragging so resizing the track cannot undo the value on release. |
 | Inner edge could not resize the bar. | Added a captured-pointer resize handle on the conversation-facing edge, green normally and white on hover/focus. It shares the 15–50% width setting with the slider and hides when collapsed. |
@@ -47,6 +47,35 @@ viewport; retained-row versus full-redraw parity remains covered.
 
 These checks use disposable wires and mounted test applications, not a live
 user-session deployment or a terminal-pixel latency claim.
+
+## Batch 2: spatial arrows and visible sorting
+
+Follow-up reports from the PR preview, implemented and mounted-tested:
+
+- **Wall and neighbor semantics:** the original move/swap button roles were
+  fixed even when their arrow glyphs pointed at a neighbor. The placement
+  model now resolves each left/right direction: swap with a same-side neighbor,
+  otherwise move across the conversation if heading inward, or refuse the
+  outside wall. Wall-blocked arrows are hidden. An outer bar has one arrow;
+  an inner bar has two. Click handling resolves current placement again, and
+  Float/collapse do not change the spatial rule.
+- **Sorting:** wide content also widened its header, putting sort controls off
+  screen. Panel and ordinary tree-group headers now stay within the sidebar's
+  visible horizontal viewport while rows retain their full scrollable width.
+  Sort controls stay right-aligned, with bounded/ellipsized captions on narrow
+  bars. Headers still scroll vertically with their sections.
+
+`sidebar_direction_pilot.py` first failed on the extra wall-facing arrow.
+It now exercises real clicks through both same-side arrangements, inward and
+outward swaps, cross-center moves, Float and collapsed neighbors.
+`sidebar_sort_viewport_pilot.py` first found a sort control at x=131 outside a
+viewport ending at x=46. It now verifies clickable, right-aligned sorting at
+40%, 25%, and 15%, at both ends of horizontal scrolling, on both sidebars and
+with ordinary/virtual channel rosters.
+
+Passing adjacent checks include placement policy, sidebar controls, drag resize,
+sidebar navigation, and the broad Comms pilot. Targeted Ruff checks, layout
+policy mypy on Python 3.14, and whitespace checks also pass.
 
 Preserve drafts, navigation ownership, read-marker semantics, copy/history,
 scroll intent, and the merged renderer behavior while correcting each issue.

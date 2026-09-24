@@ -43,7 +43,7 @@ async def main() -> None:
                     assert await pilot.hover(handle, offset=(0, 3))
                     await pilot.pause()
                     assert handle.styles.color != normal and "hover" in handle.pseudo_classes
-                    for selector in ("#sidebar-move", "#sidebar-float"):
+                    for selector in (f"#sidebar-{'right' if side == 'left' else 'left'}", "#sidebar-float"):
                         button = bar.query_one(selector, SidebarAction)
                         normal = button.styles.background
                         assert await pilot.hover(button)

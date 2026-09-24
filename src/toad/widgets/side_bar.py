@@ -11,6 +11,7 @@ from textual.reactive import reactive
 from textual.widget import Widget
 
 from toad.session_tracker import SidebarState
+from toad.widgets.sidebar_viewport import SidebarHeader, SidebarViewport
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
@@ -83,7 +84,7 @@ The Sidebar contains additonal information associated with the conversation.
         if self.header_control is None:
             yield from super().compose()
         else:
-            with containers.HorizontalGroup(classes="sidebar-header"):
+            with SidebarHeader(classes="sidebar-header"):
                 yield self._title
                 yield self.header_control
             with self.Contents():
@@ -414,7 +415,7 @@ class SidebarSlider(widgets.Static, can_focus=True):
 
 
 class SidebarAction(widgets.Static, can_focus=True):
-    """One explicit move, same-edge swap or float/push action."""
+    """One spatial arrow or float/push action."""
 
     BINDINGS: ClassVar[list[BindingType]] = [
         Binding("enter,space", "activate", "Sidebar layout", show=False)
@@ -438,7 +439,7 @@ class SidebarAction(widgets.Static, can_focus=True):
     def __init__(self, action: str, label: str) -> None:
         super().__init__(label, id=f"sidebar-{action}")
         self.action = action
-        self.set_class(action in {"move", "swap"}, "-direction")
+        self.set_class(action in {"left", "right"}, "-direction")
 
     def action_activate(self) -> None:
         self.post_message(self.Pressed(self.action))
@@ -620,7 +621,7 @@ class SideBar(containers.Vertical):
         if self.id in {"channels-sidebar", "thread-sidebar"}:
             yield SidebarResizeHandle()
         navigation = self.navigation
-        with containers.VerticalScroll(id="sidebar-panels"):
+        with SidebarViewport(id="sidebar-panels"):
             for panel in self.panels:
                 yield SideBarCollapsible(
                     panel.widget,
@@ -634,8 +635,8 @@ class SideBar(containers.Vertical):
             with containers.Vertical(id="sidebar-controls"):
                 yield SidebarSlider("width", 15, 50, 40 if not self.right else 34)
                 with containers.Horizontal(id="sidebar-layout-actions"):
-                    yield SidebarAction("move", "──>" if not self.right else "<──")
-                    yield SidebarAction("swap", "<──" if not self.right else "──>")
+                    yield SidebarAction("left", "<──")
+                    yield SidebarAction("right", "──>")
                     yield SidebarAction("float", "Float")
 
     def _order_sidebars(self) -> None:
@@ -687,23 +688,19 @@ class SideBar(containers.Vertical):
             slider = controls.query_one("#sidebar-width-slider", SidebarSlider)
             slider.reversed = self.right
             slider.set_range(15, 50, placement.width_percent)
-            move = controls.query_one("#sidebar-move", SidebarAction)
-            move.update("──>" if placement.side == "left" else "<──", layout=False)
-            move.tooltip = f"Move {self.id} to the opposite side"
-            swap = controls.query_one("#sidebar-swap", SidebarAction)
-            swap.update("<──" if placement.side == "left" else "──>", layout=False)
-            swap.tooltip = "Swap the two sidebars on this side"
-            swap.display = peer is not None and peer.side == placement.side
+            directions = app.sidebar_layout.directions(self.id)
+            for direction, action in directions.items():
+                button = controls.query_one(f"#sidebar-{direction}", SidebarAction)
+                button.display = action is not None
+                button.tooltip = (f"Swap with the sidebar to the {direction}" if action == "swap"
+                                  else f"Move sidebar to the {direction}" if action == "move" else None)
             toggle_mode = controls.query_one("#sidebar-float", SidebarAction)
             toggle_mode.update("Push" if placement.floating else "Float", layout=False)
             toggle_mode.tooltip = "Push conversation text" if placement.floating else "Float over conversation text"
             actions = controls.query_one("#sidebar-layout-actions")
-            compact = swap.display and width - 4 < 21
+            compact = all(action is not None for action in directions.values()) and width - 4 < 21
             actions.set_class(compact, "-compact")
             controls.styles.height = 3 if compact else 2
-            order = (swap, move, toggle_mode) if not self.right else (move, swap, toggle_mode)
-            if tuple(actions.children) != order:
-                actions.sort_children(key=order.index)
         content = next((child for child in parent.children if not isinstance(child, SideBar)), None)
         if content is not None:
             content.styles.margin = (0, resolved.right_gutter, 0, resolved.left_gutter)
@@ -731,11 +728,8 @@ class SideBar(containers.Vertical):
         if self.id is None:
             return
         app = cast("ToadApp", self.app)
-        placement = app.sidebar_layout.get(self.id)
-        if event.action == "move":
-            app.sidebar_layout.move(self.id, "right" if placement.side == "left" else "left")
-        elif event.action == "swap":
-            app.sidebar_layout.swap(self.id)
+        if event.action in {"left", "right"}:
+            app.sidebar_layout.shift(self.id, "left" if event.action == "left" else "right")
         elif event.action == "float":
             app.sidebar_layout.float_mode(self.id)
         app.sidebar_layout_changed.publish(None)

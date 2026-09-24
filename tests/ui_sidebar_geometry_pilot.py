@@ -67,7 +67,7 @@ async def main() -> None:
                 listing.action_last()
                 await pilot.pause()
                 check(panels.scroll_y > 0, "virtual keyboard navigation must scroll the sidebar")
-            for selector in ("#sidebar-move", "#sidebar-float"):
+            for selector in ("#sidebar-right", "#sidebar-float"):
                 button = left.query_one(selector, SidebarAction)
                 app.screen.conversation.prompt.focus()
                 await pilot.hover(app.screen.query_one(TabHistoryControls))
@@ -136,8 +136,11 @@ async def main() -> None:
                 for bar in (left, right):
                     actions = bar.query_one("#sidebar-layout-actions")
                     arrows = [item.render().plain for item in actions.children
-                              if isinstance(item, SidebarAction) and item.action != "float"]
-                    check(arrows == ["<──", "──>"], "arrows must be left then right")
+                              if isinstance(item, SidebarAction) and item.action != "float" and item.display]
+                    placement = app.sidebar_layout.get(bar.id)
+                    expected = (["──>" if side == "left" else "<──"] if placement.order == 0
+                                else ["<──", "──>"])
+                    check(arrows == expected, "only spatially available arrows may be shown")
                     button = bar.query_one("#sidebar-float", SidebarAction)
                     check(app.get_widget_at(button.region.x, button.region.y)[0] is button,
                           "Float/Push must stay clickable on narrow same-side bars")
