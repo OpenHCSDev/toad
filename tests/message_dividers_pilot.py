@@ -63,6 +63,20 @@ async def main() -> None:
                 assert divider.render().cell_length == divider.size.width
                 assert ":" in divider.render().plain
 
+            for theme in ("ansi-dark", "textual-dark"):
+                app.theme = theme
+                user.scroll_visible(animate=False, immediate=True, top=True)
+                await pilot.pause()
+                divider = user.query_one(MessageDivider)
+                rows = app.screen._compositor.render_strips()
+                assert divider.region.x == user.region.x, "User divider is inset by an outer border"
+                assert rows[divider.region.y].text[user.region.x] == "─"
+                assert all(rows[y].text[user.region.x].isspace()
+                           for y in range(user.region.y, divider.region.y)), (
+                    "User accent must not extend above the divider", theme,
+                )
+                assert user.get_block_content("clipboard") == "human text"
+
             await app.open_comms_session(owner_mode=owner, project_path=root,
                                          me=app._main_session_screen(owner)._comms_thread,
                                          target="#all", kind="channel")

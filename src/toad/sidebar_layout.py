@@ -16,6 +16,19 @@ class SidebarPlacement:
     floating: bool = False
 
 
+@dataclass(frozen=True, slots=True)
+class SidebarGeometry:
+    x: int
+    width: int
+
+
+@dataclass(frozen=True, slots=True)
+class ResolvedSidebarLayout:
+    bars: dict[str, SidebarGeometry]
+    left_gutter: int
+    right_gutter: int
+
+
 class SidebarLayout:
     """Placement only; sidebar content and thread navigation retain their owners."""
 
@@ -51,6 +64,29 @@ class SidebarLayout:
         self.placements[other] = replace(self.placements[other], order=current.order)
         return True
 
+    def directions(self, identity: str) -> dict[Side, Literal["move", "swap"] | None]:
+        """Resolve spatial arrows against the current neighbors and outside wall."""
+        current = self.get(identity)
+        actions: dict[Side, Literal["move", "swap"] | None] = {"left": None, "right": None}
+        for direction in actions:
+            inward = direction != current.side
+            neighbor_order = current.order + (1 if inward else -1)
+            if any(key != identity and peer.side == current.side and peer.order == neighbor_order
+                   for key, peer in self.placements.items()):
+                actions[direction] = "swap"
+            elif inward:
+                actions[direction] = "move"
+        return actions
+
+    def shift(self, identity: str, direction: Side) -> bool:
+        """One arrow step: swap with a neighbor, cross the center, or stop at a wall."""
+        action = self.directions(identity)[direction]
+        if action == "swap":
+            return self.swap(identity)
+        if action == "move":
+            return self.move(identity, direction)
+        return False
+
     def width(self, identity: str, percentage: int) -> bool:
         if type(percentage) is not int:
             raise ValueError("Sidebar width must be an integer percentage.")
@@ -64,14 +100,44 @@ class SidebarLayout:
     def float_mode(self, identity: str) -> bool:
         current = self.get(identity)
         self.placements[identity] = replace(current, floating=not current.floating)
-        if self.placements[identity].floating and current.order == 0:
-            # A floating bar belongs inside the outer pushed bar, not over it.
-            peer = next((key for key, placement in self.placements.items()
-                         if key != identity and placement.side == current.side
-                         and not placement.floating), None)
-            if peer is not None:
-                self.swap(identity)
         return self.placements[identity].floating
+
+    def resolve(self, viewport: int, collapsed: dict[str, bool]) -> ResolvedSidebarLayout:
+        """Pack actual bar widths; Float changes only the conversation's gutter.
+
+        An inner pushed bar reserves space through its inside edge, including
+        any outer floating peer. Otherwise conversation text would overlap the
+        pushed bar. Collapsed handles always reserve their small edge extent.
+        """
+        viewport = max(0, viewport)
+        widths = {key: 3 if collapsed[key] else max(18, viewport * self.get(key).width_percent // 100)
+                  for key in self.placements if key in collapsed}
+        handles = sum(width for key, width in widths.items() if collapsed[key])
+        expanded = [key for key in widths if not collapsed[key]]
+        budget = max(viewport - 24, min(viewport, handles + 18 * len(expanded)))
+        wanted = sum(widths[key] for key in expanded)
+        available = max(0, budget - handles)
+        if wanted > available:
+            for key in expanded:
+                widths[key] = available * widths[key] // wanted
+            for key in expanded[:available - sum(widths[key] for key in expanded)]:
+                widths[key] += 1
+        if handles > viewport:
+            for key in widths:
+                widths[key] = viewport * widths[key] // handles
+        bars: dict[str, SidebarGeometry] = {}
+        gutters = {"left": 0, "right": 0}
+        for side in ("left", "right"):
+            offset = 0
+            for key in sorted((key for key in widths if self.get(key).side == side),
+                              key=lambda key: self.get(key).order):
+                width = widths[key]
+                bars[key] = SidebarGeometry(offset if side == "left" else viewport - offset - width,
+                                            width)
+                offset += width
+                if collapsed[key] or not self.get(key).floating:
+                    gutters[side] = offset
+        return ResolvedSidebarLayout(bars, gutters["left"], gutters["right"])
 
     def _renumber(self, side: Side) -> None:
         names = sorted((key for key, placement in self.placements.items()

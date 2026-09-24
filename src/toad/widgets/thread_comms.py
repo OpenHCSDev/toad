@@ -10,7 +10,6 @@ from agent_comms import ThreadSort
 from textual import on
 from textual.binding import Binding
 from textual.content import Content
-from textual.containers import VerticalScroll
 from textual.widgets import Checkbox, Static
 
 from toad.widgets.comms_sidebar import CommsRow, CommsSidebar, SelectTarget
@@ -108,7 +107,7 @@ class RelationshipRows(SidebarGroup):
         self.model = model
         self.rows: dict[tuple[str, str], RelationshipRow] = {}
         self._sync_lock = asyncio.Lock()
-        super().__init__(Static(model.title), expanded=expanded, scrollable=True,
+        super().__init__(Static(model.title), expanded=expanded, scrollable=False,
                          id=f"relationships-{model.key}")
 
     async def update_group(self, model: RelationshipGroup) -> None:
@@ -394,13 +393,10 @@ class ThreadCommsSidebar(TargetTree):
                         if entry.detail:
                             widest = max(widest, Content(entry.detail).cell_length + 8)
                 panel = self.query_ancestor(SideBarCollapsible)
-                width = max(panel.size.width, self._horizontal_width, min(widest, 512))
-                if width > self._horizontal_width:
+                width = min(widest, 512)
+                if width != self._horizontal_width:
                     self._horizontal_width = width
-                    panel.styles.width = width
-                    bar = self.query_ancestor(SideBar)
-                    bar.query_one("#sidebar-panels", VerticalScroll).styles.overflow_x = "auto"
-                    self.call_after_refresh(bar._sync_horizontal_slider)
+                    panel.styles.min_width = width
                 self._snapshot, self._revision = snapshot, revision
                 self._sync_spinner()
         except asyncio.CancelledError:

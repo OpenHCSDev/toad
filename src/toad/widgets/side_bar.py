@@ -11,6 +11,7 @@ from textual.reactive import reactive
 from textual.widget import Widget
 
 from toad.session_tracker import SidebarState
+from toad.widgets.sidebar_viewport import SidebarHeader, SidebarViewport
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
@@ -59,13 +60,12 @@ The Sidebar contains additonal information associated with the conversation.
         padding: 0;
     }
     SideBarCollapsible.-flex {
-        height: 1fr;
+        height: auto;
         min-height: 12;
     }
     SideBarCollapsible.-flex > Contents {
-        height: 1fr;
-        overflow-y: auto;
-        scrollbar-gutter: stable;
+        height: auto;
+        overflow: hidden hidden;
     }
     SideBarCollapsible.-collapsed {
         height: auto;
@@ -84,7 +84,7 @@ The Sidebar contains additonal information associated with the conversation.
         if self.header_control is None:
             yield from super().compose()
         else:
-            with containers.HorizontalGroup(classes="sidebar-header"):
+            with SidebarHeader(classes="sidebar-header"):
                 yield self._title
                 yield self.header_control
             with self.Contents():
@@ -271,7 +271,7 @@ class TabHistoryControls(containers.HorizontalGroup):
     TabHistoryControls {
         width: auto;
         height: 3;
-        margin: 0 1;
+        margin: 0;
     }
     """
 
@@ -339,7 +339,11 @@ class SidebarSlider(widgets.Static, can_focus=True):
         self.minimum = minimum
         self.maximum = maximum
         self.value = value
+        self.reversed = False
         self._dragging = False
+        self._drag_origin_x = 0
+        self._drag_width = 0
+        self._drag_reversed = False
         self.tooltip = ("Drag or use ←/→ to resize (15–50% of screen)" if kind == "width"
                         else "Drag or use ←/→ to reveal long sidebar rows")
 
@@ -352,13 +356,22 @@ class SidebarSlider(widgets.Static, can_focus=True):
         label = f"{self.value:2d}%" if self.kind == "width" else "↔"
         track = max(1, self.size.width - len(label) - 1)
         ratio = (self.value - self.minimum) / max(1, self.maximum - self.minimum)
+        if self.reversed:
+            ratio = 1 - ratio
         thumb = round(ratio * (track - 1))
-        return f"{label} " + "".join("●" if index == thumb else "─" for index in range(track))
+        line = "".join("●" if index == thumb else "─" for index in range(track))
+        return f"{line} {label}" if self.reversed else f"{label} {line}"
 
     def _choose(self, x: int) -> None:
+        width = self._drag_width if self._dragging else self.size.width
+        reverse = self._drag_reversed if self._dragging else self.reversed
         label_width = 4 if self.kind == "width" else 2
-        track = max(1, self.size.width - label_width)
+        track = max(1, width - label_width)
+        if reverse:
+            label_width = 0
         ratio = max(0.0, min(1.0, (x - label_width) / max(1, track - 1)))
+        if reverse:
+            ratio = 1 - ratio
         value = round(self.minimum + ratio * (self.maximum - self.minimum))
         if value != self.value:
             self.value = value
@@ -366,6 +379,8 @@ class SidebarSlider(widgets.Static, can_focus=True):
             self.post_message(self.Changed(self, value))
 
     def action_step(self, direction: int) -> None:
+        if self.reversed:
+            direction = -direction
         step = 1 if self.kind == "width" else max(1, self.maximum // 30)
         value = max(self.minimum, min(self.maximum, self.value + direction * step))
         if value != self.value:
@@ -377,32 +392,43 @@ class SidebarSlider(widgets.Static, can_focus=True):
         if event.button == 1:
             event.stop()
             self._dragging = True
+            # Resizing changes this track's width and, on the right, its origin.
+            # Keep one pointer mapping until release rather than undoing the
+            # chosen value on mouse-up against the newly resized track.
+            self._drag_origin_x = self.region.x
+            self._drag_width = self.size.width
+            self._drag_reversed = self.reversed
             self.capture_mouse()
-            self._choose(event.x)
+            self._choose(event.screen_x - self._drag_origin_x)
 
     def on_mouse_move(self, event: events.MouseMove) -> None:
         if self._dragging:
             event.stop()
-            self._choose(event.x)
+            self._choose(event.screen_x - self._drag_origin_x)
 
     def on_mouse_up(self, event: events.MouseUp) -> None:
         if event.button == 1 and self._dragging:
             event.stop()
-            self._choose(event.x)
+            self._choose(event.screen_x - self._drag_origin_x)
             self._dragging = False
             self.release_mouse()
 
 
 class SidebarAction(widgets.Static, can_focus=True):
-    """One explicit move, same-edge swap or float/push action."""
+    """One spatial arrow or float/push action."""
 
     BINDINGS: ClassVar[list[BindingType]] = [
         Binding("enter,space", "activate", "Sidebar layout", show=False)
     ]
     DEFAULT_CSS = """
     SidebarAction { height: 1; width: auto; padding: 0 1; color: $text-muted; pointer: pointer; }
+    SidebarAction.-direction { width: 7; content-align: center middle; text-style: bold; }
     SidebarAction:hover, SidebarAction:focus {
         color: $background; background: $foreground 80%;
+    }
+    SidebarAction:ansi { color: ansi_white; background: ansi_black; }
+    SidebarAction:ansi:hover, SidebarAction:ansi:focus {
+        color: ansi_black; background: ansi_white;
     }
     """
 
@@ -413,6 +439,7 @@ class SidebarAction(widgets.Static, can_focus=True):
     def __init__(self, action: str, label: str) -> None:
         super().__init__(label, id=f"sidebar-{action}")
         self.action = action
+        self.set_class(action in {"left", "right"}, "-direction")
 
     def action_activate(self) -> None:
         self.post_message(self.Pressed(self.action))
@@ -421,6 +448,67 @@ class SidebarAction(widgets.Static, can_focus=True):
         if event.button == 1:
             event.stop()
             self.action_activate()
+
+
+class SidebarResizeHandle(widgets.Static, can_focus=True):
+    """Drag the conversation-facing edge; the placement model owns the width."""
+
+    DEFAULT_CSS = """
+    SidebarResizeHandle {
+        dock: right; width: 1; height: 1fr; padding: 0;
+        color: $success; pointer: ew-resize;
+    }
+    SidebarResizeHandle:hover, SidebarResizeHandle:focus { color: white; }
+    SidebarResizeHandle:ansi { color: ansi_green; }
+    SidebarResizeHandle:ansi:hover, SidebarResizeHandle:ansi:focus { color: ansi_white; }
+    """
+    BINDINGS = [Binding("left", "resize(-1)", "Resize left", show=False),
+                Binding("right", "resize(1)", "Resize right", show=False)]
+
+    def __init__(self) -> None:
+        super().__init__(id="sidebar-resize-handle")
+        self.tooltip = "Drag toward the center to widen the sidebar"
+        self._dragging = False
+        self._start_x = 0
+        self._start_width = 0
+
+    def render(self) -> str:
+        return "\n".join("│" for _ in range(self.size.height))
+
+    def _resize(self, screen_x: int) -> None:
+        bar = self.query_ancestor(SideBar)
+        if bar.id is None or bar.parent is None:
+            return
+        app = cast("ToadApp", self.app)
+        direction = -1 if app.sidebar_layout.get(bar.id).side == "right" else 1
+        width = self._start_width + direction * (screen_x - self._start_x)
+        percent = round(100 * width / max(1, bar.parent.size.width))
+        if app.sidebar_layout.width(bar.id, percent):
+            app.sidebar_layout_changed.publish(None)
+
+    def action_resize(self, direction: int) -> None:
+        bar = self.query_ancestor(SideBar)
+        bar.query_one("#sidebar-width-slider", SidebarSlider).action_step(direction)
+
+    def on_mouse_down(self, event: events.MouseDown) -> None:
+        if event.button == 1:
+            event.stop()
+            self._dragging = True
+            self._start_x = event.screen_x
+            self._start_width = self.query_ancestor(SideBar).size.width
+            self.capture_mouse()
+
+    def on_mouse_move(self, event: events.MouseMove) -> None:
+        if self._dragging:
+            event.stop()
+            self._resize(event.screen_x)
+
+    def on_mouse_up(self, event: events.MouseUp) -> None:
+        if event.button == 1 and self._dragging:
+            event.stop()
+            self._resize(event.screen_x)
+            self._dragging = False
+            self.release_mouse()
 
 
 class SideBar(containers.Vertical):
@@ -437,38 +525,39 @@ class SideBar(containers.Vertical):
         width: 40;
         min-width: 40;
         max-width: 45%;
-        border-right: tall $primary 30%;
-    }
-    SideBar:ansi {
-        border-right: tall ansi_bright_black;
+        border: none;
     }
     SideBar > #sidebar-panels {
         width: 1fr;
         height: 1fr;
-        margin-left: 3;
+        margin: 0 1 0 3;
         layer: sidebar-content;
-        overflow-y: auto;
+        overflow: auto auto;
         scrollbar-size: 1 1;
         scrollbar-gutter: stable;
     }
     SideBar > #sidebar-controls {
         width: 1fr;
-        height: 3;
-        margin-left: 3;
+        height: 2;
+        margin: 0 1 0 3;
         layer: sidebar-content;
         background: $background;
     }
-    SideBar #sidebar-layout-actions { height: 1; width: 1fr; }
+    SideBar #sidebar-layout-actions { height: 1; width: 1fr; overflow: hidden hidden; }
+    SideBar #sidebar-layout-actions.-compact {
+        layout: grid; grid-size: 2; grid-columns: 1fr 1fr; height: 2;
+    }
+    SideBar #sidebar-layout-actions.-compact > #sidebar-float { column-span: 2; width: 1fr; }
     SideBar.-right {
         dock: right;
         width: 34;
         min-width: 28;
         border-right: none;
-        border-left: tall $primary 30%;
+        border-left: none;
     }
     SideBar.-right > SideBarToggle { dock: right; }
-    SideBar.-right > #sidebar-panels { margin-left: 0; margin-right: 3; }
-    SideBar.-right > #sidebar-controls { margin-left: 0; margin-right: 3; }
+    SideBar.-right > SidebarResizeHandle { dock: left; }
+    SideBar.-right > #sidebar-panels, SideBar.-right > #sidebar-controls { margin: 0 3 0 1; }
     """
 
     collapsed = reactive(False)
@@ -529,8 +618,10 @@ class SideBar(containers.Vertical):
 
     def compose(self) -> ComposeResult:
         yield SideBarToggle(self.collapsed, right=self.right)
+        if self.id in {"channels-sidebar", "thread-sidebar"}:
+            yield SidebarResizeHandle()
         navigation = self.navigation
-        with containers.VerticalScroll(id="sidebar-panels"):
+        with SidebarViewport(id="sidebar-panels"):
             for panel in self.panels:
                 yield SideBarCollapsible(
                     panel.widget,
@@ -544,10 +635,9 @@ class SideBar(containers.Vertical):
             with containers.Vertical(id="sidebar-controls"):
                 yield SidebarSlider("width", 15, 50, 40 if not self.right else 34)
                 with containers.Horizontal(id="sidebar-layout-actions"):
-                    yield SidebarAction("move", "→" if not self.right else "←")
-                    yield SidebarAction("swap", "⇄")
+                    yield SidebarAction("left", "<──")
+                    yield SidebarAction("right", "──>")
                     yield SidebarAction("float", "Float")
-                yield SidebarSlider("horizontal", 0, 0, 0)
 
     def _order_sidebars(self) -> None:
         parent = self.parent
@@ -561,39 +651,23 @@ class SideBar(containers.Vertical):
             parent.sort_children(key=lambda child: order.get(child.id, len(order)))
             parent.refresh(layout=True)
 
-    def _content_gutters(self) -> None:
-        """Same-edge docks overlap natively; reserve only their missing gutter."""
-        parent = self.parent
-        if parent is None:
-            return
-        siblings = [child for child in parent.children if isinstance(child, SideBar)]
-        content = next((child for child in parent.children if not isinstance(child, SideBar)), None)
-        if content is None:
-            return
-        app = cast("ToadApp", self.app)
-        extra: dict[str, int] = {}
-        for side in ("left", "right"):
-            widths = [int(bar.styles.width.value)
-                      for bar in siblings if bar.id in app.sidebar_layout.placements
-                      and app.sidebar_layout.get(bar.id).side == side
-                      and (bar.collapsed or not app.sidebar_layout.get(bar.id).floating)]
-            extra[side] = sum(widths) - max(widths) if widths else 0
-        content.styles.margin = (0, extra["right"], 0, extra["left"])
-
     def _apply_layout(self) -> bool:
         app = cast("ToadApp", self.app)
         if self.id not in app.sidebar_layout.placements or not self.is_mounted:
             return False
         placement = app.sidebar_layout.get(self.id)
-        other = next((sidebar for sidebar in self.parent.query(SideBar)
-                      if sidebar is not self and sidebar.parent is self.parent), None)
+        parent = self.parent
+        if parent is None:
+            return False
+        siblings = {bar.id: bar for bar in parent.children if isinstance(bar, SideBar)
+                    and bar.id in app.sidebar_layout.placements}
+        other = next((bar for bar in siblings.values() if bar is not self), None)
         peer = app.sidebar_layout.get(other.id) if other is not None else None
-        viewport = max(1, app.size.width)
-        peer_width = (0 if peer is None or peer.floating else
-                      3 if other.collapsed else max(18, viewport * peer.width_percent // 100))
-        width = max(18, min(viewport // 2, viewport * placement.width_percent // 100,
-                            max(18, viewport - 24 - peer_width)))
-        key = (placement, width, viewport, peer_width, self.collapsed)
+        viewport = parent.size.width or app.size.width
+        resolved = app.sidebar_layout.resolve(viewport, {key: bar.collapsed for key, bar in siblings.items()})
+        geometry = resolved.bars[self.id]
+        width = geometry.width
+        key = (placement, peer, geometry, resolved.left_gutter, resolved.right_gutter, self.collapsed)
         if key == self._presented_layout:
             return False
         self._presented_layout = key
@@ -602,44 +676,34 @@ class SideBar(containers.Vertical):
         if toggle := self.query_one_optional(SideBarToggle):
             toggle.right = self.right
             toggle.set_collapsed(self.collapsed)
-        self.styles.width = 3 if self.collapsed else width
-        self.styles.min_width = 3 if self.collapsed else min(18, width)
-        self.styles.max_width = 3 if self.collapsed else width
-        if placement.floating and not self.collapsed:
-            self.styles.dock = "none"
-            self.styles.position = "absolute"
-            self.styles.overlay = "screen"
-            if placement.side == "left":
-                outer = (max(18, viewport * peer.width_percent // 100)
-                         if peer and peer.side == "left" and placement.order == 1 else 0)
-                self.offset = (outer, 0)
-            else:
-                outer = (max(18, viewport * peer.width_percent // 100)
-                         if peer and peer.side == "right" and placement.order == 1 else 0)
-                self.offset = (max(0, viewport - outer - width), 0)
-        else:
-            self.styles.dock = placement.side
-            self.styles.position = None
-            self.styles.overlay = None
-            outer_width = (
-                3 if other.collapsed else
-                max(18, min(viewport // 2, viewport * peer.width_percent // 100))
-            ) if peer and peer.side == placement.side and placement.order == 1 else 0
-            self.offset = (outer_width if placement.side == "left" else -outer_width, 0)
+        self.styles.width = self.styles.min_width = self.styles.max_width = width
+        self.styles.dock = "none"
+        self.styles.position = "absolute"
+        self.styles.overlay = "screen"
+        self.offset = (geometry.x, 0)
+        if handle := self.query_one_optional(SidebarResizeHandle):
+            handle.display = not self.collapsed
         if controls := self.query_one_optional("#sidebar-controls"):
             controls.display = not self.collapsed
-            controls.query_one("#sidebar-width-slider", SidebarSlider).set_range(
-                15, 50, placement.width_percent
-            )
-            move = controls.query_one("#sidebar-move", SidebarAction)
-            move.update("→" if placement.side == "left" else "←", layout=False)
-            move.tooltip = f"Move {self.id} to the opposite side"
-            controls.query_one("#sidebar-swap", SidebarAction).display = (
-                peer is not None and peer.side == placement.side
-            )
+            slider = controls.query_one("#sidebar-width-slider", SidebarSlider)
+            slider.reversed = self.right
+            slider.set_range(15, 50, placement.width_percent)
+            directions = app.sidebar_layout.directions(self.id)
+            for direction, action in directions.items():
+                button = controls.query_one(f"#sidebar-{direction}", SidebarAction)
+                button.display = action is not None
+                button.tooltip = (f"Swap with the sidebar to the {direction}" if action == "swap"
+                                  else f"Move sidebar to the {direction}" if action == "move" else None)
             toggle_mode = controls.query_one("#sidebar-float", SidebarAction)
             toggle_mode.update("Push" if placement.floating else "Float", layout=False)
-        self._content_gutters()
+            toggle_mode.tooltip = "Push conversation text" if placement.floating else "Float over conversation text"
+            actions = controls.query_one("#sidebar-layout-actions")
+            compact = all(action is not None for action in directions.values()) and width - 4 < 21
+            actions.set_class(compact, "-compact")
+            controls.styles.height = 3 if compact else 2
+        content = next((child for child in parent.children if not isinstance(child, SideBar)), None)
+        if content is not None:
+            content.styles.margin = (0, resolved.right_gutter, 0, resolved.left_gutter)
         return True
 
     def _layout_changed(self, _update: None) -> None:
@@ -657,8 +721,6 @@ class SideBar(containers.Vertical):
             app = cast("ToadApp", self.app)
             if app.sidebar_layout.width(self.id, event.value):
                 app.sidebar_layout_changed.publish(None)
-        elif event.slider.kind == "horizontal":
-            self.scroll_horizontally(event.value)
 
     @on(SidebarAction.Pressed)
     def on_sidebar_action(self, event: SidebarAction.Pressed) -> None:
@@ -666,37 +728,11 @@ class SideBar(containers.Vertical):
         if self.id is None:
             return
         app = cast("ToadApp", self.app)
-        placement = app.sidebar_layout.get(self.id)
-        if event.action == "move":
-            app.sidebar_layout.move(self.id, "right" if placement.side == "left" else "left")
-        elif event.action == "swap":
-            app.sidebar_layout.swap(self.id)
+        if event.action in {"left", "right"}:
+            app.sidebar_layout.shift(self.id, "left" if event.action == "left" else "right")
         elif event.action == "float":
             app.sidebar_layout.float_mode(self.id)
         app.sidebar_layout_changed.publish(None)
-
-    def scroll_horizontally(self, offset: int) -> None:
-        from toad.widgets.virtual_channel_list import VirtualChannelList
-
-        if listing := self.query_one_optional(VirtualChannelList):
-            listing.set_horizontal_offset(offset)
-        else:
-            self.query_one("#sidebar-panels", containers.VerticalScroll).scroll_to(
-                x=offset, animate=False, immediate=True
-            )
-        self._sync_horizontal_slider()
-
-    def _sync_horizontal_slider(self) -> None:
-        from toad.widgets.virtual_channel_list import VirtualChannelList
-
-        slider = self.query_one_optional("#sidebar-horizontal-slider", SidebarSlider)
-        if slider is None:
-            return
-        if listing := self.query_one_optional(VirtualChannelList):
-            slider.set_range(0, listing.horizontal_max, listing.horizontal_offset)
-        else:
-            panels = self.query_one("#sidebar-panels", containers.VerticalScroll)
-            slider.set_range(0, int(panels.max_scroll_x), int(panels.scroll_x))
 
     @on(widgets.Collapsible.Collapsed)
     @on(widgets.Collapsible.Expanded)

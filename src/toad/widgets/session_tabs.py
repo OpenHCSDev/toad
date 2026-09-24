@@ -158,13 +158,15 @@ class SessionsTabs(Widget):
 
     def on_mount(self) -> None:
         self._spinner_timer = self.set_interval(.18, self._animate_busy, pause=True)
-        self._last_tabs = self.app.open_tabs
+        # Metadata can arrive after compose built the labels. Keep that exact
+        # rendered snapshot as the cache, then reconcile the mounted widgets.
         self.current_session = self.app.current_mode
         self.app.mode_change_signal.subscribe(self, self.handle_mode_change)
         self.app.session_update_signal.subscribe(
             self, self.handle_session_update_signal
         )
         self.app.open_tabs_changed.subscribe(self, self._tabs_changed)
+        self.call_later(self._sync_tabs)
         self.update_underline(self.current_session, animate=False)
         self.call_after_refresh(self.update_underline, self.current_session)
         self._sync_spinner(self.app.open_tabs)
@@ -218,8 +220,10 @@ class SessionsTabs(Widget):
         return Content(title)
 
     def compose(self) -> ComposeResult:
+        tabs = self.app.open_tabs
+        self._last_tabs = tabs
         with containers.HorizontalGroup(id="title-container"):
-            for session in self.app.open_tabs:
+            for session in tabs:
                 yield SessionLabel(
                     self.render_session_label(session),
                     id=session.mode_name,

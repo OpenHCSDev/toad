@@ -15,7 +15,7 @@ class UserInput(containers.VerticalGroup):
 
     def compose(self) -> ComposeResult:
         yield MessageDivider("User")
-        with containers.HorizontalGroup():
+        with containers.HorizontalGroup(classes="user-input-body"):
             yield NonSelectableLabel("❯", id="prompt")
             yield ConversationMarkdown(self.content, id="content")
 

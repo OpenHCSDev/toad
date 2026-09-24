@@ -1082,7 +1082,8 @@ class Agent(AgentBase):
 
         if self.supports_load_session:
             db = DB()
-            session_name = "New Session"
+            session_name = (self._pending_session_name if self._pending_session_name is not None
+                            else self._initial_session_title(response) or "New Session")
             self.session_pk = await db.session_new(
                 session_name,
                 self._agent_data["name"],
@@ -1110,7 +1111,7 @@ class Agent(AgentBase):
             }
             self.post_message(messages.SetModes(current_mode, modes_update))
         self._publish_models(response)
-        self._publish_coordination_metadata(response)
+        self._publish_coordination_metadata(response, initial=True)
 
     async def acp_load_session(self) -> None:
         assert self.session_id is not None, "Session id must be set"
@@ -1141,7 +1142,7 @@ class Agent(AgentBase):
             }
             self.post_message(messages.SetModes(current_mode, modes_update))
         self._publish_models(response)
-        self._publish_coordination_metadata(response)
+        self._publish_coordination_metadata(response, initial=True)
 
     def _publish_models(self, response: Mapping[str, object]) -> None:
         """Publish model and thinking-level config options, with legacy fallback."""
@@ -1223,7 +1224,26 @@ class Agent(AgentBase):
         if current in models:
             self.post_message(messages.SetModels(current, models))
 
-    def _publish_coordination_metadata(self, response: Mapping[str, object]) -> None:
+    @staticmethod
+    def _initial_session_title(response: Mapping[str, object]) -> str | None:
+        """Opening metadata owns the display title, with canonical identity as fallback."""
+        metadata = response.get("_meta")
+        if not isinstance(metadata, dict):
+            return None
+        coordination = metadata.get("agentComms")
+        if (not isinstance(coordination, dict)
+                or not isinstance(coordination.get("thread"), str)
+                or not isinstance(coordination.get("wireRoot"), str)):
+            return None
+        for field in ("title", "thread"):
+            value = coordination.get(field)
+            if isinstance(value, str) and value.strip():
+                return value
+        return None
+
+    def _publish_coordination_metadata(
+        self, response: Mapping[str, object], *, initial: bool = False,
+    ) -> None:
         metadata = response.get("_meta")
         if not isinstance(metadata, dict):
             return
@@ -1243,7 +1263,10 @@ class Agent(AgentBase):
         self.server_titles = coordination.get("autoTitle") is True
         self.supports_prompt_queue = coordination.get("promptQueue") is True
         self.supports_prompt_images = coordination.get("imagePrompts") is True
-        if isinstance(title := coordination.get("title"), str):
+        pending_name = self._pending_session_name
+        title = (pending_name if pending_name is not None else
+                 self._initial_session_title(response) if initial else coordination.get("title"))
+        if isinstance(title, str):
             self.post_message(messages.SessionInfoUpdate(title))
         self._coordination_owner_pid = coordination.get("ownerPid")
         self._coordination_persistence = str(
@@ -1252,7 +1275,6 @@ class Agent(AgentBase):
         self._coordination_transport = str(
             coordination.get("transport", "per-session stdio ACP")
         )
-        pending_name = getattr(self, "_pending_session_name", None)
         if pending_name:
             self._rename_coordination_thread(pending_name)
             self._pending_session_name = None

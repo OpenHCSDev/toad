@@ -35,21 +35,14 @@ class SessionView(Screen):
     _resume_styles_changed = False
 
     def align_tabs_to_sidebars(self) -> None:
-        """Align native tabs with the sum of pushed left-edge sidebar widths."""
+        """The navigation row spans the screen, independent of sidebar placement."""
         from textual.containers import Horizontal
-
-        from toad.widgets.side_bar import SideBar
 
         header = self.query_one_optional("#tab-navigation-header", Horizontal)
         if header is None:
             return
-        left = sum(
-            int(sidebar.styles.width.resolve(self.size, self.app.size))
-            for sidebar in self.query(SideBar)
-            if sidebar.styles.dock == "left"
-        )
-        if header.styles.padding.left != left:
-            header.styles.padding = (0, 0, 0, left)
+        if header.styles.padding.left:
+            header.styles.padding = 0
 
     def _style_revision(self) -> ViewStyleRevision:
         return ViewStyleRevision(
