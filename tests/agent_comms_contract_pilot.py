@@ -9,7 +9,7 @@ from unittest.mock import patch
 from agent_comms import Comms, Goal, MessageRoute, TranscriptCursor, TranscriptPage, wire
 
 from toad.acp.agent import Agent
-from toad.acp.messages import Update
+from toad.acp.messages import CoordinationUpdate, Update
 
 
 async def main() -> None:
@@ -36,6 +36,21 @@ async def main() -> None:
         )
         assert len(sent) == 1 and isinstance(sent[0], Update)
         assert sent[0].route == route
+
+        sent.clear()
+        agent.rpc_session_update(
+            "session",
+            {
+                "sessionUpdate": "agent_message_chunk",
+                "content": {"type": "text", "text": ""},
+                "_meta": {"agentComms": {
+                    "thread": "worker", "wireRoot": str(root / "wire"),
+                    "inputDisposition": {"status": "unknown", "sequence": 1},
+                }},
+            },
+        )
+        assert any(isinstance(message, CoordinationUpdate) for message in sent)
+        assert not any(isinstance(message, Update) for message in sent)
 
         captured = []
 
