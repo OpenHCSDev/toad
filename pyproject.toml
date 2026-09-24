@@ -5,7 +5,7 @@ description = "A unified experience for AI in your terminal."
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
-    "textual[syntax]==8.2.7",
+    "textual[syntax]==8.2.8",
     "click==8.4.0",
     "httpx==0.28.1",
     "platformdirs==4.9.6",
@@ -37,6 +37,7 @@ persistent-renderer = ["zmqruntime==0.2.24"]
 
 [tool.uv.sources]
 agent-comms = { git = "https://github.com/OpenHCSDev/agent-comms.git", rev = "aa18e45c6ffe93f5c225c1a495645b658115a281" }
+textual = { git = "https://github.com/OpenHCSDev/textual.git", rev = "1552bfdba6aa79d80e53cd88c01884148125dba6" }
 #textual-serve = { path = "../textual-serve", editable = true }
 #textual = { path = "../textual", editable = true }
 #textual-dev = { path = "../textual-dev", editable = true }
