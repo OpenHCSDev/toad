@@ -23,6 +23,10 @@ class AgentMessage(Message):
     """Base class for agent messages."""
 
 
+class RejectedSessionUpdate(AgentMessage):
+    """An invalid ACP notification was logged and excluded from the conversation."""
+
+
 @dataclass
 class PromptQueueUpdate(AgentMessage):
     queued: list[str]

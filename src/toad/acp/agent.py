@@ -11,6 +11,7 @@ from copy import deepcopy
 from math import floor
 import rich.repr
 from agent_comms import Comms, Goal, TranscriptCursor, TranscriptPage, MessageRoute
+from pydantic import ValidationError
 
 from textual.content import Content
 from textual.message import Message
@@ -25,6 +26,7 @@ from toad.acp import protocol
 from toad.acp import api
 from toad.acp.api import API
 from toad.acp import messages
+from toad.acp.sdk_boundary import validate_session_update
 from toad.acp.prompt import build as build_prompt
 from toad.db import DB
 from toad import paths
@@ -301,13 +303,23 @@ class Agent(AgentBase):
     def rpc_session_update(
         self,
         sessionId: str,
-        update: protocol.SessionUpdate,
+        update: Any,
         _meta: dict[str, Any] | None = None,
     ):
         """Agent requests an update.
 
         https://agentclientprotocol.com/protocol/schema
         """
+
+        try:
+            update = validate_session_update(sessionId, update, _meta)
+        except ValidationError as error:
+            self.log(
+                f"[ACP rejected session/update] raw={{'sessionId': {sessionId!r}, "
+                f"'update': {update!r}, '_meta': {_meta!r}}}; validation={error}"
+            )
+            self.post_message(messages.RejectedSessionUpdate())
+            return
 
         metadata = update.get("_meta")
         route: MessageRoute | None = None
