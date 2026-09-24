@@ -7,7 +7,6 @@ fabricating a manual /compact command or inferring compaction from usage reset.
 """
 
 import asyncio
-import json
 import os
 from pathlib import Path
 import tempfile
@@ -45,8 +44,6 @@ async def main():
             AGENT_COMMS_ROOT=str(root / "wire"),
         )
         records = [
-            {"type": "response", "id": "agent-comms-prompt", "command": "prompt", "success": True},
-            {"type": "message_start", "message": {"role": "user", "content": "task"}},
             {"type": "message_end", "message": {"role": "assistant", "stopReason": "toolUse"}},
             {"type": "tool_execution_start", "toolCallId": "tool-1", "toolName": "bash", "args": {}},
             {"type": "tool_execution_end", "toolCallId": "tool-1", "toolName": "bash",
@@ -62,9 +59,27 @@ async def main():
              "data": {"contextUsage": {"tokens": None, "contextWindow": 272000}}},
         ]
         stub = root / "pi-rpc-fixture"
-        stub.write_text("#!/bin/sh\ncat <<'AUTO_COMPACTION_RPC'\n"
-                        + "\n".join(json.dumps(row) for row in records)
-                        + "\nAUTO_COMPACTION_RPC\n")
+        stub.write_text(
+            "#!/usr/bin/env python3\n"
+            + f"CAPABILITY = {backend.NATIVE_INPUT_CAPABILITY!r}\n"
+            + f"RECORDS = {records!r}\n"
+            + """import json
+import sys
+
+def emit(value):
+    print(json.dumps(value), flush=True)
+
+preflight = json.loads(sys.stdin.readline())
+emit({"type": "response", "id": preflight["id"], "command": "get_state",
+      "success": True, "data": {"nativeInputProofCapability": CAPABILITY}})
+prompt = json.loads(sys.stdin.readline())
+emit({"type": "response", "id": prompt["id"], "command": "prompt", "success": True})
+emit({"type": "message_start", "message": {"role": "user",
+      "content": prompt["message"], "inputId": prompt["inputId"]}})
+for record in RECORDS:
+    emit(record)
+"""
+        )
         stub.chmod(0o700)
         events = [event async for event in backend.stream_agent_events(
             str(stub), [], "task", str(root)
@@ -75,7 +90,7 @@ async def main():
         assert start is not None and start.get("reason") == "threshold", (
             "Backend swallowed Pi's automatic compaction_start before ACP: "
             + repr([e.get("type") for e in events]))
-        assert end is not None and end.get("result", {}).get("summary") == SUMMARY, (
+        assert end is not None and end.get("summary") == SUMMARY, (
             "Backend swallowed Pi's automatic compaction_end summary before ACP: "
             + repr([e.get("type") for e in events]))
 

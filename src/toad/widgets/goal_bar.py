@@ -95,6 +95,6 @@ class GoalBar(VerticalGroup):
             progress = self.query_one(".goal-progress", Static)
             progress.update(goal.progress)
             progress.display = bool(goal.progress)
-            self.query_one("#goal-toggle", Static).update(
-                goal.toggle_label
-            )
+            toggle = self.query_one("#goal-toggle", Static)
+            toggle.update(goal.toggle_label)
+            toggle.display = goal.status != "completed"
