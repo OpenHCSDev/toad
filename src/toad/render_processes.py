@@ -11,7 +11,12 @@ from collections.abc import Callable
 from concurrent.futures import ProcessPoolExecutor
 import multiprocessing
 import os
-from typing import Any, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
+
+from toad.render_backend import Renderer
+
+if TYPE_CHECKING:
+    from toad.render_tasks import RenderTask
 
 
 Result = TypeVar("Result")
@@ -23,7 +28,7 @@ def _initialize_worker() -> None:
     os.environ.pop("AGENT_COMMS_THREAD", None)
 
 
-class RenderProcessPool:
+class RenderProcessPool(Renderer):
     """A lazy, single-event-loop process pool with bounded submitted work.
 
     ``max_pending`` includes both queued and running jobs, even when their
@@ -109,6 +114,12 @@ class RenderProcessPool:
         future.add_done_callback(self._finished)
         await asyncio.wait((future,))
         return future.result()
+
+    async def submit(self, task: "RenderTask[Result]") -> Result:
+        """Submit a typed rendering operation to the persistent app-owned pool."""
+        from toad.render_tasks import execute_render_task
+
+        return await self.run(execute_render_task, task)
 
     async def aclose(self) -> None:
         """Asynchronously join this pool; safe to call concurrently or repeatedly."""

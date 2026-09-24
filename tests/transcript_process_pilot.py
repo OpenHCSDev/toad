@@ -45,13 +45,16 @@ class ObservedPool(RenderProcessPool):
         self.release.clear()
 
     async def run(self, function, *args):
-        assert function is transcript_fragments
-        assert len(args) == 1 and all(isinstance(event, TranscriptEvent) for event in args[0])
+        from toad.render_tasks import TranscriptRenderTask, execute_render_task
+
+        assert function is execute_render_task
+        assert len(args) == 1 and isinstance(args[0], TranscriptRenderTask)
+        events = args[0].events
         if self.app is not None:
             window = self.app.screen.conversation.window
             assert not self.app._batch_count
             assert window.history_anchor is None and not window.history_lock.locked()
-        pid, started, finished, result = await super().run(observed_parse, function, *args)
+        pid, started, finished, result = await super().run(observed_parse, transcript_fragments, events)
         self.observations.append((pid, started, finished))
         self.entered.set()
         await self.release.wait()

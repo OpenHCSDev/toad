@@ -9,7 +9,8 @@ from unittest.mock import patch
 from agent_comms.tool_results import ToolDiff, tool_result_content
 from runtime_fixture import ToadApp
 from tool_diff_fixture import wait_for_tool_diff
-from toad.widgets.patch_diff import PatchDiffView, prepare_patch
+from toad.widgets.patch_diff import PatchDiffView
+from toad.render_tasks import execute_render_task
 from toad.widgets.tool_call import ToolCall, ToolCallDiff
 
 PATCH = "--- x.py\n+++ x.py\n@@ -1,2 +1,2 @@\n context\n-old = 1\n+new = 2\n"
@@ -25,9 +26,12 @@ class ControlledPool:
         await asyncio.wait((future,))
         return future.result()
 
+    async def submit(self, task):
+        return await self.run(execute_render_task, task)
+
     def complete(self, index):
         function, args, future = self.requests[index]
-        assert function is prepare_patch
+        assert function is execute_render_task
         future.set_result(function(*args))
 
     async def aclose(self):

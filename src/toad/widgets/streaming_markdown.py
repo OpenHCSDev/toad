@@ -6,6 +6,9 @@ import asyncio
 from collections.abc import Callable
 from typing import TYPE_CHECKING
 
+from markdown_it import MarkdownIt
+from markdown_it.token import Token
+
 from agent_comms import TranscriptCursor, TranscriptEvent, TranscriptPage
 from textual.await_complete import AwaitComplete
 from textual.widgets.markdown import MarkdownStream
@@ -13,6 +16,7 @@ from textual.widget import Widget
 from textual.app import ComposeResult
 
 from toad.widgets.prepared_markdown import PreparedConversationMarkdown
+from toad.conversation_markdown import _ThreadLocalPathParser
 from toad.widgets.transcript_fragments import prepare_transcript_fragments
 
 if TYPE_CHECKING:
@@ -45,7 +49,9 @@ class StreamingMarkdown(PreparedConversationMarkdown):
     def append(self, markdown: str) -> AwaitComplete:
         return AwaitComplete(self._update_content(markdown, append=True))
 
-    async def _parse_tokens(self, parser, markdown: str, *, use_thread: bool):
+    async def _parse_tokens(
+        self, parser: MarkdownIt | _ThreadLocalPathParser, markdown: str, *, use_thread: bool,
+    ) -> list[Token] | None:
         generation = self._content_generation
         tokens = await super()._parse_tokens(parser, markdown, use_thread=use_thread)
         if tokens is None or self._closing or generation != self._content_generation:

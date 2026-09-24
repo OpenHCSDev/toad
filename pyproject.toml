@@ -32,6 +32,9 @@ dependencies = [
 [tool.uv.workspace]
 members = ["toad"]
 
+[project.optional-dependencies]
+persistent-renderer = ["zmqruntime==0.2.24"]
+
 [tool.uv.sources]
 agent-comms = { git = "https://github.com/OpenHCSDev/agent-comms.git", rev = "aa18e45c6ffe93f5c225c1a495645b658115a281" }
 #textual-serve = { path = "../textual-serve", editable = true }

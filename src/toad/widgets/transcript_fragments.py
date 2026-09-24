@@ -9,7 +9,7 @@ from agent_comms import TranscriptEvent
 from markdown_it import MarkdownIt
 
 if TYPE_CHECKING:
-    from toad.render_processes import RenderProcessPool
+    from toad.render_backend import Renderer
 
 # Bound foreground work by input size, not by a timer after parsing has blocked.
 FOREGROUND_CHARACTER_BUDGET = 8192
@@ -30,7 +30,7 @@ def _fragment_parser() -> MarkdownIt:
 
 
 async def prepare_transcript_fragments(
-    events: tuple[TranscriptEvent, ...], pool: "RenderProcessPool | None" = None,
+    events: tuple[TranscriptEvent, ...], pool: "Renderer | None" = None,
 ) -> tuple["TranscriptFragment", ...]:
     """Prepare plain model data; never send widgets or application state to workers.
 
@@ -40,13 +40,15 @@ async def prepare_transcript_fragments(
     if (len(events) <= FOREGROUND_EVENT_BUDGET
             and sum(len(event.text) for event in events) <= FOREGROUND_CHARACTER_BUDGET):
         return transcript_fragments(events)
+    from toad.render_tasks import TranscriptRenderTask
+
     if pool is not None:
-        return await pool.run(transcript_fragments, events)
+        return await pool.submit(TranscriptRenderTask(events))
     from toad.render_processes import RenderProcessPool
 
     owned_pool = RenderProcessPool()
     try:
-        return await owned_pool.run(transcript_fragments, events)
+        return await owned_pool.submit(TranscriptRenderTask(events))
     finally:
         await owned_pool.aclose()
 

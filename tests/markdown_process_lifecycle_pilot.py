@@ -9,6 +9,7 @@ from unittest.mock import patch
 from runtime_fixture import ToadApp
 from textual.widgets._markdown import MarkdownFence
 from toad.widgets.agent_response import AgentResponse
+from toad.render_tasks import execute_render_task
 
 
 class ControlledPool:
@@ -20,6 +21,9 @@ class ControlledPool:
         self.requests.append((function, args, future))
         await asyncio.wait((future,))
         return future.result()
+
+    async def submit(self, task):
+        return await self.run(execute_render_task, task)
 
     def complete(self, index):
         function, args, future = self.requests[index]

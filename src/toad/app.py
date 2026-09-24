@@ -35,6 +35,7 @@ from toad.settings_schema import SCHEMA
 from toad.version import VersionMeta
 from toad import paths
 from toad import atomic
+from toad.render_backend import Renderer, create_renderer
 from toad.session_tracker import SessionTracker, SessionDetails, OpenTab, CommsViewKey, SidebarState
 
 if TYPE_CHECKING:
@@ -312,6 +313,7 @@ class ToadApp(App, inherit_bindings=False):
         project_dir: str | None = None,
         mode: str | None = None,
         agent_session_id: str | None = None,
+        renderer: Renderer | None = None,
     ) -> None:
         """Toad app.
 
@@ -320,11 +322,9 @@ class ToadApp(App, inherit_bindings=False):
             project_dir: Project directory.
             mode: Initial mode.
             agent: Agent identity or shor name.
+            renderer: Optional renderer client; this app owns and closes it.
         """
-        from toad.render_processes import RenderProcessPool
-
-        RenderProcessPool.prepare_spawn()
-        self.render_processes = RenderProcessPool()
+        self.render_processes: Renderer = create_renderer() if renderer is None else renderer
         self.settings_changed_signal: Signal[tuple[int, object]] = Signal(
             self, "settings_changed"
         )

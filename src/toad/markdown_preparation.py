@@ -25,7 +25,7 @@ class PreparedMarkdown:
 
 
 def prepare_tokens(tokens: list[Token], ansi: bool, dark: bool) -> PreparedMarkdown:
-    fences = {}
+    fences: dict[FenceKey, PreparedFence] = {}
     for token in tokens:
         if token.type in {"fence", "code_block"}:
             code = token.content.rstrip()

@@ -68,7 +68,7 @@ class ToolCallDiff(containers.VerticalGroup):
         self._prepared_patch: PreparedPatch | None = None
         self._requested_theme: tuple[bool, bool] | None = None
         self._preparation_generation = 0
-        self._preparation_worker: Worker | None = None
+        self._preparation_worker: Worker[None] | None = None
         self._visibility_signal: Signal[Screen] | None = None
         self._presentable = False
         self.prepared = asyncio.Event()
@@ -123,10 +123,10 @@ class ToolCallDiff(containers.VerticalGroup):
         )
 
     async def _prepare(self, generation: int, source: str, theme: tuple[bool, bool]) -> None:
-        from toad.widgets.patch_diff import prepare_patch
+        from toad.render_tasks import PatchRenderTask
 
         try:
-            prepared = await self.app.render_processes.run(prepare_patch, source, *theme)
+            prepared = await self.app.render_processes.submit(PatchRenderTask(source, *theme))
             if (generation != self._preparation_generation or self.patch != source
                     or not self.is_attached or self._pruning):
                 return
@@ -141,7 +141,7 @@ class ToolCallDiff(containers.VerticalGroup):
             if generation == self._preparation_generation:
                 self._preparation_worker = None
 
-    def publish_if_ready(self, _screen=None) -> None:
+    def publish_if_ready(self, _screen: "Screen | None" = None) -> None:
         if (self._presentable or self._prepared_patch is None or not self.is_attached
                 or self._pruning or self._prepared_patch.theme != self._theme_key()):
             return
