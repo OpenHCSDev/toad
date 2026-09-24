@@ -35,12 +35,21 @@ async def main():
             conversation = app.screen.conversation
             history = TranscriptHistory(page(29), load)
             await conversation.post(history)
-            # Allow automatic viewport filling, then sample while giving the
-            # event loop time to expose the old repeated eviction/load cycle.
+            # Posting schedules a mount. Wait for the first page request before
+            # deciding whether viewport filling has become idle.
             async with asyncio.timeout(5):
-                while (history._loading or
-                       (history.has_older and history.region.y >= history.window.content_region.y - 2)):
+                while not history.is_mounted or not calls:
                     await pilot.pause(.05)
+                previous_count = -1
+                stable_ticks = 0
+                while stable_ticks < 4:
+                    await pilot.pause(.05)
+                    count = len(calls)
+                    at_older_edge = (history.has_older and
+                                     history.region.y >= history.window.content_region.y - 2)
+                    stable_ticks = (stable_ticks + 1 if count == previous_count and
+                                    not history._loading and not at_older_edge else 0)
+                    previous_count = count
             count = len(calls)
             await pilot.pause(1)
             assert len(calls) == count, (calls, count)
