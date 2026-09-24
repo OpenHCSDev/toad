@@ -33,6 +33,7 @@ def verify_valid_updates_preserve_identity() -> None:
         {"sessionUpdate": "agent_message_chunk", "content": {"type": "text"}},
         {"sessionUpdate": "tool_call", "toolCallId": "t1"},
         {"sessionUpdate": "future_update", "content": {"type": "text", "text": "hi"}},
+        {"sessionUpdate": "usage_update", "used": "100", "size": "1000"},
         ["not an ACP notification"],
     ):
         try:
@@ -68,11 +69,15 @@ async def verify_dispatch_and_visible_rejection(root: Path) -> None:
         response = await agent.server.call({"jsonrpc": "2.0", "method": "session/update",
                                             "params": {"sessionId": "fixture", "update": malformed}})
         assert response is None  # Invalid notifications are contained at the boundary.
+        coercible = {"sessionUpdate": "usage_update", "used": "100", "size": "1000"}
+        response = await agent.server.call({"jsonrpc": "2.0", "method": "session/update",
+                                            "params": {"sessionId": "fixture", "update": coercible}})
+        assert response is None
         await pilot.pause()
         notes = [widget for widget in view.contents.children
                  if isinstance(widget, Note) and "Invalid ACP update rejected" in widget.render().plain]
-        assert len(notes) == 1, "Rejected updates need a visible conversation marker"
-        assert recorded and repr(malformed) in recorded[-1] and "validation=" in recorded[-1]
+        assert len(notes) == 2, "Rejected updates need a visible conversation marker"
+        assert recorded and repr(coercible) in recorded[-1] and "validation=" in recorded[-1]
         assert app._exception is None
     await asyncio.get_running_loop().shutdown_default_executor()
 

@@ -16,6 +16,7 @@ def validate_session_update(
     the existing consumers need the untouched dictionary, including nested _meta.
     """
     SessionNotification.model_validate(
-        {"sessionId": session_id, "update": update, "_meta": metadata}
+        {"sessionId": session_id, "update": update, "_meta": metadata},
+        strict=True,
     )
     return cast(protocol.SessionUpdate, update)
