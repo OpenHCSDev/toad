@@ -25,6 +25,7 @@ from toad.db import DB
 from toad.pill import pill
 from toad.screens.comms import CommsScreen
 from toad.screens.main import MainScreen
+from toad.widgets.activity_spinner import FRAMES
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.agent_thought import AgentThought
 from toad.widgets.comms_chat import (
@@ -261,7 +262,9 @@ for line in sys.stdin:
             assert all(
                 panel.region.height <= 2 for panel in panels if panel.collapsed
             ), [(panel.title, panel.collapsed, panel.region.height) for panel in panels]
-            assert shell_sidebar.region.bottom - panels[0].region.bottom <= 1
+            controls = shell_sidebar.query_one("#sidebar-controls")
+            assert controls.region.y - panels[0].region.bottom <= 1
+            assert controls.region.bottom == shell_sidebar.region.bottom
             await pilot.click(panels[0].query_one("CollapsibleTitle"))
             await pilot.pause()
             assert panels[0].region.height <= 2
@@ -306,7 +309,9 @@ for line in sys.stdin:
             await pilot.click(sidebar_toggle)
             await pilot.pause()
             assert not shell_sidebar.collapsed
-            assert shell_sidebar.region.width == 40
+            expected_width = (app.size.width
+                              * app.sidebar_layout.get("channels-sidebar").width_percent // 100)
+            assert shell_sidebar.region.width == expected_width
             assert conversation.window.styles.padding.left == 0
             assert sidebar_toggle.region.width == 3
             assert sidebar_toggle.tooltip == "Collapse sidebar"
@@ -1021,9 +1026,8 @@ for line in sys.stdin:
             assert app.screen.query_one(Throbber).busy
             assert app.screen.query_one(Throbber).render() != ""
             assert app.session_tracker.get_session(second_mode).state == "busy"
-            assert "⌛" in str(
-                app.screen.query_one(f"SessionLabel#{second_mode}").render()
-            )
+            busy_label = app.screen.query_one(f"SessionLabel#{second_mode}").render().plain
+            assert busy_label[0] in FRAMES and "⌛" not in busy_label
             hold.unlink()
             for _ in range(40):
                 await pilot.pause(0.1)
@@ -1102,9 +1106,9 @@ for line in sys.stdin:
             assert app.screen.conversation.turn == "agent"
             try:
                 async with asyncio.timeout(3):
-                    while "⌛" not in str(
-                        app.screen.query_one(f"SessionLabel#{thread_mode}").render()
-                    ):
+                    while app.screen.query_one(
+                        f"SessionLabel#{thread_mode}"
+                    ).render().plain[0] not in FRAMES:
                         await pilot.pause(.02)
             except TimeoutError:
                 raise AssertionError((
@@ -1145,6 +1149,10 @@ for line in sys.stdin:
             await pilot.pause()
             assert app.current_mode == thread_mode
             assert app.session_tracker.session_count == 3
+            app.screen.query_one(f"#close-{second_mode}").scroll_visible(
+                animate=False, immediate=True
+            )
+            await pilot.pause()
             assert await pilot.click(f"#close-{second_mode}")
             await pilot.pause()
             assert app.current_mode == thread_mode

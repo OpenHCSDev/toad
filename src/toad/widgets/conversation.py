@@ -204,7 +204,10 @@ class ThreadLoading(Static):
     def render(self) -> Content:
         width, height = self.size
         radius = max(2, min(6, width // 12, height // 5))
-        horizontal_radius = max(2, round(radius * 1.5))
+        # Terminal cells are roughly 2.2 times taller than they are wide in
+        # pixels. Draw the ring wider in columns so it looks circular, not a
+        # vertically stretched oval, on a real terminal display.
+        horizontal_radius = max(2, round(radius * 2.2))
         phase = int(monotonic() * 12) % 12
         rows = []
         for y in range(-radius, radius + 1):

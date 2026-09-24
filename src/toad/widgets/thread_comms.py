@@ -10,11 +10,13 @@ from agent_comms import ThreadSort
 from textual import on
 from textual.binding import Binding
 from textual.content import Content
+from textual.containers import VerticalScroll
 from textual.widgets import Checkbox, Static
 
 from toad.widgets.comms_sidebar import CommsRow, CommsSidebar, SelectTarget
+from toad.widgets.activity_spinner import FRAMES
 from toad.widgets.session_sort import SortControl
-from toad.widgets.side_bar import SideBarCollapsible
+from toad.widgets.side_bar import SideBar, SideBarCollapsible
 from toad.widgets.sidebar_tree import SidebarGroup, TargetTree
 from toad.widgets.thread_comms_model import RelationshipGroup, RelationshipSource, ThreadCommsSnapshot
 
@@ -178,7 +180,7 @@ class RelationshipRows(SidebarGroup):
 class ThreadCommsSidebar(TargetTree):
     DEFAULT_CSS = """
     ThreadCommsSidebar { height: auto; }
-    ThreadCommsSidebar .relationship-context { height: auto; text-wrap: nowrap; text-overflow: ellipsis; color: $text-muted; }
+    ThreadCommsSidebar .relationship-context { height: auto; text-wrap: nowrap; text-overflow: clip; color: $text-muted; }
     ThreadCommsSidebar .relationship-empty { height: 1; color: $text-muted; }
     ThreadCommsSidebar > Checkbox { height: 1; border: none; padding: 0; margin: 0; background: transparent; }
     """
@@ -201,6 +203,9 @@ class ThreadCommsSidebar(TargetTree):
         self._snapshot: ThreadCommsSnapshot | None = None
         self._states: dict[tuple[str | None, str], RelationshipTreeState] = {}
         self.groups: dict[str, RelationshipRows] = {}
+        self._horizontal_width = 0
+        self._spinner_phase = 0
+        self._spinner_timer = None
 
     @property
     def view_state(self):
@@ -217,6 +222,7 @@ class ThreadCommsSidebar(TargetTree):
         yield Checkbox("In/out only", id="in-out-only", compact=True)
 
     def on_mount(self):
+        self._spinner_timer = self.set_interval(.18, self._animate_busy, pause=True)
         # Use the left roster's existing observation cadence; no extra timers
         # per group or per mounted thread view.
         self.app.coordination_observed.subscribe(self, self._observed)
@@ -227,6 +233,25 @@ class ThreadCommsSidebar(TargetTree):
             self._bind_screen_identity()
         self._sync_filter_control()
         self.refresh_relationships()
+
+    def _sync_spinner(self) -> None:
+        if self._spinner_timer is None:
+            return
+        sidebar = self.query_ancestor(SideBar)
+        if (self.screen.is_active and not sidebar.collapsed
+                and any(row.has_class("-busy") for row in self.query(RelationshipRow))):
+            self._spinner_timer.resume()
+        else:
+            self._spinner_timer.pause()
+
+    def _animate_busy(self) -> None:
+        if not self.screen.is_active:
+            self._sync_spinner()
+            return
+        self._spinner_phase = (self._spinner_phase + 1) % len(FRAMES)
+        for row in self.query(RelationshipRow):
+            if row.has_class("-busy"):
+                row.advance_spinner(self._spinner_phase)
 
     def on_show(self):
         self.refresh_relationships()
@@ -358,7 +383,26 @@ class ThreadCommsSidebar(TargetTree):
                         return
                 if generation != self._generation:
                     return
+                widest = Content(f"For @{snapshot.owner} · recent window").cell_length + 4
+                for model in snapshot.groups:
+                    for entry in model.entries:
+                        widest = max(widest, Content(entry.target).cell_length + 8)
+                        if entry.person is not None:
+                            widest = max(widest,
+                                         Content(entry.person.presentation.label).cell_length + 8,
+                                         Content(entry.person.presentation.summary).cell_length + 8)
+                        if entry.detail:
+                            widest = max(widest, Content(entry.detail).cell_length + 8)
+                panel = self.query_ancestor(SideBarCollapsible)
+                width = max(panel.size.width, self._horizontal_width, min(widest, 512))
+                if width > self._horizontal_width:
+                    self._horizontal_width = width
+                    panel.styles.width = width
+                    bar = self.query_ancestor(SideBar)
+                    bar.query_one("#sidebar-panels", VerticalScroll).styles.overflow_x = "auto"
+                    self.call_after_refresh(bar._sync_horizontal_slider)
                 self._snapshot, self._revision = snapshot, revision
+                self._sync_spinner()
         except asyncio.CancelledError:
             raise
         except (OSError, ValueError) as error:
