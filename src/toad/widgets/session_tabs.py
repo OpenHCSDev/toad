@@ -17,6 +17,7 @@ from textual.message import Message
 from toad.app import ToadApp
 from toad.session_tracker import SessionDetails, OpenTab
 from toad import messages
+from toad.widgets.activity_spinner import FRAMES, animated_label
 
 
 class SessionLabel(widgets.Label):
@@ -128,7 +129,36 @@ class SessionsTabs(Widget):
     current_session = reactive("", init=False)
     _last_tabs: tuple[OpenTab, ...] | None = None
 
+    def __init__(self) -> None:
+        super().__init__()
+        self._spinner_phase = 0
+        self._spinner_timer = None
+
+    def _sync_spinner(self, tabs: tuple[OpenTab, ...]) -> None:
+        timer = self._spinner_timer
+        if timer is None:
+            return
+        if self.screen.is_active and any(tab.title.startswith(("⌛ ", "● ")) for tab in tabs):
+            timer.resume()
+        else:
+            timer.pause()
+
+    def _animate_busy(self) -> None:
+        tabs = self._last_tabs or ()
+        if not self.screen.is_active or not any(
+            tab.title.startswith(("⌛ ", "● ")) for tab in tabs
+        ):
+            self._sync_spinner(())
+            return
+        self._spinner_phase = (self._spinner_phase + 1) % len(FRAMES)
+        for tab in tabs:
+            if tab.title.startswith(("⌛ ", "● ")):
+                if label := self.query_one_optional(f"#{tab.mode_name}", SessionLabel):
+                    label.update(self.render_session_label(tab), layout=False)
+
     def on_mount(self) -> None:
+        self._spinner_timer = self.set_interval(.18, self._animate_busy, pause=True)
+        self._last_tabs = self.app.open_tabs
         self.current_session = self.app.current_mode
         self.app.mode_change_signal.subscribe(self, self.handle_mode_change)
         self.app.session_update_signal.subscribe(
@@ -137,6 +167,7 @@ class SessionsTabs(Widget):
         self.app.open_tabs_changed.subscribe(self, self._tabs_changed)
         self.update_underline(self.current_session, animate=False)
         self.call_after_refresh(self.update_underline, self.current_session)
+        self._sync_spinner(self.app.open_tabs)
 
     def handle_mode_change(self, mode: str) -> None:
         if self.screen.is_active:
@@ -177,9 +208,14 @@ class SessionsTabs(Widget):
                 self.scroll_to_center(current_label, animate=False)
 
     def render_session_label(self, session: OpenTab) -> Content:
+        title = animated_label(
+            session.title,
+            busy=session.title.startswith(("⌛ ", "● ")),
+            phase=self._spinner_phase,
+        )
         if session.unread:
-            return Content.assemble(session.title, (f" ({session.unread})", "bold $accent"))
-        return Content(session.title)
+            return Content.assemble(title, (f" ({session.unread})", "bold $accent"))
+        return Content(title)
 
     def compose(self) -> ComposeResult:
         with containers.HorizontalGroup(id="title-container"):
@@ -207,6 +243,7 @@ class SessionsTabs(Widget):
             return
         tabs = self.app.open_tabs
         if tabs == self._last_tabs and self.current_session == self.app.current_mode:
+            self._sync_spinner(tabs)
             return
         previous_tabs = {tab.mode_name: tab for tab in self._last_tabs or ()}
         geometry_changed = self._last_tabs is None
@@ -242,5 +279,6 @@ class SessionsTabs(Widget):
             geometry_changed = True
         self.current_session = self.app.current_mode
         self._last_tabs = tabs
+        self._sync_spinner(tabs)
         if geometry_changed or mode_changed:
             self.call_after_refresh(self.update_underline, self.current_session, False)

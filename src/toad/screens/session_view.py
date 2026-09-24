@@ -34,6 +34,23 @@ class SessionView(Screen):
     _navigation_changed = False
     _resume_styles_changed = False
 
+    def align_tabs_to_sidebars(self) -> None:
+        """Align native tabs with the sum of pushed left-edge sidebar widths."""
+        from textual.containers import Horizontal
+
+        from toad.widgets.side_bar import SideBar
+
+        header = self.query_one_optional("#tab-navigation-header", Horizontal)
+        if header is None:
+            return
+        left = sum(
+            int(sidebar.styles.width.resolve(self.size, self.app.size))
+            for sidebar in self.query(SideBar)
+            if sidebar.styles.dock == "left"
+        )
+        if header.styles.padding.left != left:
+            header.styles.padding = (0, 0, 0, left)
+
     def _style_revision(self) -> ViewStyleRevision:
         return ViewStyleRevision(
             self.app.theme, self.app.classes, self.classes, self.app.size,
@@ -152,7 +169,7 @@ class SessionView(Screen):
         from toad.widgets.side_bar import SideBar, SideBarCollapsible
 
         self._navigation_changed = False
-        if side_bar := self.query_one_optional(SideBar):
+        for side_bar in self.query(SideBar):
             panels = tuple(side_bar.query(SideBarCollapsible))
             before = tuple(panel.collapsed for panel in panels)
             self._navigation_changed |= side_bar.restore_navigation()

@@ -7,10 +7,16 @@ come from CommsSidebar's ordinary CoordinationSnapshot.
 
 from dataclasses import dataclass
 
+from rich.segment import Segment
+
 from textual import events
 from textual.binding import Binding
 from textual.content import Content
+from textual.geometry import clamp
+from textual.strip import Strip
+from textual.style import Style
 from textual.visual import VisualType
+from textual.visual import Padding
 from textual.widgets import OptionList
 
 
@@ -34,7 +40,7 @@ class VirtualChannelList(OptionList):
         background-tint: transparent;
         scrollbar-size: 0 0;
         text-wrap: nowrap;
-        text-overflow: ellipsis;
+        text-overflow: clip;
     }
     VirtualChannelList > .option-list--option { padding: 0; }
     VirtualChannelList > .option-list--option-highlighted,
@@ -50,6 +56,63 @@ class VirtualChannelList(OptionList):
 
     def __init__(self):
         super().__init__(compact=True, markup=False, id="virtual-channels")
+        self.horizontal_content_width = 0
+        self.horizontal_offset = 0
+
+    @property
+    def horizontal_max(self) -> int:
+        return max(0, self.horizontal_content_width - self.scrollable_content_region.width)
+
+    def set_horizontal_content_width(self, width: int) -> None:
+        """Retain full source rows; only the painted viewport is cropped."""
+        width = max(0, min(width, 4096))
+        if width != self.horizontal_content_width:
+            self.horizontal_content_width = width
+            self._option_render_cache.clear()
+            self.refresh()
+        self.set_horizontal_offset(self.horizontal_offset)
+
+    def set_horizontal_offset(self, offset: int) -> None:
+        offset = int(clamp(offset, 0, self.horizontal_max))
+        if offset != self.horizontal_offset:
+            self.horizontal_offset = offset
+            self.refresh()
+
+    def _get_option_render(self, option, style: Style) -> list[Strip]:
+        """Cache full unwrapped strips so moving the bottom scrollbar is paint-only."""
+        if self.horizontal_content_width <= self.scrollable_content_region.width:
+            return super()._get_option_render(option, style)
+        padding = self.get_component_styles("option-list--option").padding
+        width = self.horizontal_content_width - self._get_left_gutter_width()
+        cache_key = (option, style, padding)
+        strips = self._option_render_cache.get(cache_key)
+        if strips is None:
+            visual = self._get_visual(option)
+            if padding:
+                visual = Padding(visual, padding)
+            strips = visual.to_strips(self, visual, width, None, style)
+            meta = {"option": self._option_to_index[option]}
+            strips = [strip.extend_cell_length(width, style.rich_style).apply_meta(meta)
+                      for strip in strips]
+            if option._divider:
+                rule = self.get_visual_style("option-list--separator")
+                strips.append(Strip([Segment("─" * width, rule.rich_style)], width))
+            self._option_render_cache[cache_key] = strips
+        return strips
+
+    def render_line(self, y: int) -> Strip:
+        viewport = self.scrollable_content_region.width
+        return (super().render_line(y)
+                .crop(self.horizontal_offset, self.horizontal_offset + viewport)
+                .extend_cell_length(viewport))
+
+    def on_resize(self) -> None:
+        from toad.widgets.side_bar import SideBar
+
+        self.set_horizontal_offset(self.horizontal_offset)
+        sidebar = next((node for node in self.ancestors if isinstance(node, SideBar)), None)
+        if sidebar is not None:
+            sidebar._sync_horizontal_slider()
 
     def _replace_option_prompt(self, index: int, prompt: VisualType) -> None:
         """Keep the retained row geometry when only its text/style changed.

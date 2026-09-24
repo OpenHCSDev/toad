@@ -41,6 +41,7 @@ from toad.navigation_preparation import (
     CommsNavigationRequest, NavigationReader, OpenThread, ThreadNavigationRequest,
 )
 from toad.session_tracker import SessionTracker, SessionDetails, OpenTab, CommsViewKey, SidebarState
+from toad.sidebar_layout import SidebarLayout
 
 if TYPE_CHECKING:
     from toad.render_tasks import RenderTask
@@ -363,6 +364,8 @@ class ToadApp(App, inherit_bindings=False):
         self.pending_thread_actions: dict[str, str] = {}
         self.thread_actions_changed: Signal[None] = Signal(self, "thread-actions-changed")
         self.sidebar_state = SidebarState()
+        self.sidebar_layout = SidebarLayout()
+        self.sidebar_layout_changed: Signal[None] = Signal(self, "sidebar-layout-changed")
         self._mode_switch_lock = asyncio.Lock()
         self._atomic_mode_switch = False
         self._pending_mode_switch: str | None = None

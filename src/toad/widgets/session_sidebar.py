@@ -10,6 +10,7 @@ from textual.reactive import reactive
 from textual.widgets import Static
 
 from toad.session_tracker import SessionDetails
+from toad.widgets.activity_spinner import animated_label
 from toad.widgets.selection import HoverSelection
 
 
@@ -53,11 +54,22 @@ class ThreadStatusRow(HoverSelection):
         super().__init__(*args, **kwargs)
         self._thread_signature: tuple | None = None
         self.thread_name: str | None = None
+        self._spinner_phase = 0
+        self._last_wire_input: tuple[ThreadView, int, bool, str | None] | None = None
+
+    def advance_spinner(self, phase: int) -> None:
+        if self._spinner_phase == phase or not self.has_class("-busy"):
+            return
+        self._spinner_phase = phase
+        if self._last_wire_input is not None:
+            person, unread, pinned, action_status = self._last_wire_input
+            self.update_thread(person, unread=unread, pinned=pinned, action_status=action_status)
 
     def update_thread(
         self, person: ThreadView, *, unread: int = 0, pinned: bool = False,
         action_status: str | None = None,
     ) -> None:
+        self._last_wire_input = (person, unread, pinned, action_status)
         self.thread_name = person.thread.name
         presentation = person.presentation
         summary, busy = presentation.summary, presentation.busy
@@ -67,7 +79,9 @@ class ThreadStatusRow(HoverSelection):
         badge = f"({unread}) " if unread else ""
         content = Content.assemble(
             (badge, "bold $accent"),
-            f"{'* ' if pinned else ''}{presentation.label}\n  {summary}",
+            f"{'* ' if pinned else ''}"
+            f"{animated_label(presentation.label, busy=presentation.busy, phase=self._spinner_phase)}"
+            f"\n  {summary}",
         )
         tooltip = "\n".join(
             str(value)
@@ -122,17 +136,27 @@ class SessionRow(ThreadStatusRow):
     ) -> None:
         super().__init__(id=widget_id)
         self.mode_name = details.mode_name
-        self._details_signature: tuple[str, str, str] | None = None
+        self._details_signature: tuple[str, str, str, int] | None = None
+        self._last_details: SessionDetails | None = None
         self.update_details(details)
 
+    def advance_spinner(self, phase: int) -> None:
+        if self._last_wire_input is not None:
+            super().advance_spinner(phase)
+        elif self._last_details is not None and self._spinner_phase != phase:
+            self._spinner_phase = phase
+            self.update_details(self._last_details)
+
     def update_details(self, details: SessionDetails) -> None:
+        self._last_details = details
         if self.has_class("-wire-thread"):
             self.remove_class("-wire-thread")
             self._thread_signature = None
             self._details_signature = None
         presentation = details.presentation
         activity = presentation.summary
-        signature = (details.state, details.title, activity)
+        signature = (details.state, details.title, activity,
+                     self._spinner_phase if presentation.busy else 0)
         if signature == self._details_signature:
             return
         self._details_signature = signature
@@ -142,7 +166,10 @@ class SessionRow(ThreadStatusRow):
         self.add_class(f"-state-{details.state}")
         self.set_class(presentation.busy, "-busy")
         self.set_class(presentation.asking, "-asking")
-        self.update(f"{presentation.label}\n  {activity}", layout=False)
+        self.update(
+            f"{animated_label(presentation.label, busy=presentation.busy, phase=self._spinner_phase)}"
+            f"\n  {activity}", layout=False,
+        )
 
     def _sidebar(self):
         parent = self.parent

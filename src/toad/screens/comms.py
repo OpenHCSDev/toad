@@ -4,7 +4,7 @@ from pathlib import Path
 from textual import containers, getters, on
 from textual.app import ComposeResult
 from textual.binding import Binding
-from textual.events import ScreenResume
+from textual.events import Resize, ScreenResume
 from textual.screen import Screen
 from textual.widgets import Static
 from toad.widgets.footer import Footer
@@ -73,6 +73,7 @@ class CommsScreen(SessionView, can_focus=False):
         self._content_loading = False
         self._hydrate_queued = False
         self._flush_queued = False
+        self._sidebar_layout_watch = False
 
     app = getters.app(ToadApp)
 
@@ -134,6 +135,18 @@ class CommsScreen(SessionView, can_focus=False):
             self.call_later(self._load_content)
 
     def _prepare_content(self) -> None:
+        for sidebar in self.query(SideBar):
+            sidebar._apply_layout()
+        if not self._sidebar_layout_watch:
+            self._sidebar_layout_watch = True
+            self.watch(
+                self.query_one("#channels-sidebar", SideBar), "collapsed",
+                lambda _collapsed: self.align_tabs_to_sidebars(),
+            )
+            self.app.sidebar_layout_changed.subscribe(
+                self, lambda _event: self.align_tabs_to_sidebars()
+            )
+        self.align_tabs_to_sidebars()
         chat = self.query_one(CommsChatView)
         chat._me = self.me
         chat.project_path = self.project_path
@@ -173,8 +186,14 @@ class CommsScreen(SessionView, can_focus=False):
         await super().prepare_navigation()
 
     def _on_screen_resume(self, event: ScreenResume) -> None:
+        self.align_tabs_to_sidebars()
         if chat := self.query_one_optional(CommsChatView):
             self.call_after_refresh(chat.prepare_prompt)
+
+    def on_resize(self, _event: Resize) -> None:
+        for sidebar in self.query(SideBar):
+            sidebar._apply_layout()
+        self.align_tabs_to_sidebars()
 
     async def action_message_style(self) -> None:
         await self.query_one(CommsChatView).toggle_message_style()
