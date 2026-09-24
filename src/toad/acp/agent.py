@@ -1306,27 +1306,30 @@ class Agent(AgentBase):
         try:
             result = await session_prompt.wait()
         except jsonrpc.APIError as error:
-            details = ""
-            match error.data:
-                case {"details": details}:
-                    pass
+            data = error.data if isinstance(error.data, dict) else {}
+            details = next(
+                (
+                    value
+                    for key in ("details", "reason", "error")
+                    if isinstance((value := data.get(key)), str) and value.strip()
+                ),
+                error.message or f"{self._agent_data['name']} returned an error",
+            )
 
             self.post_message(
                 AgentFail(
-                    "Failed to send prompt" or error.message,
-                    (
-                        str(details)
-                        if details
-                        else f"{self._agent_data['name']} returned an error"
-                    ),
+                    "Failed to send prompt",
+                    details,
+                    help="prompt",
                 )
             )
             return None
         except jsonrpc.JSONRPCError as error:
             self.post_message(
                 AgentFail(
-                    "Failed to send prompt" or error.message,
+                    "Failed to send prompt",
                     (error.message or f"{self._agent_data['name']} returned an error"),
+                    help="prompt",
                 )
             )
             return None

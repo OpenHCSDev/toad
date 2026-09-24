@@ -12,6 +12,7 @@ from operator import attrgetter
 from typing import TYPE_CHECKING, Literal
 from pathlib import Path
 from time import monotonic, time
+from urllib.parse import quote
 from agent_comms import Goal, MessageRoute
 
 from typing import Callable, Any
@@ -1041,6 +1042,18 @@ class Conversation(containers.Vertical):
         else:
             error = Content.from_markup(message.details.strip()).stylize("$text-error")
         await self.post(Note(error, classes="-error"))
+
+        if message.help == "prompt":
+            log_path = getattr(self.agent, "_log_file_path", None)
+            if isinstance(log_path, Path):
+                from toad.widgets.agent_response import AgentResponse
+
+                link = AgentResponse(
+                    f"[Open ACP log]({quote(str(log_path))})", show_divider=False
+                )
+                link.add_class("-error-log-link")
+                await self.post(link)
+            return
 
         from toad.widgets.markdown_note import MarkdownNote
 
