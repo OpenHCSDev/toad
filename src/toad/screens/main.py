@@ -451,6 +451,9 @@ class MainScreen(SessionView, can_focus=False):
 
     def on_mount(self) -> None:
         self.query_one(CommsSidebar).session_thread = self._resolve_comms_thread()
+        self.app.sidebar_layout_changed.subscribe(
+            self, lambda _event: self._align_tabs_with_sidebar(False)
+        )
         # The tab header sits above (not inside) the resizable left sidebar.
         # Use its current computed width so the first frame and every toggle
         # align the tabs with the conversation without a deferred paint.
@@ -465,20 +468,13 @@ class MainScreen(SessionView, can_focus=False):
             tree.guide_depth = 3
 
     def on_resize(self, _event: Resize) -> None:
+        for sidebar in self.query(SideBar):
+            sidebar._apply_layout()
         if sidebar := self.query_one_optional("#channels-sidebar", SideBar):
             self._align_tabs_with_sidebar(sidebar.collapsed)
 
     def _align_tabs_with_sidebar(self, _collapsed: bool) -> None:
-        sidebar = self.query_one("#channels-sidebar", SideBar)
-        header = self.query_one("#tab-navigation-header", containers.Horizontal)
-        width = sidebar.styles.width.resolve(self.size, self.app.size)
-        # On narrow terminals the CSS max-width (45%) clips the expanded
-        # sidebar below its nominal 40 cells; use that same cap on the header.
-        if maximum := sidebar.styles.max_width:
-            width = min(width, maximum.resolve(self.size, self.app.size))
-        left = int(width)
-        if header.styles.padding.left != left:
-            header.styles.padding = (0, 0, 0, left)
+        self.align_tabs_to_sidebars()
 
     @on(OptionList.OptionHighlighted)
     def on_option_list_option_highlighted(

@@ -40,6 +40,11 @@ def aligned(screen: MainScreen, expected: int) -> None:
     )
 
 
+def expanded_width(width: int, *, right_open: bool = False) -> int:
+    peer = max(18, width * 34 // 100) if right_open else 3
+    return max(18, min(width // 2, width * 40 // 100, width - 24 - peer))
+
+
 async def main() -> None:
     root = Path(tempfile.mkdtemp(prefix="toad-layout-", dir="/dev/shm"))
     os.environ.update(
@@ -53,7 +58,7 @@ async def main() -> None:
     )
     app = ToadApp(project_dir=str(root))
     width = int(os.getenv("TOAD_LAYOUT_WIDTH", "120"))
-    expanded = min(40, int(width * 0.45))  # Sidebar CSS width: 40; max-width: 45%.
+    expanded = expanded_width(width)
     async with app.run_test(size=(width, 44)) as pilot:
         await pilot.pause()
         first_mode = app.current_mode
@@ -62,7 +67,7 @@ async def main() -> None:
         aligned(first, expanded)  # First visible frame, not a follow-up sidebar tick.
         alternate = 76 if width == 120 else 120
         await pilot.resize_terminal(alternate, 44)
-        aligned(first, min(40, int(alternate * 0.45)))
+        aligned(first, expanded_width(alternate))
         await pilot.resize_terminal(width, 44)
         aligned(first, expanded)
         first.query_one("Prompt").text = "retain draft"
@@ -71,7 +76,7 @@ async def main() -> None:
         first_right.toggle()
         await pilot.pause()
         assert not first_right.collapsed
-        aligned(first, expanded)
+        aligned(first, expanded_width(width, right_open=True))
 
         first_left = first.query_one("#channels-sidebar", SideBar)
         first_left.toggle()
@@ -80,7 +85,7 @@ async def main() -> None:
         aligned(first, 3)
         first_left.toggle()
         await pilot.pause()
-        aligned(first, expanded)
+        aligned(first, expanded_width(width, right_open=True))
         first_left.toggle()
         await pilot.pause()
         aligned(first, 3)
@@ -98,12 +103,12 @@ async def main() -> None:
         assert first.query_one("Prompt").text == "retain draft"
         first.query_one("#channels-sidebar", SideBar).toggle()
         await pilot.pause()
-        aligned(first, expanded)
+        aligned(first, expanded_width(width, right_open=True))
         await app.switch_mode(second_mode)
         aligned(second, expanded)
         assert second.query_one("#thread-sidebar", SideBar).collapsed
         await app.switch_mode(first_mode)
-        aligned(first, expanded)
+        aligned(first, expanded_width(width, right_open=True))
 
         app.workers.cancel_all()
         stopped = await asyncio.gather(

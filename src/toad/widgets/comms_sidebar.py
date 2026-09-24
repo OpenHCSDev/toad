@@ -23,7 +23,7 @@ from typing import TYPE_CHECKING, cast
 
 from textual import on
 from textual.binding import Binding
-from textual.containers import Vertical, VerticalGroup, HorizontalGroup
+from textual.containers import Vertical, VerticalGroup, HorizontalGroup, VerticalScroll
 from textual.app import ComposeResult
 from textual.dom import DOMNode
 from textual.message import Message
@@ -46,6 +46,7 @@ from toad.session_tracker import SessionDetails, SidebarSelection, SidebarState
 from toad.widgets.session_sidebar import SessionRow, ThreadStatusRow
 from toad.widgets.session_sort import ChannelListSort, SessionSort
 from toad.widgets.virtual_channel_list import VirtualChannelList, VirtualChoice, styled_row
+from toad.widgets.activity_spinner import FRAMES
 from toad.widgets.sidebar_tree import SidebarDisclosure, SidebarGroup, TargetTree
 
 if TYPE_CHECKING:
@@ -421,6 +422,10 @@ class CommsSidebar(TargetTree):
         self._row_map: dict[tuple[str, str], CommsRow] = {}
         self._virtual = os.environ.get("TOAD_BENCH_VIRTUAL_CHANNELS") == "1"
         self._virtual_targets: dict[str, VirtualChoice] = {}
+        self._busy_virtual_rows: dict[int, tuple[str, bool, bool, bool]] = {}
+        self._spinner_phase = 0
+        self._spinner_timer = None
+        self._horizontal_width = 0
         self.can_focus = True
         self._cursor = 0
         # A screen constructs its sidebar before attachment to an App. Resolve
@@ -522,6 +527,7 @@ class CommsSidebar(TargetTree):
         return False
 
     def on_mount(self) -> None:
+        self._spinner_timer = self.set_interval(.18, self._animate_busy, pause=True)
         app = cast("ToadApp", self.app)
         # Every mounted tab observes the same wire revision. Retain the app's
         # core reader rather than rebuilding its registry, bus and catalog
@@ -541,6 +547,41 @@ class CommsSidebar(TargetTree):
         else:
             self._refresh()
         self._run_test_hook()
+
+    def _sync_spinner(self, snapshot: SidebarSnapshot | None = None) -> None:
+        from toad.widgets.side_bar import SideBar
+
+        timer = self._spinner_timer
+        if timer is None:
+            return
+        current = snapshot or self._last_snapshot
+        bar = next((node for node in self.ancestors if isinstance(node, SideBar)), None)
+        has_busy_rows = (bool(self._busy_virtual_rows) if self._virtual
+                         else any(row.has_class("-busy") for row in self.query(ThreadStatusRow)))
+        if (self.screen.is_active and bar is not None and not bar.collapsed
+                and current is not None and has_busy_rows):
+            timer.resume()
+        else:
+            timer.pause()
+
+    def _animate_busy(self) -> None:
+        if not self.screen.is_active or self._last_snapshot is None:
+            self._sync_spinner()
+            return
+        self._spinner_phase = (self._spinner_phase + 1) % len(FRAMES)
+        if self._virtual:
+            listing = self.query_one_optional(VirtualChannelList)
+            if listing is None:
+                return
+            for index, (source, selected, unread, ansi) in self._busy_virtual_rows.items():
+                text = source.replace("⌛ ", f"{FRAMES[self._spinner_phase]} ", 1)
+                listing.replace_option_prompt_at_index(index, styled_row(
+                    text, selected=selected, ansi=ansi, busy=True, muted=True, unread=unread,
+                ))
+        else:
+            for row in self.query(ThreadStatusRow):
+                if row.has_class("-busy"):
+                    row.advance_spinner(self._spinner_phase)
 
     async def _session_updated(self, update: tuple[str, SessionDetails | None]) -> None:
         mode_name, details = update
@@ -735,13 +776,14 @@ class CommsSidebar(TargetTree):
             else:
                 self.apply_selection()
                 self._mode_changed(cast("ToadApp", self.app).current_mode)
+                self._sync_spinner(snapshot)
 
     async def _rebuild(self, snapshot: SidebarSnapshot) -> None:
         if self._virtual:
             self._rebuild_virtual(snapshot)
             return
         self._last_snapshot = snapshot
-        from toad.widgets.side_bar import SideBarCollapsible
+        from toad.widgets.side_bar import SideBar, SideBarCollapsible
 
         control = self.query_ancestor(SideBarCollapsible).header_control
         assert isinstance(control, ChannelListSort)
@@ -784,11 +826,30 @@ class CommsSidebar(TargetTree):
         self._mode_changed(cast("ToadApp", self.app).current_mode, force=True)
         self._rendered_expansion = dict(self.navigation.expanded)
         self._rendered_actions = dict(cast("ToadApp", self.app).pending_thread_actions)
+        self._sync_spinner(snapshot)
+        # The ordinary widget-tree roster must retain the same full text as
+        # the virtual roster. Give its direct scroll child an intrinsic width
+        # so the fixed bottom slider can reach rows beyond this narrow pane.
+        widest = max((Content(view.channel.name).cell_length + 12
+                      for view in snapshot.wire.channels), default=0)
+        widest = max(widest, max((Content(person.presentation.label).cell_length + 8
+                                  for person in snapshot.all_people.values()), default=0))
+        widest = max(widest, max((Content(person.presentation.summary).cell_length + 8
+                                  for person in snapshot.all_people.values()), default=0))
+        widest = min(widest, 512)
+        panel = self.query_ancestor(SideBarCollapsible)
+        width = max(panel.size.width, self._horizontal_width, widest)
+        if width > self._horizontal_width:
+            self._horizontal_width = width
+            panel.styles.width = width
+            sidebar = self.query_ancestor(SideBar)
+            sidebar.query_one("#sidebar-panels", VerticalScroll).styles.overflow_x = "auto"
+            self.call_after_refresh(sidebar._sync_horizontal_slider)
 
     def _rebuild_virtual(self, snapshot: SidebarSnapshot) -> None:
         """Project canonical channel/member order into one viewport-painted list."""
         self._last_snapshot = snapshot
-        from toad.widgets.side_bar import SideBarCollapsible
+        from toad.widgets.side_bar import SideBar, SideBarCollapsible
 
         control = self.query_ancestor(SideBarCollapsible).header_control
         assert isinstance(control, ChannelListSort)
@@ -796,12 +857,14 @@ class CommsSidebar(TargetTree):
         app = cast("ToadApp", self.app)
         modes = {name: mode for mode, name in snapshot.session_threads.items()}
         selected = self.navigation.selected
+        busy_rows: dict[int, tuple[str, bool, bool, bool]] = {}
         choices: dict[str, VirtualChoice] = {}
         choices["new-session"] = VirtualChoice("new-session", "", "")
         options: list[Option] = [Option("+ New Session", id="new-session")]
         ansi = app.theme.startswith("ansi-")
         listing = self.query_one(VirtualChannelList)
         width = listing.scrollable_content_region.width or 34
+        longest = width
         for view in snapshot.wire.channels:
             channel = view.channel.name
             kind = "irc" if view.channel.aggregate else "channel"
@@ -812,9 +875,8 @@ class CommsSidebar(TargetTree):
             name = f"{'* ' if view.channel.pinned else ''}{channel}"
             right = f"{'(' + str(unread) + ') ' if unread else ''}{view.channel.order.label} ▾"
             left = f"{prefix} {name}"
-            available = max(1, width - Content(right).cell_length - 1)
-            left = Content(left).truncate(available, ellipsis=True).plain
             text = f"{left}{' ' * max(1, width - Content(left).cell_length - Content(right).cell_length)}{right}"
+            longest = max(longest, Content(text).cell_length)
             active = any(
                 person.thread.executing or person.presentation.busy
                 for member in view.members if (person := snapshot.all_people.get(member)) is not None
@@ -839,10 +901,15 @@ class CommsSidebar(TargetTree):
                 summary = " ".join((action_status or person.presentation.summary).splitlines())
                 pin = "* " if member in view.pinned_members else ""
                 text = f"  {f'({badge}) ' if badge else ''}{pin}{label}\n    {summary}"
+                longest = max(longest, *(Content(line).cell_length for line in text.splitlines()))
                 row_selected = selected == SidebarSelection(channel, member)
-                options.append(Option(styled_row(text, selected=row_selected, ansi=ansi,
+                if person.presentation.busy:
+                    busy_rows[len(options)] = (text, row_selected, bool(badge), ansi)
+                shown = text.replace("⌛ ", f"{FRAMES[self._spinner_phase]} ", 1) if person.presentation.busy else text
+                options.append(Option(styled_row(shown, selected=row_selected, ansi=ansi,
                                                  busy=bool(action_status or person.presentation.busy),
                                                  muted=True, unread=bool(badge)), id=choice_id))
+        listing.set_horizontal_content_width(longest)
         old_scroll = listing.scroll_y
         old_ids = [option.id for option in listing.options]
         if old_ids != [option.id for option in options]:
@@ -854,10 +921,13 @@ class CommsSidebar(TargetTree):
                 if not isinstance(old, Content) or not old.is_same(option.prompt):
                     listing.replace_option_prompt_at_index(index, option.prompt)
         self._virtual_targets = choices
+        self._busy_virtual_rows = busy_rows
+        self.query_ancestor(SideBar)._sync_horizontal_slider()
         self._rendered_selection = selected
         self._rendered_expansion = dict(self.navigation.expanded)
         self._rendered_actions = dict(app.pending_thread_actions)
         self._selection_applied = True
+        self._sync_spinner(snapshot)
 
     def _virtual_toggle(self, channel: str) -> None:
         self.navigation.expanded[channel] = not self.navigation.expanded.get(channel, channel == ALL_COMMS_TARGET)

@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, ClassVar, cast
 
-from textual import containers, on, widgets
+from textual import containers, events, on, widgets
 from textual.app import ComposeResult
 from textual.binding import Binding, BindingType
 from textual.events import Click
@@ -316,6 +316,113 @@ class TabHistoryControls(containers.HorizontalGroup):
             )
 
 
+class SidebarSlider(widgets.Static, can_focus=True):
+    """A bottom-row pointer/keyboard slider; no polling or source snapshots."""
+
+    BINDINGS: ClassVar[list[BindingType]] = [
+        Binding("left", "step(-1)", "Decrease", show=False),
+        Binding("right", "step(1)", "Increase", show=False),
+    ]
+    DEFAULT_CSS = """
+    SidebarSlider { height: 1; width: 1fr; color: $text-muted; pointer: pointer; }
+    SidebarSlider:hover, SidebarSlider:focus { color: $accent; }
+    """
+
+    @dataclass
+    class Changed(Message):
+        slider: SidebarSlider
+        value: int
+
+    def __init__(self, kind: str, minimum: int, maximum: int, value: int) -> None:
+        super().__init__(id=f"sidebar-{kind}-slider")
+        self.kind = kind
+        self.minimum = minimum
+        self.maximum = maximum
+        self.value = value
+        self._dragging = False
+        self.tooltip = ("Drag or use ←/→ to resize (15–50% of screen)" if kind == "width"
+                        else "Drag or use ←/→ to reveal long sidebar rows")
+
+    def set_range(self, minimum: int, maximum: int, value: int) -> None:
+        self.minimum, self.maximum = minimum, max(minimum, maximum)
+        self.value = max(self.minimum, min(self.maximum, value))
+        self.refresh()
+
+    def render(self) -> str:
+        label = f"{self.value:2d}%" if self.kind == "width" else "↔"
+        track = max(1, self.size.width - len(label) - 1)
+        ratio = (self.value - self.minimum) / max(1, self.maximum - self.minimum)
+        thumb = round(ratio * (track - 1))
+        return f"{label} " + "".join("●" if index == thumb else "─" for index in range(track))
+
+    def _choose(self, x: int) -> None:
+        label_width = 4 if self.kind == "width" else 2
+        track = max(1, self.size.width - label_width)
+        ratio = max(0.0, min(1.0, (x - label_width) / max(1, track - 1)))
+        value = round(self.minimum + ratio * (self.maximum - self.minimum))
+        if value != self.value:
+            self.value = value
+            self.refresh()
+            self.post_message(self.Changed(self, value))
+
+    def action_step(self, direction: int) -> None:
+        step = 1 if self.kind == "width" else max(1, self.maximum // 30)
+        value = max(self.minimum, min(self.maximum, self.value + direction * step))
+        if value != self.value:
+            self.value = value
+            self.refresh()
+            self.post_message(self.Changed(self, value))
+
+    def on_mouse_down(self, event: events.MouseDown) -> None:
+        if event.button == 1:
+            event.stop()
+            self._dragging = True
+            self.capture_mouse()
+            self._choose(event.x)
+
+    def on_mouse_move(self, event: events.MouseMove) -> None:
+        if self._dragging:
+            event.stop()
+            self._choose(event.x)
+
+    def on_mouse_up(self, event: events.MouseUp) -> None:
+        if event.button == 1 and self._dragging:
+            event.stop()
+            self._choose(event.x)
+            self._dragging = False
+            self.release_mouse()
+
+
+class SidebarAction(widgets.Static, can_focus=True):
+    """One explicit move, same-edge swap or float/push action."""
+
+    BINDINGS: ClassVar[list[BindingType]] = [
+        Binding("enter,space", "activate", "Sidebar layout", show=False)
+    ]
+    DEFAULT_CSS = """
+    SidebarAction { height: 1; width: auto; padding: 0 1; color: $text-muted; pointer: pointer; }
+    SidebarAction:hover, SidebarAction:focus {
+        color: $background; background: $foreground 80%;
+    }
+    """
+
+    @dataclass
+    class Pressed(Message):
+        action: str
+
+    def __init__(self, action: str, label: str) -> None:
+        super().__init__(label, id=f"sidebar-{action}")
+        self.action = action
+
+    def action_activate(self) -> None:
+        self.post_message(self.Pressed(self.action))
+
+    def on_click(self, event: Click) -> None:
+        if event.button == 1:
+            event.stop()
+            self.action_activate()
+
+
 class SideBar(containers.Vertical):
     BINDING_GROUP_TITLE = "Sidebar"
     BINDINGS: ClassVar[list[BindingType]] = [("escape", "dismiss", "Dismiss sidebar")]
@@ -344,6 +451,14 @@ class SideBar(containers.Vertical):
         scrollbar-size: 1 1;
         scrollbar-gutter: stable;
     }
+    SideBar > #sidebar-controls {
+        width: 1fr;
+        height: 3;
+        margin-left: 3;
+        layer: sidebar-content;
+        background: $background;
+    }
+    SideBar #sidebar-layout-actions { height: 1; width: 1fr; }
     SideBar.-right {
         dock: right;
         width: 34;
@@ -353,6 +468,7 @@ class SideBar(containers.Vertical):
     }
     SideBar.-right > SideBarToggle { dock: right; }
     SideBar.-right > #sidebar-panels { margin-left: 0; margin-right: 3; }
+    SideBar.-right > #sidebar-controls { margin-left: 0; margin-right: 3; }
     """
 
     collapsed = reactive(False)
@@ -386,6 +502,7 @@ class SideBar(containers.Vertical):
         self.right = right
         self._navigation = navigation
         self._presented_collapsed: bool | None = None
+        self._presented_layout: tuple | None = None
         self.set_class(right, "-right")
         if navigation is not None:
             self.collapsed = hide
@@ -397,6 +514,9 @@ class SideBar(containers.Vertical):
 
     def on_mount(self) -> None:
         self.trap_focus()
+        app = cast("ToadApp", self.app)
+        if self.id in app.sidebar_layout.placements:
+            app.sidebar_layout_changed.subscribe(self, self._layout_changed)
         if self._navigation is None:
             cast("ToadApp", self.app).settings_changed_signal.subscribe(
                 self, self._settings_changed  # type: ignore[arg-type]
@@ -405,6 +525,7 @@ class SideBar(containers.Vertical):
         else:
             self.collapsed = self.hide
         self.watch_collapsed(self.collapsed)
+        self._apply_layout()
 
     def compose(self) -> ComposeResult:
         yield SideBarToggle(self.collapsed, right=self.right)
@@ -419,6 +540,163 @@ class SideBar(containers.Vertical):
                     id=panel.id,
                     header_control=panel.header_control,
                 )
+        if self.id in {"channels-sidebar", "thread-sidebar"}:
+            with containers.Vertical(id="sidebar-controls"):
+                yield SidebarSlider("width", 15, 50, 40 if not self.right else 34)
+                with containers.Horizontal(id="sidebar-layout-actions"):
+                    yield SidebarAction("move", "→" if not self.right else "←")
+                    yield SidebarAction("swap", "⇄")
+                    yield SidebarAction("float", "Float")
+                yield SidebarSlider("horizontal", 0, 0, 0)
+
+    def _order_sidebars(self) -> None:
+        parent = self.parent
+        if parent is None:
+            return
+        app = cast("ToadApp", self.app)
+        order = {key: index for index, key in enumerate(app.sidebar_layout.ordered())}
+        before = tuple(child.id for child in parent.children)
+        after = tuple(sorted(before, key=lambda identity: order.get(identity, len(order))))
+        if before != after:
+            parent.sort_children(key=lambda child: order.get(child.id, len(order)))
+            parent.refresh(layout=True)
+
+    def _content_gutters(self) -> None:
+        """Same-edge docks overlap natively; reserve only their missing gutter."""
+        parent = self.parent
+        if parent is None:
+            return
+        siblings = [child for child in parent.children if isinstance(child, SideBar)]
+        content = next((child for child in parent.children if not isinstance(child, SideBar)), None)
+        if content is None:
+            return
+        app = cast("ToadApp", self.app)
+        extra: dict[str, int] = {}
+        for side in ("left", "right"):
+            widths = [int(bar.styles.width.value)
+                      for bar in siblings if bar.id in app.sidebar_layout.placements
+                      and app.sidebar_layout.get(bar.id).side == side
+                      and (bar.collapsed or not app.sidebar_layout.get(bar.id).floating)]
+            extra[side] = sum(widths) - max(widths) if widths else 0
+        content.styles.margin = (0, extra["right"], 0, extra["left"])
+
+    def _apply_layout(self) -> bool:
+        app = cast("ToadApp", self.app)
+        if self.id not in app.sidebar_layout.placements or not self.is_mounted:
+            return False
+        placement = app.sidebar_layout.get(self.id)
+        other = next((sidebar for sidebar in self.parent.query(SideBar)
+                      if sidebar is not self and sidebar.parent is self.parent), None)
+        peer = app.sidebar_layout.get(other.id) if other is not None else None
+        viewport = max(1, app.size.width)
+        peer_width = (0 if peer is None or peer.floating else
+                      3 if other.collapsed else max(18, viewport * peer.width_percent // 100))
+        width = max(18, min(viewport // 2, viewport * placement.width_percent // 100,
+                            max(18, viewport - 24 - peer_width)))
+        key = (placement, width, viewport, peer_width, self.collapsed)
+        if key == self._presented_layout:
+            return False
+        self._presented_layout = key
+        self.right = placement.side == "right"
+        self.set_class(self.right, "-right")
+        if toggle := self.query_one_optional(SideBarToggle):
+            toggle.right = self.right
+            toggle.set_collapsed(self.collapsed)
+        self.styles.width = 3 if self.collapsed else width
+        self.styles.min_width = 3 if self.collapsed else min(18, width)
+        self.styles.max_width = 3 if self.collapsed else width
+        if placement.floating and not self.collapsed:
+            self.styles.dock = "none"
+            self.styles.position = "absolute"
+            self.styles.overlay = "screen"
+            if placement.side == "left":
+                outer = (max(18, viewport * peer.width_percent // 100)
+                         if peer and peer.side == "left" and placement.order == 1 else 0)
+                self.offset = (outer, 0)
+            else:
+                outer = (max(18, viewport * peer.width_percent // 100)
+                         if peer and peer.side == "right" and placement.order == 1 else 0)
+                self.offset = (max(0, viewport - outer - width), 0)
+        else:
+            self.styles.dock = placement.side
+            self.styles.position = None
+            self.styles.overlay = None
+            outer_width = (
+                3 if other.collapsed else
+                max(18, min(viewport // 2, viewport * peer.width_percent // 100))
+            ) if peer and peer.side == placement.side and placement.order == 1 else 0
+            self.offset = (outer_width if placement.side == "left" else -outer_width, 0)
+        if controls := self.query_one_optional("#sidebar-controls"):
+            controls.display = not self.collapsed
+            controls.query_one("#sidebar-width-slider", SidebarSlider).set_range(
+                15, 50, placement.width_percent
+            )
+            move = controls.query_one("#sidebar-move", SidebarAction)
+            move.update("→" if placement.side == "left" else "←", layout=False)
+            move.tooltip = f"Move {self.id} to the opposite side"
+            controls.query_one("#sidebar-swap", SidebarAction).display = (
+                peer is not None and peer.side == placement.side
+            )
+            toggle_mode = controls.query_one("#sidebar-float", SidebarAction)
+            toggle_mode.update("Push" if placement.floating else "Float", layout=False)
+        self._content_gutters()
+        return True
+
+    def _layout_changed(self, _update: None) -> None:
+        if self.is_mounted and self.screen.is_current and self._apply_layout():
+            self._order_sidebars()
+
+    def on_resize(self) -> None:
+        if self.is_mounted and self.screen.is_current and self._apply_layout():
+            cast("ToadApp", self.app).sidebar_layout_changed.publish(None)
+
+    @on(SidebarSlider.Changed)
+    def on_sidebar_slider(self, event: SidebarSlider.Changed) -> None:
+        event.stop()
+        if event.slider.kind == "width" and self.id is not None:
+            app = cast("ToadApp", self.app)
+            if app.sidebar_layout.width(self.id, event.value):
+                app.sidebar_layout_changed.publish(None)
+        elif event.slider.kind == "horizontal":
+            self.scroll_horizontally(event.value)
+
+    @on(SidebarAction.Pressed)
+    def on_sidebar_action(self, event: SidebarAction.Pressed) -> None:
+        event.stop()
+        if self.id is None:
+            return
+        app = cast("ToadApp", self.app)
+        placement = app.sidebar_layout.get(self.id)
+        if event.action == "move":
+            app.sidebar_layout.move(self.id, "right" if placement.side == "left" else "left")
+        elif event.action == "swap":
+            app.sidebar_layout.swap(self.id)
+        elif event.action == "float":
+            app.sidebar_layout.float_mode(self.id)
+        app.sidebar_layout_changed.publish(None)
+
+    def scroll_horizontally(self, offset: int) -> None:
+        from toad.widgets.virtual_channel_list import VirtualChannelList
+
+        if listing := self.query_one_optional(VirtualChannelList):
+            listing.set_horizontal_offset(offset)
+        else:
+            self.query_one("#sidebar-panels", containers.VerticalScroll).scroll_to(
+                x=offset, animate=False, immediate=True
+            )
+        self._sync_horizontal_slider()
+
+    def _sync_horizontal_slider(self) -> None:
+        from toad.widgets.virtual_channel_list import VirtualChannelList
+
+        slider = self.query_one_optional("#sidebar-horizontal-slider", SidebarSlider)
+        if slider is None:
+            return
+        if listing := self.query_one_optional(VirtualChannelList):
+            slider.set_range(0, listing.horizontal_max, listing.horizontal_offset)
+        else:
+            panels = self.query_one("#sidebar-panels", containers.VerticalScroll)
+            slider.set_range(0, int(panels.max_scroll_x), int(panels.scroll_x))
 
     @on(widgets.Collapsible.Collapsed)
     @on(widgets.Collapsible.Expanded)
@@ -431,6 +709,7 @@ class SideBar(containers.Vertical):
         changed = self._presented_collapsed != self.collapsed
         if changed:
             self.watch_collapsed(self.collapsed)
+        changed |= self._apply_layout()
         navigation = self.navigation
         for panel in self.query(SideBarCollapsible):
             if str(panel.title) in navigation.panels_collapsed:
@@ -456,12 +735,26 @@ class SideBar(containers.Vertical):
             self.styles.border_right = ("none", "transparent") if collapsed else None
         if panels := self.query_one_optional("#sidebar-panels"):
             panels.display = not collapsed
+        if controls := self.query_one_optional("#sidebar-controls"):
+            controls.display = not collapsed
         self.tooltip = "Expand sidebar" if collapsed else None
         toggle = self.query_one_optional(SideBarToggle)
         if toggle is not None:
             toggle.set_collapsed(collapsed)
             if not collapsed:
                 toggle.remove_class("-gutter-hover")
+        from toad.widgets.comms_sidebar import CommsSidebar
+
+        for sidebar in self.query(CommsSidebar):
+            sidebar._sync_spinner()
+        from toad.widgets.thread_comms import ThreadCommsSidebar
+
+        for tree in self.query(ThreadCommsSidebar):
+            tree._sync_spinner()
+        self._presented_layout = None
+        if self.is_mounted and self.id in cast("ToadApp", self.app).sidebar_layout.placements:
+            self._apply_layout()
+            cast("ToadApp", self.app).sidebar_layout_changed.publish(None)
 
     def render(self) -> str:
         return ("<" if self.right else ">") if self.collapsed else ""
