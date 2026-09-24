@@ -208,25 +208,39 @@ class SessionsTabs(Widget):
         tabs = self.app.open_tabs
         if tabs == self._last_tabs and self.current_session == self.app.current_mode:
             return
+        previous_tabs = {tab.mode_name: tab for tab in self._last_tabs or ()}
+        geometry_changed = self._last_tabs is None
+        mode_changed = self.current_session != self.app.current_mode
         labels = {label.id: label for label in self.query(SessionLabel)}
         desired = {tab.mode_name for tab in tabs}
         for label in labels.values():
             if label.id not in desired:
                 await self.query(f"#{label.id}, #close-{label.id}").remove()
+                geometry_changed = True
         for tab in tabs:
             content = self.render_session_label(tab)
             if label := labels.get(tab.mode_name):
                 if label.render().plain != content.plain:
-                    label.update(content)
+                    previous = previous_tabs.get(tab.mode_name)
+                    same_width_count = (
+                        previous is not None and previous.title == tab.title
+                        and bool(previous.unread) == bool(tab.unread)
+                        and len(str(previous.unread)) == len(str(tab.unread))
+                    )
+                    label.update(content, layout=not same_width_count)
+                    geometry_changed |= not same_width_count
             else:
                 await self.title_container.mount(
                     SessionLabel(content, id=tab.mode_name), SessionTabClose(tab.mode_name)
                 )
+                geometry_changed = True
         order = {identity: index for index, identity in enumerate(
             identity for tab in tabs for identity in (tab.mode_name, f"close-{tab.mode_name}")
         )}
         if [widget.id for widget in self.title_container.children] != list(order):
             self.title_container.sort_children(key=lambda widget: order[widget.id])
+            geometry_changed = True
         self.current_session = self.app.current_mode
         self._last_tabs = tabs
-        self.call_after_refresh(self.update_underline, self.current_session, False)
+        if geometry_changed or mode_changed:
+            self.call_after_refresh(self.update_underline, self.current_session, False)

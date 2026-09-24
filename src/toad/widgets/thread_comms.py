@@ -19,6 +19,13 @@ from toad.widgets.sidebar_tree import SidebarGroup, TargetTree
 from toad.widgets.thread_comms_model import RelationshipGroup, RelationshipSource, ThreadCommsSnapshot
 
 
+def _update_content(widget: Static, content: Content) -> None:
+    """Retain identical text and spans; polling itself is not a paint change."""
+    previous = widget.content
+    if not isinstance(previous, Content) or not previous.is_same(content):
+        widget.update(content, layout=False)
+
+
 @dataclass
 class RelationshipTreeState:
     expanded: dict[str, bool] = field(default_factory=dict)
@@ -37,10 +44,9 @@ class RelationshipSort(SortControl[ThreadSort]):
     def selected_order(self):
         return None if self._mixed else self.order
 
-    def _update_label(self):
+    def _update_label(self) -> None:
         if self._mixed:
-            self.update("Sort ▾")
-            self.tooltip = "Sort children and collaborators (currently different orders)"
+            self._set_label("Sort ▾", "Sort children and collaborators (currently different orders)")
         else:
             super()._update_label()
 
@@ -148,7 +154,7 @@ class RelationshipRows(SidebarGroup):
                     row.remove_class("-busy", "-unread", "-current")
                     row.add_class("-wire-thread")
                     row._thread_signature = None
-                    row.update(Content(f"? {entry.target}\n  Unavailable · Ctrl+C copies name"), layout=False)
+                    _update_content(row, Content(f"? {entry.target}\n  Unavailable · Ctrl+C copies name"))
                 elif entry.person is not None:
                     row.update_thread(entry.person, unread=tree.unread(entry.target, row.kind),
                                       action_status=tree.app.pending_thread_actions.get(entry.target))
@@ -302,10 +308,10 @@ class ThreadCommsSidebar(TargetTree):
             return
         context = self.query_one(".relationship-context", Static)
         if not self.owner or not self.wire_root:
-            context.update("Waiting for thread identity", layout=False)
+            _update_content(context, Content("Waiting for thread identity"))
             return
         if self._source is None:
-            context.update("Relationship source not connected", layout=False)
+            _update_content(context, Content("Relationship source not connected"))
             return
         if self._refresh_task is not None and not self._refresh_task.done():
             return
@@ -324,8 +330,8 @@ class ThreadCommsSidebar(TargetTree):
                 raise ValueError("Relationship snapshot does not match this thread and wire")
             with self.app.batch_update():
                 context = self.query_one(".relationship-context", Static)
-                context.update(Content.assemble((f"For @{snapshot.owner}", "bold"),
-                    " · recent window" if snapshot.history_limited else ""), layout=False)
+                _update_content(context, Content.assemble((f"For @{snapshot.owner}", "bold"),
+                    " · recent window" if snapshot.history_limited else ""))
                 context.tooltip = snapshot.incoming_basis + f"\nLatest {snapshot.history_messages} wire messages"
                 control = self.query_ancestor(SideBarCollapsible).query_one_optional(RelationshipSort)
                 if control is not None:
@@ -343,7 +349,9 @@ class ThreadCommsSidebar(TargetTree):
                             return
                     group.display = True
                     group.expanded = self.view_state.expanded.get(model.key, True)
-                    group.disclosure.update("▾" if group.expanded else "▸", layout=False)
+                    glyph = "▾" if group.expanded else "▸"
+                    if group.disclosure.content != glyph:
+                        group.disclosure.update(glyph, layout=False)
                     await group.update_group(model)
                     if generation != self._generation:
                         group.display = False
@@ -356,7 +364,7 @@ class ThreadCommsSidebar(TargetTree):
         except (OSError, ValueError) as error:
             if generation == self._generation and self.is_attached:
                 context = self.query_one(".relationship-context", Static)
-                context.update("Comms unavailable", layout=False)
+                _update_content(context, Content("Comms unavailable"))
                 context.tooltip = str(error)
 
     @on(SidebarGroup.Toggled)

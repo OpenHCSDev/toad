@@ -323,6 +323,7 @@ class SideBar(containers.Vertical):
         self.hide = hide
         self.right = right
         self._navigation = navigation
+        self._presented_collapsed: bool | None = None
         self.set_class(right, "-right")
         if navigation is not None:
             self.collapsed = hide
@@ -364,13 +365,23 @@ class SideBar(containers.Vertical):
         if isinstance(panel, SideBarCollapsible):
             self.navigation.panels_collapsed[str(panel.title)] = panel.collapsed
 
-    def restore_navigation(self) -> None:
+    def restore_navigation(self) -> bool:
+        changed = self._presented_collapsed != self.collapsed
+        if changed:
+            self.watch_collapsed(self.collapsed)
         navigation = self.navigation
         for panel in self.query(SideBarCollapsible):
             if str(panel.title) in navigation.panels_collapsed:
                 panel.collapsed = navigation.panels_collapsed[str(panel.title)]
+        return changed
 
     def watch_collapsed(self, collapsed: bool) -> None:
+        if self._navigation is None and self.is_mounted and not self.screen.is_current:
+            # Keep shared intent current without resizing every hidden transcript.
+            # Activation applies the latest value inside its render transaction;
+            # an open/close round trip can therefore keep unchanged geometry.
+            return
+        self._presented_collapsed = collapsed
         # The old -collapsed ancestor selector restyled every descendant row
         # (hundreds of expensive stylesheet.apply calls per toggle). Inline
         # box changes affect only this sidebar and its immediate panels.
@@ -425,9 +436,10 @@ class SideBar(containers.Vertical):
         if collapsed:
             self.post_message(self.Dismiss())
         else:
-            self.call_after_refresh(
-                self.query_one("SideBarCollapsible CollapsibleTitle").focus
-            )
+            # Panels are already displayed by the synchronous watcher. Queue
+            # native focus now so its highlight can share the opening frame,
+            # rather than waiting for a painted frame to request another one.
+            self.query_one("SideBarCollapsible CollapsibleTitle").focus()
 
     def reveal(self) -> None:
         if self._navigation is None:

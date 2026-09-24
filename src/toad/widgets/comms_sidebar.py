@@ -103,9 +103,13 @@ class ChannelGroup(SidebarGroup):
 
     def update_unread(self, unread: int) -> None:
         if unread != self._unread:
+            label = f"({unread})"
+            width_changed = len(label) != len(f"({self._unread})")
             self._unread = unread
             self.row.unread = unread
-            self.unread_badge.update(f"({unread})")
+            # ASCII digits have fixed cell widths. A count change within the
+            # same digit range is paint-only; visibility still owns its layout.
+            self.unread_badge.update(label, layout=width_changed)
             self.unread_badge.display = bool(unread)
 
     def update_activity(self, channel_view: ChannelView, all_people: Mapping[str, ThreadView]) -> None:

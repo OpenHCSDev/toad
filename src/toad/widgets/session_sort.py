@@ -34,10 +34,16 @@ class SortControl[Order: (ThreadSort, ChannelSort)](Static, can_focus=True):
     def on_mount(self):
         self._update_label()
 
-    def _update_label(self):
+    def _set_label(self, label: str, tooltip: str) -> None:
+        """Only text changes can invalidate this auto-width control's layout."""
+        if self.content != label:
+            self.update(label)
+        if self.tooltip != tooltip:
+            self.tooltip = tooltip
+
+    def _update_label(self) -> None:
         label = self.order.label
-        self.update(f"{label} ▾")
-        self.tooltip = f"Sort {self.scope} by {label.lower()}"
+        self._set_label(f"{label} ▾", f"Sort {self.scope} by {label.lower()}")
 
     def action_choose_sort(self):
         selected = self.selected_order.value if self.selected_order is not None else None

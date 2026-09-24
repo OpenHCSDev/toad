@@ -1,4 +1,4 @@
-"""Measure actual first painted frame for left/right sidebar toggles under load."""
+"""Measure completed headless frames for left/right sidebar toggles under load."""
 
 import asyncio
 import cProfile
@@ -21,13 +21,14 @@ class FrameApp(ToadApp):
     frame_profiler: cProfile.Profile | None = None
 
     def _display(self, screen, renderable):
+        result = super()._display(screen, renderable)
         if (self.next_frame is not None and not self.next_frame.done()
                 and renderable is not None and not self._batch_count
                 and screen is self.screen):
             if self.frame_profiler is not None:
                 self.frame_profiler.disable()
             self.next_frame.set_result(time.perf_counter())
-        return super()._display(screen, renderable)
+        return result
 
 
 async def main():
@@ -76,7 +77,7 @@ async def main():
                     "p95_ms": round(sorted_times[int(.95 * (len(timings)-1))], 1),
                     "max_ms": round(max(timings), 1),
                 }
-            print(json.dumps({"tabs": 10,
+            print(json.dumps({"boundary": "completed headless _display; not terminal pixels", "tabs": 10,
                               "active_widgets": len(list(app.screen.walk_children())),
                               "toggle_first_paint": results}, indent=2))
             assert app._exception is None

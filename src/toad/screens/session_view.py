@@ -2,15 +2,19 @@
 
 from dataclasses import dataclass, replace
 from functools import cached_property
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 import asyncio
 
 from textual.events import ScreenResume
+from textual.css.model import RuleSet, SelectorType
+from textual.css.stylesheet import CssSource
+from textual.dom import DOMNode
 from textual.geometry import Size
 from textual.screen import Screen
 from textual.widget import Widget
 
 if TYPE_CHECKING:
+    from toad.app import ToadApp
     from toad.widgets.history_anchor import HistoryWindow
 
 
@@ -20,7 +24,7 @@ class ViewStyleRevision:
     app_classes: frozenset[str]
     screen_classes: frozenset[str]
     viewport: Size
-    source_signature: int
+    sources: tuple[tuple[tuple[str, str], CssSource], ...]
     css_generation: int
 
 
@@ -30,9 +34,23 @@ class SessionView(Screen):
     _navigation_changed = False
     _resume_styles_changed = False
 
+    def _style_revision(self) -> ViewStyleRevision:
+        return ViewStyleRevision(
+            self.app.theme, self.app.classes, self.classes, self.app.size,
+            tuple(self.app.stylesheet.source.items()), self.app._css_update_count,
+        )
+
+    def update_node_styles(self, animate: bool = True) -> None:
+        super().update_node_styles(animate=animate)
+        if self.is_attached:
+            # Breakpoint/root-class updates already styled this complete tree.
+            # Record that completed update instead of repeating it next resume.
+            self._resume_style = self._style_revision()
+
     def _on_timer_update(self) -> None:
-        if (self.is_current and self.app._pending_mode_switch is not None
-                and self.app._pending_mode_switch != self.id):
+        app = cast("ToadApp", self.app)
+        if (self.is_current and app._pending_mode_switch is not None
+                and app._pending_mode_switch != self.id):
             # The pending layout is still needed if this busy screen is
             # reopened. Keep its invalidation flags but do not measure the
             # screen the user is leaving before the selected tab can paint.
@@ -137,7 +155,7 @@ class SessionView(Screen):
         if side_bar := self.query_one_optional(SideBar):
             panels = tuple(side_bar.query(SideBarCollapsible))
             before = tuple(panel.collapsed for panel in panels)
-            side_bar.restore_navigation()
+            self._navigation_changed |= side_bar.restore_navigation()
             self._navigation_changed |= before != tuple(panel.collapsed for panel in panels)
         if sidebar := self.query_one_optional(CommsSidebar):
             sidebar.prepare_navigation()
@@ -203,20 +221,78 @@ class SessionView(Screen):
         # restyle of every aged tab when it was next selected. Detect actual
         # CSS source/theme changes instead; source content and scope are both
         # included, while App's generation covers theme-variable refreshes.
-        sources = self.app.stylesheet.source
-        signature = hash(tuple(
-            (location, source.content, source.is_defaults, source.tie_breaker, source.scope)
-            for location, source in sources.items()
-        ))
-        revision = ViewStyleRevision(
-            self.app.theme, self.app.classes, self.classes, self.app.size,
-            signature, self.app._css_update_count,
-        )
+        revision = self._style_revision()
+        sources = revision.sources
         # Framework dispatch continues to Screen's handler after this adapter.
         # Layout/paint still run; unchanged trees do not need another CSS walk.
         # Newly mounted nodes already received the current stylesheet. A second
         # full-tree CSS walk on their first activation just delays the spinner.
-        event.refresh_styles = (event.refresh_styles and self._resume_style is not None
-                                and revision != self._resume_style)
-        self._resume_styles_changed = event.refresh_styles
+        previous = self._resume_style
+        changed = event.refresh_styles and previous is not None and revision != previous
+        partially_refreshed = False
+        if changed and previous is not None and replace(previous, sources=sources) == revision:
+            targets = self._changed_source_targets(previous.sources, sources)
+            if targets is not None:
+                self.app.stylesheet.update_nodes(targets, animate=False)
+                partially_refreshed = bool(targets)
+                changed = False
+        event.refresh_styles = changed
+        self._resume_styles_changed = changed or partially_refreshed
         self._resume_style = revision
+
+    def _changed_source_targets(
+        self,
+        previous: tuple[tuple[tuple[str, str], CssSource], ...],
+        current: tuple[tuple[tuple[str, str], CssSource], ...],
+    ) -> list[DOMNode] | None:
+        """Find changed-source targets and their potentially inheriting children.
+
+        Loading another kind of screen registers its scoped CSS globally. That
+        alone should not restyle every older transcript. Match through Textual's
+        parsed declarations, including old rules so removal is not missed. None
+        means source reordering requires the ordinary complete refresh.
+        """
+        old, new = dict(previous), dict(current)
+        if [location for location in old if location in new] != [location for location in new if location in old]:
+            return None
+        changed = [(location, source) for location, source in previous if new.get(location) != source]
+        changed.extend((location, source) for location, source in current if old.get(location) != source)
+        if not changed:
+            return []
+
+        nodes = list(self.walk_children(with_self=True))
+        virtual_nodes = [virtual for node in nodes if isinstance(node, Widget)
+                         for virtual in node._get_virtual_dom()]
+        nodes.extend(virtual_nodes)
+        css_types: set[str] = set()
+        for node in [*nodes, *self.ancestors]:
+            css_types.update(node._css_type_names)
+            if type(node).css_path_nodes is not DOMNode.css_path_nodes:
+                for ancestor in node.css_path_nodes:
+                    css_types.update(ancestor._css_type_names)
+
+        stylesheet = self.app.stylesheet
+        possible_rules: list[RuleSet] = []
+        for location, source in changed:
+            rules = stylesheet._parse_rules(
+                source.content, location, is_default_rules=source.is_defaults,
+                tie_breaker=source.tie_breaker, scope=source.scope,
+            )
+            possible_rules.extend(rule for rule in rules if any(
+                all(selector.type is not SelectorType.TYPE or selector.name in css_types
+                    for selector in group.selectors) for group in rule.selector_set
+            ))
+        targets: set[DOMNode] = set()
+        for node in nodes:
+            component_names = {f".{name}" for name in node._get_component_classes()}
+            for rule in possible_rules:
+                # Virtual component matching happens inside update_nodes. Keep its
+                # owner whenever a changed rule could address a component class.
+                if (rule.selector_names & component_names or
+                        (rule.selector_names & node._selector_names
+                         and any(stylesheet._check_rule(rule, node.css_path_nodes)))):
+                    targets.update(node.walk_children(with_self=True))
+                    break
+        # Preserve ancestor-before-descendant application, as a full CSS update
+        # does, rather than applying the selected subtree in set iteration order.
+        return [node for node in nodes if node in targets]
