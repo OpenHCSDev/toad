@@ -82,6 +82,30 @@ independent startup/feature-review gates.
 
 ## Remaining work
 
+### Off-loop route discovery (September 24)
+
+Thread/channel/DM opens now pass typed immutable requests to an app-owned
+metadata reader. Registry/canonical-alias/status reads, process checks, session
+file checks, project directory checks, and recovery-root normalization happen
+off the UI thread. The UI publishes only a completed route still belonging to
+the same live owner and current navigation intent. Existing renamed thread tabs
+are resolved through the core alias authority on the reader thread.
+
+Two real reads may run concurrently. A cancelled waiter retains its admission
+slot until underlying I/O finishes; superseded queued requests perform no I/O.
+Shutdown drains outstanding reads. A kernel-lock wait cannot itself be cancelled.
+
+`tests/navigation_preparation_pilot.py` gates reads while verifying typing,
+tab exit, latest-intent handling, closed-owner rejection, alias reuse, bounded
+admission after cancellation, and shutdown drainage. Existing owner-navigation,
+channel, stopped-thread, recovery-root, asynchronous-history-loading and
+history-scroll pilots also pass with the paired Textual checkpoint.
+
+This removes blocking metadata work from the app's route-opening methods. It
+does not yet create an opening tab before metadata resolution, and synchronous
+identity getters in other UI callers remain a follow-up. Full widget mounting,
+layout and rendering still require further optimization.
+
 Live feedback confirms faster repeated tab changes and fewer hangs, but first
 thread/history loads and the Channels sidebar can still take too long. Read-only
 inspection observed a large queue for the core message-store lock, with a UI

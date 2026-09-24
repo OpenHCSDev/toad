@@ -36,7 +36,10 @@ from toad.version import VersionMeta
 from toad import paths
 from toad import atomic
 from toad.render_backend import Renderer, create_renderer
-from toad.channel_preparation import ChannelHistoryReader
+from toad.channel_preparation import ChannelHistoryReader, HistoryKind
+from toad.navigation_preparation import (
+    CommsNavigationRequest, NavigationReader, OpenThread, ThreadNavigationRequest,
+)
 from toad.session_tracker import SessionTracker, SessionDetails, OpenTab, CommsViewKey, SidebarState
 
 if TYPE_CHECKING:
@@ -333,6 +336,7 @@ class ToadApp(App, inherit_bindings=False):
         self.background_render_slots = asyncio.Semaphore(1)
         self._background_render_tasks: set[asyncio.Task[object]] = set()
         self.channel_history_reader = ChannelHistoryReader()
+        self.navigation_reader = NavigationReader()
         self.settings_changed_signal: Signal[tuple[int, object]] = Signal(
             self, "settings_changed"
         )
@@ -378,6 +382,7 @@ class ToadApp(App, inherit_bindings=False):
         return paths.get_config()
 
     async def on_unmount(self) -> None:
+        await self.navigation_reader.aclose()
         await self.render_processes.aclose()
         if self._background_render_tasks:
             await asyncio.gather(*tuple(self._background_render_tasks), return_exceptions=True)
@@ -792,6 +797,7 @@ class ToadApp(App, inherit_bindings=False):
     def switch_mode(self, mode: str, *, history_index: int | None = None) -> AwaitComplete:
         from toad.screens.session_view import SessionView
 
+        self.navigation_reader.invalidate()
         if mode in self._file_preview_modes.values() and mode != self.current_mode:
             self._file_preview_return[mode] = self.current_mode
         if self.is_running and mode != self.current_mode:
@@ -961,43 +967,33 @@ class ToadApp(App, inherit_bindings=False):
                 target=target,
             )
 
-        from agent_comms.operations import wire
-
         from toad.screens.comms import CommsScreen
-
-        try:
-            root_path = Path(os.environ.get("AGENT_COMMS_ROOT", "~/.agent-comms")).expanduser().resolve()
-            comms = self.coordination_wire
-            if comms.root != root_path:
-                comms = wire(root_path)
-            if kind == "dm":
-                # DM routing needs a registered peer identity. A late action
-                # may still carry a pre-rename alias; bind the canonical name.
-                me = comms.registry.require(me).name
-                target = comms.registry.require(target).name
-            else:
-                # A channel can be viewed from a local session before an ACP
-                # executor is registered. Do not make that read-only view
-                # depend on a non-existent worker; canonicalize when known.
-                if me in comms.registry:
-                    me = comms.registry.require(me).name
-                target = comms.channel_catalog.resolve(target).name
-        except Exception as error:
-            self.notify(str(error), title="Comms target unavailable", severity="error")
-            return owner_mode
 
         owner_screen = self._main_session_screen(owner_mode)
         if owner_screen is None or self.session_tracker.get_session(owner_mode) is None:
-            # A late sidebar action must not resurrect a channel under a
-            # deleted owner, or bind its Back action to an unrelated tab.
-            self.notify(
-                "The owning agent tab was closed",
-                title="Comms target unavailable",
-                severity="error",
-            )
+            self.notify("The owning agent tab was closed", title="Comms target unavailable", severity="error")
             return self.current_mode
-        root = str(root_path)
-        key = CommsViewKey(root, owner_mode, me, kind, target)
+        owner_identity = owner_screen._comms_thread
+        owner_root = owner_screen._coordination_root
+        requested_root = os.environ.get("AGENT_COMMS_ROOT", "~/.agent-comms")
+        try:
+            prepared = await self.navigation_reader.read(
+                CommsNavigationRequest(requested_root, owner_mode, me, target, HistoryKind(kind), owner_root)
+            )
+        except Exception as error:
+            self.notify(str(error), title="Comms target unavailable", severity="error")
+            return self.current_mode
+
+        if (prepared is None or self._main_session_screen(owner_mode) is not owner_screen
+                or self.session_tracker.get_session(owner_mode) is None
+                or owner_screen._comms_thread != owner_identity
+                or owner_screen._coordination_root != owner_root
+                or requested_root != os.environ.get("AGENT_COMMS_ROOT", "~/.agent-comms")):
+            # Metadata may finish after a newer click, rename, or owner close.
+            # A delayed result cannot resurrect a tab or steal current focus.
+            return self.current_mode
+        key = prepared.key
+        me, target = key.me, key.target
         if mode_name := self._comms_modes.get(key):
             try:
                 self.get_screen_stack(mode_name)
@@ -1018,11 +1014,7 @@ class ToadApp(App, inherit_bindings=False):
                 await screen.wait_content_ready()
                 return mode_name
 
-        owner_root = owner_screen._coordination_root if owner_screen is not None else None
-        recovery_root = (
-            owner_root if owner_root is not None
-            and Path(owner_root).expanduser().resolve() == Path(root) else None
-        )
+        recovery_root = prepared.recovery_root
 
         def get_screen() -> Screen:
             return CommsScreen(
@@ -1136,49 +1128,64 @@ class ToadApp(App, inherit_bindings=False):
         target: str,
     ) -> str:
         """Open or reuse a resumable wire thread as a tracked agent session."""
-        from agent_comms.operations import wire
-
         from toad.screens.main import MainScreen
 
-        root = Path(os.environ.get("AGENT_COMMS_ROOT", "~/.agent-comms"))
-        coordination_root = str(root.expanduser().resolve())
+        source = self._main_session_screen(owner_mode)
+        if source is None:
+            from toad.screens.comms import CommsScreen
+
+            owner_stack = self._screen_stacks.get(owner_mode, [])
+            if owner_stack and isinstance(owner_stack[-1], CommsScreen):
+                source = self._main_session_screen(owner_stack[-1].owner_mode)
+        if source is None:
+            return self.current_mode
+        source_identity = source._comms_thread
+        source_root = source._coordination_root
+        open_threads = tuple(
+            OpenThread(details.mode_name, screen._coordination_root, screen._comms_thread)
+            for details in self.session_tracker.ordered_sessions
+            if (screen := self._main_session_screen(details.mode_name)) is not None
+            and screen._coordination_root is not None
+        )
+        requested_root = os.environ.get("AGENT_COMMS_ROOT", "~/.agent-comms")
         try:
-            comms = self.coordination_wire
-            if str(comms.root) != coordination_root:
-                comms = wire(root)
-            thread = comms.registry.require(target)
+            prepared = await self.navigation_reader.read(
+                ThreadNavigationRequest(requested_root, target, project_path, open_threads)
+            )
         except Exception as error:
             self.notify(str(error), title="Thread unavailable", severity="error")
-            return owner_mode
-        if not comms.registry.status(thread.name).active:
-            source = self._main_session_screen(owner_mode)
-            if source is None:
-                return owner_mode
+            return self.current_mode
+        if (prepared is None or not source.is_attached
+                or owner_mode not in self._screen_stacks
+                or source._comms_thread != source_identity
+                or source._coordination_root != source_root
+                or requested_root != os.environ.get("AGENT_COMMS_ROOT", "~/.agent-comms")):
+            return self.current_mode
+        coordination_root, thread = prepared.root, prepared.thread
+        if not prepared.active:
             self.notify(
                 f"@{thread.name} is stopped; choose Start thread to resume it",
                 title="Thread view",
             )
             return await self.open_comms_session(
                 owner_mode=owner_mode, project_path=project_path,
-                me=source._session_thread, target=thread.name, kind="dm",
+                me=source._comms_thread, target=thread.name, kind="dm",
             )
-        for details in self.session_tracker.ordered_sessions:
-            screen = self._main_session_screen(details.mode_name)
-            if (
-                screen is not None
-                and screen._coordination_root == coordination_root
-                and screen._session_thread == thread.name
-            ):
-                await self.switch_mode(details.mode_name)
-                return details.mode_name
+        if existing := prepared.existing:
+            screen = self._main_session_screen(existing.mode)
+            if (screen is not None and screen._coordination_root == existing.root
+                    and screen._comms_thread == existing.name):
+                await self.switch_mode(existing.mode)
+                return existing.mode
+            # A view changed identity during discovery; don't create a duplicate
+            # using an obsolete snapshot of the available open threads.
+            return self.current_mode
 
-        persisted = bool(thread.session_file and Path(thread.session_file).is_file())
-        attachable = thread.pid > 0 and comms._process_alive(thread.pid)
-        if not persisted and not attachable:
+        if not prepared.resumable:
             source = self._main_session_screen(owner_mode)
             if source is None:
                 return owner_mode
-            me = source._session_thread
+            me = source._comms_thread
             if thread.name == me:
                 await self.switch_mode(owner_mode)
                 return owner_mode
@@ -1190,17 +1197,7 @@ class ToadApp(App, inherit_bindings=False):
                 kind="dm",
             )
 
-        source = self._main_session_screen(owner_mode)
-        if source is None:
-            try:
-                from toad.screens.comms import CommsScreen
-
-                owner_screen = self.get_screen_stack(owner_mode)[-1]
-                if isinstance(owner_screen, CommsScreen):
-                    source = self._main_session_screen(owner_screen.owner_mode)
-            except KeyError, IndexError:
-                pass
-        if source is None or source._agent is None:
+        if source._agent is None:
             self.notify(
                 "The owning agent session is unavailable",
                 title="Thread unavailable",
@@ -1210,11 +1207,7 @@ class ToadApp(App, inherit_bindings=False):
 
         def get_screen() -> MainScreen:
             screen = MainScreen(
-                (
-                    Path(thread.worktree)
-                    if Path(thread.worktree).is_dir()
-                    else project_path
-                ),
+                prepared.project,
                 source._agent,
                 agent_session_id=thread.name,
                 agent_session_title=thread.name,
