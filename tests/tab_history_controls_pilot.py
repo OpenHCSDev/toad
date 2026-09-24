@@ -5,17 +5,22 @@ import os
 import tempfile
 from pathlib import Path
 
+from agent_comms import Thread, wire
 from runtime_fixture import ToadApp
+
 from toad.widgets.session_tabs import SessionLabel, SessionsTabs
 from toad.widgets.side_bar import SideBar, TabHistoryButton, TabHistoryControls
-
-from agent_comms import Thread, wire
 
 
 async def wait_for(pilot, condition):
     async with asyncio.timeout(8):
         while not condition():
             await pilot.pause(.02)
+
+
+def arrow_style(screen, button):
+    row = screen._compositor.render_strips()[button.region.y + 1]
+    return next(iter(row.crop(button.region.x + 2, button.region.x + 3))).style
 
 
 async def main():
@@ -40,10 +45,23 @@ async def main():
             assert controls.region.y == first_screen.query_one(SessionsTabs).region.y
             assert controls.region.y == 0
             assert controls.query_one("#tab-back", TabHistoryButton).region.width == 7
-            assert controls.query_one("#tab-back", TabHistoryButton).region.height == 2
+            assert controls.query_one("#tab-back", TabHistoryButton).region.height == 3
+            assert controls.region.height == 3
             assert controls.query_one("#tab-back", TabHistoryButton).has_class("-unavailable")
             assert controls.query_one("#tab-forward", TabHistoryButton).has_class("-unavailable")
-            assert controls.query_one("#tab-back", TabHistoryButton).disabled
+            unavailable_back = controls.query_one("#tab-back", TabHistoryButton)
+            assert unavailable_back.tooltip == "No earlier visited tab"
+            unavailable_style = arrow_style(first_screen, unavailable_back)
+            unavailable_background = unavailable_back.styles.background
+            await pilot.hover(unavailable_back)
+            await pilot.pause()
+            assert arrow_style(first_screen, unavailable_back).bgcolor != unavailable_style.bgcolor, (
+                unavailable_style, arrow_style(first_screen, unavailable_back),
+                unavailable_background, unavailable_back.styles.background,
+                unavailable_back.pseudo_classes,
+            )
+            assert await pilot.click(unavailable_back)
+            assert app.current_mode == first
             assert not first_screen.query_one("#thread-sidebar", SideBar).query(TabHistoryControls)
             assert controls.region.y < left.region.y
             assert controls.region.y < left.query_one("CollapsibleTitle").region.y
@@ -61,8 +79,21 @@ async def main():
             assert app.screen.query_one(SessionsTabs).display
             assert app.screen.query_one(SessionsTabs).region.y == 0
             assert not app.screen.query_one("#tab-back", TabHistoryButton).has_class("-unavailable")
-            assert not app.screen.query_one("#tab-back", TabHistoryButton).disabled
             assert app.screen.query_one("#tab-forward", TabHistoryButton).has_class("-unavailable")
+            back = app.screen.query_one("#tab-back", TabHistoryButton)
+            painted = [strip.text for strip in app.screen._compositor.render_strips()]
+            assert "<──" in painted[back.region.y + 1]
+            assert "<──" not in painted[back.region.y]
+            await pilot.hover(app.screen.query_one("CollapsibleTitle"))
+            await pilot.pause()
+            before_hover = back.styles.color
+            painted_before = arrow_style(app.screen, back)
+            await pilot.hover(back)
+            await pilot.pause()
+            assert back.styles.color != before_hover
+            painted_after = arrow_style(app.screen, back)
+            assert painted_after != painted_before
+            assert painted_after.bgcolor != painted_before.bgcolor
             channel_left = app.screen.query_one("#channels-sidebar", SideBar)
             channel_left.collapsed = True
             await pilot.pause()

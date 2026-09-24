@@ -8,6 +8,7 @@ from textual.events import Click
 from textual.message import Message
 from textual.reactive import reactive
 from textual.widget import Widget
+
 from toad.session_tracker import SidebarState
 
 if TYPE_CHECKING:
@@ -163,25 +164,47 @@ class TabHistoryButton(widgets.Static, can_focus=True):
     DEFAULT_CSS = """
     TabHistoryButton {
         width: 7;
-        height: 2;
+        height: 3;
         content-align: center middle;
         color: $text;
-        background: $primary 12%;
+        background: $background;
         text-style: bold;
         pointer: pointer;
     }
     TabHistoryButton:hover, TabHistoryButton:focus {
-        background: $primary 18%;
+        color: $background;
+        background: $foreground 80%;
         text-style: bold;
     }
     TabHistoryButton.-unavailable {
         color: $text-muted 40%;
         pointer: default;
     }
+    TabHistoryButton.-unavailable:hover, TabHistoryButton.-unavailable:focus {
+        color: $background;
+        background: $foreground 80%;
+    }
+    TabHistoryButton:ansi {
+        color: ansi_white;
+        background: ansi_black;
+    }
+    TabHistoryButton:ansi:hover, TabHistoryButton:ansi:focus {
+        color: ansi_black;
+        background: ansi_white;
+    }
+    TabHistoryButton.-unavailable:ansi {
+        color: ansi_bright_black;
+        background: ansi_black;
+    }
+    TabHistoryButton.-unavailable:ansi:hover,
+    TabHistoryButton.-unavailable:ansi:focus {
+        color: ansi_black;
+        background: ansi_white;
+    }
     """
 
     def __init__(self, direction: int) -> None:
-        super().__init__("◀──" if direction == -1 else "──▶",
+        super().__init__("<──" if direction == -1 else "──>",
                          id="tab-back" if direction == -1 else "tab-forward")
         self.direction = direction
         self.tooltip = ("Back through visited tabs" if direction == -1
@@ -203,7 +226,7 @@ class TabHistoryControls(containers.HorizontalGroup):
     DEFAULT_CSS = """
     TabHistoryControls {
         width: auto;
-        height: 2;
+        height: 3;
         margin: 0 1;
     }
     """
@@ -222,8 +245,13 @@ class TabHistoryControls(containers.HorizontalGroup):
         app = cast("ToadApp", self.app)
         for button in self.query(TabHistoryButton):
             unavailable = not app.can_navigate_tab_history(button.direction)
-            button.disabled = unavailable
             button.set_class(unavailable, "-unavailable")
+            button.tooltip = (
+                "No earlier visited tab" if button.direction == -1 else "No later visited tab"
+            ) if unavailable else (
+                "Back through visited tabs" if button.direction == -1
+                else "Forward through visited tabs"
+            )
 
 
 class SideBar(containers.Vertical):

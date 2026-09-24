@@ -307,7 +307,7 @@ printf '%s\n' '{"type":"response","command":"get_session_stats","success":true,"
     assert (
         "Channels" in frame and "#none" in frame and "seed-peer" in frame
     ), f"sidebar missing at launch:\n{frame[-600:]}"
-    assert ("◀──" in frame.splitlines()[0] and "──▶" in frame.splitlines()[0]), (
+    assert ("<──" in frame.splitlines()[0] and "──>" in frame.splitlines()[0]), (
         "Large tab Back/Forward controls are not above Channels"
     )
     print("[1] launch + sidebar render OK")
