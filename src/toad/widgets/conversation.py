@@ -2208,9 +2208,11 @@ class Conversation(containers.Vertical):
         elif event.action == "goal-clear":
             await self.change_goal("clear")
         elif event.action == "goal-toggle":
-            await self.change_goal(
-                self.goal.toggle_action if self.goal else "active"
-            )
+            action = self.goal.toggle_action if self.goal else ""
+            if action:
+                await self.change_goal(action)
+            else:
+                self.flash("This goal is completed; set a new goal to continue.")
 
     async def change_goal(self, action: str, text: str = "") -> None:
         if self.agent is None or not hasattr(self.agent, "update_goal"):
@@ -2826,7 +2828,9 @@ class Conversation(containers.Vertical):
             return True
         elif command == "goal":
             parameter = parameters.strip()
-            actions = {"pause": "paused", "resume": "active", "clear": "clear"}
+            actions = {
+                "pause": "paused", "resume": "active", "retry": "retry", "clear": "clear"
+            }
             if parameter in actions:
                 await self.change_goal(actions[parameter])
             elif parameter:
@@ -2834,7 +2838,7 @@ class Conversation(containers.Vertical):
             else:
                 await self.refresh_goal()
                 self.flash(
-                    "Use /goal <objective> to set or edit; pause, resume, or clear to manage it."
+                    "Use /goal <objective> to set or edit; pause, resume, retry, or clear to manage it."
                 )
             return True
         elif command == "compact":
