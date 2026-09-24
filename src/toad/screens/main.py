@@ -241,9 +241,9 @@ class MainScreen(SessionView, can_focus=False):
             self.app.sync_coordination_identity(self.id, previous, thread_name)
             details = self.app.session_tracker.get_session(self.id)
             if (
-                previous != thread_name
-                and details is not None
-                and details.title == previous
+                details is not None
+                and details.title in {"New Session", previous}
+                and self._agent_session_title in {None, "New Session", previous}
             ):
                 self._agent_session_title = thread_name
                 self.app.session_tracker.update_session(self.id, title=thread_name)

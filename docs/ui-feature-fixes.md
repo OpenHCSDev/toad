@@ -88,5 +88,25 @@ The existing message-divider pilot reproduced the old inset/border and now
 checks actual compositor rows in ANSI and RGB themes, plus full message copy.
 The divider and clipboard-selection pilots pass.
 
+## Batch 4: initial thread titles
+
+Opening an already named thread created its saved row as `New Session`, and
+the screen's identity handler would only replace a title equal to the previous
+thread name. The initial ACP response now supplies the saved title at creation:
+`agentComms.title`, falling back to canonical `agentComms.thread`. New/load
+responses publish that resolved title to the current view; later partial
+metadata without a title does not reset it. The screen replaces initial
+placeholders and identity-derived titles while preserving explicit labels.
+An explicit name pending during connection takes precedence over the opening
+snapshot. Generic ACP agents retain the existing placeholder fallback.
+
+`initial_session_title_pilot.py` first captured `['New Session']` at the DB
+creation boundary despite an `An already named thread` response. It now checks
+the creation argument, saved row, session tracker and rendered tab without a
+tab switch, including loading an existing session, missing-title identity
+fallback, partial metadata and explicit/pending names. It uses a controlled
+ACP request boundary and real mounted widgets/disposable DB, not a provider.
+The title, public ACP contract, owner-navigation and broad Comms pilots pass.
+
 Preserve drafts, navigation ownership, read-marker semantics, copy/history,
 scroll intent, and the merged renderer behavior while correcting each issue.

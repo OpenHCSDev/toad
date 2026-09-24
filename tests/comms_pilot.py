@@ -398,7 +398,7 @@ for line in sys.stdin:
                 }
             )
             await pilot.pause()
-            assert app.session_tracker.get_session(created_mode).title == "New Session"
+            assert app.session_tracker.get_session(created_mode).title == managed_thread
             await startup_agent.set_session_name("Name this from my first prompt")
             created_conversation.post_message(
                 messages.SessionUpdate(name="Name this from my first prompt")
