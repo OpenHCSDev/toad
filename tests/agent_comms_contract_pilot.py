@@ -10,6 +10,7 @@ from agent_comms import Comms, Goal, MessageRoute, TranscriptCursor, TranscriptP
 
 from toad.acp.agent import Agent
 from toad.acp.messages import CoordinationUpdate, Update
+from toad.conversation_markdown import _linked_file
 
 
 async def main() -> None:
@@ -36,6 +37,29 @@ async def main() -> None:
         )
         assert len(sent) == 1 and isinstance(sent[0], Update)
         assert sent[0].route == route
+
+        sent.clear()
+        agent.rpc_session_update(
+            "session",
+            {
+                "sessionUpdate": "agent_message_chunk",
+                "content": {"type": "text", "text": "[agent error] Pi preflight failed."},
+            },
+        )
+        assert len(sent) == 1 and isinstance(sent[0], Update)
+        assert "[Open ACP log](" + (root / "agent.log").as_uri() + ")" in sent[0].text
+        (root / "agent.log").write_text("ACP diagnostics\n")
+        assert _linked_file(root, (root / "agent.log").as_uri()) == root / "agent.log"
+
+        sent.clear()
+        agent.rpc_session_update(
+            "session",
+            {
+                "sessionUpdate": "agent_message_chunk",
+                "content": {"type": "text", "text": "normal reply"},
+            },
+        )
+        assert len(sent) == 1 and sent[0].text == "normal reply"
 
         sent.clear()
         agent.rpc_session_update(

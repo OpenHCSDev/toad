@@ -424,6 +424,8 @@ class Agent(AgentBase):
                 "content": {"type": type, "text": text},
             }:
                 if text:
+                    if type == "text" and text.startswith("[agent error]"):
+                        text += f"\n\n[Open ACP log]({self._log_file_path.as_uri()})"
                     self.post_message(messages.Update(type, text, route))
 
             case {
