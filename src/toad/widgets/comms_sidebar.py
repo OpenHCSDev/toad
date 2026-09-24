@@ -23,7 +23,6 @@ from typing import TYPE_CHECKING, cast
 
 from textual import on
 from textual.binding import Binding
-from textual.containers import Vertical, VerticalGroup, HorizontalGroup, VerticalScroll
 from textual.app import ComposeResult
 from textual.dom import DOMNode
 from textual.message import Message
@@ -471,8 +470,8 @@ class CommsSidebar(TargetTree):
         from toad.widgets.side_bar import SideBar, SideBarCollapsible
 
         panel = self.query_ancestor(SideBarCollapsible)
-        return (self.query_one(VirtualChannelList) if self._virtual
-                else panel.query_one(SideBarCollapsible.Contents)), panel.query_ancestor(SideBar).query_one("#sidebar-panels")
+        panels = panel.query_ancestor(SideBar).query_one("#sidebar-panels")
+        return panels, panels
 
     def prepare_navigation(self) -> None:
         self.navigation_ready.clear()
@@ -783,7 +782,7 @@ class CommsSidebar(TargetTree):
             self._rebuild_virtual(snapshot)
             return
         self._last_snapshot = snapshot
-        from toad.widgets.side_bar import SideBar, SideBarCollapsible
+        from toad.widgets.side_bar import SideBarCollapsible
 
         control = self.query_ancestor(SideBarCollapsible).header_control
         assert isinstance(control, ChannelListSort)
@@ -828,8 +827,8 @@ class CommsSidebar(TargetTree):
         self._rendered_actions = dict(cast("ToadApp", self.app).pending_thread_actions)
         self._sync_spinner(snapshot)
         # The ordinary widget-tree roster must retain the same full text as
-        # the virtual roster. Give its direct scroll child an intrinsic width
-        # so the fixed bottom slider can reach rows beyond this narrow pane.
+        # the virtual roster. Only the content grows; the outer sidebar owns
+        # both native scrollbars and keeps their geometry at the visible edge.
         widest = max((Content(view.channel.name).cell_length + 12
                       for view in snapshot.wire.channels), default=0)
         widest = max(widest, max((Content(person.presentation.label).cell_length + 8
@@ -838,18 +837,14 @@ class CommsSidebar(TargetTree):
                                   for person in snapshot.all_people.values()), default=0))
         widest = min(widest, 512)
         panel = self.query_ancestor(SideBarCollapsible)
-        width = max(panel.size.width, self._horizontal_width, widest)
-        if width > self._horizontal_width:
-            self._horizontal_width = width
-            panel.styles.width = width
-            sidebar = self.query_ancestor(SideBar)
-            sidebar.query_one("#sidebar-panels", VerticalScroll).styles.overflow_x = "auto"
-            self.call_after_refresh(sidebar._sync_horizontal_slider)
+        if widest != self._horizontal_width:
+            self._horizontal_width = widest
+            panel.styles.min_width = widest
 
     def _rebuild_virtual(self, snapshot: SidebarSnapshot) -> None:
         """Project canonical channel/member order into one viewport-painted list."""
         self._last_snapshot = snapshot
-        from toad.widgets.side_bar import SideBar, SideBarCollapsible
+        from toad.widgets.side_bar import SideBarCollapsible
 
         control = self.query_ancestor(SideBarCollapsible).header_control
         assert isinstance(control, ChannelListSort)
@@ -863,7 +858,7 @@ class CommsSidebar(TargetTree):
         options: list[Option] = [Option("+ New Session", id="new-session")]
         ansi = app.theme.startswith("ansi-")
         listing = self.query_one(VirtualChannelList)
-        width = listing.scrollable_content_region.width or 34
+        width = self.scroll_containers[0].scrollable_content_region.width or 34
         longest = width
         for view in snapshot.wire.channels:
             channel = view.channel.name
@@ -909,7 +904,7 @@ class CommsSidebar(TargetTree):
                 options.append(Option(styled_row(shown, selected=row_selected, ansi=ansi,
                                                  busy=bool(action_status or person.presentation.busy),
                                                  muted=True, unread=bool(badge)), id=choice_id))
-        listing.set_horizontal_content_width(longest)
+        self.query_ancestor(SideBarCollapsible).styles.min_width = min(longest, 4096)
         old_scroll = listing.scroll_y
         old_ids = [option.id for option in listing.options]
         if old_ids != [option.id for option in options]:
@@ -922,7 +917,6 @@ class CommsSidebar(TargetTree):
                     listing.replace_option_prompt_at_index(index, option.prompt)
         self._virtual_targets = choices
         self._busy_virtual_rows = busy_rows
-        self.query_ancestor(SideBar)._sync_horizontal_slider()
         self._rendered_selection = selected
         self._rendered_expansion = dict(self.navigation.expanded)
         self._rendered_actions = dict(app.pending_thread_actions)

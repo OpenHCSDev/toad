@@ -111,16 +111,17 @@ async def main():
                              and "ansi_black" in str(span.style)
                              for span in getattr(option.prompt, "spans", ()))]
             assert filled == [member_id], filled
-            current_list.scroll_end(animate=False, immediate=True)
+            viewport = sidebar.scroll_containers[0]
+            viewport.scroll_end(animate=False, immediate=True)
             await pilot.pause()
-            remembered = current_list.scroll_y
+            remembered = viewport.scroll_y
             assert remembered > 0
             await app.switch_mode(any_mode)
             await app.switch_mode(first)
             await pilot.pause()
-            assert current_list.scroll_y == remembered, "Virtual channel scroll did not survive switching"
+            assert viewport.scroll_y == remembered, "Virtual channel scroll did not survive switching"
 
-            current_list.scroll_home(animate=False, immediate=True)
+            viewport.scroll_home(animate=False, immediate=True)
             await pilot.pause()
             index = current_list.get_option_index("channel:#any")
             click = Click(current_list, 4, 2, 0, 0, 3, False, False, False,

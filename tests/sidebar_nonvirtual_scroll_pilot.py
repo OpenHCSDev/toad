@@ -11,7 +11,7 @@ from textual.containers import VerticalScroll
 
 from toad.acp.messages import CoordinationUpdate
 from toad.widgets.comms_sidebar import CommsSidebar
-from toad.widgets.side_bar import SideBar, SidebarSlider
+from toad.widgets.side_bar import SideBar
 from toad.widgets.thread_comms import ThreadCommsSidebar
 
 
@@ -32,10 +32,10 @@ async def check_left() -> None:
             bar = app.screen.query_one("#channels-sidebar", SideBar)
             panels = bar.query_one("#sidebar-panels", VerticalScroll)
             assert panels.max_scroll_x > 0
-            slider = bar.query_one("#sidebar-horizontal-slider", SidebarSlider)
-            bar._sync_horizontal_slider()
-            assert slider.maximum >= panels.max_scroll_x
-            slider._choose(slider.size.width - 1)
+            assert panels.show_horizontal_scrollbar
+            assert not bar.query("#sidebar-horizontal-slider")
+            await pilot.click(panels.horizontal_scrollbar,
+                              offset=(panels.horizontal_scrollbar.size.width - 1, 0))
             await pilot.pause()
             assert panels.scroll_x > 0
             # The row's source content remains full length; the viewport moves.
@@ -69,10 +69,10 @@ async def check_right() -> None:
                     await pilot.pause(.05)
             panels = bar.query_one("#sidebar-panels", VerticalScroll)
             assert panels.max_scroll_x > 0
-            slider = bar.query_one("#sidebar-horizontal-slider", SidebarSlider)
-            bar._sync_horizontal_slider()
-            assert slider.maximum >= panels.max_scroll_x
-            slider._choose(slider.size.width - 1)
+            assert panels.show_horizontal_scrollbar
+            assert not bar.query("#sidebar-horizontal-slider")
+            await pilot.click(panels.horizontal_scrollbar,
+                              offset=(panels.horizontal_scrollbar.size.width - 1, 0))
             await pilot.pause()
             assert panels.scroll_x > 0
             assert name in tree.groups["collaborating"].model.entries[0].target
@@ -83,7 +83,7 @@ async def main() -> None:
     await check_left()
     await check_right()
     await asyncio.get_running_loop().shutdown_default_executor()
-    print("both ordinary sidebars preserve long rows behind bottom horizontal sliders")
+    print("both ordinary sidebars preserve long rows behind one native horizontal scrollbar")
 
 
 if __name__ == "__main__":

@@ -135,7 +135,11 @@ async def main():
             assert member.has_class("-selected")
             assert sum(row.has_class("-selected") for row in current._ordered_rows()) == 1
             await pilot.hover(member)
-            assert "hover" in member.pseudo_classes and not member.has_focus
+            assert "hover" in member.pseudo_classes and not member.has_focus, (
+                member.region, member.pseudo_classes, member.has_focus,
+                app.get_widget_at(member.region.x, member.region.y),
+                current.scroll_containers[0].region,
+            )
             await pilot.hover(app.screen.conversation.prompt)
             assert "hover" not in member.pseudo_classes and member.current
             assert tuple(widget.scroll_y for widget in current.scroll_containers) == expected_scroll
