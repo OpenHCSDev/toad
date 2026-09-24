@@ -1120,6 +1120,60 @@ class ToadApp(App, inherit_bindings=False):
 
         return wire(Path(os.environ.get("AGENT_COMMS_ROOT", "~/.agent-comms")))
 
+    def open_wire_export_dialog(self) -> None:
+        from toad.widgets.comms_transfer import WireExportDialog
+
+        self.push_screen(
+            WireExportDialog(self.coordination_wire.root),
+            callback=lambda request: self._export_wire(request) if request is not None else None,
+        )
+
+    @work(group="wire-export", exclusive=True, exit_on_error=False)
+    async def _export_wire(self, request) -> None:
+        try:
+            receipt = await asyncio.to_thread(
+                self.coordination_wire.export_wire,
+                request.destination,
+                format=request.format,
+                scope=request.scope,
+                limit=request.limit,
+            )
+        except Exception as error:
+            self.notify(str(error), title="Wire export failed", severity="error")
+        else:
+            self.notify(
+                f"Exported {receipt.exported_messages} messages to {receipt.destination}",
+                title="Wire export",
+            )
+
+    def open_thread_import_dialog(self) -> None:
+        from toad.widgets.comms_transfer import ThreadImportDialog
+
+        self.push_screen(
+            ThreadImportDialog(),
+            callback=lambda request: self._import_thread(request) if request is not None else None,
+        )
+
+    @work(group="thread-import", exclusive=True, exit_on_error=False)
+    async def _import_thread(self, request) -> None:
+        try:
+            receipt = await asyncio.to_thread(
+                self.coordination_wire.import_thread,
+                request.source,
+                request.format,
+                name=request.name,
+                session_id=request.session_id,
+                worktree=request.worktree,
+            )
+        except Exception as error:
+            self.notify(str(error), title="Thread import failed", severity="error")
+        else:
+            self.thread_actions_changed.publish(None)
+            self.notify(
+                f"Imported @{receipt.thread} ({receipt.imported_messages} messages) as a stopped thread",
+                title="Thread Import",
+            )
+
     async def open_thread_session(
         self,
         *,
