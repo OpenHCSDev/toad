@@ -3,6 +3,7 @@
 from textual.app import ComposeResult
 from textual.containers import VerticalGroup
 from toad.widgets.route_header import RouteHeader
+from toad.widgets.message_divider import MessageDivider
 from agent_comms import MessageRoute
 
 
@@ -30,8 +31,9 @@ class IncomingMessage(VerticalGroup):
     def compose(self) -> ComposeResult:
         from toad.widgets.agent_response import AgentResponse
 
+        yield MessageDivider(f"Inbound · @{self.sender}")
         yield IncomingSender(self.sender, self.target)
-        yield AgentResponse(self.text).add_class("routed-body")
+        yield AgentResponse(self.text, show_divider=False).add_class("routed-body")
 
     def get_block_content(self, destination: str) -> str:
         route = MessageRoute(self.sender, (self.target,) if self.target else ())
