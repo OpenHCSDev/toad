@@ -101,6 +101,20 @@ async def main():
                     assert not any(message.body == "BLOCKED-BACKGROUND-READ" for message, _ in chat._history)
             finally:
                 release.set()
+
+            # A warm read can finish while Textual is dismantling this view:
+            # the view may still be attached after its Window child is gone.
+            # Its completion callback must discard the page without a getter
+            # exception or a read acknowledgement.
+            late_result = chat._prepared_history
+            assert late_result is not None
+            completed = asyncio.create_task(asyncio.sleep(0, result=late_result))
+            await completed
+            chat._prepared_history = None
+            await chat.window.remove()
+            assert chat.is_attached
+            chat._history_warmed(completed)
+            assert chat._prepared_history is None
             assert app._exception is None
         assert not app.channel_history_reader._pending
         await asyncio.get_running_loop().shutdown_default_executor()

@@ -280,7 +280,11 @@ class CommsChatView(Conversation):
         except Exception:
             # Active loading reports failures through the existing visible path.
             return
-        if self.is_attached and result.request == self._history_request():
+        if (
+            self.is_attached
+            and self.query_one_optional(Window) is not None
+            and result.request == self._history_request()
+        ):
             self._prepared_history = result
 
     async def _read_history(self) -> HistoryReadResult:
