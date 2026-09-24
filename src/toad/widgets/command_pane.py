@@ -3,6 +3,7 @@ import codecs
 from dataclasses import dataclass
 
 import os
+import signal
 import fcntl
 import pty
 import struct
@@ -37,6 +38,7 @@ class CommandPane(Terminal):
         self._execute_task: asyncio.Task | None = None
         self._return_code: int | None = None
         self._master: int | None = None
+        self._process: asyncio.subprocess.Process | None = None
         super().__init__(name=name, id=id, classes=classes)
 
     @property
@@ -47,8 +49,17 @@ class CommandPane(Terminal):
     class CommandComplete(Message):
         return_code: int
 
-    def execute(self, command: str, *, final: bool = True) -> asyncio.Task:
-        self._execute_task = asyncio.create_task(self._execute(command, final=final))
+    def execute(
+        self,
+        command: str,
+        *,
+        final: bool = True,
+        env: dict[str, str] | None = None,
+        cwd: str | None = None,
+    ) -> asyncio.Task:
+        self._execute_task = asyncio.create_task(
+            self._execute(command, final=final, extra_env=env, cwd=cwd)
+        )
         self.anchor()
         return self._execute_task
 
@@ -87,7 +98,14 @@ class CommandPane(Terminal):
         except OSError:
             return 0
 
-    async def _execute(self, command: str, *, final: bool = True) -> None:
+    async def _execute(
+        self,
+        command: str,
+        *,
+        final: bool = True,
+        extra_env: dict[str, str] | None = None,
+        cwd: str | None = None,
+    ) -> None:
         # width, height = self.scrollable_content_region.size
 
         await self.wait_for_refresh()
@@ -111,14 +129,16 @@ class CommandPane(Terminal):
         env["COLORTERM"] = "truecolor"
         env["TOAD"] = "1"
         env["CLICOLOR"] = "1"
+        env.update(extra_env or {})
 
         try:
-            process = await asyncio.create_subprocess_shell(
+            process = self._process = await asyncio.create_subprocess_shell(
                 command,
                 stdin=slave,
                 stdout=slave,
                 stderr=slave,
                 env=env,
+                cwd=cwd,
                 start_new_session=True,  # Linux / macOS only
             )
         except Exception as error:
@@ -163,6 +183,8 @@ class CommandPane(Terminal):
                     break
         finally:
             transport.close()
+            self.write_transport.close()
+            self._master = None
 
         await process.wait()
         return_code = self._return_code = process.returncode
@@ -171,6 +193,30 @@ class CommandPane(Terminal):
             self.set_class(return_code != 0, "-fail")
         self.post_message(self.CommandComplete(return_code or 0))
         self.hide_cursor = True
+
+    async def cancel_command(self) -> None:
+        process = self._process
+        if process is not None and process.returncode is None:
+            try:
+                os.killpg(process.pid, signal.SIGTERM)
+            except ProcessLookupError:
+                pass
+            try:
+                await asyncio.wait_for(process.wait(), timeout=2)
+            except TimeoutError:
+                try:
+                    os.killpg(process.pid, signal.SIGKILL)
+                except ProcessLookupError:
+                    pass
+                await process.wait()
+        task = self._execute_task
+        if task is not None and task is not asyncio.current_task() and not task.done():
+            if process is None or process.returncode is None:
+                task.cancel()
+            await asyncio.gather(task, return_exceptions=True)
+
+    async def on_unmount(self):
+        await self.cancel_command()
 
 
 if __name__ == "__main__":

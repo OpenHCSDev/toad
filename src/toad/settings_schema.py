@@ -83,6 +83,13 @@ SCHEMA: list[SchemaDict] = [
                 "default": True,
             },
             {
+                "key": "recovery-view",
+                "title": "Show read-only recovery status?",
+                "help": "Show gateway-provided recovery status in the right sidebar when available.",
+                "type": "boolean",
+                "default": False,
+            },
+            {
                 "key": "agent-title",
                 "title": "Show agent title the info bar?",
                 "help": "Disable for a little extras space.",
@@ -213,7 +220,19 @@ SCHEMA: list[SchemaDict] = [
                 "title": "Hide the sidebar when not in use?",
                 "type": "boolean",
                 "default": False,
-            }
+            },
+            {
+                "key": "show_stopped",
+                "title": "Show stopped threads in Channels?",
+                "type": "boolean",
+                "default": True,
+            },
+            {
+                "key": "show_archived",
+                "title": "Show archived threads in Channels?",
+                "type": "boolean",
+                "default": False,
+            },
         ],
     },
     {
@@ -289,8 +308,8 @@ SCHEMA: list[SchemaDict] = [
             },
             {
                 "key": "allow_commands",
-                "title": "Allow commands",
-                "help": "List of commands (one per line) which should be considered shell commands by default, rather than a part of a prompt.",
+                "title": "Shell command completions",
+                "help": "Commands offered as completions after explicitly entering shell mode with !. Typing a command name in an agent prompt does not enter shell mode.",
                 "type": "text",
                 "default": "python\ngit\nls\ncat\ncd\nmv\ncp\ntree\nrm\necho\nrmdir\nmkdir\ntouch\nopen\npwd\nnano\nhead\ntail",
             },

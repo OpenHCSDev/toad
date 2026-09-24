@@ -1,6 +1,7 @@
 from itertools import chain
 from typing import Iterable, Sequence
 from pathlib import Path
+from os.path import abspath
 import pathspec
 import pathspec.patterns
 from pathspec import GitIgnoreSpec
@@ -43,7 +44,7 @@ class PathFilter:
     def __init__(
         self, root: Path, path_specs: Iterable[GitIgnoreSpec] | None = None
     ) -> None:
-        self._root = root
+        self._root = Path(abspath(root))
         self._default_specs = [] if path_specs is None else list(path_specs)
         self._path_specs: dict[Path, Sequence[GitIgnoreSpec]] = {}
 
@@ -60,13 +61,14 @@ class PathFilter:
         Returns:
             PathFilter instance.
         """
+        path = Path(abspath(path))
         filter_root = path
         path_specs: list[GitIgnoreSpec] = []
         try:
-            while (parent := path.parent) != parent:
+            while (parent := path.parent) != path:
                 if (path_spec := load_path_spec(path / ".gitignore")) is not None:
                     path_specs.append(path_spec)
-                if (path / ".git").is_dir():
+                if (path / ".git").exists():
                     break
                 path = parent
             else:
@@ -86,6 +88,9 @@ class PathFilter:
         Returns:
             A sequence of path specs.
         """
+        path = Path(abspath(path))
+        if not path.is_relative_to(self._root):
+            return ()
         if (cached_path_specs := self._path_specs.get(path)) is not None:
             return cached_path_specs
         path_spec = load_path_spec(path / ".gitignore")
@@ -107,7 +112,8 @@ class PathFilter:
         Returns:
             `True` if the path should be removed, `False` if it should be included.
         """
-        if path.name == ".git":
+        path = Path(abspath(path))
+        if path.name == ".git" or not path.is_relative_to(self._root):
             return True
         path_specs = self.get_path_specs(path.parent)
         for path_spec in chain(self._default_specs, path_specs):

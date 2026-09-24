@@ -31,6 +31,11 @@ class UserInputSubmitted(Message):
     body: str
     shell: bool = False
     auto_complete: bool = False
+    immediate: bool = False
+
+
+class SendPromptNow(Message):
+    pass
 
 
 @dataclass
@@ -55,6 +60,15 @@ class InsertPath(Message):
 @dataclass
 class ChangeMode(Message):
     mode_id: str | None
+
+
+@dataclass
+class ChangeModel(Message):
+    model_id: str
+
+
+class ProviderLogin(Message):
+    """Open the agent's advertised provider-authentication controls."""
 
 
 @dataclass

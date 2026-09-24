@@ -10,6 +10,7 @@ from typing import Any, cast, NamedTuple
 from copy import deepcopy
 from math import floor
 import rich.repr
+from agent_comms import Comms, Goal, TranscriptCursor, TranscriptPage, MessageRoute
 
 from textual.content import Content
 from textual.message import Message
@@ -35,6 +36,14 @@ PROTOCOL_VERSION = 1
 
 class Mode(NamedTuple):
     """An agent mode."""
+
+    id: str
+    name: str
+    description: str | None
+
+
+class Model(NamedTuple):
+    """A model selectable for an agent session."""
 
     id: str
     name: str
@@ -144,10 +153,19 @@ class Agent(AgentBase):
         self._process: asyncio.subprocess.Process | None = None
         self._process_group_id: int | None = None
         self._stopping = False
+        self._reconnecting = False
+        self._connected_ok = False
+        self.prompt_in_flight = 0
         self.uses_turn_events = False
         self._pending_session_name: str | None = None
         self._coordination_thread: str | None = None
         self._coordination_root: str | None = None
+        self._coordination_worktree: str | None = None
+        self._transcript_reader: Comms | None = None
+        self._transcript_reader_root: str | None = None
+        self._transcript_reader_lock = asyncio.Lock()
+        self.server_titles = False
+        self.supports_prompt_queue = False
         self._coordination_persistence = "shared on-disk wire"
         self._coordination_transport = "per-session stdio ACP"
         self.session_ready_event = asyncio.Event()
@@ -178,6 +196,10 @@ class Agent(AgentBase):
 
         self._token_usage: TokenUsage | None = None
         self._context_usage: ContextUsage | None = None
+        self._model_config_id: str | None = None
+        self._thinking_config_id: str | None = None
+        self.current_thinking_level: str | None = None
+        self.thinking_levels: list[str] = []
 
     @property
     def command(self) -> str | None:
@@ -288,12 +310,76 @@ class Agent(AgentBase):
         """
 
         metadata = update.get("_meta")
+        route: MessageRoute | None = None
         if isinstance(metadata, dict) and isinstance(metadata.get("agentComms"), dict):
             state = metadata["agentComms"]
+            compaction = state.get("compaction")
+            if isinstance(compaction, dict) and compaction.get("phase") in {"start", "end", "abort"}:
+                if (compaction.get("contextState") == "unknown"
+                        and compaction.get("contextUsed") is None):
+                    self._context_usage = None
+                    self.post_message(messages.UpdateStatusLine(Content("Context estimate unavailable")))
+                summary = compaction.get("summary")
+                self.post_message(messages.CompactionUpdate(
+                    compaction["phase"],
+                    compaction.get("reason") if isinstance(compaction.get("reason"), str)
+                    else "unknown",
+                    " ".join(summary.split())[:400] if isinstance(summary, str) else "",
+                    compaction.get("willRetry") is True,
+                ))
+                return
+            if state.get("transcriptChanged") is True:
+                from agent_comms import TranscriptCursor
+
+                checkpoint = state.get("transcriptCursor")
+                self.post_message(messages.TranscriptChanged(
+                    TranscriptCursor(**checkpoint) if isinstance(checkpoint, dict) else None
+                ))
+                return
+            if isinstance(state.get("route"), dict):
+                route = MessageRoute.from_wire(state["route"])
+            if isinstance(state.get("queue"), list):
+                self.post_message(
+                    messages.PromptQueueUpdate(
+                        state["queue"], state.get("restored") or []
+                    )
+                )
+                return
+            if isinstance(state.get("inputStarted"), dict):
+                self.post_message(
+                    messages.InputStarted(state["inputStarted"].get("text"))
+                )
+                return
+            if isinstance(state.get("worktree"), str):
+                self._coordination_worktree = state["worktree"]
+                self.project_root_path = Path(state["worktree"])
+                self._post_coordination_update()
+            if isinstance(state.get("transcript"), list):
+                if not self._reconnecting:
+                    from agent_comms import TranscriptEvent, TranscriptPage, TranscriptCursor
+
+                    events = tuple(TranscriptEvent.from_wire(event) for event in state["transcript"])
+                    page_data = state.get("transcriptPage")
+                    page = TranscriptPage(
+                        events, TranscriptCursor(**page_data["before"]),
+                        TranscriptCursor(**page_data["after"]),
+                        page_data["has_older"], page_data["has_newer"],
+                    ) if isinstance(page_data, dict) else None
+                    self.post_message(messages.TranscriptSnapshot(events, page))
+                return
             turn_id = state.get("turnId")
             if state.get("turnStarted") is True and isinstance(turn_id, str):
                 self.uses_turn_events = True
-                self.post_message(messages.TurnStarted(turn_id))
+                import math
+
+                started_at = state.get("startedAt")
+                if not isinstance(started_at, (int, float)) or not math.isfinite(started_at) or started_at <= 0:
+                    started_at = None
+                self.post_message(messages.TurnStarted(
+                    turn_id, started_at,
+                    state.get("activity") if isinstance(state.get("activity"), str) else None,
+                    state.get("activityDetail") if isinstance(state.get("activityDetail"), str) else None,
+                ))
                 return
             if state.get("turnSettled") is True:
                 if isinstance(turn_id, str):
@@ -323,7 +409,7 @@ class Agent(AgentBase):
                 "sessionUpdate": "agent_message_chunk",
                 "content": {"type": type, "text": text},
             }:
-                self.post_message(messages.Update(type, text))
+                self.post_message(messages.Update(type, text, route))
 
             case {
                 "sessionUpdate": "agent_thought_chunk",
@@ -377,15 +463,36 @@ class Agent(AgentBase):
             case {"sessionUpdate": "current_mode_update", "currentModeId": mode_id}:
                 self.post_message(messages.ModeUpdate(mode_id))
 
+            case {
+                "sessionUpdate": "config_option_update",
+                "configOptions": config_options,
+            }:
+                self._publish_models({"configOptions": config_options})
+
             case {"sessionUpdate": "session_info_update"} if "title" in update:
                 title = update.get("title")
                 if self._coordination_root is not None and isinstance(title, str):
-                    self._coordination_thread = title
+                    identity = (
+                        (update.get("_meta") or {})
+                        .get("agentComms", {})
+                        .get("thread", title)
+                    )
+                    self._coordination_thread = identity
                     self._post_coordination_update()
+                    self.post_message(messages.SessionInfoUpdate(title))
                 else:
                     self.post_message(messages.SessionInfoUpdate(title))
 
             case {"sessionUpdate": "usage_update", "used": used, "size": size}:
+                # Pi can report zero immediately after compaction or while a
+                # turn has not yet returned authoritative usage. A saved
+                # conversation still has context; presenting 0.0K (0.0%)
+                # falsely implies it is empty. Do not reuse a pre-compaction
+                # number either: wait for a new positive measurement.
+                if used <= 0 or size <= 0:
+                    self._context_usage = None
+                    self.post_message(messages.UpdateStatusLine(Content("Context estimate unavailable")))
+                    return
                 match update.get("cost"):
                     case {"amount": amount, "currency": currency}:
                         self._context_usage = ContextUsage(
@@ -784,6 +891,7 @@ class Agent(AgentBase):
     async def run(self) -> None:
         """The main logic of the Agent."""
         if constants.ACP_INITIALIZE:
+            self._connected_ok = False
             try:
                 # Boilerplate to initialize comms
                 await self.acp_initialize()
@@ -807,6 +915,7 @@ class Agent(AgentBase):
                     if self.session_pk is not None:
                         db = DB()
                         await db.session_update_last_used(self.session_pk)
+                self._connected_ok = True
             except jsonrpc.APIError as error:
                 if isinstance(error.data, dict):
                     reason = str(
@@ -821,9 +930,11 @@ class Agent(AgentBase):
                 self.post_message(AgentFail(reason, details))
 
         self.session_ready_event.set()
-        self.post_message(AgentReady())
+        self.post_message(AgentReady(reconnected=self._reconnecting))
 
-    async def send_prompt(self, prompt: str) -> str | None:
+    async def send_prompt(
+        self, prompt: str, *, delivery: str = "queue", defer_display: bool = False
+    ) -> str | None:
         """Send a prompt to the agent.
 
         !!! note
@@ -832,10 +943,84 @@ class Agent(AgentBase):
         Args:
             prompt: Prompt text.
         """
-        prompt_content_blocks = await asyncio.to_thread(
-            build_prompt, self.project_root_path, prompt
+        self.prompt_in_flight += 1
+        try:
+            prompt_content_blocks = await asyncio.to_thread(
+                build_prompt, self.project_root_path, prompt
+            )
+            if any(block.get("type") == "image" for block in prompt_content_blocks):
+                supported = (
+                    getattr(self, "supports_prompt_images", False)
+                    if self._coordination_root is not None
+                    else (self.agent_capabilities.get("promptCapabilities") or {}).get("image", False)
+                )
+                if not supported:
+                    raise ValueError("This agent owner does not support images yet; refresh it while idle.")
+            return await self.acp_session_prompt(
+                prompt_content_blocks,
+                {
+                    "agentComms": {
+                        "delivery": delivery,
+                        "deferDisplay": defer_display,
+                        "userText": prompt,
+                    }
+                },
+            )
+        finally:
+            self.prompt_in_flight -= 1
+
+    async def clear_queue(self) -> None:
+        """Drop prompts still awaiting delivery, leaving the turn running."""
+        await self.acp_session_prompt(
+            [{"type": "text", "text": " "}], {"agentComms": {"clearQueue": True}}
         )
-        return await self.acp_session_prompt(prompt_content_blocks)
+
+    async def compact_context(self, instructions: str | None = None) -> dict[str, Any]:
+        """Ask the persistent owner to compact Pi context without creating a turn."""
+        metadata = {"agentComms": {"compact": instructions}}
+        with self.request():
+            request = api.session_prompt(
+                [{"type": "text", "text": " "}], self.session_id, metadata
+            )
+        try:
+            response = await request.wait()
+        except (jsonrpc.APIError, jsonrpc.JSONRPCError) as error:
+            return {"ok": False, "error": error.message or "Compaction request failed"}
+        if not isinstance(response, dict):
+            return {"ok": False, "error": "Compaction returned no result"}
+        result = (response.get("_meta") or {}).get("agentComms", {}).get("compaction")
+        return result if isinstance(result, dict) else {
+            "ok": False,
+            "error": "Compaction result was missing",
+        }
+
+    async def reconnect_after_auth(self) -> None:
+        await self.reconnect()
+
+    async def reconnect(self) -> None:
+        """Reattach the existing view after login or an explicit owner start."""
+        if self.session_id is not None and not self.supports_load_session:
+            raise ValueError(
+                "This agent cannot resume its session."
+            )
+        target = self._message_target
+        await self.stop()
+        self._stopping = False
+        self._reconnecting = True
+        self.session_ready_event.clear()
+        try:
+            await self.start(target)
+            await asyncio.wait_for(self.session_ready_event.wait(), timeout=30)
+            if not self._connected_ok:
+                raise ValueError("The agent could not reconnect.")
+        finally:
+            self._reconnecting = False
+
+    async def authenticate(self, method_id: str) -> None:
+        with self.request():
+            response = api.authenticate(method_id)
+        await response.wait()
+        await self.acp_initialize()
 
     async def acp_initialize(self):
         """Initialize agent."""
@@ -848,6 +1033,8 @@ class Agent(AgentBase):
                         "writeTextFile": True,
                     },
                     "terminal": True,
+                    "auth": {"terminal": os.name != "nt"},
+                    "_meta": {"agentComms": {"transcriptSnapshots": True, "transcriptDiffs": True}},
                 },
                 {
                     "name": toad.NAME,
@@ -862,8 +1049,7 @@ class Agent(AgentBase):
         # Store agents capabilities
         if agent_capabilities := response.get("agentCapabilities"):
             self.agent_capabilities = agent_capabilities
-        if auth_methods := response.get("authMethods"):
-            self.auth_methods = auth_methods
+        self.auth_methods = response.get("authMethods") or []
 
     async def acp_new_session(self) -> None:
         """Create a new session."""
@@ -905,6 +1091,7 @@ class Agent(AgentBase):
                 for mode in available_modes
             }
             self.post_message(messages.SetModes(current_mode, modes_update))
+        self._publish_models(response)
         self._publish_coordination_metadata(response)
 
     async def acp_load_session(self) -> None:
@@ -935,7 +1122,88 @@ class Agent(AgentBase):
                 for mode in available_modes
             }
             self.post_message(messages.SetModes(current_mode, modes_update))
+        self._publish_models(response)
         self._publish_coordination_metadata(response)
+
+    def _publish_models(self, response: Mapping[str, object]) -> None:
+        """Publish model and thinking-level config options, with legacy fallback."""
+        config_options = response.get("configOptions")
+        if isinstance(config_options, list):
+            self._model_config_id = None
+            self._thinking_config_id = None
+            for config in config_options:
+                if not isinstance(config, dict) or config.get("type") != "select":
+                    continue
+                current = config.get("currentValue")
+                raw_options = config.get("options")
+                if not isinstance(current, str) or not isinstance(raw_options, list):
+                    continue
+                options: list[Mapping[str, object]] = []
+                for option in raw_options:
+                    if not isinstance(option, dict):
+                        continue
+                    grouped = option.get("options")
+                    if isinstance(grouped, list):
+                        options.extend(
+                            item for item in grouped if isinstance(item, dict)
+                        )
+                    else:
+                        options.append(option)
+                if config.get("category") == "model" or config.get("id") == "model":
+                    models = {
+                        str(option["value"]): Model(
+                            str(option["value"]),
+                            str(option.get("name") or option["value"]),
+                            (
+                                str(option["description"])
+                                if option.get("description") is not None
+                                else None
+                            ),
+                        )
+                        for option in options
+                        if isinstance(option.get("value"), str)
+                    }
+                    if current not in models:
+                        continue
+                    self._model_config_id = str(config["id"])
+                    self.post_message(messages.SetModels(current, models))
+                elif config.get("id") == "thinking_level":
+                    levels = [
+                        str(option["value"])
+                        for option in options
+                        if isinstance(option.get("value"), str)
+                    ]
+                    if current in levels:
+                        self._thinking_config_id = str(config["id"])
+                        self.current_thinking_level = current
+                        self.thinking_levels = levels
+                        self.post_message(messages.SetThinkingLevels(current, levels))
+            if self._model_config_id is None:
+                self.post_message(messages.SetModels("", {}))
+            return
+
+        legacy_models = response.get("models")
+        if not isinstance(legacy_models, dict):
+            return
+        current = legacy_models.get("currentModelId")
+        available = legacy_models.get("availableModels")
+        if not isinstance(current, str) or not isinstance(available, list):
+            return
+        models = {
+            str(model["modelId"]): Model(
+                str(model["modelId"]),
+                str(model.get("name") or model["modelId"]),
+                (
+                    str(model["description"])
+                    if model.get("description") is not None
+                    else None
+                ),
+            )
+            for model in available
+            if isinstance(model, dict) and isinstance(model.get("modelId"), str)
+        }
+        if current in models:
+            self.post_message(messages.SetModels(current, models))
 
     def _publish_coordination_metadata(self, response: Mapping[str, object]) -> None:
         metadata = response.get("_meta")
@@ -950,7 +1218,15 @@ class Agent(AgentBase):
             return
         self._coordination_thread = thread
         self._coordination_root = wire_root
+        if isinstance(worktree := coordination.get("worktree"), str):
+            self._coordination_worktree = worktree
+            self.project_root_path = Path(worktree)
         self.uses_turn_events = coordination.get("turnLifecycle") is True
+        self.server_titles = coordination.get("autoTitle") is True
+        self.supports_prompt_queue = coordination.get("promptQueue") is True
+        self.supports_prompt_images = coordination.get("imagePrompts") is True
+        if isinstance(title := coordination.get("title"), str):
+            self.post_message(messages.SessionInfoUpdate(title))
         self._coordination_owner_pid = coordination.get("ownerPid")
         self._coordination_persistence = str(
             coordination.get("persistence", "shared on-disk wire")
@@ -961,6 +1237,7 @@ class Agent(AgentBase):
         pending_name = getattr(self, "_pending_session_name", None)
         if pending_name:
             self._rename_coordination_thread(pending_name)
+            self._pending_session_name = None
         else:
             self._post_coordination_update()
 
@@ -975,6 +1252,8 @@ class Agent(AgentBase):
                 wire_root=wire_root,
                 persistence=self._coordination_persistence,
                 transport=self._coordination_transport,
+                worktree=getattr(self, "_coordination_worktree", None),
+                prompt_queue=getattr(self, "supports_prompt_queue", False),
             )
         )
 
@@ -996,7 +1275,7 @@ class Agent(AgentBase):
         self._post_coordination_update()
 
     async def acp_session_prompt(
-        self, prompt: list[protocol.ContentBlock]
+        self, prompt: list[protocol.ContentBlock], metadata: dict | None = None
     ) -> str | None:
         """Send the prompt to the agent.
 
@@ -1005,7 +1284,7 @@ class Agent(AgentBase):
 
         """
         with self.request():
-            session_prompt = api.session_prompt(prompt, self.session_id)
+            session_prompt = api.session_prompt(prompt, self.session_id, metadata or {})
         try:
             result = await session_prompt.wait()
         except jsonrpc.APIError as error:
@@ -1054,9 +1333,125 @@ class Agent(AgentBase):
     async def set_mode(self, mode_id: str) -> str | None:
         return await self.acp_session_set_mode(mode_id)
 
+    async def set_model(self, model_id: str) -> str | None:
+        """Update the session model through ACP config options."""
+        if self._model_config_id is None:
+            return "This agent does not advertise model configuration"
+        with self.request():
+            response = api.session_set_config_option(
+                self.session_id, self._model_config_id, model_id
+            )
+        try:
+            result = await response.wait()
+        except (jsonrpc.APIError, jsonrpc.JSONRPCError) as error:
+            if isinstance(getattr(error, "data", None), dict):
+                details = error.data.get("details") or error.data.get("reason")
+                if isinstance(details, str):
+                    return details
+            return "Failed to set model"
+        if result is not None:
+            self._publish_models(result)
+        return None
+
+    async def set_thinking_level(self, level: str) -> str | None:
+        """Update Pi's persisted thinking level through ACP config options."""
+        if self._thinking_config_id is None:
+            return "This agent does not advertise thinking-level configuration"
+        with self.request():
+            response = api.session_set_config_option(
+                self.session_id, self._thinking_config_id, level
+            )
+        try:
+            result = await response.wait()
+        except (jsonrpc.APIError, jsonrpc.JSONRPCError) as error:
+            if isinstance(getattr(error, "data", None), dict):
+                details = error.data.get("details") or error.data.get("reason")
+                if isinstance(details, str):
+                    return details
+            return "Failed to set thinking level"
+        if result is not None:
+            self._publish_models(result)
+        return None
+
+    async def get_goal(self) -> Goal | None:
+        if self._coordination_root is None or self._coordination_thread is None:
+            return None
+        from agent_comms.operations import wire
+
+        def read() -> Goal | None:
+            return wire(self._coordination_root).registry.require(self._coordination_thread).goal
+
+        return await asyncio.to_thread(read)
+
+    @property
+    def transcript_ready(self) -> bool:
+        return self._coordination_root is not None and self._coordination_thread is not None
+
+    async def get_transcript_page(
+        self, *, before: "TranscriptCursor | None" = None,
+        after: "TranscriptCursor | None" = None,
+        through: "TranscriptCursor | None" = None,
+    ) -> "TranscriptPage":
+        from agent_comms import wire
+
+        if self._coordination_root is None or self._coordination_thread is None:
+            raise ValueError("Transcript paging requires an agent-comms thread.")
+        root, thread = self._coordination_root, self._coordination_thread
+        async with self._transcript_reader_lock:
+            # Keep the core reader's revision-aware store caches across pages.
+            # Recreating Comms for each wheel-driven request reparses the entire
+            # routing sidecar even when it has not changed. This retains the
+            # service, not a second copy of transcript or routing semantics.
+            if self._transcript_reader is None or self._transcript_reader_root != root:
+                from toad.app import ToadApp
+
+                # All attachments in one Toad normally use the same wire. Share
+                # its existing service so dozens of tabs don't each retain a
+                # separately parsed copy of the whole routing sidecar.
+                app = self._message_target.app if self._message_target is not None else None
+                shared = app.coordination_wire if isinstance(app, ToadApp) else None
+                if shared is not None and shared.root == Path(root).expanduser():
+                    self._transcript_reader = shared
+                else:
+                    self._transcript_reader = await asyncio.to_thread(wire, root)
+                self._transcript_reader_root = root
+            return await asyncio.to_thread(
+                self._transcript_reader.thread_transcript_page,
+                thread, before=before, after=after, through=through,
+            )
+
+    async def update_project(self, path: str) -> str:
+        if self._coordination_root is None or self._coordination_thread is None:
+            raise ValueError("Project changes require an agent-comms thread.")
+        from agent_comms.operations import wire
+
+        result = await asyncio.to_thread(
+            wire(self._coordination_root).set_project, self._coordination_thread, path
+        )
+        self._coordination_worktree = result.current
+        self.project_root_path = Path(result.current)
+        self._post_coordination_update()
+        return result.current
+
+    async def update_goal(self, action: str, text: str = "") -> Goal | None:
+        if self._coordination_root is None or self._coordination_thread is None:
+            raise ValueError("Persistent goals require an agent-comms thread.")
+        from agent_comms.operations import wire
+
+        comms = wire(self._coordination_root)
+        goal = await asyncio.to_thread(
+            comms.update_goal,
+            self._coordination_thread,
+            action,
+            text=text,
+        )
+        return goal
+
     async def set_session_name(self, name: str) -> None:
         self._pending_session_name = name
         self._rename_coordination_thread(name)
+        if self._coordination_thread is not None:
+            self._pending_session_name = None
         if self.session_pk is None:
             return
         db = DB()

@@ -1,9 +1,8 @@
 from textual.reactive import var
 from textual.widget import Widget
-from textual.widgets import Markdown
-from textual.widgets.markdown import MarkdownStream
-
-from toad.conversation_markdown import ConversationMarkdown
+from toad.widgets.streaming_markdown import StreamingMarkdown
+from agent_comms import MessageRoute
+from toad.widgets.route_header import RouteHeader
 
 
 SYSTEM = """\
@@ -13,13 +12,17 @@ When asked for a table do not wrap it in a code fence.
 """
 
 
-class AgentResponse(ConversationMarkdown):
+class AgentResponse(StreamingMarkdown):
     DEFAULT_CLASSES = "block"
     block_cursor_offset = var(-1)
 
-    def __init__(self, markdown: str | None = None) -> None:
-        super().__init__(markdown)
-        self._stream: MarkdownStream | None = None
+    def __init__(self, markdown: str | None = None, *, route: MessageRoute | None = None,
+                 paginate: bool = True) -> None:
+        prefix = (RouteHeader(route),) if route is not None else ()
+        super().__init__(markdown, paginate=paginate, prefix=prefix)
+        self.route = route
+        if route is not None:
+            self.add_class("-routed")
 
     def block_cursor_clear(self) -> None:
         self.block_cursor_offset = -1
@@ -65,13 +68,3 @@ class AgentResponse(ConversationMarkdown):
 
     def block_select(self, widget: Widget) -> None:
         self.block_cursor_offset = self.children.index(widget)
-
-    @property
-    def stream(self) -> MarkdownStream:
-        if self._stream is None:
-            self._stream = self.get_stream(self)
-        return self._stream
-
-    async def append_fragment(self, fragment: str) -> None:
-        self.loading = False
-        await self.stream.write(fragment)

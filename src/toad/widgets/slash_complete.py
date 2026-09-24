@@ -18,6 +18,7 @@ from toad.fuzzy import FuzzySearch
 from toad.messages import Dismiss
 from toad.slash_command import SlashCommand
 from toad.visuals.columns import Columns
+from toad.widgets.selection import SelectionOptionList
 
 
 class SlashCompleteInput(widgets.Input):
@@ -81,7 +82,7 @@ class SlashComplete(containers.VerticalGroup):
     ) -> None:
         super().__init__(id=id, classes=classes)
         self.slash_commands = list(slash_commands) if slash_commands else []
-        self.hints = {
+        self.hints: dict[str, str] = {
             slash_command.command: slash_command.hint
             for slash_command in self.slash_commands
             if slash_command.hint
@@ -91,7 +92,7 @@ class SlashComplete(containers.VerticalGroup):
 
     def compose(self) -> ComposeResult:
         yield SlashCompleteInput(compact=True, placeholder="fuzzy search")
-        yield widgets.OptionList()
+        yield SelectionOptionList()
 
     def focus(self, scroll_visible: bool = False) -> Self:
         self.filter_slash_commands("")

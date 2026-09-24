@@ -270,8 +270,8 @@ ActionModal {
                 border: tab $text-error 50%;            
             }                        
         }
-        Button {            
-            width: 100%;
+        Button {
+            width: 1fr;
         }
     }
 }

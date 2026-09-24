@@ -56,3 +56,6 @@ ACP_INITIALIZE: Final[bool] = _get_environ_bool("TOAD_ACP_INITIALIZE", True)
 
 DEBUG: Final[bool] = _get_environ_bool("DEBUG", False)
 """Debug flag."""
+
+ALL_COMMS_TARGET: Final[str] = "#any"
+"""Virtual all-comms viewer, distinct from the #all broadcast channel."""

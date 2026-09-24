@@ -28,6 +28,10 @@ class FuzzyIndex:
             paths: New paths.
         """
         async with self._lock:
+            if paths == self._paths:
+                return
+            self._weights_cache.clear()
+            self._path_counter_cache.clear()
             self._paths = paths
             self._normalized_paths = await asyncio.to_thread(
                 self._normalize_paths, paths

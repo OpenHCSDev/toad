@@ -1,9 +1,19 @@
 from datetime import datetime, timezone
 import json
+from time import time_ns
 from typing import cast, TypedDict
 from toad import paths
 
 import aiosqlite
+
+MODEL_HISTORY_SCHEMA = """
+    CREATE TABLE IF NOT EXISTS model_history (
+        agent_identity TEXT NOT NULL,
+        model_id TEXT NOT NULL,
+        last_used INTEGER NOT NULL,
+        PRIMARY KEY (agent_identity, model_id)
+    )
+"""
 
 
 class Session(TypedDict):
@@ -40,12 +50,41 @@ class DB:
     def open(self) -> aiosqlite.Connection:
         return aiosqlite.connect(self.path)
 
+    async def record_model_usage(self, agent_identity: str, model_id: str) -> bool:
+        """Remember a confirmed selection or completed turn, never a highlight."""
+        try:
+            async with self.open() as db:
+                await db.execute(MODEL_HISTORY_SCHEMA)
+                await db.execute(
+                    """INSERT INTO model_history (agent_identity, model_id, last_used)
+                    VALUES (?, ?, ?) ON CONFLICT(agent_identity, model_id)
+                    DO UPDATE SET last_used = excluded.last_used""",
+                    (agent_identity, model_id, time_ns()),
+                )
+                await db.commit()
+        except aiosqlite.Error:
+            return False
+        return True
+
+    async def recent_models(self, agent_identity: str, limit: int = 20) -> list[str]:
+        """Return this agent's most recently used model IDs, newest first."""
+        try:
+            async with self.open() as db:
+                await db.execute(MODEL_HISTORY_SCHEMA)
+                cursor = await db.execute(
+                    """SELECT model_id FROM model_history WHERE agent_identity = ?
+                    ORDER BY last_used DESC, model_id LIMIT ?""",
+                    (agent_identity, limit),
+                )
+                return [row[0] for row in await cursor.fetchall()]
+        except aiosqlite.Error:
+            return []
+
     async def create(self) -> bool:
         """Create the tables if requried."""
         try:
             async with self.open() as db:
-                await db.execute(
-                    """
+                await db.execute("""
                     CREATE TABLE IF NOT EXISTS sessions (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         agent TEXT NOT NULL,
@@ -58,8 +97,7 @@ class DB:
                         last_used TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                         meta_json TEXT DEFAULT '{}'
                     )
-                    """
-                )
+                    """)
         except aiosqlite.Error:
             return False
         return True
@@ -139,6 +177,28 @@ class DB:
                 )
                 await db.commit()
         except aiosqlite.Error:
+            return False
+        return True
+
+    async def session_update_project(self, id: int, cwd: str) -> bool:
+        """Update the resume directory without losing the remaining metadata."""
+        try:
+            async with self.open() as db:
+                await db.execute("BEGIN IMMEDIATE")
+                cursor = await db.execute(
+                    "SELECT meta_json FROM sessions WHERE id = ?", (id,)
+                )
+                row = await cursor.fetchone()
+                if row is None:
+                    return False
+                meta = json.loads(row[0] or "{}")
+                meta["cwd"] = cwd
+                await db.execute(
+                    "UPDATE sessions SET meta_json = ? WHERE id = ?",
+                    (json.dumps(meta), id),
+                )
+                await db.commit()
+        except aiosqlite.Error, ValueError:
             return False
         return True
 

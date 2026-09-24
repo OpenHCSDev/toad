@@ -79,6 +79,7 @@ class Shell:
         """A set of byte strings to remove from output."""
 
         self._hide_output = hide_start
+        self._pending_directory: str | None = None
         """Hide all output."""
 
         self._pid: int | None = None
@@ -87,6 +88,10 @@ class Shell:
     @property
     def is_finished(self) -> bool:
         return self._finished
+
+    @property
+    def pending_directory(self) -> str | None:
+        return self._pending_directory
 
     def _is_busy(self) -> bool:
         """Check if the shell is busy.
@@ -104,7 +109,7 @@ class Shell:
         try:
             shell_process = psutil.Process(self._pid)
             children = shell_process.children(recursive=True)
-        except (psutil.NoSuchProcess, psutil.AccessDenied):
+        except psutil.NoSuchProcess, psutil.AccessDenied:
             return False
         else:
             return bool(children)
@@ -135,8 +140,28 @@ class Shell:
         except OSError:
             pass
 
+        if self._pending_directory is not None:
+            import shlex
+
+            command = (
+                f"cd -- {shlex.quote(self._pending_directory)} && {{\n{command}\n}}"
+            )
         get_pwd_command = f"{command};" + r'printf "\e]2025;$(pwd);\e\\"' + "\n"
         await self.write(get_pwd_command, hide_echo=True)
+
+    async def change_directory(self, path: str) -> None:
+        """Move an idle shell now, or apply the change before its next command."""
+        import shlex
+
+        self.working_directory = path
+        self._pending_directory = path
+        await self.wait_for_ready()
+        if not await self.is_busy():
+            await self.write(
+                f"cd -- {shlex.quote(path)};" + r'printf "\e]2025;$(pwd);\e\\"' + "\n",
+                hide_echo=True,
+                hide_output=True,
+            )
 
     async def send_input(self, text: str, paste: bool = False) -> None:
         await self._ready_event.wait()
@@ -283,6 +308,8 @@ class Shell:
                     ):
                         self.terminal.display = True
                 new_directory = self.terminal.current_directory
+                if new_directory == self._pending_directory:
+                    self._pending_directory = None
                 if new_directory and new_directory != current_directory:
                     current_directory = new_directory
                     self.conversation.post_message(

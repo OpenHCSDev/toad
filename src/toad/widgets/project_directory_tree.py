@@ -58,6 +58,8 @@ This shows the files in your project directory.
         disabled: bool = False,
     ) -> None:
         self.path_filter: PathFilter | None = None
+        self._directory_dirty = False
+        self._refresh_scheduled = False
         path = Path(path).resolve() if isinstance(path, str) else path.resolve()
         super().__init__(path, name=name, id=id, classes=classes, disabled=disabled)
 
@@ -67,6 +69,11 @@ This shows the files in your project directory.
         If the path is changed the directory tree will be repopulated using
         the new value as the root.
         """
+        path = Path(self.path).absolute()
+        path_filter = await asyncio.to_thread(PathFilter.from_git_root, path)
+        if path != Path(self.path).absolute():
+            return
+        self.path_filter = path_filter
         has_cursor = self.cursor_node is not None
         self.reset_node(self.root, str(self.path), DirEntry(self.PATH(self.path)))
         await self.reload()
@@ -74,10 +81,45 @@ This shows the files in your project directory.
             self.cursor_line = 0
         self.scroll_to(0, 0, animate=False)
 
-    async def on_mount(self) -> None:
-        path = Path(self.path) if isinstance(self.path, str) else self.path
-        path = await asyncio.to_thread(path.resolve)
-        self.path_filter = await asyncio.to_thread(PathFilter.from_git_root, path)
+    def invalidate(self) -> None:
+        self._directory_dirty = True
+        self.refresh_if_visible()
+
+    def reload(self):
+        # DirectoryTree replaces its queue and cancels the old loader. Finish
+        # superseded queued jobs first, otherwise NodeExpanded handlers waiting
+        # for old_queue.join() never return and tab close/layout waits can hang.
+        old_queue = self._load_queue
+        while not old_queue.empty():
+            old_queue.get_nowait()
+            old_queue.task_done()
+        return super().reload()
+
+    def on_show(self) -> None:
+        self.refresh_if_visible()
+
+    def refresh_if_visible(self) -> None:
+        if (self._directory_dirty and not self._refresh_scheduled and self.is_attached
+                and self.is_on_screen and self.screen is self.app.screen):
+            self._refresh_scheduled = True
+            self.call_after_refresh(self._begin_refresh)
+
+    def _begin_refresh(self) -> None:
+        if not self.is_attached or not self.is_on_screen or self.screen is not self.app.screen:
+            self._refresh_scheduled = False
+            return
+        self._directory_dirty = False
+        self._refresh_directory()
+
+    @work(exclusive=True, group="directory-refresh")
+    async def _refresh_directory(self) -> None:
+        try:
+            await self.reload()
+        finally:
+            self._refresh_scheduled = False
+            # Changes during a reload request one follow-up, not repeated
+            # cancellation of the in-flight loader on every filesystem event.
+            self.refresh_if_visible()
 
     def filter_paths(self, paths: Iterable[Path]) -> Iterable[Path]:
         """Filter the paths before adding them to the tree.

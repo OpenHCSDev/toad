@@ -1,4 +1,4 @@
-from typing import TypedDict
+from dataclasses import asdict, dataclass
 import asyncio
 import json
 from pathlib import Path
@@ -9,7 +9,8 @@ import rich.repr
 from toad.complete import Complete
 
 
-class HistoryEntry(TypedDict):
+@dataclass(frozen=True, slots=True)
+class HistoryEntry:
     """An entry in the history file."""
 
     input: str
@@ -26,6 +27,8 @@ class History:
         self._opened: bool = False
         self._current: str | None = None
         self.complete = Complete()
+        self._append_lock = asyncio.Lock()
+        self._open_lock = asyncio.Lock()
 
     def __rich_repr__(self) -> rich.repr.Result:
         yield self.path
@@ -43,6 +46,10 @@ class History:
         return len(self._lines)
 
     async def open(self) -> bool:
+        async with self._open_lock:
+            return await self._open()
+
+    async def _open(self) -> bool:
         """Open the history file, read initial lines.
 
         Returns:
@@ -75,6 +82,10 @@ class History:
         return self._opened
 
     async def append(self, input: str) -> bool:
+        async with self._append_lock:
+            return await self._append(input)
+
+    async def _append(self, input: str) -> bool:
         """Append a history entry.
 
         Args:
@@ -95,18 +106,14 @@ class History:
             Returns:
                 `True` on success, `False` if write failed.
             """
-            history_entry: HistoryEntry = {
-                "input": input,
-                "timestamp": time(),
-            }
-            line = json.dumps(history_entry)
+            history_entry = HistoryEntry(input, time())
+            line = json.dumps(asdict(history_entry))
             self._lines.append(line)
             try:
                 with self.path.open("a") as history_file:
                     history_file.write(f"{line}\n")
             except Exception:
                 return False
-            self._current = None
             return True
 
         if not self._opened:
@@ -129,10 +136,10 @@ class History:
             await self.open()
 
         if index == 0:
-            return {"input": self.current or "", "timestamp": time()}
+            return HistoryEntry(self.current or "", time())
         try:
             entry_line = self._lines[index]
         except IndexError:
             raise IndexError(f"No history entry at index {index}")
-        history_entry: HistoryEntry = json.loads(entry_line)
+        history_entry = HistoryEntry(**json.loads(entry_line))
         return history_entry

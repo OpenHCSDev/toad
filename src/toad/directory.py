@@ -28,6 +28,7 @@ class ScanJob:
         self.name = name
         self.path_filter = path_filter
         self.add_directories = add_directories
+        self._task: asyncio.Task | None = None
 
     def start(self) -> None:
         self._task = asyncio.create_task(self.run())
@@ -125,9 +126,12 @@ async def scan(
                 pass
         else:
             await queue.join()
-    except asyncio.CancelledError:
-        await queue.join()
-    queue.shutdown(immediate=True)
+    finally:
+        queue.shutdown(immediate=True)
+        tasks = [job._task for job in jobs if job._task is not None]
+        for task in tasks:
+            task.cancel()
+        await asyncio.gather(*tasks, return_exceptions=True)
     return results
 
 

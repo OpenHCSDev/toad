@@ -12,10 +12,11 @@ from textual.dom import DOMNode
 from textual.geometry import Offset, clamp
 from textual.message import Message
 from textual.screen import ModalScreen
-from textual.widgets import Input, Static
+from textual.widgets import Static
+from toad.widgets.selection import FocusSelection
 
 
-class ContextMenuItem(Static, can_focus=True):
+class ContextMenuItem(FocusSelection):
     """A menu item with desktop-style press and release behavior."""
 
     class Pressed(Message):
@@ -46,7 +47,6 @@ class ContextMenuItem(Static, can_focus=True):
     def on_leave(self) -> None:
         self._pressed = False
         self.remove_class("-pressed")
-
 
 class ContextMenu(ModalScreen[str]):
     """A transparent modal with a menu anchored to a screen coordinate.
@@ -79,7 +79,6 @@ class ContextMenu(ModalScreen[str]):
         height: 1;
         padding: 0 1;
     }
-    ContextMenu .item:hover,
     ContextMenu .item:focus {
         background: $accent;
         color: $background;
@@ -89,7 +88,6 @@ class ContextMenu(ModalScreen[str]):
         background: $primary;
         color: $background;
     }
-    ContextMenu:ansi .item:hover,
     ContextMenu:ansi .item:focus,
     ContextMenu:ansi .item.-pressed {
         background: ansi_default;
@@ -178,48 +176,7 @@ class ContextMenu(ModalScreen[str]):
         self.dismiss("")
 
 
-class RenameSessionDialog(ModalScreen[str | None]):
-    """Small name editor used from a local session row."""
-
-    CSS = """
-    RenameSessionDialog {
-        align: center middle;
-        background: $background 40%;
-    }
-    RenameSessionDialog #rename-session {
-        width: 48;
-        height: auto;
-        padding: 1;
-        border: solid $primary;
-        background: $background;
-    }
-    RenameSessionDialog Static { height: 1; margin-bottom: 1; }
-    """
-    BINDINGS = [("escape", "cancel", "Cancel")]
-
-    def __init__(self, current_name: str) -> None:
-        super().__init__()
-        self.current_name = current_name
-
-    def compose(self) -> ComposeResult:
-        with Container(id="rename-session"):
-            yield Static("Rename session")
-            yield Input(self.current_name, select_on_focus=True, compact=True)
-
-    def on_mount(self) -> None:
-        self.query_one(Input).focus()
-
-    @on(Input.Submitted)
-    def submit_name(self, event: Input.Submitted) -> None:
-        name = event.value.strip()
-        if name:
-            self.dismiss(name)
-
-    def action_cancel(self) -> None:
-        self.dismiss(None)
-
-
-def _show(
+def show_target_menu(
     screen,
     menu_offset: Offset,
     title: str,
@@ -245,7 +202,7 @@ def show_thread_menu(
     items: list[tuple[str, str]],
     actions: dict[str, Callable[[], None]],
 ) -> None:
-    _show(
+    show_target_menu(
         screen,
         menu_offset,
         f"@{name}",
@@ -254,29 +211,18 @@ def show_thread_menu(
     )
 
 
-def show_session_menu(
+def show_view_menu(
     screen,
     menu_offset: Offset,
     title: str,
-    actions: dict[str, Callable[[], None]],
-    *,
-    is_agent_session: bool,
+    close: Callable[[], None],
 ) -> None:
-    items = (
-        [
-            ("rename", "Rename session"),
-            ("archive", "Archive session"),
-            ("delete", "Delete saved session"),
-        ]
-        if is_agent_session
-        else [("archive", "Close view")]
-    )
-    _show(
+    show_target_menu(
         screen,
         menu_offset,
         title,
-        items,
-        actions,
+        [("close_view", "Close view")],
+        {"close_view": close},
     )
 
 
@@ -287,12 +233,14 @@ def show_channel_menu(
     actions: dict[str, Callable[[], None]],
     *,
     acknowledge_label: str,
+    pin_label: str,
 ) -> None:
-    _show(
+    show_target_menu(
         screen,
         menu_offset,
         name,
         [
+            ("pin", pin_label),
             ("comms_ack", acknowledge_label),
             ("copy", "Copy name"),
         ],

@@ -1,44 +1,38 @@
 """An attributed wire message with native thread navigation."""
 
-from textual import events
 from textual.app import ComposeResult
 from textual.containers import VerticalGroup
-from textual.widgets import Markdown, Static
+from toad.widgets.route_header import RouteHeader
+from agent_comms import MessageRoute
 
-from toad.widgets.comms_sidebar import SelectTarget
 
+class IncomingSender(RouteHeader):
 
-class IncomingSender(Static, can_focus=True):
-    BINDINGS = [("enter,space", "open_thread", "Open sender")]
-    DEFAULT_CSS = """
-    IncomingSender { height: auto; color: $accent; text-style: bold underline; }
-    IncomingSender:hover, IncomingSender:focus { background: $accent 20%; }
-    """
-
-    def __init__(self, sender: str) -> None:
+    def __init__(self, sender: str, target: str | None = None) -> None:
         self.sender = sender
-        super().__init__(f"Incoming from {sender}:", markup=False)
+        self.target = target
+        route = MessageRoute(sender, (target,) if target else ())
+        super().__init__(route, incoming=True)
 
     def action_open_thread(self) -> None:
-        self.post_message(SelectTarget(self.sender, "thread"))
-
-    def on_click(self, event: events.Click) -> None:
-        if event.button == 1:
-            event.stop()
-            self.action_open_thread()
+        self.action_open_target(self.sender)
 
 
 class IncomingMessage(VerticalGroup):
     DEFAULT_CLASSES = "block"
 
-    def __init__(self, sender: str, text: str) -> None:
+    def __init__(self, sender: str, text: str, target: str | None = None) -> None:
         super().__init__()
         self.sender = sender
         self.text = text
+        self.target = target
 
     def compose(self) -> ComposeResult:
-        yield IncomingSender(self.sender)
-        yield Markdown(self.text)
+        from toad.widgets.agent_response import AgentResponse
+
+        yield IncomingSender(self.sender, self.target)
+        yield AgentResponse(self.text).add_class("routed-body")
 
     def get_block_content(self, destination: str) -> str:
-        return f"Incoming from {self.sender}:\n{self.text}"
+        route = MessageRoute(self.sender, (self.target,) if self.target else ())
+        return f"{route.incoming_label}\n{self.text}"
