@@ -290,3 +290,45 @@ First-open/close checks: `tests/pending_thread_open_pilot.py`,
 Filter checks: `tests/message_categories_pilot.py`,
 `tests/message_filter_supersession_pilot.py`, `tests/in_out_filter_pilot.py`,
 `tests/in_out_underfill_pilot.py`, and the annotated wire-replay pilot.
+
+## Many-tab persistent-window stress capture
+
+The user exercised many thread tabs in an ordinary PR #11 `20629b9` persistent
+window and reported intermittent tab/close hiccups. Read-only py-spy recorded
+60 seconds at 50 Hz including idle stacks: **184,757 all-thread samples,
+2,999 main-thread samples, zero errors**. Saved profile:
+`/home/ts/.cache/toad-pr11-20629b9-2756538-lag-20260924.json`.
+The capture is complete and no profiler remains attached.
+
+- Main-thread selector idle occupied 16.08s; layout refresh 8.96s, rendering
+  7.30s, full reflow 5.26s, mode switching 5.66s, navigation preparation
+  1.90s, and sidebar snapshot presentation 1.82s. Inclusive categories overlap.
+- Process CPU observations were mostly 55–65%, and RSS/threads rose from
+  253MiB/51 to 386MiB/81 as new tabs opened. Later read-only inspection found
+  about 23 ACP child processes under this Toad instance. Every attached thread
+  has its own live owner/subprocess/watchers; this interaction window is not a
+  fixed-tab memory-leak measurement.
+- One sampled 1.34s busy interval included ~460ms in mode switching and ~480ms
+  in Textual widget mounting/styling. Such intervals may contain several events
+  and are not individual click-to-pixel timings.
+
+One avoidable contribution grows with mounted tabs: each hidden
+`ThreadCommsSidebar` subscribed to global tab/mode/action observations and ran
+seven-checkbox queries and identity reconciliation despite being unable to
+paint. Hidden `CommsSidebar` instances likewise processed session/activity
+signals. These callbacks now defer **UI row reconciliation only** until the
+tab becomes active; app-owned snapshot data and the hidden history-reader path
+remain intact. On activation both sidebars apply current identity, filters and
+cached projection before accepting normal input.
+
+In a mounted 10-tab, 40-observation fixture the frozen `20629b9` build ran
+filter sync **42 times per hidden sidebar**; this checkpoint ran it **zero**
+times on hidden sidebars while the selected sidebar updated and an older tab
+caught up on return. Broad Comms, owner navigation, native/virtual sidebar,
+unread and hidden-history-warmup checks pass. This counts eliminated work; it
+does not by itself prove a particular terminal-frame latency.
+
+`relationship_poll_reflow_pilot.py` still records zero redundant layouts but
+3–4 incidental paints during eight unchanged polls on both the frozen baseline
+and this branch. Its strict zero-paints assertion fails in both, so this change
+is neither credited with fixing nor blamed for that separate existing symptom.

@@ -583,6 +583,12 @@ class CommsSidebar(TargetTree):
                     row.advance_spinner(self._spinner_phase)
 
     async def _session_updated(self, update: tuple[str, SessionDetails | None]) -> None:
+        if not self.is_attached or self.screen is not self.app.screen:
+            # One update is published to every mounted sidebar. Inactive rows
+            # reconcile from the app's cached projection on activation instead
+            # of walking every hidden widget tree for each new/closed tab.
+            self._last_revision = None
+            return
         mode_name, details = update
         if details is None or self._last_snapshot is None or mode_name not in self._last_snapshot.session_threads:
             self._last_revision = None
@@ -604,6 +610,9 @@ class CommsSidebar(TargetTree):
                 self._snapshot_pending = False
 
     async def _thread_actions_changed(self, _update: None) -> None:
+        if not self.is_attached or self.screen is not self.app.screen:
+            self._last_revision = None
+            return
         if self._last_snapshot is not None and self.is_attached:
             await self._present_snapshot(self._last_snapshot)
         self._last_revision = None
@@ -633,6 +642,8 @@ class CommsSidebar(TargetTree):
     def _mode_changed(self, mode_name: str, *, force: bool = False) -> None:
         from toad.screens.comms import CommsScreen
 
+        if not self.is_attached or self.screen is not self.app.screen:
+            return
         target = self.screen.target if isinstance(self.screen, CommsScreen) and self.screen.is_active else None
         if not force and self._rendered_mode == (mode_name, target):
             return

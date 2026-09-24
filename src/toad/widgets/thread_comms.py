@@ -260,6 +260,14 @@ class ThreadCommsSidebar(TargetTree):
                 row.advance_spinner(self._spinner_phase)
 
     def on_show(self):
+        if not self.is_attached or self.screen is not self.app.screen:
+            return
+        # Background tabs retain their source and per-view filter state. Apply
+        # the latest owner/selection once they become visible rather than doing
+        # seven checkbox queries on every global update in every hidden tab.
+        if self._live:
+            self._bind_screen_identity()
+        self._sync_filter_control()
         self.refresh_relationships()
 
     def on_unmount(self):
@@ -291,7 +299,7 @@ class ThreadCommsSidebar(TargetTree):
         self.refresh_relationships(force=True)
 
     def _observed(self, _value):
-        if not self.is_attached:
+        if not self.is_attached or self.screen is not self.app.screen:
             return
         if self._live:
             self._bind_screen_identity()
