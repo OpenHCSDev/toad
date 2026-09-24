@@ -2,7 +2,7 @@ import re
 from typing import Iterable
 
 
-RE_MATCH_FILE_PROMPT = re.compile(r"@(\S+)|@\"(.*)\"")
+RE_MATCH_FILE_PROMPT = re.compile(r'@"([^"\n]+)"|@(\S+)')
 
 
 def extract_paths_from_prompt(prompt: str) -> Iterable[tuple[str, int, int]]:

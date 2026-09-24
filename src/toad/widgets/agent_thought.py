@@ -2,13 +2,13 @@ from __future__ import annotations
 from typing import ClassVar
 
 from textual.binding import Binding, BindingType
-from textual.reactive import var
-from textual.widgets import Markdown
-from textual.widgets.markdown import MarkdownStream
+from toad.widgets.streaming_markdown import StreamingMarkdown
 
 
-class AgentThought(Markdown, can_focus=True):
+class AgentThought(StreamingMarkdown, can_focus=True):
     """The agent's 'thoughts'."""
+
+    TRANSCRIPT_ROLE = "thinking"
 
     HELP = """
 ## Agent thoughts
@@ -30,7 +30,6 @@ class AgentThought(Markdown, can_focus=True):
     ]
 
     ALLOW_MAXIMIZE = True
-    _stream: var[MarkdownStream | None] = var(None)
 
     def watch_loading(self, loading: bool) -> None:
         self.set_class(loading, "-loading")
@@ -38,13 +37,6 @@ class AgentThought(Markdown, can_focus=True):
     def on_mount(self) -> None:
         self.scroll_end()
 
-    @property
-    def stream(self) -> MarkdownStream:
-        if self._stream is None:
-            self._stream = self.get_stream(self)
-        return self._stream
-
     async def append_fragment(self, fragment: str) -> None:
-        self.loading = False
-        await self.stream.write(fragment)
+        await super().append_fragment(fragment)
         self.scroll_end()

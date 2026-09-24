@@ -55,6 +55,11 @@ Plan {
 
 
 Conversation {    
+    &.-initial-loading {
+        Window { align: center middle; }
+        ContentsGrid, Contents { height: 1fr; }
+    }
+
     #prompt-stack {
         dock: bottom;
         height: auto;
@@ -65,7 +70,7 @@ Conversation {
 
         & > Prompt {
             dock: none;
-            margin-top: 1;
+            margin-top: 0;
         }
     }
 
@@ -106,7 +111,7 @@ Conversation {
     }
     
     Contents {        
-        layout: stream;
+        layout: vertical;
         width: 1fr;
         overflow: hidden;         
         height: auto;  
@@ -143,10 +148,14 @@ Conversation {
         overflow-x: auto;
         scrollbar-size-horizontal: 0;
         layout: stream;
-        & > MarkdownBlock:last-child {            
-            margin-bottom: 0;
-        }
     }
+
+    AgentResponse.-routed, IncomingMessage {
+        border-left: tall $accent;
+        background: transparent;
+        padding-left: 1;
+    }
+    IncomingMessage > AgentResponse.routed-body { margin: 0; padding: 0; }
 
     LoadingIndicator {
         height: 10;
@@ -156,24 +165,24 @@ Conversation {
         background: $primary-muted 20%;
         color: $text-primary;        
         min-height: 1;        
-        margin: 1 1 1 0;              
+        margin: 0 1 1 0;
         padding:  0 1 0 1;
-        border: blank transparent;
+        border: none;
+        border-left: tall $primary;
         overflow-x: auto;
         scrollbar-size-horizontal: 0;
         layout: stream;
-        MarkdownBlock:last-child {
-            margin-bottom: 0;
-        }
        
         &.-loading {            
             background: transparent !important;
             padding: 0;
             margin: 0;            
         }
-        max-height: 10;
-        overflow-y: auto;
-        scrollbar-visibility: hidden;
+        overflow-y: hidden;
+
+        MarkdownParagraph {
+            margin: 0;
+        }
 
         &.-maximized {
             max-height: 100h;
@@ -184,7 +193,7 @@ Conversation {
             }
         }
         &:focus {
-            border: tall $primary;
+            border-left: tall $primary;
         }
         &:ansi {
             background: ansi_default;
@@ -197,7 +206,7 @@ Conversation {
         margin: 0 0 0 1 !important;        
         
         width: 1fr;
-        layout: stream;
+        layout: vertical;
         height: auto;        
 
         .icon {
@@ -211,18 +220,12 @@ Conversation {
             margin: 1 1 1 0;            
             DiffView {
                 margin: 0 1 1 0;                                              
-                &:last-of-type {
-                    margin-bottom: 0; 
-                }
             }
 
             Markdown {                
                 layout: stream;
                 padding: 0;
                 margin: 0 0 0 0;
-                MarkdownBlock:last-of-type {
-                    margin-bottom: 0;
-                }
             }                  
         }
         &.-expanded {
@@ -307,13 +310,10 @@ Conversation {
     UserInput {        
         border-left: blank $secondary;
         background: $secondary 15%;
-        padding: 1 1 1 0;   
-        margin: 1 1 1 0; 
+        padding: 0 1 0 0;
+        margin: 0 1 1 0;
         Markdown {            
             padding:0 2 0 0;
-        }
-        Markdown > MarkdownBlock:last-child {
-            margin-bottom: 0;
         }
         MarkdownFence {                           
             margin: 0 2 1 0;
@@ -348,9 +348,6 @@ ACPToolCallContent {
     Markdown {        
         margin: 0;
         padding-left: 0;
-        MarkdownBlock:last-of-type {
-            margin-bottom: 0;
-        }
     }
 }
 
@@ -531,6 +528,7 @@ Prompt {
             }
         }
 
+
         CondensedPath { 
             &:first-of-type {
                 margin: 0 1 0 0;
@@ -569,6 +567,15 @@ Prompt {
 
     &.-has-mode #info-container ModeInfo {
         display: block;
+    }
+
+    &.-has-model #info-container AgentInfo {
+        max-width: 60%;
+        height: 1;
+        text-wrap: nowrap;
+        text-overflow: ellipsis;
+        pointer: pointer;
+        &:hover { text-style: underline; }
     }
 
 }
@@ -613,29 +620,19 @@ MainScreen {
     background: $background;
     layers: sidebar screen base;    
 
+    & > Center { height: 1fr; }
+
+    #tab-navigation-header TabHistoryControls {
+        dock: right;
+    }
+
     #session-content {
         width: 1fr;
         height: 1fr;
     }
 
-    #workspace-tabs {
-        display: none;
-        height: 1;
-    }
-
-    #workspace-tabs.-has-preview {
-        display: block;
-    }
-
-    #workspace-content,
-    #conversation-view {
-        height: 1fr;
-    }
-
     SideBar {        
-        border-right: tall $primary 30%;
         background: transparent;        
-        dock: left;
 
         overflow: hidden;
         scrollbar-size: 0 0;
@@ -643,17 +640,7 @@ MainScreen {
         
         padding: 0 0;
         margin: 0;
-        width: 40;
-        max-width: 45%;
-        min-width: 40;
         height: 1fr;             
-
-        &.-collapsed {
-            width: 1;
-            min-width: 1;
-            max-width: 1;
-            border-right: none;
-        }
                          
         DirectoryTree {  
             height: 1fr;                                  

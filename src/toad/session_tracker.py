@@ -1,10 +1,56 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from time import time
 from operator import attrgetter
 from typing import Iterable, Literal, Sequence
 
 from textual.signal import Signal
 
 type SessionState = Literal["notready", "busy", "asking", "idle"]
+
+
+@dataclass(frozen=True)
+class OpenTab:
+    mode_name: str
+    title: str
+    unread: int = 0
+
+
+@dataclass(frozen=True)
+class CommsViewKey:
+    """A wire destination belongs to one owner session and sending identity."""
+
+    root: str
+    owner_mode: str
+    me: str
+    kind: str
+    target: str
+
+    @property
+    def title(self) -> str:
+        return f"@{self.target}" if self.kind == "dm" else self.target
+
+
+@dataclass(frozen=True)
+class SidebarSelection:
+    channel: str
+    target: str
+
+
+@dataclass
+class SidebarState:
+    expanded: dict[str, bool] = field(default_factory=dict)
+    panels_collapsed: dict[str, bool] = field(default_factory=dict)
+    selected: SidebarSelection | None = None
+    channel_scroll_y: float = 0
+    panel_scroll_y: float = 0
+
+
+@dataclass(frozen=True)
+class SessionPresentation:
+    label: str
+    summary: str
+    busy: bool
+    asking: bool
 
 
 @dataclass
@@ -28,6 +74,16 @@ class SessionDetails:
 
     updates: int = 0
     """Track updates to the session details."""
+    created_at: float = field(default_factory=time)
+    """Creation time for local sessions without a wire identity."""
+
+    @property
+    def presentation(self) -> SessionPresentation:
+        """Transport-only fallback for a view with no authoritative wire thread."""
+        marker = {"notready": "○", "busy": "●", "asking": "?", "idle": "✓"}[self.state]
+        activity = (self.summary or self.subtitle or self.path or "Ready").replace("\n", " ")[:44]
+        return SessionPresentation(f"{marker} {self.title or 'New Session'}", activity,
+                                   self.state == "busy", self.state == "asking")
 
 
 class SessionTracker:
@@ -69,6 +125,10 @@ class SessionTracker:
         summary: str | None = None,
     ) -> SessionDetails:
         session_details = self.sessions[mode_name]
+        before = (
+            session_details.title, session_details.subtitle, session_details.path,
+            session_details.state, session_details.summary,
+        )
         if title is not None:
             session_details.title = title
         if subtitle is not None:
@@ -79,7 +139,12 @@ class SessionTracker:
             session_details.state = state
         if summary is not None:
             session_details.summary = summary
-        self.signal.publish((mode_name, session_details))
+        after = (
+            session_details.title, session_details.subtitle, session_details.path,
+            session_details.state, session_details.summary,
+        )
+        if after != before:
+            self.signal.publish((mode_name, session_details))
         return session_details
 
     @property

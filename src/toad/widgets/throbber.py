@@ -1,33 +1,29 @@
-from functools import lru_cache
+from collections.abc import Callable
+from functools import cached_property, lru_cache
 from time import monotonic
 
 from rich.segment import Segment
 from rich.style import Style as RichStyle
 
 from textual.visual import Visual
-from textual.color import Color, Gradient
+from textual.app import ScreenStackError, UnknownModeError
+from textual.color import Color
 
 from textual.style import Style
 from textual.strip import Strip
 from textual.visual import RenderOptions
 from textual.widget import Widget
+from textual.reactive import reactive
 from textual.css.styles import RulesMap
 
 
 COLORS = [
-    "#881177",
-    "#aa3355",
-    "#cc6666",
-    "#ee9944",
-    "#eedd00",
-    "#99dd55",
-    "#44dd88",
-    "#22ccbb",
-    "#00bbcc",
-    "#0099cc",
-    "#3366bb",
-    "#663399",
-    "#881177",
+    "ansi_magenta",
+    "ansi_red",
+    "ansi_yellow",
+    "ansi_green",
+    "ansi_cyan",
+    "ansi_blue",
 ]
 
 
@@ -44,18 +40,18 @@ class ThrobberVisual(Visual):
         self.character = character
         self.get_time = get_time
 
-    gradient = Gradient.from_colors(*[Color.parse(color) for color in COLORS])
+    colors = tuple(Color.parse(color).rich_color for color in COLORS)
 
     @lru_cache(maxsize=8)
     def make_segments(self, style: Style, width: int) -> list[Segment]:
-        gradient = self.gradient
         background = style.rich_style.bgcolor
         character = self.character
+        color_count = len(self.colors)
         segments = [
             Segment(
                 character,
                 RichStyle.from_color(
-                    gradient.get_rich_color((offset / width) % 1),
+                    self.colors[(offset * color_count // max(width, 1)) % color_count],
                     background,
                 ),
             )
@@ -93,8 +89,37 @@ class ThrobberVisual(Visual):
 
 
 class Throbber(Widget):
-    def on_mount(self) -> None:
-        self.auto_refresh = 1 / 15
+    # The row is always reserved; only its paint and animation change.
+    busy = reactive(False, layout=False)
 
-    def render(self) -> ThrobberVisual:
+    @cached_property
+    def _busy_visual(self) -> ThrobberVisual:
+        # Animation time is read while rendering. Keep the immutable color table
+        # warm across repaint invalidations instead of caching fresh Visual IDs.
         return ThrobberVisual()
+
+    def on_mount(self) -> None:
+        self.watch_busy(self.busy)
+
+    def watch_busy(self, busy: bool) -> None:
+        self.auto_refresh = 1 / 30 if busy and self.is_mounted else None
+
+    def automatic_refresh(self) -> None:
+        # Widget.is_on_screen falls back to the full geometry map for hidden
+        # widgets. Scrolling invalidates that map, so an idle/hidden throbber
+        # used to re-layout the whole transcript fifteen times per second.
+        # Animation only needs the committed visible map; normal layout will
+        # paint the indicator when it becomes visible again.
+        if self.busy and self.is_attached:
+            screen = self.screen
+            try:
+                current = self.app.screen
+            except (ScreenStackError, UnknownModeError):
+                # Mode removal/shutdown can retire the stack before this
+                # widget's animation timer has been stopped.
+                return
+            if screen is current and self in screen._compositor.visible_widgets:
+                self.refresh()
+
+    def render(self) -> ThrobberVisual | str:
+        return self._busy_visual if self.busy else ""

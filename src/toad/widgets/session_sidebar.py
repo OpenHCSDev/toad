@@ -2,17 +2,97 @@
 
 from __future__ import annotations
 
+from agent_comms import ThreadView
 from textual.containers import VerticalScroll
 from textual.binding import Binding
+from textual.content import Content
 from textual.reactive import reactive
 from textual.widgets import Static
 
-from toad import messages
 from toad.session_tracker import SessionDetails
+from toad.widgets.selection import HoverSelection
 
 
-class SessionRow(Static):
-    """One durable Toad session with its current lifecycle activity."""
+class ThreadStatusRow(HoverSelection):
+    """Compact wire status presentation shared by open and unopened threads."""
+
+    DEFAULT_CSS = """
+    ThreadStatusRow.-wire-thread {
+        height: 2;
+        padding: 0;
+        text-wrap: nowrap;
+        text-overflow: ellipsis;
+        color: $text-muted;
+        pointer: pointer;
+    }
+    ThreadStatusRow.-wire-thread.-busy { color: $warning; }
+    ThreadStatusRow.-wire-thread.-unread { text-style: bold; }
+    ThreadStatusRow:hover {
+        background: transparent;
+        color: #ad8bf5 !important;
+        text-style: underline;
+    }
+    ThreadStatusRow:ansi:hover {
+        background: transparent;
+        color: ansi_magenta !important;
+        text-style: underline;
+    }
+    ThreadStatusRow:focus {
+        background: transparent;
+        color: #ad8bf5 !important;
+        text-style: underline;
+    }
+    ThreadStatusRow:ansi:focus {
+        background: transparent;
+        color: ansi_magenta !important;
+        text-style: underline;
+    }
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._thread_signature: tuple | None = None
+        self.thread_name: str | None = None
+
+    def update_thread(
+        self, person: ThreadView, *, unread: int = 0, pinned: bool = False,
+        action_status: str | None = None,
+    ) -> None:
+        self.thread_name = person.thread.name
+        presentation = person.presentation
+        summary, busy = presentation.summary, presentation.busy
+        if action_status is not None:
+            summary, busy = action_status, True
+        # Put the count before the title so long thread names cannot clip it.
+        badge = f"({unread}) " if unread else ""
+        content = Content.assemble(
+            (badge, "bold $accent"),
+            f"{'* ' if pinned else ''}{presentation.label}\n  {summary}",
+        )
+        tooltip = "\n".join(
+            str(value)
+            for value in (
+                person.thread.name,
+                summary,
+                "Pinned in this channel" if pinned else None,
+                person.runtime.model if person.runtime else person.thread.model,
+            )
+            if value
+        )
+        signature = (content.plain, tooltip, busy)
+        if signature == self._thread_signature:
+            return
+        self._thread_signature = signature
+        self.add_class("-wire-thread")
+        self.set_class(busy, "-busy")
+        self.set_class(bool(unread), "-unread")
+        self.remove_class("-asking")
+        self.tooltip = Content(tooltip)
+        self.update(content, layout=False)
+
+
+class SessionRow(ThreadStatusRow):
+    """An open Toad view, using the same wire status as unopened threads."""
 
     can_focus = True
     BINDINGS = [
@@ -29,16 +109,10 @@ class SessionRow(Static):
         padding: 0;
         color: $text-muted;
         pointer: pointer;
-    }
-    SessionRow:hover, SessionRow:focus, SessionRow.-current {
-        background: $surface-lighten-2;
+        text-wrap: nowrap;
+        text-overflow: ellipsis;
     }
     SessionRow.-current { color: $text; text-style: bold; }
-    SessionRow:ansi:hover, SessionRow:ansi:focus {
-        background: ansi_bright_white;
-        color: ansi_black;
-        text-style: bold;
-    }
     SessionRow.-busy { color: $warning; }
     SessionRow.-asking { color: $accent; }
     """
@@ -52,9 +126,12 @@ class SessionRow(Static):
         self.update_details(details)
 
     def update_details(self, details: SessionDetails) -> None:
-        activity = (
-            details.summary or details.subtitle or details.path or "Ready"
-        ).replace("\n", " ")[:44]
+        if self.has_class("-wire-thread"):
+            self.remove_class("-wire-thread")
+            self._thread_signature = None
+            self._details_signature = None
+        presentation = details.presentation
+        activity = presentation.summary
         signature = (details.state, details.title, activity)
         if signature == self._details_signature:
             return
@@ -63,15 +140,9 @@ class SessionRow(Static):
             "-state-notready", "-state-busy", "-state-asking", "-state-idle"
         )
         self.add_class(f"-state-{details.state}")
-        self.set_class(details.state == "busy", "-busy")
-        self.set_class(details.state == "asking", "-asking")
-        marker = {
-            "notready": "○",
-            "busy": "●",
-            "asking": "?",
-            "idle": "✓",
-        }[details.state]
-        self.update(f"{marker} {details.title or 'New Session'}\n  {activity}")
+        self.set_class(presentation.busy, "-busy")
+        self.set_class(presentation.asking, "-asking")
+        self.update(f"{presentation.label}\n  {activity}", layout=False)
 
     def _sidebar(self):
         parent = self.parent
@@ -88,14 +159,15 @@ class SessionRow(Static):
             sidebar.action_cursor_down()
 
     def action_open(self) -> None:
-        self.post_message(messages.SessionSwitch(self.mode_name))
+        if (sidebar := self._sidebar()) is not None:
+            sidebar.remember_row(self)
+        self.app.switch_mode(self.mode_name)
 
     def on_focus(self) -> None:
         if (sidebar := self._sidebar()) is not None:
             rows = sidebar._ordered_rows()
             if self in rows:
-                sidebar._cursor = rows.index(self)
-                sidebar._apply_cursor(rows)
+                sidebar.focus_row(self)
 
     def on_click(self, event) -> None:
         if event.button != 3:

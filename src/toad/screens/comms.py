@@ -1,3 +1,4 @@
+import asyncio
 from pathlib import Path
 
 from textual import containers, getters, on
@@ -5,29 +6,35 @@ from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.events import ScreenResume
 from textual.screen import Screen
-from textual.widgets import Footer
+from textual.widgets import Static
+from toad.widgets.footer import Footer
 
 from toad import messages
+from toad.constants import ALL_COMMS_TARGET
 from toad.app import ToadApp
 from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.comms_fork_dialog import ForkDialog
 from toad.widgets.comms_sidebar import CoordinationStatus, CommsSidebar, SelectTarget
+from toad.session_tracker import SidebarState
 from toad.widgets.session_tabs import SessionsTabs
-from toad.widgets.side_bar import SideBar
+from toad.widgets.side_bar import SideBar, TabHistoryControls
+from toad.widgets.recovery_view import RecoveryView
+from toad.widgets.thread_comms import RelationshipSort, ThreadCommsSidebar
+from toad.widgets.session_sort import ChannelListSort
+from toad.screens.session_view import SessionView
 
 
-class CommsScreen(Screen, can_focus=False):
+class CommsScreen(SessionView, can_focus=False):
     """A channel or DM represented as a native concurrent Toad session."""
 
     AUTO_FOCUS = "CommsChatView Prompt TextArea"
     CSS_PATH = ["main.tcss", "comms.tcss"]
     SESSION_NAVIGATION_GROUP = Binding.Group(description="Sessions")
     BINDINGS = [
-        Binding("escape", "back_to_agent", "Agent session", priority=True),
+        Binding("escape", "back_to_agent", "Agent session"),
         Binding("ctrl+g", "toggle_irc", "IRC view"),
-        Binding("ctrl+j", "toggle_dm", "DM view"),
         Binding("ctrl+b,f20", "show_sidebar", "Sidebar"),
-        Binding("ctrl+w", "close_session", "Close session", priority=True),
+        Binding("ctrl+t", "message_style", "IRC / Markdown"),
         Binding(
             "ctrl+left_square_bracket",
             "session_previous",
@@ -50,6 +57,7 @@ class CommsScreen(Screen, can_focus=False):
         me: str,
         target: str,
         kind: str,
+        recovery_root: str | None = None,
     ) -> None:
         super().__init__()
         self.project_path = project_path
@@ -57,31 +65,55 @@ class CommsScreen(Screen, can_focus=False):
         self.me = me
         self.target = target
         self.kind = kind
+        self.recovery_root = recovery_root
+        self._thread_sidebar_state = SidebarState()
+        self._content_ready = asyncio.Event()
+        self._content_error: BaseException | None = None
+        self._content_loaded = False
+        self._content_loading = False
+        self._hydrate_queued = False
+        self._flush_queued = False
 
     app = getters.app(ToadApp)
 
     def compose(self) -> ComposeResult:
+        with containers.Horizontal(id="tab-navigation-header"):
+            yield TabHistoryControls()
+            yield SessionsTabs()
+        if not self._content_loaded:
+            # Switching modes only needs the route identity for its first
+            # paint. Compose the expensive native controls after that frame;
+            # open_comms_session still waits for them before returning to
+            # callers that expect a fully mounted chat and sidebar.
+            yield Static(f"Opening {self.target}…", id="comms-opening")
+            return
         with containers.Center():
             yield SideBar(
                 SideBar.Panel(
-                    "Sessions",
+                    "Channels",
                     CommsSidebar(
                         session_thread=self.me,
                         selected_target=self.target,
                     ),
                     flex=True,
+                    header_control=ChannelListSort(),
                 ),
+                id="channels-sidebar",
+            )
+            yield SideBar(
                 SideBar.Panel(
-                    "Coordination",
+                    "Connection",
                     CoordinationStatus(self.me),
                     id="coordination-panel",
                 ),
+                SideBar.Panel("Recovery", RecoveryView(self.me, wire_root=self.recovery_root), collapsed=True,
+                              id="recovery-panel"),
+                SideBar.Panel("Comms", ThreadCommsSidebar(
+                    self.me, wire_root=self.recovery_root, live=True),
+                    id="thread-comms-panel", header_control=RelationshipSort()),
+                id="thread-sidebar", right=True, hide=True, navigation=self._thread_sidebar_state,
             )
             with containers.Vertical(id="comms-content"):
-                yield SessionsTabs(
-                    view_mode=self.id or "",
-                    view_title=self._target_title(),
-                )
                 yield CommsChatView(
                     self.project_path,
                     me=self.me,
@@ -91,20 +123,61 @@ class CommsScreen(Screen, can_focus=False):
         yield Footer()
 
     def on_mount(self) -> None:
+        if not self._content_loaded:
+            return
+        self._prepare_content()
+
+    def _start_hydration(self) -> None:
+        """Only a written route frame may start full-screen composition."""
+        if not self._content_loaded and not self._hydrate_queued:
+            self._hydrate_queued = True
+            self.call_later(self._load_content)
+
+    def _prepare_content(self) -> None:
         chat = self.query_one(CommsChatView)
+        chat._me = self.me
+        chat.project_path = self.project_path
+        self.query_one(CommsSidebar).session_thread = self.me
+        self.query_one(CoordinationStatus).set_thread(self.me)
         chat.prepare_prompt()
-        self.set_timer(0.1, chat.prepare_prompt)
+
+    async def _load_content(self) -> None:
+        if self._content_loading or not self.is_attached:
+            return
+        self._content_loading = True
+        self._content_loaded = True
+        try:
+            # Do not expose the default top-of-list sidebar between mounting
+            # the full controls and restoring this tab's saved navigation.
+            with self.app.batch_update():
+                await self.recompose()
+                if self.is_attached:
+                    self._prepare_content()
+                    if self.is_current:
+                        await self.prepare_navigation()
+                        await self.layout_navigation()
+        except BaseException as error:
+            self._content_error = error
+            raise
+        finally:
+            self._content_ready.set()
+
+    async def wait_content_ready(self) -> None:
+        await self._content_ready.wait()
+        if self._content_error is not None:
+            raise self._content_error
+
+    async def prepare_navigation(self) -> None:
+        # A tab switch must not wait on the writer lock. The mounted chat's
+        # asynchronous history refresh marks its displayed cursor as read.
+        await super().prepare_navigation()
 
     def _on_screen_resume(self, event: ScreenResume) -> None:
-        self.call_after_refresh(self.query_one(CommsSidebar).sync_sessions)
-        chat = self.query_one(CommsChatView)
-        self.call_after_refresh(chat.prepare_prompt)
-        self.set_timer(0.1, chat.prepare_prompt)
+        if chat := self.query_one_optional(CommsChatView):
+            self.call_after_refresh(chat.prepare_prompt)
 
-    def _target_title(self) -> str:
-        if self.kind == "dm":
-            return f"@{self.target}"
-        return self.target
+    async def action_message_style(self) -> None:
+        await self.query_one(CommsChatView).toggle_message_style()
 
     def action_focus_prompt(self) -> None:
         self.query_one(CommsChatView).prepare_prompt()
@@ -112,7 +185,7 @@ class CommsScreen(Screen, can_focus=False):
     def action_show_sidebar(self) -> None:
         sidebar = self.query_one(SideBar)
         sidebar.reveal()
-        sidebar.query_one("Collapsible CollapsibleTitle").focus()
+        sidebar.query_one("SideBarCollapsible CollapsibleTitle").focus()
 
     @on(SideBar.Dismiss)
     def on_side_bar_dismiss(self, event: SideBar.Dismiss) -> None:
@@ -145,7 +218,7 @@ class CommsScreen(Screen, can_focus=False):
         if self.kind == "irc":
             await self.action_back_to_agent()
         else:
-            await self._open("#all", "irc")
+            await self._open(ALL_COMMS_TARGET, "irc")
 
     async def action_toggle_dm(self) -> None:
         if self.kind == "dm":

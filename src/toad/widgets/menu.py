@@ -6,19 +6,20 @@ from textual import on
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.message import Message
-from textual.widgets import ListView, ListItem, Label
+from textual.widgets import ListView, Label
 from textual._partition import partition
 from textual import events
 from textual.widget import Widget
 
 from toad.menus import MenuItem
+from toad.widgets.selection import SelectionListItem
 
 
 class NonSelectableLabel(Label):
     ALLOW_SELECT = False
 
 
-class MenuOption(ListItem):
+class MenuOption(SelectionListItem):
     ALLOW_SELECT = False
 
     def __init__(self, action: str | None, description: str, key: str | None) -> None:

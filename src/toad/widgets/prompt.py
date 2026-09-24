@@ -4,7 +4,8 @@ from pathlib import Path
 import shlex
 from typing import TYPE_CHECKING, Callable, Literal, Self
 
-from textual import on
+from textual import on, work
+import asyncio
 from textual.reactive import var, Initialize
 from textual.app import ComposeResult
 
@@ -14,7 +15,6 @@ from textual.binding import Binding
 from textual.content import Content
 from textual import getters
 from textual.message import Message
-from textual.timer import Timer
 from textual.widgets import OptionList, TextArea, Label
 from textual import containers
 from textual.widget import Widget
@@ -30,16 +30,17 @@ from toad.widgets.path_search import PathSearch
 from toad.widgets.plan import Plan
 from toad.widgets.question import Ask, Question
 from toad.widgets.slash_complete import SlashComplete
+from toad.widgets.model_switcher import ModelSwitcher
 from toad.messages import UserInputSubmitted
 from toad.slash_command import SlashCommand
-from toad.prompt.extract import extract_paths_from_prompt
 from toad.path_complete import PathComplete
+from toad.widgets.selection import SelectionOptionList
 
 if TYPE_CHECKING:
-    from toad.acp.agent import Mode
+    from toad.acp.agent import Mode, Model
 
 
-class ModeSwitcher(OptionList):
+class ModeSwitcher(SelectionOptionList):
     BINDING_GROUP_TITLE = "Mode switcher"
     BINDINGS = [Binding("escape", "dismiss", "Dismiss mode switcher")]
 
@@ -64,6 +65,17 @@ class AgentInfo(Label):
     pass
 
 
+class SendNow(Label, can_focus=True):
+    BINDINGS = [("enter,space", "send_now", "Send now")]
+
+    def action_send_now(self):
+        self.post_message(messages.SendPromptNow())
+
+    def on_click(self, event: events.Click):
+        event.stop()
+        self.action_send_now()
+
+
 class ModeInfo(Label):
     pass
 
@@ -75,6 +87,22 @@ class StatusLine(Label):
         self.set_class(not bool(status), "-hidden")
         self.update(status)
         self.tooltip = status
+
+
+class QueueSummary(Label, can_focus=True):
+    """Shows the delivery queue; activating it offers edit/remove."""
+
+    BINDINGS = [("enter,space", "edit_queue", "Edit queued")]
+
+    def action_edit_queue(self) -> None:
+        from toad.widgets.conversation import Conversation
+
+        self.query_ancestor(Conversation).open_queue_menu()
+
+    def on_click(self, event: events.Click) -> None:
+        if event.button == 1:
+            event.stop()
+            self.action_edit_queue()
 
 
 class PromptContainer(containers.HorizontalGroup):
@@ -102,6 +130,9 @@ See on-screen instructions for details.
     BINDING_GROUP_TITLE = "Prompt"
 
     BINDINGS = [
+        Binding("ctrl+v", "paste_clipboard", "Paste", priority=True, show=False),
+        Binding("ctrl+j", "line_feed", "New line", priority=True, show=False),
+        Binding("ctrl+enter,ctrl+y", "submit_now", "Send now", priority=True),
         Binding(
             "enter",
             "submit",
@@ -111,18 +142,11 @@ See on-screen instructions for details.
             tooltip="Send the prompt to the agent",
         ),
         Binding(
-            "ctrl+j,shift+enter",
+            "shift+enter",
             "newline",
             "Line",
             key_display="⇧+⏎",
             tooltip="Insert a new line character",
-        ),
-        Binding(
-            "ctrl+j,shift+enter",
-            "multiline_submit",
-            "Send",
-            key_display="⇧+⏎",
-            tooltip="Send the prompt to the agent",
         ),
         Binding(
             "tab",
@@ -148,6 +172,8 @@ See on-screen instructions for details.
     multi_line = var(False, bindings=True)
     shell_mode = var(False, bindings=True)
     agent_ready: var[bool] = var(False)
+    agent_busy = var(False, bindings=True)
+    queue_supported = var(False, bindings=True)
     path_complete: var[PathComplete] = var(Initialize(lambda obj: PathComplete()))
     suggestions: var[list[str] | None] = var(None)
     suggestions_index: var[int] = var(0)
@@ -161,7 +187,8 @@ See on-screen instructions for details.
     def __init__(self, *, simple_input: bool = False) -> None:
         super().__init__()
         self.simple_input = simple_input
-        self._submit_timer: Timer | None = None
+        self._submit_pending = False
+        self._submit_immediate = False
 
     class Submitted(Message):
         def __init__(self, markdown: str) -> None:
@@ -221,15 +248,7 @@ See on-screen instructions for details.
         self.hide_suggestion_on_blur = False
 
     def on_key(self, event: events.Key) -> None:
-        if (
-            not self.simple_input
-            and not self.shell_mode
-            and self.cursor_location == (0, 0)
-            and event.character in {"!", "$"}
-        ):
-            self.post_message(self.RequestShellMode())
-            event.prevent_default()
-        elif self.shell_mode and event.key == "tab":
+        if self.shell_mode and event.key == "tab":
             event.prevent_default()
         elif event.key != "escape":
             self.suggestions = None
@@ -251,14 +270,10 @@ See on-screen instructions for details.
                         self.suggestion = completes[-1]
 
     def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
+        if action == "submit_now":
+            return self.agent_ready and self.agent_busy and self.queue_supported
         if action == "clear_input":
             return bool(self.text)
-        if action == "newline" and self.multi_line:
-            return False
-        if action == "submit" and self.multi_line:
-            return False
-        if action == "multiline_submit":
-            return self.multi_line
         return True
 
     def action_clear_input(self) -> None:
@@ -266,30 +281,66 @@ See on-screen instructions for details.
         self.suggestions = None
         self.suggestion = ""
 
-    def action_multiline_submit(self) -> None:
-        if not self.agent_ready:
-            self.app.bell()
-            self.post_message(
-                messages.Flash(
-                    "Agent is not ready. Please wait while the agent connects…",
-                    "error",
-                )
-            )
-            return
-        self.post_message(UserInputSubmitted(self.text, self.shell_mode))
-        self.clear()
-
     def action_newline(self) -> None:
         self.insert("\n")
 
+    def action_line_feed(self) -> None:
+        self.action_newline()
+
+    def _paste_clipboard_text(self, text: str) -> None:
+        # A fresh Paste event posted directly here would bubble to App and be
+        # forwarded back to the focused TextArea, inserting it a second time.
+        if result := self._replace_via_keyboard(text, *self.selection):
+            self.move_cursor(result.end_location)
+
+    @work(group="clipboard-paste", exclusive=True)
+    async def action_paste_clipboard(self) -> None:
+        from toad.clipboard_image import read_clipboard_png, save_clipboard_png
+
+        if self.read_only:
+            return
+        try:
+            image = await read_clipboard_png()
+            if not self.is_attached:
+                return
+            if image is not None:
+                if self.simple_input or self.shell_mode:
+                    self.notify("Paste images into an agent thread, not the IRC or shell composer.",
+                                title="Image attachment", severity="warning")
+                    return
+                path = await asyncio.to_thread(save_clipboard_png, image)
+                reference = f'@"{path}"' if any(char.isspace() for char in str(path)) else f"@{path}"
+                self._paste_clipboard_text(" " + reference + " ")
+                self.notify(f"PNG attached ({len(image):,} bytes). Enter sends it with your prompt.",
+                            title="Image attachment")
+                return
+            try:
+                import pyperclip
+
+                text = await asyncio.to_thread(pyperclip.paste)
+            except Exception:
+                text = self.app.clipboard
+            if text:
+                self._paste_clipboard_text(text)
+            else:
+                self.notify("No text or supported image in the clipboard", title="Paste")
+        except (OSError, ValueError, TimeoutError) as error:
+            self.notify(str(error), title="Paste failed", severity="error")
+
     def action_submit(self) -> None:
-        # Terminal drivers may queue a pasted text burst and Enter together.
-        # Let those character events update the TextArea before reading it.
-        if self._submit_timer is None:
-            self._submit_timer = self.set_timer(0.05, self._submit)
+        # The callback is queued behind this widget's input events. Unlike a
+        # timer, it preserves paste/typing order without adding a fixed latency.
+        if not self._submit_pending:
+            self._submit_pending = True
+            self.call_later(self._submit)
+
+    def action_submit_now(self) -> None:
+        self._submit_immediate = True
+        self.action_submit()
 
     def _submit(self) -> None:
-        self._submit_timer = None
+        self._submit_pending = False
+        immediate, self._submit_immediate = self._submit_immediate, False
         if not self.has_focus:
             return
         if not self.agent_ready and not self.shell_mode:
@@ -314,12 +365,13 @@ See on-screen instructions for details.
                     self.insert(self.suggestion + " ")
                 self.suggestion = ""
             return
-        self.post_message(UserInputSubmitted(self.text, self.shell_mode))
+        shell = self.shell_mode
+        self.post_message(UserInputSubmitted(self.text, shell, immediate=immediate))
         self.clear()
+        if shell:
+            self.post_message(self.CancelShell())
 
     def action_cursor_up(self, select: bool = False):
-        if self.simple_input:
-            return TextArea.action_cursor_up(self, select)
         if self.selection.is_empty and not select:
             row, _column = self.selection[0]
             if row == 0:
@@ -328,8 +380,6 @@ See on-screen instructions for details.
         super().action_cursor_up(select)
 
     def action_cursor_down(self, select: bool = False):
-        if self.simple_input:
-            return TextArea.action_cursor_down(self, select)
         if self.selection.is_empty and not select:
             row, _column = self.selection[0]
             if row == (self.wrapped_document.height - 1):
@@ -355,7 +405,7 @@ See on-screen instructions for details.
             # scroll the conversation to the end
             from toad.widgets.conversation import Conversation
 
-            self.query_ancestor(Conversation).window.anchor()
+            self.query_ancestor(Conversation).jump_to_latest()
         else:
             self.move_cursor(location, select=select)
 
@@ -453,21 +503,17 @@ See on-screen instructions for details.
                     self.selection = Selection((0, 0), (0, len(line)))
                     return
 
-            for _path, start, end in extract_paths_from_prompt(line):
-                if x > start and x < end:
-                    self.selection = Selection((y, start), (y, end))
-                    break
-                if direction == -1 and x == end:
-                    self.selection = Selection((y, start), (y, end))
-                    break
-
-            if x > 0 and x <= len(line) and line[x - 1] == "@":
-                remaining_line = line[x + 1 :]
-                if not remaining_line or remaining_line[0].isspace():
-                    self.post_message(InvokeFileSearch())
-
 
 class Prompt(containers.VerticalGroup):
+
+    DEFAULT_CSS = """
+    Prompt .queue-summary { display: none; height: auto; max-height: 3; color: $text-muted; }
+    Prompt.-has-queue .queue-summary { display: block; }
+    Prompt .delivery-controls { display: none; height: 1; padding-left: 1; }
+    Prompt.-queue-mode .delivery-controls { display: block; }
+    Prompt SendNow { color: $text-secondary; pointer: pointer; }
+    Prompt SendNow:hover, Prompt SendNow:focus { text-style: underline; }
+    """
 
     BINDINGS = [
         Binding("escape", "dismiss", "Dismiss", show=False),
@@ -477,6 +523,7 @@ class Prompt(containers.VerticalGroup):
     PROMPT_SHELL = Content.styled("$", "$text-primary")
     PROMPT_AI = Content.styled("❯", "$text-secondary")
     PROMPT_MULTILINE = Content.styled("☰", "$text-secondary")
+    TEXT_AREA_CLASS = PromptTextArea
 
     prompt_container = getters.query_one("#prompt-container", Widget)
     prompt_text_area = getters.query_one(PromptTextArea)
@@ -486,6 +533,7 @@ class Prompt(containers.VerticalGroup):
     slash_complete = getters.query_one(SlashComplete)
     question = getters.query_one(Question)
     mode_switcher = getters.query_one(ModeSwitcher)
+    model_switcher = getters.query_one(ModelSwitcher)
 
     slash_commands: var[list[SlashCommand]] = var(list)
     shell_mode = var(False)
@@ -494,12 +542,22 @@ class Prompt(containers.VerticalGroup):
     show_slash_complete = var(False, toggle_class="-show-slash-complete", bindings=True)
     project_path = var(Path, init=False)
     working_directory = var("")
+    display_directory = var("")
     agent_info = var(Content(""))
     _ask: var[Ask | None] = var(None)
     plan: var[list[Plan.Entry]]
     agent_ready: var[bool] = var(False)
     current_mode: var[Mode | None] = var(None)
     modes: var[dict[str, Mode] | None] = var(None)
+    current_model: var[Model | None] = var(None)
+    models: var[dict[str, Model] | None] = var(None)
+    model_history_scope = var("")
+    queue_supported = var(False)
+    queued_prompts: var[list[str]] = var(list)
+    delivering_prompt = var("")
+    sending_queued_prompt = var("")
+    turn: var[str | None] = var(None)
+    agent_busy = var(False)
     status: var[str | Content] = var("")
 
     app = getters.app(ToadApp)
@@ -533,6 +591,8 @@ class Prompt(containers.VerticalGroup):
         )
 
     def watch_current_mode(self, mode: Mode | None) -> None:
+        if self.simple_input:
+            return
         self.set_class(mode is not None, "-has-mode")
         if mode is not None:
             tooltip = Content.from_markup(
@@ -542,10 +602,24 @@ class Prompt(containers.VerticalGroup):
             self.query_one(ModeInfo).with_tooltip(tooltip).update(mode.name)
         self.watch_modes(self.modes)
 
+    def watch_current_model(self, model: Model | None) -> None:
+        if self.simple_input:
+            return
+        self.set_class(model is not None, "-has-model")
+        agent_info = self.query_one(AgentInfo)
+        if model is None:
+            agent_info.tooltip = None
+        else:
+            agent_info.tooltip = Content.from_markup(
+                "[b]$description[/]\n\n[dim](click to search models)",
+                description=model.description or model.id,
+            )
+        self.watch_models(self.models)
+
     async def watch_project_path(self, old_path: Path, new_path: Path) -> None:
         """Initial refresh of paths."""
-        if old_path != new_path:
-            self.call_later(self.path_search.refresh_paths)
+        if not self.simple_input and old_path != new_path:
+            self.call_later(self.path_search.invalidate_paths)
 
     def ask(self, ask: Ask) -> None:
         """Replace the textarea prompt with a menu of options.
@@ -559,10 +633,17 @@ class Prompt(containers.VerticalGroup):
             self._ask = self.ask_queue.pop(0)
 
     @on(events.Click, "ModeInfo")
-    def on_click(self):
+    def on_mode_info_click(self):
         self.mode_switcher.focus()
 
+    @on(events.Click, "AgentInfo")
+    def on_agent_info_click(self):
+        if self.models:
+            self.model_switcher.focus()
+
     def watch_modes(self, modes: dict[str, Mode] | None) -> None:
+        if self.simple_input:
+            return
         from toad.visuals.columns import Columns
 
         columns = Columns("auto", "auto", "flex")
@@ -589,12 +670,62 @@ class Prompt(containers.VerticalGroup):
                 self.current_mode.id
             )
 
+    def watch_models(self, models: dict[str, Model] | None) -> None:
+        if self.simple_input:
+            return
+        self.model_switcher.set_models(models or {}, self.current_model)
+
+    def watch_turn(self, turn):
+        self.agent_busy = turn == "agent"
+        self.set_class(self.agent_busy and self.queue_supported, "-queue-mode")
+
+    def watch_queue_supported(self, supported):
+        self.watch_turn(self.turn)
+
+    def watch_queued_prompts(self, queued):
+        self._update_queue_summary()
+
+    def watch_delivering_prompt(self, _prompt: str) -> None:
+        self._update_queue_summary()
+
+    def watch_sending_queued_prompt(self, _prompt: str) -> None:
+        self._update_queue_summary()
+
+    def _update_queue_summary(self) -> None:
+        if self.simple_input:
+            return
+        queued = self.queued_prompts
+        delivering = self.delivering_prompt
+        self.set_class(bool(queued or delivering), "-has-queue")
+        parts: list[str] = []
+        if queued and queued[0] == self.sending_queued_prompt:
+            parts.append("Sending next: " + " ".join(queued[0].split())[:100])
+            queued = queued[1:]
+        if delivering:
+            parts.append("Sending next: " + " ".join(delivering.split())[:100])
+        if queued:
+            parts.append(
+                f"Queued ({len(queued)}): "
+                + " · ".join(" ".join(text.split())[:100] for text in queued[:3])
+            )
+        self.query_one(".queue-summary", Label).update(Content(" | ".join(parts)))
+
+    @on(messages.SendPromptNow)
+    def on_send_prompt_now(self, event):
+        event.stop()
+        # Widget.focus() defers its focus change to the screen queue. Submission
+        # can overtake it and fail the TextArea's has_focus guard after a click.
+        self.screen.set_focus(self.prompt_text_area)
+        self.prompt_text_area.action_submit_now()
+
     def watch_agent_ready(self, ready: bool) -> None:
         self.set_class(not ready, "-not-ready")
-        if ready:
+        if ready and not self.simple_input:
             self.query_one(AgentInfo).update(self.agent_info)
 
     def watch_agent_info(self, agent_info: Content) -> None:
+        if self.simple_input:
+            return
         if self.agent_ready:
             self.query_one(AgentInfo).update(agent_info)
         else:
@@ -605,11 +736,15 @@ class Prompt(containers.VerticalGroup):
 
     def watch_shell_mode(self) -> None:
         self.update_prompt()
+        self.watch_working_directory(self.working_directory)
+
+    def compute_display_directory(self) -> str:
+        return self.working_directory if self.shell_mode else str(self.project_path)
 
     def watch_working_directory(self, working_directory: str) -> None:
         if not working_directory:
             return
-        out_of_bounds = not Path(working_directory).is_relative_to(self.project_path)
+        out_of_bounds = self.shell_mode and not Path(working_directory).is_relative_to(self.project_path)
         if out_of_bounds and not self.has_class("-working-directory-out-of-bounds"):
             self.post_message(
                 messages.Flash(
@@ -655,37 +790,8 @@ class Prompt(containers.VerticalGroup):
             )
             self.remove_class("-shell-mode")
 
-            prompt_message = self.app.settings.get("ui.prompt_message", str)
-            self.prompt_text_area.placeholder = Content.assemble(
-                f"{prompt_message}\t".expandtabs(8),
-                ("▌!▐", "r"),
-                " shell ",
-                ("▌/▐", "r"),
-                " commands ",
-                ("▌@▐", "r"),
-                " files",
-            )
+            self.prompt_text_area.placeholder = ""
             self.prompt_text_area.highlight_language = "markdown"
-
-    @property
-    def likely_shell(self) -> bool:
-        text = self.prompt_text_area.text
-        if "\n" in text or " " in text or not text.strip():
-            return False
-
-        shell_commands = {
-            command.strip()
-            for command in self.app.settings.get(
-                "shell.allow_commands", expect_type=str
-            ).split()
-        }
-        if text.split(" ", 1)[0] in shell_commands:
-            return True
-        return False
-
-    @property
-    def is_shell_mode(self) -> bool:
-        return self.shell_mode or self.likely_shell
 
     def focus(self, scroll_visible: bool = True) -> Self:
         if self._ask is not None:
@@ -703,12 +809,13 @@ class Prompt(containers.VerticalGroup):
         self.prompt_text_area.suggestion = ""
 
     def watch_show_slash_complete(self, show: bool) -> None:
-        if show:
+        if show and not self.simple_input:
             self.slash_complete.focus()
 
     def project_directory_updated(self) -> None:
         """Called when there is may be new files"""
-        self.path_search.refresh_paths()
+        if not self.simple_input:
+            self.path_search.invalidate_paths()
 
     @on(PromptTextArea.RequestShellMode)
     def on_request_shell_mode(self, event: PromptTextArea.RequestShellMode):
@@ -723,8 +830,6 @@ class Prompt(containers.VerticalGroup):
 
         if self.simple_input:
             self.shell_mode = False
-        elif not self.multi_line and self.likely_shell:
-            self.shell_mode = True
 
         self.update_prompt()
 
@@ -738,19 +843,21 @@ class Prompt(containers.VerticalGroup):
         self.open_path_search()
 
     def open_path_search(self) -> None:
-        if not self.shell_mode:
+        if not self.simple_input and not self.shell_mode:
             self.show_path_search = True
             self.path_search.reset()
 
     @on(InvokeSlashComplete)
     def on_invoke_slash_complete(self, event: InvokeSlashComplete) -> None:
         event.stop()
-        self.show_slash_complete = True
+        if not self.simple_input:
+            self.show_slash_complete = True
 
     @on(messages.PromptSuggestion)
     def on_prompt_suggestion(self, event: messages.PromptSuggestion) -> None:
         event.stop()
-        self.prompt_text_area.suggestion = event.suggestion
+        if self.show_path_search:
+            self.prompt_text_area.suggestion = event.suggestion
 
     @on(SlashComplete.Completed)
     def on_slash_complete_completed(self, event: SlashComplete.Completed) -> None:
@@ -762,12 +869,14 @@ class Prompt(containers.VerticalGroup):
     @on(messages.Dismiss)
     def on_dismiss(self, event: messages.Dismiss) -> None:
         event.stop()
-        if event.widget is self.slash_complete and self.show_slash_complete:
+        if self.show_slash_complete and not self.simple_input and event.widget is self.slash_complete:
             self.show_slash_complete = False
             self.prompt_text_area.suggestion = ""
             self.focus()
-        elif event.widget is self.path_search and self.show_path_search:
+        elif not self.simple_input and event.widget is self.path_search and self.show_path_search:
             self.show_path_search = False
+            self.focus()
+        elif not self.simple_input and event.widget is self.model_switcher:
             self.focus()
 
     @on(messages.InsertPath)
@@ -807,26 +916,35 @@ class Prompt(containers.VerticalGroup):
             self.prompt_text_area.suggestion = suggestion[len(self.text) :]
 
     def compose(self) -> ComposeResult:
-        yield PathSearch(self.project_path).data_bind(root=Prompt.project_path)
-        yield SlashComplete().data_bind(slash_commands=Prompt.slash_commands)
+        if not self.simple_input:
+            yield PathSearch(self.project_path).data_bind(root=Prompt.project_path)
+            yield SlashComplete().data_bind(slash_commands=Prompt.slash_commands)
+            yield QueueSummary("", classes="queue-summary", markup=False)
+            with containers.HorizontalGroup(classes="delivery-controls"):
+                yield Label("Enter queues · ")
+                yield SendNow("Send now (Ctrl+Enter / Ctrl+Y)")
         with PromptContainer(id="prompt-container"):
             yield Question()
             with containers.HorizontalGroup(id="text-prompt"):
                 yield Label(self.PROMPT_AI, id="prompt", markup=False)
-                yield PromptTextArea(simple_input=self.simple_input).data_bind(
+                yield self.TEXT_AREA_CLASS(simple_input=self.simple_input).data_bind(
                     multi_line=Prompt.multi_line,
                     shell_mode=Prompt.shell_mode,
                     agent_ready=Prompt.agent_ready,
+                    agent_busy=Prompt.agent_busy,
+                    queue_supported=Prompt.queue_supported,
                     project_path=Prompt.project_path,
                     working_directory=Prompt.working_directory,
                     slash_commands=Prompt.slash_commands,
                 )
-        with containers.HorizontalGroup(id="info-container"):
-            yield AgentInfo()
-            yield CondensedPath().data_bind(path=Prompt.working_directory)
-            yield StatusLine(markup=False).data_bind(status=Prompt.status)
-            yield ModeSwitcher()
-            yield ModeInfo("mode")
+        if not self.simple_input:
+            with containers.HorizontalGroup(id="info-container"):
+                yield AgentInfo()
+                yield CondensedPath().data_bind(path=Prompt.display_directory)
+                yield StatusLine(markup=False).data_bind(status=Prompt.status)
+                yield ModelSwitcher().data_bind(history_scope=Prompt.model_history_scope)
+                yield ModeSwitcher()
+                yield ModeInfo("mode")
 
     def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
         return True

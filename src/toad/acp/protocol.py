@@ -24,6 +24,7 @@ class FileSystemCapability(SchemaDict, total=False, extra_items=Any):
 class ClientCapabilities(SchemaDict, total=False, extra_items=Any):
     fs: FileSystemCapability
     terminal: bool
+    auth: dict[str, bool]
 
 
 # https://agentclientprotocol.com/protocol/schema#implementation
@@ -50,6 +51,9 @@ class AuthMethod(SchemaDict, total=False, extra_items=Any):
     description: str | None
     id: Required[str]
     name: Required[str]
+    type: str
+    args: list[str]
+    env: dict[str, str]
 
 
 # https://agentclientprotocol.com/protocol/schema#envvariable
@@ -288,6 +292,28 @@ class SessionModelState(SchemaDict, total=False, extra_items=Any):
     currentModelId: Required[ModelId]
 
 
+class ConfigSelectOption(SchemaDict, total=False, extra_items=Any):
+    value: Required[str]
+    name: Required[str]
+    description: str | None
+
+
+class ConfigSelectGroup(SchemaDict, total=False, extra_items=Any):
+    group: Required[str]
+    name: Required[str]
+    options: Required[list[ConfigSelectOption]]
+
+
+class ConfigOption(SchemaDict, total=False, extra_items=Any):
+    id: Required[str]
+    name: Required[str]
+    description: str | None
+    category: str | dict
+    type: Required[str]
+    currentValue: Required[str | bool]
+    options: list[ConfigSelectOption] | list[ConfigSelectGroup]
+
+
 # https://agentclientprotocol.com/protocol/schema#param-plan
 class Plan(SchemaDict, total=False, extra_items=Any):
     entries: Required[list[PlanEntry]]
@@ -314,6 +340,11 @@ class CurrentModeUpdate(SchemaDict, total=False, extra_items=Any):
     sessionUpdate: Required[Literal["current_mode_update"]]
 
 
+class ConfigOptionUpdate(SchemaDict, total=False, extra_items=Any):
+    configOptions: Required[list[ConfigOption]]
+    sessionUpdate: Required[Literal["config_option_update"]]
+
+
 class UsageUpdate(SchemaDict, total=False, extra_items=object):
     sessionUpdate: Required[Literal["usage_update"]]
     used: Required[int]
@@ -336,6 +367,7 @@ type SessionUpdate = (
     | Plan
     | AvailableCommandsUpdate
     | CurrentModeUpdate
+    | ConfigOptionUpdate
     | UsageUpdate
     | SessionInfoUpdate
 )
@@ -388,12 +420,15 @@ class NewSessionResponse(SchemaDict, total=False, extra_items=Any):
     # Unstable from here
     models: SessionModelState | None
     modes: SessionModeState | None
+    configOptions: list[ConfigOption] | None
 
 
 # https://agentclientprotocol.com/protocol/schema#loadsessionresponse
 class LoadSessionResponse(SchemaDict, total=False, extra_items=Any):
     _meta: object
     modes: SessionModeState | None
+    models: SessionModelState | None
+    configOptions: list[ConfigOption] | None
 
 
 class SessionPromptResponse(SchemaDict, total=False, extra_items=object):
@@ -450,6 +485,10 @@ class WaitForTerminalExitResponse(TypedDict, total=False, extra_items=Any):
 # https://agentclientprotocol.com/protocol/schema#setsessionmoderesponse
 class SetSessionModeResponse(TypedDict, total=False, extra_items=Any):
     meta: dict
+
+
+class SetSessionConfigOptionResponse(TypedDict, total=False, extra_items=Any):
+    configOptions: Required[list[ConfigOption]]
 
 
 # ---------------------------------------------------------------------------------------

@@ -1,8 +1,23 @@
+import os
 import sys
+
+# Textual's default 60 Hz update timer can wait 16.7 ms before starting even
+# a trivial paint. Use its supported higher-frequency setting for Toad, while
+# respecting an explicit terminal/user override. This must precede importing
+# ToadApp, which imports Textual's module-level update interval.
+os.environ.setdefault("TEXTUAL_FPS", "120")
 
 import click
 from toad.app import ToadApp
 from toad.agent_schema import Agent
+from toad.render_backend import Renderer, RendererBackend, create_renderer
+
+
+def renderer_from_cli(backend: RendererBackend) -> Renderer:
+    try:
+        return create_renderer(backend)
+    except RuntimeError as error:
+        raise click.ClickException(str(error)) from error
 
 
 def set_process_title(title: str) -> None:
@@ -112,6 +127,9 @@ def main(ctx, version):
     help="Public URL to use in conjunction with --serve",
 )
 @click.option("-s", "--serve", is_flag=True, help="Serve Toad as a web application")
+@click.option("--renderer", type=click.Choice(RendererBackend, case_sensitive=False),
+              default=RendererBackend.LOCAL, envvar="TOAD_RENDERER",
+              help="CPU rendering backend (persistent requires the optional extra).")
 def run(
     port: int,
     host: str,
@@ -119,6 +137,7 @@ def run(
     project_dir: str = ".",
     agent: str = "1",
     public_url: str | None = None,
+    renderer: RendererBackend = RendererBackend.LOCAL,
 ):
     """Run an installed agent (same as `toad PATH`)."""
 
@@ -135,6 +154,7 @@ def run(
         mode=None if agent_data else "store",
         agent_data=agent_data,
         project_dir=project_dir,
+        renderer=renderer_from_cli(renderer),
     )
     if serve:
         import shlex
@@ -196,6 +216,9 @@ def run(
     help="Host to use in conjunction with --serve",
 )
 @click.option("-s", "--serve", is_flag=True, help="Serve Toad as a web application")
+@click.option("--renderer", type=click.Choice(RendererBackend, case_sensitive=False),
+              default=RendererBackend.LOCAL, envvar="TOAD_RENDERER",
+              help="CPU rendering backend (persistent requires the optional extra).")
 def acp(
     command: str,
     host: str,
@@ -204,6 +227,7 @@ def acp(
     project_dir: str | None,
     serve: bool = False,
     session_id: str | None = None,
+    renderer: RendererBackend = RendererBackend.LOCAL,
 ) -> None:
     """Run an ACP agent from a command."""
 
@@ -235,7 +259,7 @@ def acp(
         import shlex
         from textual_serve.server import Server
 
-        command_components = [sys.argv[0], "acp", command]
+        command_components = [sys.argv[0], "acp", command, "--renderer", renderer.value]
         if session_id:
             command_components.extend(["--session", session_id])
         if project_dir:
@@ -253,7 +277,8 @@ def acp(
 
     else:
         app = ToadApp(
-            agent_data=agent_data, project_dir=project_dir, agent_session_id=session_id
+            agent_data=agent_data, project_dir=project_dir, agent_session_id=session_id,
+            renderer=renderer_from_cli(renderer),
         )
         app.run()
         app.run_on_exit()

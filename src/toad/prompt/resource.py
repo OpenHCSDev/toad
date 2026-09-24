@@ -2,6 +2,8 @@ from dataclasses import dataclass
 import mimetypes
 from pathlib import Path
 
+from agent_comms.image_inputs import MAX_IMAGE_BYTES
+
 
 @dataclass
 class Resource:
@@ -24,7 +26,7 @@ class ResourceReadError(ResourceError):
     """Failed to read the resource."""
 
 
-def load_resource(root: Path, path: Path) -> Resource:
+def load_resource(root: Path, path: Path, *, attachment_root: Path | None = None) -> Resource:
     """Load a resource from the project directory.
 
     Args:
@@ -34,9 +36,12 @@ def load_resource(root: Path, path: Path) -> Resource:
     Returns:
         A resource.
     """
-    resource_path = root / path
+    root = root.resolve()
+    resource_path = (root / path).resolve()
 
-    if not resource_path.is_relative_to(root):
+    if not resource_path.is_relative_to(root) and not (
+        attachment_root is not None and resource_path.is_relative_to(attachment_root.resolve())
+    ):
         raise ResourceNotRelative("Resource path is not relative to project root.")
 
     mime_type, encoding = mimetypes.guess_file_type(resource_path)
@@ -47,7 +52,13 @@ def load_resource(root: Path, path: Path) -> Resource:
     text: str | None
 
     try:
-        if encoding is not None:
+        if mime_type.startswith("image/"):
+            with resource_path.open("rb") as source:
+                data = source.read(MAX_IMAGE_BYTES + 1)
+            if len(data) > MAX_IMAGE_BYTES:
+                raise ResourceReadError("Image exceeds the 4 MiB attachment limit.")
+            text = None
+        elif encoding is not None:
             data = resource_path.read_bytes()
             text = None
         else:

@@ -1,7 +1,7 @@
 from typing import Iterable
 from textual.app import ComposeResult
 from textual import containers
-from textual.widgets import Markdown
+from toad.conversation_markdown import ConversationMarkdown
 
 from toad.menus import MenuItem
 from toad.widgets.non_selectable_label import NonSelectableLabel
@@ -14,7 +14,7 @@ class UserInput(containers.HorizontalGroup):
 
     def compose(self) -> ComposeResult:
         yield NonSelectableLabel("❯", id="prompt")
-        yield Markdown(self.content, id="content")
+        yield ConversationMarkdown(self.content, id="content")
 
     def get_block_menu(self) -> Iterable[MenuItem]:
         yield from ()
