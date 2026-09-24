@@ -263,7 +263,8 @@ for line in sys.stdin:
                 panel.region.height <= 2 for panel in panels if panel.collapsed
             ), [(panel.title, panel.collapsed, panel.region.height) for panel in panels]
             controls = shell_sidebar.query_one("#sidebar-controls")
-            assert controls.region.y - panels[0].region.bottom <= 1
+            viewport = shell_sidebar.query_one("#sidebar-panels")
+            assert controls.region.y - viewport.region.bottom <= 1
             assert controls.region.bottom == shell_sidebar.region.bottom
             await pilot.click(panels[0].query_one("CollapsibleTitle"))
             await pilot.pause()
@@ -298,7 +299,7 @@ for line in sys.stdin:
             assert sidebar_toggle.region.width == 3
             assert conversation.window.styles.padding.left == 1
             assert conversation.prompt.region.x == conversation.region.x
-            assert app.screen.query_one(SessionsTabs).region.x == conversation.region.x
+            assert app.screen.query_one(SessionsTabs).region.x == app.screen.query_one("TabHistoryControls").region.right
             assert shell_sidebar.render() == ">"
             assert sidebar_toggle.tooltip == "Expand sidebar"
             await pilot.hover(app.screen.conversation.prompt)

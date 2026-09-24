@@ -8,10 +8,11 @@ from pathlib import Path
 from agent_comms import Thread, wire
 from runtime_fixture import ToadApp
 from textual.content import Content
+from textual.containers import VerticalScroll
 
 from toad.widgets.comms_sidebar import CommsSidebar
 from toad.widgets.session_tabs import SessionsTabs
-from toad.widgets.side_bar import SideBar, SidebarAction, SidebarSlider
+from toad.widgets.side_bar import SideBar, SidebarAction, SidebarSlider, TabHistoryControls
 from toad.widgets.virtual_channel_list import VirtualChannelList
 
 
@@ -34,8 +35,7 @@ async def main() -> None:
             content = app.screen.query_one("#session-content")
             tabs = app.screen.query_one(SessionsTabs)
             assert left.region.x == 0 and right.right
-            assert tabs.region.x == content.region.x
-            baseline_content = content.region.width
+            assert tabs.region.x == app.screen.query_one(TabHistoryControls).region.right
             left.query_one("#sidebar-width-slider", SidebarSlider).action_step(1)
             await pilot.pause()
             assert app.sidebar_layout.get("channels-sidebar").width_percent == 41
@@ -45,18 +45,21 @@ async def main() -> None:
             await pilot.pause()
             assert left.right and right.right
             assert right.region.x > left.region.x, "New right bar belongs inside the existing outer one"
-            assert tabs.region.x == content.region.x == 0
+            assert content.region.x == 0
+            assert tabs.region.x == app.screen.query_one(TabHistoryControls).region.right
             left.query_one("#sidebar-swap", SidebarAction).action_activate()
             await pilot.pause()
             assert left.region.x > right.region.x
-            assert tabs.region.x == content.region.x == 0
+            assert content.region.x == 0
 
+            pushing_width = content.region.width
             left.query_one("#sidebar-float", SidebarAction).action_activate()
             await pilot.pause()
             assert app.sidebar_layout.get("channels-sidebar").floating
-            assert content.region.width > baseline_content
+            # An inner pushed handle reserves space through its inside edge.
+            assert content.region.width >= pushing_width
             assert left.region.x >= content.region.x and left.region.width > 3
-            assert tabs.region.x == content.region.x == 0
+            assert content.region.x == 0
             left.query_one("#sidebar-float", SidebarAction).action_activate()
             await pilot.pause()
             assert not app.sidebar_layout.get("channels-sidebar").floating
@@ -69,15 +72,13 @@ async def main() -> None:
             member = next(option for option in listing.options
                           if isinstance(option.prompt, Content) and name in option.prompt.plain)
             assert name in member.prompt.plain, "Source label must not be pre-truncated"
-            assert listing.horizontal_max > 0
-            first = listing.render_line(listing._line_cache.index_to_line[listing.get_option_index(member.id)])
-            slider = left.query_one("#sidebar-horizontal-slider", SidebarSlider)
-            slider.set_range(0, listing.horizontal_max, 0)
-            slider._choose(slider.size.width - 1)
+            panels = left.query_one("#sidebar-panels", VerticalScroll)
+            assert panels.max_scroll_x > 0 and listing.size.width > panels.size.width
+            assert not left.query("#sidebar-horizontal-slider")
+            await pilot.click(panels.horizontal_scrollbar,
+                              offset=(panels.horizontal_scrollbar.size.width - 1, 0))
             await pilot.pause()
-            assert listing.horizontal_offset > 0
-            last = listing.render_line(listing._line_cache.index_to_line[listing.get_option_index(member.id)])
-            assert first != last and app._exception is None
+            assert panels.scroll_x > 0 and app._exception is None
 
             owner = app.current_mode
             await app.open_comms_session(owner_mode=owner, project_path=root,
@@ -85,18 +86,21 @@ async def main() -> None:
             comms_bar = app.screen.query_one("#channels-sidebar", SideBar)
             comms_tabs = app.screen.query_one(SessionsTabs)
             chat = app.screen.query_one("#comms-content")
-            assert comms_bar.right and comms_tabs.region.x == chat.region.x == 0, (
+            assert comms_bar.right and chat.region.x == 0, (
                 comms_bar.region, comms_tabs.region, chat.region,
                 app.sidebar_layout.ordered(), app.screen.query_one("#tab-navigation-header").styles.padding,
             )
             comms_bar.query_one("#sidebar-move", SidebarAction).action_activate()
             await pilot.pause()
             assert not comms_bar.right
-            assert comms_tabs.region.x == chat.region.x == comms_bar.region.width
+            assert chat.region.x == comms_bar.region.width
+            assert comms_tabs.region.x == app.screen.query_one(TabHistoryControls).region.right
             await pilot.resize_terminal(76, 34)
-            assert comms_tabs.region.x == chat.region.x == comms_bar.region.width
+            assert chat.region.x == comms_bar.region.width
+            assert comms_tabs.region.right == 76
             await app.switch_mode(owner)
-            assert not left.right and tabs.region.x == content.region.x == left.region.width
+            assert not left.right and content.region.x == left.region.width
+            assert tabs.region.x == app.screen.query_one(TabHistoryControls).region.right
         await asyncio.get_running_loop().shutdown_default_executor()
     print("sidebar controls: move/swap/width/float and untruncated horizontal row scroll")
 

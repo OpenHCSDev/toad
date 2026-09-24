@@ -454,9 +454,8 @@ class MainScreen(SessionView, can_focus=False):
         self.app.sidebar_layout_changed.subscribe(
             self, lambda _event: self._align_tabs_with_sidebar(False)
         )
-        # The tab header sits above (not inside) the resizable left sidebar.
-        # Use its current computed width so the first frame and every toggle
-        # align the tabs with the conversation without a deferred paint.
+        # Keep the screen-wide navigation row independent of sidebar geometry,
+        # including when restoring a previously mounted owner tab.
         self.watch(
             self.query_one("#channels-sidebar", SideBar),
             "collapsed",
