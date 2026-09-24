@@ -35,11 +35,12 @@ async def main():
                                                me=me, target="#warm", kind="channel")
             chat = app.screen.query_one(CommsChatView)
             await until(pilot, lambda: chat._history_initialized and not chat._refresh_lock.locked())
+            await until(pilot, lambda: comms.viewer_snapshot(str(root)).channel_unread["#warm"] == 0)
             await app.switch_mode(owner)
             comms.send(me, "#warm", "PREPARED-WHILE-HIDDEN")
             reader = chat._wire
             with (patch.object(reader, "mark_channel_view_read", wraps=reader.mark_channel_view_read) as mark,
-                  patch.object(reader, "channel_history_page", wraps=reader.channel_history_page) as reads):
+                  patch.object(reader, "channel_display_page", wraps=reader.channel_display_page) as reads):
                 await until(pilot, lambda: chat._prepared_history is not None
                             and chat._prepared_history.page is not None
                             and any(message.body == "PREPARED-WHILE-HIDDEN"
@@ -71,7 +72,7 @@ async def main():
             # is selected. Typing and leaving the tab still work; late completion
             # warms data without acknowledging the newly received message.
             entered, release = Event(), Event()
-            original_page = reader.channel_history_page
+            original_page = reader.channel_display_page
             main_thread = get_ident()
 
             def gated_page(target, **kwargs):
@@ -82,7 +83,7 @@ async def main():
                 return original_page(target, **kwargs)
 
             try:
-                with patch.object(reader, "channel_history_page", side_effect=gated_page):
+                with patch.object(reader, "channel_display_page", side_effect=gated_page):
                     comms.send(me, "#warm", "BLOCKED-BACKGROUND-READ")
                     assert await asyncio.to_thread(entered.wait, 3)
                     await asyncio.wait_for(app.switch_mode(mode), 2)

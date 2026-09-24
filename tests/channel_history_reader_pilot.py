@@ -20,12 +20,13 @@ class ReaderTests(unittest.IsolatedAsyncioTestCase):
             comms.register(Thread("sender", frozenset({"one", "two"}), str(root)))
             for index in range(50):
                 comms.send("sender", "#one", f"Message {index}")
+            comms.user_identity(str(root))
             request = HistoryReadRequest(comms, HistoryKind.CHANNEL, "#one", root,
                                          False, 0, True, None, 8, 40, 256 * 1024)
             reader = ChannelHistoryReader()
             release = Event()
             try:
-                with patch.object(comms, "channel_history_page", wraps=comms.channel_history_page) as page:
+                with patch.object(comms, "channel_display_page", wraps=comms.channel_display_page) as page:
                     result = await reader.read(request, background=True)
                     assert result.page is not None
                     self.assertLessEqual(len(result.page.messages), 8)
@@ -36,7 +37,7 @@ class ReaderTests(unittest.IsolatedAsyncioTestCase):
 
                 # A cancelled UI waiter does not release an in-flight kernel read.
                 entered = Event()
-                original = comms.channel_history_page
+                original = comms.channel_display_page
                 main_thread = get_ident()
 
                 def gated(target, **kwargs):
@@ -47,7 +48,7 @@ class ReaderTests(unittest.IsolatedAsyncioTestCase):
                             raise TimeoutError("Test did not release channel read")
                     return original(target, **kwargs)
 
-                with patch.object(comms, "channel_history_page", side_effect=gated) as page:
+                with patch.object(comms, "channel_display_page", side_effect=gated) as page:
                     first = asyncio.create_task(reader.read(request, background=True))
                     self.assertTrue(await asyncio.to_thread(entered.wait, 2))
                     first.cancel()

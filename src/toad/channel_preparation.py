@@ -32,13 +32,19 @@ class HistoryReadRequest:
 
     def page(self, *, after: int | None = None, limit: int) -> MessagePage:
         if self.kind is HistoryKind.ALL:
-            return self.comms.full_history_page(after=after, limit=limit, max_bytes=self.max_bytes)
+            return self.comms.channel_display_page(
+                self.target, worktree=str(self.project), after=after,
+                limit=limit, max_bytes=self.max_bytes,
+            )
         if self.kind is HistoryKind.DIRECT:
-            actor = self.comms.user_identity(str(self.project)).name
-            return self.comms.dm_history_page(actor, self.target, after=after,
-                                              limit=limit, max_bytes=self.max_bytes)
-        return self.comms.channel_history_page(self.target, after=after,
-                                              limit=limit, max_bytes=self.max_bytes)
+            return self.comms.dm_display_page(
+                self.target, worktree=str(self.project), after=after,
+                limit=limit, max_bytes=self.max_bytes,
+            )
+        return self.comms.channel_display_page(
+            self.target, worktree=str(self.project), after=after,
+            limit=limit, max_bytes=self.max_bytes,
+        )
 
     def read(self, previous: HistoryReadResult | None = None) -> HistoryReadResult:
         """Perform all revision/watermark/page I/O on the reader thread."""

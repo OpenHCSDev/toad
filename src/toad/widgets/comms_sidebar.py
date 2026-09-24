@@ -434,6 +434,7 @@ class CommsSidebar(TargetTree):
         self._last_revision: WireRevision | None = None
         self._last_actor = ""
         self._last_filters: tuple[bool, bool] | None = None
+        self._last_read_marker_notice: str | None = None
         self._rendered_selection: SidebarSelection | None = None
         self._selected_row: CommsRow | SessionRow | None = None
         self._selection_applied = False
@@ -702,6 +703,14 @@ class CommsSidebar(TargetTree):
                     or actor != self.session_thread or filters != self.visible_filters):
                 return
             snapshot = self._snapshot(state)
+            if state.read_marker_notice != self._last_read_marker_notice:
+                self._last_read_marker_notice = state.read_marker_notice
+                if state.read_marker_notice:
+                    self.notify(
+                        state.read_marker_notice,
+                        title="Read positions",
+                        severity="warning",
+                    )
             cast("ToadApp", self.app)._sidebar_snapshot = state
             self._last_revision, self._last_actor, self._last_filters = revision, actor, filters
             await self._present_snapshot(snapshot)

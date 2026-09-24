@@ -109,6 +109,8 @@ class CommsChatView(Conversation):
         self._prepared_history: HistoryReadResult | None = None
         self._history_warm_task: asyncio.Task[HistoryReadResult] | None = None
         self._history_warm_request: HistoryReadRequest | None = None
+        self._ack_page: MessagePage | None = None
+        self._ack_inflight = False
         self.irc_style = True
 
     def compose(self) -> ComposeResult:
@@ -201,26 +203,18 @@ class CommsChatView(Conversation):
         after: int | None = None,
         limit: int = HISTORY_PAGE_SIZE,
     ) -> MessagePage:
-        if self.kind == "irc":
-            return comms.full_history_page(
-                before=before,
-                after=after,
-                limit=limit,
-                max_bytes=HISTORY_PAGE_BYTES,
-            )
-        elif self.kind == "dm":
-            return comms.dm_history_page(
-                comms.user_identity(str(self.project_path)).name,
+        if self.kind == "dm":
+            return comms.dm_display_page(
                 self.target,
+                worktree=str(self.project_path),
                 before=before,
                 after=after,
                 limit=limit,
                 max_bytes=HISTORY_PAGE_BYTES,
             )
-        else:
-            target = self.target
-        return comms.channel_history_page(
-            target,
+        return comms.channel_display_page(
+            self.target,
+            worktree=str(self.project_path),
             before=before,
             after=after,
             limit=limit,
@@ -233,6 +227,26 @@ class CommsChatView(Conversation):
         if self.irc_style:
             return IRCMessage(message)
         return WireMarkdownMessage(message)
+
+    def _painted_message_sequences(self) -> tuple[int, ...]:
+        """Rows in the committed viewport, adapted from the sidebar worktree."""
+        if not self.is_attached or not self.screen.is_active:
+            return ()
+        geometry = self.screen._compositor.visible_widgets
+        viewport = self.window.content_region
+        visible: list[int] = []
+        for message, widget in self._history:
+            placement = geometry.get(widget)
+            if placement is None:
+                continue
+            region, clip = placement
+            if (
+                region.overlaps(viewport)
+                and region.overlaps(clip)
+                and clip.overlaps(viewport)
+            ):
+                visible.append(message.seq)
+        return tuple(visible)
 
     def _history_request(self) -> HistoryReadRequest:
         assert self._wire is not None
@@ -282,6 +296,7 @@ class CommsChatView(Conversation):
         return await self.app.channel_history_reader.read(request)
 
     async def on_unmount(self) -> None:
+        self._ack_page = None
         if self._history_warm_task is not None:
             task = self._history_warm_task
             task.cancel()
@@ -309,6 +324,8 @@ class CommsChatView(Conversation):
             self.window.scroll_end(animate=False)
 
     async def _mount_page(self, page: MessagePage, *, older: bool) -> None:
+        if not older and page.messages:
+            self._ack_page = page
         mounted = {message.seq for message, _ in self._history}
         records = [message for message in page.messages if message.seq not in mounted]
         if not records:
@@ -434,6 +451,74 @@ class CommsChatView(Conversation):
             self._poll_cursor = high_water
         return follow
 
+    def _mark_visible_after_layout(self) -> None:
+        page = self._ack_page
+        if page is None or self._ack_inflight or not self.is_attached:
+            return
+        painted = set(self._painted_message_sequences())
+        if page.newest_seq is None or page.newest_seq not in painted:
+            return
+        if self.kind == "dm":
+            basis = page.display_basis
+            if basis is None or basis.older_unread:
+                return
+            inbound = (
+                message.seq for message in page.messages
+                if message.sender in basis.peer_names and message.target in basis.viewer_names
+            )
+            if any(sequence not in painted for sequence in inbound):
+                return
+        else:
+            scope = page.display_scope
+            if scope is None:
+                return
+            if page.has_older and page.oldest_seq is not None and (
+                scope.after < page.oldest_seq - 1
+                or (scope.any_mode and scope.expanded_after < page.oldest_seq - 1)
+            ):
+                return
+            if any(message.seq not in painted for message in page.messages):
+                return
+        self._ack_inflight = True
+        self.run_worker(self._mark_painted_page(page), group="comms-painted-read")
+
+    async def _mark_painted_page(self, page: MessagePage) -> None:
+        try:
+            comms = self._wire
+            if comms is None or not self.is_attached or not self.screen.is_active:
+                return
+            project = str(self.project_path)
+            target = self.target
+            if self.kind == "dm":
+                assert page.display_basis is not None and page.newest_seq is not None
+                await asyncio.to_thread(
+                    comms.mark_dm_view_read, target, worktree=project,
+                    through=page.newest_seq, expected_display_basis=page.display_basis,
+                )
+            else:
+                assert page.display_scope is not None and page.newest_seq is not None
+                await asyncio.to_thread(
+                    comms.mark_channel_view_read, target, worktree=project,
+                    through=page.newest_seq, expected_scope=page.display_scope,
+                )
+            if self._ack_page is page:
+                self._ack_page = None
+        except ValueError:
+            # The peer, viewer, channel scope, or marker changed after page
+            # fetch. Discard mounted history and fetch the current projection.
+            if self.is_attached:
+                async with self._refresh_lock:
+                    await self.contents.remove_children(widget for _, widget in self._history)
+                    self._history.clear()
+                    self._history_initialized = False
+                    self._poll_cursor = 0
+                    self._revision = None
+                    self._has_older = False
+                    self._has_newer = False
+            self._ack_page = None
+        finally:
+            self._ack_inflight = False
+
     async def _refresh(self) -> None:
         if not self.is_attached or self._wire is None:
             return
@@ -464,6 +549,7 @@ class CommsChatView(Conversation):
                     return
                 revision = read.revision
                 if revision == self._revision:
+                    self.call_after_refresh(self._mark_visible_after_layout)
                     return
                 # Show the bounded tail before computing roster/sort metadata,
                 # which can scan a much larger coordination history.
@@ -478,21 +564,7 @@ class CommsChatView(Conversation):
                     )
                 if not self.is_attached or not self.screen.is_active:
                     return
-                if self.kind == "dm":
-                    target, project = self.target, Path(self.project_path)
-                    user = (await asyncio.to_thread(comms.user_identity, str(project))).name
-                    pending = await asyncio.to_thread(comms.pending_count, user, target)
-                    if (not self.is_attached or self.screen is not self.app.screen
-                            or self.target != target or Path(self.project_path) != project
-                            or self._wire is not comms):
-                        return
-                    if pending:
-                        await asyncio.to_thread(comms.acknowledge, user, target)
-                else:
-                    await asyncio.to_thread(
-                        comms.mark_channel_view_read, self.target,
-                        worktree=str(self.project_path), through=self._poll_cursor,
-                    )
+                self.call_after_refresh(self._mark_visible_after_layout)
             except Exception as error:
                 message = f"Wire error: {error}"
                 if message != self.status:
