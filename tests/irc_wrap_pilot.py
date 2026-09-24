@@ -1,4 +1,4 @@
-"""Timestamp-aligned wrapping and routed spans at different terminal widths."""
+"""Full-width wrapping and routed spans at different terminal widths."""
 
 import asyncio
 
@@ -43,8 +43,8 @@ async def main():
             text = row.query_one(IRCMessageText)
             lines = [text.render_line(y).text for y in range(text.size.height)]
             assert row.size.width == width
-            assert text.region.x == row.region.x + 7
-            assert text.size.width == width - 7
+            assert text.region.x == row.region.x, (row.region, text.region)
+            assert text.size.width == width, (width, row.region, text.region)
             assert lines[1].startswith("payload"), (width, lines)
             assert any(line.startswith("second paragraph") for line in lines)
             assert "[literal markup]" in " ".join(" ".join(lines).split()), (
@@ -68,7 +68,7 @@ async def main():
             ("#all", "channel"),
         ]
     print(
-        "IRC wrapping: timestamp-aligned continuations, newlines, clickable spans and keyboard navigation passed"
+        "IRC wrapping: full-width body, newlines, clickable spans and keyboard navigation passed"
     )
 
 

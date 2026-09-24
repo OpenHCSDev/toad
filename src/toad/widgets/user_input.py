@@ -5,16 +5,19 @@ from toad.conversation_markdown import ConversationMarkdown
 
 from toad.menus import MenuItem
 from toad.widgets.non_selectable_label import NonSelectableLabel
+from toad.widgets.message_divider import MessageDivider
 
 
-class UserInput(containers.HorizontalGroup):
+class UserInput(containers.VerticalGroup):
     def __init__(self, content: str) -> None:
         super().__init__()
         self.content = content
 
     def compose(self) -> ComposeResult:
-        yield NonSelectableLabel("❯", id="prompt")
-        yield ConversationMarkdown(self.content, id="content")
+        yield MessageDivider("User")
+        with containers.HorizontalGroup():
+            yield NonSelectableLabel("❯", id="prompt")
+            yield ConversationMarkdown(self.content, id="content")
 
     def get_block_menu(self) -> Iterable[MenuItem]:
         yield from ()
