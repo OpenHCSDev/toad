@@ -202,6 +202,29 @@ formatting the entire fence again to measure height. A 10,000-row width-change
 fixture measured 9.572ms native versus 0.020ms prepared median CPU; wrapping and
 unnormalized tabs retain native measurement. Exact native row/copy tests pass.
 
+An additional independent foreground highlighting path was found in
+`ToolCall._compose_content`: expanded Read tool results performed filename lexer
+discovery and `Syntax.highlight` on the UI thread. Read results now use the same
+`WorkerStatic.code()` component with filename-only discovery and the original
+ANSI light/dark theme policy. Unknown filename types remain literal. Selection
+and copy retain the *original* text, including trailing blank lines that Rich
+does not paint. No new per-tool executor or renderer adapter was introduced.
+
+In the same mounted-app 84,012-byte fixture, two foreground control observations
+showed 370–380ms maximum event-loop gaps and 724–1,014ms UI-thread CPU. The two
+worker observations showed 31–36ms gaps and 108–111ms UI-thread CPU. Mounted
+ready time can be slower when worker setup/queues are cold; the change removes
+input-blocking work rather than promising immediate data. Exact copy, themes,
+generic worker output, hidden tool hydration, persistent service reuse and
+selection tests pass. These are not terminal-presented frame measurements.
+
+Tab-return traces still show two full reflows after some hidden Markdown updates;
+the first uses transcript invalidations and the second arrives after new response
+layout invalidation. A quiet unchanged return can use zero. Since Toad PR #10
+currently edits `screens/session_view.py` and sidebar geometry, this branch has
+not suppressed or delayed those reflows without first proving geometry/scroll
+parity on integrated bytes.
+
 Additional checks pass: the file-link/preview pilot, worker-preview gate pilot,
 post-spinner worker gate, Markdown process/lifecycle/row pilots, renderer service
 and process-pool tests, warm-up/navigation pilots, seven changed-module mypy,

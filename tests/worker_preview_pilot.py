@@ -22,6 +22,7 @@ from toad.render_tasks import RenderTask, RichRenderTask
 from toad.rich_preparation import SyntaxSource
 from toad.widgets.project_panel import FilePreview
 from toad.widgets.worker_static import WorkerStatic
+from toad.widgets.tool_call import ToolCall
 
 ResultT = TypeVar("ResultT")
 
@@ -199,6 +200,32 @@ async def main():
             renderer.release.set()
             await pilot.pause()
             assert generic._prepared is None and app._exception is None
+
+            # Expanded Read output is another consumer of the same default
+            # renderer. A slow lexer cannot block the prompt or a tab exit.
+            renderer.entered.clear()
+            renderer.release.clear()
+            read_source = "def slow_read():\n    return 42\n" * 2000
+            tool = ToolCall({"toolCallId": "read-worker", "kind": "read",
+                             "title": "Read module.py", "status": "completed",
+                             "rawInput": {"path": "module.py"},
+                             "content": [{"type": "content", "content": {"type": "text", "text": read_source}}]})
+            await app.screen.conversation.post(tool)
+            tool.set_expanded(True)
+            await asyncio.wait_for(renderer.entered.wait(), 3)
+            code = tool.query_one(WorkerStatic)
+            assert not code._ready.is_set()
+            prompt = app.screen.conversation.prompt
+            prompt.focus()
+            await pilot.press("r", "e", "a", "d")
+            assert prompt.text == "ioworkread"
+            other = (await app.new_session_screen(app.get_main_screen)).mode_name
+            assert other != owner and not renderer.release.is_set()
+            renderer.release.set()
+            await app.switch_mode(owner)
+            await asyncio.wait_for(code.wait_ready(), 20)
+            assert code.get_selection(SELECT_ALL)[0] == SELECT_ALL.extract(read_source)
+            assert prompt.text == "ioworkread"
         await asyncio.get_running_loop().shutdown_default_executor()
     print("worker preview: IO/CPU waits preserve typing/navigation, native Rich parity, generic content, stable returns, stale/closed results OK")
 

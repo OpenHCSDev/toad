@@ -9,6 +9,7 @@ from pathlib import Path
 import tempfile
 import time
 import sys
+from contextlib import ExitStack
 from unittest.mock import patch
 
 from agent_comms import Thread, TranscriptCursor, TranscriptEvent, TranscriptPage, wire
@@ -18,6 +19,8 @@ from toad.acp.messages import TranscriptSnapshot
 from toad.agent import AgentReady
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.conversation import ThreadLoading
+from toad.widgets.footer import Footer
+from textual.widget import Widget
 
 
 async def until(condition):
@@ -95,10 +98,35 @@ async def main(profile_path=None, trace=False):
                                 await response.update(response.source + "\n\nNew background paragraph.")
                             await pilot.pause()
                             dirty = (screen._layout_required, len(screen._layout_widgets))
+                            footer = screen.query_one(Footer)
+                            before_footer = footer._binding_state
+                            current_footer = footer._current_binding_state(screen)
+                            footer_layout_pending = footer._layout_required
                             gaps.clear()
                             started = time.perf_counter()
                             stages = []
                             original_reflow = screen._compositor.reflow
+                            original_refresh = Widget.refresh
+                            original_size_updated = Footer._size_updated
+
+                            def traced_size_updated(widget, size, virtual_size, container_size, layout=True):
+                                if trace:
+                                    stages.append({"footer_size_update": [str(widget._size), str(widget.virtual_size), str(widget._container_size)],
+                                                   "requested": [str(size), str(virtual_size), str(container_size)],
+                                                   "layout": layout})
+                                return original_size_updated(widget, size, virtual_size, container_size, layout=layout)
+
+                            def traced_refresh(widget, *args, **kwargs):
+                                if trace and isinstance(widget, Footer) and kwargs.get("layout"):
+                                    frame = sys._getframe(1)
+                                    callers = []
+                                    for _ in range(9):
+                                        if frame is None:
+                                            break
+                                        callers.append((Path(frame.f_code.co_filename).name, frame.f_code.co_name, frame.f_lineno))
+                                        frame = frame.f_back
+                                    stages.append({"footer_refresh_callers": callers})
+                                return original_refresh(widget, *args, **kwargs)
 
                             def traced_reflow(*args, **kwargs):
                                 if trace:
@@ -110,15 +138,24 @@ async def main(profile_path=None, trace=False):
                                         callers.append((Path(frame.f_code.co_filename).name, frame.f_code.co_name, frame.f_lineno))
                                         frame = frame.f_back
                                     stages.append({"callers": callers, "invalidated": [type(widget).__name__ for widget in screen._layout_widgets]})
+                                    stages[-1]["footer_binding_delta"] = (
+                                        str(footer._binding_state != footer._current_binding_state(screen)))
+                                    stages[-1]["footer_children"] = len(footer.children)
+                                    stages[-1]["footer_layout_pending"] = footer._layout_required
                                 return original_reflow(*args, **kwargs)
 
-                            with patch.object(screen._compositor, "reflow", side_effect=traced_reflow) as reflow:
+                            with patch.object(screen._compositor, "reflow", side_effect=traced_reflow) as reflow, ExitStack() as tracing:
+                                if trace:
+                                    tracing.enter_context(patch.object(Widget, "refresh", traced_refresh))
+                                    tracing.enter_context(patch.object(Footer, "_size_updated", traced_size_updated))
                                 await app.switch_mode(mode)
                                 await pilot.pause()
                                 returns.append({"updated": updated, "layout_before": dirty,
                                                 "ready_ms": round((time.perf_counter() - started) * 1000, 2),
                                                 "max_event_loop_gap_ms": round(max(gaps, default=0), 2),
                                                 "full_reflows": reflow.call_count,
+                                                "footer_state_changed_pre_switch": before_footer != current_footer,
+                                                **({"footer_layout_pending_pre_switch": footer_layout_pending} if trace else {}),
                                                 **({"stages": stages} if trace else {})})
                             assert conversation.prompt.text == "retained draft"
                         print(json.dumps({"boundary": "post-spinner replay and headless settled returns; not terminal pixels",

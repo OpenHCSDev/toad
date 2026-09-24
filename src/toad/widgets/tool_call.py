@@ -5,8 +5,6 @@ import re  # re2 doesn't have MULTILINE
 from typing import TYPE_CHECKING, Iterable
 from rich.text import Text
 from rich.syntax import Syntax
-from pygments.lexers import get_lexer_for_filename
-from pygments.util import ClassNotFound
 
 from textual import on
 from textual import events
@@ -24,6 +22,7 @@ from toad.acp import protocol
 from toad.menus import MenuItem
 from toad.pill import pill
 from toad.widgets.prepared_markdown import PreparedConversationMarkdown
+from toad.widgets.worker_static import WorkerStatic
 from toad.layout import trim_trailing_margin
 from textual.layout import WidgetPlacement
 
@@ -656,16 +655,8 @@ class ToolCall(containers.VerticalGroup):
                     raw_input = (self.tool_call or {}).get("rawInput") or {}
                     path = (raw_input.get("path") or raw_input.get("file_path") or raw_input.get("filePath")) if isinstance(raw_input, dict) else None
                     if (self.tool_call or {}).get("kind") == "read" and isinstance(path, str):
-                        try:
-                            lexer = get_lexer_for_filename(path)
-                        except ClassNotFound:
-                            yield TextContent(text, markup=False)
-                        else:
-                            highlighted = Content.from_rich_text(Syntax(
-                                text, lexer, theme="ansi_dark" if self.app.current_theme.dark else "ansi_light",
-                                background_color="default",
-                            ).highlight(text))
-                            yield TextContent(Content(text, list(highlighted.spans)))
+                        yield WorkerStatic.code(text, filename=path, line_numbers=False,
+                                                themed=True, filename_only=True)
                     elif "\x1b" in text:
                         parsed_ansi_text = Text.from_ansi(text)
                         yield TextContent(Content.from_rich_text(parsed_ansi_text))

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from io import StringIO
 from typing import Literal, cast
 
@@ -11,6 +11,7 @@ from rich.console import Console, ConsoleOptions, ConsoleRenderable, JustifyMeth
 from rich.segment import Segment
 from rich.style import Style
 from rich.syntax import ClassNotFound, Syntax
+from pygments.lexers import get_lexer_for_filename
 from rich.text import Text
 from textual.render import measure
 from textual.strip import Strip
@@ -42,12 +43,14 @@ class SyntaxSource(RichSource):
     lexer: str | None = None
     theme: str = "monokai"
     line_numbers: bool = True
+    filename_only: bool = False
 
     def materialize(self) -> Syntax:
         lexer = self.lexer
         if lexer is None:
             try:
-                lexer = Syntax.guess_lexer(self.filename, self.code)
+                lexer = (get_lexer_for_filename(self.filename) if self.filename_only
+                         else Syntax.guess_lexer(self.filename, self.code))
             except ClassNotFound:
                 lexer = "text"
         return Syntax(self.code, lexer, theme=self.theme, line_numbers=self.line_numbers,
@@ -68,6 +71,7 @@ class RichPresentation:
     auto_width: bool
     justify: JustifyMethod | None
     color_system: RichColorSystem | None
+    dark: bool = True
 
 
 def prepare_rich(source: RichSource, presentation: RichPresentation) -> PreparedRichContent:
@@ -76,6 +80,8 @@ def prepare_rich(source: RichSource, presentation: RichPresentation) -> Prepared
     console = Console(file=StringIO(), width=options.max_width, height=options.max_height,
                       force_terminal=options.is_terminal, legacy_windows=options.legacy_windows,
                       color_system=presentation.color_system, highlight=False)
+    if isinstance(source, SyntaxSource) and source.theme == "auto":
+        source = replace(source, theme="ansi_dark" if presentation.dark else "ansi_light")
     renderable = source.materialize()
     if isinstance(renderable, str):
         renderable = Text.from_markup(renderable, justify=presentation.justify)

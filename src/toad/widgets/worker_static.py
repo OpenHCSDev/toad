@@ -54,9 +54,12 @@ class WorkerStatic(Static):
 
     @classmethod
     def code(cls, text: str, *, filename: str, lexer: str | None = None,
-             line_numbers: bool = True, id: str | None = None) -> WorkerStatic:
+             line_numbers: bool = True, themed: bool = False,
+             filename_only: bool = False, id: str | None = None) -> WorkerStatic:
         """Prepare lexer discovery and native Syntax rendering in the worker."""
-        return cls(SyntaxSource(text, filename, lexer=lexer, line_numbers=line_numbers), id=id)
+        return cls(SyntaxSource(text, filename, lexer=lexer,
+                                theme="auto" if themed else "monokai",
+                                line_numbers=line_numbers, filename_only=filename_only), id=id)
 
     def on_mount(self) -> None:
         self._closed = False
@@ -105,6 +108,7 @@ class WorkerStatic(Static):
             app.console_options.update(width=width, height=None, highlight=False),
             self.visual_style.rich_style, self.link_style if self.auto_links else None,
             auto_width, self._get_justify_method(), cast(RichColorSystem | None, app.console.color_system),
+            app.current_theme.dark,
         )
         request = _Preparation(self._generation, RichRenderTask(self._source, presentation))
         self._wanted = request
@@ -161,6 +165,11 @@ class WorkerStatic(Static):
     def get_selection(self, selection: Selection) -> tuple[str, str] | None:
         if self._prepared is None:
             return None
+        if isinstance(self._source, SyntaxSource) and not self._source.line_numbers:
+            # Tool Read output historically copied its original source text,
+            # including tabs and final blank lines. Rich's terminal rendering
+            # can drop that last blank row; it must not truncate clipboard text.
+            return selection.extract(self._source.code), "\n"
         text = "\n".join(line.text for line in self._prepared.lines)
         return selection.extract(text), "\n"
 

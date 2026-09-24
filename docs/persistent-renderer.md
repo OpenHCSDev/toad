@@ -53,6 +53,10 @@ The UI measures prepared dimensions and paints only requested rows; selection
 and copy preserve displayed text. Picklable Rich renderables work directly.
 `RichSource` is the nominal data-only construction interface when construction
 itself is expensive (the built-in `SyntaxSource` implements code previews).
+Expanded Read tool results use this same worker-backed source by default,
+including filename-only lexer discovery and light/dark ANSI syntax themes.
+Copying a Read result uses its original source, retaining trailing blank lines
+and tabs even if Rich omits a terminal row when painting.
 Widgets, apps and core services are not renderable payloads.
 
 Source/style/width updates coalesce behind one per-widget in-flight preparation;
@@ -66,6 +70,13 @@ worker-backed component in one app. Maximum event-loop gaps were 1,561–1,687ms
 before and 15.83–16.35ms after. Opening-handler time was 1,703–1,725ms before and
 32.69–33.97ms after; worker content became ready in 1,139ms cold / 705ms warm.
 These are two bounded headless observations, not terminal-pixel acceptance.
+
+A separate 84,012-byte expanded Read tool comparison (mounted in the same app)
+observed maximum event-loop gaps of 370–380ms in the previous foreground
+highlighting path and 31–36ms through `WorkerStatic`; UI-thread CPU over the
+loading interval fell from 724–1,014ms to 108–111ms. Worker content-ready time
+is not an instantaneous terminal-pixel measurement. See
+`tests/tool_read_latency_pilot.py` and its exact-source-copy regressions.
 
 ## Lifetime and failure semantics
 
