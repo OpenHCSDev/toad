@@ -4,6 +4,7 @@ from toad.widgets.streaming_markdown import StreamingMarkdown
 from agent_comms import MessageRoute
 from toad.widgets.route_header import RouteHeader
 from toad.widgets.message_divider import MessageDivider
+from toad.widgets.message_filter import CategorizedBlock, MessageCategory
 
 
 SYSTEM = """\
@@ -13,12 +14,20 @@ When asked for a table do not wrap it in a code fence.
 """
 
 
-class AgentResponse(StreamingMarkdown):
+class AgentResponse(CategorizedBlock, StreamingMarkdown):
     DEFAULT_CLASSES = "block"
     block_cursor_offset = var(-1)
 
+    @property
+    def message_category(self) -> MessageCategory:
+        return self._message_category
+
     def __init__(self, markdown: str | None = None, *, route: MessageRoute | None = None,
-                 paginate: bool = True, show_divider: bool = True) -> None:
+                 category: MessageCategory | None = None,
+                  paginate: bool = True, show_divider: bool = True) -> None:
+        self._message_category = category or (
+            MessageCategory.OUTBOUND if route is not None else MessageCategory.AGENT
+        )
         prefix = ((MessageDivider("Outbound" if route is not None else "Agent"),)
                   if show_divider else ())
         if route is not None:

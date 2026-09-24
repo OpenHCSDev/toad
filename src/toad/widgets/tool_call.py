@@ -23,6 +23,7 @@ from toad.menus import MenuItem
 from toad.pill import pill
 from toad.widgets.prepared_markdown import PreparedConversationMarkdown
 from toad.widgets.worker_static import WorkerStatic
+from toad.widgets.message_filter import CategorizedBlock, MessageCategory
 from toad.layout import trim_trailing_margin
 from textual.layout import WidgetPlacement
 
@@ -214,8 +215,12 @@ class ToolCallHeader(Static):
     """
 
 
-class ToolCall(containers.VerticalGroup):
+class ToolCall(CategorizedBlock, containers.VerticalGroup):
     DEFAULT_CLASSES = "block"
+
+    @property
+    def message_category(self) -> MessageCategory:
+        return MessageCategory.TOOL
 
     app = getters.app(ToadApp)
     has_content: var[bool] = var(False, toggle_class="-has-content")

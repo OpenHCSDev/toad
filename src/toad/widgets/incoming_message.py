@@ -5,6 +5,7 @@ from textual.containers import VerticalGroup
 from toad.widgets.route_header import RouteHeader
 from toad.widgets.message_divider import MessageDivider
 from agent_comms import MessageRoute
+from toad.widgets.message_filter import CategorizedBlock, MessageCategory
 
 
 class IncomingSender(RouteHeader):
@@ -19,8 +20,12 @@ class IncomingSender(RouteHeader):
         self.action_open_target(self.sender)
 
 
-class IncomingMessage(VerticalGroup):
+class IncomingMessage(CategorizedBlock, VerticalGroup):
     DEFAULT_CLASSES = "block"
+
+    @property
+    def message_category(self) -> MessageCategory:
+        return MessageCategory.INBOUND
 
     def __init__(self, sender: str, text: str, target: str | None = None) -> None:
         super().__init__()

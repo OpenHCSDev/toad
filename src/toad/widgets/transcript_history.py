@@ -22,7 +22,9 @@ from toad.widgets.agent_thought import AgentThought
 from toad.widgets.tool_call import ToolCall
 from toad.widgets.user_input import UserInput
 from toad.widgets.history_anchor import HistoryAnchor
-from toad.widgets.message_filter import is_routed_event
+from toad.widgets.message_filter import (
+    ALL_CATEGORIES, CategorizedBlock, MessageCategory, event_category, is_routed_event, keep_events,
+)
 from toad.widgets.transcript_fragments import (
     TranscriptFragment, prepare_transcript_fragments, transcript_fragments,
 )
@@ -45,7 +47,8 @@ def transcript_blocks(events: tuple[TranscriptEvent, ...], *, fragment: bool = F
                 blocks.append(UserInput(text))
         elif kind in {"assistant", "notice", "sent"}:
             blocks.append(AgentResponse(
-                text, route=event.routing.reply if event.routing else None, paginate=not fragment,
+                text, route=event.routing.reply if event.routing else None,
+                category=event_category(event), paginate=not fragment,
             ))
         elif kind == "thinking":
             blocks.append(AgentThought(text, paginate=not fragment))
@@ -101,6 +104,9 @@ class TranscriptFragmentView(VerticalGroup):
     def __init__(self, fragment: TranscriptFragment):
         super().__init__()
         self.fragment = fragment
+        self._message_category = (event_category(fragment.events[0]) if fragment.events
+                                  else MessageCategory.OTHER)
+        self.add_class(f"-message-{self._message_category.value}")
         self.set_class(not any(is_routed_event(event) for event in fragment.events), "-unrouted")
 
     def compose(self) -> ComposeResult:
@@ -118,6 +124,11 @@ class TranscriptFragmentView(VerticalGroup):
         """
         old_events, new_events = self.fragment.events, fragment.events
         self.fragment = fragment
+        category = event_category(new_events[0]) if new_events else MessageCategory.OTHER
+        if category != self._message_category:
+            self.remove_class(f"-message-{self._message_category.value}")
+            self.add_class(f"-message-{category.value}")
+            self._message_category = category
         self.set_class(not any(is_routed_event(event) for event in new_events), "-unrouted")
         if (len(old_events) == len(new_events) == 1
                 and old_events[0].kind in {"assistant", "thinking", "notice", "sent"}
@@ -180,8 +191,12 @@ class TranscriptPageView(VerticalGroup):
         self.start, self.stop = start, stop
 
 
-class TranscriptHistory(VerticalGroup):
+class TranscriptHistory(CategorizedBlock, VerticalGroup):
     MAX_FRAGMENTS = 24
+
+    @property
+    def message_category(self) -> None:
+        return None
 
     def __init__(self, page: TranscriptPage, loader: Callable[..., Awaitable[TranscriptPage]] | None = None,
                  *, fragments: tuple[TranscriptFragment, ...] | None = None):
@@ -263,7 +278,28 @@ class TranscriptHistory(VerticalGroup):
         from toad.widgets.conversation import Contents, Conversation
 
         return (self.is_attached and isinstance(self.parent, Contents)
-                and self.query_ancestor(Conversation).in_out_only)
+                and self.query_ancestor(Conversation).visible_categories != ALL_CATEGORIES)
+
+    def filter_changed(self) -> None:
+        """Retire only derived filtered rows when a visible-kind set changes."""
+        self._generation += 1
+        overlay = self._filter_overlay
+        self._filter_overlay = None
+        self._filter_before = None
+        self._filter_has_older = True
+        self._filter_force_pending = False
+        if overlay is not None:
+            overlay.display = False
+            self.run_worker(self._remove_filtered_overlay(overlay), group="filter-reset")
+        self._update_edges()
+        self._scroll_changed()
+
+    async def _remove_filtered_overlay(self, overlay: VerticalGroup) -> None:
+        async with self.window.history_lock:
+            if overlay.is_attached:
+                await overlay.remove()
+        if self.is_attached:
+            self._scroll_changed()
 
     @property
     def _prefetch_distance(self) -> int:
@@ -285,13 +321,16 @@ class TranscriptHistory(VerticalGroup):
         from toad.widgets.transcript_fragments import prepare_transcript_fragments
 
         generation = self._generation
+        from toad.widgets.conversation import Conversation
+
+        selected = self.query_ancestor(Conversation).visible_categories
         before = self._filter_before
         fragments: tuple[TranscriptFragment, ...] = ()
         try:
             if before is None:
                 page = self.pages[0]
                 fragments = tuple(fragment for fragment in page.fragments[:page.start]
-                                  if any(is_routed_event(event) for event in fragment.events))
+                                  if keep_events(fragment.events, selected))
                 next_before = page.page.before
                 has_older = page.page.has_older
             else:
@@ -302,7 +341,7 @@ class TranscriptHistory(VerticalGroup):
                 if (page.before.session_file != before.session_file
                         or page.before.offset >= before.offset and page.has_older):
                     raise ValueError("Earlier routed history made no cursor progress")
-                events = tuple(event for event in page.events if is_routed_event(event))
+                events = tuple(event for event in page.events if event_category(event) in selected)
                 fragments = await prepare_transcript_fragments(
                     events, getattr(self.app, "render_processes", None)) if events else ()
                 next_before, has_older = page.before, page.has_older

@@ -1,3 +1,4 @@
+import asyncio
 from dataclasses import dataclass, field
 from time import time
 from operator import attrgetter
@@ -13,6 +14,17 @@ class OpenTab:
     mode_name: str
     title: str
     unread: int = 0
+
+
+@dataclass(frozen=True)
+class PendingThreadTab:
+    """Presentation-only route request awaiting canonical thread discovery."""
+
+    owner_mode: str
+    root: str
+    target: str
+    return_mode: str
+    completion: asyncio.Future[str]
 
 
 @dataclass(frozen=True)

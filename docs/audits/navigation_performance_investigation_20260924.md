@@ -237,3 +237,55 @@ The existing spinner geometry assertion failed identically on clean main
 for approximately 2:1 terminal-cell aspect. The test now checks the intended
 physical proportion and releases/drains its IO gates before temporary-file
 cleanup. Production spinner rendering is unchanged.
+
+## Pre-tab opening, close acknowledgement, and granular message filters
+
+User feedback on the persistent PR #11 dev window separated two problems:
+returning to an already-open tab is usually quick, while the first click to open
+a thread sometimes delays the tab itself, before its spinner can paint. A new
+read-only 40-second capture of that window (PID 2489782) finished with 47,294
+all-thread samples and zero errors; 1.94s of overlapping main-thread sampled
+mode-switch work included 0.88s navigation preparation and 0.60s navigation
+layout. These are inclusive samples, not click-to-pixel measurements.
+
+`open_thread_session` previously awaited canonical registry/status/session-file
+discovery before creating any tab. It now mounts a minimal, closeable pending tab
+and spinner **before** starting that authoritative metadata read. Once resolved,
+the original typed route policy selects the existing thread, a new agent tab, or
+its stopped/unresumable DM. Duplicate clicks share one resolution. Closing or
+leaving the pending tab invalidates stale publication, and closing its owner
+cannot strand or reopen a deleted view. A gated regression confirms a completed
+loading frame and visible tab while registry I/O is still blocked. No unverified
+identity is used to send messages or acknowledge a read.
+
+For closing a large tab, an isolated four-round headless fixture observed about
+20–25ms before teardown and 59–93ms for the whole close handler. Toad now removes
+the tab from its visible/open order before awaiting ordinary widget teardown;
+the close still awaits and completes that cleanup. This is earlier presentation,
+not a claim of faster total teardown or terminal-pixel timing.
+
+The old right-sidebar “In/out only” checkbox is now seven independent choices:
+**User messages, Agent messages, Messages in, Messages out, Thinking, Tool calls,
+Other / notices.** Each native message widget declares its category through the
+nominal `CategorizedBlock` mixin; the filter reads that member instead of listing
+every concrete widget type. Textual's custom widget metaclass prevents composing
+an independent ABCMeta here. Saved events use one typed event classifier and
+the existing bounded filtered-page scanner; neither live nor saved history gets
+a separate parallel rendering implementation. Category changes retire derived
+older-result overlays, reject stale in-flight pages, retain full underlying
+history, and preserve the per-tab draft and scroll/follow intent. All non-default
+filters conservatively suppress native thread read acknowledgements.
+
+Focused mounted checks cover every category in live and saved messages, checkbox
+multi-selection, unknown/notice fallback, late-arriving blocks, nested pagers,
+older-page underfill and switching categories during a blocked read. The legacy
+`in_out_only` property continues to select exactly the two routed categories
+for existing callers; the old one-checkbox UI no longer exists. The unannotated
+wire-replay test fails identically on clean baseline with the currently installed
+core, before UI filtering; its explicitly annotated-route variant passes.
+
+First-open/close checks: `tests/pending_thread_open_pilot.py`,
+`tests/navigation_preparation_pilot.py`, `tests/close_session_latency_pilot.py`.
+Filter checks: `tests/message_categories_pilot.py`,
+`tests/message_filter_supersession_pilot.py`, `tests/in_out_filter_pilot.py`,
+`tests/in_out_underfill_pilot.py`, and the annotated wire-replay pilot.
