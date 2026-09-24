@@ -77,5 +77,16 @@ Passing adjacent checks include placement policy, sidebar controls, drag resize,
 sidebar navigation, and the broad Comms pilot. Targeted Ruff checks, layout
 policy mypy on Python 3.14, and whitespace checks also pass.
 
+## Batch 3: user-message accent below the divider
+
+The screenshot showed a vertical accent extending through the blank space
+above the User timestamp separator. The border and background belonged to the
+entire `UserInput`, including its divider. They now belong only to the message
+body, so the full-width divider and its leading gap have no side border.
+
+The existing message-divider pilot reproduced the old inset/border and now
+checks actual compositor rows in ANSI and RGB themes, plus full message copy.
+The divider and clipboard-selection pilots pass.
+
 Preserve drafts, navigation ownership, read-marker semantics, copy/history,
 scroll intent, and the merged renderer behavior while correcting each issue.
