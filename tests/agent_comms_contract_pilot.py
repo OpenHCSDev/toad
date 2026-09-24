@@ -5,12 +5,13 @@ from dataclasses import asdict
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
+from urllib.parse import quote
 
 from agent_comms import Comms, Goal, MessageRoute, TranscriptCursor, TranscriptPage, wire
 
 from toad.acp.agent import Agent
 from toad.acp.messages import CoordinationUpdate, Update
-from toad.conversation_markdown import _linked_file
+from toad.conversation_markdown import _path_parser
 
 
 async def main() -> None:
@@ -21,7 +22,8 @@ async def main() -> None:
             isinstance(public_type, type)
             for public_type in (Comms, Goal, TranscriptCursor, TranscriptPage, MessageRoute)
         )
-        with patch.dict("os.environ", {"TOAD_LOG": str(root / "agent.log")}):
+        log_file = root / "agent log.txt"
+        with patch.dict("os.environ", {"TOAD_LOG": str(log_file)}):
             agent = Agent(root, {"name": "agent-comms", "run_command": {"*": "true"}}, None)
 
         sent = []
@@ -47,9 +49,14 @@ async def main() -> None:
             },
         )
         assert len(sent) == 1 and isinstance(sent[0], Update)
-        assert "[Open ACP log](" + (root / "agent.log").as_uri() + ")" in sent[0].text
-        (root / "agent.log").write_text("ACP diagnostics\n")
-        assert _linked_file(root, (root / "agent.log").as_uri()) == root / "agent.log"
+        log_file.write_text("ACP diagnostics\n")
+        links = [
+            child.attrs.get("href")
+            for token in _path_parser(root).parse(sent[0].text)
+            for child in (token.children or [])
+            if child.type == "link_open"
+        ]
+        assert links == [f"toad-file:{quote(str(log_file))}"]
 
         sent.clear()
         agent.rpc_session_update(
