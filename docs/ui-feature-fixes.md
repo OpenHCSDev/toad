@@ -108,5 +108,28 @@ fallback, partial metadata and explicit/pending names. It uses a controlled
 ACP request boundary and real mounted widgets/disposable DB, not a provider.
 The title, public ACP contract, owner-navigation and broad Comms pilots pass.
 
+### Follow-up: active/inactive label disagreement
+
+The user retested `9c754ea` and still saw `New Session` on the active tab,
+the correct name on the inactive tab, then `New Session` again after returning.
+The previous test covered metadata/save handling but missed the tab bar's
+compose-to-mount timing. The live ACP log already contained the correct title.
+
+`SessionsTabs.on_mount` replaced its cache with current metadata without
+updating the labels created by `compose`. If metadata arrived between those
+steps, the cache said the correct label was already rendered and subsequent
+syncs skipped the stale widget. The cache now records exactly the tuple used
+to compose the labels, and mounting schedules reconciliation with current data.
+
+`existing_thread_tab_title_pilot.py` uses an actual sidebar row click and a
+controlled cold-metadata boundary between composition and mount. Before the
+fix it reproduced the exact active/inactive/reactivated disagreement while
+the cache contained the correct name throughout. It now verifies the widget
+text, tab projection, cache, and compositor output agree in all four phases:
+initial active view, inactive tab, reactivated tab, and completed attachment.
+Warm metadata and a custom thread title also pass. Initial-title, sidebar
+navigation, broad Comms, and same-width unread paint-only regressions pass;
+same-width badge updates still cause zero extra layouts in the existing pilot.
+
 Preserve drafts, navigation ownership, read-marker semantics, copy/history,
 scroll intent, and the merged renderer behavior while correcting each issue.
