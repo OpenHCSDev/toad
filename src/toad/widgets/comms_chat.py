@@ -103,6 +103,7 @@ class CommsChatView(Conversation):
         self._history_initialized = False
         self._poll_cursor = 0
         self._edge_load_scheduled = False
+        self._edge_check_on_resume = False
         self._refresh_lock = asyncio.Lock()
         # This widget is constructed during screen composition; the App's
         # revision-aware reader becomes available when the view mounts.
@@ -385,7 +386,13 @@ class CommsChatView(Conversation):
                 self._has_older = True
 
     def _on_window_scroll(self, _scroll_y: float = 0) -> None:
-        if not self._history_initialized or self._edge_load_scheduled:
+        if not self.is_attached:
+            return
+        if not self.screen.is_current:
+            self._edge_check_on_resume = True
+            return
+        self._edge_check_on_resume = False
+        if not self._history_initialized or not self._history or self._edge_load_scheduled:
             return
         scroll_y = self.window.scroll_y
         near_top = (
@@ -399,33 +406,62 @@ class CommsChatView(Conversation):
         )
         if near_top or near_bottom:
             self._edge_load_scheduled = True
-            self.call_later(self._load_history_edge)
+            # One owned waiter may suspend behind a refresh without holding the
+            # widget message pump. Returning/rearming while the lock is held
+            # otherwise creates a tight after-refresh callback loop.
+            self.run_worker(self._load_history_edge(), group="comms-history-edge")
 
     async def _load_history_edge(self) -> None:
+        progressed = False
         try:
-            if not self._history or self._refresh_lock.locked():
-                return
             async with self._refresh_lock:
+                if not self.is_attached:
+                    return
+                if not self.screen.is_current:
+                    self._edge_check_on_resume = True
+                    return
+                if not self._history:
+                    return
                 comms = self._wire
+                before = (self._history[0][0].seq, self._history[-1][0].seq,
+                          self._has_older, self._has_newer)
+                route = (self.target, self.kind, self.project_path)
+                older: bool
                 if self.window.scroll_y <= HISTORY_EDGE_THRESHOLD and self._has_older:
                     limit = (min(HISTORY_PAGE_SIZE, HISTORY_WINDOW_SIZE - len(self._history))
-                             if self.window.follows_tail else HISTORY_PAGE_SIZE)
+                              if self.window.follows_tail else HISTORY_PAGE_SIZE)
                     if limit <= 0:
                         return
+                    older = True
                     page = await asyncio.to_thread(self._message_page, comms, before=self._history[0][0].seq, limit=limit)
-                    await self._mount_page(page, older=True)
                 elif (
                     self.window.max_scroll_y - self.window.scroll_y
                     <= HISTORY_EDGE_THRESHOLD
                     and self._has_newer
                 ):
+                    older = False
                     page = await asyncio.to_thread(self._message_page, comms, after=self._history[-1][0].seq)
-                    await self._mount_page(page, older=False)
+                else:
+                    return
+                if not self.is_attached:
+                    return
+                if (not self.screen.is_current or self._wire is not comms
+                        or route != (self.target, self.kind, self.project_path)):
+                    self._edge_check_on_resume = True
+                    return
+                await self._mount_page(page, older=older)
+                after = (self._history[0][0].seq, self._history[-1][0].seq,
+                         self._has_older, self._has_newer)
+                progressed = before != after
         except Exception as error:
             self.status = f"Wire error: {error}"
         finally:
             self._edge_load_scheduled = False
-            self.call_after_refresh(self._on_window_scroll)
+            # Fill an underfull viewport after real progress, but do not spin
+            # on empty/duplicate pages or failures. New scroll/source events
+            # may request another attempt through the ordinary paths.
+            if progressed and self.is_attached:
+                self.call_after_refresh(self._on_window_scroll)
 
     async def _refresh_history(self, read: HistoryReadResult) -> bool:
         """Refresh the bounded history window; return whether to follow the end."""
@@ -573,6 +609,8 @@ class CommsChatView(Conversation):
                 revision = read.revision
                 if revision == self._revision:
                     self.call_after_refresh(self._mark_visible_after_layout)
+                    if self._edge_check_on_resume:
+                        self.call_after_refresh(self._on_window_scroll)
                     return
                 # Show the bounded tail before computing roster/sort metadata,
                 # which can scan a much larger coordination history.

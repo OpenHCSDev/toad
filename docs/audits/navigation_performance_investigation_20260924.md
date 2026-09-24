@@ -2,15 +2,18 @@
 
 ## Status and branch origin
 
-This is the initial **investigation-only draft** for follow-up performance work.
-It records observed profiles, source-backed hypotheses and a validation plan;
-no runtime optimization is implemented by this document's commit.
+This follow-up began as an investigation-only draft. It now includes the first
+verified history-edge scheduling fix described below; preview rendering and
+activation layout work remain in progress.
 
 - Repository: `OpenHCSDev/toad`; target branch: `main`.
 - Freshly fetched starting commit:
   `e3f86d889e2a94f920077c76b5b7e0ac93a3f9a7` (merged Toad PR #9).
 - Investigation branch: `perf/navigation-readiness-investigation`.
-- Isolated worktree: `/tmp/opencode/toad-navigation-performance-20260924`.
+- Isolated worktree: `/home/ts/wt/toad-navigation-performance-20260924` (moved
+  from `/tmp/opencode` after the tmpfs user quota was exhausted).
+- Subsequently merged remote main `0c79758`, including the reviewed core pin,
+  into this branch with an ordinary merge.
 - The earlier Toad/Textual PR #1 implementations are merged history. This is new
   work on current main, not a continuation of an archived private worktree.
 - Another agent owns [agent-comms PR #12](https://github.com/OpenHCSDev/agent-comms/pull/12),
@@ -91,14 +94,22 @@ Current-main source provides a concrete hypothesis:
    calls `call_after_refresh(self._on_window_scroll)`.
 4. `_refresh` can hold that lock across asynchronous page/coordination reads.
 
-If the edge condition remains true, the deferred check can schedule another
-no-progress load while the same refresh is still pending. Repeated dispatch and
-signature inspection could amplify the cost. **This is not yet a reproduced
-bug or proof that every captured delay came from this loop.**
+The no-progress loop was reproduced on the main-based code: **1,617 edge-load
+attempts in 250ms**, with **248.89ms UI-thread CPU**, while the refresh lock was
+held. This proves the bug, though not that every captured delay came from it.
 
-First implementation candidate, contingent on reproduction: replace no-progress
-immediate rearming with one retry tied to actual completion/state change. Preserve
-automatic underfilled-page loading and subsequent user scroll intent.
+The fix keeps one widget-owned worker waiting for the lock, rather than blocking
+the widget message pump or rearming a callback on every unsuccessful attempt.
+It rechecks the latest viewport after admission, defers hidden-view loading until
+return, rejects late publication after tab exit/route change, and automatically
+rearms only after actual page/cursor progress. Empty/duplicate/error responses do
+not create an immediate retry loop.
+
+The same fixture now records **one attempt in 250ms** and **28.44ms UI-thread
+CPU**. Timing includes normal fixture rendering/polling and is not terminal-pixel
+latency. Regression coverage includes typing while blocked, older/newer paging,
+latest viewport intent, no-progress/error responses, tab exit/return, late IO,
+close/cancellation and underfilled-page loading.
 
 ## Finding 2: data readiness does not imply activation readiness
 
@@ -123,11 +134,14 @@ not monopolize the event loop during unrelated interactions.
 
 ## Implementation and validation plan
 
-- [ ] Reproduce an edge-scroll request while a current-view refresh is held at
+- [x] Reproduce an edge-scroll request while a current-view refresh is held at
   an asynchronous gate; count callbacks, page reads and event-loop progress.
-- [ ] Verify eventual paging after gate release, older/newer edges, underfilled
+- [x] Verify eventual paging after gate release, older/newer edges, underfilled
   pages, no-progress/error cases, tab exit, close/cancellation and latest scroll intent.
-- [ ] Implement a bounded, completion-driven scheduling fix if the loop reproduces.
+- [x] Implement a bounded, completion-driven scheduling fix.
+- [ ] Make file-preview highlighting/rendering use a reusable worker-backed
+  component by default; the current preview performs lexer guessing and Rich
+  Syntax rendering on the UI thread after its asynchronous file read.
 - [ ] Instrument layout invalidation reasons and full/visible reflow counts for
   quiet returns, hidden-data updates, sidebar changes, resize and theme changes.
 - [ ] Remove confirmed redundant foreground work with focused regressions.
@@ -150,4 +164,7 @@ expansion with current owners before editing shared integration paths.
 
 Completed: fresh-main provenance check, comparison of saved live captures,
 read-only inspection of current source, and document whitespace review.
-No runtime source changes or new optimization test results are claimed yet.
+The initial commit was documentation-only. The first implementation checkpoint
+passes `history_edge_scheduling_pilot.py`, `channel_unread_follow_pilot.py`,
+`history_scroll_frames_pilot.py`, `channel_background_warmup_pilot.py`,
+`owner_navigation_pilot.py`, changed-file fatal Ruff and whitespace checks.
