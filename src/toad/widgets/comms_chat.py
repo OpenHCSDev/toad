@@ -10,7 +10,7 @@ from pathlib import Path
 from agent_comms import Comms, MessagePage, OBSERVATION_INTERVAL, ThreadRole, WireRevision
 from agent_comms import Message as WireMessage
 from agent_comms.operations import wire
-from textual import containers, on, work
+from textual import containers, work
 from textual.app import ComposeResult
 from textual.content import Content
 from textual.widgets import Static
@@ -241,7 +241,11 @@ class CommsChatView(Conversation):
         viewport = self.window.content_region
         visible: list[int] = []
         for message, widget in self._history:
-            placement = geometry.get(widget)
+            painted = (
+                widget.read_ack_widget()
+                if isinstance(widget, (IRCMessage, WireMarkdownMessage)) else widget
+            )
+            placement = geometry.get(painted)
             if placement is None:
                 continue
             region, clip = placement

@@ -5,6 +5,7 @@ from textual.app import ComposeResult
 from textual.containers import HorizontalGroup, VerticalGroup
 from textual.content import Content
 from textual.style import Style
+from textual.widget import Widget
 from textual.widgets import Static
 from agent_comms import Message
 from toad.widgets.comms_sidebar import SelectTarget
@@ -101,6 +102,10 @@ class IRCMessage(VerticalGroup, can_focus=True):
     def mentioned_body(self) -> Content:
         return inline_message(self.message.body, self.message.mentions)
 
+    def read_ack_widget(self) -> Widget:
+        """Only the text block can authorize a read, never its divider."""
+        return self.query_one(IRCMessageText)
+
     def action_open_target(self, target: str):
         self.post_message(
             SelectTarget(target, "channel" if target.startswith("#") else "thread")
@@ -139,3 +144,9 @@ class WireMarkdownMessage(VerticalGroup):
                 yield Static("Mentioned: ", expand=False)
                 for target in dict.fromkeys(mention.thread for mention in self.message.mentions):
                     yield ThreadLink(target)
+
+    def read_ack_widget(self) -> Widget:
+        """Only the rendered message body can authorize a read."""
+        from toad.widgets.agent_response import AgentResponse
+
+        return self.query_one(AgentResponse)
