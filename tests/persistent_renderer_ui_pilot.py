@@ -14,6 +14,8 @@ from toad.render_service import RenderServiceConfig
 from toad.render_zmq import PersistentRendererPool
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.tool_call import ToolCall
+from toad.widgets.project_panel import FilePreview
+from toad.widgets.worker_static import WorkerStatic
 
 PATCH = "--- x.py\n+++ x.py\n@@ -1,2 +1,2 @@\n context\n-old = 1\n+new = 2\n"
 
@@ -61,6 +63,14 @@ async def main() -> None:
                     tool.set_expanded(True)
                     diff = await wait_for_tool_diff(tool, pilot)
                     assert diff.patch == PATCH
+                    path = current / "persistent-preview.py"
+                    path.write_text(f"PERSISTENT_PREVIEW_{index} = 42\n")
+                    await app.open_file_preview(path)
+                    preview = app.screen.query_one(FilePreview)
+                    await asyncio.wait_for(preview.wait_ready(), 20)
+                    content = preview.query_one(WorkerStatic)
+                    assert content._prepared is not None
+                    assert f"PERSISTENT_PREVIEW_{index}" in "\n".join(line.text for line in content._prepared.lines)
                     assert app._exception is None
                     pool = renderer.resolved_pool
                     assert pool is not None
@@ -69,7 +79,7 @@ async def main() -> None:
                     identities.append(client.connected_endpoint.process_identity)
                 assert pool is not None and not pool._pending
             assert identities[0] == identities[1]
-            print("persistent UI: two Toad instances warmed and reused one renderer; Markdown and native tool diff completed")
+            print("persistent UI: two Toad instances reused one renderer; Markdown, native diff and generic Rich file preview completed")
         finally:
             if renderer is not None:
                 pool = renderer.resolved_pool or pool

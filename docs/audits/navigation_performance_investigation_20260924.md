@@ -3,8 +3,8 @@
 ## Status and branch origin
 
 This follow-up began as an investigation-only draft. It now includes the first
-verified history-edge scheduling fix described below; preview rendering and
-activation layout work remain in progress.
+verified history-edge scheduling fix, shared worker-backed file previews, and
+prepared code-height reuse described below. Further activation layout work remains.
 
 - Repository: `OpenHCSDev/toad`; target branch: `main`.
 - Freshly fetched starting commit:
@@ -139,8 +139,8 @@ not monopolize the event loop during unrelated interactions.
 - [x] Verify eventual paging after gate release, older/newer edges, underfilled
   pages, no-progress/error cases, tab exit, close/cancellation and latest scroll intent.
 - [x] Implement a bounded, completion-driven scheduling fix.
-- [ ] Make file-preview highlighting/rendering use a reusable worker-backed
-  component by default; the current preview performs lexer guessing and Rich
+- [x] Make file-preview highlighting/rendering use a reusable worker-backed
+  component by default; the previous preview performed lexer guessing and Rich
   Syntax rendering on the UI thread after its asynchronous file read.
 - [ ] Instrument layout invalidation reasons and full/visible reflow counts for
   quiet returns, hidden-data updates, sidebar changes, resize and theme changes.
@@ -168,3 +168,49 @@ The initial commit was documentation-only. The first implementation checkpoint
 passes `history_edge_scheduling_pilot.py`, `channel_unread_follow_pilot.py`,
 `history_scroll_frames_pilot.py`, `channel_background_warmup_pilot.py`,
 `owner_navigation_pilot.py`, changed-file fatal Ruff and whitespace checks.
+
+## Worker-backed previews and post-spinner investigation
+
+Python previews previously read bytes asynchronously, then guessed the lexer and
+rendered/measured `Syntax` on the UI thread. `WorkerStatic` now provides a shared
+worker-backed Rich component, including its ordinary `update()` entry point.
+File previews use it by default through either renderer backend; Markdown files
+use the existing prepared Markdown component. Heavy work starts after tab mount.
+The typed task admission set is shared between the wire codec and client rather
+than maintaining separate lists per transport.
+
+The preview gate tests prove typing/navigation while file IO or CPU preparation
+is blocked, unchanged-tab reuse, generic Rich table support, native Rich parity,
+selection/copy, theme/source/width supersession (including reverting a pending
+width), binary/error handling, viewport-bounded row rendering and closed-view disposal. The
+persistent test sends the new task through two actual Toad apps sharing a service.
+
+For an 84,027-byte Python fixture, the old path had 1,561–1,687ms maximum event-loop
+gaps; the worker path had 15.83–16.35ms. UI-thread CPU over loading fell from
+1,698–1,759ms to 78–82ms. These are headless heartbeat/ready-content measurements,
+not terminal-presented frame timings. See `tests/file_preview_latency_pilot.py`.
+
+The post-spinner replay fixture (`tests/cold_thread_latency_pilot.py`) records
+useful settled content separately from loading UI. It still observes roughly
+44ms maximum loop gaps during replay and two full reflows on updated-tab returns.
+The already-warm, unchanged case can use zero full reflows. No claim of completely
+warm geometry or universally sub-16ms input latency is made.
+
+One avoidable post-preparation cost is now removed: when prepared code rows fit
+their measured width, `PreparedCodeLabel` reuses their row count rather than
+formatting the entire fence again to measure height. A 10,000-row width-change
+fixture measured 9.572ms native versus 0.020ms prepared median CPU; wrapping and
+unnormalized tabs retain native measurement. Exact native row/copy tests pass.
+
+Additional checks pass: the file-link/preview pilot, worker-preview gate pilot,
+post-spinner worker gate, Markdown process/lifecycle/row pilots, renderer service
+and process-pool tests, warm-up/navigation pilots, seven changed-module mypy,
+changed-file fatal Ruff and whitespace checks. The post-spinner gate uses the
+native headless input path while deliberately holding a replay handler; Pilot's
+all-message-queues barrier would wait for that intentionally blocked handler.
+
+The existing spinner geometry assertion failed identically on clean main
+`0c79758`: it expected a near-square character grid, while merged main compensates
+for approximately 2:1 terminal-cell aspect. The test now checks the intended
+physical proportion and releases/drains its IO gates before temporary-file
+cleanup. Production spinner rendering is unchanged.
