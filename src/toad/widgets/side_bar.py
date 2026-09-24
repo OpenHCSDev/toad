@@ -5,6 +5,7 @@ from textual import containers, on, widgets
 from textual.app import ComposeResult
 from textual.binding import Binding, BindingType
 from textual.events import Click
+from textual.geometry import Offset
 from textual.message import Message
 from textual.reactive import reactive
 from textual.widget import Widget
@@ -220,6 +221,49 @@ class TabHistoryButton(widgets.Static, can_focus=True):
             self.action_navigate()
 
 
+class MainMenuButton(widgets.Static, can_focus=True):
+    """Open Toad's existing anchored menu beside the tab-history controls."""
+
+    BINDINGS: ClassVar[list[BindingType]] = [
+        Binding("enter,space", "open_menu", "Main menu", show=False)
+    ]
+    DEFAULT_CSS = """
+    MainMenuButton {
+        width: 7;
+        height: 3;
+        content-align: center middle;
+        color: $text;
+        background: $background;
+        text-style: bold;
+        pointer: pointer;
+    }
+    MainMenuButton:hover, MainMenuButton:focus {
+        color: $background;
+        background: $foreground 80%;
+    }
+    MainMenuButton:ansi { color: ansi_white; background: ansi_black; }
+    MainMenuButton:ansi:hover, MainMenuButton:ansi:focus {
+        color: ansi_black;
+        background: ansi_white;
+    }
+    """
+
+    class Pressed(Message):
+        pass
+
+    def __init__(self) -> None:
+        super().__init__("☰", id="main-menu")
+        self.tooltip = "Main menu: export wire or import thread"
+
+    def action_open_menu(self) -> None:
+        self.post_message(self.Pressed())
+
+    def on_click(self, event: Click) -> None:
+        if event.button == 1:
+            event.stop()
+            self.action_open_menu()
+
+
 class TabHistoryControls(containers.HorizontalGroup):
     """Left-sidebar controls shared by native thread and channel screens."""
 
@@ -232,8 +276,26 @@ class TabHistoryControls(containers.HorizontalGroup):
     """
 
     def compose(self) -> ComposeResult:
+        yield MainMenuButton()
         yield TabHistoryButton(-1)
         yield TabHistoryButton(+1)
+
+    @on(MainMenuButton.Pressed)
+    def on_main_menu_pressed(self, event: MainMenuButton.Pressed) -> None:
+        from toad.widgets.comms_menu import show_target_menu
+
+        event.stop()
+        button = self.query_one(MainMenuButton)
+        show_target_menu(
+            self.screen,
+            Offset(button.region.x, button.region.y + button.size.height),
+            "Toad",
+            [("export", "Export wire history…"), ("import", "Thread Import…")],
+            {
+                "export": cast("ToadApp", self.app).open_wire_export_dialog,
+                "import": cast("ToadApp", self.app).open_thread_import_dialog,
+            },
+        )
 
     def on_mount(self) -> None:
         app = cast("ToadApp", self.app)
