@@ -1390,6 +1390,19 @@ class Conversation(containers.Vertical):
     async def on_update_status_line(self, message: acp_messages.UpdateStatusLine):
         self.status = message.status_line
 
+    @on(acp_messages.RejectedSessionUpdate)
+    async def on_rejected_session_update(
+        self, message: acp_messages.RejectedSessionUpdate
+    ) -> None:
+        message.stop()
+        self.new_block()
+        await self.post(
+            Note(
+                Content.styled("Invalid ACP update rejected", "$text-error"),
+                classes="-error",
+            )
+        )
+
     @on(acp_messages.Update)
     async def on_acp_agent_message(self, message: acp_messages.Update):
         from toad.widgets.agent_response import AgentResponse
