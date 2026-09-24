@@ -5,11 +5,13 @@ from dataclasses import asdict
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
+from urllib.parse import quote
 
 from agent_comms import Comms, Goal, MessageRoute, TranscriptCursor, TranscriptPage, wire
 
 from toad.acp.agent import Agent
 from toad.acp.messages import CoordinationUpdate, Update
+from toad.conversation_markdown import _path_parser
 
 
 async def main() -> None:
@@ -20,7 +22,8 @@ async def main() -> None:
             isinstance(public_type, type)
             for public_type in (Comms, Goal, TranscriptCursor, TranscriptPage, MessageRoute)
         )
-        with patch.dict("os.environ", {"TOAD_LOG": str(root / "agent.log")}):
+        log_file = root / "agent log.txt"
+        with patch.dict("os.environ", {"TOAD_LOG": str(log_file)}):
             agent = Agent(root, {"name": "agent-comms", "run_command": {"*": "true"}}, None)
 
         sent = []
@@ -36,6 +39,34 @@ async def main() -> None:
         )
         assert len(sent) == 1 and isinstance(sent[0], Update)
         assert sent[0].route == route
+
+        sent.clear()
+        agent.rpc_session_update(
+            "session",
+            {
+                "sessionUpdate": "agent_message_chunk",
+                "content": {"type": "text", "text": "[agent error] Pi preflight failed."},
+            },
+        )
+        assert len(sent) == 1 and isinstance(sent[0], Update)
+        log_file.write_text("ACP diagnostics\n")
+        links = [
+            child.attrs.get("href")
+            for token in _path_parser(root).parse(sent[0].text)
+            for child in (token.children or [])
+            if child.type == "link_open"
+        ]
+        assert links == [f"toad-file:{quote(str(log_file))}"]
+
+        sent.clear()
+        agent.rpc_session_update(
+            "session",
+            {
+                "sessionUpdate": "agent_message_chunk",
+                "content": {"type": "text", "text": "normal reply"},
+            },
+        )
+        assert len(sent) == 1 and sent[0].text == "normal reply"
 
         sent.clear()
         agent.rpc_session_update(

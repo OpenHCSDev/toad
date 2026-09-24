@@ -6,6 +6,7 @@ from datetime import datetime
 import json
 import os
 from pathlib import Path
+from urllib.parse import quote
 from typing import Any, cast, NamedTuple
 from copy import deepcopy
 from math import floor
@@ -424,6 +425,8 @@ class Agent(AgentBase):
                 "content": {"type": type, "text": text},
             }:
                 if text:
+                    if type == "text" and text.startswith("[agent error]"):
+                        text += f"\n\n[Open ACP log]({quote(str(self._log_file_path))})"
                     self.post_message(messages.Update(type, text, route))
 
             case {
