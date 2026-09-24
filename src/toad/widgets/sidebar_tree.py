@@ -2,9 +2,11 @@
 
 from textual.app import ComposeResult
 from textual.binding import Binding
-from textual.containers import HorizontalGroup, Vertical, VerticalGroup, VerticalScroll
+from textual.containers import Vertical, VerticalGroup, VerticalScroll
 from textual.message import Message
 from textual.widgets import Static
+
+from toad.widgets.sidebar_viewport import SidebarHeader
 
 
 class SidebarDisclosure(Static, can_focus=True):
@@ -48,7 +50,7 @@ class SidebarGroup(VerticalGroup):
         self.member_container = container(classes="group-members channel-members")
 
     def compose(self) -> ComposeResult:
-        with HorizontalGroup(classes="group-header"):
+        with SidebarHeader(classes="group-header"):
             yield self.disclosure
             yield self.row
             yield from self.controls

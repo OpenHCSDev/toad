@@ -38,8 +38,9 @@ async def main():
                 [(str(tree.path), str(tree.region)) for tree in screen.query(ProjectDirectoryTree)]
             )
             assert right.region.x >= view.region.right
-            channel_panel = left.query_one(SideBarCollapsible)
-            assert left.region.bottom - channel_panel.region.bottom <= 1
+            controls = left.query_one("#sidebar-controls")
+            assert controls.region.bottom == left.region.bottom
+            assert left.query_one("#sidebar-panels").region.bottom == controls.region.y
             await pilot.click(right.query_one(SideBarToggle))
             await pilot.pause()
             assert not right.collapsed and not left.collapsed

@@ -4,8 +4,6 @@ CommsScreen {
 
     & > Center { height: 1fr; }
 
-    #tab-navigation-header TabHistoryControls { dock: right; }
-
     #comms-content {
         width: 1fr;
         height: 1fr;
