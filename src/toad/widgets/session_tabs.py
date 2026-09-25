@@ -136,13 +136,11 @@ class SessionsTabs(Widget):
         self._sync_lock = asyncio.Lock()
 
     def _get_scrollable_region(self, region: Region) -> Region:
-        # Keep a top gutter even before overflow, so labels never jump when
-        # the native scrollbar appears. The active underline stays below.
+        # The scrollbar occupies the explicit empty top row, not a bottom row.
+        # Keep the container origin: moving this clip origin makes viewport-only
+        # composition cull the CSS-offset underline even though full renders pass.
         window = super()._get_scrollable_region(region)
-        gutter = self.styles.scrollbar_size_horizontal
-        if not self.show_horizontal_scrollbar:
-            window = window.shrink((0, 0, gutter, 0))
-        return window.translate((0, gutter))
+        return window.grow((0, 0, self.scrollbar_size_horizontal, 0))
 
     def _arrange_scrollbars(self, region: Region) -> Iterable[tuple[Widget, Region]]:
         for scrollbar, scrollbar_region in super()._arrange_scrollbars(region):
