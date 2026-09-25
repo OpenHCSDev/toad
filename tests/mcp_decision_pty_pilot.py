@@ -264,7 +264,7 @@ else:
             )
             cover.dismiss()
             await pilot.pause(0.05)
-            assert "cancelled" in str(
+            assert "may have committed" in str(
                 obscured.query_one("#mcp-decision-status", Static).content
             )
             obscured.dismiss()

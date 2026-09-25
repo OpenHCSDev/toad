@@ -49,7 +49,8 @@ class MCPDecisionScreen(ModalScreen[None]):
             yield Static(
                 "Only the installed Pi MCP package may make this decision. "
                 "Inspect its complete display; type its challenge yourself. "
-                "Toad never provides an answer. Cancel closes the child.",
+                "Toad never provides an answer. Cancel kills the child, but cannot "
+                "undo a package decision already committed; refresh inventory.",
                 markup=False,
             )
             yield Static(
@@ -76,7 +77,7 @@ class MCPDecisionScreen(ModalScreen[None]):
         super()._on_screen_resume(event)
         if self._runner is not None and not self._running:
             self.query_one("#mcp-decision-status", Static).update(
-                "Controller was hidden; local action cancelled. Close and refresh the inventory."
+                "Controller hidden; child stopped. A prior package write may have committed. Close and refresh."
             )
 
     def on_unmount(self) -> None:
@@ -114,14 +115,15 @@ class MCPDecisionScreen(ModalScreen[None]):
             terminal.finalize()
         if self._controller_visible():
             messages = {
-                "exited_zero": "CLI exited successfully. Check its visible receipt; any decision applies on the next Pi turn.",
-                "exited_error": "Package CLI failed; no Toad approval is asserted.",
+                "exited_zero": "CLI exited zero; inspect its visible applied receipt. Changes apply next Pi turn.",
+                "exited_error": "CLI exited nonzero; outcome may be uncertain after a package write. Refresh inventory.",
                 "stale_snapshot": "Inventory changed or became unavailable. Action refused before launch; refresh it.",
-                "output_limit": "Too much CLI output; action cancelled without Toad approval.",
-                "timeout": "Local decision timed out; action cancelled without Toad approval.",
+                "output_limit": "CLI output limit; child stopped. Package outcome may be uncertain; refresh inventory.",
+                "timeout": "Local decision timed out; child stopped. Package outcome may be uncertain; refresh inventory.",
                 "unsupported": "This action is unsupported or on safety hold.",
                 "unavailable": "Local PTY/package unavailable. No action launched.",
-                "controller_lost": "Controller disappeared; action cancelled.",
+                "controller_lost": "Controller disappeared; child stopped. Package outcome may be uncertain.",
+                "outcome_unknown": "CLI failed after spawn; package outcome may be uncertain. Refresh inventory.",
             }
             self.query_one("#mcp-decision-status", Static).update(
                 messages.get(outcome, "Action unavailable.")

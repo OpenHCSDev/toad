@@ -184,7 +184,7 @@ class LocalDecisionPTY:
             code = await asyncio.wait_for(process.wait(), 2.0)
             return "exited_zero" if code == 0 else "exited_error"
         except OSError, TimeoutError:
-            return "unavailable"
+            return "outcome_unknown" if process is not None else "unavailable"
         finally:
             self._active = False
             if process is not None and process.returncode is None:

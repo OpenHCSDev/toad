@@ -297,7 +297,9 @@ package-owned **Deny project** and **Require call asks** through a visible local
 PTY. Each action rechecks the whole typed snapshot, then the package displays
 its complete declaration and exact digest challenge. The user must type the
 answer personally; Toad cannot auto-answer or claim approval. Its child is
-stopped on dismissal, timeout, or lost controller. Positive **Approve project**
+stopped on dismissal, timeout, or lost controller, but a package write already
+committed cannot be rolled back; refresh inventory to inspect an uncertain
+outcome. Positive **Approve project**
 and **Allow autonomous calls** stay disabled until the package's deny/reapprove
 grant-revival fix is independently reviewed. On other platforms or when the
 package CLI is absent, actions are unavailable. Use the installed package CLI
