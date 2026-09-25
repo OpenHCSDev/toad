@@ -36,6 +36,9 @@ class GoalOwner:
         self.requests = []
         self.reject = True
 
+    async def get_goal_snapshot(self):
+        return self.goal, self.execution
+
     async def get_goal(self):
         return self.goal
 
@@ -191,9 +194,14 @@ async def main():
             pushed = replace(
                 owner.goal, text="Backend edited the same goal", revision=6
             )
+            owner.goal = pushed
             conversation.post_message(GoalSnapshotUpdate(pushed, owner.execution))
             await pilot.pause()
             assert conversation.goal == pushed
+            assert "Backend edited the same goal" in str(
+                bar.query_one(".goal-summary", Static).render()
+            ), str(bar.query_one(".goal-summary", Static).render())
+            owner.goal, owner.execution = None, None
             conversation.post_message(GoalSnapshotUpdate(None, None))
             await pilot.pause()
             assert conversation.goal is None and conversation.goal_execution is None

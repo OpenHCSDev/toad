@@ -21,6 +21,7 @@ class GoalEdit(ModalScreen[str | None]):
     GoalEdit > Vertical { width: 85%; height: auto; max-height: 90%; padding: 1;
         border: solid $primary; background: $surface; }
     GoalEdit ChannelPrompt { dock: none; height: auto; max-height: 20; margin: 1 0; }
+    GoalEdit .goal-edit-progress { height: auto; max-height: 3; color: $text-muted; margin-bottom: 1; }
     GoalEdit HorizontalGroup { height: auto; }
     GoalEdit Button { margin-right: 1; }
     """
@@ -42,9 +43,16 @@ class GoalEdit(ModalScreen[str | None]):
     def compose(self) -> ComposeResult:
         with Vertical():
             yield Static(
-                "Edit goal · @ mentions · Tab completes · Enter saves", markup=False
+                "Edit objective · @ mentions · Tab completes · Enter saves",
+                markup=False,
             )
             yield self.editor
+            if self.goal.progress:
+                yield Static(
+                    f"Progress (read-only): {self.goal.progress}",
+                    markup=False,
+                    classes="goal-edit-progress",
+                )
             yield Static("", markup=False, id="goal-edit-error")
             with HorizontalGroup():
                 yield Button("Save", id="goal-save", variant="primary")
