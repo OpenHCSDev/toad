@@ -1209,10 +1209,9 @@ class Conversation(containers.Vertical):
         """Agent conversation submission; wire views override this single hook."""
         if not event.body.strip():
             if event.immediate and not event.shell and self.queue_supported and self.queued_prompts:
-                # The owner already steers queued input at the next boundary.
-                # Acknowledge the user's Send now request locally, retaining the
-                # owner's queue until InputStarted confirms actual consumption.
+                # Keep the queue visible until the exact native input starts.
                 self.sending_queued_prompt = self.queued_prompts[0]
+                self.send_queued_now()
             return
         self._transcript_generation += 1
         if event.shell:
@@ -1258,6 +1257,15 @@ class Conversation(containers.Vertical):
             self.activity = waiting
             await asyncio.sleep(0)
             self.send_prompt_to_agent(text, immediate=event.immediate)
+
+    @work(group="send-queued-now", exclusive=True)
+    async def send_queued_now(self) -> None:
+        try:
+            if not await self.agent.send_now():
+                self.sending_queued_prompt = ""
+        except (jsonrpc.APIError, jsonrpc.JSONRPCError, OSError, ValueError) as error:
+            self.sending_queued_prompt = ""
+            self.flash(f"Send now failed: {error}", style="error")
 
     @work
     async def send_prompt_to_agent(
