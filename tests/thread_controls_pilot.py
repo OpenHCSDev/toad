@@ -80,7 +80,13 @@ for line in sys.stdin:
         if goal:
             while Path(os.environ["TEST_GOAL_GATE"]).exists():
                 time.sleep(0.05)
-            wire().update_goal(os.environ["AGENT_COMMS_THREAD"], "completed", goal_id=goal[1], progress="Verified the objective")
+            emit({"type": "tool_execution_start", "toolCallId": "goal-report",
+                  "toolName": "comms_goal", "args": {"goal_id": goal[1], "status": "completed"}})
+            wire().update_goal(os.environ["AGENT_COMMS_THREAD"], "completed",
+                               goal_id=goal[1], progress="Verified the objective",
+                               model_report=True)
+            emit({"type": "tool_execution_end", "toolCallId": "goal-report",
+                  "toolName": "comms_goal", "result": {"content": []}, "isError": False})
         emit({"type": "message_end", "message": {"role": "assistant", "stopReason": "stop"}})
         emit({"type": "agent_settled"})
         continue
