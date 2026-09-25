@@ -632,6 +632,15 @@ class Prompt(containers.VerticalGroup):
         if self._ask is None:
             self._ask = self.ask_queue.pop(0)
 
+    def remove_ask(self, ask: Ask) -> None:
+        """Retire one exact request after its controller has stopped waiting."""
+        if self._ask is ask:
+            self._ask = self.ask_queue.pop(0) if self.ask_queue else None
+            if self._ask is None:
+                self.app.terminal_alert(False)
+        else:
+            self.ask_queue = [pending for pending in self.ask_queue if pending is not ask]
+
     @on(events.Click, "ModeInfo")
     def on_mode_info_click(self):
         self.mode_switcher.focus()
@@ -895,21 +904,14 @@ class Prompt(containers.VerticalGroup):
 
     @on(Question.Answer)
     def on_question_answer(self, event: Question.Answer) -> None:
-        """Question has been answered."""
+        """An old prompt must not select an option on a successor request."""
         event.stop()
-
-        def remove_question() -> None:
-            """Remove the question and restore the text prompt."""
-            if self.ask_queue:
-                self._ask = self.ask_queue.pop(0)
-            else:
-                self._ask = None
-            self.app.terminal_alert(False)
-
-        if self._ask is not None and (callback := self._ask.callback) is not None:
+        ask = self._ask
+        if ask is None or event.ask is not ask:
+            return
+        if (callback := ask.callback) is not None:
             callback(event.answer)
-
-        self.set_timer(0.3, remove_question)
+        self.set_timer(0.3, lambda: self.remove_ask(ask))
 
     def suggest(self, suggestion: str) -> None:
         if suggestion.startswith(self.text) and self.text != suggestion:

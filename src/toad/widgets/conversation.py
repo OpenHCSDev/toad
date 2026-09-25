@@ -81,6 +81,7 @@ def make_session_title(prompt: str) -> str:
 
 if TYPE_CHECKING:
     from toad.acp.agent import Mode, Model
+    from toad.widgets.question import Ask
     from toad.widgets.terminal import Terminal
     from toad.widgets.agent_response import AgentResponse
     from toad.widgets.agent_thought import AgentThought
@@ -2077,6 +2078,14 @@ class Conversation(containers.Vertical):
                 permissions_screen = PermissionsScreen(
                     options, diffs, agent_name=self.agent_title or "The Agent"
                 )
+
+                def retire_expired_diff(future: Future[Answer | None]) -> None:
+                    if (
+                        future.cancelled() or future.result() is None
+                    ) and permissions_screen.is_attached:
+                        permissions_screen.dismiss(None)
+
+                result_future.add_done_callback(retire_expired_diff)
                 result = await self.app.push_screen_wait(
                     permissions_screen, mode=self.screen.id
                 )
@@ -2096,7 +2105,7 @@ class Conversation(containers.Vertical):
                 self.post_message(messages.SessionUpdate(state="busy"))
 
         tool_call_content = tool_call_update.get("content", None) or []
-        self.ask(
+        ask = self.ask(
             options,
             title or "",
             (
@@ -2106,6 +2115,16 @@ class Conversation(containers.Vertical):
             ),
             answer_callback,
         )
+
+        def retire_expired_prompt(future: Future[Answer | None]) -> None:
+            if not future.cancelled() and future.result() is not None:
+                return
+            if self.is_attached:
+                self.prompt.remove_ask(ask)
+                if self.prompt._ask is None:
+                    self.post_message(messages.SessionUpdate(state="busy"))
+
+        result_future.add_done_callback(retire_expired_prompt)
         return
 
     async def post_tool_call(
@@ -2144,7 +2163,7 @@ class Conversation(containers.Vertical):
         title: str = "",
         get_content: Callable[[], Widget] | None = None,
         callback: Callable[[Answer], Any] | None = None,
-    ) -> None:
+    ) -> Ask:
         """Replace the prompt with a dialog to ask a question
 
         Args:
@@ -2163,7 +2182,9 @@ class Conversation(containers.Vertical):
         notify_message = "\n".join(f" • {option.text}" for option in options)
         self.app.system_notify(notify_message, title=notify_title, sound="question")
 
-        self.prompt.ask(Ask(title, options, get_content, callback))
+        ask = Ask(title, options, get_content, callback)
+        self.prompt.ask(ask)
+        return ask
 
     def _build_slash_commands(self) -> list[SlashCommand]:
         slash_commands = [
