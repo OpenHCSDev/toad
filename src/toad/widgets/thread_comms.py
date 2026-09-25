@@ -14,8 +14,9 @@ from textual.widgets import Checkbox, Static
 
 from toad.widgets.comms_sidebar import CommsRow, CommsSidebar, SelectTarget
 from toad.widgets.activity_spinner import FRAMES
+from toad.widgets.message_filter import MESSAGE_CATEGORIES, MESSAGE_LABELS, MessageCategory
 from toad.widgets.session_sort import SortControl
-from toad.widgets.side_bar import SideBar, SideBarCollapsible
+from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarVisibilityObserver
 from toad.widgets.sidebar_tree import SidebarGroup, TargetTree
 from toad.widgets.thread_comms_model import RelationshipGroup, RelationshipSource, ThreadCommsSnapshot
 
@@ -176,7 +177,7 @@ class RelationshipRows(SidebarGroup):
                 container.scroll_to(y=state.scroll.get(self.model.key, 0), animate=False)
 
 
-class ThreadCommsSidebar(TargetTree):
+class ThreadCommsSidebar(SidebarVisibilityObserver, TargetTree):
     DEFAULT_CSS = """
     ThreadCommsSidebar { height: auto; }
     ThreadCommsSidebar .relationship-context { height: auto; text-wrap: nowrap; text-overflow: clip; color: $text-muted; }
@@ -199,6 +200,7 @@ class ThreadCommsSidebar(TargetTree):
         self._source = source
         self._live = live
         self._filter_view = None
+        self._filter_controls: dict[Checkbox, MessageCategory] = {}
         self._snapshot: ThreadCommsSnapshot | None = None
         self._states: dict[tuple[str | None, str], RelationshipTreeState] = {}
         self.groups: dict[str, RelationshipRows] = {}
@@ -218,7 +220,12 @@ class ThreadCommsSidebar(TargetTree):
 
     def compose(self):
         yield Static("Connecting…", classes="relationship-context", markup=False)
-        yield Checkbox("In/out only", id="in-out-only", compact=True)
+        self._filter_controls.clear()
+        for category in MESSAGE_CATEGORIES:
+            checkbox = Checkbox(MESSAGE_LABELS[category], id=f"filter-{category.value}",
+                                classes="message-filter", compact=True)
+            self._filter_controls[checkbox] = category
+            yield checkbox
 
     def on_mount(self):
         self._spinner_timer = self.set_interval(.18, self._animate_busy, pause=True)
@@ -238,21 +245,33 @@ class ThreadCommsSidebar(TargetTree):
             return
         sidebar = self.query_ancestor(SideBar)
         if (self.screen.is_active and not sidebar.collapsed
-                and any(row.has_class("-busy") for row in self.query(RelationshipRow))):
+                and any(row.has_class("-busy") for group in self.groups.values() for row in group.rows.values())):
             self._spinner_timer.resume()
         else:
             self._spinner_timer.pause()
+
+    def sidebar_visibility_changed(self) -> None:
+        self._sync_spinner()
 
     def _animate_busy(self) -> None:
         if not self.screen.is_active:
             self._sync_spinner()
             return
         self._spinner_phase = (self._spinner_phase + 1) % len(FRAMES)
-        for row in self.query(RelationshipRow):
-            if row.has_class("-busy"):
-                row.advance_spinner(self._spinner_phase)
+        for group in self.groups.values():
+            for row in group.rows.values():
+                if row.has_class("-busy"):
+                    row.advance_spinner(self._spinner_phase)
 
     def on_show(self):
+        if not self.is_attached or self.screen is not self.app.screen:
+            return
+        # Background tabs retain their source and per-view filter state. Apply
+        # the latest owner/selection once they become visible rather than doing
+        # seven checkbox queries on every global update in every hidden tab.
+        if self._live:
+            self._bind_screen_identity()
+        self._sync_filter_control()
         self.refresh_relationships()
 
     def on_unmount(self):
@@ -284,7 +303,7 @@ class ThreadCommsSidebar(TargetTree):
         self.refresh_relationships(force=True)
 
     def _observed(self, _value):
-        if not self.is_attached:
+        if not self.is_attached or self.screen is not self.app.screen:
             return
         if self._live:
             self._bind_screen_identity()
@@ -295,21 +314,28 @@ class ThreadCommsSidebar(TargetTree):
         from toad.screens.main import MainScreen
         from toad.widgets.conversation import Conversation
 
-        checkbox = self.query_one("#in-out-only", Checkbox)
         view = self.screen.query_one_optional(Conversation) if isinstance(self.screen, MainScreen) else None
-        checkbox.display = view is not None
+        checkboxes = tuple(self.query(Checkbox))
+        for checkbox in checkboxes:
+            checkbox.display = view is not None
         if view is not None:
             if self._filter_view is not view:
                 self._filter_view = view
-                self.watch(view, "in_out_only", self._sync_filter_control)
+                self.watch(view, "visible_categories", self._sync_filter_control)
             with self.prevent(Checkbox.Changed):
-                checkbox.value = view.in_out_only
+                for checkbox in checkboxes:
+                    checkbox.value = self._filter_controls[checkbox] in view.visible_categories
 
-    @on(Checkbox.Changed, "#in-out-only")
+    @on(Checkbox.Changed, ".message-filter")
     def filter_changed(self, event):
         event.stop()
         if self._filter_view is not None:
-            self._filter_view.in_out_only = event.value
+            category = self._filter_controls.get(event.checkbox)
+            if category is not None:
+                selected = self._filter_view.visible_categories
+                self._filter_view.visible_categories = (
+                    selected | {category} if event.value else selected - {category}
+                )
 
     def _bind_screen_identity(self):
         from toad.screens.main import MainScreen

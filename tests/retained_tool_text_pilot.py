@@ -11,6 +11,7 @@ from textual.content import Content
 from textual.geometry import Offset
 from textual.selection import SELECT_ALL, Selection
 from toad.widgets.tool_call import MarkdownContent, TextContent, ToolCall
+from toad.widgets.worker_static import WorkerStatic
 
 
 def payload(text, *, kind="execute", raw_input=None):
@@ -68,12 +69,18 @@ async def main():
             code = "def example(value):\n    return value + 1\n"
             await tool.update_tool_call(payload(code, kind="read", raw_input={"path": "example.py"}))
             await pilot.pause()
-            read = tool.query_one(TextContent)
-            assert read is not plain and read.render().spans
+            read = tool.query_one(WorkerStatic)
+            await asyncio.wait_for(read.wait_ready(), 15)
+            assert read._prepared is not None and any(line.text for line in read._prepared.lines)
             assert read.get_selection(SELECT_ALL)[0] == SELECT_ALL.extract(code)
+            await tool.update_tool_call(payload("literal [red]markup[/]", kind="read",
+                                                raw_input={"path": "unrecognized.unknown"}))
+            unknown = tool.query_one(WorkerStatic)
+            await asyncio.wait_for(unknown.wait_ready(), 10)
+            assert unknown.get_selection(SELECT_ALL)[0] == "literal [red]markup[/]"
             await tool.update_tool_call(payload("plain after read"))
             await pilot.pause()
-            assert tool.query_one(TextContent) is not read
+            assert not tool.query(WorkerStatic) and tool.query_one(TextContent) is not plain
             assert app._exception is None
         await asyncio.get_running_loop().shutdown_default_executor()
     print("tool text: retained plain/ANSI widgets, literal markup, geometry, copy and selected/type-change fallbacks")

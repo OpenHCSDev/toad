@@ -19,6 +19,7 @@ from toad.widgets.agent_thought import AgentThought
 from toad.widgets.incoming_message import IncomingMessage
 from toad.widgets.side_bar import SideBar, SideBarCollapsible
 from toad.widgets.thread_comms import RelationshipSort, ThreadCommsSidebar
+from toad.widgets.message_filter import IN_OUT_CATEGORIES, MESSAGE_CATEGORIES, MessageCategory
 from toad.widgets.transcript_history import TranscriptHistory
 from toad.widgets.user_input import UserInput
 
@@ -46,8 +47,9 @@ async def main():
             async with asyncio.timeout(5):
                 while tree._snapshot is None:
                     await pilot.pause(.02)
-            checkbox = tree.query_one(Checkbox)
-            assert checkbox.display
+            checkboxes = {category: tree.query_one(f"#filter-{category.value}", Checkbox)
+                          for category in MESSAGE_CATEGORIES}
+            assert all(checkbox.display and checkbox.value for checkbox in checkboxes.values())
             owner_label = tree.query_one(".relationship-context", Static).render()
             assert any("bold" in str(span.style) for span in owner_label.spans)
             sort = panel.query_one(RelationshipSort)
@@ -86,7 +88,9 @@ async def main():
             view.window.scroll_to(y=min(7, view.window.max_scroll_y), animate=False, immediate=True)
             await pilot.pause()
             full_scroll = view.window.scroll_y
-            assert await pilot.click(checkbox)
+            for category in MESSAGE_CATEGORIES:
+                if category not in IN_OUT_CATEGORIES:
+                    assert await pilot.click(checkboxes[category])
             await pilot.pause()
             assert view.in_out_only
             assert not request.display and not thought.display and not plain.display
@@ -138,9 +142,12 @@ async def main():
             assert not app.screen.conversation.in_out_only
             await app.switch_mode(owner_mode)
             await pilot.pause()
-            assert checkbox.value and view.in_out_only
+            assert view.in_out_only and all(checkboxes[category].value == (category in IN_OUT_CATEGORIES)
+                                           for category in MESSAGE_CATEGORIES)
             assert view.prompt.text == "Unsent draft survives filtering"
-            assert await pilot.click(checkbox)
+            for category in MESSAGE_CATEGORIES:
+                if category not in IN_OUT_CATEGORIES:
+                    assert await pilot.click(checkboxes[category])
             await pilot.pause()
             assert not view.in_out_only
             assert all(block.display for block in (request, thought, plain, incoming, outgoing, new_thought))

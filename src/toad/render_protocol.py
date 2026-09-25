@@ -8,10 +8,7 @@ from enum import Enum
 from typing import Mapping, TypedDict, cast
 from uuid import UUID
 
-from toad.render_tasks import (
-    MarkdownRenderTask, PatchRenderTask, RendererResult, RendererTask,
-    TokenRenderTask, TranscriptRenderTask,
-)
+from toad.render_tasks import RENDER_TASK_TYPES, RendererResult, RendererTask
 
 
 class RenderCommandKind(str, Enum):
@@ -127,7 +124,7 @@ def decode_command(envelope: Mapping[str, object]) -> RendererCommand:
     command = envelope["command"]
     match kind, command:
         case RenderCommandKind.SUBMIT, SubmitRender():
-            if type(command.task) not in (PatchRenderTask, MarkdownRenderTask, TokenRenderTask, TranscriptRenderTask):
+            if type(command.task) not in RENDER_TASK_TYPES:
                 raise TypeError("Unsupported renderer operation class")
         case RenderCommandKind.POLL, PollRender():
             pass
