@@ -11,7 +11,7 @@ from typing import Any, cast, NamedTuple
 from copy import deepcopy
 from math import floor
 import rich.repr
-from agent_comms import Comms, Goal, TranscriptCursor, TranscriptPage, MessageRoute
+from agent_comms import Comms, Goal, GoalExecution, TranscriptCursor, TranscriptPage, MessageRoute
 from pydantic import ValidationError
 
 from textual.content import Content
@@ -330,6 +330,11 @@ class Agent(AgentBase):
             state = metadata["agentComms"]
             if isinstance(state.get("thread"), str) and isinstance(state.get("wireRoot"), str):
                 self._publish_coordination_metadata({"_meta": metadata})
+            if "inputDisposition" in state:
+                self.post_message(messages.InputDispositionsChanged())
+            if "goal" in state or "goalExecution" in state:
+                self._publish_goal_snapshot(state)
+                self._post_coordination_update()
             compaction = state.get("compaction")
             if isinstance(compaction, dict) and compaction.get("phase") in {"start", "progress", "end", "abort"}:
                 if (compaction.get("contextState") == "unknown"
@@ -1276,6 +1281,22 @@ class Agent(AgentBase):
                 return value
         return None
 
+    def _publish_goal_snapshot(self, state: Mapping[str, object]) -> None:
+        if "goal" not in state or "goalExecution" not in state:
+            return
+        try:
+            raw_goal, raw_execution = state["goal"], state["goalExecution"]
+            goal = Goal(**raw_goal) if isinstance(raw_goal, dict) else None
+            execution = GoalExecution.from_wire(raw_execution) if isinstance(raw_execution, dict) else None
+            if raw_goal is not None and goal is None or raw_execution is not None and execution is None:
+                raise ValueError("Invalid goal snapshot")
+            if execution is not None and (goal is None or execution.goal_id != goal.id):
+                raise ValueError("Goal execution identity does not match goal snapshot")
+        except (KeyError, TypeError, ValueError) as error:
+            self.log(f"[ACP rejected goal snapshot] {error}")
+            return
+        self.post_message(messages.GoalSnapshotUpdate(goal, execution))
+
     def _publish_coordination_metadata(
         self, response: Mapping[str, object], *, initial: bool = False,
     ) -> None:
@@ -1285,6 +1306,9 @@ class Agent(AgentBase):
         coordination = metadata.get("agentComms")
         if not isinstance(coordination, dict):
             return
+        if initial:
+            self._publish_goal_snapshot(coordination)
+            self.post_message(messages.InputDispositionsChanged())
         thread = coordination.get("thread")
         wire_root = coordination.get("wireRoot")
         if not isinstance(thread, str) or not isinstance(wire_root, str):
@@ -1466,14 +1490,52 @@ class Agent(AgentBase):
         return None
 
     async def get_goal(self) -> Goal | None:
+        return (await self.get_goal_snapshot())[0]
+
+    async def get_goal_snapshot(self) -> tuple[Goal | None, GoalExecution | None]:
         if self._coordination_root is None or self._coordination_thread is None:
-            return None
+            return None, None
+        async with asyncio.timeout(3):
+            result = await self._owner_request("goal_snapshot")
+        raw_goal, raw_execution = result["goal"], result["goalExecution"]
+        goal = Goal(**raw_goal) if raw_goal is not None else None
+        execution = GoalExecution.from_wire(raw_execution) if raw_execution is not None else None
+        if execution is not None and (goal is None or execution.goal_id != goal.id):
+            raise ValueError("Goal execution identity does not match the owner snapshot.")
+        return goal, execution
+
+    async def get_goal_execution(self) -> GoalExecution | None:
+        return (await self.get_goal_snapshot())[1]
+
+    async def _owner_request(self, method: str, **params):
+        if self._coordination_root is None or self._coordination_thread is None:
+            raise ValueError("This action requires an agent-comms thread.")
         from agent_comms.operations import wire
+        from agent_comms.runtime import RuntimeProxy, socket_path
 
-        def read() -> Goal | None:
-            return wire(self._coordination_root).registry.require(self._coordination_thread).goal
+        comms = wire(self._coordination_root)
+        owner = await asyncio.to_thread(comms.registry.require, self._coordination_thread)
+        proxy = RuntimeProxy(self, owner.name, socket_path(comms.root, owner.pid))
+        try:
+            return await proxy.request(method, **params)
+        except RuntimeError as error:
+            raise ValueError(str(error)) from error
 
-        return await asyncio.to_thread(read)
+    async def get_unresolved_inputs(self) -> list[dict]:
+        if self._coordination_root is None or self._coordination_thread is None:
+            return []
+        result = await self._owner_request("input_dispositions")
+        return result["inputs"]
+
+    async def get_goal_history(self, goal_id: str):
+        result = await self._owner_request("goal_history", goal_id=goal_id)
+        return result["history"]
+
+    async def edit_goal(self, goal: Goal, text: str) -> Goal:
+        result = await self._owner_request(
+            "edit_goal", goal_id=goal.id, expected_revision=goal.revision, text=text
+        )
+        return Goal(**result["goal"])
 
     @property
     def transcript_ready(self) -> bool:
@@ -1526,37 +1588,24 @@ class Agent(AgentBase):
         return result.current
 
     async def update_goal(self, action: str, text: str = "") -> Goal | None:
-        if self._coordination_root is None or self._coordination_thread is None:
-            raise ValueError("Persistent goals require an agent-comms thread.")
-        from agent_comms.operations import wire
-
-        comms = wire(self._coordination_root)
-        if action in {"retry", "set"}:
-            from agent_comms.runtime import RuntimeProxy, socket_path
-
-            owner = comms.registry.require(self._coordination_thread)
-            proxy = RuntimeProxy(self, owner.name, socket_path(comms.root, owner.pid))
-            try:
-                if action == "retry":
-                    goal = owner.goal
-                    if goal is None or goal.status != "blocked":
-                        raise ValueError("The blocked goal changed; refresh its state.")
-                    result = await proxy.request(
-                        "retry_goal", goal_id=goal.id, expected_revision=goal.revision
-                    )
-                else:
-                    result = await proxy.request("set_goal", text=text)
-            except RuntimeError as error:
-                raise ValueError(str(error)) from error
-            return Goal(**result["goal"])
-        goal = await asyncio.to_thread(
-            comms.update_goal,
-            self._coordination_thread,
-            action,
-            text=text,
-            owner_action=True,
-        )
-        return goal
+        if action == "set":
+            result = await self._owner_request("set_goal", text=text)
+        else:
+            goal, _ = await self.get_goal_snapshot()
+            if goal is None:
+                raise ValueError("The goal changed; refresh its state.")
+            if action == "retry":
+                if goal.status != "blocked":
+                    raise ValueError("The blocked goal changed; refresh its state.")
+                result = await self._owner_request(
+                    "retry_goal", goal_id=goal.id, expected_revision=goal.revision
+                )
+            else:
+                result = await self._owner_request(
+                    "update_goal", status=action, goal_id=goal.id,
+                    expected_revision=goal.revision,
+                )
+        return Goal(**result["goal"]) if result["goal"] is not None else None
 
     async def set_session_name(self, name: str) -> None:
         self._pending_session_name = name
