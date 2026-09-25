@@ -140,6 +140,12 @@ and broad Comms. All passed. The broad Comms pilot exceeded the parallel
 runner's 60-second budget and then passed standalone with a 120-second budget.
 Earlier sidebar/formatting checks remain applicable to unchanged code.
 
+Toad main advanced to `1fde892` during this check. Reconciled its delivery-history
+UI, retaining the core pin above (which includes the required `071a0e8` API).
+All seven affected local pilots passed together in 56.93s: delivery owner
+(including 932 legacy notices), attribution, existing thread links, activity,
+coordination context, transcript history, and broad Comms.
+
 Merge core PR #67 first, then Toad PR #34. Local checks are the readiness
 receipts; CI is not being awaited. Existing live owners still need the updated
 core for future routing bindings, with explicit repair for old receipt-bound

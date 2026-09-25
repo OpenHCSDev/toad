@@ -330,7 +330,7 @@ class Agent(AgentBase):
             state = metadata["agentComms"]
             if isinstance(state.get("thread"), str) and isinstance(state.get("wireRoot"), str):
                 self._publish_coordination_metadata({"_meta": metadata})
-            if "inputDisposition" in state:
+            if "inputDisposition" in state or state.get("inputDeliveryChanged") is True:
                 self.post_message(messages.InputDispositionsChanged())
             if "goal" in state or "goalExecution" in state:
                 self._publish_goal_snapshot(state)
@@ -1521,11 +1521,19 @@ class Agent(AgentBase):
         except RuntimeError as error:
             raise ValueError(str(error)) from error
 
-    async def get_unresolved_inputs(self) -> list[dict]:
+    async def get_input_delivery(self, *, include_history: bool = False) -> dict:
         if self._coordination_root is None or self._coordination_thread is None:
-            return []
-        result = await self._owner_request("input_dispositions")
-        return result["inputs"]
+            return {
+                "inputs": [], "historicalCount": 0,
+                "dismissedHistoricalCount": 0, "historicalInputs": [],
+            }
+        return await self._owner_request("input_dispositions", include_history=include_history)
+
+    async def dismiss_historical_inputs(self) -> dict:
+        return await self._owner_request("dismiss_historical_inputs")
+
+    async def get_unresolved_inputs(self) -> list[dict]:
+        return (await self.get_input_delivery())["inputs"]
 
     async def get_goal_history(self, goal_id: str):
         result = await self._owner_request("goal_history", goal_id=goal_id)
