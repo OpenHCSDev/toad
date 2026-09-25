@@ -158,7 +158,8 @@ def run(
     )
     if serve:
         import shlex
-        from textual_serve.server import Server
+
+        from toad.web_server import ToadWebServer
 
         command_args = sys.argv
         # Remove serve flag from args (could be either --serve or -s)
@@ -169,7 +170,7 @@ def run(
             except ValueError:
                 pass
         serve_command = shlex.join(command_args)
-        server = Server(
+        server = ToadWebServer(
             serve_command,
             host=host,
             port=port,
@@ -257,7 +258,8 @@ def acp(
     }
     if serve:
         import shlex
-        from textual_serve.server import Server
+
+        from toad.web_server import ToadWebServer
 
         command_components = [sys.argv[0], "acp", command, "--renderer", renderer.value]
         if session_id:
@@ -266,7 +268,7 @@ def acp(
             command_components.append(f"--project-dir={project_dir}")
         serve_command = shlex.join(command_components)
 
-        server = Server(
+        server = ToadWebServer(
             serve_command,
             host=host,
             port=port,
@@ -333,9 +335,9 @@ def replay(path: str) -> None:
 )
 def serve(port: int, host: str, public_url: str | None = None) -> None:
     """Serve Toad as a web application."""
-    from textual_serve.server import Server
+    from toad.web_server import ToadWebServer
 
-    server = Server(
+    server = ToadWebServer(
         sys.argv[0], host=host, port=port, title="Toad", public_url=public_url
     )
     set_process_title("toad serve")
