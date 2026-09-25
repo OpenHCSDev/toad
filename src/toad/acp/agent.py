@@ -1554,6 +1554,7 @@ class Agent(AgentBase):
             self._coordination_thread,
             action,
             text=text,
+            owner_action=True,
         )
         return goal
 
