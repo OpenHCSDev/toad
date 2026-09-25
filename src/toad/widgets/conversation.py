@@ -1590,8 +1590,11 @@ class Conversation(containers.Vertical):
         self.post_message(messages.SessionUpdate(
             state="busy" if active else "idle", summary=title,
         ))
-        detail = (message.summary or "Context estimate unavailable until a new measurement arrives."
-                  if message.phase == "end" else "Context estimate unavailable")
+        detail = (
+            message.summary or "Context estimate unavailable until a new measurement arrives."
+            if message.phase == "end"
+            else "Compaction did not complete. Context usage will update after the next measurement."
+        )
         await self.post(AgentResponse(f"## {title}\n\n{detail}"))
 
     @work(exclusive=True, group="transcript-window")
