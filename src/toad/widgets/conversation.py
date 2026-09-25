@@ -1320,7 +1320,7 @@ class Conversation(containers.Vertical):
                     )
                 else:
                     stop_reason = await self.agent.send_prompt(prompt)
-            except (jsonrpc.APIError, ValueError) as error:
+            except (jsonrpc.APIError, jsonrpc.JSONRPCError, OSError, ValueError) as error:
                 from toad.widgets.markdown_note import MarkdownNote
 
                 self.turn = "client"
@@ -1572,6 +1572,18 @@ class Conversation(containers.Vertical):
             if message.text == self.sending_queued_prompt:
                 self.sending_queued_prompt = ""
             await self.post(UserInput(message.text))
+
+    @on(acp_messages.InputFailed)
+    def on_input_failed(self, message: acp_messages.InputFailed) -> None:
+        """Recover draft text without claiming delivery or resending it."""
+        message.stop()
+        if message.text and not (
+            self.prompt.text == message.text
+            or self.prompt.text.endswith("\n\n" + message.text)
+        ):
+            self.prompt.text = "\n\n".join(filter(None, [self.prompt.text, message.text]))
+        self.delivering_prompt = ""
+        self.flash(f"Delivery unconfirmed; text restored: {message.reason}", style="error")
 
     @on(acp_messages.TranscriptSnapshot)
     async def on_transcript_snapshot(self, message: acp_messages.TranscriptSnapshot):
