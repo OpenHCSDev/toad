@@ -91,7 +91,9 @@ async def main(title: str | None = None, *, cold_metadata: bool = False) -> None
                     cached = next(tab.title for tab in cache if tab.mode_name == opened)
                     rendered = app.screen.query_one(f"SessionLabel#{opened}", SessionLabel)
                     frame = app.screen._compositor.render_strips()
-                    painted = frame[rendered.region.y].text[rendered.region.x:rendered.region.right].strip()
+                    painted = frame[rendered.region.y].crop(
+                        rendered.region.x, rendered.region.right
+                    ).text.strip()
                     observations.append((phase, label, expected, cached, painted))
 
                 observe("new active view, before ACP attachment")

@@ -235,6 +235,7 @@ Loading {
 SessionsTabs {
     layout: grid;
     grid-columns: auto auto;
+    grid-rows: 1 1;
     grid-size: 1 ;
     overflow: auto hidden;
     scrollbar-size-horizontal: 1;
@@ -244,6 +245,9 @@ SessionsTabs {
         
     height: 3;
     box-sizing: content-box;
+    & > #title-container, & > Underline {
+        offset: 0 1;
+    }
     Underline {
         width: 1fr;
         height: 1;
@@ -254,7 +258,9 @@ SessionsTabs {
     }
     #title-container {
         width: auto;
+        height: 1;
         Label {
+            height: 1;
             text-style: dim;
             pointer: pointer;
             padding: 0 1;
