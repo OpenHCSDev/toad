@@ -36,17 +36,22 @@ async def owner_set_route(*, legacy_blocked: bool) -> None:
         try:
             if legacy_blocked:
                 old = comms.update_goal(session, "set", text="legacy goal")
-                comms.update_goal(
+                blocked = comms.update_goal(
                     session,
                     "blocked",
                     goal_id=old.id,
                     progress="Goal attempt unresolved",
                 )
+                assert blocked is not None and blocked.status == "blocked"
+                assert comms.registry.require(session).goal == blocked
                 assert not (
                     comms.root / "goal-private" / "goal_attempts.sqlite3"
                 ).exists()
             goal = await Agent.update_goal(toad_agent, "set", "Finish the task")
             assert goal is not None and goal.status == "active"
+            assert goal.text == "Finish the task"
+            if legacy_blocked:
+                assert goal.id != old.id
             generation = GoalAttemptStore(comms.root / "goal-private").snapshot(goal.id)
             assert generation is not None and generation.state == "ready"
             assert owner._goal_store.ready_grant(goal.id, generation.number)
