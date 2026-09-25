@@ -288,14 +288,21 @@ Configure `mcp.node_path` and `mcp.cli_path` in Toad's user settings as absolute
 paths to Node and the installed package's `bin/pi-mcp.mjs`. Toad will not find a
 package from `PATH`, a source checkout, or project files. An absent, incompatible,
 or failing CLI shows *unavailable*; a configured CLI path is user-selected and
-is not proof that an ACP session has loaded the package. The CLI runs without a
-TTY and Toad does not parse MCP config, approval ledgers, or protocol messages.
+is not proof that an ACP session has loaded the package. Inventory runs without
+a TTY; local decisions require a visible PTY. Toad never parses MCP config,
+approval ledgers, or protocol messages.
 
-This snapshot does **not** report live server state. Trust and call decisions
-are **not supported in Toad**: use the installed Pi package CLI in your own
-local terminal, inspect its full declaration display, and type its challenge
-personally. Do not treat the snapshot as permission to launch; changes apply
-on the next Pi turn. This optional draft is not an MCP server management UI.
+This snapshot does **not** report live server state. On POSIX, Toad offers
+package-owned **Deny project** and **Require call asks** through a visible local
+PTY. Each action rechecks the whole typed snapshot, then the package displays
+its complete declaration and exact digest challenge. The user must type the
+answer personally; Toad cannot auto-answer or claim approval. Its child is
+stopped on dismissal, timeout, or lost controller. Positive **Approve project**
+and **Allow autonomous calls** stay disabled until the package's deny/reapprove
+grant-revival fix is independently reviewed. On other platforms or when the
+package CLI is absent, actions are unavailable. Use the installed package CLI
+in a local terminal for supported manual operations; changes apply on the
+next Pi turn. This optional draft is not a full MCP server management UI.
 
 ### Roadmap
 

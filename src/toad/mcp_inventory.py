@@ -269,9 +269,10 @@ def render_inventory(inventory: Inventory | None) -> str:
         f"Saved Pi project trust: {'yes' if inventory.project_trusted_saved else 'no'}",
         f"Project config skipped before trust: {'yes' if inventory.project_config_skipped else 'no'}",
         "Runtime: not running in this snapshot; live status is not asserted.",
-        "Decisions apply to the next Pi turn. Toad cannot approve or grant calls.",
-        "For changes, run the installed package CLI in your own local terminal;",
-        "inspect its full approval display and type its challenge yourself, then refresh.",
+        "Decisions apply to the next Pi turn. This is not active server state.",
+        "Only local Deny / Require asks are available through Toad's visible POSIX PTY.",
+        "Positive grants are on safety hold; do not approve or allow autonomous calls.",
+        "Always inspect the package CLI's complete display and type its challenge yourself.",
     ]
     for scope, rows in (("User", inventory.user), ("Project", inventory.project)):
         lines.append(f"\n{scope} declarations ({len(rows)}):")
