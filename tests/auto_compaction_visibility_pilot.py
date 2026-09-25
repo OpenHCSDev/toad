@@ -22,7 +22,7 @@ from toad.widgets.agent_response import AgentResponse
 from toad.widgets.conversation import Conversation, TurnActivity
 
 
-SUMMARY = "## Decisions\n\n" + "- AUTO-COMPACTION-PRESERVED-DECISIONS\n" * 30 + "\n## Next\nContinue."
+SUMMARY = "## Decisions\n\n" + "- AUTO-COMPACTION-PRESERVED-DECISIONS\n" * 150 + "\n## Next\nContinue."
 
 
 class CaptureClient:
