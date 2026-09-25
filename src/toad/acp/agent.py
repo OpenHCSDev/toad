@@ -159,6 +159,7 @@ class Agent(AgentBase):
         self._reconnecting = False
         self._connected_ok = False
         self.prompt_in_flight = 0
+        self._deferred_submissions: set[asyncio.Task] = set()
         self.uses_turn_events = False
         self._pending_session_name: str | None = None
         self._coordination_thread: str | None = None
@@ -964,6 +965,9 @@ class Agent(AgentBase):
             prompt: Prompt text.
         """
         self.prompt_in_flight += 1
+        submission = asyncio.current_task() if defer_display else None
+        if submission is not None:
+            self._deferred_submissions.add(submission)
         try:
             prompt_content_blocks = await asyncio.to_thread(
                 build_prompt, self.project_root_path, prompt
@@ -988,6 +992,8 @@ class Agent(AgentBase):
             )
         finally:
             self.prompt_in_flight -= 1
+            if submission is not None:
+                self._deferred_submissions.discard(submission)
 
     async def clear_queue(self) -> None:
         """Drop prompts still awaiting delivery, leaving the turn running."""
@@ -997,6 +1003,10 @@ class Agent(AgentBase):
 
     async def send_now(self) -> None:
         """Interrupt the response for already queued input, without resending text."""
+        # Resource/image preparation can still be running when the user clicks.
+        # Wait for those exact submissions to reach the owner before interrupting.
+        if pending := tuple(self._deferred_submissions):
+            await asyncio.gather(*(asyncio.shield(task) for task in pending))
         await self.acp_session_prompt(
             [{"type": "text", "text": " "}], {"agentComms": {"sendNow": True}}
         )
