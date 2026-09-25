@@ -339,7 +339,7 @@ class Agent(AgentBase):
                     compaction["phase"],
                     compaction.get("reason") if isinstance(compaction.get("reason"), str)
                     else "unknown",
-                    " ".join(summary.split())[:400] if isinstance(summary, str) else "",
+                    summary if isinstance(summary, str) else "",
                     compaction.get("willRetry") is True,
                     compaction.get("chunkIndex") if isinstance(compaction.get("chunkIndex"), int)
                     and not isinstance(compaction.get("chunkIndex"), bool) else 0,
