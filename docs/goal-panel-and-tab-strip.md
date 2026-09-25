@@ -66,3 +66,14 @@ inspected. Local before-fix captures are in
 `/var/tmp/toad-underline-native-wbk3xk0n`; the final uninstrumented application
 captures and pixel counts are in `/var/tmp/toad-native-tabs-ret2tdfj`.
 This evidence supersedes the earlier headless-only claim about the underline.
+
+## Main synchronization after native verification
+
+Merged Toad main `325356a`, including shared worker preparation and settlement
+updates, into the PR branch. Installed its exact core `b8ae2ba` and Textual
+`ace9226` pins. All 11 native pixel checks passed again, with captures in
+`/var/tmp/toad-native-tabs-ssbeo5o1`; the real-drag screenshot was visually
+inspected. All 14 focused integration pilots passed in 58.98 seconds, covering
+the incoming worker-preparation changes, goals, tab navigation, native input
+attribution, committed/inbound history, and broad Comms. Targeted Ruff and
+whitespace checks passed on the integrated source.

@@ -17,8 +17,8 @@ from textual.widget import Widget
 from toad import messages
 from toad.app import ToadApp
 from toad.session_tracker import OpenTab, SessionDetails
-from toad.widgets.activity_spinner import FRAMES, animated_label
 from toad.sidebar_preparation import PreparedTab, TabRosterWork
+from toad.widgets.activity_spinner import FRAMES, animated_label
 
 
 class SessionLabel(widgets.Label):
