@@ -135,7 +135,9 @@ class SideBarToggle(widgets.Static):
     ]
 
     class Pressed(Message):
-        pass
+        def __init__(self, *, focus: bool = True) -> None:
+            super().__init__()
+            self.focus = focus
 
     def __init__(self, collapsed: bool = False, *, right: bool = False) -> None:
         super().__init__()
@@ -152,10 +154,16 @@ class SideBarToggle(widgets.Static):
     def action_sidebar_toggle(self) -> None:
         self.post_message(self.Pressed())
 
+    def focus_on_click(self) -> bool:
+        # Pointer activation is a visibility change. Focusing this handle first
+        # rebuilds bindings, only to move focus again when the sidebar toggles.
+        # It remains keyboard-focusable through normal Tab navigation.
+        return False
+
     def on_click(self, event: Click) -> None:
         if event.button == 1:
             event.stop()
-            self.action_sidebar_toggle()
+            self.post_message(self.Pressed(focus=False))
 
 
 class TabHistoryButton(widgets.Static, can_focus=True):
@@ -805,12 +813,12 @@ class SideBar(containers.Vertical):
     @on(SideBarToggle.Pressed)
     def on_toggle_pressed(self, event: SideBarToggle.Pressed) -> None:
         event.stop()
-        self.toggle()
+        self.toggle(focus=event.focus)
 
     def on_click(self, event: Click) -> None:
         if self.collapsed and event.button == 1:
             event.stop()
-            self.toggle()
+            self.toggle(focus=False)
 
     def on_enter(self) -> None:
         if self.collapsed:
@@ -820,15 +828,16 @@ class SideBar(containers.Vertical):
         if toggle := self.query_one_optional(SideBarToggle):
             toggle.remove_class("-gutter-hover")
 
-    def toggle(self) -> None:
+    def toggle(self, *, focus: bool = True) -> None:
         collapsed = not self.collapsed
         if self._navigation is None:
             cast("ToadApp", self.app).settings.set("sidebar.hide", collapsed)
         else:
             self.collapsed = collapsed
         if collapsed:
-            self.post_message(self.Dismiss())
-        else:
+            if focus or self.has_focus_within:
+                self.post_message(self.Dismiss())
+        elif focus:
             # Panels are already displayed by the synchronous watcher. Queue
             # native focus now so its highlight can share the opening frame,
             # rather than waiting for a painted frame to request another one.
