@@ -589,6 +589,8 @@ class Conversation(containers.Vertical):
         self._initial_prompt = initial_prompt
 
         self._post_lock = asyncio.Lock()
+        self._goal_refresh_task: asyncio.Task | None = None
+        self._goal_refresh_revision = 0
         self._transcript_generation = 0
         self._transcript_dirty = False
         self.displayed_transcript_cursor = None
@@ -2218,26 +2220,34 @@ class Conversation(containers.Vertical):
             self.call_after_refresh(self._compact_committed_history)
 
     async def refresh_goal(self) -> None:
-        if (
-            self.is_attached
-            and self.screen.is_active
-            and self.agent_ready
-            and self.agent is not None
-            and hasattr(self.agent, "get_goal")
-        ):
-            try:
-                if hasattr(self.agent, "get_goal_snapshot"):
-                    self.goal, self.goal_execution = await self.agent.get_goal_snapshot()
-                else:
-                    self.goal = await self.agent.get_goal()
-                    if hasattr(self.agent, "get_goal_execution"):
-                        self.goal_execution = await self.agent.get_goal_execution()
-            except OSError, ValueError:
-                pass
+        if not self.is_attached or self.agent is None or not hasattr(self.agent, "get_goal_snapshot"):
+            return
+        self._goal_refresh_revision += 1
+        if self._goal_refresh_task is None or self._goal_refresh_task.done():
+            self._goal_refresh_task = asyncio.create_task(self._read_goal_snapshot())
+        await asyncio.shield(self._goal_refresh_task)
 
-    def on_goal_snapshot_update(self, event: acp_messages.GoalSnapshotUpdate) -> None:
-        self.goal = event.goal
-        self.goal_execution = event.execution
+    async def _read_goal_snapshot(self) -> None:
+        # All actions and notifications invalidate the same backend projection.
+        # A read overtaken by another invalidation is discarded before painting.
+        while self.is_attached:
+            revision, agent = self._goal_refresh_revision, self.agent
+            if agent is None or not hasattr(agent, "get_goal_snapshot"):
+                return
+            try:
+                goal, execution = await agent.get_goal_snapshot()
+            except (OSError, ValueError):
+                if revision != self._goal_refresh_revision:
+                    continue
+                return
+            if revision != self._goal_refresh_revision or agent is not self.agent:
+                continue
+            if self.is_attached:
+                self.goal, self.goal_execution = goal, execution
+            return
+
+    async def on_goal_snapshot_update(self, event: acp_messages.GoalSnapshotUpdate) -> None:
+        await self.refresh_goal()
 
     async def _coordination_changed(self, _update: None) -> None:
         await self.refresh_goal()
@@ -2267,7 +2277,8 @@ class Conversation(containers.Vertical):
                 return
 
             async def save(text: str) -> None:
-                self.goal = await self.agent.edit_goal(goal, text)
+                await self.agent.edit_goal(goal, text)
+                await self.refresh_goal()
 
             self.app.push_screen(GoalEdit(
                 goal, goal_mention_candidates(self.app), on_save=save
@@ -2289,7 +2300,8 @@ class Conversation(containers.Vertical):
             # Goal state only governs auto-continuation. Changing it must not
             # interrupt work already in progress; the running turn finishes and
             # then scheduling honours the new state.
-            self.goal = await self.agent.update_goal(action, text)
+            await self.agent.update_goal(action, text)
+            await self.refresh_goal()
             self.prompt.focus()
         except (OSError, ValueError) as error:
             self.flash(str(error), style="error")

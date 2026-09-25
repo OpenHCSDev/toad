@@ -36,6 +36,7 @@ class GoalBar(VerticalGroup):
     GoalBar { height: auto; padding: 0 1; border-top: solid $secondary 30%; }
     GoalBar .goal-summary { height: auto; max-height: 3; }
     GoalBar .goal-progress { height: auto; max-height: 2; color: $text-muted; }
+    GoalBar .goal-truncated { display: none; height: 1; color: $text-muted; }
     """
     goal: var[Goal | None] = var(None)
     execution: var[GoalExecution | None] = var(None)
@@ -96,6 +97,7 @@ class GoalBar(VerticalGroup):
         yield GoalText(classes="goal-summary")
         yield GoalText(classes="goal-execution")
         yield GoalText(classes="goal-progress")
+        yield Static("", markup=False, classes="goal-truncated")
         with HorizontalGroup():
             yield GoalControl("Expand", id="goal-expand")
             yield GoalControl("Pause", id="goal-toggle")
@@ -107,7 +109,9 @@ class GoalBar(VerticalGroup):
         if goal is not None:
             self._update_goal_text()
             progress = self.query_one(".goal-progress", GoalText)
-            progress.update_goal_text(goal.progress)
+            progress.update_goal_text(
+                f"Progress: {goal.progress}" if goal.progress else ""
+            )
             progress.display = bool(goal.progress)
             toggle = self.query_one("#goal-toggle", Static)
             toggle.update(goal.toggle_label)
@@ -119,7 +123,9 @@ class GoalBar(VerticalGroup):
     def _update_goal_text(self) -> None:
         if not self.is_mounted or self.goal is None:
             return
-        self.query_one(".goal-summary", GoalText).update_goal_text(self.goal.summary)
+        self.query_one(".goal-summary", GoalText).update_goal_text(
+            f"Goal · {self.goal.status} · rev {self.goal.revision} · Objective: {self.goal.text}"
+        )
         status = self.query_one(".goal-execution", GoalText)
         execution = self.execution
         standby = (
@@ -133,3 +139,28 @@ class GoalBar(VerticalGroup):
         if standby:
             presentation = execution.presentation("")
             status.update_goal_text(f"{presentation.marker} {presentation.summary}")
+        self.call_after_refresh(self._update_truncation)
+
+    def on_resize(self) -> None:
+        self.call_after_refresh(self._update_truncation)
+
+    def _update_truncation(self) -> None:
+        if not self.is_mounted or self.goal is None:
+            return
+        clipped = []
+        for selector, name in (
+            (".goal-summary", "Objective"),
+            (".goal-progress", "Progress"),
+        ):
+            widget = self.query_one(selector, GoalText)
+            width = widget.content_size.width
+            if (
+                widget.display
+                and width
+                and widget.visual.get_height(widget.styles, width)
+                > widget.content_size.height
+            ):
+                clipped.append(name)
+        notice = self.query_one(".goal-truncated", Static)
+        notice.display = bool(clipped)
+        notice.update(f"… {' / '.join(clipped)} truncated · Expand for full text")
