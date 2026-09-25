@@ -3,21 +3,28 @@
 import asyncio
 import json
 import os
-from pathlib import Path
 import tempfile
+from pathlib import Path
 
 from agent_comms import TranscriptEvent
 from runtime_fixture import ToadApp
 from textual.widgets import Collapsible
-from textual.widgets._markdown import MarkdownBulletList, MarkdownFence, MarkdownParagraph
+from textual.widgets._markdown import (
+    MarkdownBulletList,
+    MarkdownFence,
+    MarkdownParagraph,
+)
+
 from toad.acp.agent import Agent
+from toad.coordination_context_format import format_coordination_context
 from toad.widgets.agent_response import AgentResponse
+from toad.widgets.coordination_context import (
+    CoordinationContext,
+    OriginalCoordinationContext,
+)
 from toad.widgets.message_divider import MessageDivider
 from toad.widgets.transcript_fragments import transcript_fragments
 from toad.widgets.user_input import UserInput
-from toad.widgets.coordination_context import CoordinationContext, OriginalCoordinationContext
-from toad.coordination_context_format import format_coordination_context
-
 
 CONTEXT = ("Coordination context: **owner identity**\n\n"
            "- First instruction\n- Second instruction\n\n"

@@ -1,13 +1,14 @@
 """Agent activity is visibly separated from the preceding user message."""
 
 import asyncio
-from dataclasses import replace
 import os
-from pathlib import Path
 import tempfile
+from dataclasses import replace
+from pathlib import Path
 
 from agent_comms import TranscriptCursor, TranscriptEvent, TranscriptPage
 from runtime_fixture import ToadApp
+
 from toad.acp import messages as acp
 from toad.widgets.agent_thought import AgentThought
 from toad.widgets.message_divider import AgentActivityDivider, MessageDivider

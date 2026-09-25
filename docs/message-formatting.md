@@ -61,7 +61,7 @@ virtual), directional moves, pinned sorting, sidebar navigation and broad Comms
 checks pass. The navigation pilot now uses the current ThreadRow open-selected
 action rather than its removed legacy action name.
 
-## Open dependency: incoming agent attribution
+## Incoming agent attribution: companion core fix
 
 The report of other agents' messages labelled User is reproduced **before the
 UI renderer**, not repaired by the formatting changes above:
@@ -78,9 +78,34 @@ UI renderer**, not repaired by the formatting changes above:
   origins only after successful settlement. Saved injected-input provenance
   needs a core-owned exact native-input/session-entry binding.
 
-The core owner was notified (message `73ed49f1d2b3`). This remains open in the
-draft. Do not reconstruct a trusted sender from `[agent-comms from ...]` text;
-that would reintroduce false attribution for quoted or foreign-root history.
+The companion fix is [agent-comms PR #67](https://github.com/OpenHCSDev/agent-comms/pull/67),
+pinned here at `73643680262ec810f2baf97a80b4f9593b96f025`. It persists authoritative
+incoming routing by native input ID and exact sent-text digest, including busy
+steering. Human/internal input bindings explicitly override stale turn routing.
+No sender is inferred from `[agent-comms from ...]` text.
+
+The new `native_input_attribution_pilot.py` checks mounted live/replay FROM/TO
+parity, incoming body/copy text, human quoted-header controls, and IN/OUT
+filtering. It covers fresh input bindings and historical repair from existing
+native-ID disposition receipts; repair does not acknowledge delivery.
+
+Historical repair is preview-only unless explicitly applied, and missing
+receipts remain unattributed. No live history repair or owner restart has been
+performed. This draft depends on the published core branch until #67 merges.
+
+Integration includes Toad main `2b9a55d` and its goal snapshot/editor and input
+delivery changes. The core pin includes their required owner contracts. Core
+local validation passed 1,419 tests with 46 skips in 32.15 seconds using xdist,
+with 88.81% coverage; no CI wait is required for this workflow.
+
+Installed-pin validation: 22 independent pilot scripts passed with up to four
+processes in 77.89 seconds, covering attribution, activity/context/dividers,
+native message parts, transcript parsing/history, filters, sidebar layout,
+goal editing/polling/history, input delivery, tool diffs, and broad Comms.
+The drag-resize pilot separately exited zero in 7.78 seconds with isolated
+stdio (the captured-output harness had retained a pipe after successful exit).
+The three formatting/attribution pilots passed again after import cleanup.
+Targeted Ruff and Python 3.14 mypy for the two pure presentation modules pass.
 
 ## Further cleanup
 
