@@ -28,12 +28,13 @@ class IncomingMessage(CategorizedBlock, VerticalGroup):
         return MessageCategory.INBOUND
 
     def __init__(self, sender: str, text: str, target: str | None = None,
-                 *, show_header: bool = True) -> None:
+                 *, show_header: bool = True, sequence: int | None = None) -> None:
         super().__init__()
         self.sender = sender
         self.text = text
         self.target = target
         self.show_header = show_header
+        self.sequence = sequence
 
     def compose(self) -> ComposeResult:
         from toad.widgets.agent_response import AgentResponse

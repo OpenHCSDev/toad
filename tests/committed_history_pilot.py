@@ -29,6 +29,13 @@ class SnapshotAgent(Agent):
     async def get_goal(self):
         return None
 
+    async def get_goal_snapshot(self):
+        return None, None
+
+    async def get_input_delivery(self, **kwargs):
+        return {"inputs": [], "historicalCount": 0, "dismissedHistoricalCount": 0,
+                "historicalInputs": []}
+
     async def get_transcript_page(self, **kwargs):
         assert self.ready, "Compaction must wait for session metadata"
         return self.page
