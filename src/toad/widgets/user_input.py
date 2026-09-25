@@ -14,14 +14,16 @@ class UserInput(CategorizedBlock, containers.VerticalGroup):
     def message_category(self) -> MessageCategory:
         return MessageCategory.USER
 
-    def __init__(self, content: str) -> None:
+    def __init__(self, content: str, *, show_divider: bool = True) -> None:
         super().__init__()
         self.content = content
+        self.show_divider = show_divider
 
     def compose(self) -> ComposeResult:
-        yield MessageDivider("User")
+        if self.show_divider:
+            yield MessageDivider("User")
         with containers.HorizontalGroup(classes="user-input-body"):
-            yield NonSelectableLabel("❯", id="prompt")
+            yield NonSelectableLabel("❯" if self.show_divider else " ", id="prompt")
             yield ConversationMarkdown(self.content, id="content")
 
     def get_block_menu(self) -> Iterable[MenuItem]:

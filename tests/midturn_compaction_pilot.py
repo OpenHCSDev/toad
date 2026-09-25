@@ -77,6 +77,7 @@ async def main():
             aborted = [item for item in view.contents.children
                        if isinstance(item, AgentResponse) and "Compaction aborted" in item.source]
             assert len(aborted) == 1 and view.busy_count == 1
+            assert "Compaction did not complete" in aborted[0].source
             assert "Context estimate unavailable" in str(view.status)
             agent.rpc_session_update("fixture", {
                 "sessionUpdate": "usage_update", "used": 27000, "size": 272000,

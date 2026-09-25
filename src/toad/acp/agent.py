@@ -1482,18 +1482,21 @@ class Agent(AgentBase):
         from agent_comms.operations import wire
 
         comms = wire(self._coordination_root)
-        if action == "retry":
+        if action in {"retry", "set"}:
             from agent_comms.runtime import RuntimeProxy, socket_path
 
             owner = comms.registry.require(self._coordination_thread)
-            goal = owner.goal
-            if goal is None or goal.status != "blocked":
-                raise ValueError("The blocked goal changed; refresh its state.")
             proxy = RuntimeProxy(self, owner.name, socket_path(comms.root, owner.pid))
             try:
-                result = await proxy.request(
-                    "retry_goal", goal_id=goal.id, expected_revision=goal.revision
-                )
+                if action == "retry":
+                    goal = owner.goal
+                    if goal is None or goal.status != "blocked":
+                        raise ValueError("The blocked goal changed; refresh its state.")
+                    result = await proxy.request(
+                        "retry_goal", goal_id=goal.id, expected_revision=goal.revision
+                    )
+                else:
+                    result = await proxy.request("set_goal", text=text)
             except RuntimeError as error:
                 raise ValueError(str(error)) from error
             return Goal(**result["goal"])

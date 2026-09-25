@@ -30,7 +30,7 @@ class AgentResponse(CategorizedBlock, StreamingMarkdown):
         )
         prefix = ((MessageDivider("Outbound" if route is not None else "Agent"),)
                   if show_divider else ())
-        if route is not None:
+        if route is not None and show_divider:
             prefix += (RouteHeader(route),)
         super().__init__(markdown, paginate=paginate, prefix=prefix)
         self.route = route
