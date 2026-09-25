@@ -5,13 +5,12 @@ from __future__ import annotations
 from agent_comms import ThreadView
 from textual.containers import VerticalScroll
 from textual.binding import Binding
-from textual.content import Content
 from textual.reactive import reactive
-from textual.widgets import Static
 
 from toad.session_tracker import SessionDetails
 from toad.widgets.activity_spinner import animated_label
 from toad.widgets.selection import HoverSelection
+from toad.sidebar_preparation import PreparedThreadRow, ThreadRowInput, prepare_thread_row
 
 
 class ThreadStatusRow(HoverSelection):
@@ -56,53 +55,38 @@ class ThreadStatusRow(HoverSelection):
         self.thread_name: str | None = None
         self._spinner_phase = 0
         self._last_wire_input: tuple[ThreadView, int, bool, str | None] | None = None
+        self._thread_presentation: PreparedThreadRow | None = None
 
     def advance_spinner(self, phase: int) -> None:
         if self._spinner_phase == phase or not self.has_class("-busy"):
             return
         self._spinner_phase = phase
-        if self._last_wire_input is not None:
-            person, unread, pinned, action_status = self._last_wire_input
-            self.update_thread(person, unread=unread, pinned=pinned, action_status=action_status)
+        if self._thread_presentation is not None:
+            self.apply_thread_preparation(self._thread_presentation)
 
     def update_thread(
         self, person: ThreadView, *, unread: int = 0, pinned: bool = False,
         action_status: str | None = None,
     ) -> None:
-        self._last_wire_input = (person, unread, pinned, action_status)
-        self.thread_name = person.thread.name
-        presentation = person.presentation
-        summary, busy = presentation.summary, presentation.busy
-        if action_status is not None:
-            summary, busy = action_status, True
-        # Put the count before the title so long thread names cannot clip it.
-        badge = f"({unread}) " if unread else ""
-        content = Content.assemble(
-            (badge, "bold $accent"),
-            f"{'* ' if pinned else ''}"
-            f"{animated_label(presentation.label, busy=presentation.busy, phase=self._spinner_phase)}"
-            f"\n  {summary}",
-        )
-        tooltip = "\n".join(
-            str(value)
-            for value in (
-                person.thread.name,
-                summary,
-                "Pinned in this channel" if pinned else None,
-                person.runtime.model if person.runtime else person.thread.model,
-            )
-            if value
-        )
-        signature = (content.plain, tooltip, busy)
+        # Compatibility for direct callers; mounted bar reconciliation supplies
+        # the same declaration's worker-prepared result instead.
+        self.apply_thread_preparation(prepare_thread_row(ThreadRowInput(person, unread, pinned, action_status)))
+
+    def apply_thread_preparation(self, prepared: PreparedThreadRow) -> None:
+        self._thread_presentation = prepared
+        source = prepared.source
+        self._last_wire_input = (source.person, source.unread, source.pinned, source.action_status)
+        self.thread_name = source.person.thread.name
+        signature = (prepared.signature, self._spinner_phase % len(prepared.frames))
         if signature == self._thread_signature:
             return
         self._thread_signature = signature
         self.add_class("-wire-thread")
-        self.set_class(busy, "-busy")
-        self.set_class(bool(unread), "-unread")
+        self.set_class(prepared.busy, "-busy")
+        self.set_class(bool(source.unread), "-unread")
         self.remove_class("-asking")
-        self.tooltip = Content(tooltip)
-        self.update(content, layout=False)
+        self.tooltip = prepared.tooltip
+        self.update(prepared.content(self._spinner_phase), layout=False)
 
 
 class SessionRow(ThreadStatusRow):

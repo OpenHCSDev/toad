@@ -126,7 +126,9 @@ async def main():
             tail._loading = False
             tail.older.action_earlier()
             async with asyncio.timeout(5):
-                while tail._loading or not calls:
+                # A lookahead read may finish before the explicit UI action.
+                # Wait for publication, not merely for source I/O to occur.
+                while tail._filter_overlay is None or tail._filter_scanning:
                     await pilot.pause(.02)
             assert calls[0]["before"] == page_cursor
             assert tail._filter_overlay is not None

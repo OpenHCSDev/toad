@@ -35,11 +35,14 @@ def main():
     parser.add_argument("--trace", type=Path, required=True)
     parser.add_argument("--actions", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
+    parser.add_argument("--sampling-errors", type=int)
+    parser.add_argument("--duration-seconds", type=int)
     args = parser.parse_args()
     profile = json.loads(args.profile.read_text())
     trace = json.loads(args.trace.read_text())
     workload = json.loads(args.actions.read_text())
     assert workload["completed"]
+    gil_only = workload.get("profile_gil_only", False)
     frames = profile["shared"]["frames"]
     for frame in frames:
         if "file" in frame:
@@ -66,7 +69,7 @@ def main():
         matching = [e for e in trace if e["ns"] >= action["start_ns"]
                     and e.get("begin_ns", e["ns"]) <= action["end_ns"]]
         counts = Counter()
-        for a, b, stack in samples:
+        for a, b, stack in (() if gil_only else samples):
             weight = max(0, min(b, end) - max(a, start))
             if weight:
                 for identity in {(frames[i].get("file", ""), frames[i]["name"]) for i in stack}:
@@ -84,10 +87,15 @@ def main():
                             if name not in roots][:20]})
     output = {"completed": True, "actions": len(actions), "cells": workload["snapshots"][0]["size"],
               "pixels": workload.get("pixels"), "display": "isolated Xvfb",
-              "sample_rate_hz": 100, "idle_included": True, "profile_seconds": clock,
+              "sample_rate_hz": workload.get("profile_rate_hz", 100), "idle_included": not gil_only,
+              "gil_only": gil_only,
+              "profile_duration_requested_seconds": args.duration_seconds or workload.get("profile_duration_s"),
+              "main_sample_weight_seconds": clock, "sampling_errors": args.sampling_errors,
               "sample_count": sum(len(p["samples"]) for p in profile["profiles"]),
               "sha256_gzip": hashlib.sha256(artifact.read_bytes()).hexdigest(),
-              "alignment": "Approximate sample alignment from profiler launch; attach offset not measured. Observer timings are monotonic wall spans, not pixels. Inclusive samples overlap.",
+              "alignment": ("GIL-only sample weights are not a wall-clock timeline; per-action sampled attribution is disabled. "
+                            if gil_only else "Approximate sample alignment from profiler launch; attach offset not measured. ")
+                           + "Observer timings are monotonic wall spans, not pixels. Inclusive samples overlap.",
               "per_action": details}
     (destination / "actions.json").write_text(json.dumps(output, indent=2) + "\n")
     print({key: value for key, value in output.items() if key != "per_action"})

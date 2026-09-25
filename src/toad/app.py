@@ -332,7 +332,10 @@ class ToadApp(App, inherit_bindings=False):
             agent: Agent identity or shor name.
             renderer: Optional renderer client; this app owns and closes it.
         """
-        self.render_processes: Renderer = create_renderer() if renderer is None else renderer
+        from toad.work_preparation import PreparationRuntime, PreparedRenderer
+
+        self.preparation = PreparationRuntime(create_renderer() if renderer is None else renderer)
+        self.render_processes: Renderer = PreparedRenderer(self.preparation)
         self._renderer_warmup_started = False
         self.background_render_slots = asyncio.Semaphore(1)
         self._background_render_tasks: set[asyncio.Task[object]] = set()

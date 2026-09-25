@@ -32,7 +32,7 @@ from textual.css.query import NoMatches
 from textual.widget import Widget
 from textual.widgets import Static
 from textual.widgets.markdown import MarkdownBlock, MarkdownFence
-from textual.geometry import Offset, Spacing, Region
+from textual.geometry import Offset, Region
 from textual.reactive import var
 from textual.layouts.grid import GridLayout
 from textual.layout import WidgetPlacement
@@ -60,7 +60,7 @@ from toad.widgets.goal_bar import GoalBar, GoalControl
 from toad.widgets.input_delivery import InputDeliveryBar, InputDeliveryDetails, empty_delivery
 from toad.widgets.user_input import UserInput
 from toad.widgets.history_anchor import HistoryWindow
-from toad.widgets.message_filter import ALL_CATEGORIES, IN_OUT_CATEGORIES, MESSAGE_CATEGORIES, MessageCategory
+from toad.widgets.message_filter import ALL_CATEGORIES, IN_OUT_CATEGORIES, MessageCategory
 from toad.layout import trim_trailing_margin
 from toad.shell import Shell, CurrentWorkingDirectoryChanged
 from toad.slash_command import SlashCommand
@@ -303,12 +303,14 @@ class Contents(containers.VerticalGroup, can_focus=False):
     BLANK = True
 
     def mount(self, *widgets, **kwargs):
-        from toad.widgets.message_filter import block_category, keep_live_block
+        from toad.widgets.message_filter import apply_block_filter, block_category, keep_live_block
 
+        selected = self.query_ancestor(Conversation).visible_categories if self.is_attached else ALL_CATEGORIES
         for widget in widgets:
             widget.set_class(not keep_live_block(widget), "-unrouted")
             if category := block_category(widget):
                 widget.add_class(f"-message-{category.value}")
+            apply_block_filter(widget, selected)
         return super().mount(*widgets, **kwargs)
 
     def process_layout(
@@ -367,24 +369,9 @@ class Conversation(containers.Vertical):
 
     BLANK = True
     DEFAULT_CSS = """
-    Conversation.-hide-user #contents > .-message-user,
-    Conversation.-hide-user #contents > TranscriptHistory > TranscriptPageView > TranscriptFragmentView.-message-user,
-    Conversation.-hide-agent #contents > .-message-agent,
-    Conversation.-hide-agent #contents > TranscriptHistory > TranscriptPageView > TranscriptFragmentView.-message-agent,
-    Conversation.-hide-inbound #contents > .-message-inbound,
-    Conversation.-hide-inbound #contents > TranscriptHistory > TranscriptPageView > TranscriptFragmentView.-message-inbound,
-    Conversation.-hide-outbound #contents > .-message-outbound,
-    Conversation.-hide-outbound #contents > TranscriptHistory > TranscriptPageView > TranscriptFragmentView.-message-outbound,
-    Conversation.-hide-thinking #contents > .-message-thinking,
-    Conversation.-hide-thinking #contents > TranscriptHistory > TranscriptPageView > TranscriptFragmentView.-message-thinking,
-    Conversation.-hide-tool #contents > .-message-tool,
-    Conversation.-hide-tool #contents > TranscriptHistory > TranscriptPageView > TranscriptFragmentView.-message-tool,
-    Conversation.-hide-other #contents > .-message-other,
-    Conversation.-hide-other #contents > TranscriptHistory > TranscriptPageView > TranscriptFragmentView.-message-other {
+    Conversation .-category-hidden {
         display: none;
     }
-    Conversation #contents > TranscriptHistory > .filtered-history-results { display: none; }
-    Conversation.-filter-active #contents > TranscriptHistory > .filtered-history-results { display: block; }
     """
     BINDING_GROUP_TITLE = "Conversation"
     CURSOR_BINDING_GROUP = Binding.Group(description="Cursor")
@@ -478,6 +465,8 @@ class Conversation(containers.Vertical):
     def watch_visible_categories(
         self, previous: frozenset[MessageCategory], selected: frozenset[MessageCategory],
     ) -> None:
+        from toad.widgets.message_filter import apply_block_filter
+
         window = self.window
         if not hasattr(self, "_filter_scroll_positions"):
             self._filter_scroll_positions = {}
@@ -485,9 +474,8 @@ class Conversation(containers.Vertical):
         position = self._filter_scroll_positions.get(selected, (window.scroll_y, window.follows_tail))
         self.cursor_offset = -1
         self.screen.clear_selection()
-        self.set_class(selected != ALL_CATEGORIES, "-filter-active")
-        for category in MESSAGE_CATEGORIES:
-            self.set_class(category not in selected, f"-hide-{category.value}")
+        for block in self.contents.children:
+            apply_block_filter(block, selected)
         for history in tuple(window.histories):
             history.filter_changed()
         revision = window.scroll_revision

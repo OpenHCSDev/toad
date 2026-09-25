@@ -24,6 +24,13 @@ class SidebarVisibilityObserver:
         raise NotImplementedError
 
 
+class SidebarFocusOwner:
+    """A screen declares its return target before a focused pane is hidden."""
+
+    def sidebar_focus_target(self) -> Widget | None:
+        raise NotImplementedError
+
+
 class SideBarCollapsible(widgets.Collapsible, inherit_css=False):
     # Selection is drawn on the focused row. Inheriting Collapsible's container
     # focus-within tint would restyle the entire channel tree on pointer entry.
@@ -683,7 +690,11 @@ class SideBar(containers.Vertical):
                     and bar.id in app.sidebar_layout.placements}
         other = next((bar for bar in siblings.values() if bar is not self), None)
         peer = app.sidebar_layout.get(other.id) if other is not None else None
-        viewport = parent.size.width or app.size.width
+        # Applying intent invalidates geometry. A fresh region lookup here can
+        # synchronously lay out the entire transcript before the queued frame.
+        # Use the parent's native committed extent; resize commits reapply this
+        # model through the ordinary resize notification path.
+        viewport = parent.outer_size.region.shrink(parent.styles.gutter).width or app.size.width
         resolved = app.sidebar_layout.resolve(viewport, {key: bar.collapsed for key, bar in siblings.items()})
         geometry = resolved.bars[self.id]
         width = geometry.width
@@ -837,6 +848,14 @@ class SideBar(containers.Vertical):
 
     def toggle(self, *, focus: bool = True) -> None:
         collapsed = not self.collapsed
+        return_focus = collapsed and (focus or self.has_focus_within)
+        if return_focus and self.is_mounted and self.screen.is_current:
+            screen = self.screen
+            if isinstance(screen, SidebarFocusOwner):
+                target = screen.sidebar_focus_target()
+                # Native Hide otherwise reconstructs a full geometry-sorted
+                # focus chain before the queued Dismiss can return to input.
+                screen.set_focus(target, scroll_visible=False)
         if self._navigation is None:
             app = cast("ToadApp", self.app)
             app.settings.set("sidebar.hide", collapsed)
@@ -846,7 +865,7 @@ class SideBar(containers.Vertical):
         else:
             self.collapsed = collapsed
         if collapsed:
-            if focus or self.has_focus_within:
+            if return_focus:
                 self.post_message(self.Dismiss())
         elif focus:
             # Panels are already displayed by the synchronous watcher. Queue

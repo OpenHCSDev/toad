@@ -4,7 +4,7 @@ import asyncio
 import os
 from pathlib import Path
 import tempfile
-from unittest.mock import patch
+from unittest.mock import PropertyMock, patch
 
 from runtime_fixture import ToadApp
 from toad.widgets.footer import Footer
@@ -48,8 +48,10 @@ async def main():
                 title = bar.query_one("SideBarCollapsible CollapsibleTitle")
                 assert app.focused is title
                 # Closing while focus is inside the pane returns it to input.
-                assert await pilot.click(toggle)
-                await pilot.pause()
+                with patch.object(type(app.screen), "focus_chain", new_callable=PropertyMock,
+                                  side_effect=AssertionError("Hidden pane rebuilt the full focus chain")):
+                    assert await pilot.click(toggle)
+                    await pilot.pause()
                 assert bar.collapsed and app.focused is prompt
             assert app._exception is None
         await asyncio.get_running_loop().shutdown_default_executor()

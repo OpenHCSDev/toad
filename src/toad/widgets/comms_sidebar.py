@@ -42,6 +42,7 @@ from agent_comms.operations import wire
 from toad import messages
 from toad.constants import ALL_COMMS_TARGET
 from toad.session_tracker import SessionDetails, SidebarSelection, SidebarState
+from toad.sidebar_preparation import ThreadRowInput, ThreadRowsWork
 from toad.widgets.session_sidebar import ThreadStatusRow
 from toad.widgets.session_sort import ChannelListSort, SessionSort
 from toad.widgets.virtual_channel_list import VirtualChannelList, VirtualChoice, styled_row
@@ -140,6 +141,19 @@ class ChannelGroup(SidebarGroup):
                            if name in self._snapshot.all_people) if self.expanded else ()
             app = cast("ToadApp", self.app)
             modes = {name: mode for mode, name in self._snapshot.session_threads.items()}
+            view, snapshot = self._view, self._snapshot
+            inputs = tuple(ThreadRowInput(
+                snapshot.all_people[name],
+                unread=(snapshot.wire.thread_unread.get(name, 0)
+                        if CommsSidebar._person_kind(snapshot.all_people[name]) == "thread"
+                        else snapshot.wire.unread.get(name, 0)),
+                pinned=name in view.pinned_members,
+                action_status=app.pending_thread_actions.get(name),
+            ) for name in wanted)
+            results = await app.preparation.submit(ThreadRowsWork(inputs)) if inputs else ()
+            if not self.is_attached or self._view is not view or self._snapshot is not snapshot:
+                return
+            prepared_rows = dict(zip(wanted, results))
 
             def create(name):
                 person = self._snapshot.all_people[name]
@@ -150,14 +164,7 @@ class ChannelGroup(SidebarGroup):
                 # views changes navigation, not its content widget or geometry.
                 row.mode_name = modes.get(name)
                 row.kind = CommsSidebar._person_kind(self._snapshot.all_people[name])
-                row.update_thread(
-                    self._snapshot.all_people[name],
-                    unread=(self._snapshot.wire.thread_unread.get(name, 0)
-                            if CommsSidebar._person_kind(self._snapshot.all_people[name]) == "thread"
-                            else self._snapshot.wire.unread.get(name, 0)),
-                    pinned=name in self._view.pinned_members,
-                    action_status=app.pending_thread_actions.get(name),
-                )
+                row.apply_thread_preparation(prepared_rows[name])
                 row.current = row.mode_name == app.current_mode
 
             self.member_rows = await self.reconcile_rows(

@@ -481,6 +481,10 @@ class MainScreen(SessionView, can_focus=False):
     def action_focus_prompt(self) -> None:
         self.conversation.focus_prompt()
 
+    def sidebar_focus_target(self) -> Widget | None:
+        target = self.conversation.prompt.prompt_text_area
+        return target if target.focusable else None
+
     async def action_go_home(self) -> None:
         await self.app.switch_mode("store")
 

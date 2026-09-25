@@ -12,6 +12,7 @@ from textual.dom import DOMNode
 from textual.geometry import Size
 from textual.screen import Screen
 from textual.widget import Widget
+from toad.widgets.side_bar import SidebarFocusOwner
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
@@ -28,11 +29,15 @@ class ViewStyleRevision:
     css_generation: int
 
 
-class SessionView(Screen):
+class SessionView(SidebarFocusOwner, Screen):
     _resume_style: ViewStyleRevision | None = None
     _navigation_applied = False
     _navigation_changed = False
     _resume_styles_changed = False
+
+    def sidebar_focus_target(self) -> Widget | None:
+        # Provisional/loading screens have no input yet.
+        return None
 
     def on_resize(self, _event: Resize) -> None:
         from toad.widgets.side_bar import SideBar
@@ -226,7 +231,7 @@ class SessionView(Screen):
                 sidebar.navigation_ready.set()
             return
         sizes = {
-            widget: widget.size
+            widget: widget.outer_size
             for widget in sidebar.query_ancestor(SideBar).walk_children(Widget)
         } if sidebar is not None else {}
         self._refresh_layout(self.app.size)
@@ -235,7 +240,7 @@ class SessionView(Screen):
                 self._refresh_layout(self.app.size, scroll=True)
             # Reflow exposes rows and queues their Resize/Show handlers. Let
             # those handlers invalidate measurements before committing a frame.
-            resized = [widget for widget, size in sizes.items() if widget.size != size]
+            resized = [widget for widget, size in sizes.items() if widget.outer_size != size]
             if resized:
                 await asyncio.gather(*(self._settle_widget(widget) for widget in resized))
                 self._refresh_layout(self.app.size)

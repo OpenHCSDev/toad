@@ -7,6 +7,7 @@ from textual.binding import Binding
 from textual.events import ScreenResume
 from textual.screen import Screen
 from textual.widgets import Static
+from textual.widget import Widget
 from toad.widgets.footer import Footer
 
 from toad import messages
@@ -187,6 +188,12 @@ class CommsScreen(SessionView, can_focus=False):
     def action_focus_prompt(self) -> None:
         if chat := self.query_one_optional(CommsChatView):
             chat.prepare_prompt()
+
+    def sidebar_focus_target(self) -> Widget | None:
+        if chat := self.query_one_optional(CommsChatView):
+            target = chat.prompt.prompt_text_area
+            return target if target.focusable else None
+        return None
 
     def action_show_sidebar(self) -> None:
         sidebar = self.query_one(SideBar)

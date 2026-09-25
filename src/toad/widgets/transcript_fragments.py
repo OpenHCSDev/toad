@@ -34,13 +34,14 @@ def _fragment_parser() -> MarkdownIt:
 
 async def prepare_transcript_fragments(
     events: tuple[TranscriptEvent, ...], pool: "Renderer | None" = None,
+    *, background: bool = False,
 ) -> tuple["TranscriptFragment", ...]:
     """Prepare plain model data; never send widgets or application state to workers.
 
     Standalone Textual apps may not own a pool. Their large requests own and close
     a temporary pool, including on cancellation; there is no hidden global pool.
     """
-    if (len(events) <= FOREGROUND_EVENT_BUDGET
+    if (not background and len(events) <= FOREGROUND_EVENT_BUDGET
             and sum(len(event.text) for event in events) <= FOREGROUND_CHARACTER_BUDGET):
         return transcript_fragments(events)
     from toad.render_tasks import TranscriptRenderTask
