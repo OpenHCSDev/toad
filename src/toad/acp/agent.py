@@ -200,6 +200,7 @@ class Agent(AgentBase):
 
         self._token_usage: TokenUsage | None = None
         self._context_usage: ContextUsage | None = None
+        self._context_usage_saved = False
         self._model_config_id: str | None = None
         self._thinking_config_id: str | None = None
         self.current_thinking_level: str | None = None
@@ -505,6 +506,7 @@ class Agent(AgentBase):
                     self.post_message(messages.SessionInfoUpdate(title))
 
             case {"sessionUpdate": "usage_update", "used": used, "size": size}:
+                self._context_usage_saved = False
                 # Pi can report zero immediately after compaction or while a
                 # turn has not yet returned authoritative usage. A saved
                 # conversation still has context; presenting 0.0K (0.0%)
@@ -536,6 +538,8 @@ class Agent(AgentBase):
                     ")",
                 )
             )
+            if self._context_usage_saved:
+                status.append(Content("last response"))
             if (cost := usage.cost) is not None:
                 status.append(Content.assemble((f"{cost}", "bold")))
 
@@ -1273,6 +1277,20 @@ class Agent(AgentBase):
         wire_root = coordination.get("wireRoot")
         if not isinstance(thread, str) or not isinstance(wire_root, str):
             return
+        if "contextUsage" in coordination:
+            saved = coordination["contextUsage"]
+            if (
+                isinstance(saved, dict)
+                and isinstance(saved.get("used"), int) and saved["used"] > 0
+                and isinstance(saved.get("size"), int) and saved["size"] > 0
+            ):
+                self._context_usage = ContextUsage(saved["used"], saved["size"])
+                self._context_usage_saved = True
+                self.update_status_line()
+            else:
+                self._context_usage = None
+                self._context_usage_saved = False
+                self.post_message(messages.UpdateStatusLine(Content("Context estimate unavailable")))
         self._coordination_thread = thread
         self._coordination_root = wire_root
         if isinstance(worktree := coordination.get("worktree"), str):
