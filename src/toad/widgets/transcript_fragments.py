@@ -8,6 +8,9 @@ from threading import local
 from agent_comms import TranscriptEvent
 from markdown_it import MarkdownIt
 
+from toad.widgets.agent_activity import AgentActivityBoundary
+from toad.widgets.message_filter import event_category
+
 if TYPE_CHECKING:
     from toad.render_backend import Renderer
 
@@ -144,27 +147,34 @@ class RenderBudget:
 class TranscriptFragment:
     events: tuple[TranscriptEvent, ...]
     continuation: bool = False
+    starts_agent_activity: bool = False
 
 
 def transcript_fragments(events: tuple[TranscriptEvent, ...]) -> tuple[TranscriptFragment, ...]:
     fragments: list[TranscriptFragment] = []
     tools: dict[str, int] = {}
     budget = RenderBudget()
+    boundary = AgentActivityBoundary()
     for event in events:
         if event.kind == "context":
             # A single lazy disclosure owns the full metadata source. Its body
             # uses normal bounded Markdown paging only when the user opens it.
             fragments.append(TranscriptFragment((event,)))
         elif event.kind in {"user", "assistant", "thinking", "notice", "sent"}:
+            starts_activity = (boundary.observe(event_category(event))
+                               if event.kind != "thinking" or event.text.strip() else False)
             fragments.extend(
-                TranscriptFragment((replace(event, text=part),), continuation=index > 0)
+                TranscriptFragment((replace(event, text=part),), continuation=index > 0,
+                                   starts_agent_activity=starts_activity and index == 0)
                 for index, part in enumerate(budget.split(event.text))
             )
         elif event.kind in {"tool_start", "tool_end"}:
             if event.tool_call_id in tools:
                 index = tools[event.tool_call_id]
-                fragments[index] = TranscriptFragment((*fragments[index].events, event))
+                fragments[index] = replace(fragments[index], events=(*fragments[index].events, event))
             else:
                 tools[event.tool_call_id] = len(fragments)
-                fragments.append(TranscriptFragment((event,)))
+                fragments.append(TranscriptFragment(
+                    (event,), starts_agent_activity=boundary.observe(event_category(event)),
+                ))
     return tuple(fragments)

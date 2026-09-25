@@ -1,20 +1,30 @@
 """Only owner-identified context is collapsed; its Markdown remains inspectable."""
 
 import asyncio
+import json
 import os
-from pathlib import Path
 import tempfile
+from pathlib import Path
 
 from agent_comms import TranscriptEvent
 from runtime_fixture import ToadApp
 from textual.widgets import Collapsible
-from textual.widgets._markdown import MarkdownBulletList, MarkdownFence, MarkdownParagraph
+from textual.widgets._markdown import (
+    MarkdownBulletList,
+    MarkdownFence,
+    MarkdownParagraph,
+)
+
 from toad.acp.agent import Agent
+from toad.coordination_context_format import format_coordination_context
 from toad.widgets.agent_response import AgentResponse
+from toad.widgets.coordination_context import (
+    CoordinationContext,
+    OriginalCoordinationContext,
+)
 from toad.widgets.message_divider import MessageDivider
 from toad.widgets.transcript_fragments import transcript_fragments
 from toad.widgets.user_input import UserInput
-
 
 CONTEXT = ("Coordination context: **owner identity**\n\n"
            "- First instruction\n- Second instruction\n\n"
@@ -22,6 +32,12 @@ CONTEXT = ("Coordination context: **owner identity**\n\n"
 
 
 async def main():
+    structured = json.dumps({"identity": {"thread": "owner"}, "rules": ["First", "Second"]})
+    assert "**Identity:**" in format_coordination_context(structured)
+    assert "**Thread:** owner" in format_coordination_context(structured)
+    assert "- First" in format_coordination_context(structured)
+    for unchanged in (CONTEXT, '{"thread":"first","thread":"second"}', "Peer state: [broken"):
+        assert format_coordination_context(unchanged) == unchanged
     with tempfile.TemporaryDirectory(prefix="toad-owner-context-", dir="/var/tmp") as directory:
         root = Path(directory)
         os.environ.update(XDG_CONFIG_HOME=str(root / "config"),
@@ -71,9 +87,37 @@ async def main():
             disclosure.collapsed = False
             await pilot.pause()
             assert len(disclosure.query(AgentResponse)) == 1
+
+            raw = ("Coordination context: you are thread 'owner'; parent=None. Keep the supplied instructions. "
+                   "Peer state: " + json.dumps([
+                       {"name": "peer-a", "status": "running", "activity": "working", "activity_detail": "Read | review"},
+                       {"name": "peer-b", "status": "stopped", "activity": "idle", "activity_detail": "Done"},
+                   ]) + "\n\nReview the changes.")
+            readable = await view.post(CoordinationContext(raw))
+            await pilot.pause()
+            assert readable.collapsed and not readable.query(AgentResponse)
+            readable.expand_block()
+            async with asyncio.timeout(5):
+                while not readable.query("MarkdownTable"):
+                    await pilot.pause(.02)
+            body = readable.query(AgentResponse).first()
+            assert "## Peers" in body.source and "## Task context" in body.source
+            assert "| Thread | Status | Activity | Details |" in body.source
+            assert "Read \\| review" in body.source
+            assert "Review the changes." in body.source
+            assert readable.get_block_content("clipboard") == raw
+            original = readable.query_one(OriginalCoordinationContext)
+            assert original.collapsed and not original.query(AgentResponse)
+            original.collapsed = False
+            async with asyncio.timeout(5):
+                while not original.query(MarkdownFence):
+                    await pilot.pause(.02)
+            assert original.query_one(MarkdownFence).code.rstrip("\n") == raw
+            assert original.get_block_content("clipboard") == raw
+            assert not readable.query(MessageDivider)
             assert app._exception is None
         await asyncio.get_running_loop().shutdown_default_executor()
-    print("owner context: collapsed and lazy, full Markdown on expansion, literal user quotes preserved")
+    print("owner context: lazy readable JSON/peer sections, original payload/copy, Markdown and user quotes preserved")
 
 
 if __name__ == "__main__":

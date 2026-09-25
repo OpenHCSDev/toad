@@ -99,13 +99,13 @@ The Sidebar contains additonal information associated with the conversation.
 
 
 class SideBarToggle(widgets.Static):
-    """Full-height pointer target in the sidebar's left gutter."""
+    """Full-height collapse target beside the conversation-facing resize edge."""
 
     ALLOW_SELECT = False
 
     DEFAULT_CSS = """
     SideBarToggle {
-        dock: left;
+        dock: right;
         width: 3;
         height: 1fr;
         content-align: center middle;
@@ -152,6 +152,8 @@ class SideBarToggle(widgets.Static):
         self.set_collapsed(collapsed)
 
     def set_collapsed(self, collapsed: bool) -> None:
+        self.styles.dock = "left" if self.right else "right"
+        self.offset = (0 if collapsed else 1 if self.right else -1, 0)
         text = ("<" if collapsed else ">") if self.right else (">" if collapsed else "<")
         if self.content != text:
             self.update(text, layout=False)
@@ -548,7 +550,7 @@ class SideBar(containers.Vertical):
     SideBar > #sidebar-panels {
         width: 1fr;
         height: 1fr;
-        margin: 0 1 0 3;
+        margin: 0 4 0 0;
         layer: sidebar-content;
         overflow: auto auto;
         scrollbar-size: 1 1;
@@ -557,7 +559,7 @@ class SideBar(containers.Vertical):
     SideBar > #sidebar-controls {
         width: 1fr;
         height: 2;
-        margin: 0 1 0 3;
+        margin: 0 4 0 0;
         layer: sidebar-content;
         background: $background;
     }
@@ -573,9 +575,9 @@ class SideBar(containers.Vertical):
         border-right: none;
         border-left: none;
     }
-    SideBar.-right > SideBarToggle { dock: right; }
+    SideBar.-right > SideBarToggle { dock: left; }
     SideBar.-right > SidebarResizeHandle { dock: left; }
-    SideBar.-right > #sidebar-panels, SideBar.-right > #sidebar-controls { margin: 0 3 0 1; }
+    SideBar.-right > #sidebar-panels, SideBar.-right > #sidebar-controls { margin: 0 0 0 4; }
     """
 
     collapsed = reactive(False)
