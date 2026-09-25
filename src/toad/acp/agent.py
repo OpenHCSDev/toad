@@ -1419,6 +1419,10 @@ class Agent(AgentBase):
                 error.message or f"{self._agent_data['name']} returned an error",
             )
 
+            user_text = (metadata or {}).get("agentComms", {}).get("userText")
+            if isinstance(user_text, str) and user_text:
+                self.post_message(messages.InputFailed(user_text, details))
+
             self.post_message(
                 AgentFail(
                     "Failed to send prompt",
@@ -1428,6 +1432,9 @@ class Agent(AgentBase):
             )
             return None
         except jsonrpc.JSONRPCError as error:
+            user_text = (metadata or {}).get("agentComms", {}).get("userText")
+            if isinstance(user_text, str) and user_text:
+                self.post_message(messages.InputFailed(user_text, error.message or "Connection failed"))
             self.post_message(
                 AgentFail(
                     "Failed to send prompt",

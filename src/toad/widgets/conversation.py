@@ -1575,11 +1575,15 @@ class Conversation(containers.Vertical):
 
     @on(acp_messages.InputFailed)
     def on_input_failed(self, message: acp_messages.InputFailed) -> None:
-        """Restore a prompt rejected before Pi's authoritative user start."""
+        """Recover draft text without claiming delivery or resending it."""
         message.stop()
-        if message.text and message.text not in self.prompt.text.split("\n\n"):
+        if message.text and not (
+            self.prompt.text == message.text
+            or self.prompt.text.endswith("\n\n" + message.text)
+        ):
             self.prompt.text = "\n\n".join(filter(None, [self.prompt.text, message.text]))
-        self.flash(f"Message not sent: {message.reason}", style="error")
+        self.delivering_prompt = ""
+        self.flash(f"Delivery unconfirmed; text restored: {message.reason}", style="error")
 
     @on(acp_messages.TranscriptSnapshot)
     async def on_transcript_snapshot(self, message: acp_messages.TranscriptSnapshot):
