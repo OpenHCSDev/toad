@@ -9,7 +9,7 @@ from textual import getters
 from textual.binding import Binding
 from textual.command import Hit, Hits, Provider, DiscoveryHit
 from textual.content import Content
-from textual.events import Resize, ScreenResume
+from textual.events import ScreenResume
 from textual.screen import Screen
 from toad.screens.session_view import SessionView
 from textual.reactive import var, reactive
@@ -38,7 +38,6 @@ from toad.widgets.comms_chat import resolve_session_thread, session_thread_name
 from toad.widgets.comms_fork_dialog import ForkDialog
 from toad.widgets.comms_sidebar import CoordinationStatus, CommsSidebar, SelectTarget
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, TabHistoryControls
-from toad.widgets.session_sort import ChannelListSort
 from toad.widgets.session_tabs import SessionsTabs
 from toad.widgets.footer import Footer
 from toad.session_tracker import SidebarState
@@ -184,20 +183,14 @@ class MainScreen(SessionView, can_focus=False):
             self.call_after_refresh(self._project_panel.refresh_if_visible)
 
     def compose(self) -> ComposeResult:
+        from toad.widgets.channels_sidebar import ChannelsSidebar
+
         self._project_panel = ProjectPanel(self.project_path)
         with containers.Horizontal(id="tab-navigation-header"):
             yield TabHistoryControls()
             yield SessionsTabs()
         with containers.Center():
-            yield SideBar(
-                SideBar.Panel(
-                    "Channels",
-                    CommsSidebar(session_thread=self._comms_thread),
-                    flex=True,
-                    header_control=ChannelListSort(),
-                ),
-                id="channels-sidebar",
-            )
+            yield ChannelsSidebar(self._comms_thread)
             yield SideBar(
                 SideBar.Panel("Thread", CoordinationStatus(self._comms_thread), id="coordination-panel"),
                 SideBar.Panel("Comms", ThreadCommsSidebar(
@@ -465,12 +458,6 @@ class MainScreen(SessionView, can_focus=False):
             tree.data_bind(path=MainScreen.project_path)
         for tree in self.query(DirectoryTree):
             tree.guide_depth = 3
-
-    def on_resize(self, _event: Resize) -> None:
-        for sidebar in self.query(SideBar):
-            sidebar._apply_layout()
-        if sidebar := self.query_one_optional("#channels-sidebar", SideBar):
-            self._align_tabs_with_sidebar(sidebar.collapsed)
 
     def _align_tabs_with_sidebar(self, _collapsed: bool) -> None:
         self.align_tabs_to_sidebars()

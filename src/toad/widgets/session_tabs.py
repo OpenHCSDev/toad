@@ -1,3 +1,4 @@
+import asyncio
 from functools import partial
 from rich.style import Style as RichStyle
 
@@ -133,6 +134,7 @@ class SessionsTabs(Widget):
         super().__init__()
         self._spinner_phase = 0
         self._spinner_timer = None
+        self._sync_lock = asyncio.Lock()
 
     def _sync_spinner(self, tabs: tuple[OpenTab, ...]) -> None:
         timer = self._spinner_timer
@@ -178,6 +180,9 @@ class SessionsTabs(Widget):
     def watch_current_session(self, old_session: str, new_session: str) -> None:
         self.query(".-current").remove_class("-current")
         self.query(f"#{new_session}").add_class("-current")
+        if self.app._atomic_mode_switch:
+            self.call_after_refresh(self.update_underline, new_session, False)
+            return
         if old_session:
             self.update_underline(old_session, animate=False)
 
@@ -243,6 +248,13 @@ class SessionsTabs(Widget):
             await self._sync_tabs()
 
     async def _sync_tabs(self) -> None:
+        # Activation and published metadata can request the same catch-up.
+        # Serialize the mounted projection, reading the newest tabs after the
+        # previous mount completes instead of duplicating IDs or losing updates.
+        async with self._sync_lock:
+            await self._reconcile_tabs()
+
+    async def _reconcile_tabs(self) -> None:
         if not self.is_attached or not self.screen.is_active:
             return
         tabs = self.app.open_tabs
@@ -254,10 +266,14 @@ class SessionsTabs(Widget):
         mode_changed = self.current_session != self.app.current_mode
         labels = {label.id: label for label in self.query(SessionLabel)}
         desired = {tab.mode_name for tab in tabs}
-        for label in labels.values():
-            if label.id not in desired:
-                await self.query(f"#{label.id}, #close-{label.id}").remove()
-                geometry_changed = True
+        obsolete = set(labels) - desired
+        if obsolete:
+            retired_ids = obsolete | {f"close-{identity}" for identity in obsolete}
+            await self.title_container.remove_children(
+                child for child in self.title_container.children if child.id in retired_ids
+            )
+            geometry_changed = True
+        new_widgets: list[Widget] = []
         for tab in tabs:
             content = self.render_session_label(tab)
             if label := labels.get(tab.mode_name):
@@ -271,10 +287,10 @@ class SessionsTabs(Widget):
                     label.update(content, layout=not same_width_count)
                     geometry_changed |= not same_width_count
             else:
-                await self.title_container.mount(
-                    SessionLabel(content, id=tab.mode_name), SessionTabClose(tab.mode_name)
-                )
+                new_widgets.extend((SessionLabel(content, id=tab.mode_name), SessionTabClose(tab.mode_name)))
                 geometry_changed = True
+        if new_widgets:
+            await self.title_container.mount(*new_widgets)
         order = {identity: index for index, identity in enumerate(
             identity for tab in tabs for identity in (tab.mode_name, f"close-{tab.mode_name}")
         )}

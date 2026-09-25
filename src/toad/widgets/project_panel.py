@@ -3,16 +3,17 @@ from __future__ import annotations
 import asyncio
 from pathlib import Path
 
-from rich.syntax import ClassNotFound, Syntax
 from textual import events, work
 from textual.reactive import reactive
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Vertical, VerticalScroll
 from textual.message import Message
-from textual.widgets import Markdown, Static
+from textual.widgets import Static
 
 from toad.widgets.project_directory_tree import ProjectDirectoryTree
+from toad.widgets.prepared_markdown import PreparedConversationMarkdown
+from toad.widgets.worker_static import WorkerStatic
 
 
 class ProjectSearchButton(Static, can_focus=True):
@@ -47,7 +48,7 @@ class ProjectSearchButton(Static, can_focus=True):
 
 
 class ProjectPanel(Vertical):
-    path = reactive(Path, init=False)
+    path: reactive[Path] = reactive(Path, init=False)
     DEFAULT_CSS = """
     ProjectPanel {
         height: 1fr;
@@ -131,38 +132,52 @@ class FilePreview(VerticalScroll):
     def __init__(self, path: Path, *, id: str) -> None:
         super().__init__(id=id)
         self.path = path
+        self._ready = asyncio.Event()
 
-    async def on_mount(self) -> None:
-        await self.mount(Static(str(self.path), classes="file-preview-path"))
+    def compose(self) -> ComposeResult:
+        yield Static(str(self.path), classes="file-preview-path")
+        yield Static("Loading file…", id="file-preview-loading")
+
+    def on_mount(self) -> None:
+        self._load_preview()
+
+    async def wait_ready(self) -> None:
+        await self._ready.wait()
+
+    def on_unmount(self) -> None:
+        self._ready.set()
+
+    @work(group="file-preview-load", exit_on_error=False)
+    async def _load_preview(self) -> None:
         try:
-            data = await asyncio.to_thread(self._read_prefix, self.path, self.MAX_BYTES + 1)
-        except OSError as error:
-            await self.mount(Static(f"Unable to open {self.path}: {error}"))
-            return
-        if len(data) > self.MAX_BYTES:
-            data = data[:self.OVERSIZED_PREVIEW_BYTES]
-            await self.mount(
-                Static(f"{self.path.name} exceeds 1 MiB; showing only the first 64 KiB.")
-            )
-        if b"\0" in data:
-            await self.mount(Static(f"{self.path.name} is a binary file."))
-            return
-        text = data.decode("utf-8", errors="replace")
-        if self.path.suffix.lower() in {".md", ".markdown", ".mdown"}:
-            await self.mount(Markdown(text))
-            return
-        try:
-            lexer = Syntax.guess_lexer(str(self.path), text)
-        except ClassNotFound:
-            lexer = "text"
-        await self.mount(
-            Static(
-                Syntax(
-                    text,
-                    lexer,
-                    line_numbers=True,
-                    word_wrap=False,
-                    background_color="default",
+            try:
+                data = await asyncio.to_thread(self._read_prefix, self.path, self.MAX_BYTES + 1)
+            except OSError as error:
+                if self.is_attached and not self._pruning:
+                    self.query_one("#file-preview-loading", Static).update(f"Unable to open {self.path}: {error}")
+                return
+            if not self.is_attached or self._pruning:
+                return
+            if len(data) > self.MAX_BYTES:
+                data = data[:self.OVERSIZED_PREVIEW_BYTES]
+                await self.mount(
+                    Static(f"{self.path.name} exceeds 1 MiB; showing only the first 64 KiB.")
                 )
-            )
-        )
+            if not self.is_attached or self._pruning:
+                return
+            if b"\0" in data:
+                self.query_one("#file-preview-loading", Static).update(f"{self.path.name} is a binary file.")
+                return
+            text = data.decode("utf-8", errors="replace")
+            if self.path.suffix.lower() in {".md", ".markdown", ".mdown"}:
+                markdown = PreparedConversationMarkdown()
+                await self.mount(markdown)
+                await markdown.update(text)
+            else:
+                content = WorkerStatic.code(text, filename=str(self.path))
+                await self.mount(content)
+                await content.wait_ready()
+            if self.is_attached and not self._pruning:
+                await self.query_one("#file-preview-loading", Static).remove()
+        finally:
+            self._ready.set()

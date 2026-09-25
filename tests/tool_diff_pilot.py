@@ -6,6 +6,7 @@ import tempfile
 from pathlib import Path
 from rich.syntax import Syntax
 from textual.content import Content
+from textual.selection import SELECT_ALL
 
 from agent_comms import TranscriptEvent
 from agent_comms.tool_results import ToolDiff, tool_result_content
@@ -91,6 +92,7 @@ async def main():
             assert app._exception is None
             # Read output uses syntax colors and remains selectable as exact text.
             from toad.widgets.tool_call import TextContent
+            from toad.widgets.worker_static import WorkerStatic
             code = "def example(value):\n    return value + 1\n"
             read = ToolCall({"toolCallId": "read", "title": "Read example.py", "kind": "read",
                 "status": "completed", "rawInput": {"path": "example.py"},
@@ -98,8 +100,15 @@ async def main():
             read.expanded = True
             await conversation.post(read)
             await pilot.pause()
-            content = read.query_one(TextContent).render()
-            assert content.plain == code and content.spans
+            worker_content = read.query_one(WorkerStatic)
+            await asyncio.wait_for(worker_content.wait_ready(), 15)
+            assert worker_content._prepared is not None
+            assert worker_content.get_selection(SELECT_ALL)[0] == SELECT_ALL.extract(code)
+            app.theme = "ansi-light"
+            await pilot.pause()
+            await asyncio.wait_for(worker_content.wait_ready(), 15)
+            assert worker_content._ready_request.task.presentation.dark is app.current_theme.dark
+            assert worker_content.get_selection(SELECT_ALL)[0] == SELECT_ALL.extract(code)
 
             malformed = "-removed\n+added\n"
             invalid = await conversation.post(ToolCall({"toolCallId": "invalid", "title": "Unparsed patch",

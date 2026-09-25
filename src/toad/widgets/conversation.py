@@ -59,6 +59,7 @@ from toad.widgets.throbber import Throbber
 from toad.widgets.goal_bar import GoalBar, GoalControl
 from toad.widgets.user_input import UserInput
 from toad.widgets.history_anchor import HistoryWindow
+from toad.widgets.message_filter import ALL_CATEGORIES, IN_OUT_CATEGORIES, MESSAGE_CATEGORIES, MessageCategory
 from toad.layout import trim_trailing_margin
 from toad.shell import Shell, CurrentWorkingDirectoryChanged
 from toad.slash_command import SlashCommand
@@ -301,10 +302,12 @@ class Contents(containers.VerticalGroup, can_focus=False):
     BLANK = True
 
     def mount(self, *widgets, **kwargs):
-        from toad.widgets.message_filter import keep_live_block
+        from toad.widgets.message_filter import block_category, keep_live_block
 
         for widget in widgets:
             widget.set_class(not keep_live_block(widget), "-unrouted")
+            if category := block_category(widget):
+                widget.add_class(f"-message-{category.value}")
         return super().mount(*widgets, **kwargs)
 
     def process_layout(
@@ -363,12 +366,24 @@ class Conversation(containers.Vertical):
 
     BLANK = True
     DEFAULT_CSS = """
-    Conversation.-in-out-only #contents > .-unrouted,
-    Conversation.-in-out-only #contents > TranscriptHistory > TranscriptPageView > TranscriptFragmentView.-unrouted {
+    Conversation.-hide-user #contents > .-message-user,
+    Conversation.-hide-user #contents > TranscriptHistory > TranscriptPageView > TranscriptFragmentView.-message-user,
+    Conversation.-hide-agent #contents > .-message-agent,
+    Conversation.-hide-agent #contents > TranscriptHistory > TranscriptPageView > TranscriptFragmentView.-message-agent,
+    Conversation.-hide-inbound #contents > .-message-inbound,
+    Conversation.-hide-inbound #contents > TranscriptHistory > TranscriptPageView > TranscriptFragmentView.-message-inbound,
+    Conversation.-hide-outbound #contents > .-message-outbound,
+    Conversation.-hide-outbound #contents > TranscriptHistory > TranscriptPageView > TranscriptFragmentView.-message-outbound,
+    Conversation.-hide-thinking #contents > .-message-thinking,
+    Conversation.-hide-thinking #contents > TranscriptHistory > TranscriptPageView > TranscriptFragmentView.-message-thinking,
+    Conversation.-hide-tool #contents > .-message-tool,
+    Conversation.-hide-tool #contents > TranscriptHistory > TranscriptPageView > TranscriptFragmentView.-message-tool,
+    Conversation.-hide-other #contents > .-message-other,
+    Conversation.-hide-other #contents > TranscriptHistory > TranscriptPageView > TranscriptFragmentView.-message-other {
         display: none;
     }
     Conversation #contents > TranscriptHistory > .filtered-history-results { display: none; }
-    Conversation.-in-out-only #contents > TranscriptHistory > .filtered-history-results { display: block; }
+    Conversation.-filter-active #contents > TranscriptHistory > .filtered-history-results { display: block; }
     """
     BINDING_GROUP_TITLE = "Conversation"
     CURSOR_BINDING_GROUP = Binding.Group(description="Cursor")
@@ -437,7 +452,7 @@ class Conversation(containers.Vertical):
     ]
 
     busy_count = var(0)
-    in_out_only = var(False, init=False)
+    visible_categories: var[frozenset[MessageCategory]] = var(lambda: ALL_CATEGORIES, init=False)
     cursor_offset = var(-1, init=False)
     project_path = var("")
     working_directory: var[str] = var("")
@@ -450,22 +465,34 @@ class Conversation(containers.Vertical):
     prompt = getters.query_one(Prompt)
     app = getters.app(ToadApp)
 
-    def watch_in_out_only(self, previous: bool, enabled: bool) -> None:
+    @property
+    def in_out_only(self) -> bool:
+        """Compatibility for callers selecting the original two routed kinds."""
+        return self.visible_categories == IN_OUT_CATEGORIES
+
+    @in_out_only.setter
+    def in_out_only(self, enabled: bool) -> None:
+        self.visible_categories = IN_OUT_CATEGORIES if enabled else ALL_CATEGORIES
+
+    def watch_visible_categories(
+        self, previous: frozenset[MessageCategory], selected: frozenset[MessageCategory],
+    ) -> None:
         window = self.window
         if not hasattr(self, "_filter_scroll_positions"):
             self._filter_scroll_positions = {}
         self._filter_scroll_positions[previous] = (window.scroll_y, window.follows_tail)
-        position = self._filter_scroll_positions.get(enabled, (window.scroll_y, window.follows_tail))
+        position = self._filter_scroll_positions.get(selected, (window.scroll_y, window.follows_tail))
         self.cursor_offset = -1
         self.screen.clear_selection()
-        self.set_class(enabled, "-in-out-only")
+        self.set_class(selected != ALL_CATEGORIES, "-filter-active")
+        for category in MESSAGE_CATEGORIES:
+            self.set_class(category not in selected, f"-hide-{category.value}")
         for history in tuple(window.histories):
-            history._update_edges()
-            history._scroll_changed()
+            history.filter_changed()
         revision = window.scroll_revision
 
         def restore_position():
-            if (not self.is_attached or self.in_out_only != enabled
+            if (not self.is_attached or self.visible_categories != selected
                     or window.scroll_revision != revision):
                 return
             scroll_y, following = position
@@ -1049,7 +1076,8 @@ class Conversation(containers.Vertical):
                 from toad.widgets.agent_response import AgentResponse
 
                 link = AgentResponse(
-                    f"[Open ACP log]({quote(str(log_path))})", show_divider=False
+                    f"[Open ACP log]({quote(str(log_path))})", show_divider=False,
+                    category=MessageCategory.OTHER,
                 )
                 link.add_class("-error-log-link")
                 await self.post(link)
@@ -1620,7 +1648,7 @@ class Conversation(containers.Vertical):
             else message.summary
             or "Compaction did not complete. Context usage will update after the next measurement."
         )
-        await self.post(AgentResponse(f"## {title}\n\n{detail}"))
+        await self.post(AgentResponse(f"## {title}\n\n{detail}", category=MessageCategory.OTHER))
 
     @work(exclusive=True, group="transcript-window")
     async def _compact_committed_history(self) -> None:
@@ -2247,12 +2275,13 @@ class Conversation(containers.Vertical):
             result = await self.agent.compact_context(instructions)
             if not result.get("ok"):
                 await self.post(AgentResponse(
-                    "## Compaction failed\n\n" + str(result.get("error") or "No result returned")
+                    "## Compaction failed\n\n" + str(result.get("error") or "No result returned"),
+                    category=MessageCategory.OTHER,
                 ))
             else:
                 self.flash("Context compacted", style="success")
         except (OSError, ValueError, jsonrpc.JSONRPCError) as error:
-            await self.post(AgentResponse(f"## Compaction failed\n\n{error}"))
+            await self.post(AgentResponse(f"## Compaction failed\n\n{error}", category=MessageCategory.OTHER))
         finally:
             self._compacting = False
 

@@ -19,6 +19,11 @@ from toad.widgets.project_panel import FilePreview
 from toad.widgets.session_tabs import SessionLabel, SessionTabClose
 
 
+async def preview_ready(app, pilot):
+    await asyncio.wait_for(app.screen.query_one(FilePreview).wait_ready(), 20)
+    await pilot.pause()
+
+
 async def main():
     with tempfile.TemporaryDirectory(prefix="toad-file-links-") as directory:
         root = Path(directory)
@@ -94,6 +99,7 @@ async def main():
             first_mode = app.current_mode
             assert [tab.mode_name for tab in app.open_tabs][:2] == [owner_mode, first_mode]
             preview = app.screen.query_one(FilePreview)
+            await preview_ready(app, pilot)
             assert preview.path == path.resolve()
             assert str(path.resolve()) in preview.query_one(".file-preview-path").render().plain
             assert "Previewed plan" in preview.query_one(Markdown).source
@@ -110,6 +116,7 @@ async def main():
             other = project / "other.py"
             other.write_text("answer = 42\n")
             second_mode = await app.open_file_preview(other)
+            await preview_ready(app, pilot)
             assert second_mode != first_mode and app.current_mode == second_mode
             assert [tab.mode_name for tab in app.open_tabs][:3] == [
                 owner_mode, first_mode, second_mode]
@@ -146,7 +153,7 @@ async def main():
             large_python = project / "preview.py"
             large_python.write_text("# UTF-8: café\n\n" + "def check(value: int) -> int:\n    return value + 1\n\n" * 2400)
             large_mode = await app.open_file_preview(large_python)
-            await pilot.pause()
+            await preview_ready(app, pilot)
             large_frame = "\n".join(strip.text for strip in app.screen._compositor.render_strips())
             assert "def check(value: int) -> int:" in large_frame, "Large .py preview failed"
             assert app.current_mode == large_mode and app._exception is None
@@ -156,7 +163,7 @@ async def main():
             oversized = project / "oversized-preview.py"
             oversized.write_text("# FIRST-LINE-MARKER\nanswer = 42\n" + "pass\n" * 230_000)
             oversized_mode = await app.open_file_preview(oversized)
-            await pilot.pause()
+            await preview_ready(app, pilot)
             oversized_frame = "\n".join(strip.text for strip in app.screen._compositor.render_strips())
             assert "exceeds 1 MiB; showing only the first 64 KiB" in oversized_frame
             assert "FIRST-LINE-MARKER" in oversized_frame
@@ -167,6 +174,7 @@ async def main():
             log_path = project / "session.log"
             log_path.write_text("LOG-PREVIEW-WORKS\n")
             log_mode = await app.open_file_preview(log_path)
+            await preview_ready(app, pilot)
             log_frame = "\n".join(strip.text for strip in app.screen._compositor.render_strips())
             assert "LOG-PREVIEW-WORKS" in log_frame and app._exception is None
             await app.close_session_mode(log_mode)

@@ -14,7 +14,7 @@ from rich.style import Style as RichStyle
 from textual.content import Content
 from textual.app import ComposeResult
 from textual.css.styles import RulesMap
-from textual.geometry import Offset
+from textual.geometry import Offset, Size
 from textual.selection import Selection
 from textual.strip import Strip
 from textual.style import Style
@@ -152,6 +152,7 @@ class PreparedCodeLabel(Label):
         disabled: bool = False,
     ) -> None:
         self._code_content, self._code_lines = content, lines
+        self._code_has_tabs = "\t" in content.plain
         super().__init__(content, variant=variant, expand=expand, shrink=shrink, markup=markup,
                          name=name, id=id, classes=classes, disabled=disabled)
 
@@ -160,7 +161,17 @@ class PreparedCodeLabel(Label):
             return
         layout = not isinstance(self.content, Content) or self.content.plain != content.plain
         self._code_content, self._code_lines = content, lines
+        self._code_has_tabs = "\t" in content.plain
         self.update(content, layout=layout)
+
+    def get_content_height(self, container: Size, viewport: Size, width: int) -> int:
+        if (width > 0 and self._render() is self._code_content and not self._code_has_tabs
+                and self._code_content.get_optimal_width(self.styles.get_rules(), width) <= width):
+            # The worker already split this code and measured its widest row.
+            # Every row fits at this width, so reformatting the complete fence
+            # during first mount or tab reflow cannot change its line count.
+            return len(self._code_lines)
+        return super().get_content_height(container, viewport, width)
 
     def render_line(self, y: int) -> Strip:
         content = self._render()

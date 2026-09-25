@@ -5,7 +5,7 @@ from functools import cached_property
 from typing import TYPE_CHECKING, cast
 import asyncio
 
-from textual.events import ScreenResume
+from textual.events import Resize, ScreenResume
 from textual.css.model import RuleSet, SelectorType
 from textual.css.stylesheet import CssSource
 from textual.dom import DOMNode
@@ -34,6 +34,13 @@ class SessionView(Screen):
     _navigation_changed = False
     _resume_styles_changed = False
 
+    def on_resize(self, _event: Resize) -> None:
+        from toad.widgets.side_bar import SideBar
+
+        for sidebar in self.query(SideBar):
+            sidebar._apply_layout()
+        self.align_tabs_to_sidebars()
+
     def align_tabs_to_sidebars(self) -> None:
         """The navigation row spans the screen, independent of sidebar placement."""
         from textual.containers import Horizontal
@@ -59,19 +66,35 @@ class SessionView(Screen):
 
     def _on_timer_update(self) -> None:
         app = cast("ToadApp", self.app)
-        if (self.is_current and app._pending_mode_switch is not None
+        if app._atomic_mode_switch or (self.is_current and app._pending_mode_switch is not None
                 and app._pending_mode_switch != self.id):
-            # The pending layout is still needed if this busy screen is
-            # reopened. Keep its invalidation flags but do not measure the
-            # screen the user is leaving before the selected tab can paint.
+            # Keep invalidation flags while the selected tree is reconciled,
+            # and on busy screens the reader is leaving. layout_navigation owns
+            # the transaction's geometry; ordinary timers resume afterward.
             self._update_timer.pause()
             return
         super()._on_timer_update()
+
+    def _compositor_refresh(self) -> None:
+        app = cast("ToadApp", self.app)
+        if app._atomic_mode_switch and app._batch_count:
+            # _refresh_layout queues this callback, which may run while the
+            # navigation transaction awaits mounted/resize handlers. Textual
+            # would render the whole intermediate frame only for App._display
+            # to discard it at the batch boundary. Keep the dirty regions and
+            # repaint intent; the switch's finally block wakes the selected
+            # screen after ending the transaction, including error paths.
+            self._repaint_required = True
+            return
+        super()._compositor_refresh()
 
     @cached_property
     def history_anchors(self) -> set["HistoryWindow"]:
         """Only windows with an active render transaction need compensation."""
         return set()
+
+    def _use_viewport_layout(self) -> bool:
+        return self.is_current and not self.history_anchors
 
     def _refresh_layout(self, size: Size | None = None, scroll: bool = False) -> None:
         from toad.widgets.history_anchor import HistoryAnchor
@@ -105,6 +128,12 @@ class SessionView(Screen):
                     window.history_layout_ready.set()
 
     def _screen_resized(self, size: Size) -> None:
+        if cast("ToadApp", self.app)._atomic_mode_switch and self.is_mounted:
+            # App.switch_mode asks for geometry before the destination's tabs
+            # and cached sidebar rows have caught up. The navigation transaction
+            # measures their completed tree; retain real resize invalidation.
+            self._layout_required |= self._size != size
+            return
         if (self.stack_updates and self.is_attached
                 and self._navigation_applied and not self._resume_styles_changed
                 and self._size == size and not self._layout_required
@@ -159,6 +188,7 @@ class SessionView(Screen):
 
     async def prepare_navigation(self) -> None:
         from toad.widgets.comms_sidebar import CommsSidebar
+        from toad.widgets.session_tabs import SessionsTabs
         from toad.widgets.side_bar import SideBar, SideBarCollapsible
 
         self._navigation_changed = False
@@ -174,6 +204,9 @@ class SessionView(Screen):
             # Such rows repaint in place. Mount, reorder, expansion and size
             # changes independently invalidate Textual's layout, so a new wire
             # revision by itself does not justify reflowing the transcript.
+
+        if tabs := self.query_one_optional(SessionsTabs):
+            await tabs._sync_tabs()
 
     async def layout_navigation(self) -> None:
         """Measure the complete tree, then position its viewport before painting."""

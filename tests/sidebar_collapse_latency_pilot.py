@@ -7,6 +7,7 @@ import os
 import statistics
 import tempfile
 import time
+from collections import Counter
 from pathlib import Path
 
 from agent_comms import Thread, wire
@@ -32,6 +33,7 @@ class FrameApp(ToadApp):
 
 
 async def main():
+    pointer = os.environ.get("TOAD_BENCH_POINTER") == "1"
     with tempfile.TemporaryDirectory(prefix="toad-sidebar-collapse-") as directory:
         root = Path(directory)
         os.environ.update(XDG_CONFIG_HOME=str(root / "config"), XDG_STATE_HOME=str(root / "state"),
@@ -52,19 +54,39 @@ async def main():
             ])
             await pilot.pause()
             results = {}
+            cache_trace = []
             for selector in ("#channels-sidebar", "#thread-sidebar"):
                 sidebar = app.screen.query_one(selector, SideBar)
                 timings = []
                 for index in range(10):
+                    traced = os.environ.get("TOAD_SIDEBAR_COUNTS") and index < 4
+                    before_cache = {widget: (widget._box_model_cache.hits, widget._box_model_cache.misses,
+                                             widget._arrangement_cache.hits, widget._arrangement_cache.misses,
+                                             widget._layout_updates, widget.styles._cache_key)
+                                    for widget in app.screen.walk_children() } if traced else {}
                     painted = app.next_frame = asyncio.get_running_loop().create_future()
                     profile_path = os.environ.get("TOAD_SIDEBAR_PROFILE")
                     if index == 1 and profile_path:
                         app.frame_profiler = cProfile.Profile()
                         app.frame_profiler.enable()
                     start = time.perf_counter()
-                    sidebar.toggle()
+                    if pointer:
+                        sidebar.toggle(focus=False)
+                    else:
+                        sidebar.toggle()
                     timings.append((await asyncio.wait_for(painted, 5) - start) * 1000)
                     app.next_frame = None
+                    if traced:
+                        counts = Counter()
+                        for widget, before in before_cache.items():
+                            after = (widget._box_model_cache.hits, widget._box_model_cache.misses,
+                                     widget._arrangement_cache.hits, widget._arrangement_cache.misses,
+                                     widget._layout_updates, widget.styles._cache_key)
+                            for kind, old, new in zip(("box_hit", "box_miss", "arrange_hit", "arrange_miss", "generation", "style"), before, after):
+                                if new != old:
+                                    counts[(type(widget).__name__, kind)] += new - old if kind not in ("generation", "style") else 1
+                        cache_trace.append({"bar": selector, "index": index, "closed": sidebar.collapsed,
+                                            "counts": counts.most_common(20)})
                     if app.frame_profiler is not None:
                         app.frame_profiler.dump_stats(
                             profile_path + ("-channels.pstats" if selector == "#channels-sidebar"
@@ -77,9 +99,11 @@ async def main():
                     "p95_ms": round(sorted_times[int(.95 * (len(timings)-1))], 1),
                     "max_ms": round(max(timings), 1),
                 }
-            print(json.dumps({"boundary": "completed headless _display; not terminal pixels", "tabs": 10,
+            print(json.dumps({"boundary": "completed headless _display; not terminal pixels", "tabs": 10, "pointer": pointer,
                               "active_widgets": len(list(app.screen.walk_children())),
-                              "toggle_first_paint": results}, indent=2))
+                               "toggle_first_paint": results}, indent=2))
+            if cache_trace:
+                print(json.dumps(cache_trace, indent=2))
             assert app._exception is None
         await asyncio.get_running_loop().shutdown_default_executor()
 

@@ -75,14 +75,17 @@ class SidebarGroup(VerticalGroup):
         title/status change nor a selection repaint remounts the list.
         """
         keys = tuple(keys)
-        for key in rows.keys() - set(keys):
-            await rows.pop(key).remove()
+        wanted = set(keys)
+        retired = [key for key, row in rows.items()
+                   if key not in wanted or (replace is not None and replace(key, row))]
+        if retired:
+            # A newly opened/closed tab can change several row kinds at once.
+            # Retire that exact set in one DOM operation, not an intermediate
+            # remove/layout/message-pump turn for every member of the roster.
+            await self.member_container.remove_children([rows.pop(key) for key in retired])
         mounted = []
         for key in keys:
             current = rows.get(key)
-            if current is not None and replace is not None and replace(key, current):
-                await rows.pop(key).remove()
-                current = None
             if current is None:
                 current = rows[key] = create(key)
                 mounted.append(current)

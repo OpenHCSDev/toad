@@ -92,12 +92,15 @@ async def main():
             assert "OLDER_ROUTED_MESSAGE" in frame, "Sparse older result was not painted"
             conversation.in_out_only = False
             await pilot.pause()
-            assert not sparse._filter_overlay.display
+            assert sparse._filter_overlay is None or not sparse._filter_overlay.display
             assert any(leaf.display for leaf in sparse.pages[-1].children), (
                 "Unchecking did not restore retained native transcript")
             conversation.in_out_only = True
-            await pilot.pause()
-            assert sparse._filter_overlay.display, "Filtered older results vanished after retoggling"
+            async with asyncio.timeout(8):
+                while (sparse._filter_overlay is None or not sparse._filter_overlay.display
+                       or not any(leaf.fragment.events[0].text == older.text
+                                  for leaf in sparse._filter_overlay.children)):
+                    await pilot.pause(.02)
             await sparse.remove()
 
             # Exhaust a finite history with no routed rows. The auto-loader

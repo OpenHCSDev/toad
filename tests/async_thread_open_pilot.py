@@ -4,6 +4,7 @@ import asyncio
 import os
 import tempfile
 import threading
+from contextlib import asynccontextmanager
 from pathlib import Path
 from unittest.mock import patch
 
@@ -14,6 +15,15 @@ from toad.acp.messages import TranscriptSnapshot
 from toad.agent import AgentReady
 from toad.widgets.conversation import ThreadLoading
 from toad.widgets.comms_sidebar import CommsSidebar
+
+
+@asynccontextmanager
+async def release_on_exit(release, disk_release):
+    try:
+        yield
+    finally:
+        release.set()
+        disk_release.set()
 
 
 async def main():
@@ -45,7 +55,7 @@ async def main():
 
         app = ToadApp(project_dir=str(root))
         try:
-            async with app.run_test(size=(110, 34)) as pilot:
+            async with app.run_test(size=(110, 34)) as pilot, release_on_exit(release, disk_release):
                 await pilot.pause()
                 source = app.current_mode
                 app.screen._agent = agent_data
@@ -80,7 +90,11 @@ async def main():
                     ring_rows = [line for line in ring if any(mark in line for mark in "●•·")]
                     ring_columns = [index for line in ring_rows for index, char in enumerate(line)
                                     if char in "●•·"]
-                    assert max(ring_columns) - min(ring_columns) + 1 <= len(ring_rows) * 1.5
+                    # Current main compensates for terminal cells being about
+                    # twice as tall as they are wide. Compare physical shape,
+                    # not the obsolete near-square character-grid expectation.
+                    ring_ratio = (max(ring_columns) - min(ring_columns) + 1) / len(ring_rows)
+                    assert 1.5 <= ring_ratio <= 2.5
                     large_rows = loading.render().plain.count("\n")
                     assert large_rows >= 6
                     await pilot.resize_terminal(78, 28)
@@ -109,6 +123,7 @@ async def main():
         finally:
             release.set()
             disk_release.set()
+            await asyncio.get_running_loop().shutdown_default_executor()
     print("async thread open: spinner, typing, and tab switching work before owner and disk reads complete")
 
 

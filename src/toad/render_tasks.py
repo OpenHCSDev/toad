@@ -12,6 +12,7 @@ from markdown_it.token import Token
 from toad.markdown_preparation import PreparedMarkdown, prepare_markdown, prepare_tokens
 from toad.widgets.patch_diff import PreparedPatch, prepare_patch
 from toad.widgets.transcript_fragments import TranscriptFragment, transcript_fragments
+from toad.rich_preparation import PreparedRichContent, RichPresentation, RichSource, prepare_rich
 
 ResultT = TypeVar("ResultT", covariant=True)
 
@@ -87,8 +88,24 @@ class TranscriptRenderTask(RenderTask[tuple[TranscriptFragment, ...]]):
         return result
 
 
-type RendererTask = PatchRenderTask | MarkdownRenderTask | TokenRenderTask | TranscriptRenderTask
-type RendererResult = PreparedPatch | PreparedMarkdown | tuple[TranscriptFragment, ...]
+@dataclass(frozen=True)
+class RichRenderTask(RenderTask[PreparedRichContent]):
+    source: RichSource
+    presentation: RichPresentation
+
+    def execute(self) -> PreparedRichContent:
+        return prepare_rich(self.source, self.presentation)
+
+    def accept_result(self, result: object) -> PreparedRichContent:
+        if not isinstance(result, PreparedRichContent):
+            raise TypeError("Rich renderer returned an incompatible result")
+        return result
+
+
+type RendererTask = PatchRenderTask | MarkdownRenderTask | TokenRenderTask | TranscriptRenderTask | RichRenderTask
+type RendererResult = PreparedPatch | PreparedMarkdown | tuple[TranscriptFragment, ...] | PreparedRichContent
+
+RENDER_TASK_TYPES = (PatchRenderTask, MarkdownRenderTask, TokenRenderTask, TranscriptRenderTask, RichRenderTask)
 
 
 def execute_render_task(task: RenderTask[ResultT]) -> ResultT:

@@ -39,11 +39,11 @@ from toad.widgets.comms_sidebar import (
     CommsRow,
     CommsSidebar,
     NewSessionButton,
+    ThreadRow,
 )
 from toad.widgets.conversation import Loading, make_session_title
 from toad.widgets.flash import Flash
 from toad.widgets.prompt import Prompt
-from toad.widgets.session_sidebar import SessionRow
 from toad.widgets.session_tabs import SessionLabel, SessionsTabs
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SideBarToggle
 from toad.widgets.throbber import Throbber, ThrobberVisual
@@ -57,6 +57,10 @@ from toad.widgets.irc_message import IRCMessage, ThreadLink
 
 def row(screen, target: str) -> CommsRow:
     return next(item for item in screen.query(CommsRow) if item.target_name == target)
+
+
+def open_rows(screen):
+    return screen.query_one(CommsSidebar).session_rows
 
 
 async def main() -> None:
@@ -240,7 +244,7 @@ for line in sys.stdin:
             await pilot.pause()
             assert isinstance(app.screen, MainScreen)
             assert app.session_tracker.session_count == 1
-            session_rows = list(app.screen.query(SessionRow))
+            session_rows = open_rows(app.screen)
             assert len(session_rows) == 1
             assert session_rows[0].current
             assert await pilot.hover(session_rows[0])
@@ -325,7 +329,7 @@ for line in sys.stdin:
             await pilot.pause()
             assert isinstance(app.screen, MainScreen)
             assert not shell_sidebar.collapsed
-            focused_session = app.screen.query_one(SessionRow)
+            focused_session = open_rows(app.screen)[0]
             assert focused_session.has_focus
             shortcut_snapshot = app.screen.query_one(CommsSidebar)._snapshot()
             assert focused_session.has_class("-wire-thread"), (
@@ -365,7 +369,7 @@ for line in sys.stdin:
             created_mode = app.current_mode
             assert created_mode != owner_mode
             assert app.session_tracker.session_count == 2
-            session_rows = list(app.screen.query(SessionRow))
+            session_rows = open_rows(app.screen)
             # An unbound local view is a tab, not a second authoritative thread.
             assert len(session_rows) == 1
             assert app.screen.query_one(f"SessionLabel#{created_mode}")
@@ -411,8 +415,9 @@ for line in sys.stdin:
                 renamed_thread
                 in app.screen.query_one(CoordinationStatus).render().plain
             )
-            visible_targets = {item.target_name for item in app.screen.query(CommsRow)}
-            assert not {managed_thread, renamed_thread} & visible_targets
+            assert not any(item.target_name == managed_thread for item in app.screen.query(ThreadRow))
+            assert [item.mode_name for item in app.screen.query(ThreadRow)
+                    if item.target_name == renamed_thread] == [created_mode]
             assert (
                 app.session_tracker.get_session(created_mode).title
                 == "Name this from my first prompt"
@@ -454,10 +459,9 @@ for line in sys.stdin:
             await app.switch_mode(owner_mode)
             await pilot.pause()
             assert app.screen.query_one(SideBar).collapsed
-            assert renamed_thread not in {
-                item.target_name for item in app.screen.query(CommsRow)
-            }
-            assert len(list(app.screen.query(SessionRow))) == 2
+            assert [item.mode_name for item in app.screen.query(ThreadRow)
+                    if item.target_name == renamed_thread] == [created_mode]
+            assert len(open_rows(app.screen)) == 2
             await app.switch_mode(created_mode)
             await pilot.pause()
             assert app.screen.query_one(SideBar).collapsed
@@ -492,7 +496,7 @@ for line in sys.stdin:
                 app.screen._agent_session_id,
                 app.screen._session_thread,
             )
-            local_row = app.screen.query_one(SessionRow)
+            local_row = open_rows(app.screen)[0]
             local_row.scroll_visible(animate=False)
             await pilot.pause()
             await pilot.click(local_row, button=3)
@@ -541,7 +545,7 @@ for line in sys.stdin:
             conversation.post_message(acp_messages.SessionInfoUpdate(None))
             await pilot.pause()
             assert app.session_tracker.get_session(owner_mode).title == ""
-            assert me in app.screen.query_one(SessionRow).render().plain
+            assert me in open_rows(app.screen)[0].render().plain
 
             opened = await app.open_comms_session(
                 owner_mode=owner_mode,
@@ -766,9 +770,9 @@ for line in sys.stdin:
             assert app.screen.target == "#all"
             assert row(app.screen, "#all").selected
             assert app.session_tracker.session_count == 1
-            assert len(list(app.screen.query(SessionRow))) == 1
+            assert len(open_rows(app.screen)) == 1
             owner_screen = app.get_screen_stack(owner_mode)[-1]
-            assert len(list(owner_screen.query(SessionRow))) == 1
+            assert len(open_rows(owner_screen)) == 1
             first_channel_mode = app.current_mode
             chat = app.screen.query_one(CommsChatView)
             assert chat.prompt.prompt_text_area.has_focus
@@ -793,7 +797,7 @@ for line in sys.stdin:
 
             owner_row = next(
                 item
-                for item in app.screen.query(SessionRow)
+                for item in open_rows(app.screen)
                 if item.mode_name == owner_mode
             )
             await pilot.click(owner_row)
@@ -864,7 +868,7 @@ for line in sys.stdin:
             assert active_tab.has_class("-current")
             assert active_tab.render().plain == "@peer"
             assert app.session_tracker.session_count == 1
-            assert len(list(app.screen.query(SessionRow))) == 1
+            assert len(open_rows(app.screen)) == 1
             assert not any(
                 session.title == "@peer"
                 for session in app.session_tracker.ordered_sessions
@@ -1240,7 +1244,7 @@ for line in sys.stdin:
             await asyncio.to_thread(comms.stop, deleted_name)
             thread_row = next(
                 item
-                for item in app.screen.query(SessionRow)
+                for item in open_rows(app.screen)
                 if item.mode_name == thread_mode
             )
             thread_row.scroll_visible(animate=False)
@@ -1303,7 +1307,7 @@ for line in sys.stdin:
             owner_mode = app.current_mode
             owner_row = next(
                 item
-                for item in app.screen.query(SessionRow)
+                for item in open_rows(app.screen)
                 if item.mode_name == owner_mode
             )
             await pilot.click(owner_row, button=3)
@@ -1336,7 +1340,7 @@ for line in sys.stdin:
             app.screen._session_pk = saved_pk
             delete_row = next(
                 item
-                for item in app.screen.query(SessionRow)
+                for item in open_rows(app.screen)
                 if item.mode_name == delete_mode
             )
             await pilot.click(delete_row, button=3)

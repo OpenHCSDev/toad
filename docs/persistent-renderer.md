@@ -6,6 +6,11 @@ render tasks and commands. Diff preparation and large transcript fragmentation
 run in CPU workers. Prepared Markdown parsing/highlighting additionally requires
 the paired OpenHCSDev Textual hooks; stock Textual retains native Markdown parsing.
 
+The default **local** renderer also uses CPU worker processes. File previews and
+the shared `WorkerStatic` component use those workers automatically; selecting
+the persistent backend changes worker lifetime/reuse, not whether previews are
+prepared off the UI thread.
+
 ## Try it
 
 In an environment with this fork's compatible dependencies:
@@ -25,10 +30,53 @@ backend uses small Markdown/Python/JSON and diff tasks to prepare worker imports
 fingerprinting, connection and preparation run off the UI loop. Local workers
 retain their lazy behavior. Typing and navigation do not await warm-up.
 
-This WIP PR still has a separately tracked compatible `agent-comms` pin/startup
-gate. Tests below used development core dependencies and the paired Textual fork;
-they do not establish clean installation/startup with the currently pinned core.
-Installing the optional extra alone does not resolve that independent gate.
+For reproducible installed dependencies, use the agent-comms stack's checked-in
+manifest and lock. The original pre-merge dependency-gate notes are historical;
+the measurements below retain their stated source-checkpoint scope.
+
+## Worker-backed Rich views
+
+Use the shared component for data-only Rich output instead of creating an
+executor/adapter in each view:
+
+```python
+from toad.widgets.worker_static import WorkerStatic
+
+code_view = WorkerStatic.code(source, filename="module.py")
+rich_view = WorkerStatic(rich_table)
+rich_view.update(updated_rich_table)
+```
+
+The common `RichRenderTask` performs materialization, lexer discovery,
+measurement, highlighting and Rich segmentation through the app-owned renderer.
+The UI measures prepared dimensions and paints only requested rows; selection
+and copy preserve displayed text. Picklable Rich renderables work directly.
+`RichSource` is the nominal data-only construction interface when construction
+itself is expensive (the built-in `SyntaxSource` implements code previews).
+Expanded Read tool results use this same worker-backed source by default,
+including filename-only lexer discovery and light/dark ANSI syntax themes.
+Copying a Read result uses its original source, retaining trailing blank lines
+and tabs even if Rich omits a terminal row when painting.
+Widgets, apps and core services are not renderable payloads.
+
+Source/style/width updates coalesce behind one per-widget in-flight preparation;
+stale or closed-view results are discarded. File reading runs after the preview
+tab mounts, so IO and preparation waits allow typing and navigation. Markdown
+previews use the existing shared prepared Markdown path. Existing file byte
+limits and binary/error handling remain in effect.
+
+An 84,027-byte Python-file fixture measured the old native path against the
+worker-backed component in one app. Maximum event-loop gaps were 1,561–1,687ms
+before and 15.83–16.35ms after. Opening-handler time was 1,703–1,725ms before and
+32.69–33.97ms after; worker content became ready in 1,139ms cold / 705ms warm.
+These are two bounded headless observations, not terminal-pixel acceptance.
+
+A separate 84,012-byte expanded Read tool comparison (mounted in the same app)
+observed maximum event-loop gaps of 370–380ms in the previous foreground
+highlighting path and 31–36ms through `WorkerStatic`; UI-thread CPU over the
+loading interval fell from 724–1,014ms to 108–111ms. Worker content-ready time
+is not an instantaneous terminal-pixel measurement. See
+`tests/tool_read_latency_pilot.py` and its exact-source-copy regressions.
 
 ## Lifetime and failure semantics
 
@@ -77,10 +125,12 @@ python tests/channel_background_warmup_pilot.py
 python tests/renderer_selection_pilot.py
 python tests/persistent_render_pilot.py
 python tests/persistent_renderer_ui_pilot.py
+python tests/worker_preview_pilot.py
+python tests/file_preview_latency_pilot.py
 ```
 
 The real UI pilot creates two Toad instances using the supported constructor,
-verifies warm-up succeeds, renders Markdown and a native tool diff, and checks
+verifies warm-up succeeds, renders Markdown, a native tool diff and a file preview, and checks
 reuse of the same service. The warm-up lifecycle pilot holds preparation behind
 a gate and verifies typing, tab navigation, drafts and shutdown still work.
 Existing process/transcript, Markdown lifecycle/row parity, diff lifecycle/style,

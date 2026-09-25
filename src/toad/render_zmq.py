@@ -31,9 +31,7 @@ from toad.render_protocol import (
     RenderStatus, RequestCommand, ShutdownRenderer, SubmitRender, decode_command, decode_reply, encode_command,
 )
 from toad.render_service import RenderService, RenderServiceConfig
-from toad.render_tasks import (
-    MarkdownRenderTask, PatchRenderTask, RendererTask, RenderTask, TokenRenderTask, TranscriptRenderTask,
-)
+from toad.render_tasks import RENDER_TASK_TYPES, RendererTask, RenderTask
 
 ResultT = TypeVar("ResultT")
 
@@ -239,7 +237,7 @@ class PersistentRendererPool(Renderer):
 
     async def submit(self, task: RenderTask[ResultT]) -> ResultT:
         self._bind_loop()
-        if type(task) not in (PatchRenderTask, MarkdownRenderTask, TokenRenderTask, TranscriptRenderTask):
+        if type(task) not in RENDER_TASK_TYPES:
             raise TypeError("Unsupported persistent rendering task class")
         while not self._closed and self._failure is None and len(self._pending) >= self.config.max_pending:
             self._changed.clear()

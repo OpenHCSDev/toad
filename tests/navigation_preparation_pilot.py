@@ -104,6 +104,10 @@ async def mounted() -> None:
                         ))
                         assert await asyncio.to_thread(entered.wait, 2)
                         assert thread_ids == [thread_ids[0]] and thread_ids[0] != threading.get_ident()
+                        if kind == "thread":
+                            assert app.current_mode.startswith("pending-thread-")
+                            assert any(tab.title == "⌛ @metadata-peer" for tab in app.open_tabs)
+                            await asyncio.wait_for(app.switch_mode(owner), 2)
                         source.conversation.prompt.focus()
                         await pilot.press("k", "e", "e", "p")
                         assert source.conversation.prompt.text.endswith("keep")
@@ -113,6 +117,7 @@ async def mounted() -> None:
                         assert await asyncio.wait_for(opening, 2) == other
                         assert app.current_mode == other, "Old route metadata stole focus"
                         assert not app._comms_modes, "Superseded route created an unused tab"
+                        assert not app._pending_thread_modes
                 finally:
                     release.set()
                     if opening is not None:

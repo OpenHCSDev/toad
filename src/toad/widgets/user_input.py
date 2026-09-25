@@ -6,9 +6,14 @@ from toad.conversation_markdown import ConversationMarkdown
 from toad.menus import MenuItem
 from toad.widgets.non_selectable_label import NonSelectableLabel
 from toad.widgets.message_divider import MessageDivider
+from toad.widgets.message_filter import CategorizedBlock, MessageCategory
 
 
-class UserInput(containers.VerticalGroup):
+class UserInput(CategorizedBlock, containers.VerticalGroup):
+    @property
+    def message_category(self) -> MessageCategory:
+        return MessageCategory.USER
+
     def __init__(self, content: str, *, show_divider: bool = True) -> None:
         super().__init__()
         self.content = content

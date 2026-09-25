@@ -1,10 +1,14 @@
 """Prepared code rows match native Label strips, metadata and offscreen copy."""
 
 import asyncio
+import json
+import statistics
+import time
+from unittest.mock import patch
 
 from textual.app import App, ComposeResult
 from textual.content import Content
-from textual.geometry import Offset
+from textual.geometry import Offset, Size
 from textual.selection import SELECT_ALL, Selection
 from textual.widgets import Label
 
@@ -54,6 +58,29 @@ async def main():
         await pilot.pause()
         assert "line 9998" in fast.render_line(9998).text
         assert fast.get_selection(SELECT_ALL)[0] == content.plain
+        # Prepared row count is the height when every row fits. A new layout
+        # width must not format all 10K lines merely to count them again.
+        content.get_optimal_width({}, 0)
+        with patch.object(Content, "get_height", side_effect=AssertionError("UI height formatting")):
+            assert fast.get_content_height(Size(80, 0), Size(90, 35), 77) == 10000
+        native_times, prepared_times = [], []
+        for width in range(76, 96):
+            started = time.thread_time_ns()
+            expected = Label.get_content_height(fast, Size(width, 0), Size(100, 35), width)
+            native_times.append((time.thread_time_ns() - started) / 1e6)
+            started = time.thread_time_ns()
+            actual = fast.get_content_height(Size(width, 0), Size(100, 35), width)
+            prepared_times.append((time.thread_time_ns() - started) / 1e6)
+            assert actual == expected == 10000
+        print(json.dumps({"code_rows": 10000, "boundary": "height measurement CPU, not frame latency",
+                          "native_median_ms": round(statistics.median(native_times), 3),
+                          "prepared_median_ms": round(statistics.median(prepared_times), 3)}))
+        # Tabs can expand beyond raw cell width; keep native measurement until
+        # the prepared source has actually normalized them.
+        tabs = Content("\tlong-word\n\tsecond")
+        fast.set_code(tabs, tuple(tabs.split("\n", allow_blank=True)))
+        for width in (4, 12, 30):
+            assert fast.get_content_height(Size(width, 0), Size(90, 35), width) == tabs.get_height(fast.styles.get_rules(), width)
     print("Markdown rows: exact native strips/metadata/copy, padding, Unicode, wrapping fallback and 10K-line addressing")
 
 

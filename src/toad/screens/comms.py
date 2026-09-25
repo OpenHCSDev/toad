@@ -4,7 +4,7 @@ from pathlib import Path
 from textual import containers, getters, on
 from textual.app import ComposeResult
 from textual.binding import Binding
-from textual.events import Resize, ScreenResume
+from textual.events import ScreenResume
 from textual.screen import Screen
 from textual.widgets import Static
 from toad.widgets.footer import Footer
@@ -15,12 +15,12 @@ from toad.app import ToadApp
 from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.comms_fork_dialog import ForkDialog
 from toad.widgets.comms_sidebar import CoordinationStatus, CommsSidebar, SelectTarget
+from toad.widgets.channels_sidebar import ChannelsSidebar
 from toad.session_tracker import SidebarState
 from toad.widgets.session_tabs import SessionsTabs
 from toad.widgets.side_bar import SideBar, TabHistoryControls
 from toad.widgets.recovery_view import RecoveryView
 from toad.widgets.thread_comms import RelationshipSort, ThreadCommsSidebar
-from toad.widgets.session_sort import ChannelListSort
 from toad.screens.session_view import SessionView
 
 
@@ -81,26 +81,8 @@ class CommsScreen(SessionView, can_focus=False):
         with containers.Horizontal(id="tab-navigation-header"):
             yield TabHistoryControls()
             yield SessionsTabs()
-        if not self._content_loaded:
-            # Switching modes only needs the route identity for its first
-            # paint. Compose the expensive native controls after that frame;
-            # open_comms_session still waits for them before returning to
-            # callers that expect a fully mounted chat and sidebar.
-            yield Static(f"Opening {self.target}…", id="comms-opening")
-            return
         with containers.Center():
-            yield SideBar(
-                SideBar.Panel(
-                    "Channels",
-                    CommsSidebar(
-                        session_thread=self.me,
-                        selected_target=self.target,
-                    ),
-                    flex=True,
-                    header_control=ChannelListSort(),
-                ),
-                id="channels-sidebar",
-            )
+            yield ChannelsSidebar(self.me, self.target)
             yield SideBar(
                 SideBar.Panel(
                     "Connection",
@@ -115,12 +97,15 @@ class CommsScreen(SessionView, can_focus=False):
                 id="thread-sidebar", right=True, hide=True, navigation=self._thread_sidebar_state,
             )
             with containers.Vertical(id="comms-content"):
-                yield CommsChatView(
-                    self.project_path,
-                    me=self.me,
-                    target=self.target,
-                    kind=self.kind,
-                )
+                if not self._content_loaded:
+                    yield Static(f"Opening {self.target}…", id="comms-opening")
+                else:
+                    yield CommsChatView(
+                        self.project_path,
+                        me=self.me,
+                        target=self.target,
+                        kind=self.kind,
+                    )
         yield Footer()
 
     def on_mount(self) -> None:
@@ -129,7 +114,7 @@ class CommsScreen(SessionView, can_focus=False):
         self._prepare_content()
 
     def _start_hydration(self) -> None:
-        """Only a written route frame may start full-screen composition."""
+        """Only a written route frame may start conversation composition."""
         if not self._content_loaded and not self._hydrate_queued:
             self._hydrate_queued = True
             self.call_later(self._load_content)
@@ -160,10 +145,15 @@ class CommsScreen(SessionView, can_focus=False):
         self._content_loading = True
         self._content_loaded = True
         try:
-            # Do not expose the default top-of-list sidebar between mounting
-            # the full controls and restoring this tab's saved navigation.
+            # The navigation/sidebar shell is already visible in its chosen
+            # state. Hydrate only the conversation; retain those exact controls
+            # and their scroll position throughout the opening transition.
             with self.app.batch_update():
-                await self.recompose()
+                content = self.query_one("#comms-content", containers.Vertical)
+                await content.remove_children()
+                await content.mount(CommsChatView(
+                    self.project_path, me=self.me, target=self.target, kind=self.kind,
+                ))
                 if self.is_attached:
                     self._prepare_content()
                     if self.is_current:
@@ -190,16 +180,13 @@ class CommsScreen(SessionView, can_focus=False):
         if chat := self.query_one_optional(CommsChatView):
             self.call_after_refresh(chat.prepare_prompt)
 
-    def on_resize(self, _event: Resize) -> None:
-        for sidebar in self.query(SideBar):
-            sidebar._apply_layout()
-        self.align_tabs_to_sidebars()
-
     async def action_message_style(self) -> None:
-        await self.query_one(CommsChatView).toggle_message_style()
+        if chat := self.query_one_optional(CommsChatView):
+            await chat.toggle_message_style()
 
     def action_focus_prompt(self) -> None:
-        self.query_one(CommsChatView).prepare_prompt()
+        if chat := self.query_one_optional(CommsChatView):
+            chat.prepare_prompt()
 
     def action_show_sidebar(self) -> None:
         sidebar = self.query_one(SideBar)
@@ -209,7 +196,7 @@ class CommsScreen(SessionView, can_focus=False):
     @on(SideBar.Dismiss)
     def on_side_bar_dismiss(self, event: SideBar.Dismiss) -> None:
         event.stop()
-        self.query_one(CommsChatView).prepare_prompt()
+        self.action_focus_prompt()
 
     async def _open(self, target: str, kind: str) -> None:
         await self.app.open_comms_session(

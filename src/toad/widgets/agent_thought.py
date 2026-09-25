@@ -3,12 +3,17 @@ from typing import ClassVar
 
 from textual.binding import Binding, BindingType
 from toad.widgets.streaming_markdown import StreamingMarkdown
+from toad.widgets.message_filter import CategorizedBlock, MessageCategory
 
 
-class AgentThought(StreamingMarkdown, can_focus=True):
+class AgentThought(CategorizedBlock, StreamingMarkdown, can_focus=True):
     """The agent's 'thoughts'."""
 
     TRANSCRIPT_ROLE = "thinking"
+
+    @property
+    def message_category(self) -> MessageCategory:
+        return MessageCategory.THINKING
 
     HELP = """
 ## Agent thoughts
