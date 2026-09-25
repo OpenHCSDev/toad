@@ -1593,7 +1593,8 @@ class Conversation(containers.Vertical):
         detail = (
             message.summary or "Context estimate unavailable until a new measurement arrives."
             if message.phase == "end"
-            else "Compaction did not complete. Context usage will update after the next measurement."
+            else message.summary
+            or "Compaction did not complete. Context usage will update after the next measurement."
         )
         await self.post(AgentResponse(f"## {title}\n\n{detail}"))
 
