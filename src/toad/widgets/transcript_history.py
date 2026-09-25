@@ -39,7 +39,11 @@ def transcript_blocks(events: tuple[TranscriptEvent, ...], *, fragment: bool = F
     tools: dict[str, protocol.ToolCall] = {}
     for event in events:
         kind, text = event.kind, event.text
-        if kind == "user":
+        if kind == "context":
+            from toad.widgets.coordination_context import CoordinationContext
+
+            blocks.append(CoordinationContext(text))
+        elif kind == "user":
             if event.routing is not None and event.routing.requests:
                 from toad.widgets.incoming_message import IncomingMessage
                 message = event.routing.requests[0]

@@ -159,6 +159,7 @@ class Agent(AgentBase):
         self._reconnecting = False
         self._connected_ok = False
         self.prompt_in_flight = 0
+        self._deferred_submissions: set[asyncio.Task] = set()
         self.uses_turn_events = False
         self._pending_session_name: str | None = None
         self._coordination_thread: str | None = None
@@ -199,6 +200,7 @@ class Agent(AgentBase):
 
         self._token_usage: TokenUsage | None = None
         self._context_usage: ContextUsage | None = None
+        self._context_usage_saved = False
         self._model_config_id: str | None = None
         self._thinking_config_id: str | None = None
         self.current_thinking_level: str | None = None
@@ -329,18 +331,32 @@ class Agent(AgentBase):
             if isinstance(state.get("thread"), str) and isinstance(state.get("wireRoot"), str):
                 self._publish_coordination_metadata({"_meta": metadata})
             compaction = state.get("compaction")
-            if isinstance(compaction, dict) and compaction.get("phase") in {"start", "end", "abort"}:
+            if isinstance(compaction, dict) and compaction.get("phase") in {"start", "progress", "end", "abort"}:
                 if (compaction.get("contextState") == "unknown"
                         and compaction.get("contextUsed") is None):
                     self._context_usage = None
                     self.post_message(messages.UpdateStatusLine(Content("Context estimate unavailable")))
                 summary = compaction.get("summary")
+                source_done = compaction.get("sourceBytesDone")
+                source_total = compaction.get("sourceBytesTotal")
+                if not (
+                    isinstance(source_done, int) and not isinstance(source_done, bool)
+                    and isinstance(source_total, int) and not isinstance(source_total, bool)
+                    and 0 <= source_done <= source_total and source_total > 0
+                ):
+                    source_done = source_total = None
+                summary_phase = compaction.get("summaryPhase")
                 self.post_message(messages.CompactionUpdate(
                     compaction["phase"],
                     compaction.get("reason") if isinstance(compaction.get("reason"), str)
                     else "unknown",
-                    " ".join(summary.split())[:400] if isinstance(summary, str) else "",
+                    summary if isinstance(summary, str) else "",
                     compaction.get("willRetry") is True,
+                    compaction.get("chunkIndex") if isinstance(compaction.get("chunkIndex"), int)
+                    and not isinstance(compaction.get("chunkIndex"), bool) else 0,
+                    source_done,
+                    source_total,
+                    summary_phase if isinstance(summary_phase, str) and summary_phase else None,
                 ))
                 return
             if state.get("transcriptChanged") is True:
@@ -502,6 +518,7 @@ class Agent(AgentBase):
                     self.post_message(messages.SessionInfoUpdate(title))
 
             case {"sessionUpdate": "usage_update", "used": used, "size": size}:
+                self._context_usage_saved = False
                 # Pi can report zero immediately after compaction or while a
                 # turn has not yet returned authoritative usage. A saved
                 # conversation still has context; presenting 0.0K (0.0%)
@@ -533,6 +550,8 @@ class Agent(AgentBase):
                     ")",
                 )
             )
+            if self._context_usage_saved:
+                status.append(Content("last response"))
             if (cost := usage.cost) is not None:
                 status.append(Content.assemble((f"{cost}", "bold")))
 
@@ -962,6 +981,9 @@ class Agent(AgentBase):
             prompt: Prompt text.
         """
         self.prompt_in_flight += 1
+        submission = asyncio.current_task() if defer_display else None
+        if submission is not None:
+            self._deferred_submissions.add(submission)
         try:
             prompt_content_blocks = await asyncio.to_thread(
                 build_prompt, self.project_root_path, prompt
@@ -986,12 +1008,25 @@ class Agent(AgentBase):
             )
         finally:
             self.prompt_in_flight -= 1
+            if submission is not None:
+                self._deferred_submissions.discard(submission)
 
     async def clear_queue(self) -> None:
         """Drop prompts still awaiting delivery, leaving the turn running."""
         await self.acp_session_prompt(
             [{"type": "text", "text": " "}], {"agentComms": {"clearQueue": True}}
         )
+
+    async def send_now(self) -> bool:
+        """Interrupt the response for already queued input, without resending text."""
+        # Resource/image preparation can still be running when the user clicks.
+        # Wait for those exact submissions to reach the owner before interrupting.
+        if pending := tuple(self._deferred_submissions):
+            await asyncio.gather(*(asyncio.shield(task) for task in pending))
+        result = await self.acp_session_prompt(
+            [{"type": "text", "text": " "}], {"agentComms": {"sendNow": True}}
+        )
+        return result is not None
 
     async def compact_context(self, instructions: str | None = None) -> dict[str, Any]:
         """Ask the persistent owner to compact Pi context without creating a turn."""
@@ -1254,6 +1289,20 @@ class Agent(AgentBase):
         wire_root = coordination.get("wireRoot")
         if not isinstance(thread, str) or not isinstance(wire_root, str):
             return
+        if "contextUsage" in coordination:
+            saved = coordination["contextUsage"]
+            if (
+                isinstance(saved, dict)
+                and isinstance(saved.get("used"), int) and saved["used"] > 0
+                and isinstance(saved.get("size"), int) and saved["size"] > 0
+            ):
+                self._context_usage = ContextUsage(saved["used"], saved["size"])
+                self._context_usage_saved = True
+                self.update_status_line()
+            else:
+                self._context_usage = None
+                self._context_usage_saved = False
+                self.post_message(messages.UpdateStatusLine(Content("Context estimate unavailable")))
         self._coordination_thread = thread
         self._coordination_root = wire_root
         if isinstance(worktree := coordination.get("worktree"), str):
@@ -1505,6 +1554,7 @@ class Agent(AgentBase):
             self._coordination_thread,
             action,
             text=text,
+            owner_action=True,
         )
         return goal
 

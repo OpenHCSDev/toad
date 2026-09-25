@@ -22,7 +22,7 @@ from toad.widgets.agent_response import AgentResponse
 from toad.widgets.conversation import Conversation, TurnActivity
 
 
-SUMMARY = "AUTO-COMPACTION-PRESERVED-DECISIONS"
+SUMMARY = "## Decisions\n\n" + "- AUTO-COMPACTION-PRESERVED-DECISIONS\n" * 150 + "\n## Next\nContinue."
 
 
 class CaptureClient:
@@ -49,6 +49,7 @@ async def main():
             {"type": "tool_execution_end", "toolCallId": "tool-1", "toolName": "bash",
              "result": {"content": [{"type": "text", "text": "done"}]}, "isError": False},
             {"type": "compaction_start", "reason": "threshold"},
+            {"type": "compaction_progress", "reason": "threshold", "chunkIndex": 2},
             {"type": "compaction_end", "reason": "threshold", "aborted": False,
              "willRetry": False, "result": {"summary": SUMMARY, "firstKeptEntryId": "saved-1",
               "tokensBefore": 150000, "estimatedTokensAfter": 32000}},
@@ -98,11 +99,16 @@ for record in RECORDS:
         client = CaptureClient()
         await server._emit_event("fixture", start, client=client)
         start_updates = list(client.updates)
+        progress = next(e for e in events if e.get("type") == "compaction_progress")
+        await server._emit_event("fixture", progress, client=client)
+        progress_updates = client.updates[len(start_updates):]
+        assert progress_updates, "ACP discarded native compaction progress"
         await server._emit_event("fixture", end, client=client)
-        end_updates = client.updates[len(start_updates):]
+        end_updates = client.updates[len(start_updates) + len(progress_updates):]
         assert start_updates, "ACP did not forward automatic compaction-start activity"
         assert end_updates and any(
-            SUMMARY in str(update.model_dump(by_alias=True)) for update in end_updates
+            update.model_dump(by_alias=True).get("_meta", {}).get("agentComms", {})
+            .get("compaction", {}).get("summary") == SUMMARY for update in end_updates
         ), "ACP did not forward the exact automatic compaction summary"
 
         app = ToadApp(project_dir=str(root))
@@ -125,6 +131,11 @@ for record in RECORDS:
                 "Automatic compaction left an active Toad turn without activity indication",
                 status.render().plain)
             assert view.busy_count == 1, "Compaction is inside the active turn, not a second turn"
+            for update in progress_updates:
+                agent.rpc_session_update("fixture", update.model_dump(by_alias=True, exclude_none=True))
+            await pilot.pause()
+            assert "step 2 completed" in status.render().plain
+            assert not any(isinstance(block, AgentResponse) for block in view.contents.children)
             for update in end_updates:
                 agent.rpc_session_update("fixture", update.model_dump(by_alias=True, exclude_none=True))
             await pilot.pause()

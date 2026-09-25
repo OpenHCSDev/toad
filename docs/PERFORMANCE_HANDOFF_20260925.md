@@ -7,6 +7,15 @@ despite hiccups above 30 ms.** The former hold below is superseded. Merge Textua
 first, refresh Toad's prerequisite pin, integrate current main, and validate.
 They also requested detailed py-spy evidence for the follow-up performance PR.
 
+Textual PR #2 has now merged as `06220c3837e8df0cb140b2d64205a0766398c9dc`.
+Toad integration includes main `447600d` (PR #33), its core pin `74e157e`, and
+the merged framework pin. Eighteen Toad pilots passed against a private test
+environment `/home/ts/.cache/toad-checkpoint-tests-314`; the inherited goal-pause
+pilot's missing `Goal.paused_by` error reproduces on clean main with its own pin.
+One combined history-anchor run timed out; isolated runs passed with and without
+optional renderer dependencies. Toad checkpoint/evidence commit is `8f49b87`;
+integration/publication are the immediate next step at this document revision.
+
 Completed since the original handoff:
 
 - The 16-line duplicate immediate-frame removal passed pointer focus, opening

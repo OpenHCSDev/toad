@@ -151,7 +151,11 @@ def transcript_fragments(events: tuple[TranscriptEvent, ...]) -> tuple[Transcrip
     tools: dict[str, int] = {}
     budget = RenderBudget()
     for event in events:
-        if event.kind in {"user", "assistant", "thinking", "notice", "sent"}:
+        if event.kind == "context":
+            # A single lazy disclosure owns the full metadata source. Its body
+            # uses normal bounded Markdown paging only when the user opens it.
+            fragments.append(TranscriptFragment((event,)))
+        elif event.kind in {"user", "assistant", "thinking", "notice", "sent"}:
             fragments.extend(
                 TranscriptFragment((replace(event, text=part),), continuation=index > 0)
                 for index, part in enumerate(budget.split(event.text))

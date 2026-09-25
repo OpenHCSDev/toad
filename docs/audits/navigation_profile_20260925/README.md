@@ -104,3 +104,28 @@ read-acknowledgement correctness. Do not disable GC or hide genuine invalidation
 
 Also deferred: shared recognition/highlighting of `@thread_name` in ordinary
 text, not only routed-message decorations.
+
+## Integration validation
+
+Integrated main through `447600d` (PR #33), preserving its agent-comms pin
+`74e157e116858f485badc1d083df5342dcca0686`. Textual PR #2 is merged at
+`06220c3837e8df0cb140b2d64205a0766398c9dc`, which is now the Toad pin.
+Backend validation used a dedicated test environment; the shared stack was not
+updated. Fresh framework checks passed **21 tests**; the prior complete
+non-snapshot-directory run passed 3,087 with 1 skip and 4 expected failures.
+
+**18 Toad integration pilots passed**: pointer focus, opening continuity,
+sidebar projection, history scroll-frame anchoring, categories, human read
+boundaries, broad Comms, pending-thread metadata, many-tab revisits, worker
+previews, replay worker gating, context disclosure, context resume, compaction
+progress, transcript teardown, multipart Markdown, automatic compaction
+visibility, and send-now failure handling. Fatal Ruff and whitespace checks pass.
+
+One history-anchor run timed out during a combined run; isolated runs passed both
+with and without the optional persistent-renderer dependency path. This is not
+reported as an uninterrupted all-green combined command.
+
+An inherited goal-pause pilot fails because the pinned core's `Goal` lacks
+`paused_by`. It fails identically on clean main `447600d` with main's own pinned
+dependencies. This pre-existing core/test-contract mismatch is outside this
+performance change; no goal behavior was changed to make the test pass.
