@@ -16,7 +16,7 @@ from toad.widgets.comms_sidebar import CommsRow, CommsSidebar, SelectTarget
 from toad.widgets.activity_spinner import FRAMES
 from toad.widgets.message_filter import MESSAGE_CATEGORIES, MESSAGE_LABELS, MessageCategory
 from toad.widgets.session_sort import SortControl
-from toad.widgets.side_bar import SideBar, SideBarCollapsible
+from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarVisibilityObserver
 from toad.widgets.sidebar_tree import SidebarGroup, TargetTree
 from toad.widgets.thread_comms_model import RelationshipGroup, RelationshipSource, ThreadCommsSnapshot
 
@@ -177,7 +177,7 @@ class RelationshipRows(SidebarGroup):
                 container.scroll_to(y=state.scroll.get(self.model.key, 0), animate=False)
 
 
-class ThreadCommsSidebar(TargetTree):
+class ThreadCommsSidebar(SidebarVisibilityObserver, TargetTree):
     DEFAULT_CSS = """
     ThreadCommsSidebar { height: auto; }
     ThreadCommsSidebar .relationship-context { height: auto; text-wrap: nowrap; text-overflow: clip; color: $text-muted; }
@@ -245,19 +245,23 @@ class ThreadCommsSidebar(TargetTree):
             return
         sidebar = self.query_ancestor(SideBar)
         if (self.screen.is_active and not sidebar.collapsed
-                and any(row.has_class("-busy") for row in self.query(RelationshipRow))):
+                and any(row.has_class("-busy") for group in self.groups.values() for row in group.rows.values())):
             self._spinner_timer.resume()
         else:
             self._spinner_timer.pause()
+
+    def sidebar_visibility_changed(self) -> None:
+        self._sync_spinner()
 
     def _animate_busy(self) -> None:
         if not self.screen.is_active:
             self._sync_spinner()
             return
         self._spinner_phase = (self._spinner_phase + 1) % len(FRAMES)
-        for row in self.query(RelationshipRow):
-            if row.has_class("-busy"):
-                row.advance_spinner(self._spinner_phase)
+        for group in self.groups.values():
+            for row in group.rows.values():
+                if row.has_class("-busy"):
+                    row.advance_spinner(self._spinner_phase)
 
     def on_show(self):
         if not self.is_attached or self.screen is not self.app.screen:

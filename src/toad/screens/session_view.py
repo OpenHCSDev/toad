@@ -93,6 +93,9 @@ class SessionView(Screen):
         """Only windows with an active render transaction need compensation."""
         return set()
 
+    def _use_viewport_layout(self) -> bool:
+        return self.is_current and not self.history_anchors
+
     def _refresh_layout(self, size: Size | None = None, scroll: bool = False) -> None:
         from toad.widgets.history_anchor import HistoryAnchor
 

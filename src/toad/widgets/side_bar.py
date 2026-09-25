@@ -17,6 +17,13 @@ if TYPE_CHECKING:
     from toad.app import ToadApp
 
 
+class SidebarVisibilityObserver:
+    """A panel whose active presentation depends on its enclosing sidebar."""
+
+    def sidebar_visibility_changed(self) -> None:
+        raise NotImplementedError
+
+
 class SideBarCollapsible(widgets.Collapsible, inherit_css=False):
     # Selection is drawn on the focused row. Inheriting Collapsible's container
     # focus-within tint would restyle the entire channel tree on pointer entry.
@@ -145,11 +152,12 @@ class SideBarToggle(widgets.Static):
         self.set_collapsed(collapsed)
 
     def set_collapsed(self, collapsed: bool) -> None:
-        self.update(
-            ("<" if collapsed else ">") if self.right else (">" if collapsed else "<"),
-            layout=False,
-        )
-        self.tooltip = "Expand sidebar" if collapsed else "Collapse sidebar"
+        text = ("<" if collapsed else ">") if self.right else (">" if collapsed else "<")
+        if self.content != text:
+            self.update(text, layout=False)
+        tooltip = "Expand sidebar" if collapsed else "Collapse sidebar"
+        if self.tooltip != tooltip:
+            self.tooltip = tooltip
 
     def action_sidebar_toggle(self) -> None:
         self.post_message(self.Pressed())
@@ -163,7 +171,7 @@ class SideBarToggle(widgets.Static):
     def on_click(self, event: Click) -> None:
         if event.button == 1:
             event.stop()
-            self.post_message(self.Pressed(focus=False))
+            self.query_ancestor(SideBar).toggle(focus=False)
 
 
 class TabHistoryButton(widgets.Static, can_focus=True):
@@ -772,13 +780,15 @@ class SideBar(containers.Vertical):
         # The old -collapsed ancestor selector restyled every descendant row
         # (hundreds of expensive stylesheet.apply calls per toggle). Inline
         # box changes affect only this sidebar and its immediate panels.
-        self.styles.width = 3 if collapsed else None
-        self.styles.min_width = 3 if collapsed else None
-        self.styles.max_width = 3 if collapsed else None
-        if self.right:
-            self.styles.border_left = ("none", "transparent") if collapsed else None
-        else:
-            self.styles.border_right = ("none", "transparent") if collapsed else None
+        managed = self.is_mounted and self.id in cast("ToadApp", self.app).sidebar_layout.placements
+        if not managed:
+            self.styles.width = 3 if collapsed else None
+            self.styles.min_width = 3 if collapsed else None
+            self.styles.max_width = 3 if collapsed else None
+            if self.right:
+                self.styles.border_left = ("none", "transparent") if collapsed else None
+            else:
+                self.styles.border_right = ("none", "transparent") if collapsed else None
         if panels := self.query_one_optional("#sidebar-panels"):
             panels.display = not collapsed
         if controls := self.query_one_optional("#sidebar-controls"):
@@ -789,14 +799,9 @@ class SideBar(containers.Vertical):
             toggle.set_collapsed(collapsed)
             if not collapsed:
                 toggle.remove_class("-gutter-hover")
-        from toad.widgets.comms_sidebar import CommsSidebar
-
-        for sidebar in self.query(CommsSidebar):
-            sidebar._sync_spinner()
-        from toad.widgets.thread_comms import ThreadCommsSidebar
-
-        for tree in self.query(ThreadCommsSidebar):
-            tree._sync_spinner()
+        for panel in self.panels:
+            if isinstance(panel.widget, SidebarVisibilityObserver):
+                panel.widget.sidebar_visibility_changed()
         self._presented_layout = None
         if self.is_mounted and self.id in cast("ToadApp", self.app).sidebar_layout.placements:
             self._apply_layout()
@@ -831,7 +836,11 @@ class SideBar(containers.Vertical):
     def toggle(self, *, focus: bool = True) -> None:
         collapsed = not self.collapsed
         if self._navigation is None:
-            cast("ToadApp", self.app).settings.set("sidebar.hide", collapsed)
+            app = cast("ToadApp", self.app)
+            app.settings.set("sidebar.hide", collapsed)
+            # Project this input on its visible owner immediately. The shared
+            # settings signal still updates other views, idempotently.
+            self.collapsed = app.settings.get("sidebar.hide", bool)
         else:
             self.collapsed = collapsed
         if collapsed:
@@ -842,6 +851,34 @@ class SideBar(containers.Vertical):
             # native focus now so its highlight can share the opening frame,
             # rather than waiting for a painted frame to request another one.
             self.query_one("SideBarCollapsible CollapsibleTitle").focus()
+        if not focus and self.is_mounted and self.screen.is_current:
+            # Flush the known geometry owners before one input-driven update.
+            # Normal screen/batch guards remain in charge; queued invalidations
+            # and subsequent genuine resize feedback are not discarded.
+            parent = self.parent
+            if isinstance(parent, Widget):
+                for child in parent.children:
+                    if isinstance(child, SideBar):
+                        child._apply_layout()
+                        for node in child.walk_children(Widget, with_self=True):
+                            node._check_refresh()
+                    else:
+                        child._check_refresh()
+                parent._check_refresh()
+                self.screen.refresh(repaint=False, layout=True)
+                self.screen._on_timer_update()
+        if not focus and self.is_mounted and self.screen.is_current:
+            parent = self.parent
+            if isinstance(parent, Widget):
+                for child in parent.children:
+                    if isinstance(child, SideBar):
+                        child._apply_layout()
+                        for node in child.walk_children(Widget, with_self=True):
+                            node._check_refresh()
+                    else:
+                        child._check_refresh()
+                parent._check_refresh()
+                self.screen.call_later(self.screen._on_timer_update)
 
     def reveal(self) -> None:
         if self._navigation is None:

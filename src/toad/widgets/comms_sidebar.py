@@ -47,6 +47,7 @@ from toad.widgets.session_sort import ChannelListSort, SessionSort
 from toad.widgets.virtual_channel_list import VirtualChannelList, VirtualChoice, styled_row
 from toad.widgets.activity_spinner import FRAMES
 from toad.widgets.sidebar_tree import SidebarDisclosure, SidebarGroup, TargetTree
+from toad.widgets.side_bar import SidebarVisibilityObserver
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
@@ -386,7 +387,7 @@ class CoordinationStatus(Static):
         )
 
 
-class CommsSidebar(TargetTree):
+class CommsSidebar(SidebarVisibilityObserver, TargetTree):
     """Local and remote sessions with wire channels and live activity.
 
     Keyboard: up/down move the selection, enter opens the selected
@@ -566,12 +567,15 @@ class CommsSidebar(TargetTree):
         current = snapshot or self._last_snapshot
         bar = next((node for node in self.ancestors if isinstance(node, SideBar)), None)
         has_busy_rows = (bool(self._busy_virtual_rows) if self._virtual
-                         else any(row.has_class("-busy") for row in self.query(ThreadStatusRow)))
+                         else any(row.has_class("-busy") for row in self._ordered_rows()))
         if (self.screen.is_active and bar is not None and not bar.collapsed
                 and current is not None and has_busy_rows):
             timer.resume()
         else:
             timer.pause()
+
+    def sidebar_visibility_changed(self) -> None:
+        self._sync_spinner()
 
     def _animate_busy(self) -> None:
         if not self.screen.is_active or self._last_snapshot is None:
@@ -588,7 +592,7 @@ class CommsSidebar(TargetTree):
                     text, selected=selected, ansi=ansi, busy=True, muted=True, unread=unread,
                 ))
         else:
-            for row in self.query(ThreadStatusRow):
+            for row in self._ordered_rows():
                 if row.has_class("-busy"):
                     row.advance_spinner(self._spinner_phase)
 
