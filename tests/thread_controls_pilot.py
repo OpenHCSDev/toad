@@ -67,17 +67,23 @@ for line in sys.stdin:
     kind = command["type"]
     data = {}
     if kind == "get_state":
-        data = {"model": {"provider": provider, "id": model}, "thinkingLevel": thinking}
+        data = {"model": {"provider": provider, "id": model}, "thinkingLevel": thinking,
+                "nativeInputProofCapability": "pi-native-input-v1-live-only"}
     elif kind == "set_model":
         provider, model = command["provider"], command["modelId"]
     elif kind == "prompt":
+        emit({"type": "response", "id": command.get("id"), "command": kind, "success": True})
+        emit({"type": "message_start", "message": {"role": "user",
+              "content": command["message"], "inputId": command["inputId"]}})
         emit({"type": "message_update", "assistantMessageEvent": {"type": "text_delta", "delta": "ordinary assistant reply"}})
         goal = re.search(r"Persistent goal ([a-f0-9]+):", command["message"])
         if goal:
             while Path(os.environ["TEST_GOAL_GATE"]).exists():
                 time.sleep(0.05)
             wire().update_goal(os.environ["AGENT_COMMS_THREAD"], "completed", goal_id=goal[1], progress="Verified the objective")
+        emit({"type": "message_end", "message": {"role": "assistant", "stopReason": "stop"}})
         emit({"type": "agent_settled"})
+        continue
     emit({"type": "response", "id": command.get("id"), "command": kind, "success": True, "data": data})
 """)
         stub.chmod(0o755)
