@@ -86,14 +86,26 @@ class InputDeliveryBar(HorizontalGroup):
     def _refresh_summary(self) -> None:
         current = len(self.delivery["inputs"])
         history = self.delivery["historicalCount"]
-        self.display = bool(current or history or self.error)
+        dismissed = self.delivery["dismissedHistoricalCount"]
+        self.display = bool(current or history or dismissed or self.error)
         if self.is_attached:
             summary = self.query_one("#delivery-summary", Static)
             summary.display = bool(current)
-            summary.update(f"Delivery · {current} unconfirmed")
+            pending = (
+                "awaiting start"
+                if self.delivery.get("currentScope") == "owner_queue"
+                else "unconfirmed"
+            )
+            summary.update(f"Delivery · {current} {pending}")
             historical = self.query_one("#delivery-history-summary", Static)
-            historical.display = bool(history)
-            historical.update(f"{' · ' if current else ''}{history} historical notices")
+            historical.display = bool(history or dismissed)
+            label = (
+                "earlier notices"
+                if self.delivery.get("currentScope") == "owner_queue"
+                else "historical notices"
+            )
+            count = f"{history} {label}" if history else f"{dismissed} {label} cleared"
+            historical.update(f"{' · ' if current else ''}{count}")
             error = self.query_one("#delivery-error", Static)
             error.display = bool(self.error)
             error.update(self.error)
@@ -144,26 +156,27 @@ class InputDeliveryDetails(ModalScreen[None]):
             yield Static(markup=False, id="delivery-error")
             with VerticalScroll():
                 yield Static(
-                    "Current inputs have no confirmed native start. They may have reached the agent. "
+                    "These inputs have no confirmed start. They may still be queued. "
                     "They are not automatically retried.",
                     markup=False,
                 )
                 yield Static(markup=False, id="delivery-records")
                 yield Static(markup=False, id="delivery-historical-summary")
                 yield Static(
-                    "Historical notices lack receipts from before delivery tracking. "
-                    "They are not proof that an input is unread. Clearing these notices only hides "
-                    "them; it does not confirm delivery, mark messages read, or retry inputs.",
+                    "Earlier notices are not awaiting a start in the owner's current turn or queue, "
+                    "or predate delivery tracking. A notice is not proof that an input is unread. "
+                    "Clearing hides the notice only: it does not confirm delivery, mark messages "
+                    "read, or retry inputs. Cleared notices remain available here.",
                     markup=False,
                     id="delivery-history-explanation",
                 )
                 yield DeliveryHistoryAction(
-                    "Load historical notices",
+                    "Load earlier notices",
                     markup=False,
                     id="delivery-load-history",
                 )
                 yield DeliveryHistoryAction(
-                    "Clear historical notices",
+                    "Clear earlier notices",
                     markup=False,
                     id="delivery-clear-history",
                 )
@@ -200,12 +213,12 @@ class InputDeliveryDetails(ModalScreen[None]):
         if not self.is_attached:
             return
         self.query_one("#delivery-records", Static).update(
-            self._records(self.inputs) or "No current unconfirmed inputs."
+            self._records(self.inputs) or "No inputs currently awaiting start."
         )
         count = self.delivery["historicalCount"]
         dismissed = self.delivery["dismissedHistoricalCount"]
         self.query_one("#delivery-historical-summary", Static).update(
-            f"{count} historical notices · {dismissed} cleared"
+            f"{count} earlier notices · {dismissed} cleared"
         )
         self.query_one("#delivery-history-explanation").display = bool(
             count or dismissed
