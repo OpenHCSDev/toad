@@ -12,7 +12,7 @@ from textual.widgets import Static
 
 from toad.acp.agent import Agent
 from toad.app import ToadApp
-from toad.widgets.input_delivery import InputDeliveryBar, InputDeliveryDetails
+from toad.widgets.input_delivery import DeliveryInspect, InputDeliveryBar, InputDeliveryDetails
 
 
 async def main():
@@ -41,6 +41,7 @@ async def main():
             agent._coordination_thread = session
             app = ToadApp(project_dir=str(project))
             async with app.run_test(size=(110, 35)) as pilot:
+                app.theme = "textual-dark"
                 await pilot.pause()
                 conversation = app.screen.conversation
                 conversation.set_reactive(type(conversation).agent, agent)
@@ -62,6 +63,24 @@ async def main():
                 bar = conversation.query_one(InputDeliveryBar)
                 assert bar.display
                 assert "1 input(s)" in str(bar.query_one(Static).render())
+                await pilot.resize_terminal(65, 22)
+                await pilot.pause()
+                action = bar.query_one("#delivery-inspect", DeliveryInspect)
+                assert action.content_size.width >= len("Inspect")
+                assert action.content_size.height == 1
+                assert action.region.bottom <= bar.region.bottom
+                assert "Inspect" in "\n".join(
+                    strip.text for strip in app.screen._compositor.render_strips()
+                )
+                action.focus()
+                await pilot.pause()
+                app.save_screenshot(filename="toad-delivery-text-action.svg", path="/var/tmp")
+                await pilot.press("enter")
+                await pilot.pause()
+                assert isinstance(app.screen, InputDeliveryDetails)
+                await pilot.press("escape")
+                await pilot.resize_terminal(110, 35)
+                await pilot.pause()
                 await pilot.click("#delivery-inspect")
                 await pilot.pause()
                 assert isinstance(app.screen, InputDeliveryDetails)
