@@ -8,6 +8,8 @@ import time
 from textual.content import Content
 from textual.widgets import Static
 
+from toad.widgets.message_filter import CategorizedBlock, MessageCategory
+
 
 class MessageDivider(Static):
     """Keep timestamps with the message block, not a second transcript row."""
@@ -48,3 +50,17 @@ class MessageDivider(Static):
             (title, "bold $text-muted"),
             ("─" * right, "$text-muted"),
         )
+
+
+class AgentActivityDivider(CategorizedBlock, MessageDivider):
+    """A decorative role boundary filtered with the activity that follows it."""
+
+    ALLOW_SELECT = False
+
+    def __init__(self, category: MessageCategory) -> None:
+        super().__init__("Agent")
+        self._category = category
+
+    @property
+    def message_category(self) -> MessageCategory:
+        return self._category

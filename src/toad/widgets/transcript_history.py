@@ -21,6 +21,7 @@ from toad.widgets.agent_response import AgentResponse
 from toad.widgets.agent_thought import AgentThought
 from toad.widgets.tool_call import ToolCall
 from toad.widgets.user_input import UserInput
+from toad.widgets.message_divider import AgentActivityDivider
 from toad.widgets.history_anchor import HistoryAnchor
 from toad.widgets.message_filter import (
     ALL_CATEGORIES, CategorizedBlock, MessageCategory, event_category, is_routed_event, keep_events,
@@ -121,6 +122,8 @@ class TranscriptFragmentView(VerticalGroup):
         # A semantic fragment may be one oversized paragraph, list, or fence.
         # It is already a page leaf: re-paging it would recursively remount the
         # same indivisible block forever without producing visible Markdown.
+        if self.fragment.starts_agent_activity and not self.fragment.continuation:
+            yield AgentActivityDivider(self._message_category)
         yield from transcript_blocks(
             self.fragment.events, fragment=True, show_divider=not self.fragment.continuation,
         )
@@ -132,7 +135,8 @@ class TranscriptFragmentView(VerticalGroup):
         Updating Markdown itself preserves the outer scene, subscriptions and
         styles instead of destroying and reconstructing the entire fragment.
         """
-        old_events, new_events = self.fragment.events, fragment.events
+        previous_fragment = self.fragment
+        old_events, new_events = previous_fragment.events, fragment.events
         self.fragment = fragment
         category = event_category(new_events[0]) if new_events else MessageCategory.OTHER
         if category != self._message_category:
@@ -143,8 +147,11 @@ class TranscriptFragmentView(VerticalGroup):
         if (len(old_events) == len(new_events) == 1
                 and old_events[0].kind in {"assistant", "thinking", "notice", "sent"}
                 and replace(old_events[0], text=new_events[0].text) == new_events[0]
-                and len(self.children) == 1):
-            leaf = self.children[0]
+                and previous_fragment.starts_agent_activity == fragment.starts_agent_activity
+                and previous_fragment.continuation == fragment.continuation
+                and (len(self.children) == 1 or
+                     (len(self.children) == 2 and isinstance(self.children[0], AgentActivityDivider)))):
+            leaf = self.children[-1]
             if isinstance(leaf, (AgentResponse, AgentThought)):
                 await leaf.update(new_events[0].text)
                 return

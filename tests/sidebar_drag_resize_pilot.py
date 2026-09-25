@@ -8,7 +8,7 @@ from pathlib import Path
 from runtime_fixture import ToadApp
 
 from toad.widgets.side_bar import (
-    SideBar, SidebarAction, SidebarResizeHandle, SidebarSlider, TabHistoryControls,
+    SideBar, SideBarToggle, SidebarAction, SidebarResizeHandle, SidebarSlider, TabHistoryControls,
 )
 
 
@@ -32,6 +32,9 @@ async def main() -> None:
                 await pilot.pause()
                 slider = bar.query_one("#sidebar-width-slider", SidebarSlider)
                 handle = bar.query_one(SidebarResizeHandle)
+                toggle = bar.query_one(SideBarToggle)
+                assert (toggle.region.right == handle.region.x if side == "left"
+                        else toggle.region.x == handle.region.right), (side, toggle.region, handle.region)
                 direction = 1 if side == "left" else -1
                 assert slider.reversed == (side == "right")
                 for theme in ("ansi-dark", "textual-dark"):
@@ -79,6 +82,7 @@ async def main() -> None:
                 bar.toggle()
                 await pilot.pause()
                 assert not handle.display
+                assert toggle.region == bar.region
                 bar.reveal()
                 await pilot.pause()
                 assert handle.display
