@@ -79,7 +79,7 @@ UI renderer**, not repaired by the formatting changes above:
   needs a core-owned exact native-input/session-entry binding.
 
 The companion fix is [agent-comms PR #67](https://github.com/OpenHCSDev/agent-comms/pull/67),
-pinned here at `73643680262ec810f2baf97a80b4f9593b96f025`. It persists authoritative
+pinned here at `e018ec84d17927747464eca427dd68db08ef2049`. It persists authoritative
 incoming routing by native input ID and exact sent-text digest, including busy
 steering. Human/internal input bindings explicitly override stale turn routing.
 No sender is inferred from `[agent-comms from ...]` text.
@@ -91,14 +91,14 @@ native-ID disposition receipts; repair does not acknowledge delivery.
 
 Historical repair is preview-only unless explicitly applied, and missing
 receipts remain unattributed. No live history repair or owner restart has been
-performed. This draft depends on the published core branch until #67 merges.
+performed. This PR depends on the published core branch until #67 merges.
 
 Integration includes Toad main `2b9a55d` and its goal snapshot/editor and input
 delivery changes. The core pin includes their required owner contracts. Core
 local validation passed 1,419 tests with 46 skips in 32.15 seconds using xdist,
 with 88.81% coverage; no CI wait is required for this workflow.
 
-Installed-pin validation: 22 independent pilot scripts passed with up to four
+Prior installed-pin validation (`7364368`): 22 independent pilot scripts passed with up to four
 processes in 77.89 seconds, covering attribution, activity/context/dividers,
 native message parts, transcript parsing/history, filters, sidebar layout,
 goal editing/polling/history, input delivery, tool diffs, and broad Comms.
@@ -125,6 +125,25 @@ stopped-thread/read-boundary, native attribution, and broad Comms pilots pass.
 Two existing pilots now drain background readers before temporary-wire cleanup;
 the sidebar pilot also waits for animations before capturing exact scroll
 baselines, retaining its exact frame/scroll assertions under parallel load.
+
+## Merge readiness
+
+Core pin `e018ec8` includes current core main `071a0e8` and resolves the newer
+delivery/history contract changes. Its complete local xdist suite passed
+1,434 tests with 47 skips and 88.95% coverage; eight native localhost-only
+channel cases also passed. Whole-core static and formatting checks passed.
+
+Installed that exact revision and rechecked 13 Toad pilots covering attribution,
+existing/pending thread navigation, metadata cancellation, activity/context,
+goal editing/polling, input delivery, sidebar navigation, history, tool diffs,
+and broad Comms. All passed. The broad Comms pilot exceeded the parallel
+runner's 60-second budget and then passed standalone with a 120-second budget.
+Earlier sidebar/formatting checks remain applicable to unchanged code.
+
+Merge core PR #67 first, then Toad PR #34. Local checks are the readiness
+receipts; CI is not being awaited. Existing live owners still need the updated
+core for future routing bindings, with explicit repair for old receipt-bound
+history as discussed with the user.
 
 ## Further cleanup
 
