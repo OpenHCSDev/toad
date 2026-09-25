@@ -112,7 +112,7 @@ class UserMessage(Message):
 class RequestPermission(AgentMessage):
     options: list[protocol.PermissionOption]
     tool_call: protocol.ToolCallUpdatePermissionRequest
-    result_future: Future[Answer]
+    result_future: Future[Answer | None]
 
 
 @dataclass

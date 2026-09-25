@@ -2032,10 +2032,12 @@ class Conversation(containers.Vertical):
     @work
     async def request_permissions(
         self,
-        result_future: Future[Answer],
+        result_future: Future[Answer | None],
         options: list[Answer],
         tool_call_update: acp_protocol.ToolCallUpdatePermissionRequest,
     ) -> None:
+        if result_future.done():
+            return  # The ACP controller may have disconnected before this worker ran.
         kind = tool_call_update.get("kind", None)
         title = tool_call_update.get("title", "") or ""
 
@@ -2080,17 +2082,15 @@ class Conversation(containers.Vertical):
                 )
                 self.post_message(messages.SessionUpdate(state="busy"))
                 self.app.terminal_alert(False)
-                result_future.set_result(result)
+                if not result_future.done():
+                    result_future.set_result(result)
                 return
 
         from toad.widgets.acp_content import ACPToolCallContent
 
         def answer_callback(answer: Answer) -> None:
-            try:
+            if not result_future.done():
                 result_future.set_result(answer)
-            except Exception:
-                # I've seen this occur in shutdown with an `InvalidStateError`
-                pass
 
             if not self.prompt.ask_queue:
                 self.post_message(messages.SessionUpdate(state="busy"))

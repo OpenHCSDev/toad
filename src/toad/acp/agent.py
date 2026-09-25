@@ -35,6 +35,7 @@ from toad import constants
 from toad.answer import Answer
 
 PROTOCOL_VERSION = 1
+PERMISSION_TIMEOUT_SECONDS: float = 120.0
 
 
 class Mode(NamedTuple):
@@ -187,6 +188,7 @@ class Agent(AgentBase):
         self.session_pk: int | None = session_pk
         self.tool_calls: dict[str, protocol.ToolCall] = {}
         self._message_target: MessagePump | None = None
+        self._pending_permission_answers: set[asyncio.Future[Answer | None]] = set()
 
         self._terminal_count: int = 0
 
@@ -582,32 +584,37 @@ class Agent(AgentBase):
         Returns:
             The response to the permission request.
         """
-        result_future: asyncio.Future[Answer] = asyncio.Future()
+        cancelled: protocol.RequestPermissionResponse = {"outcome": {"outcome": "cancelled"}}
+        if self._stopping or sessionId != self.session_id:
+            return cancelled
+        result_future: asyncio.Future[Answer | None] = asyncio.get_running_loop().create_future()
         tool_call_id = toolCall["toolCallId"]
 
-        permission_tool_call = toolCall.copy()
+        permission_tool_call = cast(dict[str, Any], toolCall.copy())
         permission_tool_call.pop("sessionUpdate", None)
-        tool_call = cast(protocol.ToolCall, permission_tool_call)
-        if tool_call_id in self.tool_calls:
-            self.tool_calls[tool_call_id] |= tool_call
-        else:
-            self.tool_calls[tool_call_id] = deepcopy(tool_call)
-
-        tool_call = deepcopy(self.tool_calls[tool_call_id])
-
-        message = messages.RequestPermission(options, tool_call, result_future)
-        self.post_message(message)
-        await result_future
-        ask_result = result_future.result()
-
-        request_permission_outcome: protocol.OutcomeSelected = {
-            "optionId": ask_result.id,
-            "outcome": "selected",
-        }
-        result: protocol.RequestPermissionResponse = {
-            "outcome": request_permission_outcome
-        }
-        return result
+        visible_tool_call: dict[str, Any] = (
+            deepcopy(dict(self.tool_calls[tool_call_id])) if tool_call_id in self.tool_calls else {}
+        )
+        visible_tool_call.update(permission_tool_call)
+        message = messages.RequestPermission(
+            options, cast(protocol.ToolCallUpdatePermissionRequest, visible_tool_call), result_future
+        )
+        if not self.post_message(message):
+            return cancelled  # No mounted controller can answer this request.
+        self.tool_calls[tool_call_id] = cast(protocol.ToolCall, deepcopy(visible_tool_call))
+        self._pending_permission_answers.add(result_future)
+        try:
+            try:
+                ask_result = await asyncio.wait_for(result_future, PERMISSION_TIMEOUT_SECONDS)
+            except TimeoutError:
+                return cancelled
+        finally:
+            self._pending_permission_answers.discard(result_future)
+        if ask_result is None or self._stopping or sessionId != self.session_id:
+            return cancelled
+        if not any(option["optionId"] == ask_result.id for option in options):
+            return cancelled
+        return {"outcome": {"optionId": ask_result.id, "outcome": "selected"}}
 
     @jsonrpc.expose("fs/read_text_file")
     def rpc_read_text_file(
@@ -856,11 +863,14 @@ class Agent(AgentBase):
 
     async def stop(self) -> None:
         """Gracefully stop the process."""
+        self._stopping = True
+        for answer in tuple(self._pending_permission_answers):
+            if not answer.done():
+                answer.set_result(None)
         if self.session_pk is not None:
             db = DB()
             await db.session_update_last_used(self.session_pk)
 
-        self._stopping = True
         process = self._process
         process_group = self._process_group_id
         if (
