@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING, Literal
 from pathlib import Path
 from time import monotonic, time
 from urllib.parse import quote
-from agent_comms import Goal, MessageRoute
+from agent_comms import Goal, GoalExecution, MessageRoute
 
 from typing import Callable, Any
 
@@ -524,6 +524,7 @@ class Conversation(containers.Vertical):
     current_model: var[Model | None] = var(None)
     thinking_level = var("")
     goal: var[Goal | None] = var(None)
+    goal_execution: var[GoalExecution | None] = var(None)
     turn: var[Literal["agent", "client"] | None] = var(None, bindings=True)
     status: var[str | Content] = var("")
     column: var[bool] = var(False, toggle_class="-column")
@@ -744,7 +745,7 @@ class Conversation(containers.Vertical):
             yield TurnActivity().data_bind(activity=Conversation.activity,
                                            started_at=Conversation.activity_started_at)
             yield Throbber(id="throbber")
-            yield GoalBar().data_bind(goal=Conversation.goal)
+            yield GoalBar().data_bind(goal=Conversation.goal, execution=Conversation.goal_execution)
             yield Prompt(complete_callback=self.shell_complete).data_bind(
                 project_path=Conversation.project_path,
                 working_directory=Conversation.working_directory,
@@ -2226,6 +2227,8 @@ class Conversation(containers.Vertical):
         ):
             try:
                 self.goal = await self.agent.get_goal()
+                if hasattr(self.agent, "get_goal_execution"):
+                    self.goal_execution = await self.agent.get_goal_execution()
             except OSError, ValueError:
                 pass
 
@@ -2238,10 +2241,30 @@ class Conversation(containers.Vertical):
         if event.action == "goal-expand" and self.goal is not None:
             from toad.screens.goal_details import GoalDetails
 
-            self.app.push_screen(GoalDetails(self.goal))
+            goal = self.goal
+            history = ()
+            if self.agent is not None and hasattr(self.agent, "get_goal_history"):
+                try:
+                    history = await self.agent.get_goal_history(goal.id)
+                except (OSError, ValueError) as error:
+                    self.flash(str(error), style="error")
+                    return
+            self.app.push_screen(GoalDetails(goal, history=history))
         elif event.action == "goal-edit":
-            self.prompt.text = "/goal " + (self.goal.text if self.goal else "")
-            self.prompt.focus()
+            from toad.screens.goal_edit import GoalEdit
+            from toad.widgets.goal_text import goal_mention_candidates
+
+            goal = self.goal
+            if goal is None or self.agent is None or not hasattr(self.agent, "edit_goal"):
+                self.flash("Editing requires an agent-comms goal", style="error")
+                return
+
+            async def save(text: str) -> None:
+                self.goal = await self.agent.edit_goal(goal, text)
+
+            self.app.push_screen(GoalEdit(
+                goal, goal_mention_candidates(self.app), on_save=save
+            ))
         elif event.action == "goal-clear":
             await self.change_goal("clear")
         elif event.action == "goal-toggle":

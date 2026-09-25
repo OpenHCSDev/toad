@@ -1,12 +1,14 @@
 """Visible controls for the server-owned persistent thread goal."""
 
+from agent_comms import Goal, GoalExecution, GoalExecutionState
 from textual import events
 from textual.app import ComposeResult
 from textual.containers import HorizontalGroup, VerticalGroup
 from textual.message import Message
 from textual.reactive import var
 from textual.widgets import Static
-from agent_comms import Goal
+
+from toad.widgets.goal_text import GoalText
 
 
 class GoalControl(Static, can_focus=True):
@@ -36,6 +38,7 @@ class GoalBar(VerticalGroup):
     GoalBar .goal-progress { height: auto; max-height: 2; color: $text-muted; }
     """
     goal: var[Goal | None] = var(None)
+    execution: var[GoalExecution | None] = var(None)
     _separator_update_pending = False
     _throbber = None
     _prompt = None
@@ -70,16 +73,29 @@ class GoalBar(VerticalGroup):
     def _update_separators(self) -> None:
         self._separator_update_pending = False
         throbber = self._throbber
-        controls = self._prompt.query_one_optional(".delivery-controls") if self._prompt else None
-        loading = throbber is not None and throbber.busy and throbber.display and throbber.visible
+        controls = (
+            self._prompt.query_one_optional(".delivery-controls")
+            if self._prompt
+            else None
+        )
+        loading = (
+            throbber is not None
+            and throbber.busy
+            and throbber.display
+            and throbber.visible
+        )
         queue_visible = controls is not None and controls.display and controls.visible
         # Reuse the theme-resolved separator; only these local box edges change.
         self.styles.border_top = ("none", "transparent") if loading else None
-        self.styles.border_bottom = self.styles.base.border_top if queue_visible else None
+        self.styles.border_bottom = (
+            self.styles.base.border_top if queue_visible else None
+        )
+        self._update_goal_text()
 
     def compose(self) -> ComposeResult:
-        yield Static(markup=False, classes="goal-summary")
-        yield Static(markup=False, classes="goal-progress")
+        yield GoalText(classes="goal-summary")
+        yield GoalText(classes="goal-execution")
+        yield GoalText(classes="goal-progress")
         with HorizontalGroup():
             yield GoalControl("Expand", id="goal-expand")
             yield GoalControl("Pause", id="goal-toggle")
@@ -89,12 +105,30 @@ class GoalBar(VerticalGroup):
     def watch_goal(self, goal: Goal | None):
         self.display = goal is not None
         if goal is not None:
-            self.query_one(".goal-summary", Static).update(
-                goal.summary
-            )
-            progress = self.query_one(".goal-progress", Static)
-            progress.update(goal.progress)
+            self._update_goal_text()
+            progress = self.query_one(".goal-progress", GoalText)
+            progress.update_goal_text(goal.progress)
             progress.display = bool(goal.progress)
             toggle = self.query_one("#goal-toggle", Static)
             toggle.update(goal.toggle_label)
             toggle.display = goal.status != "completed"
+
+    def watch_execution(self) -> None:
+        self._update_goal_text()
+
+    def _update_goal_text(self) -> None:
+        if not self.is_mounted or self.goal is None:
+            return
+        self.query_one(".goal-summary", GoalText).update_goal_text(self.goal.summary)
+        status = self.query_one(".goal-execution", GoalText)
+        execution = self.execution
+        standby = (
+            execution is not None
+            and execution.goal_id == self.goal.id
+            and execution.state is GoalExecutionState.STANDBY
+            and not (self._throbber is not None and self._throbber.busy)
+        )
+        status.display = standby
+        if standby:
+            presentation = execution.presentation("")
+            status.update_goal_text(f"{presentation.marker} {presentation.summary}")

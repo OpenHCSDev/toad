@@ -11,7 +11,7 @@ from typing import Any, cast, NamedTuple
 from copy import deepcopy
 from math import floor
 import rich.repr
-from agent_comms import Comms, Goal, TranscriptCursor, TranscriptPage, MessageRoute
+from agent_comms import Comms, Goal, GoalExecution, TranscriptCursor, TranscriptPage, MessageRoute
 from pydantic import ValidationError
 
 from textual.content import Content
@@ -330,6 +330,8 @@ class Agent(AgentBase):
             state = metadata["agentComms"]
             if isinstance(state.get("thread"), str) and isinstance(state.get("wireRoot"), str):
                 self._publish_coordination_metadata({"_meta": metadata})
+            if "goalExecution" in state:
+                self._post_coordination_update()
             compaction = state.get("compaction")
             if isinstance(compaction, dict) and compaction.get("phase") in {"start", "progress", "end", "abort"}:
                 if (compaction.get("contextState") == "unknown"
@@ -1474,6 +1476,39 @@ class Agent(AgentBase):
             return wire(self._coordination_root).registry.require(self._coordination_thread).goal
 
         return await asyncio.to_thread(read)
+
+    async def get_goal_execution(self) -> GoalExecution | None:
+        if self._coordination_root is None or self._coordination_thread is None:
+            return None
+        from agent_comms.operations import wire
+
+        return await asyncio.to_thread(
+            wire(self._coordination_root).goal_execution, self._coordination_thread
+        )
+
+    async def _goal_owner_request(self, method: str, **params):
+        if self._coordination_root is None or self._coordination_thread is None:
+            raise ValueError("Persistent goals require an agent-comms thread.")
+        from agent_comms.operations import wire
+        from agent_comms.runtime import RuntimeProxy, socket_path
+
+        comms = wire(self._coordination_root)
+        owner = await asyncio.to_thread(comms.registry.require, self._coordination_thread)
+        proxy = RuntimeProxy(self, owner.name, socket_path(comms.root, owner.pid))
+        try:
+            return await proxy.request(method, **params)
+        except RuntimeError as error:
+            raise ValueError(str(error)) from error
+
+    async def get_goal_history(self, goal_id: str):
+        result = await self._goal_owner_request("goal_history", goal_id=goal_id)
+        return result["history"]
+
+    async def edit_goal(self, goal: Goal, text: str) -> Goal:
+        result = await self._goal_owner_request(
+            "edit_goal", goal_id=goal.id, expected_revision=goal.revision, text=text
+        )
+        return Goal(**result["goal"])
 
     @property
     def transcript_ready(self) -> bool:
