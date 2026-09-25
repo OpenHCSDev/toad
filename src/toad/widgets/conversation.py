@@ -1630,19 +1630,22 @@ class Conversation(containers.Vertical):
         from toad.widgets.transcript_fragments import prepare_transcript_fragments
         from toad.widgets.shell_result import ShellResult
 
+        window = self.query_one_optional(Window)
+        contents = self.query_one_optional(Contents)
         if (
-            not self._transcript_dirty
+            window is None or contents is None
+            or not self._transcript_dirty
             or not isinstance(self.agent, Agent)
             or not self.agent_ready
             or not self.agent.transcript_ready
             or self._managed_turn_id is not None
-            or not self.window.follows_tail
-            or self.contents.query(ShellResult)
-            or (not self._needs_transcript_checkpoint and len(list(self.contents.query("*"))) < 250)
+            or not window.follows_tail
+            or contents.query(ShellResult)
+            or (not self._needs_transcript_checkpoint and len(list(contents.query("*"))) < 250)
         ):
             return
         generation = self._transcript_generation
-        agent, window, contents = self.agent, self.window, self.contents
+        agent = self.agent
         scroll_revision = window.scroll_revision
         try:
             page = await agent.get_transcript_page()
@@ -1655,24 +1658,27 @@ class Conversation(containers.Vertical):
         )
         if (not page.events or generation != self._transcript_generation
                 or not self.is_attached or self.agent is not agent
-                or self.window is not window or self.contents is not contents
+                or self.query_one_optional(Window) is not window
+                or self.query_one_optional(Contents) is not contents
                 or window.scroll_revision != scroll_revision
-                or self._managed_turn_id is not None or not self.window.follows_tail):
+                or self._managed_turn_id is not None or not window.follows_tail):
             return
         self.new_block()
         self.cursor.follow(None)
-        retired = list(self.contents.children)
+        retired = list(contents.children)
         with self.app.batch_update():
-            await self.contents.mount(
+            await contents.mount(
                 TranscriptHistory(page, agent.get_transcript_page, fragments=fragments), before=0,
             )
             # A new turn can post while mounting awaits. Retire only the captured
             # history, leaving those new blocks after the committed snapshot.
-            await self.contents.remove_children(retired)
+            await contents.remove_children(retired)
+        if not window.is_attached or not contents.is_attached:
+            return
         self._transcript_dirty = False
         self.call_after_refresh(self._record_displayed_transcript, page.after)
         self._needs_transcript_checkpoint = False
-        self.call_after_refresh(self.window.anchor)
+        self.call_after_refresh(window.anchor)
 
     @on(acp_messages.Thinking)
     async def on_acp_agent_thinking(self, message: acp_messages.Thinking):
