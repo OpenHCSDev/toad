@@ -270,14 +270,6 @@ Run the following, and click the link in the terminal:
 toad serve
 ```
 
-The existing `toad run --serve` and `toad acp --serve` commands use the same
-browser gate. Serving is loopback-only; external hosts and public URLs are
-rejected. Open the **private** link printed in the terminal: its per-process
-token is exchanged for an HttpOnly, SameSite cookie and removed from the
-address bar. Do not share the link. Browser use with live Comms roots or
-credentials has not been approved; test only with disposable, provider-free
-fixtures until independently reviewed.
-
 ![textual-serve](https://github.com/user-attachments/assets/1d861d48-d30b-44cd-972d-5986a01360bf)
 
 ## Toad development

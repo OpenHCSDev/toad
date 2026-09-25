@@ -18,8 +18,6 @@ from textual_serve.server import Server
 class ToadWebServer(Server):
     """Serve Toad only to a local browser holding this process's capability."""
 
-    _cookie_name = "toad_web_session"
-
     def __init__(
         self,
         command: str,
@@ -42,6 +40,9 @@ class ToadWebServer(Server):
             command, host=host, port=port, title=title, public_url=expected_url
         )
         self._capability = secrets.token_urlsafe(32)
+        # Browser cookies are scoped to hosts, not ports. Separate concurrent
+        # local Toad servers must not replace each other's session cookie.
+        self._cookie_name = f"toad_web_session_{port}"
         self._expected_host = f"{host}:{port}"
 
     def initialize_logging(self) -> None:

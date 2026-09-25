@@ -160,6 +160,51 @@ class BrowserGateTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(await self.ws_status(headers={"Origin": self.origin}), 101)
             spawn.assert_awaited_once()
 
+    async def test_two_ports_do_not_replace_each_others_browser_cookie(self):
+        await self.authenticate()
+        self.assertEqual((await self.request("/"))[0], 200)
+
+        other_port = unused_loopback_port()
+        while other_port == self.port:
+            other_port = unused_loopback_port()
+        other_origin = f"http://127.0.0.1:{other_port}"
+        other = ToadWebServer("false", host="127.0.0.1", port=other_port)
+        self.assertNotEqual(self.server._cookie_name, other._cookie_name)
+        other_site = TestServer(
+            await other._make_app(), host="127.0.0.1", port=other_port
+        )
+        with patch.object(other.console, "print"):
+            await other_site.start_server()
+        try:
+            other_base = str(other_site.make_url("/")).rstrip("/")
+            async with self.client.get(other_base + "/") as response:
+                self.assertEqual(response.status, 403)
+            async with self.client.get(
+                other_base + f"/?token={self.server._capability}",
+                allow_redirects=False,
+            ) as response:
+                self.assertEqual(response.status, 403)
+            async with self.client.get(
+                other_base + f"/?token={other._capability}",
+                allow_redirects=False,
+            ) as response:
+                self.assertEqual(response.status, 303)
+                self.assertIn(other._cookie_name, response.headers["Set-Cookie"])
+            self.assertEqual((await self.request("/"))[0], 200)
+            async with self.client.get(other_base + "/") as response:
+                self.assertEqual(response.status, 200)
+            with patch.object(AppService, "start", new_callable=AsyncMock) as spawn:
+                self.assertEqual(
+                    await self.ws_status(headers={"Origin": self.origin}), 101
+                )
+                async with self.client.ws_connect(
+                    other_base + "/ws", headers={"Origin": other_origin}
+                ) as ws:
+                    self.assertEqual(ws._response.status, 101)
+                self.assertEqual(spawn.await_count, 2)
+        finally:
+            await other_site.close()
+
     def test_refuse_external_bind_and_public_url(self):
         with (
             patch("toad.web_server.version", return_value="1.1.4"),
