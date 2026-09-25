@@ -2,6 +2,7 @@
 
 import asyncio
 import os
+from dataclasses import asdict
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
@@ -9,6 +10,7 @@ from agent_comms.acp import CommsAgent
 from agent_comms.operations import wire
 
 from toad.acp.agent import Agent
+from toad.acp.messages import GoalSnapshotUpdate
 
 
 async def main():
@@ -63,6 +65,40 @@ async def main():
             )
             execution = await agent.get_goal_execution()
             assert execution.goal_id == changed.id
+            assert await agent.get_goal_snapshot() == (changed, execution)
+            emitted = []
+            agent.post_message = emitted.append
+            for goal_value, execution_value in (
+                (asdict(changed), asdict(execution)),
+                (None, None),
+            ):
+                agent.rpc_session_update(
+                    session,
+                    {
+                        "sessionUpdate": "session_info_update",
+                        "_meta": {
+                            "agentComms": {
+                                "goal": goal_value,
+                                "goalExecution": execution_value,
+                            }
+                        },
+                    },
+                )
+                snapshot = next(
+                    item
+                    for item in reversed(emitted)
+                    if isinstance(item, GoalSnapshotUpdate)
+                )
+                assert snapshot.goal == (changed if goal_value else None)
+                assert snapshot.execution == (execution if execution_value else None)
+            emitted.clear()
+            agent._publish_coordination_metadata(
+                {"_meta": owner._session_metadata(session)}, initial=True
+            )
+            snapshot = next(
+                item for item in emitted if isinstance(item, GoalSnapshotUpdate)
+            )
+            assert snapshot.goal == changed and snapshot.execution == execution
         finally:
             await owner.shutdown()
     print(

@@ -17,6 +17,7 @@ from agent_comms import (
 from textual.content import Content
 from textual.widgets import Button, Static
 
+from toad.acp.messages import GoalSnapshotUpdate
 from toad.app import ToadApp
 from toad.screens.goal_details import GoalDetails
 from toad.screens.goal_edit import GoalEdit
@@ -127,7 +128,9 @@ async def main():
             conversation.goal_execution = owner.execution
             conversation.goal = replace(owner.goal, status="paused")
             await pilot.pause()
-            assert not status.display, "A previous standby projection cannot override paused goal state"
+            assert not status.display, (
+                "A previous standby projection cannot override paused goal state"
+            )
             conversation.goal = owner.goal
             await pilot.pause()
             await pilot.click("#goal-edit")
@@ -185,6 +188,16 @@ async def main():
             )
             await pilot.press("escape")
             assert conversation.prompt.text == "Composer draft stays"
+            pushed = replace(
+                owner.goal, text="Backend edited the same goal", revision=6
+            )
+            conversation.post_message(GoalSnapshotUpdate(pushed, owner.execution))
+            await pilot.pause()
+            assert conversation.goal == pushed
+            conversation.post_message(GoalSnapshotUpdate(None, None))
+            await pilot.pause()
+            assert conversation.goal is None and conversation.goal_execution is None
+            assert not bar.display
     print(
         "goal UI: authoritative standby, busy precedence, mention completion, same-ID edit, rejection draft, revision history"
     )

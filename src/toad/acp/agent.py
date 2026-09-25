@@ -330,7 +330,8 @@ class Agent(AgentBase):
             state = metadata["agentComms"]
             if isinstance(state.get("thread"), str) and isinstance(state.get("wireRoot"), str):
                 self._publish_coordination_metadata({"_meta": metadata})
-            if "goalExecution" in state:
+            if "goal" in state or "goalExecution" in state:
+                self._publish_goal_snapshot(state)
                 self._post_coordination_update()
             compaction = state.get("compaction")
             if isinstance(compaction, dict) and compaction.get("phase") in {"start", "progress", "end", "abort"}:
@@ -1278,6 +1279,22 @@ class Agent(AgentBase):
                 return value
         return None
 
+    def _publish_goal_snapshot(self, state: Mapping[str, object]) -> None:
+        if "goal" not in state or "goalExecution" not in state:
+            return
+        try:
+            raw_goal, raw_execution = state["goal"], state["goalExecution"]
+            goal = Goal(**raw_goal) if isinstance(raw_goal, dict) else None
+            execution = GoalExecution.from_wire(raw_execution) if isinstance(raw_execution, dict) else None
+            if raw_goal is not None and goal is None or raw_execution is not None and execution is None:
+                raise ValueError("Invalid goal snapshot")
+            if execution is not None and (goal is None or execution.goal_id != goal.id):
+                raise ValueError("Goal execution identity does not match goal snapshot")
+        except (KeyError, TypeError, ValueError) as error:
+            self.log(f"[ACP rejected goal snapshot] {error}")
+            return
+        self.post_message(messages.GoalSnapshotUpdate(goal, execution))
+
     def _publish_coordination_metadata(
         self, response: Mapping[str, object], *, initial: bool = False,
     ) -> None:
@@ -1287,6 +1304,8 @@ class Agent(AgentBase):
         coordination = metadata.get("agentComms")
         if not isinstance(coordination, dict):
             return
+        if initial:
+            self._publish_goal_snapshot(coordination)
         thread = coordination.get("thread")
         wire_root = coordination.get("wireRoot")
         if not isinstance(thread, str) or not isinstance(wire_root, str):
@@ -1476,6 +1495,15 @@ class Agent(AgentBase):
             return wire(self._coordination_root).registry.require(self._coordination_thread).goal
 
         return await asyncio.to_thread(read)
+
+    async def get_goal_snapshot(self) -> tuple[Goal | None, GoalExecution | None]:
+        if self._coordination_root is None or self._coordination_thread is None:
+            return None, None
+        from agent_comms.operations import wire
+
+        return await asyncio.to_thread(
+            wire(self._coordination_root).goal_snapshot, self._coordination_thread
+        )
 
     async def get_goal_execution(self) -> GoalExecution | None:
         if self._coordination_root is None or self._coordination_thread is None:

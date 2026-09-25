@@ -2226,11 +2226,18 @@ class Conversation(containers.Vertical):
             and hasattr(self.agent, "get_goal")
         ):
             try:
-                self.goal = await self.agent.get_goal()
-                if hasattr(self.agent, "get_goal_execution"):
-                    self.goal_execution = await self.agent.get_goal_execution()
+                if hasattr(self.agent, "get_goal_snapshot"):
+                    self.goal, self.goal_execution = await self.agent.get_goal_snapshot()
+                else:
+                    self.goal = await self.agent.get_goal()
+                    if hasattr(self.agent, "get_goal_execution"):
+                        self.goal_execution = await self.agent.get_goal_execution()
             except OSError, ValueError:
                 pass
+
+    def on_goal_snapshot_update(self, event: acp_messages.GoalSnapshotUpdate) -> None:
+        self.goal = event.goal
+        self.goal_execution = event.execution
 
     async def _coordination_changed(self, _update: None) -> None:
         await self.refresh_goal()
