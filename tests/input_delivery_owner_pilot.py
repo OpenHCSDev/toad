@@ -1,4 +1,4 @@
-"""Real owner snapshots distinguish current delivery from dismissible legacy notices."""
+"""Owner socket compatibility when queue-scoped delivery projection is unavailable."""
 
 import asyncio
 import os
@@ -48,6 +48,9 @@ async def main():
             auto_wake=False,
         )
         owner._ensure_live_drain = lambda _: None
+        # Emulate the optional capability being unavailable. The separate
+        # current_delivery_owner_pilot proves real live queue projection.
+        owner.awaiting_input_keys = lambda _: None
         proxy = None
         try:
             session = (await owner.new_session(cwd=str(project))).session_id
@@ -284,7 +287,7 @@ async def main():
                 assert conversation.unresolved_inputs == []
                 assert bar.display and not bar.query_one("#delivery-summary").display
                 assert bar.query_one("#delivery-history-summary").display
-                assert "No current unconfirmed inputs." in str(records.render())
+                assert "No inputs currently awaiting start." in str(records.render())
                 assert "awaiting" not in str(
                     bar.query_one("#delivery-history-summary", Static).render()
                 )
@@ -396,7 +399,9 @@ async def main():
                 await owner._emit_input_disposition(session, store.get("bus:937"))
                 await conversation.refresh_input_dispositions()
                 await pilot.pause()
-                assert not bar.display
+                assert (
+                    bar.display
+                )  # Cleared evidence remains reachable through Inspect.
                 assert str(details.query_one("#delivery-error", Static).render()) == ""
                 assert details._historical_inputs is None
                 assert not clear.display
@@ -418,7 +423,9 @@ async def main():
                 await pilot.pause()
                 assert conversation.unresolved_inputs == []
                 assert conversation.input_delivery["historicalCount"] == 0
-                assert not bar.display
+                assert (
+                    bar.display
+                )  # Cleared evidence remains reachable through Inspect.
                 assert store.status("bus:933") == "started"
                 app.save_screenshot(
                     filename="toad-delivery-history-cleared.svg", path="/var/tmp"
