@@ -392,3 +392,68 @@ supersession, file-preview latency and history-edge scheduling. Fatal Ruff and
 whitespace checks pass. Focused mypy reports nine existing issues in
 `session_tabs.py`/`sidebar_tree.py`; frozen baseline has the same issues plus one
 older assignment error (ten total). `session_view.py` is clean in that check.
+
+## Pause attribution and simultaneous scroll/selection crash
+
+The follow-up adds optional per-operation wall/thread-CPU timings, GC callbacks,
+larger wire fixtures and a native headless-display boundary to
+`many_tabs_return_pilot.py`. `--display-only` avoids `Pilot.pause`'s whole-tree
+callback scheduling during measured returns. `--gc-census` is a separate,
+diagnostic-only retained-object census and changes collection lifetimes; it is
+not used for performance comparisons. Production GC policy is untouched.
+
+Three concrete findings:
+
+1. **Rendered frames were discarded during navigation.** Textual's layout queues
+   `_compositor_refresh`, which can execute while the atomic switch is awaiting
+   mounted/resize handlers. A trace recorded 9.77ms wall / 9.72ms UI-thread CPU
+   in `render_update` at batch depth 1, before `App._display` discarded that
+   result. `SessionView` now retains repaint intent and dirty regions until the
+   transaction ends. Every switch, including same-mode requests, wakes the
+   selected screen afterward. The gate rejects such intermediate renders on
+   frozen `0a7edf0` and passes with the fix.
+
+2. **An isolated warm-return outlier was cyclic collection.** A 21.56ms switch
+   with zero full layouts was followed by a 76.40ms generation-1 GC sweep,
+   creating a 100.92ms heartbeat gap. A separate retained-object census found
+   completed Textual workers, tasks, contexts and widget/style objects. An
+   independent lifetime check proved the `Worker -> Task -> Context -> Worker`
+   cycle: 100/100 completed workers remained alive until GC on baseline, versus
+   0/100 when the active-worker context was restored. Executor threads also kept
+   the preceding worker visible to unrelated jobs. The framework fix restores
+   context in async and threaded execution, including error/cancellation paths.
+   The sweep in that trace was triggered by `Pilot.pause` allocations, and
+   further sweeps still occurred after the worker fix. This is a proven lifetime
+   defect, **not proof that all live hangs are caused by or cured by it**.
+
+3. **Scroll while dragging could crash the app queue.** The user supplied the
+   `IndexError: pop from an empty deque` traceback from `Queue.get()` and
+   identified simultaneous scrolling/highlighting. The selection coalescer
+   calls `app._peek_message()` from the screen's pump. That nominal peek removed
+   the queue head into another pending slot while the app could already be
+   awaiting that item. Its waiter then resumed to an empty deque. The regression
+   reproduces the exact traceback. Peeking now leaves the item in the queue;
+   the extra pending slot is removed. `Queue.get()` also rechecks after wake-up
+   to handle competing/synchronous readers without stealing or losing messages.
+
+The framework changes are in **Textual PR #2**:
+https://github.com/OpenHCSDev/textual/pull/2, pinned here at
+`c56ea5604e8edb77b2ca10630db0bd354e875c3a` (an open prerequisite, not merged main).
+They were tested from an isolated source worktree without installing into the
+shared stack or changing a running window.
+
+Validation: **3,080 passed, 1 skipped, 4 xfailed** for Textual outside
+`tests/snapshot_tests`, including the standalone progress-bar snapshot. All 89
+focused worker/queue/message-pump/selection tests pass. Baseline queue race and
+worker-lifetime regressions fail. Toad's broad Comms, scroll-frame anchors,
+categories, pending thread, sidebar geometry, held-renderer navigation and
+two-app persistent-renderer integration pass with both source changes. Native
+scroll/selection was exercised with 490 and 1,498 mounted widgets, including
+offscreen selection/copy. Focused framework mypy has the same eight pre-existing
+issues on baseline and candidate; fatal Ruff and whitespace checks pass.
+
+Four display-only navigation cycles with 40 extra peers and 12 extra channels
+still showed first-return medians around 113ms and a 133ms maximum; most later
+returns were around 20ms. No terminal-pixel or worst-case latency guarantee is
+claimed. The first-return layout/row reconciliation cost remains visible.
+Detailed artifacts live in `/home/ts/.cache/toad-tab-hang-*.json`.

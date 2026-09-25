@@ -949,8 +949,8 @@ class ToadApp(App, inherit_bindings=False):
         finally:
             if self._pending_mode_switch == mode:
                 self._pending_mode_switch = None
-                if self.is_running and self._screen_stacks.get(self.current_mode):
-                    self.screen.check_idle()
+            if self.is_running and self._screen_stacks.get(self.current_mode):
+                self.screen.check_idle()
 
     async def open_comms_session(
         self,
