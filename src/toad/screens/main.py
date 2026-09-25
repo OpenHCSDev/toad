@@ -10,7 +10,6 @@ from textual.binding import Binding
 from textual.command import Hit, Hits, Provider, DiscoveryHit
 from textual.content import Content
 from textual.events import ScreenResume
-from textual.screen import Screen
 from toad.screens.session_view import SessionView
 from textual.reactive import var, reactive
 from textual.widgets import (
@@ -78,12 +77,31 @@ class ModeProvider(Provider):
             )
 
 
+class MCPInventoryProvider(Provider):
+    """Discover the optional static package inventory, not MCP authority."""
+
+    async def search(self, query: str) -> Hits:
+        matcher = self.matcher(query)
+        score = matcher.match("Pi MCP inventory")
+        screen = self.screen
+        assert isinstance(screen, MainScreen)
+        if score > 0:
+            yield Hit(score, matcher.highlight("Pi MCP inventory"),
+                      screen.action_mcp_inventory, help="Read-only package snapshot")
+
+    async def discover(self) -> Hits:
+        screen = self.screen
+        assert isinstance(screen, MainScreen)
+        yield DiscoveryHit("Pi MCP inventory", screen.action_mcp_inventory,
+                           help="Read-only package snapshot")
+
+
 class MainScreen(SessionView, can_focus=False):
     AUTO_FOCUS = "Conversation Prompt TextArea"
 
     CSS_PATH = "main.tcss"
 
-    COMMANDS = {ModeProvider}
+    COMMANDS = {ModeProvider, MCPInventoryProvider}
 
     SESSION_NAVIGATION_GROUP = Binding.Group(description="Sessions")
     BINDINGS = [
@@ -311,6 +329,16 @@ class MainScreen(SessionView, can_focus=False):
             target=target,
             kind=kind,
         )
+
+    def action_mcp_inventory(self) -> None:
+        """Open an inert package-owned snapshot; never locate a source checkout."""
+        from toad.screens.mcp_inventory import MCPInventoryScreen
+
+        self.app.push_screen(MCPInventoryScreen(
+            self.project_path,
+            node_path=self.app.settings.get("mcp.node_path", str, expand=False),
+            cli_path=self.app.settings.get("mcp.cli_path", str, expand=False),
+        ))
 
     async def action_toggle_irc(self) -> None:
         """Open the IRC feed as a native Toad session."""

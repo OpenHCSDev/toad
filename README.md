@@ -280,6 +280,23 @@ To discuss Toad, see the Discussions tab, or join the #toad channel on the [Text
 
 
 
+### Pi MCP inventory (draft integration)
+
+Toad's command palette offers **Pi MCP inventory**, a read-only view of the
+installed Pi MCP package's redacted, static version-2 declaration snapshot.
+Configure `mcp.node_path` and `mcp.cli_path` in Toad's user settings as absolute
+paths to Node and the installed package's `bin/pi-mcp.mjs`. Toad will not find a
+package from `PATH`, a source checkout, or project files. An absent, incompatible,
+or failing CLI shows *unavailable*; a configured CLI path is user-selected and
+is not proof that an ACP session has loaded the package. The CLI runs without a
+TTY and Toad does not parse MCP config, approval ledgers, or protocol messages.
+
+This snapshot does **not** report live server state. Trust and call decisions
+are **not supported in Toad**: use the installed Pi package CLI in your own
+local terminal, inspect its full declaration display, and type its challenge
+personally. Do not treat the snapshot as permission to launch; changes apply
+on the next Pi turn. This optional draft is not an MCP server management UI.
+
 ### Roadmap
 
 Some planned features:
