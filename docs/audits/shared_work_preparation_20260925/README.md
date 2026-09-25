@@ -2,8 +2,27 @@
 
 Worktree: `/home/ts/wt/toad-history-preparation-20260925`, branch
 `perf/history-preparation-20260925`, started from merged Toad `eff5941` and now
-integrated through main `a060721`. This is a **draft working candidate**, not
+integrated through main `ec48196`. This is a **draft working candidate**, not
 another merged performance fix.
+
+## Latest main synchronization
+
+Toad main `ec48196e298090255198a744a601a4ee019823c7` is integrated, including
+PRs #45/#46/#48: committed inbound-history reconciliation, current delivery
+notices and the bounded-startup backend pin. Agent-comms is pinned to current
+main `53335ce5ca052c64693ad87d41af72c2c921a40e`; the owned core worktree is at
+the same revision. The Textual draft prerequisite remains `385ac01a`, which
+already includes current framework main `06220c38`.
+
+Validation against these revisions: **22 Toad pilots passed** (21 in the xdist
+batch, then the cross-repository delivery fixture with the correct core-test
+path), and **20 targeted core tests passed** (19 in the first xdist batch, then
+the crash/reopen test with an interpreter providing its ACP dependency). The
+initial failures were missing fixture/dependency setup, not source failures.
+Inbound reconciliation, committed paging, filter supersession, worker lookahead,
+delivery ownership and startup diagnostics are covered. Fatal Ruff and whitespace
+checks pass. Earlier performance measurements below retain their original
+code/data boundaries; the frozen user preview is not updated by this sync.
 
 ## Latest follow-up: reproducibility and retained removed trees
 

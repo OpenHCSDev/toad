@@ -1,5 +1,8 @@
 """Bounded, cursor-paged saved history; all transcript interpretation is model-owned."""
 
+from __future__ import annotations
+
+import asyncio
 from collections import deque
 from dataclasses import replace
 from collections.abc import Awaitable, Callable
@@ -51,6 +54,7 @@ def transcript_blocks(events: tuple[TranscriptEvent, ...], *, fragment: bool = F
                 message = event.routing.requests[0]
                 blocks.append(IncomingMessage(
                     message.sender, text, message.target, show_header=show_divider,
+                    sequence=message.seq,
                 ))
             else:
                 blocks.append(UserInput(text, show_divider=show_divider))
@@ -242,6 +246,7 @@ class TranscriptHistory(CategorizedBlock, VerticalGroup):
         self.older.tooltip = "Click or press Enter to load earlier history, including in In/out only mode"
         self.newer = JumpToLatest("↓ Jump to latest")
         self._loading = False
+        self._advancing = False
         self._check_pending = False
         self._saturated_widget_limit = 0
         self._generation = 0
@@ -292,6 +297,7 @@ class TranscriptHistory(CategorizedBlock, VerticalGroup):
         from toad.widgets.conversation import Window
         self.window = self.query_ancestor(Window)
         self.window.histories.add(self)
+        self.post_message(self.Covered(self.pages[0].page.events, self))
         self._update_edges()
         self.watch(self.window, "scroll_y", self._scroll_changed, init=False)
         self.screen.screen_layout_refresh_signal.subscribe(self, self._layout_changed)
@@ -394,7 +400,7 @@ class TranscriptHistory(CategorizedBlock, VerticalGroup):
                      or self.window.scroll_y <= self._prefetch_distance))
 
     def _start_filtered_scan(self) -> None:
-        if self._filter_has_older and not self._filter_scanning:
+        if self._filter_has_older and not self._filter_scanning and not self._advancing:
             self._filter_scanning = True
             self.run_worker(self._scan_filtered_older(), group="filtered-history")
 
@@ -455,6 +461,10 @@ class TranscriptHistory(CategorizedBlock, VerticalGroup):
                     else:
                         async with self.window.preserve_history(anchor):
                             await insert()
+                if fragments:
+                    self.post_message(self.Covered(tuple(
+                        event for fragment in fragments for event in fragment.events
+                    ), self))
                 self._filter_before, self._filter_has_older = next_before, has_older
                 self._update_edges()
         except (OSError, ValueError) as error:
@@ -476,6 +486,66 @@ class TranscriptHistory(CategorizedBlock, VerticalGroup):
                     self.call_later(self._start_filtered_scan)
                 elif self._scan_needed():
                     self.call_later(self._check_edges)
+
+    class Covered(Message):
+        """A saved page now owns these exact inbound wire identities."""
+
+        def __init__(self, events: tuple[TranscriptEvent, ...],
+                     history: TranscriptHistory | None = None) -> None:
+            super().__init__()
+            self.history = history
+            self.sequences = {
+                event.routing.requests[0].seq for event in events
+                if event.kind == "user" and event.routing is not None
+                and event.routing.requests and event.routing.requests[0].seq > 0
+            }
+
+    def covers_incoming(self, sequence: int) -> bool:
+        events = (event for page in self.pages for event in page.page.events)
+        if sequence in self.Covered(tuple(events)).sequences:
+            return True
+        return self._filter_overlay is not None and any(
+            sequence in self.Covered(child.fragment.events).sequences
+            for child in self._filter_overlay.children
+            if isinstance(child, TranscriptFragmentView)
+        )
+
+    async def advance_committed(
+        self, through: TranscriptCursor, is_current: Callable[[], bool],
+    ) -> bool:
+        """Advance in bounded native pages and render batches, preserving loaded rows."""
+        async with self.window.history_lock:
+            if not self.is_attached or not is_current():
+                return False
+            # Reject scans started with the old bound without discarding their
+            # already accepted filtered overlay or its backward cursor.
+            self._generation += 1
+            self.through = through
+            edge = self.pages[-1]
+            edge.page = replace(edge.page, has_newer=edge.page.after != through)
+            self._advancing = True
+        try:
+            while self.has_newer:
+                if not is_current() or not self.is_attached:
+                    return False
+                edge = self.pages[-1]
+                previous = edge.page.after, edge.stop
+                await self._load_page(False)
+                edge = self.pages[-1]
+                if previous == (edge.page.after, edge.stop):
+                    return False
+                # Let the bounded batch paint before selecting the next batch's
+                # visible anchors. Never mount an entire oversized native row.
+                refreshed = asyncio.get_running_loop().create_future()
+                self.call_after_refresh(
+                    lambda future=refreshed: future.done() or future.set_result(None)
+                )
+                await refreshed
+            return is_current()
+        finally:
+            self._advancing = False
+            if self.is_attached:
+                self._scroll_changed()
 
     async def update_live(self, page: TranscriptPage, *,
                           fragments: tuple[TranscriptFragment, ...] | None = None,
@@ -516,7 +586,7 @@ class TranscriptHistory(CategorizedBlock, VerticalGroup):
 
     def _check_edges(self) -> None:
         self._check_pending = False
-        if self._loading or not self.is_attached or not self.screen.is_active:
+        if self._loading or self._advancing or not self.is_attached or not self.screen.is_active:
             return
         # Off-screen pagers must not ask for their region: after a scroll that
         # falls back to rebuilding geometry for the *whole* mounted transcript.
@@ -668,6 +738,15 @@ class TranscriptHistory(CategorizedBlock, VerticalGroup):
         fragments: tuple[TranscriptFragment, ...] | None,
     ) -> None:
         with self.app.batch_update():
+            previous_start = self.pages[0], self.pages[0].start
+            overlay_visible = False
+            if self._filter_overlay is not None:
+                visible = self.screen._compositor.visible_widgets
+                viewport = self.window.content_region
+                overlay_visible = any(
+                    child in visible and visible[child][0].overlaps(viewport)
+                    for child in self._filter_overlay.children
+                )
             if local:
                 await edge.extend(older)
             elif page is not None:
@@ -675,6 +754,7 @@ class TranscriptHistory(CategorizedBlock, VerticalGroup):
                 view = TranscriptPageView(page, newest=older, fragments=fragments)
                 view.visible_categories = self._selected_categories
                 await self.mount(view, before=edge if older else self.newer)
+                self.post_message(self.Covered(page.events, self))
                 if older:
                     self.pages.appendleft(view)
                 else:
@@ -690,6 +770,10 @@ class TranscriptHistory(CategorizedBlock, VerticalGroup):
                    or self.widget_count > self.widget_limit) and self.fragment_count > 1:
                 selected = None
                 for side in (trim_older, not trim_older):
+                    # A visible older projection protects the range between it
+                    # and the canonical pages, just like a visible page anchor.
+                    if side and overlay_visible:
+                        continue
                     candidate = self.pages[0] if side else self.pages[-1]
                     children = list(candidate.children)
                     if not side:
@@ -725,4 +809,13 @@ class TranscriptHistory(CategorizedBlock, VerticalGroup):
                         break
                     await evicted.trim(min(remove_count, count), older=side)
                     excess -= remove_count
+            if (self._filter_overlay is not None and not overlay_visible
+                    and previous_start != (self.pages[0], self.pages[0].start)):
+                # Normal bounded eviction moved the canonical start. An older
+                # overlay's cursor cannot skip the newly omitted interval.
+                await self._filter_overlay.remove()
+                self._filter_overlay = None
+                self._filter_before = None
+                self._filter_has_older = True
+                self._generation += 1
             self._update_edges()
