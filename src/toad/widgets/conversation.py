@@ -2225,13 +2225,17 @@ class Conversation(containers.Vertical):
         if self._transcript_dirty:
             self.call_after_refresh(self._compact_committed_history)
 
-    async def refresh_input_dispositions(self) -> None:
+    def _invalidate_input_dispositions(self) -> None:
         if not self.is_attached or self.agent is None or not hasattr(self.agent, "get_unresolved_inputs"):
             return
         self._delivery_refresh_revision += 1
         if self._delivery_refresh_task is None or self._delivery_refresh_task.done():
             self._delivery_refresh_task = asyncio.create_task(self._read_input_dispositions())
-        await asyncio.shield(self._delivery_refresh_task)
+
+    async def refresh_input_dispositions(self) -> None:
+        self._invalidate_input_dispositions()
+        if self._delivery_refresh_task is not None:
+            await asyncio.shield(self._delivery_refresh_task)
 
     async def _read_input_dispositions(self) -> None:
         while self.is_attached:
@@ -2249,9 +2253,9 @@ class Conversation(containers.Vertical):
             self.unresolved_inputs = inputs
             return
 
-    async def on_input_dispositions_changed(self, event: acp_messages.InputDispositionsChanged) -> None:
+    def on_input_dispositions_changed(self, event: acp_messages.InputDispositionsChanged) -> None:
         event.stop()
-        await self.refresh_input_dispositions()
+        self._invalidate_input_dispositions()
 
     @on(InputDeliveryBar.Inspect)
     async def inspect_input_delivery(self, event: InputDeliveryBar.Inspect) -> None:

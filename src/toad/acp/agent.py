@@ -1599,7 +1599,7 @@ class Agent(AgentBase):
 
     async def update_goal(self, action: str, text: str = "") -> Goal | None:
         if self._coordination_root is None or self._coordination_thread is None:
-            raise ValueError("This action requires an agent-comms thread.")
+            raise ValueError("Persistent goals require an agent-comms thread.")
         from agent_comms.operations import wire
 
         comms = wire(self._coordination_root)
