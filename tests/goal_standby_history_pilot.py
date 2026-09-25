@@ -117,24 +117,27 @@ async def main():
             throbber = conversation.query_one(Throbber)
             throbber.busy = True
             await pilot.pause()
-            assert not status.display, (
-                "Thinking/compacting takes precedence over standby"
+            assert status.display, (
+                "Canonical standby remains visible while the previous turn settles"
             )
             throbber.busy = False
             await pilot.pause()
             assert status.display
-            conversation.goal_execution = GoalExecution(
-                GoalExecutionState.RUNNABLE, owner.goal.id
-            )
+            standby_execution = owner.execution
+            owner.execution = GoalExecution(GoalExecutionState.RUNNABLE, owner.goal.id)
+            await conversation.refresh_goal()
             await pilot.pause()
             assert not status.display, "Goal prose must never infer standby"
-            conversation.goal_execution = owner.execution
-            conversation.goal = replace(owner.goal, status="paused")
+            owner.execution = standby_execution
+            active_goal = owner.goal
+            owner.goal = replace(owner.goal, status="paused")
+            await conversation.refresh_goal()
             await pilot.pause()
             assert not status.display, (
                 "A previous standby projection cannot override paused goal state"
             )
-            conversation.goal = owner.goal
+            owner.goal = active_goal
+            await conversation.refresh_goal()
             await pilot.pause()
             await pilot.click("#goal-edit")
             await pilot.pause()
@@ -207,7 +210,7 @@ async def main():
             assert conversation.goal is None and conversation.goal_execution is None
             assert not bar.display
     print(
-        "goal UI: authoritative standby, busy precedence, mention completion, same-ID edit, rejection draft, revision history"
+        "goal UI: authoritative standby through turn settlement, mention completion, same-ID edit, rejection draft, revision history"
     )
 
 

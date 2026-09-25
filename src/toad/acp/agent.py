@@ -1490,32 +1490,22 @@ class Agent(AgentBase):
         return None
 
     async def get_goal(self) -> Goal | None:
-        if self._coordination_root is None or self._coordination_thread is None:
-            return None
-        from agent_comms.operations import wire
-
-        def read() -> Goal | None:
-            return wire(self._coordination_root).registry.require(self._coordination_thread).goal
-
-        return await asyncio.to_thread(read)
+        return (await self.get_goal_snapshot())[0]
 
     async def get_goal_snapshot(self) -> tuple[Goal | None, GoalExecution | None]:
         if self._coordination_root is None or self._coordination_thread is None:
             return None, None
-        from agent_comms.operations import wire
-
-        return await asyncio.to_thread(
-            wire(self._coordination_root).goal_snapshot, self._coordination_thread
-        )
+        async with asyncio.timeout(3):
+            result = await self._owner_request("goal_snapshot")
+        raw_goal, raw_execution = result["goal"], result["goalExecution"]
+        goal = Goal(**raw_goal) if raw_goal is not None else None
+        execution = GoalExecution.from_wire(raw_execution) if raw_execution is not None else None
+        if execution is not None and (goal is None or execution.goal_id != goal.id):
+            raise ValueError("Goal execution identity does not match the owner snapshot.")
+        return goal, execution
 
     async def get_goal_execution(self) -> GoalExecution | None:
-        if self._coordination_root is None or self._coordination_thread is None:
-            return None
-        from agent_comms.operations import wire
-
-        return await asyncio.to_thread(
-            wire(self._coordination_root).goal_execution, self._coordination_thread
-        )
+        return (await self.get_goal_snapshot())[1]
 
     async def _owner_request(self, method: str, **params):
         if self._coordination_root is None or self._coordination_thread is None:
@@ -1598,37 +1588,24 @@ class Agent(AgentBase):
         return result.current
 
     async def update_goal(self, action: str, text: str = "") -> Goal | None:
-        if self._coordination_root is None or self._coordination_thread is None:
-            raise ValueError("Persistent goals require an agent-comms thread.")
-        from agent_comms.operations import wire
-
-        comms = wire(self._coordination_root)
-        if action in {"retry", "set"}:
-            from agent_comms.runtime import RuntimeProxy, socket_path
-
-            owner = comms.registry.require(self._coordination_thread)
-            proxy = RuntimeProxy(self, owner.name, socket_path(comms.root, owner.pid))
-            try:
-                if action == "retry":
-                    goal = owner.goal
-                    if goal is None or goal.status != "blocked":
-                        raise ValueError("The blocked goal changed; refresh its state.")
-                    result = await proxy.request(
-                        "retry_goal", goal_id=goal.id, expected_revision=goal.revision
-                    )
-                else:
-                    result = await proxy.request("set_goal", text=text)
-            except RuntimeError as error:
-                raise ValueError(str(error)) from error
-            return Goal(**result["goal"])
-        goal = await asyncio.to_thread(
-            comms.update_goal,
-            self._coordination_thread,
-            action,
-            text=text,
-            owner_action=True,
-        )
-        return goal
+        if action == "set":
+            result = await self._owner_request("set_goal", text=text)
+        else:
+            goal, _ = await self.get_goal_snapshot()
+            if goal is None:
+                raise ValueError("The goal changed; refresh its state.")
+            if action == "retry":
+                if goal.status != "blocked":
+                    raise ValueError("The blocked goal changed; refresh its state.")
+                result = await self._owner_request(
+                    "retry_goal", goal_id=goal.id, expected_revision=goal.revision
+                )
+            else:
+                result = await self._owner_request(
+                    "update_goal", status=action, goal_id=goal.id,
+                    expected_revision=goal.revision,
+                )
+        return Goal(**result["goal"]) if result["goal"] is not None else None
 
     async def set_session_name(self, name: str) -> None:
         self._pending_session_name = name
