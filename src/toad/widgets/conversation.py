@@ -2265,29 +2265,45 @@ class Conversation(containers.Vertical):
     def unresolved_inputs(self) -> list[dict]:
         return self.input_delivery["inputs"]
 
-    async def _load_delivery_history(self) -> dict:
+    async def _load_delivery_history(self) -> list[dict]:
         agent = self.agent
         if agent is None:
             raise ValueError("No connected owner.")
-        result = await agent.get_input_delivery(include_history=True)
-        if agent is not self.agent:
-            raise ValueError("The connected owner changed; inspect delivery again.")
-        self._delivery_refresh_revision += 1
-        self.input_delivery = {**result, "historicalInputs": []}
-        self.input_delivery_error = ""
-        return result
+        while True:
+            revision = self._delivery_refresh_revision
+            result = await agent.get_input_delivery(include_history=True)
+            if agent is not self.agent:
+                raise ValueError("The connected owner changed; inspect delivery again.")
+            if revision != self._delivery_refresh_revision:
+                continue
+            await self.refresh_input_dispositions()
+            if agent is not self.agent:
+                raise ValueError("The connected owner changed; inspect delivery again.")
+            if self.input_delivery_error:
+                raise ValueError(self.input_delivery_error)
+            # The refresh above adds one revision. A further invalidation means
+            # these historical bodies may predate another owner's dismissal.
+            if revision + 1 != self._delivery_refresh_revision or any(
+                result[key] != self.input_delivery[key]
+                for key in ("historicalCount", "dismissedHistoricalCount")
+            ):
+                continue
+            return result["historicalInputs"]
 
-    async def _dismiss_delivery_history(self) -> dict:
+    async def _dismiss_delivery_history(self) -> None:
         agent = self.agent
         if agent is None:
             raise ValueError("No connected owner.")
-        result = await agent.dismiss_historical_inputs()
+        await agent.dismiss_historical_inputs()
         if agent is not self.agent:
             raise ValueError("The connected owner changed; inspect delivery again.")
-        self._delivery_refresh_revision += 1
-        self.input_delivery = result
-        self.input_delivery_error = ""
-        return result
+        # Mutate once, then let the sole overview reader reconcile any receipt
+        # or newly admitted input that arrived while the action was in flight.
+        await self.refresh_input_dispositions()
+        if agent is not self.agent:
+            raise ValueError("The connected owner changed; inspect delivery again.")
+        if self.input_delivery_error:
+            raise ValueError(self.input_delivery_error)
 
     def on_input_dispositions_changed(self, event: acp_messages.InputDispositionsChanged) -> None:
         event.stop()

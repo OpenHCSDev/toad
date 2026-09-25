@@ -124,8 +124,8 @@ class InputDeliveryDetails(ModalScreen[None]):
         self,
         *,
         log_path: Path | None,
-        load_history: Callable[[], Awaitable[dict]],
-        dismiss_history: Callable[[], Awaitable[dict]],
+        load_history: Callable[[], Awaitable[list[dict]]],
+        dismiss_history: Callable[[], Awaitable[None]],
     ):
         super().__init__()
         self.log_path = log_path
@@ -182,7 +182,12 @@ class InputDeliveryDetails(ModalScreen[None]):
             for row in inputs
         )
 
-    def watch_delivery(self) -> None:
+    def watch_delivery(self, old: dict, new: dict) -> None:
+        if any(
+            old[key] != new[key]
+            for key in ("historicalCount", "dismissedHistoricalCount")
+        ):
+            self._historical_inputs = None
         self._refresh_records()
 
     def watch_error(self) -> None:
@@ -229,12 +234,10 @@ class InputDeliveryDetails(ModalScreen[None]):
         self._refresh_records()
         try:
             if event.action.id == "delivery-load-history":
-                result = await self._load_history()
-                self._historical_inputs = result["historicalInputs"]
+                self._historical_inputs = await self._load_history()
             else:
-                result = await self._dismiss_history()
+                await self._dismiss_history()
                 self._historical_inputs = None
-            self.delivery = result
         except (OSError, ValueError, RuntimeError, TimeoutError, KeyError) as error:
             self.error = f"Delivery history unavailable: {error}"
         finally:

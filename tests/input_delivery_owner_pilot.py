@@ -178,9 +178,51 @@ async def main():
                 load = details.query_one(
                     "#delivery-load-history", DeliveryHistoryAction
                 )
+                # Hold the actual owner's history response while a newer receipt
+                # reaches both the shared overview and the mounted inspector.
+                original_read = agent.get_input_delivery
+                captured, release = asyncio.Event(), asyncio.Event()
+                history_reads = 0
+
+                async def delayed_history(*, include_history=False):
+                    nonlocal history_reads
+                    result = await original_read(include_history=include_history)
+                    if include_history:
+                        history_reads += 1
+                        if history_reads == 1:
+                            captured.set()
+                            await release.wait()
+                    return result
+
+                agent.get_input_delivery = delayed_history
                 load.focus()
-                await pilot.press("enter")
+                loading = asyncio.create_task(pilot.press("enter"))
+                try:
+                    await asyncio.wait_for(captured.wait(), 3)
+                    native_id = "a" * 32
+                    assert store.bind(
+                        "bus:933",
+                        admission=admission,
+                        turn_id="history-race",
+                        native_id=native_id,
+                        text="native prompt",
+                    )
+                    assert store.started(
+                        "bus:933",
+                        turn_id="history-race",
+                        native_id=native_id,
+                        text="native prompt",
+                    )
+                    await owner._emit_input_disposition(session, store.get("bus:933"))
+                    await conversation.refresh_input_dispositions()
+                    assert conversation.unresolved_inputs == []
+                finally:
+                    release.set()
+                await loading
                 await pilot.pause()
+                agent.get_input_delivery = original_read
+                assert history_reads >= 2
+                assert conversation.unresolved_inputs == details.inputs == []
                 assert any(
                     params.get("include_history") for _, params in owner_requests
                 )
@@ -189,6 +231,17 @@ async def main():
                 assert len(details._historical_inputs) == 932
                 assert conversation.input_delivery["historicalInputs"] == []
                 assert records.region.y < historical.region.y
+
+                store.record(
+                    "bus:935",
+                    seq=935,
+                    owner=session,
+                    admission=admission,
+                    target="#review",
+                    text="A new current input",
+                )
+                await owner._emit_input_disposition(session, store.get("bus:935"))
+                await conversation.refresh_input_dispositions()
 
                 # An older in-flight snapshot cannot resurrect a confirmed current input.
                 original_read = agent.get_input_delivery
@@ -209,17 +262,17 @@ async def main():
                 await captured.wait()
                 native_id = "a" * 32
                 assert store.bind(
-                    "bus:933",
+                    "bus:935",
                     admission=admission,
                     turn_id="turn",
                     native_id=native_id,
                     text="native prompt",
                 )
                 assert store.started(
-                    "bus:933", turn_id="turn", native_id=native_id, text="native prompt"
+                    "bus:935", turn_id="turn", native_id=native_id, text="native prompt"
                 )
                 previous = conversation._delivery_refresh_revision
-                await owner._emit_input_disposition(session, store.get("bus:933"))
+                await owner._emit_input_disposition(session, store.get("bus:935"))
                 async with asyncio.timeout(3):
                     while conversation._delivery_refresh_revision == previous:
                         await asyncio.sleep(0.01)
@@ -258,11 +311,91 @@ async def main():
                 )
                 assert conversation.input_delivery["historicalCount"] == 932
                 assert bar.display
-                agent.dismiss_historical_inputs = dismiss
-                await pilot.click("#delivery-clear-history")
+                store.record(
+                    "bus:936",
+                    seq=936,
+                    owner=session,
+                    admission=admission,
+                    target="#review",
+                    text="Current before clearing history",
+                )
+                await owner._emit_input_disposition(session, store.get("bus:936"))
+                await conversation.refresh_input_dispositions()
+                captured, release = asyncio.Event(), asyncio.Event()
+
+                async def delayed_dismissal():
+                    result = await dismiss()
+                    captured.set()
+                    await release.wait()
+                    return result
+
+                agent.dismiss_historical_inputs = delayed_dismissal
+                clearing = asyncio.create_task(pilot.click("#delivery-clear-history"))
+                try:
+                    await asyncio.wait_for(captured.wait(), 3)
+                    native_id = "b" * 32
+                    assert store.bind(
+                        "bus:936",
+                        admission=admission,
+                        turn_id="clear-race",
+                        native_id=native_id,
+                        text="native prompt",
+                    )
+                    assert store.started(
+                        "bus:936",
+                        turn_id="clear-race",
+                        native_id=native_id,
+                        text="native prompt",
+                    )
+                    store.record(
+                        "bus:937",
+                        seq=937,
+                        owner=session,
+                        admission=admission,
+                        target="#review",
+                        text="Current admitted during history clear",
+                    )
+                    await owner._emit_input_disposition(session, store.get("bus:936"))
+                    await owner._emit_input_disposition(session, store.get("bus:937"))
+                    await conversation.refresh_input_dispositions()
+                    assert [
+                        row["sequence"] for row in conversation.unresolved_inputs
+                    ] == [937]
+                finally:
+                    release.set()
+                await clearing
                 await pilot.pause()
+                agent.dismiss_historical_inputs = dismiss
+                assert [row["sequence"] for row in conversation.unresolved_inputs] == [
+                    937
+                ]
+                assert details.inputs == conversation.unresolved_inputs
+                assert (
+                    sum(
+                        method == "dismiss_historical_inputs"
+                        for method, _ in owner_requests
+                    )
+                    == 1
+                )
                 assert conversation.input_delivery["historicalCount"] == 0
                 assert conversation.input_delivery["dismissedHistoricalCount"] == 932
+                assert bar.display
+                assert store.bind(
+                    "bus:937",
+                    admission=admission,
+                    turn_id="after-clear",
+                    native_id="c" * 32,
+                    text="native prompt",
+                )
+                assert store.started(
+                    "bus:937",
+                    turn_id="after-clear",
+                    native_id="c" * 32,
+                    text="native prompt",
+                )
+                await owner._emit_input_disposition(session, store.get("bus:937"))
+                await conversation.refresh_input_dispositions()
+                await pilot.pause()
                 assert not bar.display
                 assert str(details.query_one("#delivery-error", Static).render()) == ""
                 assert details._historical_inputs is None
