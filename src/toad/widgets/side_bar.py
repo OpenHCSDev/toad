@@ -852,22 +852,6 @@ class SideBar(containers.Vertical):
             # rather than waiting for a painted frame to request another one.
             self.query_one("SideBarCollapsible CollapsibleTitle").focus()
         if not focus and self.is_mounted and self.screen.is_current:
-            # Flush the known geometry owners before one input-driven update.
-            # Normal screen/batch guards remain in charge; queued invalidations
-            # and subsequent genuine resize feedback are not discarded.
-            parent = self.parent
-            if isinstance(parent, Widget):
-                for child in parent.children:
-                    if isinstance(child, SideBar):
-                        child._apply_layout()
-                        for node in child.walk_children(Widget, with_self=True):
-                            node._check_refresh()
-                    else:
-                        child._check_refresh()
-                parent._check_refresh()
-                self.screen.refresh(repaint=False, layout=True)
-                self.screen._on_timer_update()
-        if not focus and self.is_mounted and self.screen.is_current:
             parent = self.parent
             if isinstance(parent, Widget):
                 for child in parent.children:
