@@ -37,14 +37,50 @@ and Textual pins; no live provider or owner restart is involved.
 This is presentation grouping, not a new execution-turn authority or inferred
 provider lifecycle.
 
-## Additional reported issues
+## Coordination context readability
 
-- Incoming agent messages sometimes appear as User, with inconsistent inbound
-  and outbound formatting. Investigating live metadata versus saved transcript
-  routing; sender attribution must come from verified routing, not a regex over
-  the visible `[agent-comms from ...]` text.
-- Coordination context is hard to scan as a JSON dump. A readable lazy summary
-  with original-source access is the next formatting slice.
+Implemented lazy readable formatting for structured JSON and the native
+`Peer state:` section. Peer records become a table; coordination instructions
+and task context are separate sections. Other JSON objects/lists become
+labelled fields and lists. Existing non-JSON Markdown is preserved. Invalid or
+duplicate-key JSON stays in its original form rather than silently losing data.
+
+Formatting runs off the UI loop only after expansion. An `Original payload`
+disclosure retains the exact source, with literal rendering and unchanged copy
+content. Reopening a disclosure reuses its body. The coordination-context pilot
+passes readable-table, nested-field, raw-source/copy, lazy rendering, Markdown,
+and literal-user-quote controls.
+
+## Sidebar collapse ergonomics
+
+Moved collapse handles to each bar's conversation-facing edge, beside the
+one-cell resize handle. Left/right placement is mirrored; a collapsed bar's
+handle still fills its three-cell strip. Content and controls reserve the inner
+four-cell gutter, keeping scrollbars clear. Drag-resize, geometry (ordinary and
+virtual), directional moves, pinned sorting, sidebar navigation and broad Comms
+checks pass. The navigation pilot now uses the current ThreadRow open-selected
+action rather than its removed legacy action name.
+
+## Open dependency: incoming agent attribution
+
+The report of other agents' messages labelled User is reproduced **before the
+UI renderer**, not repaired by the formatting changes above:
+
+- Pinned core `74e157e`: `in_out_wire_replay_pilot.py` fails because a saved
+  native framed input is returned as `user` with `routing=None`, while its
+  outgoing send receipt retains the route. `TOAD_TEST_ANNOTATED=1` passes the
+  same live/saved FROM/TO widget check with authoritative routing recorded.
+- A bounded read of the actual `pr17-implementation` transcript returned two
+  framed native `user` events without request/reply routing, alongside two
+  `sent` events with outgoing routes. No prompt bodies are included here.
+- The inspected core drain emits attributed `incoming` metadata for live views,
+  but busy steering stores prompt text; `record_turn_routing` runs for original
+  origins only after successful settlement. Saved injected-input provenance
+  needs a core-owned exact native-input/session-entry binding.
+
+The core owner was notified (message `73ed49f1d2b3`). This remains open in the
+draft. Do not reconstruct a trusted sender from `[agent-comms from ...]` text;
+that would reintroduce false attribution for quoted or foreign-root history.
 
 ## Further cleanup
 

@@ -115,7 +115,7 @@ async def main():
             member.focus(scroll_visible=False)
             await pilot.pause()
             expected_scroll = tuple(widget.scroll_y for widget in sidebar.scroll_containers)
-            member.action_open()
+            member.action_open_selected()
             assert member.has_class("-selected")
             assert sum(row.has_class("-selected") for row in sidebar._ordered_rows()) == 1
             expected_frame = app.panel_text(app.screen)
