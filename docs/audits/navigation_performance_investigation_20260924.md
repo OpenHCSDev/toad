@@ -457,3 +457,58 @@ still showed first-return medians around 113ms and a 133ms maximum; most later
 returns were around 20ms. No terminal-pixel or worst-case latency guarantee is
 claimed. The first-return layout/row reconciliation cost remains visible.
 Detailed artifacts live in `/home/ts/.cache/toad-tab-hang-*.json`.
+
+## Retain thread rows across view transitions
+
+After integrating main `cd117e0` (PR #17) through merge `60b2dea`, the next
+first-return investigation counted **45 replacements of unchanged thread rows**
+across nine reverse-order switches. Each channel member changed widget class
+from `CommsRow` to `SessionRow` merely because a native view had been opened.
+Thread identity, displayed wire content and two-line row geometry were unchanged.
+
+Channel members now use one retained `ThreadRow`. Its optional `mode_name` comes
+from the existing sidebar snapshot and changes the navigation action in place.
+Opening, closing or reassigning a view no longer removes/remounts that thread's
+row. `CommsSidebar.session_rows` exposes the mounted open-view projection;
+keyboard focus, menu close actions, sorting, unread labels and alias handling
+use the same retained rows. The existing tracker-only `SessionSidebar` remains
+separate. The mounted fixture requires row identity to survive first revisits
+and closed views to lose their navigation target without replacing the row.
+
+The trace also exposed repeated `AwaitMount` completion in Textual: `mount()`
+schedules its awaitable with `call_next`, while callers often await it explicitly.
+Each await created another group of child wait tasks and repeated parent layout
+invalidation/mouse reconciliation. Completion is now serialized once, with
+cancelled child waits drained and another waiter still able to finish the mount.
+The regression recorded three refreshes for three awaits on baseline versus one
+after the fix. Both completion/cancellation regressions fail on baseline.
+This is included in Textual PR #2, now pinned at
+`d3cdb40e73ef1c65ba56de6b54cc660afc0e6d16`.
+
+Two alternating, isolated runs against frozen `60b2dea` + Textual `c56ea560`:
+
+| First reverse visit measurement | Baseline | Retained rows + shared mount completion |
+| --- | ---: | ---: |
+| Median first headless display | 62.84 / 66.81ms | 39.85 / 37.22ms |
+| Median switch completion | 71.80 / 74.87ms | 57.48 / 53.15ms |
+| Maximum switch completion | 94.81 / 93.28ms | 73.76 / 69.72ms |
+| Replaced thread rows across nine switches | 45 | 0 |
+
+A larger fixture with 40 additional peers and 12 additional channels measured
+median first display **91.11 → 55.66ms** and switch completion **106.09 → 75.98ms**.
+Later settled display medians remained around 14–21ms. These are headless display
+callbacks, not terminal-presented pixels. Full layouts remain 2–3 on first
+returns. Heartbeat maxima did not improve (the small paired fixtures measured
+38ms baseline versus 46–49ms candidate); no worst-input-latency claim is made.
+An explicit pacing yield increased first-display latency and was rejected.
+Artifacts: `/home/ts/.cache/toad-retained-rows-paired-*.json` and
+`/home/ts/.cache/toad-retained-rows-large-*.json`.
+
+Validation: **3,082 passed, 1 skipped, 4 xfailed** in Textual's suite outside
+the snapshot directory. Toad's broad Comms pilot, session sort/status equivalence,
+channel membership/visibility, canonical tab titles, Back/Forward, sidebar
+projection/geometry, right-Comms integration, hidden-observation bounds, owner
+navigation, scroll anchoring, human read boundaries and category gates pass.
+The exact first-return/row-retention gate passes for saved and empty tabs,
+including resize, same-mode callbacks and closing several hidden views.
+Main's fragment-divider and mid-turn compaction fixtures also pass after merge.

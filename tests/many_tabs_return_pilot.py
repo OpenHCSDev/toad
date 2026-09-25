@@ -15,6 +15,7 @@ import threading
 import time
 from types import FunctionType
 from unittest.mock import patch
+from weakref import ref
 
 from agent_comms import Thread, TranscriptCursor, TranscriptEvent, TranscriptPage, wire
 from runtime_fixture import ToadApp
@@ -22,12 +23,16 @@ from textual.widget import Widget
 from toad.acp.agent import Agent
 from toad.acp.messages import TranscriptSnapshot
 from toad.agent import AgentReady
-from toad.widgets.comms_sidebar import CommsSidebar
-from toad.widgets.session_tabs import SessionLabel
+from toad import __file__ as toad_file
+from toad.widgets.comms_sidebar import ChannelGroup, CommsSidebar
+from toad.widgets.session_sidebar import ThreadStatusRow
+from toad.widgets.session_tabs import SessionLabel, SessionsTabs
 from toad.widgets.sidebar_tree import SidebarGroup
+from toad.widgets.footer import Footer
 
 
 class ReturnApp(ToadApp):
+    CSS_PATH = Path(toad_file).parent / "toad.tcss"
     pending_display = None
 
     def _display(self, screen, renderable):
@@ -99,6 +104,12 @@ async def main(*, empty=False, trace=False, observe=False, output=None, peers=0,
                         screen = app.get_screen_stack(mode)[0]
                         revision = screen._resume_style
                         current = screen._style_revision()
+                        tabs = screen.query_one(SessionsTabs)
+                        rows_before = {
+                            (row.query_ancestor(ChannelGroup).row.target_name, row.thread_name): ref(row)
+                            for row in screen.query(CommsSidebar).first().query(ThreadStatusRow)
+                            if row.thread_name is not None
+                        }
                         record = {"phase": phase, "mode": mode,
                                   "widgets_before": len(screen.query(Widget)),
                                   "tabs_before": len(screen.query(SessionLabel)),
@@ -106,6 +117,9 @@ async def main(*, empty=False, trace=False, observe=False, output=None, peers=0,
                                   "css_generation": [revision.css_generation, current.css_generation],
                                   "css_sources": [len(revision.sources), len(current.sources)],
                                   "layout_before": screen._layout_required}
+                        record["header_before"] = {"height": tabs.parent.size.height,
+                                                   "tab_height": tabs.size.height,
+                                                   "horizontal_scrollbar": tabs.show_horizontal_scrollbar}
                         mounts = Counter()
                         reflows = []
                         stale_reflows = []
@@ -119,6 +133,7 @@ async def main(*, empty=False, trace=False, observe=False, output=None, peers=0,
                         original_reflow = screen._compositor.reflow
                         original_styles = app.stylesheet.update_nodes
                         original_render = screen._compositor.render_update
+                        original_refresh = Widget.refresh
 
                         def gc_event(phase, info):
                             key = (threading.get_ident(), info["generation"])
@@ -198,6 +213,20 @@ async def main(*, empty=False, trace=False, observe=False, output=None, peers=0,
                                 discarded_renders.append(time.perf_counter())
                             return original_render(*args, **kwargs)
 
+                        def traced_refresh(widget, *args, **kwargs):
+                            if kwargs.get("layout") and isinstance(widget, (Footer, SessionsTabs)):
+                                frame = sys._getframe(1)
+                                callers = []
+                                for _ in range(7):
+                                    if frame is None:
+                                        break
+                                    callers.append((Path(frame.f_code.co_filename).name, frame.f_code.co_name, frame.f_lineno))
+                                    frame = frame.f_back
+                                timed_events.append({"operation": "layout-request", "widget": type(widget).__name__,
+                                                     "start_ms": round((time.perf_counter() - started) * 1000, 2),
+                                                     "duration_ms": 0, "callers": callers})
+                            return original_refresh(widget, *args, **kwargs)
+
                         async def heartbeat():
                             previous = time.perf_counter()
                             while True:
@@ -219,6 +248,7 @@ async def main(*, empty=False, trace=False, observe=False, output=None, peers=0,
                                 instrumentation.enter_context(patch.object(app.stylesheet, "update_nodes", counted_styles))
                                 instrumentation.enter_context(patch.object(screen._compositor, "render_update", counted_render))
                                 if trace:
+                                    instrumentation.enter_context(patch.object(Widget, "refresh", traced_refresh))
                                     gc.callbacks.append(gc_event)
                                     instrumentation.callback(gc.callbacks.remove, gc_event)
                                     for instance, method in ((screen, "_refresh_layout"),
@@ -251,6 +281,17 @@ async def main(*, empty=False, trace=False, observe=False, output=None, peers=0,
                                       reflows=len(reflows), stale_roster_reflows=len(stale_reflows),
                                       discarded_navigation_renders=len(discarded_renders),
                                       styled_nodes=sum(styles.values()))
+                        rows_after = {
+                            (row.query_ancestor(ChannelGroup).row.target_name, row.thread_name): row
+                            for row in screen.query(CommsSidebar).first().query(ThreadStatusRow)
+                            if row.thread_name is not None
+                        }
+                        replaced_rows = [key for key, previous in rows_before.items()
+                                         if key in rows_after and previous() is not rows_after[key]]
+                        record["replaced_thread_rows"] = len(replaced_rows)
+                        record["header_after"] = {"height": tabs.parent.size.height,
+                                                  "tab_height": tabs.size.height,
+                                                  "horizontal_scrollbar": tabs.show_horizontal_scrollbar}
                         if trace:
                             record.update(reflow_invalidations=reflows, styles=dict(styles),
                                           timed_events=timed_events)
@@ -260,6 +301,7 @@ async def main(*, empty=False, trace=False, observe=False, output=None, peers=0,
                         if not observe:
                             assert not stale_reflows, (phase, mode, stale_reflows)
                             assert not discarded_renders, (phase, mode, "Rendered an intermediate frame that App discards")
+                            assert not replaced_rows, (phase, mode, "Unchanged threads were remounted", replaced_rows)
                         assert app._exception is None
 
                 # Real geometry changes must survive the deferred activation
@@ -281,6 +323,9 @@ async def main(*, empty=False, trace=False, observe=False, output=None, peers=0,
 
                 # A hidden roster may be missing new tabs AND retain several
                 # closed ones. Bulk removal must preserve the remaining order.
+                destination = app.get_screen_stack(modes[3])[0]
+                retained = {row.thread_name: row for row in destination.query_one(CommsSidebar).query(ThreadStatusRow)
+                            if row.thread_name is not None}
                 for mode in modes[:3]:
                     await app.close_session_mode(mode)
                 await app.switch_mode(modes[3])
@@ -289,6 +334,11 @@ async def main(*, empty=False, trace=False, observe=False, output=None, peers=0,
                     tab.mode_name for tab in app.open_tabs
                 )
                 assert app.screen.conversation.prompt.text == f"draft-{modes[3]}"
+                if not observe and not empty:
+                    for row in app.screen.query_one(CommsSidebar).query(ThreadStatusRow):
+                        if row.thread_name in targets[:3]:
+                            assert row is retained[row.thread_name]
+                            assert row.mode_name is None, "A closed view remained a navigation target"
                 assert not app._atomic_mode_switch and app._exception is None
         await asyncio.get_running_loop().shutdown_default_executor()
     result = {"boundary": "headless switch/settlement; not terminal-presented frames",
@@ -303,6 +353,8 @@ async def main(*, empty=False, trace=False, observe=False, output=None, peers=0,
             records = [record for record in measurements if record["phase"] == phase]
             print(json.dumps({"phase": phase, "switch_median_ms": statistics.median(record["switch_ms"] for record in records),
                               "switch_max_ms": max(record["switch_ms"] for record in records),
+                              "headless_display_median_ms": statistics.median(record["headless_display_ms"] for record in records),
+                              "replaced_thread_rows": sum(record["replaced_thread_rows"] for record in records),
                               "reflows": [record["reflows"] for record in records],
                               "max_loop_gap_ms": max(record["max_loop_gap_ms"] for record in records)}))
         if trace:

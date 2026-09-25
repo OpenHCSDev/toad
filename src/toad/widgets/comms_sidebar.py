@@ -42,7 +42,7 @@ from agent_comms.operations import wire
 from toad import messages
 from toad.constants import ALL_COMMS_TARGET
 from toad.session_tracker import SessionDetails, SidebarSelection, SidebarState
-from toad.widgets.session_sidebar import SessionRow, ThreadStatusRow
+from toad.widgets.session_sidebar import ThreadStatusRow
 from toad.widgets.session_sort import ChannelListSort, SessionSort
 from toad.widgets.virtual_channel_list import VirtualChannelList, VirtualChoice, styled_row
 from toad.widgets.activity_spinner import FRAMES
@@ -84,8 +84,8 @@ class ChannelGroup(SidebarGroup):
         row.add_class("channel-header")
         self._view: ChannelView | None = None
         self._snapshot: SidebarSnapshot | None = None
-        self._members: dict[str, SessionRow | CommsRow] = {}
-        self.member_rows: tuple[SessionRow | CommsRow, ...] = ()
+        self._members: dict[str, ThreadRow] = {}
+        self.member_rows: tuple[ThreadRow, ...] = ()
         self._lock = asyncio.Lock()
         self.sort_control = SessionSort(channel=row.target_name)
         self.unread_badge = ChannelUnread(markup=False)
@@ -141,18 +141,14 @@ class ChannelGroup(SidebarGroup):
             modes = {name: mode for mode, name in self._snapshot.session_threads.items()}
 
             def create(name):
-                mode = modes.get(name)
-                details = app.session_tracker.get_session(mode) if mode else None
                 person = self._snapshot.all_people[name]
-                return (SessionRow(details) if details is not None else
-                        CommsRow(CommsSidebar._person_kind(person), name, name))
-
-            def replace(name, row):
-                return (row.mode_name if isinstance(row, SessionRow) else None) != modes.get(name)
+                return ThreadRow(CommsSidebar._person_kind(person), name, name)
 
             def update(name, row):
-                if isinstance(row, CommsRow):
-                    row.kind = CommsSidebar._person_kind(self._snapshot.all_people[name])
+                # The thread is the row identity. Opening/closing one of its
+                # views changes navigation, not its content widget or geometry.
+                row.mode_name = modes.get(name)
+                row.kind = CommsSidebar._person_kind(self._snapshot.all_people[name])
                 row.update_thread(
                     self._snapshot.all_people[name],
                     unread=(self._snapshot.wire.thread_unread.get(name, 0)
@@ -161,11 +157,10 @@ class ChannelGroup(SidebarGroup):
                     pinned=name in self._view.pinned_members,
                     action_status=app.pending_thread_actions.get(name),
                 )
-                if isinstance(row, SessionRow):
-                    row.current = row.mode_name == app.current_mode
+                row.current = row.mode_name == app.current_mode
 
             self.member_rows = await self.reconcile_rows(
-                wanted, self._members, create, update, replace=replace)
+                wanted, self._members, create, update)
 
 
 def _comms_root() -> Path:
@@ -262,6 +257,20 @@ class CommsRow(ThreadStatusRow):
         if event.button == 3:
             return  # right click handled by context menu in CommsSidebar
         self.action_open_selected()
+
+
+class ThreadRow(CommsRow):
+    """A retained wire thread row, with an optional currently open native view."""
+
+    mode_name: str | None = None
+
+    def action_open_selected(self) -> None:
+        if self.mode_name is None:
+            super().action_open_selected()
+        else:
+            if sidebar := self._sidebar():
+                sidebar.remember_row(self)
+            self.app.switch_mode(self.mode_name)
 
 
 class NewSessionButton(Static):
@@ -440,7 +449,7 @@ class CommsSidebar(TargetTree):
         self._last_filters: tuple[bool, bool] | None = None
         self._last_read_marker_notice: str | None = None
         self._rendered_selection: SidebarSelection | None = None
-        self._selected_row: CommsRow | SessionRow | None = None
+        self._selected_row: CommsRow | None = None
         self._selection_applied = False
         self._rendered_mode: tuple[str, str | None] | None = None
         self._rendered_expansion: dict[str, bool] = {}
@@ -476,12 +485,11 @@ class CommsSidebar(TargetTree):
     def prepare_navigation(self) -> None:
         self.navigation_ready.clear()
 
-    def _selection_for(self, row: CommsRow | SessionRow) -> SidebarSelection:
+    def _selection_for(self, row: CommsRow) -> SidebarSelection:
         channel = row.query_ancestor(ChannelGroup).row.target_name
-        target = row.target_name if isinstance(row, CommsRow) else row.thread_name
-        return SidebarSelection(channel, target or "")
+        return SidebarSelection(channel, row.target_name)
 
-    def remember_row(self, row: CommsRow | SessionRow) -> None:
+    def remember_row(self, row: CommsRow) -> None:
         if self._restore_navigation:
             return
         rows = self._ordered_rows()
@@ -490,7 +498,7 @@ class CommsSidebar(TargetTree):
             self.navigation.selected = self._selection_for(row)
             self.apply_selection()
 
-    def focus_row(self, row: CommsRow | SessionRow) -> None:
+    def focus_row(self, row: CommsRow) -> None:
         rows = self._ordered_rows()
         if row in rows:
             self._cursor = rows.index(row)
@@ -652,9 +660,8 @@ class CommsSidebar(TargetTree):
             if self._last_snapshot is not None:
                 self._rebuild_virtual(self._last_snapshot)
             return
-        for row in self._ordered_rows():
-            if isinstance(row, SessionRow):
-                row.current = row.mode_name == mode_name
+        for row in self.query(ThreadRow):
+            row.current = row.mode_name == mode_name
         for row in self._row_map.values():
             row.current = row.target_name == target
         self._rendered_mode = (mode_name, target)
@@ -995,7 +1002,12 @@ class CommsSidebar(TargetTree):
 
     # ─── Keyboard ─────────────────────────────────────────────────────────────
 
-    def _ordered_rows(self) -> list[CommsRow | SessionRow]:
+    @property
+    def session_rows(self) -> list[ThreadRow]:
+        """Mounted thread rows whose authoritative projection has an open view."""
+        return [row for row in self.query(ThreadRow) if row.mode_name is not None]
+
+    def _ordered_rows(self) -> list[CommsRow]:
         return [row for group in self.children if isinstance(group, ChannelGroup)
                 for row in (group.row, *group.member_rows)]
 
@@ -1017,7 +1029,7 @@ class CommsSidebar(TargetTree):
             return
         rows = self._ordered_rows()
         focused = self.app.focused if self.app else None
-        if isinstance(focused, (CommsRow, SessionRow)) and focused in rows:
+        if isinstance(focused, CommsRow) and focused in rows:
             target = focused
             self._cursor = rows.index(target)
         elif 0 <= self._cursor < len(rows):
@@ -1026,11 +1038,8 @@ class CommsSidebar(TargetTree):
             return
         self._apply_cursor(rows)
         self.remember_row(target)
-        if isinstance(target, SessionRow):
-            self.app.switch_mode(target.mode_name)
-        else:
-            self.selected = target.target_name
-            target.post_message(SelectTarget(target.target_name, target.kind))
+        self.selected = target.target_name
+        target.action_open_selected()
 
     async def focus_current_session(self) -> None:
         """Focus the current session in this authoritative sessions view."""
@@ -1057,7 +1066,7 @@ class CommsSidebar(TargetTree):
         if not rows:
             return
         current_mode = cast("ToadApp", self.app).current_mode
-        if not any(isinstance(row, SessionRow) and row.mode_name == current_mode for row in rows):
+        if not any(row.mode_name == current_mode for row in self.session_rows):
             aggregate = self._row_map.get(("irc", ALL_COMMS_TARGET))
             if aggregate is not None:
                 group = aggregate.query_ancestor(ChannelGroup)
@@ -1065,7 +1074,7 @@ class CommsSidebar(TargetTree):
                     group.toggle_members()
                     await group._sync_members()
                     rows = self._ordered_rows()
-        target = next((row for row in rows if isinstance(row, SessionRow) and row.mode_name == current_mode), rows[0])
+        target = next((row for row in self.session_rows if row.mode_name == current_mode), rows[0])
         self._cursor = rows.index(target)
         self._apply_cursor(rows)
         target.focus()
@@ -1081,22 +1090,19 @@ class CommsSidebar(TargetTree):
         row = None
         node: DOMNode | None = widget
         while node is not None:
-            if isinstance(node, (CommsRow, SessionRow)):
+            if isinstance(node, CommsRow):
                 row = node
                 break
             node = node.parent
         if row is None:
             return
-        if isinstance(row, SessionRow):
-            snapshot = self._last_snapshot or self._snapshot()
-            name = snapshot.session_threads.get(row.mode_name)
-            if name in snapshot.all_people:
-                self._show_thread_menu(
-                    name, event.screen_offset, mode_name=row.mode_name,
-                    channel=row.query_ancestor(ChannelGroup).row.target_name,
-                )
-            else:
-                self._show_view_menu(row.mode_name, event.screen_offset)
+        if isinstance(row, ThreadRow):
+            if row.mode_name is None:
+                self._select(row)
+            self._show_thread_menu(
+                row.target_name, event.screen_offset, mode_name=row.mode_name,
+                channel=row.query_ancestor(ChannelGroup).row.target_name,
+            )
             return
         self._select(row)
         if row.kind in {"dm", "thread", "session"}:

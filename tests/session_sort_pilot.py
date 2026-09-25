@@ -10,8 +10,7 @@ from pathlib import Path
 from agent_comms import Activity, ActivityState, Message, MessageType, Thread, TranscriptCursor, wire
 from runtime_fixture import ToadApp
 from toad.widgets.comms_menu import ContextMenu, ContextMenuItem
-from toad.widgets.comms_sidebar import CommsRow, CommsSidebar, ChannelGroup
-from toad.widgets.session_sidebar import SessionRow
+from toad.widgets.comms_sidebar import CommsRow, CommsSidebar, ChannelGroup, ThreadRow
 from toad.widgets.session_sort import ChannelListSort, SessionSort
 from toad.widgets.side_bar import SideBarCollapsible
 
@@ -100,11 +99,7 @@ async def main():
             sidebar = app.screen.query_one(CommsSidebar)
             result = []
             for row in sidebar._ordered_rows():
-                if isinstance(row, SessionRow):
-                    result.append(
-                        app._main_session_screen(row.mode_name)._session_thread
-                    )
-                elif not row.target_name.startswith("#"):
+                if not row.target_name.startswith("#"):
                     result.append(row.target_name)
             return result
 
@@ -140,7 +135,7 @@ async def main():
             old_mode = app.current_mode
             await pilot.pause()
             opened = next(
-                row for row in app.screen.query(SessionRow) if row.mode_name == old_mode
+                row for row in app.screen.query(ThreadRow) if row.mode_name == old_mode
             )
             assert opened.render().plain == closed_status
             assert opened.region.height == 2
@@ -210,7 +205,7 @@ async def main():
             sidebar._refresh()
             await pilot.pause()
             opened = next(
-                row for row in sidebar.query(SessionRow) if row.mode_name == old_mode
+                row for row in sidebar.query(ThreadRow) if row.mode_name == old_mode
             )
             unopened = next(
                 row for row in sidebar.query(CommsRow) if row.target_name == "new"
