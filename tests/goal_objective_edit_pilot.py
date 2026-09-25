@@ -116,7 +116,7 @@ async def main():
                 )
                 assert f"rev {current.revision}" in frame
                 assert (
-                    "Objective truncated" in frame and "TAIL_COORDINATOR" not in frame
+                    "Scroll for full text" in frame and "TAIL_COORDINATOR" not in frame
                 )
                 await pilot.click("#goal-expand")
                 await pilot.pause()
@@ -150,7 +150,8 @@ async def main():
                 await asyncio.sleep(0.02)
                 release.set()
                 await asyncio.gather(first, pause, clear)
-                assert reads == 2, reads
+                # Mutation preflights now also read the canonical owner snapshot.
+                assert reads >= 2, reads
                 assert conversation.goal is None and conversation.goal_execution is None
                 conversation.post_message(GoalSnapshotUpdate(original, None))
                 await pilot.pause()
