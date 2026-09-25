@@ -125,6 +125,11 @@ async def main():
             await pilot.pause()
             assert not status.display, "Goal prose must never infer standby"
             conversation.goal_execution = owner.execution
+            conversation.goal = replace(owner.goal, status="paused")
+            await pilot.pause()
+            assert not status.display, "A previous standby projection cannot override paused goal state"
+            conversation.goal = owner.goal
+            await pilot.pause()
             await pilot.click("#goal-edit")
             await pilot.pause()
             editor = app.screen

@@ -124,6 +124,7 @@ class GoalBar(VerticalGroup):
         execution = self.execution
         standby = (
             execution is not None
+            and self.goal.active
             and execution.goal_id == self.goal.id
             and execution.state is GoalExecutionState.STANDBY
             and not (self._throbber is not None and self._throbber.busy)
