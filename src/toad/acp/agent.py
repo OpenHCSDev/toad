@@ -337,6 +337,15 @@ class Agent(AgentBase):
                     self._context_usage = None
                     self.post_message(messages.UpdateStatusLine(Content("Context estimate unavailable")))
                 summary = compaction.get("summary")
+                source_done = compaction.get("sourceBytesDone")
+                source_total = compaction.get("sourceBytesTotal")
+                if not (
+                    isinstance(source_done, int) and not isinstance(source_done, bool)
+                    and isinstance(source_total, int) and not isinstance(source_total, bool)
+                    and 0 <= source_done <= source_total and source_total > 0
+                ):
+                    source_done = source_total = None
+                summary_phase = compaction.get("summaryPhase")
                 self.post_message(messages.CompactionUpdate(
                     compaction["phase"],
                     compaction.get("reason") if isinstance(compaction.get("reason"), str)
@@ -345,6 +354,9 @@ class Agent(AgentBase):
                     compaction.get("willRetry") is True,
                     compaction.get("chunkIndex") if isinstance(compaction.get("chunkIndex"), int)
                     and not isinstance(compaction.get("chunkIndex"), bool) else 0,
+                    source_done,
+                    source_total,
+                    summary_phase if isinstance(summary_phase, str) and summary_phase else None,
                 ))
                 return
             if state.get("transcriptChanged") is True:
@@ -1542,6 +1554,7 @@ class Agent(AgentBase):
             self._coordination_thread,
             action,
             text=text,
+            owner_action=True,
         )
         return goal
 
