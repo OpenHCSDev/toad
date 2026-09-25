@@ -7,6 +7,17 @@ from pathlib import Path
 
 from runtime_fixture import ToadApp
 from toad.acp.messages import InputFailed
+from toad.widgets.conversation import Conversation
+
+
+class FailingAgent:
+    uses_turn_events = False
+
+    async def send_prompt(self, prompt, **kwargs):
+        raise FileNotFoundError(2, "agent socket disappeared")
+
+    async def stop(self):
+        pass
 
 
 async def main():
@@ -28,6 +39,11 @@ async def main():
             )
             await pilot.pause()
             assert conversation.prompt.text == "the exact prompt"
+            conversation.set_reactive(Conversation.agent, FailingAgent())
+            conversation.prompt.text = ""
+            conversation.send_prompt_to_agent("the local failure prompt", immediate=True)
+            await pilot.pause()
+            assert conversation.prompt.text == "the local failure prompt"
     print("input failure: exact prompt restored after preflight rejection")
 
 

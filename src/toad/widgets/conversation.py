@@ -1320,7 +1320,7 @@ class Conversation(containers.Vertical):
                     )
                 else:
                     stop_reason = await self.agent.send_prompt(prompt)
-            except (jsonrpc.APIError, ValueError) as error:
+            except (jsonrpc.APIError, jsonrpc.JSONRPCError, OSError, ValueError) as error:
                 from toad.widgets.markdown_note import MarkdownNote
 
                 self.turn = "client"
