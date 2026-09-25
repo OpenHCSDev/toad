@@ -2,8 +2,8 @@
 
 from agent_comms import Goal, GoalExecution, GoalExecutionState
 from textual import events
-from textual.app import ComposeResult
-from textual.containers import HorizontalGroup, VerticalGroup
+from textual.app import ComposeResult, ScreenStackError, UnknownModeError
+from textual.containers import HorizontalGroup, VerticalGroup, VerticalScroll
 from textual.message import Message
 from textual.reactive import var
 from textual.widgets import Static
@@ -24,22 +24,55 @@ class GoalControl(Static, can_focus=True):
             self.action = action
 
     def action_activate(self):
-        self.post_message(self.Activated(self.id or ""))
+        if not self.disabled:
+            self.post_message(self.Activated(self.id or ""))
 
     def on_click(self, event: events.Click):
         event.stop()
         self.action_activate()
 
 
+class StandbyPulse(Static):
+    """A quiet wait animation; the backend decides when it is active."""
+
+    DEFAULT_CSS = "StandbyPulse { width: 2; height: 1; color: $text-muted; }"
+    active: var[bool] = var(False)
+    _dim = False
+
+    def watch_active(self) -> None:
+        self.auto_refresh = 0.8 if self.active else None
+        self.update("◌" if self.active else "")
+
+    def automatic_refresh(self) -> None:
+        if not self.active or not self.is_attached:
+            return
+        try:
+            screen = self.screen
+            if (
+                screen is not self.app.screen
+                or self not in screen._compositor.visible_widgets
+            ):
+                return
+        except ScreenStackError, UnknownModeError:
+            return
+        self._dim = not self._dim
+        self.styles.opacity = 0.45 if self._dim else 1.0
+
+
 class GoalBar(VerticalGroup):
     DEFAULT_CSS = """
     GoalBar { height: auto; padding: 0 1; border-top: solid $secondary 30%; }
-    GoalBar .goal-summary { height: auto; max-height: 3; }
-    GoalBar .goal-progress { height: auto; max-height: 2; color: $text-muted; }
-    GoalBar .goal-truncated { display: none; height: 1; color: $text-muted; }
+    GoalBar .goal-header { height: auto; }
+    GoalBar .goal-document { height: 1; max-height: 20vh; scrollbar-gutter: stable; }
+    GoalBar .goal-summary { height: auto; }
+    GoalBar .goal-progress { height: auto; color: $text-muted; }
+    GoalBar .goal-execution-row { height: auto; }
+    GoalBar .goal-execution { width: 1fr; height: auto; }
+    GoalBar .goal-scroll-hint { height: 1; color: $text-muted; }
     """
     goal: var[Goal | None] = var(None)
     execution: var[GoalExecution | None] = var(None)
+    unavailable: var[bool] = var(False)
     _separator_update_pending = False
     _throbber = None
     _prompt = None
@@ -94,10 +127,18 @@ class GoalBar(VerticalGroup):
         self._update_goal_text()
 
     def compose(self) -> ComposeResult:
-        yield GoalText(classes="goal-summary")
-        yield GoalText(classes="goal-execution")
-        yield GoalText(classes="goal-progress")
-        yield Static("", markup=False, classes="goal-truncated")
+        yield Static("", markup=False, classes="goal-header")
+        with HorizontalGroup(classes="goal-execution-row"):
+            yield StandbyPulse()
+            yield GoalText(classes="goal-execution")
+        with VerticalScroll(classes="goal-document"):
+            yield GoalText(classes="goal-summary")
+            yield GoalText(classes="goal-progress")
+        yield Static(
+            "Scroll for full text · Expand",
+            markup=False,
+            classes="goal-scroll-hint",
+        )
         with HorizontalGroup():
             yield GoalControl("Expand", id="goal-expand")
             yield GoalControl("Pause", id="goal-toggle")
@@ -105,9 +146,9 @@ class GoalBar(VerticalGroup):
             yield GoalControl("Clear", id="goal-clear")
 
     def watch_goal(self, goal: Goal | None):
-        self.display = goal is not None
+        self.display = goal is not None or self.unavailable
+        self._update_goal_text()
         if goal is not None:
-            self._update_goal_text()
             progress = self.query_one(".goal-progress", GoalText)
             progress.update_goal_text(
                 f"Progress: {goal.progress}" if goal.progress else ""
@@ -117,50 +158,72 @@ class GoalBar(VerticalGroup):
             toggle.update(goal.toggle_label)
             toggle.display = goal.status != "completed"
 
+    def watch_unavailable(self) -> None:
+        self.display = self.goal is not None or self.unavailable
+        self._update_goal_text()
+
     def watch_execution(self) -> None:
         self._update_goal_text()
 
     def _update_goal_text(self) -> None:
-        if not self.is_mounted or self.goal is None:
+        if not self.is_attached:
             return
-        self.query_one(".goal-summary", GoalText).update_goal_text(
-            f"Goal · {self.goal.status} · rev {self.goal.revision} · Objective: {self.goal.text}"
-        )
-        status = self.query_one(".goal-execution", GoalText)
+        header = self.query_one(".goal-header", Static)
+        if self.unavailable:
+            header.update(
+                "Goal state unavailable · last confirmed goal below"
+                if self.goal
+                else "Goal state unavailable · reconnecting to owner"
+            )
+        elif self.goal is not None:
+            header.update(f"Goal · {self.goal.status} · rev {self.goal.revision}")
+        for control in self.query(GoalControl):
+            control.disabled = self.unavailable
+        self.query_one(".goal-document").display = self.goal is not None
+        if self.goal is not None:
+            self.query_one(".goal-summary", GoalText).update_goal_text(
+                f"Objective: {self.goal.text}"
+            )
         execution = self.execution
         standby = (
-            execution is not None
+            not self.unavailable
+            and self.goal is not None
             and self.goal.active
+            and execution is not None
             and execution.goal_id == self.goal.id
             and execution.state is GoalExecutionState.STANDBY
-            and not (self._throbber is not None and self._throbber.busy)
         )
+        if standby:
+            header.update(f"Goal · Standby · rev {self.goal.revision}")
+        self.query_one(".goal-execution-row").display = standby
+        self.query_one(StandbyPulse).active = standby
+        status = self.query_one(".goal-execution", GoalText)
         status.display = standby
         if standby:
-            presentation = execution.presentation("")
-            status.update_goal_text(f"{presentation.marker} {presentation.summary}")
-        self.call_after_refresh(self._update_truncation)
+            status.update_goal_text(execution.presentation("").summary)
+        self.call_after_refresh(self._update_scroll_hint)
 
     def on_resize(self) -> None:
-        self.call_after_refresh(self._update_truncation)
+        self.call_after_refresh(self._update_scroll_hint)
 
-    def _update_truncation(self) -> None:
-        if not self.is_mounted or self.goal is None:
-            return
-        clipped = []
-        for selector, name in (
-            (".goal-summary", "Objective"),
-            (".goal-progress", "Progress"),
-        ):
-            widget = self.query_one(selector, GoalText)
-            width = widget.content_size.width
-            if (
-                widget.display
-                and width
-                and widget.visual.get_height(widget.styles, width)
-                > widget.content_size.height
-            ):
-                clipped.append(name)
-        notice = self.query_one(".goal-truncated", Static)
-        notice.display = bool(clipped)
-        notice.update(f"… {' / '.join(clipped)} truncated · Expand for full text")
+    def _update_scroll_hint(self) -> None:
+        if self.is_attached:
+            document = self.query_one(".goal-document", VerticalScroll)
+            width = document.content_size.width
+            height = (
+                sum(
+                    child.visual.get_height(child.styles, width)
+                    for child in document.query(GoalText)
+                    if child.display
+                )
+                if width
+                else 1
+            )
+            # Explicit bounded height prevents an auto-height parent from reserving
+            # the scroll document's full virtual height before applying its cap.
+            document.styles.height = min(
+                max(1, height), max(1, self.screen.size.height // 5)
+            )
+            self.query_one(".goal-scroll-hint").display = (
+                self.goal is not None and height > document.styles.height.value
+            )

@@ -20,7 +20,7 @@ from typing import Callable, Any
 from rich.segment import Segment
 
 from textual import log, on, work
-from textual.app import ComposeResult
+from textual.app import ComposeResult, ScreenStackError, UnknownModeError
 from textual import containers
 from textual import getters
 from textual import events
@@ -525,6 +525,7 @@ class Conversation(containers.Vertical):
     current_model: var[Model | None] = var(None)
     thinking_level = var("")
     unresolved_inputs: var[list[dict]] = var(list)
+    goal_unavailable = var(False)
     goal: var[Goal | None] = var(None)
     goal_execution: var[GoalExecution | None] = var(None)
     turn: var[Literal["agent", "client"] | None] = var(None, bindings=True)
@@ -593,6 +594,7 @@ class Conversation(containers.Vertical):
         self._post_lock = asyncio.Lock()
         self._goal_refresh_task: asyncio.Task | None = None
         self._goal_refresh_revision = 0
+        self._goal_modal = None
         self._delivery_refresh_task: asyncio.Task | None = None
         self._delivery_refresh_revision = 0
         self._transcript_generation = 0
@@ -752,7 +754,7 @@ class Conversation(containers.Vertical):
                                            started_at=Conversation.activity_started_at)
             yield Throbber(id="throbber")
             yield InputDeliveryBar().data_bind(inputs=Conversation.unresolved_inputs)
-            yield GoalBar().data_bind(goal=Conversation.goal, execution=Conversation.goal_execution)
+            yield GoalBar().data_bind(goal=Conversation.goal, execution=Conversation.goal_execution, unavailable=Conversation.goal_unavailable)
             yield Prompt(complete_callback=self.shell_complete).data_bind(
                 project_path=Conversation.project_path,
                 working_directory=Conversation.working_directory,
@@ -2177,6 +2179,7 @@ class Conversation(containers.Vertical):
         self.prompt.slash_commands = self._build_slash_commands()
 
     async def on_mount(self) -> None:
+        self.set_interval(1, self._poll_goal)
         await self.initialize_view()
 
     async def initialize_view(self) -> None:
@@ -2267,13 +2270,33 @@ class Conversation(containers.Vertical):
         self.app.push_screen(details)
         details.watch(self, "unresolved_inputs", lambda inputs: setattr(details, "inputs", inputs))
 
-    async def refresh_goal(self) -> None:
+    def _poll_goal(self) -> None:
+        if not self.is_attached:
+            return
+        # Only the visible conversation or its own goal modal polls. Hidden tabs
+        # do not multiply owner reads; the draft in an edit modal stays local.
+        try:
+            current = self.app.screen
+            visible = (
+                current is self.screen
+                and self in self.screen._compositor.visible_widgets
+            ) or current is self._goal_modal
+        except (ScreenStackError, UnknownModeError):
+            return
+        if visible and (self._goal_refresh_task is None or self._goal_refresh_task.done()):
+            self._invalidate_goal_snapshot()
+
+    def _invalidate_goal_snapshot(self) -> None:
         if not self.is_attached or self.agent is None or not hasattr(self.agent, "get_goal_snapshot"):
             return
         self._goal_refresh_revision += 1
         if self._goal_refresh_task is None or self._goal_refresh_task.done():
             self._goal_refresh_task = asyncio.create_task(self._read_goal_snapshot())
-        await asyncio.shield(self._goal_refresh_task)
+
+    async def refresh_goal(self) -> None:
+        self._invalidate_goal_snapshot()
+        if self._goal_refresh_task is not None:
+            await asyncio.shield(self._goal_refresh_task)
 
     async def _read_goal_snapshot(self) -> None:
         # All actions and notifications invalidate the same backend projection.
@@ -2287,15 +2310,17 @@ class Conversation(containers.Vertical):
             except (OSError, ValueError):
                 if revision != self._goal_refresh_revision:
                     continue
+                self.goal_unavailable = True
                 return
             if revision != self._goal_refresh_revision or agent is not self.agent:
                 continue
             if self.is_attached:
                 self.goal, self.goal_execution = goal, execution
+                self.goal_unavailable = False
             return
 
-    async def on_goal_snapshot_update(self, event: acp_messages.GoalSnapshotUpdate) -> None:
-        await self.refresh_goal()
+    def on_goal_snapshot_update(self, event: acp_messages.GoalSnapshotUpdate) -> None:
+        self._invalidate_goal_snapshot()
 
     async def _coordination_changed(self, _update: None) -> None:
         await self.refresh_goal()
@@ -2303,6 +2328,9 @@ class Conversation(containers.Vertical):
     @on(GoalControl.Activated)
     async def on_goal_control(self, event: GoalControl.Activated):
         event.stop()
+        if self.goal_unavailable:
+            self.flash("Goal state unavailable; waiting for the owner", style="error")
+            return
         if event.action == "goal-expand" and self.goal is not None:
             from toad.screens.goal_details import GoalDetails
 
@@ -2314,7 +2342,12 @@ class Conversation(containers.Vertical):
                 except (OSError, ValueError) as error:
                     self.flash(str(error), style="error")
                     return
-            self.app.push_screen(GoalDetails(goal, history=history))
+            details = GoalDetails(goal, history=history)
+            self._goal_modal = details
+            self.app.push_screen(details)
+            details.watch(self, "goal", lambda value: setattr(details, "goal", value))
+            details.watch(self, "goal_unavailable", lambda value: setattr(details, "unavailable", value))
+            details.watch(self, "goal_execution", lambda value: setattr(details, "execution", value))
         elif event.action == "goal-edit":
             from toad.screens.goal_edit import GoalEdit
             from toad.widgets.goal_text import goal_mention_candidates
@@ -2328,9 +2361,9 @@ class Conversation(containers.Vertical):
                 await self.agent.edit_goal(goal, text)
                 await self.refresh_goal()
 
-            self.app.push_screen(GoalEdit(
-                goal, goal_mention_candidates(self.app), on_save=save
-            ))
+            editor = GoalEdit(goal, goal_mention_candidates(self.app), on_save=save)
+            self._goal_modal = editor
+            self.app.push_screen(editor)
         elif event.action == "goal-clear":
             await self.change_goal("clear")
         elif event.action == "goal-toggle":
