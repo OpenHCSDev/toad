@@ -88,10 +88,10 @@ async def main():
             assert "50% of input processed" in progress and "2 summaries" in progress
             shrinking = await update(chunkIndex=3, sourceBytesDone=800,
                                      sourceBytesTotal=800, summaryPhase="shrink")
-            assert "Shrinking summary" in shrinking and "100% of input processed" in shrinking
+            assert "last step: summary shrink" in shrinking and "100% of input processed" in shrinking
             assert "3 summaries" in shrinking and "remaining" not in shrinking
             ended = await update("end", summary="Finished")
-            assert "input processed" not in ended and "Shrinking" not in ended
+            assert "input processed" not in ended and "summary shrink" not in ended
             await update("start")
             fallback = await update(chunkIndex=1)
             assert "step 1 completed" in fallback and "%" not in fallback
