@@ -1,0 +1,2285 @@
+{
+  "completed": true,
+  "actions": 72,
+  "cells": [
+    306,
+    80
+  ],
+  "pixels": [
+    2149,
+    1620
+  ],
+  "display": "isolated Xvfb",
+  "sample_rate_hz": 50,
+  "idle_included": false,
+  "gil_only": true,
+  "profile_duration_requested_seconds": 180,
+  "main_sample_weight_seconds": 61.84000000000407,
+  "sampling_errors": 4,
+  "sample_count": 3317,
+  "sha256_gzip": "1a01b48290ec38e34c8bfb21a59ea9f5407d57e0c02cad144d41f566364ba58e",
+  "alignment": "GIL-only sample weights are not a wall-clock timeline; per-action sampled attribution is disabled. Observer timings are monotonic wall spans, not pixels. Inclusive samples overlap.",
+  "per_action": [
+    {
+      "index": 0,
+      "kind": "toggle",
+      "start_s": 1.167602,
+      "end_s": 1.579539,
+      "timings": {
+        "loop_gap": {
+          "count": 7,
+          "median_ms": 56.69,
+          "p95_ms": 74.44,
+          "max_ms": 87.75
+        },
+        "_refresh_layout": {
+          "count": 5,
+          "median_ms": 49.41,
+          "p95_ms": 62.71,
+          "max_ms": 74.95
+        },
+        "_compositor_refresh": {
+          "count": 6,
+          "median_ms": 16.74,
+          "p95_ms": 23.72,
+          "max_ms": 27.7
+        },
+        "gc": {
+          "count": 9,
+          "median_ms": 0.0,
+          "p95_ms": 0.0,
+          "max_ms": 3.92
+        }
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 1,
+      "kind": "toggle",
+      "start_s": 1.746824,
+      "end_s": 2.165893,
+      "timings": {
+        "loop_gap": {
+          "count": 11,
+          "median_ms": 7.41,
+          "p95_ms": 103.45,
+          "max_ms": 110.2
+        },
+        "_refresh_layout": {
+          "count": 4,
+          "median_ms": 84.21,
+          "p95_ms": 94.16,
+          "max_ms": 99.98
+        },
+        "_compositor_refresh": {
+          "count": 4,
+          "median_ms": 30.0,
+          "p95_ms": 35.97,
+          "max_ms": 74.36
+        },
+        "gc": {
+          "count": 14,
+          "median_ms": 0.25,
+          "p95_ms": 3.44,
+          "max_ms": 46.81
+        }
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 2,
+      "kind": "toggle",
+      "start_s": 2.336521,
+      "end_s": 2.745652,
+      "timings": {
+        "loop_gap": {
+          "count": 3,
+          "median_ms": 82.17,
+          "p95_ms": 82.17,
+          "max_ms": 101.08
+        },
+        "_refresh_layout": {
+          "count": 3,
+          "median_ms": 72.3,
+          "p95_ms": 72.3,
+          "max_ms": 85.22
+        },
+        "_compositor_refresh": {
+          "count": 4,
+          "median_ms": 17.48,
+          "p95_ms": 24.83,
+          "max_ms": 32.84
+        },
+        "gc": {
+          "count": 4,
+          "median_ms": 0.0,
+          "p95_ms": 0.0,
+          "max_ms": 0.0
+        }
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 3,
+      "kind": "toggle",
+      "start_s": 2.933715,
+      "end_s": 3.34253,
+      "timings": {
+        "loop_gap": {
+          "count": 2,
+          "median_ms": 69.26,
+          "p95_ms": 45.23,
+          "max_ms": 93.29
+        },
+        "_refresh_layout": {
+          "count": 2,
+          "median_ms": 59.15,
+          "p95_ms": 40.76,
+          "max_ms": 77.55
+        },
+        "_compositor_refresh": {
+          "count": 3,
+          "median_ms": 9.19,
+          "p95_ms": 9.19,
+          "max_ms": 26.98
+        },
+        "gc": {
+          "count": 2,
+          "median_ms": 0.0,
+          "p95_ms": 0.0,
+          "max_ms": 0.0
+        }
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 4,
+      "kind": "toggle",
+      "start_s": 3.509831,
+      "end_s": 3.926267,
+      "timings": {
+        "loop_gap": {
+          "count": 6,
+          "median_ms": 49.9,
+          "p95_ms": 76.4,
+          "max_ms": 79.9
+        },
+        "_refresh_layout": {
+          "count": 5,
+          "median_ms": 60.07,
+          "p95_ms": 63.45,
+          "max_ms": 74.96
+        },
+        "_compositor_refresh": {
+          "count": 5,
+          "median_ms": 19.53,
+          "p95_ms": 21.21,
+          "max_ms": 26.72
+        },
+        "gc": {
+          "count": 5,
+          "median_ms": 0.0,
+          "p95_ms": 0.0,
+          "max_ms": 0.0
+        }
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 5,
+      "kind": "toggle",
+      "start_s": 4.095935,
+      "end_s": 4.504742,
+      "timings": {
+        "loop_gap": {
+          "count": 5,
+          "median_ms": 29.0,
+          "p95_ms": 71.88,
+          "max_ms": 87.29
+        },
+        "_refresh_layout": {
+          "count": 3,
+          "median_ms": 68.32,
+          "p95_ms": 68.32,
+          "max_ms": 82.85
+        },
+        "_compositor_refresh": {
+          "count": 4,
+          "median_ms": 14.77,
+          "p95_ms": 19.71,
+          "max_ms": 37.28
+        },
+        "gc": {
+          "count": 4,
+          "median_ms": 0.0,
+          "p95_ms": 0.0,
+          "max_ms": 0.0
+        }
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 6,
+      "kind": "toggle",
+      "start_s": 4.671512,
+      "end_s": 5.081392,
+      "timings": {
+        "loop_gap": {
+          "count": 5,
+          "median_ms": 42.89,
+          "p95_ms": 71.72,
+          "max_ms": 100.57
+        },
+        "_refresh_layout": {
+          "count": 3,
+          "median_ms": 66.56,
+          "p95_ms": 66.56,
+          "max_ms": 84.29
+        },
+        "_compositor_refresh": {
+          "count": 4,
+          "median_ms": 18.13,
+          "p95_ms": 25.76,
+          "max_ms": 42.53
+        },
+        "gc": {
+          "count": 5,
+          "median_ms": 0.0,
+          "p95_ms": 0.0,
+          "max_ms": 0.0
+        }
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 7,
+      "kind": "toggle",
+      "start_s": 5.269039,
+      "end_s": 5.681787,
+      "timings": {
+        "loop_gap": {
+          "count": 2,
+          "median_ms": 63.15,
+          "p95_ms": 47.06,
+          "max_ms": 79.24
+        },
+        "_refresh_layout": {
+          "count": 2,
+          "median_ms": 54.38,
+          "p95_ms": 41.4,
+          "max_ms": 67.35
+        },
+        "_compositor_refresh": {
+          "count": 3,
+          "median_ms": 8.81,
+          "p95_ms": 8.81,
+          "max_ms": 27.24
+        },
+        "gc": {
+          "count": 2,
+          "median_ms": 0.0,
+          "p95_ms": 0.0,
+          "max_ms": 0.0
+        }
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 8,
+      "kind": "open",
+      "start_s": 5.849803,
+      "end_s": 7.660702,
+      "timings": {
+        "loop_gap": {
+          "count": 56,
+          "median_ms": 14.6,
+          "p95_ms": 61.81,
+          "max_ms": 91.14
+        },
+        "_refresh_layout": {
+          "count": 20,
+          "median_ms": 13.82,
+          "p95_ms": 32.31,
+          "max_ms": 44.22
+        },
+        "_compositor_refresh": {
+          "count": 31,
+          "median_ms": 6.2,
+          "p95_ms": 25.35,
+          "max_ms": 33.42
+        },
+        "gc": {
+          "count": 64,
+          "median_ms": 0.0,
+          "p95_ms": 0.0,
+          "max_ms": 0.07
+        }
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 9,
+      "kind": "open",
+      "start_s": 7.877077,
+      "end_s": 9.714088,
+      "timings": {
+        "loop_gap": {
+          "count": 50,
+          "median_ms": 19.67,
+          "p95_ms": 82.52,
+          "max_ms": 165.67
+        },
+        "_refresh_layout": {
+          "count": 19,
+          "median_ms": 13.34,
+          "p95_ms": 25.7,
+          "max_ms": 27.96
+        },
+        "_compositor_refresh": {
+          "count": 29,
+          "median_ms": 8.52,
+          "p95_ms": 17.89,
+          "max_ms": 37.03
+        },
+        "gc": {
+          "count": 65,
+          "median_ms": 0.0,
+          "p95_ms": 2.22,
+          "max_ms": 100.64
+        }
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 10,
+      "kind": "open",
+      "start_s": 9.914344,
+      "end_s": 11.720121,
+      "timings": {
+        "loop_gap": {
+          "count": 50,
+          "median_ms": 19.32,
+          "p95_ms": 67.91,
+          "max_ms": 87.76
+        },
+        "_refresh_layout": {
+          "count": 21,
+          "median_ms": 16.95,
+          "p95_ms": 31.0,
+          "max_ms": 34.87
+        },
+        "_compositor_refresh": {
+          "count": 28,
+          "median_ms": 6.75,
+          "p95_ms": 33.73,
+          "max_ms": 35.74
+        },
+        "gc": {
+          "count": 64,
+          "median_ms": 0.0,
+          "p95_ms": 0.0,
+          "max_ms": 0.0
+        }
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 11,
+      "kind": "open",
+      "start_s": 11.908866,
+      "end_s": 13.74767,
+      "timings": {
+        "loop_gap": {
+          "count": 55,
+          "median_ms": 15.65,
+          "p95_ms": 67.23,
+          "max_ms": 92.22
+        },
+        "_refresh_layout": {
+          "count": 20,
+          "median_ms": 14.04,
+          "p95_ms": 30.82,
+          "max_ms": 31.5
+        },
+        "_compositor_refresh": {
+          "count": 32,
+          "median_ms": 5.98,
+          "p95_ms": 27.73,
+          "max_ms": 41.4
+        },
+        "gc": {
+          "count": 59,
+          "median_ms": 0.0,
+          "p95_ms": 0.0,
+          "max_ms": 0.0
+        }
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 12,
+      "kind": "open",
+      "start_s": 13.999278,
+      "end_s": 15.810203,
+      "timings": {
+        "loop_gap": {
+          "count": 53,
+          "median_ms": 15.45,
+          "p95_ms": 79.48,
+          "max_ms": 182.0
+        },
+        "_refresh_layout": {
+          "count": 18,
+          "median_ms": 15.8,
+          "p95_ms": 32.07,
+          "max_ms": 36.97
+        },
+        "_compositor_refresh": {
+          "count": 28,
+          "median_ms": 5.87,
+          "p95_ms": 20.32,
+          "max_ms": 39.2
+        },
+        "gc": {
+          "count": 59,
+          "median_ms": 0.0,
+          "p95_ms": 1.86,
+          "max_ms": 95.88
+        }
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 13,
+      "kind": "open",
+      "start_s": 16.209557,
+      "end_s": 18.017127,
+      "timings": {
+        "loop_gap": {
+          "count": 52,
+          "median_ms": 18.91,
+          "p95_ms": 73.86,
+          "max_ms": 106.35
+        },
+        "_refresh_layout": {
+          "count": 19,
+          "median_ms": 13.57,
+          "p95_ms": 28.32,
+          "max_ms": 28.5
+        },
+        "_compositor_refresh": {
+          "count": 30,
+          "median_ms": 6.19,
+          "p95_ms": 31.26,
+          "max_ms": 42.06
+        },
+        "gc": {
+          "count": 53,
+          "median_ms": 0.0,
+          "p95_ms": 0.0,
+          "max_ms": 0.0
+        }
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 14,
+      "kind": "open",
+      "start_s": 18.274501,
+      "end_s": 20.111541,
+      "timings": {
+        "loop_gap": {
+          "count": 45,
+          "median_ms": 24.29,
+          "p95_ms": 72.48,
+          "max_ms": 114.08
+        },
+        "_refresh_layout": {
+          "count": 19,
+          "median_ms": 14.09,
+          "p95_ms": 41.37,
+          "max_ms": 51.76
+        },
+        "_compositor_refresh": {
+          "count": 27,
+          "median_ms": 6.24,
+          "p95_ms": 27.23,
+          "max_ms": 55.61
+        },
+        "gc": {
+          "count": 61,
+          "median_ms": 0.0,
+          "p95_ms": 0.0,
+          "max_ms": 0.0
+        }
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 15,
+      "kind": "open",
+      "start_s": 20.337092,
+      "end_s": 22.173305,
+      "timings": {
+        "loop_gap": {
+          "count": 50,
+          "median_ms": 17.68,
+          "p95_ms": 67.82,
+          "max_ms": 112.31
+        },
+        "_refresh_layout": {
+          "count": 20,
+          "median_ms": 13.51,
+          "p95_ms": 40.86,
+          "max_ms": 61.35
+        },
+        "_compositor_refresh": {
+          "count": 29,
+          "median_ms": 3.96,
+          "p95_ms": 32.24,
+          "max_ms": 42.86
+        },
+        "gc": {
+          "count": 61,
+          "median_ms": 0.0,
+          "p95_ms": 0.0,
+          "max_ms": 0.0
+        }
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 16,
+      "kind": "open",
+      "start_s": 22.435528,
+      "end_s": 24.247132,
+      "timings": {
+        "loop_gap": {
+          "count": 47,
+          "median_ms": 16.17,
+          "p95_ms": 104.53,
+          "max_ms": 232.47
+        },
+        "_refresh_layout": {
+          "count": 17,
+          "median_ms": 16.09,
+          "p95_ms": 71.96,
+          "max_ms": 72.99
+        },
+        "_compositor_refresh": {
+          "count": 23,
+          "median_ms": 5.15,
+          "p95_ms": 38.65,
+          "max_ms": 42.17
+        },
+        "gc": {
+          "count": 63,
+          "median_ms": 0.0,
+          "p95_ms": 0.0,
+          "max_ms": 152.66
+        }
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 17,
+      "kind": "switch",
+      "start_s": 25.062563,
+      "end_s": 25.633093,
+      "timings": {
+        "loop_gap": {
+          "count": 2,
+          "median_ms": 16.26,
+          "p95_ms": 12.34,
+          "max_ms": 20.19
+        },
+        "_refresh_layout": {
+          "count": 1,
+          "median_ms": 15.78,
+          "p95_ms": 15.78,
+          "max_ms": 15.78
+        },
+        "_compositor_refresh": {
+          "count": 2,
+          "median_ms": 5.52,
+          "p95_ms": 1.68,
+          "max_ms": 9.37
+        },
+        "gc": {
+          "count": 1,
+          "median_ms": 0.0,
+          "p95_ms": 0.0,
+          "max_ms": 0.0
+        }
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 18,
+      "kind": "switch",
+      "start_s": 26.013059,
+      "end_s": 26.591433,
+      "timings": {
+        "loop_gap": {
+          "count": 6,
+          "median_ms": 19.18,
+          "p95_ms": 28.35,
+          "max_ms": 129.0
+        },
+        "_refresh_layout": {
+          "count": 4,
+          "median_ms": 21.49,
+          "p95_ms": 27.34,
+          "max_ms": 28.73
+        },
+        "_compositor_refresh": {
+          "count": 5,
+          "median_ms": 16.17,
+          "p95_ms": 17.48,
+          "max_ms": 17.96
+        },
+        "gc": {
+          "count": 5,
+          "median_ms": 0.0,
+          "p95_ms": 0.0,
+          "max_ms": 0.0
+        }
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 19,
+      "kind": "switch",
+      "start_s": 26.971408,
+      "end_s": 27.543836,
+      "timings": {
+        "loop_gap": {
+          "count": 18,
+          "median_ms": 22.99,
+          "p95_ms": 55.49,
+          "max_ms": 63.56
+        },
+        "_refresh_layout": {
+          "count": 10,
+          "median_ms": 19.4,
+          "p95_ms": 30.02,
+          "max_ms": 33.43
+        },
+        "_compositor_refresh": {
+          "count": 11,
+          "median_ms": 12.66,
+          "p95_ms": 18.26,
+          "max_ms": 19.5
+        },
+        "gc": {
+          "count": 10,
+          "median_ms": 0.0,
+          "p95_ms": 0.0,
+          "max_ms": 0.01
+        }
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 20,
+      "kind": "switch",
+      "start_s": 27.923306,
+      "end_s": 28.495786,
+      "timings": {
+        "loop_gap": {
+          "count": 7,
+          "median_ms": 40.5,
+          "p95_ms": 88.94,
+          "max_ms": 91.18
+        },
+        "_refresh_layout": {
+          "count": 4,
+          "median_ms": 52.74,
+          "p95_ms": 65.39,
+          "max_ms": 81.15
+        },
+        "_compositor_refresh": {
+          "count": 5,
+          "median_ms": 24.39,
+          "p95_ms": 24.63,
+          "max_ms": 29.3
+        },
+        "gc": {
+          "count": 12,
+          "median_ms": 0.0,
+          "p95_ms": 0.0,
+          "max_ms": 0.0
+        }
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 21,
+      "kind": "switch",
+      "start_s": 28.874466,
+      "end_s": 29.445965,
+      "timings": {
+        "loop_gap": {
+          "count": 6,
+          "median_ms": 29.51,
+          "p95_ms": 66.1,
+          "max_ms": 111.14
+        },
+        "_refresh_layout": {
+          "count": 4,
+          "median_ms": 26.47,
+          "p95_ms": 28.3,
+          "max_ms": 30.27
+        },
+        "_compositor_refresh": {
+          "count": 6,
+          "median_ms": 18.39,
+          "p95_ms": 19.94,
+          "max_ms": 41.06
+        },
+        "gc": {
+          "count": 6,
+          "median_ms": 0.0,
+          "p95_ms": 0.0,
+          "max_ms": 0.0
+        }
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 22,
+      "kind": "switch",
+      "start_s": 29.826112,
+      "end_s": 30.398182,
+      "timings": {
+        "loop_gap": {
+          "count": 5,
+          "median_ms": 35.53,
+          "p95_ms": 100.61,
+          "max_ms": 119.5
+        },
+        "_refresh_layout": {
+          "count": 3,
+          "median_ms": 22.14,
+          "p95_ms": 22.14,
+          "max_ms": 29.73
+        },
+        "_compositor_refresh": {
+          "count": 4,
+          "median_ms": 21.94,
+          "p95_ms": 25.14,
+          "max_ms": 94.42
+        },
+        "gc": {
+          "count": 5,
+          "median_ms": 0.0,
+          "p95_ms": 0.01,
+          "max_ms": 70.05
+        }
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 23,
+      "kind": "switch",
+      "start_s": 30.779977,
+      "end_s": 31.359878,
+      "timings": {
+        "loop_gap": {
+          "count": 6,
+          "median_ms": 19.54,
+          "p95_ms": 34.02,
+          "max_ms": 59.53
+        },
+        "_refresh_layout": {
+          "count": 3,
+          "median_ms": 12.46,
+          "p95_ms": 12.46,
+          "max_ms": 17.74
+        },
+        "_compositor_refresh": {
+          "count": 4,
+          "median_ms": 13.67,
+          "p95_ms": 15.51,
+          "max_ms": 18.17
+        },
+        "gc": {
+          "count": 2,
+          "median_ms": 0.0,
+          "p95_ms": 0.0,
+          "max_ms": 0.0
+        }
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 24,
+      "kind": "switch",
+      "start_s": 31.74074,
+      "end_s": 32.32978,
+      "timings": {
+        "loop_gap": {
+          "count": 15,
+          "median_ms": 16.73,
+          "p95_ms": 85.76,
+          "max_ms": 97.61
+        },
+        "_refresh_layout": {
+          "count": 8,
+          "median_ms": 34.04,
+          "p95_ms": 57.01,
+          "max_ms": 69.58
+        },
+        "_compositor_refresh": {
+          "count": 9,
+          "median_ms": 15.45,
+          "p95_ms": 25.1,
+          "max_ms": 27.7
+        },
+        "gc": {
+          "count": 13,
+          "median_ms": 0.0,
+          "p95_ms": 0.0,
+          "max_ms": 0.0
+        }
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 25,
+      "kind": "switch",
+      "start_s": 32.70931,
+      "end_s": 33.289148,
+      "timings": {
+        "loop_gap": {
+          "count": 6,
+          "median_ms": 20.93,
+          "p95_ms": 74.38,
+          "max_ms": 137.01
+        },
+        "_refresh_layout": {
+          "count": 3,
+          "median_ms": 46.45,
+          "p95_ms": 46.45,
+          "max_ms": 91.65
+        },
+        "_compositor_refresh": {
+          "count": 4,
+          "median_ms": 11.22,
+          "p95_ms": 20.55,
+          "max_ms": 24.99
+        },
+        "gc": {
+          "count": 6,
+          "median_ms": 0.0,
+          "p95_ms": 0.0,
+          "max_ms": 36.43
+        }
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 26,
+      "kind": "switch",
+      "start_s": 33.690361,
+      "end_s": 34.262309,
+      "timings": {
+        "loop_gap": {
+          "count": 5,
+          "median_ms": 51.46,
+          "p95_ms": 73.43,
+          "max_ms": 73.58
+        },
+        "_refresh_layout": {
+          "count": 3,
+          "median_ms": 13.97,
+          "p95_ms": 13.97,
+          "max_ms": 25.0
+        },
+        "_compositor_refresh": {
+          "count": 4,
+          "median_ms": 15.93,
+          "p95_ms": 17.48,
+          "max_ms": 18.69
+        },
+        "gc": {
+          "count": 3,
+          "median_ms": 0.0,
+          "p95_ms": 0.0,
+          "max_ms": 0.0
+        }
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 27,
+      "kind": "switch",
+      "start_s": 34.641212,
+      "end_s": 35.212344,
+      "timings": {
+        "loop_gap": {
+          "count": 2,
+          "median_ms": 11.6,
+          "p95_ms": 7.01,
+          "max_ms": 16.19
+        },
+        "_refresh_layout": {},
+        "_compositor_refresh": {},
+        "gc": {}
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 28,
+      "kind": "switch",
+      "start_s": 35.591757,
+      "end_s": 36.162494,
+      "timings": {
+        "loop_gap": {
+          "count": 2,
+          "median_ms": 17.98,
+          "p95_ms": 15.42,
+          "max_ms": 20.54
+        },
+        "_refresh_layout": {},
+        "_compositor_refresh": {
+          "count": 1,
+          "median_ms": 13.6,
+          "p95_ms": 13.6,
+          "max_ms": 13.6
+        },
+        "gc": {}
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 29,
+      "kind": "switch",
+      "start_s": 36.541393,
+      "end_s": 37.1123,
+      "timings": {
+        "loop_gap": {
+          "count": 2,
+          "median_ms": 20.18,
+          "p95_ms": 19.88,
+          "max_ms": 20.47
+        },
+        "_refresh_layout": {},
+        "_compositor_refresh": {
+          "count": 1,
+          "median_ms": 17.78,
+          "p95_ms": 17.78,
+          "max_ms": 17.78
+        },
+        "gc": {}
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 30,
+      "kind": "switch",
+      "start_s": 37.491645,
+      "end_s": 38.074079,
+      "timings": {
+        "loop_gap": {
+          "count": 2,
+          "median_ms": 16.3,
+          "p95_ms": 14.34,
+          "max_ms": 18.26
+        },
+        "_refresh_layout": {},
+        "_compositor_refresh": {
+          "count": 1,
+          "median_ms": 11.89,
+          "p95_ms": 11.89,
+          "max_ms": 11.89
+        },
+        "gc": {}
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 31,
+      "kind": "switch",
+      "start_s": 38.45318,
+      "end_s": 39.024252,
+      "timings": {
+        "loop_gap": {
+          "count": 2,
+          "median_ms": 17.93,
+          "p95_ms": 17.72,
+          "max_ms": 18.15
+        },
+        "_refresh_layout": {},
+        "_compositor_refresh": {
+          "count": 1,
+          "median_ms": 15.66,
+          "p95_ms": 15.66,
+          "max_ms": 15.66
+        },
+        "gc": {}
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 32,
+      "kind": "switch",
+      "start_s": 39.403088,
+      "end_s": 39.974865,
+      "timings": {
+        "loop_gap": {
+          "count": 2,
+          "median_ms": 18.5,
+          "p95_ms": 17.72,
+          "max_ms": 19.27
+        },
+        "_refresh_layout": {},
+        "_compositor_refresh": {
+          "count": 1,
+          "median_ms": 15.46,
+          "p95_ms": 15.46,
+          "max_ms": 15.46
+        },
+        "gc": {}
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 33,
+      "kind": "switch",
+      "start_s": 40.354037,
+      "end_s": 40.926837,
+      "timings": {
+        "loop_gap": {
+          "count": 2,
+          "median_ms": 21.03,
+          "p95_ms": 20.34,
+          "max_ms": 21.72
+        },
+        "_refresh_layout": {},
+        "_compositor_refresh": {
+          "count": 1,
+          "median_ms": 17.63,
+          "p95_ms": 17.63,
+          "max_ms": 17.63
+        },
+        "gc": {}
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 34,
+      "kind": "switch",
+      "start_s": 41.305975,
+      "end_s": 41.878277,
+      "timings": {
+        "loop_gap": {
+          "count": 2,
+          "median_ms": 21.33,
+          "p95_ms": 20.1,
+          "max_ms": 22.56
+        },
+        "_refresh_layout": {},
+        "_compositor_refresh": {
+          "count": 1,
+          "median_ms": 17.79,
+          "p95_ms": 17.79,
+          "max_ms": 17.79
+        },
+        "gc": {}
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 35,
+      "kind": "switch",
+      "start_s": 42.257671,
+      "end_s": 42.829016,
+      "timings": {
+        "loop_gap": {
+          "count": 3,
+          "median_ms": 18.11,
+          "p95_ms": 18.11,
+          "max_ms": 21.14
+        },
+        "_refresh_layout": {},
+        "_compositor_refresh": {
+          "count": 1,
+          "median_ms": 14.62,
+          "p95_ms": 14.62,
+          "max_ms": 14.62
+        },
+        "gc": {}
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 36,
+      "kind": "switch",
+      "start_s": 43.208585,
+      "end_s": 43.779674,
+      "timings": {
+        "loop_gap": {
+          "count": 3,
+          "median_ms": 17.73,
+          "p95_ms": 17.73,
+          "max_ms": 67.27
+        },
+        "_refresh_layout": {
+          "count": 1,
+          "median_ms": 6.94,
+          "p95_ms": 6.94,
+          "max_ms": 6.94
+        },
+        "_compositor_refresh": {
+          "count": 3,
+          "median_ms": 12.74,
+          "p95_ms": 12.74,
+          "max_ms": 14.52
+        },
+        "gc": {
+          "count": 1,
+          "median_ms": 0.0,
+          "p95_ms": 0.0,
+          "max_ms": 0.0
+        }
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 37,
+      "kind": "switch-sidebar",
+      "start_s": 44.012522,
+      "end_s": 44.582746,
+      "timings": {
+        "loop_gap": {
+          "count": 4,
+          "median_ms": 10.54,
+          "p95_ms": 14.71,
+          "max_ms": 31.55
+        },
+        "_refresh_layout": {},
+        "_compositor_refresh": {},
+        "gc": {}
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 38,
+      "kind": "deep-scroll",
+      "start_s": 44.832918,
+      "end_s": 46.855195,
+      "timings": {
+        "loop_gap": {
+          "count": 41,
+          "median_ms": 21.8,
+          "p95_ms": 72.88,
+          "max_ms": 99.5
+        },
+        "_refresh_layout": {
+          "count": 34,
+          "median_ms": 19.18,
+          "p95_ms": 46.73,
+          "max_ms": 69.25
+        },
+        "_compositor_refresh": {
+          "count": 41,
+          "median_ms": 11.67,
+          "p95_ms": 18.9,
+          "max_ms": 22.17
+        },
+        "gc": {
+          "count": 12,
+          "median_ms": 1.53,
+          "p95_ms": 2.54,
+          "max_ms": 12.49
+        }
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 39,
+      "kind": "deep-scroll",
+      "start_s": 47.022422,
+      "end_s": 49.024238,
+      "timings": {
+        "loop_gap": {
+          "count": 35,
+          "median_ms": 31.65,
+          "p95_ms": 84.78,
+          "max_ms": 234.98
+        },
+        "_refresh_layout": {
+          "count": 25,
+          "median_ms": 22.78,
+          "p95_ms": 63.91,
+          "max_ms": 64.84
+        },
+        "_compositor_refresh": {
+          "count": 31,
+          "median_ms": 11.86,
+          "p95_ms": 20.14,
+          "max_ms": 24.72
+        },
+        "gc": {
+          "count": 20,
+          "median_ms": 0.0,
+          "p95_ms": 3.99,
+          "max_ms": 230.32
+        }
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 40,
+      "kind": "deep-scroll",
+      "start_s": 49.191377,
+      "end_s": 51.180451,
+      "timings": {
+        "loop_gap": {
+          "count": 37,
+          "median_ms": 28.34,
+          "p95_ms": 95.6,
+          "max_ms": 106.97
+        },
+        "_refresh_layout": {
+          "count": 28,
+          "median_ms": 25.3,
+          "p95_ms": 68.97,
+          "max_ms": 83.66
+        },
+        "_compositor_refresh": {
+          "count": 36,
+          "median_ms": 12.36,
+          "p95_ms": 20.66,
+          "max_ms": 21.82
+        },
+        "gc": {
+          "count": 23,
+          "median_ms": 0.0,
+          "p95_ms": 0.0,
+          "max_ms": 0.0
+        }
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 41,
+      "kind": "toggle",
+      "start_s": 51.348035,
+      "end_s": 51.756921,
+      "timings": {
+        "loop_gap": {
+          "count": 2,
+          "median_ms": 206.36,
+          "p95_ms": 178.87,
+          "max_ms": 233.85
+        },
+        "_refresh_layout": {
+          "count": 2,
+          "median_ms": 102.79,
+          "p95_ms": 61.26,
+          "max_ms": 144.32
+        },
+        "_compositor_refresh": {
+          "count": 3,
+          "median_ms": 31.73,
+          "p95_ms": 31.73,
+          "max_ms": 48.04
+        },
+        "gc": {
+          "count": 6,
+          "median_ms": 0.0,
+          "p95_ms": 0.0,
+          "max_ms": 0.0
+        }
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 42,
+      "kind": "toggle",
+      "start_s": 52.098683,
+      "end_s": 52.507353,
+      "timings": {
+        "loop_gap": {
+          "count": 4,
+          "median_ms": 76.66,
+          "p95_ms": 104.97,
+          "max_ms": 161.19
+        },
+        "_refresh_layout": {
+          "count": 2,
+          "median_ms": 126.19,
+          "p95_ms": 97.76,
+          "max_ms": 154.62
+        },
+        "_compositor_refresh": {
+          "count": 2,
+          "median_ms": 37.8,
+          "p95_ms": 31.11,
+          "max_ms": 44.5
+        },
+        "gc": {
+          "count": 6,
+          "median_ms": 0.0,
+          "p95_ms": 0.0,
+          "max_ms": 0.0
+        }
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 43,
+      "kind": "deep-scroll",
+      "start_s": 52.736569,
+      "end_s": 54.718986,
+      "timings": {
+        "loop_gap": {
+          "count": 28,
+          "median_ms": 29.84,
+          "p95_ms": 117.72,
+          "max_ms": 175.4
+        },
+        "_refresh_layout": {
+          "count": 20,
+          "median_ms": 29.71,
+          "p95_ms": 104.95,
+          "max_ms": 124.75
+        },
+        "_compositor_refresh": {
+          "count": 24,
+          "median_ms": 15.6,
+          "p95_ms": 24.25,
+          "max_ms": 25.58
+        },
+        "gc": {
+          "count": 29,
+          "median_ms": 0.0,
+          "p95_ms": 0.0,
+          "max_ms": 0.0
+        }
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 44,
+      "kind": "deep-scroll",
+      "start_s": 54.930603,
+      "end_s": 56.919343,
+      "timings": {
+        "loop_gap": {
+          "count": 36,
+          "median_ms": 27.76,
+          "p95_ms": 135.96,
+          "max_ms": 145.38
+        },
+        "_refresh_layout": {
+          "count": 21,
+          "median_ms": 30.64,
+          "p95_ms": 112.58,
+          "max_ms": 116.69
+        },
+        "_compositor_refresh": {
+          "count": 29,
+          "median_ms": 11.68,
+          "p95_ms": 22.93,
+          "max_ms": 32.75
+        },
+        "gc": {
+          "count": 36,
+          "median_ms": 0.0,
+          "p95_ms": 0.0,
+          "max_ms": 0.0
+        }
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 45,
+      "kind": "deep-scroll",
+      "start_s": 57.253138,
+      "end_s": 59.280779,
+      "timings": {
+        "loop_gap": {
+          "count": 35,
+          "median_ms": 31.03,
+          "p95_ms": 163.62,
+          "max_ms": 176.25
+        },
+        "_refresh_layout": {
+          "count": 22,
+          "median_ms": 37.14,
+          "p95_ms": 132.78,
+          "max_ms": 137.7
+        },
+        "_compositor_refresh": {
+          "count": 30,
+          "median_ms": 14.54,
+          "p95_ms": 28.14,
+          "max_ms": 33.79
+        },
+        "gc": {
+          "count": 43,
+          "median_ms": 0.0,
+          "p95_ms": 0.0,
+          "max_ms": 2.34
+        }
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 46,
+      "kind": "deep-scroll",
+      "start_s": 59.657083,
+      "end_s": 61.661795,
+      "timings": {
+        "loop_gap": {
+          "count": 29,
+          "median_ms": 39.56,
+          "p95_ms": 165.73,
+          "max_ms": 202.37
+        },
+        "_refresh_layout": {
+          "count": 18,
+          "median_ms": 44.23,
+          "p95_ms": 151.39,
+          "max_ms": 151.51
+        },
+        "_compositor_refresh": {
+          "count": 24,
+          "median_ms": 16.84,
+          "p95_ms": 32.76,
+          "max_ms": 35.55
+        },
+        "gc": {
+          "count": 33,
+          "median_ms": 0.0,
+          "p95_ms": 0.0,
+          "max_ms": 0.0
+        }
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 47,
+      "kind": "toggle",
+      "start_s": 61.871876,
+      "end_s": 62.288465,
+      "timings": {
+        "loop_gap": {
+          "count": 3,
+          "median_ms": 164.15,
+          "p95_ms": 164.15,
+          "max_ms": 232.23
+        },
+        "_refresh_layout": {
+          "count": 3,
+          "median_ms": 117.73,
+          "p95_ms": 117.73,
+          "max_ms": 220.14
+        },
+        "_compositor_refresh": {
+          "count": 2,
+          "median_ms": 38.4,
+          "p95_ms": 20.55,
+          "max_ms": 56.25
+        },
+        "gc": {
+          "count": 6,
+          "median_ms": 0.0,
+          "p95_ms": 0.0,
+          "max_ms": 0.0
+        }
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 48,
+      "kind": "toggle",
+      "start_s": 62.527922,
+      "end_s": 62.937851,
+      "timings": {
+        "loop_gap": {
+          "count": 3,
+          "median_ms": 135.73,
+          "p95_ms": 135.73,
+          "max_ms": 223.74
+        },
+        "_refresh_layout": {
+          "count": 3,
+          "median_ms": 126.09,
+          "p95_ms": 126.09,
+          "max_ms": 196.1
+        },
+        "_compositor_refresh": {
+          "count": 3,
+          "median_ms": 16.17,
+          "p95_ms": 16.17,
+          "max_ms": 40.67
+        },
+        "gc": {
+          "count": 3,
+          "median_ms": 0.0,
+          "p95_ms": 0.0,
+          "max_ms": 0.0
+        }
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 49,
+      "kind": "deep-scroll",
+      "start_s": 63.154056,
+      "end_s": 65.172864,
+      "timings": {
+        "loop_gap": {
+          "count": 26,
+          "median_ms": 39.0,
+          "p95_ms": 178.86,
+          "max_ms": 401.19
+        },
+        "_refresh_layout": {
+          "count": 15,
+          "median_ms": 46.21,
+          "p95_ms": 241.64,
+          "max_ms": 306.58
+        },
+        "_compositor_refresh": {
+          "count": 21,
+          "median_ms": 12.93,
+          "p95_ms": 24.61,
+          "max_ms": 26.66
+        },
+        "gc": {
+          "count": 29,
+          "median_ms": 0.0,
+          "p95_ms": 0.0,
+          "max_ms": 0.0
+        }
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 50,
+      "kind": "deep-scroll",
+      "start_s": 65.597889,
+      "end_s": 67.643798,
+      "timings": {
+        "loop_gap": {
+          "count": 37,
+          "median_ms": 18.34,
+          "p95_ms": 155.49,
+          "max_ms": 190.2
+        },
+        "_refresh_layout": {
+          "count": 25,
+          "median_ms": 17.17,
+          "p95_ms": 135.04,
+          "max_ms": 163.02
+        },
+        "_compositor_refresh": {
+          "count": 33,
+          "median_ms": 8.18,
+          "p95_ms": 24.31,
+          "max_ms": 31.22
+        },
+        "gc": {
+          "count": 18,
+          "median_ms": 0.0,
+          "p95_ms": 0.0,
+          "max_ms": 0.0
+        }
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 51,
+      "kind": "deep-scroll",
+      "start_s": 67.855226,
+      "end_s": 69.862994,
+      "timings": {
+        "loop_gap": {
+          "count": 34,
+          "median_ms": 31.82,
+          "p95_ms": 152.48,
+          "max_ms": 160.05
+        },
+        "_refresh_layout": {
+          "count": 18,
+          "median_ms": 44.27,
+          "p95_ms": 129.38,
+          "max_ms": 133.84
+        },
+        "_compositor_refresh": {
+          "count": 26,
+          "median_ms": 12.78,
+          "p95_ms": 26.01,
+          "max_ms": 28.02
+        },
+        "gc": {
+          "count": 27,
+          "median_ms": 0.0,
+          "p95_ms": 0.0,
+          "max_ms": 0.0
+        }
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 52,
+      "kind": "toggle",
+      "start_s": 70.096981,
+      "end_s": 70.508929,
+      "timings": {
+        "loop_gap": {
+          "count": 4,
+          "median_ms": 72.15,
+          "p95_ms": 113.22,
+          "max_ms": 242.71
+        },
+        "_refresh_layout": {
+          "count": 3,
+          "median_ms": 69.06,
+          "p95_ms": 69.06,
+          "max_ms": 228.37
+        },
+        "_compositor_refresh": {
+          "count": 3,
+          "median_ms": 17.56,
+          "p95_ms": 17.56,
+          "max_ms": 42.57
+        },
+        "gc": {
+          "count": 5,
+          "median_ms": 0.0,
+          "p95_ms": 0.0,
+          "max_ms": 0.0
+        }
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 53,
+      "kind": "toggle",
+      "start_s": 70.718554,
+      "end_s": 71.139768,
+      "timings": {
+        "loop_gap": {
+          "count": 3,
+          "median_ms": 256.66,
+          "p95_ms": 256.66,
+          "max_ms": 287.83
+        },
+        "_refresh_layout": {
+          "count": 2,
+          "median_ms": 244.0,
+          "p95_ms": 238.69,
+          "max_ms": 249.31
+        },
+        "_compositor_refresh": {
+          "count": 1,
+          "median_ms": 52.72,
+          "p95_ms": 52.72,
+          "max_ms": 52.72
+        },
+        "gc": {
+          "count": 3,
+          "median_ms": 0.0,
+          "p95_ms": 0.0,
+          "max_ms": 0.0
+        }
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 54,
+      "kind": "select-and-scroll",
+      "start_s": 71.473636,
+      "end_s": 72.580572,
+      "timings": {
+        "loop_gap": {
+          "count": 13,
+          "median_ms": 31.59,
+          "p95_ms": 205.31,
+          "max_ms": 431.51
+        },
+        "_refresh_layout": {
+          "count": 5,
+          "median_ms": 55.42,
+          "p95_ms": 167.12,
+          "max_ms": 348.04
+        },
+        "_compositor_refresh": {
+          "count": 7,
+          "median_ms": 22.34,
+          "p95_ms": 27.54,
+          "max_ms": 35.19
+        },
+        "gc": {
+          "count": 22,
+          "median_ms": 0.0,
+          "p95_ms": 0.0,
+          "max_ms": 0.0
+        }
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 55,
+      "kind": "filter",
+      "start_s": 73.232329,
+      "end_s": 74.145703,
+      "timings": {
+        "loop_gap": {
+          "count": 10,
+          "median_ms": 21.94,
+          "p95_ms": 82.65,
+          "max_ms": 123.15
+        },
+        "_refresh_layout": {
+          "count": 2,
+          "median_ms": 59.56,
+          "p95_ms": 26.39,
+          "max_ms": 92.74
+        },
+        "_compositor_refresh": {
+          "count": 3,
+          "median_ms": 22.22,
+          "p95_ms": 22.22,
+          "max_ms": 29.63
+        },
+        "gc": {
+          "count": 4,
+          "median_ms": 0.0,
+          "p95_ms": 0.0,
+          "max_ms": 0.0
+        }
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 56,
+      "kind": "filter",
+      "start_s": 74.375141,
+      "end_s": 75.312091,
+      "timings": {
+        "loop_gap": {
+          "count": 7,
+          "median_ms": 26.56,
+          "p95_ms": 55.62,
+          "max_ms": 108.18
+        },
+        "_refresh_layout": {
+          "count": 2,
+          "median_ms": 53.1,
+          "p95_ms": 23.07,
+          "max_ms": 83.14
+        },
+        "_compositor_refresh": {
+          "count": 3,
+          "median_ms": 10.24,
+          "p95_ms": 10.24,
+          "max_ms": 30.57
+        },
+        "gc": {
+          "count": 5,
+          "median_ms": 0.0,
+          "p95_ms": 0.0,
+          "max_ms": 0.0
+        }
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 57,
+      "kind": "filter",
+      "start_s": 75.603737,
+      "end_s": 76.540573,
+      "timings": {
+        "loop_gap": {
+          "count": 6,
+          "median_ms": 29.42,
+          "p95_ms": 106.46,
+          "max_ms": 138.22
+        },
+        "_refresh_layout": {
+          "count": 2,
+          "median_ms": 62.33,
+          "p95_ms": 15.62,
+          "max_ms": 109.03
+        },
+        "_compositor_refresh": {
+          "count": 3,
+          "median_ms": 25.73,
+          "p95_ms": 25.73,
+          "max_ms": 31.25
+        },
+        "gc": {
+          "count": 4,
+          "median_ms": 0.0,
+          "p95_ms": 0.0,
+          "max_ms": 0.0
+        }
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 58,
+      "kind": "filter",
+      "start_s": 76.750373,
+      "end_s": 77.687905,
+      "timings": {
+        "loop_gap": {
+          "count": 5,
+          "median_ms": 26.09,
+          "p95_ms": 66.42,
+          "max_ms": 93.19
+        },
+        "_refresh_layout": {
+          "count": 2,
+          "median_ms": 45.83,
+          "p95_ms": 23.04,
+          "max_ms": 68.63
+        },
+        "_compositor_refresh": {
+          "count": 2,
+          "median_ms": 16.61,
+          "p95_ms": 10.72,
+          "max_ms": 22.5
+        },
+        "gc": {
+          "count": 3,
+          "median_ms": 0.0,
+          "p95_ms": 0.0,
+          "max_ms": 0.0
+        }
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 59,
+      "kind": "filter",
+      "start_s": 78.000881,
+      "end_s": 78.943065,
+      "timings": {
+        "loop_gap": {
+          "count": 7,
+          "median_ms": 29.23,
+          "p95_ms": 49.01,
+          "max_ms": 142.69
+        },
+        "_refresh_layout": {
+          "count": 2,
+          "median_ms": 67.65,
+          "p95_ms": 21.12,
+          "max_ms": 114.18
+        },
+        "_compositor_refresh": {
+          "count": 3,
+          "median_ms": 19.55,
+          "p95_ms": 19.55,
+          "max_ms": 21.59
+        },
+        "gc": {
+          "count": 5,
+          "median_ms": 0.0,
+          "p95_ms": 0.0,
+          "max_ms": 0.0
+        }
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 60,
+      "kind": "filter",
+      "start_s": 79.152472,
+      "end_s": 80.089719,
+      "timings": {
+        "loop_gap": {
+          "count": 5,
+          "median_ms": 25.75,
+          "p95_ms": 32.84,
+          "max_ms": 86.02
+        },
+        "_refresh_layout": {
+          "count": 2,
+          "median_ms": 41.56,
+          "p95_ms": 22.66,
+          "max_ms": 60.45
+        },
+        "_compositor_refresh": {
+          "count": 3,
+          "median_ms": 9.6,
+          "p95_ms": 9.6,
+          "max_ms": 21.19
+        },
+        "gc": {
+          "count": 5,
+          "median_ms": 0.0,
+          "p95_ms": 0.0,
+          "max_ms": 0.0
+        }
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 61,
+      "kind": "filter",
+      "start_s": 80.379967,
+      "end_s": 81.289426,
+      "timings": {
+        "loop_gap": {
+          "count": 5,
+          "median_ms": 37.33,
+          "p95_ms": 40.71,
+          "max_ms": 121.94
+        },
+        "_refresh_layout": {
+          "count": 2,
+          "median_ms": 57.9,
+          "p95_ms": 20.68,
+          "max_ms": 95.11
+        },
+        "_compositor_refresh": {
+          "count": 3,
+          "median_ms": 17.37,
+          "p95_ms": 17.37,
+          "max_ms": 20.2
+        },
+        "gc": {
+          "count": 5,
+          "median_ms": 0.0,
+          "p95_ms": 0.0,
+          "max_ms": 0.0
+        }
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 62,
+      "kind": "filter",
+      "start_s": 81.497692,
+      "end_s": 82.433793,
+      "timings": {
+        "loop_gap": {
+          "count": 5,
+          "median_ms": 24.91,
+          "p95_ms": 28.39,
+          "max_ms": 76.94
+        },
+        "_refresh_layout": {
+          "count": 2,
+          "median_ms": 36.57,
+          "p95_ms": 22.19,
+          "max_ms": 50.95
+        },
+        "_compositor_refresh": {
+          "count": 3,
+          "median_ms": 10.31,
+          "p95_ms": 10.31,
+          "max_ms": 20.51
+        },
+        "gc": {
+          "count": 5,
+          "median_ms": 0.0,
+          "p95_ms": 0.0,
+          "max_ms": 0.0
+        }
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 63,
+      "kind": "select-and-scroll",
+      "start_s": 82.726293,
+      "end_s": 83.836377,
+      "timings": {
+        "loop_gap": {
+          "count": 17,
+          "median_ms": 21.63,
+          "p95_ms": 36.2,
+          "max_ms": 67.06
+        },
+        "_refresh_layout": {
+          "count": 6,
+          "median_ms": 26.38,
+          "p95_ms": 32.13,
+          "max_ms": 37.27
+        },
+        "_compositor_refresh": {
+          "count": 8,
+          "median_ms": 20.31,
+          "p95_ms": 25.86,
+          "max_ms": 32.41
+        },
+        "gc": {
+          "count": 7,
+          "median_ms": 0.0,
+          "p95_ms": 0.0,
+          "max_ms": 0.0
+        }
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 64,
+      "kind": "toggle",
+      "start_s": 84.045596,
+      "end_s": 84.454795,
+      "timings": {
+        "loop_gap": {
+          "count": 2,
+          "median_ms": 340.43,
+          "p95_ms": 254.13,
+          "max_ms": 426.73
+        },
+        "_refresh_layout": {
+          "count": 1,
+          "median_ms": 240.44,
+          "p95_ms": 240.44,
+          "max_ms": 240.44
+        },
+        "_compositor_refresh": {
+          "count": 1,
+          "median_ms": 48.65,
+          "p95_ms": 48.65,
+          "max_ms": 48.65
+        },
+        "gc": {
+          "count": 4,
+          "median_ms": 0.0,
+          "p95_ms": 0.0,
+          "max_ms": 0.0
+        }
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 65,
+      "kind": "toggle",
+      "start_s": 84.99847,
+      "end_s": 85.407228,
+      "timings": {
+        "loop_gap": {
+          "count": 3,
+          "median_ms": 325.09,
+          "p95_ms": 325.09,
+          "max_ms": 338.43
+        },
+        "_refresh_layout": {
+          "count": 2,
+          "median_ms": 164.13,
+          "p95_ms": 139.53,
+          "max_ms": 188.73
+        },
+        "_compositor_refresh": {
+          "count": 2,
+          "median_ms": 29.86,
+          "p95_ms": 26.88,
+          "max_ms": 32.84
+        },
+        "gc": {}
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 66,
+      "kind": "toggle",
+      "start_s": 86.018415,
+      "end_s": 86.431268,
+      "timings": {
+        "loop_gap": {
+          "count": 5,
+          "median_ms": 43.53,
+          "p95_ms": 74.8,
+          "max_ms": 226.89
+        },
+        "_refresh_layout": {
+          "count": 4,
+          "median_ms": 49.17,
+          "p95_ms": 57.84,
+          "max_ms": 212.95
+        },
+        "_compositor_refresh": {
+          "count": 4,
+          "median_ms": 17.57,
+          "p95_ms": 22.95,
+          "max_ms": 33.95
+        },
+        "gc": {
+          "count": 1,
+          "median_ms": 0.0,
+          "p95_ms": 0.0,
+          "max_ms": 0.0
+        }
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 67,
+      "kind": "toggle",
+      "start_s": 86.640497,
+      "end_s": 87.056545,
+      "timings": {
+        "loop_gap": {
+          "count": 5,
+          "median_ms": 51.22,
+          "p95_ms": 101.73,
+          "max_ms": 212.05
+        },
+        "_refresh_layout": {
+          "count": 3,
+          "median_ms": 92.51,
+          "p95_ms": 92.51,
+          "max_ms": 185.67
+        },
+        "_compositor_refresh": {
+          "count": 3,
+          "median_ms": 28.43,
+          "p95_ms": 28.43,
+          "max_ms": 38.73
+        },
+        "gc": {
+          "count": 6,
+          "median_ms": 0.0,
+          "p95_ms": 0.0,
+          "max_ms": 0.0
+        }
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 68,
+      "kind": "toggle",
+      "start_s": 87.295967,
+      "end_s": 87.706056,
+      "timings": {
+        "loop_gap": {
+          "count": 1,
+          "median_ms": 445.03,
+          "p95_ms": 445.03,
+          "max_ms": 445.03
+        },
+        "_refresh_layout": {
+          "count": 1,
+          "median_ms": 267.69,
+          "p95_ms": 267.69,
+          "max_ms": 267.69
+        },
+        "_compositor_refresh": {
+          "count": 1,
+          "median_ms": 68.08,
+          "p95_ms": 68.08,
+          "max_ms": 68.08
+        },
+        "gc": {
+          "count": 2,
+          "median_ms": 0.0,
+          "p95_ms": 0.0,
+          "max_ms": 0.0
+        }
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 69,
+      "kind": "toggle",
+      "start_s": 88.172654,
+      "end_s": 88.581989,
+      "timings": {
+        "loop_gap": {
+          "count": 6,
+          "median_ms": 51.09,
+          "p95_ms": 80.5,
+          "max_ms": 204.11
+        },
+        "_refresh_layout": {
+          "count": 3,
+          "median_ms": 73.22,
+          "p95_ms": 73.22,
+          "max_ms": 187.12
+        },
+        "_compositor_refresh": {
+          "count": 4,
+          "median_ms": 18.03,
+          "p95_ms": 21.5,
+          "max_ms": 42.5
+        },
+        "gc": {
+          "count": 2,
+          "median_ms": 0.0,
+          "p95_ms": 0.0,
+          "max_ms": 0.0
+        }
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 70,
+      "kind": "switch-sidebar",
+      "start_s": 88.792415,
+      "end_s": 89.362988,
+      "timings": {
+        "loop_gap": {
+          "count": 3,
+          "median_ms": 33.31,
+          "p95_ms": 33.31,
+          "max_ms": 39.71
+        },
+        "_refresh_layout": {
+          "count": 1,
+          "median_ms": 8.47,
+          "p95_ms": 8.47,
+          "max_ms": 8.47
+        },
+        "_compositor_refresh": {
+          "count": 1,
+          "median_ms": 15.27,
+          "p95_ms": 15.27,
+          "max_ms": 15.27
+        },
+        "gc": {
+          "count": 2,
+          "median_ms": 0.0,
+          "p95_ms": 0.0,
+          "max_ms": 0.0
+        }
+      },
+      "approximate_inclusive_samples": []
+    },
+    {
+      "index": 71,
+      "kind": "switch-sidebar",
+      "start_s": 89.571329,
+      "end_s": 90.142108,
+      "timings": {
+        "loop_gap": {
+          "count": 4,
+          "median_ms": 42.96,
+          "p95_ms": 55.36,
+          "max_ms": 165.0
+        },
+        "_refresh_layout": {
+          "count": 2,
+          "median_ms": 21.72,
+          "p95_ms": 12.37,
+          "max_ms": 31.08
+        },
+        "_compositor_refresh": {
+          "count": 3,
+          "median_ms": 17.64,
+          "p95_ms": 17.64,
+          "max_ms": 19.76
+        },
+        "gc": {
+          "count": 4,
+          "median_ms": 0.0,
+          "p95_ms": 0.0,
+          "max_ms": 0.0
+        }
+      },
+      "approximate_inclusive_samples": []
+    }
+  ]
+}
