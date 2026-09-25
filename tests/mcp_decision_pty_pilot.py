@@ -81,7 +81,9 @@ if args[0] == 'inventory':
     print(json.dumps(DOC))
 else:
     action, decision = args[:2]
-    assert (action, decision) in [('trust', 'deny'), ('calls', 'ask')]
+    assert (action, decision) in [
+        ('trust', 'approve'), ('trust', 'deny'), ('calls', 'allow'), ('calls', 'ask')
+    ]
     assert args[2:] == ['--id', 'fixture', '--digest', DIGEST_VALUE, '--project', str(ROOT)]
     assert os.isatty(0) and os.isatty(1), 'A real PTY is required'
     print('Full local approval display: fixture / digest', flush=True)
@@ -146,7 +148,7 @@ else:
                 inventory=inventory,
                 row=row,
                 action="calls",
-                decision="allow",
+                decision="bogus",  # type: ignore[arg-type]
                 node_path=sys.executable,
                 cli_path=str(script),
                 show=show,
@@ -187,6 +189,24 @@ else:
         await pty.write_user_input(f"ask:fixture:{DIGEST}\n")
         assert await asyncio.wait_for(ask_runner, 3) == "exited_zero"
         assert marker.read_text() == "user typed challenge:calls"
+        marker.unlink()
+        appeared.clear()
+        displayed.clear()
+        allow_runner = asyncio.create_task(attempt("calls", "allow"))
+        await asyncio.wait_for(appeared.wait(), 3)
+        assert not marker.exists()
+        await pty.write_user_input(f"allow:fixture:{DIGEST}\n")
+        assert await asyncio.wait_for(allow_runner, 3) == "exited_zero"
+        assert marker.read_text() == "user typed challenge:calls"
+        marker.unlink()
+        appeared.clear()
+        displayed.clear()
+        approve_runner = asyncio.create_task(attempt("trust", "approve"))
+        await asyncio.wait_for(appeared.wait(), 3)
+        assert not marker.exists()
+        await pty.write_user_input(f"approve:fixture:{DIGEST}\n")
+        assert await asyncio.wait_for(approve_runner, 3) == "exited_zero"
+        assert marker.read_text() == "user typed challenge:trust"
         marker.unlink()
         appeared.clear()
         displayed.clear()
@@ -281,8 +301,8 @@ else:
             await pilot.pause(0.02)
             assert not inventory_screen.query_one("#trust_deny", Button).disabled
             assert not inventory_screen.query_one("#calls_ask", Button).disabled
-            assert inventory_screen.query_one("#trust_approve", Button).disabled
-            assert inventory_screen.query_one("#calls_allow", Button).disabled
+            assert not inventory_screen.query_one("#trust_approve", Button).disabled
+            assert not inventory_screen.query_one("#calls_allow", Button).disabled
             inventory_screen.query_one("#trust_deny", Button).press()
             await pilot.pause(0.2)
             assert isinstance(app.screen, MCPDecisionScreen)

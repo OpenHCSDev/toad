@@ -59,9 +59,16 @@ class LocalDecisionPTY:
         """
         if os.name != "posix" or not controller_visible():
             return "unavailable"
-        if (action, decision) not in {("trust", "deny"), ("calls", "ask")}:
-            # Positive grants are held until the package's deny/reapprove
-            # grant-revival race has a frozen, independently reviewed correction.
+        if (action, decision) not in {
+            ("trust", "approve"),
+            ("trust", "deny"),
+            ("calls", "allow"),
+            ("calls", "ask"),
+        }:
+            # The package's deny/reapprove grant-revival fix (deny retiring
+            # project grants plus locked approve revalidation at grant commit)
+            # was independently reviewed; every action still needs the typed
+            # snapshot equality check below and the user's own typed challenge.
             return "unsupported"
         if (
             not row.effective

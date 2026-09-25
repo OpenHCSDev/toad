@@ -52,14 +52,10 @@ class MCPInventoryScreen(ModalScreen[None]):
                 )
             yield OptionList(id="mcp-inventory-rows")
             with containers.Horizontal(id="mcp-inventory-actions"):
-                yield Button(
-                    "Approve project (held)", id="trust_approve", disabled=True
-                )
+                yield Button("Approve project", id="trust_approve", disabled=True)
                 yield Button("Deny project", id="trust_deny", disabled=True)
                 yield Button("Require call asks", id="calls_ask", disabled=True)
-                yield Button(
-                    "Allow autonomous calls (held)", id="calls_allow", disabled=True
-                )
+                yield Button("Allow autonomous calls", id="calls_allow", disabled=True)
             with containers.Horizontal(id="mcp-inventory-controls"):
                 yield Button("Refresh", id="refresh")
                 yield Button("Close", id="close")
@@ -118,12 +114,13 @@ class MCPInventoryScreen(ModalScreen[None]):
             eligible = row.effective and row.enabled and snapshot.project_trusted_saved
             project = eligible and row.scope == "project"
             calls = eligible and row.status == "approved"
-        for identifier, enabled in (("trust_deny", project), ("calls_ask", calls)):
+        for identifier, enabled in (
+            ("trust_approve", project),
+            ("trust_deny", project),
+            ("calls_allow", calls),
+            ("calls_ask", calls),
+        ):
             self.query_one(f"#{identifier}", Button).disabled = not enabled
-        # Positive grants held pending independent correction of package
-        # deny/reapprove grant revival; only revocations can launch here.
-        self.query_one("#trust_approve", Button).disabled = True
-        self.query_one("#calls_allow", Button).disabled = True
 
     @on(OptionList.OptionHighlighted, "#mcp-inventory-rows")
     def on_row_highlighted(self, event: OptionList.OptionHighlighted) -> None:
@@ -149,14 +146,22 @@ class MCPInventoryScreen(ModalScreen[None]):
             self.dismiss()
         elif identifier == "refresh":
             self.action_refresh()
-        elif identifier in {"trust_deny", "calls_ask"}:
+        elif identifier in {"trust_approve", "trust_deny", "calls_allow", "calls_ask"}:
             from toad.screens.mcp_decision import MCPDecisionScreen
 
             snapshot, row = self._inventory, self._selected
             if snapshot is None or row is None or event.button.disabled:
                 return
-            action: DecisionAction = "trust" if identifier == "trust_deny" else "calls"
-            decision: Decision = "deny" if identifier == "trust_deny" else "ask"
+            action: DecisionAction = (
+                "trust" if identifier.startswith("trust_") else "calls"
+            )
+            choices: dict[str, Decision] = {
+                "trust_approve": "approve",
+                "trust_deny": "deny",
+                "calls_allow": "allow",
+                "calls_ask": "ask",
+            }
+            decision = choices[identifier]
             self.app.push_screen(
                 MCPDecisionScreen(
                     snapshot,
