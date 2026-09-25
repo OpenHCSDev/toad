@@ -2,15 +2,15 @@
 
 Worktree: `/home/ts/wt/toad-history-preparation-20260925`, branch
 `perf/history-preparation-20260925`, started from merged Toad `eff5941` and now
-integrated through main `ec48196`. This is a **draft working candidate**, not
+integrated through main `65339ee`. This is a **draft working candidate**, not
 another merged performance fix.
 
 ## Latest main synchronization
 
-Toad main `ec48196e298090255198a744a601a4ee019823c7` is integrated, including
-PRs #45/#46/#48: committed inbound-history reconciliation, current delivery
-notices and the bounded-startup backend pin. Agent-comms is pinned to current
-main `53335ce5ca052c64693ad87d41af72c2c921a40e`; the owned core worktree is at
+Toad main `65339eed0c7c38d50e3f3a999853a06a3c727a3b` is integrated, including
+PRs #45/#46/#48/#49: committed inbound-history reconciliation, current delivery
+notices, bounded startup and the standby-inbox backend pin. Agent-comms is pinned
+to current main `8984756b8a5b2cc2614fa76789a64dabad53a848`; the owned core worktree is at
 the same revision. The Textual draft prerequisite remains `385ac01a`, which
 already includes current framework main `06220c38`.
 
@@ -23,6 +23,12 @@ Inbound reconciliation, committed paging, filter supersession, worker lookahead,
 delivery ownership and startup diagnostics are covered. Fatal Ruff and whitespace
 checks pass. Earlier performance measurements below retain their original
 code/data boundaries; the frozen user preview is not updated by this sync.
+
+Main advanced during that validation, so the subsequent pin-only Toad change and
+core standby-review output update were also integrated. **11 tool-output tests**
+passed with xdist on core `8984756`, followed by **five Toad integration checks**
+for delivery, inbound reconciliation and preparation on that exact final pin.
+The earlier 22/20 checks used the immediately preceding core `53335ce` revision.
 
 ## Latest follow-up: reproducibility and retained removed trees
 
