@@ -7,7 +7,7 @@ from typing import Literal, Mapping, TYPE_CHECKING
 from textual.message import Message
 
 import rich.repr
-from agent_comms import TranscriptCursor, TranscriptEvent, TranscriptPage, MessageRoute
+from agent_comms import Goal, GoalExecution, TranscriptCursor, TranscriptEvent, TranscriptPage, MessageRoute
 
 from toad.answer import Answer
 from toad.acp import protocol
@@ -21,6 +21,14 @@ if TYPE_CHECKING:
 
 class AgentMessage(Message):
     """Base class for agent messages."""
+
+
+@dataclass
+class GoalSnapshotUpdate(AgentMessage):
+    """One paired projection published by the backend goal owner."""
+
+    goal: Goal | None
+    execution: GoalExecution | None
 
 
 class RejectedSessionUpdate(AgentMessage):
