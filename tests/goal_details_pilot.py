@@ -27,7 +27,7 @@ async def main():
             conversation.goal = goal
             conversation.prompt.text = "Keep this draft"
             await pilot.pause()
-            await pilot.click("#goal-expand")
+            await pilot.click("#goal-history")
             await pilot.pause()
             assert isinstance(app.screen, GoalDetails)
             assert app.screen.query_one(VerticalScroll).max_scroll_y > 0

@@ -181,7 +181,7 @@ async def main():
             )
             assert owner.requests == [("stable-goal", 4, "Ask @peer")] * 2
             assert conversation.prompt.text == "Composer draft stays"
-            await pilot.click("#goal-expand")
+            await pilot.click("#goal-history")
             await pilot.pause()
             assert isinstance(app.screen, GoalDetails)
             frame = "\n".join(

@@ -2391,7 +2391,7 @@ class Conversation(containers.Vertical):
         if self.goal_unavailable:
             self.flash("Goal state unavailable; waiting for the owner", style="error")
             return
-        if event.action == "goal-expand" and self.goal is not None:
+        if event.action == "goal-history" and self.goal is not None:
             from toad.screens.goal_details import GoalDetails
 
             goal = self.goal
@@ -2571,8 +2571,16 @@ class Conversation(containers.Vertical):
                 )
             self._initial_prompt = None
 
+    def on_resize(self) -> None:
+        # A goal can retain its own size while the surrounding viewport changes.
+        # Reapply its user-selected height against the new viewport bound.
+        if (goal_bar := self.query_one_optional(GoalBar)) is not None:
+            goal_bar.update_document_height()
+
     def on_mouse_down(self, event: events.MouseDown) -> None:
         self._mouse_down_offset = event.screen_offset
+        if (goal_bar := self.query_one_optional(GoalBar)) is not None:
+            goal_bar.begin_separator_resize(event)
 
     def on_click(self, event: events.Click) -> None:
         if (

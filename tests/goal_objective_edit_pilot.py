@@ -116,9 +116,9 @@ async def main():
                 )
                 assert f"rev {current.revision}" in frame
                 assert (
-                    "Scroll for full text" in frame and "TAIL_COORDINATOR" not in frame
+                    "Scroll for full text" not in frame and "TAIL_COORDINATOR" not in frame
                 )
-                await pilot.click("#goal-expand")
+                await pilot.click("#goal-history")
                 await pilot.pause()
                 assert "TAIL_COORDINATOR" in app.screen.goal.text
                 await pilot.press("escape")

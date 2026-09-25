@@ -1,23 +1,22 @@
 import asyncio
+from collections.abc import Iterable
 from functools import partial
+from typing import ClassVar
+
 from rich.style import Style as RichStyle
-
+from textual import containers, events, getters, widgets
 from textual.app import ComposeResult, RenderResult
-
-from textual import events
+from textual.binding import BindingType
 from textual.content import Content
-from textual.geometry import Offset
+from textual.geometry import Offset, Region
+from textual.message import Message
 from textual.reactive import reactive
 from textual.renderables.bar import Bar
 from textual.widget import Widget
-from textual import containers
-from textual import widgets
-from textual import getters
-from textual.message import Message
 
-from toad.app import ToadApp
-from toad.session_tracker import SessionDetails, OpenTab
 from toad import messages
+from toad.app import ToadApp
+from toad.session_tracker import OpenTab, SessionDetails
 from toad.widgets.activity_spinner import FRAMES, animated_label
 
 
@@ -41,7 +40,7 @@ class SessionTabClose(widgets.Static, can_focus=True):
     """Close a tab without selecting it or deleting its saved thread."""
 
     ALLOW_SELECT = False
-    BINDINGS = [("enter,space", "close_tab", "Close tab")]
+    BINDINGS: ClassVar[list[BindingType]] = [("enter,space", "close_tab", "Close tab")]
     DEFAULT_CSS = """
     SessionTabClose {
         width: 2;
@@ -72,7 +71,7 @@ class SessionTabClose(widgets.Static, can_focus=True):
 class Underline(Widget):
     """The animated underline beneath tabs."""
 
-    COMPONENT_CLASSES = {"underline--bar"}
+    COMPONENT_CLASSES: ClassVar[set[str]] = {"underline--bar"}
     """
     | Class | Description |
     | :- | :- |
@@ -136,6 +135,21 @@ class SessionsTabs(Widget):
         self._spinner_timer = None
         self._sync_lock = asyncio.Lock()
 
+    def _get_scrollable_region(self, region: Region) -> Region:
+        # Keep a top gutter even before overflow, so labels never jump when
+        # the native scrollbar appears. The active underline stays below.
+        window = super()._get_scrollable_region(region)
+        gutter = self.styles.scrollbar_size_horizontal
+        if not self.show_horizontal_scrollbar:
+            window = window.shrink((0, 0, gutter, 0))
+        return window.translate((0, gutter))
+
+    def _arrange_scrollbars(self, region: Region) -> Iterable[tuple[Widget, Region]]:
+        for scrollbar, scrollbar_region in super()._arrange_scrollbars(region):
+            if scrollbar is self.horizontal_scrollbar:
+                scrollbar_region = scrollbar_region.translate((0, region.y - scrollbar_region.y))
+            yield scrollbar, scrollbar_region
+
     def _sync_spinner(self, tabs: tuple[OpenTab, ...]) -> None:
         timer = self._spinner_timer
         if timer is None:
@@ -154,9 +168,9 @@ class SessionsTabs(Widget):
             return
         self._spinner_phase = (self._spinner_phase + 1) % len(FRAMES)
         for tab in tabs:
-            if tab.title.startswith(("⌛ ", "● ")):
-                if label := self.query_one_optional(f"#{tab.mode_name}", SessionLabel):
-                    label.update(self.render_session_label(tab), layout=False)
+            if (tab.title.startswith(("⌛ ", "● "))
+                    and (label := self.query_one_optional(f"#{tab.mode_name}", SessionLabel))):
+                label.update(self.render_session_label(tab), layout=False)
 
     def on_mount(self) -> None:
         self._spinner_timer = self.set_interval(.18, self._animate_busy, pause=True)

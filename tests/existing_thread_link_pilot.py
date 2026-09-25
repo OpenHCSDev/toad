@@ -9,7 +9,10 @@ from unittest.mock import patch
 from agent_comms import Thread, wire
 from runtime_fixture import ToadApp
 
+from toad.widgets.comms_chat import CommsChatView
+from toad.widgets.goal_bar import GoalBar
 from toad.widgets.irc_message import ThreadLink
+from toad.widgets.session_tabs import SessionsTabs, Underline
 
 
 async def main():
@@ -68,6 +71,38 @@ async def main():
                         owner_mode=existing, project_path=root, target="peer",
                     ) == existing
                 assert added.call_count == 0 and reads.call_count == 0
+
+            # Comms views inherit Conversation's mouse handlers but deliberately
+            # omit goal controls. A real link click must still reuse the tab.
+            await app.new_session_screen(app.get_main_screen)
+            await app.open_comms_session(
+                owner_mode=owner, project_path=root, me="owner", target="peer", kind="dm",
+            )
+            await pilot.pause()
+            chat = app.screen.query_one(CommsChatView)
+            assert chat.query_one_optional(GoalBar) is None
+            await pilot.resize_terminal(65, 36)
+            await pilot.pause()
+            tabs = app.screen.query_one(SessionsTabs)
+            assert tabs.show_horizontal_scrollbar
+            underline = tabs.query_one(Underline)
+            clip = app.screen._compositor.find_widget(underline).clip
+            assert underline.region.intersection(clip).height == 1
+            chat_link = ThreadLink("peer")
+            await chat.contents.mount(chat_link)
+            chat_link.scroll_visible(animate=False)
+            await pilot.pause()
+            order = tuple(app._open_tab_order)
+            with patch.object(app, "add_mode", wraps=app.add_mode) as added:
+                assert await pilot.click(chat_link)
+                await pilot.pause()
+                async with asyncio.timeout(3):
+                    while app.current_mode != existing:
+                        await pilot.pause(.05)
+                assert app.screen is destination
+                assert added.call_count == 0
+                assert tuple(app._open_tab_order) == order
+                assert destination.conversation.prompt.text == "Keep this draft"
             assert app._exception is None
         await asyncio.get_running_loop().shutdown_default_executor()
     print("existing thread link: direct focus, no transient tab/IO, root isolation and draft preserved")
