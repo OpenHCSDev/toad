@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from textual import on
+from textual import events, on
 from textual.app import ComposeResult
 from textual.containers import HorizontalGroup, Vertical, VerticalScroll
 from textual.message import Message
@@ -11,11 +11,31 @@ from textual.screen import ModalScreen
 from textual.widgets import Button, Static
 
 
+class DeliveryInspect(Static, can_focus=True):
+    """An inline text action without a button's border or minimum height."""
+
+    BINDINGS = [("enter,space", "inspect", "Inspect delivery")]
+    DEFAULT_CSS = """
+    DeliveryInspect {
+        width: auto; height: 1; margin-left: 1;
+        color: $text-accent; text-style: underline; pointer: pointer;
+    }
+    DeliveryInspect:hover, DeliveryInspect:focus { text-style: bold reverse; }
+    """
+
+    def action_inspect(self) -> None:
+        if not self.disabled:
+            self.post_message(InputDeliveryBar.Inspect())
+
+    def on_click(self, event: events.Click) -> None:
+        event.stop()
+        self.action_inspect()
+
+
 class InputDeliveryBar(HorizontalGroup):
     DEFAULT_CSS = """
-    InputDeliveryBar { height: 1; padding: 0 1; }
-    InputDeliveryBar Static { width: 1fr; color: $warning; }
-    InputDeliveryBar Button { height: 1; min-width: 9; border: none; padding: 0 1; }
+    InputDeliveryBar { height: auto; padding: 0 1; }
+    InputDeliveryBar #delivery-summary { width: 1fr; height: auto; color: $warning; }
     """
     inputs: var[list[dict]] = var(list)
 
@@ -24,7 +44,7 @@ class InputDeliveryBar(HorizontalGroup):
 
     def compose(self) -> ComposeResult:
         yield Static(markup=False, id="delivery-summary")
-        yield Button("Inspect", id="delivery-inspect")
+        yield DeliveryInspect("Inspect", markup=False, id="delivery-inspect")
 
     def watch_inputs(self) -> None:
         self.display = bool(self.inputs)
@@ -35,12 +55,6 @@ class InputDeliveryBar(HorizontalGroup):
 
     def on_mount(self) -> None:
         self.watch_inputs()
-
-    @on(Button.Pressed, "#delivery-inspect")
-    def inspect(self, event: Button.Pressed) -> None:
-        event.stop()
-        self.post_message(self.Inspect())
-
 
 class InputDeliveryDetails(ModalScreen[None]):
     BINDINGS = [("escape", "close", "Close")]
