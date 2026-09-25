@@ -938,7 +938,7 @@ class ToadApp(App, inherit_bindings=False):
                         self._atomic_mode_switch = False
                 if (isinstance(screen, CommsScreen) and screen.is_current
                         and not screen._content_loaded):
-                    # The three-widget opening screen was measured inside the
+                    # The opening shell was measured inside the
                     # atomic switch, but that paint was suppressed by the
                     # batch. Commit it now rather than waiting another update
                     # timer tick before hydration is allowed to begin.
@@ -1210,7 +1210,10 @@ class ToadApp(App, inherit_bindings=False):
                 # Two clicks for one unfinished route share its one canonical
                 # resolution; the second cannot cancel or duplicate the first.
                 return await asyncio.shield(pending.completion)
-        pending_mode = await self._open_pending_thread_tab(owner_mode, target, requested_root)
+        pending_mode = await self._open_pending_thread_tab(
+            owner_mode, target, requested_root, navigation_owner=source.id or owner_mode,
+            project_path=project_path, me=source_identity,
+        )
         result = owner_mode
         try:
             result = await self._finish_open_thread_session(
@@ -1235,7 +1238,8 @@ class ToadApp(App, inherit_bindings=False):
                     return candidate
         return "store"
 
-    async def _open_pending_thread_tab(self, owner_mode: str, target: str, root: str) -> str:
+    async def _open_pending_thread_tab(self, owner_mode: str, target: str, root: str, *,
+                                       navigation_owner: str, project_path: Path, me: str) -> str:
         from toad.screens.pending_thread import PendingThreadScreen
 
         self._pending_thread_index += 1
@@ -1243,7 +1247,9 @@ class ToadApp(App, inherit_bindings=False):
         pending = PendingThreadTab(owner_mode, root, target, self.current_mode,
                                    asyncio.get_running_loop().create_future())
         self._pending_thread_modes[mode] = pending
-        self.add_mode(mode, PendingThreadScreen)
+        self.add_mode(mode, lambda: PendingThreadScreen(
+            owner_mode=navigation_owner, project_path=project_path, me=me,
+        ))
         self._open_tab_order.append(mode)
         self.open_tabs_changed.publish(None)
         self.update_show_sessions()

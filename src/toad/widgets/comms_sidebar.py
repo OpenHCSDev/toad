@@ -422,11 +422,12 @@ class CommsSidebar(TargetTree):
             super().__init__()
 
     def __init__(
-        self, session_thread: str = "", selected_target: str = "", **kwargs
+        self, session_thread: str = "", selected_target: str = "", *, observe: bool = True, **kwargs
     ) -> None:
         super().__init__(**kwargs)
         self.session_thread = session_thread
         self.selected = selected_target
+        self._observe = observe
         self._row_map: dict[tuple[str, str], CommsRow] = {}
         self._virtual = os.environ.get("TOAD_BENCH_VIRTUAL_CHANNELS") == "1"
         self._virtual_targets: dict[str, VirtualChoice] = {}
@@ -546,7 +547,8 @@ class CommsSidebar(TargetTree):
         app.mode_change_signal.subscribe(self, self._mode_changed)
         app.thread_actions_changed.subscribe(self, self._thread_actions_changed)
         app.settings_changed_signal.subscribe(self, self._settings_changed)
-        self.set_interval(OBSERVATION_INTERVAL, self._refresh)
+        if self._observe:
+            self.set_interval(OBSERVATION_INTERVAL, self._refresh)
         from toad.screens.comms import CommsScreen
 
         if isinstance(self.screen, CommsScreen) and not self.screen._navigation_applied:
@@ -726,7 +728,7 @@ class CommsSidebar(TargetTree):
         return "thread" if person.thread.session_file or person.thread.pid > 0 else "dm"
 
     def _refresh(self) -> None:
-        if self._snapshot_pending or not self.is_attached:
+        if not self._observe or self._snapshot_pending or not self.is_attached:
             return
         try:
             # A refresh timer can fire while a mode's screen stack is being

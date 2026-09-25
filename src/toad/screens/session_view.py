@@ -5,7 +5,7 @@ from functools import cached_property
 from typing import TYPE_CHECKING, cast
 import asyncio
 
-from textual.events import ScreenResume
+from textual.events import Resize, ScreenResume
 from textual.css.model import RuleSet, SelectorType
 from textual.css.stylesheet import CssSource
 from textual.dom import DOMNode
@@ -33,6 +33,13 @@ class SessionView(Screen):
     _navigation_applied = False
     _navigation_changed = False
     _resume_styles_changed = False
+
+    def on_resize(self, _event: Resize) -> None:
+        from toad.widgets.side_bar import SideBar
+
+        for sidebar in self.query(SideBar):
+            sidebar._apply_layout()
+        self.align_tabs_to_sidebars()
 
     def align_tabs_to_sidebars(self) -> None:
         """The navigation row spans the screen, independent of sidebar placement."""

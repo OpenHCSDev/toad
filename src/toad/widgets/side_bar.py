@@ -94,6 +94,8 @@ The Sidebar contains additonal information associated with the conversation.
 class SideBarToggle(widgets.Static):
     """Full-height pointer target in the sidebar's left gutter."""
 
+    ALLOW_SELECT = False
+
     DEFAULT_CSS = """
     SideBarToggle {
         dock: left;
