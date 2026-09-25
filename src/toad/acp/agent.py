@@ -330,6 +330,8 @@ class Agent(AgentBase):
             state = metadata["agentComms"]
             if isinstance(state.get("thread"), str) and isinstance(state.get("wireRoot"), str):
                 self._publish_coordination_metadata({"_meta": metadata})
+            if "inputDisposition" in state:
+                self.post_message(messages.InputDispositionsChanged())
             if "goal" in state or "goalExecution" in state:
                 self._publish_goal_snapshot(state)
                 self._post_coordination_update()
@@ -1306,6 +1308,7 @@ class Agent(AgentBase):
             return
         if initial:
             self._publish_goal_snapshot(coordination)
+            self.post_message(messages.InputDispositionsChanged())
         thread = coordination.get("thread")
         wire_root = coordination.get("wireRoot")
         if not isinstance(thread, str) or not isinstance(wire_root, str):
@@ -1514,9 +1517,9 @@ class Agent(AgentBase):
             wire(self._coordination_root).goal_execution, self._coordination_thread
         )
 
-    async def _goal_owner_request(self, method: str, **params):
+    async def _owner_request(self, method: str, **params):
         if self._coordination_root is None or self._coordination_thread is None:
-            raise ValueError("Persistent goals require an agent-comms thread.")
+            raise ValueError("This action requires an agent-comms thread.")
         from agent_comms.operations import wire
         from agent_comms.runtime import RuntimeProxy, socket_path
 
@@ -1528,12 +1531,18 @@ class Agent(AgentBase):
         except RuntimeError as error:
             raise ValueError(str(error)) from error
 
+    async def get_unresolved_inputs(self) -> list[dict]:
+        if self._coordination_root is None or self._coordination_thread is None:
+            return []
+        result = await self._owner_request("input_dispositions")
+        return result["inputs"]
+
     async def get_goal_history(self, goal_id: str):
-        result = await self._goal_owner_request("goal_history", goal_id=goal_id)
+        result = await self._owner_request("goal_history", goal_id=goal_id)
         return result["history"]
 
     async def edit_goal(self, goal: Goal, text: str) -> Goal:
-        result = await self._goal_owner_request(
+        result = await self._owner_request(
             "edit_goal", goal_id=goal.id, expected_revision=goal.revision, text=text
         )
         return Goal(**result["goal"])
@@ -1590,7 +1599,7 @@ class Agent(AgentBase):
 
     async def update_goal(self, action: str, text: str = "") -> Goal | None:
         if self._coordination_root is None or self._coordination_thread is None:
-            raise ValueError("Persistent goals require an agent-comms thread.")
+            raise ValueError("This action requires an agent-comms thread.")
         from agent_comms.operations import wire
 
         comms = wire(self._coordination_root)
