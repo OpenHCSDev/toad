@@ -1261,7 +1261,8 @@ class Conversation(containers.Vertical):
     @work(group="send-queued-now", exclusive=True)
     async def send_queued_now(self) -> None:
         try:
-            await self.agent.send_now()
+            if not await self.agent.send_now():
+                self.sending_queued_prompt = ""
         except (jsonrpc.APIError, jsonrpc.JSONRPCError, OSError, ValueError) as error:
             self.sending_queued_prompt = ""
             self.flash(f"Send now failed: {error}", style="error")

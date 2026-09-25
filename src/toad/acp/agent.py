@@ -1001,15 +1001,16 @@ class Agent(AgentBase):
             [{"type": "text", "text": " "}], {"agentComms": {"clearQueue": True}}
         )
 
-    async def send_now(self) -> None:
+    async def send_now(self) -> bool:
         """Interrupt the response for already queued input, without resending text."""
         # Resource/image preparation can still be running when the user clicks.
         # Wait for those exact submissions to reach the owner before interrupting.
         if pending := tuple(self._deferred_submissions):
             await asyncio.gather(*(asyncio.shield(task) for task in pending))
-        await self.acp_session_prompt(
+        result = await self.acp_session_prompt(
             [{"type": "text", "text": " "}], {"agentComms": {"sendNow": True}}
         )
+        return result is not None
 
     async def compact_context(self, instructions: str | None = None) -> dict[str, Any]:
         """Ask the persistent owner to compact Pi context without creating a turn."""
