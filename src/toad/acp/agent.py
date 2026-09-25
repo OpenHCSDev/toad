@@ -332,6 +332,14 @@ class Agent(AgentBase):
                 self._publish_coordination_metadata({"_meta": metadata})
             if "inputDisposition" in state or state.get("inputDeliveryChanged") is True:
                 self.post_message(messages.InputDispositionsChanged())
+            failed = state.get("inputFailed")
+            if isinstance(failed, dict) and isinstance(failed.get("text"), str):
+                self.post_message(
+                    messages.InputFailed(
+                        failed["text"],
+                        failed.get("reason") if isinstance(failed.get("reason"), str) else "Send failed",
+                    )
+                )
             if "goal" in state or "goalExecution" in state:
                 self._publish_goal_snapshot(state)
                 self._post_coordination_update()

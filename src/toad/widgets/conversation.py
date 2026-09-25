@@ -1573,6 +1573,14 @@ class Conversation(containers.Vertical):
                 self.sending_queued_prompt = ""
             await self.post(UserInput(message.text))
 
+    @on(acp_messages.InputFailed)
+    def on_input_failed(self, message: acp_messages.InputFailed) -> None:
+        """Restore a prompt rejected before Pi's authoritative user start."""
+        message.stop()
+        if message.text and message.text not in self.prompt.text.split("\n\n"):
+            self.prompt.text = "\n\n".join(filter(None, [self.prompt.text, message.text]))
+        self.flash(f"Message not sent: {message.reason}", style="error")
+
     @on(acp_messages.TranscriptSnapshot)
     async def on_transcript_snapshot(self, message: acp_messages.TranscriptSnapshot):
         """Mount saved history once; never feed it through live Markdown streams."""

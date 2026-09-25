@@ -51,6 +51,12 @@ class InputStarted(AgentMessage):
 
 
 @dataclass
+class InputFailed(AgentMessage):
+    text: str
+    reason: str
+
+
+@dataclass
 class TranscriptSnapshot(AgentMessage):
     events: tuple[TranscriptEvent, ...]
     page: TranscriptPage | None = None
