@@ -551,6 +551,9 @@ class Conversation(containers.Vertical):
         self._agent_response: AgentResponse | None = None
         self._managed_turn_id: str | None = None
         self._agent_thought: AgentThought | None = None
+        from toad.widgets.agent_activity import AgentActivityBoundary
+
+        self._agent_activity_boundary = AgentActivityBoundary()
         self._last_escape_time = 0.0
         self._agent_data = agent
         self.set_class(agent is not None, "-initial-loading")
@@ -1350,6 +1353,7 @@ class Conversation(containers.Vertical):
             stop_reason: The stop reason returned from the Agent, or `None`.
         """
         self.turn = "client"
+        self._agent_activity_boundary.reset()
         self.activity = ""
         self.activity_started_at = None
         if stop_reason == "end_turn" and self.current_model is not None:
@@ -1487,6 +1491,7 @@ class Conversation(containers.Vertical):
         if self._managed_turn_id is None:
             self.busy_count += 1
         self._managed_turn_id = message.turn_id
+        self._agent_activity_boundary.reset()
         self.app.open_tabs_changed.publish(None)
         self.new_block()
         self.turn = "agent"
@@ -2466,7 +2471,15 @@ class Conversation(containers.Vertical):
             self.new_block()
         if not self.contents.is_attached:
             return widget
-        await self.contents.mount(widget)
+        from toad.widgets.message_divider import AgentActivityDivider
+        from toad.widgets.message_filter import block_category
+
+        category = block_category(widget)
+        if self._agent_activity_boundary.observe(category):
+            assert category is not None
+            await self.contents.mount(AgentActivityDivider(category), widget)
+        else:
+            await self.contents.mount(widget)
 
         widget.loading = loading
         self._require_check_prune = True
