@@ -22,7 +22,7 @@ from toad.widgets.agent_response import AgentResponse
 from toad.widgets.conversation import Conversation, TurnActivity
 
 
-SUMMARY = "AUTO-COMPACTION-PRESERVED-DECISIONS"
+SUMMARY = "## Decisions\n\n" + "- AUTO-COMPACTION-PRESERVED-DECISIONS\n" * 30 + "\n## Next\nContinue."
 
 
 class CaptureClient:
@@ -107,7 +107,8 @@ for record in RECORDS:
         end_updates = client.updates[len(start_updates) + len(progress_updates):]
         assert start_updates, "ACP did not forward automatic compaction-start activity"
         assert end_updates and any(
-            SUMMARY in str(update.model_dump(by_alias=True)) for update in end_updates
+            update.model_dump(by_alias=True).get("_meta", {}).get("agentComms", {})
+            .get("compaction", {}).get("summary") == SUMMARY for update in end_updates
         ), "ACP did not forward the exact automatic compaction summary"
 
         app = ToadApp(project_dir=str(root))
