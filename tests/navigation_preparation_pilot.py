@@ -161,6 +161,9 @@ async def mounted() -> None:
                 if opening is not None:
                     await asyncio.gather(opening, return_exceptions=True)
 
+        # UI readers can finish their final persistence after unmount. Drain
+        # them before removing the temporary wire, also under parallel pilots.
+        await asyncio.get_running_loop().shutdown_default_executor()
 
 async def main():
     await admission()

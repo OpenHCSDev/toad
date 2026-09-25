@@ -6,7 +6,8 @@ import tempfile
 from pathlib import Path
 
 from agent_comms import Thread, wire
-from toad.app import ToadApp
+from runtime_fixture import ToadApp
+
 from toad.screens.main import MainScreen
 from toad.session_tracker import SidebarSelection
 from toad.widgets.comms_sidebar import ChannelGroup, CommsSidebar
@@ -72,6 +73,7 @@ async def main():
             selected.row.scroll_visible(animate=False)
             selected.row.focus(scroll_visible=False)
             await pilot.pause()
+            await pilot.wait_for_scheduled_animations()
             expected_scroll = tuple(widget.scroll_y for widget in sidebar.scroll_containers)
             assert max(expected_scroll) > 0, [
                 (type(widget).__name__, widget.size, widget.virtual_size, widget.scroll_y, widget.max_scroll_y)
@@ -98,6 +100,7 @@ async def main():
             assert app.sidebar_state.selected == SidebarSelection("#channel-28", "#channel-28")
             group(current, "#channel-28").toggle_members()
             await pilot.pause()
+            await pilot.wait_for_scheduled_animations()
             expected_scroll = tuple(widget.scroll_y for widget in current.scroll_containers)
             await app.switch_mode(owner)
             await pilot.pause()
@@ -114,6 +117,7 @@ async def main():
             member.scroll_visible(animate=False)
             member.focus(scroll_visible=False)
             await pilot.pause()
+            await pilot.wait_for_scheduled_animations()
             expected_scroll = tuple(widget.scroll_y for widget in sidebar.scroll_containers)
             member.action_open_selected()
             assert member.has_class("-selected")
@@ -143,6 +147,7 @@ async def main():
             await pilot.hover(app.screen.conversation.prompt)
             assert "hover" not in member.pseudo_classes and member.current
             assert tuple(widget.scroll_y for widget in current.scroll_containers) == expected_scroll
+        await asyncio.get_running_loop().shutdown_default_executor()
     print("sidebar navigation: expansion, scroll, and one remembered selection survive view changes")
 
 

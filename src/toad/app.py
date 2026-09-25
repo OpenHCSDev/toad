@@ -1204,6 +1204,16 @@ class ToadApp(App, inherit_bindings=False):
         source_identity = source._comms_thread
         source_root = source._coordination_root
         requested_root = os.environ.get("AGENT_COMMS_ROOT", "~/.agent-comms")
+        # A mounted destination already owns its root/thread identity. Focus it
+        # before publishing a loading tab or doing route discovery. Unknown
+        # aliases and noncanonical roots still use authoritative off-loop reads.
+        mounted_root = str(Path(requested_root).expanduser())
+        for details in self.session_tracker.ordered_sessions:
+            screen = self._main_session_screen(details.mode_name)
+            if (screen is not None and screen._coordination_root == mounted_root
+                    and screen._comms_thread == target):
+                await self.switch_mode(details.mode_name)
+                return details.mode_name
         for mode, pending in self._pending_thread_modes.items():
             if ((pending.owner_mode, pending.root, pending.target)
                     == (owner_mode, requested_root, target)):

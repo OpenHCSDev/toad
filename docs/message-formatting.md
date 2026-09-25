@@ -107,6 +107,25 @@ stdio (the captured-output harness had retained a pipe after successful exit).
 The three formatting/attribution pilots passed again after import cleanup.
 Targeted Ruff and Python 3.14 mypy for the two pure presentation modules pass.
 
+## Already-open thread links
+
+Fixed the reported tab flicker: `open_thread_session` created and focused a
+provisional loading tab before route discovery found an already-mounted
+destination. It now first matches the requested root/thread against mounted
+session identities and focuses that exact screen. No loading tab or metadata
+read is needed for that match. Unknown aliases and noncanonical roots retain
+the authoritative off-loop discovery path; genuinely new threads retain their
+loading view, duplicate-click coalescing, and stale-result protection.
+
+`existing_thread_link_pilot.py` reproduced the transient tab before the fix and
+now passes actual pointer clicks, repeated/self navigation, same-name foreign
+root isolation, unchanged tab order, and draft preservation. Pending-thread,
+navigation preparation, sidebar opening/navigation, asynchronous thread open,
+stopped-thread/read-boundary, native attribution, and broad Comms pilots pass.
+Two existing pilots now drain background readers before temporary-wire cleanup;
+the sidebar pilot also waits for animations before capturing exact scroll
+baselines, retaining its exact frame/scroll assertions under parallel load.
+
 ## Further cleanup
 
 Use subsequent user screenshots to refine spacing, role labels, grouping, and
