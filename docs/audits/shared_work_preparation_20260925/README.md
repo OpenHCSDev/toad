@@ -2,8 +2,25 @@
 
 Worktree: `/home/ts/wt/toad-history-preparation-20260925`, branch
 `perf/history-preparation-20260925`, started from merged Toad `eff5941` and now
-integrated through main `65339ee`. This is a **draft working candidate**, not
-another merged performance fix.
+integrated through main `65339ee`. This is a measured checkpoint with the
+remaining performance limitations documented below.
+
+## Final delivery-race correction and merge validation
+
+The readiness review reproduced delivery of a retired snapshot after a worker
+copy completed. Both cache hits and fresh results now use one delivery boundary
+that checks scope/runtime validity before and after copying. Thread admission
+also rechecks shutdown after waiting for a slot, preventing queued work from
+starting after the runtime closes. Deterministic gated tests fail before the
+fix and pass afterward for fresh/cached scope retirement, shutdown while copying,
+and queued thread work at shutdown.
+
+The framework prerequisite is now merged as `ace9226c675d2acb5079819bb0867199777b93b9`
+and that merge revision is pinned. Its source tree matches the tested `385ac01a`
+head. Final validation: **23 Toad pilots passed with xdist**, plus the two-app
+persistent-renderer integration (Markdown, native diff, preview and Read tool).
+Fatal Ruff and whitespace checks pass. The user approved merging this checkpoint
+after trying the combined preview; the 16 ms target remains ongoing work.
 
 ## Latest main synchronization
 
@@ -11,8 +28,8 @@ Toad main `65339eed0c7c38d50e3f3a999853a06a3c727a3b` is integrated, including
 PRs #45/#46/#48/#49: committed inbound-history reconciliation, current delivery
 notices, bounded startup and the standby-inbox backend pin. Agent-comms is pinned
 to current main `8984756b8a5b2cc2614fa76789a64dabad53a848`; the owned core worktree is at
-the same revision. The Textual draft prerequisite remains `385ac01a`, which
-already includes current framework main `06220c38`.
+the same revision. That sync used Textual draft head `385ac01a` on framework
+main `06220c38`; the final pin above uses its subsequent merge `ace9226c`.
 
 Validation against these revisions: **22 Toad pilots passed** (21 in the xdist
 batch, then the cross-repository delivery fixture with the correct core-test
@@ -57,7 +74,8 @@ for 333 closed thread rows and 135 closed channel groups in one census.
 The prerequisite framework work fixes two independently reproduced owners:
 
 Prerequisite: [Textual fork PR #3](https://github.com/OpenHCSDev/textual/pull/3),
-published head `385ac01a023baaa4e97f545f4c10404fa746c538`, pinned by this draft.
+published head `385ac01a023baaa4e97f545f4c10404fa746c538`, now merged as `ace9226c`
+and pinned at that merge revision.
 
 1. `Signal` values close over subscribers despite weak keys. A quiet publisher
    retains removed nodes until another publish. Subscription teardown now belongs
@@ -271,6 +289,6 @@ typing/full-suite pass is not claimed.
 
 All isolated test-owned Xvfb instances/viewers were closed. The user's frozen
 visible preview is separate. Core/shared-stack deployment remains owned by the
-other agent. The user authorized publishing draft PRs; merging this follow-up
-has not been requested. Ordinary-text `@thread_name` highlighting remains a
+other agent. The user authorized merging this checkpoint after the delivery-race
+correction and validation above. Ordinary-text `@thread_name` highlighting remains a
 separate follow-up, with main's newer thread-link support included in integration.

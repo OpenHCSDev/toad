@@ -196,7 +196,12 @@ class PreparationRuntime:
         self.hits = self.misses = self.shared = 0
 
     async def run_thread(self, function, *args):
+        if self._closed:
+            raise asyncio.CancelledError
         await self._threads.acquire()
+        if self._closed:
+            self._threads.release()
+            raise asyncio.CancelledError
         task = asyncio.create_task(asyncio.to_thread(function, *args), name="preparation-thread")
         self._thread_tasks.add(task)
 
@@ -227,7 +232,7 @@ class PreparationRuntime:
             if cached := self._ready.get(key):
                 self._ready.move_to_end(key)
                 self.hits += 1
-                return cast(ResultT, await self.run_thread(deepcopy, cached[0]))
+                return cast(ResultT, await self._deliver(key, cached[0]))
             if pending := self._pending.get(key):
                 self.shared += 1
                 break
@@ -249,9 +254,16 @@ class PreparationRuntime:
             self._changed.clear()
             await self._changed.wait()
         result = await asyncio.shield(pending)
+        return cast(ResultT, await self._deliver(key, result))
+
+    async def _deliver(self, key: WorkKey, result: object) -> object:
+        """Validate at the final delivery boundary, including the worker-copy await."""
         if self._closed or key.scope is not None and key.scope.closed:
             raise asyncio.CancelledError
-        return cast(ResultT, await self.run_thread(deepcopy, result))
+        copied = await self.run_thread(deepcopy, result)
+        if self._closed or key.scope is not None and key.scope.closed:
+            raise asyncio.CancelledError
+        return copied
 
     async def _execute(self, key: WorkKey, work: PreparationWork[ResultT]) -> ResultT:
         result = await work.execute(self)
