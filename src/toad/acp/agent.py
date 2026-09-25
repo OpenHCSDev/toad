@@ -329,7 +329,7 @@ class Agent(AgentBase):
             if isinstance(state.get("thread"), str) and isinstance(state.get("wireRoot"), str):
                 self._publish_coordination_metadata({"_meta": metadata})
             compaction = state.get("compaction")
-            if isinstance(compaction, dict) and compaction.get("phase") in {"start", "end", "abort"}:
+            if isinstance(compaction, dict) and compaction.get("phase") in {"start", "progress", "end", "abort"}:
                 if (compaction.get("contextState") == "unknown"
                         and compaction.get("contextUsed") is None):
                     self._context_usage = None
@@ -341,6 +341,8 @@ class Agent(AgentBase):
                     else "unknown",
                     " ".join(summary.split())[:400] if isinstance(summary, str) else "",
                     compaction.get("willRetry") is True,
+                    compaction.get("chunkIndex") if isinstance(compaction.get("chunkIndex"), int)
+                    and not isinstance(compaction.get("chunkIndex"), bool) else 0,
                 ))
                 return
             if state.get("transcriptChanged") is True:
