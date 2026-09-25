@@ -53,10 +53,11 @@ class TranscriptChanged(AgentMessage):
 class CompactionUpdate(AgentMessage):
     """Typed mid-turn lifecycle from agent-comms; not a new user turn."""
 
-    phase: Literal["start", "end", "abort"]
+    phase: Literal["start", "progress", "end", "abort"]
     reason: str
     summary: str = ""
     will_retry: bool = False
+    chunk_index: int = 0
 
 
 @dataclass

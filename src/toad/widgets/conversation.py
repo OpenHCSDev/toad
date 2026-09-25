@@ -1580,6 +1580,10 @@ class Conversation(containers.Vertical):
         from toad.widgets.agent_response import AgentResponse
 
         message.stop()
+        if message.phase == "progress":
+            self.activity = f"Compacting context… summary step {message.chunk_index} completed"
+            self.post_message(messages.SessionUpdate(state="busy", summary=self.activity))
+            return
         if message.phase == "start":
             self.activity = "Compacting context…"
             self.post_message(messages.SessionUpdate(state="busy", summary="Compacting context"))
