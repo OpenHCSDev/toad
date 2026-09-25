@@ -78,6 +78,12 @@ def block_category(widget) -> MessageCategory | None:
     return widget.message_category if isinstance(widget, CategorizedBlock) else MessageCategory.OTHER
 
 
+def apply_block_filter(widget, selected: frozenset[MessageCategory]) -> None:
+    """Change only this semantic owner, preserving its authored display rules."""
+    category = block_category(widget)
+    widget.set_class(category is not None and category not in selected, "-category-hidden")
+
+
 def keep_live_block(widget) -> bool:
     category = block_category(widget)
     return (category is None or category in IN_OUT_CATEGORIES

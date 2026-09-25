@@ -18,6 +18,7 @@ from toad import messages
 from toad.app import ToadApp
 from toad.session_tracker import OpenTab, SessionDetails
 from toad.widgets.activity_spinner import FRAMES, animated_label
+from toad.sidebar_preparation import PreparedTab, TabRosterWork
 
 
 class SessionLabel(widgets.Label):
@@ -134,6 +135,7 @@ class SessionsTabs(Widget):
         self._spinner_phase = 0
         self._spinner_timer = None
         self._sync_lock = asyncio.Lock()
+        self._tab_projection: dict[str, PreparedTab] = {}
 
     def _get_scrollable_region(self, region: Region) -> Region:
         # The scrollbar occupies the explicit empty top row, not a bottom row.
@@ -227,6 +229,9 @@ class SessionsTabs(Widget):
                 self.scroll_to_center(current_label, animate=False)
 
     def render_session_label(self, session: OpenTab) -> Content:
+        prepared = self._tab_projection.get(session.mode_name)
+        if prepared is not None and prepared.source == session:
+            return prepared.content(self._spinner_phase)
         title = animated_label(
             session.title,
             busy=session.title.startswith(("⌛ ", "● ")),
@@ -269,10 +274,20 @@ class SessionsTabs(Widget):
     async def _reconcile_tabs(self) -> None:
         if not self.is_attached or not self.screen.is_active:
             return
-        tabs = self.app.open_tabs
-        if tabs == self._last_tabs and self.current_session == self.app.current_mode:
-            self._sync_spinner(tabs)
-            return
+        while True:
+            tabs = self.app.open_tabs
+            if tabs == self._last_tabs and self.current_session == self.app.current_mode:
+                self._sync_spinner(tabs)
+                return
+            prepared = await self.app.preparation.submit(TabRosterWork(tabs))
+            if not self.is_attached or not self.screen.is_active:
+                return
+            if tabs == self.app.open_tabs:
+                break
+            # The caller may be the activation transaction. Finish its newest
+            # roster here rather than return "ready" with stale geometry and
+            # defer the real work to an unrelated callback.
+        self._tab_projection = {tab.source.mode_name: tab for tab in prepared}
         previous_tabs = {tab.mode_name: tab for tab in self._last_tabs or ()}
         geometry_changed = self._last_tabs is None
         mode_changed = self.current_session != self.app.current_mode
