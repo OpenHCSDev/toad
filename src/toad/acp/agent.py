@@ -356,7 +356,7 @@ class Agent(AgentBase):
                     and not isinstance(compaction.get("chunkIndex"), bool) else 0,
                     source_done,
                     source_total,
-                    summary_phase if summary_phase in ("history", "current-turn", "shrink") else None,
+                    summary_phase if isinstance(summary_phase, str) and summary_phase else None,
                 ))
                 return
             if state.get("transcriptChanged") is True:

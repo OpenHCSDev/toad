@@ -43,6 +43,9 @@ def check_protocol(root):
     agent.rpc_session_update("fixture", packet(
         chunkIndex=3, sourceBytesDone=800, sourceBytesTotal=800, summaryPhase="shrink"))
     assert captured.pop().summary_phase == "shrink"
+    agent.rpc_session_update("fixture", packet(
+        chunkIndex=3, sourceBytesDone=800, sourceBytesTotal=800, summaryPhase="synthesis"))
+    assert captured.pop().summary_phase == "synthesis"
     # Old senders and malformed counters use the existing summary-step fallback.
     for values in ({}, {"sourceBytesDone": True, "sourceBytesTotal": 800},
                    {"sourceBytesDone": 0, "sourceBytesTotal": 0},
