@@ -10,7 +10,7 @@ from runtime_fixture import ToadApp
 from textual.widgets._markdown import MarkdownFence
 import textual.widgets._markdown as markdown_module
 from toad.conversation_markdown import ConversationMarkdown, _ThreadLocalPathParser
-from toad.markdown_preparation import prepare_markdown
+from toad.render_tasks import MarkdownRenderTask
 from toad.widgets.agent_response import AgentResponse
 
 
@@ -27,8 +27,8 @@ async def main():
         async with app.run_test(size=(110, 35)) as pilot:
             await pilot.pause()
             expected = _ThreadLocalPathParser(root.resolve()).parse(source)
-            prepared = await app.render_processes.run(prepare_markdown, source, str(root.resolve()),
-                                                       app.native_ansi_color, app.current_theme.dark)
+            prepared = await app.render_processes.submit(MarkdownRenderTask(
+                source, str(root.resolve()), app.native_ansi_color, app.current_theme.dark))
             assert [token.as_dict() for token in prepared.tokens] == [token.as_dict() for token in expected]
             response = AgentResponse(paginate=False)
             await app.screen.conversation.post(response)

@@ -19,6 +19,7 @@ from toad.widgets.session_sort import SortControl
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarVisibilityObserver
 from toad.widgets.sidebar_tree import SidebarGroup, TargetTree
 from toad.widgets.thread_comms_model import RelationshipGroup, RelationshipSource, ThreadCommsSnapshot
+from toad.sidebar_preparation import ThreadRowInput, ThreadRowsWork
 
 
 def _update_content(widget: Static, content: Content) -> None:
@@ -130,6 +131,17 @@ class RelationshipRows(SidebarGroup):
             was_hidden = not container.display
             container.display = True
             entries = {(entry.kind, entry.target): entry for entry in self.model.entries}
+            model, owner = self.model, tree.owner
+            row_keys = tuple(key for key, entry in entries.items() if entry.available and entry.person is not None)
+            inputs = tuple(ThreadRowInput(
+                entries[key].person,
+                unread=tree.unread(entries[key].target, CommsSidebar._person_kind(entries[key].person)),
+                action_status=tree.app.pending_thread_actions.get(entries[key].target),
+            ) for key in row_keys)
+            prepared = await tree.app.preparation.submit(ThreadRowsWork(inputs)) if inputs else ()
+            if not self.is_attached or self.model is not model or tree.owner != owner:
+                return
+            prepared_rows = dict(zip(row_keys, prepared))
             empty = container.query_one_optional(".relationship-empty")
             if entries and empty is not None:
                 await empty.remove()
@@ -137,9 +149,10 @@ class RelationshipRows(SidebarGroup):
                 await container.mount(Static(self.EMPTY[self.model.key], classes="relationship-empty"))
             # Keep the top visible row stable when newer entries reorder a
             # scrolled list. Identity, rather than list index, owns selection.
-            anchor = next((row for row in container.children
-                           if isinstance(row, RelationshipRow) and row.region.bottom > container.content_region.y), None)
             old_scroll = container.scroll_y
+            anchor = (next((row for row in container.children
+                            if isinstance(row, RelationshipRow) and row.region.bottom > container.content_region.y), None)
+                      if old_scroll > 0 else None)
             previous_order = tuple(container.children)
 
             def create(key):
@@ -158,8 +171,7 @@ class RelationshipRows(SidebarGroup):
                     row._thread_signature = None
                     _update_content(row, Content(f"? {entry.target}\n  Unavailable · Ctrl+C copies name"))
                 elif entry.person is not None:
-                    row.update_thread(entry.person, unread=tree.unread(entry.target, row.kind),
-                                      action_status=tree.app.pending_thread_actions.get(entry.target))
+                    row.apply_thread_preparation(prepared_rows[key])
                 else:
                     row.set_label(entry.target)
                     row.tooltip = entry.target

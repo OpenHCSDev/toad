@@ -20,6 +20,8 @@ ResultT = TypeVar("ResultT", covariant=True)
 class RenderTask(ABC, Generic[ResultT]):
     """A nominal operation with an exact input and result contract."""
 
+    reusable_result = False
+
     @abstractmethod
     def execute(self) -> ResultT:
         """Execute pure preparation in the renderer process."""
@@ -29,8 +31,14 @@ class RenderTask(ABC, Generic[ResultT]):
         """Validate the result at a transport boundary."""
 
 
+class ReusableRenderTask(RenderTask[ResultT]):
+    """Pure captured-input preparation, safe to retain across consumers."""
+
+    reusable_result = True
+
+
 @dataclass(frozen=True)
-class PatchRenderTask(RenderTask[PreparedPatch]):
+class PatchRenderTask(ReusableRenderTask[PreparedPatch]):
     source: str
     ansi: bool
     dark: bool
@@ -61,7 +69,7 @@ class MarkdownRenderTask(RenderTask[PreparedMarkdown]):
 
 
 @dataclass(frozen=True)
-class TokenRenderTask(RenderTask[PreparedMarkdown]):
+class TokenRenderTask(ReusableRenderTask[PreparedMarkdown]):
     tokens: tuple[Token, ...]
     ansi: bool
     dark: bool
@@ -76,7 +84,7 @@ class TokenRenderTask(RenderTask[PreparedMarkdown]):
 
 
 @dataclass(frozen=True)
-class TranscriptRenderTask(RenderTask[tuple[TranscriptFragment, ...]]):
+class TranscriptRenderTask(ReusableRenderTask[tuple[TranscriptFragment, ...]]):
     events: tuple[TranscriptEvent, ...]
 
     def execute(self) -> tuple[TranscriptFragment, ...]:
@@ -89,7 +97,7 @@ class TranscriptRenderTask(RenderTask[tuple[TranscriptFragment, ...]]):
 
 
 @dataclass(frozen=True)
-class RichRenderTask(RenderTask[PreparedRichContent]):
+class RichRenderTask(ReusableRenderTask[PreparedRichContent]):
     source: RichSource
     presentation: RichPresentation
 
