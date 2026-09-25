@@ -58,6 +58,9 @@ class CompactionUpdate(AgentMessage):
     summary: str = ""
     will_retry: bool = False
     chunk_index: int = 0
+    source_bytes_done: int | None = None
+    source_bytes_total: int | None = None
+    summary_phase: str | None = None
 
 
 @dataclass

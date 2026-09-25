@@ -1589,7 +1589,19 @@ class Conversation(containers.Vertical):
 
         message.stop()
         if message.phase == "progress":
-            self.activity = f"Compacting context… summary step {message.chunk_index} completed"
+            if message.source_bytes_done is not None and message.source_bytes_total:
+                percent = message.source_bytes_done * 100 // message.source_bytes_total
+                label = (
+                    "Shrinking summary" if message.summary_phase == "shrink"
+                    else "Compacting context"
+                )
+                summaries = "summary" if message.chunk_index == 1 else "summaries"
+                self.activity = (
+                    f"{label}… {percent}% of input processed · "
+                    f"{message.chunk_index} {summaries} completed"
+                )
+            else:
+                self.activity = f"Compacting context… summary step {message.chunk_index} completed"
             self.post_message(messages.SessionUpdate(state="busy", summary=self.activity))
             return
         if message.phase == "start":
