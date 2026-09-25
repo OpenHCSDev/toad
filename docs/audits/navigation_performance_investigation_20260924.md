@@ -512,3 +512,68 @@ navigation, scroll anchoring, human read boundaries and category gates pass.
 The exact first-return/row-retention gate passes for saved and empty tabs,
 including resize, same-mode callbacks and closing several hidden views.
 Main's fragment-divider and mid-turn compaction fixtures also pass after merge.
+
+## Real-server sidebar stress and loading-state continuity
+
+The user requested actual desktop stress after observing slow toggles and a
+Channels pane that disappeared/reappeared while opening a tab. This round used
+ordinary sidebar mouse input in real server-connected Toad windows, with X11
+pixel readback and read-only py-spy. No prompts, goal actions or test messages
+were submitted. The original user's window remained running.
+
+The original window (PID 3708215, `7708243` + Textual `d3cdb40e`) completed 40
+verified toggles. Median click-to-toggle-indicator pixels were 111ms for Channels
+and 104ms for Thread; worst 137ms. Two earlier detector calibrations were invalid
+and excluded. A follow-up using explicit mouse-down/up dispatch still measured
+roughly 103/110ms medians. The main-thread profile was dominated by layout and
+reflow rather than foreground server reads.
+
+For a matched comparison, two test-owned windows attached to the same existing
+session, each with one open tab and a 1255×1374-pixel terminal (113×42 cells).
+The baseline was `7708243` + `d3cdb40e`, PID 4147217; candidate was `85772a3` +
+Textual `8acd4340`, PID 4125794. Each ran 16 toggles per sidebar and restored its
+starting state. Both 30-second/50Hz profiles completed with zero errors.
+
+| Real-window indicator transition | Baseline | Candidate |
+| --- | ---: | ---: |
+| Channels median / maximum | 93.50 / 127.05ms | 96.44 / 115.71ms |
+| Thread median / maximum | 100.70 / 124.31ms | 92.82 / 111.26ms |
+| Inclusive sampled layout | 3.06s | 2.52s |
+| Inclusive sampled reflow | 1.70s | 1.32s |
+| Inclusive sampled rendering | 1.36s | 1.12s |
+
+These count an observed toggle-indicator pixel transition, not complete text
+settlement. Sampled categories overlap. Layout work fell about 18%, but Channels'
+median did not improve: **sidebar toggles are still around 90–100ms, and this is
+not a claim that the remaining latency is solved**. Artifacts:
+`/home/ts/.cache/toad-sidebar-matched-{baseline,candidate}{,-profile}.json`.
+
+The disappearing pane had a direct cause: both the provisional thread screen
+and the channel opening screen omitted it. They now compose the same native
+`ChannelsSidebar`, preserving shared collapsed, placement, panel and scroll
+intent. The provisional view uses the existing owner's cached projection
+without starting its own wire poll. A channel view hydrates only its conversation
+instead of destroying/rebuilding the sidebar/header. Controls remain usable
+during loading; all session-view shells share the sidebar resize policy.
+Sidebar toggle glyphs are also explicitly non-selectable under repeated clicks.
+
+Actual opening of existing live threads verified the correction in both states:
+over a 2.5-second observation, the open-state baseline lost its indicator in
+77/453 samples, versus 0/452 candidate samples; the closed-state comparison was
+56/459 versus 0/455. Final screenshots confirmed the intended destination tabs.
+Artifacts: `/home/ts/.cache/toad-live-opening-{baseline,candidate}.json` and
+`/home/ts/.cache/toad-live-opening-closed-{baseline,candidate}.json`, with adjacent
+PNG receipts. The temporary baseline viewer exited normally after the tests.
+
+The framework change retains visuals when all committed geometry is unchanged
+and prevents measured **leaf** extents from automatically invalidating their
+parents again. Validation, watchers, ordinary content refresh and watcher-owned
+layout remain active. A broader container variant passed framework tests but
+failed Toad history paging and was rejected; containers/virtual views retain
+their original extent-driven feedback. The retained implementation passes
+**3,086 tests, 1 skipped, 4 xfailed** outside the framework snapshot directory,
+plus Toad history anchoring, sidebar placement/drag/geometry, route cancellation,
+tab navigation and pending/hydration frame gates. The new opening-state pilot
+fails on frozen baseline with missing-sidebar frames and passes on the candidate.
+Main through `f054f62` was integrated afterward; its goal-owner and classified
+compaction tests and the opening-state pilot pass.
