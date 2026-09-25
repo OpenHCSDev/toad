@@ -57,7 +57,7 @@ from toad.widgets.prompt import Prompt
 from toad.widgets.terminal import Terminal
 from toad.widgets.throbber import Throbber
 from toad.widgets.goal_bar import GoalBar, GoalControl
-from toad.widgets.input_delivery import InputDeliveryBar, InputDeliveryDetails
+from toad.widgets.input_delivery import InputDeliveryBar, InputDeliveryDetails, empty_delivery
 from toad.widgets.user_input import UserInput
 from toad.widgets.history_anchor import HistoryWindow
 from toad.widgets.message_filter import ALL_CATEGORIES, IN_OUT_CATEGORIES, MESSAGE_CATEGORIES, MessageCategory
@@ -524,7 +524,8 @@ class Conversation(containers.Vertical):
     sending_queued_prompt = var("")
     current_model: var[Model | None] = var(None)
     thinking_level = var("")
-    unresolved_inputs: var[list[dict]] = var(list)
+    input_delivery: var[dict] = var(empty_delivery)
+    input_delivery_error: var[str] = var("")
     goal_unavailable = var(False)
     goal: var[Goal | None] = var(None)
     goal_execution: var[GoalExecution | None] = var(None)
@@ -753,7 +754,9 @@ class Conversation(containers.Vertical):
             yield TurnActivity().data_bind(activity=Conversation.activity,
                                            started_at=Conversation.activity_started_at)
             yield Throbber(id="throbber")
-            yield InputDeliveryBar().data_bind(inputs=Conversation.unresolved_inputs)
+            yield InputDeliveryBar().data_bind(
+                delivery=Conversation.input_delivery, error=Conversation.input_delivery_error,
+            )
             yield GoalBar().data_bind(goal=Conversation.goal, execution=Conversation.goal_execution, unavailable=Conversation.goal_unavailable)
             yield Prompt(complete_callback=self.shell_complete).data_bind(
                 project_path=Conversation.project_path,
@@ -2229,7 +2232,7 @@ class Conversation(containers.Vertical):
             self.call_after_refresh(self._compact_committed_history)
 
     def _invalidate_input_dispositions(self) -> None:
-        if not self.is_attached or self.agent is None or not hasattr(self.agent, "get_unresolved_inputs"):
+        if not self.is_attached or self.agent is None or not hasattr(self.agent, "get_input_delivery"):
             return
         self._delivery_refresh_revision += 1
         if self._delivery_refresh_task is None or self._delivery_refresh_task.done():
@@ -2243,18 +2246,48 @@ class Conversation(containers.Vertical):
     async def _read_input_dispositions(self) -> None:
         while self.is_attached:
             revision, agent = self._delivery_refresh_revision, self.agent
-            if agent is None or not hasattr(agent, "get_unresolved_inputs"):
+            if agent is None or not hasattr(agent, "get_input_delivery"):
                 return
             try:
-                inputs = await agent.get_unresolved_inputs()
-            except (OSError, ValueError):
+                delivery = await agent.get_input_delivery()
+            except (OSError, ValueError, RuntimeError, TimeoutError, KeyError) as error:
                 if revision != self._delivery_refresh_revision:
                     continue
+                self.input_delivery_error = f"Delivery unavailable: {error}"
                 return
             if revision != self._delivery_refresh_revision or agent is not self.agent:
                 continue
-            self.unresolved_inputs = inputs
+            self.input_delivery = delivery
+            self.input_delivery_error = ""
             return
+
+    @property
+    def unresolved_inputs(self) -> list[dict]:
+        return self.input_delivery["inputs"]
+
+    async def _load_delivery_history(self) -> dict:
+        agent = self.agent
+        if agent is None:
+            raise ValueError("No connected owner.")
+        result = await agent.get_input_delivery(include_history=True)
+        if agent is not self.agent:
+            raise ValueError("The connected owner changed; inspect delivery again.")
+        self._delivery_refresh_revision += 1
+        self.input_delivery = {**result, "historicalInputs": []}
+        self.input_delivery_error = ""
+        return result
+
+    async def _dismiss_delivery_history(self) -> dict:
+        agent = self.agent
+        if agent is None:
+            raise ValueError("No connected owner.")
+        result = await agent.dismiss_historical_inputs()
+        if agent is not self.agent:
+            raise ValueError("The connected owner changed; inspect delivery again.")
+        self._delivery_refresh_revision += 1
+        self.input_delivery = result
+        self.input_delivery_error = ""
+        return result
 
     def on_input_dispositions_changed(self, event: acp_messages.InputDispositionsChanged) -> None:
         event.stop()
@@ -2264,11 +2297,17 @@ class Conversation(containers.Vertical):
     async def inspect_input_delivery(self, event: InputDeliveryBar.Inspect) -> None:
         event.stop()
         await self.refresh_input_dispositions()
-        details = InputDeliveryDetails(log_path=getattr(self.agent, "_log_file_path", None))
+        details = InputDeliveryDetails(
+            log_path=getattr(self.agent, "_log_file_path", None),
+            load_history=self._load_delivery_history,
+            dismiss_history=self._dismiss_delivery_history,
+        )
         # A modal remains a view of the same backend snapshot, including later starts.
-        details.inputs = self.unresolved_inputs
+        details.delivery = self.input_delivery
+        details.error = self.input_delivery_error
         self.app.push_screen(details)
-        details.watch(self, "unresolved_inputs", lambda inputs: setattr(details, "inputs", inputs))
+        details.watch(self, "input_delivery", lambda state: setattr(details, "delivery", state))
+        details.watch(self, "input_delivery_error", lambda error: setattr(details, "error", error))
 
     def _poll_goal(self) -> None:
         if not self.is_attached:
