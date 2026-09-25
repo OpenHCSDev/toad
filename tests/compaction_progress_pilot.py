@@ -93,8 +93,15 @@ async def main():
                                      sourceBytesTotal=800, summaryPhase="shrink")
             assert "last step: summary shrink" in shrinking and "100% of input processed" in shrinking
             assert "3 summaries" in shrinking and "remaining" not in shrinking
+            # Synthesis is announced before its request, so source processing
+            # can be complete while combining the summaries is still running.
+            combining = await update(chunkIndex=3, sourceBytesDone=800,
+                                     sourceBytesTotal=800, summaryPhase="synthesis")
+            assert "100% of input processed" in combining and "combining summaries" in combining
+            assert "last step: summary shrink" not in combining
             ended = await update("end", summary="Finished")
             assert "input processed" not in ended and "summary shrink" not in ended
+            assert "combining summaries" not in ended
             await update("start")
             fallback = await update(chunkIndex=1)
             assert "step 1 completed" in fallback and "%" not in fallback

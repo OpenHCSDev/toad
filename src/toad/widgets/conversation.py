@@ -1600,6 +1600,8 @@ class Conversation(containers.Vertical):
                     self.activity += " (last step: summary shrink)"
             else:
                 self.activity = f"Compacting context… summary step {message.chunk_index} completed"
+            if message.summary_phase == "synthesis":
+                self.activity += " · combining summaries"
             self.post_message(messages.SessionUpdate(state="busy", summary=self.activity))
             return
         if message.phase == "start":
