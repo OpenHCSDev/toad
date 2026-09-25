@@ -332,3 +332,63 @@ does not by itself prove a particular terminal-frame latency.
 3–4 incidental paints during eight unchanged polls on both the frozen baseline
 and this branch. Its strict zero-paints assertion fails in both, so this change
 is neither credited with fixing nor blamed for that separate existing symptom.
+
+## First reverse revisit after opening ten tabs
+
+The next live capture used frozen `45e36b8`, PID 2882407, configured for the
+persistent renderer: 60s at 50Hz with idle stacks, 148,842 all-thread samples,
+2,999 main-thread samples and zero errors. Main-thread inclusive layout was
+11.80s, rendering 10.12s, mode switching 7.68s and compositor reflow 7.62s;
+selector idle was 16.52s. These overlap. Profile:
+`/home/ts/.cache/toad-pr11-45e36b8-2882407-active-20260924.json`.
+The user clarified the sequence: create about ten tabs, revisit in reverse
+creation order (slow each time), then in creation order (fast), then continue
+fast back-and-forth navigation.
+
+`tests/many_tabs_return_pilot.py` reproduces that sequence with ten saved-thread
+tabs plus the original owner tab, isolated wire/config/state, a fake ACP
+replay and the ordinary worker renderer. No provider or live owner is involved.
+The first return mounts missing labels/close buttons and replaces sidebar
+member rows whose open-session identity changed while the tab was hidden. Some
+headers still contain the preceding pending-thread tab. Most stylesheet
+revisions are unchanged, and later visits need no new rows. Baseline lays out
+the stale roster before reconciling it, then measures the changed tree again.
+
+The existing atomic mode-switch transaction now owns mounted-screen layout
+until cached rows and tab controls have caught up. Header synchronization is
+serialized with signal-driven updates and batches additions/removals. Sidebar
+member replacement also retires its exact obsolete set in one DOM operation.
+Underline positioning waits for committed geometry during activation. Real
+resize/style/content invalidations remain pending and are measured normally;
+hidden tabs do not acquire new polling or acknowledgement work.
+
+Two sequential alternating baseline/candidate runs, same isolated fixture:
+
+| Headless measurement | Frozen `45e36b8` | Candidate |
+| --- | ---: | ---: |
+| First reverse return median, run 1 / run 2 | 90.36 / 102.08ms | 82.91 / 82.71ms |
+| First reverse full reflows across nine actual switches | 31 | 23 |
+| Forward second-return median | 23.69–24.24ms | 16.72–17.06ms |
+| Reverse third-return median | 21.18–21.52ms | 16.29–18.01ms |
+
+The strict stale-roster-layout gate fails on frozen baseline and passes on the
+candidate. It asserts ordering/readiness, not a machine-dependent timing limit.
+First returns still need 2–3 full layouts as new rows and scrollbar geometry
+settle. One candidate first-return maximum was 164ms versus a baseline maximum
+of 120ms, and heartbeat outliers persisted. **No worst-case latency improvement,
+all-tabs-always-warm claim, or terminal-pixel latency claim is made.** The
+reproducible improvement is removal of obsolete layout work and lower typical
+switch cost. Observations:
+`/home/ts/.cache/toad-tab-returns-paired-{baseline,candidate}-{1,2}.json`.
+
+Validation also covers empty-thread returns, real terminal resize, a same-mode
+request from the screen's own message queue, closing several hidden tabs,
+remaining tab order and per-tab drafts. Passed existing pilots: broad Comms,
+sidebar first-frame projection, PR #10 header/sidebar geometry, sort viewport,
+Back/Forward history, stylesheet revisions, pending-thread metadata, held replay
+worker input/tab exit, owner navigation, close handling, hidden sidebar signals,
+history scroll-frame anchoring, human read boundaries, seven categories, filter
+supersession, file-preview latency and history-edge scheduling. Fatal Ruff and
+whitespace checks pass. Focused mypy reports nine existing issues in
+`session_tabs.py`/`sidebar_tree.py`; frozen baseline has the same issues plus one
+older assignment error (ten total). `session_view.py` is clean in that check.

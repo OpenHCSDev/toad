@@ -929,13 +929,13 @@ class ToadApp(App, inherit_bindings=False):
                     self._atomic_mode_switch = True
                     try:
                         mounted = super().switch_mode(mode)
+                        await mounted
+                        screen = self.screen
+                        if isinstance(screen, SessionView):
+                            await screen.prepare_navigation()
+                            await screen.layout_navigation()
                     finally:
                         self._atomic_mode_switch = False
-                    await mounted
-                    screen = self.screen
-                    if isinstance(screen, SessionView):
-                        await screen.prepare_navigation()
-                        await screen.layout_navigation()
                 if (isinstance(screen, CommsScreen) and screen.is_current
                         and not screen._content_loaded):
                     # The three-widget opening screen was measured inside the
