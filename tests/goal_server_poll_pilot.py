@@ -137,7 +137,7 @@ async def main():
                 await pilot.resize_terminal(90, 35)
                 await pilot.pause()
                 # Current details remain the same server projection while the modal is open.
-                await pilot.click("#goal-expand")
+                await pilot.click("#goal-history")
                 await pilot.pause()
                 details = app.screen
                 assert isinstance(details, GoalDetails)
@@ -191,7 +191,9 @@ async def main():
                     bar.query_one(".goal-header", Static).render()
                 )
                 assert not pulse.active
-                assert all(control.disabled for control in bar.query(GoalControl))
+                assert all(control.disabled for control in bar.query(GoalControl)
+                           if control.id != "goal-collapse")
+                assert not bar.query_one("#goal-collapse", GoalControl).disabled
                 comms.goal_snapshot = read
                 await until(lambda: not conversation.goal_unavailable)
                 await conversation.change_goal("clear")

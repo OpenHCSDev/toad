@@ -50,7 +50,7 @@ async def main():
                     separator = lines[goal.region.bottom - 1].text[goal.region.x:goal.region.right]
                     assert "─" in separator, (label, separator)
                 if busy:
-                    assert goal.query_one(".goal-summary").region.y == goal.region.y
+                    assert goal.query_one(".goal-header").region.y == goal.region.y
                 assert prompt.text == draft
 
             view.goal = None
