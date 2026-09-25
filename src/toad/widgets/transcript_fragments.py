@@ -143,6 +143,7 @@ class RenderBudget:
 @dataclass(frozen=True)
 class TranscriptFragment:
     events: tuple[TranscriptEvent, ...]
+    continuation: bool = False
 
 
 def transcript_fragments(events: tuple[TranscriptEvent, ...]) -> tuple[TranscriptFragment, ...]:
@@ -152,7 +153,8 @@ def transcript_fragments(events: tuple[TranscriptEvent, ...]) -> tuple[Transcrip
     for event in events:
         if event.kind in {"user", "assistant", "thinking", "notice", "sent"}:
             fragments.extend(
-                TranscriptFragment((replace(event, text=part),)) for part in budget.split(event.text)
+                TranscriptFragment((replace(event, text=part),), continuation=index > 0)
+                for index, part in enumerate(budget.split(event.text))
             )
         elif event.kind in {"tool_start", "tool_end"}:
             if event.tool_call_id in tools:
