@@ -995,6 +995,12 @@ class Agent(AgentBase):
             [{"type": "text", "text": " "}], {"agentComms": {"clearQueue": True}}
         )
 
+    async def send_now(self) -> None:
+        """Interrupt the response for already queued input, without resending text."""
+        await self.acp_session_prompt(
+            [{"type": "text", "text": " "}], {"agentComms": {"sendNow": True}}
+        )
+
     async def compact_context(self, instructions: str | None = None) -> dict[str, Any]:
         """Ask the persistent owner to compact Pi context without creating a turn."""
         metadata = {"agentComms": {"compact": instructions}}
