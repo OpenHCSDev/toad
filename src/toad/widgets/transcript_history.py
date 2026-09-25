@@ -31,7 +31,8 @@ if TYPE_CHECKING:
     from toad.widgets.conversation import Window
 
 
-def transcript_blocks(events: tuple[TranscriptEvent, ...], *, fragment: bool = False) -> list[Widget]:
+def transcript_blocks(events: tuple[TranscriptEvent, ...], *, fragment: bool = False,
+                      show_divider: bool = True) -> list[Widget]:
     blocks: list[Widget] = []
     tools: dict[str, protocol.ToolCall] = {}
     for event in events:
@@ -40,12 +41,15 @@ def transcript_blocks(events: tuple[TranscriptEvent, ...], *, fragment: bool = F
             if event.routing is not None and event.routing.requests:
                 from toad.widgets.incoming_message import IncomingMessage
                 message = event.routing.requests[0]
-                blocks.append(IncomingMessage(message.sender, text, message.target))
+                blocks.append(IncomingMessage(
+                    message.sender, text, message.target, show_header=show_divider,
+                ))
             else:
-                blocks.append(UserInput(text))
+                blocks.append(UserInput(text, show_divider=show_divider))
         elif kind in {"assistant", "notice", "sent"}:
             blocks.append(AgentResponse(
                 text, route=event.routing.reply if event.routing else None, paginate=not fragment,
+                show_divider=show_divider,
             ))
         elif kind == "thinking":
             blocks.append(AgentThought(text, paginate=not fragment))
@@ -107,7 +111,9 @@ class TranscriptFragmentView(VerticalGroup):
         # A semantic fragment may be one oversized paragraph, list, or fence.
         # It is already a page leaf: re-paging it would recursively remount the
         # same indivisible block forever without producing visible Markdown.
-        yield from transcript_blocks(self.fragment.events, fragment=True)
+        yield from transcript_blocks(
+            self.fragment.events, fragment=True, show_divider=not self.fragment.continuation,
+        )
 
     async def update_fragment(self, fragment: TranscriptFragment) -> None:
         """Keep a live text leaf and its routing controls when only text changed.

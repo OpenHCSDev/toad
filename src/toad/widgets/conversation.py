@@ -1543,7 +1543,10 @@ class Conversation(containers.Vertical):
             return
         blocks = ([TranscriptHistory(message.page, agent.get_transcript_page, fragments=fragments)]
                   if message.page is not None and agent is not None else
-                  [block for fragment in fragments for block in transcript_blocks(fragment.events, fragment=True)])
+                  [block for fragment in fragments for block in transcript_blocks(
+                      fragment.events, fragment=True,
+                      show_divider=not fragment.continuation,
+                  )])
         self.new_block()
         if blocks:
             # The first replay frame is a latest view, not a remembered scroll
@@ -1587,8 +1590,11 @@ class Conversation(containers.Vertical):
         self.post_message(messages.SessionUpdate(
             state="busy" if active else "idle", summary=title,
         ))
-        detail = (message.summary or "Context estimate unavailable until a new measurement arrives."
-                  if message.phase == "end" else "Context estimate unavailable")
+        detail = (
+            message.summary or "Context estimate unavailable until a new measurement arrives."
+            if message.phase == "end"
+            else "Compaction did not complete. Context usage will update after the next measurement."
+        )
         await self.post(AgentResponse(f"## {title}\n\n{detail}"))
 
     @work(exclusive=True, group="transcript-window")

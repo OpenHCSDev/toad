@@ -52,17 +52,19 @@ async def owner_retry_route(root: Path) -> None:
     owner = CommsAgent(comms, agent_bin="pi", runtime_enabled=True)
     owner._ensure_live_drain = lambda _session: None
     owner._schedule_wake = lambda _session: None
+    owner._schedule_goal = lambda _session: None
     project = root / "project"
     project.mkdir()
     await owner.new_session(str(project))
-    goal = comms.update_goal("project", "set", text="Learn architectural factoring")
+    toad_agent = SimpleNamespace(_coordination_root=comms.root, _coordination_thread="project")
+    goal = await Agent.update_goal(toad_agent, "set", "Learn architectural factoring")
     store = owner._open_goal_store()
-    store.create_goal(goal.id)
+    assert store.snapshot(goal.id).state == "ready"
+    assert store.ready_grant(goal.id, 1)
     attempt = store.reserve(goal.id, 1)
     store.claim_launch(attempt)
     store.record_failed(attempt, "Original turn failed")
     comms.update_goal("project", "blocked", goal_id=goal.id)
-    toad_agent = SimpleNamespace(_coordination_root=comms.root, _coordination_thread="project")
     try:
         resumed = await Agent.update_goal(toad_agent, "retry")
         assert resumed.id == goal.id and resumed.status == "active"

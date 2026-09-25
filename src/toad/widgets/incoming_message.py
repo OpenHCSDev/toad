@@ -22,17 +22,20 @@ class IncomingSender(RouteHeader):
 class IncomingMessage(VerticalGroup):
     DEFAULT_CLASSES = "block"
 
-    def __init__(self, sender: str, text: str, target: str | None = None) -> None:
+    def __init__(self, sender: str, text: str, target: str | None = None,
+                 *, show_header: bool = True) -> None:
         super().__init__()
         self.sender = sender
         self.text = text
         self.target = target
+        self.show_header = show_header
 
     def compose(self) -> ComposeResult:
         from toad.widgets.agent_response import AgentResponse
 
-        yield MessageDivider(f"Inbound · @{self.sender}")
-        yield IncomingSender(self.sender, self.target)
+        if self.show_header:
+            yield MessageDivider(f"Inbound · @{self.sender}")
+            yield IncomingSender(self.sender, self.target)
         yield AgentResponse(self.text, show_divider=False).add_class("routed-body")
 
     def get_block_content(self, destination: str) -> str:

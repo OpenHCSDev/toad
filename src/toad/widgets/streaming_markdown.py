@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Callable
+from dataclasses import replace
 from typing import TYPE_CHECKING
 
 from markdown_it import MarkdownIt
@@ -104,6 +105,9 @@ class StreamingMarkdown(PreparedConversationMarkdown):
             fragments = await prepare_transcript_fragments(
                 page.events, getattr(self.app, "render_processes", None),
             )
+            # The outer message owns its divider; inner render fragments only
+            # supply Markdown content while the live message is paged.
+            fragments = tuple(replace(fragment, continuation=True) for fragment in fragments)
             if not is_current():
                 return
             self._markdown = source
