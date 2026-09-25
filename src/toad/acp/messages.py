@@ -31,6 +31,10 @@ class GoalSnapshotUpdate(AgentMessage):
     execution: GoalExecution | None
 
 
+class InputDispositionsChanged(AgentMessage):
+    """Invalidate the unresolved delivery view; the backend ledger owns its contents."""
+
+
 class RejectedSessionUpdate(AgentMessage):
     """An invalid ACP notification was logged and excluded from the conversation."""
 
