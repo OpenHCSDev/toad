@@ -544,6 +544,7 @@ class Conversation(containers.Vertical):
         self._loading: Loading | None = None
         self._agent_response: AgentResponse | None = None
         self._managed_turn_id: str | None = None
+        self._mcp_live_turn: str | None = None
         self._agent_thought: AgentThought | None = None
         from toad.widgets.agent_activity import AgentActivityBoundary
 
@@ -1470,6 +1471,9 @@ class Conversation(containers.Vertical):
             # Late or forged: the projection dies with its turn and is never
             # shown outside the active-turn lifetime.
             return
+        if self._mcp_live_turn == self._managed_turn_id:
+            return  # The package emits at most one receipt per turn.
+        self._mcp_live_turn = self._managed_turn_id
         rows = message.receipt.get("servers") or []
         summary = "; ".join(
             f"{row['id']}[{row['scope']}] {row['state']} calls={row['calls']}"
@@ -1517,6 +1521,7 @@ class Conversation(containers.Vertical):
         if self._managed_turn_id is None:
             self.busy_count += 1
         self._managed_turn_id = message.turn_id
+        self._mcp_live_turn = None
         self._agent_activity_boundary.reset()
         self.app.open_tabs_changed.publish(None)
         self.new_block()

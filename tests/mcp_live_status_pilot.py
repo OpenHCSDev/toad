@@ -92,6 +92,7 @@ async def main() -> None:
 
             await view.on_turn_started(acp_messages.TurnStarted("turn-1"))
             agent.rpc_session_update("fixture", chunk(receipt()))
+            agent.rpc_session_update("fixture", chunk(receipt()))  # duplicate
             agent.rpc_session_update("fixture", chunk(receipt(), input_id="forged"))
             agent.rpc_session_update("fixture", chunk({"version": 2}))
             agent.rpc_session_update("fixture", chunk(receipt(servers=[{"id": "x"}])))
