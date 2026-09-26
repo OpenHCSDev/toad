@@ -129,15 +129,15 @@ else:
                 cli_digest=cli_digest,
             )
 
-        # A positive grant must refuse an unpinned or changed CLI build;
-        # revocations of any build stay available.
-        assert await attempt("calls", "allow") == "unsupported_install"
+        # Positive grants fail closed until the package advertises an explicit
+        # capability; CLI bytes/digest pinning is not proof (identical
+        # entrypoint bytes span vulnerable and fixed builds).
+        assert await attempt("calls", "allow") == "positive_held"
         assert not marker.exists()
-        assert await attempt("trust", "approve", WRONG_DIGEST) == "unsupported_install"
+        assert await attempt("trust", "approve", WRONG_DIGEST) == "positive_held"
         assert not marker.exists()
-        pinned = hashlib.sha256(script.read_bytes()).hexdigest()
+        assert not decisions.positive_capability_known()
         assert not decisions.cli_digest_matches(str(script), WRONG_DIGEST)
-        assert decisions.cli_digest_matches(str(script), pinned)
 
         # No stale snapshot may reach the action branch of the fake CLI.
         stale.touch()
@@ -207,24 +207,10 @@ else:
         marker.unlink()
         appeared.clear()
         displayed.clear()
-        allow_runner = asyncio.create_task(attempt("calls", "allow", pinned))
-        await asyncio.wait_for(appeared.wait(), 3)
-        assert not marker.exists()
-        await pty.write_user_input(f"allow:fixture:{DIGEST}\n")
-        assert await asyncio.wait_for(allow_runner, 3) == "exited_zero"
-        assert marker.read_text() == "user typed challenge:calls"
-        marker.unlink()
-        appeared.clear()
-        displayed.clear()
-        approve_runner = asyncio.create_task(attempt("trust", "approve", pinned))
-        await asyncio.wait_for(appeared.wait(), 3)
-        assert not marker.exists()
-        await pty.write_user_input(f"approve:fixture:{DIGEST}\n")
-        assert await asyncio.wait_for(approve_runner, 3) == "exited_zero"
-        assert marker.read_text() == "user typed challenge:trust"
-        marker.unlink()
-        appeared.clear()
-        displayed.clear()
+        # Positive grants stay held: no PTY child, no challenge shown.
+        assert await attempt("calls", "allow") == "positive_held"
+        assert await attempt("trust", "approve") == "positive_held"
+        assert not marker.exists() and not displayed
         timeout_before = decisions.DECISION_TIMEOUT_SECONDS
         decisions.DECISION_TIMEOUT_SECONDS = 0.04
         try:
@@ -319,8 +305,8 @@ else:
             await pilot.pause(0.02)
             assert not inventory_screen.query_one("#trust_deny", Button).disabled
             assert not inventory_screen.query_one("#calls_ask", Button).disabled
-            assert not inventory_screen.query_one("#trust_approve", Button).disabled
-            assert not inventory_screen.query_one("#calls_allow", Button).disabled
+            assert inventory_screen.query_one("#trust_approve", Button).disabled
+            assert inventory_screen.query_one("#calls_allow", Button).disabled
             inventory_screen.query_one("#trust_deny", Button).press()
             await pilot.pause(0.2)
             assert isinstance(app.screen, MCPDecisionScreen)

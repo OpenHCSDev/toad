@@ -21,10 +21,17 @@ from toad.mcp_inventory import Declaration, Inventory, read_inventory
 
 DecisionAction = Literal["trust", "calls"]
 Decision = Literal["approve", "deny", "allow", "ask"]
-# Positive grants need the independently cleared grant-revival fix. The CLI
-# exposes no version/capability flag, so the user pins the SHA-256 of a
-# verified installed script; Toad never owns or writes the package ledger.
+# The revival fix lives in imported package modules, not the CLI entrypoint
+# (identical entrypoint bytes span vulnerable and fixed builds), and the CLI
+# exposes no capability flag yet. Positive grants therefore stay fail-closed
+# until the package freezes an explicit capability contract; Toad never infers
+# authority from file bytes, settings or any ledger knowledge.
 POSITIVE_ACTIONS = {("trust", "approve"), ("calls", "allow")}
+
+
+def positive_capability_known() -> bool:
+    """Only a frozen package-owned capability receipt may enable positive grants."""
+    return False
 
 
 def cli_digest_matches(cli_path: str, expected_digest: str) -> bool:
@@ -87,13 +94,11 @@ class LocalDecisionPTY:
             ("calls", "ask"),
         }:
             return "unsupported"
-        if (action, decision) in POSITIVE_ACTIONS and not cli_digest_matches(
-            cli_path, cli_digest
-        ):
-            # An older package build can revive a grant the running ledger fix
-            # retired. Positive grants refuse every unpinned or changed CLI;
-            # revocations stay available because they only narrow authority.
-            return "unsupported_install"
+        if (action, decision) in POSITIVE_ACTIONS and not positive_capability_known():
+            # No package-owned capability receipt exists yet; an old build could
+            # revive a retired grant. Revocations stay available because they
+            # only narrow authority.
+            return "positive_held"
         if (
             not row.effective
             or not row.enabled

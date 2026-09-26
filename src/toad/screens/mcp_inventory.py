@@ -12,7 +12,7 @@ from textual.screen import ModalScreen
 from textual.widgets import Button, OptionList, Static
 from textual.widgets.option_list import Option
 
-from toad.mcp_decision import Decision, DecisionAction, cli_digest_matches
+from toad.mcp_decision import Decision, DecisionAction
 from toad.mcp_inventory import Declaration, Inventory, read_inventory, render_inventory
 
 
@@ -112,18 +112,17 @@ class MCPInventoryScreen(ModalScreen[None]):
     def _update_actions(self) -> None:
         row, snapshot = self._selected, self._inventory
         if row is None or snapshot is None or os.name != "posix":
-            project = calls = pinned = False
+            project = calls = False
         else:
             eligible = row.effective and row.enabled and snapshot.project_trusted_saved
-            # Positive grants also need the pinned supported CLI build; the
-            # backend enforces the same gate before any launch.
-            pinned = cli_digest_matches(self.cli_path, self.cli_digest)
             project = eligible and row.scope == "project"
             calls = eligible and row.status == "approved"
         for identifier, enabled in (
-            ("trust_approve", project and pinned),
+            # Positive grants stay fail-closed until the package advertises
+            # an explicit capability receipt; pinning CLI bytes is not proof.
+            ("trust_approve", False),
             ("trust_deny", project),
-            ("calls_allow", calls and pinned),
+            ("calls_allow", False),
             ("calls_ask", calls),
         ):
             self.query_one(f"#{identifier}", Button).disabled = not enabled
