@@ -42,21 +42,27 @@ separate concern; it does not establish queue membership or acknowledge inputs.
 
 ## Backend proposal adopted for further integration
 
-The backend owner confirmed these proposed semantics (message8053), still
-pending implemented schema/fixtures and an exact freeze:
+The backend owner reconciled the earlier field-name proposals: the following
+semantics are agreed, still pending implemented schema/fixtures and an exact
+freeze:
 
 ```text
-trusted load/owner-socket ready.agentComms.queueScope = {
+trusted new/load/owner-socket ready.agentComms.queueBinding = {
   sessionId, ownerThread, ownerCreatedAt, ownerEpoch, admissionGeneration
 }
 queueState = {
-  scope, revision, items: [{inputId, text}], restoredInputs: [{inputId, text}]
+  version: 1, scope, revision, items: [{inputId, text}], restored: [{inputId, text}]
 }
 inputStarted = {scope, revision, inputId, text}
 ```
 
-Only trusted load/ready metadata may rebind scope. Queue events cannot establish
-or replace it. Exact starts and public dispositions use the same scope.
+Only trusted new/load/ready results may rebind scope. The same result includes
+an initial queueState snapshot at its revision. Queue events cannot establish or
+replace scope. Exact starts and public dispositions use the same scope.
+Prebind callbacks are bounded-buffered per session; after binding and the initial
+snapshot, only matching-incarnation events at revision >= the snapshot apply.
+Overflow marks projection unavailable, requiring read-only refresh or reconnect,
+never automatic input replay. Exact equal-revision starts remain eligible once.
 Revision increments per membership change, not per emitted message: an exact
 start and the following queue snapshot share the removal revision. Therefore
 an equal-revision start still retires its input once; a per-scope started-ID
@@ -68,9 +74,8 @@ Duplicate restored IDs append to the composer at most once.
 Details required in the backend schema/fixture freeze before wire integration:
 
 - Version support and exact scope types/validation/bounds.
-- Initial snapshot/ready ordering and handling pre-bind notifications without
-  losing the first authoritative state.
-- Lower-revision start proof semantics (distinct from stale snapshots).
+- Fixture for initial snapshot/ready ordering and bounded pre-bind notification
+  replay, including overflow/unavailable behavior.
 - Reconnect replay ordering, deduplication bounds, and disposition scope.
 
 ## Acceptance matrix
