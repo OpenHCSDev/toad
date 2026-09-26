@@ -24,17 +24,17 @@ class SpinnerApp(App):
 def summarize(values):
     values = sorted(values)
     return {"count": len(values), "median_ms": statistics.median(values),
-            "p95_ms": values[int(.95*(len(values)-1))], "max_ms": max(values)} if values else {}
+            "p95_ms": values[int(.95*(len(values)-1))],
+            "p99_ms": values[int(.99*(len(values)-1))], "max_ms": max(values)} if values else {}
 
 
-async def main(args):
-    app = SpinnerApp()
+async def measure_spinner(app, spinner, *, fps=60, seconds=3):
+    """Measure the current native scene, preserving the indicator's old state."""
     wall, cpu, gaps = [], [], []
-    async with app.run_test(size=(args.width, args.height)) as pilot:
-        spinner = app.query_one(Throbber)
+    old_busy, old_refresh = spinner.busy, spinner.auto_refresh
+    try:
         spinner.busy = True
-        spinner.auto_refresh = 1 / args.fps
-        await pilot.pause()
+        spinner.auto_refresh = 1 / fps
         await asyncio.sleep(.25)
         render = app.screen._compositor_refresh
 
@@ -59,15 +59,27 @@ async def main(args):
                 patch.object(app.stylesheet, "apply", wraps=app.stylesheet.apply) as styles:
             observer = asyncio.create_task(heartbeat())
             try:
-                await asyncio.sleep(args.seconds)
+                await asyncio.sleep(seconds)
             finally:
                 observer.cancel()
                 await asyncio.gather(observer, return_exceptions=True)
-            report = {"scope": "headless native compositor work, not terminal/pixel FPS", "seconds": args.seconds,
-                      "requested_refresh_fps": args.fps, "frame_budget_ms": 1000/args.fps,
+            report = {"scope": "headless native compositor work, not terminal/pixel FPS", "seconds": seconds,
+                      "requested_refresh_fps": fps, "frame_budget_ms": 1000/fps,
+                      "registered_widgets": len(app._registry),
+                      "visible_widgets": len(app.screen._compositor.visible_widgets),
                       "layout_calls": layouts.call_count, "stylesheet_apply_calls": styles.call_count,
                       "frame_wall": summarize(wall), "frame_thread_cpu": summarize(cpu), "loop_gap": summarize(gaps)}
-        spinner.busy = False
+        return report
+    finally:
+        spinner.busy = old_busy
+        spinner.auto_refresh = old_refresh
+
+
+async def main(args):
+    app = SpinnerApp()
+    async with app.run_test(size=(args.width, args.height)) as pilot:
+        await pilot.pause()
+        report = await measure_spinner(app, app.query_one(Throbber), fps=args.fps, seconds=args.seconds)
         assert app._exception is None
     if args.output:
         args.output.write_text(json.dumps(report, indent=2) + "\n")

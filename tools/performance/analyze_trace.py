@@ -20,7 +20,9 @@ def overlaps(event, action):
 def stats(values):
     values = sorted(values)
     return {"count": len(values), "median_ms": round(statistics.median(values), 2),
-            "p95_ms": round(values[int(.95*(len(values)-1))], 2), "max_ms": round(max(values), 2)} if values else {}
+            "p95_ms": round(values[int(.95*(len(values)-1))], 2),
+            "p99_ms": round(values[int(.99*(len(values)-1))], 2),
+            "max_ms": round(max(values), 2)} if values else {}
 
 selected = [event for event in trace if any(overlaps(event, action) for action in actions)]
 groups = defaultdict(list)

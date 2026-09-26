@@ -2,6 +2,7 @@
 
 import asyncio
 import os
+import threading
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
@@ -13,6 +14,7 @@ from textual.containers import VerticalGroup
 
 from toad.widgets.message_filter import ALL_CATEGORIES, MessageCategory
 from toad.widgets.transcript_history import TranscriptHistory
+from toad.transcript_preparation import TranscriptFilterWork
 
 
 async def exercise(app, pilot, stage):
@@ -26,12 +28,23 @@ async def exercise(app, pilot, stage):
     pager = TranscriptHistory(TranscriptPage(events, cursor, TranscriptCursor("mount-fixture", 12), False, False))
     entered, release = asyncio.Event(), asyncio.Event()
     original_mount = VerticalGroup.mount
+    original_submit = app.preparation.submit
     held = False
+
+    async def submitted(work):
+        nonlocal held
+        result = await original_submit(work)
+        if stage == "prepare" and isinstance(work, TranscriptFilterWork) and not held:
+            held = True
+            entered.set()
+            await release.wait()
+        return result
 
     def mounted(parent, *widgets, **kwargs):
         nonlocal held
         result = original_mount(parent, *widgets, **kwargs)
-        target = parent is pager if stage == "container" else parent.has_class("filtered-history-results")
+        target = (parent is pager if stage == "container" else
+                  stage == "children" and parent.has_class("filtered-history-results"))
         if target and not held:
             held = True
 
@@ -49,7 +62,7 @@ async def exercise(app, pilot, stage):
         view.visible_categories = frozenset((MessageCategory.INBOUND,))
         scan = None
         try:
-            with patch.object(VerticalGroup, "mount", mounted):
+            with patch.object(VerticalGroup, "mount", mounted), patch.object(app.preparation, "submit", submitted):
                 pager._filter_scanning = True
                 scan = asyncio.create_task(pager._scan_filtered_older())
                 await asyncio.wait_for(entered.wait(), 5)
@@ -86,6 +99,44 @@ async def exercise(app, pilot, stage):
             await pager.remove()
 
 
+async def exercise_batched_selection(app, pilot):
+    view = app.screen.conversation
+    view.visible_categories = ALL_CATEGORIES
+    message = Message("peer", "owner", "INBOUND", MessageType.INFO, timestamp=0)
+    events = tuple(event for index in range(20) for event in (
+        TranscriptEvent("user", f"INBOUND_{index}", routing=TurnRouting((message,), None)),
+        TranscriptEvent("thinking", f"THINKING_{index}"),
+    )) + tuple(TranscriptEvent("assistant", f"tail {index}") for index in range(4))
+    page = TranscriptPage(events, TranscriptCursor("batch-fixture", 0),
+                          TranscriptCursor("batch-fixture", len(events)), False, False)
+    pager = TranscriptHistory(page)
+    threads = []
+    prepare = TranscriptFilterWork.prepare
+
+    def prepared(work):
+        threads.append(threading.get_ident())
+        return prepare(work)
+
+    with patch.object(pager, "_scroll_changed"), patch.object(pager, "_check_edges"), \
+            patch.object(TranscriptFilterWork, "prepare", prepared):
+        await view.contents.mount(pager)
+        await pilot.pause()
+        view.visible_categories = frozenset((MessageCategory.INBOUND,))
+        previous = 0
+        while pager._filter_has_older:
+            pager._filter_scanning = True
+            await pager._scan_filtered_older()
+            children = pager._filter_overlay.children
+            assert 0 < len(children) - previous <= 4, "Source-sized widget admission"
+            previous = len(children)
+            await pilot.pause()
+        assert [child.fragment.events[0].text for child in children] == [f"INBOUND_{i}" for i in range(20)]
+        assert pager.pages[0].page is page, "Filtering replaced canonical source data"
+        assert threads and all(thread != threading.get_ident() for thread in threads)
+        assert pager._filter_pending is None
+        await pager.remove()
+
+
 async def main():
     with TemporaryDirectory(prefix="toad-filter-mount-") as directory:
         root = Path(directory)
@@ -94,8 +145,9 @@ async def main():
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(120, 40)) as pilot:
             await pilot.pause()
-            for stage in ("container", "children"):
+            for stage in ("prepare", "container", "children"):
                 await exercise(app, pilot, stage)
+            await exercise_batched_selection(app, pilot)
             view = app.screen.conversation
             view.visible_categories = frozenset()
             cursor = TranscriptCursor("empty-filter", 10)

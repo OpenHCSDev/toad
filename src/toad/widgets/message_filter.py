@@ -83,16 +83,14 @@ def apply_block_filter(widget, selected: frozenset[MessageCategory]) -> None:
     category = block_category(widget)
     hidden = category is not None and category not in selected
     marker = "-category-hidden"
-    if widget.has_class(marker) == hidden:
-        return
-    if widget.is_attached and widget.app.stylesheet.is_local_display_class(marker):
-        # This declaration changes only the block's display. Reapplying CSS to
-        # all of its Markdown/tool descendants is unrelated work on the input
-        # thread. The stylesheet owns the dependency check, including user CSS.
-        widget.set_class(hidden, marker, update=False)
-        widget.app.stylesheet.apply(widget)
-    else:
-        widget.set_class(hidden, marker)
+    if widget.has_class(marker) != hidden:
+        # Keep the marker available for custom styling. Ordinary filtering is a
+        # model-owned display constraint, not a request to rematch subtree CSS.
+        update_styles = (
+            widget.is_attached and widget.app.stylesheet.references_class(marker)
+        )
+        widget.set_class(hidden, marker, update=update_styles)
+    widget.set_display_constraint("message-category", not hidden)
 
 
 def keep_live_block(widget) -> bool:

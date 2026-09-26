@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from collections import deque
-from dataclasses import replace
+from dataclasses import dataclass, replace
 from collections.abc import Awaitable, Callable
 from typing import TYPE_CHECKING
 
@@ -20,7 +20,7 @@ from textual.widgets import Static
 
 from toad.acp import protocol
 from toad.acp.encode_tool_call_id import encode_tool_call_id
-from toad.transcript_preparation import PageRequest, TranscriptPageBuffer
+from toad.transcript_preparation import PageRequest, TranscriptFilterWork, TranscriptPageBuffer
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.agent_thought import AgentThought
 from toad.widgets.tool_call import ToolCall
@@ -28,7 +28,7 @@ from toad.widgets.user_input import UserInput
 from toad.widgets.message_divider import AgentActivityDivider
 from toad.widgets.history_anchor import HistoryAnchor
 from toad.widgets.message_filter import (
-    ALL_CATEGORIES, CategorizedBlock, MessageCategory, apply_block_filter, event_category, is_routed_event, keep_events,
+    ALL_CATEGORIES, CategorizedBlock, MessageCategory, apply_block_filter, event_category, is_routed_event,
 )
 from toad.widgets.transcript_fragments import (
     TranscriptFragment, prepare_transcript_fragments, transcript_fragments,
@@ -40,6 +40,16 @@ if TYPE_CHECKING:
 
 class _FilteredPublicationRetired(Exception):
     """Unwind an anchor transaction when its filter changes during mounting."""
+
+
+@dataclass(frozen=True)
+class _FilteredSource:
+    """Current source-page cursor; unadmitted data has no widget projection."""
+
+    fragments: tuple[TranscriptFragment, ...]
+    stop: int
+    before: TranscriptCursor
+    has_older: bool
 
 
 def transcript_blocks(events: tuple[TranscriptEvent, ...], *, fragment: bool = False,
@@ -255,6 +265,7 @@ class TranscriptHistory(CategorizedBlock, VerticalGroup):
         self._saturated_widget_limit = 0
         self._generation = 0
         self._filter_overlay: VerticalGroup | None = None
+        self._filter_pending: _FilteredSource | None = None
         self._filter_before: TranscriptCursor | None = None
         self._filter_has_older = True
         self._filter_scanning = False
@@ -319,6 +330,7 @@ class TranscriptHistory(CategorizedBlock, VerticalGroup):
 
     def on_unmount(self) -> None:
         self._generation += 1
+        self._filter_pending = None
         self.window.histories.discard(self)
         if self._page_buffer is not None:
             self._page_buffer.close()
@@ -391,6 +403,7 @@ class TranscriptHistory(CategorizedBlock, VerticalGroup):
             page.set_categories(selected)
         overlay = self._filter_overlay
         self._filter_overlay = None
+        self._filter_pending = None
         self._filter_before = None
         self._filter_has_older = True
         self._filter_force_pending = False
@@ -437,12 +450,12 @@ class TranscriptHistory(CategorizedBlock, VerticalGroup):
                     and not self._closing and not self._pruning and self._filtered_source)
 
         try:
-            if before is None:
+            pending = self._filter_pending
+            if pending is not None:
+                source = pending
+            elif before is None:
                 page = self.pages[0]
-                fragments = tuple(fragment for fragment in page.fragments[:page.start]
-                                  if keep_events(fragment.events, selected))
-                next_before = page.page.before
-                has_older = page.page.has_older
+                source = _FilteredSource(page.fragments, page.start, page.page.before, page.page.has_older)
             else:
                 if self.loader is None:
                     self._filter_has_older = False
@@ -452,9 +465,11 @@ class TranscriptHistory(CategorizedBlock, VerticalGroup):
                 if (page.before.session_file != before.session_file
                         or page.before.offset >= before.offset and page.has_older):
                     raise ValueError("Earlier routed history made no cursor progress")
-                fragments = tuple(fragment for fragment in prepared.fragments
-                                  if keep_events(fragment.events, selected))
-                next_before, has_older = page.before, page.has_older
+                source = _FilteredSource(prepared.fragments, len(prepared.fragments), page.before, page.has_older)
+            batch = await self.app.preparation.submit(TranscriptFilterWork(
+                source.fragments, selected, source.stop, TranscriptPageView.BATCH,
+            ))
+            fragments = batch.fragments
             if not is_current() or self.screen is not self.app.screen:
                 return
             async with self.window.history_lock:
@@ -493,7 +508,9 @@ class TranscriptHistory(CategorizedBlock, VerticalGroup):
                     self.post_message(self.Covered(tuple(
                         event for fragment in fragments for event in fragment.events
                     ), self))
-                self._filter_before, self._filter_has_older = next_before, has_older
+                self._filter_pending = replace(source, stop=batch.stop) if batch.stop else None
+                self._filter_before = source.before
+                self._filter_has_older = bool(batch.stop) or source.has_older
                 self._update_edges()
         except _FilteredPublicationRetired:
             # filter_changed already hid/queued removal of the retired overlay.
@@ -602,6 +619,7 @@ class TranscriptHistory(CategorizedBlock, VerticalGroup):
             if self._filter_overlay is not None:
                 await self._filter_overlay.remove()
                 self._filter_overlay = None
+                self._filter_pending = None
                 self._filter_before = None
                 self._filter_has_older = True
             view.page = page
@@ -867,6 +885,7 @@ class TranscriptHistory(CategorizedBlock, VerticalGroup):
                 # overlay's cursor cannot skip the newly omitted interval.
                 await self._filter_overlay.remove()
                 self._filter_overlay = None
+                self._filter_pending = None
                 self._filter_before = None
                 self._filter_has_older = True
                 self._generation += 1

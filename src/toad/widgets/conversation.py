@@ -368,11 +368,6 @@ class Conversation(containers.Vertical):
     """Holds the agent conversation (input, output, and various controls / information)."""
 
     BLANK = True
-    DEFAULT_CSS = """
-    Conversation .-category-hidden {
-        display: none;
-    }
-    """
     BINDING_GROUP_TITLE = "Conversation"
     CURSOR_BINDING_GROUP = Binding.Group(description="Cursor")
     BINDINGS = [

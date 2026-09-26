@@ -2,6 +2,59 @@
 
 ## Current tracking checkpoint — supersedes historical status below
 
+### Filter display constraints and bounded worker admission — follow-up
+
+Framework dependency for this follow-up: `9ff47a7eb222593bcc9549552e1cf9bab2a5d45a`
+([Textual PR #5](https://github.com/OpenHCSDev/textual/pull/5)).
+
+Ordinary category toggles now use Textual's composable display constraints rather
+than CSS matching. Custom marker selectors still receive native style updates;
+authored display rules are preserved. Filtered-history selection now runs through
+the shared preparation runtime and admits at most four matches per publication,
+retaining only data for the rest of that source page. Generation checks protect
+preparation and both mount awaits. This does **not** bound cumulative overlay or
+direct live-widget growth; the source-size-independent presentation task is open.
+
+Fresh private-data replay control uses the published source pair Toad `4e2ecdf`
+and Textual `3748f499`, with the same updated replay observer and v3 bundle as the
+candidate. Control copies are detached cache worktrees. Replay resource spans
+record UI-thread CPU, page faults and context switches; GC and heartbeat evidence
+are separate. Headless `Pilot.pause` settlement is not input-to-pixel latency.
+
+| Replay | Large Thinking setter / restore | Max GC | Max loop gap |
+| --- | ---: | ---: | ---: |
+| `toad-live-replay-published-1` | 39.7 / 53.3 ms | 188.9 ms | 271.1 ms |
+| `toad-live-replay-constraints-1` | 15.9 / 13.7 ms | 172.5 ms | 283.9 ms |
+| `toad-live-replay-filter-batches-1` | 15.0 / 13.3 ms | 205.6 ms | 296.6 ms |
+
+The final replay also includes two three-second loaded-scene spinner intervals,
+so its aggregate GC/loop interval is not a matched latency comparison. Each
+spinner interval produced 180 compositor updates at requested 60 Hz, with about
+6,550 mounted widgets: maximum compositor work 3.40/3.38 ms, maximum heartbeat gap
+5.80/5.53 ms, and zero layout/CSS-apply calls. These are headless native compositor
+measurements, not terminal/pixel FPS; normal production cadence remains 30 Hz.
+
+Real-terminal all-category receipts still fail acceptance:
+
+| Receipt | Input ack median / p95 / max | Loop max | GC max |
+| --- | ---: | ---: | ---: |
+| `toad-filter-constraints-1` | 59.4 / 127.1 / 186.5 ms | 132.0 ms | 120.5 ms |
+| `toad-filter-worker-batches-1` | 56.1 / 166.5 / 247.3 ms | 200.0 ms | 126.3 ms |
+
+Both completed 72 actions, all seven categories over four threads, and 52/52
+unsent input markers. Latest input p99 was 242.7 ms. The latest worst span includes 126.3 ms of GC inside native
+`Segment.divide`/compositor paint (125.6 ms thread CPU), with inclusive layout
+193.8 ms and compositor 159.2 ms. Those spans overlap and must not be summed.
+The previous 34-second replay anomaly was not reproduced or explained; current
+large GC pauses are CPU work, not evidence for attributing that old anomaly to swap.
+
+Verification: Textual **3,132 passed, 1 skipped, 4 xfailed** (full except snapshot
+tests, 105.76 s); all **49 Toad pilots passed** (164.72 s). Worker admission tests
+check chronological matches, unchanged canonical source, actual off-UI selection,
+and supersession before publication as well as during either mount.
+
+### Previous published checkpoint
+
 The [tracking plan](ui_responsiveness_plan.md) locks in the four confirmed causes,
 viewport-bounded transcript loading/worker filtering, and the spinner/effects
 frame budget. Issues: [Textual#4](https://github.com/OpenHCSDev/textual/issues/4),

@@ -8,11 +8,15 @@ No providers are launched and no original wire roots are used for operations.
 import argparse
 import asyncio
 from collections import Counter
+from contextlib import contextmanager
+import gc
 import json
 import os
 from pathlib import Path
 import pickle
+import resource
 from tempfile import TemporaryDirectory
+import threading
 import time
 from unittest.mock import patch
 
@@ -28,6 +32,63 @@ from toad.widgets.message_filter import ALL_CATEGORIES, MESSAGE_CATEGORIES, Mess
 from toad.widgets.side_bar import SideBar
 from toad.widgets.transcript_history import TranscriptHistory
 from toad.widgets.user_input import UserInput
+from toad.widgets.throbber import Throbber
+from benchmark_spinner import measure_spinner
+
+
+class ReplayObservation:
+    """Low-volume attribution; no forced collections or GC policy changes."""
+
+    def __init__(self):
+        self.phase = "settlement"
+        self.spans = []
+        self.collections = []
+        self.gaps = []
+        self._collections_started = {}
+
+    @contextmanager
+    def span(self, name):
+        previous, self.phase = self.phase, name
+        before = resource.getrusage(resource.RUSAGE_THREAD)
+        start, cpu = time.monotonic_ns(), time.thread_time_ns()
+        try:
+            yield
+        finally:
+            wall_ms = (time.monotonic_ns() - start) / 1e6
+            cpu_ms = (time.thread_time_ns() - cpu) / 1e6
+            after = resource.getrusage(resource.RUSAGE_THREAD)
+            self.spans.append({"name": name, "wall_ms": wall_ms, "cpu_ms": cpu_ms,
+                               "minor_faults": after.ru_minflt - before.ru_minflt,
+                               "major_faults": after.ru_majflt - before.ru_majflt,
+                               "voluntary_switches": after.ru_nvcsw - before.ru_nvcsw,
+                               "involuntary_switches": after.ru_nivcsw - before.ru_nivcsw})
+            self.phase = previous
+
+    def gc_callback(self, phase, info):
+        thread = threading.get_ident()
+        if phase == "start":
+            self._collections_started[thread] = (time.monotonic_ns(), time.thread_time_ns(), self.phase)
+        elif (start := self._collections_started.pop(thread, None)) is not None:
+            self.collections.append({"phase": start[2], "thread": thread,
+                                     "generation": info["generation"], "collected": info["collected"],
+                                     "wall_ms": (time.monotonic_ns() - start[0]) / 1e6,
+                                     "cpu_ms": (time.thread_time_ns() - start[1]) / 1e6})
+
+    async def heartbeat(self):
+        before = time.monotonic_ns()
+        while True:
+            phase = self.phase
+            await asyncio.sleep(.002)
+            now = time.monotonic_ns()
+            elapsed = (now - before) / 1e6
+            if elapsed >= 5:
+                self.gaps.append({"phase_before": phase, "phase_after": self.phase, "wall_ms": elapsed})
+            before = now
+
+    def result(self):
+        return {"scope": "headless action interval; loop gaps >=5ms, not terminal input-to-pixel latency",
+                "ui_thread": threading.get_ident(), "spans": self.spans,
+                "gc": self.collections, "loop_gaps": self.gaps}
 
 
 def make_block(record):
@@ -66,6 +127,8 @@ async def main(args):
               "scope": "captured loaded pages/direct text blocks; no live agents or original wire access",
               "views": [], "actions": [], "completed": False}
     start = time.monotonic()
+    observation = ReplayObservation()
+    heartbeat = None
     with TemporaryDirectory(prefix="toad-captured-replay-") as directory:
         root = Path(directory)
         os.environ.update(AGENT_COMMS_ROOT=str(root / "wire"), XDG_CONFIG_HOME=str(root / "config"),
@@ -169,6 +232,9 @@ async def main(args):
                     report["setup_seconds"] = round(time.monotonic()-start, 2)
                     report["before"] = ownership(app)
                     report["mode_mapping"] = modes
+                    gc.callbacks.append(observation.gc_callback)
+                    heartbeat = asyncio.create_task(observation.heartbeat())
+                    await asyncio.sleep(.01)
                     for captured in native_views[:args.exercise_views]:
                         mode = modes[captured["mode"]]
                         begun = time.monotonic()
@@ -177,12 +243,19 @@ async def main(args):
                         report["actions"].append({"kind": "switch", "mode": mode,
                                                   "settled_ms": (time.monotonic()-begun)*1000})
                         view = app.screen.conversation
+                        if args.spinner_seconds:
+                            visible = app.screen._compositor.visible_widgets
+                            spinner = next(node for node in app.screen.query(Throbber) if node in visible)
+                            report.setdefault("spinners", []).append({"mode": mode, **await measure_spinner(
+                                app, spinner, fps=args.spinner_fps, seconds=args.spinner_seconds,
+                            )})
                         original = view.visible_categories
                         draft = view.prompt.text
                         for category in MESSAGE_CATEGORIES:
                             begun = time.monotonic()
                             setter_start, setter_cpu = time.monotonic_ns(), time.thread_time_ns()
-                            view.visible_categories = view.visible_categories ^ {category}
+                            with observation.span(f"{mode}:{category.value}:set"):
+                                view.visible_categories = view.visible_categories ^ {category}
                             setter_ms = (time.monotonic_ns()-setter_start)/1e6
                             setter_cpu_ms = (time.thread_time_ns()-setter_cpu)/1e6
                             view.prompt.focus()
@@ -191,7 +264,8 @@ async def main(args):
                             assert view.prompt.text == draft
                             await pilot.pause()
                             restore_start = time.monotonic_ns()
-                            view.visible_categories = original
+                            with observation.span(f"{mode}:{category.value}:restore"):
+                                view.visible_categories = original
                             restore_ms = (time.monotonic_ns()-restore_start)/1e6
                             await pilot.pause()
                             report["actions"].append({"kind": "filter", "mode": mode, "category": category.value,
@@ -199,9 +273,18 @@ async def main(args):
                                                       "restore_setter_ms": restore_ms,
                                                       "settled_ms": (time.monotonic()-begun)*1000})
                     report["after"] = ownership(app)
+                    gc.callbacks.remove(observation.gc_callback)
+                    heartbeat.cancel()
+                    await asyncio.gather(heartbeat, return_exceptions=True)
                     assert app._exception is None
                     report["completed"] = True
         finally:
+            if observation.gc_callback in gc.callbacks:
+                gc.callbacks.remove(observation.gc_callback)
+            if heartbeat is not None:
+                heartbeat.cancel()
+                await asyncio.gather(heartbeat, return_exceptions=True)
+            report["observation"] = observation.result()
             report["total_seconds"] = round(time.monotonic()-start, 2)
             args.output.write_text(json.dumps(report, indent=2) + "\n")
         await asyncio.get_running_loop().shutdown_default_executor()
@@ -213,4 +296,6 @@ if __name__ == "__main__":
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--exercise-views", type=int, default=3)
     parser.add_argument("--legacy-watches", action="store_true")
+    parser.add_argument("--spinner-seconds", type=float, default=0)
+    parser.add_argument("--spinner-fps", type=int, default=60)
     asyncio.run(main(parser.parse_args()))

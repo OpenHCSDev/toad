@@ -10,8 +10,9 @@ from dataclasses import dataclass
 from agent_comms import TranscriptCursor, TranscriptPage
 
 from toad.widgets.transcript_fragments import TranscriptFragment, prepare_transcript_fragments
+from toad.widgets.message_filter import MessageCategory, keep_events
 from toad.work_preparation import (
-    PreparationRuntime, PreparationScope, SerializedWork, ScopedWork, WorkKey, WorkLane, retained_bytes,
+    PreparationRuntime, PreparationScope, SerializedWork, ScopedWork, ThreadWork, WorkKey, WorkLane, retained_bytes,
 )
 
 
@@ -26,6 +27,38 @@ class PreparedTranscriptPage:
 class PageRequest:
     before: TranscriptCursor | None = None
     after: TranscriptCursor | None = None
+
+
+@dataclass(frozen=True)
+class FilteredTranscriptBatch:
+    fragments: tuple[TranscriptFragment, ...]
+    stop: int
+
+
+@dataclass(frozen=True)
+class TranscriptFilterWork(ThreadWork[FilteredTranscriptBatch]):
+    """Select the next bounded presentation batch off-loop from source data."""
+
+    fragments: tuple[TranscriptFragment, ...]
+    selected: frozenset[MessageCategory]
+    stop: int
+    limit: int
+
+    async def identity(self, runtime: PreparationRuntime) -> WorkKey:
+        # This is a cursor operation, not a retained copy of the source history.
+        return WorkKey(type(self), object())
+
+    def prepare(self) -> FilteredTranscriptBatch:
+        matches = []
+        stop = self.stop
+        if not self.selected:
+            return FilteredTranscriptBatch((), 0)
+        while stop and len(matches) < self.limit:
+            stop -= 1
+            fragment = self.fragments[stop]
+            if keep_events(fragment.events, self.selected):
+                matches.append(fragment)
+        return FilteredTranscriptBatch(tuple(reversed(matches)), stop)
 
 
 @dataclass(frozen=True)

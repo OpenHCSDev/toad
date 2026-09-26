@@ -19,5 +19,7 @@ for name in sys.argv[1:]:
                       "verification": workload.get("filter_verification"), "input_keys": len(inputs),
                       "applied_keys": len(applied), "key_modes": dict(Counter(e["mode"] for e in applied)),
                       "input_acknowledgment": {"count":len(latencies), "median_ms": round(statistics.median(latencies),2),
-                          "p95_ms":round(latencies[int(.95*(len(latencies)-1))],2), "max_ms":round(max(latencies),2)} if latencies else {},
+                          "p95_ms":round(latencies[int(.95*(len(latencies)-1))],2),
+                          "p99_ms":round(latencies[int(.99*(len(latencies)-1))],2),
+                          "max_ms":round(max(latencies),2)} if latencies else {},
                       "last_view": snapshot.get("conversation")}, indent=2))

@@ -118,6 +118,11 @@ Optional source-backed probes:
 - `benchmark_spinner.py --fps 60 --seconds 3`: native headless spinner/compositor
   timing with layout/CSS counters. This is component frame work, not terminal FPS
   and not proof of the budget under a large captured workload.
+- Add `--spinner-seconds 3 --spinner-fps 60` to `replay_state.py` to measure the
+  same native indicator in each exercised captured view. The tool preserves its
+  prior state and reports mounted/visible counts, frame work and layout/CSS calls.
+  Replay now records setter CPU/wall time, thread resource deltas, GC durations
+  and loop gaps (at least 5 ms); `compare_replays.py` summarizes those separately.
 
 ## User-authorized live capture
 

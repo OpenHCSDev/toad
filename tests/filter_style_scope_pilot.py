@@ -20,7 +20,7 @@ class Block(CategorizedBlock, VerticalGroup):
 
 
 class FilterApp(App):
-    CSS = ".-category-hidden { display: none; } .probe { color: blue; }"
+    CSS = ".probe { color: blue; }"
 
     def compose(self) -> ComposeResult:
         yield Block()

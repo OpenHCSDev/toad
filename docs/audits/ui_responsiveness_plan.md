@@ -64,8 +64,13 @@ Additional requirements are first-class work items:
 - Filter publication retains its own overlay and rechecks generation after
   awaited mounts; stale work cannot advance the new filter cursor. Empty masks
   stop pointless older-history scans and lookahead.
-- Display-only filtering opts into the stylesheet's dependency check; custom
-  descendant/inherited CSS retains the ordinary subtree path.
+- Category filtering uses a model-owned display constraint, preserving authored
+  CSS without rematching ordinary message subtrees. Custom marker selectors keep
+  their ordinary styling path through a parsed-declaration dependency check.
+- Filtered-history selection executes through shared `PreparationRuntime` model
+  workers. Only four matching fragments are admitted per batch; a data-only source
+  cursor retains the unadmitted part of the current page. Superseded preparation
+  and mount results cannot publish or advance the replacement filter's cursor.
 
 ### Textual companion
 
@@ -76,10 +81,11 @@ Additional requirements are first-class work items:
 - Avoid unused message signals and idle retention of processed payloads.
 - Subscriber-owned reactive cleanup with weak publisher tracking.
 - Parsed-declaration query for local display-only class invalidation.
+- Composable model display constraints and parsed class-reference lookup.
 
 ## Evidence and limitations
 
-- Full Textual suite at the latest framework checkpoint:3128passed,1skipped,
+- Full Textual suite at the latest framework checkpoint:3132passed,1skipped,
   4xfailed, excluding snapshot tests. The packaged Toad pilot runner passes49cases.
   Toad broad and focused receipts are detailed
   in the audit; regression failures were reproduced before the relevant fixes.
@@ -111,14 +117,26 @@ Additional requirements are first-class work items:
 - A minimal306x80 headless spinner probe requested60Hz and recorded180updates in
   3seconds: frame-work p951.14ms/max2.23ms, zero layout/CSS-apply calls. That is
   component/compositor evidence, not a delivered-terminal-FPS or loaded-app claim.
+- Follow-up captured replay (~6,500 mounted widgets, 13 views): large Thinking
+  setter/restore used 15.0/13.3 ms versus 39.7/53.3 ms in a fresh published-source
+  control. This isolates synchronous setter work; GC still reached 205.6 ms.
+- Two loaded-scene spinner intervals each produced 180 headless compositor
+  updates in three seconds at requested 60 Hz: maximum frame work 3.4 ms, no
+  layout or CSS applications. This establishes this steady-state component's
+  loaded-scene cost, not input performance during filtering or terminal FPS.
+- Latest four-thread terminal worker-batch receipt completed all 72 actions and
+  52 typed markers, but input acknowledgment max was 247.3 ms and loop max was
+  200.0 ms (GC 126.3 ms). Bounded admission is not an end-to-end performance win.
 
 ## Next work
 
 1. Quantify reactive-retention cleanup under aged/captured interaction churn.
 2. Attribute the remaining filter pause to setter, allocation/GC, layout, paint,
    GIL and host scheduling separately; bound work rather than move the stall.
-3. Complete worker-side filtering and source-size-independent presentation,
-   especially direct live blocks when scrolled away from the tail.
-4. Establish spinner steady-state frame-work and input budgets on the same load.
+3. Complete source-size-independent presentation, especially direct live blocks
+   when scrolled away from the tail and cumulative filtered-overlay growth.
+   Four-fragment admission bounds each publication, not total retained widgets.
+4. Establish simultaneous spinner/input budgets during filtering and loading;
+   steady-state headless loaded-scene animation now has a measured receipt.
 5. Repeat unprofiled real-terminal acceptance after correctness and source/receipt
    checks, then integrate the companion framework and current main.
