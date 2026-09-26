@@ -276,6 +276,7 @@ class TurnStarted(AgentMessage):
     activity_detail: str | None = None
     agent: object | None = None
     session_id: str | None = None
+    sequence: int | None = None
 
 
 @dataclass
@@ -285,6 +286,7 @@ class TurnSettled(AgentMessage):
     turn_id: str | None = None
     agent: object | None = None
     session_id: str | None = None
+    sequence: int | None = None
 
 
 @dataclass

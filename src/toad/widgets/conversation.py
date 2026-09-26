@@ -546,6 +546,8 @@ class Conversation(containers.Vertical):
         self._managed_turn_id: str | None = None
         self._mcp_live_turn: str | None = None
         self._mcp_live_note: Note | None = None
+        self._turn_lifecycle_source: tuple[object, str | None] | None = None
+        self._turn_lifecycle_sequence = 0
         self._agent_thought: AgentThought | None = None
         from toad.widgets.agent_activity import AgentActivityBoundary
 
@@ -1530,20 +1532,36 @@ class Conversation(containers.Vertical):
             )
         await self.post_agent_response(message.text, message.route)
 
-    @on(acp_messages.TurnStarted)
-    async def on_turn_started(self, message: acp_messages.TurnStarted) -> None:
+    def _accept_turn_lifecycle(
+        self, message: acp_messages.TurnStarted | acp_messages.TurnSettled
+    ) -> bool:
         from toad.acp.agent import Agent
 
-        message.stop()
-        # Validate again at queue consumption: the owning Agent/session or
-        # active turn may have changed since the ACP notification was posted.
-        if not isinstance(message.turn_id, str) or not message.turn_id:
-            return
-        if (isinstance(self.agent, Agent) or message.agent is not None) and (
+        if not isinstance(self.agent, Agent) and message.agent is None:
+            return True  # Local non-ACP agents retain their direct event path.
+        if (
             message.agent is not self.agent
             or message.session_id != getattr(self.agent, "session_id", None)
-            or message.turn_id != getattr(self.agent, "_active_turn_id", None)
+            or type(message.sequence) is not int
+            or message.sequence <= 0
         ):
+            return False
+        source = (message.agent, message.session_id)
+        if source == self._turn_lifecycle_source:
+            if message.sequence <= self._turn_lifecycle_sequence:
+                return False
+        # Consume the immutable ingress order, NOT Agent._active_turn_id: the
+        # producer may already have settled multiple valid queued turns.
+        self._turn_lifecycle_source = source
+        self._turn_lifecycle_sequence = message.sequence
+        return True
+
+    @on(acp_messages.TurnStarted)
+    async def on_turn_started(self, message: acp_messages.TurnStarted) -> None:
+        message.stop()
+        if not isinstance(message.turn_id, str) or not message.turn_id:
+            return
+        if not self._accept_turn_lifecycle(message):
             return
         self.activity_started_at = message.started_at
         activity = message.activity_detail if message.activity == "working" else "Thinking…"
@@ -1563,14 +1581,8 @@ class Conversation(containers.Vertical):
 
     @on(acp_messages.TurnSettled)
     async def on_turn_settled(self, message: acp_messages.TurnSettled) -> None:
-        from toad.acp.agent import Agent
-
         message.stop()
-        if (isinstance(self.agent, Agent) or message.agent is not None) and (
-            message.agent is not self.agent
-            or message.session_id != getattr(self.agent, "session_id", None)
-            or getattr(self.agent, "_active_turn_id", None) is not None
-        ):
+        if not self._accept_turn_lifecycle(message):
             return
         # Empty/missing IDs are initial idle snapshots, never authority to
         # settle a nonempty live turn. Keep the same guard for local messages.

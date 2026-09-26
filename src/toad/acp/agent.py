@@ -190,6 +190,7 @@ class Agent(AgentBase):
         self._message_target: MessagePump | None = None
         self._pending_permission_answers: set[asyncio.Future[Answer | None]] = set()
         self._active_turn_id: str | None = None
+        self._turn_lifecycle_sequence = 0
 
         self._terminal_count: int = 0
 
@@ -440,6 +441,7 @@ class Agent(AgentBase):
                     return
                 self.uses_turn_events = True
                 self._active_turn_id = turn_id
+                self._turn_lifecycle_sequence += 1
                 import math
 
                 started_at = state.get("startedAt")
@@ -450,6 +452,7 @@ class Agent(AgentBase):
                     state.get("activity") if isinstance(state.get("activity"), str) else None,
                     state.get("activityDetail") if isinstance(state.get("activityDetail"), str) else None,
                     agent=self, session_id=self.session_id,
+                    sequence=self._turn_lifecycle_sequence,
                 ))
                 return
             if state.get("turnSettled") is True:
@@ -464,8 +467,10 @@ class Agent(AgentBase):
                 if isinstance(turn_id, str):
                     self.uses_turn_events = True
                 self._active_turn_id = None
+                self._turn_lifecycle_sequence += 1
                 self.post_message(messages.TurnSettled(
                     turn_id, agent=self, session_id=self.session_id,
+                    sequence=self._turn_lifecycle_sequence,
                 ))
                 return
             incoming = metadata["agentComms"].get("incoming")

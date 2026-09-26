@@ -57,6 +57,33 @@ async def exercise_boundaries(agent, view, pilot) -> None:
         agent.rpc_session_update(session_id, update)
         await pilot.pause()
 
+    # Positive producer/consumer lag: do NOT drain between notifications. The
+    # Agent has already settled by the time Textual consumes each valid start.
+    for count in (1, 3):
+        view.delivering_prompt = "pending input"
+        view.sending_queued_prompt = "queued input"
+        view.activity = "Starting"
+        generation = view._transcript_generation
+        busy = view.busy_count
+        first_sequence = agent._turn_lifecycle_sequence + 1
+        for index in range(count):
+            turn = f"batch-{count}-{index}"
+            agent.rpc_session_update(session, turn_signal("turnStarted", turn))
+            agent.rpc_session_update(session, turn_signal("turnSettled", turn))
+        assert agent._active_turn_id is None
+        await pilot.pause()
+        assert view._managed_turn_id is None and view.busy_count == busy
+        assert view._transcript_generation == generation + count
+        assert not view.delivering_prompt and not view.sending_queued_prompt
+        assert not view.activity and not notes(view)
+        # A real old ingress sequence replayed after the batch cannot reopen it.
+        view.post_message(messages.TurnStarted(
+            f"batch-{count}-0", agent=agent, session_id=session, sequence=first_sequence,
+        ))
+        await pilot.pause()
+        assert view._managed_turn_id is None and view.busy_count == busy
+        assert view._transcript_generation == generation + count
+
     # Initial empty/missing settlements remain harmless and supported while idle.
     for idle_id in ("", None):
         await send(turn_signal("turnSettled", idle_id))
@@ -114,11 +141,14 @@ async def exercise_boundaries(agent, view, pilot) -> None:
     for lifecycle in (
         messages.TurnStarted("unowned"),
         messages.TurnSettled("turn-1"),
-        messages.TurnStarted("predecessor", agent=agent, session_id=session),
-        messages.TurnStarted("retired", agent=retired, session_id=session),
-        messages.TurnSettled("turn-1", agent=retired, session_id=session),
-        messages.TurnStarted("turn-1", agent=agent, session_id="foreign"),
-        messages.TurnSettled("turn-1", agent=agent, session_id="foreign"),
+        messages.TurnStarted("predecessor", agent=agent, session_id=session,
+                             sequence=first_sequence),
+        messages.TurnSettled("turn-1", agent=agent, session_id=session,
+                             sequence=first_sequence + 1),
+        messages.TurnStarted("retired", agent=retired, session_id=session, sequence=999),
+        messages.TurnSettled("turn-1", agent=retired, session_id=session, sequence=999),
+        messages.TurnStarted("turn-1", agent=agent, session_id="foreign", sequence=999),
+        messages.TurnSettled("turn-1", agent=agent, session_id="foreign", sequence=999),
     ):
         view.post_message(lifecycle)
         await pilot.pause()

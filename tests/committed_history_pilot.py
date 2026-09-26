@@ -77,7 +77,7 @@ async def main():
             conversation.busy_count = 1
             conversation.turn = "agent"
             app.frames = []
-            conversation.post_message(TurnSettled("cancelled-turn", agent=agent))
+            conversation.post_message(TurnSettled("cancelled-turn", agent=agent, sequence=1))
             conversation.post_message(TranscriptChanged())
             async with asyncio.timeout(5):
                 while not conversation.contents.query(TranscriptHistory):
