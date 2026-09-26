@@ -9,40 +9,26 @@ from __future__ import annotations
 import asyncio
 import codecs
 import errno
-import hashlib
 import os
-import re
-import secrets
 from pathlib import Path
 from typing import Awaitable, Callable, Literal
 
-from toad.mcp_inventory import Declaration, Inventory, read_inventory
+from toad.mcp_inventory import (
+    POSITIVE_DECISIONS_CAPABILITY,
+    Declaration,
+    Inventory,
+    read_inventory,
+)
 
 
 DecisionAction = Literal["trust", "calls"]
 Decision = Literal["approve", "deny", "allow", "ask"]
-# The revival fix lives in imported package modules, not the CLI entrypoint
-# (identical entrypoint bytes span vulnerable and fixed builds), and the CLI
-# exposes no capability flag yet. Positive grants therefore stay fail-closed
-# until the package freezes an explicit capability contract; Toad never infers
-# authority from file bytes, settings or any ledger knowledge.
+# Positive grants need the package-owned compatibility capability advertised by
+# the SAME inventory DTO that authorizes the decision (fresh equality is
+# re-checked below). The revival fix lives in imported package modules, not the
+# CLI entrypoint; Toad never infers authority from file bytes, settings or any
+# ledger knowledge.
 POSITIVE_ACTIONS = {("trust", "approve"), ("calls", "allow")}
-
-
-def positive_capability_known() -> bool:
-    """Only a frozen package-owned capability receipt may enable positive grants."""
-    return False
-
-
-def cli_digest_matches(cli_path: str, expected_digest: str) -> bool:
-    """A pinned digest is the only accepted supported-installation gate."""
-    if not expected_digest or not re.fullmatch(r"[a-f0-9]{64}", expected_digest):
-        return False
-    try:
-        actual = hashlib.sha256(Path(cli_path).read_bytes()).hexdigest()
-    except OSError:
-        return False
-    return secrets.compare_digest(actual, expected_digest)
 
 
 DECISION_TIMEOUT_SECONDS = 120.0
@@ -77,7 +63,6 @@ class LocalDecisionPTY:
         cli_path: str,
         show: Callable[[str], Awaitable[None]],
         controller_visible: Callable[[], bool],
-        cli_digest: str = "",
     ) -> str:
         """Recheck the typed package snapshot before a direct exec, then show raw PTY output.
 
@@ -94,10 +79,12 @@ class LocalDecisionPTY:
             ("calls", "ask"),
         }:
             return "unsupported"
-        if (action, decision) in POSITIVE_ACTIONS and not positive_capability_known():
-            # No package-owned capability receipt exists yet; an old build could
-            # revive a retired grant. Revocations stay available because they
-            # only narrow authority.
+        if (action, decision) in POSITIVE_ACTIONS and (
+            inventory.positive_decisions != POSITIVE_DECISIONS_CAPABILITY
+        ):
+            # Missing/malformed/unsupported capability or any old build stays
+            # held. Revocations stay available because they only narrow
+            # authority.
             return "positive_held"
         if (
             not row.effective

@@ -99,6 +99,33 @@ async def main() -> None:
         assert shadowed.project[0].call_policy == "ask"
         assert "do-not-leak" not in render_inventory(shadowed)
 
+        # The package-owned capability field is exact: integer 1 (no bool),
+        # exact token, exact keys; anything else means positive-held.
+        assert parse_inventory(encoded, root).positive_decisions is None
+        for broken in (
+            {"version": 1},
+            {
+                "version": 1,
+                "positiveDecisions": "locked-project-approval-v1",
+                "extra": True,
+            },
+            {"version": True, "positiveDecisions": "locked-project-approval-v1"},
+            {"version": "1", "positiveDecisions": "locked-project-approval-v1"},
+            {"version": 1, "positiveDecisions": "legacy"},
+            {"version": 1, "positiveDecisions": 5},
+        ):
+            mutated = deepcopy(valid)
+            mutated["compatibility"] = broken
+            parsed = parse_inventory(json.dumps(mutated).encode(), root)
+            assert parsed.positive_decisions is None
+        capable = deepcopy(valid)
+        capable["compatibility"] = {
+            "version": 1,
+            "positiveDecisions": "locked-project-approval-v1",
+        }
+        parsed = parse_inventory(json.dumps(capable).encode(), root)
+        assert parsed.positive_decisions == "locked-project-approval-v1"
+
         rejected(encoded.replace(b'"version": 2', b'"version": 1'), root)
         rejected(encoded.replace(str(root).encode(), b"/some-other-root"), root)
         rejected(encoded.replace(b'"not_running"', b'"running"'), root)
@@ -136,7 +163,6 @@ print(json.dumps(DOC))
                 root,
                 node_path=sys.executable,
                 cli_path=str(script),
-                cli_digest="",
             )
             app.push_screen(screen)
             await pilot.pause(0.1)

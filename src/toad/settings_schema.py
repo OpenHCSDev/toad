@@ -21,13 +21,6 @@ SCHEMA: list[SchemaDict] = [
                 "type": "string",
                 "default": "",
             },
-            {
-                "key": "cli_digest",
-                "title": "Pinned supported CLI SHA-256 (positive grants)",
-                "help": "Deprecated draft signal only. Positive grants wait for a package-owned capability receipt; CLI bytes alone cannot prove the installed build.",
-                "type": "string",
-                "default": "",
-            },
         ],
     },
     {

@@ -13,7 +13,13 @@ from textual.widgets import Button, OptionList, Static
 from textual.widgets.option_list import Option
 
 from toad.mcp_decision import Decision, DecisionAction
-from toad.mcp_inventory import Declaration, Inventory, read_inventory, render_inventory
+from toad.mcp_inventory import (
+    Declaration,
+    Inventory,
+    POSITIVE_DECISIONS_CAPABILITY,
+    read_inventory,
+    render_inventory,
+)
 
 
 class MCPInventoryScreen(ModalScreen[None]):
@@ -32,14 +38,12 @@ class MCPInventoryScreen(ModalScreen[None]):
     """
     BINDINGS = [("escape", "dismiss", "Close inventory")]
 
-    def __init__(
-        self, project_root: Path, *, node_path: str, cli_path: str, cli_digest: str
-    ) -> None:
+    def __init__(self, project_root: Path, *, node_path: str, cli_path: str) -> None:
         super().__init__()
         self.project_root = project_root
         self.node_path = node_path
+        self._positive_capable = False
         self.cli_path = cli_path
-        self.cli_digest = cli_digest
         self._read_task: asyncio.Task[None] | None = None
         self._generation = 0
         self._inventory: Inventory | None = None
@@ -111,6 +115,10 @@ class MCPInventoryScreen(ModalScreen[None]):
 
     def _update_actions(self) -> None:
         row, snapshot = self._selected, self._inventory
+        self._positive_capable = (
+            snapshot is not None
+            and snapshot.positive_decisions == POSITIVE_DECISIONS_CAPABILITY
+        )
         if row is None or snapshot is None or os.name != "posix":
             project = calls = False
         else:
@@ -118,11 +126,11 @@ class MCPInventoryScreen(ModalScreen[None]):
             project = eligible and row.scope == "project"
             calls = eligible and row.status == "approved"
         for identifier, enabled in (
-            # Positive grants stay fail-closed until the package advertises
-            # an explicit capability receipt; pinning CLI bytes is not proof.
-            ("trust_approve", False),
+            # Positive grants need the package-owned compatibility capability
+            # advertised by the same snapshot that will authorize the launch.
+            ("trust_approve", project and self._positive_capable),
             ("trust_deny", project),
-            ("calls_allow", False),
+            ("calls_allow", calls and self._positive_capable),
             ("calls_ask", calls),
         ):
             self.query_one(f"#{identifier}", Button).disabled = not enabled
@@ -175,7 +183,6 @@ class MCPInventoryScreen(ModalScreen[None]):
                     decision=decision,
                     node_path=self.node_path,
                     cli_path=self.cli_path,
-                    cli_digest=self.cli_digest,
                 ),
                 lambda _: self.action_refresh(),
             )

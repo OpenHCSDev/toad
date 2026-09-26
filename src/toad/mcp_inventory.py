@@ -56,6 +56,7 @@ class Inventory:
     project_config_skipped: bool
     user: tuple[Declaration, ...]
     project: tuple[Declaration, ...]
+    positive_decisions: str | None = None
 
 
 def _object(value: object) -> dict[str, Any]:
@@ -151,6 +152,23 @@ def _rows(value: object, scope: str) -> tuple[Declaration, ...]:
     return tuple(rows)
 
 
+POSITIVE_DECISIONS_CAPABILITY = "locked-project-approval-v1"
+
+
+def _compatibility(value: object) -> str | None:
+    """Exact package-owned capability field; anything else means positive-held."""
+    if value is None:
+        return None
+    if not isinstance(value, dict) or set(value) != {"version", "positiveDecisions"}:
+        return None
+    if type(value["version"]) is not int or value["version"] != 1:
+        return None
+    token = value["positiveDecisions"]
+    if token != POSITIVE_DECISIONS_CAPABILITY or not isinstance(token, str):
+        return None
+    return token
+
+
 def parse_inventory(data: bytes, expected_root: Path) -> Inventory:
     """Accept only a bounded, exact-version, canonical-root static DTO."""
     if len(data) > MAX_INVENTORY_BYTES:
@@ -187,7 +205,12 @@ def parse_inventory(data: bytes, expected_root: Path) -> Inventory:
         if len(set(effective_ids)) != len(effective_ids):
             raise UnsupportedInventory("Multiple effective declarations")
         return Inventory(
-            expected_root.resolve(strict=True), trusted, skipped, user, project
+            expected_root.resolve(strict=True),
+            trusted,
+            skipped,
+            user,
+            project,
+            _compatibility(doc.get("compatibility")),
         )
     except (UnicodeError, json.JSONDecodeError, TypeError, KeyError, OSError) as error:
         raise UnsupportedInventory("Invalid inventory") from error
@@ -273,9 +296,9 @@ def render_inventory(inventory: Inventory | None) -> str:
         "Actions launch the installed package CLI in a visible POSIX PTY; it owns",
         "the complete display, exact digest challenge and ledger write. Toad never",
         "auto-answers and cannot undo a decision the package already committed.",
-        "Positive grants are additionally HELD until the installed package",
-        "advertises an explicit capability receipt; CLI bytes or a pinned digest",
-        "cannot distinguish a fixed build from a vulnerable one.",
+        "Positive grants additionally require the installed package's",
+        f"compatibility capability {POSITIVE_DECISIONS_CAPABILITY!r}; missing,",
+        "malformed or unsupported capability keeps them held.",
     ]
     for scope, rows in (("User", inventory.user), ("Project", inventory.project)):
         lines.append(f"\n{scope} declarations ({len(rows)}):")

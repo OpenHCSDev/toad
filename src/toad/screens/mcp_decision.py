@@ -35,13 +35,11 @@ class MCPDecisionScreen(ModalScreen[None]):
         decision: Decision,
         node_path: str,
         cli_path: str,
-        cli_digest: str = "",
     ) -> None:
         super().__init__()
         self._inventory, self._row = inventory, row
         self._action, self._decision = action, decision
         self._node_path, self._cli_path = node_path, cli_path
-        self._cli_digest = cli_digest
         self._pty = LocalDecisionPTY()
         self._runner: asyncio.Task[None] | None = None
         self._running = False
@@ -107,7 +105,6 @@ class MCPDecisionScreen(ModalScreen[None]):
                 decision=self._decision,
                 node_path=self._node_path,
                 cli_path=self._cli_path,
-                cli_digest=self._cli_digest,
                 show=show,
                 controller_visible=self._controller_visible,
             )

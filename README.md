@@ -310,10 +310,12 @@ outcome. Positive **Approve project**
 and **Allow autonomous calls** likewise launch the package CLI in the visible
 PTY: the package owns the whole approval display, challenge and ledger write,
 and a project denial retires previous grants while a grant commit revalidates
-its approval under the ledger lock. The CLI exposes no capability flag and its
-entrypoint bytes are identical across vulnerable and fixed builds, so positive
-grants stay fail-closed until the package advertises an explicit capability
-receipt. Deny/Require-asks stay available for any build.\nOn other platforms or when the package CLI
+its approval under the ledger lock. The CLI entrypoint bytes are identical
+across vulnerable and fixed builds, so positive grants additionally require
+the installed package to advertise the exact package-owned inventory
+`compatibility` capability `{version: 1, positiveDecisions:
+"locked-project-approval-v1"}`; missing, malformed or unsupported capability
+keeps Approve/Allow held while Deny/Require-asks stay available.\nOn other platforms or when the package CLI
 is absent, actions are unavailable. Use the installed package CLI in a local
 terminal for supported manual operations; changes apply on the next Pi turn.
 This optional draft is not a full MCP server management UI.

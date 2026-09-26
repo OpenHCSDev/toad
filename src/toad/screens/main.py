@@ -339,7 +339,6 @@ class MainScreen(SessionView, can_focus=False):
                 self.project_path,
                 node_path=self.app.settings.get("mcp.node_path", str, expand=False),
                 cli_path=self.app.settings.get("mcp.cli_path", str, expand=False),
-                cli_digest=self.app.settings.get("mcp.cli_digest", str, expand=False),
             )
         )
 

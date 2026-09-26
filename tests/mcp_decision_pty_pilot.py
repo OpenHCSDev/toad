@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import asyncio
-import hashlib
 import json
 import os
 from pathlib import Path
@@ -16,13 +15,12 @@ from textual.widgets import Button, OptionList, Static
 
 import toad.mcp_decision as decisions
 from toad.mcp_decision import Decision, DecisionAction, LocalDecisionPTY
-from toad.mcp_inventory import parse_inventory
+from toad.mcp_inventory import Inventory, parse_inventory
 from toad.screens.mcp_decision import MCPDecisionScreen
 from toad.screens.mcp_inventory import MCPInventoryScreen
 
 
 DIGEST = "a" * 64
-WRONG_DIGEST = "f" * 64
 
 
 def fixture(root: Path) -> dict:
@@ -80,6 +78,9 @@ if args[0] == 'inventory':
         time.sleep(0.3)
     if (ROOT / 'stale').exists():
         DOC['declarations']['project'][0]['transport']['argumentCount'] = 1
+    if (ROOT / 'capable').exists():
+        DOC = {**DOC, 'compatibility': {
+            'version': 1, 'positiveDecisions': 'locked-project-approval-v1'}}
     print(json.dumps(DOC))
 else:
     action, decision = args[:2]
@@ -115,10 +116,10 @@ else:
         async def attempt(
             action: DecisionAction = "trust",
             decision: Decision = "deny",
-            cli_digest: str = "",
+            snapshot: Inventory | None = None,
         ) -> str:
             return await pty.run(
-                inventory=inventory,
+                inventory=snapshot or inventory,
                 row=row,
                 action=action,
                 decision=decision,
@@ -126,18 +127,20 @@ else:
                 cli_path=str(script),
                 show=show,
                 controller_visible=visible,
-                cli_digest=cli_digest,
             )
 
-        # Positive grants fail closed until the package advertises an explicit
-        # capability; CLI bytes/digest pinning is not proof (identical
-        # entrypoint bytes span vulnerable and fixed builds).
+        # Positive grants fail closed without the exact package capability;
+        # malformed capability keeps them held.
         assert await attempt("calls", "allow") == "positive_held"
         assert not marker.exists()
-        assert await attempt("trust", "approve", WRONG_DIGEST) == "positive_held"
+        import copy as _copy
+
+        broken = _copy.deepcopy(original)
+        broken["compatibility"] = {"version": True, "positiveDecisions": "x"}
+        held = parse_inventory(json.dumps(broken).encode(), root)
+        assert held.positive_decisions is None
+        assert await attempt("trust", "approve", held) == "positive_held"
         assert not marker.exists()
-        assert not decisions.positive_capability_known()
-        assert not decisions.cli_digest_matches(str(script), WRONG_DIGEST)
 
         # No stale snapshot may reach the action branch of the fake CLI.
         stale.touch()
@@ -207,10 +210,39 @@ else:
         marker.unlink()
         appeared.clear()
         displayed.clear()
-        # Positive grants stay held: no PTY child, no challenge shown.
+        # A capability-bearing build allows positive grants through the same
+        # user-typed challenge flow; the capability-less snapshot stays held.
+        capable_doc = {
+            **original,
+            "compatibility": {
+                "version": 1,
+                "positiveDecisions": "locked-project-approval-v1",
+            },
+        }
+        capable = parse_inventory(json.dumps(capable_doc).encode(), root)
+        assert capable.positive_decisions == "locked-project-approval-v1"
+        (root / "capable").touch()
+        allow_runner = asyncio.create_task(attempt("calls", "allow", capable))
+        await asyncio.wait_for(appeared.wait(), 3)
+        assert not marker.exists()
+        await pty.write_user_input(f"allow:fixture:{DIGEST}\n")
+        assert await asyncio.wait_for(allow_runner, 3) == "exited_zero"
+        assert marker.read_text() == "user typed challenge:calls"
+        marker.unlink()
+        appeared.clear()
+        displayed.clear()
+        approve_runner = asyncio.create_task(attempt("trust", "approve", capable))
+        await asyncio.wait_for(appeared.wait(), 3)
+        assert not marker.exists()
+        await pty.write_user_input(f"approve:fixture:{DIGEST}\n")
+        assert await asyncio.wait_for(approve_runner, 3) == "exited_zero"
+        assert marker.read_text() == "user typed challenge:trust"
+        marker.unlink()
+        appeared.clear()
+        displayed.clear()
         assert await attempt("calls", "allow") == "positive_held"
-        assert await attempt("trust", "approve") == "positive_held"
         assert not marker.exists() and not displayed
+        (root / "capable").unlink()
         timeout_before = decisions.DECISION_TIMEOUT_SECONDS
         decisions.DECISION_TIMEOUT_SECONDS = 0.04
         try:
@@ -294,7 +326,6 @@ else:
                 root,
                 node_path=sys.executable,
                 cli_path=str(script),
-                cli_digest=hashlib.sha256(script.read_bytes()).hexdigest(),
             )
             app.push_screen(inventory_screen)
             await pilot.pause(0.15)
