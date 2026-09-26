@@ -59,6 +59,7 @@ from toad.widgets.throbber import Throbber
 from toad.widgets.goal_bar import GoalBar, GoalControl
 from toad.widgets.native_history import NativeHistory
 from toad.private_native_cursor import CursorStatus
+from toad.queue_view import QueueProjection
 from toad.widgets.input_delivery import InputDeliveryBar, InputDeliveryDetails, empty_delivery
 from toad.widgets.user_input import UserInput
 from toad.widgets.history_anchor import HistoryWindow
@@ -509,6 +510,7 @@ class Conversation(containers.Vertical):
     model_history_scope = var("")
     queue_supported = var(False)
     queued_prompts: var[list[str]] = var(list)
+    queue_projection: var[QueueProjection] = var(QueueProjection())
     delivering_prompt = var("")
     activity = var("")
     activity_started_at: var[float | None] = var(None)
@@ -550,6 +552,8 @@ class Conversation(containers.Vertical):
         self._mcp_live_turn: str | None = None
         self._mcp_live_note: Note | None = None
         self._private_cursor_sequence = 0
+        self._queue_sequence = 0
+        self._sending_queue_input_id: str | None = None
         self._turn_lifecycle_source: tuple[object, str | None] | None = None
         self._turn_lifecycle_sequence = 0
         self._agent_thought: AgentThought | None = None
@@ -771,6 +775,7 @@ class Conversation(containers.Vertical):
                 model_history_scope=Conversation.model_history_scope,
                 queue_supported=Conversation.queue_supported,
                 queued_prompts=Conversation.queued_prompts,
+                queue_projection=Conversation.queue_projection,
                 delivering_prompt=Conversation.delivering_prompt,
                 sending_queued_prompt=Conversation.sending_queued_prompt,
                 turn=Conversation.turn,
@@ -1252,9 +1257,13 @@ class Conversation(containers.Vertical):
         """Agent conversation submission; wire views override this single hook."""
         if not event.body.strip():
             if event.immediate and not event.shell and self.queue_supported and self.queued_prompts:
-                # Keep the queue visible until the exact native input starts.
-                self.sending_queued_prompt = self.queued_prompts[0]
-                self.send_queued_now()
+                # This requests scheduling, not membership mutation. Retain
+                # every remote row until authoritative exact-ID evidence.
+                if self.queue_projection.status == "available" and self.queue_projection.items:
+                    first = self.queue_projection.items[0]
+                    self._sending_queue_input_id = first.input_id
+                    self.sending_queued_prompt = first.text
+                    self.send_queued_now()
             return
         self._transcript_generation += 1
         if event.shell:
@@ -1275,9 +1284,7 @@ class Conversation(containers.Vertical):
             queued = self.turn == "agent" and self.queue_supported and not event.immediate
             if event.immediate and self.queue_supported:
                 self.delivering_prompt = text
-            if queued:
-                self.queued_prompts = [*self.queued_prompts, text]
-            else:
+            if not queued:
                 await self.post(UserInput(text))
                 self.jump_to_latest()
             # Local feedback precedes persistence and agent metadata work.
@@ -1286,7 +1293,7 @@ class Conversation(containers.Vertical):
             self.prompt_history_index = 0
             if queued:
                 self.send_prompt_to_agent(text, queued=True)
-                self.flash("Message queued for after the current response")
+                self.flash("Queue request sent; awaiting authoritative queue state")
                 return
             await self._auto_name_from_prompt(text)
             waiting = (
@@ -1314,34 +1321,46 @@ class Conversation(containers.Vertical):
     async def send_prompt_to_agent(
         self, prompt: str, *, queued: bool = False, immediate: bool = False
     ) -> None:
-        if self.agent is not None:
+        sending_agent = self.agent
+        sending_session = getattr(sending_agent, "session_id", None)
+        queue = getattr(sending_agent, "_queue_view", None)
+        sending_scope = queue.scope if queue is not None else None
+
+        def current_request_owner() -> bool:
+            return (self.agent is sending_agent
+                    and getattr(sending_agent, "session_id", None) == sending_session
+                    and (queue is None or (
+                        queue.scope == sending_scope
+                        and (sending_scope is None or queue.projection.status == "available")
+                    )))
+
+        if sending_agent is not None:
             stop_reason: str | None = None
-            uses_turn_events = getattr(self.agent, "uses_turn_events", False)
+            uses_turn_events = getattr(sending_agent, "uses_turn_events", False)
             if not uses_turn_events:
                 self.busy_count += 1
             try:
                 if not uses_turn_events:
                     self.turn = "agent"
                 if self.queue_supported:
-                    stop_reason = await self.agent.send_prompt(
+                    stop_reason = await sending_agent.send_prompt(
                         prompt,
                         delivery="steer" if immediate else "queue",
                         defer_display=queued,
                     )
                 else:
-                    stop_reason = await self.agent.send_prompt(prompt)
+                    stop_reason = await sending_agent.send_prompt(prompt)
             except (jsonrpc.APIError, jsonrpc.JSONRPCError, OSError, ValueError) as error:
                 from toad.widgets.markdown_note import MarkdownNote
 
+                if not current_request_owner():
+                    return
                 self.turn = "client"
 
                 message = getattr(error, "message", str(error)) or "no details were provided"
                 self.activity = ""
                 self.activity_started_at = None
-                if prompt in self.queued_prompts:
-                    remaining = list(self.queued_prompts)
-                    remaining.remove(prompt)
-                    self.queued_prompts = remaining
+                # A send failure cannot identify/remove a remote row by text.
                 self.prompt.text = "\n\n".join(filter(None, [self.prompt.text, prompt]))
 
                 await self.post(
@@ -1351,11 +1370,11 @@ class Conversation(containers.Vertical):
                     )
                 )
             finally:
-                if immediate and self.delivering_prompt == prompt:
+                if current_request_owner() and immediate and self.delivering_prompt == prompt:
                     self.delivering_prompt = ""
                 if not uses_turn_events:
                     self.busy_count -= 1
-            if not getattr(self.agent, "uses_turn_events", False):
+            if current_request_owner() and not uses_turn_events:
                 self.call_later(self.agent_turn_over, stop_reason)
 
     async def agent_turn_over(self, stop_reason: str | None) -> None:
@@ -1647,38 +1666,58 @@ class Conversation(containers.Vertical):
         message.stop()
         await self.post(UserInput(message.text))
 
+    @on(acp_messages.QueueViewUpdate)
+    async def on_queue_view_update(self, message: acp_messages.QueueViewUpdate) -> None:
+        message.stop()
+        if (self.agent is None or message.agent is not self.agent
+                or message.session_id != self.agent.session_id
+                or message.sequence <= self._queue_sequence):
+            return
+        self._queue_sequence = message.sequence
+        self.queue_projection = message.projection
+        self.queued_prompts = [row.text for row in message.projection.items]
+        for started in message.starts:
+            if message.agent is not self.agent or message.session_id != self.agent.session_id:
+                return
+            if started.input_id == self._sending_queue_input_id:
+                self._sending_queue_input_id = None
+                self.sending_queued_prompt = ""
+            self.new_block()
+            await self.post(UserInput(started.text))
+
     @on(acp_messages.PromptQueueUpdate)
     def on_prompt_queue_update(self, message: acp_messages.PromptQueueUpdate):
+        # Retired text-only messages cannot overwrite rows or inject drafts.
         message.stop()
-        if not message.queued or message.queued[0] != self.sending_queued_prompt:
-            self.sending_queued_prompt = ""
-        self.queued_prompts = message.queued
-        if message.restored:
-            self.prompt.text = "\n\n".join(
-                filter(None, [self.prompt.text, *message.restored])
-            )
-            self.flash("Unprocessed queued messages restored to the composer")
 
     @on(acp_messages.InputStarted)
     async def on_input_started(self, message: acp_messages.InputStarted):
         message.stop()
-        self.new_block()
-        if message.text is not None:
-            # Consumption is already authoritative even if the full queue
-            # snapshot arrives later. Don't flash this input back to "Queued"
-            # while its transcript echo is mounting.
-            if message.text in self.queued_prompts:
-                remaining = list(self.queued_prompts)
-                remaining.remove(message.text)
-                self.queued_prompts = remaining
-            if message.text == self.sending_queued_prompt:
-                self.sending_queued_prompt = ""
+        if (self.agent is None or message.agent is not self.agent
+                or message.session_id != self.agent.session_id):
+            return
+        if isinstance(message.text, str):
+            self.new_block()
             await self.post(UserInput(message.text))
 
     @on(acp_messages.InputFailed)
     def on_input_failed(self, message: acp_messages.InputFailed) -> None:
-        """Recover draft text without claiming delivery or resending it."""
+        """Only a locally failed request may recover its own draft text."""
         message.stop()
+        if (self.agent is None or message.agent is not self.agent
+                or message.session_id != self.agent.session_id):
+            return
+        queue = getattr(self.agent, "_queue_view", None)
+        if message.recover_draft and (
+            message.queue_scope != getattr(queue, "scope", None)
+            or (message.queue_scope is not None and queue.projection.status != "available")
+        ):
+            return
+        if not message.recover_draft:
+            # Server notices (including unstarted queued/restored inputs) are
+            # read-only evidence, not permission to change the local composer.
+            self.flash(f"Delivery unconfirmed: {message.reason}", style="error")
+            return
         if message.text and not (
             self.prompt.text == message.text
             or self.prompt.text.endswith("\n\n" + message.text)
@@ -2683,6 +2722,12 @@ class Conversation(containers.Vertical):
         cursor = getattr(agent, "_private_cursor", None)
         self.native_history_status = cursor.status if cursor is not None else None
         self._private_cursor_sequence = getattr(agent, "_private_cursor_sequence", 0)
+        queue = getattr(agent, "_queue_view", None)
+        self.queue_projection = queue.projection if queue is not None else QueueProjection()
+        self.queued_prompts = [row.text for row in self.queue_projection.items]
+        self._queue_sequence = getattr(agent, "_queue_sequence", 0)
+        self._sending_queue_input_id = None
+        self.sending_queued_prompt = ""
         if agent is None:
             self.agent_info = Content.styled("shell")
         else:

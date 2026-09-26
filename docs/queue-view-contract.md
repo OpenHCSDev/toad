@@ -1,6 +1,10 @@
-# Queue-view identity contract (integration draft)
+# Queue-view identity contract (historical integration draft)
 
-Status: **not a shipped protocol**. Toad and the sole backend owner are agreeing
+Superseded by [the implemented exact-ID queue view](exact-id-queue-view.md) and
+[pinned producer contract](acp_exact_id_queue_v1.md). The evidence below remains
+historical; its proposed schemas and acceptance policy are not the current API.
+
+Historical status: **not a shipped protocol**. Toad and the sole backend owner are agreeing
 an authoritative projection before integrating it. Backend `a380bc0176a1f9a6774494b564b0e44d9eacf007`
 still emits text-only queue snapshots. Its PR94 native source cursor is a
 separate concern; it does not establish queue membership or acknowledge inputs.
