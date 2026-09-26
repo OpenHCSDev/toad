@@ -6,12 +6,12 @@ inputs. No live deployment or activation is part of this change.
 
 ## Frozen producer contract
 
-Backend: `78f7309fe5753b05e4a8a4d2d15e55d79f658dd5`.
+Backend: `40f09c7e2cd8f81dc0e93ed7f14a2cddc98bee3e`.
 
 - `docs/private_native_cursor_acp_v1.md`: SHA256
-  `b009a404759c11b486b86eca5c78f4407a82f8088c82ecd2c746c472b529fba9`
+  `b3825945414006d33abfc4c57cab6f687ef0a5b0c264b01d2ea193a8992e51cf`
 - Exact copied `tests/fixtures/private_native_cursor_v1.json`: SHA256
-  `f8a1f2d8ae27660a643f4687ad7b774343a3fde543eaa493d5bacaa0c8937bc6`
+  `321b777a59b4d84cec32aea05fe81def4a5d2942df7a5d8444d8924d1f48a593`
 
 Older `9b30004`, `6889a31`, and `f94fc46` fixtures are insufficient for sink acceptance.
 
@@ -28,7 +28,10 @@ or overflow arrives before a delayed response. No disk/network/provider operatio
 If 32 *distinct* floor identities saturate this bound, the next distinct scope
 cannot safely be forgotten. A sticky evidence-loss fence keeps this Agent
 unavailable even across explicit loads; only a fresh Agent attachment resets
-it. This intentionally conservative failure is distinct from ordinary
+it. "Fresh" means a newly constructed ACP Agent and its new trusted new/load
+response, not a screen/widget remount around the existing Agent. Reattached
+presentation starts from that Agent's current status and sequence floor,
+rejecting pre-remount queued receipts. This intentionally conservative failure is distinct from ordinary
 same-key receipt overflow, which retains its floor and can recover on a later
 explicit load. There is no automatic reconnect/retry to bypass either fence.
 
@@ -102,6 +105,11 @@ Latest evidence `/var/tmp/toad-cursor-78f-owner/` includes canonical 78f null
 prebind and distinct-floor saturation controls (14 pure tests plus mounted
 provenance, mounted request-fence and adjacent MCP pilots). `/dev/shm` reached
 its write quota during the final run; the successful rerun uses `/var/tmp`.
+Final contract-refresh evidence `/var/tmp/toad-cursor-40f-owner/` consumes the
+canonical distinctKeySaturation recipe and covers same-Agent presentation
+reattachment plus a delayed old status receipt. Its abbreviated old-proven
+example is overlaid onto the fixture's full trustedLoad proof and independently
+parser-validated to avoid a malformed payload masking the saturation check.
 The older `prompt_queue_pilot.py` times out awaiting its stub response at line111
 both on this consumer and unchanged base `b6220b7`; logs `queue.log` and
 `queue-baseline.log`. This is not a queue acceptance verdict. Existing unresolved

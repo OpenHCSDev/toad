@@ -2710,8 +2710,12 @@ class Conversation(containers.Vertical):
         """Post any welcome content."""
 
     def watch_agent(self, agent: AgentBase | None) -> None:
-        self.native_history_status = None
-        self._private_cursor_sequence = 0
+        # A presentation remount is not a fresh attachment. Start at the
+        # Agent's current projection/floor so previously queued receipts cannot
+        # revive proof after its reducer entered quarantine or evidence loss.
+        cursor = getattr(agent, "_private_cursor", None)
+        self.native_history_status = cursor.status if cursor is not None else None
+        self._private_cursor_sequence = getattr(agent, "_private_cursor_sequence", 0)
         if agent is None:
             self.agent_info = Content.styled("shell")
         else:

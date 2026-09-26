@@ -261,17 +261,45 @@ async def main():
             view.agent = agent
             original_post = agent.post_message
             agent.post_message = record
+            saturation_case = FIXTURE["distinctKeySaturation"]
             saturated = []
-            for index in range(32):
-                foreign = deepcopy(FIXTURE["nextTrustedLoad"]["cursor"])
-                foreign["scope"]["ownerThread"] = f"foreign-{index}"
-                saturated.append(foreign)
-            saturated.append(race["callbackBeforeTrustedResult"])
-            await load(FIXTURE["trustedLoad"]["cursor"], before=saturated)
+            start, end = saturation_case["foreignWireRootIdRangeInclusive"]
+            for index in range(start, end + 1):
+                saturated.append(
+                    {
+                        "version": 1,
+                        "revision": 1,
+                        "status": "none",
+                        "scope": {
+                            **saturation_case["foreignScopeFields"],
+                            "wireRootId": f"{index:032x}",
+                        },
+                    }
+                )
+            saturated.append(saturation_case["realOwnerCallback33"])
+            valid_old = {
+                **FIXTURE["trustedLoad"]["cursor"],
+                **saturation_case["subsequentTrustedOldLoad"],
+            }
+            await load(valid_old, before=saturated)
             await painted("unavailable")
-            await load(FIXTURE["trustedLoad"]["cursor"])
+            await load(valid_old)
             await painted("unavailable")
-            assert len(agent._private_cursor._prebind_floors) == 32
+            assert (
+                len(agent._private_cursor._prebind_floors)
+                == saturation_case["floorCapacity"]
+            )
+            # Reattaching the same Agent to presentation is not a trust reset.
+            view.agent = None
+            await pilot.pause()
+            view.agent = agent
+            view.post_message(
+                messages.PrivateNativeCursorUpdate("proven", agent, "beta", 1)
+            )
+            await pilot.pause()
+            await painted("unavailable")
+            await load(valid_old)
+            await painted("unavailable")
 
             # Canonical stopped-owner prebind event on a fresh attachment: no
             # pre-existing epoch floor may accidentally mask a null-poison bug.

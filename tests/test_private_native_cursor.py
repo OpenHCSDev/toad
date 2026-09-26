@@ -16,7 +16,7 @@ class CursorParserTests(unittest.TestCase):
     def test_frozen_backend_fixture(self):
         self.assertEqual(
             sha256(FIXTURE_PATH.read_bytes()).hexdigest(),
-            "f8a1f2d8ae27660a643f4687ad7b774343a3fde543eaa493d5bacaa0c8937bc6",
+            "321b777a59b4d84cec32aea05fe81def4a5d2942df7a5d8444d8924d1f48a593",
         )
         values = [
             FIXTURE["trustedLoad"]["cursor"],
@@ -240,11 +240,17 @@ class CursorReducerTests(unittest.TestCase):
     def test_distinct_scope_floor_saturation_requires_fresh_attachment(self):
         reducer = CursorReducer()
         token = reducer.begin("beta")
-        for index in range(32):
-            foreign = deepcopy(FIXTURE["nextTrustedLoad"]["cursor"])
-            foreign["scope"]["ownerThread"] = f"foreign-{index}"
+        case = FIXTURE["distinctKeySaturation"]
+        start, end = case["foreignWireRootIdRangeInclusive"]
+        for index in range(start, end + 1):
+            foreign = {
+                "version": 1,
+                "revision": 1,
+                "status": "none",
+                "scope": {**case["foreignScopeFields"], "wireRootId": f"{index:032x}"},
+            }
             reducer.callback(foreign, "beta")
-        newer = FIXTURE["prebindRace"]["callbackBeforeTrustedResult"]
+        newer = case["realOwnerCallback33"]
         self.assertEqual(reducer.callback(newer, "beta"), "quarantine_evidence_lost")
         self.assertEqual(len(reducer._prebind_floors), 32)
         self.assertEqual(len(reducer._buffer), 32)
@@ -252,10 +258,14 @@ class CursorReducerTests(unittest.TestCase):
             reducer.bind(FIXTURE["trustedLoad"]["cursor"], "beta", token),
             "reject_evidence_lost",
         )
-        for value in (
-            FIXTURE["trustedLoad"]["cursor"],
-            FIXTURE["nextTrustedLoad"]["cursor"],
-        ):
+        # The additive saturation example abbreviates proof fields. Supply
+        # the canonical old proof too, so malformed input cannot mask this test.
+        valid_old = {
+            **FIXTURE["trustedLoad"]["cursor"],
+            **case["subsequentTrustedOldLoad"],
+        }
+        self.assertIsNotNone(parse_cursor(valid_old))
+        for value in (valid_old, FIXTURE["nextTrustedLoad"]["cursor"]):
             self.assertEqual(self.load(reducer, value), "reject_evidence_lost")
             self.assertEqual(reducer.status, "unavailable")
         fresh = CursorReducer()
