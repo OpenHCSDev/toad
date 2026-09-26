@@ -281,6 +281,9 @@ class Agent(AgentBase):
         self._maintenance_env = os.environ.copy()
         self._maintenance_cwd = str(self.project_root_path.resolve())
         self._maintenance_root = configured_root(self._maintenance_env, self._maintenance_cwd)
+        # The later _run_agent task must not re-resolve an alias after the
+        # preflight snapshot while prompt admission still uses this root.
+        self._maintenance_env["AGENT_COMMS_ROOT"] = str(self._maintenance_root)
         try:
             await asyncio.to_thread(
                 preflight, self._coordination_root,
