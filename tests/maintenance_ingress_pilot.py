@@ -12,13 +12,20 @@ from tempfile import TemporaryDirectory
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
-from agent_comms.maintenance_barrier import MaintenanceBarrier
+from agent_comms.maintenance_barrier import MaintenanceBarrier, MaintenanceReceipt
+from maintenance_control_fixture import FixtureMaintenanceControl  # paired core tests only
 from toad.acp.agent import Agent
 from toad.acp.maintenance_ingress import admitted_spawn, barrier_for, preflight
 from toad.agent import AgentFail
 
 
+def pause_gate(barrier: MaintenanceBarrier) -> MaintenanceReceipt:
+    return FixtureMaintenanceControl(barrier).begin("test-operator")
+
+
 async def main() -> None:
+    assert not hasattr(MaintenanceBarrier, "begin")
+    assert not hasattr(MaintenanceBarrier, "advance")
     with TemporaryDirectory(prefix="toad-maintenance-fake-") as directory:
         root = Path(directory)
         wire = root / "wire"
@@ -44,7 +51,7 @@ async def main() -> None:
             with patch("asyncio.create_subprocess_shell", fake_spawn):
                 first = asyncio.create_task(admitted_spawn("fake", stdin=None))
                 await asyncio.wait_for(spawned.wait(), timeout=5)
-                pause = asyncio.create_task(asyncio.to_thread(barrier_for().begin, "test-operator"))
+                pause = asyncio.create_task(asyncio.to_thread(pause_gate, barrier_for()))
                 await asyncio.sleep(0.02)
                 assert not pause.done(), "pause acknowledged while ACP spawn was unsettled"
                 agent._process = SimpleNamespace(stdin=SimpleNamespace(write=lambda _: None))
@@ -122,7 +129,7 @@ async def main() -> None:
             attempt = asyncio.create_task(admitted_spawn("fake"))
             await asyncio.wait_for(entered.wait(), timeout=5)
             attempt.cancel()
-            pause = asyncio.create_task(asyncio.to_thread(barrier_for().begin, "test-operator"))
+            pause = asyncio.create_task(asyncio.to_thread(pause_gate, barrier_for()))
             await asyncio.sleep(0.02)
             attempt.cancel()  # A second cancel must not abandon a future child.
             await asyncio.sleep(0.02)
@@ -148,7 +155,7 @@ async def main() -> None:
         mounted = root / "mounted"
         with patch.dict(os.environ, {"AGENT_COMMS_ROOT": str(default)}):
             preflight(str(mounted))
-            barrier_for(str(mounted)).begin("test-operator")
+            pause_gate(barrier_for(str(mounted)))
             try:
                 preflight(str(mounted))
             except Exception:
@@ -165,7 +172,7 @@ async def main() -> None:
         child = root / "child"
         parent.mkdir()
         child.mkdir()
-        MaintenanceBarrier(child / "wire" / "registry.json").begin("test-operator")
+        pause_gate(MaintenanceBarrier(child / "wire" / "registry.json"))
         called = []
 
         async def must_not_spawn(*_args, **_kwargs):
@@ -202,7 +209,7 @@ async def main() -> None:
     with TemporaryDirectory(prefix="toad-maintenance-home-") as directory:
         root = Path(directory)
         child_home = root / "child-home"
-        MaintenanceBarrier(child_home / ".agent-comms" / "registry.json").begin("test-operator")
+        pause_gate(MaintenanceBarrier(child_home / ".agent-comms" / "registry.json"))
         calls = []
 
         async def record_spawn(*_args, **_kwargs):
@@ -229,7 +236,7 @@ async def main() -> None:
         alias = root / "wire-link"
         opened.mkdir()
         alias.symlink_to(opened, target_is_directory=True)
-        MaintenanceBarrier(paused / "registry.json").begin("test-operator")
+        pause_gate(MaintenanceBarrier(paused / "registry.json"))
         observed = []
 
         async def retarget(_command, **kwargs):
@@ -275,7 +282,7 @@ async def main() -> None:
             assert agent._agent_task is not None
             await asyncio.wait_for(agent._agent_task, timeout=5)
             assert marker.read_text() == "started"
-            barrier_for().begin("test-operator")
+            pause_gate(barrier_for())
             marker.unlink()
             denied = Agent(root, {"name": "fake", "run_command": {"*": command}}, None)
             denied.post_message = lambda _: None

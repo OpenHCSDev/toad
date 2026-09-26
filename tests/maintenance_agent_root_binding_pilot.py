@@ -8,6 +8,7 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
 from agent_comms.maintenance_barrier import MaintenanceBarrier
+from maintenance_control_fixture import FixtureMaintenanceControl  # paired core tests only
 from toad.acp.agent import Agent
 
 
@@ -61,7 +62,7 @@ async def main() -> None:
 
             # Pausing the retargeted alias does not affect the actual child;
             # pausing the admitted wire must block its subsequent prompt write.
-            MaintenanceBarrier(retarget / "registry.json").begin("fixture")
+            FixtureMaintenanceControl(MaintenanceBarrier(retarget / "registry.json")).begin("fixture")
             writes = []
             agent._process = SimpleNamespace(stdin=SimpleNamespace(write=writes.append))
             prompt = SimpleNamespace(
@@ -69,7 +70,7 @@ async def main() -> None:
             )
             agent.send(prompt)
             assert len(writes) == 1
-            MaintenanceBarrier(opened / "registry.json").begin("fixture")
+            FixtureMaintenanceControl(MaintenanceBarrier(opened / "registry.json")).begin("fixture")
             try:
                 agent.send(prompt)
             except Exception:
