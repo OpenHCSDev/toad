@@ -46,6 +46,14 @@ class McpClientStatus(AgentMessage):
     receipt: dict
     turn_id: str
     session_id: str
+    agent: object
+
+
+@dataclass
+class McpClientStopped(AgentMessage):
+    """The owning connection stopped; its live projection is no longer valid."""
+
+    agent: object
 
 
 @dataclass

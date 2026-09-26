@@ -347,7 +347,7 @@ class Agent(AgentBase):
                 if receipt is not None:
                     self.post_message(messages.McpClientStatus(
                         receipt, turn_id=self._active_turn_id,
-                        session_id=self.session_id,
+                        session_id=self.session_id, agent=self,
                     ))
                 return
             if isinstance(state.get("thread"), str) and isinstance(state.get("wireRoot"), str):
@@ -427,9 +427,10 @@ class Agent(AgentBase):
                 return
             turn_id = state.get("turnId")
             if state.get("turnStarted") is True and isinstance(turn_id, str):
+                if sessionId != self.session_id or self._stopping:
+                    return
                 self.uses_turn_events = True
-                if sessionId == self.session_id:
-                    self._active_turn_id = turn_id
+                self._active_turn_id = turn_id
                 import math
 
                 started_at = state.get("startedAt")
@@ -442,6 +443,8 @@ class Agent(AgentBase):
                 ))
                 return
             if state.get("turnSettled") is True:
+                if sessionId != self.session_id or self._stopping:
+                    return
                 if isinstance(turn_id, str):
                     self.uses_turn_events = True
                 # Only the current session's own matching settled turn may
@@ -963,6 +966,7 @@ class Agent(AgentBase):
         """Gracefully stop the process."""
         self._stopping = True
         self._active_turn_id = None
+        self.post_message(messages.McpClientStopped(self))
         for answer in tuple(self._pending_permission_answers):
             if not answer.done():
                 answer.set_result(None)

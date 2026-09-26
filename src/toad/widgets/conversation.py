@@ -545,6 +545,7 @@ class Conversation(containers.Vertical):
         self._agent_response: AgentResponse | None = None
         self._managed_turn_id: str | None = None
         self._mcp_live_turn: str | None = None
+        self._mcp_live_note: Note | None = None
         self._agent_thought: AgentThought | None = None
         from toad.widgets.agent_activity import AgentActivityBoundary
 
@@ -1463,6 +1464,18 @@ class Conversation(containers.Vertical):
             )
         )
 
+    async def _clear_mcp_live(self) -> None:
+        self._mcp_live_turn = None
+        if self._mcp_live_note is not None:
+            await self._mcp_live_note.remove()
+            self._mcp_live_note = None
+
+    @on(acp_messages.McpClientStopped)
+    async def on_mcp_client_stopped(self, message: acp_messages.McpClientStopped) -> None:
+        message.stop()
+        if message.agent is self.agent:
+            await self._clear_mcp_live()
+
     @on(acp_messages.McpClientStatus)
     async def on_mcp_client_status(self, message: acp_messages.McpClientStatus) -> None:
         """Render the turn-bound receipt only inside an active server-owned turn."""
@@ -1471,7 +1484,9 @@ class Conversation(containers.Vertical):
         # message from an older agent cannot attach to a successor turn here.
         agent_session = getattr(self.agent, "session_id", None)
         if (
-            self._managed_turn_id is None
+            message.agent is not self.agent
+            or getattr(self.agent, "_active_turn_id", None) != message.turn_id
+            or self._managed_turn_id is None
             or message.turn_id != self._managed_turn_id
             or (agent_session is not None and message.session_id != agent_session)
         ):
@@ -1488,13 +1503,12 @@ class Conversation(containers.Vertical):
             for row in rows
         ) or "no approved servers"
         self.new_block()
-        await self.post(
-            Note(
-                Content.styled(
-                    f"MCP live (this turn, not a grant): {summary}", "$text-muted"
-                ),
-            )
+        self._mcp_live_note = Note(
+            Content.styled(
+                f"MCP live (this turn, not a grant): {summary}", "$text-muted"
+            ),
         )
+        await self.post(self._mcp_live_note)
 
     @on(acp_messages.Update)
     async def on_acp_agent_message(self, message: acp_messages.Update):
@@ -1528,7 +1542,7 @@ class Conversation(containers.Vertical):
         if self._managed_turn_id is None:
             self.busy_count += 1
         self._managed_turn_id = message.turn_id
-        self._mcp_live_turn = None
+        await self._clear_mcp_live()
         self._agent_activity_boundary.reset()
         self.app.open_tabs_changed.publish(None)
         self.new_block()
@@ -1540,6 +1554,7 @@ class Conversation(containers.Vertical):
         message.stop()
         if message.turn_id and message.turn_id != self._managed_turn_id:
             return
+        await self._clear_mcp_live()
         self.delivering_prompt = ""
         self.sending_queued_prompt = ""
         self.activity = ""
