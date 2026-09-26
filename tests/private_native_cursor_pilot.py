@@ -206,6 +206,54 @@ async def main():
             await pilot.pause()
             await painted("unavailable")
 
+            # Independent review regression: a second explicit load supersedes
+            # an uncertain first load BEFORE its delayed response can compare
+            # buffered epochs. Clearing uncertainty must not erase epoch4.
+            for uncertainty in ("malformed", "overflow"):
+                agent = Agent(root, AGENT_DATA, "beta")
+                agent._message_target = view
+                view.agent = agent
+                original_post = agent.post_message
+                agent.post_message = record
+                await load(FIXTURE["trustedLoad"]["cursor"])
+                entered, release = asyncio.Event(), asyncio.Event()
+
+                class DelayedResponse:
+                    async def wait(self, entered=entered, release=release):
+                        entered.set()
+                        await release.wait()
+                        return {
+                            "_meta": {
+                                "agentComms": {
+                                    "privateNativeCursor": FIXTURE["trustedLoad"][
+                                        "cursor"
+                                    ]
+                                }
+                            }
+                        }
+
+                with patch(
+                    "toad.acp.agent.api.session_load", return_value=DelayedResponse()
+                ):
+                    pending = asyncio.create_task(agent.acp_load_session())
+                    await entered.wait()
+                    await callback(race["callbackBeforeTrustedResult"])
+                    if uncertainty == "malformed":
+                        await callback({})
+                    else:
+                        for _ in range(32):
+                            agent.rpc_session_update(
+                                "beta", update(FIXTURE["trustedLoad"]["cursor"])
+                            )
+                    await load(FIXTURE["trustedLoad"]["cursor"])
+                    await painted("unavailable")
+                    assert agent._private_cursor.floor.owner_epoch == 4
+                    release.set()
+                    await pending
+                await painted("unavailable")
+                await load(race["subsequentTrustedLoad"])
+                await painted("none")
+
             # Separate fresh trusted source covers coverage-only, overflow,
             # malformed metadata and null scope without any input effects.
             coverage = deepcopy(FIXTURE["coverageOnlyExample"])

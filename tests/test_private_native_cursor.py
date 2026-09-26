@@ -174,7 +174,12 @@ class CursorReducerTests(unittest.TestCase):
                     reducer.callback(bad, "beta")
                 elif failure == "null":
                     reducer.callback(
-                        {"version": 1, "scope": None, "revision": 3, "status": "unavailable"},
+                        {
+                            "version": 1,
+                            "scope": None,
+                            "revision": 3,
+                            "status": "unavailable",
+                        },
                         "beta",
                     )
                 else:
@@ -218,6 +223,38 @@ class CursorReducerTests(unittest.TestCase):
         reducer.invalidate()
         reducer.callback(value, "beta")
         self.assertEqual(reducer.status, "unavailable")
+
+    def test_superseding_uncertain_request_preserves_prebind_epoch_floor(self):
+        old = FIXTURE["trustedLoad"]["cursor"]
+        newer = FIXTURE["prebindRace"]["callbackBeforeTrustedResult"]
+        for initially_bound in (False, True):
+            for uncertainty in ("malformed", "overflow"):
+                with self.subTest(bound=initially_bound, uncertainty=uncertainty):
+                    reducer = CursorReducer()
+                    if initially_bound:
+                        self.load(reducer, old)
+                    pending = reducer.begin("beta")
+                    reducer.callback(newer, "beta")
+                    if uncertainty == "malformed":
+                        reducer.callback({}, "beta")
+                    else:
+                        for _ in range(32):
+                            reducer.callback(old, "beta")
+                    # Supersede BEFORE the previous result compares its buffer.
+                    latest = reducer.begin("beta")
+                    self.assertEqual(
+                        reducer.bind(old, "beta", latest),
+                        "reject_binding_floor_or_uncertainty",
+                    )
+                    self.assertEqual(reducer.status, "unavailable")
+                    self.assertEqual(reducer.floor.owner_epoch, 4)
+                    self.assertLessEqual(len(reducer._prebind_floors), 32)
+                    self.assertEqual(
+                        reducer.bind(old, "beta", pending), "reject_old_request"
+                    )
+                    self.load(reducer, FIXTURE["nextTrustedLoad"]["cursor"])
+                    self.assertEqual(reducer.status, "none")
+                    self.assertFalse(reducer.quarantined)
 
     def test_trusted_same_scope_cannot_regress_but_new_epoch_can_reset(self):
         value = FIXTURE["trustedLoad"]["cursor"]

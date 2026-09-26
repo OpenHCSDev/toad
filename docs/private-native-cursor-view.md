@@ -20,7 +20,10 @@ Older `9b30004` and `6889a31` fixtures are insufficient for sink acceptance.
 `private_native_cursor.py` is a pure reducer/parser. It retains only scope,
 revision, status and a digest of validated metadata, not private proof payloads.
 The parser caps each envelope at 16 KiB; the reducer retains at most 32
-pre-response receipts. No disk/network/provider operations occur in either.
+pre-response receipts and 32 scope-only epoch floors. These floors survive
+superseding requests that clear an uncertain receipt buffer, so even an
+initially unbound attachment cannot revive stale proof after malformed input
+or overflow arrives before a delayed response. No disk/network/provider operations occur in either.
 
 Only actual Agent `acp_new_session` / `acp_load_session` results bind. A request
 initiation token prevents old results from replacing a later request. Callbacks
@@ -75,7 +78,11 @@ XDG/wire roots. It checks canonical pre/postbind sequences, all labels, batching
 revision/conflict/foreign/retired fencing, overflow, malformed/null metadata,
 stop, private-data absence in SVG, and unchanged queue/draft/input state.
 
-Owner evidence: `/dev/shm/toad-cursor-f94-owner/` (unit/mounted/MCP logs and SVGs).
+Owner evidence: `/dev/shm/toad-cursor-f94-owner/` (initial unit/mounted/MCP logs
+and SVGs); `/dev/shm/toad-cursor-floor-fix-owner/` adds the independently found
+superseded-request floor-loss regressions, including genuinely overlapping
+Agent load calls in the mounted pilot. Initial head `0675cf7` was held after
+independent review found that blocker; it is not a cleared sink freeze.
 The older `prompt_queue_pilot.py` times out awaiting its stub response at line111
 both on this consumer and unchanged base `b6220b7`; logs `queue.log` and
 `queue-baseline.log`. This is not a queue acceptance verdict. Existing unresolved

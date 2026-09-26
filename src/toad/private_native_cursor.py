@@ -154,6 +154,12 @@ class CursorReducer:
         self.quarantined = False
         self.floor: CursorScope | None = None
         self._buffer: list[tuple[str, CursorEnvelope]] = []
+        # Scope-only invalidation evidence outlives disposable status receipts.
+        # In particular begin() after uncertainty must not erase a newer epoch
+        # merely because an older in-flight result has not arrived yet.
+        self._prebind_floors: dict[
+            tuple[tuple[str, str, str], int | float], CursorScope
+        ] = {}
         self._uncertain = False
         self._pending = True
         self._token = 0
@@ -210,6 +216,9 @@ class CursorReducer:
                 self.status = None
             return "reject_unavailable_binding"
         scope = envelope.scope
+        observed = self._prebind_floors.get((scope.logical_key, scope.owner_created_at))
+        if observed is not None:
+            self._observe_floor(observed)
         matching = []
         for receiving_session, buffered in self._buffer:
             other = buffered.scope
@@ -254,6 +263,7 @@ class CursorReducer:
         self.quarantined = False
         self._observe_floor(scope)
         self._buffer.clear()
+        self._prebind_floors.clear()
         for buffered in sorted(matching, key=lambda item: item.revision):
             self._apply(buffered)
         return "bind"
@@ -270,6 +280,24 @@ class CursorReducer:
         if envelope.scope.session_id != session_id:
             return "reject_foreign_session"
         if self._pending or self.current is None:
+            other = envelope.scope
+            if self.current is not None:
+                incumbent = self.current.scope
+                if (
+                    other.logical_key == incumbent.logical_key
+                    and other.owner_created_at == incumbent.owner_created_at
+                ):
+                    self._observe_floor(other)
+            key = other.logical_key, other.owner_created_at
+            previous = self._prebind_floors.get(key)
+            if previous is not None:
+                if other.owner_epoch > previous.owner_epoch:
+                    self._prebind_floors[key] = other
+            elif len(self._prebind_floors) < self.MAX_PREBIND:
+                self._prebind_floors[key] = other
+            else:
+                self._quarantine(uncertain=True)
+                return "quarantine_overflow"
             if len(self._buffer) == self.MAX_PREBIND:
                 self._quarantine(uncertain=True)
                 return "quarantine_overflow"
