@@ -48,14 +48,16 @@ freeze:
 
 ```text
 trusted new/load/owner-socket ready.agentComms.queueBinding = {
-  sessionId, ownerThread, ownerCreatedAt, ownerEpoch, admissionGeneration
+  version: 1, sessionId, ownerThread, ownerCreatedAt, ownerEpoch, admissionGeneration
 }
 queueState = {
   version: 1, scope, revision, items: [{inputId, text}], restored: [{inputId, text}]
 }
-inputStarted = {scope, revision, inputId, text}
+inputStarted = {version: 1, scope, revision, inputId, text: null|string}
+scope = {sessionId, ownerThread, ownerCreatedAt, ownerEpoch, admissionGeneration}
 ```
 
+Superseded names `queueScope`, `queued`, and `restoredInputs` are not v1 keys.
 Only trusted new/load/ready results may rebind scope. The same result includes
 an initial queueState snapshot at its revision. Queue events cannot establish or
 replace scope. Exact starts and public dispositions use the same scope.
