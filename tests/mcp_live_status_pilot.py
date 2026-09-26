@@ -8,12 +8,13 @@ from tempfile import TemporaryDirectory
 
 from runtime_fixture import ToadApp
 from toad.acp.agent import Agent
+from toad.agent_schema import Agent as AgentData
 from toad.acp import messages
 from toad.screens.main import MainScreen
 from toad.widgets.note import Note
 
 INPUT = "a" * 32
-AGENT_DATA = {
+AGENT_DATA: AgentData = {
     "name": "Fixture", "identity": "fixture", "short_name": "fixture",
     "run_command": {"*": "true"}, "protocol": "acp",
 }
