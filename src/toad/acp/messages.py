@@ -11,6 +11,7 @@ from agent_comms import Goal, GoalExecution, TranscriptCursor, TranscriptEvent, 
 
 from toad.answer import Answer
 from toad.private_native_cursor import CursorStatus
+from toad.queue_view import QueueItem, QueueProjection
 from toad.acp import protocol
 from toad.acp.encode_tool_call_id import encode_tool_call_id
 
@@ -68,6 +69,17 @@ class McpClientStopped(AgentMessage):
 
 
 @dataclass
+class QueueViewUpdate(AgentMessage):
+    """Exact-ID projection and once-only accepted starts, fenced at ingress."""
+
+    projection: QueueProjection
+    starts: tuple[QueueItem, ...]
+    agent: object
+    session_id: str | None
+    sequence: int
+
+
+@dataclass
 class PromptQueueUpdate(AgentMessage):
     queued: list[str]
     restored: list[str]
@@ -75,13 +87,20 @@ class PromptQueueUpdate(AgentMessage):
 
 @dataclass
 class InputStarted(AgentMessage):
+    """An unscoped initial user echo, never queue membership authority."""
     text: str | None
+    agent: object | None = None
+    session_id: str | None = None
 
 
 @dataclass
 class InputFailed(AgentMessage):
     text: str
     reason: str
+    recover_draft: bool = True
+    agent: object | None = None
+    session_id: str | None = None
+    queue_scope: object | None = None
 
 
 @dataclass
