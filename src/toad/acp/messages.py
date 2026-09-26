@@ -40,6 +40,23 @@ class RejectedSessionUpdate(AgentMessage):
 
 
 @dataclass
+class McpClientStatus(AgentMessage):
+    """Turn-bound package-owned live MCP projection; never a grant or approval."""
+
+    receipt: dict
+    turn_id: str
+    session_id: str
+    agent: object
+
+
+@dataclass
+class McpClientStopped(AgentMessage):
+    """The owning connection stopped; its live projection is no longer valid."""
+
+    agent: object
+
+
+@dataclass
 class PromptQueueUpdate(AgentMessage):
     queued: list[str]
     restored: list[str]
@@ -118,7 +135,7 @@ class UserMessage(Message):
 class RequestPermission(AgentMessage):
     options: list[protocol.PermissionOption]
     tool_call: protocol.ToolCallUpdatePermissionRequest
-    result_future: Future[Answer]
+    result_future: Future[Answer | None]
 
 
 @dataclass
@@ -257,6 +274,9 @@ class TurnStarted(AgentMessage):
     started_at: float | None = None
     activity: str | None = None
     activity_detail: str | None = None
+    agent: object | None = None
+    session_id: str | None = None
+    sequence: int | None = None
 
 
 @dataclass
@@ -264,6 +284,9 @@ class TurnSettled(AgentMessage):
     """The agent finished writing while trailing metadata may still arrive."""
 
     turn_id: str | None = None
+    agent: object | None = None
+    session_id: str | None = None
+    sequence: int | None = None
 
 
 @dataclass

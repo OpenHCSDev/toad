@@ -35,6 +35,7 @@ from toad import constants
 from toad.answer import Answer
 
 PROTOCOL_VERSION = 1
+PERMISSION_TIMEOUT_SECONDS: float = 120.0
 
 
 class Mode(NamedTuple):
@@ -187,6 +188,9 @@ class Agent(AgentBase):
         self.session_pk: int | None = session_pk
         self.tool_calls: dict[str, protocol.ToolCall] = {}
         self._message_target: MessagePump | None = None
+        self._pending_permission_answers: set[asyncio.Future[Answer | None]] = set()
+        self._active_turn_id: str | None = None
+        self._turn_lifecycle_sequence = 0
 
         self._terminal_count: int = 0
 
@@ -328,6 +332,25 @@ class Agent(AgentBase):
         route: MessageRoute | None = None
         if isinstance(metadata, dict) and isinstance(metadata.get("agentComms"), dict):
             state = metadata["agentComms"]
+            mcp_client = state.get("mcpClient")
+            if mcp_client is not None:
+                receipt = None
+                content = update.get("content")
+                if (isinstance(content, dict) and content.get("type") == "text"
+                        and content.get("text") == ""):
+                    receipt = self._mcp_client_receipt(
+                        mcp_client, state.get("inputId"), state.get("turnId"),
+                        sessionId, update,
+                    )
+                else:
+                    self.log("[ACP MCP live receipt rejected] "
+                             f"session={sessionId!r}; chunk is not zero-text")
+                if receipt is not None:
+                    self.post_message(messages.McpClientStatus(
+                        receipt, turn_id=self._active_turn_id,
+                        session_id=self.session_id, agent=self,
+                    ))
+                return
             if isinstance(state.get("thread"), str) and isinstance(state.get("wireRoot"), str):
                 self._publish_coordination_metadata({"_meta": metadata})
             if "inputDisposition" in state or state.get("inputDeliveryChanged") is True:
@@ -412,8 +435,13 @@ class Agent(AgentBase):
                     self.post_message(messages.TranscriptSnapshot(events, page))
                 return
             turn_id = state.get("turnId")
-            if state.get("turnStarted") is True and isinstance(turn_id, str):
+            if state.get("turnStarted") is True:
+                if (sessionId != self.session_id or self._stopping
+                        or not isinstance(turn_id, str) or not turn_id):
+                    return
                 self.uses_turn_events = True
+                self._active_turn_id = turn_id
+                self._turn_lifecycle_sequence += 1
                 import math
 
                 started_at = state.get("startedAt")
@@ -423,12 +451,27 @@ class Agent(AgentBase):
                     turn_id, started_at,
                     state.get("activity") if isinstance(state.get("activity"), str) else None,
                     state.get("activityDetail") if isinstance(state.get("activityDetail"), str) else None,
+                    agent=self, session_id=self.session_id,
+                    sequence=self._turn_lifecycle_sequence,
                 ))
                 return
             if state.get("turnSettled") is True:
+                if sessionId != self.session_id or self._stopping:
+                    return
+                if turn_id is not None and not isinstance(turn_id, str):
+                    return
+                # An idle snapshot (empty/missing ID) is only meaningful while
+                # idle. A stale settlement cannot retire a successor's gate.
+                if self._active_turn_id is not None and turn_id != self._active_turn_id:
+                    return
                 if isinstance(turn_id, str):
                     self.uses_turn_events = True
-                self.post_message(messages.TurnSettled(turn_id))
+                self._active_turn_id = None
+                self._turn_lifecycle_sequence += 1
+                self.post_message(messages.TurnSettled(
+                    turn_id, agent=self, session_id=self.session_id,
+                    sequence=self._turn_lifecycle_sequence,
+                ))
                 return
             incoming = metadata["agentComms"].get("incoming")
             if isinstance(incoming, dict):
@@ -550,6 +593,77 @@ class Agent(AgentBase):
                         self._context_usage = ContextUsage(used, size)
                 self.update_status_line()
 
+    _MCP_SERVER_STATES = frozenset({
+        "ready", "error", "disabled", "trust_required", "unsupported_env",
+        "denied", "stale_restart_required", "connecting", "approved",
+    })
+
+    def _mcp_client_receipt(
+        self, value: object, meta_input_id: object, envelope_turn_id: object,
+        session_id: str, update: object,
+    ) -> dict | None:
+        """Accept only an exact, session/turn-bound version-1 live receipt.
+
+        The DTO is redacted and never an approval. Stale receipts from a
+        previous turn or another session are rejected, never rendered; the
+        envelope must carry the same server-owned ACP turn this agent is
+        currently inside. Malformed data is logged as a reason only, without
+        echoing untrusted receipt content.
+        """
+        import re
+
+        def fail(reason: str) -> None:
+            self.log(f"[ACP MCP live receipt rejected] session={session_id!r}; {reason}")
+
+        if not isinstance(value, dict):
+            fail("receipt not an object")
+            return None
+        if type(value.get("version")) is not int or value["version"] != 1:
+            fail("unsupported receipt version")
+            return None
+        if session_id != self.session_id:
+            fail("receipt does not belong to this session")
+            return None
+        if (value.get("source") != "pi-mcp-client"
+                or not isinstance(value.get("inputId"), str)
+                or not re.fullmatch(r"[a-f0-9]{32}", value["inputId"])
+                or value.get("state") != "running" or value.get("lifetime") != "turn"):
+            fail("unsupported receipt identity")
+            return None
+        if isinstance(meta_input_id, str) and meta_input_id != value["inputId"]:
+            fail("receipt inputId does not match envelope")
+            return None
+        # The envelope must bind this exact active ACP turn. This excludes
+        # stale queued events and old receipts replayed into a later turn;
+        # relays without turn identity fail closed here.
+        if (not isinstance(envelope_turn_id, str) or self._active_turn_id is None
+                or envelope_turn_id != self._active_turn_id):
+            fail("receipt is not bound to the active ACP turn")
+            return None
+        servers = value.get("servers")
+        if not isinstance(servers, list) or len(servers) > 32:
+            fail("invalid server rows")
+            return None
+        seen: set[str] = set()
+        for row in servers:
+            if (not isinstance(row, dict)
+                    or not isinstance(row.get("id"), str)
+                    or not re.fullmatch(r"[a-z][a-z0-9_-]{0,31}", row["id"])
+                    or row["id"] in seen
+                    or row.get("scope") not in ("user", "project")
+                    or row.get("state") not in self._MCP_SERVER_STATES
+                    or row.get("calls") not in ("automatic", "confirm", "unavailable")):
+                fail("invalid or duplicate server row")
+                return None
+            seen.add(row["id"])
+            counts = [row.get(name) for name in ("tools", "resources", "prompts")]
+            if (any(type(count) is not int or not 0 <= count <= 10_000 for count in counts)
+                    or (row["state"] == "ready") == (row["calls"] == "unavailable")
+                    or (row["state"] != "ready" and any(counts))):
+                fail("inconsistent server row")
+                return None
+        return value
+
     def update_status_line(self) -> None:
         """Update the current status line."""
 
@@ -590,32 +704,37 @@ class Agent(AgentBase):
         Returns:
             The response to the permission request.
         """
-        result_future: asyncio.Future[Answer] = asyncio.Future()
+        cancelled: protocol.RequestPermissionResponse = {"outcome": {"outcome": "cancelled"}}
+        if self._stopping or sessionId != self.session_id:
+            return cancelled
+        result_future: asyncio.Future[Answer | None] = asyncio.get_running_loop().create_future()
         tool_call_id = toolCall["toolCallId"]
 
-        permission_tool_call = toolCall.copy()
+        permission_tool_call = cast(dict[str, Any], toolCall.copy())
         permission_tool_call.pop("sessionUpdate", None)
-        tool_call = cast(protocol.ToolCall, permission_tool_call)
-        if tool_call_id in self.tool_calls:
-            self.tool_calls[tool_call_id] |= tool_call
-        else:
-            self.tool_calls[tool_call_id] = deepcopy(tool_call)
-
-        tool_call = deepcopy(self.tool_calls[tool_call_id])
-
-        message = messages.RequestPermission(options, tool_call, result_future)
-        self.post_message(message)
-        await result_future
-        ask_result = result_future.result()
-
-        request_permission_outcome: protocol.OutcomeSelected = {
-            "optionId": ask_result.id,
-            "outcome": "selected",
-        }
-        result: protocol.RequestPermissionResponse = {
-            "outcome": request_permission_outcome
-        }
-        return result
+        visible_tool_call: dict[str, Any] = (
+            deepcopy(dict(self.tool_calls[tool_call_id])) if tool_call_id in self.tool_calls else {}
+        )
+        visible_tool_call.update(permission_tool_call)
+        message = messages.RequestPermission(
+            options, cast(protocol.ToolCallUpdatePermissionRequest, visible_tool_call), result_future
+        )
+        if not self.post_message(message):
+            return cancelled  # No mounted controller can answer this request.
+        self.tool_calls[tool_call_id] = cast(protocol.ToolCall, deepcopy(visible_tool_call))
+        self._pending_permission_answers.add(result_future)
+        try:
+            try:
+                ask_result = await asyncio.wait_for(result_future, PERMISSION_TIMEOUT_SECONDS)
+            except TimeoutError:
+                return cancelled
+        finally:
+            self._pending_permission_answers.discard(result_future)
+        if ask_result is None or self._stopping or sessionId != self.session_id:
+            return cancelled
+        if not any(option["optionId"] == ask_result.id for option in options):
+            return cancelled
+        return {"outcome": {"optionId": ask_result.id, "outcome": "selected"}}
 
     @jsonrpc.expose("fs/read_text_file")
     def rpc_read_text_file(
@@ -830,6 +949,10 @@ class Agent(AgentBase):
             tasks.add(asyncio.create_task(call_jsonrpc(agent_data)))
             await asyncio.sleep(0)
 
+        # EOF is attachment loss, not evidence that any remote MCP is live.
+        self._active_turn_id = None
+        self.post_message(messages.McpClientStopped(self))
+
         # Cancel all remaining tasks and wait for them to finish
         for task in tasks:
             task.cancel()
@@ -864,11 +987,16 @@ class Agent(AgentBase):
 
     async def stop(self) -> None:
         """Gracefully stop the process."""
+        self._stopping = True
+        self._active_turn_id = None
+        self.post_message(messages.McpClientStopped(self))
+        for answer in tuple(self._pending_permission_answers):
+            if not answer.done():
+                answer.set_result(None)
         if self.session_pk is not None:
             db = DB()
             await db.session_update_last_used(self.session_pk)
 
-        self._stopping = True
         process = self._process
         process_group = self._process_group_id
         if (

@@ -280,6 +280,46 @@ To discuss Toad, see the Discussions tab, or join the #toad channel on the [Text
 
 
 
+### Pi MCP inventory (draft integration)
+
+During an active ACP turn, Toad may also render a package-owned **live MCP
+status** note delivered by the agent-comms relay inside a zero-text ACP chunk
+(`_meta.agentComms.mcpClient`). It is accepted only while a server-owned turn
+is active, expires with that turn's settlement, is redacted (no command,
+env or digest) and is never a grant or approval. Missing or malformed
+receipts mean static-only; they never disable the package.
+
+Toad's command palette offers **Pi MCP inventory**, a read-only view of the
+installed Pi MCP package's redacted, static version-2 declaration snapshot.
+Configure `mcp.node_path` and `mcp.cli_path` in Toad's user settings as absolute
+paths to Node and the installed package's `bin/pi-mcp.mjs`. Toad will not find a
+package from `PATH`, a source checkout, or project files. An absent, incompatible,
+or failing CLI shows *unavailable*; a configured CLI path is user-selected and
+is not proof that an ACP session has loaded the package. Inventory runs without
+a TTY; local decisions require a visible PTY. Toad never parses MCP config,
+approval ledgers, or protocol messages.
+
+This snapshot does **not** report live server state. On POSIX, Toad offers
+package-owned **Deny project** and **Require call asks** through a visible local
+PTY. Each action rechecks the whole typed snapshot, then the package displays
+its complete declaration and exact digest challenge. The user must type the
+answer personally; Toad cannot auto-answer or claim approval. Its child is
+stopped on dismissal, timeout, or lost controller, but a package write already
+committed cannot be rolled back; refresh inventory to inspect an uncertain
+outcome. Positive **Approve project**
+and **Allow autonomous calls** likewise launch the package CLI in the visible
+PTY: the package owns the whole approval display, challenge and ledger write,
+and a project denial retires previous grants while a grant commit revalidates
+its approval under the ledger lock. The CLI entrypoint bytes are identical
+across vulnerable and fixed builds, so positive grants additionally require
+the installed package to advertise the exact package-owned inventory
+`compatibility` capability `{version: 1, positiveDecisions:
+"locked-project-approval-v1"}`; missing, malformed or unsupported capability
+keeps Approve/Allow held while Deny/Require-asks stay available.\nOn other platforms or when the package CLI
+is absent, actions are unavailable. Use the installed package CLI in a local
+terminal for supported manual operations; changes apply on the next Pi turn.
+This optional draft is not a full MCP server management UI.
+
 ### Roadmap
 
 Some planned features:
