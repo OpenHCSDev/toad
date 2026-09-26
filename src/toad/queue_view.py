@@ -260,7 +260,9 @@ class QueueReducer:
             if relation in ("ambiguous", "newer"):
                 self._hide(uncertain=relation == "ambiguous")
                 return "reject_binding_scope", ()
-            if relation == "same":
+            # Alias-stable owner evidence may veto a stale trusted result,
+            # but cannot authorize another attachment's rows or user echoes.
+            if event.scope == scope:
                 matching.append(event)
         if self._uncertain:
             self._hide()

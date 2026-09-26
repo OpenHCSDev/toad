@@ -8,7 +8,7 @@ No installed/live activation, backend edits, mutation API, replay or retry.
 ## Pinned contract
 
 Canonical contract producer: `79cd5a8c7254bfcddd8d07c9525076c3e78f1a20`.
-Current integrated test pin: `63080495ad98ba60920b27b0a6a5a8638fdf9607`;
+Current integrated test pin: `bccf7fd468b2c79f34fdfce0059fbc604efb8257`;
 contract/fixture bytes are unchanged. The earlier consumer `bd292d22` + `79cd5a8`
 archive remains a separate failing-before/control artifact, not successor clearance.
 The unmodified copies are `acp_exact_id_queue_v1.md` (SHA256
@@ -24,6 +24,9 @@ and `tests/fixtures/acp_exact_id_queue_v1.json` (SHA256
   epoch/generation. Alias translation changes only the attachment session.
   Epoch floors, same-owner revision ordering, equality comparison and start
   tombstones survive that translation; receiving-session fences remain separate.
+  Cross-alias owner evidence can veto an older binding, but buffered rows/starts
+  apply only when their full scope matches the trusted receiving attachment.
+  Unknown `session/new` attachments must not borrow another session's payload.
 - Ordered items/restored retain opaque exact IDs; equal text remains distinct.
   Higher-revision exact starts remove only their ID and echo at most once.
   Lower revisions, contradictory equal revisions, duplicate starts and old
@@ -58,10 +61,10 @@ Use the normal Toad test dependency runtime (Python 3.14) and an archive of the
 pinned backend, not its mutable worktree or an installed package:
 
 ```sh
-mkdir -p /var/tmp/toad-queue-backend-63080495
-git -C /path/to/comms-repo archive 63080495ad98ba60920b27b0a6a5a8638fdf9607 src \
-  | tar -x -C /var/tmp/toad-queue-backend-63080495
-export PYTHONPATH="$PWD/src:$PWD/tests:/var/tmp/toad-queue-backend-63080495/src"
+mkdir -p /var/tmp/toad-queue-backend-bccf7fd
+git -C /path/to/comms-repo archive bccf7fd468b2c79f34fdfce0059fbc604efb8257 src \
+  | tar -x -C /var/tmp/toad-queue-backend-bccf7fd
+export PYTHONPATH="$PWD/src:$PWD/tests:/var/tmp/toad-queue-backend-bccf7fd/src"
 export QUEUE_EVIDENCE_DIR=/var/tmp/toad-queue-evidence
 PY=/tmp/opencode/toad-fork/.venv/bin/python
 "$PY" -m unittest discover -s tests -p test_queue_view.py -v
@@ -79,7 +82,9 @@ equal-revision conflicts, same-key33 recovery with retained epoch floor,
 distinct32+1 sticky evidence loss across reload/remount/alias (fresh Agent alone
 recovers), and null/invalid UTF-8 prebind poison while draft/UNKNOWN stay intact.
 
-The integrated pilot checks exact producer ACP/runtime source hashes, bridges
+The integrated pilot checks producer ACP/runtime source hashes and prints their
+import paths; the archive command supplies exact whole-repository provenance
+(these two files may be identical across producer revisions). It bridges
 actual producer new/load/prompt/emission to actual consumer RPC methods, and
 asserts compositor-visible summary text and screenshots. It exercises two
 identical-text admissions, one exact start, repeated/out-of-order receipts,

@@ -42,7 +42,11 @@ async def main():
         _present_cursor_session: "af212a2f8aaa9d0e90fcc23ec0f7f4a1fbf7c1b88ed11fd1ca923e45bf040267",
     }
     for obj, digest in expected.items():
-        assert sha256(Path(inspect.getfile(obj)).read_bytes()).hexdigest() == digest
+        source = Path(inspect.getfile(obj))
+        assert sha256(source.read_bytes()).hexdigest() == digest
+        # Multiple producer commits may share these bytes. Record import paths;
+        # the invoking archive manifest supplies the exact whole-repo revision.
+        print(f"SOURCE {source}: {digest}", flush=True)
     with TemporaryDirectory(prefix="toad-queue-backend-") as directory:
         root = Path(directory)
         os.environ.update(
@@ -296,5 +300,5 @@ async def main():
 if __name__ == "__main__":
     asyncio.run(main())
     print(
-        "PASS: pinned63080495 real ACP admission/new/load/start/restore/alias/surrogate-null/rebase -> mounted queue; UNKNOWN/draft preserved; cleanup completed"
+        "PASS: verified ACP/runtime bytes; real ACP admission/new/load/start/restore/alias/surrogate-null/rebase -> mounted queue; UNKNOWN/draft preserved; cleanup completed"
     )

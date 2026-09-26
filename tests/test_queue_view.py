@@ -190,6 +190,49 @@ class QueueViewTests(unittest.TestCase):
         )
         self.assertEqual(reducer.projection.status, "unavailable")
 
+    def test_unknown_new_attachment_never_applies_foreign_buffered_content(self):
+        for kind in ("queueState", "inputStarted"):
+            reducer = QueueReducer()
+            token = reducer.begin(None)
+            value = deepcopy(
+                F["trustedLoad"]["queueState"]
+                if kind == "queueState"
+                else F["updates"][0]["value"]
+            )
+            value["scope"]["sessionId"] = "unrelated-attachment"
+            value["revision"] = 20
+            self.assertEqual(
+                reducer.callback(kind, value, "unrelated-attachment")[0], "buffer"
+            )
+            decision, echoes = reducer.bind(
+                F["trustedLoad"]["queueBinding"],
+                F["trustedLoad"]["queueState"],
+                "beta",
+                token,
+            )
+            self.assertEqual(decision, "bind")
+            self.assertFalse(echoes)
+            self.assertEqual(reducer.revision, 2)
+            self.assertEqual(
+                [row.input_id for row in reducer.projection.items], ["a" * 32, "b" * 32]
+            )
+        # Negative evidence still crosses attachment aliases of this owner.
+        reducer = QueueReducer()
+        token = reducer.begin(None)
+        value = deepcopy(F["nextTrustedLoad"]["queueState"])
+        value["scope"]["sessionId"] = "unrelated-attachment"
+        reducer.callback("queueState", value, "unrelated-attachment")
+        self.assertEqual(
+            reducer.bind(
+                F["trustedLoad"]["queueBinding"],
+                F["trustedLoad"]["queueState"],
+                "beta",
+                token,
+            )[0],
+            "reject_binding_floor",
+        )
+        self.assertEqual(reducer.projection.status, "unavailable")
+
     def test_prebind_starts_in_revision_order_once(self):
         reducer = QueueReducer()
         token = reducer.begin("beta")

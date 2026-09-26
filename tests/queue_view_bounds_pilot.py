@@ -16,6 +16,7 @@ from toad.acp.agent import Agent
 from toad.acp.messages import QueueViewUpdate
 from toad.queue_view import QueueProjection
 from toad.widgets.prompt import QueueSummary
+from toad.widgets.user_input import UserInput
 
 
 def attachment(metadata, session):
@@ -46,8 +47,8 @@ async def main():
             }
             view.input_delivery = deepcopy(durable)
 
-            async def fresh():
-                agent = Agent(root, AGENT, "beta")
+            async def fresh(session="beta"):
+                agent = Agent(root, AGENT, session)
                 agent.get_input_delivery = AsyncMock(return_value=deepcopy(durable))
                 agent._message_target = view
                 view.agent = agent
@@ -79,6 +80,66 @@ async def main():
                 if output := os.environ.get("QUEUE_EVIDENCE_DIR"):
                     Path(output).mkdir(parents=True, exist_ok=True)
                     (Path(output) / f"{name}.svg").write_text(app.export_screenshot())
+
+            for kind in ("queueState", "inputStarted"):
+                agent = await fresh(None)
+                before_echoes = len(view.query(UserInput))
+                value = attachment(F["trustedLoad"], "unrelated-attachment")[
+                    "queueState"
+                ]
+                value["revision"] = 20
+                if kind == "queueState":
+                    value["items"] = [
+                        {"inputId": "foreign-row", "text": "FOREIGN ATTACHMENT PAYLOAD"}
+                    ]
+                else:
+                    value = {
+                        "version": 1,
+                        "scope": value["scope"],
+                        "revision": 20,
+                        "inputId": "a" * 32,
+                        "text": "same text",
+                    }
+
+                class NewResponse:
+                    async def wait(self, kind=kind, value=value, agent=agent):
+                        agent.rpc_session_update(
+                            "unrelated-attachment", update({kind: value})
+                        )
+                        return {
+                            "sessionId": "beta",
+                            "_meta": {"agentComms": F["trustedLoad"]},
+                        }
+
+                with patch(
+                    "toad.acp.agent.api.session_new", return_value=NewResponse()
+                ):
+                    await agent.acp_new_session()
+                await pilot.pause()
+                assert agent._queue_view.revision == 2
+                assert [row.input_id for row in view.queue_projection.items] == [
+                    "a" * 32,
+                    "b" * 32,
+                ]
+                assert len(view.query(UserInput)) == before_echoes
+                summary = view.query_one(QueueSummary)
+                assert summary in app.screen._compositor.visible_widgets
+                frame = "\n".join(
+                    strip.text for strip in app.screen._compositor.render_strips()
+                )
+                assert (
+                    "Queued (2)" in frame and "FOREIGN ATTACHMENT PAYLOAD" not in frame
+                )
+                assert (
+                    view.prompt.text == "untouched local draft"
+                    and view.input_delivery == durable
+                )
+                if output := os.environ.get("QUEUE_EVIDENCE_DIR"):
+                    Path(output).mkdir(parents=True, exist_ok=True)
+                    (Path(output) / f"foreign-prebind-{kind}-rejected.svg").write_text(
+                        app.export_screenshot()
+                    )
+                await agent.stop()
 
             for case in ("epoch", "revision"):
                 agent = await fresh()
