@@ -40,11 +40,27 @@ def receipt(**overrides: object) -> dict:
     return base
 
 
-def chunk(value: object, input_id: object = INPUT) -> dict:
+def chunk(
+    value: object,
+    input_id: object = INPUT,
+    turn: object = None,
+    text: object = "",
+) -> dict:
+    envelope: dict = {"mcpClient": value, "inputId": input_id}
+    if turn is not None:
+        envelope["turnId"] = turn
     return {
         "sessionUpdate": "agent_message_chunk",
+        "content": {"type": "text", "text": text},
+        "_meta": {"agentComms": envelope},
+    }
+
+
+def turn_signal(kind: str, turn: str) -> dict:
+    return {
+        "sessionUpdate": "user_message_chunk",
         "content": {"type": "text", "text": ""},
-        "_meta": {"agentComms": {"mcpClient": value, "inputId": input_id}},
+        "_meta": {"agentComms": {kind: True, "turnId": turn}},
     }
 
 
@@ -90,12 +106,25 @@ async def main() -> None:
 
             from toad.acp import messages as acp_messages
 
+            agent.rpc_session_update("fixture", turn_signal("turnStarted", "turn-1"))
             await view.on_turn_started(acp_messages.TurnStarted("turn-1"))
+            # No turn-identity envelope: fail closed even inside an active turn.
             agent.rpc_session_update("fixture", chunk(receipt()))
-            agent.rpc_session_update("fixture", chunk(receipt()))  # duplicate
-            agent.rpc_session_update("fixture", chunk(receipt(), input_id="forged"))
-            agent.rpc_session_update("fixture", chunk({"version": 2}))
-            agent.rpc_session_update("fixture", chunk(receipt(servers=[{"id": "x"}])))
+            # Bound receipt is rendered once; duplicates and stale variants are not.
+            agent.rpc_session_update("fixture", chunk(receipt(), turn="turn-1"))
+            agent.rpc_session_update(
+                "fixture", chunk(receipt(), turn="turn-1")
+            )  # duplicate
+            agent.rpc_session_update(
+                "fixture", chunk(receipt(), input_id="forged", turn="turn-1")
+            )
+            agent.rpc_session_update("fixture", chunk({"version": 2}, turn="turn-1"))
+            agent.rpc_session_update(
+                "fixture", chunk(receipt(version=True), turn="turn-1")
+            )
+            agent.rpc_session_update(
+                "fixture", chunk(receipt(servers=[{"id": "x"}]), turn="turn-1")
+            )
             agent.rpc_session_update(
                 "fixture",
                 chunk(
@@ -111,11 +140,26 @@ async def main() -> None:
                                 "prompts": 0,
                             }
                         ]
-                    )
+                    ),
+                    turn="turn-1",
                 ),
             )
-            agent.rpc_session_update("fixture", chunk(receipt(inputId="b" * 32)))
-            agent.rpc_session_update("fixture", chunk(receipt(state="idle")))
+            agent.rpc_session_update(
+                "fixture", chunk(receipt(inputId="b" * 32), turn="turn-1")
+            )
+            agent.rpc_session_update(
+                "fixture", chunk(receipt(state="idle"), turn="turn-1")
+            )
+            agent.rpc_session_update(
+                "fixture", chunk(receipt(), turn="turn-1", text="hello")
+            )
+            agent.rpc_session_update(
+                "fixture", chunk(receipt(turn="x"), turn="turn-1")
+            )  # wrong turn
+            agent.rpc_session_update(
+                "fixture",
+                chunk(receipt()),
+            )  # still no turn identity
             await pilot.pause()
             rendered = notes(view)
             assert len(rendered) == 1, rendered
@@ -123,17 +167,27 @@ async def main() -> None:
             assert "not a grant" in rendered[0]
             assert "forged" not in "".join(rendered)
 
-            # A receipt after settlement is invisible even if the session id matches.
+            # A receipt after settlement is invisible even with a stale turn id.
+            agent.rpc_session_update("fixture", turn_signal("turnSettled", "turn-1"))
             await view.on_turn_settled(acp_messages.TurnSettled("turn-1"))
-            agent.rpc_session_update("fixture", chunk(receipt()))
+            agent.rpc_session_update("fixture", chunk(receipt(), turn="turn-1"))
             await pilot.pause()
             assert notes(view) == rendered
 
-            # A successor turn starts a fresh boundary and its own receipt.
+            # A successor turn starts a fresh boundary; a replayed turn-1 receipt
+            # cannot render there, while the bound turn-2 receipt does.
+            agent.rpc_session_update("fixture", turn_signal("turnStarted", "turn-2"))
             await view.on_turn_started(acp_messages.TurnStarted("turn-2"))
             agent.rpc_session_update(
+                "fixture", chunk(receipt(), turn="turn-1")
+            )  # stale queued event
+            agent.rpc_session_update(
                 "fixture",
-                chunk(receipt(servers=[], inputId="c" * 32), input_id="c" * 32),
+                chunk(
+                    receipt(servers=[], inputId="c" * 32),
+                    input_id="c" * 32,
+                    turn="turn-2",
+                ),
             )
             await pilot.pause()
             updated = notes(view)

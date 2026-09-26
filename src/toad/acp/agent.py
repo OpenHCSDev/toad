@@ -189,6 +189,7 @@ class Agent(AgentBase):
         self.tool_calls: dict[str, protocol.ToolCall] = {}
         self._message_target: MessagePump | None = None
         self._pending_permission_answers: set[asyncio.Future[Answer | None]] = set()
+        self._active_turn_id: str | None = None
 
         self._terminal_count: int = 0
 
@@ -332,9 +333,17 @@ class Agent(AgentBase):
             state = metadata["agentComms"]
             mcp_client = state.get("mcpClient")
             if mcp_client is not None:
-                receipt = self._mcp_client_receipt(
-                    mcp_client, state.get("inputId"), update
-                )
+                receipt = None
+                content = update.get("content")
+                if (isinstance(content, dict) and content.get("type") == "text"
+                        and content.get("text") == ""):
+                    receipt = self._mcp_client_receipt(
+                        mcp_client, state.get("inputId"), state.get("turnId"),
+                        sessionId, update,
+                    )
+                else:
+                    self.log("[ACP MCP live receipt rejected] "
+                             f"session={sessionId!r}; chunk is not zero-text")
                 if receipt is not None:
                     self.post_message(messages.McpClientStatus(receipt))
                 return
@@ -416,6 +425,7 @@ class Agent(AgentBase):
             turn_id = state.get("turnId")
             if state.get("turnStarted") is True and isinstance(turn_id, str):
                 self.uses_turn_events = True
+                self._active_turn_id = turn_id
                 import math
 
                 started_at = state.get("startedAt")
@@ -430,6 +440,7 @@ class Agent(AgentBase):
             if state.get("turnSettled") is True:
                 if isinstance(turn_id, str):
                     self.uses_turn_events = True
+                self._active_turn_id = None
                 self.post_message(messages.TurnSettled(turn_id))
                 return
             incoming = metadata["agentComms"].get("incoming")
@@ -557,22 +568,33 @@ class Agent(AgentBase):
         "denied", "stale_restart_required", "connecting", "approved",
     })
 
-    def _mcp_client_receipt(self, value: object, meta_input_id: object, update: object) -> dict | None:
-        """Accept only the exact version-1 package live receipt; log everything else.
+    def _mcp_client_receipt(
+        self, value: object, meta_input_id: object, envelope_turn_id: object,
+        session_id: str, update: object,
+    ) -> dict | None:
+        """Accept only an exact, session/turn-bound version-1 live receipt.
 
-        The DTO is turn-bound, redacted and never an approval; the active-turn
-        gate lives in the conversation, which owns ACP turn lifetimes.
+        The DTO is redacted and never an approval. Stale receipts from a
+        previous turn or another session are rejected, never rendered; the
+        envelope must carry the same server-owned ACP turn this agent is
+        currently inside. Malformed data is logged as a reason only, without
+        echoing untrusted receipt content.
         """
         import re
 
-        if not isinstance(value, dict):
-            self.log(f"[ACP MCP live receipt rejected] {update!r}; receipt not an object")
-            return None
-
         def fail(reason: str) -> None:
-            self.log(f"[ACP MCP live receipt rejected] {update!r}; {reason}")
+            self.log(f"[ACP MCP live receipt rejected] session={session_id!r}; {reason}")
 
-        if (value.get("version") != 1 or value.get("source") != "pi-mcp-client"
+        if not isinstance(value, dict):
+            fail("receipt not an object")
+            return None
+        if type(value.get("version")) is not int or value["version"] != 1:
+            fail("unsupported receipt version")
+            return None
+        if session_id != self.session_id:
+            fail("receipt does not belong to this session")
+            return None
+        if (value.get("source") != "pi-mcp-client"
                 or not isinstance(value.get("inputId"), str)
                 or not re.fullmatch(r"[a-f0-9]{32}", value["inputId"])
                 or value.get("state") != "running" or value.get("lifetime") != "turn"):
@@ -581,19 +603,29 @@ class Agent(AgentBase):
         if isinstance(meta_input_id, str) and meta_input_id != value["inputId"]:
             fail("receipt inputId does not match envelope")
             return None
+        # The envelope must bind this exact active ACP turn. This excludes
+        # stale queued events and old receipts replayed into a later turn;
+        # relays without turn identity fail closed here.
+        if (not isinstance(envelope_turn_id, str) or self._active_turn_id is None
+                or envelope_turn_id != self._active_turn_id):
+            fail("receipt is not bound to the active ACP turn")
+            return None
         servers = value.get("servers")
         if not isinstance(servers, list) or len(servers) > 32:
             fail("invalid server rows")
             return None
+        seen: set[str] = set()
         for row in servers:
             if (not isinstance(row, dict)
                     or not isinstance(row.get("id"), str)
                     or not re.fullmatch(r"[a-z][a-z0-9_-]{0,31}", row["id"])
+                    or row["id"] in seen
                     or row.get("scope") not in ("user", "project")
                     or row.get("state") not in self._MCP_SERVER_STATES
                     or row.get("calls") not in ("automatic", "confirm", "unavailable")):
-                fail("invalid server row")
+                fail("invalid or duplicate server row")
                 return None
+            seen.add(row["id"])
             counts = [row.get(name) for name in ("tools", "resources", "prompts")]
             if (any(type(count) is not int or not 0 <= count <= 10_000 for count in counts)
                     or (row["state"] == "ready") == (row["calls"] == "unavailable")
@@ -922,6 +954,7 @@ class Agent(AgentBase):
     async def stop(self) -> None:
         """Gracefully stop the process."""
         self._stopping = True
+        self._active_turn_id = None
         for answer in tuple(self._pending_permission_answers):
             if not answer.done():
                 answer.set_result(None)
