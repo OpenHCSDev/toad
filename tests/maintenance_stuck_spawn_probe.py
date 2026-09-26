@@ -9,8 +9,8 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+from contextlib import contextmanager
 import os
-import signal
 import subprocess
 import sys
 import time
@@ -35,12 +35,34 @@ def worker(wire_root: Path, ready: Path) -> None:
     asyncio.run(run())
 
 
-def pause(wire_root: Path, ack: Path) -> None:
+def pause(wire_root: Path, contender_entered: Path, ack: Path) -> None:
     from agent_comms.maintenance_barrier import MaintenanceBarrier
-    from maintenance_control_fixture import FixtureMaintenanceControl
+    import maintenance_control_fixture as fixture
 
-    FixtureMaintenanceControl(MaintenanceBarrier(wire_root / "registry.json")).begin("disposable")
+    barrier = MaintenanceBarrier(wire_root / "registry.json")
+    original_lock = fixture._store_lock
+
+    @contextmanager
+    def observed_lock(path: Path):
+        if path == barrier.wire_path:
+            contender_entered.write_text("fixture entering exact wire admission lock")
+        with original_lock(path):
+            yield
+
+    with patch.object(fixture, "_store_lock", observed_lock):
+        fixture.FixtureMaintenanceControl(barrier).begin("disposable")
     ack.write_text("pause acknowledged")
+
+
+def retire_owned_fixture_process(process: subprocess.Popen[bytes]) -> None:
+    if process.poll() is None:
+        process.kill()  # Only the tracked, unreaped disposable Python process.
+    try:
+        process.communicate(timeout=5)
+    except subprocess.TimeoutExpired:
+        if process.poll() is None:
+            process.kill()
+        process.communicate(timeout=5)
 
 
 def parent(toad_src: Path, core_src: Path, core_tests: Path) -> None:
@@ -49,6 +71,7 @@ def parent(toad_src: Path, core_src: Path, core_tests: Path) -> None:
         wire = root / "wire"
         ready = root / "spawn-stuck"
         ack = root / "pause-ack"
+        contender_entered = root / "contender-entered-wire-lock"
         environment = os.environ.copy()
         environment["PYTHONPATH"] = os.pathsep.join(map(str, (core_tests, core_src, toad_src)))
         worker_process = subprocess.Popen(
@@ -65,10 +88,16 @@ def parent(toad_src: Path, core_src: Path, core_tests: Path) -> None:
                 time.sleep(0.01)
             assert ready.exists(), "fake OS spawn did not enter while gate held"
             pause_process = subprocess.Popen(
-                [sys.executable, __file__, "--pause", str(wire), str(ack)],
+                [sys.executable, __file__, "--pause", str(wire), str(contender_entered), str(ack)],
                 env=environment, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                 start_new_session=True,
             )
+            deadline = time.monotonic() + 5
+            while not contender_entered.exists() and time.monotonic() < deadline:
+                if pause_process.poll() is not None:
+                    raise RuntimeError("pause contender exited before entering wire lock")
+                time.sleep(0.01)
+            assert contender_entered.exists(), "pause contender never reached wire lock"
             time.sleep(0.25)
             assert worker_process.poll() is None
             assert pause_process.poll() is None
@@ -79,19 +108,13 @@ def parent(toad_src: Path, core_src: Path, core_tests: Path) -> None:
             for process in (pause_process, worker_process):
                 if process is None:
                     continue
-                if process.poll() is None:
-                    os.killpg(process.pid, signal.SIGKILL)
-                try:
-                    process.communicate(timeout=5)
-                except subprocess.TimeoutExpired:
-                    os.killpg(process.pid, signal.SIGKILL)
-                    process.communicate(timeout=5)
+                retire_owned_fixture_process(process)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--worker", nargs=2, type=Path)
-    parser.add_argument("--pause", nargs=2, type=Path)
+    parser.add_argument("--pause", nargs=3, type=Path)
     parser.add_argument("--toad-src", type=Path)
     parser.add_argument("--core-src", type=Path)
     parser.add_argument("--core-tests", type=Path)
