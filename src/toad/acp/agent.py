@@ -168,6 +168,9 @@ class Agent(AgentBase):
         self._coordination_thread: str | None = None
         self._coordination_root: str | None = None
         self._coordination_worktree: str | None = None
+        self._maintenance_env: dict[str, str] | None = None
+        self._maintenance_cwd: str | None = None
+        self._maintenance_root: Path | None = None
         self._transcript_reader: Comms | None = None
         self._transcript_reader_root: str | None = None
         self._transcript_reader_lock = asyncio.Lock()
@@ -270,12 +273,19 @@ class Agent(AgentBase):
     async def start(self, message_target: MessagePump | None = None) -> None:
         """Start the agent."""
         self._message_target = message_target
-        # A snapshot is only early denial; the spawn itself takes the core wire
-        # lock through process creation to linearize with a maintenance pause.
-        from .maintenance_ingress import preflight
+        # Freeze exactly the environment and working directory passed to the
+        # child. A relative wire root is relative to the child cwd, not Toad's.
+        # Preflight is early denial; the actual spawn takes the core wire lock.
+        from .maintenance_ingress import configured_root, preflight
 
+        self._maintenance_env = os.environ.copy()
+        self._maintenance_cwd = str(self.project_root_path.resolve())
+        self._maintenance_root = configured_root(self._maintenance_env, self._maintenance_cwd)
         try:
-            await asyncio.to_thread(preflight, self._coordination_root)
+            await asyncio.to_thread(
+                preflight, self._coordination_root,
+                ingress_root=self._maintenance_root, cwd=self._maintenance_cwd,
+            )
         except Exception as error:
             self._connected_ok = False
             self.session_ready_event.set()
@@ -309,7 +319,10 @@ class Agent(AgentBase):
             if any(isinstance(call, dict) and call.get("method") == "session/prompt" for call in calls):
                 from .maintenance_ingress import admitted_prompt
 
-                with admitted_prompt(self._coordination_root):
+                with admitted_prompt(
+                    self._coordination_root, ingress_root=self._maintenance_root,
+                    cwd=self._maintenance_cwd,
+                ):
                     stdin.write(b"%s\n" % request.body_json)
             else:
                 stdin.write(b"%s\n" % request.body_json)
@@ -910,7 +923,7 @@ class Agent(AgentBase):
         """Task to communicate with the agent subprocess."""
 
         PIPE = asyncio.subprocess.PIPE
-        env = os.environ.copy()
+        env = (self._maintenance_env or os.environ).copy()
         env["TOAD_CWD"] = str(Path("./").absolute())
 
         if (command := self.command) is None:
@@ -928,7 +941,7 @@ class Agent(AgentBase):
                 stdout=PIPE,
                 stderr=PIPE,
                 env=env,
-                cwd=str(self.project_root_path),
+                cwd=self._maintenance_cwd or str(self.project_root_path.resolve()),
                 limit=10 * 1024 * 1024,
                 start_new_session=os.name != "nt",
             )
@@ -1252,10 +1265,16 @@ class Agent(AgentBase):
             raise ValueError(
                 "This agent cannot resume its session."
             )
-        from .maintenance_ingress import preflight
+        from .maintenance_ingress import configured_root, preflight
 
+        requested_env = os.environ.copy()
+        requested_cwd = str(self.project_root_path.resolve())
+        requested_root = configured_root(requested_env, requested_cwd)
         try:
-            await asyncio.to_thread(preflight, self._coordination_root)
+            await asyncio.to_thread(
+                preflight, self._coordination_root,
+                ingress_root=requested_root, cwd=requested_cwd,
+            )
         except Exception as error:
             raise ValueError(f"Reconnect not attempted: maintenance admission denied: {error}") from error
         target = self._message_target

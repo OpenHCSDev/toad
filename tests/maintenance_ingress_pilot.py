@@ -96,15 +96,19 @@ async def main() -> None:
         entered = asyncio.Event()
         released = asyncio.Event()
         retired = asyncio.Event()
+        retire_started = asyncio.Event()
+        allow_retire = asyncio.Event()
 
         class FakeChild:
             returncode = None
 
             def terminate(self):
-                self.returncode = -15
-                retired.set()
+                retire_started.set()
 
             async def wait(self):
+                await allow_retire.wait()
+                self.returncode = -15
+                retired.set()
                 return self.returncode
 
         async def delayed_spawn(_command, **_kwargs):
@@ -120,8 +124,13 @@ async def main() -> None:
             attempt.cancel()
             pause = asyncio.create_task(asyncio.to_thread(barrier_for().begin, "test-operator"))
             await asyncio.sleep(0.02)
-            assert not pause.done()
+            attempt.cancel()  # A second cancel must not abandon a future child.
+            await asyncio.sleep(0.02)
+            assert not attempt.done() and not pause.done()
             released.set()
+            await asyncio.wait_for(retire_started.wait(), timeout=5)
+            assert not pause.done(), "pause acknowledged before cancelled child retired"
+            allow_retire.set()
             try:
                 await asyncio.wait_for(attempt, timeout=5)
             except asyncio.CancelledError:
@@ -147,6 +156,47 @@ async def main() -> None:
             else:
                 raise AssertionError("mounted paused wire accepted")
             preflight()  # Unrelated default remains open.
+
+    # Relative wire root is resolved against the exact child cwd. A changed
+    # parent environment cannot redirect the check away from the copied env.
+    with TemporaryDirectory(prefix="toad-maintenance-child-root-") as directory:
+        root = Path(directory)
+        parent = root / "parent"
+        child = root / "child"
+        parent.mkdir()
+        child.mkdir()
+        MaintenanceBarrier(child / "wire" / "registry.json").begin("test-operator")
+        called = []
+
+        async def must_not_spawn(*_args, **_kwargs):
+            called.append(True)
+            raise AssertionError("paused child root reached subprocess")
+
+        previous = Path.cwd()
+        try:
+            os.chdir(parent)
+            with patch.dict(os.environ, {"AGENT_COMMS_ROOT": "wire"}), patch(
+                "asyncio.create_subprocess_shell", must_not_spawn
+            ):
+                try:
+                    await admitted_spawn("fake", env=os.environ.copy(), cwd=str(child))
+                except Exception:
+                    pass
+                else:
+                    raise AssertionError("relative paused child wire was admitted")
+        finally:
+            os.chdir(previous)
+        assert not called
+        with patch.dict(os.environ, {"AGENT_COMMS_ROOT": str(root / "new")}), patch(
+            "asyncio.create_subprocess_shell", must_not_spawn
+        ):
+            try:
+                await admitted_spawn("fake", env={"AGENT_COMMS_ROOT": str(child / "wire")}, cwd=str(child))
+            except Exception:
+                pass
+            else:
+                raise AssertionError("copied paused child env was ignored")
+        assert not called
 
     # First-use ordinary path remains open through the actual Toad Agent path;
     # the disposable shell emits a marker, not a provider request.

@@ -7,33 +7,47 @@ exclusion before any maintenance window can be declared safe.
 from __future__ import annotations
 
 import asyncio
+import concurrent.futures
 import os
+import signal
+import time
 from contextlib import ExitStack, contextmanager
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any, Iterator, Mapping
 
 
 _pending_spawns = 0
 
 
-def barrier_for(root: str | None = None) -> Any:
+def configured_root(env: Mapping[str, str], cwd: str | Path) -> Path:
+    """Resolve the exact wire path as the ACP child will resolve its env."""
+    raw = Path(env.get("AGENT_COMMS_ROOT", "~/.agent-comms")).expanduser()
+    return (raw if raw.is_absolute() else Path(cwd) / raw).resolve()
+
+
+def barrier_for(root: str | Path | None = None, *, cwd: str | Path | None = None) -> Any:
     """Use the paired Comms barrier; never silently skip a missing package."""
     from agent_comms.maintenance_barrier import MaintenanceBarrier
 
-    resolved = Path(root or os.environ.get("AGENT_COMMS_ROOT", "~/.agent-comms"))
-    return MaintenanceBarrier(resolved.expanduser().resolve() / "registry.json")
+    resolved = Path(root or os.environ.get("AGENT_COMMS_ROOT", "~/.agent-comms")).expanduser()
+    if not resolved.is_absolute():
+        resolved = Path(cwd or os.getcwd()) / resolved
+    return MaintenanceBarrier(resolved.resolve() / "registry.json")
 
 
 @contextmanager
-def admission(root: str | None = None) -> Iterator[None]:
+def admission(
+    root: str | None = None, *, ingress_root: str | Path | None = None,
+    cwd: str | Path | None = None,
+) -> Iterator[None]:
     """Guard both the default ingress and any attached non-default wire root.
 
     ACP metadata may name a second root. It cannot redirect admission away from
     the default Toad ingress root; deterministic lock order avoids cross-root
     deadlock with other Toad attachments.
     """
-    configured = barrier_for()
-    attached = barrier_for(root)
+    configured = barrier_for(ingress_root, cwd=cwd)
+    attached = barrier_for(root, cwd=cwd) if root is not None else configured
     paths = {configured.registry_path, attached.registry_path}
     with ExitStack() as stack:
         for path in sorted(paths):
@@ -41,9 +55,12 @@ def admission(root: str | None = None) -> Iterator[None]:
         yield
 
 
-def preflight(root: str | None = None) -> None:
+def preflight(
+    root: str | None = None, *, ingress_root: str | Path | None = None,
+    cwd: str | Path | None = None,
+) -> None:
     """Early denial only: the later spawn/send holds the actual wire lock."""
-    with admission(root):
+    with admission(root, ingress_root=ingress_root, cwd=cwd):
         pass
 
 
@@ -59,35 +76,122 @@ async def admitted_spawn(command: str, *, root: str | None = None, **kwargs: Any
     this helper does not purport to provide a bounded retirement deadline.
     """
     loop = asyncio.get_running_loop()
-    def spawn_under_lock() -> asyncio.subprocess.Process:
-        with admission(root):
-            future = asyncio.run_coroutine_threadsafe(
-                asyncio.create_subprocess_shell(command, **kwargs), loop
-            )
-            return future.result()
+    child_env = kwargs["env"] if kwargs.get("env") is not None else os.environ
+    child_cwd = kwargs["cwd"] if kwargs.get("cwd") is not None else os.getcwd()
+    ingress_root = configured_root(child_env, child_cwd)
+    process_ready: concurrent.futures.Future[asyncio.subprocess.Process] = concurrent.futures.Future()
+    decision: concurrent.futures.Future[bool] = concurrent.futures.Future()
 
     global _pending_spawns
     _pending_spawns += 1
-    task = asyncio.create_task(asyncio.to_thread(spawn_under_lock))
-    try:
-        try:
-            return await asyncio.shield(task)
-        except asyncio.CancelledError:
-            # Do not abandon an in-flight spawn or a lock-holding worker thread.
-            process = await asyncio.shield(task)
-            if process.returncode is None:
-                try:
+
+    async def settle(task: asyncio.Future[Any]) -> tuple[Any, bool]:
+        """Repeated caller cancellation cannot abandon a lock-held spawn."""
+        cancelled = False
+        while True:
+            try:
+                return await asyncio.shield(task), cancelled
+            except asyncio.CancelledError:
+                cancelled = True
+
+    def live_group_members(group: int) -> bool:
+        """A zombie is exited, but an orphaned running member is not retired."""
+        import psutil
+
+        for member in psutil.process_iter():
+            try:
+                if os.getpgid(member.pid) == group and member.status() != psutil.STATUS_ZOMBIE:
+                    return True
+            except (ProcessLookupError, psutil.NoSuchProcess):
+                continue
+        return False
+
+    async def retire(process: asyncio.subprocess.Process) -> None:
+        group = process.pid if os.name != "nt" and kwargs.get("start_new_session") else None
+        if process.returncode is None:
+            try:
+                if group is not None:
+                    os.killpg(group, signal.SIGTERM)
+                else:
                     process.terminate()
+            except ProcessLookupError:
+                pass
+            wait = asyncio.create_task(asyncio.wait_for(process.wait(), timeout=2))
+            try:
+                await settle(wait)
+            except TimeoutError:
+                try:
+                    if group is not None:
+                        os.killpg(group, signal.SIGKILL)
+                    else:
+                        process.kill()
                 except ProcessLookupError:
                     pass
-                await process.wait()
+                await settle(asyncio.create_task(process.wait()))
+        if group is not None:
+            # Shell wait alone does not prove its marker-only ACP descendants
+            # stopped. Keep the wire lock until every same-group live member
+            # exits. An unkillable member conservatively stalls the pause.
+            escalation = time.monotonic() + 0.2
+            while await asyncio.to_thread(live_group_members, group):
+                if time.monotonic() >= escalation:
+                    try:
+                        os.killpg(group, signal.SIGKILL)
+                    except ProcessLookupError:
+                        pass
+                await asyncio.sleep(0.02)
+
+    def spawn_under_lock() -> None:
+        try:
+            with admission(root, ingress_root=ingress_root, cwd=child_cwd):
+                future = asyncio.run_coroutine_threadsafe(
+                    asyncio.create_subprocess_shell(command, **kwargs), loop
+                )
+                process = future.result()
+                process_ready.set_result(process)
+                # The caller must accept the observed process or ask for
+                # retirement before releasing the lock to a maintenance pause.
+                if not decision.result():
+                    while True:
+                        try:
+                            asyncio.run_coroutine_threadsafe(retire(process), loop).result()
+                        except Exception:
+                            # If inspection/retirement is uncertain, do not
+                            # release the wire lock and certify a safe pause.
+                            # An operator must retire this old-capable client
+                            # externally; retry only the same child's cleanup.
+                            time.sleep(0.1)
+                            continue
+                        break
+        except BaseException as error:
+            if not process_ready.done():
+                process_ready.set_exception(error)
+            else:
+                raise
+
+    worker = asyncio.create_task(asyncio.to_thread(spawn_under_lock))
+    try:
+        try:
+            process, cancelled = await settle(asyncio.wrap_future(process_ready))
+        except BaseException:
+            await settle(worker)
             raise
+        if cancelled:
+            decision.set_result(False)
+            await settle(worker)
+            raise asyncio.CancelledError
+        decision.set_result(True)
+        # No await between acceptance and returning ownership to Agent._run_agent.
+        return process
     finally:
         _pending_spawns -= 1
 
 
 @contextmanager
-def admitted_prompt(root: str | None = None) -> Iterator[None]:
+def admitted_prompt(
+    root: str | None = None, *, ingress_root: str | Path | None = None,
+    cwd: str | Path | None = None,
+) -> Iterator[None]:
     """Guard synchronous JSONRPC enqueue through its stdin.write boundary.
 
     Never synchronously wait for a wire lock held by this event loop's own
@@ -96,5 +200,5 @@ def admitted_prompt(root: str | None = None) -> Iterator[None]:
     """
     if _pending_spawns:
         raise ValueError("ACP spawn admission is in progress; prompt not sent")
-    with admission(root):
+    with admission(root, ingress_root=ingress_root, cwd=cwd):
         yield
