@@ -42,29 +42,35 @@ separate concern; it does not establish queue membership or acknowledge inputs.
 
 ## Backend proposal adopted for further integration
 
-The backend owner proposed:
+The backend owner confirmed these proposed semantics (message8053), still
+pending implemented schema/fixtures and an exact freeze:
 
 ```text
-queueState = {
-  sessionId, ownerThread, ownerCreatedAt, ownerEpoch,
-  admissionGeneration, revision,
-  items: [{inputId, text}]
+trusted load/owner-socket ready.agentComms.queueScope = {
+  sessionId, ownerThread, ownerCreatedAt, ownerEpoch, admissionGeneration
 }
+queueState = {
+  scope, revision, items: [{inputId, text}], restoredInputs: [{inputId, text}]
+}
+inputStarted = {scope, revision, inputId, text}
 ```
 
-Exact starts and public dispositions must use the same owner/session scope.
-Toad proposed an explicit version and a `queueBinding` object in the trusted
-session result. These names and startup rules are **not frozen** yet.
+Only trusted load/ready metadata may rebind scope. Queue events cannot establish
+or replace it. Exact starts and public dispositions use the same scope.
+Revision increments per membership change, not per emitted message: an exact
+start and the following queue snapshot share the removal revision. Therefore
+an equal-revision start still retires its input once; a per-scope started-ID
+tombstone prevents snapshot replay from resurrecting it. Lower-revision snapshots
+are ignored. Same-owner reconnect retains revision floor and tombstones; trusted
+changed-epoch rebind resets projection bookkeeping, never durable UNKNOWN.
+Duplicate restored IDs append to the composer at most once.
 
-Decisions required before wire integration:
+Details required in the backend schema/fixture freeze before wire integration:
 
-- Version field and exact scope types/validation/bounds.
-- Revision per membership mutation or per published event. If a start and
-  snapshot share a revision, distinct event kinds must not suppress one another;
-  duplicate snapshots and start receipts must still be idempotent.
-- Initial snapshot in the session result, or an explicit read-only refresh after
-  binding, to handle notifications arriving before the session result safely.
-- Exact-ID restored entries (otherwise automatic composer restoration is held).
+- Version support and exact scope types/validation/bounds.
+- Initial snapshot/ready ordering and handling pre-bind notifications without
+  losing the first authoritative state.
+- Lower-revision start proof semantics (distinct from stale snapshots).
 - Reconnect replay ordering, deduplication bounds, and disposition scope.
 
 ## Acceptance matrix
