@@ -30,6 +30,7 @@ from toad.acp import messages
 from toad.acp.sdk_boundary import validate_session_update
 from toad.acp.prompt import build as build_prompt
 from toad.db import DB
+from toad.private_native_cursor import CursorReducer
 from toad import paths
 from toad import constants
 from toad.answer import Answer
@@ -191,6 +192,8 @@ class Agent(AgentBase):
         self._pending_permission_answers: set[asyncio.Future[Answer | None]] = set()
         self._active_turn_id: str | None = None
         self._turn_lifecycle_sequence = 0
+        self._private_cursor = CursorReducer()
+        self._private_cursor_sequence = 0
 
         self._terminal_count: int = 0
 
@@ -329,6 +332,11 @@ class Agent(AgentBase):
             return
 
         metadata = update.get("_meta")
+        if isinstance(metadata, dict):
+            cursor_meta = metadata.get("agentComms")
+            if isinstance(cursor_meta, dict) and "privateNativeCursor" in cursor_meta:
+                self._private_cursor.callback(cursor_meta["privateNativeCursor"], sessionId)
+                self._post_private_cursor()
         route: MessageRoute | None = None
         if isinstance(metadata, dict) and isinstance(metadata.get("agentComms"), dict):
             state = metadata["agentComms"]
@@ -949,7 +957,8 @@ class Agent(AgentBase):
             tasks.add(asyncio.create_task(call_jsonrpc(agent_data)))
             await asyncio.sleep(0)
 
-        # EOF is attachment loss, not evidence that any remote MCP is live.
+        # EOF invalidates provenance; it never resolves input disposition.
+        self._invalidate_private_cursor()
         self._active_turn_id = None
         self.post_message(messages.McpClientStopped(self))
 
@@ -988,6 +997,7 @@ class Agent(AgentBase):
     async def stop(self) -> None:
         """Gracefully stop the process."""
         self._stopping = True
+        self._invalidate_private_cursor()
         self._active_turn_id = None
         self.post_message(messages.McpClientStopped(self))
         for answer in tuple(self._pending_permission_answers):
@@ -1247,6 +1257,8 @@ class Agent(AgentBase):
 
     async def acp_new_session(self) -> None:
         """Create a new session."""
+        cursor_token = self._private_cursor.begin(None)
+        self._post_private_cursor()
         with self.request():
             session_new_response = api.session_new(
                 str(self.project_root_path),
@@ -1255,6 +1267,7 @@ class Agent(AgentBase):
         response = await session_new_response.wait()
         assert response is not None
         self.session_id = response["sessionId"]
+        self._bind_private_cursor(response, cursor_token)
 
         if self.supports_load_session:
             db = DB()
@@ -1291,6 +1304,8 @@ class Agent(AgentBase):
 
     async def acp_load_session(self) -> None:
         assert self.session_id is not None, "Session id must be set"
+        cursor_token = self._private_cursor.begin(self.session_id)
+        self._post_private_cursor()
         cwd = str(self.project_root_path)
         if self.session_pk is not None:
             db = DB()
@@ -1306,6 +1321,7 @@ class Agent(AgentBase):
             session_load_response = api.session_load(cwd, [], self.session_id)
         response = await session_load_response.wait()
         assert response is not None
+        self._bind_private_cursor(response, cursor_token)
 
         if (modes := response.get("modes", None)) is not None:
             current_mode = modes["currentModeId"]
@@ -1432,6 +1448,24 @@ class Agent(AgentBase):
             self.log(f"[ACP rejected goal snapshot] {error}")
             return
         self.post_message(messages.GoalSnapshotUpdate(goal, execution))
+
+    def _post_private_cursor(self) -> None:
+        self._private_cursor_sequence += 1
+        self.post_message(messages.PrivateNativeCursorUpdate(
+            self._private_cursor.status, self, self.session_id,
+            self._private_cursor_sequence,
+        ))
+
+    def _bind_private_cursor(self, response: Mapping[str, object], token: int) -> None:
+        metadata = response.get("_meta")
+        coordination = metadata.get("agentComms") if isinstance(metadata, dict) else None
+        value = coordination.get("privateNativeCursor") if isinstance(coordination, dict) else None
+        self._private_cursor.bind(value, self.session_id, token)
+        self._post_private_cursor()
+
+    def _invalidate_private_cursor(self) -> None:
+        self._private_cursor.invalidate()
+        self._post_private_cursor()
 
     def _publish_coordination_metadata(
         self, response: Mapping[str, object], *, initial: bool = False,
