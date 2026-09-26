@@ -168,6 +168,9 @@ class Agent(AgentBase):
         self._coordination_thread: str | None = None
         self._coordination_root: str | None = None
         self._coordination_worktree: str | None = None
+        self._maintenance_env: dict[str, str] | None = None
+        self._maintenance_cwd: str | None = None
+        self._maintenance_root: Path | None = None
         self._transcript_reader: Comms | None = None
         self._transcript_reader_root: str | None = None
         self._transcript_reader_lock = asyncio.Lock()
@@ -270,6 +273,27 @@ class Agent(AgentBase):
     async def start(self, message_target: MessagePump | None = None) -> None:
         """Start the agent."""
         self._message_target = message_target
+        # Freeze exactly the environment and working directory passed to the
+        # child. A relative wire root is relative to the child cwd, not Toad's.
+        # Preflight is early denial; the actual spawn takes the core wire lock.
+        from .maintenance_ingress import configured_root, preflight
+
+        self._maintenance_env = os.environ.copy()
+        self._maintenance_cwd = str(self.project_root_path.resolve())
+        self._maintenance_root = configured_root(self._maintenance_env, self._maintenance_cwd)
+        # The later _run_agent task must not re-resolve an alias after the
+        # preflight snapshot while prompt admission still uses this root.
+        self._maintenance_env["AGENT_COMMS_ROOT"] = str(self._maintenance_root)
+        try:
+            await asyncio.to_thread(
+                preflight, self._coordination_root,
+                ingress_root=self._maintenance_root, cwd=self._maintenance_cwd,
+            )
+        except Exception as error:
+            self._connected_ok = False
+            self.session_ready_event.set()
+            self.post_message(AgentFail("Failed to start agent", details=str(error)))
+            return
         try:
             await asyncio.to_thread(
                 self._log_file_path.parent.mkdir, parents=True, exist_ok=True
@@ -291,9 +315,20 @@ class Agent(AgentBase):
             self.log("[error] Agent process isnt running")
             return
 
-        self.log(f"[client] {request.body}")
+        body = request.body
+        self.log(f"[client] {body}")
         if (stdin := self._process.stdin) is not None:
-            stdin.write(b"%s\n" % request.body_json)
+            calls = body if isinstance(body, list) else [body]
+            if any(isinstance(call, dict) and call.get("method") == "session/prompt" for call in calls):
+                from .maintenance_ingress import admitted_prompt
+
+                with admitted_prompt(
+                    self._coordination_root, ingress_root=self._maintenance_root,
+                    cwd=self._maintenance_cwd,
+                ):
+                    stdin.write(b"%s\n" % request.body_json)
+            else:
+                stdin.write(b"%s\n" % request.body_json)
 
     def request(self) -> jsonrpc.Request:
         """Create a request object."""
@@ -891,7 +926,7 @@ class Agent(AgentBase):
         """Task to communicate with the agent subprocess."""
 
         PIPE = asyncio.subprocess.PIPE
-        env = os.environ.copy()
+        env = (self._maintenance_env or os.environ).copy()
         env["TOAD_CWD"] = str(Path("./").absolute())
 
         if (command := self.command) is None:
@@ -900,19 +935,24 @@ class Agent(AgentBase):
             )
             return
         try:
-            process = self._process = await asyncio.create_subprocess_shell(
+            from .maintenance_ingress import admitted_spawn
+
+            process = self._process = await admitted_spawn(
                 command,
+                root=self._coordination_root,
                 stdin=PIPE,
                 stdout=PIPE,
                 stderr=PIPE,
                 env=env,
-                cwd=str(self.project_root_path),
+                cwd=self._maintenance_cwd or str(self.project_root_path.resolve()),
                 limit=10 * 1024 * 1024,
                 start_new_session=os.name != "nt",
             )
             if os.name != "nt":
                 self._process_group_id = process.pid
         except Exception as error:
+            self._connected_ok = False
+            self.session_ready_event.set()
             self.post_message(AgentFail("Failed to start agent", details=str(error)))
             return
 
@@ -1228,6 +1268,18 @@ class Agent(AgentBase):
             raise ValueError(
                 "This agent cannot resume its session."
             )
+        from .maintenance_ingress import configured_root, preflight
+
+        requested_env = os.environ.copy()
+        requested_cwd = str(self.project_root_path.resolve())
+        requested_root = configured_root(requested_env, requested_cwd)
+        try:
+            await asyncio.to_thread(
+                preflight, self._coordination_root,
+                ingress_root=requested_root, cwd=requested_cwd,
+            )
+        except Exception as error:
+            raise ValueError(f"Reconnect not attempted: maintenance admission denied: {error}") from error
         target = self._message_target
         await self.stop()
         self._stopping = False
@@ -1563,8 +1615,22 @@ class Agent(AgentBase):
                 self._context_usage = None
                 self._context_usage_saved = False
                 self.post_message(messages.UpdateStatusLine(Content("Context estimate unavailable")))
+        # ACP may report an alias or relative attached root. Freeze its exact
+        # target before any later Toad prompt or Comms UI action can use it;
+        # otherwise retargeting a symlink after an admission check redirects
+        # Toad to a different (possibly paused) wire.
+        from .maintenance_ingress import configured_root
+
+        attached_env = (self._maintenance_env or os.environ).copy()
+        attached_env["AGENT_COMMS_ROOT"] = wire_root
+        try:
+            attached_root = configured_root(
+                attached_env, self._maintenance_cwd or self.project_root_path.resolve()
+            )
+        except (OSError, ValueError, RuntimeError):
+            return
         self._coordination_thread = thread
-        self._coordination_root = wire_root
+        self._coordination_root = str(attached_root)
         if isinstance(worktree := coordination.get("worktree"), str):
             self._coordination_worktree = worktree
             self.project_root_path = Path(worktree)
