@@ -273,6 +273,9 @@ def render_inventory(inventory: Inventory | None) -> str:
         "Actions launch the installed package CLI in a visible POSIX PTY; it owns",
         "the complete display, exact digest challenge and ledger write. Toad never",
         "auto-answers and cannot undo a decision the package already committed.",
+        "Positive grants additionally require the pinned supported CLI SHA-256",
+        "(settings); older or changed builds refuse Approve/Allow but keep",
+        "Deny/Require-asks available.",
     ]
     for scope, rows in (("User", inventory.user), ("Project", inventory.project)):
         lines.append(f"\n{scope} declarations ({len(rows)}):")

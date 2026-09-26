@@ -12,7 +12,7 @@ from textual.screen import ModalScreen
 from textual.widgets import Button, OptionList, Static
 from textual.widgets.option_list import Option
 
-from toad.mcp_decision import Decision, DecisionAction
+from toad.mcp_decision import Decision, DecisionAction, cli_digest_matches
 from toad.mcp_inventory import Declaration, Inventory, read_inventory, render_inventory
 
 
@@ -32,11 +32,14 @@ class MCPInventoryScreen(ModalScreen[None]):
     """
     BINDINGS = [("escape", "dismiss", "Close inventory")]
 
-    def __init__(self, project_root: Path, *, node_path: str, cli_path: str) -> None:
+    def __init__(
+        self, project_root: Path, *, node_path: str, cli_path: str, cli_digest: str
+    ) -> None:
         super().__init__()
         self.project_root = project_root
         self.node_path = node_path
         self.cli_path = cli_path
+        self.cli_digest = cli_digest
         self._read_task: asyncio.Task[None] | None = None
         self._generation = 0
         self._inventory: Inventory | None = None
@@ -109,15 +112,18 @@ class MCPInventoryScreen(ModalScreen[None]):
     def _update_actions(self) -> None:
         row, snapshot = self._selected, self._inventory
         if row is None or snapshot is None or os.name != "posix":
-            project = calls = False
+            project = calls = pinned = False
         else:
             eligible = row.effective and row.enabled and snapshot.project_trusted_saved
+            # Positive grants also need the pinned supported CLI build; the
+            # backend enforces the same gate before any launch.
+            pinned = cli_digest_matches(self.cli_path, self.cli_digest)
             project = eligible and row.scope == "project"
             calls = eligible and row.status == "approved"
         for identifier, enabled in (
-            ("trust_approve", project),
+            ("trust_approve", project and pinned),
             ("trust_deny", project),
-            ("calls_allow", calls),
+            ("calls_allow", calls and pinned),
             ("calls_ask", calls),
         ):
             self.query_one(f"#{identifier}", Button).disabled = not enabled
@@ -170,6 +176,7 @@ class MCPInventoryScreen(ModalScreen[None]):
                     decision=decision,
                     node_path=self.node_path,
                     cli_path=self.cli_path,
+                    cli_digest=self.cli_digest,
                 ),
                 lambda _: self.action_refresh(),
             )

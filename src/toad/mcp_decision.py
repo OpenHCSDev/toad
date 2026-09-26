@@ -9,7 +9,10 @@ from __future__ import annotations
 import asyncio
 import codecs
 import errno
+import hashlib
 import os
+import re
+import secrets
 from pathlib import Path
 from typing import Awaitable, Callable, Literal
 
@@ -18,6 +21,23 @@ from toad.mcp_inventory import Declaration, Inventory, read_inventory
 
 DecisionAction = Literal["trust", "calls"]
 Decision = Literal["approve", "deny", "allow", "ask"]
+# Positive grants need the independently cleared grant-revival fix. The CLI
+# exposes no version/capability flag, so the user pins the SHA-256 of a
+# verified installed script; Toad never owns or writes the package ledger.
+POSITIVE_ACTIONS = {("trust", "approve"), ("calls", "allow")}
+
+
+def cli_digest_matches(cli_path: str, expected_digest: str) -> bool:
+    """A pinned digest is the only accepted supported-installation gate."""
+    if not expected_digest or not re.fullmatch(r"[a-f0-9]{64}", expected_digest):
+        return False
+    try:
+        actual = hashlib.sha256(Path(cli_path).read_bytes()).hexdigest()
+    except OSError:
+        return False
+    return secrets.compare_digest(actual, expected_digest)
+
+
 DECISION_TIMEOUT_SECONDS = 120.0
 MAX_DECISION_OUTPUT_BYTES = 128_000
 
@@ -50,6 +70,7 @@ class LocalDecisionPTY:
         cli_path: str,
         show: Callable[[str], Awaitable[None]],
         controller_visible: Callable[[], bool],
+        cli_digest: str = "",
     ) -> str:
         """Recheck the typed package snapshot before a direct exec, then show raw PTY output.
 
@@ -65,11 +86,14 @@ class LocalDecisionPTY:
             ("calls", "allow"),
             ("calls", "ask"),
         }:
-            # The package's deny/reapprove grant-revival fix (deny retiring
-            # project grants plus locked approve revalidation at grant commit)
-            # was independently reviewed; every action still needs the typed
-            # snapshot equality check below and the user's own typed challenge.
             return "unsupported"
+        if (action, decision) in POSITIVE_ACTIONS and not cli_digest_matches(
+            cli_path, cli_digest
+        ):
+            # An older package build can revive a grant the running ledger fix
+            # retired. Positive grants refuse every unpinned or changed CLI;
+            # revocations stay available because they only narrow authority.
+            return "unsupported_install"
         if (
             not row.effective
             or not row.enabled

@@ -303,7 +303,11 @@ outcome. Positive **Approve project**
 and **Allow autonomous calls** likewise launch the package CLI in the visible
 PTY: the package owns the whole approval display, challenge and ledger write,
 and a project denial retires previous grants while a grant commit revalidates
-its approval under the ledger lock. On other platforms or when the package CLI
+its approval under the ledger lock. The CLI exposes no version flag, so
+positive grants additionally require `mcp.cli_digest`: the user pins the
+SHA-256 of a verified installed script that includes the revival fix; any
+other build refuses Approve/Allow while Deny/Require-asks stay available.
+On other platforms or when the package CLI
 is absent, actions are unavailable. Use the installed package CLI in a local
 terminal for supported manual operations; changes apply on the next Pi turn.
 This optional draft is not a full MCP server management UI.

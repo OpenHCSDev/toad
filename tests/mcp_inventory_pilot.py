@@ -133,7 +133,10 @@ print(json.dumps(DOC))
         app = InventoryApp()
         async with app.run_test(size=(100, 35)) as pilot:
             screen = MCPInventoryScreen(
-                root, node_path=sys.executable, cli_path=str(script)
+                root,
+                node_path=sys.executable,
+                cli_path=str(script),
+                cli_digest="",
             )
             app.push_screen(screen)
             await pilot.pause(0.1)

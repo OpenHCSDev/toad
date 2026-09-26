@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -21,6 +22,7 @@ from toad.screens.mcp_inventory import MCPInventoryScreen
 
 
 DIGEST = "a" * 64
+WRONG_DIGEST = "f" * 64
 
 
 def fixture(root: Path) -> dict:
@@ -111,7 +113,9 @@ else:
             return True
 
         async def attempt(
-            action: DecisionAction = "trust", decision: Decision = "deny"
+            action: DecisionAction = "trust",
+            decision: Decision = "deny",
+            cli_digest: str = "",
         ) -> str:
             return await pty.run(
                 inventory=inventory,
@@ -122,7 +126,18 @@ else:
                 cli_path=str(script),
                 show=show,
                 controller_visible=visible,
+                cli_digest=cli_digest,
             )
+
+        # A positive grant must refuse an unpinned or changed CLI build;
+        # revocations of any build stay available.
+        assert await attempt("calls", "allow") == "unsupported_install"
+        assert not marker.exists()
+        assert await attempt("trust", "approve", WRONG_DIGEST) == "unsupported_install"
+        assert not marker.exists()
+        pinned = hashlib.sha256(script.read_bytes()).hexdigest()
+        assert not decisions.cli_digest_matches(str(script), WRONG_DIGEST)
+        assert decisions.cli_digest_matches(str(script), pinned)
 
         # No stale snapshot may reach the action branch of the fake CLI.
         stale.touch()
@@ -192,7 +207,7 @@ else:
         marker.unlink()
         appeared.clear()
         displayed.clear()
-        allow_runner = asyncio.create_task(attempt("calls", "allow"))
+        allow_runner = asyncio.create_task(attempt("calls", "allow", pinned))
         await asyncio.wait_for(appeared.wait(), 3)
         assert not marker.exists()
         await pty.write_user_input(f"allow:fixture:{DIGEST}\n")
@@ -201,7 +216,7 @@ else:
         marker.unlink()
         appeared.clear()
         displayed.clear()
-        approve_runner = asyncio.create_task(attempt("trust", "approve"))
+        approve_runner = asyncio.create_task(attempt("trust", "approve", pinned))
         await asyncio.wait_for(appeared.wait(), 3)
         assert not marker.exists()
         await pty.write_user_input(f"approve:fixture:{DIGEST}\n")
@@ -290,7 +305,10 @@ else:
             obscured.dismiss()
             await pilot.pause(0.05)
             inventory_screen = MCPInventoryScreen(
-                root, node_path=sys.executable, cli_path=str(script)
+                root,
+                node_path=sys.executable,
+                cli_path=str(script),
+                cli_digest=hashlib.sha256(script.read_bytes()).hexdigest(),
             )
             app.push_screen(inventory_screen)
             await pilot.pause(0.15)

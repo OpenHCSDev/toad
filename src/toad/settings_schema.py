@@ -21,6 +21,13 @@ SCHEMA: list[SchemaDict] = [
                 "type": "string",
                 "default": "",
             },
+            {
+                "key": "cli_digest",
+                "title": "Pinned supported CLI SHA-256 (positive grants)",
+                "help": "After verifying the installed pi-mcp.mjs includes the grant-revival fix, pin its SHA-256 here. Approve/allow actions refuse any other build.",
+                "type": "string",
+                "default": "",
+            },
         ],
     },
     {

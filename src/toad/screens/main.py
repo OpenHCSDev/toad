@@ -334,11 +334,14 @@ class MainScreen(SessionView, can_focus=False):
         """Open an inert package-owned snapshot; never locate a source checkout."""
         from toad.screens.mcp_inventory import MCPInventoryScreen
 
-        self.app.push_screen(MCPInventoryScreen(
-            self.project_path,
-            node_path=self.app.settings.get("mcp.node_path", str, expand=False),
-            cli_path=self.app.settings.get("mcp.cli_path", str, expand=False),
-        ))
+        self.app.push_screen(
+            MCPInventoryScreen(
+                self.project_path,
+                node_path=self.app.settings.get("mcp.node_path", str, expand=False),
+                cli_path=self.app.settings.get("mcp.cli_path", str, expand=False),
+                cli_digest=self.app.settings.get("mcp.cli_digest", str, expand=False),
+            )
+        )
 
     async def action_toggle_irc(self) -> None:
         """Open the IRC feed as a native Toad session."""
