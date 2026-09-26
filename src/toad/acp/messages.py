@@ -10,6 +10,7 @@ import rich.repr
 from agent_comms import Goal, GoalExecution, TranscriptCursor, TranscriptEvent, TranscriptPage, MessageRoute
 
 from toad.answer import Answer
+from toad.private_native_cursor import CursorStatus
 from toad.acp import protocol
 from toad.acp.encode_tool_call_id import encode_tool_call_id
 
@@ -37,6 +38,16 @@ class InputDispositionsChanged(AgentMessage):
 
 class RejectedSessionUpdate(AgentMessage):
     """An invalid ACP notification was logged and excluded from the conversation."""
+
+
+@dataclass
+class PrivateNativeCursorUpdate(AgentMessage):
+    """Immutable-in-flight presentation receipt; contains no private proof data."""
+
+    status: CursorStatus | None
+    agent: object
+    session_id: str | None
+    sequence: int
 
 
 @dataclass
