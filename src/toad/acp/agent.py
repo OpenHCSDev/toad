@@ -31,6 +31,7 @@ from toad.acp.sdk_boundary import validate_session_update
 from toad.acp.prompt import build as build_prompt
 from toad.db import DB
 from toad.private_native_cursor import CursorReducer
+from toad.queue_view import QueueItem, QueueReducer
 from toad import paths
 from toad import constants
 from toad.answer import Answer
@@ -194,6 +195,8 @@ class Agent(AgentBase):
         self._turn_lifecycle_sequence = 0
         self._private_cursor = CursorReducer()
         self._private_cursor_sequence = 0
+        self._queue_view = QueueReducer(self.session_id)
+        self._queue_sequence = 0
 
         self._terminal_count: int = 0
 
@@ -340,6 +343,17 @@ class Agent(AgentBase):
         route: MessageRoute | None = None
         if isinstance(metadata, dict) and isinstance(metadata.get("agentComms"), dict):
             state = metadata["agentComms"]
+            if "queueState" in state:
+                _, starts = self._queue_view.callback("queueState", state["queueState"], sessionId)
+                self._post_queue_view(starts)
+            started = state.get("inputStarted")
+            if "inputStarted" in state and (
+                not isinstance(started, dict)
+                or any(key in started for key in ("version", "scope", "revision"))
+                or ("inputId" in started and isinstance(started.get("text"), str))
+            ):
+                _, starts = self._queue_view.callback("inputStarted", started, sessionId)
+                self._post_queue_view(starts)
             mcp_client = state.get("mcpClient")
             if mcp_client is not None:
                 receipt = None
@@ -369,6 +383,7 @@ class Agent(AgentBase):
                     messages.InputFailed(
                         failed["text"],
                         failed.get("reason") if isinstance(failed.get("reason"), str) else "Send failed",
+                        recover_draft=False, agent=self, session_id=sessionId,
                     )
                 )
             if "goal" in state or "goalExecution" in state:
@@ -413,17 +428,23 @@ class Agent(AgentBase):
                 return
             if isinstance(state.get("route"), dict):
                 route = MessageRoute.from_wire(state["route"])
-            if isinstance(state.get("queue"), list):
-                self.post_message(
-                    messages.PromptQueueUpdate(
-                        state["queue"], state.get("restored") or []
-                    )
-                )
+            if "queueState" in state:
                 return
-            if isinstance(state.get("inputStarted"), dict):
-                self.post_message(
-                    messages.InputStarted(state["inputStarted"].get("text"))
-                )
+            if "queue" in state:
+                # Legacy text-only rows cannot establish membership or restore
+                # remote text into a local draft, even on an older producer.
+                self._queue_view.callback("queueState", None, sessionId)
+                self._post_queue_view()
+                return
+            if "inputStarted" in state:
+                # Unscoped initial user echoes are not queue-start authority.
+                # Versioned queue starts were handled above; never fall back.
+                if (isinstance(started, dict)
+                        and not any(key in started for key in ("version", "scope", "revision", "inputId"))
+                        and sessionId == self.session_id):
+                    self.post_message(messages.InputStarted(
+                        started.get("text"), agent=self, session_id=sessionId,
+                    ))
                 return
             if isinstance(state.get("worktree"), str):
                 self._coordination_worktree = state["worktree"]
@@ -957,8 +978,8 @@ class Agent(AgentBase):
             tasks.add(asyncio.create_task(call_jsonrpc(agent_data)))
             await asyncio.sleep(0)
 
-        # EOF invalidates provenance; it never resolves input disposition.
-        self._invalidate_private_cursor()
+        # EOF invalidates projections; it never resolves input disposition.
+        self._invalidate_attachment_views()
         self._active_turn_id = None
         self.post_message(messages.McpClientStopped(self))
 
@@ -997,7 +1018,7 @@ class Agent(AgentBase):
     async def stop(self) -> None:
         """Gracefully stop the process."""
         self._stopping = True
-        self._invalidate_private_cursor()
+        self._invalidate_attachment_views()
         self._active_turn_id = None
         self.post_message(messages.McpClientStopped(self))
         for answer in tuple(self._pending_permission_answers):
@@ -1258,7 +1279,9 @@ class Agent(AgentBase):
     async def acp_new_session(self) -> None:
         """Create a new session."""
         cursor_token = self._private_cursor.begin(None)
+        queue_token = self._queue_view.begin(None)
         self._post_private_cursor()
+        self._post_queue_view()
         with self.request():
             session_new_response = api.session_new(
                 str(self.project_root_path),
@@ -1270,6 +1293,7 @@ class Agent(AgentBase):
         assert response is not None
         self.session_id = response["sessionId"]
         self._bind_private_cursor(response, cursor_token, self.session_id)
+        self._bind_queue_view(response, queue_token, self.session_id)
 
         if self.supports_load_session:
             db = DB()
@@ -1313,7 +1337,9 @@ class Agent(AgentBase):
         assert self.session_id is not None, "Session id must be set"
         request_session_id = self.session_id
         cursor_token = self._private_cursor.begin(request_session_id)
+        queue_token = self._queue_view.begin(request_session_id)
         self._post_private_cursor()
+        self._post_queue_view()
         cwd = str(self.project_root_path)
         if self.session_pk is not None:
             db = DB()
@@ -1336,6 +1362,7 @@ class Agent(AgentBase):
             return
         assert response is not None
         self._bind_private_cursor(response, cursor_token, request_session_id)
+        self._bind_queue_view(response, queue_token, request_session_id)
 
         if (modes := response.get("modes", None)) is not None:
             current_mode = modes["currentModeId"]
@@ -1463,6 +1490,25 @@ class Agent(AgentBase):
             return
         self.post_message(messages.GoalSnapshotUpdate(goal, execution))
 
+    def _post_queue_view(self, starts: tuple[QueueItem, ...] = ()) -> None:
+        self._queue_sequence += 1
+        self.post_message(messages.QueueViewUpdate(
+            self._queue_view.projection, starts, self, self.session_id, self._queue_sequence,
+        ))
+
+    def _bind_queue_view(self, response: Mapping[str, object], token: int, session_id: str) -> None:
+        metadata = response.get("_meta")
+        state = metadata.get("agentComms") if isinstance(metadata, dict) else None
+        state = state if isinstance(state, dict) else {}
+        if not ("queueBinding" in state or "queueState" in state
+                or state.get("promptQueue") is True
+                or self._queue_view.projection.status is not None):
+            return
+        _, starts = self._queue_view.bind(
+            state.get("queueBinding"), state.get("queueState"), session_id, token,
+        )
+        self._post_queue_view(starts)
+
     def _post_private_cursor(self) -> None:
         self._private_cursor_sequence += 1
         self.post_message(messages.PrivateNativeCursorUpdate(
@@ -1481,9 +1527,11 @@ class Agent(AgentBase):
         self._private_cursor.bind(value, session_id, token)
         self._post_private_cursor()
 
-    def _invalidate_private_cursor(self) -> None:
+    def _invalidate_attachment_views(self) -> None:
         self._private_cursor.invalidate()
         self._post_private_cursor()
+        self._queue_view.invalidate()
+        self._post_queue_view()
 
     def _publish_coordination_metadata(
         self, response: Mapping[str, object], *, initial: bool = False,
@@ -1584,8 +1632,10 @@ class Agent(AgentBase):
             The stop reason.
 
         """
+        request_session_id = self.session_id
+        request_queue_scope = self._queue_view.scope
         with self.request():
-            session_prompt = api.session_prompt(prompt, self.session_id, metadata or {})
+            session_prompt = api.session_prompt(prompt, request_session_id, metadata or {})
         try:
             result = await session_prompt.wait()
         except jsonrpc.APIError as error:
@@ -1601,7 +1651,10 @@ class Agent(AgentBase):
 
             user_text = (metadata or {}).get("agentComms", {}).get("userText")
             if isinstance(user_text, str) and user_text:
-                self.post_message(messages.InputFailed(user_text, details))
+                self.post_message(messages.InputFailed(
+                    user_text, details, agent=self, session_id=request_session_id,
+                    queue_scope=request_queue_scope,
+                ))
 
             self.post_message(
                 AgentFail(
@@ -1614,7 +1667,11 @@ class Agent(AgentBase):
         except jsonrpc.JSONRPCError as error:
             user_text = (metadata or {}).get("agentComms", {}).get("userText")
             if isinstance(user_text, str) and user_text:
-                self.post_message(messages.InputFailed(user_text, error.message or "Connection failed"))
+                self.post_message(messages.InputFailed(
+                    user_text, error.message or "Connection failed",
+                    agent=self, session_id=request_session_id,
+                    queue_scope=request_queue_scope,
+                ))
             self.post_message(
                 AgentFail(
                     "Failed to send prompt",
