@@ -57,6 +57,8 @@ from toad.widgets.prompt import Prompt
 from toad.widgets.terminal import Terminal
 from toad.widgets.throbber import Throbber
 from toad.widgets.goal_bar import GoalBar, GoalControl
+from toad.widgets.native_history import NativeHistory
+from toad.private_native_cursor import CursorStatus
 from toad.widgets.input_delivery import InputDeliveryBar, InputDeliveryDetails, empty_delivery
 from toad.widgets.user_input import UserInput
 from toad.widgets.history_anchor import HistoryWindow
@@ -515,6 +517,7 @@ class Conversation(containers.Vertical):
     thinking_level = var("")
     input_delivery: var[dict] = var(empty_delivery)
     input_delivery_error: var[str] = var("")
+    native_history_status: var[CursorStatus | None] = var(None)
     goal_unavailable = var(False)
     goal: var[Goal | None] = var(None)
     goal_execution: var[GoalExecution | None] = var(None)
@@ -546,6 +549,7 @@ class Conversation(containers.Vertical):
         self._managed_turn_id: str | None = None
         self._mcp_live_turn: str | None = None
         self._mcp_live_note: Note | None = None
+        self._private_cursor_sequence = 0
         self._turn_lifecycle_source: tuple[object, str | None] | None = None
         self._turn_lifecycle_sequence = 0
         self._agent_thought: AgentThought | None = None
@@ -750,6 +754,7 @@ class Conversation(containers.Vertical):
             yield TurnActivity().data_bind(activity=Conversation.activity,
                                            started_at=Conversation.activity_started_at)
             yield Throbber(id="throbber")
+            yield NativeHistory().data_bind(status=Conversation.native_history_status)
             yield InputDeliveryBar().data_bind(
                 delivery=Conversation.input_delivery, error=Conversation.input_delivery_error,
             )
@@ -1471,6 +1476,16 @@ class Conversation(containers.Vertical):
         if self._mcp_live_note is not None:
             await self._mcp_live_note.remove()
             self._mcp_live_note = None
+
+    @on(acp_messages.PrivateNativeCursorUpdate)
+    def on_private_native_cursor_update(self, message: acp_messages.PrivateNativeCursorUpdate) -> None:
+        message.stop()
+        if (message.agent is not self.agent or self.agent is None
+                or message.session_id != self.agent.session_id
+                or message.sequence <= self._private_cursor_sequence):
+            return
+        self._private_cursor_sequence = message.sequence
+        self.native_history_status = message.status
 
     @on(acp_messages.McpClientStopped)
     async def on_mcp_client_stopped(self, message: acp_messages.McpClientStopped) -> None:
@@ -2695,6 +2710,12 @@ class Conversation(containers.Vertical):
         """Post any welcome content."""
 
     def watch_agent(self, agent: AgentBase | None) -> None:
+        # A presentation remount is not a fresh attachment. Start at the
+        # Agent's current projection/floor so previously queued receipts cannot
+        # revive proof after its reducer entered quarantine or evidence loss.
+        cursor = getattr(agent, "_private_cursor", None)
+        self.native_history_status = cursor.status if cursor is not None else None
+        self._private_cursor_sequence = getattr(agent, "_private_cursor_sequence", 0)
         if agent is None:
             self.agent_info = Content.styled("shell")
         else:
