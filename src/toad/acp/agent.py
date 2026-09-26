@@ -345,7 +345,10 @@ class Agent(AgentBase):
                     self.log("[ACP MCP live receipt rejected] "
                              f"session={sessionId!r}; chunk is not zero-text")
                 if receipt is not None:
-                    self.post_message(messages.McpClientStatus(receipt))
+                    self.post_message(messages.McpClientStatus(
+                        receipt, turn_id=self._active_turn_id,
+                        session_id=self.session_id,
+                    ))
                 return
             if isinstance(state.get("thread"), str) and isinstance(state.get("wireRoot"), str):
                 self._publish_coordination_metadata({"_meta": metadata})
@@ -425,7 +428,8 @@ class Agent(AgentBase):
             turn_id = state.get("turnId")
             if state.get("turnStarted") is True and isinstance(turn_id, str):
                 self.uses_turn_events = True
-                self._active_turn_id = turn_id
+                if sessionId == self.session_id:
+                    self._active_turn_id = turn_id
                 import math
 
                 started_at = state.get("startedAt")
@@ -440,7 +444,11 @@ class Agent(AgentBase):
             if state.get("turnSettled") is True:
                 if isinstance(turn_id, str):
                     self.uses_turn_events = True
-                self._active_turn_id = None
+                # Only the current session's own matching settled turn may
+                # retire the receipt gate; a stale queued settlement from an
+                # older turn must not clear the current one.
+                if sessionId == self.session_id and turn_id == self._active_turn_id:
+                    self._active_turn_id = None
                 self.post_message(messages.TurnSettled(turn_id))
                 return
             incoming = metadata["agentComms"].get("incoming")

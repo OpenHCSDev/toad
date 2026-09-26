@@ -108,13 +108,9 @@ async def main() -> None:
 
             agent.rpc_session_update("fixture", turn_signal("turnStarted", "turn-1"))
             await view.on_turn_started(acp_messages.TurnStarted("turn-1"))
-            # No turn-identity envelope: fail closed even inside an active turn.
+            # All malformed/stale negatives come FIRST, before any valid
+            # receipt, so per-turn dedupe cannot mask parser acceptance.
             agent.rpc_session_update("fixture", chunk(receipt()))
-            # Bound receipt is rendered once; duplicates and stale variants are not.
-            agent.rpc_session_update("fixture", chunk(receipt(), turn="turn-1"))
-            agent.rpc_session_update(
-                "fixture", chunk(receipt(), turn="turn-1")
-            )  # duplicate
             agent.rpc_session_update(
                 "fixture", chunk(receipt(), input_id="forged", turn="turn-1")
             )
@@ -160,6 +156,12 @@ async def main() -> None:
                 "fixture",
                 chunk(receipt()),
             )  # still no turn identity
+            assert not notes(view), "A negative receipt rendered before the valid one"
+            # The single bound valid receipt is then rendered exactly once.
+            agent.rpc_session_update("fixture", chunk(receipt(), turn="turn-1"))
+            agent.rpc_session_update(
+                "fixture", chunk(receipt(), turn="turn-1")
+            )  # duplicate
             await pilot.pause()
             rendered = notes(view)
             assert len(rendered) == 1, rendered
@@ -175,9 +177,13 @@ async def main() -> None:
             assert notes(view) == rendered
 
             # A successor turn starts a fresh boundary; a replayed turn-1 receipt
-            # cannot render there, while the bound turn-2 receipt does.
+            # and a stale queued turn-1 settlement cannot break the turn-2 gate.
             agent.rpc_session_update("fixture", turn_signal("turnStarted", "turn-2"))
             await view.on_turn_started(acp_messages.TurnStarted("turn-2"))
+            agent.rpc_session_update("fixture", turn_signal("turnSettled", "turn-1"))
+            await view.on_turn_settled(acp_messages.TurnSettled("turn-1"))
+            assert agent._active_turn_id == "turn-2"
+            assert view._managed_turn_id == "turn-2"
             agent.rpc_session_update(
                 "fixture", chunk(receipt(), turn="turn-1")
             )  # stale queued event

@@ -1467,7 +1467,14 @@ class Conversation(containers.Vertical):
     async def on_mcp_client_status(self, message: acp_messages.McpClientStatus) -> None:
         """Render the turn-bound receipt only inside an active server-owned turn."""
         message.stop()
-        if self._managed_turn_id is None:
+        # The message carries the validated turn identity; a delayed or queued
+        # message from an older agent cannot attach to a successor turn here.
+        agent_session = getattr(self.agent, "session_id", None)
+        if (
+            self._managed_turn_id is None
+            or message.turn_id != self._managed_turn_id
+            or (agent_session is not None and message.session_id != agent_session)
+        ):
             # Late or forged: the projection dies with its turn and is never
             # shown outside the active-turn lifetime.
             return

@@ -44,6 +44,8 @@ class McpClientStatus(AgentMessage):
     """Turn-bound package-owned live MCP projection; never a grant or approval."""
 
     receipt: dict
+    turn_id: str
+    session_id: str
 
 
 @dataclass
