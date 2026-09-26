@@ -260,6 +260,22 @@ async def main():
             coverage["scope"]["sessionId"] = "beta"
             await load(coverage)
             await painted("coverage_only", "coverage-only")
+            # Stopped-owner null metadata before the result poisons that request;
+            # only a load initiated after the observation may recover.
+            await load(
+                coverage,
+                before=[
+                    {
+                        "version": 1,
+                        "scope": None,
+                        "revision": 4,
+                        "status": "unavailable",
+                    }
+                ],
+            )
+            await painted("unavailable")
+            await load(coverage)
+            await painted("coverage_only")
             await callback({"version": 2})
             await painted("unavailable")
             await load(coverage, before=[coverage] * 33)

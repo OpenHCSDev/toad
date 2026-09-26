@@ -26,7 +26,9 @@ initially unbound attachment cannot revive stale proof after malformed input
 or overflow arrives before a delayed response. No disk/network/provider operations occur in either.
 
 Only actual Agent `acp_new_session` / `acp_load_session` results bind. A request
-initiation token prevents old results from replacing a later request. Callbacks
+initiation token fences Agent session/metadata mutation before reducer binding,
+not just the reducer's result application. Load also captures its requested
+session; stop invalidates any in-flight token. Callbacks
 can invalidate but never bind. During an in-flight load, callbacks are buffered;
 a newer same-owner epoch establishes only an invalidation floor. A delayed lower
 epoch result cannot clear it. Ambiguity, malformed metadata or overflow requires
@@ -68,6 +70,7 @@ With a Python 3.14 Toad dependency environment and compatible backend imports:
 PYTHONPATH=src python tests/test_private_native_cursor.py
 PYTHONPATH="$PWD/src:$PWD/tests:/path/to/backend/src" \
   CURSOR_EVIDENCE_DIR=/tmp/cursor-evidence python tests/private_native_cursor_pilot.py
+PYTHONPATH="$PWD/src:$PWD/tests:/path/to/backend/src" python tests/private_native_cursor_request_pilot.py
 PYTHONPATH="$PWD/src:$PWD/tests:/path/to/backend/src" python tests/mcp_live_status_pilot.py
 ```
 
@@ -83,6 +86,11 @@ and SVGs); `/dev/shm/toad-cursor-floor-fix-owner/` adds the independently found
 superseded-request floor-loss regressions, including genuinely overlapping
 Agent load calls in the mounted pilot. Initial head `0675cf7` was held after
 independent review found that blocker; it is not a cleared sink freeze.
+`/dev/shm/toad-cursor-request-fix-owner/` adds actual mounted overlapping
+new/new, load/new, new/stop and load/stop request fencing regressions and a
+prebind-null poison case. Independent review also found that a stale new result
+could relabel successor proof by mutating Agent.session_id before reducer token
+rejection; Agent-level result fencing fixes this separate blocker.
 The older `prompt_queue_pilot.py` times out awaiting its stub response at line111
 both on this consumer and unchanged base `b6220b7`; logs `queue.log` and
 `queue-baseline.log`. This is not a queue acceptance verdict. Existing unresolved

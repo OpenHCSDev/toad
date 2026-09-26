@@ -1265,15 +1265,17 @@ class Agent(AgentBase):
                 [],
             )
         response = await session_new_response.wait()
+        if not self._private_cursor.is_current_request(cursor_token):
+            return
         assert response is not None
         self.session_id = response["sessionId"]
-        self._bind_private_cursor(response, cursor_token)
+        self._bind_private_cursor(response, cursor_token, self.session_id)
 
         if self.supports_load_session:
             db = DB()
             session_name = (self._pending_session_name if self._pending_session_name is not None
                             else self._initial_session_title(response) or "New Session")
-            self.session_pk = await db.session_new(
+            session_pk = await db.session_new(
                 session_name,
                 self._agent_data["name"],
                 self._agent_data["identity"],
@@ -1284,11 +1286,16 @@ class Agent(AgentBase):
                     "agent_data": self._agent_data,
                 },
             )
+            if not self._private_cursor.is_current_request(cursor_token):
+                return
+            self.session_pk = session_pk
             if self.session_pk is not None and self._pending_session_name is not None:
                 await db.session_update_title(
                     self.session_pk, self._pending_session_name
                 )
 
+        if not self._private_cursor.is_current_request(cursor_token):
+            return
         if (modes := response.get("modes", None)) is not None:
             current_mode = modes["currentModeId"]
             available_modes = modes["availableModes"]
@@ -1304,12 +1311,16 @@ class Agent(AgentBase):
 
     async def acp_load_session(self) -> None:
         assert self.session_id is not None, "Session id must be set"
-        cursor_token = self._private_cursor.begin(self.session_id)
+        request_session_id = self.session_id
+        cursor_token = self._private_cursor.begin(request_session_id)
         self._post_private_cursor()
         cwd = str(self.project_root_path)
         if self.session_pk is not None:
             db = DB()
-            if (session := await db.session_get(self.session_pk)) is not None:
+            session = await db.session_get(self.session_pk)
+            if not self._private_cursor.is_current_request(cursor_token):
+                return
+            if session is not None:
                 if session["meta_json"]:
                     meta = json.loads(session["meta_json"])
                     if session_cwd := meta.get("cwd", None):
@@ -1318,10 +1329,13 @@ class Agent(AgentBase):
                         self._agent_data = agent_data
 
         with self.request():
-            session_load_response = api.session_load(cwd, [], self.session_id)
+            session_load_response = api.session_load(cwd, [], request_session_id)
         response = await session_load_response.wait()
+        if (not self._private_cursor.is_current_request(cursor_token)
+                or self.session_id != request_session_id):
+            return
         assert response is not None
-        self._bind_private_cursor(response, cursor_token)
+        self._bind_private_cursor(response, cursor_token, request_session_id)
 
         if (modes := response.get("modes", None)) is not None:
             current_mode = modes["currentModeId"]
@@ -1456,11 +1470,15 @@ class Agent(AgentBase):
             self._private_cursor_sequence,
         ))
 
-    def _bind_private_cursor(self, response: Mapping[str, object], token: int) -> None:
+    def _bind_private_cursor(
+        self, response: Mapping[str, object], token: int, session_id: str,
+    ) -> None:
+        if not self._private_cursor.is_current_request(token):
+            return
         metadata = response.get("_meta")
         coordination = metadata.get("agentComms") if isinstance(metadata, dict) else None
         value = coordination.get("privateNativeCursor") if isinstance(coordination, dict) else None
-        self._private_cursor.bind(value, self.session_id, token)
+        self._private_cursor.bind(value, session_id, token)
         self._post_private_cursor()
 
     def _invalidate_private_cursor(self) -> None:

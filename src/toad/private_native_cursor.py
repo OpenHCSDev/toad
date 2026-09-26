@@ -177,6 +177,10 @@ class CursorReducer:
             self.status = "unavailable"
         return self._token
 
+    def is_current_request(self, token: int) -> bool:
+        """Fence Agent session/metadata mutation as well as reducer binding."""
+        return token == self._token
+
     def invalidate(self) -> None:
         self.status = "unavailable" if self.status is not None else None
         self.quarantined = True
