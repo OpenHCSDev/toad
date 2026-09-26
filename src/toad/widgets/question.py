@@ -208,10 +208,11 @@ class Question(containers.VerticalGroup, can_focus=True):
 
     @dataclass
     class Answer(Message):
-        """User selected a response."""
+        """User selected a response from this exact request."""
 
         index: int
         answer: Answer
+        ask: Ask | None
 
     def __init__(
         self,
@@ -225,6 +226,7 @@ class Question(containers.VerticalGroup, can_focus=True):
     ):
         super().__init__(name=name, id=id, classes=classes, disabled=disabled)
         self.set_reactive(Question.title, title)
+        self._ask: Ask | None = None
         self._get_content = get_content
         self.set_reactive(Question.options, options or [])
 
@@ -242,6 +244,7 @@ class Question(containers.VerticalGroup, can_focus=True):
         self._blink_timer.reset()
 
     def update(self, ask: Ask) -> None:
+        self._ask = ask
         self.title = ask.question
         self._get_content = ask.get_content
         self.options = ask.options
@@ -315,6 +318,7 @@ class Question(containers.VerticalGroup, can_focus=True):
             self.Answer(
                 index=self.selection,
                 answer=self.options[self.selection],
+                ask=self._ask,
             )
         )
         self.selected = True

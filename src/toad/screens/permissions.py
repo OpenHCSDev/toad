@@ -268,6 +268,8 @@ class PermissionsScreen(Screen[Answer]):
         diffs = self.diffs[:]
         self.diffs = None
         for diff in diffs:
+            if not self.is_attached:
+                return  # The controller may have cancelled while the screen hydrated.
             await self.add_diff(*diff)
 
     async def add_diff(
@@ -279,15 +281,25 @@ class PermissionsScreen(Screen[Answer]):
 
         diff_view = make_diff(path1, path2, before, after, id=option_id)
         await diff_view.prepare()
-
-        await self.tool_container.mount(diff_view)
+        container = self.query_one_optional("#tool-container", containers.VerticalScroll)
+        if container is None:
+            return
+        await container.mount(diff_view)
+        if not self.is_attached:
+            return
 
         option_text = f"📄 {os.path.basename(path1)}"
-        self.navigator.add_option(Option(option_text, option_id))
+        navigator = self.query_one_optional("#navigator", OptionList)
+        if navigator is not None:
+            navigator.add_option(Option(option_text, option_id))
 
     @on(OptionList.OptionHighlighted)
     def on_option_highlighted(self, event: OptionList.OptionHighlighted):
-        self.tool_container.query_one(f"#{event.option_id}").scroll_visible(top=True)
+        container = self.query_one_optional("#tool-container", containers.VerticalScroll)
+        if container is not None:
+            diff = container.query_one_optional(f"#{event.option_id}")
+            if diff is not None:
+                diff.scroll_visible(top=True)
 
     @on(Question.Answer)
     def on_question_answer(self, event: Question.Answer) -> None:

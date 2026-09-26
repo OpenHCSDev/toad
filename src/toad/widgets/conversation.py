@@ -81,6 +81,7 @@ def make_session_title(prompt: str) -> str:
 
 if TYPE_CHECKING:
     from toad.acp.agent import Mode, Model
+    from toad.widgets.question import Ask
     from toad.widgets.terminal import Terminal
     from toad.widgets.agent_response import AgentResponse
     from toad.widgets.agent_thought import AgentThought
@@ -543,6 +544,10 @@ class Conversation(containers.Vertical):
         self._loading: Loading | None = None
         self._agent_response: AgentResponse | None = None
         self._managed_turn_id: str | None = None
+        self._mcp_live_turn: str | None = None
+        self._mcp_live_note: Note | None = None
+        self._turn_lifecycle_source: tuple[object, str | None] | None = None
+        self._turn_lifecycle_sequence = 0
         self._agent_thought: AgentThought | None = None
         from toad.widgets.agent_activity import AgentActivityBoundary
 
@@ -1461,6 +1466,52 @@ class Conversation(containers.Vertical):
             )
         )
 
+    async def _clear_mcp_live(self) -> None:
+        self._mcp_live_turn = None
+        if self._mcp_live_note is not None:
+            await self._mcp_live_note.remove()
+            self._mcp_live_note = None
+
+    @on(acp_messages.McpClientStopped)
+    async def on_mcp_client_stopped(self, message: acp_messages.McpClientStopped) -> None:
+        message.stop()
+        if message.agent is self.agent:
+            await self._clear_mcp_live()
+
+    @on(acp_messages.McpClientStatus)
+    async def on_mcp_client_status(self, message: acp_messages.McpClientStatus) -> None:
+        """Render the turn-bound receipt only inside an active server-owned turn."""
+        message.stop()
+        # The message carries the validated turn identity; a delayed or queued
+        # message from an older agent cannot attach to a successor turn here.
+        agent_session = getattr(self.agent, "session_id", None)
+        if (
+            message.agent is not self.agent
+            or getattr(self.agent, "_active_turn_id", None) != message.turn_id
+            or self._managed_turn_id is None
+            or message.turn_id != self._managed_turn_id
+            or (agent_session is not None and message.session_id != agent_session)
+        ):
+            # Late or forged: the projection dies with its turn and is never
+            # shown outside the active-turn lifetime.
+            return
+        if self._mcp_live_turn == self._managed_turn_id:
+            return  # The package emits at most one receipt per turn.
+        self._mcp_live_turn = self._managed_turn_id
+        rows = message.receipt.get("servers") or []
+        summary = "; ".join(
+            f"{row['id']}[{row['scope']}] {row['state']} calls={row['calls']}"
+            f" tools={row['tools']} resources={row['resources']} prompts={row['prompts']}"
+            for row in rows
+        ) or "no approved servers"
+        self.new_block()
+        self._mcp_live_note = Note(
+            Content.styled(
+                f"MCP live (this turn, not a grant): {summary}", "$text-muted"
+            ),
+        )
+        await self.post(self._mcp_live_note)
+
     @on(acp_messages.Update)
     async def on_acp_agent_message(self, message: acp_messages.Update):
         from toad.widgets.agent_response import AgentResponse
@@ -1481,9 +1532,37 @@ class Conversation(containers.Vertical):
             )
         await self.post_agent_response(message.text, message.route)
 
+    def _accept_turn_lifecycle(
+        self, message: acp_messages.TurnStarted | acp_messages.TurnSettled
+    ) -> bool:
+        from toad.acp.agent import Agent
+
+        if not isinstance(self.agent, Agent) and message.agent is None:
+            return True  # Local non-ACP agents retain their direct event path.
+        if (
+            message.agent is not self.agent
+            or message.session_id != getattr(self.agent, "session_id", None)
+            or type(message.sequence) is not int
+            or message.sequence <= 0
+        ):
+            return False
+        source = (message.agent, message.session_id)
+        if source == self._turn_lifecycle_source:
+            if message.sequence <= self._turn_lifecycle_sequence:
+                return False
+        # Consume the immutable ingress order, NOT Agent._active_turn_id: the
+        # producer may already have settled multiple valid queued turns.
+        self._turn_lifecycle_source = source
+        self._turn_lifecycle_sequence = message.sequence
+        return True
+
     @on(acp_messages.TurnStarted)
     async def on_turn_started(self, message: acp_messages.TurnStarted) -> None:
         message.stop()
+        if not isinstance(message.turn_id, str) or not message.turn_id:
+            return
+        if not self._accept_turn_lifecycle(message):
+            return
         self.activity_started_at = message.started_at
         activity = message.activity_detail if message.activity == "working" else "Thinking…"
         self.activity = activity or "Working…"
@@ -1493,6 +1572,7 @@ class Conversation(containers.Vertical):
         if self._managed_turn_id is None:
             self.busy_count += 1
         self._managed_turn_id = message.turn_id
+        await self._clear_mcp_live()
         self._agent_activity_boundary.reset()
         self.app.open_tabs_changed.publish(None)
         self.new_block()
@@ -1502,8 +1582,15 @@ class Conversation(containers.Vertical):
     @on(acp_messages.TurnSettled)
     async def on_turn_settled(self, message: acp_messages.TurnSettled) -> None:
         message.stop()
-        if message.turn_id and message.turn_id != self._managed_turn_id:
+        if not self._accept_turn_lifecycle(message):
             return
+        # Empty/missing IDs are initial idle snapshots, never authority to
+        # settle a nonempty live turn. Keep the same guard for local messages.
+        if message.turn_id != self._managed_turn_id and (
+            self._managed_turn_id is not None or message.turn_id
+        ):
+            return
+        await self._clear_mcp_live()
         self.delivering_prompt = ""
         self.sending_queued_prompt = ""
         self.activity = ""
@@ -2044,10 +2131,12 @@ class Conversation(containers.Vertical):
     @work
     async def request_permissions(
         self,
-        result_future: Future[Answer],
+        result_future: Future[Answer | None],
         options: list[Answer],
         tool_call_update: acp_protocol.ToolCallUpdatePermissionRequest,
     ) -> None:
+        if result_future.done():
+            return  # The ACP controller may have disconnected before this worker ran.
         kind = tool_call_update.get("kind", None)
         title = tool_call_update.get("title", "") or ""
 
@@ -2087,28 +2176,34 @@ class Conversation(containers.Vertical):
                 permissions_screen = PermissionsScreen(
                     options, diffs, agent_name=self.agent_title or "The Agent"
                 )
+
+                def retire_expired_diff(future: Future[Answer | None]) -> None:
+                    if (
+                        future.cancelled() or future.result() is None
+                    ) and permissions_screen.is_attached:
+                        permissions_screen.dismiss(None)
+
+                result_future.add_done_callback(retire_expired_diff)
                 result = await self.app.push_screen_wait(
                     permissions_screen, mode=self.screen.id
                 )
                 self.post_message(messages.SessionUpdate(state="busy"))
                 self.app.terminal_alert(False)
-                result_future.set_result(result)
+                if not result_future.done():
+                    result_future.set_result(result)
                 return
 
         from toad.widgets.acp_content import ACPToolCallContent
 
         def answer_callback(answer: Answer) -> None:
-            try:
+            if not result_future.done():
                 result_future.set_result(answer)
-            except Exception:
-                # I've seen this occur in shutdown with an `InvalidStateError`
-                pass
 
             if not self.prompt.ask_queue:
                 self.post_message(messages.SessionUpdate(state="busy"))
 
         tool_call_content = tool_call_update.get("content", None) or []
-        self.ask(
+        ask = self.ask(
             options,
             title or "",
             (
@@ -2118,6 +2213,16 @@ class Conversation(containers.Vertical):
             ),
             answer_callback,
         )
+
+        def retire_expired_prompt(future: Future[Answer | None]) -> None:
+            if not future.cancelled() and future.result() is not None:
+                return
+            if self.is_attached:
+                self.prompt.remove_ask(ask)
+                if self.prompt._ask is None:
+                    self.post_message(messages.SessionUpdate(state="busy"))
+
+        result_future.add_done_callback(retire_expired_prompt)
         return
 
     async def post_tool_call(
@@ -2156,7 +2261,7 @@ class Conversation(containers.Vertical):
         title: str = "",
         get_content: Callable[[], Widget] | None = None,
         callback: Callable[[Answer], Any] | None = None,
-    ) -> None:
+    ) -> Ask:
         """Replace the prompt with a dialog to ask a question
 
         Args:
@@ -2175,7 +2280,9 @@ class Conversation(containers.Vertical):
         notify_message = "\n".join(f" • {option.text}" for option in options)
         self.app.system_notify(notify_message, title=notify_title, sound="question")
 
-        self.prompt.ask(Ask(title, options, get_content, callback))
+        ask = Ask(title, options, get_content, callback)
+        self.prompt.ask(ask)
+        return ask
 
     def _build_slash_commands(self) -> list[SlashCommand]:
         slash_commands = [
