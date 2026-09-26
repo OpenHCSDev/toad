@@ -2262,7 +2262,13 @@ class Conversation(containers.Vertical):
                     )
                 )
 
-            self.call_after_refresh(start_agent)
+            from toad.screens.session_view import SessionView
+
+            screen = self.screen
+            if isinstance(screen, SessionView):
+                screen.call_after_first_frame(self, start_agent)
+            else:
+                self.call_after_refresh(start_agent)
 
         else:
             self.agent_ready = True

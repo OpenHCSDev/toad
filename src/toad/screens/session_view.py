@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass, replace
 from functools import cached_property
+from collections.abc import Callable
 from typing import TYPE_CHECKING, cast
 import asyncio
 
@@ -34,6 +35,39 @@ class SessionView(SidebarFocusOwner, Screen):
     _navigation_applied = False
     _navigation_changed = False
     _resume_styles_changed = False
+    _first_frame_presented = False
+    _first_frame_flush_queued = False
+
+    @cached_property
+    def _initial_frame_callbacks(self) -> dict[tuple[Widget, Callable[[], object]], None]:
+        return {}
+
+    def call_after_first_frame(self, owner: Widget, callback: Callable[[], object]) -> None:
+        """Defer initial source work until this view's first presented frame.
+
+        A normal after-refresh callback can run inside a paint-suppressed
+        navigation batch. The owning widget still receives and executes the
+        callback through its ordinary message pump once presentation completes.
+        """
+        if self._first_frame_presented:
+            owner.call_after_refresh(callback)
+        elif not self._closing and not self._closed:
+            self._initial_frame_callbacks[owner, callback] = None
+
+    def _finish_first_frame(self) -> None:
+        self._first_frame_flush_queued = False
+        if self._closing or self._closed or not self.is_attached or not self.is_current:
+            return
+        self._first_frame_presented = True
+        callbacks = tuple(self._initial_frame_callbacks)
+        self._initial_frame_callbacks.clear()
+        for owner, callback in callbacks:
+            if owner.is_attached and not owner._closing and not owner._closed:
+                owner.call_later(callback)
+
+    async def _message_loop_exit(self) -> None:
+        self._initial_frame_callbacks.clear()
+        await super()._message_loop_exit()
 
     def sidebar_focus_target(self) -> Widget | None:
         # Provisional/loading screens have no input yet.
@@ -99,7 +133,11 @@ class SessionView(SidebarFocusOwner, Screen):
         return set()
 
     def _use_viewport_layout(self) -> bool:
-        return self.is_current and not self.history_anchors
+        return self.is_current
+
+    def _layout_geometry_targets(self) -> tuple[Widget, ...]:
+        return tuple(window.history_anchor.widget for window in self.history_anchors
+                     if window.history_anchor is not None and window.history_anchor.widget.is_attached)
 
     def _refresh_layout(self, size: Size | None = None, scroll: bool = False) -> None:
         from toad.widgets.history_anchor import HistoryAnchor

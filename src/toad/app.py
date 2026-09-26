@@ -876,7 +876,7 @@ class ToadApp(App, inherit_bindings=False):
             super().delay_update(delay)
 
     def _display(self, screen: Screen, renderable) -> None:
-        from toad.screens.comms import CommsScreen
+        from toad.screens.session_view import SessionView
 
         super()._display(screen, renderable)
         if (not self._renderer_warmup_started and renderable is not None
@@ -884,25 +884,25 @@ class ToadApp(App, inherit_bindings=False):
             self._renderer_warmup_started = True
             self._warm_renderer()
         if (renderable is not None and not self._batch_count and screen is self.screen
-                and isinstance(screen, CommsScreen)):
+                and isinstance(screen, SessionView) and not screen._first_frame_presented
+                and not screen._first_frame_flush_queued):
             # call_after_refresh may run on an unpainted update. A real Linux
             # terminal writes asynchronously: do not start expensive native
-            # composition until the opening frame has actually been flushed.
+            # source work until the opening frame has actually been flushed.
             after_flush = getattr(self._driver, "call_after_flush", None)
-            if (after_flush is not None and not self.is_headless
-                    and not screen._flush_queued and not screen._content_loaded):
-                screen._flush_queued = True
+            if after_flush is not None and not self.is_headless:
+                screen._first_frame_flush_queued = True
                 loop = asyncio.get_running_loop()
 
-                def release_hydration() -> None:
+                def release_initial_frame() -> None:
                     try:
-                        loop.call_soon_threadsafe(screen._start_hydration)
+                        loop.call_soon_threadsafe(screen._finish_first_frame)
                     except RuntimeError:
                         pass  # The app closed after this terminal write.
 
-                after_flush(release_hydration)
-            elif after_flush is None or self.is_headless:
-                screen._start_hydration()
+                after_flush(release_initial_frame)
+            else:
+                screen._finish_first_frame()
 
     @work(group="renderer-warmup", exit_on_error=False)
     async def _warm_renderer(self) -> None:

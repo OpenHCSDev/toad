@@ -5,7 +5,6 @@ from textual import containers, getters, on
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.events import ScreenResume
-from textual.screen import Screen
 from textual.widgets import Static
 from textual.widget import Widget
 from toad.widgets.footer import Footer
@@ -73,7 +72,6 @@ class CommsScreen(SessionView, can_focus=False):
         self._content_loaded = False
         self._content_loading = False
         self._hydrate_queued = False
-        self._flush_queued = False
         self._sidebar_layout_watch = False
 
     app = getters.app(ToadApp)
@@ -111,6 +109,7 @@ class CommsScreen(SessionView, can_focus=False):
 
     def on_mount(self) -> None:
         if not self._content_loaded:
+            self.call_after_first_frame(self, self._start_hydration)
             return
         self._prepare_content()
 

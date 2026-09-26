@@ -21,3 +21,4 @@ uv.lock
 agent.jsonl
 replay.jsonl
 sandbox/
+tools/performance/artifacts/

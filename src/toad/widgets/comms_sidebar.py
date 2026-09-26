@@ -557,13 +557,17 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
         app.settings_changed_signal.subscribe(self, self._settings_changed)
         if self._observe:
             self.set_interval(OBSERVATION_INTERVAL, self._refresh)
-        from toad.screens.comms import CommsScreen
-
-        if isinstance(self.screen, CommsScreen) and not self.screen._navigation_applied:
-            self.call_after_refresh(self._refresh)
-        else:
-            self._refresh()
+        self._refresh_after_first_frame()
         self._run_test_hook()
+
+    def _refresh_after_first_frame(self) -> None:
+        from toad.screens.session_view import SessionView
+
+        screen = self.screen
+        if isinstance(screen, SessionView):
+            screen.call_after_first_frame(self, self._refresh)
+        else:
+            self.call_after_refresh(self._refresh)
 
     def _sync_spinner(self, snapshot: SidebarSnapshot | None = None) -> None:
         from toad.widgets.side_bar import SideBar
@@ -648,7 +652,7 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
             await self._present_snapshot(self._snapshot(state))
         # A cold tab has no last-known projection. Do not read the entire wire
         # synchronously inside prepare_navigation before its first painted frame.
-        self.call_after_refresh(self._refresh)
+        self._refresh_after_first_frame()
 
     @property
     def visible_filters(self) -> tuple[bool, bool]:
@@ -745,6 +749,11 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
             # A refresh timer can fire while a mode's screen stack is being
             # removed during tab closure or application shutdown.
             if not self.is_attached or self.screen is not self.app.screen:
+                return
+            from toad.screens.session_view import SessionView
+
+            if isinstance(self.screen, SessionView) and not self.screen._first_frame_presented:
+                self.screen.call_after_first_frame(self, self._refresh)
                 return
             self.app.coordination_observed.publish(None)
             revision = self._wire.revision()

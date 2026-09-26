@@ -38,6 +38,10 @@ if TYPE_CHECKING:
     from toad.widgets.conversation import Window
 
 
+class _FilteredPublicationRetired(Exception):
+    """Unwind an anchor transaction when its filter changes during mounting."""
+
+
 def transcript_blocks(events: tuple[TranscriptEvent, ...], *, fragment: bool = False,
                       show_divider: bool = True) -> list[Widget]:
     blocks: list[Widget] = []
@@ -258,6 +262,7 @@ class TranscriptHistory(CategorizedBlock, VerticalGroup):
         self._page_buffer: TranscriptPageBuffer | None = None
         self._prefetch_worker = None
         self._prefetched_edges = None
+        self._fragment_budget = self.MAX_FRAGMENTS
         self.window: Window
 
     @property
@@ -272,7 +277,15 @@ class TranscriptHistory(CategorizedBlock, VerticalGroup):
 
     @property
     def fragment_limit(self) -> int:
-        return max(self.MAX_FRAGMENTS, self.window.size.height * 2)
+        # Screen rows are not fragment counts: one prepared fragment may contain
+        # a dozen lines or a whole indivisible Markdown block. Grow with the
+        # number actually visible, keeping two admitted batches in reserve.
+        return max(self._fragment_budget, self._visible_fragment_budget())
+
+    def _visible_fragment_budget(self) -> int:
+        visible = self.screen._compositor.visible_widgets
+        count = sum(child in visible for page in self.pages for child in page.children)
+        return max(self.MAX_FRAGMENTS, count + 2 * TranscriptPageView.BATCH)
 
     @property
     def fragment_count(self) -> int:
@@ -323,7 +336,8 @@ class TranscriptHistory(CategorizedBlock, VerticalGroup):
         return reader
 
     def _warm_pages(self) -> None:
-        if self.loader is None or not self.is_mounted or not self.screen.is_current:
+        if (self.loader is None or not self.is_mounted or not self.screen.is_current
+                or not self._selected_categories):
             return
         reader = self._reader()
         edges = (self.pages[0].page.before if self.pages[0].page.has_older else None,
@@ -334,7 +348,8 @@ class TranscriptHistory(CategorizedBlock, VerticalGroup):
 
         async def prepare() -> None:
             current = lambda: (self.is_attached and self.screen.is_current
-                               and self._page_buffer is reader and not reader.closed)
+                               and self._page_buffer is reader and not reader.closed
+                               and bool(self._selected_categories))
             if await reader.prefetch(*edges, current) and current():
                 self._prefetched_edges = edges
 
@@ -348,6 +363,9 @@ class TranscriptHistory(CategorizedBlock, VerticalGroup):
         self._warm_pages()
 
     def _update_edges(self) -> None:
+        if not self._selected_categories:
+            self.older.display = self.newer.display = False
+            return
         self.older.display = (self._filter_has_older if self._filtered_source and
                               self._filter_before is not None else self.has_older)
         self.newer.display = self.has_newer
@@ -395,12 +413,13 @@ class TranscriptHistory(CategorizedBlock, VerticalGroup):
         return max(4, min(32, self.window.size.height // 2))
 
     def _scan_needed(self) -> bool:
-        return (self._filtered_source and self._filter_has_older
+        return (bool(self._selected_categories) and self._filtered_source and self._filter_has_older
                 and (self.window.max_scroll_y == 0
                      or self.window.scroll_y <= self._prefetch_distance))
 
     def _start_filtered_scan(self) -> None:
-        if self._filter_has_older and not self._filter_scanning and not self._advancing:
+        if (self._selected_categories and self._filter_has_older
+                and not self._filter_scanning and not self._advancing):
             self._filter_scanning = True
             self.run_worker(self._scan_filtered_older(), group="filtered-history")
 
@@ -412,6 +431,11 @@ class TranscriptHistory(CategorizedBlock, VerticalGroup):
         selected = self.query_ancestor(Conversation).visible_categories
         before = self._filter_before
         fragments: tuple[TranscriptFragment, ...] = ()
+
+        def is_current() -> bool:
+            return (generation == self._generation and self.is_attached
+                    and not self._closing and not self._pruning and self._filtered_source)
+
         try:
             if before is None:
                 page = self.pages[0]
@@ -431,11 +455,10 @@ class TranscriptHistory(CategorizedBlock, VerticalGroup):
                 fragments = tuple(fragment for fragment in prepared.fragments
                                   if keep_events(fragment.events, selected))
                 next_before, has_older = page.before, page.has_older
-            if (generation != self._generation or not self.is_attached
-                    or not self._filtered_source or self.screen is not self.app.screen):
+            if not is_current() or self.screen is not self.app.screen:
                 return
             async with self.window.history_lock:
-                if generation != self._generation or not self._filtered_source:
+                if not is_current() or self.screen is not self.app.screen:
                     return
                 if fragments:
                     visible = self.screen._compositor.visible_widgets
@@ -448,37 +471,49 @@ class TranscriptHistory(CategorizedBlock, VerticalGroup):
                     anchor = retained[0] if retained else None
 
                     async def insert() -> None:
-                        if self._filter_overlay is None:
-                            self._filter_overlay = VerticalGroup(classes="filtered-history-results")
-                            await self.mount(self._filter_overlay, before=self.pages[0])
+                        overlay = self._filter_overlay
+                        if overlay is None:
+                            overlay = self._filter_overlay = VerticalGroup(classes="filtered-history-results")
+                            await self.mount(overlay, before=self.pages[0])
+                        if not is_current() or self._filter_overlay is not overlay:
+                            raise _FilteredPublicationRetired
                         nodes = [TranscriptFragmentView(fragment) for fragment in fragments]
-                        await self._filter_overlay.mount(
-                            *nodes, before=self._filter_overlay.children[0]
-                            if self._filter_overlay.children else None)
+                        await overlay.mount(*nodes, before=overlay.children[0] if overlay.children else None)
+                        if not is_current() or self._filter_overlay is not overlay:
+                            raise _FilteredPublicationRetired
 
                     if anchor is None:
                         await insert()
                     else:
                         async with self.window.preserve_history(anchor):
                             await insert()
+                if not is_current():
+                    return
                 if fragments:
                     self.post_message(self.Covered(tuple(
                         event for fragment in fragments for event in fragment.events
                     ), self))
                 self._filter_before, self._filter_has_older = next_before, has_older
                 self._update_edges()
+        except _FilteredPublicationRetired:
+            # filter_changed already hid/queued removal of the retired overlay.
+            # Exception unwinding skips waiting for its obsolete anchor frame.
+            return
         except (OSError, ValueError) as error:
-            self._filter_has_older = False
-            self.notify(str(error), title="Filtered history", severity="error")
+            if is_current():
+                self._filter_has_older = False
+                self.notify(str(error), title="Filtered history", severity="error")
         finally:
             self._filter_scanning = False
-            if fragments or not self._filter_has_older:
+            current_generation = generation == self._generation
+            if current_generation and (fragments or not self._filter_has_older):
                 self._filter_force_pending = False
-            if self.is_attached and self._filtered_source:
+            if (self.is_attached and self._filtered_source and not self._closing
+                    and self.screen is self.app.screen):
                 # A page containing no routed entries has no new widget/layout
                 # event to drive the next step. Explicit clicks keep scanning
                 # even if the overlay is currently outside the viewport.
-                if fragments and self._filter_has_older:
+                if current_generation and fragments and self._filter_has_older:
                     # Painted height, not pre-layout geometry, decides whether
                     # this result fills the viewport before reading more.
                     self.call_after_refresh(self._check_edges)
@@ -586,7 +621,8 @@ class TranscriptHistory(CategorizedBlock, VerticalGroup):
 
     def _check_edges(self) -> None:
         self._check_pending = False
-        if self._loading or self._advancing or not self.is_attached or not self.screen.is_active:
+        if (self._loading or self._advancing or not self.is_attached
+                or not self.screen.is_active or not self._selected_categories):
             return
         # Off-screen pagers must not ask for their region: after a scroll that
         # falls back to rebuilding geometry for the *whole* mounted transcript.
@@ -716,6 +752,17 @@ class TranscriptHistory(CategorizedBlock, VerticalGroup):
                 # each off-screen fragment's region rebuilds the full map on
                 # the scroll path immediately before mounting another page.
                 protected = {anchor, *retained}
+                # Native selection may extend beyond the viewport. Keep those
+                # fragment owners until the reader releases the selection.
+                for selected in self.screen.selections:
+                    node = selected
+                    owners = []
+                    while isinstance(node, Widget) and node is not self:
+                        if isinstance(node, TranscriptFragmentView):
+                            owners.append(node)
+                        node = node.parent
+                    if node is self:
+                        protected.update(owners)
                 # Filling a short tail is not a user scroll. Keep its anchor
                 # active through layout, including a concurrent tab activation;
                 # otherwise the first frame paints the old position and live
@@ -748,12 +795,15 @@ class TranscriptHistory(CategorizedBlock, VerticalGroup):
                     for child in self._filter_overlay.children
                 )
             if local:
+                previous_children = set(edge.children)
                 await edge.extend(older)
+                protected.update(child for child in edge.children if child not in previous_children)
             elif page is not None:
                 assert fragments is not None
                 view = TranscriptPageView(page, newest=older, fragments=fragments)
                 view.visible_categories = self._selected_categories
                 await self.mount(view, before=edge if older else self.newer)
+                protected.update(view.children)
                 self.post_message(self.Covered(page.events, self))
                 if older:
                     self.pages.appendleft(view)
@@ -763,7 +813,9 @@ class TranscriptHistory(CategorizedBlock, VerticalGroup):
             # page cap can evict the tail before even filling one screen,
             # causing the edge loaders to ping-pong forever. Bound actual
             # fragments (and empty page overhead), not transport batches.
-            limit = self.fragment_limit
+            self._fragment_budget = limit = max(
+                self.MAX_FRAGMENTS, len(protected) + 2 * TranscriptPageView.BATCH,
+            )
             excess = self.fragment_count - limit
             trim_older = position.follow_tail or not older
             while (excess > 0 or len(self.pages) > limit

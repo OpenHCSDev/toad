@@ -11,7 +11,7 @@ from agent_comms import TranscriptCursor, TranscriptPage
 
 from toad.widgets.transcript_fragments import TranscriptFragment, prepare_transcript_fragments
 from toad.work_preparation import (
-    PreparationRuntime, PreparationScope, ReusableWork, ScopedWork, WorkKey, WorkLane, retained_bytes,
+    PreparationRuntime, PreparationScope, SerializedWork, ScopedWork, WorkKey, WorkLane, retained_bytes,
 )
 
 
@@ -29,7 +29,7 @@ class PageRequest:
 
 
 @dataclass(frozen=True)
-class TranscriptPageWork(ReusableWork[PreparedTranscriptPage], ScopedWork[PreparedTranscriptPage]):
+class TranscriptPageWork(SerializedWork[PreparedTranscriptPage], ScopedWork[PreparedTranscriptPage]):
     scope: PreparationScope
     loader: Callable[..., Awaitable[TranscriptPage]]
     through: TranscriptCursor

@@ -346,6 +346,8 @@ class TabHistoryControls(containers.HorizontalGroup):
 class SidebarSlider(widgets.Static, can_focus=True):
     """A bottom-row pointer/keyboard slider; no polling or source snapshots."""
 
+    ALLOW_SELECT = False
+
     BINDINGS: ClassVar[list[BindingType]] = [
         Binding("left", "step(-1)", "Decrease", show=False),
         Binding("right", "step(1)", "Increase", show=False),
@@ -479,6 +481,11 @@ class SidebarAction(widgets.Static, can_focus=True):
 
 class SidebarResizeHandle(widgets.Static, can_focus=True):
     """Drag the conversation-facing edge; the placement model owns the width."""
+
+    # The screen starts text selection before forwarding MouseDown to us.
+    # Capturing/stopping that event alone cannot prevent a competing selection
+    # walk across conversation content as the edge moves under the pointer.
+    ALLOW_SELECT = False
 
     DEFAULT_CSS = """
     SidebarResizeHandle {

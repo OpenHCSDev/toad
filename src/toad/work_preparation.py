@@ -42,6 +42,45 @@ class WorkKey:
     scope: PreparationScope | None = None
 
 
+class PreparedValue(ABC, Generic[ResultT]):
+    """Declaration-selected retained representation, delivered only by a worker."""
+
+    __slots__ = ()
+
+    size: int
+
+    @abstractmethod
+    def materialize(self) -> ResultT:
+        """Return independent mutable data to one consumer."""
+
+
+@dataclass(frozen=True, slots=True)
+class CopiedValue(PreparedValue[ResultT]):
+    value: ResultT
+    size: int
+
+    def materialize(self) -> ResultT:
+        return deepcopy(self.value)
+
+
+@dataclass(frozen=True, slots=True)
+class SerializedValue(PreparedValue[ResultT]):
+    payload: bytes
+
+    @property
+    def size(self) -> int:
+        return getsizeof(self.payload) + getsizeof(self)
+
+    def materialize(self) -> ResultT:
+        # Only bytes encoded from this runtime's own prepared results enter here.
+        return pickle.loads(self.payload)
+
+
+def serialize_result(result: ResultT) -> SerializedValue[ResultT]:
+    payload = pickle.dumps(result, protocol=5)
+    return SerializedValue(payload)
+
+
 class PreparationWork(ABC, Generic[ResultT]):
     """Nominal operation; the runtime does not switch on concrete work types."""
 
@@ -49,6 +88,9 @@ class PreparationWork(ABC, Generic[ResultT]):
 
     def result_size(self, result: ResultT) -> int:
         return retained_bytes(result)
+
+    def store_result(self, result: ResultT) -> PreparedValue[ResultT]:
+        return CopiedValue(result, self.result_size(result) if self.retain_result else 0)
 
     @property
     @abstractmethod
@@ -68,6 +110,13 @@ class ReusableWork(PreparationWork[ResultT]):
     """Mixin for results whose declared identity fully describes their inputs."""
 
     retain_result = True
+
+
+class SerializedWork(ReusableWork[ResultT]):
+    """Opt in when result data already has a supported process-transfer contract."""
+
+    def store_result(self, result: ResultT) -> PreparedValue[ResultT]:
+        return serialize_result(result)
 
 
 class ContentAddressedWork(PreparationWork[ResultT]):
@@ -137,6 +186,9 @@ class RenderPreparation(ContentAddressedWork[ResultT], RendererWork[ResultT]):
     def retain_result(self) -> bool:
         return self.task.reusable_result
 
+    def store_result(self, result: ResultT) -> PreparedValue[ResultT]:
+        return serialize_result(result) if self.retain_result else super().store_result(result)
+
 
 def retained_bytes(value: object) -> int:
     """Bound retained model graphs, including nested tool inputs, off-loop."""
@@ -173,7 +225,7 @@ class PreparationRuntime:
 
     Model and render admission are separate, so a backlog of CPU rendering
     cannot consume all model slots. A waiter cancellation leaves actual work
-    admitted until completion. Cached results are copied on worker delivery:
+    admitted until completion. Cached results are materialized on worker delivery:
     native consumers may mutate tokens without corrupting another view's result.
     """
 
@@ -184,8 +236,8 @@ class PreparationRuntime:
                 raise ValueError(f"{name} must be a positive integer")
         self.renderer = renderer
         self.max_entries, self.max_bytes, self.max_pending = max_entries, max_bytes, max_pending
-        self._ready: OrderedDict[WorkKey, tuple[object, int]] = OrderedDict()
-        self._pending: dict[WorkKey, asyncio.Task[object]] = {}
+        self._ready: OrderedDict[WorkKey, tuple[PreparedValue, int]] = OrderedDict()
+        self._pending: dict[WorkKey, asyncio.Task[PreparedValue]] = {}
         self._admitted = dict.fromkeys(WorkLane, 0)
         self._threads = asyncio.Semaphore(4)
         self._thread_tasks: set[asyncio.Task] = set()
@@ -256,27 +308,28 @@ class PreparationRuntime:
         result = await asyncio.shield(pending)
         return cast(ResultT, await self._deliver(key, result))
 
-    async def _deliver(self, key: WorkKey, result: object) -> object:
+    async def _deliver(self, key: WorkKey, result: PreparedValue[ResultT]) -> ResultT:
         """Validate at the final delivery boundary, including the worker-copy await."""
         if self._closed or key.scope is not None and key.scope.closed:
             raise asyncio.CancelledError
-        copied = await self.run_thread(deepcopy, result)
+        copied = await self.run_thread(result.materialize)
         if self._closed or key.scope is not None and key.scope.closed:
             raise asyncio.CancelledError
         return copied
 
-    async def _execute(self, key: WorkKey, work: PreparationWork[ResultT]) -> ResultT:
+    async def _execute(self, key: WorkKey, work: PreparationWork[ResultT]) -> PreparedValue[ResultT]:
         result = await work.execute(self)
+        prepared = await self.run_thread(work.store_result, result)
         if work.retain_result:
-            size = await self.run_thread(work.result_size, result)
+            size = prepared.size
             if not self._closed and (key.scope is None or not key.scope.closed) and size <= self.max_bytes:
                 while self._ready and (len(self._ready) >= self.max_entries
                                        or self.retained_bytes + size > self.max_bytes):
                     _, (_, old_size) = self._ready.popitem(last=False)
                     self.retained_bytes -= old_size
-                self._ready[key] = result, size
+                self._ready[key] = prepared, size
                 self.retained_bytes += size
-        return result
+        return prepared
 
     async def aclose(self) -> None:
         self._closed = True

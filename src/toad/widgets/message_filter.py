@@ -81,7 +81,18 @@ def block_category(widget) -> MessageCategory | None:
 def apply_block_filter(widget, selected: frozenset[MessageCategory]) -> None:
     """Change only this semantic owner, preserving its authored display rules."""
     category = block_category(widget)
-    widget.set_class(category is not None and category not in selected, "-category-hidden")
+    hidden = category is not None and category not in selected
+    marker = "-category-hidden"
+    if widget.has_class(marker) == hidden:
+        return
+    if widget.is_attached and widget.app.stylesheet.is_local_display_class(marker):
+        # This declaration changes only the block's display. Reapplying CSS to
+        # all of its Markdown/tool descendants is unrelated work on the input
+        # thread. The stylesheet owns the dependency check, including user CSS.
+        widget.set_class(hidden, marker, update=False)
+        widget.app.stylesheet.apply(widget)
+    else:
+        widget.set_class(hidden, marker)
 
 
 def keep_live_block(widget) -> bool:

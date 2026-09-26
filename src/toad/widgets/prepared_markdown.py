@@ -32,6 +32,13 @@ from toad.widgets.transcript_fragments import RenderBudget
 
 
 class PreparedConversationMarkdown(ConversationMarkdown):
+    def _measured_virtual_size_requires_layout(self) -> bool:
+        # Markdown extent comes from its arranged blocks, not a separately
+        # authored virtual document. Committing that result must not feed it
+        # back into the same ancestor measurements. Actual scrollbar changes
+        # and content/stylesheet updates retain their ordinary invalidation.
+        return False
+
     def __init__(
         self, markdown: str | None = None, *, name: str | None = None,
         id: str | None = None, classes: str | None = None,

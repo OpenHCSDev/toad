@@ -1510,16 +1510,30 @@ class Agent(AgentBase):
     async def _owner_request(self, method: str, **params):
         if self._coordination_root is None or self._coordination_thread is None:
             raise ValueError("This action requires an agent-comms thread.")
-        from agent_comms.operations import wire
         from agent_comms.runtime import RuntimeProxy, socket_path
 
-        comms = wire(self._coordination_root)
-        owner = await asyncio.to_thread(comms.registry.require, self._coordination_thread)
-        proxy = RuntimeProxy(self, owner.name, socket_path(comms.root, owner.pid))
+        root, thread = self._coordination_root, self._coordination_thread
+        async with self._transcript_reader_lock:
+            comms = await self._get_coordination_reader(root)
+
+            def resolve():
+                from toad.owner_preparation import OwnerRequestContext
+
+                owner = comms.registry.require(thread)
+                # RuntimeProxy normally creates another wire when its caller
+                # has no service. Capture the existing service instead of
+                # reparsing the entire registry for each status poll.
+                return RuntimeProxy(OwnerRequestContext(comms), owner.name, socket_path(comms.root, owner.pid))
+
+            proxy = await asyncio.to_thread(resolve)
         try:
+            if (root, thread) != (self._coordination_root, self._coordination_thread):
+                raise ValueError("The owner identity changed while preparing the request.")
             return await proxy.request(method, **params)
         except RuntimeError as error:
             raise ValueError(str(error)) from error
+        finally:
+            await proxy.close()
 
     async def get_input_delivery(self, *, include_history: bool = False) -> dict:
         if self._coordination_root is None or self._coordination_thread is None:
@@ -1549,36 +1563,35 @@ class Agent(AgentBase):
     def transcript_ready(self) -> bool:
         return self._coordination_root is not None and self._coordination_thread is not None
 
+    async def _get_coordination_reader(self, root: str) -> Comms:
+        """Use under the reader lock; initialization and registry I/O stay off-loop."""
+        from agent_comms import wire
+        from toad.app import ToadApp
+
+        if self._transcript_reader is None or self._transcript_reader_root != root:
+            app = self._message_target.app if self._message_target is not None else None
+            # Reuse the app's already initialized cached_property without
+            # triggering a cold synchronous construction from this accessor.
+            shared = app.__dict__.get("coordination_wire") if isinstance(app, ToadApp) else None
+            if shared is not None and shared.root == Path(root).expanduser():
+                self._transcript_reader = shared
+            else:
+                self._transcript_reader = await asyncio.to_thread(wire, root)
+            self._transcript_reader_root = root
+        return self._transcript_reader
+
     async def get_transcript_page(
         self, *, before: "TranscriptCursor | None" = None,
         after: "TranscriptCursor | None" = None,
         through: "TranscriptCursor | None" = None,
     ) -> "TranscriptPage":
-        from agent_comms import wire
-
         if self._coordination_root is None or self._coordination_thread is None:
             raise ValueError("Transcript paging requires an agent-comms thread.")
         root, thread = self._coordination_root, self._coordination_thread
         async with self._transcript_reader_lock:
-            # Keep the core reader's revision-aware store caches across pages.
-            # Recreating Comms for each wheel-driven request reparses the entire
-            # routing sidecar even when it has not changed. This retains the
-            # service, not a second copy of transcript or routing semantics.
-            if self._transcript_reader is None or self._transcript_reader_root != root:
-                from toad.app import ToadApp
-
-                # All attachments in one Toad normally use the same wire. Share
-                # its existing service so dozens of tabs don't each retain a
-                # separately parsed copy of the whole routing sidecar.
-                app = self._message_target.app if self._message_target is not None else None
-                shared = app.coordination_wire if isinstance(app, ToadApp) else None
-                if shared is not None and shared.root == Path(root).expanduser():
-                    self._transcript_reader = shared
-                else:
-                    self._transcript_reader = await asyncio.to_thread(wire, root)
-                self._transcript_reader_root = root
+            reader = await self._get_coordination_reader(root)
             return await asyncio.to_thread(
-                self._transcript_reader.thread_transcript_page,
+                reader.thread_transcript_page,
                 thread, before=before, after=after, through=through,
             )
 

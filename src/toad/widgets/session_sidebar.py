@@ -54,7 +54,6 @@ class ThreadStatusRow(HoverSelection):
         self._thread_signature: tuple | None = None
         self.thread_name: str | None = None
         self._spinner_phase = 0
-        self._last_wire_input: tuple[ThreadView, int, bool, str | None] | None = None
         self._thread_presentation: PreparedThreadRow | None = None
 
     def advance_spinner(self, phase: int) -> None:
@@ -75,8 +74,7 @@ class ThreadStatusRow(HoverSelection):
     def apply_thread_preparation(self, prepared: PreparedThreadRow) -> None:
         self._thread_presentation = prepared
         source = prepared.source
-        self._last_wire_input = (source.person, source.unread, source.pinned, source.action_status)
-        self.thread_name = source.person.thread.name
+        self.thread_name = source.name
         signature = (prepared.signature, self._spinner_phase % len(prepared.frames))
         if signature == self._thread_signature:
             return
@@ -125,7 +123,7 @@ class SessionRow(ThreadStatusRow):
         self.update_details(details)
 
     def advance_spinner(self, phase: int) -> None:
-        if self._last_wire_input is not None:
+        if self._thread_presentation is not None:
             super().advance_spinner(phase)
         elif self._last_details is not None and self._spinner_phase != phase:
             self._spinner_phase = phase
@@ -133,6 +131,7 @@ class SessionRow(ThreadStatusRow):
 
     def update_details(self, details: SessionDetails) -> None:
         self._last_details = details
+        self._thread_presentation = None
         if self.has_class("-wire-thread"):
             self.remove_class("-wire-thread")
             self._thread_signature = None
