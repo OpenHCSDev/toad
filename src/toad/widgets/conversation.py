@@ -1462,6 +1462,29 @@ class Conversation(containers.Vertical):
             )
         )
 
+    @on(acp_messages.McpClientStatus)
+    async def on_mcp_client_status(self, message: acp_messages.McpClientStatus) -> None:
+        """Render the turn-bound receipt only inside an active server-owned turn."""
+        message.stop()
+        if self._managed_turn_id is None:
+            # Late or forged: the projection dies with its turn and is never
+            # shown outside the active-turn lifetime.
+            return
+        rows = message.receipt.get("servers") or []
+        summary = "; ".join(
+            f"{row['id']}[{row['scope']}] {row['state']} calls={row['calls']}"
+            f" tools={row['tools']} resources={row['resources']} prompts={row['prompts']}"
+            for row in rows
+        ) or "no approved servers"
+        self.new_block()
+        await self.post(
+            Note(
+                Content.styled(
+                    f"MCP live (this turn, not a grant): {summary}", "$text-muted"
+                ),
+            )
+        )
+
     @on(acp_messages.Update)
     async def on_acp_agent_message(self, message: acp_messages.Update):
         from toad.widgets.agent_response import AgentResponse

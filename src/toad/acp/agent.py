@@ -330,6 +330,14 @@ class Agent(AgentBase):
         route: MessageRoute | None = None
         if isinstance(metadata, dict) and isinstance(metadata.get("agentComms"), dict):
             state = metadata["agentComms"]
+            mcp_client = state.get("mcpClient")
+            if mcp_client is not None:
+                receipt = self._mcp_client_receipt(
+                    mcp_client, state.get("inputId"), update
+                )
+                if receipt is not None:
+                    self.post_message(messages.McpClientStatus(receipt))
+                return
             if isinstance(state.get("thread"), str) and isinstance(state.get("wireRoot"), str):
                 self._publish_coordination_metadata({"_meta": metadata})
             if "inputDisposition" in state or state.get("inputDeliveryChanged") is True:
@@ -543,6 +551,56 @@ class Agent(AgentBase):
                     case _:
                         self._context_usage = ContextUsage(used, size)
                 self.update_status_line()
+
+    _MCP_SERVER_STATES = frozenset({
+        "ready", "error", "disabled", "trust_required", "unsupported_env",
+        "denied", "stale_restart_required", "connecting", "approved",
+    })
+
+    def _mcp_client_receipt(self, value: object, meta_input_id: object, update: object) -> dict | None:
+        """Accept only the exact version-1 package live receipt; log everything else.
+
+        The DTO is turn-bound, redacted and never an approval; the active-turn
+        gate lives in the conversation, which owns ACP turn lifetimes.
+        """
+        import re
+
+        if not isinstance(value, dict):
+            self.log(f"[ACP MCP live receipt rejected] {update!r}; receipt not an object")
+            return None
+
+        def fail(reason: str) -> None:
+            self.log(f"[ACP MCP live receipt rejected] {update!r}; {reason}")
+
+        if (value.get("version") != 1 or value.get("source") != "pi-mcp-client"
+                or not isinstance(value.get("inputId"), str)
+                or not re.fullmatch(r"[a-f0-9]{32}", value["inputId"])
+                or value.get("state") != "running" or value.get("lifetime") != "turn"):
+            fail("unsupported receipt identity")
+            return None
+        if isinstance(meta_input_id, str) and meta_input_id != value["inputId"]:
+            fail("receipt inputId does not match envelope")
+            return None
+        servers = value.get("servers")
+        if not isinstance(servers, list) or len(servers) > 32:
+            fail("invalid server rows")
+            return None
+        for row in servers:
+            if (not isinstance(row, dict)
+                    or not isinstance(row.get("id"), str)
+                    or not re.fullmatch(r"[a-z][a-z0-9_-]{0,31}", row["id"])
+                    or row.get("scope") not in ("user", "project")
+                    or row.get("state") not in self._MCP_SERVER_STATES
+                    or row.get("calls") not in ("automatic", "confirm", "unavailable")):
+                fail("invalid server row")
+                return None
+            counts = [row.get(name) for name in ("tools", "resources", "prompts")]
+            if (any(type(count) is not int or not 0 <= count <= 10_000 for count in counts)
+                    or (row["state"] == "ready") == (row["calls"] == "unavailable")
+                    or (row["state"] != "ready" and any(counts))):
+                fail("inconsistent server row")
+                return None
+        return value
 
     def update_status_line(self) -> None:
         """Update the current status line."""

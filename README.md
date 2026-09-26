@@ -282,6 +282,13 @@ To discuss Toad, see the Discussions tab, or join the #toad channel on the [Text
 
 ### Pi MCP inventory (draft integration)
 
+During an active ACP turn, Toad may also render a package-owned **live MCP
+status** note delivered by the agent-comms relay inside a zero-text ACP chunk
+(`_meta.agentComms.mcpClient`). It is accepted only while a server-owned turn
+is active, expires with that turn's settlement, is redacted (no command,
+env or digest) and is never a grant or approval. Missing or malformed
+receipts mean static-only; they never disable the package.
+
 Toad's command palette offers **Pi MCP inventory**, a read-only view of the
 installed Pi MCP package's redacted, static version-2 declaration snapshot.
 Configure `mcp.node_path` and `mcp.cli_path` in Toad's user settings as absolute
@@ -303,11 +310,10 @@ outcome. Positive **Approve project**
 and **Allow autonomous calls** likewise launch the package CLI in the visible
 PTY: the package owns the whole approval display, challenge and ledger write,
 and a project denial retires previous grants while a grant commit revalidates
-its approval under the ledger lock. The CLI exposes no version flag, so
-positive grants additionally require `mcp.cli_digest`: the user pins the
-SHA-256 of a verified installed script that includes the revival fix; any
-other build refuses Approve/Allow while Deny/Require-asks stay available.
-On other platforms or when the package CLI
+its approval under the ledger lock. The CLI exposes no capability flag and its
+entrypoint bytes are identical across vulnerable and fixed builds, so positive
+grants stay fail-closed until the package advertises an explicit capability
+receipt. Deny/Require-asks stay available for any build.\nOn other platforms or when the package CLI
 is absent, actions are unavailable. Use the installed package CLI in a local
 terminal for supported manual operations; changes apply on the next Pi turn.
 This optional draft is not a full MCP server management UI.

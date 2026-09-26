@@ -40,6 +40,13 @@ class RejectedSessionUpdate(AgentMessage):
 
 
 @dataclass
+class McpClientStatus(AgentMessage):
+    """Turn-bound package-owned live MCP projection; never a grant or approval."""
+
+    receipt: dict
+
+
+@dataclass
 class PromptQueueUpdate(AgentMessage):
     queued: list[str]
     restored: list[str]
