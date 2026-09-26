@@ -14,8 +14,9 @@ F = json.loads(PATH.read_text())
 
 def load(reducer, value=None):
     value = value or F["trustedLoad"]
+    session = value["queueBinding"]["sessionId"]
     return reducer.bind(
-        value["queueBinding"], value["queueState"], "beta", reducer.begin("beta")
+        value["queueBinding"], value["queueState"], session, reducer.begin(session)
     )
 
 
@@ -215,6 +216,50 @@ class QueueViewTests(unittest.TestCase):
         self.assertEqual(len(reducer._floors), 32)
         self.assertEqual(load(reducer)[0], "reject_evidence_lost")
         self.assertEqual(reducer.projection.status, "unavailable")
+
+    def test_alias_cannot_erase_epoch_or_snapshot_revision_fences(self):
+        for case in ("epoch", "revision"):
+            with self.subTest(case=case):
+                reducer = QueueReducer()
+                load(reducer)
+                event = (
+                    F["nextTrustedLoad"]["queueState"]
+                    if case == "epoch"
+                    else F["updates"][1]["value"]
+                )
+                reducer.callback("queueState", event, "beta")
+                alias = deepcopy(F["trustedLoad"])
+                alias["queueBinding"]["sessionId"] = "alias"
+                alias["queueState"]["scope"]["sessionId"] = "alias"
+                self.assertEqual(
+                    load(reducer, alias)[0],
+                    (
+                        "reject_binding_floor"
+                        if case == "epoch"
+                        else "reject_stale_binding"
+                    ),
+                )
+                self.assertEqual(reducer.projection.status, "unavailable")
+                # A fresh, equal semantic snapshot may reattach via an alias;
+                # the transport session field alone is not a contradiction.
+                alias["queueState"] = deepcopy(event)
+                alias["queueState"]["scope"]["sessionId"] = "alias"
+                alias["queueBinding"] = {"version": 1, **alias["queueState"]["scope"]}
+                self.assertEqual(load(reducer, alias)[0], "bind")
+                self.assertEqual(reducer.revision, event["revision"])
+                self.assertEqual(
+                    [row.input_id for row in reducer.projection.items],
+                    [] if case == "epoch" else ["b" * 32],
+                )
+                self.assertEqual(
+                    reducer.callback("queueState", event, "beta")[0],
+                    "reject_foreign_session",
+                )
+                # Equal revision with different membership is still rejected.
+                alias["queueState"]["items"] = deepcopy(
+                    F["trustedLoad"]["queueState"]["items"]
+                )
+                self.assertEqual(load(reducer, alias)[0], "reject_stale_binding")
 
     def test_alias_load_preserves_owner_ids_and_tombstones(self):
         reducer = QueueReducer()

@@ -38,7 +38,7 @@ AGENT = {
 
 async def main():
     expected = {
-        CommsAgent: "731fb264b98b5ce5e08c14101a829425418ce1fd5c0cebe733ebd434fef84951",
+        CommsAgent: "53b854ad9b7e3367218e4b5b27b18a89ce1a48e06a72f5b75334a6f6759d12d9",
         _present_cursor_session: "af212a2f8aaa9d0e90fcc23ec0f7f4a1fbf7c1b88ed11fd1ca923e45bf040267",
     }
     for obj, digest in expected.items():
@@ -284,9 +284,6 @@ async def main():
                         == "unknown"
                     )
                     assert view.prompt.text == "local editable draft"
-                    print(
-                        "PASS: pinned79cd real ACP admission/new/load/start/restore/alias/surrogate-null/rebase -> mounted queue; UNKNOWN and draft preserved"
-                    )
                 finally:
                     finish.set()
                     if not turn.done():
@@ -298,3 +295,6 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+    print(
+        "PASS: pinned63080495 real ACP admission/new/load/start/restore/alias/surrogate-null/rebase -> mounted queue; UNKNOWN/draft preserved; cleanup completed"
+    )

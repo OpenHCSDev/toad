@@ -35,7 +35,9 @@ class QueueScope:
 
     @property
     def logical_key(self):
-        return self.session_id, self.owner_thread
+        # Aliases rewrite the receiving attachment, not owner evidence. The
+        # callback boundary separately validates its receiving session ID.
+        return self.owner_thread
 
     @property
     def owner_key(self):
@@ -90,7 +92,7 @@ class QueueEvent:
         # arbitrary extra metadata just to fingerprint a receipt.
         return (
             self.kind,
-            self.scope,
+            self.scope.owner_key,
             self.revision,
             self.items,
             self.restored,
@@ -263,11 +265,15 @@ class QueueReducer:
         if self._uncertain:
             self._hide()
             return "reject_uncertain_binding", ()
-        if self.scope == scope and (
-            snapshot.revision < self.revision
-            or (
-                snapshot.revision == self.revision
-                and (self._kind != snapshot.kind or self._digest != snapshot.digest)
+        if (
+            self.scope is not None
+            and self.scope.owner_key == scope.owner_key
+            and (
+                snapshot.revision < self.revision
+                or (
+                    snapshot.revision == self.revision
+                    and (self._kind != snapshot.kind or self._digest != snapshot.digest)
+                )
             )
         ):
             self._hide(uncertain=True)

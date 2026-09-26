@@ -7,7 +7,10 @@ No installed/live activation, backend edits, mutation API, replay or retry.
 
 ## Pinned contract
 
-Producer: `79cd5a8c7254bfcddd8d07c9525076c3e78f1a20`.
+Canonical contract producer: `79cd5a8c7254bfcddd8d07c9525076c3e78f1a20`.
+Current integrated test pin: `63080495ad98ba60920b27b0a6a5a8638fdf9607`;
+contract/fixture bytes are unchanged. The earlier consumer `bd292d22` + `79cd5a8`
+archive remains a separate failing-before/control artifact, not successor clearance.
 The unmodified copies are `acp_exact_id_queue_v1.md` (SHA256
 `e0b9ea81e4b3e986822bbd6ac235d7571465ad0b6240dffb4711373a441ca87f`)
 and `tests/fixtures/acp_exact_id_queue_v1.json` (SHA256
@@ -19,6 +22,8 @@ and `tests/fixtures/acp_exact_id_queue_v1.json` (SHA256
   binding fields and automatic reconnect configuration never establish one.
 - Scope includes attachment session, owner name/creation equality, admission
   epoch/generation. Alias translation changes only the attachment session.
+  Epoch floors, same-owner revision ordering, equality comparison and start
+  tombstones survive that translation; receiving-session fences remain separate.
 - Ordered items/restored retain opaque exact IDs; equal text remains distinct.
   Higher-revision exact starts remove only their ID and echo at most once.
   Lower revisions, contradictory equal revisions, duplicate starts and old
@@ -53,21 +58,26 @@ Use the normal Toad test dependency runtime (Python 3.14) and an archive of the
 pinned backend, not its mutable worktree or an installed package:
 
 ```sh
-mkdir -p /var/tmp/toad-queue-backend-79cd5a8
-git -C /path/to/comms-repo archive 79cd5a8c7254bfcddd8d07c9525076c3e78f1a20 src \
-  | tar -x -C /var/tmp/toad-queue-backend-79cd5a8
-export PYTHONPATH="$PWD/src:$PWD/tests:/var/tmp/toad-queue-backend-79cd5a8/src"
+mkdir -p /var/tmp/toad-queue-backend-63080495
+git -C /path/to/comms-repo archive 63080495ad98ba60920b27b0a6a5a8638fdf9607 src \
+  | tar -x -C /var/tmp/toad-queue-backend-63080495
+export PYTHONPATH="$PWD/src:$PWD/tests:/var/tmp/toad-queue-backend-63080495/src"
 export QUEUE_EVIDENCE_DIR=/var/tmp/toad-queue-evidence
 PY=/tmp/opencode/toad-fork/.venv/bin/python
 "$PY" -m unittest discover -s tests -p test_queue_view.py -v
 "$PY" tests/queue_view_pilot.py
 "$PY" tests/queue_view_request_pilot.py
-"$PY" tests/queue_view_backend_pilot.py
+"$PY" tests/queue_view_bounds_pilot.py
+timeout 120s "$PY" -u tests/queue_view_backend_pilot.py
 ```
 
 The canonical mounted pilot uses the complete canonical fixture and real
 Agent/Conversation/Prompt methods. The request pilot covers new/new, load/new,
-new/stop, load/stop and delayed retired Agent/owner draft recovery.
+new/stop, load/stop and delayed retired Agent/owner draft recovery. The bounds
+pilot additionally paints rejected same-Agent alias epoch/revision rollback and
+equal-revision conflicts, same-key33 recovery with retained epoch floor,
+distinct32+1 sticky evidence loss across reload/remount/alias (fresh Agent alone
+recovers), and null/invalid UTF-8 prebind poison while draft/UNKNOWN stay intact.
 
 The integrated pilot checks exact producer ACP/runtime source hashes, bridges
 actual producer new/load/prompt/emission to actual consumer RPC methods, and
@@ -81,5 +91,7 @@ remain in backend state after the new owner's authoritative empty snapshot.
 Transport, native event generation, model discovery and background live drain
 are provider-free fixtures. In particular synthetic `input_started` is **not**
 a native consumption receipt. This is not a Unix-socket reconnect or live
-provider/root-cause test. Cursor, queue reducer, mounted sink and integrated
+provider/root-cause test. The integrated PASS prints only after asyncio/app/
+producer cleanup; acceptance additionally requires process exit0 and retained
+logs, never an early PASS followed by a timeout. Cursor, queue reducer, mounted sink and integrated
 producer/sink evidence have separate acceptance boundaries.
