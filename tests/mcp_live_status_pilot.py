@@ -57,8 +57,14 @@ async def exercise_boundaries(agent, view, pilot) -> None:
         agent.rpc_session_update(session_id, update)
         await pilot.pause()
 
+    # Initial empty/missing settlements remain harmless and supported while idle.
+    for idle_id in ("", None):
+        await send(turn_signal("turnSettled", idle_id))
+        assert agent._active_turn_id is view._managed_turn_id is None
     await send(chunk(receipt(), turn="turn-1"))
     assert not notes(view)
+    # Queue an idle snapshot, then start a real turn before it is consumed.
+    agent.rpc_session_update(session, turn_signal("turnSettled", ""))
     await send(turn_signal("turnStarted", "turn-1"))
     assert agent._active_turn_id == view._managed_turn_id == "turn-1"
     for update in [
@@ -83,6 +89,40 @@ async def exercise_boundaries(agent, view, pilot) -> None:
     await send(chunk(receipt(), turn="turn-1"))
     rendered = notes(view)
     assert len(rendered) == 1 and "not a grant" in rendered[0]
+
+    def live_state():
+        return (agent._active_turn_id, view._managed_turn_id, view._mcp_live_turn,
+                view.busy_count, view.activity, view.activity_started_at,
+                view._transcript_generation, notes(view))
+
+    unchanged = live_state()
+    retired = Agent(agent.project_root_path, AGENT_DATA, session)
+    # Reproduce delayed idle replay and malformed IDs both at ingress and at
+    # actual queue consumption. None may mutate even activity or busy counters.
+    for bad_id in ("", None, "predecessor"):
+        await send(turn_signal("turnSettled", bad_id))
+        assert live_state() == unchanged
+        view.post_message(messages.TurnSettled(bad_id, agent=agent, session_id=session))
+        await pilot.pause()
+        assert live_state() == unchanged
+    for bad_id in ("", None):
+        await send(turn_signal("turnStarted", bad_id))
+        assert live_state() == unchanged
+        view.post_message(messages.TurnStarted(bad_id, agent=agent, session_id=session))
+        await pilot.pause()
+        assert live_state() == unchanged
+    for lifecycle in (
+        messages.TurnStarted("unowned"),
+        messages.TurnSettled("turn-1"),
+        messages.TurnStarted("predecessor", agent=agent, session_id=session),
+        messages.TurnStarted("retired", agent=retired, session_id=session),
+        messages.TurnSettled("turn-1", agent=retired, session_id=session),
+        messages.TurnStarted("turn-1", agent=agent, session_id="foreign"),
+        messages.TurnSettled("turn-1", agent=agent, session_id="foreign"),
+    ):
+        view.post_message(lifecycle)
+        await pilot.pause()
+        assert live_state() == unchanged
     await send(chunk(receipt(), turn="turn-1"))
     assert notes(view) == rendered
     await send(turn_signal("turnSettled", "turn-1"))

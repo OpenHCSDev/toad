@@ -434,8 +434,9 @@ class Agent(AgentBase):
                     self.post_message(messages.TranscriptSnapshot(events, page))
                 return
             turn_id = state.get("turnId")
-            if state.get("turnStarted") is True and isinstance(turn_id, str):
-                if sessionId != self.session_id or self._stopping:
+            if state.get("turnStarted") is True:
+                if (sessionId != self.session_id or self._stopping
+                        or not isinstance(turn_id, str) or not turn_id):
                     return
                 self.uses_turn_events = True
                 self._active_turn_id = turn_id
@@ -448,19 +449,24 @@ class Agent(AgentBase):
                     turn_id, started_at,
                     state.get("activity") if isinstance(state.get("activity"), str) else None,
                     state.get("activityDetail") if isinstance(state.get("activityDetail"), str) else None,
+                    agent=self, session_id=self.session_id,
                 ))
                 return
             if state.get("turnSettled") is True:
                 if sessionId != self.session_id or self._stopping:
                     return
+                if turn_id is not None and not isinstance(turn_id, str):
+                    return
+                # An idle snapshot (empty/missing ID) is only meaningful while
+                # idle. A stale settlement cannot retire a successor's gate.
+                if self._active_turn_id is not None and turn_id != self._active_turn_id:
+                    return
                 if isinstance(turn_id, str):
                     self.uses_turn_events = True
-                # Only the current session's own matching settled turn may
-                # retire the receipt gate; a stale queued settlement from an
-                # older turn must not clear the current one.
-                if sessionId == self.session_id and turn_id == self._active_turn_id:
-                    self._active_turn_id = None
-                self.post_message(messages.TurnSettled(turn_id))
+                self._active_turn_id = None
+                self.post_message(messages.TurnSettled(
+                    turn_id, agent=self, session_id=self.session_id,
+                ))
                 return
             incoming = metadata["agentComms"].get("incoming")
             if isinstance(incoming, dict):

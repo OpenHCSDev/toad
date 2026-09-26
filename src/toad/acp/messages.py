@@ -274,6 +274,8 @@ class TurnStarted(AgentMessage):
     started_at: float | None = None
     activity: str | None = None
     activity_detail: str | None = None
+    agent: object | None = None
+    session_id: str | None = None
 
 
 @dataclass
@@ -281,6 +283,8 @@ class TurnSettled(AgentMessage):
     """The agent finished writing while trailing metadata may still arrive."""
 
     turn_id: str | None = None
+    agent: object | None = None
+    session_id: str | None = None
 
 
 @dataclass

@@ -1532,7 +1532,19 @@ class Conversation(containers.Vertical):
 
     @on(acp_messages.TurnStarted)
     async def on_turn_started(self, message: acp_messages.TurnStarted) -> None:
+        from toad.acp.agent import Agent
+
         message.stop()
+        # Validate again at queue consumption: the owning Agent/session or
+        # active turn may have changed since the ACP notification was posted.
+        if not isinstance(message.turn_id, str) or not message.turn_id:
+            return
+        if (isinstance(self.agent, Agent) or message.agent is not None) and (
+            message.agent is not self.agent
+            or message.session_id != getattr(self.agent, "session_id", None)
+            or message.turn_id != getattr(self.agent, "_active_turn_id", None)
+        ):
+            return
         self.activity_started_at = message.started_at
         activity = message.activity_detail if message.activity == "working" else "Thinking…"
         self.activity = activity or "Working…"
@@ -1551,8 +1563,20 @@ class Conversation(containers.Vertical):
 
     @on(acp_messages.TurnSettled)
     async def on_turn_settled(self, message: acp_messages.TurnSettled) -> None:
+        from toad.acp.agent import Agent
+
         message.stop()
-        if message.turn_id and message.turn_id != self._managed_turn_id:
+        if (isinstance(self.agent, Agent) or message.agent is not None) and (
+            message.agent is not self.agent
+            or message.session_id != getattr(self.agent, "session_id", None)
+            or getattr(self.agent, "_active_turn_id", None) is not None
+        ):
+            return
+        # Empty/missing IDs are initial idle snapshots, never authority to
+        # settle a nonempty live turn. Keep the same guard for local messages.
+        if message.turn_id != self._managed_turn_id and (
+            self._managed_turn_id is not None or message.turn_id
+        ):
             return
         await self._clear_mcp_live()
         self.delivering_prompt = ""
