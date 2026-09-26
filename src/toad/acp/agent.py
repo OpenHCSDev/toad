@@ -270,6 +270,17 @@ class Agent(AgentBase):
     async def start(self, message_target: MessagePump | None = None) -> None:
         """Start the agent."""
         self._message_target = message_target
+        # A snapshot is only early denial; the spawn itself takes the core wire
+        # lock through process creation to linearize with a maintenance pause.
+        from .maintenance_ingress import preflight
+
+        try:
+            await asyncio.to_thread(preflight, self._coordination_root)
+        except Exception as error:
+            self._connected_ok = False
+            self.session_ready_event.set()
+            self.post_message(AgentFail("Failed to start agent", details=str(error)))
+            return
         try:
             await asyncio.to_thread(
                 self._log_file_path.parent.mkdir, parents=True, exist_ok=True
@@ -291,9 +302,17 @@ class Agent(AgentBase):
             self.log("[error] Agent process isnt running")
             return
 
-        self.log(f"[client] {request.body}")
+        body = request.body
+        self.log(f"[client] {body}")
         if (stdin := self._process.stdin) is not None:
-            stdin.write(b"%s\n" % request.body_json)
+            calls = body if isinstance(body, list) else [body]
+            if any(isinstance(call, dict) and call.get("method") == "session/prompt" for call in calls):
+                from .maintenance_ingress import admitted_prompt
+
+                with admitted_prompt(self._coordination_root):
+                    stdin.write(b"%s\n" % request.body_json)
+            else:
+                stdin.write(b"%s\n" % request.body_json)
 
     def request(self) -> jsonrpc.Request:
         """Create a request object."""
@@ -900,8 +919,11 @@ class Agent(AgentBase):
             )
             return
         try:
-            process = self._process = await asyncio.create_subprocess_shell(
+            from .maintenance_ingress import admitted_spawn
+
+            process = self._process = await admitted_spawn(
                 command,
+                root=self._coordination_root,
                 stdin=PIPE,
                 stdout=PIPE,
                 stderr=PIPE,
@@ -913,6 +935,8 @@ class Agent(AgentBase):
             if os.name != "nt":
                 self._process_group_id = process.pid
         except Exception as error:
+            self._connected_ok = False
+            self.session_ready_event.set()
             self.post_message(AgentFail("Failed to start agent", details=str(error)))
             return
 
@@ -1228,6 +1252,12 @@ class Agent(AgentBase):
             raise ValueError(
                 "This agent cannot resume its session."
             )
+        from .maintenance_ingress import preflight
+
+        try:
+            await asyncio.to_thread(preflight, self._coordination_root)
+        except Exception as error:
+            raise ValueError(f"Reconnect not attempted: maintenance admission denied: {error}") from error
         target = self._message_target
         await self.stop()
         self._stopping = False
