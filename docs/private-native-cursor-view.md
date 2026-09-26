@@ -6,14 +6,14 @@ inputs. No live deployment or activation is part of this change.
 
 ## Frozen producer contract
 
-Backend: `f94fc4674387db8c08e5531b558321a3c7cf3554`.
+Backend: `78f7309fe5753b05e4a8a4d2d15e55d79f658dd5`.
 
 - `docs/private_native_cursor_acp_v1.md`: SHA256
-  `99b79054c37e72c1b804742030a10e300e8f8a4b59abbb73f95bae186ed86452`
+  `b009a404759c11b486b86eca5c78f4407a82f8088c82ecd2c746c472b529fba9`
 - Exact copied `tests/fixtures/private_native_cursor_v1.json`: SHA256
-  `b792063f75ab678f9349ea5d1315aa715f6f29f067d22f7fef8ea93c5d6587ba`
+  `f8a1f2d8ae27660a643f4687ad7b774343a3fde543eaa493d5bacaa0c8937bc6`
 
-Older `9b30004` and `6889a31` fixtures are insufficient for sink acceptance.
+Older `9b30004`, `6889a31`, and `f94fc46` fixtures are insufficient for sink acceptance.
 
 ## Consumer boundaries
 
@@ -24,6 +24,13 @@ pre-response receipts and 32 scope-only epoch floors. These floors survive
 superseding requests that clear an uncertain receipt buffer, so even an
 initially unbound attachment cannot revive stale proof after malformed input
 or overflow arrives before a delayed response. No disk/network/provider operations occur in either.
+
+If 32 *distinct* floor identities saturate this bound, the next distinct scope
+cannot safely be forgotten. A sticky evidence-loss fence keeps this Agent
+unavailable even across explicit loads; only a fresh Agent attachment resets
+it. This intentionally conservative failure is distinct from ordinary
+same-key receipt overflow, which retains its floor and can recover on a later
+explicit load. There is no automatic reconnect/retry to bypass either fence.
 
 Only actual Agent `acp_new_session` / `acp_load_session` results bind. A request
 initiation token fences Agent session/metadata mutation before reducer binding,
@@ -91,6 +98,10 @@ new/new, load/new, new/stop and load/stop request fencing regressions and a
 prebind-null poison case. Independent review also found that a stale new result
 could relabel successor proof by mutating Agent.session_id before reducer token
 rejection; Agent-level result fencing fixes this separate blocker.
+Latest evidence `/var/tmp/toad-cursor-78f-owner/` includes canonical 78f null
+prebind and distinct-floor saturation controls (14 pure tests plus mounted
+provenance, mounted request-fence and adjacent MCP pilots). `/dev/shm` reached
+its write quota during the final run; the successful rerun uses `/var/tmp`.
 The older `prompt_queue_pilot.py` times out awaiting its stub response at line111
 both on this consumer and unchanged base `b6220b7`; logs `queue.log` and
 `queue-baseline.log`. This is not a queue acceptance verdict. Existing unresolved

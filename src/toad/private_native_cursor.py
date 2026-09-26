@@ -161,6 +161,7 @@ class CursorReducer:
             tuple[tuple[str, str, str], int | float], CursorScope
         ] = {}
         self._uncertain = False
+        self._evidence_lost = False
         self._pending = True
         self._token = 0
         self._session_id: str | None = None
@@ -206,6 +207,9 @@ class CursorReducer:
     def bind(self, value: object, session_id: str, token: int) -> str:
         if token != self._token:
             return "reject_old_request"
+        if self._evidence_lost:
+            self._quarantine()
+            return "reject_evidence_lost"
         self._pending = False
         self._session_id = session_id
         envelope = parse_cursor(value)
@@ -275,6 +279,8 @@ class CursorReducer:
     def callback(self, value: object, session_id: str) -> str:
         if self._session_id is not None and session_id != self._session_id:
             return "reject_foreign_session"
+        if self._evidence_lost:
+            return "reject_evidence_lost"
         if self.quarantined and not self._pending:
             return "reject_quarantined"
         envelope = parse_cursor(value)
@@ -300,8 +306,12 @@ class CursorReducer:
             elif len(self._prebind_floors) < self.MAX_PREBIND:
                 self._prebind_floors[key] = other
             else:
+                # A distinct identity would lose an epoch floor. Unlike receipt
+                # overflow, no later result on this attachment can prove it
+                # superseded the discarded observation. Require a fresh Agent.
+                self._evidence_lost = True
                 self._quarantine(uncertain=True)
-                return "quarantine_overflow"
+                return "quarantine_evidence_lost"
             if len(self._buffer) == self.MAX_PREBIND:
                 self._quarantine(uncertain=True)
                 return "quarantine_overflow"

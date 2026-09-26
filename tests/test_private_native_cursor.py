@@ -16,7 +16,7 @@ class CursorParserTests(unittest.TestCase):
     def test_frozen_backend_fixture(self):
         self.assertEqual(
             sha256(FIXTURE_PATH.read_bytes()).hexdigest(),
-            "b792063f75ab678f9349ea5d1315aa715f6f29f067d22f7fef8ea93c5d6587ba",
+            "f8a1f2d8ae27660a643f4687ad7b774343a3fde543eaa493d5bacaa0c8937bc6",
         )
         values = [
             FIXTURE["trustedLoad"]["cursor"],
@@ -223,6 +223,44 @@ class CursorReducerTests(unittest.TestCase):
         reducer.invalidate()
         reducer.callback(value, "beta")
         self.assertEqual(reducer.status, "unavailable")
+
+    def test_canonical_null_prebind(self):
+        case = FIXTURE["nullScopePrebind"]
+        reducer = CursorReducer()
+        token = reducer.begin("beta")
+        reducer.callback(case["callbackBeforeTrustedResult"], "beta")
+        reducer.bind(case["delayedTrustedLoad"], "beta", token)
+        self.assertTrue(reducer.quarantined)
+        self.assertEqual(reducer.status, "unavailable")
+        self.assertIsNone(reducer.current)
+        self.load(reducer, case["subsequentExplicitLoadInitiatedAfterCallback"])
+        self.assertEqual(reducer.status, "none")
+        self.assertFalse(reducer.quarantined)
+
+    def test_distinct_scope_floor_saturation_requires_fresh_attachment(self):
+        reducer = CursorReducer()
+        token = reducer.begin("beta")
+        for index in range(32):
+            foreign = deepcopy(FIXTURE["nextTrustedLoad"]["cursor"])
+            foreign["scope"]["ownerThread"] = f"foreign-{index}"
+            reducer.callback(foreign, "beta")
+        newer = FIXTURE["prebindRace"]["callbackBeforeTrustedResult"]
+        self.assertEqual(reducer.callback(newer, "beta"), "quarantine_evidence_lost")
+        self.assertEqual(len(reducer._prebind_floors), 32)
+        self.assertEqual(len(reducer._buffer), 32)
+        self.assertEqual(
+            reducer.bind(FIXTURE["trustedLoad"]["cursor"], "beta", token),
+            "reject_evidence_lost",
+        )
+        for value in (
+            FIXTURE["trustedLoad"]["cursor"],
+            FIXTURE["nextTrustedLoad"]["cursor"],
+        ):
+            self.assertEqual(self.load(reducer, value), "reject_evidence_lost")
+            self.assertEqual(reducer.status, "unavailable")
+        fresh = CursorReducer()
+        self.assertEqual(self.load(fresh, FIXTURE["nextTrustedLoad"]["cursor"]), "bind")
+        self.assertEqual(fresh.status, "none")
 
     def test_superseding_uncertain_request_preserves_prebind_epoch_floor(self):
         old = FIXTURE["trustedLoad"]["cursor"]

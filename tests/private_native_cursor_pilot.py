@@ -254,6 +254,42 @@ async def main():
                 await load(race["subsequentTrustedLoad"])
                 await painted("none")
 
+            # Distinct-key saturation cannot safely forget a discarded floor;
+            # same-Agent loads remain unavailable, without growing storage.
+            agent = Agent(root, AGENT_DATA, "beta")
+            agent._message_target = view
+            view.agent = agent
+            original_post = agent.post_message
+            agent.post_message = record
+            saturated = []
+            for index in range(32):
+                foreign = deepcopy(FIXTURE["nextTrustedLoad"]["cursor"])
+                foreign["scope"]["ownerThread"] = f"foreign-{index}"
+                saturated.append(foreign)
+            saturated.append(race["callbackBeforeTrustedResult"])
+            await load(FIXTURE["trustedLoad"]["cursor"], before=saturated)
+            await painted("unavailable")
+            await load(FIXTURE["trustedLoad"]["cursor"])
+            await painted("unavailable")
+            assert len(agent._private_cursor._prebind_floors) == 32
+
+            # Canonical stopped-owner prebind event on a fresh attachment: no
+            # pre-existing epoch floor may accidentally mask a null-poison bug.
+            agent = Agent(root, AGENT_DATA, "beta")
+            agent._message_target = view
+            view.agent = agent
+            original_post = agent.post_message
+            agent.post_message = record
+            null_case = FIXTURE["nullScopePrebind"]
+            await load(
+                null_case["delayedTrustedLoad"],
+                before=[null_case["callbackBeforeTrustedResult"]],
+            )
+            await painted("unavailable")
+            assert agent._private_cursor.current is None
+            await load(null_case["subsequentExplicitLoadInitiatedAfterCallback"])
+            await painted("none")
+
             # Separate fresh trusted source covers coverage-only, overflow,
             # malformed metadata and null scope without any input effects.
             coverage = deepcopy(FIXTURE["coverageOnlyExample"])
