@@ -90,9 +90,9 @@ class StatusLine(Label):
 
 
 class QueueSummary(Label, can_focus=True):
-    """Shows the delivery queue; activating it offers edit/remove."""
+    """Shows the remote queue; activation reports available control support."""
 
-    BINDINGS = [("enter,space", "edit_queue", "Edit queued")]
+    BINDINGS = [("enter,space", "edit_queue", "Queue controls")]
 
     def action_edit_queue(self) -> None:
         from toad.widgets.conversation import Conversation

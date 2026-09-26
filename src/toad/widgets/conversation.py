@@ -2626,64 +2626,31 @@ class Conversation(containers.Vertical):
             self._compacting = False
 
     def open_queue_menu(self) -> None:
-        """Offer edit/remove for prompts waiting to be delivered."""
-        if not self.queued_prompts:
-            return
-        from textual.geometry import Offset
+        """Remote edits require exact input IDs and backend revision-CAS support."""
+        if self.queued_prompts:
+            self._queue_edit_unavailable()
 
-        from toad.widgets.comms_menu import ContextMenu
-
-        items: list[tuple[str, str]] = []
-        for index, text in enumerate(self.queued_prompts):
-            label = " ".join(text.split())[:44]
-            items.append((f"edit:{index}", f"✎ {label}"))
-            items.append((f"remove:{index}", f"✕ {label}"))
-        items.append(("clear", "Clear all queued"))
-        anchor = self.prompt.query_one(".queue-summary")
-        menu_width = max(len(label) for _, label in items) + 4
-        self.app.push_screen(
-            ContextMenu(
-                Offset(max(0, anchor.region.right - menu_width), anchor.region.bottom),
-                "Queued messages",
-                items,
-            ),
-            self._on_queue_choice,
+    def _queue_edit_unavailable(self) -> None:
+        self.flash(
+            "Remote queue editing unavailable: requires ID-targeted, revision-checked backend support",
+            style="error",
         )
 
     def _on_queue_choice(self, action: str | None) -> None:
-        if not action:
-            return
-        if action == "clear":
-            self.replace_queued([])
-            return
-        kind, _, raw_index = action.partition(":")
-        try:
-            index = int(raw_index)
-        except ValueError:
-            return
-        if not 0 <= index < len(self.queued_prompts):
-            return
-        remaining = list(self.queued_prompts)
-        text = remaining.pop(index)
-        if kind == "edit":
-            self.prompt.text = text
-            self.prompt.focus()
-        self.replace_queued(remaining)
+        # A stale menu callback must not edit the draft or mutate the remote
+        # queue. Text/index matching cannot identify an admitted input safely.
+        if action:
+            self._queue_edit_unavailable()
 
     @work
     async def replace_queued(self, prompts: list[str]) -> None:
-        """Clear prompts awaiting delivery and re-queue the ones kept."""
-        queued = list(prompts)
-        if self.agent is not None and hasattr(self.agent, "clear_queue"):
-            try:
-                await self.agent.clear_queue()
-            except (OSError, ValueError, jsonrpc.APIError):
-                self.flash("Could not reach the agent to update its queue", style="error")
-                return
-        for text in queued:
-            self.send_prompt_to_agent(text, queued=True)
-        self.queued_prompts = queued
-        self.flash("Cleared queued messages" if not queued else "Updated queued messages")
+        """Never clear-and-resend admitted inputs as a queue-edit fallback.
+
+        An empty snapshot or control ACK does not prove consumption, and a
+        surviving row may be UNKNOWN. Reissuing its text could execute it twice.
+        Local unsent composer drafts remain editable without touching this API.
+        """
+        self._queue_edit_unavailable()
 
     def _settings_changed(self, setting_item: tuple[str, str]) -> None:
         key, value = setting_item
