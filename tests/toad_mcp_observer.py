@@ -26,12 +26,20 @@ class Observer:
         self.agent, self.view, self.root = agent, view, root
         self.receipts: list[list[str]] = []
         self.permissions = 0
+        self.permission_presented = asyncio.Event()
         self.disconnected_seen = False
         self.permission_tasks: set[asyncio.Task] = set()
 
     async def session_update(self, session_id: str, update: dict[str, Any]) -> None:
+        with (self.root / "toad-updates.jsonl").open("a") as log:
+            log.write(json.dumps({"session": session_id, "update": update}) + "\n")
         self.agent.rpc_session_update(session_id, update)
         await self.pilot.pause()
+        with (self.root / "toad-states.jsonl").open("a") as log:
+            log.write(json.dumps({"agent": self.agent._active_turn_id,
+                                 "view": self.view._managed_turn_id,
+                                 "live": self.view._mcp_live_turn,
+                                 "notes": notes(self.view)}) + "\n")
         state = update.get("_meta", {}).get("agentComms", {})
         assert self.agent.session_id == SESSION_ID
         if "mcpClient" in state:
@@ -59,6 +67,7 @@ class Observer:
                 return await task
             assert ask is not None and self.view.prompt.is_mounted
             self.app.save_screenshot(str(self.root / "toad-permission.svg"))
+            self.permission_presented.set()
             if self.case != "disconnect":
                 index, answer = next((i, a) for i, a in enumerate(ask.options)
                                      if a.id == "allow-once")

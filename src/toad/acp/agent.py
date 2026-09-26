@@ -938,6 +938,10 @@ class Agent(AgentBase):
             tasks.add(asyncio.create_task(call_jsonrpc(agent_data)))
             await asyncio.sleep(0)
 
+        # EOF is attachment loss, not evidence that any remote MCP is live.
+        self._active_turn_id = None
+        self.post_message(messages.McpClientStopped(self))
+
         # Cancel all remaining tasks and wait for them to finish
         for task in tasks:
             task.cancel()
