@@ -265,22 +265,11 @@ async def main():
             saturated = []
             start, end = saturation_case["foreignWireRootIdRangeInclusive"]
             for index in range(start, end + 1):
-                saturated.append(
-                    {
-                        "version": 1,
-                        "revision": 1,
-                        "status": "none",
-                        "scope": {
-                            **saturation_case["foreignScopeFields"],
-                            "wireRootId": f"{index:032x}",
-                        },
-                    }
-                )
+                foreign = deepcopy(saturation_case["foreignCallbackTemplate"])
+                foreign["scope"]["wireRootId"] = f"{index:032x}"
+                saturated.append(foreign)
             saturated.append(saturation_case["realOwnerCallback33"])
-            valid_old = {
-                **FIXTURE["trustedLoad"]["cursor"],
-                **saturation_case["subsequentTrustedOldLoad"],
-            }
+            valid_old = saturation_case["subsequentTrustedOldLoad"]
             await load(valid_old, before=saturated)
             await painted("unavailable")
             await load(valid_old)
@@ -298,8 +287,15 @@ async def main():
             )
             await pilot.pause()
             await painted("unavailable")
-            await load(valid_old)
+            await load(saturation_case["laterTrustedSameAgentLoad"])
             await painted("unavailable")
+            agent = Agent(root, AGENT_DATA, "beta")
+            agent._message_target = view
+            view.agent = agent
+            original_post = agent.post_message
+            agent.post_message = record
+            await load(saturation_case["freshAgentTrustedLoad"])
+            await painted("none")
 
             # Canonical stopped-owner prebind event on a fresh attachment: no
             # pre-existing epoch floor may accidentally mask a null-poison bug.

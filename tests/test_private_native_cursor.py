@@ -16,7 +16,7 @@ class CursorParserTests(unittest.TestCase):
     def test_frozen_backend_fixture(self):
         self.assertEqual(
             sha256(FIXTURE_PATH.read_bytes()).hexdigest(),
-            "321b777a59b4d84cec32aea05fe81def4a5d2942df7a5d8444d8924d1f48a593",
+            "081b4d3b68a887d7520cc34fff659a01b7f1ac82e07c8eb6e15bd62ab2e9a534",
         )
         values = [
             FIXTURE["trustedLoad"]["cursor"],
@@ -243,12 +243,9 @@ class CursorReducerTests(unittest.TestCase):
         case = FIXTURE["distinctKeySaturation"]
         start, end = case["foreignWireRootIdRangeInclusive"]
         for index in range(start, end + 1):
-            foreign = {
-                "version": 1,
-                "revision": 1,
-                "status": "none",
-                "scope": {**case["foreignScopeFields"], "wireRootId": f"{index:032x}"},
-            }
+            foreign = deepcopy(case["foreignCallbackTemplate"])
+            foreign["scope"]["wireRootId"] = f"{index:032x}"
+            self.assertIsNotNone(parse_cursor(foreign))
             reducer.callback(foreign, "beta")
         newer = case["realOwnerCallback33"]
         self.assertEqual(reducer.callback(newer, "beta"), "quarantine_evidence_lost")
@@ -258,18 +255,13 @@ class CursorReducerTests(unittest.TestCase):
             reducer.bind(FIXTURE["trustedLoad"]["cursor"], "beta", token),
             "reject_evidence_lost",
         )
-        # The additive saturation example abbreviates proof fields. Supply
-        # the canonical old proof too, so malformed input cannot mask this test.
-        valid_old = {
-            **FIXTURE["trustedLoad"]["cursor"],
-            **case["subsequentTrustedOldLoad"],
-        }
+        valid_old = case["subsequentTrustedOldLoad"]
         self.assertIsNotNone(parse_cursor(valid_old))
-        for value in (valid_old, FIXTURE["nextTrustedLoad"]["cursor"]):
+        for value in (valid_old, case["laterTrustedSameAgentLoad"]):
             self.assertEqual(self.load(reducer, value), "reject_evidence_lost")
             self.assertEqual(reducer.status, "unavailable")
         fresh = CursorReducer()
-        self.assertEqual(self.load(fresh, FIXTURE["nextTrustedLoad"]["cursor"]), "bind")
+        self.assertEqual(self.load(fresh, case["freshAgentTrustedLoad"]), "bind")
         self.assertEqual(fresh.status, "none")
 
     def test_superseding_uncertain_request_preserves_prebind_epoch_floor(self):

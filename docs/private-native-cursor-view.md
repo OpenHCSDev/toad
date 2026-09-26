@@ -6,12 +6,12 @@ inputs. No live deployment or activation is part of this change.
 
 ## Frozen producer contract
 
-Backend: `40f09c7e2cd8f81dc0e93ed7f14a2cddc98bee3e`.
+Backend: `79cd5a8c7254bfcddd8d07c9525076c3e78f1a20`.
 
 - `docs/private_native_cursor_acp_v1.md`: SHA256
   `b3825945414006d33abfc4c57cab6f687ef0a5b0c264b01d2ea193a8992e51cf`
 - Exact copied `tests/fixtures/private_native_cursor_v1.json`: SHA256
-  `321b777a59b4d84cec32aea05fe81def4a5d2942df7a5d8444d8924d1f48a593`
+  `081b4d3b68a887d7520cc34fff659a01b7f1ac82e07c8eb6e15bd62ab2e9a534`
 
 Older `9b30004`, `6889a31`, and `f94fc46` fixtures are insufficient for sink acceptance.
 
@@ -105,11 +105,13 @@ Latest evidence `/var/tmp/toad-cursor-78f-owner/` includes canonical 78f null
 prebind and distinct-floor saturation controls (14 pure tests plus mounted
 provenance, mounted request-fence and adjacent MCP pilots). `/dev/shm` reached
 its write quota during the final run; the successful rerun uses `/var/tmp`.
-Final contract-refresh evidence `/var/tmp/toad-cursor-40f-owner/` consumes the
-canonical distinctKeySaturation recipe and covers same-Agent presentation
-reattachment plus a delayed old status receipt. Its abbreviated old-proven
-example is overlaid onto the fixture's full trustedLoad proof and independently
-parser-validated to avoid a malformed payload masking the saturation check.
+Contract-refresh evidence `/var/tmp/toad-cursor-40f-owner/` covers same-Agent
+presentation reattachment plus a delayed old status receipt. Final fixture-only
+refresh `/var/tmp/toad-cursor-79c-owner/` consumes complete canonical
+`distinctKeySaturation` payloads directly, including same-Agent later-load and
+fresh-Agent recovery. Each old-proven payload is parser-validated so malformed
+input cannot mask the saturation check. This supersedes the earlier 40f
+abbreviated example; no consumer source changes accompany this fixture refresh.
 The older `prompt_queue_pilot.py` times out awaiting its stub response at line111
 both on this consumer and unchanged base `b6220b7`; logs `queue.log` and
 `queue-baseline.log`. This is not a queue acceptance verdict. Existing unresolved
