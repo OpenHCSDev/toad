@@ -60,9 +60,10 @@ Only trusted new/load/ready results may rebind scope. The same result includes
 an initial queueState snapshot at its revision. Queue events cannot establish or
 replace scope. Exact starts and public dispositions use the same scope.
 Prebind callbacks are bounded-buffered per session; after binding and the initial
-snapshot, only matching-incarnation events at revision >= the snapshot apply.
+snapshot, matching-incarnation snapshots must meet the revision floor. Exact
+start proofs use the separate rules below, including delayed older proofs.
 Overflow marks projection unavailable, requiring read-only refresh or reconnect,
-never automatic input replay. Exact equal-revision starts remain eligible once.
+never automatic input replay.
 Revision increments per membership change, not per emitted message: an exact
 start and the following queue snapshot share the removal revision. Therefore
 an equal-revision start still retires its input once; a per-scope started-ID
@@ -70,6 +71,18 @@ tombstone prevents snapshot replay from resurrecting it. Lower-revision snapshot
 are ignored. Same-owner reconnect retains revision floor and tombstones; trusted
 changed-epoch rebind resets projection bookkeeping, never durable UNKNOWN.
 Duplicate restored IDs append to the composer at most once.
+
+Within the same trusted owner incarnation, an exact older-revision start may
+arrive after a newer snapshot. If that ID is absent from newer items, accept the
+proof/history once without clearing other rows. If the newer snapshot still
+contains it, mark the projection contradictory/unavailable and require read-only
+refresh, rather than silently retiring it. Thus the snapshot revision floor must
+not blanket-reject durable start proof. This never implies work completion.
+
+Tombstone storage must be bounded without evicting IDs and later re-echoing them:
+on overflow, fail closed/unavailable until authoritative refresh, or suppress
+unrecognized older start IDs. The actual bound and refresh mechanism remain to
+be specified in backend fixtures.
 
 Details required in the backend schema/fixture freeze before wire integration:
 
