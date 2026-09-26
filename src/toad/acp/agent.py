@@ -1612,8 +1612,22 @@ class Agent(AgentBase):
                 self._context_usage = None
                 self._context_usage_saved = False
                 self.post_message(messages.UpdateStatusLine(Content("Context estimate unavailable")))
+        # ACP may report an alias or relative attached root. Freeze its exact
+        # target before any later Toad prompt or Comms UI action can use it;
+        # otherwise retargeting a symlink after an admission check redirects
+        # Toad to a different (possibly paused) wire.
+        from .maintenance_ingress import configured_root
+
+        attached_env = (self._maintenance_env or os.environ).copy()
+        attached_env["AGENT_COMMS_ROOT"] = wire_root
+        try:
+            attached_root = configured_root(
+                attached_env, self._maintenance_cwd or self.project_root_path.resolve()
+            )
+        except (OSError, ValueError, RuntimeError):
+            return
         self._coordination_thread = thread
-        self._coordination_root = wire_root
+        self._coordination_root = str(attached_root)
         if isinstance(worktree := coordination.get("worktree"), str):
             self._coordination_worktree = worktree
             self.project_root_path = Path(worktree)

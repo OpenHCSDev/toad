@@ -20,8 +20,16 @@ _pending_spawns = 0
 
 
 def configured_root(env: Mapping[str, str], cwd: str | Path) -> Path:
-    """Resolve the exact wire path as the ACP child will resolve its env."""
-    raw = Path(env.get("AGENT_COMMS_ROOT", "~/.agent-comms")).expanduser()
+    """Resolve the child wire without consulting the Toad parent's HOME."""
+    text = env.get("AGENT_COMMS_ROOT", "~/.agent-comms")
+    if text == "~" or text.startswith("~/"):
+        home = env.get("HOME") if os.name != "nt" else env.get("USERPROFILE")
+        if not home or not Path(home).is_absolute():
+            raise ValueError("ACP home for maintenance admission is unknown")
+        text = str(Path(home) / text[2:]) if text != "~" else home
+    elif text.startswith("~"):
+        raise ValueError("Unsupported ACP home expansion during maintenance admission")
+    raw = Path(text)
     return (raw if raw.is_absolute() else Path(cwd) / raw).resolve()
 
 
@@ -76,9 +84,14 @@ async def admitted_spawn(command: str, *, root: str | None = None, **kwargs: Any
     this helper does not purport to provide a bounded retirement deadline.
     """
     loop = asyncio.get_running_loop()
-    child_env = kwargs["env"] if kwargs.get("env") is not None else os.environ
-    child_cwd = kwargs["cwd"] if kwargs.get("cwd") is not None else os.getcwd()
+    child_env = (kwargs["env"] if kwargs.get("env") is not None else os.environ).copy()
+    child_cwd = str(Path(kwargs["cwd"] if kwargs.get("cwd") is not None else os.getcwd()).resolve())
     ingress_root = configured_root(child_env, child_cwd)
+    # The gate and child must use the *same* target even if an alias symlink
+    # changes after admission but before exec. Never inherit a relative root.
+    child_env["AGENT_COMMS_ROOT"] = str(ingress_root)
+    kwargs["env"] = child_env
+    kwargs["cwd"] = child_cwd
     process_ready: concurrent.futures.Future[asyncio.subprocess.Process] = concurrent.futures.Future()
     decision: concurrent.futures.Future[bool] = concurrent.futures.Future()
 

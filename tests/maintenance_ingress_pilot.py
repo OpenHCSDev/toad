@@ -198,6 +198,68 @@ async def main() -> None:
                 raise AssertionError("copied paused child env was ignored")
         assert not called
 
+    # A child's HOME, not Toad's HOME, controls default ~/ wire resolution.
+    with TemporaryDirectory(prefix="toad-maintenance-home-") as directory:
+        root = Path(directory)
+        child_home = root / "child-home"
+        MaintenanceBarrier(child_home / ".agent-comms" / "registry.json").begin("test-operator")
+        calls = []
+
+        async def record_spawn(*_args, **_kwargs):
+            calls.append(True)
+            return SimpleNamespace(pid=123, returncode=0)
+
+        with patch.dict(os.environ, {"HOME": str(root / "parent-home")}), patch(
+            "asyncio.create_subprocess_shell", record_spawn
+        ):
+            try:
+                await admitted_spawn("fake", env={"HOME": str(child_home)}, cwd=str(root))
+            except Exception:
+                pass
+            else:
+                raise AssertionError("child HOME paused gate bypassed")
+        assert not calls
+
+    # The child receives the same canonical target that Toad admitted, even
+    # when an alias changes while its process is being created.
+    with TemporaryDirectory(prefix="toad-maintenance-alias-") as directory:
+        root = Path(directory)
+        opened = root / "open"
+        paused = root / "paused"
+        alias = root / "wire-link"
+        opened.mkdir()
+        alias.symlink_to(opened, target_is_directory=True)
+        MaintenanceBarrier(paused / "registry.json").begin("test-operator")
+        observed = []
+
+        async def retarget(_command, **kwargs):
+            alias.unlink()
+            alias.symlink_to(paused, target_is_directory=True)
+            observed.append(Path(kwargs["env"]["AGENT_COMMS_ROOT"]).resolve())
+            return SimpleNamespace(pid=123, returncode=0)
+
+        with patch.dict(os.environ, {"AGENT_COMMS_ROOT": str(alias)}), patch(
+            "asyncio.create_subprocess_shell", retarget
+        ):
+            await admitted_spawn("fake", env=os.environ.copy(), cwd=str(root))
+        assert observed == [opened], "ACP child followed a retargeted alias"
+
+        attached = root / "attached"
+        attached.mkdir()
+        alias.unlink()
+        alias.symlink_to(attached, target_is_directory=True)
+        with patch.dict(os.environ, {"AGENT_COMMS_ROOT": str(opened)}):
+            attached_agent = Agent(root, {"name": "fake", "run_command": {"*": "true"}}, None)
+            attached_agent._maintenance_env = os.environ.copy()
+            attached_agent._maintenance_cwd = str(root)
+            attached_agent._publish_coordination_metadata(
+                {"_meta": {"agentComms": {"thread": "fixture", "wireRoot": str(alias)}}}
+            )
+            assert attached_agent._coordination_root == str(attached)
+        alias.unlink()
+        alias.symlink_to(paused, target_is_directory=True)
+        assert attached_agent._coordination_root == str(attached)
+
     # First-use ordinary path remains open through the actual Toad Agent path;
     # the disposable shell emits a marker, not a provider request.
     with TemporaryDirectory(prefix="toad-maintenance-open-") as directory:
