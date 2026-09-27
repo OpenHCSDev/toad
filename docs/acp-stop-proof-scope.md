@@ -5,12 +5,7 @@ PID, creation time, and PGID immediately after accepted spawn. `Agent.stop()`
 returns `GroupRetirement` only after a bounded TERM/KILL sequence and a fresh
 non-zombie process-group scan. If identity enrollment, signaling, observation,
 or the deadline fails, it raises `GroupRetirementUnresolved` and retains the
-original PGID and identity. Cancellation also retains them. An unsettled
-accepted spawn is a separate admission state: stop waits for the exact spawn
-result before cancelling the agent task. If admission does not settle by its
-bounded deadline, stop raises unresolved without cancelling the pending spawn;
-a subsequently accepted child sees the stop request and retires before ACP
-requests. `McpClientStopped`
+original PGID and identity. Cancellation also retains them. `McpClientStopped`
 may be emitted as soon as a stop is requested to invalidate the live MCP UI
 projection, **before** any OS process or connection has stopped. It is never a
 retirement receipt. Connection EOF likewise proves only stream closure, not

@@ -11,7 +11,6 @@ import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
-from toad.acp import maintenance_ingress
 from toad.acp.agent import Agent
 from toad.acp.group_retirement import (
     GroupRetirementUnresolved,
@@ -137,57 +136,6 @@ async def cancellation_keeps_identity() -> None:
             await cleanup(process)
 
 
-async def admission_pending_never_reports_stopped() -> None:
-    with tempfile.TemporaryDirectory(
-        prefix="toad-stop-admission-", dir="/dev/shm"
-    ) as root:
-        agent = Agent(
-            Path(root), {"name": "fixture", "run_command": {"*": "sleep 60"}}, None
-        )
-        agent.post_message = lambda _message: None
-        spawned = asyncio.Event()
-        release = asyncio.Event()
-        holder: dict[str, asyncio.subprocess.Process] = {}
-
-        async def delayed_spawn(*_args, **_kwargs):
-            process = await asyncio.create_subprocess_exec(
-                sys.executable,
-                "-c",
-                "import time; time.sleep(60)",
-                stdin=asyncio.subprocess.PIPE,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.DEVNULL,
-                start_new_session=True,
-            )
-            holder["process"] = process
-            spawned.set()
-            await release.wait()
-            return process
-
-        try:
-            with patch.object(maintenance_ingress, "admitted_spawn", delayed_spawn):
-                agent._agent_task = asyncio.create_task(agent._run_agent())
-                await asyncio.wait_for(spawned.wait(), timeout=5)
-                try:
-                    await agent.stop()
-                except GroupRetirementUnresolved as error:
-                    assert "admission has not settled" in str(error)
-                else:
-                    raise AssertionError("untracked accepted child reported stopped")
-                assert agent._agent_task is not None
-                assert not agent._agent_task.done()
-                assert holder["process"].returncode is None
-                release.set()
-                await asyncio.wait_for(agent._agent_task, timeout=8)
-                assert agent.verify_retirement().accepted.leader_pid == (
-                    holder["process"].pid
-                )
-        finally:
-            release.set()
-            if "process" in holder:
-                await cleanup(holder["process"])
-
-
 def pid_reuse_declines() -> None:
     from toad.acp import group_retirement
 
@@ -208,7 +156,6 @@ async def main() -> None:
     await real_success()
     await unresolved_and_retry()
     await cancellation_keeps_identity()
-    await admission_pending_never_reports_stopped()
     pid_reuse_declines()
     print("ACP stop proof pilots PASS")
 

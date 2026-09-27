@@ -172,9 +172,6 @@ class Agent(AgentBase):
         self._retirement: GroupRetirement | None = None
         self._starting = False
         self._stopping = False
-        self._stop_lock = asyncio.Lock()
-        self._spawn_settled = asyncio.Event()
-        self._spawn_settled.set()
         self._reconnecting = False
         self._connected_ok = False
         self.prompt_in_flight = 0
@@ -295,7 +292,6 @@ class Agent(AgentBase):
                 self._accepted_group, "previous ACP child is not retired"
             )
         self._starting = True
-        self._spawn_settled.clear()
         self._stopping = False
         self._retirement = None
         self._group_capture_error = None
@@ -318,14 +314,12 @@ class Agent(AgentBase):
             )
         except asyncio.CancelledError:
             self._starting = False
-            self._spawn_settled.set()
             raise
         except Exception as error:
             self._connected_ok = False
             self.session_ready_event.set()
             self.post_message(AgentFail("Failed to start agent", details=str(error)))
             self._starting = False
-            self._spawn_settled.set()
             return
         try:
             await asyncio.to_thread(
@@ -333,14 +327,9 @@ class Agent(AgentBase):
             )
         except asyncio.CancelledError:
             self._starting = False
-            self._spawn_settled.set()
             raise
         except OSError:
             pass
-        if self._stopping:
-            self._starting = False
-            self._spawn_settled.set()
-            return
         self._agent_task = asyncio.create_task(self._run_agent())
         self._starting = False
 
@@ -967,7 +956,6 @@ class Agent(AgentBase):
     async def _run_agent(self) -> None:
         """Task to communicate with the agent subprocess."""
 
-        self._spawn_settled.clear()
         PIPE = asyncio.subprocess.PIPE
         env = (self._maintenance_env or os.environ).copy()
         env["TOAD_CWD"] = str(Path("./").absolute())
@@ -976,7 +964,6 @@ class Agent(AgentBase):
             self.post_message(
                 AgentFail("Failed to start agent; no run command for this OS")
             )
-            self._spawn_settled.set()
             return
         try:
             from .maintenance_ingress import admitted_spawn
@@ -1009,26 +996,13 @@ class Agent(AgentBase):
                     if process.returncode is None:
                         with suppress(ProcessLookupError):
                             process.terminate()
-                    self._spawn_settled.set()
                     return
-        except asyncio.CancelledError:
-            # admitted_spawn owns cancellation settlement and child retirement;
-            # do not certify admission before that cleanup has completed.
-            self._spawn_settled.set()
-            raise
         except Exception as error:
             self._connected_ok = False
             self.session_ready_event.set()
             self.post_message(AgentFail("Failed to start agent", details=str(error)))
-            self._spawn_settled.set()
             return
 
-        self._spawn_settled.set()
-        if self._stopping:
-            # An earlier stop may have timed out while spawn was unsettled.
-            # Never start ACP requests on a child accepted after stop request.
-            await self.stop()
-            return
         self._task = asyncio.create_task(self.run())
 
         assert process.stdout is not None
@@ -1132,28 +1106,14 @@ class Agent(AgentBase):
             self._process = None
 
     async def stop(self) -> GroupRetirement | None:
-        """Stop the child; never cancel an unsettled accepted spawn."""
-        self._stopping = True
-        async with self._stop_lock:
-            return await self._stop_locked()
-
-    async def _stop_locked(self) -> GroupRetirement | None:
-        """Return proof only after the accepted group is empty.
+        """Stop the child; return proof only after its accepted group is empty.
 
         Raises GroupRetirementUnresolved rather than reporting a successful
-        stop when admission or the accepted group cannot be proved settled.
-        The early McpClientStopped event only invalidates an MCP UI projection.
+        stop when the accepted ACP group cannot be proved retired. The early
+        McpClientStopped message only invalidates an MCP UI projection; it is
+        not a process or connection retirement receipt.
         """
-        if not self._spawn_settled.is_set():
-            try:
-                await asyncio.wait_for(self._spawn_settled.wait(), timeout=5)
-            except TimeoutError as error:
-                # Keep _agent_task alive: admitted_spawn must finish its exact
-                # child acceptance or retirement; cancelling it here loses the
-                # child between subprocess creation and Agent's PID enrollment.
-                raise GroupRetirementUnresolved(
-                    self._accepted_group, "ACP spawn admission has not settled"
-                ) from error
+        self._stopping = True
         self._invalidate_attachment_views()
         self._active_turn_id = None
         self.post_message(messages.McpClientStopped(self))
