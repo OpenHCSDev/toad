@@ -960,7 +960,12 @@ class Agent(AgentBase):
         env = (self._maintenance_env or os.environ).copy()
         env["TOAD_CWD"] = str(Path("./").absolute())
 
+        enrollment = getattr(self, "_retirement_entry", None)
         if (command := self.command) is None:
+            if enrollment is not None:
+                from .cutover_retirement import LIVE_TOAD_REGISTRY
+
+                LIVE_TOAD_REGISTRY.mark_no_child(enrollment)
             self.post_message(
                 AgentFail("Failed to start agent; no run command for this OS")
             )
@@ -983,7 +988,17 @@ class Agent(AgentBase):
                 self._process_group_id = process.pid
                 try:
                     self._accepted_group = capture_accepted_group(process.pid)
+                    if enrollment is not None:
+                        from .cutover_retirement import LIVE_TOAD_REGISTRY
+
+                        LIVE_TOAD_REGISTRY.mark_accepted(
+                            enrollment, self._accepted_group
+                        )
                 except GroupRetirementUnresolved as error:
+                    if enrollment is not None:
+                        from .cutover_retirement import LIVE_TOAD_REGISTRY
+
+                        LIVE_TOAD_REGISTRY.mark_unknown(enrollment)
                     # The child was accepted; never erase its PID/PGID merely
                     # because a fast exit prevents start-time enrollment.
                     # Do not start ACP requests without a retirement witness.
@@ -997,7 +1012,26 @@ class Agent(AgentBase):
                         with suppress(ProcessLookupError):
                             process.terminate()
                     return
+        except asyncio.CancelledError:
+            # admitted_spawn settles and retires any unaccepted child before
+            # propagating cancellation.  An already accepted identity cannot
+            # be rewritten as NO_CHILD.
+            if enrollment is not None:
+                from .cutover_retirement import LIVE_TOAD_REGISTRY
+
+                if self._process is None:
+                    LIVE_TOAD_REGISTRY.mark_no_child(enrollment)
+                elif self._accepted_group is None:
+                    LIVE_TOAD_REGISTRY.mark_unknown(enrollment)
+            raise
         except Exception as error:
+            if enrollment is not None:
+                from .cutover_retirement import LIVE_TOAD_REGISTRY
+
+                if self._process is None:
+                    LIVE_TOAD_REGISTRY.mark_no_child(enrollment)
+                else:
+                    LIVE_TOAD_REGISTRY.mark_unknown(enrollment)
             self._connected_ok = False
             self.session_ready_event.set()
             self.post_message(AgentFail("Failed to start agent", details=str(error)))
@@ -1189,6 +1223,10 @@ class Agent(AgentBase):
                     None, "accepted ACP group was not enrolled"
                 )
             self._retirement = verify_accepted_group(accepted_group)
+            if (enrollment := getattr(self, "_retirement_entry", None)) is not None:
+                from .cutover_retirement import LIVE_TOAD_REGISTRY
+
+                LIVE_TOAD_REGISTRY.complete_normal_stop(enrollment, self._retirement)
         self._process_group_id = None
         self._accepted_group = None
         self._process = None
