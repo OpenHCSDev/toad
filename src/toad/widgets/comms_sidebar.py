@@ -172,7 +172,9 @@ class ChannelGroup(SidebarGroup):
 
 
 def _comms_root() -> Path:
-    return Path(os.environ.get("AGENT_COMMS_ROOT", "~/.agent-comms")).expanduser()
+    from toad.comms_root import current_root
+
+    return current_root()
 
 
 def _display_path(path: Path) -> str:
@@ -366,7 +368,12 @@ class CoordinationStatus(Static):
         self.refresh_status()
 
     def refresh_status(self) -> None:
-        root = _comms_root()
+        try:
+            root = _comms_root()
+        except (OSError, ValueError, RuntimeError) as error:
+            self.update(f"Wire unavailable: {error}")
+            self.tooltip = "Invalid Comms route; no legacy fallback"
+            return
         backend = os.environ.get("AGENT_COMMS_AGENT_BIN", "pi")
         thread = self.thread or "connecting..."
         self.update(
@@ -548,7 +555,17 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
         # Every mounted tab observes the same wire revision. Retain the app's
         # core reader rather than rebuilding its registry, bus and catalog
         # caches for each independently mounted sidebar.
-        root = _comms_root().resolve()
+        try:
+            root = _comms_root().resolve()
+        except (OSError, ValueError, RuntimeError):
+            self.display = False
+            return
+        from toad.screens.comms import CommsScreen
+
+        if isinstance(self.screen, CommsScreen) and self.screen.wire_root is not None:
+            if root != Path(self.screen.wire_root).resolve():
+                self.display = False
+                return
         self._wire = (app.coordination_wire if root == app.coordination_wire.root
                       else wire(root))
         app.session_update_signal.subscribe(self, self._session_updated)
@@ -739,7 +756,16 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
         return "thread" if person.thread.session_file or person.thread.pid > 0 else "dm"
 
     def _refresh(self) -> None:
-        if not self._observe or self._snapshot_pending or not self.is_attached:
+        if not self._observe or not self.is_attached:
+            return
+        from toad.comms_root import root_is_current
+
+        if self._wire is None or not root_is_current(self._wire.root):
+            # An old mounted sidebar must not present its cached projection as
+            # though it belonged to the newly published route.
+            self.display = False
+            return
+        if self._snapshot_pending:
             return
         try:
             # A refresh timer can fire while a mode's screen stack is being
@@ -772,6 +798,11 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
             )
             if (not self.is_attached or self.screen is not self.app.screen
                     or actor != self.session_thread or filters != self.visible_filters):
+                return
+            from toad.comms_root import root_is_current
+
+            if not root_is_current(self._wire.root):
+                self.display = False
                 return
             snapshot = self._snapshot(state)
             if state.read_marker_notice != self._last_read_marker_notice:

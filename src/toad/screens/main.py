@@ -296,14 +296,14 @@ class MainScreen(SessionView, can_focus=False):
     def _resolve_comms_thread(self) -> str:
         resolved: str | None
         try:
-            import os
-
             from agent_comms.operations import wire
 
-            root = self._coordination_root or os.environ.get(
-                "AGENT_COMMS_ROOT", "~/.agent-comms"
-            )
-            root_path = Path(root).expanduser()
+            from toad.comms_root import current_root, root_is_current
+
+            if self._coordination_root is not None and not root_is_current(self._coordination_root):
+                raise ValueError("Comms route changed; this session retains its former wire")
+            root_path = (Path(self._coordination_root).expanduser()
+                         if self._coordination_root is not None else current_root())
             if self._identity_wire is None or self._identity_wire.root != root_path:
                 shared = self.app.coordination_wire
                 self._identity_wire = shared if shared.root == root_path else wire(root_path)
@@ -383,15 +383,16 @@ class MainScreen(SessionView, can_focus=False):
         def do_fork(spec: tuple[str, str] | None) -> None:
             if not spec:
                 return
-            import os as _os
-
             from agent_comms import invoke_context_tool
             from agent_comms.operations import wire as _wire
 
-            root = _os.environ.get("AGENT_COMMS_ROOT", "~/.agent-comms")
+            from toad.comms_root import root_is_current
+
             try:
+                if self._coordination_root is not None and not root_is_current(self._coordination_root):
+                    raise ValueError("Comms route changed; reopen the thread before forking")
                 invoke_context_tool(
-                    _wire(root),
+                    _wire(),
                     event.action,
                     subject=parent,
                     arguments={"name": spec[0], "task": spec[1]},

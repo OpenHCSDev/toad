@@ -20,8 +20,21 @@ _pending_spawns = 0
 
 
 def configured_root(env: Mapping[str, str], cwd: str | Path) -> Path:
-    """Resolve the child wire without consulting the Toad parent's HOME."""
-    text = env.get("AGENT_COMMS_ROOT", "~/.agent-comms")
+    """Resolve the child wire; never mistake the parent's route for another HOME."""
+    if "AGENT_COMMS_ROOT" not in env:
+        home_key = "USERPROFILE" if os.name == "nt" else "HOME"
+        home = env.get(home_key)
+        if (not home or not Path(home).is_absolute()
+                or home != str(Path.home())
+                or "AGENT_COMMS_ROOT" in os.environ):
+            raise ValueError(
+                "ACP default route requires the Toad process HOME and no parent "
+                "root override; set an explicit child AGENT_COMMS_ROOT"
+            )
+        from toad.comms_root import current_root
+
+        return current_root()
+    text = env["AGENT_COMMS_ROOT"]
     if text == "~" or text.startswith("~/"):
         home = env.get("HOME") if os.name != "nt" else env.get("USERPROFILE")
         if not home or not Path(home).is_absolute():
@@ -37,7 +50,8 @@ def barrier_for(root: str | Path | None = None, *, cwd: str | Path | None = None
     """Use the paired Comms barrier; never silently skip a missing package."""
     from agent_comms.maintenance_barrier import MaintenanceBarrier
 
-    resolved = Path(root or os.environ.get("AGENT_COMMS_ROOT", "~/.agent-comms")).expanduser()
+    resolved = Path(root) if root is not None else configured_root(os.environ, cwd or os.getcwd())
+    resolved = resolved.expanduser()
     if not resolved.is_absolute():
         resolved = Path(cwd or os.getcwd()) / resolved
     return MaintenanceBarrier(resolved.resolve() / "registry.json")

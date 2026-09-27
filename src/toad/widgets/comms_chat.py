@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import asyncio
-import os
 import re
 from pathlib import Path
 
@@ -44,7 +43,9 @@ HISTORY_EDGE_THRESHOLD = 2
 
 
 def _comms_root() -> Path:
-    return Path(os.environ.get("AGENT_COMMS_ROOT", "~/.agent-comms")).expanduser()
+    from toad.comms_root import current_root
+
+    return current_root()
 
 
 def session_thread_name(project_path) -> str:
@@ -91,11 +92,13 @@ class CommsChatView(Conversation):
         target: str,
         kind: str,
         me: str,
+        wire_root: str | None = None,
     ) -> None:
         super().__init__(project_path)
         self.target = target
         self.kind = kind
         self._me = me
+        self._bound_root = Path(wire_root).resolve() if wire_root is not None else None
         self.set_prompt_history_scope(f"comms:{kind}:{target}")
         self._history: list[tuple[WireMessage, Widget]] = []
         self._has_older = False
@@ -151,7 +154,14 @@ class CommsChatView(Conversation):
     async def initialize_view(self) -> None:
         # Reuse the canonical core service already shared by tab sidebars and
         # transcript readers. Its revision-aware caches remain model-owned.
-        root = _comms_root().resolve()
+        try:
+            root = _comms_root().resolve()
+        except (OSError, ValueError, RuntimeError):
+            self.display = False
+            return
+        if self._bound_root is not None and root != self._bound_root:
+            self.display = False
+            return
         self._wire = (self.app.coordination_wire if root == self.app.coordination_wire.root
                       else wire(root))
         self.agent_info = Content(self._target_label())
@@ -513,6 +523,11 @@ class CommsChatView(Conversation):
         page = self._ack_page
         if page is None or self._ack_inflight or not self.is_attached:
             return
+        from toad.comms_root import root_is_current
+
+        if self._wire is None or not root_is_current(self._wire.root):
+            self.display = False
+            return
         painted = set(self._painted_message_sequences())
         if page.newest_seq is None or page.newest_seq not in painted:
             return
@@ -543,7 +558,12 @@ class CommsChatView(Conversation):
     async def _mark_painted_page(self, page: MessagePage) -> None:
         try:
             comms = self._wire
+            from toad.comms_root import root_is_current
+
             if comms is None or not self.is_attached or not self.screen.is_active:
+                return
+            if not root_is_current(comms.root):
+                self.display = False
                 return
             project = str(self.project_path)
             target = self.target
@@ -581,6 +601,11 @@ class CommsChatView(Conversation):
     async def _refresh(self) -> None:
         if not self.is_attached or self._wire is None:
             return
+        from toad.comms_root import root_is_current
+
+        if not root_is_current(self._wire.root):
+            self.display = False
+            return
         try:
             if self.screen is not self.app.screen:
                 self._warm_history()
@@ -603,6 +628,9 @@ class CommsChatView(Conversation):
                         self.throbber.busy = False
                 if not self.is_attached or read.request != self._history_request():
                     return
+                if not root_is_current(comms.root):
+                    self.display = False
+                    return
                 if self.screen is not self.app.screen:
                     self._prepared_history = read
                     return
@@ -624,6 +652,9 @@ class CommsChatView(Conversation):
                         snapshot.mention_candidates(self.target)
                     )
                 if not self.is_attached or not self.screen.is_active:
+                    return
+                if not root_is_current(comms.root):
+                    self.display = False
                     return
                 self.call_after_refresh(self._mark_visible_after_layout)
             except Exception as error:
@@ -656,7 +687,11 @@ class CommsChatView(Conversation):
         if not event.body.strip():
             return
         try:
-            comms = wire(_comms_root())
+            from toad.comms_root import root_is_current
+
+            if self._wire is None or not root_is_current(self._wire.root):
+                raise ValueError("Comms route changed; reopen this view before sending")
+            comms = self._wire
             receipt = await asyncio.to_thread(
                 comms.send_user_message,
                 "#all" if self.kind == "irc" else self.target, event.body,
@@ -665,6 +700,12 @@ class CommsChatView(Conversation):
         except Exception as error:
             self.prompt.text = event.body
             self.flash(f"Send failed: {error}", style="error")
+            return
+        if not root_is_current(comms.root):
+            # The send may already have reached the former wire. Do not
+            # duplicate it on the successor or paint it under the new route.
+            self.display = False
+            self.flash("Comms route changed during send; outcome may be uncertain", style="error")
             return
         self.prompt_history.current = None
         self.run_worker(self.prompt_history.append(event.body), group="history")
