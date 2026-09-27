@@ -1,6 +1,7 @@
 # Historical views companion
 
-Core companion: OpenHCSDev/agent-comms branch `codex/complete-historical-views-20260927`.
+Core companion: https://github.com/OpenHCSDev/agent-comms/pull/144
+Toad draft: https://github.com/OpenHCSDev/toad/pull/79
 This Toad branch starts at main 32de161 (PR77/78 already merged). Dependency pins are
 unchanged; parent owns candidate runtime installation and activation.
 
@@ -35,6 +36,10 @@ PYTHONPATH=/home/ts/wt/comms-historical-views-20260927/src:src \
   timeout 60 /home/ts/wt/comms-historical-views-20260927/.test-venv/bin/python \
   tests/historical_views_pilot.py
 ```
+
+Five channel-reader cases also passed, including attachment/detachment refresh with
+no new live sequence. The mounted DM rebind pilot passed: an old painted page cannot
+acknowledge a hidden replacement identity.
 
 The core `evidence/historical-views/HANDOFF.md` owns exact attachment, rollback,
 source audit and remaining live acceptance. This implementation has NOT been deployed.
