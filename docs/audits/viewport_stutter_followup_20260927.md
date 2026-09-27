@@ -4,7 +4,57 @@ Base: merged Toad PR65 at `94507dd0e727acd9ba64494dfd477a33b4800da3`, with
 merged Textual PR5 at `4fa6a9c440eaaa7dfaad45a33af146fc4b7e922e` and the preserved
 current-main core pin `b1e5bfd5c39ea69c507833e8ed5efc96a7fb038b`.
 
-Status: **draft; tail-frame regression unresolved; not ready to merge**.
+Status: **draft; tail-frame regression fixed with companion Textual change;
+large comms-pilot timeout and remaining latency targets are open**.
+
+## Structural measurement correction
+
+Dependency: [Textual PR6](https://github.com/OpenHCSDev/textual/pull/6), pinned at
+`d9f02faf0f1656666e081b7a8734a101a3c4971f`. The merged framework baseline alone
+does not contain this correction.
+
+The clipped frame was reproduced with committed geometry evidence: the history
+container retained a29-row box while its page already occupied33rows. `NodeList`
+publishes structural/display revisions before idle layout messages propagate.
+Textual's arrangement cache observed that revision, but its intrinsic box-size
+cache did not. The removed full-map lookup had masked that inconsistent state.
+
+The companion Textual change includes the existing child-structure revision in
+the box-model cache generation. No extra ancestor traversal, new parallel state
+or unconditional layout pass is introduced. Two deterministic tests failed before
+the change: nested admission and display-constraint mutation before idle delivery.
+They pass after it, retaining width reuse and obsolete-generation retirement.
+The full companion framework run passed3,442tests (1skip,4xfail) in193.07s,
+followed by six passing scrollbar/Markdown/prune snapshots. A prior run omitted
+syntax extras and failed three language tests; the corrected run above includes
+them and passes. This dependency-path mistake is separate from the geometry fix.
+
+The progressive-tail diagnostic passed six consecutive runs. The full80-pilot
+Toad run then passed79cases, including `committed_history`; only the large comms
+scenario exceeded its unchanged100s deadline. An isolated repeat also exceeded
+that deadline. A diagnostic showed continuous progress through interaction stages,
+and the landed baseline completed in93.75s. This remains an explicit validation
+limit, not an all-tests-passed claim or justification for raising the deadline.
+
+## Latest controlled measurements and memory
+
+After the user's X11 restart, validation and native runs were serialized in user
+cgroups limited to4GiB RAM with swap disabled. Full Toad validation peaked494.2MiB;
+the native control/candidate peaked480.5/475.3MiB, with zero swap use. Only owned
+test scopes/processes were retired; no user runtime was restarted.
+
+Serial72-action/52-marker runs, all filters/drafts preserved:
+
+| Capture | Input median / p95 / maximum ms | Loop max ms | GC max ms |
+| --- | --- | --- | --- |
+| `toad-structural-box-control-1` |33.03 /73.49 /96.75|125.91|89.53|
+| `toad-structural-box-candidate-1` |35.65 /56.90 /59.59|112.89|77.00|
+| `toad-structural-box-candidate-2` |37.96 /61.93 /69.87|124.73|80.86|
+
+Recorded anchor-triggered full geometry passes (at least3ms):22in control,0in
+both corrected candidates. The repeated input tails improved in these runs, but
+overall loop maxima still exceed100ms. Keep both repeats; there is no universal
+sub50ms or indefinite-aging memory claim.
 
 ## Candidate
 
@@ -25,7 +75,7 @@ requests unnecessary offset geometry. It verifies tail-to-reader and reader-to-t
 transitions during mutations and stable painted record positions. The runner also
 includes the existing 2,000-record `history_anchor_geometry` regression.
 
-## Evidence and outstanding failure
+## Earlier evidence and reproduced failure
 
 - Focused anchor/checkpoint/lifetime suite:6passed18.29s on the initial candidate.
 - Initial broader run:77passed,2failed. The route-admission fixture failed while
@@ -33,13 +83,13 @@ includes the existing 2,000-record `history_anchor_geometry` regression.
   an executor drain after UI shutdown, preserving its existing route assertions.
 - After restoring conservative tail target publication and draining that fixture:
   **78passed,1failed** in269.84s, excluding the separately exercised comms pilot.
-- The remaining failure is `committed_history`: during progressive older-page
+- The earlier failure was `committed_history`: during progressive older-page
   admission one painted frame temporarily omits the canonical final reply, despite
   reporting a bottom scroll position. The assertion is unchanged and must remain.
 - Three isolated repeats each of candidate and baseline pass this checkpoint;
   the corresponding baseline broader run passes77cases in282.60s. This is not
-  enough to label the candidate failure harmless. Do not merge until reproduced
-  deterministically and fixed with frame stability retained.
+  enough to label the candidate failure harmless. It was retained as a blocker
+  until the structural-measurement defect above was reproduced and corrected.
 
 Serial native72-action/52-marker fixture, all filters and drafts retained:
 
@@ -55,6 +105,5 @@ latency is not proof of an overall maximum-stutter reduction, and these numbers
 predate restoration of conservative tail target publication. No final-candidate
 latency acceptance is claimed.
 
-Next: diagnose the progressive-tail measurement/publication boundary without
-restoring an incidental full-map rebuild or weakening the painted-frame assertion.
-Then repeat focused/broad correctness and serial native control/candidate runs.
+Next: finish resolving the large comms validation deadline, then profile remaining
+sidebar layout/paint and GC tails. The painted-frame assertion remains unchanged.
