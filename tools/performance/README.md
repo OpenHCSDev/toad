@@ -121,6 +121,10 @@ the audit records suspicious caller attribution in a whole-interval CPython
 
 Optional source-backed probes:
 
+- `TOAD_VALIDATION_BOX_MODELS=1`: record native measurement keys, cache hits and
+  result dimensions. `analyze_box_models.py PREFIX` groups repeated same-revision
+  measurements and their container variants. Timings are recursive/inclusive;
+  this is attribution instrumentation, not acceptance timing.
 - `TOAD_VALIDATION_LAYOUT_CAUSES=1`: record new layout invalidation callers.
 - `TOAD_VALIDATION_OPEN_STAGES=1`: construction/mount and navigation-stage spans.
 - `TOAD_VALIDATION_LEGACY_MARKDOWN_MEASUREMENT=1`: explicit diagnostic control for

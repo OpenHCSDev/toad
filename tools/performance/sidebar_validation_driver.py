@@ -28,6 +28,25 @@ def record(event, **values):
 
 
 def install_observer():
+    if os.environ.get("TOAD_VALIDATION_BOX_MODELS") == "1":
+        from textual.widget import Widget
+
+        get_box = Widget._get_box_model
+
+        def measured_box(self, container, viewport, width_fraction, height_fraction,
+                         constrain_width=False, greedy=True):
+            hits = self._box_model_cache.hits
+            begin = time.monotonic_ns()
+            result = get_box(self, container, viewport, width_fraction, height_fraction,
+                             constrain_width=constrain_width, greedy=greedy)
+            record("box_model", begin_ns=begin, duration_ms=(time.monotonic_ns()-begin)/1e6,
+                   owner=id(self), widget=type(self).__name__, container=list(container),
+                   viewport=list(viewport), width_fraction=str(width_fraction), height_fraction=str(height_fraction),
+                   revision=self._box_model_revision, hit=self._box_model_cache.hits > hits,
+                   result=[str(result.width), str(result.height)], greedy=greedy)
+            return result
+
+        Widget._get_box_model = measured_box
     if os.environ.get("TOAD_VALIDATION_FILTER_PROBE"):
         from textual.message_pump import MessagePump
         from toad.widgets.prompt import PromptTextArea

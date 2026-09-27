@@ -39,7 +39,7 @@ print(json.dumps({"completed": workload["completed"], "actions": len(actions),
         and any(caller[0] == "history_anchor.py" for caller in event.get("callers", ()))]),
     "by_action": {kind: stats(values) for kind, values in groups.items()}}, indent=2))
 for gap in sorted((event for event in selected if event["event"] == "loop_gap"), key=lambda event:-event["duration_ms"])[:args.slowest]:
-    spans = [event for event in trace if event["event"] in {"gc", "_refresh_layout", "_compositor_refresh"}
+    spans = [event for event in trace if event["event"] in {"gc", "_refresh_layout", "_compositor_refresh", "arrange_root"}
              and event["ns"] >= gap["begin_ns"] and event["begin_ns"] <= gap["ns"]]
     print(json.dumps({"gap_ms": gap["duration_ms"], "actions": [action["action"] for action in actions if overlaps(gap, action)],
                       "overlapping_spans": spans}))

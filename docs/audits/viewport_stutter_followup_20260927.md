@@ -4,13 +4,14 @@ Base: merged Toad PR65 at `94507dd0e727acd9ba64494dfd477a33b4800da3`, with
 merged Textual PR5 at `4fa6a9c440eaaa7dfaad45a33af146fc4b7e922e` and the preserved
 current-main core pin `b1e5bfd5c39ea69c507833e8ed5efc96a7fb038b`.
 
-Status: **draft; tail-frame regression fixed with companion Textual change;
-large comms-pilot timeout and remaining latency targets are open**.
+Status: **draft; tail-frame regression and comms test-timeout resolved;
+remaining native latency targets and current-main reconciliation are open**.
 
 ## Structural measurement correction
 
 Dependency: [Textual PR6](https://github.com/OpenHCSDev/textual/pull/6), pinned at
-`d9f02faf0f1656666e081b7a8734a101a3c4971f`. The merged framework baseline alone
+`1c72ea4f2c2ee15dc7104dcd00f1d2f9a78fc754` (structural fix plus owner-clock idle
+measurement). The merged framework baseline alone
 does not contain this correction.
 
 The clipped frame was reproduced with committed geometry evidence: the history
@@ -29,19 +30,54 @@ followed by six passing scrollbar/Markdown/prune snapshots. A prior run omitted
 syntax extras and failed three language tests; the corrected run above includes
 them and passes. This dependency-path mistake is separate from the geometry fix.
 
-The progressive-tail diagnostic passed six consecutive runs. The full80-pilot
+The progressive-tail diagnostic passed six consecutive runs. The initial80-pilot
 Toad run then passed79cases, including `committed_history`; only the large comms
-scenario exceeded its unchanged100s deadline. An isolated repeat also exceeded
-that deadline. A diagnostic showed continuous progress through interaction stages,
-and the landed baseline completed in93.75s. This remains an explicit validation
-limit, not an all-tests-passed claim or justification for raising the deadline.
+scenario exceeded its unchanged100s deadline. The process-idle measurement issue
+described below was corrected without changing that deadline. The subsequent
+full run passed all80pilots in524.28s; the framework passed3,446tests (1skip,4xfail)
+in195.47s. After withdrawing the arithmetic experiment, the final isolated comms
+rerun passed in61.04s. Validation used one worker and no overlapping benchmarks.
 
 ## Latest controlled measurements and memory
+
+### Follow-up attribution
+
+A diagnostic of the large comms pilot measured70.45s in272process-CPU idle waits
+and9.99s in380message barriers over96.43s. Sixty idle waits exceeded half a second.
+The UI owner was being charged for independent worker CPU. Using the calling
+thread's CPU clock completed the same interaction assertions in75.27s with the
+deadline unchanged. Four framework regressions ensure background work does not
+extend an idle UI wait, while active UI work and minimum waits retain their limits.
+This corrects test synchronization; it is not a native-latency performance claim.
+
+An integer-before-Fraction arithmetic simplification was tested and withdrawn
+because the native comparison did not establish an improvement. Preserve the
+failed timing evidence, each72actions/52markers with masks/drafts retained:
+
+| Capture | Input median / p95 / maximum ms | Loop max ms | GC max ms |
+| --- | --- | --- | --- |
+| `toad-integer-box-control-1` |34.32 /54.29 /62.26|114.53|51.84|
+| `toad-integer-box-candidate-1` (withdrawn) |33.07 /53.35 /113.27|120.47|61.25|
+| `toad-integer-box-candidate-2` (withdrawn) |33.68 /79.31 /89.49|118.79|64.55|
+
+The113.27ms outlier overlapped61.25ms UI-thread GC. That does not establish
+causality for the arithmetic change, nor justify claiming a gain from its median.
+The existing runtime rational computation remains; no new native speedup is claimed
+for the idle-clock/test-tooling follow-up.
+
+The optional box-model diagnostic (`toad-box-variants-sidebar-1`) recorded1,386
+calls across four sidebar actions. It found repeated same-revision, same-result
+page measurements at equal widths but different available heights (for example,
+75x0 and75x144 both yielding75x143). These are candidates for dependency-aware
+reuse; arbitrary/custom layout dependence on available height must still be
+preserved. No speculative height-normalization cache is implemented here.
 
 After the user's X11 restart, validation and native runs were serialized in user
 cgroups limited to4GiB RAM with swap disabled. Full Toad validation peaked494.2MiB;
 the native control/candidate peaked480.5/475.3MiB, with zero swap use. Only owned
 test scopes/processes were retired; no user runtime was restarted.
+The later all-green full runs peaked552.9MiB for Toad and249.3MiB for Textual,
+again with zero swap. The arithmetic experiment's native scopes peaked below475MiB.
 
 Serial72-action/52-marker runs, all filters/drafts preserved:
 
@@ -105,5 +141,6 @@ latency is not proof of an overall maximum-stutter reduction, and these numbers
 predate restoration of conservative tail target publication. No final-candidate
 latency acceptance is claimed.
 
-Next: finish resolving the large comms validation deadline, then profile remaining
-sidebar layout/paint and GC tails. The painted-frame assertion remains unchanged.
+Next: reconcile the draft with current main and reduce the measured duplicated
+intrinsic subtree work plus remaining sidebar paint/GC tails. The painted-frame
+assertion and per-pilot deadlines remain unchanged.
