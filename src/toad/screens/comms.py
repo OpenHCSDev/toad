@@ -269,16 +269,16 @@ class CommsScreen(SessionView, can_focus=False):
             from agent_comms import invoke_context_tool
             from agent_comms.operations import wire
 
-            from toad.comms_root import root_is_current
+            from toad.comms_root import implicit_root, root_is_current, run_selected_write
 
             try:
                 if self.wire_root is not None and not root_is_current(self.wire_root):
                     raise ValueError("Comms route changed; reopen the view before forking")
-                invoke_context_tool(
-                    wire(),
-                    event.action,
-                    subject=parent,
-                    arguments={"name": spec[0], "task": spec[1]},
+                comms = wire()
+                run_selected_write(
+                    comms.root, invoke_context_tool, comms, event.action,
+                    subject=parent, arguments={"name": spec[0], "task": spec[1]},
+                    implicit=implicit_root(),
                 )
                 self.notify(f"forked {spec[0]} from {parent}", title="Comms")
             except Exception as error:

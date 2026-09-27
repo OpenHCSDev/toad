@@ -42,7 +42,7 @@ from toad.navigation_preparation import (
 )
 from toad.session_tracker import SessionTracker, SessionDetails, OpenTab, PendingThreadTab, CommsViewKey, SidebarState
 from toad.sidebar_layout import SidebarLayout
-from toad.comms_root import current_root, root_is_current
+from toad.comms_root import current_root, implicit_root, root_is_current, run_selected_write
 
 if TYPE_CHECKING:
     from toad.render_tasks import RenderTask
@@ -1142,20 +1142,27 @@ class ToadApp(App, inherit_bindings=False):
     def open_wire_export_dialog(self) -> None:
         from toad.widgets.comms_transfer import WireExportDialog
 
+        selected_root = self.coordination_wire.root
         self.push_screen(
-            WireExportDialog(self.coordination_wire.root),
-            callback=lambda request: self._export_wire(request) if request is not None else None,
+            WireExportDialog(selected_root),
+            callback=lambda request: self._export_wire(request, selected_root)
+            if request is not None else None,
         )
 
     @work(group="wire-export", exclusive=True, exit_on_error=False)
-    async def _export_wire(self, request) -> None:
+    async def _export_wire(self, request, selected_root: Path) -> None:
         try:
+            if not root_is_current(selected_root):
+                raise ValueError("Comms route changed before export")
+            comms = self.coordination_wire
+            if comms.root.resolve() != selected_root.resolve():
+                raise ValueError("Comms route changed before export")
             receipt = await asyncio.to_thread(
-                self.coordination_wire.export_wire,
+                run_selected_write, comms.root, comms.export_wire,
                 request.destination,
                 format=request.format,
                 scope=request.scope,
-                limit=request.limit,
+                limit=request.limit, implicit=implicit_root(),
             )
         except Exception as error:
             self.notify(str(error), title="Wire export failed", severity="error")
@@ -1168,21 +1175,28 @@ class ToadApp(App, inherit_bindings=False):
     def open_thread_import_dialog(self) -> None:
         from toad.widgets.comms_transfer import ThreadImportDialog
 
+        selected_root = self.coordination_wire.root
         self.push_screen(
             ThreadImportDialog(),
-            callback=lambda request: self._import_thread(request) if request is not None else None,
+            callback=lambda request: self._import_thread(request, selected_root)
+            if request is not None else None,
         )
 
     @work(group="thread-import", exclusive=True, exit_on_error=False)
-    async def _import_thread(self, request) -> None:
+    async def _import_thread(self, request, selected_root: Path) -> None:
         try:
+            if not root_is_current(selected_root):
+                raise ValueError("Comms route changed before import")
+            comms = self.coordination_wire
+            if comms.root.resolve() != selected_root.resolve():
+                raise ValueError("Comms route changed before import")
             receipt = await asyncio.to_thread(
-                self.coordination_wire.import_thread,
+                run_selected_write, comms.root, comms.import_thread,
                 request.source,
                 request.format,
                 name=request.name,
                 session_id=request.session_id,
-                worktree=request.worktree,
+                worktree=request.worktree, implicit=implicit_root(),
             )
         except Exception as error:
             self.notify(str(error), title="Thread import failed", severity="error")
@@ -1484,9 +1498,11 @@ class ToadApp(App, inherit_bindings=False):
                for history in window.histories):
             return
         try:
+            comms = self.coordination_wire
             await asyncio.to_thread(
-                self.coordination_wire.mark_thread_view_read, screen._session_thread,
-                worktree=str(self.project_dir), through=through,
+                run_selected_write, comms.root, comms.mark_thread_view_read,
+                screen._session_thread, worktree=str(self.project_dir),
+                through=through, implicit=implicit_root(),
             )
         except (OSError, ValueError):
             # Source replacement or deletion is resolved by the next snapshot.
@@ -1539,13 +1555,14 @@ class ToadApp(App, inherit_bindings=False):
                 raise ValueError("Comms route changed before the thread action")
             if action == "comms_ack":
                 result = await asyncio.to_thread(
-                    comms.mark_user_view_read,
-                    subject, worktree=str(self.project_dir),
+                    run_selected_write, comms.root, comms.mark_user_view_read,
+                    subject, worktree=str(self.project_dir), implicit=implicit_root(),
                 )
                 self.notify(f"Marked {subject} read", title="Session action")
             else:
                 result = await asyncio.to_thread(
-                    invoke_context_tool, comms, action, subject=subject, actor=actor
+                    run_selected_write, comms.root, invoke_context_tool,
+                    comms, action, subject=subject, actor=actor, implicit=implicit_root(),
                 )
             if action == "comms_start":
                 self.notify(

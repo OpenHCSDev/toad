@@ -1243,18 +1243,31 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
         )
 
     def _set_any_mode(self, channel: str, enabled: bool) -> None:
+        from toad.comms_root import implicit_root, run_selected_write
+
         try:
-            self._wire.set_channel_any_mode(channel, enabled)
+            run_selected_write(
+                self._wire.root, self._wire.set_channel_any_mode,
+                channel, enabled, implicit=implicit_root(),
+            )
         except (OSError, ValueError) as error:
             self.notify(str(error), title="Channel activity", severity="error")
         self._refresh()
 
     def _set_pin(self, channel: str, pinned: bool, *, thread: str | None = None) -> None:
+        from toad.comms_root import implicit_root, run_selected_write
+
         try:
             if thread is None:
-                self._wire.set_channel_pinned(channel, pinned)
+                run_selected_write(
+                    self._wire.root, self._wire.set_channel_pinned,
+                    channel, pinned, implicit=implicit_root(),
+                )
             else:
-                self._wire.set_thread_pinned(channel, thread, pinned)
+                run_selected_write(
+                    self._wire.root, self._wire.set_thread_pinned,
+                    channel, thread, pinned, implicit=implicit_root(),
+                )
         except (OSError, ValueError) as error:
             self.notify(str(error), title="Pin action", severity="error")
         self._refresh()

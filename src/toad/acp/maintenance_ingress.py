@@ -101,6 +101,11 @@ async def admitted_spawn(command: str, *, root: str | None = None, **kwargs: Any
     child_env = (kwargs["env"] if kwargs.get("env") is not None else os.environ).copy()
     child_cwd = str(Path(kwargs["cwd"] if kwargs.get("cwd") is not None else os.getcwd()).resolve())
     ingress_root = configured_root(child_env, child_cwd)
+    from toad.comms_root import implicit_root, selected_write
+
+    # The child env is pinned explicitly below, but its parent may have
+    # selected that root through the default route. Preserve that distinction.
+    default_route = implicit_root()
     # The gate and child must use the *same* target even if an alias symlink
     # changes after admission but before exec. Never inherit a relative root.
     child_env["AGENT_COMMS_ROOT"] = str(ingress_root)
@@ -170,7 +175,12 @@ async def admitted_spawn(command: str, *, root: str | None = None, **kwargs: Any
 
     def spawn_under_lock() -> None:
         try:
-            with admission(root, ingress_root=ingress_root, cwd=child_cwd):
+            # Route SH precedes the maintenance/bus lock, matching the core
+            # publisher's route EX -> private-root preflight ordering. Hold it
+            # through the actual spawn and settlement, not just UI preflight.
+            with selected_write(ingress_root, implicit=default_route), admission(
+                root, ingress_root=ingress_root, cwd=child_cwd
+            ):
                 future = asyncio.run_coroutine_threadsafe(
                     asyncio.create_subprocess_shell(command, **kwargs), loop
                 )
@@ -227,5 +237,12 @@ def admitted_prompt(
     """
     if _pending_spawns:
         raise ValueError("ACP spawn admission is in progress; prompt not sent")
-    with admission(root, ingress_root=ingress_root, cwd=cwd):
+    from toad.comms_root import implicit_root, selected_write
+
+    selected = Path(ingress_root) if ingress_root is not None else configured_root(
+        os.environ, cwd or os.getcwd()
+    )
+    with selected_write(selected, implicit=implicit_root()), admission(
+        root, ingress_root=selected, cwd=cwd
+    ):
         yield

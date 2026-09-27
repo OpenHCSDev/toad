@@ -98,6 +98,7 @@ class CommsChatView(Conversation):
         self.target = target
         self.kind = kind
         self._me = me
+        self._unknown_send: tuple[str, int, str] | None = None
         self._bound_root = Path(wire_root).resolve() if wire_root is not None else None
         self.set_prompt_history_scope(f"comms:{kind}:{target}")
         self._history: list[tuple[WireMessage, Widget]] = []
@@ -577,7 +578,7 @@ class CommsChatView(Conversation):
     async def _mark_painted_page(self, page: MessagePage) -> None:
         try:
             comms = self._wire
-            from toad.comms_root import root_is_current
+            from toad.comms_root import implicit_root, root_is_current, run_selected_write
 
             if comms is None or not self.is_attached or not self.screen.is_active:
                 return
@@ -589,14 +590,16 @@ class CommsChatView(Conversation):
             if self.kind == "dm":
                 assert page.display_basis is not None and page.newest_seq is not None
                 await asyncio.to_thread(
-                    comms.mark_dm_view_read, target, worktree=project,
-                    through=page.newest_seq, expected_display_basis=page.display_basis,
+                    run_selected_write, comms.root, comms.mark_dm_view_read, target,
+                    worktree=project, through=page.newest_seq,
+                    expected_display_basis=page.display_basis, implicit=implicit_root(),
                 )
             else:
                 assert page.display_scope is not None and page.newest_seq is not None
                 await asyncio.to_thread(
-                    comms.mark_channel_view_read, target, worktree=project,
-                    through=page.newest_seq, expected_scope=page.display_scope,
+                    run_selected_write, comms.root, comms.mark_channel_view_read, target,
+                    worktree=project, through=page.newest_seq,
+                    expected_scope=page.display_scope, implicit=implicit_root(),
                 )
             if self._ack_page is page:
                 self._ack_page = None
@@ -689,7 +692,13 @@ class CommsChatView(Conversation):
             info = await asyncio.to_thread(comms.agent_info_of, target) if self.kind == "dm" else None
             if not self.is_attached or self.target != target:
                 return
-            if info is not None:
+            if self._unknown_send is not None:
+                root_id, sequence, message_id = self._unknown_send
+                self.status = (
+                    f"Send UNKNOWN {root_id}/{sequence}/{message_id}; "
+                    "inspect the bus, do not retry"
+                )
+            elif info is not None:
                 self.status = " · ".join(
                     value
                     for value in (info.model or "", info.context_label)
@@ -705,18 +714,34 @@ class CommsChatView(Conversation):
     async def submit_input(self, event: messages.UserInputSubmitted) -> None:
         if not event.body.strip():
             return
+        if self._unknown_send is not None:
+            self.flash("Prior send outcome UNKNOWN; inspect the bus, do not retry", style="error")
+            return
         try:
-            from toad.comms_root import root_is_current
+            from toad.comms_root import implicit_root, root_is_current, run_selected_write
 
             if self._wire is None or not root_is_current(self._wire.root):
                 raise ValueError("Comms route changed; reopen this view before sending")
             comms = self._wire
             receipt = await asyncio.to_thread(
-                comms.send_user_message,
+                run_selected_write, comms.root, comms.send_user_message,
                 "#all" if self.kind == "irc" else self.target, event.body,
-                worktree=str(self.project_path),
+                worktree=str(self.project_path), implicit=implicit_root(),
             )
         except Exception as error:
+            from agent_comms import declarations as core_declarations
+
+            unknown_type = getattr(core_declarations, "HumanInitialUnknownError", None)
+            if unknown_type is not None and isinstance(error, unknown_type):
+                self._unknown_send = (error.wire_root_id, error.wire_seq, error.message_id)
+                # Preserve the user's text for inspection, but never put an
+                # uncertain send back into an actionable compose control.
+                self.prompt.text = event.body
+                self.prompt.prompt_text_area.disabled = True
+                self.status = f"Send UNKNOWN: {error}; do not retry"
+                self.prompt.prompt_text_area.tooltip = self.status
+                self.flash(self.status, style="error")
+                return
             self.prompt.text = event.body
             self.flash(f"Send failed: {error}", style="error")
             return

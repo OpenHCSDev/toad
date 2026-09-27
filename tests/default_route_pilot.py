@@ -15,11 +15,18 @@ from pathlib import Path
 from unittest.mock import patch
 
 from agent_comms import Thread, ThreadRole
+from agent_comms import declarations as core_declarations
 from agent_comms.operations import Comms, wire
 
+from toad import messages
 from toad.acp.maintenance_ingress import barrier_for, configured_root
 from toad.app import ToadApp
-from toad.comms_root import current_root, root_is_current
+from toad.comms_root import (
+    current_root,
+    implicit_root,
+    root_is_current,
+    run_selected_write,
+)
 from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.comms_sidebar import CommsSidebar
 
@@ -193,6 +200,48 @@ async def main() -> None:
                     "OLD-WIRE-ONLY" not in str(message)
                     for message, _ in new_view._history
                 )
+
+                # An uncertain private send retains text for inspection but
+                # disables compose. Older paired core sources lack this typed
+                # exception, so inject only its exact no-provider interface.
+                class FakeHumanUnknown(ValueError):
+                    def __init__(self):
+                        self.wire_root_id = second_id
+                        self.wire_seq = 17
+                        self.message_id = "opaque-unknown-id"
+                        super().__init__("Private send UNKNOWN; do not retry")
+
+                unknown_type = getattr(
+                    core_declarations, "HumanInitialUnknownError", FakeHumanUnknown
+                )
+                error = (
+                    unknown_type(second_id, 17, "opaque-unknown-id")
+                    if unknown_type is not FakeHumanUnknown
+                    else FakeHumanUnknown()
+                )
+                with (
+                    patch.object(
+                        core_declarations,
+                        "HumanInitialUnknownError",
+                        unknown_type,
+                        create=True,
+                    ),
+                    patch.object(
+                        new_view._wire, "send_user_message", side_effect=error
+                    ) as sender,
+                ):
+                    event = messages.UserInputSubmitted("UNCERTAIN-NO-RETRY")
+                    await new_view.submit_input(event)
+                    assert sender.call_count == 1
+                    assert new_view._unknown_send == (
+                        second_id,
+                        17,
+                        "opaque-unknown-id",
+                    )
+                    assert new_view.prompt.text == event.body
+                    assert new_view.prompt.prompt_text_area.disabled
+                    await new_view.submit_input(event)
+                    assert sender.call_count == 1
                 route_path.write_text("{")
                 route_path.chmod(0o600)
                 await new_view._refresh()
@@ -233,6 +282,15 @@ async def main() -> None:
             else:
                 raise AssertionError("symlink route was followed")
             assert wire(second).root == second  # explicit root bypasses broken route
+            with patch.dict(os.environ, {"AGENT_COMMS_ROOT": str(second)}):
+                assert (
+                    run_selected_write(
+                        second,
+                        lambda: "explicit-root-operation",
+                        implicit=implicit_root(),
+                    )
+                    == "explicit-root-operation"
+                )
 
 
 if __name__ == "__main__":
