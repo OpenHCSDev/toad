@@ -756,28 +756,36 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
             return "dm"
         return "thread" if person.thread.session_file or person.thread.pid > 0 else "dm"
 
+    def _route_stamp(self) -> tuple[tuple[int, int, int, int] | None, ...]:
+        # Stat-only change tokens avoid taking the private bus store lock on
+        # Textual's event loop. A changed route or marker still requires the
+        # canonical core resolver in the off-loop worker before presentation.
+        from agent_comms.active_route import active_route_path
+
+        def stamp(path: Path) -> tuple[int, int, int, int] | None:
+            try:
+                info = path.stat(follow_symlinks=False)
+            except FileNotFoundError:
+                return None
+            return info.st_dev, info.st_ino, info.st_mtime_ns, info.st_size
+
+        return stamp(active_route_path()), stamp(self._wire.root / "bus_meta.json")
+
     def _refresh(self) -> None:
         if not self._observe or not self.is_attached:
             return
-        if self._wire is None or self._snapshot_pending:
+        if self._wire is None:
+            self.display = False
             return
         try:
-            # Stat-only change tokens keep idle timer ticks cheap. A route
-            # replacement OR private marker change forces canonical validation
-            # in a worker, without parsing the route in Toad or taking its bus
-            # lock on Textual's event loop.
-            from agent_comms.active_route import active_route_path
-
-            def stamp(path: Path) -> tuple[int, int, int, int] | None:
-                try:
-                    info = path.stat(follow_symlinks=False)
-                except FileNotFoundError:
-                    return None
-                return info.st_dev, info.st_ino, info.st_mtime_ns, info.st_size
-
-            route_stamp = (
-                stamp(active_route_path()), stamp(self._wire.root / "bus_meta.json")
-            )
+            route_stamp = self._route_stamp()
+            if route_stamp != self._last_route_stamp:
+                # Publication can overtake a pending snapshot worker. Hide the
+                # old view immediately; never await a contended bus lock while
+                # its old projection remains visible under a new route.
+                self.display = False
+            if self._snapshot_pending:
+                return
             revision = self._wire.revision()
             if (revision == self._last_revision and route_stamp == self._last_route_stamp
                     and self.session_thread == self._last_actor
@@ -803,8 +811,13 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
                 return
             self.app.coordination_observed.publish(None)
             await self._poll_snapshot(revision)
-            if self._last_revision == revision:
+            if (
+                self._last_revision == revision
+                and self._route_stamp() == route_stamp
+                and await asyncio.to_thread(root_is_current, self._wire.root)
+            ):
                 self._last_route_stamp = route_stamp
+                self.display = True
         except Exception:
             # Route publication or writer recovery will be retried next tick.
             return
