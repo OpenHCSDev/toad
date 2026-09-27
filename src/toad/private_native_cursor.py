@@ -14,12 +14,16 @@ from typing import Literal
 
 CursorStatus = Literal["proven", "coverage_only", "none", "unavailable"]
 LABELS = {
-    "proven": "Native history: selected source proof available",
-    "coverage_only": "Native history: source coverage only (no injected input)",
-    "none": "Native history: no current-owner cursor",
-    "unavailable": "Native history: unavailable",
+    "proven": "Bus history: prior messages included in model input",
+    "coverage_only": "Bus history: checked; no model input yet",
+    "none": "Bus history: no verified input for this session yet",
+    "unavailable": "Bus history: verification unavailable",
 }
-TOOLTIP = "Read-only provenance, not input acceptance, consumption, completion or ACK."
+TOOLTIP = (
+    "Last successful check of bus history for this agent session. A verified input "
+    "can be a short relevance check, not a full reply. This does not confirm "
+    "receipt or completion of your latest message."
+)
 MAX_ENVELOPE_BYTES = 16_384
 _HEX_ID = re.compile(r"[0-9a-f]{32}\Z")
 
