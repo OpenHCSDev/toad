@@ -27,6 +27,15 @@ from toad.acp import protocol
 from toad.acp import api
 from toad.acp.api import API
 from toad.acp import messages
+from toad.acp.group_retirement import (
+    AcceptedGroup,
+    GroupRetirement,
+    GroupRetirementUnresolved,
+    capture_accepted_group,
+    live_group_members,
+    signal_accepted_group,
+    verify_accepted_group,
+)
 from toad.acp.sdk_boundary import validate_session_update
 from toad.acp.prompt import build as build_prompt
 from toad.db import DB
@@ -158,6 +167,10 @@ class Agent(AgentBase):
         self._task: asyncio.Task | None = None
         self._process: asyncio.subprocess.Process | None = None
         self._process_group_id: int | None = None
+        self._accepted_group: AcceptedGroup | None = None
+        self._group_capture_error: GroupRetirementUnresolved | None = None
+        self._retirement: GroupRetirement | None = None
+        self._starting = False
         self._stopping = False
         self._reconnecting = False
         self._connected_ok = False
@@ -271,7 +284,17 @@ class Agent(AgentBase):
         return Content(agent_name)
 
     async def start(self, message_target: MessagePump | None = None) -> None:
-        """Start the agent."""
+        """Start the agent, never replacing an unretired accepted child."""
+        if self._starting or self._process_group_id is not None or (
+            self._agent_task is not None and not self._agent_task.done()
+        ):
+            raise GroupRetirementUnresolved(
+                self._accepted_group, "previous ACP child is not retired"
+            )
+        self._starting = True
+        self._stopping = False
+        self._retirement = None
+        self._group_capture_error = None
         self._message_target = message_target
         # Freeze exactly the environment and working directory passed to the
         # child. A relative wire root is relative to the child cwd, not Toad's.
@@ -289,18 +312,26 @@ class Agent(AgentBase):
                 preflight, self._coordination_root,
                 ingress_root=self._maintenance_root, cwd=self._maintenance_cwd,
             )
+        except asyncio.CancelledError:
+            self._starting = False
+            raise
         except Exception as error:
             self._connected_ok = False
             self.session_ready_event.set()
             self.post_message(AgentFail("Failed to start agent", details=str(error)))
+            self._starting = False
             return
         try:
             await asyncio.to_thread(
                 self._log_file_path.parent.mkdir, parents=True, exist_ok=True
             )
+        except asyncio.CancelledError:
+            self._starting = False
+            raise
         except OSError:
             pass
         self._agent_task = asyncio.create_task(self._run_agent())
+        self._starting = False
 
     def send(self, request: jsonrpc.Request) -> None:
         """Send a request to the agent.
@@ -950,6 +981,22 @@ class Agent(AgentBase):
             )
             if os.name != "nt":
                 self._process_group_id = process.pid
+                try:
+                    self._accepted_group = capture_accepted_group(process.pid)
+                except GroupRetirementUnresolved as error:
+                    # The child was accepted; never erase its PID/PGID merely
+                    # because a fast exit prevents start-time enrollment.
+                    # Do not start ACP requests without a retirement witness.
+                    self._group_capture_error = error
+                    self._connected_ok = False
+                    self.session_ready_event.set()
+                    self.post_message(
+                        AgentFail("ACP child identity unavailable", details=str(error))
+                    )
+                    if process.returncode is None:
+                        with suppress(ProcessLookupError):
+                            process.terminate()
+                    return
         except Exception as error:
             self._connected_ok = False
             self.session_ready_event.set()
@@ -1041,22 +1088,29 @@ class Agent(AgentBase):
                 )
             )
 
-        if (
-            not self._stopping
-            and self._process_group_id is not None
-            and self._process_group_alive(self._process_group_id)
-        ):
-            with suppress(OSError):
-                os.killpg(self._process_group_id, 15)
-            await asyncio.sleep(0.1)
-            if self._process_group_alive(self._process_group_id):
-                with suppress(OSError):
-                    os.killpg(self._process_group_id, 9)
-        self._process_group_id = None
-        self._process = None
+        # EOF proves only that the ACP connection ended.  It is not process-
+        # group retirement: descendants may still write to the old root.
+        if not self._stopping and self._accepted_group is not None:
+            try:
+                if live_group_members(self._accepted_group):
+                    signal_accepted_group(self._accepted_group, 15)
+                    await asyncio.sleep(0.1)
+                if live_group_members(self._accepted_group):
+                    signal_accepted_group(self._accepted_group, 9)
+                self._retirement = verify_accepted_group(self._accepted_group)
+            except GroupRetirementUnresolved as error:
+                self.log(f"[error] ACP group retirement unresolved: {error}")
+        if self._retirement is not None:
+            self._process_group_id = None
+            self._accepted_group = None
+            self._process = None
 
-    async def stop(self) -> None:
-        """Gracefully stop the process."""
+    async def stop(self) -> GroupRetirement | None:
+        """Stop the child; return proof only after its accepted group is empty.
+
+        Raises GroupRetirementUnresolved rather than reporting a successful
+        stop when the accepted ACP group cannot be proved retired.
+        """
         self._stopping = True
         self._invalidate_attachment_views()
         self._active_turn_id = None
@@ -1070,28 +1124,31 @@ class Agent(AgentBase):
 
         process = self._process
         process_group = self._process_group_id
+        accepted_group = self._accepted_group
         if (
             process is not None
             and process.returncode is None
             and process.stdin is not None
         ):
-            process.stdin.close()
-            with suppress(BrokenPipeError, ConnectionResetError):
-                await process.stdin.wait_closed()
+            if not process.stdin.is_closing():
+                process.stdin.close()
+                with suppress(BrokenPipeError, ConnectionResetError):
+                    # A cancelled stop must not cancel asyncio's underlying
+                    # close waiter; a later stop may retry the group proof.
+                    await asyncio.shield(process.stdin.wait_closed())
             with suppress(TimeoutError):
                 await asyncio.wait_for(process.wait(), timeout=1)
-        if os.name != "nt" and process_group is not None:
-            with suppress(OSError):
-                os.killpg(process_group, 15)
+        if os.name != "nt" and process_group is not None and accepted_group is not None:
+            if live_group_members(accepted_group):
+                signal_accepted_group(accepted_group, 15)
             if process is not None and process.returncode is None:
                 with suppress(TimeoutError):
                     await asyncio.wait_for(process.wait(), timeout=3)
-            if self._process_group_alive(process_group):
-                with suppress(OSError):
-                    os.killpg(process_group, 9)
+            if live_group_members(accepted_group):
+                signal_accepted_group(accepted_group, 9)
                 deadline = asyncio.get_running_loop().time() + 1
                 while (
-                    self._process_group_alive(process_group)
+                    live_group_members(accepted_group)
                     and asyncio.get_running_loop().time() < deadline
                 ):
                     await asyncio.sleep(0.05)
@@ -1124,8 +1181,30 @@ class Agent(AgentBase):
         ]
         if pending:
             await asyncio.gather(*pending, return_exceptions=True)
+        if os.name != "nt" and process_group is not None:
+            if accepted_group is None:
+                raise self._group_capture_error or GroupRetirementUnresolved(
+                    None, "accepted ACP group was not enrolled"
+                )
+            self._retirement = verify_accepted_group(accepted_group)
         self._process_group_id = None
+        self._accepted_group = None
         self._process = None
+        return self._retirement
+
+    @property
+    def accepted_group(self) -> AcceptedGroup | None:
+        """Pinned accepted child identity for a coordinated ingress-pause barrier."""
+        if self._accepted_group is not None:
+            return self._accepted_group
+        return self._retirement.accepted if self._retirement is not None else None
+
+    def verify_retirement(self) -> GroupRetirement:
+        """Recheck the original group before a route transition, not a cached stop."""
+        identity = self.accepted_group
+        if identity is None:
+            raise GroupRetirementUnresolved(None, "no accepted ACP group was enrolled")
+        return verify_accepted_group(identity)
 
     @staticmethod
     def _process_group_alive(process_group: int) -> bool:
