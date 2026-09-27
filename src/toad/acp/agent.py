@@ -279,6 +279,7 @@ class Agent(AgentBase):
         from .maintenance_ingress import configured_root, preflight
 
         self._maintenance_env = os.environ.copy()
+        self._maintenance_implicit_root = "AGENT_COMMS_ROOT" not in self._maintenance_env
         self._maintenance_cwd = str(self.project_root_path.resolve())
         self._maintenance_root = configured_root(self._maintenance_env, self._maintenance_cwd)
         # The later _run_agent task must not re-resolve an alias after the
@@ -325,6 +326,7 @@ class Agent(AgentBase):
                 with admitted_prompt(
                     self._coordination_root, ingress_root=self._maintenance_root,
                     cwd=self._maintenance_cwd,
+                    implicit=getattr(self, "_maintenance_implicit_root", None),
                 ):
                     stdin.write(b"%s\n" % request.body_json)
             else:
