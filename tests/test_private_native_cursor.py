@@ -109,10 +109,10 @@ class CursorParserTests(unittest.TestCase):
 
     def test_presentation_is_constant(self):
         self.assertEqual(
-            LABELS["proven"], "Native history: selected source proof available"
+            LABELS["proven"], "Bus history: prior messages included in model input"
         )
-        self.assertIn("no injected input", LABELS["coverage_only"])
-        self.assertIn("not input acceptance, consumption, completion or ACK", TOOLTIP)
+        self.assertIn("no model input yet", LABELS["coverage_only"])
+        self.assertIn("does not confirm receipt or completion of your latest message", TOOLTIP)
 
 
 class CursorReducerTests(unittest.TestCase):
