@@ -384,7 +384,11 @@ for line in sys.stdin:
                     pid=os.getpid(),
                 )
             )
-            startup_agent = object.__new__(ACPAgent)
+            startup_agent = ACPAgent(
+                project,
+                {"name": "Startup fixture", "identity": "fixture", "run_command": {"*": "true"}},
+                managed_thread,
+            )
             startup_agent._message_target = created_conversation
             startup_agent._pending_session_name = None
             startup_agent._process = SimpleNamespace(pid=os.getpid())
@@ -573,20 +577,32 @@ for line in sys.stdin:
                 app.session_tracker.get_session(owner_mode).summary
                 == "Writing response"
             )
-            protocol_agent = object.__new__(ACPAgent)
+            protocol_agent = ACPAgent(
+                project,
+                {"name": "Protocol fixture", "identity": "fixture", "run_command": {"*": "true"}},
+                "pilot-session",
+            )
             protocol_agent._message_target = conversation
+            previous_agent = conversation.agent
+            conversation.set_reactive(type(conversation).agent, protocol_agent)
+            protocol_agent.rpc_session_update(
+                "pilot-session",
+                {"sessionUpdate": "agent_message_chunk", "content": {"type": "text", "text": ""},
+                 "_meta": {"agentComms": {"turnStarted": True, "turnId": "pilot-turn"}}},
+            )
             protocol_agent.rpc_session_update(
                 "pilot-session",
                 {
                     "sessionUpdate": "agent_message_chunk",
                     "content": {"type": "text", "text": ""},
-                    "_meta": {"agentComms": {"turnSettled": True}},
+                    "_meta": {"agentComms": {"turnSettled": True, "turnId": "pilot-turn"}},
                 },
             )
             await pilot.pause()
             settled = app.session_tracker.get_session(owner_mode)
             assert settled.state == "idle"
             assert settled.summary == "Ready for review"
+            conversation.set_reactive(type(conversation).agent, previous_agent)
             conversation.post_message(
                 acp_messages.Thinking("agent_thought_chunk", "Inspecting the workspace")
             )

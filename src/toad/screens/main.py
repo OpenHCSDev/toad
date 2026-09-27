@@ -79,12 +79,31 @@ class ModeProvider(Provider):
             )
 
 
+class MCPInventoryProvider(Provider):
+    """Discover the optional static package inventory, not MCP authority."""
+
+    async def search(self, query: str) -> Hits:
+        matcher = self.matcher(query)
+        score = matcher.match("Pi MCP inventory")
+        screen = self.screen
+        assert isinstance(screen, MainScreen)
+        if score > 0:
+            yield Hit(score, matcher.highlight("Pi MCP inventory"),
+                      screen.action_mcp_inventory, help="Read-only package snapshot")
+
+    async def discover(self) -> Hits:
+        screen = self.screen
+        assert isinstance(screen, MainScreen)
+        yield DiscoveryHit("Pi MCP inventory", screen.action_mcp_inventory,
+                           help="Read-only package snapshot")
+
+
 class MainScreen(SessionView, NavigationOwner, can_focus=False):
     AUTO_FOCUS = "Conversation Prompt TextArea"
 
     CSS_PATH = "main.tcss"
 
-    COMMANDS = {ModeProvider}
+    COMMANDS = {ModeProvider, MCPInventoryProvider}
 
     SESSION_NAVIGATION_GROUP = Binding.Group(description="Sessions")
     BINDINGS = [
@@ -325,14 +344,14 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
     def _resolve_comms_thread(self) -> str:
         resolved: str | None
         try:
-            import os
-
             from agent_comms.operations import wire
 
-            root = self._coordination_root or os.environ.get(
-                "AGENT_COMMS_ROOT", "~/.agent-comms"
-            )
-            root_path = Path(root).expanduser()
+            from toad.comms_root import current_root, root_is_current
+
+            if self._coordination_root is not None and not root_is_current(self._coordination_root):
+                raise ValueError("Comms route changed; this session retains its former wire")
+            root_path = (Path(self._coordination_root).expanduser()
+                         if self._coordination_root is not None else current_root())
             if self._identity_wire is None or self._identity_wire.root != root_path:
                 shared = self.app.coordination_wire
                 self._identity_wire = shared if shared.root == root_path else wire(root_path)
@@ -360,6 +379,18 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
 
     def remember_direct_target(self, target: str) -> None:
         self._last_dm_target = target
+
+    def action_mcp_inventory(self) -> None:
+        """Open an inert package-owned snapshot; never locate a source checkout."""
+        from toad.screens.mcp_inventory import MCPInventoryScreen
+
+        self.app.push_screen(
+            MCPInventoryScreen(
+                self.project_path,
+                node_path=self.app.settings.get("mcp.node_path", str, expand=False),
+                cli_path=self.app.settings.get("mcp.cli_path", str, expand=False),
+            )
+        )
 
     async def action_toggle_irc(self) -> None:
         """Open the IRC feed as a native Toad session."""
@@ -398,18 +429,19 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
         def do_fork(spec: tuple[str, str] | None) -> None:
             if not spec:
                 return
-            import os as _os
-
             from agent_comms import invoke_context_tool
             from agent_comms.operations import wire as _wire
 
-            root = _os.environ.get("AGENT_COMMS_ROOT", "~/.agent-comms")
+            from toad.comms_root import implicit_root, root_is_current, run_selected_write
+
             try:
-                invoke_context_tool(
-                    _wire(root),
-                    event.action,
-                    subject=parent,
-                    arguments={"name": spec[0], "task": spec[1]},
+                if self._coordination_root is not None and not root_is_current(self._coordination_root):
+                    raise ValueError("Comms route changed; reopen the thread before forking")
+                comms = _wire()
+                run_selected_write(
+                    comms.root, invoke_context_tool, comms, event.action,
+                    subject=parent, arguments={"name": spec[0], "task": spec[1]},
+                    implicit=implicit_root(),
                 )
                 self.notify(f"forked {spec[0]} from {parent}", title="Comms")
             except Exception as error:

@@ -32,6 +32,15 @@ PYTHON = os.environ.get("TOAD_TEST_PYTHON", sys.executable)
     "async_tab_activation",
     "projected_history_budget",
     "in_out_underfill", "off_tail_checkpoint",
+    # Landing coverage for the current-main route, queue, private-history and
+    # MCP contracts. All use disposable/provider-free fixtures.
+    "default_route", "default_route_admission", "default_route_cancel",
+    "default_route_private_user", "default_route_prompt_selection", "default_route_retirement",
+    "input_failure", "maintenance_agent_root_binding", "maintenance_cancel_process_group",
+    "maintenance_ingress", "mcp_decision_pty", "mcp_inventory", "mcp_live_status",
+    "mcp_permission_boundary", "mcp_permission_ui", "private_native_cursor",
+    "private_native_cursor_request", "queue_manage", "queue_view", "queue_view_backend",
+    "queue_view_bounds", "queue_view_request",
 ])
 def test_pilot(name):
     # Test-owned persistent services may inherit stdout/stderr. Waiting for

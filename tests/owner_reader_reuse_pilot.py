@@ -10,12 +10,14 @@ from unittest.mock import patch
 from agent_comms import Thread, wire
 from agent_comms.runtime import RuntimeProxy
 from toad.acp.agent import Agent
+from runtime_fixture import ToadApp
 
 
 async def main():
     with tempfile.TemporaryDirectory(prefix="toad-owner-reader-") as directory:
         root = Path(directory)
-        os.environ.update(XDG_STATE_HOME=str(root / "state"))
+        os.environ.update(XDG_STATE_HOME=str(root / "state"), XDG_CONFIG_HOME=str(root / "config"),
+                          XDG_DATA_HOME=str(root / "data"), AGENT_COMMS_ROOT=str(root / "first"))
         roots = [root / "first", root / "second"]
         for source in roots:
             wire(source).register(Thread("owner", frozenset(), str(root), pid=os.getpid()))
@@ -69,6 +71,17 @@ async def main():
         finally:
             release.set()
         assert all(row[2] != "must-not-send" for row in requests)
+        app = ToadApp(project_dir=str(root))
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            shared = app.coordination_wire
+            agent._message_target = app.screen.conversation
+            agent._transcript_reader = None
+            with patch("agent_comms.wire", side_effect=AssertionError("Shared reader reconstructed")):
+                async with agent._transcript_reader_lock:
+                    reader = await agent._get_coordination_reader(str(shared.root))
+            assert reader is shared
+        await asyncio.get_running_loop().shutdown_default_executor()
     print("owner reader: off-loop single initialization, shared concurrent polls, root invalidation and no stale RPC dispatch passed")
 
 

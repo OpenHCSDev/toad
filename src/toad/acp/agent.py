@@ -29,11 +29,14 @@ from toad.acp import messages
 from toad.acp.sdk_boundary import validate_session_update
 from toad.acp.prompt import build as build_prompt
 from toad.db import DB
+from toad.private_native_cursor import CursorReducer
+from toad.queue_view import QueueItem, QueueReducer
 from toad import paths
 from toad import constants
 from toad.answer import Answer
 
 PROTOCOL_VERSION = 1
+PERMISSION_TIMEOUT_SECONDS: float = 120.0
 
 
 class Mode(NamedTuple):
@@ -165,6 +168,9 @@ class Agent(AgentBase):
         self._coordination_thread: str | None = None
         self._coordination_root: str | None = None
         self._coordination_worktree: str | None = None
+        self._maintenance_env: dict[str, str] | None = None
+        self._maintenance_cwd: str | None = None
+        self._maintenance_root: Path | None = None
         self._transcript_reader: Comms | None = None
         self._transcript_reader_root: str | None = None
         self._transcript_reader_lock = asyncio.Lock()
@@ -187,6 +193,13 @@ class Agent(AgentBase):
         self.session_pk: int | None = session_pk
         self.tool_calls: dict[str, protocol.ToolCall] = {}
         self._message_target: MessagePump | None = None
+        self._pending_permission_answers: set[asyncio.Future[Answer | None]] = set()
+        self._active_turn_id: str | None = None
+        self._turn_lifecycle_sequence = 0
+        self._private_cursor = CursorReducer()
+        self._private_cursor_sequence = 0
+        self._queue_view = QueueReducer(self.session_id)
+        self._queue_sequence = 0
 
         self._terminal_count: int = 0
 
@@ -260,6 +273,28 @@ class Agent(AgentBase):
     async def start(self, message_target: MessagePump | None = None) -> None:
         """Start the agent."""
         self._message_target = message_target
+        # Freeze exactly the environment and working directory passed to the
+        # child. A relative wire root is relative to the child cwd, not Toad's.
+        # Preflight is early denial; the actual spawn takes the core wire lock.
+        from .maintenance_ingress import configured_root, preflight
+
+        self._maintenance_env = os.environ.copy()
+        self._maintenance_implicit_root = "AGENT_COMMS_ROOT" not in self._maintenance_env
+        self._maintenance_cwd = str(self.project_root_path.resolve())
+        self._maintenance_root = configured_root(self._maintenance_env, self._maintenance_cwd)
+        # The later _run_agent task must not re-resolve an alias after the
+        # preflight snapshot while prompt admission still uses this root.
+        self._maintenance_env["AGENT_COMMS_ROOT"] = str(self._maintenance_root)
+        try:
+            await asyncio.to_thread(
+                preflight, self._coordination_root,
+                ingress_root=self._maintenance_root, cwd=self._maintenance_cwd,
+            )
+        except Exception as error:
+            self._connected_ok = False
+            self.session_ready_event.set()
+            self.post_message(AgentFail("Failed to start agent", details=str(error)))
+            return
         try:
             await asyncio.to_thread(
                 self._log_file_path.parent.mkdir, parents=True, exist_ok=True
@@ -281,9 +316,21 @@ class Agent(AgentBase):
             self.log("[error] Agent process isnt running")
             return
 
-        self.log(f"[client] {request.body}")
+        body = request.body
+        self.log(f"[client] {body}")
         if (stdin := self._process.stdin) is not None:
-            stdin.write(b"%s\n" % request.body_json)
+            calls = body if isinstance(body, list) else [body]
+            if any(isinstance(call, dict) and call.get("method") == "session/prompt" for call in calls):
+                from .maintenance_ingress import admitted_prompt
+
+                with admitted_prompt(
+                    self._coordination_root, ingress_root=self._maintenance_root,
+                    cwd=self._maintenance_cwd,
+                    implicit=getattr(self, "_maintenance_implicit_root", None),
+                ):
+                    stdin.write(b"%s\n" % request.body_json)
+            else:
+                stdin.write(b"%s\n" % request.body_json)
 
     def request(self) -> jsonrpc.Request:
         """Create a request object."""
@@ -324,7 +371,7 @@ class Agent(AgentBase):
             if validation.error is not None:
                 self._reject_session_update(sessionId, update, _meta, validation.error)
                 return
-            self._apply_session_update(cast(protocol.SessionUpdate, update))
+            self._apply_session_update(sessionId, cast(protocol.SessionUpdate, update))
 
     def rpc_session_update(
         self,
@@ -343,7 +390,7 @@ class Agent(AgentBase):
         except ValidationError as error:
             self._reject_session_update(sessionId, update, _meta, str(error))
             return
-        self._apply_session_update(update)
+        self._apply_session_update(sessionId, update)
 
     def _reject_session_update(self, session_id, update, metadata, error) -> None:
         self.log(
@@ -352,15 +399,59 @@ class Agent(AgentBase):
         )
         self.post_message(messages.RejectedSessionUpdate())
 
-    def _apply_session_update(self, update: protocol.SessionUpdate) -> None:
+    def _apply_session_update(self, sessionId: str, update: protocol.SessionUpdate) -> None:
         metadata = update.get("_meta")
+        if isinstance(metadata, dict):
+            cursor_meta = metadata.get("agentComms")
+            if isinstance(cursor_meta, dict) and "privateNativeCursor" in cursor_meta:
+                self._private_cursor.callback(cursor_meta["privateNativeCursor"], sessionId)
+                self._post_private_cursor()
         route: MessageRoute | None = None
         if isinstance(metadata, dict) and isinstance(metadata.get("agentComms"), dict):
             state = metadata["agentComms"]
+            if "queueState" in state:
+                _, starts = self._queue_view.callback("queueState", state["queueState"], sessionId)
+                self._post_queue_view(starts)
+            started = state.get("inputStarted")
+            if "inputStarted" in state and (
+                not isinstance(started, dict)
+                or any(key in started for key in ("version", "scope", "revision"))
+                or ("inputId" in started and isinstance(started.get("text"), str))
+            ):
+                _, starts = self._queue_view.callback("inputStarted", started, sessionId)
+                self._post_queue_view(starts)
+            mcp_client = state.get("mcpClient")
+            if mcp_client is not None:
+                receipt = None
+                content = update.get("content")
+                if (isinstance(content, dict) and content.get("type") == "text"
+                        and content.get("text") == ""):
+                    receipt = self._mcp_client_receipt(
+                        mcp_client, state.get("inputId"), state.get("turnId"),
+                        sessionId, update,
+                    )
+                else:
+                    self.log("[ACP MCP live receipt rejected] "
+                             f"session={sessionId!r}; chunk is not zero-text")
+                if receipt is not None:
+                    self.post_message(messages.McpClientStatus(
+                        receipt, turn_id=self._active_turn_id,
+                        session_id=self.session_id, agent=self,
+                    ))
+                return
             if isinstance(state.get("thread"), str) and isinstance(state.get("wireRoot"), str):
                 self._publish_coordination_metadata({"_meta": metadata})
             if "inputDisposition" in state or state.get("inputDeliveryChanged") is True:
                 self.post_message(messages.InputDispositionsChanged())
+            failed = state.get("inputFailed")
+            if isinstance(failed, dict) and isinstance(failed.get("text"), str):
+                self.post_message(
+                    messages.InputFailed(
+                        failed["text"],
+                        failed.get("reason") if isinstance(failed.get("reason"), str) else "Send failed",
+                        recover_draft=False, agent=self, session_id=sessionId,
+                    )
+                )
             if "goal" in state or "goalExecution" in state:
                 self._publish_goal_snapshot(state)
                 self._post_coordination_update()
@@ -403,17 +494,23 @@ class Agent(AgentBase):
                 return
             if isinstance(state.get("route"), dict):
                 route = MessageRoute.from_wire(state["route"])
-            if isinstance(state.get("queue"), list):
-                self.post_message(
-                    messages.PromptQueueUpdate(
-                        state["queue"], state.get("restored") or []
-                    )
-                )
+            if "queueState" in state:
                 return
-            if isinstance(state.get("inputStarted"), dict):
-                self.post_message(
-                    messages.InputStarted(state["inputStarted"].get("text"))
-                )
+            if "queue" in state:
+                # Legacy text-only rows cannot establish membership or restore
+                # remote text into a local draft, even on an older producer.
+                self._queue_view.callback("queueState", None, sessionId)
+                self._post_queue_view()
+                return
+            if "inputStarted" in state:
+                # Unscoped initial user echoes are not queue-start authority.
+                # Versioned queue starts were handled above; never fall back.
+                if (isinstance(started, dict)
+                        and not any(key in started for key in ("version", "scope", "revision", "inputId"))
+                        and sessionId == self.session_id):
+                    self.post_message(messages.InputStarted(
+                        started.get("text"), agent=self, session_id=sessionId,
+                    ))
                 return
             if isinstance(state.get("worktree"), str):
                 self._coordination_worktree = state["worktree"]
@@ -433,8 +530,13 @@ class Agent(AgentBase):
                     self.post_message(messages.TranscriptSnapshot(events, page))
                 return
             turn_id = state.get("turnId")
-            if state.get("turnStarted") is True and isinstance(turn_id, str):
+            if state.get("turnStarted") is True:
+                if (sessionId != self.session_id or self._stopping
+                        or not isinstance(turn_id, str) or not turn_id):
+                    return
                 self.uses_turn_events = True
+                self._active_turn_id = turn_id
+                self._turn_lifecycle_sequence += 1
                 import math
 
                 started_at = state.get("startedAt")
@@ -444,12 +546,27 @@ class Agent(AgentBase):
                     turn_id, started_at,
                     state.get("activity") if isinstance(state.get("activity"), str) else None,
                     state.get("activityDetail") if isinstance(state.get("activityDetail"), str) else None,
+                    agent=self, session_id=self.session_id,
+                    sequence=self._turn_lifecycle_sequence,
                 ))
                 return
             if state.get("turnSettled") is True:
+                if sessionId != self.session_id or self._stopping:
+                    return
+                if turn_id is not None and not isinstance(turn_id, str):
+                    return
+                # An idle snapshot (empty/missing ID) is only meaningful while
+                # idle. A stale settlement cannot retire a successor's gate.
+                if self._active_turn_id is not None and turn_id != self._active_turn_id:
+                    return
                 if isinstance(turn_id, str):
                     self.uses_turn_events = True
-                self.post_message(messages.TurnSettled(turn_id))
+                self._active_turn_id = None
+                self._turn_lifecycle_sequence += 1
+                self.post_message(messages.TurnSettled(
+                    turn_id, agent=self, session_id=self.session_id,
+                    sequence=self._turn_lifecycle_sequence,
+                ))
                 return
             incoming = metadata["agentComms"].get("incoming")
             if isinstance(incoming, dict):
@@ -571,6 +688,77 @@ class Agent(AgentBase):
                         self._context_usage = ContextUsage(used, size)
                 self.update_status_line()
 
+    _MCP_SERVER_STATES = frozenset({
+        "ready", "error", "disabled", "trust_required", "unsupported_env",
+        "denied", "stale_restart_required", "connecting", "approved",
+    })
+
+    def _mcp_client_receipt(
+        self, value: object, meta_input_id: object, envelope_turn_id: object,
+        session_id: str, update: object,
+    ) -> dict | None:
+        """Accept only an exact, session/turn-bound version-1 live receipt.
+
+        The DTO is redacted and never an approval. Stale receipts from a
+        previous turn or another session are rejected, never rendered; the
+        envelope must carry the same server-owned ACP turn this agent is
+        currently inside. Malformed data is logged as a reason only, without
+        echoing untrusted receipt content.
+        """
+        import re
+
+        def fail(reason: str) -> None:
+            self.log(f"[ACP MCP live receipt rejected] session={session_id!r}; {reason}")
+
+        if not isinstance(value, dict):
+            fail("receipt not an object")
+            return None
+        if type(value.get("version")) is not int or value["version"] != 1:
+            fail("unsupported receipt version")
+            return None
+        if session_id != self.session_id:
+            fail("receipt does not belong to this session")
+            return None
+        if (value.get("source") != "pi-mcp-client"
+                or not isinstance(value.get("inputId"), str)
+                or not re.fullmatch(r"[a-f0-9]{32}", value["inputId"])
+                or value.get("state") != "running" or value.get("lifetime") != "turn"):
+            fail("unsupported receipt identity")
+            return None
+        if isinstance(meta_input_id, str) and meta_input_id != value["inputId"]:
+            fail("receipt inputId does not match envelope")
+            return None
+        # The envelope must bind this exact active ACP turn. This excludes
+        # stale queued events and old receipts replayed into a later turn;
+        # relays without turn identity fail closed here.
+        if (not isinstance(envelope_turn_id, str) or self._active_turn_id is None
+                or envelope_turn_id != self._active_turn_id):
+            fail("receipt is not bound to the active ACP turn")
+            return None
+        servers = value.get("servers")
+        if not isinstance(servers, list) or len(servers) > 32:
+            fail("invalid server rows")
+            return None
+        seen: set[str] = set()
+        for row in servers:
+            if (not isinstance(row, dict)
+                    or not isinstance(row.get("id"), str)
+                    or not re.fullmatch(r"[a-z][a-z0-9_-]{0,31}", row["id"])
+                    or row["id"] in seen
+                    or row.get("scope") not in ("user", "project")
+                    or row.get("state") not in self._MCP_SERVER_STATES
+                    or row.get("calls") not in ("automatic", "confirm", "unavailable")):
+                fail("invalid or duplicate server row")
+                return None
+            seen.add(row["id"])
+            counts = [row.get(name) for name in ("tools", "resources", "prompts")]
+            if (any(type(count) is not int or not 0 <= count <= 10_000 for count in counts)
+                    or (row["state"] == "ready") == (row["calls"] == "unavailable")
+                    or (row["state"] != "ready" and any(counts))):
+                fail("inconsistent server row")
+                return None
+        return value
+
     def update_status_line(self) -> None:
         """Update the current status line."""
 
@@ -611,32 +799,37 @@ class Agent(AgentBase):
         Returns:
             The response to the permission request.
         """
-        result_future: asyncio.Future[Answer] = asyncio.Future()
+        cancelled: protocol.RequestPermissionResponse = {"outcome": {"outcome": "cancelled"}}
+        if self._stopping or sessionId != self.session_id:
+            return cancelled
+        result_future: asyncio.Future[Answer | None] = asyncio.get_running_loop().create_future()
         tool_call_id = toolCall["toolCallId"]
 
-        permission_tool_call = toolCall.copy()
+        permission_tool_call = cast(dict[str, Any], toolCall.copy())
         permission_tool_call.pop("sessionUpdate", None)
-        tool_call = cast(protocol.ToolCall, permission_tool_call)
-        if tool_call_id in self.tool_calls:
-            self.tool_calls[tool_call_id] |= tool_call
-        else:
-            self.tool_calls[tool_call_id] = deepcopy(tool_call)
-
-        tool_call = deepcopy(self.tool_calls[tool_call_id])
-
-        message = messages.RequestPermission(options, tool_call, result_future)
-        self.post_message(message)
-        await result_future
-        ask_result = result_future.result()
-
-        request_permission_outcome: protocol.OutcomeSelected = {
-            "optionId": ask_result.id,
-            "outcome": "selected",
-        }
-        result: protocol.RequestPermissionResponse = {
-            "outcome": request_permission_outcome
-        }
-        return result
+        visible_tool_call: dict[str, Any] = (
+            deepcopy(dict(self.tool_calls[tool_call_id])) if tool_call_id in self.tool_calls else {}
+        )
+        visible_tool_call.update(permission_tool_call)
+        message = messages.RequestPermission(
+            options, cast(protocol.ToolCallUpdatePermissionRequest, visible_tool_call), result_future
+        )
+        if not self.post_message(message):
+            return cancelled  # No mounted controller can answer this request.
+        self.tool_calls[tool_call_id] = cast(protocol.ToolCall, deepcopy(visible_tool_call))
+        self._pending_permission_answers.add(result_future)
+        try:
+            try:
+                ask_result = await asyncio.wait_for(result_future, PERMISSION_TIMEOUT_SECONDS)
+            except TimeoutError:
+                return cancelled
+        finally:
+            self._pending_permission_answers.discard(result_future)
+        if ask_result is None or self._stopping or sessionId != self.session_id:
+            return cancelled
+        if not any(option["optionId"] == ask_result.id for option in options):
+            return cancelled
+        return {"outcome": {"optionId": ask_result.id, "outcome": "selected"}}
 
     @jsonrpc.expose("fs/read_text_file")
     def rpc_read_text_file(
@@ -764,7 +957,7 @@ class Agent(AgentBase):
         """Task to communicate with the agent subprocess."""
 
         PIPE = asyncio.subprocess.PIPE
-        env = os.environ.copy()
+        env = (self._maintenance_env or os.environ).copy()
         env["TOAD_CWD"] = str(Path("./").absolute())
 
         if (command := self.command) is None:
@@ -773,19 +966,24 @@ class Agent(AgentBase):
             )
             return
         try:
-            process = self._process = await asyncio.create_subprocess_shell(
+            from .maintenance_ingress import admitted_spawn
+
+            process = self._process = await admitted_spawn(
                 command,
+                root=self._coordination_root,
                 stdin=PIPE,
                 stdout=PIPE,
                 stderr=PIPE,
                 env=env,
-                cwd=str(self.project_root_path),
+                cwd=self._maintenance_cwd or str(self.project_root_path.resolve()),
                 limit=10 * 1024 * 1024,
                 start_new_session=os.name != "nt",
             )
             if os.name != "nt":
                 self._process_group_id = process.pid
         except Exception as error:
+            self._connected_ok = False
+            self.session_ready_event.set()
             self.post_message(AgentFail("Failed to start agent", details=str(error)))
             return
 
@@ -856,6 +1054,11 @@ class Agent(AgentBase):
             tasks.add(asyncio.create_task(call_jsonrpc(agent_data)))
             await asyncio.sleep(0)
 
+        # EOF invalidates projections; it never resolves input disposition.
+        self._invalidate_attachment_views()
+        self._active_turn_id = None
+        self.post_message(messages.McpClientStopped(self))
+
         # Cancel all remaining tasks and wait for them to finish
         for task in tasks:
             task.cancel()
@@ -890,11 +1093,17 @@ class Agent(AgentBase):
 
     async def stop(self) -> None:
         """Gracefully stop the process."""
+        self._stopping = True
+        self._invalidate_attachment_views()
+        self._active_turn_id = None
+        self.post_message(messages.McpClientStopped(self))
+        for answer in tuple(self._pending_permission_answers):
+            if not answer.done():
+                answer.set_result(None)
         if self.session_pk is not None:
             db = DB()
             await db.session_update_last_used(self.session_pk)
 
-        self._stopping = True
         process = self._process
         process_group = self._process_group_id
         if (
@@ -1095,6 +1304,18 @@ class Agent(AgentBase):
             raise ValueError(
                 "This agent cannot resume its session."
             )
+        from .maintenance_ingress import configured_root, preflight
+
+        requested_env = os.environ.copy()
+        requested_cwd = str(self.project_root_path.resolve())
+        requested_root = configured_root(requested_env, requested_cwd)
+        try:
+            await asyncio.to_thread(
+                preflight, self._coordination_root,
+                ingress_root=requested_root, cwd=requested_cwd,
+            )
+        except Exception as error:
+            raise ValueError(f"Reconnect not attempted: maintenance admission denied: {error}") from error
         target = self._message_target
         await self.stop()
         self._stopping = False
@@ -1145,20 +1366,28 @@ class Agent(AgentBase):
 
     async def acp_new_session(self) -> None:
         """Create a new session."""
+        cursor_token = self._private_cursor.begin(None)
+        queue_token = self._queue_view.begin(None)
+        self._post_private_cursor()
+        self._post_queue_view()
         with self.request():
             session_new_response = api.session_new(
                 str(self.project_root_path),
                 [],
             )
         response = await session_new_response.wait()
+        if not self._private_cursor.is_current_request(cursor_token):
+            return
         assert response is not None
         self.session_id = response["sessionId"]
+        self._bind_private_cursor(response, cursor_token, self.session_id)
+        self._bind_queue_view(response, queue_token, self.session_id)
 
         if self.supports_load_session:
             db = DB()
             session_name = (self._pending_session_name if self._pending_session_name is not None
                             else self._initial_session_title(response) or "New Session")
-            self.session_pk = await db.session_new(
+            session_pk = await db.session_new(
                 session_name,
                 self._agent_data["name"],
                 self._agent_data["identity"],
@@ -1169,11 +1398,16 @@ class Agent(AgentBase):
                     "agent_data": self._agent_data,
                 },
             )
+            if not self._private_cursor.is_current_request(cursor_token):
+                return
+            self.session_pk = session_pk
             if self.session_pk is not None and self._pending_session_name is not None:
                 await db.session_update_title(
                     self.session_pk, self._pending_session_name
                 )
 
+        if not self._private_cursor.is_current_request(cursor_token):
+            return
         if (modes := response.get("modes", None)) is not None:
             current_mode = modes["currentModeId"]
             available_modes = modes["availableModes"]
@@ -1189,10 +1423,18 @@ class Agent(AgentBase):
 
     async def acp_load_session(self) -> None:
         assert self.session_id is not None, "Session id must be set"
+        request_session_id = self.session_id
+        cursor_token = self._private_cursor.begin(request_session_id)
+        queue_token = self._queue_view.begin(request_session_id)
+        self._post_private_cursor()
+        self._post_queue_view()
         cwd = str(self.project_root_path)
         if self.session_pk is not None:
             db = DB()
-            if (session := await db.session_get(self.session_pk)) is not None:
+            session = await db.session_get(self.session_pk)
+            if not self._private_cursor.is_current_request(cursor_token):
+                return
+            if session is not None:
                 if session["meta_json"]:
                     meta = json.loads(session["meta_json"])
                     if session_cwd := meta.get("cwd", None):
@@ -1201,9 +1443,14 @@ class Agent(AgentBase):
                         self._agent_data = agent_data
 
         with self.request():
-            session_load_response = api.session_load(cwd, [], self.session_id)
+            session_load_response = api.session_load(cwd, [], request_session_id)
         response = await session_load_response.wait()
+        if (not self._private_cursor.is_current_request(cursor_token)
+                or self.session_id != request_session_id):
+            return
         assert response is not None
+        self._bind_private_cursor(response, cursor_token, request_session_id)
+        self._bind_queue_view(response, queue_token, request_session_id)
 
         if (modes := response.get("modes", None)) is not None:
             current_mode = modes["currentModeId"]
@@ -1331,6 +1578,49 @@ class Agent(AgentBase):
             return
         self.post_message(messages.GoalSnapshotUpdate(goal, execution))
 
+    def _post_queue_view(self, starts: tuple[QueueItem, ...] = ()) -> None:
+        self._queue_sequence += 1
+        self.post_message(messages.QueueViewUpdate(
+            self._queue_view.projection, starts, self, self.session_id, self._queue_sequence,
+        ))
+
+    def _bind_queue_view(self, response: Mapping[str, object], token: int, session_id: str) -> None:
+        metadata = response.get("_meta")
+        state = metadata.get("agentComms") if isinstance(metadata, dict) else None
+        state = state if isinstance(state, dict) else {}
+        if not ("queueBinding" in state or "queueState" in state
+                or state.get("promptQueue") is True
+                or self._queue_view.projection.status is not None):
+            return
+        _, starts = self._queue_view.bind(
+            state.get("queueBinding"), state.get("queueState"), session_id, token,
+        )
+        self._post_queue_view(starts)
+
+    def _post_private_cursor(self) -> None:
+        self._private_cursor_sequence += 1
+        self.post_message(messages.PrivateNativeCursorUpdate(
+            self._private_cursor.status, self, self.session_id,
+            self._private_cursor_sequence,
+        ))
+
+    def _bind_private_cursor(
+        self, response: Mapping[str, object], token: int, session_id: str,
+    ) -> None:
+        if not self._private_cursor.is_current_request(token):
+            return
+        metadata = response.get("_meta")
+        coordination = metadata.get("agentComms") if isinstance(metadata, dict) else None
+        value = coordination.get("privateNativeCursor") if isinstance(coordination, dict) else None
+        self._private_cursor.bind(value, session_id, token)
+        self._post_private_cursor()
+
+    def _invalidate_attachment_views(self) -> None:
+        self._private_cursor.invalidate()
+        self._post_private_cursor()
+        self._queue_view.invalidate()
+        self._post_queue_view()
+
     def _publish_coordination_metadata(
         self, response: Mapping[str, object], *, initial: bool = False,
     ) -> None:
@@ -1361,8 +1651,22 @@ class Agent(AgentBase):
                 self._context_usage = None
                 self._context_usage_saved = False
                 self.post_message(messages.UpdateStatusLine(Content("Context estimate unavailable")))
+        # ACP may report an alias or relative attached root. Freeze its exact
+        # target before any later Toad prompt or Comms UI action can use it;
+        # otherwise retargeting a symlink after an admission check redirects
+        # Toad to a different (possibly paused) wire.
+        from .maintenance_ingress import configured_root
+
+        attached_env = (self._maintenance_env or os.environ).copy()
+        attached_env["AGENT_COMMS_ROOT"] = wire_root
+        try:
+            attached_root = configured_root(
+                attached_env, self._maintenance_cwd or self.project_root_path.resolve()
+            )
+        except (OSError, ValueError, RuntimeError):
+            return
         self._coordination_thread = thread
-        self._coordination_root = wire_root
+        self._coordination_root = str(attached_root)
         if isinstance(worktree := coordination.get("worktree"), str):
             self._coordination_worktree = worktree
             self.project_root_path = Path(worktree)
@@ -1430,8 +1734,10 @@ class Agent(AgentBase):
             The stop reason.
 
         """
+        request_session_id = self.session_id
+        request_queue_scope = self._queue_view.scope
         with self.request():
-            session_prompt = api.session_prompt(prompt, self.session_id, metadata or {})
+            session_prompt = api.session_prompt(prompt, request_session_id, metadata or {})
         try:
             result = await session_prompt.wait()
         except jsonrpc.APIError as error:
@@ -1445,6 +1751,13 @@ class Agent(AgentBase):
                 error.message or f"{self._agent_data['name']} returned an error",
             )
 
+            user_text = (metadata or {}).get("agentComms", {}).get("userText")
+            if isinstance(user_text, str) and user_text:
+                self.post_message(messages.InputFailed(
+                    user_text, details, agent=self, session_id=request_session_id,
+                    queue_scope=request_queue_scope,
+                ))
+
             self.post_message(
                 AgentFail(
                     "Failed to send prompt",
@@ -1454,6 +1767,13 @@ class Agent(AgentBase):
             )
             return None
         except jsonrpc.JSONRPCError as error:
+            user_text = (metadata or {}).get("agentComms", {}).get("userText")
+            if isinstance(user_text, str) and user_text:
+                self.post_message(messages.InputFailed(
+                    user_text, error.message or "Connection failed",
+                    agent=self, session_id=request_session_id,
+                    queue_scope=request_queue_scope,
+                ))
             self.post_message(
                 AgentFail(
                     "Failed to send prompt",
@@ -1604,9 +1924,10 @@ class Agent(AgentBase):
 
         if self._transcript_reader is None or self._transcript_reader_root != root:
             app = self._message_target.app if self._message_target is not None else None
-            # Reuse the app's already initialized cached_property without
-            # triggering a cold synchronous construction from this accessor.
-            shared = app.__dict__.get("coordination_wire") if isinstance(app, ToadApp) else None
+            # Reuse the service held by the route-validating app property,
+            # without invoking its synchronous route resolver on this loop.
+            # Only an exact match to this attachment's trusted root may share.
+            shared = app.__dict__.get("_coordination_wire") if isinstance(app, ToadApp) else None
             if shared is not None and shared.root == Path(root).expanduser():
                 self._transcript_reader = shared
             else:

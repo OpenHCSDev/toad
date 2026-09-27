@@ -5,6 +5,7 @@ from textual.geometry import Offset
 from textual.widgets import Static
 from agent_comms import ChannelSort, ThreadSort
 import asyncio
+from pathlib import Path
 
 from toad.widgets.comms_menu import ContextMenu
 
@@ -106,8 +107,22 @@ class SessionSort(SortControl[ThreadSort]):
         super().__init__(ThreadSort.CREATED, channel)
 
     async def persist_order(self, order: ThreadSort) -> ThreadSort:
+        from toad.comms_root import implicit_root, run_selected_write
+
+        comms = self.app.coordination_wire
+        source_root = getattr(self.screen, "wire_root", None) or getattr(
+            self.screen, "_coordination_root", None
+        )
+        if source_root is None:
+            from toad.widgets.comms_sidebar import CommsSidebar
+
+            sidebar = self.screen.query_one_optional(CommsSidebar)
+            source_root = sidebar._wire.root if sidebar is not None and sidebar._wire is not None else None
+        if source_root is not None and comms.root.resolve() != Path(source_root).resolve():
+            raise ValueError("Comms route changed before sorting")
         channel = await asyncio.to_thread(
-            self.app.coordination_wire.set_channel_sort, self.channel, order,
+            run_selected_write, comms.root, comms.set_channel_sort,
+            self.channel, order, implicit=implicit_root(),
         )
         return channel.order
 
@@ -117,7 +132,23 @@ class ChannelListSort(SortControl[ChannelSort]):
         super().__init__(ChannelSort.NAME, "channels")
 
     async def persist_order(self, order: ChannelSort) -> ChannelSort:
-        return await asyncio.to_thread(self.app.coordination_wire.set_channel_order, order)
+        from toad.comms_root import implicit_root, run_selected_write
+
+        comms = self.app.coordination_wire
+        source_root = getattr(self.screen, "wire_root", None) or getattr(
+            self.screen, "_coordination_root", None
+        )
+        if source_root is None:
+            from toad.widgets.comms_sidebar import CommsSidebar
+
+            sidebar = self.screen.query_one_optional(CommsSidebar)
+            source_root = sidebar._wire.root if sidebar is not None and sidebar._wire is not None else None
+        if source_root is not None and comms.root.resolve() != Path(source_root).resolve():
+            raise ValueError("Comms route changed before sorting")
+        return await asyncio.to_thread(
+            run_selected_write, comms.root, comms.set_channel_order,
+            order, implicit=implicit_root(),
+        )
 
     _visibility_keys = {
         "show_stopped": "sidebar.show_stopped",

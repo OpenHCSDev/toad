@@ -2,6 +2,28 @@ from toad.settings import SchemaDict
 
 SCHEMA: list[SchemaDict] = [
     {
+        "key": "mcp",
+        "title": "Pi MCP package inventory (optional)",
+        "help": "Toad only renders the installed package's static, redacted inventory. It does not manage MCP config or approvals.",
+        "type": "object",
+        "fields": [
+            {
+                "key": "node_path",
+                "title": "Absolute Node executable path",
+                "help": "Explicit local Node executable used only for the package-owned inventory CLI. No PATH lookup.",
+                "type": "string",
+                "default": "",
+            },
+            {
+                "key": "cli_path",
+                "title": "Absolute installed Pi MCP CLI script path",
+                "help": "Explicit path to the installed package's bin/pi-mcp.mjs; never a project config or source checkout fallback.",
+                "type": "string",
+                "default": "",
+            },
+        ],
+    },
+    {
         "key": "ui",
         "title": "User interface settings",
         "help": "The following settings allow you to customize the look and feel of the User Interface.",

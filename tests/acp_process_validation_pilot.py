@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 from runtime_fixture import ToadApp
 from toad.acp.agent import Agent
-from toad.acp.messages import RejectedSessionUpdate, ToolCall
+from toad.acp.messages import RejectedSessionUpdate, ToolCall, TurnStarted, TurnSettled
 
 
 async def main():
@@ -28,9 +28,9 @@ async def main():
             agent.post_message = observed.append
             agent.log = logged.append
 
-            async def deliver(payload):
+            async def deliver(payload, session="fixture"):
                 return await agent.server.call({"jsonrpc": "2.0", "method": "session/update",
-                    "params": {"sessionId": "fixture", "update": payload}})
+                    "params": {"sessionId": session, "update": payload}})
 
             original = {"sessionUpdate": "tool_call", "toolCallId": "one", "title": "Inspect",
                         "custom": {"nested": [1, 2]}}
@@ -42,6 +42,23 @@ async def main():
             assert "acp.schema" not in sys.modules, "SDK validator graph entered the UI heap"
             await deliver({"sessionUpdate": "usage_update", "used": "10", "size": "100"})
             assert isinstance(observed[-1], RejectedSessionUpdate) and logged
+
+            # The off-process boundary must carry the immutable wire session
+            # into current-main lifecycle/queue handlers, not substitute the
+            # attachment's current identity after validation.
+            started = {"sessionUpdate": "agent_message_chunk", "content": {"type": "text", "text": ""},
+                       "_meta": {"agentComms": {"turnStarted": True, "turnId": "ordered-turn"}}}
+            before = len(observed)
+            await deliver(started, session="foreign-session")
+            assert len(observed) == before
+            await deliver(started)
+            assert isinstance(observed[-1], TurnStarted)
+            assert observed[-1].agent is agent and observed[-1].session_id == "fixture"
+            await deliver({"sessionUpdate": "agent_message_chunk", "content": {"type": "text", "text": ""},
+                           "_meta": {"agentComms": {"turnSettled": True, "turnId": "ordered-turn"}}})
+            assert isinstance(observed[-1], TurnSettled)
+            assert observed[-1].session_id == "fixture"
+            assert "acp.schema" not in sys.modules
 
             # Hold validation delivery. A second notification must not overtake
             # it, and retiring the target invalidates both before publication.

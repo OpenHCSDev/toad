@@ -5,7 +5,7 @@ The branch includes the current Toad implementation, regression pilots, audit,
 and the [debug/capture/replay toolbox](../../tools/performance/README.md).
 Textual changes are tracked in [companion draft PR #5](https://github.com/OpenHCSDev/textual/pull/5).
 The dependency pin includes framework checkpoint
-`47555c66a8bc2d7d3f97820134e2f743dba01b4d` (retired-scene ownership, native
+`4fa6a9c440eaaa7dfaad45a33af146fc4b7e922e` (merged Textual PR5: retired-scene ownership, native
 presentation reuse, declaration-bound dispatch and nonblocking removal completion).
 
 ## Locked-in issues
@@ -90,6 +90,31 @@ Additional requirements are first-class work items:
 - Composable model display constraints and parsed class-reference lookup.
 
 ## Evidence and limitations
+
+### Current-main integration for landing
+
+Textual PR5 is merged at `4fa6a9c440eaaa7dfaad45a33af146fc4b7e922e`; its tree
+matches the verified framework candidate. Toad's integration preserves current
+main's canonical route validation, private-history and exact-ID queue boundaries,
+MCP interfaces, maintenance admission and current core pin. Async ACP validation
+passes the original wire session identity to those handlers. Reader sharing uses
+the route-owned cached service only when its root matches the trusted attachment.
+
+The pilot runner now includes78provider-free cases, adding22current-main contracts.
+The existing queue/private-cursor unit suites add30cases plus73subtests. These were
+verified through the broad run and focused corrections: old partial-Agent fixtures
+now construct real Agents, lifecycle fixtures carry source identity/sequence,
+remote failure notices leave drafts untouched, and the cancellation fixture drains
+remaining thread work before deleting its wire. The large comms pilot passed in a
+serial77.61s run; its100s per-pilot deadline remains unchanged. Main's exact-byte
+queue producer check was updated only after the documented source comparison in
+[the queue contract](../exact-id-queue-view.md).
+
+The integrated72-action native filter fixture preserved52/52typed markers, all
+masks and drafts. `toad-pr65-main-integration-filters-1`: input median37.48/
+p9569.93/max79.95ms; loopmax127.50ms; GCmax74.50ms. These are new-core integration
+receipts, not a controlled comparison against the earlier dependency environment.
+The remaining latency targets continue in a fresh follow-up after landing.
 
 ### Owned removal completion and direct input ingress
 

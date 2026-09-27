@@ -59,6 +59,7 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
         target: str,
         kind: str,
         recovery_root: str | None = None,
+        wire_root: str | None = None,
     ) -> None:
         super().__init__()
         self.project_path = project_path
@@ -67,6 +68,7 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
         self.target = target
         self.kind = kind
         self.recovery_root = recovery_root
+        self.wire_root = wire_root
         self._thread_sidebar_state = SidebarState()
         self._content_ready = asyncio.Event()
         self._content_error: BaseException | None = None
@@ -105,6 +107,7 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
                         me=self.me,
                         target=self.target,
                         kind=self.kind,
+                        wire_root=self.wire_root,
                     )
         yield Footer()
 
@@ -258,18 +261,19 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
         def do_fork(spec: tuple[str, str] | None) -> None:
             if not spec:
                 return
-            import os
-
             from agent_comms import invoke_context_tool
             from agent_comms.operations import wire
 
-            root = os.environ.get("AGENT_COMMS_ROOT", "~/.agent-comms")
+            from toad.comms_root import implicit_root, root_is_current, run_selected_write
+
             try:
-                invoke_context_tool(
-                    wire(root),
-                    event.action,
-                    subject=parent,
-                    arguments={"name": spec[0], "task": spec[1]},
+                if self.wire_root is not None and not root_is_current(self.wire_root):
+                    raise ValueError("Comms route changed; reopen the view before forking")
+                comms = wire()
+                run_selected_write(
+                    comms.root, invoke_context_tool, comms, event.action,
+                    subject=parent, arguments={"name": spec[0], "task": spec[1]},
+                    implicit=implicit_root(),
                 )
                 self.notify(f"forked {spec[0]} from {parent}", title="Comms")
             except Exception as error:
