@@ -1,4 +1,4 @@
-"""A preflight rejection restores the exact prompt in the composer."""
+"""Local request failures restore their text; remote failure evidence cannot inject drafts."""
 
 import asyncio
 import json
@@ -68,10 +68,10 @@ async def main():
                 assert len(failures) == 1, received
                 failure = failures[0]["_meta"]["agentComms"]["inputFailed"]
                 assert "preflight ended before attestation" in failure["reason"]
-                assert conversation.prompt.text == "new draft\n\n" + prompt
+                assert conversation.prompt.text == "new draft", "Remote failure injected a local draft"
                 receiver.rpc_session_update("fixture", failures[0])
                 await pilot.pause()
-                assert conversation.prompt.text == "new draft\n\n" + prompt
+                assert conversation.prompt.text == "new draft"
                 assert not server._turn_input_text
                 assert not server._turn_original_input_keys
             finally:
@@ -101,7 +101,7 @@ async def main():
             await pilot.pause()
             assert conversation.prompt.text == "the local failure prompt"
             await receiver.stop()
-    print("input failure: exact prompt restored after preflight rejection")
+    print("input failure: remote evidence is read-only; exact locally failed prompts are restored")
 
 
 if __name__ == "__main__":

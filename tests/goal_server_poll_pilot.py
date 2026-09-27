@@ -45,9 +45,13 @@ async def main():
             runtime_enabled=True,
             auto_wake=False,
         )
+        peer_turn = None
         try:
             session = (await owner.new_session(cwd=str(project))).session_id
-            comms.register(Thread("peer", frozenset(), str(project)))
+            comms.register(Thread("peer", frozenset(), str(project), pid=os.getpid()))
+            # Standby requires an actually active declared dependency, not only
+            # a registered name. This is a fixture turn, with no provider call.
+            peer_turn = comms.begin_turn("peer", "fixture-dependent-turn")
             agent = Agent(
                 project, {"name": "agent-comms", "run_command": {"*": "true"}}, None
             )
@@ -215,6 +219,8 @@ async def main():
                     agent._owner_request = request
         finally:
             await owner.shutdown()
+            if peer_turn is not None and "peer" in comms.registry:
+                comms.finish_turn("peer", "fixture-dependent-turn", expected=peer_turn)
     print(
         "goal server poll: actual owner read/mutations, standby, scrolling, live modal/draft, outage recovery and bounded read pass"
     )

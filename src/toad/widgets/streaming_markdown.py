@@ -17,6 +17,7 @@ from textual.widget import Widget
 from textual.app import ComposeResult
 
 from toad.widgets.prepared_markdown import PreparedConversationMarkdown
+from toad.widgets.committed_presentation import SnapshotPresentation
 from toad.conversation_markdown import _ThreadLocalPathParser
 from toad.widgets.transcript_fragments import prepare_transcript_fragments
 
@@ -24,7 +25,7 @@ if TYPE_CHECKING:
     from toad.widgets.transcript_history import TranscriptHistory
 
 
-class StreamingMarkdown(PreparedConversationMarkdown):
+class StreamingMarkdown(SnapshotPresentation, PreparedConversationMarkdown):
     RICH_TEXT_LIMIT = 1200
     TRANSCRIPT_ROLE = "assistant"
 
@@ -35,6 +36,7 @@ class StreamingMarkdown(PreparedConversationMarkdown):
         super().__init__(markdown, **kwargs)
         self._stream: MarkdownStream | None = None
         self._paged: TranscriptHistory | None = None
+        self._dormant_page_range: tuple[int, int] | None = None
         self._content_lock = asyncio.Lock()
         self._content_generation = 0
         self._pending_source: str | None = None
@@ -43,6 +45,27 @@ class StreamingMarkdown(PreparedConversationMarkdown):
 
     def compose(self) -> ComposeResult:
         yield from self._prefix
+
+    async def retire_body(self) -> bool:
+        if self._stream is not None or self._content_lock.locked():
+            return False
+        async with self._content_lock:
+            if self._paged is not None:
+                if (self._body_dormant or self._body_measurement is None or self.loading
+                        or not self.is_attached or self._body_viewport is None
+                        or self in self._body_viewport.protected()):
+                    return False
+                # Synthetic message paging has one immutable source page. Keep
+                # its admitted source range, never the retired pager widgets.
+                page = self._paged.pages[0]
+                self._dormant_page_range = page.start, page.stop
+                self._body_dormant = True
+                pager, self._paged = self._paged, None
+                await pager.remove()
+                self._prepared_fences.clear()
+                self.refresh(layout=True)
+                return True
+            return await super().retire_body()
 
     def update(self, markdown: str) -> AwaitComplete:
         return AwaitComplete(self._update_content(markdown, append=False))
@@ -89,6 +112,14 @@ class StreamingMarkdown(PreparedConversationMarkdown):
         async with self._content_lock:
             if not is_current():
                 return
+            if source != self.source:
+                self._dormant_page_range = None
+            if self.body_dormant:
+                # Streaming can resume on a previously cold message. Rebuild
+                # its complete source before allowing the incremental tail path.
+                if not self._body_restoring:
+                    self._body_dormant = False
+                self._needs_full_markdown_update = True
             if not self._paginate or (self._paged is None and len(source) <= self.RICH_TEXT_LIMIT):
                 if append and self.source + text == source and not self._needs_full_markdown_update:
                     await super().append(text)
@@ -117,6 +148,11 @@ class StreamingMarkdown(PreparedConversationMarkdown):
                 if not is_current():
                     return
                 self._paged = TranscriptHistory(page, fragments=fragments)
+                if self._dormant_page_range is not None:
+                    start, stop = self._dormant_page_range
+                    self._paged.pages[0].start = start
+                    self._paged.pages[0].stop = stop
+                    self._dormant_page_range = None
                 await self.mount(self._paged)
             else:
                 await self._paged.update_live(page, fragments=fragments, is_current=is_current)

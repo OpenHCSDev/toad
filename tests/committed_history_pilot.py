@@ -55,7 +55,8 @@ async def main():
             conversation = app.screen.conversation
             await conversation.contents.mount(*[AgentResponse(f"Old block {i}\n\nAnother paragraph") for i in range(100)])
             await pilot.pause()
-            assert len(list(conversation.contents.query("*"))) > 250
+            assert sum(isinstance(child, AgentResponse) for child in conversation.contents.children) == 100
+            assert len(conversation.contents.children) > conversation.MAX_LIVE_BLOCKS
             cursor = TranscriptCursor("", 0)
             page = TranscriptPage(
                 tuple(TranscriptEvent("assistant", f"Saved paragraph {i}") for i in range(40))

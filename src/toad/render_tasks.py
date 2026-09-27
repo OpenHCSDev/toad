@@ -37,6 +37,35 @@ class ReusableRenderTask(RenderTask[ResultT]):
     reusable_result = True
 
 
+@dataclass(frozen=True, slots=True)
+class SessionUpdateValidation:
+    error: str | None = None
+
+
+@dataclass(frozen=True)
+class ValidateSessionUpdateTask(RenderTask[SessionUpdateValidation]):
+    """Keep the official SDK's validator graph in process workers, not the UI."""
+
+    session_id: str
+    update: object
+    metadata: dict | None = None
+
+    def execute(self) -> SessionUpdateValidation:
+        from pydantic import ValidationError
+        from toad.acp.sdk_boundary import validate_session_update
+
+        try:
+            validate_session_update(self.session_id, self.update, self.metadata)
+        except ValidationError as error:
+            return SessionUpdateValidation(str(error))
+        return SessionUpdateValidation()
+
+    def accept_result(self, result: object) -> SessionUpdateValidation:
+        if not isinstance(result, SessionUpdateValidation):
+            raise TypeError("ACP validation worker returned an incompatible result")
+        return result
+
+
 @dataclass(frozen=True)
 class PatchRenderTask(ReusableRenderTask[PreparedPatch]):
     source: str
@@ -110,10 +139,10 @@ class RichRenderTask(ReusableRenderTask[PreparedRichContent]):
         return result
 
 
-type RendererTask = PatchRenderTask | MarkdownRenderTask | TokenRenderTask | TranscriptRenderTask | RichRenderTask
-type RendererResult = PreparedPatch | PreparedMarkdown | tuple[TranscriptFragment, ...] | PreparedRichContent
+type RendererTask = PatchRenderTask | MarkdownRenderTask | TokenRenderTask | TranscriptRenderTask | RichRenderTask | ValidateSessionUpdateTask
+type RendererResult = PreparedPatch | PreparedMarkdown | tuple[TranscriptFragment, ...] | PreparedRichContent | SessionUpdateValidation
 
-RENDER_TASK_TYPES = (PatchRenderTask, MarkdownRenderTask, TokenRenderTask, TranscriptRenderTask, RichRenderTask)
+RENDER_TASK_TYPES = (PatchRenderTask, MarkdownRenderTask, TokenRenderTask, TranscriptRenderTask, RichRenderTask, ValidateSessionUpdateTask)
 
 
 def execute_render_task(task: RenderTask[ResultT]) -> ResultT:

@@ -42,7 +42,7 @@ async def main():
             def routed_visible(pager):
                 return (pager._filter_overlay is not None and
                         any(leaf.display and leaf.fragment.events[0].text == older.text
-                            for leaf in pager._filter_overlay.children))
+                             for leaf in pager._filter_overlay.fragment_views))
 
             try:
                 async with asyncio.timeout(8):
@@ -99,7 +99,7 @@ async def main():
             async with asyncio.timeout(8):
                 while (sparse._filter_overlay is None or not sparse._filter_overlay.display
                        or not any(leaf.fragment.events[0].text == older.text
-                                  for leaf in sparse._filter_overlay.children)):
+                                   for leaf in sparse._filter_overlay.fragment_views)):
                     await pilot.pause(.02)
             await sparse.remove()
 

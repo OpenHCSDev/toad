@@ -11,7 +11,7 @@ from typing import cast
 from textual.message import Message
 
 from toad.acp.agent import Agent
-from toad.acp.messages import McpClientStopped, RequestPermission
+from toad.acp.messages import McpClientStopped, PrivateNativeCursorUpdate, QueueViewUpdate, RequestPermission
 from toad.agent_schema import Agent as AgentData
 from toad.answer import Answer
 
@@ -28,7 +28,7 @@ class PermissionAgent(Agent):
     def post_message(self, message: Message) -> bool:
         if not self.accepting:
             return False
-        if isinstance(message, McpClientStopped):
+        if isinstance(message, (McpClientStopped, PrivateNativeCursorUpdate, QueueViewUpdate)):
             return True
         assert isinstance(message, RequestPermission)
         self.posted.append(message)

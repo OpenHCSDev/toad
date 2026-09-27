@@ -29,9 +29,17 @@ from toad.conversation_markdown import ConversationCodeFence, ConversationMarkdo
 from toad.markdown_preparation import FenceKey, PreparedFence
 from toad.render_tasks import MarkdownRenderTask, TokenRenderTask
 from toad.widgets.transcript_fragments import RenderBudget
+from toad.widgets.viewport_body import ViewportBody
 
 
-class PreparedConversationMarkdown(ConversationMarkdown):
+class PreparedConversationMarkdown(ViewportBody, ConversationMarkdown):
+    def _measured_virtual_size_requires_layout(self) -> bool:
+        # Markdown extent comes from its arranged blocks, not a separately
+        # authored virtual document. Committing that result must not feed it
+        # back into the same ancestor measurements. Actual scrollbar changes
+        # and content/stylesheet updates retain their ordinary invalidation.
+        return False
+
     def __init__(
         self, markdown: str | None = None, *, name: str | None = None,
         id: str | None = None, classes: str | None = None,
@@ -39,18 +47,86 @@ class PreparedConversationMarkdown(ConversationMarkdown):
     ) -> None:
         self._prepared_fences: dict[FenceKey, PreparedFence] = {}
         self._preparation_closed = False
+        self._body_dormant = False
+        self._body_restoring = False
+        self._body_measurement: tuple[int, int] | None = None
+        self._body_measurement_stale = False
+        self._body_viewport = None
         factory = self._make_parser if parser_factory is None else parser_factory
         super().__init__(markdown, name=name, id=id, classes=classes,
                          parser_factory=factory, open_links=open_links)
 
     def on_mount(self) -> None:
         self._preparation_closed = False
+        from toad.widgets.history_anchor import HistoryWindow
+        from toad.screens.session_view import SessionView
+
+        if isinstance(self.screen, SessionView):
+            ancestors = self.ancestors
+            if any(isinstance(node, ViewportBody) for node in ancestors):
+                return  # The outer source owner retires/restores this entire body.
+            window = next((node for node in ancestors if isinstance(node, HistoryWindow)), None)
+            if window is not None:
+                self._body_viewport = window.document_viewport
+                self._body_viewport.register(self)
+
+    @property
+    def body_dormant(self) -> bool:
+        return self._body_dormant
+
+    @property
+    def body_measurement_stale(self) -> bool:
+        return self._body_measurement_stale
+
+    @property
+    def body_ready(self) -> bool:
+        return not self._body_dormant and not self._body_restoring
+
+    def get_content_height(self, container: Size, viewport: Size, width: int) -> int:
+        if self._body_dormant and self._body_measurement is not None:
+            if width != self._body_measurement[0]:
+                self._body_measurement_stale = True
+            return self._body_measurement[1]
+        height = super().get_content_height(container, viewport, width)
+        self._body_measurement = width, height
+        self._body_measurement_stale = False
+        return height
+
+    async def retire_body(self) -> bool:
+        if (self._body_dormant or self._body_measurement is None or self.loading
+                or self.lock.is_locked or not self.is_attached):
+            return False
+        if self._body_viewport is not None and self in self._body_viewport.protected():
+            return False
+        blocks = [child for child in self.children if isinstance(child, MarkdownBlock)]
+        if not blocks:
+            return False
+        async with self.lock:
+            self._body_dormant = True
+            await self.remove_children(blocks)
+            self._prepared_fences.clear()
+            self.refresh(layout=True)
+        return True
+
+    async def restore_body(self) -> None:
+        if self._body_dormant and self.is_attached and not self._closing:
+            self._body_restoring = True
+            try:
+                await self.update(self.source)
+                if self.is_attached:
+                    self._body_dormant = False
+                    self.refresh(layout=True)
+            finally:
+                self._body_restoring = False
 
     def _cancel_preparation(self) -> None:
         self._preparation_closed = True
         self.workers.cancel_node(self)
 
     def on_unmount(self) -> None:
+        if self._body_viewport is not None:
+            self._body_viewport.discard(self)
+            self._body_viewport = None
         self._cancel_preparation()
         self._prepared_fences.clear()
 

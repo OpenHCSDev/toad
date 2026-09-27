@@ -6,6 +6,7 @@ from toad.widgets.route_header import RouteHeader
 from toad.widgets.message_divider import MessageDivider
 from agent_comms import MessageRoute
 from toad.widgets.message_filter import CategorizedBlock, MessageCategory
+from toad.widgets.committed_presentation import CommitParticipant, SequenceClaim
 
 
 class IncomingSender(RouteHeader):
@@ -20,12 +21,16 @@ class IncomingSender(RouteHeader):
         self.action_open_target(self.sender)
 
 
-class IncomingMessage(CategorizedBlock, VerticalGroup):
+class IncomingMessage(CommitParticipant, CategorizedBlock, VerticalGroup):
     DEFAULT_CLASSES = "block"
 
     @property
     def message_category(self) -> MessageCategory:
         return MessageCategory.INBOUND
+
+    @property
+    def commit_claim(self) -> SequenceClaim:
+        return SequenceClaim(self.sequence)
 
     def __init__(self, sender: str, text: str, target: str | None = None,
                  *, show_header: bool = True, sequence: int | None = None) -> None:

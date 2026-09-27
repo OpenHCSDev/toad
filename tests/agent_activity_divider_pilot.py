@@ -10,6 +10,7 @@ from agent_comms import TranscriptCursor, TranscriptEvent, TranscriptPage
 from runtime_fixture import ToadApp
 
 from toad.acp import messages as acp
+from toad.acp.agent import Agent
 from toad.widgets.agent_thought import AgentThought
 from toad.widgets.message_divider import AgentActivityDivider, MessageDivider
 from toad.widgets.message_filter import ALL_CATEGORIES, MessageCategory
@@ -29,8 +30,21 @@ async def main() -> None:
         async with app.run_test(size=(110, 40)) as pilot:
             await pilot.pause()
             view = app.screen.conversation
+            agent = Agent(root, {"name": "Activity fixture", "identity": "fixture",
+                                "run_command": {"*": "true"}}, "activity-fixture")
+            agent._message_target = view
+            view.set_reactive(type(view).agent, agent)
+            sequence = 0
+
+            async def start(turn_id):
+                nonlocal sequence
+                sequence += 1
+                await view.on_turn_started(acp.TurnStarted(
+                    turn_id, agent=agent, session_id=agent.session_id, sequence=sequence,
+                ))
+
             await view.post(UserInput("Please prepare the worktree"))
-            await view.on_turn_started(acp.TurnStarted("first"))
+            await start("first")
             assert not view.contents.query(AgentActivityDivider), "Empty turns should not create headers"
             await view.on_acp_agent_thinking(acp.Thinking("text", "Preparing the worktree"))
             await pilot.pause()
@@ -49,15 +63,17 @@ async def main() -> None:
             await view.on_acp_agent_thinking(acp.Thinking("text", "Check the result"))
             assert len(view.contents.query(AgentActivityDivider)) == 1
 
-            await view.on_input_started(acp.InputStarted("A follow-up in the same live turn"))
-            await view.on_turn_started(acp.TurnStarted("first"))
+            await view.on_input_started(acp.InputStarted(
+                "A follow-up in the same live turn", agent=agent, session_id=agent.session_id,
+            ))
+            await start("first")
             await view.on_acp_agent_thinking(acp.Thinking("text", "Process the follow-up"))
-            await view.on_turn_started(acp.TurnStarted("first"))
+            await start("first")
             await view.on_acp_agent_thinking(acp.Thinking("text", "\nStill the same activity"))
             assert len(view.contents.query(AgentActivityDivider)) == 2
 
             await view.post(UserInput("Use a tool first"))
-            await view.on_turn_started(acp.TurnStarted("tool-first"))
+            await start("tool-first")
             tool = {"toolCallId": "second-tool", "title": "Read first", "status": "in_progress"}
             await view.on_acp_tool_call_update(acp.ToolCall(tool))
             await pilot.pause()
@@ -72,7 +88,7 @@ async def main() -> None:
             view.visible_categories = ALL_CATEGORIES
 
             await view.post(UserInput("Answer with text first"))
-            await view.on_turn_started(acp.TurnStarted("text-first"))
+            await start("text-first")
             await view.on_acp_agent_message(acp.Update("text", "Text reply"))
             await view.on_acp_agent_thinking(acp.Thinking("text", "Later activity"))
             assert len(view.contents.query(AgentActivityDivider)) == 3, "Text already carries an Agent header"
