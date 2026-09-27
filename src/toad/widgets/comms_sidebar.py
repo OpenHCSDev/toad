@@ -545,9 +545,21 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
         if (revision != self._navigation_revision or not self.is_attached
                 or not self.screen.is_current or self._closing):
             return
-        if self._last_snapshot is not None:
-            self.restore_scroll()
-            self.navigation_ready.set()
+        if (self.display and self._last_snapshot is not None
+                and not self.navigation_ready.is_set()):
+            # A refresh callback may precede the resize messages from newly
+            # mounted rows. Commit their geometry before scroll_to can clamp
+            # the saved offset against the retired, empty shell's extent.
+            with self.app.batch_update():
+                for node in self.walk_children(Widget, with_self=True):
+                    node._check_refresh()
+                for ancestor in self.ancestors:
+                    if isinstance(ancestor, Widget):
+                        ancestor._check_refresh()
+                self.screen._refresh_layout(self.app.size)
+                if self.restore_scroll():
+                    self.screen._refresh_layout(self.app.size, scroll=True)
+                self.navigation_ready.set()
 
     def _selection_for(self, row: CommsRow) -> SidebarSelection:
         channel = row.query_ancestor(ChannelGroup).row.target_name
@@ -928,6 +940,8 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
             ):
                 self._last_route_stamp = route_stamp
                 self.display = True
+                if not self.navigation_ready.is_set():
+                    self.call_after_refresh(self._finish_navigation, self._navigation_revision)
         except Exception:
             # Route publication or writer recovery will be retried next tick.
             return
