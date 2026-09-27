@@ -15,6 +15,8 @@ class SidebarHeader(HorizontalGroup):
 class SidebarViewport(VerticalScroll):
     """Own scrollbar geometry and the horizontal position of sidebar headers."""
 
+    CACHE_SUBTREE_GEOMETRY = True
+
     def on_mount(self) -> None:
         self.watch(self, "scroll_x", self._align_headers, init=False)
         self._align_headers()

@@ -11,6 +11,7 @@ from weakref import WeakSet
 
 from textual.widget import Widget
 from textual.containers import VerticalScroll
+from toad.widgets.viewport_body import DocumentViewport
 
 if TYPE_CHECKING:
     from toad.widgets.tool_call import ToolCall
@@ -20,10 +21,29 @@ if TYPE_CHECKING:
 class HistoryWindow(VerticalScroll):
     """Explicit follow intent survives zero-height scroll ranges during reflow."""
 
+    CACHE_SUBTREE_GEOMETRY = True
+    WARM_DOCUMENT_BODIES = DocumentViewport.DEFAULT_WARM_BODIES
+    """Tunable number of recently visible document bodies retained offscreen."""
+
     scroll_revision = 0
     _restoring = False
     history_anchor: HistoryAnchor | None = None
     history_layout_ready: asyncio.Event | None = None
+    history_paint_ready: asyncio.Event | None = None
+
+    def retire_presentation_wait(self) -> None:
+        """Release a transaction whose scene no longer promises another frame."""
+        if self.history_layout_ready is not None:
+            self.history_layout_ready.set()
+        if self.history_paint_ready is not None:
+            self.history_paint_ready.set()
+
+    def on_unmount(self) -> None:
+        self.retire_presentation_wait()
+
+    @cached_property
+    def document_viewport(self):
+        return DocumentViewport(self, max_warm_bodies=self.WARM_DOCUMENT_BODIES)
 
     @cached_property
     def history_lock(self) -> asyncio.Lock:
@@ -94,7 +114,9 @@ class HistoryWindow(VerticalScroll):
                 self.history_layout_ready = asyncio.Event()
                 self.refresh(layout=True)
                 await self.history_layout_ready.wait()
-                painted = asyncio.Event()
+                if not self.is_attached or not screen.is_current or not widget.is_attached:
+                    return
+                painted = self.history_paint_ready = asyncio.Event()
                 self.call_after_refresh(painted.set)
                 await painted.wait()
         finally:
@@ -102,6 +124,7 @@ class HistoryWindow(VerticalScroll):
                 screen.history_anchors.discard(self)
             self.history_anchor = None
             self.history_layout_ready = None
+            self.history_paint_ready = None
 
 
 @dataclass(frozen=True)

@@ -20,6 +20,14 @@ for action in workload["actions"]:
     stages = [event for event in trace if event["event"] == "navigation_stage"
               and event["ns"] >= action["start_ns"] and event["begin_ns"] <= action["end_ns"]]
     print(json.dumps({"action": action["action"], "mode": mode,
+                      "first_enqueued_frames": [{"mode": event.get("mode"),
+                                                 "enqueue_ms": round((event["ns"]-action["start_ns"])/1e6, 2)}
+                                                for event in trace if event["event"] == "frame_enqueued"
+                                                and action["start_ns"] <= event["ns"] <= action["end_ns"]][:5],
+                      "first_frames": [{"mode": event.get("mode"),
+                                        "flush_ms": round((event["ns"]-action["start_ns"])/1e6, 2)}
+                                       for event in trace if event["event"] == "frame_flushed"
+                                       and action["start_ns"] <= event["ns"] <= action["end_ns"]][:5],
                       "first_target_flush_ms": round((flushes[0]["ns"]-action["start_ns"])/1e6, 2) if flushes else None,
                       "stages": [{"stage": event["stage"], "duration_ms": round(event["duration_ms"], 2),
                                   "start_ms": round((event["begin_ns"]-action["start_ns"])/1e6, 2)} for event in stages]}))

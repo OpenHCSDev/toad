@@ -200,7 +200,7 @@ class ThreadLoading(Static):
         self.auto_refresh = 1 / 12
 
     def automatic_refresh(self) -> None:
-        if self.is_attached and self.screen is self.app.screen:
+        if self.is_attached and not self._closing and self.screen.is_current:
             if self in self.screen._compositor.visible_widgets:
                 self.refresh(layout=False)
 
@@ -368,6 +368,7 @@ class Conversation(containers.Vertical):
     """Holds the agent conversation (input, output, and various controls / information)."""
 
     BLANK = True
+    MAX_LIVE_BLOCKS = 32
     BINDING_GROUP_TITLE = "Conversation"
     CURSOR_BINDING_GROUP = Binding.Group(description="Cursor")
     BINDINGS = [
@@ -1679,7 +1680,7 @@ class Conversation(containers.Vertical):
             or self._managed_turn_id is not None
             or not window.follows_tail
             or contents.query(ShellResult)
-            or (not self._needs_transcript_checkpoint and len(list(contents.query("*"))) < 250)
+            or (not self._needs_transcript_checkpoint and len(contents.children) < self.MAX_LIVE_BLOCKS)
         ):
             return
         generation = self._transcript_generation

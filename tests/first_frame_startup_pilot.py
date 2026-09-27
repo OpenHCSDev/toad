@@ -11,6 +11,7 @@ from runtime_fixture import ToadApp
 from toad.acp.agent import Agent
 from toad.agent import AgentReady
 from toad.screens.session_view import SessionView
+from toad.screens.pending_thread import PendingThreadScreen
 from toad.widgets.conversation import ThreadLoading
 
 
@@ -32,6 +33,9 @@ async def main():
         finish_frame = SessionView._finish_first_frame
 
         def hold_frame(screen):
+            if isinstance(screen, PendingThreadScreen):
+                finish_frame(screen)
+                return
             written.add(screen)
 
         async def start(agent, target):
@@ -53,23 +57,31 @@ async def main():
                 await until(lambda: app._sidebar_snapshot is not None)
                 owner_screen._agent = {"name": "Fixture", "identity": "fixture", "short_name": "fixture",
                                        "run_command": {"*": "/bin/false"}, "protocol": "acp"}
-                mode = await app.open_thread_session(owner_mode=owner, project_path=root, target="visible-peer")
-                await pilot.pause()
+                opening = asyncio.create_task(app.open_thread_session(
+                    owner_mode=owner, project_path=root, target="visible-peer"))
+                await until(lambda: app.current_mode.startswith("session-")
+                            and app.current_mode != owner and app.screen in written)
                 view = app.screen
-                assert view.id == mode and view in written
+                assert not view._content_loaded and not opening.done()
                 assert view.query_one(ThreadLoading).is_mounted and not started
                 finish_frame(view)
+                mode = await asyncio.wait_for(opening, 8)
+                assert view.id == mode
                 await until(lambda: started == ["visible-peer"])
                 finish_frame(view)
                 await pilot.pause()
                 assert started == ["visible-peer"], "A second flush restarted the agent"
 
                 await app.switch_mode(owner)
-                closing = await app.open_thread_session(owner_mode=owner, project_path=root, target="closed-peer")
-                await pilot.pause()
+                opening = asyncio.create_task(app.open_thread_session(
+                    owner_mode=owner, project_path=root, target="closed-peer"))
+                await until(lambda: app.current_mode.startswith("session-")
+                            and app.current_mode not in {owner, mode} and app.screen in written)
+                closing = app.current_mode
                 closed_view = app.screen
                 assert closed_view in written and not closed_view._first_frame_presented
                 await app.close_session_mode(closing)
+                await asyncio.wait_for(opening, 8)
                 assert not closed_view._initial_frame_callbacks
                 finish_frame(closed_view)
                 await pilot.pause()

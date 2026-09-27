@@ -13,12 +13,27 @@ def summary(values):
             "p99_ms": round(values[int(.99 * (len(values) - 1))], 2),
             "max_ms": round(max(values), 2)} if values else {}
 
+
+def retention(value):
+    if value is None:
+        return None
+    owners = value["known_holders"]
+    return {"closed_widgets": value["closed_widgets"], "sdk_imported": value["sdk_imported"],
+            "closed_paragraph_referrers": value.get("closed_paragraph_referrers"),
+            "holder_count": len(owners),
+            "closed_arrangement_entries": sum(row["closed_arrangement_entries"] for row in owners),
+            "closed_geometry_entries": sum(row["closed_geometry_entries"] for row in owners),
+            "largest_holders": sorted(owners, key=lambda row: -(row["closed_arrangement_entries"]
+                                     + row["closed_geometry_entries"]))[:8]}
+
 for name in sys.argv[1:]:
     path = Path(name).expanduser()
     report = json.loads((path if path.suffix == ".json" else Path(str(path) + ".json")).read_text())
     observed = report.get("observation", {})
     print(json.dumps({"capture": name,
                       "spinners": report.get("spinners", []),
+                      "retention_before": retention(report.get("retention_before")),
+                      "retention_after": retention(report.get("retention_after")),
                       "gc": summary([item["wall_ms"] for item in observed.get("gc", [])]),
                       "loop_gaps": summary([item["wall_ms"] for item in observed.get("loop_gaps", [])]),
                       "slowest_gc": sorted(observed.get("gc", []), key=lambda row: -row["wall_ms"])[:3],

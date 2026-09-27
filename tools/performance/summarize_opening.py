@@ -29,13 +29,20 @@ for name in sys.argv[1:]:
             continue
         selected = [event for event in trace if action["start_ns"] <= event["ns"] <= snapshot["ns"]]
         flushes = [event for event in selected if event["event"] == "frame_flushed" and event.get("mode") == mode]
+        prior_mode = prior[-1]["mode"] if prior else None
+        feedback = [event for event in selected if event["event"] == "frame_flushed"
+                    and event.get("mode") != prior_mode
+                    and (event.get("mode") == mode or event.get("mode", "").startswith("pending-thread-"))]
         ready = [event for event in selected if event["event"] == "navigation_stage"
                  and event["stage"] == "on_agent_ready" and event.get("mode") == mode]
         report.append({"action": action["action"], "kind": kind,
+                       "feedback_mode": feedback[0].get("mode") if feedback else None,
+                       "feedback_flush_ms": (feedback[0]["ns"]-action["start_ns"])/1e6 if feedback else None,
                        "flush_ms": (flushes[0]["ns"]-action["start_ns"])/1e6 if flushes else None,
                        "ready_handler_end_ms": (ready[-1]["ns"]-action["start_ns"])/1e6 if ready else None})
     print(json.dumps({"capture": name, "completed": workload["completed"],
                       "opening_flush": stats([row["flush_ms"] for row in report if row["kind"] == "open" and row["flush_ms"] is not None]),
+                      "opening_feedback_flush": stats([row["feedback_flush_ms"] for row in report if row["kind"] == "open" and row["feedback_flush_ms"] is not None]),
                       "opening_ready_handler_end": stats([row["ready_handler_end_ms"] for row in report if row["kind"] == "open" and row["ready_handler_end_ms"] is not None]),
                       "switching_flush": stats([row["flush_ms"] for row in report if row["kind"] != "open" and row["flush_ms"] is not None]),
                       "per_action": [{key: round(value, 2) if isinstance(value, float) else value for key, value in row.items()}

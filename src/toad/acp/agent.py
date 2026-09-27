@@ -12,7 +12,6 @@ from copy import deepcopy
 from math import floor
 import rich.repr
 from agent_comms import Comms, Goal, GoalExecution, TranscriptCursor, TranscriptPage, MessageRoute
-from pydantic import ValidationError
 
 from textual.content import Content
 from textual.message import Message
@@ -149,6 +148,7 @@ class Agent(AgentBase):
         self.session_id = session_id
 
         self.server = jsonrpc.Server()
+        self._session_update_lock = asyncio.Lock()
         self.server.expose_instance(self)
 
         self._agent_task: asyncio.Task | None = None
@@ -302,28 +302,57 @@ class Agent(AgentBase):
             return False
         return message_target.post_message(message)
 
-    @jsonrpc.expose("session/update")
+    @jsonrpc.expose("session/update", ordered=True)
+    async def _rpc_session_update(
+        self, sessionId: str, update: Any, _meta: dict[str, Any] | None = None,
+    ) -> None:
+        """Validate wire notifications off-process, then publish to the same owner."""
+        from toad.render_tasks import ValidateSessionUpdateTask
+
+        target = self._message_target
+        if target is None:
+            return
+        session = self.session_id
+        async with self._session_update_lock:
+            if target is not self._message_target or self.session_id != session or target._closing:
+                return
+            validation = await target.app.render_processes.submit(
+                ValidateSessionUpdateTask(sessionId, update, _meta)
+            )
+            if target is not self._message_target or self.session_id != session or target._closing:
+                return
+            if validation.error is not None:
+                self._reject_session_update(sessionId, update, _meta, validation.error)
+                return
+            self._apply_session_update(cast(protocol.SessionUpdate, update))
+
     def rpc_session_update(
         self,
         sessionId: str,
         update: Any,
         _meta: dict[str, Any] | None = None,
     ):
-        """Agent requests an update.
+        """Synchronous in-process SDK boundary for direct protocol consumers.
 
-        https://agentclientprotocol.com/protocol/schema
+        Wire notifications use the asynchronous process-owned boundary above.
         """
+        from pydantic import ValidationError
 
         try:
             update = validate_session_update(sessionId, update, _meta)
         except ValidationError as error:
-            self.log(
-                f"[ACP rejected session/update] raw={{'sessionId': {sessionId!r}, "
-                f"'update': {update!r}, '_meta': {_meta!r}}}; validation={error}"
-            )
-            self.post_message(messages.RejectedSessionUpdate())
+            self._reject_session_update(sessionId, update, _meta, str(error))
             return
+        self._apply_session_update(update)
 
+    def _reject_session_update(self, session_id, update, metadata, error) -> None:
+        self.log(
+            f"[ACP rejected session/update] raw={{'sessionId': {session_id!r}, "
+            f"'update': {update!r}, '_meta': {metadata!r}}}; validation={error}"
+        )
+        self.post_message(messages.RejectedSessionUpdate())
+
+    def _apply_session_update(self, update: protocol.SessionUpdate) -> None:
         metadata = update.get("_meta")
         route: MessageRoute | None = None
         if isinstance(metadata, dict) and isinstance(metadata.get("agentComms"), dict):
@@ -819,6 +848,11 @@ class Agent(AgentBase):
 
             # By this point we know it is a JSON RPC call
             assert isinstance(agent_data, dict)
+            if self.server.requires_ordered_dispatch(agent_data):
+                # A session/load or prompt response may not overtake updates
+                # whose validation is still in flight in the process worker.
+                await call_jsonrpc(agent_data)
+                continue
             tasks.add(asyncio.create_task(call_jsonrpc(agent_data)))
             await asyncio.sleep(0)
 

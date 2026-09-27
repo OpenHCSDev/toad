@@ -390,6 +390,8 @@ class ToadApp(App, inherit_bindings=False):
         return paths.get_config()
 
     async def on_unmount(self) -> None:
+        if shells := self.__dict__.get("pending_tab_shells"):
+            shells.close()
         await self.navigation_reader.aclose()
         await self.render_processes.aclose()
         if self._background_render_tasks:
@@ -883,8 +885,10 @@ class ToadApp(App, inherit_bindings=False):
                 and not self._batch_count and screen is self.screen):
             self._renderer_warmup_started = True
             self._warm_renderer()
+            self.pending_tab_shells.prepare()
         if (renderable is not None and not self._batch_count and screen is self.screen
-                and isinstance(screen, SessionView) and not screen._first_frame_presented
+                and isinstance(screen, SessionView)
+                and (not screen._first_frame_presented or screen._navigation_frame_pending)
                 and not screen._first_frame_flush_queued):
             # call_after_refresh may run on an unpainted update. A real Linux
             # terminal writes asynchronously: do not start expensive native
@@ -893,16 +897,17 @@ class ToadApp(App, inherit_bindings=False):
             if after_flush is not None and not self.is_headless:
                 screen._first_frame_flush_queued = True
                 loop = asyncio.get_running_loop()
+                revision = screen._presentation_revision
 
                 def release_initial_frame() -> None:
                     try:
-                        loop.call_soon_threadsafe(screen._finish_first_frame)
+                        loop.call_soon_threadsafe(screen._frame_presented, revision)
                     except RuntimeError:
                         pass  # The app closed after this terminal write.
 
                 after_flush(release_initial_frame)
             else:
-                screen._finish_first_frame()
+                screen._frame_presented(screen._presentation_revision)
 
     @work(group="renderer-warmup", exit_on_error=False)
     async def _warm_renderer(self) -> None:
@@ -922,7 +927,6 @@ class ToadApp(App, inherit_bindings=False):
             screen._css_update_count = self._css_update_count
 
     async def _switch_mode_ready(self, mode: str, *, history_index: int | None = None) -> None:
-        from toad.screens.comms import CommsScreen
         from toad.screens.session_view import SessionView
 
         try:
@@ -939,14 +943,8 @@ class ToadApp(App, inherit_bindings=False):
                             await screen.layout_navigation()
                     finally:
                         self._atomic_mode_switch = False
-                if (isinstance(screen, CommsScreen) and screen.is_current
-                        and not screen._content_loaded):
-                    # The opening shell was measured inside the
-                    # atomic switch, but that paint was suppressed by the
-                    # batch. Commit it now rather than waiting another update
-                    # timer tick before hydration is allowed to begin.
-                    screen._dirty_widgets.add(screen)
-                    screen._refresh_layout(self.size)
+                if isinstance(screen, SessionView) and screen.is_current:
+                    screen.present_navigation()
                 if mode != previous_mode:
                     self._record_tab_visit(mode, history_index)
         finally:
@@ -965,16 +963,17 @@ class ToadApp(App, inherit_bindings=False):
         kind: str,
     ) -> str:
         """Open or reuse one view of a wire destination for this owner tab."""
-        from toad.constants import ALL_COMMS_TARGET
+        from toad.navigation_target import NavigationContext, NavigationTarget
 
-        if kind == "irc" or (kind == "channel" and target == ALL_COMMS_TARGET):
-            target, kind = ALL_COMMS_TARGET, "irc"
-        if kind == "thread":
-            return await self.open_thread_session(
-                owner_mode=owner_mode,
-                project_path=project_path,
-                target=target,
-            )
+        return await NavigationTarget.decode(target, kind).open(
+            NavigationContext(self, owner_mode, project_path, me)
+        )
+
+    async def _open_comms_history(
+        self, *, owner_mode: str, project_path: Path, me: str,
+        target: str, kind: HistoryKind,
+    ) -> str:
+        """Execute a declared history route after its target selected behavior."""
 
         from toad.screens.comms import CommsScreen
 
@@ -987,7 +986,7 @@ class ToadApp(App, inherit_bindings=False):
         requested_root = os.environ.get("AGENT_COMMS_ROOT", "~/.agent-comms")
         try:
             prepared = await self.navigation_reader.read(
-                CommsNavigationRequest(requested_root, owner_mode, me, target, HistoryKind(kind), owner_root)
+                CommsNavigationRequest(requested_root, owner_mode, me, target, kind, owner_root)
             )
         except Exception as error:
             self.notify(str(error), title="Comms target unavailable", severity="error")
@@ -1012,7 +1011,7 @@ class ToadApp(App, inherit_bindings=False):
                 screen = self.get_screen_stack(mode_name)[0]
                 if not isinstance(screen, CommsScreen) or (
                     screen.owner_mode, screen.me, screen.kind, screen.target
-                ) != (owner_mode, me, kind, target):
+                ) != (owner_mode, me, kind.value, target):
                     # A stale mapping is not authority to navigate through an
                     # obsolete sending identity or return to the wrong owner.
                     self.notify(
@@ -1031,7 +1030,7 @@ class ToadApp(App, inherit_bindings=False):
                 owner_mode=owner_mode,
                 me=me,
                 target=target,
-                kind=kind,
+                kind=kind.value,
                 recovery_root=recovery_root,
             )
 
@@ -1125,6 +1124,15 @@ class ToadApp(App, inherit_bindings=False):
         by_mode = {tab.mode_name: tab for tab in tabs}
         return tuple(by_mode[mode] for mode in self._open_tab_order if mode in by_mode)
 
+    PREPARED_TAB_SHELLS = 1
+    """Tunable UI-only lookahead count; zero disables preparation."""
+
+    @cached_property
+    def pending_tab_shells(self):
+        from toad.screens.pending_thread import PendingTabShells
+
+        return PendingTabShells(self, self.PREPARED_TAB_SHELLS)
+
     @cached_property
     def coordination_wire(self):
         from agent_comms import wire
@@ -1193,8 +1201,6 @@ class ToadApp(App, inherit_bindings=False):
         target: str,
     ) -> str:
         """Open or reuse a resumable wire thread as a tracked agent session."""
-        from toad.screens.main import MainScreen
-
         source = self._main_session_screen(owner_mode)
         if source is None:
             from toad.screens.comms import CommsScreen
@@ -1253,20 +1259,27 @@ class ToadApp(App, inherit_bindings=False):
 
     async def _open_pending_thread_tab(self, owner_mode: str, target: str, root: str, *,
                                        navigation_owner: str, project_path: Path, me: str) -> str:
-        from toad.screens.pending_thread import PendingThreadScreen
+        from toad.navigation_target import NavigationContext
 
-        self._pending_thread_index += 1
-        mode = f"pending-thread-{self._pending_thread_index}"
-        pending = PendingThreadTab(owner_mode, root, target, self.current_mode,
+        return_mode = self.current_mode
+        screen = await self.pending_tab_shells.acquire(
+            NavigationContext(self, navigation_owner, project_path, me)
+        )
+        mode = screen.id
+        assert mode is not None
+        if self.current_mode != return_mode or not self._screen_stacks.get(owner_mode):
+            await self.remove_mode(mode)
+            return mode
+        pending = PendingThreadTab(owner_mode, root, target, return_mode,
                                    asyncio.get_running_loop().create_future())
         self._pending_thread_modes[mode] = pending
-        self.add_mode(mode, lambda: PendingThreadScreen(
-            owner_mode=navigation_owner, project_path=project_path, me=me,
-        ))
         self._open_tab_order.append(mode)
         self.open_tabs_changed.publish(None)
         self.update_show_sessions()
+        screen.call_after_first_frame(screen, self.pending_tab_shells.prepare)
         await self.switch_mode(mode)
+        if not await screen.wait_presented() and mode in self._pending_thread_modes:
+            await self.close_session_mode(mode)
         return mode
 
     async def _finish_open_thread_session(
@@ -1276,6 +1289,8 @@ class ToadApp(App, inherit_bindings=False):
     ) -> str:
         from toad.screens.main import MainScreen
 
+        if pending_mode not in self._pending_thread_modes or self.current_mode != pending_mode:
+            return self._pending_thread_fallback(pending_mode)
         open_threads = tuple(
             OpenThread(details.mode_name, screen._coordination_root, screen._comms_thread)
             for details in self.session_tracker.ordered_sessions
@@ -1373,7 +1388,9 @@ class ToadApp(App, inherit_bindings=False):
             return screen
 
         details = await self.new_session_screen(get_screen)
-        return details.mode_name
+        if screen := self._main_session_screen(details.mode_name):
+            await screen.wait_content_ready()
+        return details.mode_name if self._screen_stacks.get(details.mode_name) else self.current_mode
 
     def sync_coordination_identity(
         self, owner_mode: str, previous: str, current: str
@@ -1460,6 +1477,9 @@ class ToadApp(App, inherit_bindings=False):
         window = conversation.query_one_optional(Window)
         through = conversation.displayed_transcript_cursor
         if through is None or window is None or not window.follows_tail:
+            return
+        viewport = window.__dict__.get("document_viewport")
+        if viewport is not None and not viewport.visible_bodies_ready:
             return
         if any(history.is_attached and (history.has_newer or history._loading)
                for history in window.histories):

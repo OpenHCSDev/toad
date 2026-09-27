@@ -177,6 +177,12 @@ try:
         "--output", str(base) + "-actions.json", "--snapshot", str(base) + "-state.json", "--tabs", str(args.tabs),
         "--duration", "240", "--base-mode", "session-1", "--launcher", launcher, *profile_args,
     ], env=env, timeout=245)
+    if result.returncode and psutil.pid_exists(pid):
+        os.kill(pid, signal.SIGRTMAX)
+        time.sleep(.1)
+        with Path(str(base) + "-asyncio-tasks.txt").open("w") as diagnostic:
+            subprocess.run(["sudo", "-n", str(args.environment / "bin/python"), "-m", "asyncio", "pstree", str(pid)],
+                           stdout=diagnostic, stderr=subprocess.STDOUT, timeout=20, check=False)
     if psutil.pid_exists(pid) and terminal.poll() is None:
         if args.census:
             os.kill(pid, signal.SIGUSR2)

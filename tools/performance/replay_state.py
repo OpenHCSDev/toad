@@ -111,9 +111,62 @@ def ownership(app):
                     closed[type(node).__name__, attribute, type(subscriber).__name__] += 1
                 else:
                     live += 1
-    return {"registered_widgets": len(app._registry), "live_watch_subscriptions": live,
+    from toad.widgets.prepared_markdown import PreparedConversationMarkdown
+    documents = [node for node in app._registry if isinstance(node, PreparedConversationMarkdown)]
+    return {"registered_widgets": len(app._registry),
+            "widget_types": Counter(type(node).__name__ for node in app._registry).most_common(30),
+            "document_bodies": {"owners": len(documents),
+                                "dormant": sum(getattr(node, "body_dormant", False) for node in documents),
+                                "stale": sum(getattr(node, "body_measurement_stale", False) for node in documents)},
+            "live_watch_subscriptions": live,
             "closed_watch_subscriptions": sum(closed.values()),
             "closed_watch_paths": [(list(path), count) for path, count in closed.most_common()]}
+
+
+def presentation_retention(app):
+    """Inspect known scene owners outside measured actions, without collecting."""
+    from textual.widget import Widget
+    from textual.screen import Screen
+
+    objects = gc.get_objects()
+    closed = Counter(type(node).__name__ for node in objects if isinstance(node, Widget) and node._closed)
+    sample = next((node for node in objects if type(node).__name__ == "MarkdownParagraph" and node._closed), None)
+    del objects
+    references = []
+    if sample is not None:
+        for holder in gc.get_referrers(sample):
+            entry = {"type": type(holder).__name__}
+            if isinstance(holder, dict):
+                entry["keys"] = [str(key)[:100] for key, value in holder.items() if value is sample][:8]
+            parents = []
+            for ancestor in gc.get_referrers(holder):
+                if isinstance(ancestor, dict):
+                    parents.append({"type": "dict", "keys": [str(key)[:100] for key, value in ancestor.items()
+                                                              if value is holder][:8]})
+                elif isinstance(ancestor, Widget):
+                    parents.append({"type": type(ancestor).__name__, "closed": ancestor._closed})
+                else:
+                    parents.append({"type": type(ancestor).__name__, "parents": [
+                        {"type": type(upper).__name__,
+                         "keys": [str(key)[:100] for key, value in upper.items() if value is ancestor][:8]
+                         if isinstance(upper, dict) else []}
+                        for upper in gc.get_referrers(ancestor)][:8]})
+            entry["owners"] = parents[:8]
+            references.append(entry)
+    holders = []
+    for node in app._registry:
+        arranged = sum(placement.widget._closed for arrangement in node._arrangement_cache._cache.values()
+                       for placement in arrangement.placements)
+        geometry = 0
+        if isinstance(node, Screen):
+            geometry = sum(item._closed for item in node._compositor._full_map)
+            geometry += sum(item._closed for item in node._compositor._visible_map or ())
+        if arranged or geometry:
+            holders.append({"owner": type(node).__name__, "id": node.id,
+                            "closed_arrangement_entries": arranged, "closed_geometry_entries": geometry})
+    return {"closed_widgets": closed.most_common(30), "known_holders": holders,
+            "closed_paragraph_referrers": references[:12],
+            "sdk_imported": "acp.schema" in __import__("sys").modules}
 
 
 async def main(args):
@@ -231,6 +284,8 @@ async def main(args):
                     await pilot.pause()
                     report["setup_seconds"] = round(time.monotonic()-start, 2)
                     report["before"] = ownership(app)
+                    if args.heap_census:
+                        report["retention_before"] = presentation_retention(app)
                     report["mode_mapping"] = modes
                     gc.callbacks.append(observation.gc_callback)
                     heartbeat = asyncio.create_task(observation.heartbeat())
@@ -276,6 +331,8 @@ async def main(args):
                     gc.callbacks.remove(observation.gc_callback)
                     heartbeat.cancel()
                     await asyncio.gather(heartbeat, return_exceptions=True)
+                    if args.heap_census:
+                        report["retention_after"] = presentation_retention(app)
                     assert app._exception is None
                     report["completed"] = True
         finally:
@@ -298,4 +355,5 @@ if __name__ == "__main__":
     parser.add_argument("--legacy-watches", action="store_true")
     parser.add_argument("--spinner-seconds", type=float, default=0)
     parser.add_argument("--spinner-fps", type=int, default=60)
+    parser.add_argument("--heap-census", action="store_true")
     asyncio.run(main(parser.parse_args()))

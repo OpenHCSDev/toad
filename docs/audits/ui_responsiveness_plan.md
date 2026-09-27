@@ -4,6 +4,9 @@ Status: **draft implementation and investigation; performance targets unmet**.
 The branch includes the current Toad implementation, regression pilots, audit,
 and the [debug/capture/replay toolbox](../../tools/performance/README.md).
 Textual changes are tracked in [companion draft PR #5](https://github.com/OpenHCSDev/textual/pull/5).
+The dependency pin includes framework checkpoint
+`dc4daf62fd290cbfe6377c45b170f2d6e18c8203` (retired-scene ownership and native
+presentation reuse).
 
 ## Locked-in issues
 
@@ -34,6 +37,8 @@ Additional requirements are first-class work items:
 
 - Target 16.7 ms steady-state frame work for 60 Hz animation. Current throbber cadence
   is 30 Hz; timing its renderer is not proof of delivered 60 FPS.
+- End-to-end interaction target is under50ms, including typing, filtering,
+  opening, switching and resize. Meeting the median alone is insufficient.
 - 200 ms UI-thread stops are failures, regardless of whether a test eventually
   completes. Report p50/p95/p99/max and input acknowledgment, not only averages.
 - Loading and spinner feedback are allowed; typing, navigation and cancellation
@@ -75,7 +80,8 @@ Additional requirements are first-class work items:
 ### Textual companion
 
 - Retire obsolete box-model cache generations; targeted anchor geometry for
-  viewport layout; measured-extent policy with unchanged defaults.
+  viewport layout; measured-extent policy distinguishing layout outputs from
+  authored inputs, including scrolling child containers.
 - Lazy optional DOM/message storage, shared immutable selector metadata.
 - Timer callback/task cleanup and closed presentation/cache cleanup.
 - Avoid unused message signals and idle retention of processed payloads.
@@ -84,6 +90,123 @@ Additional requirements are first-class work items:
 - Composable model display constraints and parsed class-reference lookup.
 
 ## Evidence and limitations
+
+### Async tab activation and polymorphic target dispatch
+
+New tabs now present a loading shell before route discovery, sidebar population,
+conversation mounting or agent/history startup. Sidebar hydration and retirement
+run after the activation's presented-frame receipt. They no longer hold the
+navigation transaction or a global paint mask across preparation/mount awaits.
+Closing/superseding a view invalidates delayed publication and frame receipts.
+
+`NavigationTarget` owns target behavior through SessionTarget, ThreadTarget,
+ChannelTarget, DirectTarget and FeedTarget. `NavigationOwner` supplies each view's
+`NavigationContext`; native and virtual rows share this dispatch. Serialized
+kind strings are decoded at one registry boundary rather than compared across
+views. Existing history readers still resolve canonical identity off-loop.
+
+`PendingTabShells` owns bounded UI-only lookahead; it performs no route discovery
+or sidebar-source work. `ToadApp.PREPARED_TAB_SHELLS` is configurable (default1,
+zero disables lookahead), validated, and released on shutdown. Prepared shells
+bind to one requested route before their first presentation.
+
+Matched83-action ten-tab native workloads (including eight resize drags):
+
+| Measurement | Previous median / maximum (ms) | Async candidate median / maximum (ms) |
+| --- | --- | --- |
+| Opening loading-frame flush |267.14 /322.57|53.52 /62.59|
+| Final session-shell flush |696.19 /957.23|311.30 /345.64|
+| Switching target-frame flush |169.34 /204.15|55.09 /105.18|
+| Agent-ready handler completion |831.72 /1093.16|819.74 /881.51|
+
+Loading feedback and fully loaded content are intentionally measured separately.
+The previous loading-frame metric was recomputed from its original trace using
+the same analyzer. A smaller three-open candidate recorded44.49–51.33ms loading
+feedback; the larger workload above remains the stronger receipt. The universal
+sub50ms target is **still not met**. The candidate's loop maximum was187.28ms
+with132.89ms GC; async loading does not remove those unrelated stalls.
+
+All-seven-filter/four-thread stress completed72actions/52typed markers with every
+mask and draft retained: input median44.67/p95101.35/max130.12ms. Private prefixes:
+`toad-prepared-polymorphic-navigation-6`, `toad-prepared-polymorphic-filters-7`;
+control `toad-current-structural-navigation-1`. Earlier intermediate prefixes
+`toad-async-activation-open-1`, `toad-async-shell-open-2`,
+`toad-async-direct-open-3`, `toad-polymorphic-async-navigation-4`, and
+`toad-prepared-async-shell-open-5` retain the iteration evidence.
+
+The expanded53-case pilot set has been verified (latest full run52passed, then
+the remaining comms case passed after replacing frame-pause timing assumptions
+with bounded domain-completion waits). New coverage gates sidebar hydration while
+typing/switching, closes a view during publication, tests typed target dispatch,
+validates lookahead bounds/disabled behavior, and checks unselected shells do not
+start source presentation. An initial startup deadlock was fixed by keeping
+`new_session_screen` independent of content-ready: app mounting must return before
+its presentation callbacks can run. Retired-row publication and loading-indicator
+shutdown regressions were reproduced and fixed. The final focused activation,
+opening and sidebar-geometry rerun passed4cases. This remains a draft checkpoint.
+
+### Structural follow-up preceding async activation
+
+- Textual3412passed/1skipped/4xfailed excluding snapshots;25focused visual
+  snapshots passed. Toad52pilots passed. Framework sources also received a final
+  delayed-transition regression fix and Python3.9-compatible paint record cleanup,
+  covered by the final framework run and the full native navigation workload.
+- Native Footer reconciliation preserves binding/keymap authority and native key
+  owners, including disabled/grouped states, owner changes and retirement during
+  awaited publication. It has not independently established an end-to-end win.
+- Shared paint validation now observes style/topology mutation epochs, avoiding
+  repeated ancestor traversal when no input changed. Child-derived scrolling
+  extents no longer refeed unchanged layout output into ancestor measurement.
+- All-seven-filter/four-thread receipts (each72actions/52typed markers):
+
+  | Candidate | Input median / p95 / maximum (ms) | Loop maximum (ms) | GC maximum (ms) |
+  | --- | --- | --- | --- |
+  | Footer reconciliation |54.09 /142.69 /227.30|151.73|88.22|
+  | Paint mutation epoch |47.27 /102.22 /149.74|116.24|84.63|
+  | Scrolling extent output |55.21 /97.47 /134.90|148.48|84.06|
+
+  These are serial source-identified samples, not an isolated statistical proof
+  for every change. All preserve masks and unsent drafts; all miss the target.
+- Full native ten-tab navigation plus sidebar resizing completed83actions.
+  Target-mode terminal flush: opening median696.19/max957.23ms (9opens),
+  switching median169.34/max204.15ms (21non-no-op switches). Overall loopmax189.70,
+  GCmax139.83ms; resize-loopmax101.57ms. Opening ready-handler completion is a
+  separate measure: median831.72/max1093.16ms.
+- Navigation attribution now identifies repeated cold sidebar preparation:
+  warm switches spend about63–91ms in prepare_navigation and45–68ms in
+  layout_navigation. Inactive native roster retirement reduces retained widgets
+  but shifts remount/measurement work onto activation. This needs a bounded
+  presentation-ownership solution rather than unbounded per-tab warm caches.
+- Captured-session replay retains about3511–3560registered widgets, with701
+  document-body owners and693–696dormant. Zero closed reactive subscriptions,
+  zero closed arrangement/geometry entries in the inspected owners. Most of the
+  remaining footprint is outer message/chrome widgets, which remains unfinished.
+- Two loaded replay spinner intervals each produced180updates in3seconds at
+  requested60Hz, max3.19/2.45ms frame work, zero layout/CSS calls. This is headless
+  steady-state frame work, not terminal FPS or concurrent-input acceptance.
+- Private capture prefixes: `toad-footer-reconciliation-filters-1`,
+  `toad-current-reconciliation-profile-1`, `toad-paint-mutation-epoch-filters-1`,
+  `toad-paint-epoch-layout-causes-1`, `toad-scroll-measurement-output-filters-1`,
+  `toad-live-replay-footer-paint-epoch-1`, `toad-current-structural-navigation-1`.
+  Raw data remains outside Git. GC policy is unchanged. Main integration remains
+  deferred by user instruction.
+
+### Accumulation status
+
+The reproduced retention bugs are fixed: quiet reactive publishers release closed
+subscribers, removed children leave arrangement/StreamLayout caches, and compositor
+maps/layer projections release retired widgets. The captured-session replay
+reported zero closed reactive subscriptions and zero closed arrangement/geometry
+entries in inspected owners. Cold document bodies and inactive native rosters
+also release their descendant presentation trees.
+
+This does not establish a fully bounded or leak-free long-running application.
+Outer message/chrome widgets and cumulative filtered overlays remain unfinished;
+the diagnostic replay still observed some other closed widgets. Keep source-size
+scaling and long-aging validation open rather than treating the fixed reproductions
+as proof that all accumulation is solved.
+
+### Earlier published receipts
 
 - Full Textual suite at the latest framework checkpoint:3132passed,1skipped,
   4xfailed, excluding snapshot tests. The packaged Toad pilot runner passes49cases.

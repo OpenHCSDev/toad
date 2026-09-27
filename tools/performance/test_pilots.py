@@ -28,14 +28,20 @@ PYTHON = os.environ.get("TOAD_TEST_PYTHON", sys.executable)
     "dense_history", "long_message", "user_input_worker",
     "goal_geometry", "goal_resize", "goal_collapse", "goal_separator", "markdown_extent_policy", "first_frame_startup",
     "filter_mount_supersession", "filter_style_scope", "throbber_render_cache",
+    "viewport_body_lifetime", "acp_process_validation", "acp_sdk_boundary",
+    "async_tab_activation",
 ])
 def test_pilot(name):
     # Test-owned persistent services may inherit stdout/stderr. Waiting for
     # pipe EOF can hang after the pilot process has already exited successfully.
     # Preserve bounded process completion and failure output independently.
     with TemporaryFile(mode="w+t") as output:
-        result = subprocess.run([PYTHON, str(ROOT / "tests" / f"{name}_pilot.py")],
-                                cwd=ROOT, env=os.environ.copy(), stdout=output,
-                                stderr=subprocess.STDOUT, text=True, timeout=100)
+        try:
+            result = subprocess.run([PYTHON, str(ROOT / "tests" / f"{name}_pilot.py")],
+                                    cwd=ROOT, env=os.environ.copy(), stdout=output,
+                                    stderr=subprocess.STDOUT, text=True, timeout=100)
+        except subprocess.TimeoutExpired:
+            output.seek(0)
+            pytest.fail(f"{name} exceeded 100 seconds:\n{output.read()}")
         output.seek(0)
         assert result.returncode == 0, output.read()

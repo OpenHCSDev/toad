@@ -19,12 +19,13 @@ from toad.widgets.channels_sidebar import ChannelsSidebar
 from toad.session_tracker import SidebarState
 from toad.widgets.session_tabs import SessionsTabs
 from toad.widgets.side_bar import SideBar, TabHistoryControls
+from toad.navigation_target import NavigationContext, NavigationOwner
 from toad.widgets.recovery_view import RecoveryView
 from toad.widgets.thread_comms import RelationshipSort, ThreadCommsSidebar
 from toad.screens.session_view import SessionView
 
 
-class CommsScreen(SessionView, can_focus=False):
+class CommsScreen(SessionView, NavigationOwner, can_focus=False):
     """A channel or DM represented as a native concurrent Toad session."""
 
     AUTO_FOCUS = "CommsChatView Prompt TextArea"
@@ -205,20 +206,15 @@ class CommsScreen(SessionView, can_focus=False):
         self.action_focus_prompt()
 
     async def _open(self, target: str, kind: str) -> None:
-        await self.app.open_comms_session(
-            owner_mode=self.owner_mode,
-            project_path=self.project_path,
-            me=self.me,
-            target=target,
-            kind=kind,
-        )
+        await self.open_sidebar_target(target, kind)
+
+    @property
+    def navigation_context(self) -> NavigationContext:
+        return NavigationContext(self.app, self.owner_mode, self.project_path, self.me)
 
     @on(SelectTarget)
     async def on_select_target(self, event: SelectTarget) -> None:
-        if event.kind == "session":
-            await self.action_back_to_agent()
-        else:
-            await self._open(event.target, event.kind)
+        await self.open_sidebar_target(event.target, event.kind)
 
     async def action_back_to_agent(self) -> None:
         if self.app.session_tracker.get_session(self.owner_mode) is None:

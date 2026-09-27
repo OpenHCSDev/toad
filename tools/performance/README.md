@@ -180,6 +180,9 @@ cache names:
 - `analyze_filters.py PREFIX...`: category coverage, drafts and key acknowledgment.
 - `summarize_opening.py PREFIX...`: click-to-target flush / ready completion;
   excludes no-op same-tab clicks.
+  Also reports the first loading-shell flush separately from the final session
+  shell. Async loading must improve feedback without relabeling content-ready
+  time as first-frame time; original traces can be reanalyzed with both metrics.
 - `analyze_navigation.py PREFIX`, `analyze_cold_open.py PREFIX [COUNT]`,
   `analyze_open_layouts.py PREFIX`: stage and layout breakdowns.
 - `summarize_sidebar.py PREFIX...`, `compare_sidebar.py PREFIX...`,

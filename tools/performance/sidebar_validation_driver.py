@@ -289,6 +289,7 @@ class ValidationDriver(LinuxDriver):
         self._loop.call_soon(self._tick)
         gc.callbacks.append(self._gc)
         signal.signal(signal.SIGUSR1, lambda *_: self._app.call_after_refresh(self._snapshot))
+        signal.signal(signal.SIGRTMAX, lambda *_: self._stalled_snapshot())
         if os.environ.get("TOAD_VALIDATION_CENSUS"):
             signal.signal(signal.SIGUSR2, lambda *_: self._app.call_later(self._census))
 
@@ -401,6 +402,35 @@ class ValidationDriver(LinuxDriver):
                 "duration_ms": (time.monotonic_ns()-begin)/1e6}
         with Path(os.environ["TOAD_VALIDATION_CENSUS"]).open("a") as stream:
             stream.write(json.dumps(data) + "\n")
+
+    def _stalled_snapshot(self):
+        """Read-only failure evidence independent of the refresh callback queue."""
+        from toad.widgets.history_anchor import HistoryWindow
+
+        app = self._app
+        screens = []
+        for mode, stack in app._screen_stacks.items():
+            for screen in stack:
+                timer = screen._update_timer
+                task = timer._task
+                screens.append({"mode": mode, "current": screen.is_current,
+                    "callbacks": len(screen._callbacks), "layout_required": screen._layout_required,
+                    "repaint_required": screen._repaint_required, "scroll_required": screen._scroll_required,
+                    "layout_nodes": len(screen._layout_widgets), "dirty_nodes": len(screen._dirty_widgets),
+                    "timer_task_done": None if task is None else task.done(),
+                    "timer_error": (repr(task.exception()) if task is not None and task.done()
+                                    and not task.cancelled() else None),
+                    "history": [{"locked": window.history_lock.locked(),
+                                 "anchor": repr(window.history_anchor.widget) if window.history_anchor else None,
+                                 "anchor_attached": window.history_anchor.widget.is_attached if window.history_anchor else None,
+                                 "layout_ready": window.history_layout_ready.is_set() if window.history_layout_ready else None,
+                                 "managed_anchor": window in screen.history_anchors}
+                                for window in screen.query(HistoryWindow)]})
+        Path(os.environ["TOAD_VALIDATION_TRACE"] + ".stalled.json").write_text(json.dumps({
+            "batch_count": app._batch_count, "current_mode": app.current_mode,
+            "atomic_mode_switch": app._atomic_mode_switch, "pending_mode_switch": app._pending_mode_switch,
+            "screens": screens}, indent=2))
+        Path(os.environ["TOAD_VALIDATION_TRACE"]).write_text(json.dumps(list(records)))
 
     def flush(self):
         result = super().flush()
