@@ -123,6 +123,7 @@ class CommsChatView(Conversation):
         self._history_warm_request: HistoryReadRequest | None = None
         self._ack_page: MessagePage | None = None
         self._channel_ack_pages: dict[int, MessagePage] = {}
+        self._historical_ack_pages: dict[tuple[str, int], MessagePage] = {}
         self._ack_inflight = False
         self.irc_style = True
 
@@ -251,12 +252,15 @@ class CommsChatView(Conversation):
         return WireMarkdownMessage(message, direction=direction)
 
     def _painted_message_sequences(self) -> tuple[int, ...]:
+        return tuple(seq for source, seq in self._painted_message_keys() if not source)
+
+    def _painted_message_keys(self) -> tuple[tuple[str, int], ...]:
         """Rows in the committed viewport, adapted from the sidebar worktree."""
         if not self.is_attached or not self.screen.is_active:
             return ()
         geometry = self.screen._compositor.visible_widgets
         viewport = self.window.content_region
-        visible: list[int] = []
+        visible: list[tuple[str, int]] = []
         for message, widget in self._history:
             painted = (
                 widget.read_ack_widget()
@@ -271,7 +275,7 @@ class CommsChatView(Conversation):
                 and region.overlaps(clip)
                 and clip.overlaps(viewport)
             ):
-                visible.append(message.seq)
+                visible.append(message.view_key)
         return tuple(visible)
 
     def _history_request(self) -> HistoryReadRequest:
@@ -361,12 +365,14 @@ class CommsChatView(Conversation):
         if self._wire is None or not root_is_current(self._wire.root):
             self.display = False
             return
-        if self.kind == "dm" and not older and page.messages:
+        if self.kind == "dm" and not older and page.messages and page.historical_display is None:
             self._ack_page = page
-        mounted = {message.seq for message, _ in self._history}
-        records = [message for message in page.messages if message.seq not in mounted]
+        mounted = {message.view_key for message, _ in self._history}
+        records = [message for message in page.messages if message.view_key not in mounted]
         if not records:
-            if self.kind != "dm":
+            if page.historical_display is not None:
+                self._historical_ack_pages.update((message.view_key, page) for message in page.messages)
+            elif self.kind != "dm":
                 self._channel_ack_pages.update((message.seq, page) for message in page.messages)
             if older:
                 self._has_older = page.has_older
@@ -386,7 +392,9 @@ class CommsChatView(Conversation):
                     return
                 with self.app.batch_update():
                     await self._insert_page(page, pairs, older=older)
-        if self.kind != "dm":
+        if page.historical_display is not None:
+            self._historical_ack_pages.update((message.view_key, page) for message in page.messages)
+        elif self.kind != "dm":
             # Publish proof only after mounting; a paint callback may run while
             # the history lock is awaited and prune rows not yet in the window.
             self._channel_ack_pages.update((message.seq, page) for message in page.messages)
@@ -410,9 +418,9 @@ class CommsChatView(Conversation):
             self._history.extend(pairs)
             # A send receipt can arrive ahead of the next wire page. Keep one
             # ordered projection when the page later fills in concurrent sends.
-            self._history.sort(key=lambda pair: pair[0].seq)
-            order = {widget: message.seq for message, widget in self._history}
-            self.contents.sort_children(key=lambda widget: order.get(widget, float("inf")))
+            self._history.sort(key=lambda pair: pair[0].view_order)
+            order = {widget: message.view_order for message, widget in self._history}
+            self.contents.sort_children(key=lambda widget: order.get(widget, (2, 0, 0)))
             self._has_newer = page.has_newer
             while len(self._history) > HISTORY_WINDOW_SIZE:
                 _, widget = self._history.pop(0)
@@ -462,7 +470,7 @@ class CommsChatView(Conversation):
                 if comms is None or not root_is_current(comms.root):
                     self.display = False
                     return
-                before = (self._history[0][0].seq, self._history[-1][0].seq,
+                before = (self._history[0][0].view_cursor, self._history[-1][0].view_cursor,
                           self._has_older, self._has_newer)
                 route = (self.target, self.kind, self.project_path)
                 older: bool
@@ -472,14 +480,14 @@ class CommsChatView(Conversation):
                     if limit <= 0:
                         return
                     older = True
-                    page = await asyncio.to_thread(self._message_page, comms, before=self._history[0][0].seq, limit=limit)
+                    page = await asyncio.to_thread(self._message_page, comms, before=self._history[0][0].view_cursor, limit=limit)
                 elif (
                     self.window.max_scroll_y - self.window.scroll_y
                     <= HISTORY_EDGE_THRESHOLD
                     and self._has_newer
                 ):
                     older = False
-                    page = await asyncio.to_thread(self._message_page, comms, after=self._history[-1][0].seq)
+                    page = await asyncio.to_thread(self._message_page, comms, after=self._history[-1][0].view_cursor)
                 else:
                     return
                 if not self.is_attached:
@@ -492,7 +500,7 @@ class CommsChatView(Conversation):
                     self.display = False
                     return
                 await self._mount_page(page, older=older)
-                after = (self._history[0][0].seq, self._history[-1][0].seq,
+                after = (self._history[0][0].view_cursor, self._history[-1][0].view_cursor,
                          self._has_older, self._has_newer)
                 progressed = before != after
         except Exception as error:
@@ -560,6 +568,18 @@ class CommsChatView(Conversation):
         if self._wire is None or not root_is_current(self._wire.root):
             self.display = False
             return
+        visible = set(self._painted_message_keys())
+        mounted_keys = {message.view_key for message, _ in self._history}
+        self._historical_ack_pages = {
+            key: source for key, source in self._historical_ack_pages.items() if key in mounted_keys
+        }
+        historical = next((page for key, page in self._historical_ack_pages.items() if key in visible), None)
+        if historical is not None:
+            selected = {key for key, page in self._historical_ack_pages.items()
+                        if page is historical and key in visible}
+            self._ack_inflight = True
+            self.run_worker(self._mark_historical_paint(historical, selected), group="comms-painted-read")
+            return
         painted = set(self._painted_message_sequences())
         original_page = None
         if self.kind == "dm":
@@ -582,7 +602,7 @@ class CommsChatView(Conversation):
                 display_basis=replace(basis, displayed=basis.displayed.select(painted)),
             )
         else:
-            mounted = {message.seq for message, _ in self._history}
+            mounted = {message.seq for message, _ in self._history if not message.view_key[0]}
             self._channel_ack_pages = {
                 seq: source for seq, source in self._channel_ack_pages.items() if seq in mounted
             }
@@ -607,6 +627,22 @@ class CommsChatView(Conversation):
             )
         self._ack_inflight = True
         self.run_worker(self._mark_painted_page(page, original_page), group="comms-painted-read")
+
+    async def _mark_historical_paint(self, page: MessagePage, keys: set[tuple[str, int]]) -> None:
+        from toad.comms_root import implicit_root, root_is_current, run_selected_write
+        try:
+            if self._wire is None or not root_is_current(self._wire.root) or not self.screen.is_active:
+                return
+            displayed = page.historical_display.select({seq for _, seq in keys})
+            await asyncio.to_thread(run_selected_write, self._wire.root,
+                self._wire.mark_historical_view_read, displayed, implicit=implicit_root())
+            for key in keys:
+                if self._historical_ack_pages.get(key) is page:
+                    del self._historical_ack_pages[key]
+        except ValueError:
+            self._historical_ack_pages.clear()
+        finally:
+            self._ack_inflight = False
 
     async def _mark_painted_page(self, page: MessagePage, original_page: MessagePage | None = None) -> None:
         try:

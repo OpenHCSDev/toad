@@ -90,6 +90,32 @@ class ReaderTests(unittest.IsolatedAsyncioTestCase):
                 ["older DM", "channel message"],
             )
 
+    async def test_history_attachment_refreshes_without_new_live_messages(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="history-attachment-") as directory:
+            root = Path(directory)
+            old = wire(root / "old")
+            comms = wire(root / "live")
+            for source in (old, comms):
+                source.register(Thread("alice", frozenset({"team"}), str(root)))
+                source.send("alice", "#team", source.root.name)
+            request = HistoryReadRequest(comms, HistoryKind.CHANNEL, "#team", root,
+                False, 0, True, None, 8, 40, 256 * 1024)
+            initial = request.read()
+            request = replace(request, initialized=True, after=initial.high_water,
+                known_revision=initial.revision, known_display=display_identity(request.kind, initial.page))
+            comms.attach_history(old.root)
+            refreshed = request.read()
+            self.assertEqual(refreshed.high_water, initial.high_water)
+            self.assertTrue(refreshed.replace_tail)
+            self.assertTrue(refreshed.page.has_older)
+            # Detaching changes the same inclusion basis without a new live sequence.
+            detached_request = replace(request, known_revision=refreshed.revision,
+                known_display=display_identity(request.kind, refreshed.page))
+            comms.bus.history_manifest.unlink()
+            detached = detached_request.read()
+            self.assertTrue(detached.replace_tail)
+            self.assertFalse(detached.page.has_older)
+
     async def test_revision_reuse_limits_and_background_admission(self) -> None:
         with tempfile.TemporaryDirectory(prefix="channel-reader-") as directory:
             root = Path(directory)

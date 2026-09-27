@@ -18,6 +18,9 @@ class HistoryKind(str, Enum):
 
 def display_identity(kind: HistoryKind, page: MessagePage) -> tuple | None:
     """The inclusion basis, excluding read markers and changing bus cursors."""
+    if page.historical_display is not None:
+        displayed = page.historical_display.displayed
+        return ("historical", displayed.viewer, displayed.viewer_created_at, page.history_revision)
     if kind is HistoryKind.DIRECT:
         basis = page.display_basis
         if basis is None:
@@ -25,7 +28,7 @@ def display_identity(kind: HistoryKind, page: MessagePage) -> tuple | None:
         return (
             basis.root_identity, basis.bus_identity, basis.worktree, basis.requested_peer,
             basis.viewer, basis.viewer_created_at, basis.viewer_names,
-            basis.peer, basis.peer_created_at, basis.peer_names,
+            basis.peer, basis.peer_created_at, basis.peer_names, page.history_revision,
         )
     scope = page.display_scope
     if scope is None or scope.displayed is None:
@@ -34,7 +37,7 @@ def display_identity(kind: HistoryKind, page: MessagePage) -> tuple | None:
     return (
         displayed.viewer, displayed.viewer_created_at, displayed.bus_identity,
         scope.channel, scope.targets, scope.any_mode,
-        scope.participant_names if scope.any_mode else frozenset(),
+        scope.participant_names if scope.any_mode else frozenset(), page.history_revision,
     )
 
 
