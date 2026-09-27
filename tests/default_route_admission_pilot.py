@@ -17,9 +17,10 @@ from unittest.mock import patch
 from agent_comms import Thread, ThreadRole, cohort_foreground
 from agent_comms.active_route import ActiveRoute, publish_active_route
 from agent_comms.operations import Comms
+from agent_comms.private_nk_entrypoint import PACKAGE_ENV, ROOT_ID_ENV
 from default_route_pilot import private_root
 
-from toad.acp.maintenance_ingress import admitted_spawn
+from toad.acp.maintenance_ingress import admitted_prompt, admitted_spawn
 from toad.app import ToadApp
 from toad.comms_root import current_root, run_selected_write
 from toad.widgets.comms_chat import CommsChatView
@@ -156,6 +157,51 @@ async def main() -> None:
                         pass
                     else:
                         raise AssertionError("stale old-root operation was admitted")
+
+                    # Toad pins the exact selected private marker/package into
+                    # an ACP child only after the SH guard has revalidated it.
+                    observed_env = {}
+
+                    async def observe_private(_command, **kwargs):
+                        observed_env.update(kwargs["env"])
+                        return SimpleNamespace(pid=123, returncode=0)
+
+                    with patch("asyncio.create_subprocess_shell", observe_private):
+                        await admitted_spawn(
+                            "fake-private", env=dict(os.environ), cwd=str(sandbox)
+                        )
+                    assert observed_env["AGENT_COMMS_ROOT"] == str(private)
+                    assert observed_env[ROOT_ID_ENV] == private_id
+                    assert observed_env[PACKAGE_ENV] == str(route.native_package)
+                    observed_env.clear()
+                    poisoned = dict(os.environ, **{ROOT_ID_ENV: "f" * 32})
+                    with patch("asyncio.create_subprocess_shell", observe_private):
+                        try:
+                            await admitted_spawn(
+                                "wrong-private-id", env=poisoned, cwd=str(sandbox)
+                            )
+                        except ValueError as error:
+                            assert "conflicts with route" in str(error)
+                        else:
+                            raise AssertionError(
+                                "conflicting private child ID was launched"
+                            )
+                    assert not observed_env
+
+                    # A caller-provided child root is explicit, even when
+                    # Toad's own environment still uses the default route.
+                    explicit_env = dict(os.environ, AGENT_COMMS_ROOT=str(legacy))
+                    with patch("asyncio.create_subprocess_shell", observe_private):
+                        await admitted_spawn(
+                            "fake-explicit", env=explicit_env, cwd=str(sandbox)
+                        )
+                    assert observed_env["AGENT_COMMS_ROOT"] == str(legacy)
+                    assert ROOT_ID_ENV not in observed_env
+                    assert PACKAGE_ENV not in observed_env
+                    with admitted_prompt(
+                        ingress_root=legacy, cwd=sandbox, implicit=False
+                    ):
+                        assert current_root() == private
 
 
 if __name__ == "__main__":

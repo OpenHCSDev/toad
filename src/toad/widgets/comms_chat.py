@@ -99,6 +99,8 @@ class CommsChatView(Conversation):
         self.kind = kind
         self._me = me
         self._unknown_send: tuple[str, int, str] | None = None
+        self._human_admission_blocked = False
+        self._send_block_reason = ""
         self._bound_root = Path(wire_root).resolve() if wire_root is not None else None
         self.set_prompt_history_scope(f"comms:{kind}:{target}")
         self._history: list[tuple[WireMessage, Widget]] = []
@@ -698,6 +700,8 @@ class CommsChatView(Conversation):
                     f"Send UNKNOWN {root_id}/{sequence}/{message_id}; "
                     "inspect the bus, do not retry"
                 )
+            elif self._human_admission_blocked:
+                self.status = self._send_block_reason
             elif info is not None:
                 self.status = " · ".join(
                     value
@@ -714,8 +718,8 @@ class CommsChatView(Conversation):
     async def submit_input(self, event: messages.UserInputSubmitted) -> None:
         if not event.body.strip():
             return
-        if self._unknown_send is not None:
-            self.flash("Prior send outcome UNKNOWN; inspect the bus, do not retry", style="error")
+        if self._unknown_send is not None or self._human_admission_blocked:
+            self.flash("Private human send UNKNOWN/blocked; inspect, do not retry", style="error")
             return
         try:
             from toad.comms_root import implicit_root, root_is_current, run_selected_write
@@ -723,11 +727,33 @@ class CommsChatView(Conversation):
             if self._wire is None or not root_is_current(self._wire.root):
                 raise ValueError("Comms route changed; reopen this view before sending")
             comms = self._wire
-            receipt = await asyncio.to_thread(
-                run_selected_write, comms.root, comms.send_user_message,
-                "#all" if self.kind == "irc" else self.target, event.body,
-                worktree=str(self.project_path), implicit=implicit_root(),
+            send_task = asyncio.create_task(
+                asyncio.to_thread(
+                    run_selected_write, comms.root, comms.send_user_message,
+                    "#all" if self.kind == "irc" else self.target, event.body,
+                    worktree=str(self.project_path), implicit=implicit_root(),
+                )
             )
+            try:
+                receipt = await asyncio.shield(send_task)
+            except asyncio.CancelledError:
+                # Cancelling the UI coroutine does not cancel the worker. The
+                # append may already have happened; never present this text as
+                # send-ready or launch a second attempt on a different root.
+                self._human_admission_blocked = True
+                self.prompt.text = event.body
+                self.prompt.prompt_text_area.disabled = True
+                self._send_block_reason = (
+                    "Send cancelled while worker may still write; "
+                    "outcome UNKNOWN, inspect the bus, do not retry"
+                )
+                self.status = self._send_block_reason
+                self.prompt.prompt_text_area.tooltip = self.status
+                self.flash(self.status, style="error")
+                send_task.add_done_callback(
+                    lambda task: task.exception() if not task.cancelled() else None
+                )
+                return
         except Exception as error:
             from agent_comms import declarations as core_declarations
 
@@ -739,6 +765,24 @@ class CommsChatView(Conversation):
                 self.prompt.text = event.body
                 self.prompt.prompt_text_area.disabled = True
                 self.status = f"Send UNKNOWN: {error}; do not retry"
+                self.prompt.prompt_text_area.tooltip = self.status
+                self.flash(self.status, style="error")
+                return
+            violation_type = getattr(core_declarations, "RelationViolationError", None)
+            if (
+                violation_type is not None
+                and isinstance(error, violation_type)
+                and "UNKNOWN outcome" in str(error)
+                and "human send blocked" in str(error)
+            ):
+                # Core's fail-closed reservation/sequence-gap admission is
+                # non-actionable until manual reconciliation, not a fresh
+                # pre-append rejection that can safely be resubmitted.
+                self._human_admission_blocked = True
+                self.prompt.text = event.body
+                self.prompt.prompt_text_area.disabled = True
+                self._send_block_reason = f"Private human admission blocked: {error}"
+                self.status = self._send_block_reason
                 self.prompt.prompt_text_area.tooltip = self.status
                 self.flash(self.status, style="error")
                 return
