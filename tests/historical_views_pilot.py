@@ -22,6 +22,7 @@ async def until(pilot, predicate):
 
 
 async def main():
+    (Path(__file__).parent.parent / ".test-artifacts").mkdir(exist_ok=True)
     with tempfile.TemporaryDirectory(
         prefix="history-pilot-", dir=Path(__file__).parent.parent / ".test-artifacts"
     ) as directory:
