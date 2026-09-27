@@ -779,10 +779,15 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
             return
         try:
             route_stamp = self._route_stamp()
-            if route_stamp != self._last_route_stamp:
-                # Publication can overtake a pending snapshot worker. Hide the
-                # old view immediately; never await a contended bus lock while
-                # its old projection remains visible under a new route.
+            if (
+                self._last_route_stamp is None
+                or route_stamp[0] != self._last_route_stamp[0]
+            ):
+                # Route publication can overtake a pending snapshot worker.
+                # Hide on route-file replacement before waiting for its bus
+                # lock. The private bus_meta stamp also changes on *ordinary*
+                # sends: it triggers validation below but must not blank a
+                # valid same-route sidebar on every message.
                 self.display = False
             if self._snapshot_pending:
                 return
