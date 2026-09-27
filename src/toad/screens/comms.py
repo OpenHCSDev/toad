@@ -5,7 +5,7 @@ from textual import containers, getters, on
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.events import ScreenResume
-from textual.widgets import Static
+from textual.widgets import Static, Button
 from textual.widget import Widget
 from toad.widgets.footer import Footer
 
@@ -13,6 +13,7 @@ from toad import messages
 from toad.constants import ALL_COMMS_TARGET
 from toad.app import ToadApp
 from toad.widgets.comms_chat import CommsChatView
+from toad.widgets.irc_message import SelectHistoricalIdentity
 from toad.widgets.comms_fork_dialog import ForkDialog
 from toad.widgets.comms_sidebar import CoordinationStatus, CommsSidebar, SelectTarget
 from toad.widgets.channels_sidebar import ChannelsSidebar
@@ -33,6 +34,7 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
     SESSION_NAVIGATION_GROUP = Binding.Group(description="Sessions")
     BINDINGS = [
         Binding("escape", "back_to_agent", "Agent session"),
+        Binding("ctrl+h", "historical_sessions", "Saved sessions"),
         Binding("ctrl+g", "toggle_irc", "IRC view"),
         Binding("ctrl+b,f20", "show_sidebar", "Sidebar"),
         Binding("ctrl+t", "message_style", "IRC / Markdown"),
@@ -99,6 +101,7 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
                 id="thread-sidebar", right=True, hide=True, navigation=self._thread_sidebar_state,
             )
             with containers.Vertical(id="comms-content"):
+                yield Button("Saved sessions", id="historical-sessions")
                 if not self._content_loaded:
                     yield Static(f"Opening {self.target}…", id="comms-opening")
                 else:
@@ -110,6 +113,28 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
                         wire_root=self.wire_root,
                     )
         yield Footer()
+
+    @on(SelectHistoricalIdentity)
+    async def select_historical_identity(self, event: SelectHistoricalIdentity) -> None:
+        event.stop()
+        from toad.screens.historical_sessions import HistoricalSessions
+        comms = self.app.coordination_wire
+        threads = await asyncio.to_thread(comms.historical_threads, event.name)
+        if not threads:
+            self.notify("This sender has no preserved identity declaration.")
+            return
+        self.app.push_screen(HistoricalSessions(comms, threads, name=event.name, source=event.source))
+
+    @on(Button.Pressed, "#historical-sessions")
+    async def action_historical_sessions(self) -> None:
+        from toad.screens.historical_sessions import HistoricalSessions
+        comms = self.app.coordination_wire
+        threads = await asyncio.to_thread(comms.historical_threads)
+        if not threads:
+            self.notify("No preserved history sources are attached yet.")
+            return
+        self.app.push_screen(HistoricalSessions(comms, threads,
+            name=self.target if self.kind == "dm" else None))
 
     def on_mount(self) -> None:
         if not self._content_loaded:
