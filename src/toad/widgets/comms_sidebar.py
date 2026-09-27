@@ -461,6 +461,7 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
         self._snapshot_lock = asyncio.Lock()
         self._presentation_lock = asyncio.Lock()
         self._last_revision: WireRevision | None = None
+        self._last_route_stamp: tuple[tuple[int, int, int, int] | None, ...] | None = None
         self._last_actor = ""
         self._last_filters: tuple[bool, bool] | None = None
         self._last_read_marker_notice: str | None = None
@@ -758,30 +759,57 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
     def _refresh(self) -> None:
         if not self._observe or not self.is_attached:
             return
-        from toad.comms_root import root_is_current
-
-        if self._wire is None or not root_is_current(self._wire.root):
-            # An old mounted sidebar must not present its cached projection as
-            # though it belonged to the newly published route.
-            self.display = False
-            return
-        if self._snapshot_pending:
+        if self._wire is None or self._snapshot_pending:
             return
         try:
-            # A refresh timer can fire while a mode's screen stack is being
-            # removed during tab closure or application shutdown.
-            if not self.is_attached or self.screen is not self.app.screen:
-                return
-            self.app.coordination_observed.publish(None)
+            # Stat-only change tokens keep idle timer ticks cheap. A route
+            # replacement OR private marker change forces canonical validation
+            # in a worker, without parsing the route in Toad or taking its bus
+            # lock on Textual's event loop.
+            from agent_comms.active_route import active_route_path
+
+            def stamp(path: Path) -> tuple[int, int, int, int] | None:
+                try:
+                    info = path.stat(follow_symlinks=False)
+                except FileNotFoundError:
+                    return None
+                return info.st_dev, info.st_ino, info.st_mtime_ns, info.st_size
+
+            route_stamp = (
+                stamp(active_route_path()), stamp(self._wire.root / "bus_meta.json")
+            )
             revision = self._wire.revision()
-            if (revision == self._last_revision and self.session_thread == self._last_actor
+            if (revision == self._last_revision and route_stamp == self._last_route_stamp
+                    and self.session_thread == self._last_actor
                     and self.visible_filters == self._last_filters):
                 return
             self._snapshot_pending = True
-            self.run_worker(self._poll_snapshot(revision))
+            self.run_worker(self._refresh_checked(revision, route_stamp))
         except Exception:
+            self.display = False
             self._snapshot_pending = False
+
+    async def _refresh_checked(
+        self, revision: WireRevision,
+        route_stamp: tuple[tuple[int, int, int, int] | None, ...],
+    ) -> None:
+        try:
+            from toad.comms_root import root_is_current
+
+            if not await asyncio.to_thread(root_is_current, self._wire.root):
+                self.display = False
+                return
+            if not self.is_attached or self.screen is not self.app.screen:
+                return
+            self.app.coordination_observed.publish(None)
+            await self._poll_snapshot(revision)
+            if self._last_revision == revision:
+                self._last_route_stamp = route_stamp
+        except Exception:
+            # Route publication or writer recovery will be retried next tick.
             return
+        finally:
+            self._snapshot_pending = False
 
     async def _poll_snapshot(self, revision: WireRevision) -> None:
         async with self._snapshot_lock:
@@ -801,7 +829,7 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
                 return
             from toad.comms_root import root_is_current
 
-            if not root_is_current(self._wire.root):
+            if not await asyncio.to_thread(root_is_current, self._wire.root):
                 self.display = False
                 return
             snapshot = self._snapshot(state)

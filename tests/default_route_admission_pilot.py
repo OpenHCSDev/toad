@@ -198,6 +198,28 @@ async def main() -> None:
                     assert observed_env["AGENT_COMMS_ROOT"] == str(legacy)
                     assert ROOT_ID_ENV not in observed_env
                     assert PACKAGE_ENV not in observed_env
+                    observed_env.clear()
+                    contradictory = dict(
+                        explicit_env,
+                        **{
+                            ROOT_ID_ENV: private_id,
+                            PACKAGE_ENV: str(route.native_package),
+                        },
+                    )
+                    with patch("asyncio.create_subprocess_shell", observe_private):
+                        try:
+                            await admitted_spawn(
+                                "explicit-legacy-with-private-flags",
+                                env=contradictory,
+                                cwd=str(sandbox),
+                            )
+                        except Exception as error:
+                            assert "private" in str(error).lower()
+                        else:
+                            raise AssertionError(
+                                "contradictory explicit child launched"
+                            )
+                    assert not observed_env
                     with admitted_prompt(
                         ingress_root=legacy, cwd=sandbox, implicit=False
                     ):

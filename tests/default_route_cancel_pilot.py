@@ -42,8 +42,9 @@ async def main() -> None:
             app = ToadApp(project_dir=str(sandbox))
             async with app.run_test(size=(105, 32)) as pilot:
                 await pilot.pause()
+                owner_mode = app.current_mode
                 await app.open_comms_session(
-                    owner_mode=app.current_mode,
+                    owner_mode=owner_mode,
                     project_path=sandbox,
                     me="user",
                     target="peer",
@@ -86,6 +87,59 @@ async def main() -> None:
                     assert [row.body for row in wire(root).bus.full_history()].count(
                         event.body
                     ) == 1
+
+                # A durable receipt may arrive before mounting finishes. UI
+                # cancellation at that edge must preserve its identity and
+                # disable compose, rather than offering a second send.
+                await app.open_comms_session(
+                    owner_mode=owner_mode,
+                    project_path=sandbox,
+                    me="user",
+                    target="#team",
+                    kind="channel",
+                )
+                channel = app.screen.query_one(CommsChatView)
+                await channel._refresh()
+                entered_paint, release_paint = asyncio.Event(), asyncio.Event()
+                original_mount = channel._mount_page
+
+                async def delayed_paint(page, *, older):
+                    if any(
+                        message.body == "POSTRECEIPT-CANCEL"
+                        for message in page.messages
+                    ):
+                        entered_paint.set()
+                        await release_paint.wait()
+                    return await original_mount(page, older=older)
+
+                with (
+                    patch.object(channel, "_mount_page", delayed_paint),
+                    patch.object(
+                        channel._wire,
+                        "send_user_message",
+                        wraps=channel._wire.send_user_message,
+                    ) as sender,
+                ):
+                    postreceipt = messages.UserInputSubmitted("POSTRECEIPT-CANCEL")
+                    pending = asyncio.create_task(channel.submit_input(postreceipt))
+                    async with asyncio.timeout(8):
+                        await entered_paint.wait()
+                    rows = [
+                        row
+                        for row in wire(root).bus.full_history()
+                        if row.body == postreceipt.body
+                    ]
+                    assert len(rows) == 1 and sender.call_count == 1
+                    pending.cancel()
+                    await pending
+                    assert channel._human_admission_blocked
+                    assert channel.prompt.text == postreceipt.body
+                    assert channel.prompt.prompt_text_area.disabled
+                    assert str(rows[0].seq) in channel.status
+                    assert rows[0].message_id in channel.status
+                    await channel.submit_input(postreceipt)
+                    assert sender.call_count == 1
+                    release_paint.set()
 
 
 if __name__ == "__main__":

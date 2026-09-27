@@ -201,6 +201,22 @@ async def main() -> None:
                     for message, _ in new_view._history
                 )
 
+                # A proven pre-append rejection remains editable; unlike an
+                # UNKNOWN or an interrupted committed receipt, it is not a
+                # non-retryable outcome.
+                with patch.object(
+                    new_view._wire, "send_user_message",
+                    side_effect=ValueError("pre-append admission rejected"),
+                ) as rejected:
+                    await new_view.submit_input(
+                        messages.UserInputSubmitted("EDITABLE-REJECTION")
+                    )
+                    assert rejected.call_count == 1
+                    assert new_view.prompt.text == "EDITABLE-REJECTION"
+                    assert not new_view.prompt.prompt_text_area.disabled
+                    assert not new_view._human_admission_blocked
+                new_view.prompt.text = ""
+
                 # An uncertain private send retains text for inspection but
                 # disables compose. Older paired core sources lack this typed
                 # exception, so inject only its exact no-provider interface.

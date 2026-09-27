@@ -182,9 +182,12 @@ async def admitted_spawn(command: str, *, root: str | None = None, **kwargs: Any
             with selected_write(ingress_root, implicit=default_route), admission(
                 root, ingress_root=ingress_root, cwd=child_cwd
             ):
+                from agent_comms.private_nk_entrypoint import (
+                    PACKAGE_ENV, ROOT_ID_ENV, private_nk_launch,
+                )
+
                 if default_route:
                     from agent_comms.active_route import read_active_route
-                    from agent_comms.private_nk_entrypoint import PACKAGE_ENV, ROOT_ID_ENV
 
                     route = read_active_route()
                     if route is not None:
@@ -197,6 +200,11 @@ async def admitted_spawn(command: str, *, root: str | None = None, **kwargs: Any
                             if key in child_env and child_env[key] != expected:
                                 raise ValueError("ACP private launch identity conflicts with route")
                             child_env[key] = expected
+                elif ROOT_ID_ENV in child_env or PACKAGE_ENV in child_env:
+                    # An explicit child root is independent of the default
+                    # route, but inherited private-owner flags must genuinely
+                    # belong to that explicit root before launching anything.
+                    private_nk_launch(ingress_root, child_env)
                 future = asyncio.run_coroutine_threadsafe(
                     asyncio.create_subprocess_shell(command, **kwargs), loop
                 )

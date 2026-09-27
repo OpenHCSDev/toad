@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import re
+from collections.abc import Callable
 from pathlib import Path
 
 from agent_comms import Comms, MessagePage, OBSERVATION_INTERVAL, ThreadRole, WireRevision
@@ -719,7 +720,7 @@ class CommsChatView(Conversation):
         if not event.body.strip():
             return
         if self._unknown_send is not None or self._human_admission_blocked:
-            self.flash("Private human send UNKNOWN/blocked; inspect, do not retry", style="error")
+            self.flash("Send pending/UNKNOWN/blocked; inspect, do not retry", style="error")
             return
         try:
             from toad.comms_root import implicit_root, root_is_current, run_selected_write
@@ -727,6 +728,13 @@ class CommsChatView(Conversation):
             if self._wire is None or not root_is_current(self._wire.root):
                 raise ValueError("Comms route changed; reopen this view before sending")
             comms = self._wire
+            # Disable compose through both the worker and the subsequent
+            # receipt paint. Cancellation after a committed receipt must not
+            # leave an apparently fresh, send-ready draft.
+            self._human_admission_blocked = True
+            self._send_block_reason = "Send pending; do not retry"
+            self.prompt.text = event.body
+            self.prompt.prompt_text_area.disabled = True
             send_task = asyncio.create_task(
                 asyncio.to_thread(
                     run_selected_write, comms.root, comms.send_user_message,
@@ -786,17 +794,57 @@ class CommsChatView(Conversation):
                 self.prompt.prompt_text_area.tooltip = self.status
                 self.flash(self.status, style="error")
                 return
+            self._human_admission_blocked = False
+            self._send_block_reason = ""
             self.prompt.text = event.body
+            self.prompt.prompt_text_area.disabled = False
             self.flash(f"Send failed: {error}", style="error")
             return
+        self._send_block_reason = (
+            f"Send receipt {comms.root}/{receipt.seq}/{receipt.message_id}; "
+            "awaiting paint, do not retry"
+        )
+        self.status = self._send_block_reason
+        self.prompt.prompt_text_area.tooltip = self.status
+        try:
+            await self._paint_sent_receipt(comms, receipt, event.body, root_is_current)
+        except (asyncio.CancelledError, Exception) as error:
+            reason = (
+                "interrupted" if isinstance(error, asyncio.CancelledError) else "failed"
+            )
+            self._send_block_reason = (
+                f"Committed send {comms.root}/{receipt.seq}/{receipt.message_id}; "
+                f"paint {reason}, inspect before composing"
+            )
+            self.status = self._send_block_reason
+            self.prompt.prompt_text_area.tooltip = self.status
+            return
+        if root_is_current(comms.root) and any(
+            message.message_id == receipt.message_id and message.seq == receipt.seq
+            for message, _ in self._history
+        ):
+            self._human_admission_blocked = False
+            self._send_block_reason = ""
+            self.prompt.text = ""
+            self.prompt.prompt_text_area.disabled = False
+            self.prompt.prompt_text_area.tooltip = None
+            self.status = ""
+
+    async def _paint_sent_receipt(
+        self, comms: Comms, receipt: WireMessage, body: str,
+        root_is_current: Callable[[str | Path], bool],
+    ) -> None:
         if not root_is_current(comms.root):
             # The send may already have reached the former wire. Do not
             # duplicate it on the successor or paint it under the new route.
             self.display = False
-            self.flash("Comms route changed during send; outcome may be uncertain", style="error")
+            self.flash(
+                "Comms route changed during send; outcome may be uncertain",
+                style="error",
+            )
             return
         self.prompt_history.current = None
-        self.run_worker(self.prompt_history.append(event.body), group="history")
+        self.run_worker(self.prompt_history.append(body), group="history")
         self.prompt_history_index = 0
         async with self._refresh_lock:
             if self._has_newer:

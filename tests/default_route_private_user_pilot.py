@@ -37,9 +37,18 @@ async def main() -> None:
         sandbox.chmod(0o700)
         home = sandbox / "home"
         home.mkdir(mode=0o700)
-        with tempfile.TemporaryDirectory(
-            prefix="toad-user-private-", dir="/var/tmp"
-        ) as private_dir:
+        # This pilot proves USER UI/receipt behavior, not background candidate
+        # scheduling. Suppress its asynchronous observer to keep the disposable
+        # private root quiescent through cleanup.
+        with (
+            patch(
+                "agent_comms.operations.schedule_private_candidate_after_commit",
+                lambda *_: None,
+            ),
+            tempfile.TemporaryDirectory(
+                prefix="toad-user-private-", dir="/var/tmp"
+            ) as private_dir,
+        ):
             root, root_id = private_root(
                 Path(private_dir) / "wire", sandbox, "INITIAL-CHANNEL"
             )
@@ -77,9 +86,13 @@ async def main() -> None:
             ):
                 os.environ.pop("AGENT_COMMS_ROOT", None)
                 route(home, root, root_id)
-                app = ToadApp(project_dir=str(sandbox))
+                app = ToadApp(project_dir=str(sandbox), mode="store")
+                app.settings.set("statistics.allow_collect", False)
+                # No remote version query in this disposable pilot.
+                app.run_version_check = lambda: None
                 async with app.run_test(size=(115, 38)) as pilot:
                     await pilot.pause()
+                    await app.new_session_screen(app.get_main_screen)
                     owner_mode = app.current_mode
                     await app.open_comms_session(
                         owner_mode=owner_mode,
@@ -267,6 +280,10 @@ async def main() -> None:
                         await blocked.submit_input(denied)
                         assert blocked_calls == 1
                     assert len(wire(root).bus.full_history()) == before
+                # Textual can cancel an async UI worker while its to_thread
+                # filesystem read is still settling. Drain those workers
+                # before removing the private root they read.
+                await asyncio.get_running_loop().shutdown_default_executor()
 
 
 if __name__ == "__main__":

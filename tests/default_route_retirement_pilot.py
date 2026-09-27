@@ -100,11 +100,21 @@ async def main() -> None:
                     agent.post_message = lambda _event: None
                     agent._process = process
                     agent._process_group_id = group
+                    try:
+                        from toad.acp.group_retirement import capture_accepted_group
+                    except ImportError:
+                        accepted = None  # pre-stop-proof Toad branch
+                    else:
+                        accepted = capture_accepted_group(group)
+                        agent._accepted_group = accepted
                     agent._task = None
                     agent._agent_task = None
-                    await agent.stop()
+                    evidence = await agent.stop()
                     assert process.returncode is not None
                     assert not live_members(group), "old ACP descendant survived stop"
+                    if accepted is not None:
+                        assert evidence is not None and evidence.accepted == accepted
+                        assert agent.verify_retirement().accepted == accepted
                     assert agent._process_group_id is None
                     with patch.object(
                         cohort_foreground, "_trusted_package", lambda _: None
