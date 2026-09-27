@@ -224,6 +224,9 @@ async def main() -> None:
                         ingress_root=legacy, cwd=sandbox, implicit=False
                     ):
                         assert current_root() == private
+                # UI shutdown cancels polling tasks, but their executor calls
+                # must finish before this disposable private root is removed.
+                await asyncio.get_running_loop().shutdown_default_executor()
 
 
 if __name__ == "__main__":

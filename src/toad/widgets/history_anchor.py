@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from abc import ABC, abstractmethod
+from dataclasses import dataclass, replace
 from functools import cached_property
 from contextlib import asynccontextmanager
 import asyncio
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar
 from weakref import WeakSet
 
 from textual.widget import Widget
@@ -129,21 +130,35 @@ class HistoryWindow(VerticalScroll):
 
 
 @dataclass(frozen=True)
-class HistoryAnchor:
+class HistoryAnchor(ABC):
     widget: Widget
-    virtual_y: int
     scroll_y: float
-    follow_tail: bool
     scroll_revision: int
+    follow_tail: ClassVar[bool]
 
     @classmethod
     def capture(cls, widget: Widget, window: HistoryWindow) -> "HistoryAnchor":
         # Screen coordinates may still describe the frame before a scroll event.
-        return cls(
-            widget, cls._offset(widget, window), window.scroll_y,
-            window.follows_tail,
-            window.scroll_revision,
+        if window.follows_tail:
+            return TailAnchor(widget, window.scroll_y, window.scroll_revision)
+        return RecordAnchor(
+            widget, window.scroll_y, window.scroll_revision, cls._offset(widget, window),
         )
+
+    def before_layout(self, window: HistoryWindow) -> HistoryAnchor:
+        """Refresh reader intent before layout, rebinding geometry only on transition."""
+        if window.follows_tail != self.follow_tail:
+            return self.capture(self.widget, window)
+        return replace(self, scroll_y=window.scroll_y, scroll_revision=window.scroll_revision)
+
+    @property
+    def geometry_targets(self) -> tuple[Widget, ...]:
+        """Preserve the transaction's existing target mount/size lifecycle.
+
+        Tail policy skips offset lookup, not native target publication during
+        incremental admission. Keep that separate from choosing compensation.
+        """
+        return (self.widget,) if self.widget.is_attached else ()
 
     @staticmethod
     def _offset(widget: Widget, window: Widget) -> int:
@@ -169,13 +184,36 @@ class HistoryAnchor:
             return
         window._restoring = True
         try:
-            if self.follow_tail:
-                window.anchor()
-            elif self.widget.is_attached:
-                window.release_anchor()
-                window.scroll_to(
-                    y=self.scroll_y + self._offset(self.widget, window) - self.virtual_y,
-                    animate=False, immediate=True,
-                )
+            self._restore(window)
         finally:
             window._restoring = False
+
+    @abstractmethod
+    def _restore(self, window: HistoryWindow) -> None:
+        """Apply this policy to the newly committed layout."""
+
+
+@dataclass(frozen=True)
+class TailAnchor(HistoryAnchor):
+    """Following the bottom has no dependency on a particular record's position."""
+
+    follow_tail: ClassVar[bool] = True
+
+    def _restore(self, window: HistoryWindow) -> None:
+        window.anchor()
+
+
+@dataclass(frozen=True)
+class RecordAnchor(HistoryAnchor):
+    """Keep a source record at the reader's chosen viewport offset."""
+
+    virtual_y: int
+    follow_tail: ClassVar[bool] = False
+
+    def _restore(self, window: HistoryWindow) -> None:
+        if self.widget.is_attached:
+            window.release_anchor()
+            window.scroll_to(
+                y=self.scroll_y + self._offset(self.widget, window) - self.virtual_y,
+                animate=False, immediate=True,
+            )

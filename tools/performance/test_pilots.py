@@ -31,7 +31,7 @@ PYTHON = os.environ.get("TOAD_TEST_PYTHON", sys.executable)
     "viewport_body_lifetime", "acp_process_validation", "acp_sdk_boundary",
     "async_tab_activation",
     "projected_history_budget",
-    "in_out_underfill", "off_tail_checkpoint",
+    "in_out_underfill", "off_tail_checkpoint", "tail_anchor_policy", "history_anchor_geometry",
     # Landing coverage for the current-main route, queue, private-history and
     # MCP contracts. All use disposable/provider-free fixtures.
     "default_route", "default_route_admission", "default_route_cancel",
