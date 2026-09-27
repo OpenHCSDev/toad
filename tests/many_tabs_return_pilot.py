@@ -321,24 +321,48 @@ async def main(*, empty=False, trace=False, observe=False, output=None, peers=0,
                 await asyncio.wait_for(finished.wait(), 3)
                 assert not app._atomic_mode_switch
 
-                # A hidden roster may be missing new tabs AND retain several
-                # closed ones. Bulk removal must preserve the remaining order.
+                # Hidden channel trees are retired, then rebuilt from the
+                # shared projection. Closed tabs must lose their routes even
+                # when no old row objects survive to receive an update.
                 destination = app.get_screen_stack(modes[3])[0]
-                retained = {row.thread_name: row for row in destination.query_one(CommsSidebar).query(ThreadStatusRow)
-                            if row.thread_name is not None}
+                hidden_sidebar = destination.query_one(CommsSidebar)
+                async with asyncio.timeout(5):
+                    while hidden_sidebar._last_snapshot is not None or hidden_sidebar._retirement_pending:
+                        await pilot.pause(.01)
+                assert not hidden_sidebar.query(ThreadStatusRow)
+                assert not hidden_sidebar._row_map
                 for mode in modes[:3]:
                     await app.close_session_mode(mode)
                 await app.switch_mode(modes[3])
+                async with asyncio.timeout(5):
+                    await hidden_sidebar.navigation_ready.wait()
                 await pilot.pause()
                 assert tuple(label.id for label in app.screen.query(SessionLabel)) == tuple(
                     tab.mode_name for tab in app.open_tabs
                 )
                 assert app.screen.conversation.prompt.text == f"draft-{modes[3]}"
                 if not observe and not empty:
-                    for row in app.screen.query_one(CommsSidebar).query(ThreadStatusRow):
-                        if row.thread_name in targets[:3]:
-                            assert row is retained[row.thread_name]
-                            assert row.mode_name is None, "A closed view remained a navigation target"
+                    rebuilt = {
+                        (row.query_ancestor(ChannelGroup).row.target_name, row.thread_name): row
+                        for row in hidden_sidebar.query(ThreadStatusRow)
+                        if row.thread_name in targets
+                    }
+                    assert {name for _, name in rebuilt} == set(targets), rebuilt
+                    expected_modes = dict(zip(targets[3:], modes[3:]))
+                    for (_, name), row in rebuilt.items():
+                        assert row.mode_name == expected_modes.get(name), (
+                            name, row.mode_name, expected_modes.get(name)
+                        )
+                    # Identity still matters within a live presentation:
+                    # unchanged model refreshes must retain every mounted row.
+                    await hidden_sidebar.sync_sessions()
+                    refreshed = {
+                        (row.query_ancestor(ChannelGroup).row.target_name, row.thread_name): row
+                        for row in hidden_sidebar.query(ThreadStatusRow)
+                        if row.thread_name in targets
+                    }
+                    assert refreshed.keys() == rebuilt.keys()
+                    assert all(refreshed[key] is row for key, row in rebuilt.items())
                 assert not app._atomic_mode_switch and app._exception is None
         await asyncio.get_running_loop().shutdown_default_executor()
     result = {"boundary": "headless switch/settlement; not terminal-presented frames",
