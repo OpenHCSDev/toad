@@ -38,10 +38,10 @@ AGENT = {
 
 async def main():
     expected = {
-        # Recompared bccf7fd..b4132c0 at PR65 integration: only the maintained
-        # send-boundary lock assertion/ownership marker changed in this file.
+        # Recompared through current-main b1e5bfd at PR65 integration. See
+        # docs/exact-id-queue-view.md for the reviewed non-queue additions.
         # Queue contract, canonical fixture and runtime alias bytes are equal.
-        CommsAgent: "2548369a9b31e16638fbcb7f53b590a59c371676a697ee3b44acf96c5388be57",
+        CommsAgent: "c42c74f5186ed77f397af7123c057c913f40279e08ea9bf331a9d818323b8c65",
         _present_cursor_session: "af212a2f8aaa9d0e90fcc23ec0f7f4a1fbf7c1b88ed11fd1ca923e45bf040267",
     }
     for obj, digest in expected.items():

@@ -101,12 +101,13 @@ passes the original wire session identity to those handlers. Reader sharing uses
 the route-owned cached service only when its root matches the trusted attachment.
 
 The pilot runner now includes78provider-free cases, adding22current-main contracts.
-The existing queue/private-cursor unit suites add30cases plus73subtests. These were
-verified through the broad run and focused corrections: old partial-Agent fixtures
+The existing queue/private-cursor unit suites add30cases plus73subtests. Final
+current-main `52db1eb` / core `b1e5bfd` validation passed107cases plus73subtests
+in288.13s; the remaining large comms pilot passed serially in79.86s. Old partial-Agent fixtures
 now construct real Agents, lifecycle fixtures carry source identity/sequence,
 remote failure notices leave drafts untouched, and the cancellation fixture drains
-remaining thread work before deleting its wire. The large comms pilot passed in a
-serial77.61s run; its100s per-pilot deadline remains unchanged. Main's exact-byte
+remaining thread work before deleting its wire. The100s per-pilot deadline remains
+unchanged. Main's exact-byte
 queue producer check was updated only after the documented source comparison in
 [the queue contract](../exact-id-queue-view.md).
 
@@ -115,6 +116,13 @@ masks and drafts. `toad-pr65-main-integration-filters-1`: input median37.48/
 p9569.93/max79.95ms; loopmax127.50ms; GCmax74.50ms. These are new-core integration
 receipts, not a controlled comparison against the earlier dependency environment.
 The remaining latency targets continue in a fresh follow-up after landing.
+
+After main's final core/history-wording update, the full native ten-tab workload
+`toad-pr65-final-integration-navigation-1` completed83actions including eight resize
+drags. Loading feedback median64.27/max95.86ms; final session-shell median215.43/
+max345.19ms; switching median68.80/max134.19ms; ready-handler median724.41/
+max914.41ms. Loopmax121.05ms and GCmax111.69ms remain above the performance target.
+This confirms integrated workflow operation, not sub50ms acceptance.
 
 ### Owned removal completion and direct input ingress
 
