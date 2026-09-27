@@ -48,6 +48,7 @@ parser.add_argument("--sidebar-cycles", type=int, default=4)
 parser.add_argument("--resize-only", action="store_true")
 parser.add_argument("--resize-sidebars", action="store_true")
 parser.add_argument("--filters-only", action="store_true")
+parser.add_argument("--key-route", action="store_true", help="Trace native key queue/dispatch stages (diagnostic)")
 parser.add_argument("--tabs", type=int, default=10)
 parser.add_argument("--focused-profile", choices=("memray", "cprofile"))
 args = parser.parse_args()
@@ -76,6 +77,9 @@ if args.filters_only:
     assert args.fixture, "Filter-input stress uses only the isolated fixed fixture"
     env["TOAD_FIXTURE_ALL_CATEGORIES"] = "1"
     env["TOAD_VALIDATION_FILTER_PROBE"] = "1"
+if args.key_route:
+    assert args.filters_only, "Key-route diagnostics require the isolated filter/input fixture"
+    env["TOAD_VALIDATION_KEY_ROUTE"] = "1"
 if args.census:
     env["TOAD_VALIDATION_CENSUS"] = str(base) + "-census.jsonl"
 if args.focused_profile:
@@ -141,7 +145,8 @@ try:
         "display": args.display, "pid": pid, "window": window,
         "source_hashes": source_hashes(args.source), "framework_hashes": source_hashes(args.framework),
         "legacy_markdown_measurement": env.get("TOAD_VALIDATION_LEGACY_MARKDOWN_MEASUREMENT") == "1",
-        "focused_profile": args.focused_profile, "layout_causes": env.get("TOAD_VALIDATION_LAYOUT_CAUSES") == "1",
+        "focused_profile": args.focused_profile, "key_route": args.key_route,
+        "layout_causes": env.get("TOAD_VALIDATION_LAYOUT_CAUSES") == "1",
         "ungated_startup": env.get("TOAD_VALIDATION_UNGATED_STARTUP") == "1",
         "open_stages": env.get("TOAD_VALIDATION_OPEN_STAGES") == "1",
         "observer_sha256": sha256((TOOLS / "sidebar_validation_driver.py").read_bytes()).hexdigest(),

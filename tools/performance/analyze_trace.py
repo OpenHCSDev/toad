@@ -9,6 +9,8 @@ import statistics
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("prefix", type=Path)
 parser.add_argument("--slowest", type=int, default=8)
+parser.add_argument("--slowest-inputs", type=int, default=0,
+                    help="Show overlapping frame work for the worst native key acknowledgments")
 args = parser.parse_args()
 trace = json.loads(Path(str(args.prefix) + "-trace.json").read_text())
 workload = json.loads(Path(str(args.prefix) + "-actions.json").read_text())
@@ -38,3 +40,21 @@ for gap in sorted((event for event in selected if event["event"] == "loop_gap"),
              and event["ns"] >= gap["begin_ns"] and event["begin_ns"] <= gap["ns"]]
     print(json.dumps({"gap_ms": gap["duration_ms"], "actions": [action["action"] for action in actions if overlaps(gap, action)],
                       "overlapping_spans": spans}))
+
+for key in sorted((event for event in trace if event["event"] == "prompt_key_applied"
+                   and event.get("input_ns") is not None),
+                  key=lambda event: -event["acknowledgment_ms"])[:args.slowest_inputs]:
+    begin, end = key["input_ns"], key["ns"]
+    spans = [{**event, "relative_begin_ms": round((event["begin_ns"] - begin) / 1e6, 3),
+              "relative_end_ms": round((event["ns"] - begin) / 1e6, 3)}
+             for event in trace if event["event"] in {
+                 "gc", "_refresh_layout", "_compositor_refresh", "arrange_root", "navigation_stage"
+             } and "begin_ns" in event and event["ns"] >= begin and event["begin_ns"] <= end]
+    frames = [{"event": event["event"], "relative_ms": round((event["ns"] - begin) / 1e6, 3),
+               "frame": event.get("frame"), "mode": event.get("mode")}
+              for event in trace if event["event"] in {"frame_enqueued", "frame_flushed"}
+              and begin <= event["ns"] <= end]
+    route = [{**event, "relative_ms": round((event["ns"] - begin) / 1e6, 3)}
+             for event in trace if event["event"] == "key_route" and event.get("input_ns") == begin]
+    print(json.dumps({"key": key, "overlapping_spans": spans,
+                      "frames_before_acknowledgment": frames, "route": route}))

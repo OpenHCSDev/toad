@@ -61,6 +61,19 @@ Each capture uses a fresh name and writes manifest, trace, action, state and
 screenshot artifacts; optional censuses add JSONL. Manifests include source-file
 hashes, observer hash, selected environments and diagnostic policy overrides.
 
+For native input queue attribution, add `--key-route` to the isolated filter
+workload. This diagnostic records app/widget enqueue and dispatch timestamps for
+the fixture's typed markers. Inspect the worst acknowledgments with:
+
+```sh
+python tools/performance/analyze_trace.py "$CAPTURES/filter-route-1" \
+  --slowest 3 --slowest-inputs 3
+```
+
+The report includes overlapping layout/paint/GC spans and frames submitted before
+the key was handled. Inclusive durations overlap and must not be summed. Repeat
+without `--key-route` for ordinary acceptance timing.
+
 ## Textual console and asyncio diagnostics
 
 ```sh

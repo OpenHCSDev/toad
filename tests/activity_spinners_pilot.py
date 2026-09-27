@@ -65,6 +65,10 @@ async def check_busy_labels() -> None:
             assert rows and any(frame in row.prompt.plain for frame in FRAMES for row in rows)
             tabs = app.screen.query_one(SessionsTabs)
             await tabs._sync_tabs()
+            # Reconciliation may still have a pending layout after its native
+            # removal receipt completes. Measure spinner-only work from a
+            # settled frame, rather than charging that earlier layout to it.
+            await pilot.pause()
             first = next(tab for tab in app.open_tabs if tab.mode_name == app.current_mode)
             label = app.screen.query_one(f"SessionLabel#{first.mode_name}", SessionLabel)
             assert first.title.startswith("⌛ ") and label.render().plain[0] in FRAMES

@@ -5,8 +5,8 @@ The branch includes the current Toad implementation, regression pilots, audit,
 and the [debug/capture/replay toolbox](../../tools/performance/README.md).
 Textual changes are tracked in [companion draft PR #5](https://github.com/OpenHCSDev/textual/pull/5).
 The dependency pin includes framework checkpoint
-`1d3ce505c718b6785a694840cdc5645fb1e40382` (retired-scene ownership, native
-presentation reuse and declaration-bound reactive/selector dispatch).
+`47555c66a8bc2d7d3f97820134e2f743dba01b4d` (retired-scene ownership, native
+presentation reuse, declaration-bound dispatch and nonblocking removal completion).
 
 ## Locked-in issues
 
@@ -90,6 +90,43 @@ Additional requirements are first-class work items:
 - Composable model display constraints and parsed class-reference lookup.
 
 ## Evidence and limitations
+
+### Owned removal completion and direct input ingress
+
+Key-route diagnostics found input waiting behind unrelated native widget removal:
+one key was queued at5ms but did not dispatch until91ms. The framework no longer
+awaits incomplete removals in the app's message queue. `AwaitRemove` owns a shared
+completion, publishes once, shields teardown from cancelled observers and releases
+retired widget ownership on completion. Self-removal and exception propagation
+retain their native contracts. The driver also queues `post_message` directly on
+the owning loop, eliminating a redundant coroutine/Future relay before ingress.
+
+Seven removal tests include four failing-before regressions; two driver tests
+cover callback ordering and priority bindings/focus/paste. Full verification:
+**3,440 framework tests passed,1skipped,4xfailed**, **56 Toad pilots passed**.
+The spinner pilot now settles the setup reconciliation frame before measuring
+paint-only animation; its no-layout assertion remains. A prune snapshot passes.
+
+All native captures below completed72actions/52markers with masks/drafts intact:
+
+| Capture | Input median / p95 / maximum (ms) | Loop maximum (ms) | GC maximum (ms) |
+| --- | --- | --- | --- |
+| `toad-reactive-access-filters-1` (published control) |42.63 /95.47 /143.68|106.76|59.66|
+| `toad-removal-completion-filters-1` |37.68 /68.81 /73.07|117.12|64.90|
+| `toad-owned-removal-ingress-filters-1` |24.56 /54.36 /93.90|121.48|62.57|
+| `toad-owned-removal-ingress-filters-2` |29.42 /49.04 /59.98|103.23|62.15|
+
+The final two runs use identical runtime code, run serially without profilers or
+the extra key-route probe. The93.90ms input tail overlapped a58.36ms UI-thread
+collection. Do not discard it in favor of the59.98ms repeat. Maximum loop stutter
+is still above100ms, dominated by sidebar layout+paint and occasional GC; the
+universal sub50ms goal remains open. Anchor recapture also sometimes forces a
+redundant full geometry pass, visible in the remaining slow-key traces.
+
+Diagnostic-only `toad-input-route-control-1` and `toad-removal-input-route-1`
+record queue/dispatch timestamps (max125.23/79.83ms). Use
+`analyze_trace.py PREFIX --slowest-inputs 3` to inspect overlaps and frames; these
+inclusive spans must not be added together.
 
 ### Declaration-bound reactive access checkpoint
 

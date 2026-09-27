@@ -32,11 +32,29 @@ def install_observer():
         from textual.message_pump import MessagePump
         from toad.widgets.prompt import PromptTextArea
         dispatch = MessagePump._dispatch_message
+        route_probe = bool(os.environ.get("TOAD_VALIDATION_KEY_ROUTE"))
+
+        if route_probe:
+            post = MessagePump.post_message
+
+            def observed_post(self, message):
+                if isinstance(message, events.Key) and message.key == "x":
+                    record("key_route", phase="queued", owner=type(self).__name__,
+                           input_ns=key_dispatches.get(id(message)))
+                return post(self, message)
+
+            MessagePump.post_message = observed_post
 
         async def observed_dispatch(self, message):
+            sent = None
+            if route_probe and isinstance(message, events.Key) and message.key == "x":
+                sent = key_dispatches.get(id(message))
+                record("key_route", phase="dispatch_begin", owner=type(self).__name__, input_ns=sent)
             try:
                 return await dispatch(self, message)
             finally:
+                if route_probe and sent is not None:
+                    record("key_route", phase="dispatch_end", owner=type(self).__name__, input_ns=sent)
                 if isinstance(self, PromptTextArea) and isinstance(message, events.Key) and message.key == "x":
                     sent = key_dispatches.pop(id(message), None)
                     record("prompt_key_applied", key=message.key, mode=self.app.current_mode,
