@@ -23,14 +23,16 @@ def display_identity(kind: HistoryKind, page: MessagePage) -> tuple | None:
         if basis is None:
             return None
         return (
-            basis.root_identity, basis.worktree, basis.requested_peer,
-            basis.viewer, basis.viewer_epoch, basis.viewer_created_at, basis.viewer_names,
-            basis.peer, basis.peer_epoch, basis.peer_created_at, basis.peer_names,
+            basis.root_identity, basis.bus_identity, basis.worktree, basis.requested_peer,
+            basis.viewer, basis.viewer_created_at, basis.viewer_names,
+            basis.peer, basis.peer_created_at, basis.peer_names,
         )
     scope = page.display_scope
-    if scope is None:
+    if scope is None or scope.displayed is None:
         return None
+    displayed = scope.displayed
     return (
+        displayed.viewer, displayed.viewer_created_at, displayed.bus_identity,
         scope.channel, scope.targets, scope.any_mode,
         scope.participant_names if scope.any_mode else frozenset(),
     )

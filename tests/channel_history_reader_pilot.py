@@ -15,6 +15,49 @@ from toad.channel_preparation import (
 
 
 class ReaderTests(unittest.IsolatedAsyncioTestCase):
+    async def test_bus_replacement_reloads_unchanged_sequence_tail(self) -> None:
+        for kind, target in ((HistoryKind.CHANNEL, "#team"), (HistoryKind.DIRECT, "peer")):
+            with self.subTest(kind=kind), tempfile.TemporaryDirectory(prefix="channel-rebind-") as directory:
+                root = Path(directory)
+                comms = wire(root / "wire")
+                comms.register(Thread("peer", frozenset({"team"}), str(root)))
+                viewer = comms.user_identity(str(root)).name
+                comms.send("peer", viewer if kind is HistoryKind.DIRECT else target, "original")
+                request = HistoryReadRequest(
+                    comms, kind, target, root, False, 0, True, None, 8, 40, 256 * 1024,
+                )
+                first = request.read()
+                assert first.page is not None
+                following = replace(
+                    request, initialized=True, after=first.high_water,
+                    known_revision=first.revision,
+                    known_display=display_identity(kind, first.page),
+                )
+                bus = comms.bus._path
+                replacement = bus.with_suffix(".replacement")
+                replacement.write_bytes(bus.read_bytes().replace(b"original", b"replaced"))
+                replacement.replace(bus)
+                refreshed = following.read()
+                self.assertEqual(refreshed.high_water, first.high_water)
+                self.assertTrue(refreshed.replace_tail)
+                assert refreshed.page is not None
+                self.assertEqual([message.body for message in refreshed.page.messages], ["replaced"])
+
+    async def test_dm_turn_claim_preserves_display_identity(self) -> None:
+        import os
+
+        with tempfile.TemporaryDirectory(prefix="dm-turn-basis-") as directory:
+            root = Path(directory)
+            comms = wire(root / "wire")
+            comms.register(Thread("peer", frozenset(), str(root), pid=os.getpid()))
+            viewer = comms.user_identity(str(root)).name
+            comms.send("peer", viewer, "painted across turn claim")
+            page = comms.dm_display_page("peer", worktree=str(root))
+            identity = display_identity(HistoryKind.DIRECT, page)
+            comms.registry.claim_local_turn("peer", "new-turn")
+            fresh = comms.dm_display_page("peer", worktree=str(root))
+            self.assertEqual(identity, display_identity(HistoryKind.DIRECT, fresh))
+
     async def test_any_mode_expansion_reloads_older_history_without_new_bus_rows(self) -> None:
         with tempfile.TemporaryDirectory(prefix="channel-scope-reader-") as directory:
             root = Path(directory)
