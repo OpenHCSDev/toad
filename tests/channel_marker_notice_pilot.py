@@ -29,6 +29,10 @@ async def main():
         marker.write_text(
             json.dumps({comms.bus._marker_key(viewer, "#team"): message.seq})
         )
+        # Simulate a pre-ledger root. Fixture setup itself opens a new ledger;
+        # a later legacy-marker write is deliberately not a second migration.
+        comms.reads.path.unlink()
+        comms = wire(root / "wire")
 
         notices = []
         with patch.object(CommsSidebar, "notify", autospec=True) as notify:

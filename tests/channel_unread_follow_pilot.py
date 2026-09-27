@@ -48,8 +48,10 @@ async def main():
                 comms.begin_turn(name, name)
             comms.send(names[0], "#talk", "ARRIVED_AFTER_ROSTER_GREW")
             await chat._refresh()
-            await pilot.pause()
-            assert chat.window.follows_tail and chat.window.scroll_y == chat.window.max_scroll_y
+            # Participant hydration can resize the viewport after the history
+            # refresh returns; wait for the committed layout, not one tick.
+            await until(pilot, lambda: chat.window.follows_tail and
+                        chat.window.scroll_y == chat.window.max_scroll_y)
             assert any(message.body == "ARRIVED_AFTER_ROSTER_GREW" for message, _ in chat._history)
             chat.window.scroll_relative(y=-8, animate=False, immediate=True)
             await pilot.pause()

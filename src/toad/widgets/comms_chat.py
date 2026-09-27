@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import re
 from collections.abc import Callable
+from dataclasses import replace
 from pathlib import Path
 
 from agent_comms import Comms, MessagePage, OBSERVATION_INTERVAL, ThreadRole, WireRevision
@@ -121,6 +122,7 @@ class CommsChatView(Conversation):
         self._history_warm_task: asyncio.Task[HistoryReadResult] | None = None
         self._history_warm_request: HistoryReadRequest | None = None
         self._ack_page: MessagePage | None = None
+        self._channel_ack_pages: dict[int, MessagePage] = {}
         self._ack_inflight = False
         self.irc_style = True
 
@@ -326,6 +328,7 @@ class CommsChatView(Conversation):
 
     async def on_unmount(self) -> None:
         self._ack_page = None
+        self._channel_ack_pages.clear()
         if self._history_warm_task is not None:
             task = self._history_warm_task
             task.cancel()
@@ -358,11 +361,13 @@ class CommsChatView(Conversation):
         if self._wire is None or not root_is_current(self._wire.root):
             self.display = False
             return
-        if not older and page.messages:
+        if self.kind == "dm" and not older and page.messages:
             self._ack_page = page
         mounted = {message.seq for message, _ in self._history}
         records = [message for message in page.messages if message.seq not in mounted]
         if not records:
+            if self.kind != "dm":
+                self._channel_ack_pages.update((message.seq, page) for message in page.messages)
             if older:
                 self._has_older = page.has_older
             else:
@@ -381,6 +386,10 @@ class CommsChatView(Conversation):
                     return
                 with self.app.batch_update():
                     await self._insert_page(page, pairs, older=older)
+        if self.kind != "dm":
+            # Publish proof only after mounting; a paint callback may run while
+            # the history lock is awaited and prune rows not yet in the window.
+            self._channel_ack_pages.update((message.seq, page) for message in page.messages)
         self.window.check_follow()
 
     async def _insert_page(
@@ -517,6 +526,7 @@ class CommsChatView(Conversation):
         if read.replace_tail:
             assert page is not None
             self._ack_page = None
+            self._channel_ack_pages.clear()
             await self.contents.remove_children(widget for _, widget in self._history)
             self._history.clear()
             self._has_older = page.has_older
@@ -543,8 +553,7 @@ class CommsChatView(Conversation):
         return follow
 
     def _mark_visible_after_layout(self) -> None:
-        page = self._ack_page
-        if page is None or self._ack_inflight or not self.is_attached:
+        if self._ack_inflight or not self.is_attached:
             return
         from toad.comms_root import root_is_current
 
@@ -552,9 +561,11 @@ class CommsChatView(Conversation):
             self.display = False
             return
         painted = set(self._painted_message_sequences())
-        if page.newest_seq is None or page.newest_seq not in painted:
-            return
+        original_page = None
         if self.kind == "dm":
+            page = self._ack_page
+            if page is None or page.newest_seq not in painted:
+                return
             basis = page.display_basis
             if basis is None or basis.older_unread:
                 return
@@ -564,21 +575,40 @@ class CommsChatView(Conversation):
             )
             if any(sequence not in painted for sequence in inbound):
                 return
+            original_page = page
+            page = replace(
+                page,
+                messages=tuple(message for message in page.messages if message.seq in painted),
+                display_basis=replace(basis, displayed=basis.displayed.select(painted)),
+            )
         else:
+            mounted = {message.seq for message, _ in self._history}
+            self._channel_ack_pages = {
+                seq: source for seq, source in self._channel_ack_pages.items() if seq in mounted
+            }
+            original_page = next(
+                (source for seq, source in self._channel_ack_pages.items() if seq in painted), None
+            )
+            if original_page is None:
+                return
+            page = original_page
             scope = page.display_scope
-            if scope is None:
+            if scope is None or scope.displayed is None:
                 return
-            if page.has_older and page.oldest_seq is not None and (
-                scope.after < page.oldest_seq - 1
-                or (scope.any_mode and scope.expanded_after < page.oldest_seq - 1)
-            ):
-                return
-            if any(message.seq not in painted for message in page.messages):
-                return
+            selected = {
+                seq for seq, source in self._channel_ack_pages.items()
+                if source is page and seq in painted
+            }
+            # Subset the captured proof, never a reconstructed watermark. Keep
+            # unpainted rows pending so scrolling can acknowledge them later.
+            page = replace(
+                page, messages=tuple(message for message in page.messages if message.seq in selected),
+                display_scope=replace(scope, displayed=scope.displayed.select(selected)),
+            )
         self._ack_inflight = True
-        self.run_worker(self._mark_painted_page(page), group="comms-painted-read")
+        self.run_worker(self._mark_painted_page(page, original_page), group="comms-painted-read")
 
-    async def _mark_painted_page(self, page: MessagePage) -> None:
+    async def _mark_painted_page(self, page: MessagePage, original_page: MessagePage | None = None) -> None:
         try:
             comms = self._wire
             from toad.comms_root import implicit_root, root_is_current, run_selected_write
@@ -604,10 +634,14 @@ class CommsChatView(Conversation):
                     worktree=project, through=page.newest_seq,
                     expected_scope=page.display_scope, implicit=implicit_root(),
                 )
-            if self._ack_page is page:
+            if self._ack_page is page or self._ack_page is original_page:
                 self._ack_page = None
+            if original_page is not None:
+                for message in page.messages:
+                    if self._channel_ack_pages.get(message.seq) is original_page:
+                        del self._channel_ack_pages[message.seq]
         except ValueError:
-            # The peer, viewer, channel scope, or marker changed after page
+            # The peer, viewer, channel scope, or bus changed after page
             # fetch. Discard mounted history and fetch the current projection.
             if self.is_attached:
                 async with self._refresh_lock:
@@ -620,8 +654,11 @@ class CommsChatView(Conversation):
                     self._has_older = False
                     self._has_newer = False
             self._ack_page = None
+            self._channel_ack_pages.clear()
         finally:
             self._ack_inflight = False
+            if self.is_attached:
+                self.call_after_refresh(self._mark_visible_after_layout)
 
     async def _refresh(self) -> None:
         if not self.is_attached or self._wire is None:
