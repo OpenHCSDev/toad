@@ -1,7 +1,8 @@
 """Provider-free mounted default-route flip/reconnect/paint pilot.
 
 Run with Toad src/tests and the paired PR116 agent-comms src on PYTHONPATH.
-Only disposable private /var/tmp roots and an isolated HOME are used.
+Only disposable private roots and an isolated HOME are used.
+When /var/tmp lacks space, this non-durability UI pilot uses /dev/shm.
 """
 
 from __future__ import annotations
@@ -56,9 +57,19 @@ def private_root(path: Path, project: Path, message: str) -> tuple[Path, str]:
 
 
 async def main() -> None:
-    if os.name != "posix" or Path("/var").is_symlink():
-        raise RuntimeError("pilot needs disposable private real /var/tmp ancestry")
-    with tempfile.TemporaryDirectory(prefix="toad-route-", dir="/var/tmp") as directory:
+    if os.name != "posix":
+        raise RuntimeError("pilot needs POSIX private-root ancestry")
+    real_tmp = Path("/var/tmp")
+    enough_real_space = (
+        not Path("/var").is_symlink()
+        and real_tmp.stat().st_mode & 0o1000
+        and os.statvfs(real_tmp).f_bavail * os.statvfs(real_tmp).f_frsize
+        >= 512 * 1024 * 1024
+    )
+    disposable_base = real_tmp if enough_real_space else Path("/dev/shm")
+    with tempfile.TemporaryDirectory(
+        prefix="toad-route-", dir=disposable_base
+    ) as directory:
         sandbox = Path(directory)
         sandbox.chmod(0o700)
         home = sandbox / "home"
@@ -126,6 +137,7 @@ async def main() -> None:
 
                 # A read already in flight when the route flips must not paint
                 # a late page from the former wire into the successor view.
+                view._wire.send_initial_cohort("peer", "#team", "LATE-OLD-EDGE")
                 entered, release = asyncio.Event(), asyncio.Event()
                 original_read = app.channel_history_reader.read
 
@@ -144,6 +156,11 @@ async def main() -> None:
                     await pending
                 assert current_root() == second
                 assert app.coordination_wire.root == second  # app cache invalidated
+                view._has_newer = True
+                await view._load_history_edge()
+                assert all(
+                    "LATE-OLD-EDGE" not in str(message) for message, _ in view._history
+                )
                 await view._refresh()
                 app.screen.query_one(CommsSidebar)._refresh()
                 await pilot.pause()

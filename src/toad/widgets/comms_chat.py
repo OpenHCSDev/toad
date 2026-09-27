@@ -349,6 +349,11 @@ class CommsChatView(Conversation):
             self.window.scroll_end(animate=False)
 
     async def _mount_page(self, page: MessagePage, *, older: bool) -> None:
+        from toad.comms_root import root_is_current
+
+        if self._wire is None or not root_is_current(self._wire.root):
+            self.display = False
+            return
         if not older and page.messages:
             self._ack_page = page
         mounted = {message.seq for message, _ in self._history}
@@ -362,8 +367,14 @@ class CommsChatView(Conversation):
 
         pairs = [(message, self._message_block(message)) for message in records]
         async with self.window.history_lock:
+            if not root_is_current(self._wire.root):
+                self.display = False
+                return
             anchor = self._history[0 if older else -1][1] if self._history else None
             async with self.window.preserve_history(anchor):
+                if not root_is_current(self._wire.root):
+                    self.display = False
+                    return
                 with self.app.batch_update():
                     await self._insert_page(page, pairs, older=older)
         self.window.check_follow()
@@ -432,7 +443,12 @@ class CommsChatView(Conversation):
                     return
                 if not self._history:
                     return
+                from toad.comms_root import root_is_current
+
                 comms = self._wire
+                if comms is None or not root_is_current(comms.root):
+                    self.display = False
+                    return
                 before = (self._history[0][0].seq, self._history[-1][0].seq,
                           self._has_older, self._has_newer)
                 route = (self.target, self.kind, self.project_path)
@@ -458,6 +474,9 @@ class CommsChatView(Conversation):
                 if (not self.screen.is_current or self._wire is not comms
                         or route != (self.target, self.kind, self.project_path)):
                     self._edge_check_on_resume = True
+                    return
+                if not root_is_current(comms.root):
+                    self.display = False
                     return
                 await self._mount_page(page, older=older)
                 after = (self._history[0][0].seq, self._history[-1][0].seq,
