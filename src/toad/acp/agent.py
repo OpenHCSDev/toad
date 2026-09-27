@@ -1109,7 +1109,9 @@ class Agent(AgentBase):
         """Stop the child; return proof only after its accepted group is empty.
 
         Raises GroupRetirementUnresolved rather than reporting a successful
-        stop when the accepted ACP group cannot be proved retired.
+        stop when the accepted ACP group cannot be proved retired. The early
+        McpClientStopped message only invalidates an MCP UI projection; it is
+        not a process or connection retirement receipt.
         """
         self._stopping = True
         self._invalidate_attachment_views()

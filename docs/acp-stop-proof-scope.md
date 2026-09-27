@@ -5,8 +5,11 @@ PID, creation time, and PGID immediately after accepted spawn. `Agent.stop()`
 returns `GroupRetirement` only after a bounded TERM/KILL sequence and a fresh
 non-zombie process-group scan. If identity enrollment, signaling, observation,
 or the deadline fails, it raises `GroupRetirementUnresolved` and retains the
-original PGID and identity. Cancellation also retains them. Connection EOF and
-`McpClientStopped` invalidate presentation only; they are not group-stop proof.
+original PGID and identity. Cancellation also retains them. `McpClientStopped`
+may be emitted as soon as a stop is requested to invalidate the live MCP UI
+projection, **before** any OS process or connection has stopped. It is never a
+retirement receipt. Connection EOF likewise proves only stream closure, not
+process-group retirement.
 
 A migration controller must pause new Toad ingress, inventory **every** accepted
 ACP child, stop each, and call `verify_retirement()` on the pinned original
