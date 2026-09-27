@@ -172,7 +172,9 @@ class ChannelGroup(SidebarGroup):
 
 
 def _comms_root() -> Path:
-    return Path(os.environ.get("AGENT_COMMS_ROOT", "~/.agent-comms")).expanduser()
+    from toad.comms_root import current_root
+
+    return current_root()
 
 
 def _display_path(path: Path) -> str:
@@ -366,7 +368,12 @@ class CoordinationStatus(Static):
         self.refresh_status()
 
     def refresh_status(self) -> None:
-        root = _comms_root()
+        try:
+            root = _comms_root()
+        except (OSError, ValueError, RuntimeError) as error:
+            self.update(f"Wire unavailable: {error}")
+            self.tooltip = "Invalid Comms route; no legacy fallback"
+            return
         backend = os.environ.get("AGENT_COMMS_AGENT_BIN", "pi")
         thread = self.thread or "connecting..."
         self.update(
@@ -454,6 +461,7 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
         self._snapshot_lock = asyncio.Lock()
         self._presentation_lock = asyncio.Lock()
         self._last_revision: WireRevision | None = None
+        self._last_route_stamp: tuple[tuple[int, int, int, int] | None, ...] | None = None
         self._last_actor = ""
         self._last_filters: tuple[bool, bool] | None = None
         self._last_read_marker_notice: str | None = None
@@ -548,7 +556,17 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
         # Every mounted tab observes the same wire revision. Retain the app's
         # core reader rather than rebuilding its registry, bus and catalog
         # caches for each independently mounted sidebar.
-        root = _comms_root().resolve()
+        try:
+            root = _comms_root().resolve()
+        except (OSError, ValueError, RuntimeError):
+            self.display = False
+            return
+        from toad.screens.comms import CommsScreen
+
+        if isinstance(self.screen, CommsScreen) and self.screen.wire_root is not None:
+            if root != Path(self.screen.wire_root).resolve():
+                self.display = False
+                return
         self._wire = (app.coordination_wire if root == app.coordination_wire.root
                       else wire(root))
         app.session_update_signal.subscribe(self, self._session_updated)
@@ -738,24 +756,78 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
             return "dm"
         return "thread" if person.thread.session_file or person.thread.pid > 0 else "dm"
 
+    def _route_stamp(self) -> tuple[tuple[int, int, int, int] | None, ...]:
+        # Stat-only change tokens avoid taking the private bus store lock on
+        # Textual's event loop. A changed route or marker still requires the
+        # canonical core resolver in the off-loop worker before presentation.
+        from agent_comms.active_route import active_route_path
+
+        def stamp(path: Path) -> tuple[int, int, int, int] | None:
+            try:
+                info = path.stat(follow_symlinks=False)
+            except FileNotFoundError:
+                return None
+            return info.st_dev, info.st_ino, info.st_mtime_ns, info.st_size
+
+        return stamp(active_route_path()), stamp(self._wire.root / "bus_meta.json")
+
     def _refresh(self) -> None:
-        if not self._observe or self._snapshot_pending or not self.is_attached:
+        if not self._observe or not self.is_attached:
+            return
+        if self._wire is None:
+            self.display = False
             return
         try:
-            # A refresh timer can fire while a mode's screen stack is being
-            # removed during tab closure or application shutdown.
-            if not self.is_attached or self.screen is not self.app.screen:
+            route_stamp = self._route_stamp()
+            if (
+                self._last_route_stamp is None
+                or route_stamp[0] != self._last_route_stamp[0]
+            ):
+                # Route publication can overtake a pending snapshot worker.
+                # Hide on route-file replacement before waiting for its bus
+                # lock. The private bus_meta stamp also changes on *ordinary*
+                # sends: it triggers validation below but must not blank a
+                # valid same-route sidebar on every message.
+                self.display = False
+            if self._snapshot_pending:
                 return
-            self.app.coordination_observed.publish(None)
             revision = self._wire.revision()
-            if (revision == self._last_revision and self.session_thread == self._last_actor
+            if (revision == self._last_revision and route_stamp == self._last_route_stamp
+                    and self.session_thread == self._last_actor
                     and self.visible_filters == self._last_filters):
                 return
             self._snapshot_pending = True
-            self.run_worker(self._poll_snapshot(revision))
+            self.run_worker(self._refresh_checked(revision, route_stamp))
         except Exception:
+            self.display = False
             self._snapshot_pending = False
+
+    async def _refresh_checked(
+        self, revision: WireRevision,
+        route_stamp: tuple[tuple[int, int, int, int] | None, ...],
+    ) -> None:
+        try:
+            from toad.comms_root import root_is_current
+
+            if not await asyncio.to_thread(root_is_current, self._wire.root):
+                self.display = False
+                return
+            if not self.is_attached or self.screen is not self.app.screen:
+                return
+            self.app.coordination_observed.publish(None)
+            await self._poll_snapshot(revision)
+            if (
+                self._last_revision == revision
+                and self._route_stamp() == route_stamp
+                and await asyncio.to_thread(root_is_current, self._wire.root)
+            ):
+                self._last_route_stamp = route_stamp
+                self.display = True
+        except Exception:
+            # Route publication or writer recovery will be retried next tick.
             return
+        finally:
+            self._snapshot_pending = False
 
     async def _poll_snapshot(self, revision: WireRevision) -> None:
         async with self._snapshot_lock:
@@ -772,6 +844,11 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
             )
             if (not self.is_attached or self.screen is not self.app.screen
                     or actor != self.session_thread or filters != self.visible_filters):
+                return
+            from toad.comms_root import root_is_current
+
+            if not await asyncio.to_thread(root_is_current, self._wire.root):
+                self.display = False
                 return
             snapshot = self._snapshot(state)
             if state.read_marker_notice != self._last_read_marker_notice:
@@ -1212,18 +1289,31 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
         )
 
     def _set_any_mode(self, channel: str, enabled: bool) -> None:
+        from toad.comms_root import implicit_root, run_selected_write
+
         try:
-            self._wire.set_channel_any_mode(channel, enabled)
+            run_selected_write(
+                self._wire.root, self._wire.set_channel_any_mode,
+                channel, enabled, implicit=implicit_root(),
+            )
         except (OSError, ValueError) as error:
             self.notify(str(error), title="Channel activity", severity="error")
         self._refresh()
 
     def _set_pin(self, channel: str, pinned: bool, *, thread: str | None = None) -> None:
+        from toad.comms_root import implicit_root, run_selected_write
+
         try:
             if thread is None:
-                self._wire.set_channel_pinned(channel, pinned)
+                run_selected_write(
+                    self._wire.root, self._wire.set_channel_pinned,
+                    channel, pinned, implicit=implicit_root(),
+                )
             else:
-                self._wire.set_thread_pinned(channel, thread, pinned)
+                run_selected_write(
+                    self._wire.root, self._wire.set_thread_pinned,
+                    channel, thread, pinned, implicit=implicit_root(),
+                )
         except (OSError, ValueError) as error:
             self.notify(str(error), title="Pin action", severity="error")
         self._refresh()

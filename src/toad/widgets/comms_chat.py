@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import asyncio
-import os
 import re
+from collections.abc import Callable
 from pathlib import Path
 
 from agent_comms import Comms, MessagePage, OBSERVATION_INTERVAL, ThreadRole, WireRevision
@@ -44,7 +44,9 @@ HISTORY_EDGE_THRESHOLD = 2
 
 
 def _comms_root() -> Path:
-    return Path(os.environ.get("AGENT_COMMS_ROOT", "~/.agent-comms")).expanduser()
+    from toad.comms_root import current_root
+
+    return current_root()
 
 
 def session_thread_name(project_path) -> str:
@@ -91,11 +93,16 @@ class CommsChatView(Conversation):
         target: str,
         kind: str,
         me: str,
+        wire_root: str | None = None,
     ) -> None:
         super().__init__(project_path)
         self.target = target
         self.kind = kind
         self._me = me
+        self._unknown_send: tuple[str, int, str] | None = None
+        self._human_admission_blocked = False
+        self._send_block_reason = ""
+        self._bound_root = Path(wire_root).resolve() if wire_root is not None else None
         self.set_prompt_history_scope(f"comms:{kind}:{target}")
         self._history: list[tuple[WireMessage, Widget]] = []
         self._has_older = False
@@ -151,7 +158,14 @@ class CommsChatView(Conversation):
     async def initialize_view(self) -> None:
         # Reuse the canonical core service already shared by tab sidebars and
         # transcript readers. Its revision-aware caches remain model-owned.
-        root = _comms_root().resolve()
+        try:
+            root = _comms_root().resolve()
+        except (OSError, ValueError, RuntimeError):
+            self.display = False
+            return
+        if self._bound_root is not None and root != self._bound_root:
+            self.display = False
+            return
         self._wire = (self.app.coordination_wire if root == self.app.coordination_wire.root
                       else wire(root))
         self.agent_info = Content(self._target_label())
@@ -339,6 +353,11 @@ class CommsChatView(Conversation):
             self.window.scroll_end(animate=False)
 
     async def _mount_page(self, page: MessagePage, *, older: bool) -> None:
+        from toad.comms_root import root_is_current
+
+        if self._wire is None or not root_is_current(self._wire.root):
+            self.display = False
+            return
         if not older and page.messages:
             self._ack_page = page
         mounted = {message.seq for message, _ in self._history}
@@ -352,8 +371,14 @@ class CommsChatView(Conversation):
 
         pairs = [(message, self._message_block(message)) for message in records]
         async with self.window.history_lock:
+            if not root_is_current(self._wire.root):
+                self.display = False
+                return
             anchor = self._history[0 if older else -1][1] if self._history else None
             async with self.window.preserve_history(anchor):
+                if not root_is_current(self._wire.root):
+                    self.display = False
+                    return
                 with self.app.batch_update():
                     await self._insert_page(page, pairs, older=older)
         self.window.check_follow()
@@ -422,7 +447,12 @@ class CommsChatView(Conversation):
                     return
                 if not self._history:
                     return
+                from toad.comms_root import root_is_current
+
                 comms = self._wire
+                if comms is None or not root_is_current(comms.root):
+                    self.display = False
+                    return
                 before = (self._history[0][0].seq, self._history[-1][0].seq,
                           self._has_older, self._has_newer)
                 route = (self.target, self.kind, self.project_path)
@@ -448,6 +478,9 @@ class CommsChatView(Conversation):
                 if (not self.screen.is_current or self._wire is not comms
                         or route != (self.target, self.kind, self.project_path)):
                     self._edge_check_on_resume = True
+                    return
+                if not root_is_current(comms.root):
+                    self.display = False
                     return
                 await self._mount_page(page, older=older)
                 after = (self._history[0][0].seq, self._history[-1][0].seq,
@@ -513,6 +546,11 @@ class CommsChatView(Conversation):
         page = self._ack_page
         if page is None or self._ack_inflight or not self.is_attached:
             return
+        from toad.comms_root import root_is_current
+
+        if self._wire is None or not root_is_current(self._wire.root):
+            self.display = False
+            return
         painted = set(self._painted_message_sequences())
         if page.newest_seq is None or page.newest_seq not in painted:
             return
@@ -543,21 +581,28 @@ class CommsChatView(Conversation):
     async def _mark_painted_page(self, page: MessagePage) -> None:
         try:
             comms = self._wire
+            from toad.comms_root import implicit_root, root_is_current, run_selected_write
+
             if comms is None or not self.is_attached or not self.screen.is_active:
+                return
+            if not root_is_current(comms.root):
+                self.display = False
                 return
             project = str(self.project_path)
             target = self.target
             if self.kind == "dm":
                 assert page.display_basis is not None and page.newest_seq is not None
                 await asyncio.to_thread(
-                    comms.mark_dm_view_read, target, worktree=project,
-                    through=page.newest_seq, expected_display_basis=page.display_basis,
+                    run_selected_write, comms.root, comms.mark_dm_view_read, target,
+                    worktree=project, through=page.newest_seq,
+                    expected_display_basis=page.display_basis, implicit=implicit_root(),
                 )
             else:
                 assert page.display_scope is not None and page.newest_seq is not None
                 await asyncio.to_thread(
-                    comms.mark_channel_view_read, target, worktree=project,
-                    through=page.newest_seq, expected_scope=page.display_scope,
+                    run_selected_write, comms.root, comms.mark_channel_view_read, target,
+                    worktree=project, through=page.newest_seq,
+                    expected_scope=page.display_scope, implicit=implicit_root(),
                 )
             if self._ack_page is page:
                 self._ack_page = None
@@ -581,6 +626,11 @@ class CommsChatView(Conversation):
     async def _refresh(self) -> None:
         if not self.is_attached or self._wire is None:
             return
+        from toad.comms_root import root_is_current
+
+        if not root_is_current(self._wire.root):
+            self.display = False
+            return
         try:
             if self.screen is not self.app.screen:
                 self._warm_history()
@@ -602,6 +652,9 @@ class CommsChatView(Conversation):
                     if show_loading and self.is_attached:
                         self.throbber.busy = False
                 if not self.is_attached or read.request != self._history_request():
+                    return
+                if not root_is_current(comms.root):
+                    self.display = False
                     return
                 if self.screen is not self.app.screen:
                     self._prepared_history = read
@@ -625,6 +678,9 @@ class CommsChatView(Conversation):
                     )
                 if not self.is_attached or not self.screen.is_active:
                     return
+                if not root_is_current(comms.root):
+                    self.display = False
+                    return
                 self.call_after_refresh(self._mark_visible_after_layout)
             except Exception as error:
                 message = f"Wire error: {error}"
@@ -639,7 +695,15 @@ class CommsChatView(Conversation):
             info = await asyncio.to_thread(comms.agent_info_of, target) if self.kind == "dm" else None
             if not self.is_attached or self.target != target:
                 return
-            if info is not None:
+            if self._unknown_send is not None:
+                root_id, sequence, message_id = self._unknown_send
+                self.status = (
+                    f"Send UNKNOWN {root_id}/{sequence}/{message_id}; "
+                    "inspect the bus, do not retry"
+                )
+            elif self._human_admission_blocked:
+                self.status = self._send_block_reason
+            elif info is not None:
                 self.status = " · ".join(
                     value
                     for value in (info.model or "", info.context_label)
@@ -655,19 +719,132 @@ class CommsChatView(Conversation):
     async def submit_input(self, event: messages.UserInputSubmitted) -> None:
         if not event.body.strip():
             return
+        if self._unknown_send is not None or self._human_admission_blocked:
+            self.flash("Send pending/UNKNOWN/blocked; inspect, do not retry", style="error")
+            return
         try:
-            comms = wire(_comms_root())
-            receipt = await asyncio.to_thread(
-                comms.send_user_message,
-                "#all" if self.kind == "irc" else self.target, event.body,
-                worktree=str(self.project_path),
-            )
-        except Exception as error:
+            from toad.comms_root import implicit_root, root_is_current, run_selected_write
+
+            if self._wire is None or not root_is_current(self._wire.root):
+                raise ValueError("Comms route changed; reopen this view before sending")
+            comms = self._wire
+            # Disable compose through both the worker and the subsequent
+            # receipt paint. Cancellation after a committed receipt must not
+            # leave an apparently fresh, send-ready draft.
+            self._human_admission_blocked = True
+            self._send_block_reason = "Send pending; do not retry"
             self.prompt.text = event.body
+            self.prompt.prompt_text_area.disabled = True
+            send_task = asyncio.create_task(
+                asyncio.to_thread(
+                    run_selected_write, comms.root, comms.send_user_message,
+                    "#all" if self.kind == "irc" else self.target, event.body,
+                    worktree=str(self.project_path), implicit=implicit_root(),
+                )
+            )
+            try:
+                receipt = await asyncio.shield(send_task)
+            except asyncio.CancelledError:
+                # Cancelling the UI coroutine does not cancel the worker. The
+                # append may already have happened; never present this text as
+                # send-ready or launch a second attempt on a different root.
+                self._human_admission_blocked = True
+                self.prompt.text = event.body
+                self.prompt.prompt_text_area.disabled = True
+                self._send_block_reason = (
+                    "Send cancelled while worker may still write; "
+                    "outcome UNKNOWN, inspect the bus, do not retry"
+                )
+                self.status = self._send_block_reason
+                self.prompt.prompt_text_area.tooltip = self.status
+                self.flash(self.status, style="error")
+                send_task.add_done_callback(
+                    lambda task: task.exception() if not task.cancelled() else None
+                )
+                return
+        except Exception as error:
+            from agent_comms import declarations as core_declarations
+
+            unknown_type = getattr(core_declarations, "HumanInitialUnknownError", None)
+            if unknown_type is not None and isinstance(error, unknown_type):
+                self._unknown_send = (error.wire_root_id, error.wire_seq, error.message_id)
+                # Preserve the user's text for inspection, but never put an
+                # uncertain send back into an actionable compose control.
+                self.prompt.text = event.body
+                self.prompt.prompt_text_area.disabled = True
+                self.status = f"Send UNKNOWN: {error}; do not retry"
+                self.prompt.prompt_text_area.tooltip = self.status
+                self.flash(self.status, style="error")
+                return
+            violation_type = getattr(core_declarations, "RelationViolationError", None)
+            if (
+                violation_type is not None
+                and isinstance(error, violation_type)
+                and "UNKNOWN outcome" in str(error)
+                and "human send blocked" in str(error)
+            ):
+                # Core's fail-closed reservation/sequence-gap admission is
+                # non-actionable until manual reconciliation, not a fresh
+                # pre-append rejection that can safely be resubmitted.
+                self._human_admission_blocked = True
+                self.prompt.text = event.body
+                self.prompt.prompt_text_area.disabled = True
+                self._send_block_reason = f"Private human admission blocked: {error}"
+                self.status = self._send_block_reason
+                self.prompt.prompt_text_area.tooltip = self.status
+                self.flash(self.status, style="error")
+                return
+            self._human_admission_blocked = False
+            self._send_block_reason = ""
+            self.prompt.text = event.body
+            self.prompt.prompt_text_area.disabled = False
             self.flash(f"Send failed: {error}", style="error")
             return
+        self._send_block_reason = (
+            f"Send receipt {comms.root}/{receipt.seq}/{receipt.message_id}; "
+            "awaiting paint, do not retry"
+        )
+        self.status = self._send_block_reason
+        self.prompt.prompt_text_area.tooltip = self.status
+        try:
+            await self._paint_sent_receipt(comms, receipt, event.body, root_is_current)
+        except (asyncio.CancelledError, Exception) as error:
+            reason = (
+                "interrupted" if isinstance(error, asyncio.CancelledError) else "failed"
+            )
+            self._send_block_reason = (
+                f"Committed send {comms.root}/{receipt.seq}/{receipt.message_id}; "
+                f"paint {reason}, inspect before composing"
+            )
+            self.status = self._send_block_reason
+            self.prompt.prompt_text_area.tooltip = self.status
+            return
+        if root_is_current(comms.root) and any(
+            message.message_id == receipt.message_id and message.seq == receipt.seq
+            for message, _ in self._history
+        ):
+            self._human_admission_blocked = False
+            self._send_block_reason = ""
+            self.prompt.text = ""
+            self.prompt.prompt_text_area.disabled = False
+            self.prompt.prompt_text_area.tooltip = None
+            self.status = ""
+
+    async def _paint_sent_receipt(
+        self, comms: Comms, receipt: WireMessage, body: str,
+        root_is_current: Callable[[str | Path], bool],
+    ) -> None:
+        if not root_is_current(comms.root):
+            # The send may already have reached the former wire. Do not
+            # duplicate it on the successor or paint it under the new route.
+            self.display = False
+            self.flash(
+                "Comms route changed during send; outcome may be uncertain",
+                style="error",
+            )
+            return
         self.prompt_history.current = None
-        self.run_worker(self.prompt_history.append(event.body), group="history")
+        self.run_worker(self.prompt_history.append(body), group="history")
         self.prompt_history_index = 0
         async with self._refresh_lock:
             if self._has_newer:

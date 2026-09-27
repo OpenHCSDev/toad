@@ -20,8 +20,21 @@ _pending_spawns = 0
 
 
 def configured_root(env: Mapping[str, str], cwd: str | Path) -> Path:
-    """Resolve the child wire without consulting the Toad parent's HOME."""
-    text = env.get("AGENT_COMMS_ROOT", "~/.agent-comms")
+    """Resolve the child wire; never mistake the parent's route for another HOME."""
+    if "AGENT_COMMS_ROOT" not in env:
+        home_key = "USERPROFILE" if os.name == "nt" else "HOME"
+        home = env.get(home_key)
+        if (not home or not Path(home).is_absolute()
+                or home != str(Path.home())
+                or "AGENT_COMMS_ROOT" in os.environ):
+            raise ValueError(
+                "ACP default route requires the Toad process HOME and no parent "
+                "root override; set an explicit child AGENT_COMMS_ROOT"
+            )
+        from toad.comms_root import current_root
+
+        return current_root()
+    text = env["AGENT_COMMS_ROOT"]
     if text == "~" or text.startswith("~/"):
         home = env.get("HOME") if os.name != "nt" else env.get("USERPROFILE")
         if not home or not Path(home).is_absolute():
@@ -37,7 +50,8 @@ def barrier_for(root: str | Path | None = None, *, cwd: str | Path | None = None
     """Use the paired Comms barrier; never silently skip a missing package."""
     from agent_comms.maintenance_barrier import MaintenanceBarrier
 
-    resolved = Path(root or os.environ.get("AGENT_COMMS_ROOT", "~/.agent-comms")).expanduser()
+    resolved = Path(root) if root is not None else configured_root(os.environ, cwd or os.getcwd())
+    resolved = resolved.expanduser()
     if not resolved.is_absolute():
         resolved = Path(cwd or os.getcwd()) / resolved
     return MaintenanceBarrier(resolved.resolve() / "registry.json")
@@ -87,6 +101,12 @@ async def admitted_spawn(command: str, *, root: str | None = None, **kwargs: Any
     child_env = (kwargs["env"] if kwargs.get("env") is not None else os.environ).copy()
     child_cwd = str(Path(kwargs["cwd"] if kwargs.get("cwd") is not None else os.getcwd()).resolve())
     ingress_root = configured_root(child_env, child_cwd)
+    from toad.comms_root import selected_write
+
+    # Capture how this CHILD selected its root before pinning AGENT_COMMS_ROOT.
+    # A caller's explicit child override remains independent even if the
+    # Toad process itself currently uses an implicit default route.
+    default_route = "AGENT_COMMS_ROOT" not in child_env
     # The gate and child must use the *same* target even if an alias symlink
     # changes after admission but before exec. Never inherit a relative root.
     child_env["AGENT_COMMS_ROOT"] = str(ingress_root)
@@ -156,7 +176,35 @@ async def admitted_spawn(command: str, *, root: str | None = None, **kwargs: Any
 
     def spawn_under_lock() -> None:
         try:
-            with admission(root, ingress_root=ingress_root, cwd=child_cwd):
+            # Route SH precedes the maintenance/bus lock, matching the core
+            # publisher's route EX -> private-root preflight ordering. Hold it
+            # through the actual spawn and settlement, not just UI preflight.
+            with selected_write(ingress_root, implicit=default_route), admission(
+                root, ingress_root=ingress_root, cwd=child_cwd
+            ):
+                from agent_comms.private_nk_entrypoint import (
+                    PACKAGE_ENV, ROOT_ID_ENV, private_nk_launch,
+                )
+
+                if default_route:
+                    from agent_comms.active_route import read_active_route
+
+                    route = read_active_route()
+                    if route is not None:
+                        if route.root.resolve() != ingress_root:
+                            raise ValueError("ACP root changed before private launch")
+                        for key, expected in (
+                            (ROOT_ID_ENV, route.wire_root_id),
+                            (PACKAGE_ENV, str(route.native_package)),
+                        ):
+                            if key in child_env and child_env[key] != expected:
+                                raise ValueError("ACP private launch identity conflicts with route")
+                            child_env[key] = expected
+                elif ROOT_ID_ENV in child_env or PACKAGE_ENV in child_env:
+                    # An explicit child root is independent of the default
+                    # route, but inherited private-owner flags must genuinely
+                    # belong to that explicit root before launching anything.
+                    private_nk_launch(ingress_root, child_env)
                 future = asyncio.run_coroutine_threadsafe(
                     asyncio.create_subprocess_shell(command, **kwargs), loop
                 )
@@ -203,7 +251,7 @@ async def admitted_spawn(command: str, *, root: str | None = None, **kwargs: Any
 @contextmanager
 def admitted_prompt(
     root: str | None = None, *, ingress_root: str | Path | None = None,
-    cwd: str | Path | None = None,
+    cwd: str | Path | None = None, implicit: bool | None = None,
 ) -> Iterator[None]:
     """Guard synchronous JSONRPC enqueue through its stdin.write boundary.
 
@@ -213,5 +261,14 @@ def admitted_prompt(
     """
     if _pending_spawns:
         raise ValueError("ACP spawn admission is in progress; prompt not sent")
-    with admission(root, ingress_root=ingress_root, cwd=cwd):
+    from toad.comms_root import implicit_root, selected_write
+
+    selected = Path(ingress_root) if ingress_root is not None else configured_root(
+        os.environ, cwd or os.getcwd()
+    )
+    if implicit is not None and type(implicit) is not bool:
+        raise TypeError("ACP prompt route selection must be boolean")
+    with selected_write(selected, implicit=implicit_root() if implicit is None else implicit), admission(
+        root, ingress_root=selected, cwd=cwd
+    ):
         yield

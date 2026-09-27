@@ -42,6 +42,7 @@ from toad.navigation_preparation import (
 )
 from toad.session_tracker import SessionTracker, SessionDetails, OpenTab, PendingThreadTab, CommsViewKey, SidebarState
 from toad.sidebar_layout import SidebarLayout
+from toad.comms_root import current_root, implicit_root, root_is_current, run_selected_write
 
 if TYPE_CHECKING:
     from toad.render_tasks import RenderTask
@@ -984,8 +985,8 @@ class ToadApp(App, inherit_bindings=False):
             return self.current_mode
         owner_identity = owner_screen._comms_thread
         owner_root = owner_screen._coordination_root
-        requested_root = os.environ.get("AGENT_COMMS_ROOT", "~/.agent-comms")
         try:
+            requested_root = str(current_root())
             prepared = await self.navigation_reader.read(
                 CommsNavigationRequest(requested_root, owner_mode, me, target, HistoryKind(kind), owner_root)
             )
@@ -997,8 +998,8 @@ class ToadApp(App, inherit_bindings=False):
                 or self.session_tracker.get_session(owner_mode) is None
                 or owner_screen._comms_thread != owner_identity
                 or owner_screen._coordination_root != owner_root
-                or requested_root != os.environ.get("AGENT_COMMS_ROOT", "~/.agent-comms")):
-            # Metadata may finish after a newer click, rename, or owner close.
+                or not root_is_current(requested_root)):
+            # Metadata may finish after a route flip, rename, or owner close.
             # A delayed result cannot resurrect a tab or steal current focus.
             return self.current_mode
         key = prepared.key
@@ -1011,8 +1012,8 @@ class ToadApp(App, inherit_bindings=False):
             else:
                 screen = self.get_screen_stack(mode_name)[0]
                 if not isinstance(screen, CommsScreen) or (
-                    screen.owner_mode, screen.me, screen.kind, screen.target
-                ) != (owner_mode, me, kind, target):
+                    screen.owner_mode, screen.me, screen.kind, screen.target, screen.wire_root
+                ) != (owner_mode, me, kind, target, key.root):
                     # A stale mapping is not authority to navigate through an
                     # obsolete sending identity or return to the wrong owner.
                     self.notify(
@@ -1033,6 +1034,7 @@ class ToadApp(App, inherit_bindings=False):
                 target=target,
                 kind=kind,
                 recovery_root=recovery_root,
+                wire_root=key.root,
             )
 
         self._comms_mode_index += 1
@@ -1125,29 +1127,42 @@ class ToadApp(App, inherit_bindings=False):
         by_mode = {tab.mode_name: tab for tab in tabs}
         return tuple(by_mode[mode] for mode in self._open_tab_order if mode in by_mode)
 
-    @cached_property
+    @property
     def coordination_wire(self):
-        from agent_comms import wire
+        from agent_comms.operations import wire
 
-        return wire(Path(os.environ.get("AGENT_COMMS_ROOT", "~/.agent-comms")))
+        # Every access revalidates the route marker; never reuse a cached wire
+        # after publication changes the default root.
+        selected = wire()
+        cached = self.__dict__.get("_coordination_wire")
+        if cached is None or cached.root.resolve() != selected.root.resolve():
+            self._coordination_wire = selected
+        return self._coordination_wire
 
     def open_wire_export_dialog(self) -> None:
         from toad.widgets.comms_transfer import WireExportDialog
 
+        selected_root = self.coordination_wire.root
         self.push_screen(
-            WireExportDialog(self.coordination_wire.root),
-            callback=lambda request: self._export_wire(request) if request is not None else None,
+            WireExportDialog(selected_root),
+            callback=lambda request: self._export_wire(request, selected_root)
+            if request is not None else None,
         )
 
     @work(group="wire-export", exclusive=True, exit_on_error=False)
-    async def _export_wire(self, request) -> None:
+    async def _export_wire(self, request, selected_root: Path) -> None:
         try:
+            if not root_is_current(selected_root):
+                raise ValueError("Comms route changed before export")
+            comms = self.coordination_wire
+            if comms.root.resolve() != selected_root.resolve():
+                raise ValueError("Comms route changed before export")
             receipt = await asyncio.to_thread(
-                self.coordination_wire.export_wire,
+                run_selected_write, comms.root, comms.export_wire,
                 request.destination,
                 format=request.format,
                 scope=request.scope,
-                limit=request.limit,
+                limit=request.limit, implicit=implicit_root(),
             )
         except Exception as error:
             self.notify(str(error), title="Wire export failed", severity="error")
@@ -1160,21 +1175,28 @@ class ToadApp(App, inherit_bindings=False):
     def open_thread_import_dialog(self) -> None:
         from toad.widgets.comms_transfer import ThreadImportDialog
 
+        selected_root = self.coordination_wire.root
         self.push_screen(
             ThreadImportDialog(),
-            callback=lambda request: self._import_thread(request) if request is not None else None,
+            callback=lambda request: self._import_thread(request, selected_root)
+            if request is not None else None,
         )
 
     @work(group="thread-import", exclusive=True, exit_on_error=False)
-    async def _import_thread(self, request) -> None:
+    async def _import_thread(self, request, selected_root: Path) -> None:
         try:
+            if not root_is_current(selected_root):
+                raise ValueError("Comms route changed before import")
+            comms = self.coordination_wire
+            if comms.root.resolve() != selected_root.resolve():
+                raise ValueError("Comms route changed before import")
             receipt = await asyncio.to_thread(
-                self.coordination_wire.import_thread,
+                run_selected_write, comms.root, comms.import_thread,
                 request.source,
                 request.format,
                 name=request.name,
                 session_id=request.session_id,
-                worktree=request.worktree,
+                worktree=request.worktree, implicit=implicit_root(),
             )
         except Exception as error:
             self.notify(str(error), title="Thread import failed", severity="error")
@@ -1206,7 +1228,11 @@ class ToadApp(App, inherit_bindings=False):
             return self.current_mode
         source_identity = source._comms_thread
         source_root = source._coordination_root
-        requested_root = os.environ.get("AGENT_COMMS_ROOT", "~/.agent-comms")
+        try:
+            requested_root = str(current_root())
+        except (OSError, ValueError, RuntimeError) as error:
+            self.notify(str(error), title="Thread unavailable", severity="error")
+            return self.current_mode
         # A mounted destination already owns its root/thread identity. Focus it
         # before publishing a loading tab or doing route discovery. Unknown
         # aliases and noncanonical roots still use authoritative off-loop reads.
@@ -1294,7 +1320,7 @@ class ToadApp(App, inherit_bindings=False):
                 or owner_mode not in self._screen_stacks
                 or source._comms_thread != source_identity
                 or source._coordination_root != source_root
-                or requested_root != os.environ.get("AGENT_COMMS_ROOT", "~/.agent-comms")):
+                or not root_is_current(requested_root)):
             return self._pending_thread_fallback(pending_mode)
         coordination_root, thread = prepared.root, prepared.thread
         if not prepared.active:
@@ -1448,6 +1474,13 @@ class ToadApp(App, inherit_bindings=False):
         screen = self.screen
         if not isinstance(screen, MainScreen):
             return
+        from toad.widgets.comms_sidebar import CommsSidebar
+
+        sidebar = screen.query_one_optional(CommsSidebar)
+        observed_root = (screen._coordination_root or
+                         (sidebar._wire.root if sidebar is not None and sidebar._wire is not None else None))
+        if observed_root is not None and not root_is_current(observed_root):
+            return
         conversation = screen.query_one_optional(Conversation)
         if conversation is None or not conversation.is_mounted:
             return
@@ -1465,9 +1498,11 @@ class ToadApp(App, inherit_bindings=False):
                for history in window.histories):
             return
         try:
+            comms = self.coordination_wire
             await asyncio.to_thread(
-                self.coordination_wire.mark_thread_view_read, screen._session_thread,
-                worktree=str(self.project_dir), through=through,
+                run_selected_write, comms.root, comms.mark_thread_view_read,
+                screen._session_thread, worktree=str(self.project_dir),
+                through=through, implicit=implicit_root(),
             )
         except (OSError, ValueError):
             # Source replacement or deletion is resolved by the next snapshot.
@@ -1477,6 +1512,22 @@ class ToadApp(App, inherit_bindings=False):
         self, action: str, subject: str, actor: str, session_modes: tuple[str, ...] = ()
     ) -> None:
         """Track one UI request per thread while the core operation runs off-loop."""
+        screen = self.screen
+        source_root = getattr(screen, "wire_root", None) or getattr(screen, "_coordination_root", None)
+        if source_root is None:
+            from toad.widgets.comms_sidebar import CommsSidebar
+
+            sidebar = screen.query_one_optional(CommsSidebar)
+            if sidebar is not None and sidebar._wire is not None:
+                source_root = sidebar._wire.root
+        if source_root is not None and not root_is_current(source_root):
+            self.notify("Comms route changed; reopen this view", title="Session action", severity="error")
+            return
+        try:
+            selected_root = str(current_root())
+        except (OSError, ValueError, RuntimeError) as error:
+            self.notify(str(error), title="Session action", severity="error")
+            return
         if subject in self.pending_thread_actions:
             self.notify(f"An action for @{subject} is already in progress", title="Session action")
             return
@@ -1487,24 +1538,31 @@ class ToadApp(App, inherit_bindings=False):
         }.get(action, "Updating…")
         self.pending_thread_actions[subject] = label
         self.thread_actions_changed.publish(None)
-        self._run_thread_action(action, subject, actor, session_modes)
+        self._run_thread_action(action, subject, actor, session_modes, selected_root)
 
     @work(group="thread-actions")
     async def _run_thread_action(
-        self, action: str, subject: str, actor: str, session_modes: tuple[str, ...]
+        self, action: str, subject: str, actor: str, session_modes: tuple[str, ...],
+        selected_root: str,
     ) -> None:
         from agent_comms import invoke_context_tool
 
         try:
+            if not root_is_current(selected_root):
+                raise ValueError("Comms route changed before the thread action")
+            comms = self.coordination_wire
+            if comms.root.resolve() != Path(selected_root):
+                raise ValueError("Comms route changed before the thread action")
             if action == "comms_ack":
                 result = await asyncio.to_thread(
-                    self.coordination_wire.mark_user_view_read,
-                    subject, worktree=str(self.project_dir),
+                    run_selected_write, comms.root, comms.mark_user_view_read,
+                    subject, worktree=str(self.project_dir), implicit=implicit_root(),
                 )
                 self.notify(f"Marked {subject} read", title="Session action")
             else:
                 result = await asyncio.to_thread(
-                    invoke_context_tool, self.coordination_wire, action, subject=subject, actor=actor
+                    run_selected_write, comms.root, invoke_context_tool,
+                    comms, action, subject=subject, actor=actor, implicit=implicit_root(),
                 )
             if action == "comms_start":
                 self.notify(
