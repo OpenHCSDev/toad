@@ -13,7 +13,7 @@ from textual.await_complete import AwaitComplete
 from textual.containers import VerticalGroup
 
 from toad.widgets.message_filter import ALL_CATEGORIES, MessageCategory
-from toad.widgets.transcript_history import TranscriptHistory
+from toad.widgets.transcript_history import TranscriptHistory, TranscriptPageView
 from toad.transcript_preparation import TranscriptFilterWork
 
 
@@ -23,9 +23,9 @@ async def exercise(app, pilot, stage):
     message = Message("peer", "owner", "OLD_INBOUND", MessageType.INFO, timestamp=0)
     incoming = TranscriptEvent("user", message.body, routing=TurnRouting((message,), None))
     thinking = TranscriptEvent("thinking", "NEW_THINKING")
-    events = (incoming, thinking) * 4 + tuple(TranscriptEvent("assistant", f"tail {i}") for i in range(4))
+    events = (incoming, thinking) * 8 + tuple(TranscriptEvent("assistant", f"tail {i}") for i in range(4))
     cursor = TranscriptCursor("mount-fixture", 0)
-    pager = TranscriptHistory(TranscriptPage(events, cursor, TranscriptCursor("mount-fixture", 12), False, False))
+    pager = TranscriptHistory(TranscriptPage(events, cursor, TranscriptCursor("mount-fixture", len(events)), False, False))
     entered, release = asyncio.Event(), asyncio.Event()
     original_mount = VerticalGroup.mount
     original_submit = app.preparation.submit
@@ -44,7 +44,8 @@ async def exercise(app, pilot, stage):
         nonlocal held
         result = original_mount(parent, *widgets, **kwargs)
         target = (parent is pager if stage == "container" else
-                  stage == "children" and parent.has_class("filtered-history-results"))
+                  stage in {"children", "extend"} and bool(widgets) and isinstance(parent, TranscriptPageView)
+                  and parent.parent is pager._filter_overlay)
         if target and not held:
             held = True
 
@@ -56,10 +57,14 @@ async def exercise(app, pilot, stage):
             return AwaitComplete(wait())
         return result
 
-    with patch.object(pager, "_scroll_changed"), patch.object(pager, "_check_edges"):
+    with patch.object(pager, "_scroll_changed"), patch.object(TranscriptHistory, "_check_edges"):
         await view.contents.mount(pager)
         await pilot.pause()
         view.visible_categories = frozenset((MessageCategory.INBOUND,))
+        if stage == "extend":
+            pager._filter_scanning = True
+            await pager._scan_filtered_older()
+            await pilot.pause()
         scan = None
         try:
             with patch.object(VerticalGroup, "mount", mounted), patch.object(app.preparation, "submit", submitted):
@@ -70,6 +75,7 @@ async def exercise(app, pilot, stage):
                 view.prompt.focus()
                 await pilot.press("x")
                 assert view.prompt.text.endswith("x"), "Typing blocked behind filter mount"
+                assert app._batch_count == 0, "A held page batch suppressed unrelated presentation"
                 owner_mode = app.current_mode
                 other = await app.new_session_screen(app.get_main_screen)
                 await pilot.pause()
@@ -89,7 +95,7 @@ async def exercise(app, pilot, stage):
             await pager._scan_filtered_older()
             await pilot.pause()
             assert pager._filter_overlay is not None
-            assert all(child.fragment.events[0].kind == "thinking" for child in pager._filter_overlay.children)
+            assert all(child.fragment.events[0].kind == "thinking" for child in pager._filter_overlay.fragment_views)
             await app.close_session_mode(other.mode_name)
             assert app._exception is None
         finally:
@@ -117,7 +123,7 @@ async def exercise_batched_selection(app, pilot):
         threads.append(threading.get_ident())
         return prepare(work)
 
-    with patch.object(pager, "_scroll_changed"), patch.object(pager, "_check_edges"), \
+    with patch.object(pager, "_scroll_changed"), patch.object(TranscriptHistory, "_check_edges"), \
             patch.object(TranscriptFilterWork, "prepare", prepared):
         await view.contents.mount(pager)
         await pilot.pause()
@@ -126,14 +132,14 @@ async def exercise_batched_selection(app, pilot):
         while pager._filter_has_older:
             pager._filter_scanning = True
             await pager._scan_filtered_older()
-            children = pager._filter_overlay.children
+            children = pager._filter_overlay.fragment_views
             assert 0 < len(children) - previous <= 4, "Source-sized widget admission"
             previous = len(children)
             await pilot.pause()
         assert [child.fragment.events[0].text for child in children] == [f"INBOUND_{i}" for i in range(20)]
         assert pager.pages[0].page is page, "Filtering replaced canonical source data"
         assert threads and all(thread != threading.get_ident() for thread in threads)
-        assert pager._filter_pending is None
+        assert not pager._filter_overlay.has_older
         await pager.remove()
 
 
@@ -145,7 +151,7 @@ async def main():
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(120, 40)) as pilot:
             await pilot.pause()
-            for stage in ("prepare", "container", "children"):
+            for stage in ("prepare", "container", "children", "extend"):
                 await exercise(app, pilot, stage)
             await exercise_batched_selection(app, pilot)
             view = app.screen.conversation
@@ -167,10 +173,13 @@ async def main():
             assert not pager.older.display and not pager.newer.display
             view.visible_categories = frozenset((MessageCategory.INBOUND,))
             async with asyncio.timeout(5):
-                while pager._filter_overlay is None or pager._filter_scanning:
+                while (pager._filter_overlay is None or not any(
+                    child.fragment.events[0].text == "SELECTED_INBOUND"
+                    for child in pager._filter_overlay.fragment_views
+                )):
                     await pilot.pause(.01)
             assert calls and any(child.fragment.events[0].text == "SELECTED_INBOUND"
-                                 for child in pager._filter_overlay.children)
+                                  for child in pager._filter_overlay.fragment_views)
             assert app._exception is None
         await asyncio.get_running_loop().shutdown_default_executor()
     print("filter mount supersession: typing and thread switches remain live; stale container/child mounts cannot publish or advance cursors")

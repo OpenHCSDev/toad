@@ -7,9 +7,10 @@ from toad.menus import MenuItem
 from toad.widgets.non_selectable_label import NonSelectableLabel
 from toad.widgets.message_divider import MessageDivider
 from toad.widgets.message_filter import CategorizedBlock, MessageCategory
+from toad.widgets.committed_presentation import SnapshotPresentation
 
 
-class UserInput(CategorizedBlock, containers.VerticalGroup):
+class UserInput(SnapshotPresentation, CategorizedBlock, containers.VerticalGroup):
     @property
     def message_category(self) -> MessageCategory:
         return MessageCategory.USER

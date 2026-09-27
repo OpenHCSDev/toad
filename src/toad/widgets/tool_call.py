@@ -4,7 +4,6 @@ from dataclasses import dataclass
 import re  # re2 doesn't have MULTILINE
 from typing import TYPE_CHECKING, Iterable
 from rich.text import Text
-from rich.syntax import Syntax
 
 from textual import on
 from textual import events
@@ -15,7 +14,7 @@ from textual.content import Content
 from textual.reactive import var
 from textual.css.query import NoMatches
 from textual import containers
-from textual.widgets import Static, Markdown
+from textual.widgets import Static
 
 from toad.app import ToadApp
 from toad.acp import protocol
@@ -24,6 +23,7 @@ from toad.pill import pill
 from toad.widgets.prepared_markdown import PreparedConversationMarkdown
 from toad.widgets.worker_static import WorkerStatic
 from toad.widgets.message_filter import CategorizedBlock, MessageCategory
+from toad.widgets.committed_presentation import SnapshotPresentation
 from toad.layout import trim_trailing_margin
 from textual.layout import WidgetPlacement
 
@@ -215,7 +215,7 @@ class ToolCallHeader(Static):
     """
 
 
-class ToolCall(CategorizedBlock, containers.VerticalGroup):
+class ToolCall(SnapshotPresentation, CategorizedBlock, containers.VerticalGroup):
     DEFAULT_CLASSES = "block"
 
     @property

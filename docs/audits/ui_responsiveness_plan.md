@@ -5,8 +5,8 @@ The branch includes the current Toad implementation, regression pilots, audit,
 and the [debug/capture/replay toolbox](../../tools/performance/README.md).
 Textual changes are tracked in [companion draft PR #5](https://github.com/OpenHCSDev/textual/pull/5).
 The dependency pin includes framework checkpoint
-`dc4daf62fd290cbfe6377c45b170f2d6e18c8203` (retired-scene ownership and native
-presentation reuse).
+`1d3ce505c718b6785a694840cdc5645fb1e40382` (retired-scene ownership, native
+presentation reuse and declaration-bound reactive/selector dispatch).
 
 ## Locked-in issues
 
@@ -90,6 +90,142 @@ Additional requirements are first-class work items:
 - Composable model display constraints and parsed class-reference lookup.
 
 ## Evidence and limitations
+
+### Declaration-bound reactive access checkpoint
+
+Post-reboot profiling isolated the `hasattr` hot path:34,074 of38,255 calls in a
+sidebar action came from `Reactive.__get__`, repeatedly discovering initialization
+and compute capability. The framework now resolves stored/computed access from
+concrete-class declarations and directly dispatches through that contract. It
+preserves lazy defaults, watcher/validator behavior, read-only computed values and
+ordinary method overrides. A reproduced private-compute inheritance bug is fixed.
+Target-only CSS queries also dispatch through `SelectorSet` without constructing
+unnecessary ancestry paths; relational selectors keep their existing interpreter.
+
+Current full receipts: **3,431 framework tests passed,1skipped,4xfailed** (excluding
+snapshots), **56 Toad pilots passed**. In the corresponding focused profile,
+reactive reads made zero `hasattr` calls; total calls fell to1,972. Roughly11.4k
+reactive reads used about8ms cumulative profiled time versus36ms previously.
+Profiler overhead and overlapping call times prevent treating this as a wall-time
+or end-to-end speedup claim.
+
+Post-reboot unprofiled controls/candidates, each72actions/52typed markers with all
+seven filters and drafts preserved:
+
+| Capture | Input median / p95 / maximum (ms) | Loop maximum (ms) | GC maximum (ms) |
+| --- | --- | --- | --- |
+| `toad-post-reboot-checkpoint-control-1` |39.43 /81.53 /95.88|127.56|55.00|
+| `toad-target-selector-filters-1` |43.81 /86.45 /102.24|107.61|67.25|
+| `toad-reactive-access-filters-1` |42.63 /95.47 /143.68|106.76|59.66|
+
+The dispatch optimization is verified, but these runs do **not** establish an
+end-to-end latency improvement. The universal sub50ms target remains open, with
+sidebar layout+paint still reaching about100ms even without a major collection.
+The reboot removed the temporary renderer-dependency environment; it was restored
+in a durable isolated cache environment using declared `zmqruntime==0.2.24`.
+Post-reboot controls use that same environment; pre-reboot timings are historical.
+
+### Committed off-tail retirement checkpoint
+
+Live presentation now declares its source-coverage contract through
+`CommitParticipant`: settled source-owned blocks use a captured-cohort claim;
+incoming wire notices require exact persisted sequence IDs; local interactive
+sessions declare a checkpoint barrier. Unrelated local widgets are retained.
+`CheckpointPlan` supplies follow-tail or retained-viewport behavior, keeping the
+coordinator independent of concrete message widget types.
+
+With an existing idle canonical history, off-tail commits extend its readable
+frontier and retire covered offscreen live blocks without replacing current pages
+or mounting unread bodies. Visible, selected, focused and cursor-owned blocks are
+protected. Source identity, cursor progression, scroll intent and lifetime are
+rechecked across awaits. Inactive tabs can retire without waiting for a paint frame.
+This path neither reanchors the reader nor acknowledges the newly saved frontier.
+
+A newly reproduced race is also fixed: provisional replacement pagers previously
+announced coverage during mounting, before their acceptance check. An incoming
+notice could disappear even when cancellation or reader movement then rejected
+the replacement. Provisional pagers now acquire coverage ownership only after
+acceptance; cancelled/superseded mounts are rolled back. Accepted source access
+survives cancellation once live retirement has begun.
+
+Verification: **56 pilots passed in298.31s**. The new off-tail fixture retires432
+live blocks over12commit cycles with at most3outer widgets, retaining the exact
+history/page/fragment objects and the painted marker position on every observed
+frame. It also tests selection/focus, local barriers, exact/missing incoming IDs,
+concurrent arrivals and scrolling, exposed block protection, invalid progress,
+source replacement/rewind, inactive tabs, drafts, read acknowledgment and later
+source access. The inbound pilot covers failing-before provisional publication,
+cancelled/superseded mounts and eventual retirement of released selected notices.
+
+Unprofiled `toad-off-tail-checkpoint-filters-1` completed72actions/52typed markers
+with all masks and drafts restored. Input median57.70/p95122.55/p99131.55/
+maximum135.50ms; loop maximum173.42ms; GC maximum116.31ms. The largest collection
+used113.39ms of UI-thread CPU and overlapped the largest loop gap. The universal
+sub50ms target remains unmet; this is a retention/correctness result, not a claimed
+latency win. A subsequent55sGIL-only profile (`toad-off-tail-checkpoint-profile-2`)
+recorded2121samples/0errors, with overlapping main-thread shares of31.38% reflow,
+19.39% paint and16.19% box-model resolution. Sampling shares are not wall timings.
+
+All receipts above precede a user-initiated reboot. One profiling launch failed its
+30s readiness deadline before the successful retry; at that time host load was
+high and swap full, without established causality. Post-reboot work must reverify
+process ownership and obtain a fresh control. Off-tail bootstrap without an
+existing history, arbitrary protected spans and other local shell growth remain
+open. Textual sources are unchanged in this follow-up.
+
+### Shared projected paging checkpoint
+
+Filtered older history previously appended every accepted fragment to a separate
+container. Batch size limited each insertion but did not bound retained widgets.
+It now uses the ordinary pager through polymorphic source/projection contracts:
+
+- `PreparedPageSource` owns prepared reads, prefetch and retirement.
+- `TranscriptPageProjection` owns selection; `CategoryProjection` runs that work
+  on the existing model lane.
+- `ProjectedTranscriptSource` retains one canonical boundary prefix and reads
+  earlier records through the existing bounded source cache. Empty matching spans
+  advance native cursors without creating empty widget pages. Reverse reads stop
+  at the retained prefix, preventing overlap with the canonical mounted tail.
+- `ProjectedTranscriptHistory` reuses ordinary admission, eviction, anchoring,
+  focus/selection protection and cursor controls. The parent bootstraps it; the
+  child then owns edge scheduling. There is no second append-only renderer or
+  competing parent scanner driving the same window.
+- `PresentationBudget` centralizes validated item, admission, reserve and widget
+  budgets. Defaults are configurable heuristics; visible/protected content may
+  exceed the nominal item budget. Source data is not deleted to meet a UI limit.
+- Native page transactions take a local widget lock rather than holding the
+  app-wide paint mask across mount awaits. Anchor transactions do not start a
+  frame wait after their screen has become inactive.
+
+Scaling fixture results (budget6items, admission2, no reserve batches):
+
+| Source records | Matching records visited | Peak mounted fragments | Peak page widgets | Peak descendant widgets |
+| ---: | ---: | ---: | ---: | ---: |
+|80|3|3|3|15|
+|800|26|10|9|40|
+|8000|258|10|9|40|
+|8000, no matches|0|0|2|4|
+
+Every matching record was visited backwards and forwards without duplication;
+selected native text survived paging; restoring all categories retained the
+original canonical page object. The counts were observed before the final local-
+transaction/scheduler refinements; the same bound and coverage assertions pass
+against the final candidate. Protected selection spans can extend the working
+set and are not claimed to have an absolute source-independent bound.
+
+Final full pilot run: **55 passed in290.69s**. This includes new projected-history
+scaling, sparse/underfilled filtering, late mounted-batch supersession, typing and
+tab switches while admission is held, and suspension inside an anchor mutation.
+One earlier full invocation hit its outer240s tool timeout after54cases; the
+completed run used a larger outer timeout without changing per-pilot limits.
+
+Native four-thread/all-seven-filter capture `toad-projected-window-filters-3`
+completed72actions and52/52typed markers, with all masks/drafts restored. Input
+median55.62/p95112.16/max131.61ms; loopmax173.08ms; GCmax109.06ms. Earlier candidate
+captures `toad-projected-window-filters-1` and `-2` are retained, including the
+200.12ms input outlier in `-2`. This establishes bounded filtered presentation and
+correctness, **not** an end-to-end latency win or the universal sub50ms target.
+The Textual worktree is unchanged in this follow-up.
 
 ### Async tab activation and polymorphic target dispatch
 
@@ -201,7 +337,9 @@ entries in inspected owners. Cold document bodies and inactive native rosters
 also release their descendant presentation trees.
 
 This does not establish a fully bounded or leak-free long-running application.
-Outer message/chrome widgets and cumulative filtered overlays remain unfinished;
+The shared projected-paging follow-up bounds normal filtered-window retention;
+compatible committed off-tail live blocks now retire through the retained source.
+Initial off-tail bootstrap, other local/chrome widgets and protected selection spans remain unfinished;
 the diagnostic replay still observed some other closed widgets. Keep source-size
 scaling and long-aging validation open rather than treating the fixed reproductions
 as proof that all accumulation is solved.
@@ -256,9 +394,10 @@ as proof that all accumulation is solved.
 1. Quantify reactive-retention cleanup under aged/captured interaction churn.
 2. Attribute the remaining filter pause to setter, allocation/GC, layout, paint,
    GIL and host scheduling separately; bound work rather than move the stall.
-3. Complete source-size-independent presentation, especially direct live blocks
-   when scrolled away from the tail and cumulative filtered-overlay growth.
-   Four-fragment admission bounds each publication, not total retained widgets.
+3. Complete source-size-independent presentation, especially off-tail bootstrap
+   without canonical history and other local message/chrome owners. Filtered
+   prefixes reuse bounded paging and compatible committed live blocks retire
+   off-tail; extend coverage to protected-range scaling and long-aging cycles.
 4. Establish simultaneous spinner/input budgets during filtering and loading;
    steady-state headless loaded-scene animation now has a measured receipt.
 5. Repeat unprofiled real-terminal acceptance after correctness and source/receipt

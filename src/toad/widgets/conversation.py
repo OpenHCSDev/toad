@@ -1525,9 +1525,9 @@ class Conversation(containers.Vertical):
         if message.sequence <= getattr(self, "_last_incoming_sequence", 0):
             return
         self._last_incoming_sequence = message.sequence
-        from toad.widgets.transcript_history import TranscriptHistory
+        from toad.widgets.committed_presentation import CommittedHistory
 
-        if any(isinstance(child, TranscriptHistory) and child.covers_incoming(message.sequence)
+        if any(isinstance(child, CommittedHistory) and child.covers_incoming(message.sequence)
                for child in self.contents.children):
             return
         self.new_block()
@@ -1665,9 +1665,10 @@ class Conversation(containers.Vertical):
         from agent_comms import UnregisteredThreadError
         from toad.acp.agent import Agent
         from toad.widgets.transcript_history import TranscriptHistory
-        from toad.widgets.transcript_fragments import prepare_transcript_fragments
-        from toad.widgets.shell_result import ShellResult
-        from toad.widgets.incoming_message import IncomingMessage
+        from toad.widgets.committed_presentation import (
+            CheckpointBarrier, CommitEvidence, CommitParticipant, CommittedHistory,
+            checkpoint_plan, retirement_candidates,
+        )
 
         window = self.query_one_optional(Window)
         contents = self.query_one_optional(Contents)
@@ -1678,88 +1679,99 @@ class Conversation(containers.Vertical):
             or not self.agent_ready
             or not self.agent.transcript_ready
             or self._managed_turn_id is not None
-            or not window.follows_tail
-            or contents.query(ShellResult)
+            or any(isinstance(node, CheckpointBarrier) for node in contents.walk_children())
             or (not self._needs_transcript_checkpoint and len(contents.children) < self.MAX_LIVE_BLOCKS)
         ):
             return
         generation = self._transcript_generation
         agent = self.agent
-        scroll_revision = window.scroll_revision
+        plan = checkpoint_plan(window)
         # A page cannot replace live blocks posted while its read or fragment
         # preparation is in flight unless it explicitly contains their identity.
         before_read = tuple(contents.children)
+        history = next((child for child in before_read if isinstance(child, CommittedHistory)), None)
+        potential = tuple(child for child in before_read
+                          if child is not history and isinstance(child, CommitParticipant))
+        if not plan.ready(history) or not plan.permits(self, potential):
+            return
+
+        def is_current() -> bool:
+            return (generation == self._transcript_generation
+                    and self.is_attached and not self._closing and not self._pruning
+                    and self.agent is agent
+                    and self.query_one_optional(Window) is window
+                    and self.query_one_optional(Contents) is contents
+                    and self._managed_turn_id is None and plan.current(window))
+
         try:
             page = await agent.get_transcript_page()
+            if not page.events or not is_current():
+                return
+            prepared = await plan.prepare(self, history, page, before_read, is_current)
         except UnregisteredThreadError:
             # Deletion can retire the model before the attachment's final
             # transcript notification has drained. Its view is closing too.
             return
-        def is_current() -> bool:
-            return (generation == self._transcript_generation
-                    and self.is_attached and self.agent is agent
-                    and self.query_one_optional(Window) is window
-                    and self.query_one_optional(Contents) is contents
-                    and window.scroll_revision == scroll_revision
-                    and self._managed_turn_id is None and window.follows_tail)
-
-        history = next((child for child in before_read
-                        if isinstance(child, TranscriptHistory)), None)
-        covered_incoming: set[int] = set()
-        if (history is not None and history.through.session_file == page.after.session_file
-                and history.through.offset <= page.after.offset):
-            # Read only the newly committed interval. Replacing with its last
-            # 64 KiB would discard loaded routed rows whenever a large tool or
-            # compaction record pushed them outside that page.
-            if not await history.advance_committed(page.after, is_current):
-                return
-            fragments = None
-        else:
-            fragments = await prepare_transcript_fragments(
-                page.events, getattr(self.app, "render_processes", None),
-            )
-            covered_incoming.update(TranscriptHistory.Covered(page.events).sequences)
-            history = None
-        if not page.events or not is_current():
+        except (OSError, ValueError) as error:
+            if is_current():
+                self.notify(str(error), title="Committed history", severity="error")
             return
-        self.new_block()
-        self.cursor.follow(None)
-        with self.app.batch_update():
-            if history is None:
-                await contents.mount(
-                    TranscriptHistory(page, agent.get_transcript_page, fragments=fragments), before=0,
-                )
-            # Never infer delivery from a save notification. Wire notices that
-            # have no saved user counterpart remain visible, including arrivals
-            # during either preparation or mounting. Covered arrivals retire
-            # exactly once rather than duplicating their saved counterpart.
-            retired = [
-                child for child in contents.children
-                if (
-                    child.sequence in covered_incoming
-                    if isinstance(child, IncomingMessage)
-                    else child in before_read and child is not history
-                )
-            ]
-            await contents.remove_children(retired)
+        if prepared is None or not is_current():
+            return
+        evidence = CommitEvidence(frozenset(before_read), prepared.sequences, prepared.history)
+        async with window.history_lock:
+            retired = retirement_candidates(contents.children, evidence)
+            if (not is_current() or not plan.ready(prepared.history)
+                    or not plan.permits(self, retired)):
+                return
+            self.new_block()
+            if self.cursor_block in retired:
+                self.cursor.follow(None)
+            async with plan.publication(self, prepared):
+                replacement = None
+                accepted = False
+                try:
+                    if prepared.history is None:
+                        replacement = TranscriptHistory(
+                            page, agent.get_transcript_page, fragments=prepared.fragments,
+                            committed=False,
+                        )
+                        await contents.mount(replacement, before=0)
+                    if not is_current():
+                        return
+                    # Identity-backed arrivals during a mount may now be covered;
+                    # ordinary late arrivals remain outside the captured cohort.
+                    retired = retirement_candidates(contents.children, evidence)
+                    if not plan.permits(self, retired):
+                        return
+                    plan.commit(prepared, page.after)
+                    if replacement is not None:
+                        replacement.publish_committed()
+                    # Once retiring live widgets begins, the accepted source must
+                    # survive cancellation so their saved content stays reachable.
+                    accepted = True
+                    await contents.remove_children(retired)
+                finally:
+                    if not accepted and replacement is not None and replacement.is_attached:
+                        await replacement.remove()
         if not window.is_attached or not contents.is_attached:
             return
         self._transcript_dirty = False
-        self.call_after_refresh(self._record_displayed_transcript, page.after)
         self._needs_transcript_checkpoint = False
-        self.call_after_refresh(window.anchor)
+        plan.finish(self, page.after)
 
     async def on_transcript_history_covered(self, message) -> None:
-        from toad.widgets.incoming_message import IncomingMessage
+        from toad.widgets.committed_presentation import CommitEvidence, protected_blocks, retirement_candidates
 
         message.stop()
         contents = self.query_one_optional(Contents)
         if (contents is not None and message.history is not None
                 and message.history.is_attached and message.history.parent is contents):
-            await contents.remove_children([
-                child for child in contents.children
-                if isinstance(child, IncomingMessage) and child.sequence in message.sequences
-            ])
+            candidates = retirement_candidates(contents.children, CommitEvidence(
+                frozenset(), frozenset(message.sequences), message.history,
+            ))
+            protected = protected_blocks(self, candidates)
+            await contents.remove_children([child for child in candidates if child not in protected])
 
     @on(acp_messages.Thinking)
     async def on_acp_agent_thinking(self, message: acp_messages.Thinking):

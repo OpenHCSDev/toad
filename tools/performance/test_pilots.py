@@ -30,6 +30,8 @@ PYTHON = os.environ.get("TOAD_TEST_PYTHON", sys.executable)
     "filter_mount_supersession", "filter_style_scope", "throbber_render_cache",
     "viewport_body_lifetime", "acp_process_validation", "acp_sdk_boundary",
     "async_tab_activation",
+    "projected_history_budget",
+    "in_out_underfill", "off_tail_checkpoint",
 ])
 def test_pilot(name):
     # Test-owned persistent services may inherit stdout/stderr. Waiting for

@@ -17,6 +17,7 @@ from textual.widget import Widget
 from textual.app import ComposeResult
 
 from toad.widgets.prepared_markdown import PreparedConversationMarkdown
+from toad.widgets.committed_presentation import SnapshotPresentation
 from toad.conversation_markdown import _ThreadLocalPathParser
 from toad.widgets.transcript_fragments import prepare_transcript_fragments
 
@@ -24,7 +25,7 @@ if TYPE_CHECKING:
     from toad.widgets.transcript_history import TranscriptHistory
 
 
-class StreamingMarkdown(PreparedConversationMarkdown):
+class StreamingMarkdown(SnapshotPresentation, PreparedConversationMarkdown):
     RICH_TEXT_LIMIT = 1200
     TRANSCRIPT_ROLE = "assistant"
 

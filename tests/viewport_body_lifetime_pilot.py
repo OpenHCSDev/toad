@@ -90,6 +90,23 @@ async def main():
                 await anchor.remove()
             app.screen._refresh_layout()
             await asyncio.wait_for(pending, 2)
+
+            owner_mode = app.current_mode
+            other = await app.new_session_screen(app.get_main_screen)
+            await app.switch_mode(owner_mode)
+            await settled(view, pilot)
+
+            async def switch_during_transaction():
+                async with view.window.history_lock:
+                    async with view.window.preserve_history(docs[0]):
+                        await app.switch_mode(other.mode_name)
+
+            # Suspension may occur inside the mutation, before __aexit__ has
+            # created any frame waiter for the suspend hook to release.
+            await asyncio.wait_for(switch_during_transaction(), 3)
+            assert not view.window.history_lock.locked()
+            assert view.window.history_layout_ready is None
+            await app.close_session_mode(other.mode_name)
             for node in app._registry:
                 for watchers in vars(node).get("__watchers", {}).values():
                     assert all(not subscriber._closed for subscriber, _ in watchers)
