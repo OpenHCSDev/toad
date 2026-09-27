@@ -80,3 +80,7 @@ This is mounted local Textual/Toad test-app evidence, not live deployment, insta
 wheel validation, paid-provider or CI evidence. No installs/restarts or uncertain
 Comms input replay. Parent merges both focused PRs, refreshes the coupled pins,
 and decides activation. No remaining S4 mounted implementation task.
+
+Published draft: https://github.com/OpenHCSDev/toad/pull/77. Validated source
+e9a0542 (implementation b71aa26 plus publication-after-mount ordering). Remote
+head verified; final checkpoint is evidence-only. Core source a410de9/PR137.
