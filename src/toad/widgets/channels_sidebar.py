@@ -6,13 +6,21 @@ from toad.widgets.side_bar import SideBar
 
 
 class ChannelsSidebar(SideBar):
-    def __init__(self, session_thread: str = "", selected_target: str = "", *, observe: bool = True) -> None:
+    def __init__(self, session_thread: str = "", selected_target: str = "", *,
+                 observe: bool = True, defer_mount: bool = False) -> None:
+        self.roster = CommsSidebar(
+            session_thread=session_thread, selected_target=selected_target, observe=observe,
+        )
         super().__init__(
             SideBar.Panel(
                 "Channels",
-                CommsSidebar(session_thread=session_thread, selected_target=selected_target, observe=observe),
+                self.roster,
                 flex=True,
                 header_control=ChannelListSort(),
             ),
             id="channels-sidebar",
+            defer_mount=defer_mount,
         )
+
+    def set_session_thread(self, thread: str) -> None:
+        self.roster.session_thread = thread

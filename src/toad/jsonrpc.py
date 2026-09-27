@@ -26,11 +26,12 @@ type JSONList = list[JSONType]
 log = logging.getLogger("jsonrpc")
 
 
-def expose(name: str = "", prefix: str = ""):
+def expose(name: str = "", prefix: str = "", *, ordered: bool = False):
     """Expose a method."""
 
     def expose_method[T: Callable](callable: T) -> T:
         setattr(callable, "_jsonrpc_expose", f"{prefix}{name or callable.__name__}")
+        setattr(callable, "_jsonrpc_ordered", ordered)
         return callable
 
     return expose_method
@@ -66,6 +67,7 @@ class Method:
     name: str
     callable: Callable
     parameters: dict[str, Parameter]
+    ordered: bool = False
 
 
 @rich.repr.auto
@@ -120,6 +122,12 @@ class APIError(Exception):
 class Server:
     def __init__(self) -> None:
         self._methods: dict[str, Method] = {}
+
+    def requires_ordered_dispatch(self, request: JSONObject) -> bool:
+        """Whether later wire messages must wait for this declaration's effect."""
+        name = request.get("method")
+        method = self._methods.get(name) if isinstance(name, str) else None
+        return method is not None and method.ordered
 
     async def call(self, json: JSONObject | JSONList) -> JSONType:
         if isinstance(json, dict):
@@ -325,7 +333,8 @@ class Server:
                 )
                 for name, parameter in signature(callable).parameters.items()
             }
-            self._methods[name] = Method(name, callable, parameters)
+            self._methods[name] = Method(name, callable, parameters,
+                                         ordered=getattr(callable, "_jsonrpc_ordered", False))
             return callable
 
         return expose_method

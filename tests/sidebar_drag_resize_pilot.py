@@ -57,7 +57,9 @@ async def main() -> None:
                 y = handle.region.y + 3
                 old_width = bar.size.width
                 assert await pilot.mouse_down(handle, offset=(0, 3))
+                assert not app.screen._selecting, "Resize handle started a text selection"
                 await pilot.hover(offset=(start + direction * 12, y))
+                assert not app.screen._selecting, "Resize drag traversed selectable content"
                 await pilot.mouse_up(offset=(start + direction * 12, y))
                 await pilot.pause()
                 assert bar.size.width == old_width + 12, (side, bar.size, old_width)
@@ -71,7 +73,9 @@ async def main() -> None:
                 await pilot.press("left" if side == "left" else "right")
                 assert slider.value == 40
                 inward = slider.size.width - 1 if side == "left" else 0
-                assert await pilot.click(slider, offset=(inward, 0))
+                assert await pilot.mouse_down(slider, offset=(inward, 0))
+                assert not app.screen._selecting, "Width slider started a text selection"
+                assert await pilot.mouse_up(slider, offset=(inward, 0))
                 await pilot.pause()
                 assert slider.value == 50 and bar.size.width == 60, (side, slider.value, bar.region)
                 outward = 4 if side == "left" else slider.size.width - 1

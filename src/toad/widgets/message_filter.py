@@ -81,7 +81,16 @@ def block_category(widget) -> MessageCategory | None:
 def apply_block_filter(widget, selected: frozenset[MessageCategory]) -> None:
     """Change only this semantic owner, preserving its authored display rules."""
     category = block_category(widget)
-    widget.set_class(category is not None and category not in selected, "-category-hidden")
+    hidden = category is not None and category not in selected
+    marker = "-category-hidden"
+    if widget.has_class(marker) != hidden:
+        # Keep the marker available for custom styling. Ordinary filtering is a
+        # model-owned display constraint, not a request to rematch subtree CSS.
+        update_styles = (
+            widget.is_attached and widget.app.stylesheet.references_class(marker)
+        )
+        widget.set_class(hidden, marker, update=update_styles)
+    widget.set_display_constraint("message-category", not hidden)
 
 
 def keep_live_block(widget) -> bool:

@@ -9,9 +9,10 @@ from textual.widgets import Static
 
 from toad.menus import MenuItem
 from toad.widgets.non_selectable_label import NonSelectableLabel
+from toad.widgets.committed_presentation import CheckpointBarrier
 
 
-class ShellResult(containers.HorizontalGroup):
+class ShellResult(CheckpointBarrier, containers.HorizontalGroup):
     def __init__(
         self,
         command: str,

@@ -1,15 +1,16 @@
 from typing import Iterable
 from textual.app import ComposeResult
 from textual import containers
-from toad.conversation_markdown import ConversationMarkdown
+from toad.widgets.prepared_markdown import PreparedConversationMarkdown
 
 from toad.menus import MenuItem
 from toad.widgets.non_selectable_label import NonSelectableLabel
 from toad.widgets.message_divider import MessageDivider
 from toad.widgets.message_filter import CategorizedBlock, MessageCategory
+from toad.widgets.committed_presentation import SnapshotPresentation
 
 
-class UserInput(CategorizedBlock, containers.VerticalGroup):
+class UserInput(SnapshotPresentation, CategorizedBlock, containers.VerticalGroup):
     @property
     def message_category(self) -> MessageCategory:
         return MessageCategory.USER
@@ -24,7 +25,7 @@ class UserInput(CategorizedBlock, containers.VerticalGroup):
             yield MessageDivider("User")
         with containers.HorizontalGroup(classes="user-input-body"):
             yield NonSelectableLabel("❯" if self.show_divider else " ", id="prompt")
-            yield ConversationMarkdown(self.content, id="content")
+            yield PreparedConversationMarkdown(self.content, id="content")
 
     def get_block_menu(self) -> Iterable[MenuItem]:
         yield from ()

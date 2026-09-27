@@ -7,20 +7,43 @@ from textual.content import Content
 
 from toad.session_tracker import OpenTab
 from toad.widgets.activity_spinner import FRAMES, animated_label
-from toad.work_preparation import ContentAddressedWork, ReusableWork, ThreadWork
+from toad.work_preparation import ContentAddressedWork, SerializedWork, ThreadWork
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class ThreadRowInput:
     person: ThreadView
     unread: int = 0
     pinned: bool = False
     action_status: str | None = None
 
+    def presentation(self) -> "ThreadRowPresentation":
+        person = self.person
+        presentation = person.presentation
+        return ThreadRowPresentation(
+            person.thread.name, presentation.label, presentation.summary, presentation.busy,
+            person.runtime.model if person.runtime else person.thread.model,
+            self.unread, self.pinned, self.action_status,
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class ThreadRowPresentation:
+    """Exact display inputs; poll timestamps and authority graphs are not output."""
+
+    name: str
+    label: str
+    summary: str
+    busy: bool
+    model: str | None
+    unread: int
+    pinned: bool
+    action_status: str | None
+
 
 @dataclass(frozen=True)
 class PreparedThreadRow:
-    source: ThreadRowInput
+    source: ThreadRowPresentation
     frames: tuple[Content, ...]
     tooltip: Content
     busy: bool
@@ -31,34 +54,37 @@ class PreparedThreadRow:
 
 
 def prepare_thread_row(source: ThreadRowInput) -> PreparedThreadRow:
-    person = source.person
-    presentation = person.presentation
-    summary = source.action_status if source.action_status is not None else presentation.summary
-    busy = source.action_status is not None or presentation.busy
+    return prepare_thread_presentation(source.presentation())
+
+
+def prepare_thread_presentation(source: ThreadRowPresentation) -> PreparedThreadRow:
+    summary = source.action_status if source.action_status is not None else source.summary
+    busy = source.action_status is not None or source.busy
     badge = f"({source.unread}) " if source.unread else ""
     frames = tuple(Content.assemble(
         (badge, "bold $accent"),
         f"{'* ' if source.pinned else ''}"
-        f"{animated_label(presentation.label, busy=presentation.busy, phase=phase)}"
+        f"{animated_label(source.label, busy=source.busy, phase=phase)}"
         f"\n  {summary}",
-    ) for phase in range(len(FRAMES) if presentation.busy else 1))
+    ) for phase in range(len(FRAMES) if source.busy else 1))
     tooltip = "\n".join(str(value) for value in (
-        person.thread.name, summary, "Pinned in this channel" if source.pinned else None,
-        person.runtime.model if person.runtime else person.thread.model,
+        source.name, summary, "Pinned in this channel" if source.pinned else None, source.model,
     ) if value)
     return PreparedThreadRow(source, frames, Content(tooltip), busy,
                              (frames[0].plain, tooltip, busy))
 
 
 @dataclass(frozen=True)
-class ThreadRowsWork(ReusableWork[tuple[PreparedThreadRow, ...]],
+class ThreadRowsWork(SerializedWork[tuple[PreparedThreadRow, ...]],
                      ContentAddressedWork[tuple[PreparedThreadRow, ...]],
                      ThreadWork[tuple[PreparedThreadRow, ...]]):
     rows: tuple[ThreadRowInput, ...]
 
     @property
     def inputs(self) -> object:
-        return self.rows
+        # ContentAddressedWork evaluates this on its worker thread. Declare the
+        # semantic projection before hashing, not every field of a core record.
+        return tuple(row.presentation() for row in self.rows)
 
     def prepare(self) -> tuple[PreparedThreadRow, ...]:
         return tuple(prepare_thread_row(row) for row in self.rows)
@@ -84,7 +110,7 @@ def prepare_tab(tab: OpenTab) -> PreparedTab:
 
 
 @dataclass(frozen=True)
-class TabRosterWork(ReusableWork[tuple[PreparedTab, ...]],
+class TabRosterWork(SerializedWork[tuple[PreparedTab, ...]],
                     ContentAddressedWork[tuple[PreparedTab, ...]],
                     ThreadWork[tuple[PreparedTab, ...]]):
     tabs: tuple[OpenTab, ...]

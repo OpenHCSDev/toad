@@ -276,7 +276,10 @@ class SessionsTabs(Widget):
             return
         while True:
             tabs = self.app.open_tabs
-            if tabs == self._last_tabs and self.current_session == self.app.current_mode:
+            if tabs == self._last_tabs:
+                # Selection does not change the worker-owned label projection.
+                # Its native reactive updates the selected class and underline.
+                self.current_session = self.app.current_mode
                 self._sync_spinner(tabs)
                 return
             prepared = await self.app.preparation.submit(TabRosterWork(tabs))

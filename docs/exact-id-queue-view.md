@@ -8,8 +8,21 @@ No installed/live activation, backend edits, mutation API, replay or retry.
 ## Pinned contract
 
 Canonical contract producer: `79cd5a8c7254bfcddd8d07c9525076c3e78f1a20`.
-Current integrated test pin: `bccf7fd468b2c79f34fdfce0059fbc604efb8257`;
-contract/fixture bytes are unchanged. The earlier consumer `bd292d22` + `79cd5a8`
+Current integrated test pin: `b1e5bfd5c39ea69c507833e8ed5efc96a7fb038b`;
+contract/fixture bytes are unchanged. At PR65 integration the source comparison
+against the prior `bccf7fd468b2c79f34fdfce0059fbc604efb8257` found only five added
+lines in ACP: a maintenance-open assertion at the send boundary and the marker
+identifying the callback that already owns the wire lock. Queue payload/revision
+logic and `runtime.py` alias presentation are unchanged. After that comparison,
+the ACP file digest was updated to
+`2548369a9b31e16638fbcb7f53b590a59c371676a697ee3b44acf96c5388be57`.
+Main then advanced to `b1e5bfd`; a second reviewed comparison adds explicit
+selected-write/selected-tool opt-in branches and private-cursor read-contention
+handling. Those paths do not change the exact-ID queue producer, and the pilot
+does not request selected writes/tools. The current ACP digest is
+`c42c74f5186ed77f397af7123c057c913f40279e08ea9bf331a9d818323b8c65`;
+runtime and canonical contract/fixture bytes remain equal to the prior pin.
+The earlier consumer `bd292d22` + `79cd5a8`
 archive remains a separate failing-before/control artifact, not successor clearance.
 The unmodified copies are `acp_exact_id_queue_v1.md` (SHA256
 `e0b9ea81e4b3e986822bbd6ac235d7571465ad0b6240dffb4711373a441ca87f`)
@@ -61,10 +74,10 @@ Use the normal Toad test dependency runtime (Python 3.14) and an archive of the
 pinned backend, not its mutable worktree or an installed package:
 
 ```sh
-mkdir -p /var/tmp/toad-queue-backend-bccf7fd
-git -C /path/to/comms-repo archive bccf7fd468b2c79f34fdfce0059fbc604efb8257 src \
-  | tar -x -C /var/tmp/toad-queue-backend-bccf7fd
-export PYTHONPATH="$PWD/src:$PWD/tests:/var/tmp/toad-queue-backend-bccf7fd/src"
+mkdir -p /var/tmp/toad-queue-backend-b1e5bfd
+git -C /path/to/comms-repo archive b1e5bfd5c39ea69c507833e8ed5efc96a7fb038b src \
+  | tar -x -C /var/tmp/toad-queue-backend-b1e5bfd
+export PYTHONPATH="$PWD/src:$PWD/tests:/var/tmp/toad-queue-backend-b1e5bfd/src"
 export QUEUE_EVIDENCE_DIR=/var/tmp/toad-queue-evidence
 PY=/tmp/opencode/toad-fork/.venv/bin/python
 "$PY" -m unittest discover -s tests -p test_queue_view.py -v

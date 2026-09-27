@@ -19,7 +19,7 @@ from toad.widgets.agent_thought import AgentThought
 from toad.widgets.incoming_message import IncomingMessage
 from toad.widgets.side_bar import SideBar, SideBarCollapsible
 from toad.widgets.thread_comms import RelationshipSort, ThreadCommsSidebar
-from toad.widgets.message_filter import IN_OUT_CATEGORIES, MESSAGE_CATEGORIES, MessageCategory
+from toad.widgets.message_filter import IN_OUT_CATEGORIES, MESSAGE_CATEGORIES
 from toad.widgets.transcript_history import TranscriptHistory
 from toad.widgets.user_input import UserInput
 
@@ -128,12 +128,15 @@ async def main():
             async with asyncio.timeout(5):
                 # A lookahead read may finish before the explicit UI action.
                 # Wait for publication, not merely for source I/O to occur.
-                while tail._filter_overlay is None or tail._filter_scanning:
+                while (tail._filter_overlay is None or not any(
+                    leaf.fragment.events[0].text == "EARLIER_ROUTED_OUTPUT"
+                    for leaf in tail._filter_overlay.fragment_views
+                )):
                     await pilot.pause(.02)
             assert calls[0]["before"] == page_cursor
             assert tail._filter_overlay is not None
             assert any(leaf.display and leaf.fragment.events[0].text == "EARLIER_ROUTED_OUTPUT"
-                       for leaf in tail._filter_overlay.children)
+                       for leaf in tail._filter_overlay.fragment_views)
             view.displayed_transcript_cursor = cursor
             with patch.object(app.coordination_wire, "mark_thread_view_read") as mark:
                 await app.mark_visible_thread_read()

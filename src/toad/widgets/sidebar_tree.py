@@ -74,6 +74,8 @@ class SidebarGroup(VerticalGroup):
         The caller serializes updates and owns empty-state rows. Neither a
         title/status change nor a selection repaint remounts the list.
         """
+        if not self.is_attached or self._closing or self._pruning:
+            return ()
         keys = tuple(keys)
         wanted = set(keys)
         retired = [key for key, row in rows.items()
@@ -83,6 +85,8 @@ class SidebarGroup(VerticalGroup):
             # Retire that exact set in one DOM operation, not an intermediate
             # remove/layout/message-pump turn for every member of the roster.
             await self.member_container.remove_children([rows.pop(key) for key in retired])
+            if not self.is_attached or self._closing or self._pruning:
+                return ()
         mounted = []
         for key in keys:
             current = rows.get(key)
@@ -92,6 +96,8 @@ class SidebarGroup(VerticalGroup):
             update(key, current)
         if mounted:
             await self.member_container.mount(*mounted)
+            if not self.is_attached or self._closing or self._pruning:
+                return ()
         ordered = tuple(rows[key] for key in keys)
         if ordered and tuple(self.member_container.children) != ordered:
             positions = {row: index for index, row in enumerate(ordered)}

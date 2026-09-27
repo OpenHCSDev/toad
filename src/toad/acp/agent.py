@@ -12,7 +12,6 @@ from copy import deepcopy
 from math import floor
 import rich.repr
 from agent_comms import Comms, Goal, GoalExecution, TranscriptCursor, TranscriptPage, MessageRoute
-from pydantic import ValidationError
 
 from textual.content import Content
 from textual.message import Message
@@ -152,6 +151,7 @@ class Agent(AgentBase):
         self.session_id = session_id
 
         self.server = jsonrpc.Server()
+        self._session_update_lock = asyncio.Lock()
         self.server.expose_instance(self)
 
         self._agent_task: asyncio.Task | None = None
@@ -349,28 +349,57 @@ class Agent(AgentBase):
             return False
         return message_target.post_message(message)
 
-    @jsonrpc.expose("session/update")
+    @jsonrpc.expose("session/update", ordered=True)
+    async def _rpc_session_update(
+        self, sessionId: str, update: Any, _meta: dict[str, Any] | None = None,
+    ) -> None:
+        """Validate wire notifications off-process, then publish to the same owner."""
+        from toad.render_tasks import ValidateSessionUpdateTask
+
+        target = self._message_target
+        if target is None:
+            return
+        session = self.session_id
+        async with self._session_update_lock:
+            if target is not self._message_target or self.session_id != session or target._closing:
+                return
+            validation = await target.app.render_processes.submit(
+                ValidateSessionUpdateTask(sessionId, update, _meta)
+            )
+            if target is not self._message_target or self.session_id != session or target._closing:
+                return
+            if validation.error is not None:
+                self._reject_session_update(sessionId, update, _meta, validation.error)
+                return
+            self._apply_session_update(sessionId, cast(protocol.SessionUpdate, update))
+
     def rpc_session_update(
         self,
         sessionId: str,
         update: Any,
         _meta: dict[str, Any] | None = None,
     ):
-        """Agent requests an update.
+        """Synchronous in-process SDK boundary for direct protocol consumers.
 
-        https://agentclientprotocol.com/protocol/schema
+        Wire notifications use the asynchronous process-owned boundary above.
         """
+        from pydantic import ValidationError
 
         try:
             update = validate_session_update(sessionId, update, _meta)
         except ValidationError as error:
-            self.log(
-                f"[ACP rejected session/update] raw={{'sessionId': {sessionId!r}, "
-                f"'update': {update!r}, '_meta': {_meta!r}}}; validation={error}"
-            )
-            self.post_message(messages.RejectedSessionUpdate())
+            self._reject_session_update(sessionId, update, _meta, str(error))
             return
+        self._apply_session_update(sessionId, update)
 
+    def _reject_session_update(self, session_id, update, metadata, error) -> None:
+        self.log(
+            f"[ACP rejected session/update] raw={{'sessionId': {session_id!r}, "
+            f"'update': {update!r}, '_meta': {metadata!r}}}; validation={error}"
+        )
+        self.post_message(messages.RejectedSessionUpdate())
+
+    def _apply_session_update(self, sessionId: str, update: protocol.SessionUpdate) -> None:
         metadata = update.get("_meta")
         if isinstance(metadata, dict):
             cursor_meta = metadata.get("agentComms")
@@ -1017,6 +1046,11 @@ class Agent(AgentBase):
 
             # By this point we know it is a JSON RPC call
             assert isinstance(agent_data, dict)
+            if self.server.requires_ordered_dispatch(agent_data):
+                # A session/load or prompt response may not overtake updates
+                # whose validation is still in flight in the process worker.
+                await call_jsonrpc(agent_data)
+                continue
             tasks.add(asyncio.create_task(call_jsonrpc(agent_data)))
             await asyncio.sleep(0)
 
@@ -1830,16 +1864,30 @@ class Agent(AgentBase):
     async def _owner_request(self, method: str, **params):
         if self._coordination_root is None or self._coordination_thread is None:
             raise ValueError("This action requires an agent-comms thread.")
-        from agent_comms.operations import wire
         from agent_comms.runtime import RuntimeProxy, socket_path
 
-        comms = wire(self._coordination_root)
-        owner = await asyncio.to_thread(comms.registry.require, self._coordination_thread)
-        proxy = RuntimeProxy(self, owner.name, socket_path(comms.root, owner.pid))
+        root, thread = self._coordination_root, self._coordination_thread
+        async with self._transcript_reader_lock:
+            comms = await self._get_coordination_reader(root)
+
+            def resolve():
+                from toad.owner_preparation import OwnerRequestContext
+
+                owner = comms.registry.require(thread)
+                # RuntimeProxy normally creates another wire when its caller
+                # has no service. Capture the existing service instead of
+                # reparsing the entire registry for each status poll.
+                return RuntimeProxy(OwnerRequestContext(comms), owner.name, socket_path(comms.root, owner.pid))
+
+            proxy = await asyncio.to_thread(resolve)
         try:
+            if (root, thread) != (self._coordination_root, self._coordination_thread):
+                raise ValueError("The owner identity changed while preparing the request.")
             return await proxy.request(method, **params)
         except RuntimeError as error:
             raise ValueError(str(error)) from error
+        finally:
+            await proxy.close()
 
     async def get_input_delivery(self, *, include_history: bool = False) -> dict:
         if self._coordination_root is None or self._coordination_thread is None:
@@ -1869,36 +1917,36 @@ class Agent(AgentBase):
     def transcript_ready(self) -> bool:
         return self._coordination_root is not None and self._coordination_thread is not None
 
+    async def _get_coordination_reader(self, root: str) -> Comms:
+        """Use under the reader lock; initialization and registry I/O stay off-loop."""
+        from agent_comms import wire
+        from toad.app import ToadApp
+
+        if self._transcript_reader is None or self._transcript_reader_root != root:
+            app = self._message_target.app if self._message_target is not None else None
+            # Reuse the service held by the route-validating app property,
+            # without invoking its synchronous route resolver on this loop.
+            # Only an exact match to this attachment's trusted root may share.
+            shared = app.__dict__.get("_coordination_wire") if isinstance(app, ToadApp) else None
+            if shared is not None and shared.root == Path(root).expanduser():
+                self._transcript_reader = shared
+            else:
+                self._transcript_reader = await asyncio.to_thread(wire, root)
+            self._transcript_reader_root = root
+        return self._transcript_reader
+
     async def get_transcript_page(
         self, *, before: "TranscriptCursor | None" = None,
         after: "TranscriptCursor | None" = None,
         through: "TranscriptCursor | None" = None,
     ) -> "TranscriptPage":
-        from agent_comms import wire
-
         if self._coordination_root is None or self._coordination_thread is None:
             raise ValueError("Transcript paging requires an agent-comms thread.")
         root, thread = self._coordination_root, self._coordination_thread
         async with self._transcript_reader_lock:
-            # Keep the core reader's revision-aware store caches across pages.
-            # Recreating Comms for each wheel-driven request reparses the entire
-            # routing sidecar even when it has not changed. This retains the
-            # service, not a second copy of transcript or routing semantics.
-            if self._transcript_reader is None or self._transcript_reader_root != root:
-                from toad.app import ToadApp
-
-                # All attachments in one Toad normally use the same wire. Share
-                # its existing service so dozens of tabs don't each retain a
-                # separately parsed copy of the whole routing sidecar.
-                app = self._message_target.app if self._message_target is not None else None
-                shared = app.coordination_wire if isinstance(app, ToadApp) else None
-                if shared is not None and shared.root == Path(root).expanduser():
-                    self._transcript_reader = shared
-                else:
-                    self._transcript_reader = await asyncio.to_thread(wire, root)
-                self._transcript_reader_root = root
+            reader = await self._get_coordination_reader(root)
             return await asyncio.to_thread(
-                self._transcript_reader.thread_transcript_page,
+                reader.thread_transcript_page,
                 thread, before=before, after=after, through=through,
             )
 

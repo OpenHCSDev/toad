@@ -9,6 +9,7 @@ from textual.content import Content
 from textual.widgets import Static
 
 from toad.widgets.message_filter import CategorizedBlock, MessageCategory
+from toad.widgets.committed_presentation import SnapshotPresentation
 
 
 class MessageDivider(Static):
@@ -52,7 +53,7 @@ class MessageDivider(Static):
         )
 
 
-class AgentActivityDivider(CategorizedBlock, MessageDivider):
+class AgentActivityDivider(SnapshotPresentation, CategorizedBlock, MessageDivider):
     """A decorative role boundary filtered with the activity that follows it."""
 
     ALLOW_SELECT = False

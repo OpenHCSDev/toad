@@ -384,7 +384,11 @@ for line in sys.stdin:
                     pid=os.getpid(),
                 )
             )
-            startup_agent = object.__new__(ACPAgent)
+            startup_agent = ACPAgent(
+                project,
+                {"name": "Startup fixture", "identity": "fixture", "run_command": {"*": "true"}},
+                managed_thread,
+            )
             startup_agent._message_target = created_conversation
             startup_agent._pending_session_name = None
             startup_agent._process = SimpleNamespace(pid=os.getpid())
@@ -573,20 +577,32 @@ for line in sys.stdin:
                 app.session_tracker.get_session(owner_mode).summary
                 == "Writing response"
             )
-            protocol_agent = object.__new__(ACPAgent)
+            protocol_agent = ACPAgent(
+                project,
+                {"name": "Protocol fixture", "identity": "fixture", "run_command": {"*": "true"}},
+                "pilot-session",
+            )
             protocol_agent._message_target = conversation
+            previous_agent = conversation.agent
+            conversation.set_reactive(type(conversation).agent, protocol_agent)
+            protocol_agent.rpc_session_update(
+                "pilot-session",
+                {"sessionUpdate": "agent_message_chunk", "content": {"type": "text", "text": ""},
+                 "_meta": {"agentComms": {"turnStarted": True, "turnId": "pilot-turn"}}},
+            )
             protocol_agent.rpc_session_update(
                 "pilot-session",
                 {
                     "sessionUpdate": "agent_message_chunk",
                     "content": {"type": "text", "text": ""},
-                    "_meta": {"agentComms": {"turnSettled": True}},
+                    "_meta": {"agentComms": {"turnSettled": True, "turnId": "pilot-turn"}},
                 },
             )
             await pilot.pause()
             settled = app.session_tracker.get_session(owner_mode)
             assert settled.state == "idle"
             assert settled.summary == "Ready for review"
+            conversation.set_reactive(type(conversation).agent, previous_agent)
             conversation.post_message(
                 acp_messages.Thinking("agent_thought_chunk", "Inspecting the workspace")
             )
@@ -750,6 +766,12 @@ for line in sys.stdin:
             )
             await pilot.click(stop_item)
             await pilot.pause()
+            # Frame settlement is not an off-loop operation receipt. Wait for
+            # Stop to release this subject before requesting its next action.
+            async with asyncio.timeout(10):
+                while ("delete-peer" in app.pending_thread_actions
+                       or comms.registry.status("delete-peer").value != "stopped"):
+                    await pilot.pause(.01)
             await pilot.click(row(app.screen, "delete-peer"), button=3)
             await pilot.pause()
             delete_item = next(
@@ -759,6 +781,10 @@ for line in sys.stdin:
             )
             await pilot.click(delete_item)
             await pilot.pause()
+            async with asyncio.timeout(10):
+                while ("delete-peer" in comms.registry
+                       or any(item.target_name == "delete-peer" for item in app.screen.query(CommsRow))):
+                    await pilot.pause(.01)
             assert "delete-peer" not in comms.registry
             assert not any(
                 item.target_name == "delete-peer" for item in app.screen.query(CommsRow)
@@ -772,7 +798,7 @@ for line in sys.stdin:
             assert app.session_tracker.session_count == 1
             assert len(open_rows(app.screen)) == 1
             owner_screen = app.get_screen_stack(owner_mode)[-1]
-            assert len(open_rows(owner_screen)) == 1
+            assert not open_rows(owner_screen), "Inactive tab retained a duplicate native roster"
             first_channel_mode = app.current_mode
             chat = app.screen.query_one(CommsChatView)
             assert chat.prompt.prompt_text_area.has_focus
@@ -803,8 +829,12 @@ for line in sys.stdin:
             await pilot.click(owner_row)
             await pilot.pause()
             assert isinstance(app.screen, MainScreen)
+            assert len(open_rows(app.screen)) == 1, "Resumed roster did not restore its model projection"
             await pilot.click(row(app.screen, "#all"))
             await pilot.pause()
+            async with asyncio.timeout(10):
+                while app.current_mode != first_channel_mode:
+                    await pilot.pause(.01)
             assert app.current_mode == first_channel_mode
             assert app.session_tracker.session_count == 1
 
@@ -926,13 +956,12 @@ for line in sys.stdin:
             resumable_row.scroll_visible(animate=False)
             await pilot.pause()
             assert await pilot.click(resumable_row)
-            for _ in range(20):
-                await pilot.pause()
-                if any(
+            async with asyncio.timeout(10):
+                while not any(
                     "thread transcript complete" in response.source
                     for response in app.screen.query(AgentResponse)
                 ):
-                    break
+                    await pilot.pause(.02)
             assert isinstance(app.screen, MainScreen)
             assert not isinstance(app.screen, CommsScreen)
             thread_mode = app.current_mode
@@ -944,7 +973,8 @@ for line in sys.stdin:
             assert any(
                 "thread transcript request" in user_input.content
                 for user_input in app.screen.query(UserInput)
-            )
+            ), [(type(node).__name__, getattr(node, "source", getattr(node, "content", "")))
+                for node in app.screen.conversation.contents.children]
             assert any(
                 "thread reasoning" in thought.source
                 for thought in app.screen.query(AgentThought)
@@ -1301,6 +1331,9 @@ for line in sys.stdin:
 
             await pilot.click(row(app.screen, "#all"))
             await pilot.pause()
+            async with asyncio.timeout(10):
+                while app.current_mode != first_channel_mode:
+                    await pilot.pause(.01)
             assert app.current_mode == first_channel_mode
             await pilot.press("escape")
             await pilot.pause()

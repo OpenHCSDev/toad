@@ -13,6 +13,7 @@ from toad.widgets.comms_menu import ContextMenu, ContextMenuItem
 from toad.widgets.comms_sidebar import CommsRow, CommsSidebar, ChannelGroup, ThreadRow
 from toad.widgets.session_sort import ChannelListSort, SessionSort
 from toad.widgets.side_bar import SideBarCollapsible
+from toad.widgets.conversation import Conversation
 
 
 async def until(predicate):
@@ -105,8 +106,8 @@ async def main():
 
         async with app.run_test(size=(120, 40)) as pilot:
             await until(
-                lambda: getattr(app.screen, "conversation", None) is not None
-                and app.screen.conversation.agent_ready
+                lambda: (conversation := app.screen.query_one_optional(Conversation)) is not None
+                and conversation.agent_ready
             )
             await pilot.pause()
             parent_mode = app.current_mode
@@ -130,7 +131,8 @@ async def main():
             )
             await until(
                 lambda: app.current_mode != parent_mode
-                and app.screen.conversation.agent_ready
+                and (conversation := app.screen.query_one_optional(Conversation)) is not None
+                and conversation.agent_ready
             )
             old_mode = app.current_mode
             await pilot.pause()

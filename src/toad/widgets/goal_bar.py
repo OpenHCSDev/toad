@@ -284,7 +284,7 @@ class GoalBar(VerticalGroup):
         self.remove_class("-resize-hover", "-resizing")
 
     def _update_control_layout(self) -> None:
-        if not self.is_attached or not self.content_size.width:
+        if not self.is_attached or not self.display or not self.content_size.width:
             return
         controls = self.query_one(".goal-controls")
         widths = [
@@ -312,9 +312,10 @@ class GoalBar(VerticalGroup):
             controls.styles.height = (len(widths) + columns - 1) // columns
 
     def update_document_height(self) -> None:
-        if self.is_attached:
-            if self.collapsed:
-                return
+        # Conversation resize also reaches an absent goal or an outage header
+        # without a document. Querying that hidden document's geometry forces
+        # a full compositor map after the visible viewport was already laid out.
+        if self.is_attached and self.display and self.goal is not None and not self.collapsed:
             document = self.query_one(".goal-document", VerticalScroll)
             width = document.content_size.width
             height = (

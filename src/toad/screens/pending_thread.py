@@ -2,6 +2,9 @@
 
 from typing import cast
 from pathlib import Path
+from collections import deque
+import asyncio
+from weakref import ref
 
 from textual import containers, on
 from textual.app import ComposeResult
@@ -17,20 +20,31 @@ from toad.widgets.comms_sidebar import CommsSidebar, SelectTarget
 from toad.widgets.conversation import ThreadLoading
 from toad.widgets.session_tabs import SessionsTabs
 from toad.widgets.side_bar import SideBar, TabHistoryControls
+from toad.navigation_target import NavigationContext, NavigationOwner
 
 
-class PendingThreadScreen(SessionView, can_focus=False):
+class PendingThreadScreen(SessionView, NavigationOwner, can_focus=False):
     """Display no unverified identity, transcript or read acknowledgement."""
 
     BINDINGS = [Binding("escape", "close_pending", "Cancel opening", show=False)]
     DEFAULT_CSS = "PendingThreadScreen > Center { height: 1fr; }"
 
-    def __init__(self, *, owner_mode: str, project_path: Path, me: str) -> None:
+    def __init__(self, *, owner_mode: str = "", project_path: Path = Path(), me: str = "") -> None:
         super().__init__()
         self.owner_mode = owner_mode
         self.project_path = project_path
         self.me = me
         self._thread_sidebar_state = SidebarState()
+        self._channels = ChannelsSidebar(self.me, observe=False, defer_mount=True)
+
+    def bind_navigation(self, context: NavigationContext) -> None:
+        """Bind a prepared, never-presented shell to its one requested route."""
+        if self._first_frame_presented:
+            raise RuntimeError("A presented loading shell cannot be rebound")
+        self.owner_mode = context.owner_mode
+        self.project_path = context.project_path
+        self.me = context.actor
+        self._channels.set_session_thread(context.actor)
 
     def compose(self) -> ComposeResult:
         with containers.Horizontal(id="tab-navigation-header"):
@@ -40,10 +54,11 @@ class PendingThreadScreen(SessionView, can_focus=False):
             # This is the existing owner's cached channel projection, not the
             # unresolved destination. Shared hide/placement/scroll intent stays
             # visible without adding another wire read to route discovery.
-            yield ChannelsSidebar(self.me, observe=False)
+            yield self._channels
             yield SideBar(
                 SideBar.Panel("Thread", Static("Opening thread…")),
                 id="thread-sidebar", right=True, hide=True, navigation=self._thread_sidebar_state,
+                defer_mount=True,
             )
             with containers.Vertical(id="pending-thread-content"):
                 yield ThreadLoading()
@@ -51,10 +66,11 @@ class PendingThreadScreen(SessionView, can_focus=False):
     @on(SelectTarget)
     async def on_select_target(self, event: SelectTarget) -> None:
         event.stop()
-        await cast(ToadApp, self.app).open_comms_session(
-            owner_mode=self.owner_mode, project_path=self.project_path,
-            me=self.me, target=event.target, kind=event.kind,
-        )
+        await self.open_sidebar_target(event.target, event.kind)
+
+    @property
+    def navigation_context(self) -> NavigationContext:
+        return NavigationContext(cast(ToadApp, self.app), self.owner_mode, self.project_path, self.me)
 
     @on(messages.SessionCreate)
     def on_session_create(self, event: messages.SessionCreate) -> None:
@@ -71,3 +87,63 @@ class PendingThreadScreen(SessionView, can_focus=False):
     async def action_close_pending(self) -> None:
         if self.id is not None:
             await cast(ToadApp, self.app).close_session_mode(self.id)
+
+
+class PendingTabShells:
+    """Bounded UI-only lookahead. No route/source work runs before selection."""
+
+    def __init__(self, app: ToadApp, capacity: int) -> None:
+        if type(capacity) is not int or capacity < 0:
+            raise ValueError("Prepared tab capacity must be a non-negative integer")
+        self._app = ref(app)
+        self.capacity = capacity
+        self._available: deque[PendingThreadScreen] = deque()
+        self._preparing = False
+        self._lock = asyncio.Lock()
+        self._closed = False
+
+    @property
+    def app(self) -> ToadApp:
+        app = self._app()
+        if app is None:
+            raise ReferenceError("The loading-shell owner has retired")
+        return app
+
+    def close(self) -> None:
+        self._closed = True
+        self._available.clear()
+
+    def prepare(self) -> None:
+        if (not self._closed and self.app.is_running and not self._preparing
+                and len(self._available) < self.capacity):
+            self._preparing = True
+            self.app.run_worker(self._fill(), group="pending-tab-shells")
+
+    async def _fill(self) -> None:
+        try:
+            while len(self._available) < self.capacity and self.app.is_running and not self._closed:
+                async with self._lock:
+                    if len(self._available) >= self.capacity:
+                        return
+                    screen = await self._create()
+                    if not self._closed:
+                        self._available.append(screen)
+        finally:
+            self._preparing = False
+
+    async def _create(self) -> PendingThreadScreen:
+        self.app._pending_thread_index += 1
+        mode = f"pending-thread-{self.app._pending_thread_index}"
+        screen = PendingThreadScreen()
+        screen.id = mode
+        self.app.add_mode(mode, lambda: screen)
+        # Native mounting is asynchronous and does not select the mode. The
+        # existing presentation boundary keeps its source callbacks dormant.
+        await self.app._init_mode(mode)
+        return screen
+
+    async def acquire(self, context: NavigationContext) -> PendingThreadScreen:
+        async with self._lock:
+            screen = self._available.popleft() if self._available else await self._create()
+        screen.bind_navigation(context)
+        return screen

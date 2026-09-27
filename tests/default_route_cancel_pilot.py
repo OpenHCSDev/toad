@@ -140,6 +140,9 @@ async def main() -> None:
                     await channel.submit_input(postreceipt)
                     assert sender.call_count == 1
                     release_paint.set()
+            # Cancelling UI workers does not cancel their active to_thread
+            # calls. Drain those writes before deleting the disposable wire.
+            await asyncio.get_running_loop().shutdown_default_executor()
 
 
 if __name__ == "__main__":

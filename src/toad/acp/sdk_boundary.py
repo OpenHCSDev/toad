@@ -2,8 +2,6 @@
 
 from typing import Any, cast
 
-from acp.schema import SessionNotification
-
 from toad.acp import protocol
 
 
@@ -15,6 +13,8 @@ def validate_session_update(
     Generated SDK models may omit unrecognized extension fields on serialization;
     the existing consumers need the untouched dictionary, including nested _meta.
     """
+    from acp.schema import SessionNotification
+
     SessionNotification.model_validate(
         {"sessionId": session_id, "update": update, "_meta": metadata},
         strict=True,

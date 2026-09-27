@@ -20,6 +20,7 @@ _RENDER_PACKAGES = (
     "toad", "agent_comms", "textual", "textual_diff_view", "rich", "pygments",
     "markdown_it", "mdurl", "mdit_py_plugins", "linkify_it",
     "textual_speedups", "zmqruntime", "zmq",
+    "acp", "pydantic", "pydantic_core", "annotated_types", "typing_extensions", "typing_inspection",
 )
 _SOURCE_SUFFIXES = (".py", ".pyi", ".json", ".tcss", *EXTENSION_SUFFIXES)
 
