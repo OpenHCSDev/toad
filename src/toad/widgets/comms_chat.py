@@ -361,13 +361,13 @@ class CommsChatView(Conversation):
         if self._wire is None or not root_is_current(self._wire.root):
             self.display = False
             return
-        if self.kind != "dm":
-            self._channel_ack_pages.update((message.seq, page) for message in page.messages)
-        elif not older and page.messages:
+        if self.kind == "dm" and not older and page.messages:
             self._ack_page = page
         mounted = {message.seq for message, _ in self._history}
         records = [message for message in page.messages if message.seq not in mounted]
         if not records:
+            if self.kind != "dm":
+                self._channel_ack_pages.update((message.seq, page) for message in page.messages)
             if older:
                 self._has_older = page.has_older
             else:
@@ -386,6 +386,10 @@ class CommsChatView(Conversation):
                     return
                 with self.app.batch_update():
                     await self._insert_page(page, pairs, older=older)
+        if self.kind != "dm":
+            # Publish proof only after mounting; a paint callback may run while
+            # the history lock is awaited and prune rows not yet in the window.
+            self._channel_ack_pages.update((message.seq, page) for message in page.messages)
         self.window.check_follow()
 
     async def _insert_page(

@@ -34,3 +34,9 @@ ok
 Ran 4 tests in 0.680s
 
 OK
+
+channel_partial_paint-mount-order.txt
+Partial viewport ACKs contain only painted bodies; scrolling acknowledges the remaining captured rows
+
+channel_display_basis-mount-order.txt
+Painted bounded channel page reads exactly its two members; hidden any-mode expansion stays unread
