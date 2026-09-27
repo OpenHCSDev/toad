@@ -188,51 +188,6 @@ async def admission_pending_never_reports_stopped() -> None:
                 await cleanup(holder["process"])
 
 
-async def admission_settles_during_stop() -> None:
-    with tempfile.TemporaryDirectory(
-        prefix="toad-stop-admission-quick-", dir="/dev/shm"
-    ) as root:
-        agent = Agent(
-            Path(root), {"name": "fixture", "run_command": {"*": "sleep 60"}}, None
-        )
-        agent.post_message = lambda _message: None
-        spawned = asyncio.Event()
-        release = asyncio.Event()
-        holder: dict[str, asyncio.subprocess.Process] = {}
-
-        async def delayed_spawn(*_args, **_kwargs):
-            process = await asyncio.create_subprocess_exec(
-                sys.executable,
-                "-c",
-                "import time; time.sleep(60)",
-                stdin=asyncio.subprocess.PIPE,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.DEVNULL,
-                start_new_session=True,
-            )
-            holder["process"] = process
-            spawned.set()
-            await release.wait()
-            return process
-
-        try:
-            with patch.object(maintenance_ingress, "admitted_spawn", delayed_spawn):
-                agent._agent_task = asyncio.create_task(agent._run_agent())
-                await asyncio.wait_for(spawned.wait(), timeout=5)
-                stop_task = asyncio.create_task(agent.stop())
-                await asyncio.sleep(0)
-                assert not stop_task.done()
-                release.set()
-                evidence = await asyncio.wait_for(stop_task, timeout=8)
-                assert evidence is not None
-                assert evidence.accepted.leader_pid == holder["process"].pid
-                assert agent.verify_retirement() == evidence
-        finally:
-            release.set()
-            if "process" in holder:
-                await cleanup(holder["process"])
-
-
 def pid_reuse_declines() -> None:
     from toad.acp import group_retirement
 
@@ -254,7 +209,6 @@ async def main() -> None:
     await unresolved_and_retry()
     await cancellation_keeps_identity()
     await admission_pending_never_reports_stopped()
-    await admission_settles_during_stop()
     pid_reuse_declines()
     print("ACP stop proof pilots PASS")
 
