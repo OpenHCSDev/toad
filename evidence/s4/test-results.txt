@@ -1,0 +1,36 @@
+dm-subsets.txt
+DM rebind: an old painted page did not acknowledge a hidden replacement peer
+
+channel_display_basis-final.txt
+Painted bounded channel page reads exactly its two members; hidden any-mode expansion stays unread
+
+channel_partial_paint-verified.txt
+Partial viewport ACKs contain only painted bodies; scrolling acknowledges the remaining captured rows
+
+channel_scope_expansion-final.txt
+mounted any-mode scope expansion reveals older history
+
+channel_any_mode_ui-verified.txt
+channel menu toggles member activity and keeps unpainted traffic unread
+
+follow-subsets.txt
+channel follow/unread: roster resize, arrivals, scroll-up, refocus and independent human cursors passed
+
+channel_marker_notice-final.txt
+Legacy channel read marker reset produced one visible warning
+
+divider_unread_paint-verified.txt
+divider-only viewport leaves the unpainted message unread
+
+reader-fixed.txt
+test_any_mode_expansion_reloads_older_history_without_new_bus_rows (__main__.ReaderTests.test_any_mode_expansion_reloads_older_history_without_new_bus_rows) ... ok
+test_bus_replacement_reloads_unchanged_sequence_tail (__main__.ReaderTests.test_bus_replacement_reloads_unchanged_sequence_tail) ... Executing <Task finished name='Task-7' coro=<ReaderTests.test_bus_replacement_reloads_unchanged_sequence_tail() done, defined at /home/ts/wt/toad-s4-read-routing-20260927/tests/channel_history_reader_pilot.py:18> result=None created at /home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py:109> took 0.110 seconds
+ok
+test_dm_turn_claim_preserves_display_identity (__main__.ReaderTests.test_dm_turn_claim_preserves_display_identity) ... ok
+test_revision_reuse_limits_and_background_admission (__main__.ReaderTests.test_revision_reuse_limits_and_background_admission) ... Executing <Task pending name='Task-17' coro=<ReaderTests.test_revision_reuse_limits_and_background_admission() running at /home/ts/wt/toad-s4-read-routing-20260927/tests/channel_history_reader_pilot.py:107> wait_for=<Future pending cb=[Task.task_wakeup()] created at /home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py:459> cb=[_run_until_complete_cb() at /home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py:181] created at /home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py:109> took 0.400 seconds
+ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.680s
+
+OK
