@@ -3405,3 +3405,92 @@ class Conversation(containers.Vertical):
         except (OSError, ValueError) as error:
             self.flash(str(error), style="error")
             return True
+
+
+class ConversationCommsConsumer(MroDispatch):
+    def __init__(self, conversation, message):
+        self.conversation = conversation
+        self.message = message
+
+    @handles(TurnStartedUpdate)
+    async def turn_started(self, update: TurnStartedUpdate):
+        await self.conversation.on_turn_started(self.message)
+
+    @handles(TurnSettledUpdate)
+    async def turn_settled(self, update: TurnSettledUpdate):
+        await self.conversation.on_turn_settled(self.message)
+
+    @handles(GoalChangedUpdate)
+    def goal_changed(self, update: GoalChangedUpdate):
+        self.conversation._invalidate_goal_snapshot()
+
+    @handles(CompactionChangedUpdate)
+    async def compaction_changed(self, update: CompactionChangedUpdate):
+        await CompactionRenderer(self.conversation).dispatch(update.event)
+
+    @handles(TranscriptSnapshotUpdate)
+    async def transcript_snapshot(self, update: TranscriptSnapshotUpdate):
+        await self.conversation.on_transcript_snapshot(update)
+
+    @handles(McpClientReceiptUpdate)
+    async def mcp_receipt(self, update: McpClientReceiptUpdate):
+        await self.conversation.on_mcp_client_status(self.message)
+
+    @handles(CompactionPublishedUpdate)
+    def compaction_published(self, update: CompactionPublishedUpdate):
+        self.conversation._transcript_dirty = True
+        self.conversation._needs_transcript_checkpoint = True
+        self.conversation._compact_committed_history()
+
+
+
+class CompactionRenderer(MroDispatch):
+    def __init__(self, conversation):
+        self.conversation = conversation
+
+    @handles(comms_events.CompactionStart)
+    async def start(self, event):
+        view = self.conversation
+        view.activity = "Compacting context…"
+        view.post_message(
+            messages.SessionUpdate(state="busy", summary="Compacting context")
+        )
+
+    @handles(comms_events.CompactionProgress)
+    async def progress(self, event):
+        view = self.conversation
+        done, total = event.source_bytes_done, event.source_bytes_total
+        if done is not None and total is not None and 0 <= done <= total and total > 0:
+            summaries = "summary" if event.chunk_index == 1 else "summaries"
+            view.activity = f"Compacting context… {done * 100 // total}% of input processed · {event.chunk_index} {summaries} completed"
+            if event.summary_phase == "shrink":
+                view.activity += " (last step: summary shrink)"
+        else:
+            view.activity = (
+                f"Compacting context… summary step {event.chunk_index} completed"
+            )
+        if event.summary_phase == "synthesis":
+            view.activity += " · combining summaries"
+        view.post_message(messages.SessionUpdate(state="busy", summary=view.activity))
+
+    @handles(comms_events.CompactionEnd)
+    async def end(self, event):
+        from toad.widgets.agent_response import AgentResponse
+
+        view = self.conversation
+        active = view.turn == "agent"
+        view.activity = "Thinking…" if active else ""
+        title = "Compaction aborted" if event.aborted else "Context compacted"
+        view.post_message(
+            messages.SessionUpdate(state="busy" if active else "idle", summary=title)
+        )
+        summary = compaction_summary(event.publication_summary)
+        detail = summary or (
+            "Compaction did not complete. Context usage will update after the next measurement."
+            if event.aborted
+            else "Context estimate unavailable until a new measurement arrives."
+        )
+        await view.post(
+            AgentResponse(f"## {title}\n\n{detail}", category=MessageCategory.OTHER)
+        )
+
