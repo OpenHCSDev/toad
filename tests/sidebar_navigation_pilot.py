@@ -9,8 +9,10 @@ from pathlib import Path
 from unittest.mock import patch
 
 from agent_comms.threads import Thread
+from agent_comms.child_process import ProcessIdentity
 from agent_comms.comms import wire
 from runtime_fixture import ToadApp
+from toad.acp.messages import CoordinationUpdate
 
 from toad.screens.main import MainScreen
 from toad.session_tracker import SidebarSelection
@@ -69,7 +71,7 @@ async def main(*, finish_before_layout=False):
             XDG_DATA_HOME=str(root / "data"), AGENT_COMMS_ROOT=str(root / "wire"),
         )
         comms = wire(root / "wire")
-        comms.threads.register(Thread("worker", frozenset({"experiment", *(f"channel-{i:02}" for i in range(30))}), str(root)))
+        comms.threads.register(Thread("worker", frozenset({"experiment", *(f"channel-{i:02}" for i in range(30))}), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
         for index in range(30):
             comms.channels.create_tag(f"channel-{index:02}")
         app = FrameApp(project_dir=str(root))
@@ -77,6 +79,9 @@ async def main(*, finish_before_layout=False):
             await pilot.pause()
             owner = app.current_mode
             worker = await app.new_session_screen(lambda: MainScreen(root, agent_session_id="worker"))
+            await app.screen.on_coordination_update(CoordinationUpdate(
+                thread="worker", wire_root=str(comms.root), persistence="persistent", transport="stdio",
+            ))
             await app.switch_mode(owner)
             await pilot.pause()
             sidebar = app.screen.query_one(CommsSidebar)
@@ -147,7 +152,11 @@ async def main(*, finish_before_layout=False):
             assert sum(row.has_class("-selected") for row in sidebar._ordered_rows()) == 1
             expected_frame = app.panel_text(app.screen)
             app.panel_frames = []
-            await pilot.pause()
+            async with asyncio.timeout(5):
+                while app.current_mode != worker.mode_name or not any(
+                    mode == worker.mode_name and ready for mode, ready, _ in app.panel_frames
+                ):
+                    await pilot.pause(.02)
             current = app.screen.query_one(CommsSidebar)
             await settled(current)
             assert app.panel_frames and any(mode == worker.mode_name and ready for mode, ready, _ in app.panel_frames)

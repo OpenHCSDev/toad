@@ -237,7 +237,7 @@ def install_observer():
                 record(_name, begin_ns=begin, duration_ms=(time.monotonic_ns()-begin)/1e6,
                        cpu_ms=(time.thread_time_ns()-cpu)/1e6, mode=self.id,
                        batched=self.app._batch_count > 0,
-                       viewport=self._use_viewport_layout(), anchors=len(self.history_anchors),
+                       viewport=self._use_viewport_layout(), anchors=len(self.viewport_presentation.anchors),
                        visible_map=len(self._compositor._visible_map or {}),
                        full_map=len(self._compositor._full_map),
                        callbacks=len(self._callbacks))
@@ -498,7 +498,7 @@ class ValidationDriver(LinuxDriver):
                                  "anchor": repr(window.history_anchor.widget) if window.history_anchor else None,
                                  "anchor_attached": window.history_anchor.widget.is_attached if window.history_anchor else None,
                                  "layout_ready": window.history_layout_ready.is_set() if window.history_layout_ready else None,
-                                 "managed_anchor": window in screen.history_anchors}
+                                 "managed_anchor": window in screen.viewport_presentation.anchors}
                                 for window in screen.query(HistoryWindow)]})
         Path(os.environ["TOAD_VALIDATION_TRACE"] + ".stalled.json").write_text(json.dumps({
             "batch_count": app._batch_count, "current_mode": app.current_mode,

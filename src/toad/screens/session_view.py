@@ -4,7 +4,6 @@ from dataclasses import dataclass, replace
 from functools import cached_property
 from collections.abc import Callable
 from typing import TYPE_CHECKING, cast
-from weakref import WeakSet
 import asyncio
 
 from textual.events import Resize, ScreenResume
@@ -46,20 +45,16 @@ class SessionView(SidebarFocusOwner, Screen):
     _navigation_frame_pending = False
 
     @cached_property
-    def body_windows(self) -> WeakSet:
-        return WeakSet()
+    def viewport_presentation(self):
+        from toad.widgets.viewport_body import ViewportPresentation
+        return ViewportPresentation(self)
 
     def on_screen_suspend(self) -> None:
         self._presented_event.set()
-        for window in self.body_windows:
-            window.retire_presentation_wait()
-            window.document_viewport.request()
-        for window in self.history_anchors:
-            window.retire_presentation_wait()
+        self.viewport_presentation.suspend()
 
     def on_screen_resume(self) -> None:
-        for window in self.body_windows:
-            window.document_viewport.request()
+        self.viewport_presentation.request()
 
     @cached_property
     def _presented_event(self) -> asyncio.Event:
@@ -165,6 +160,8 @@ class SessionView(SidebarFocusOwner, Screen):
             # screen after ending the transaction, including error paths.
             self._repaint_required = True
             return
+        if not self.viewport_presentation.prepare(self._navigation_frame_pending and self._first_frame_presented):
+            return
         super()._compositor_refresh()
 
     def present_navigation(self) -> None:
@@ -178,16 +175,11 @@ class SessionView(SidebarFocusOwner, Screen):
         self._compositor.update_widgets(self._dirty_widgets)
         self._compositor_refresh()
 
-    @cached_property
-    def history_anchors(self) -> set["HistoryWindow"]:
-        """Only windows with an active render transaction need compensation."""
-        return set()
-
     def _use_viewport_layout(self) -> bool:
         return self.is_current
 
     def _layout_geometry_targets(self) -> tuple[Widget, ...]:
-        return tuple(target for window in self.history_anchors
+        return tuple(target for window in self.viewport_presentation.anchors
                      if window.history_anchor is not None
                      for target in window.history_anchor.geometry_targets)
 
@@ -197,7 +189,7 @@ class SessionView(SidebarFocusOwner, Screen):
         # Keep the last committed geometry: reading virtual_region here can
         # itself rebuild Textual's invalidated map with the new child positions.
         # Only the reader's current scroll/follow intent is refreshed pre-layout.
-        tracked = tuple(self.history_anchors)
+        tracked = tuple(self.viewport_presentation.anchors)
         anchors = [
             (window, window.history_anchor.before_layout(window))
             for window in tracked

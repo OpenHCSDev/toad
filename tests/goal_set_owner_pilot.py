@@ -5,20 +5,19 @@ import os
 import tempfile
 from pathlib import Path
 
-from agent_comms.goal_actions import BlockedGoalAction, GoalPrecondition, SetGoalAction
 from agent_comms.acp import CommsAgent
 from agent_comms.goal_attempts import GoalAttemptStore
-from agent_comms.comms import wire
+from runtime_fixture import private_native_wire
 from toad.acp.agent import Agent
 
 
-async def owner_set_route(*, legacy_blocked: bool) -> None:
+async def owner_set_route() -> None:
     with tempfile.TemporaryDirectory(
         prefix="toad-goal-set-", dir="/var/tmp"
     ) as directory:
         root = Path(directory)
         os.environ["AGENT_COMMS_AGENT_MODELS"] = "openrouter/fake"
-        comms = wire(root / "wire")
+        comms = private_native_wire(root / "wire")
         project = root / "project"
         project.mkdir()
         owner = CommsAgent(
@@ -27,25 +26,17 @@ async def owner_set_route(*, legacy_blocked: bool) -> None:
             agent_args=["--provider", "openrouter", "--model", "fake"],
             runtime_enabled=True,
             auto_wake=False,
+            private_nk_native_package=Path(os.environ["AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE"]),
+            private_nk_wire_root_id=os.environ["AGENT_COMMS_PRIVATE_NK_WIRE_ROOT_ID"],
         )
         session = (await owner.new_session(cwd=str(project))).session_id
         toad_agent = Agent(project, {"name": "agent-comms", "run_command": {"*": "true"}}, None)
         toad_agent._coordination_root = str(comms.root)
         toad_agent._coordination_thread = session
         try:
-            if legacy_blocked:
-                old = comms.goals.update_goal(session, SetGoalAction(text="legacy goal"))
-                blocked = comms.goals.update_goal(session, BlockedGoalAction(progress="Goal attempt unresolved", expect=GoalPrecondition(goal_id=old.id)))
-                assert blocked is not None and blocked.state.declared_name == "blocked"
-                assert comms.registry.require(session).goal == blocked
-                assert not (
-                    comms.root / "goal-private" / "goal_attempts.sqlite3"
-                ).exists()
             goal = await Agent.update_goal(toad_agent, "set", "Finish the task")
             assert goal is not None and goal.state.declared_name == "active"
             assert goal.text == "Finish the task"
-            if legacy_blocked:
-                assert goal.id != old.id
             generation = GoalAttemptStore(comms.root / "goal-private").snapshot(goal.id)
             assert generation is not None and generation.lifecycle.ready
             assert owner.turns.goal_store.ready_grant(goal.id, generation.number)
@@ -55,9 +46,8 @@ async def owner_set_route(*, legacy_blocked: bool) -> None:
 
 
 async def main() -> None:
-    await owner_set_route(legacy_blocked=False)
-    await owner_set_route(legacy_blocked=True)
-    print("goal set: fresh and legacy-blocked owner grants ready")
+    await owner_set_route()
+    print("goal set: current private owner grant ready")
 
 
 if __name__ == "__main__":
