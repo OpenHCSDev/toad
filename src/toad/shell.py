@@ -1,15 +1,14 @@
 from __future__ import annotations
 
-
-from contextlib import suppress
-import os
 import asyncio
 import codecs
 import fcntl
+import os
 import platform
 import pty
 import struct
 import termios
+from contextlib import suppress
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
@@ -17,7 +16,7 @@ from textual import log
 from textual.message import Message
 
 from toad.shell_read import shell_read
-
+from toad.terminal_environment import TerminalEnvironment
 from toad.widgets.terminal import Terminal
 
 if TYPE_CHECKING:
@@ -65,7 +64,7 @@ class Shell:
 
         self.terminal: Terminal | None = None
         self.new_log: bool = False
-        self.shell = shell or os.environ.get("SHELL", "sh")
+        self.shell = shell
         self.shell_start = start
         self.hide_start = hide_start
         self.master: int | None = None
@@ -219,15 +218,9 @@ class Shell:
         flags = fcntl.fcntl(master, fcntl.F_GETFL)
         fcntl.fcntl(master, fcntl.F_SETFL, flags | os.O_NONBLOCK)
 
-        env = os.environ.copy()
-        env["FORCE_COLOR"] = "1"
-        env["TTY_COMPATIBLE"] = "1"
-        env["TERM"] = "xterm-256color"
-        env["COLORTERM"] = "truecolor"
-        env["TOAD"] = "1"
-        env["CLICOLOR"] = "1"
+        env = TerminalEnvironment.for_child(os.environ)
 
-        shell = self.shell
+        shell = self.shell or TerminalEnvironment.login_shell(env)
 
         def setup_pty():
             os.setsid()

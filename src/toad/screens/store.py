@@ -617,9 +617,9 @@ class StoreScreen(Screen):
         if session is not None:
             self.post_message(
                 messages.LaunchAgent(
-                    session["agent_identity"],
-                    session["agent_session_id"],
-                    pk=session["id"],
+                    session.agent_identity,
+                    session.agent_session_id,
+                    pk=session.id,
                 )
             )
 

@@ -709,7 +709,7 @@ class Conversation(containers.Vertical):
             if (session_pk := getattr(self.agent, "session_pk", None)) is not None:
                 from toad.db import DB
 
-                await DB().session_update_project(session_pk, str(path))
+                await DB().session_update_project(session_pk, path)
         self.update_title()
 
     async def watch_shell_history_index(self, previous_index: int, index: int) -> None:

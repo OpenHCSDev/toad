@@ -1,0 +1,35 @@
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-t8-small-boundaries-20260928/tests/t8_mounted_pilot.py", line 70, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-t8-small-boundaries-20260928/tests/t8_mounted_pilot.py", line 37, in main
+    await asyncio.wait_for(pane.execute(shlex.join((sys.executable,'-c',script))),10)
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py", line 488, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "/home/ts/wt/toad-t8-small-boundaries-20260928/src/toad/widgets/command_pane.py", line 144, in _execute
+    self._size_changed()
+    ~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-t8-small-boundaries-20260928/src/toad/widgets/command_pane.py", line 82, in _size_changed
+    self.update_size(width, height)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-t8-small-boundaries-20260928/src/toad/widgets/terminal.py", line 222, in update_size
+    from toad.widgets.conversation import Conversation
+  File "/home/ts/wt/toad-t8-small-boundaries-20260928/src/toad/widgets/conversation.py", line 62, in <module>
+    from toad.widgets.goal_bar import GoalBar, GoalControl
+  File "/home/ts/wt/toad-t8-small-boundaries-20260928/src/toad/widgets/goal_bar.py", line 16, in <module>
+    from toad.widgets.goal_text import GoalText
+  File "/home/ts/wt/toad-t8-small-boundaries-20260928/src/toad/widgets/goal_text.py", line 6, in <module>
+    from toad.widgets.comms_sidebar import SelectTarget
+  File "/home/ts/wt/toad-t8-small-boundaries-20260928/src/toad/widgets/comms_sidebar.py", line 37, in <module>
+    from agent_comms.owner_lifecycle import OBSERVATION_INTERVAL
+ImportError: cannot import name 'OBSERVATION_INTERVAL' from 'agent_comms.owner_lifecycle' (/home/ts/wt/comms-acp-saved-session-startup-20260928/src/agent_comms/owner_lifecycle.py)
