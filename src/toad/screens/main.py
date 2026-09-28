@@ -351,9 +351,7 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
             if self.coordination_root is not None and not root_is_current(
                 self.coordination_root
             ):
-                raise ValueError(
-                    "Comms route changed; this session retains its former wire"
-                )
+                raise ValueError("Comms route changed; this session retains its former wire")
             root_path = (
                 Path(self.coordination_root).expanduser()
                 if self.coordination_root is not None
@@ -361,9 +359,7 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
             )
             if self._identity_wire is None or self._identity_wire.root != root_path:
                 shared = self.app.coordination_wire
-                self._identity_wire = (
-                    shared if shared.root == root_path else wire(root_path)
-                )
+                self._identity_wire = shared if shared.root == root_path else wire(root_path)
             if self.coordination_root is not None:
                 resolved = self._identity_wire.registry.require(self._comms_thread).name
             else:

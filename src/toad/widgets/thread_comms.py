@@ -22,11 +22,7 @@ from toad.widgets.message_filter import MessageCategory
 from toad.widgets.session_sort import SortControl
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarVisibilityObserver
 from toad.widgets.sidebar_tree import SidebarGroup, TargetTree
-from toad.widgets.thread_comms_model import (
-    RelationshipGroup,
-    RelationshipSource,
-    ThreadCommsSnapshot,
-)
+from toad.widgets.thread_comms_model import RelationshipGroup, RelationshipSource, ThreadCommsSnapshot
 
 
 def _update_content(widget: Static, content: Content) -> None:
@@ -108,13 +104,9 @@ class RelationshipRows(SidebarGroup):
     RelationshipRows > .group-header > SidebarDisclosure { width: 1; }
     """
 
-    EMPTY = {
-        "inbound": "No recent inbound",
-        "outbound": "No recent outbound",
-        "parent": "Not forked",
-        "children": "No children",
-        "collaborating": "No active collaborations",
-    }
+    EMPTY = {"inbound": "No recent inbound", "outbound": "No recent outbound",
+             "parent": "Not forked", "children": "No children",
+             "collaborating": "No active collaborations"}
 
     def __init__(self, model: RelationshipGroup, expanded: bool):
         self.model = model
@@ -207,11 +199,8 @@ class ThreadCommsSidebar(SidebarVisibilityObserver, TargetTree):
     ThreadCommsSidebar .relationship-empty { height: 1; color: $text-muted; }
     ThreadCommsSidebar > Checkbox { height: 1; border: none; padding: 0; margin: 0; background: transparent; }
     """
-    BINDINGS = [
-        ("up", "cursor_up", "Previous"),
-        ("down", "cursor_down", "Next"),
-        ("enter", "open_selected", "Open"),
-    ]
+    BINDINGS = [("up", "cursor_up", "Previous"), ("down", "cursor_down", "Next"),
+                ("enter", "open_selected", "Open")]
 
     def __init__(self, owner: str, *, wire_root: str | None = None,
                  source: RelationshipSource | None = None, live: bool = False):

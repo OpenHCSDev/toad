@@ -23,12 +23,7 @@ from typing import TYPE_CHECKING, cast
 
 from agent_comms import context_tool_catalog
 from agent_comms.comms import Comms, wire
-from agent_comms.presentation import (
-    ChannelView,
-    CoordinationSnapshot,
-    ThreadView,
-    WireRevision,
-)
+from agent_comms.presentation import ChannelView, CoordinationSnapshot, ThreadView, WireRevision
 from textual import on
 from textual.app import ComposeResult
 from textual.binding import Binding
@@ -83,9 +78,7 @@ class ChannelDisclosure(SidebarDisclosure):
 
 
 class ChannelUnread(Static):
-    DEFAULT_CSS = (
-        "ChannelUnread { width: auto; height: 1; color: $accent; pointer: pointer; }"
-    )
+    DEFAULT_CSS = "ChannelUnread { width: auto; height: 1; color: $accent; pointer: pointer; }"
 
     def on_click(self, event) -> None:
         if event.button == 1:
@@ -95,7 +88,6 @@ class ChannelUnread(Static):
 
 class ChannelGroup(SidebarGroup):
     """A lazy rendering of model-provided membership, never a second thread owner."""
-
     DEFAULT_CSS = """
     ChannelGroup { height: auto; }
     ChannelGroup > HorizontalGroup { height: 1; }
@@ -851,9 +843,7 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
         if state is None:
             show_stopped, show_archived = self.visible_filters
             state = comms.views.viewer_snapshot(
-                str(app.project_dir),
-                show_stopped=show_stopped,
-                show_archived=show_archived,
+                str(app.project_dir), show_stopped=show_stopped, show_archived=show_archived
             )
         all_people = {person.thread.name: person for person in state.threads}
         session_threads: dict[str, str] = {}

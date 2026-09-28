@@ -119,23 +119,12 @@ class SessionSort(SortControl[ThreadSort]):
             from toad.widgets.comms_sidebar import CommsSidebar
 
             sidebar = self.screen.query_one_optional(CommsSidebar)
-            source_root = (
-                sidebar._wire.root
-                if sidebar is not None and sidebar._wire is not None
-                else None
-            )
-        if (
-            source_root is not None
-            and comms.root.resolve() != Path(source_root).resolve()
-        ):
+            source_root = sidebar._wire.root if sidebar is not None and sidebar._wire is not None else None
+        if source_root is not None and comms.root.resolve() != Path(source_root).resolve():
             raise ValueError("Comms route changed before sorting")
         channel = await asyncio.to_thread(
-            run_selected_write,
-            comms.root,
-            comms.channels.set_channel_sort,
-            self.channel,
-            order,
-            implicit=implicit_root(),
+            run_selected_write, comms.root, comms.channels.set_channel_sort,
+            self.channel, order, implicit=implicit_root(),
         )
         return channel.order
 
@@ -153,22 +142,12 @@ class ChannelListSort(SortControl[ChannelSort]):
             from toad.widgets.comms_sidebar import CommsSidebar
 
             sidebar = self.screen.query_one_optional(CommsSidebar)
-            source_root = (
-                sidebar._wire.root
-                if sidebar is not None and sidebar._wire is not None
-                else None
-            )
-        if (
-            source_root is not None
-            and comms.root.resolve() != Path(source_root).resolve()
-        ):
+            source_root = sidebar._wire.root if sidebar is not None and sidebar._wire is not None else None
+        if source_root is not None and comms.root.resolve() != Path(source_root).resolve():
             raise ValueError("Comms route changed before sorting")
         return await asyncio.to_thread(
-            run_selected_write,
-            comms.root,
-            comms.channels.set_channel_order,
-            order,
-            implicit=implicit_root(),
+            run_selected_write, comms.root, comms.channels.set_channel_order,
+            order, implicit=implicit_root(),
         )
 
     _visibility_fields = (SidebarSettings.show_stopped, SidebarSettings.show_archived)

@@ -234,23 +234,15 @@ class ConversationMarkdown(Markdown):
             name = unquote(event.href.removeprefix("toad-file-search:"))
             path, status = await asyncio.to_thread(_unique_project_file, root, name)
             if path is None:
-                self.notify(
-                    _file_lookup_notice(name, root, status),
-                    title="File preview",
-                    severity="warning",
-                )
+                self.notify(_file_lookup_notice(name, root, status),
+                            title="File preview", severity="warning")
                 return
         elif path := _linked_file(root, event.href):
             pass
-        elif (
-            urlsplit(event.href).scheme in {"", "file"}
-            and Path(urlsplit(event.href).path).suffix
-        ):
-            self.notify(
-                f"File not found: {event.href} (project: {root})",
-                title="File preview",
-                severity="warning",
-            )
+        elif (urlsplit(event.href).scheme in {"", "file"}
+              and Path(urlsplit(event.href).path).suffix):
+            self.notify(f"File not found: {event.href} (project: {root})",
+                        title="File preview", severity="warning")
             return
         else:
             self.app.open_url(event.href)

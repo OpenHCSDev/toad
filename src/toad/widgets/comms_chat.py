@@ -463,9 +463,7 @@ class CommsChatView(DeliveryFailureView, Conversation):
         follow = not self._has_newer and self.window.follows_tail
         if page.messages and follow:
             await self._mount_page(page, older=False)
-            self._poll_cursor = (
-                page.newest_seq if page.has_newer else high_water
-            ) or high_water
+            self._poll_cursor = (page.newest_seq if page.has_newer else high_water) or high_water
         else:
             if page.messages:
                 self._has_newer = True
