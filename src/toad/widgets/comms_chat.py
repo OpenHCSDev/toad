@@ -10,6 +10,7 @@ from pathlib import Path
 
 from agent_comms.comms import Comms
 from agent_comms.message_page import MessagePage
+from toad.message_viewport import AcknowledgementViewport, NotificationViewport
 from toad.constants import COMMS_REFRESH_INTERVAL
 from agent_comms.thread_identity import ThreadRole
 from agent_comms.presentation import WireRevision
@@ -259,32 +260,15 @@ class CommsChatView(Conversation):
             return IRCMessage(message, direction=direction)
         return WireMarkdownMessage(message, direction=direction)
 
-    def _painted_message_sequences(self) -> tuple[int, ...]:
-        return tuple(seq for source, seq in self._painted_message_keys() if not source)
-
     def _painted_message_keys(self) -> tuple[tuple[str, int], ...]:
-        """Rows in the committed viewport, adapted from the sidebar worktree."""
         if not self.is_attached or not self.screen.is_active:
             return ()
-        geometry = self.screen._compositor.visible_widgets
-        viewport = self.window.content_region
-        visible: list[tuple[str, int]] = []
-        for message, widget in self._history:
-            painted = (
-                widget.read_ack_widget()
-                if isinstance(widget, (IRCMessage, WireMarkdownMessage)) else widget
-            )
-            placement = geometry.get(painted)
-            if placement is None:
-                continue
-            region, clip = placement
-            if (
-                region.overlaps(viewport)
-                and region.overlaps(clip)
-                and clip.overlaps(viewport)
-            ):
-                visible.append(message.view_key)
-        return tuple(visible)
+        return tuple(message.view_key for message, _ in self._message_viewport(
+            AcknowledgementViewport).visible_rows())
+
+    def _message_viewport(self, projection):
+        return projection(self._history, self.screen._compositor.visible_widgets,
+                          self.window.content_region)
 
     def _history_request(self) -> HistoryReadRequest:
         assert self._wire is not None
@@ -538,7 +522,7 @@ class CommsChatView(Conversation):
             self._ack_inflight = True
             self.run_worker(self._mark_historical_paint(historical, selected), group="comms-painted-read")
             return
-        painted = set(self._painted_message_sequences())
+        painted = {seq for source, seq in visible if not source}
         original_page = None
         if self.kind == "dm":
             page = self._ack_page
@@ -665,20 +649,7 @@ class CommsChatView(Conversation):
             self._notification_task = asyncio.create_task(self._read_notifications(rows))
 
     def _visible_notification_rows(self) -> tuple[tuple[WireMessage, Widget], ...]:
-        """The whole message includes expanded details; this is not read-ack proof."""
-        geometry = self.screen._compositor.visible_widgets
-        viewport = self.window.content_region
-        rows = []
-        for message, widget in self._history:
-            if not isinstance(widget, (IRCMessage, WireMarkdownMessage)) or not widget.is_attached:
-                continue
-            placement = geometry.get(widget)
-            if placement is None:
-                continue
-            region, clip = placement
-            if region.overlaps(viewport) and region.overlaps(clip) and clip.overlaps(viewport):
-                rows.append((message, widget))
-        return tuple(rows)
+        return self._message_viewport(NotificationViewport).visible_rows()
 
     async def _read_thread_activity(self):
         from toad.comms_root import root_is_current

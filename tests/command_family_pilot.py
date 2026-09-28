@@ -22,6 +22,7 @@ from toad.slash_command import (
     NoArgumentsCommand,
     SlashCommand,
 )
+from toad.command_catalog import CommandCatalog
 from toad.target_commands import TargetLocal, target_commands
 from toad.thread_actions import ArchiveAction
 from toad.widgets.comms_menu import ContextMenuItem
@@ -59,7 +60,7 @@ async def main():
     class InsertionCommand(NoArgumentsCommand):
         help = "A single declaration becomes discoverable and executable"
 
-        async def run(self, conversation):
+        async def apply(self, conversation):
             conversation.prompt.text = "declaration ran"
             return True
 
@@ -70,7 +71,7 @@ async def main():
         AgentAdvertisedCommand("model", "wrong collision help"),
         AgentAdvertisedCommand("external", "Native agent command"),
     ]
-    completions = SlashCommand.completions(advertised)
+    completions = CommandCatalog(advertised).commands
     assert (
         next(c for c in completions if c.command == "/model").help
         != "wrong collision help"

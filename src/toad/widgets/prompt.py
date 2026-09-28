@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 import shlex
-from typing import TYPE_CHECKING, Callable, Literal, Self
+from typing import TYPE_CHECKING, Literal, Self
 
 from textual import on, work
 import asyncio
@@ -254,21 +254,6 @@ See on-screen instructions for details.
         elif event.key != "escape":
             self.suggestions = None
             self.suggestion = ""
-
-    def update_suggestion(self) -> None:
-        if self.simple_input:
-            self.suggestion = ""
-            return
-        prompt = self.query_ancestor(Prompt)
-
-        if self.selection.start == self.selection.end and self.text.startswith("/"):
-            return
-
-        if self.shell_mode and self.cursor_at_end_of_text and "\n" not in self.text:
-            if prompt.complete_callback is not None:
-                if completes := prompt.complete_callback(self.text):
-                    if self.text not in completes:
-                        self.suggestion = completes[-1]
 
     def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
         if action == "submit_now":
@@ -573,13 +558,11 @@ class Prompt(containers.VerticalGroup):
         id: str | None = None,
         classes: str | None = None,
         disabled: bool = False,
-        complete_callback: Callable[[str], list[str]] | None = None,
         simple_input: bool = False,
         placeholder: str | None = None,
     ):
         super().__init__(name=name, id=id, classes=classes, disabled=disabled)
         self.ask_queue: list[Ask] = []
-        self.complete_callback = complete_callback
         self.simple_input = simple_input
         self.simple_placeholder = placeholder
 

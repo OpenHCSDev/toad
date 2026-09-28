@@ -74,6 +74,7 @@ from toad.widgets.history_anchor import HistoryWindow
 from toad.widgets.message_filter import ALL_CATEGORIES, MessageCategory
 from toad.layout import trim_trailing_margin
 from toad.shell import Shell, CurrentWorkingDirectoryChanged
+from toad.command_catalog import CommandCatalog
 from toad.slash_command import AgentAdvertisedCommand, LocalCommand, SlashCommand
 from toad.protocol import BlockProtocol, MenuProtocol, ExpandProtocol
 from toad.menus import MenuItem
@@ -643,10 +644,6 @@ class Conversation(containers.Vertical):
     def validate_prompt_history_index(self, index: int) -> int:
         return clamp(index, -self.prompt_history.size, 0)
 
-    def shell_complete(self, prefix: str) -> list[str]:
-        completes = self.shell_history.complete(prefix)
-        return completes
-
     def _prompt_history_path(self) -> Path:
         if not self._prompt_history_scope:
             return self.project_data_path / "prompt_history.jsonl"
@@ -766,7 +763,7 @@ class Conversation(containers.Vertical):
             )
             yield Throbber(id="throbber")
             yield GoalBar().data_bind(goal=Conversation.goal, execution=Conversation.goal_execution, unavailable=Conversation.goal_unavailable)
-            yield Prompt(complete_callback=self.shell_complete).data_bind(
+            yield Prompt().data_bind(
                 project_path=Conversation.project_path,
                 working_directory=Conversation.working_directory,
                 agent_info=Conversation.agent_info,
@@ -2378,18 +2375,6 @@ class Conversation(containers.Vertical):
         self.prompt.ask(ask)
         return ask
 
-    def _build_slash_commands(self) -> list[SlashCommand]:
-        from toad.target_commands import target_completion
-        commands = SlashCommand.completions(self.agent_slash_commands)
-        ctx = self.command_target_context()
-        projected = {command.command: command for command in commands}
-        if ctx is not None:
-            for command in target_completion(ctx):
-                existing = projected.get(command.command)
-                if existing is None or isinstance(existing, AgentAdvertisedCommand):
-                    projected[command.command] = command
-        return sorted(projected.values(), key=lambda command: command.command)
-
     def command_target_context(self):
         from toad.navigation_target import NavigationOwner
         from toad.target_commands import TargetContext
@@ -2406,7 +2391,9 @@ class Conversation(containers.Vertical):
 
     def update_slash_commands(self) -> None:
         """Update slash commands, which may have changed since mounting."""
-        self.prompt.slash_commands = self._build_slash_commands()
+        self.prompt.slash_commands = CommandCatalog(
+            self.agent_slash_commands, self.command_target_context()
+        ).commands
 
     async def on_mount(self) -> None:
         self.set_interval(1, self._poll_goal)
@@ -2417,7 +2404,9 @@ class Conversation(containers.Vertical):
         self.trap_focus()
         self.watch(self.window, "scroll_y", self._history_scroll_changed, init=False)
         self.prompt.focus()
-        self.prompt.slash_commands = self._build_slash_commands()
+        self.prompt.slash_commands = CommandCatalog(
+            self.agent_slash_commands, self.command_target_context()
+        ).commands
         self.call_after_refresh(self.post_welcome)
         self.app.settings_changed_signal.subscribe(self, self._settings_changed)
         self.app.open_tabs_changed.subscribe(self, self._coordination_changed)
@@ -3231,7 +3220,7 @@ class Conversation(containers.Vertical):
     async def slash_command(self, text: str) -> bool:
         """Resolve local declarations before forwarding advertised commands."""
         name, _, arguments = text.partition(" ")
-        commands = {command.command: command for command in self._build_slash_commands()}
+        commands = {command.command: command for command in CommandCatalog(self.agent_slash_commands, self.command_target_context()).commands}
         command = commands.get(name)
         if command is None:
             from toad.thread_actions import ThreadAction

@@ -68,7 +68,7 @@ class ContextualCommand(ABC):
     def target_context(self, ctx: TargetContext) -> TargetContext:
         return ctx
 
-    async def run(self, conversation: Conversation) -> bool:
+    async def apply(self, conversation: Conversation) -> bool:
         ctx = conversation.command_target_context()
         if ctx is None:
             raise ValueError("No current target for this command")
@@ -249,8 +249,8 @@ class TargetSuggestion(SlashCommand):
     def parse_arguments(self, arguments: str) -> Self:
         return type(self)(self.choice.parse_arguments(arguments), self.help)
 
-    async def run(self, conversation: Conversation) -> bool:
-        return await self.choice.run(conversation)
+    async def apply(self, conversation: Conversation) -> bool:
+        return await self.choice.apply(conversation)
 
 
 def target_completion(ctx: TargetContext) -> list[SlashCommand]:
