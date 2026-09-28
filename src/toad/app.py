@@ -39,7 +39,8 @@ from toad.version import VersionMeta
 from toad import paths
 from toad import atomic
 from toad.render_backend import Renderer, create_renderer
-from toad.channel_preparation import ChannelHistoryReader, HistoryKind
+from toad.channel_preparation import ChannelHistoryReader
+from toad.conversation_kind import ConversationKind
 from toad.navigation_preparation import (
     CommsNavigationRequest, NavigationReader, OpenThread, ThreadNavigationRequest,
 )
@@ -939,7 +940,7 @@ class ToadApp(App, inherit_bindings=False):
 
     async def _open_comms_history(
         self, *, owner_mode: str, project_path: Path, me: str,
-        target: str, kind: HistoryKind,
+        target: str, kind: type[ConversationKind],
     ) -> str:
         """Execute a declared history route after its target selected behavior."""
 
@@ -979,7 +980,7 @@ class ToadApp(App, inherit_bindings=False):
                 screen = self.get_screen_stack(mode_name)[0]
                 if not isinstance(screen, CommsScreen) or (
                     screen.owner_mode, screen.me, screen.kind, screen.target, screen.wire_root
-                ) != (owner_mode, me, kind.value, target, key.root):
+                ) != (owner_mode, me, kind.declared_name, target, key.root):
                     # A stale mapping is not authority to navigate through an
                     # obsolete sending identity or return to the wrong owner.
                     self.notify(
@@ -998,7 +999,7 @@ class ToadApp(App, inherit_bindings=False):
                 owner_mode=owner_mode,
                 me=me,
                 target=target,
-                kind=kind.value,
+                kind=kind.declared_name,
                 recovery_root=recovery_root,
                 wire_root=key.root,
             )

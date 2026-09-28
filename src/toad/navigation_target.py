@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
 
-from toad.channel_preparation import HistoryKind
+from toad.conversation_kind import ConversationKind, ChannelConversation, DmConversation, IrcConversation
 from toad.constants import ALL_COMMS_TARGET
 
 if TYPE_CHECKING:
@@ -85,7 +85,7 @@ class ThreadTarget(NavigationTarget):
 class HistoryTarget(NavigationTarget):
     @property
     @abstractmethod
-    def history_kind(self) -> HistoryKind: ...
+    def history_kind(self) -> type[ConversationKind]: ...
 
     async def open(self, context: NavigationContext) -> str:
         return await context.app._open_comms_history(
@@ -108,16 +108,16 @@ class ChannelLike:
 @dataclass(frozen=True)
 class FeedTarget(ChannelLike, HistoryTarget):
     name: str = field(default=ALL_COMMS_TARGET, init=False)
-    history_kind = HistoryKind.ALL
+    history_kind = IrcConversation
     expanded_by_default = True
 
 
 class ChannelTarget(ChannelLike, HistoryTarget):
-    history_kind = HistoryKind.CHANNEL
+    history_kind = ChannelConversation
 
 
 class DirectTarget(HistoryTarget):
-    history_kind = HistoryKind.DIRECT
+    history_kind = DmConversation
 
     def selected(self, owner: NavigationOwner) -> None:
         owner.remember_direct_target(self.name)
