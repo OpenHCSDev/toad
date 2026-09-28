@@ -158,7 +158,7 @@ def run(
 
         from toad.web_server import ToadWebServer
 
-        command_args = sys.argv
+        command_args = list(sys.argv)
         # Remove serve flag from args (could be either --serve or -s)
         for flag in ["--serve", "-s"]:
             try:
@@ -264,7 +264,9 @@ def acp(
 
         from toad.web_server import ToadWebServer
 
-        command_components = [sys.argv[0], "acp", command, "--renderer", renderer.value]
+        command_components = [sys.argv[0], "acp", command]
+        if renderer is not None:
+            command_components.extend(["--renderer", renderer])
         if session_id:
             command_components.extend(["--session", session_id])
         if project_dir:

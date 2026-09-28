@@ -1,21 +1,21 @@
 """Installed CLI, real vendor server/Toad child and Chromium; no mocked backend."""
 
 import asyncio
-from contextlib import AsyncExitStack
 import json
 import os
-from pathlib import Path
 import re
 import shlex
 import signal
 import socket
 import sys
 import tempfile
+from contextlib import AsyncExitStack
+from pathlib import Path
 
-from aiohttp import ClientSession, CookieJar, WSServerHandshakeError
-from playwright.async_api import async_playwright
 import psutil
 import pyte
+from aiohttp import ClientSession, CookieJar, WSMsgType, WSServerHandshakeError
+from playwright.async_api import async_playwright
 
 
 class LocalServer:
@@ -49,20 +49,40 @@ class LocalServer:
             args = ["serve", *flags]
         elif self.entry == "run":
             args = ["run", str(self.root), "--serve", *flags]
+        elif self.entry == "download":
+            args = [
+                str(Path(__file__).with_name("browser_download_app.py").resolve()),
+                str(self.port),
+            ]
         else:
             # Actual installed Comms ACP adapter. No prompt is sent and no model
             # response is synthesized. The browser must render its real UI.
             from agent_comms.active_route import resolve_comms_route
             from agent_comms.comms import Comms
 
-            root_id = Comms(self.root / "wire").messaging.initialize_private_initial_protocol()
+            root_id = Comms(
+                self.root / "wire"
+            ).messaging.initialize_private_initial_protocol()
             env["AGENT_COMMS_PRIVATE_NK_WIRE_ROOT_ID"] = root_id
-            env["AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE"] = str(resolve_comms_route().native_package)
+            env["AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE"] = str(
+                resolve_comms_route().native_package
+            )
             env["TOAD_LOG"] = str(self.root / "actual-acp.jsonl")
             backend = shlex.join([sys.executable, "-m", "agent_comms.acp"])
-            args = ["acp", backend, "--project-dir", str(self.root), "--serve", *flags]
+            args = [
+                "acp",
+                backend,
+                "--renderer",
+                "local",
+                "--project-dir",
+                str(self.root),
+                "--serve",
+                *flags,
+            ]
         self.process = await asyncio.create_subprocess_exec(
-            str(Path(sys.executable).parent / "toad"),
+            sys.executable
+            if self.entry == "download"
+            else str(Path(sys.executable).parent / "toad"),
             *args,
             cwd=self.root,
             env=env,
@@ -89,6 +109,23 @@ class LocalServer:
 
     def children(self):
         return psutil.Process(self.process.pid).children(recursive=True)
+
+    async def wait_acp_ready(self, evidence):
+        log = self.root / "actual-acp.jsonl"
+        async with asyncio.timeout(45):
+            while True:
+                text = log.read_text() if log.exists() else ""
+                for line in text.splitlines():
+                    if not line.startswith("[agent] "):
+                        continue
+                    record = json.loads(line[len("[agent] ") :])
+                    if record.get("id") == 2:
+                        assert "error" not in record, record
+                        assert record["result"]["sessionId"]
+                        assert "session/prompt" not in text
+                        (evidence / "actual-acp-initialization.txt").write_text(text)
+                        return record["result"]["sessionId"]
+                await asyncio.sleep(0.1)
 
     async def __aexit__(self, *_):
         if self.process is None:
@@ -136,13 +173,20 @@ async def gate(client, server):
     await rejected_ws(client, server, {"Origin": server.origin})
     assert not server.children(), "Unauthenticated requests spawned a child"
     for query in ("wrong", "界"):
-        async with client.get(server.origin + "/?token=" + query, allow_redirects=False) as response:
+        async with client.get(
+            server.origin + "/?token=" + query, allow_redirects=False
+        ) as response:
             assert response.status == 403
-    async with client.get(server.url, headers={"Host": "attacker.invalid"}, allow_redirects=False) as response:
+    async with client.get(
+        server.url, headers={"Host": "attacker.invalid"}, allow_redirects=False
+    ) as response:
         assert response.status == 403
     async with client.get(server.url, allow_redirects=False) as response:
         assert response.status == 303 and response.headers["Location"] == "/"
-        assert "HttpOnly" in response.headers["Set-Cookie"] and "SameSite=Strict" in response.headers["Set-Cookie"]
+        assert (
+            "HttpOnly" in response.headers["Set-Cookie"]
+            and "SameSite=Strict" in response.headers["Set-Cookie"]
+        )
     for headers in (
         {},
         {"Origin": "null"},
@@ -153,19 +197,68 @@ async def gate(client, server):
     async with client.get(server.origin + "/", headers={"Origin": "null"}) as response:
         assert response.status == 403
     for route in ("/", "/static/css/xterm.css", "/download/missing"):
-        async with client.get(server.origin + route, headers={"Host": "attacker.invalid"}) as response:
+        async with client.get(
+            server.origin + route, headers={"Host": "attacker.invalid"}
+        ) as response:
             assert response.status == 403
     assert not server.children(), "Rejected Origin/Host spawned a child"
     async with client.get(server.origin + "/") as response:
         assert response.status == 200 and "token=" not in await response.text()
     async with client.get(server.origin + "/static/css/xterm.css") as response:
-        assert response.status == 200 and response.headers["Referrer-Policy"] == "no-referrer"
+        assert (
+            response.status == 200
+            and response.headers["Referrer-Policy"] == "no-referrer"
+        )
     async with client.get(server.origin + "/download/missing") as response:
         assert response.status == 404 and response.headers["X-Frame-Options"] == "DENY"
 
 
+async def actual_download(client, server):
+    from browser_download_app import PAYLOAD
+
+    async with client.ws_connect(
+        server.origin + "/ws", headers={"Origin": server.origin}
+    ) as ws:
+        assert ws._response.status == 101
+        for name, value in (
+            ("Cache-Control", "no-store"),
+            ("Referrer-Policy", "no-referrer"),
+            ("Content-Security-Policy", "frame-ancestors 'none'"),
+            ("X-Frame-Options", "DENY"),
+        ):
+            assert ws._response.headers[name] == value
+        async with asyncio.timeout(15):
+            while (await ws.receive()).type != WSMsgType.BINARY:
+                pass
+            await asyncio.sleep(0.4)
+            await ws.send_json(["stdin", "d"])
+            while True:
+                frame = await ws.receive()
+                if frame.type == WSMsgType.TEXT:
+                    packet = frame.json()
+                    if packet[0] == "deliver_file_start":
+                        key = packet[1]
+                        break
+        async with (
+            ClientSession() as outsider,
+            outsider.get(server.origin + "/download/" + key) as response,
+        ):
+            assert response.status == 403
+        async with client.get(server.origin + "/download/" + key) as response:
+            assert response.status == 200
+            assert response.headers["Cache-Control"] == "no-store"
+            assert response.headers["Referrer-Policy"] == "no-referrer"
+            assert (
+                response.headers["Content-Security-Policy"] == "frame-ancestors 'none'"
+            )
+            assert response.headers["X-Frame-Options"] == "DENY"
+            assert "browser-pilot.txt" in response.headers["Content-Disposition"]
+            assert await response.read() == PAYLOAD.encode()
+
+
 async def main():
-    evidence = Path(os.environ["TOAD_BROWSER_EVIDENCE"])
+    evidence = Path(os.environ.get("TOAD_BROWSER_EVIDENCE", "evidence/browser-serving"))
+    evidence.mkdir(parents=True, exist_ok=True)
     import toad.web_server
 
     assert "site-packages" in toad.web_server.__file__
@@ -186,26 +279,45 @@ async def main():
     with tempfile.TemporaryDirectory(prefix="wb-", dir="/home/ts/wt") as directory:
         async with AsyncExitStack() as stack:
             # Two concurrent local ports must work in one browser cookie jar.
-            serve = await stack.enter_async_context(LocalServer(Path(directory) / "serve", "serve"))
-            run = await stack.enter_async_context(LocalServer(Path(directory) / "run", "run"))
-            acp = await stack.enter_async_context(LocalServer(Path(directory) / "acp", "acp"))
-            client = await stack.enter_async_context(ClientSession(cookie_jar=CookieJar(unsafe=True)))
+            serve = await stack.enter_async_context(
+                LocalServer(Path(directory) / "serve", "serve")
+            )
+            run = await stack.enter_async_context(
+                LocalServer(Path(directory) / "run", "run")
+            )
+            acp = await stack.enter_async_context(
+                LocalServer(Path(directory) / "acp", "acp")
+            )
+            client = await stack.enter_async_context(
+                ClientSession(cookie_jar=CookieJar(unsafe=True))
+            )
             await gate(client, serve)
             await gate(client, run)
             await gate(client, acp)
+            download = await stack.enter_async_context(
+                LocalServer(Path(directory) / "download", "download")
+            )
+            await gate(client, download)
+            await actual_download(client, download)
             for server in (serve, run, acp):
                 async with client.get(server.origin + "/") as response:
                     assert response.status == 200
             async with async_playwright() as playwright:
                 browser = await playwright.chromium.launch(
-                    executable_path="/usr/bin/chromium", headless=True, args=["--no-sandbox", "--disable-dev-shm-usage"]
+                    executable_path="/usr/bin/chromium",
+                    headless=True,
+                    args=["--no-sandbox", "--disable-dev-shm-usage"],
                 )
-                context = await browser.new_context(viewport={"width": 1100, "height": 740})
+                context = await browser.new_context(
+                    viewport={"width": 1100, "height": 740}
+                )
 
                 # Restrict this browser pilot to loopback; vendor font CSS is
                 # external, so the ordinary installed fallback font is used.
                 async def local_request(route):
-                    if route.request.url.startswith(("http://127.0.0.1:", "http://localhost:")):
+                    if route.request.url.startswith(
+                        ("http://127.0.0.1:", "http://localhost:")
+                    ):
                         await route.continue_()
                     else:
                         await route.abort()
@@ -221,39 +333,66 @@ async def main():
                         stream = pyte.ByteStream(terminal)
 
                         def observe(ws, sent=sent, received=received, stream=stream):
-                            ws.on("framesent", lambda frame: sent.append(frame))
-                            def receive(frame):
-                                received.append(frame)
-                                if isinstance(frame, bytes):
-                                    stream.feed(frame)
+                            ws.on("framesent", lambda payload: sent.append(payload))
+
+                            def receive(payload):
+                                received.append(payload)
+                                if isinstance(payload, bytes):
+                                    stream.feed(payload)
+
                             ws.on("framereceived", receive)
 
                         page.on("websocket", observe)
                         response = await page.goto(server.url)
-                        assert response.status == 200 and page.url == server.origin + "/"
-                        await page.wait_for_selector("body.-first-byte .xterm-screen", timeout=25000)
-                        assert server.children(), "Authorized browser failed to start actual Toad child"
+                        assert (
+                            response.status == 200 and page.url == server.origin + "/"
+                        )
+                        await page.wait_for_selector(
+                            "body.-first-byte .xterm-screen", timeout=25000
+                        )
+                        assert server.children(), (
+                            "Authorized browser failed to start actual Toad child"
+                        )
+                        if server.entry == "acp":
+                            await server.wait_acp_ready(evidence)
                         async with asyncio.timeout(35):
-                            while not any('Toad' in row or 'Install' in row or 'Ready' in row for row in terminal.display):
-                                await asyncio.sleep(.05)
+                            while not any(
+                                "Toad" in row or "Install" in row or "Ready" in row
+                                for row in terminal.display
+                            ):
+                                await asyncio.sleep(0.05)
                         await asyncio.sleep(1)
-                        await page.screenshot(path=str(evidence / f"{server.entry}-actual-browser.png"))
+                        await page.screenshot(
+                            path=str(evidence / f"{server.entry}-actual-browser.png")
+                        )
                         before = len(received)
                         await page.locator(".xterm-helper-textarea").focus()
                         await page.keyboard.press("F2")
                         async with asyncio.timeout(10):
                             while not any(
-                                "stdin" in frame and "\\u001bOQ" in frame for frame in sent if isinstance(frame, str)
+                                "stdin" in frame and "\\u001bOQ" in frame
+                                for frame in sent
+                                if isinstance(frame, str)
                             ):
                                 # Chromium/xterm may choose the alternate F2 CSI.
-                                if any("stdin" in frame for frame in sent if isinstance(frame, str)):
+                                if any(
+                                    "stdin" in frame
+                                    for frame in sent
+                                    if isinstance(frame, str)
+                                ):
                                     break
                                 await asyncio.sleep(0.05)
                             while len(received) <= before:
                                 await asyncio.sleep(0.05)
-                        await asyncio.sleep(0.3)
-                        assert any('Search settings' in row for row in terminal.display), terminal.display[:8]
-                        await page.screenshot(path=str(evidence / f"{server.entry}-settings-input.png"))
+                        async with asyncio.timeout(10):
+                            while not any(
+                                "Search settings" in row for row in terminal.display
+                            ):
+                                await asyncio.sleep(0.05)
+                        await asyncio.sleep(1)
+                        await page.screenshot(
+                            path=str(evidence / f"{server.entry}-settings-input.png")
+                        )
                         proof.append(
                             {
                                 "entry": server.entry,
@@ -261,13 +400,16 @@ async def main():
                                 "browser_paint": True,
                                 "browser_keyboard_response": True,
                                 "frames": len(received),
+                                "actual_acp_session_ready": server.entry == "acp",
                             }
                         )
                         pages.append(page)
                     # Reload first after second authentication, proving the
                     # second port did not overwrite the first browser cookie.
                     await pages[0].reload()
-                    await pages[0].wait_for_selector("body.-first-byte .xterm-screen", timeout=25000)
+                    await pages[0].wait_for_selector(
+                        "body.-first-byte .xterm-screen", timeout=25000
+                    )
                     proof[0]["reload_after_second_port"] = True
                 finally:
                     await context.close()
@@ -278,6 +420,7 @@ async def main():
                         "boundary": "installed CLI + real aiohttp/vendor server + Chromium/Toad child; no mocks",
                         "gate": "Host/Origin/cookie/redirect/static/download-negative and zero unauthorized children passed",
                         "ports_independent": True,
+                        "streamed_download": "real Textual child/driver, full content and prepared headers passed",
                         "proof": proof,
                         "toad_import": toad.web_server.__file__,
                     }

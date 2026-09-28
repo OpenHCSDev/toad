@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
+import logging
+import secrets
 from abc import ABC, abstractmethod
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from importlib.metadata import version
-import logging
-import secrets
 from urllib.parse import quote
 
 from aiohttp import web
@@ -23,7 +23,9 @@ class LocalBrowserEndpoint:
 
     def __post_init__(self) -> None:
         if self.host not in {"localhost", "127.0.0.1"} or not 1 <= self.port <= 65535:
-            raise ValueError("Browser serving requires a loopback host and a valid port")
+            raise ValueError(
+                "Browser serving requires a loopback host and a valid port"
+            )
 
     @property
     def authority(self) -> str:
@@ -40,11 +42,15 @@ class LocalBrowserEndpoint:
 
 
 class BrowserAdmission(ABC):
-    async def dispatch(self, request: web.Request, handler: Handler) -> web.StreamResponse:
+    async def dispatch(
+        self, request: web.Request, handler: Handler
+    ) -> web.StreamResponse:
         return self.secure(await self.respond(request, handler))
 
     @abstractmethod
-    async def respond(self, request: web.Request, handler: Handler) -> web.StreamResponse: ...
+    async def respond(
+        self, request: web.Request, handler: Handler
+    ) -> web.StreamResponse: ...
 
     @staticmethod
     def secure(response: web.StreamResponse) -> web.StreamResponse:
@@ -56,12 +62,16 @@ class BrowserAdmission(ABC):
 
 
 class RejectedBrowserAdmission(BrowserAdmission):
-    async def respond(self, request: web.Request, handler: Handler) -> web.StreamResponse:
+    async def respond(
+        self, request: web.Request, handler: Handler
+    ) -> web.StreamResponse:
         return web.Response(status=403)
 
 
 class AuthenticatedBrowserAdmission(BrowserAdmission):
-    async def respond(self, request: web.Request, handler: Handler) -> web.StreamResponse:
+    async def respond(
+        self, request: web.Request, handler: Handler
+    ) -> web.StreamResponse:
         return await handler(request)
 
 
@@ -69,7 +79,9 @@ class AuthenticatedBrowserAdmission(BrowserAdmission):
 class BootstrapBrowserAdmission(BrowserAdmission):
     authentication: LocalBrowserAuthentication
 
-    async def respond(self, request: web.Request, handler: Handler) -> web.StreamResponse:
+    async def respond(
+        self, request: web.Request, handler: Handler
+    ) -> web.StreamResponse:
         response = web.Response(status=303, headers={"Location": "/"})
         response.set_cookie(
             self.authentication.endpoint.cookie_name,
@@ -84,7 +96,9 @@ class BootstrapBrowserAdmission(BrowserAdmission):
 @dataclass(frozen=True)
 class LocalBrowserAuthentication:
     endpoint: LocalBrowserEndpoint
-    capability: str = field(default_factory=lambda: secrets.token_urlsafe(32), repr=False)
+    capability: str = field(
+        default_factory=lambda: secrets.token_urlsafe(32), repr=False
+    )
 
     @property
     def bootstrap_url(self) -> str:
@@ -93,7 +107,8 @@ class LocalBrowserAuthentication:
     def accepts(self, candidate: str) -> bool:
         # Compare bytes so an external non-ASCII credential is rejected, not a 500.
         return secrets.compare_digest(
-            candidate.encode("utf-8", errors="surrogatepass"), self.capability.encode("ascii")
+            candidate.encode("utf-8", errors="surrogatepass"),
+            self.capability.encode("ascii"),
         )
 
     def decode(self, request: web.Request) -> BrowserAdmission:
@@ -132,7 +147,9 @@ class ToadWebServer(Server):
         endpoint = LocalBrowserEndpoint(host, port)
         if public_url is not None and public_url != endpoint.url:
             raise ValueError("Browser serving cannot use a non-local public URL")
-        super().__init__(command, host=host, port=port, title=title, public_url=endpoint.url)
+        super().__init__(
+            command, host=host, port=port, title=title, public_url=endpoint.url
+        )
         self.authentication = LocalBrowserAuthentication(endpoint)
 
     def initialize_logging(self) -> None:
@@ -148,10 +165,14 @@ class ToadWebServer(Server):
         app = await super()._make_app()
 
         @web.middleware
-        async def local_capability(request: web.Request, handler: Handler) -> web.StreamResponse:
+        async def local_capability(
+            request: web.Request, handler: Handler
+        ) -> web.StreamResponse:
             return await self.authentication.decode(request).dispatch(request, handler)
 
-        async def on_response_prepare(request: web.Request, response: web.StreamResponse) -> None:
+        async def on_response_prepare(
+            request: web.Request, response: web.StreamResponse
+        ) -> None:
             # Streaming download/WS handlers prepare before middleware returns.
             BrowserAdmission.secure(response)
 
