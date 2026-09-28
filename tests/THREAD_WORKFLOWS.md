@@ -21,3 +21,5 @@ locally; the manual workflow invokes that owner on the exact Comms pin. A wrong
 package fails verification before execution. No real provider credentials are
 needed: the native model fixture binds only loopback. After source changes, build
 and reinstall the local Toad wheel before claiming installed-source acceptance.
+
+The real pixel pilot also requires `st`, `Xvfb`, and `xdotool` on PATH; its Python dependencies are in the dev group. The saved settings pilot defaults to the representative saved document under `tests/fixtures`; set `TOAD_SETTINGS_SAMPLE` to test an explicit saved file without changing it.
