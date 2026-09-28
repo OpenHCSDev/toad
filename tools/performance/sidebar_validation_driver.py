@@ -218,10 +218,14 @@ def install_observer():
             handlers[:] = [(measured_navigation if handler is original_method else handler, selectors)
                            for handler, selectors in handlers]
         setattr(owner, method, measured_navigation)
-    from toad.acp.messages import TranscriptSnapshot
+    from agent_comms.acp_extension import TranscriptSnapshotUpdate
+    from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+    from toad.acp.messages import CommsUpdated
     from toad.agent import AgentReady
     dispatch_probe = object.__new__(Conversation)
-    for message in (TranscriptSnapshot((), None), AgentReady()):
+    cursor = TranscriptCursor("fixture", 0)
+    page = TranscriptPage((), cursor, cursor, False, False)
+    for message in (CommsUpdated(TranscriptSnapshotUpdate(page)), AgentReady()):
         count = len(list(dispatch_probe._get_dispatch_methods(message.handler_name, message)))
         dispatch_counts[type(message).__name__] = count
         assert count == 1, (type(message).__name__, count)
@@ -517,10 +521,11 @@ class ValidationDriver(LinuxDriver):
         return result
 
     def _snapshot(self):
-        from agent_comms.transcript_events import TranscriptCodec
+        from agent_comms.field_codec import FieldCodec
+        from toad.navigation_target import HistoryTarget
         from toad.widgets.comms_sidebar import CommsRow, ThreadRow
         from toad.widgets.comms_sidebar import CommsSidebar
-        from toad.widgets.virtual_channel_list import VirtualChannelList
+        from toad.widgets.virtual_channel_list import TargetChoice, VirtualChannelList
         from toad.widgets.comms_chat import CommsChatView
         from toad.widgets.conversation import Conversation, ThreadLoading
         from toad.widgets.history_anchor import HistoryWindow
@@ -535,6 +540,11 @@ class ValidationDriver(LinuxDriver):
         begin = time.monotonic_ns()
         app = self._app
         screen = app.screen
+
+        def route_kind(target):
+            return (target.history_kind.declared_name if isinstance(target, HistoryTarget)
+                    else target.declared_name)
+
         if self._asyncio_log_handler is not None and not self._diagnostic_tree_logged:
             self._diagnostic_tree_logged = True
             app.log("Isolated diagnostic: native widget tree", features=sorted(app.features),
@@ -545,9 +555,10 @@ class ValidationDriver(LinuxDriver):
         for widget, (region, clip) in screen._compositor.visible_widgets.items():
             if isinstance(widget, VirtualChannelList):
                 sidebar = widget.query_ancestor(CommsSidebar)
-                snapshot = sidebar._last_snapshot
                 for index, option in enumerate(widget.options):
                     choice = sidebar._virtual_targets.get(option.id)
+                    if not isinstance(choice, TargetChoice):
+                        continue
                     y = widget._line_cache.index_to_line.get(index)
                     if choice is None or y is None:
                         continue
@@ -555,14 +566,13 @@ class ValidationDriver(LinuxDriver):
                     visible = row_region.intersection(clip).intersection(app.size.region)
                     if not visible:
                         continue
-                    if choice.kind in {"channel", "irc"}:
-                        rows.append({"kind": "CommsRow", "id": None, "target": choice.target,
-                                     "rect": list(visible), "row_kind": choice.kind})
-                    elif choice.kind in {"thread", "session", "dm"}:
-                        person = snapshot.all_people.get(choice.target) if snapshot is not None else None
-                        kind = sidebar._person_kind(person) if person is not None else choice.kind
-                        rows.append({"kind": "ThreadRow", "id": None, "target": choice.target,
-                                     "rect": list(visible), "row_kind": kind, "mode": choice.mode})
+                    kind = route_kind(choice.target)
+                    if kind in {"channel", "irc"}:
+                        rows.append({"kind": "CommsRow", "id": None, "target": choice.target.name,
+                                     "rect": list(visible), "row_kind": kind})
+                    elif kind in {"thread", "session", "dm"}:
+                        rows.append({"kind": "ThreadRow", "id": None, "target": choice.target.name,
+                                      "rect": list(visible), "row_kind": kind, "mode": choice.mode})
             if isinstance(widget, (SideBar, SideBarToggle, SidebarResizeHandle, SessionLabel, SessionsTabs, CommsRow, HistoryWindow, HistoryEdge, MarkdownParagraph, Checkbox, PromptTextArea, TranscriptFragmentView)):
                 visible = region.intersection(clip).intersection(app.size.region)
                 if not visible:
@@ -579,13 +589,13 @@ class ValidationDriver(LinuxDriver):
                     row.update(resize_sidebar=bar.id, right=bar.right,
                                width_percent=app.sidebar_layout.get(bar.id).width_percent)
                 if isinstance(widget, ThreadRow):
-                    row.update(target=widget.target_name, mode=widget.mode_name, row_kind=widget.kind)
+                    row.update(target=widget.target_name, mode=widget.mode_name, row_kind=route_kind(widget.target))
                 elif isinstance(widget, CommsRow):
-                    row.update(target=widget.target_name, row_kind=widget.kind)
+                    row.update(target=widget.target_name, row_kind=route_kind(widget.target))
                 if isinstance(widget, Checkbox):
                     row["checked"] = widget.value
                 if isinstance(widget, TranscriptFragmentView):
-                    row["message_category"] = widget.message_category.value
+                    row["message_category"] = widget.message_category.declared_name
                 if isinstance(widget, (HistoryWindow, SessionsTabs)):
                     row.update(scroll_y=widget.scroll_y, max_scroll_y=widget.max_scroll_y,
                                scroll_x=widget.scroll_x, max_scroll_x=widget.max_scroll_x)
@@ -595,7 +605,7 @@ class ValidationDriver(LinuxDriver):
         histories = [{"loading": history._loading, "fragments": history.fragment_count,
                       "has_older": history.has_older, "has_newer": history.has_newer,
                       "pages": [{"before": str(page.page.before), "after": str(page.page.after),
-                                 "text_sha256": sha256(json.dumps([TranscriptCodec.encode(event)
+                                  "text_sha256": sha256(json.dumps([FieldCodec.encode(event)
                                                                  for event in page.page.events],
                                                                 sort_keys=True, default=str).encode()).hexdigest(),
                                  "start": page.start, "stop": page.stop} for page in history.pages]}
@@ -630,8 +640,8 @@ class ValidationDriver(LinuxDriver):
                 "loading": bool(conversation.query(ThreadLoading)),
                 "content_blocks": len(conversation.contents.children),
                 "connected": getattr(agent, "_connected_ok", None),
-                "visible_categories": sorted(category.value for category in conversation.visible_categories),
-                "filter_pending": any(history._loading or history._filter_scanning or history._advancing
+                "visible_categories": sorted(category.declared_name for category in conversation.visible_categories),
+                "filter_pending": any(history._loading or history.filter.scanning or history._advancing
                                       for history in conversation.query(TranscriptHistory)),
                 "errors": [{"kind": type(widget).__name__,
                             "text": str(getattr(widget, "source", getattr(widget, "content", "")))[:600]}

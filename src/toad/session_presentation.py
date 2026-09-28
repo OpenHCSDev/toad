@@ -13,7 +13,7 @@ from textual.widgets.text_area import Document, EditHistory, Selection, TextArea
 from toad.history import History
 from toad.screens.session_view import SessionView
 from toad.widgets.conversation import Conversation
-from toad.widgets.message_filter import ALL_CATEGORIES, MessageCategory
+from toad.widgets.message_filter import MessageCategory, all_categories
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
@@ -37,7 +37,7 @@ class BlankViewState:
     """The actual editor document/history and reader intent, not a transcript copy."""
 
     editor: TextAreaState
-    visible_categories: frozenset[MessageCategory]
+    visible_categories: frozenset[type[MessageCategory]]
     scroll_y: float
     follows_tail: bool
     shell_mode: bool
@@ -139,7 +139,7 @@ class BlankSessionSurface:
             screen._agent is None and conversation.agent is None
             and conversation._agent_data is None and conversation._shell is None
             and not conversation.contents.children and not conversation.terminals
-            and conversation._terminal is None and conversation.goal is None
+            and conversation._terminal is None and not conversation.goal_display.visible
             and not conversation.queued_prompts and not conversation.queue_projection.items
             and not conversation.unresolved_inputs
             and not conversation.status and conversation.native_history_status is None
@@ -221,7 +221,7 @@ class BlankSessionSurface:
                     Selection.cursor((0, 0)), 0, 0, None, (), None,
                 ))
                 editor.shell_mode = False
-                conversation.visible_categories = ALL_CATEGORIES
+                conversation.visible_categories = all_categories()
                 conversation.prompt_history = History(conversation._prompt_history_path())
                 conversation.shell_history = History(conversation.project_data_path / "shell_history.jsonl")
                 conversation.prompt_history_index = conversation.shell_history_index = 0

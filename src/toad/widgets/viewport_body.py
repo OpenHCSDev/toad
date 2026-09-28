@@ -54,21 +54,25 @@ class ViewportPresentation:
 
     def suspend(self) -> None:
         for window in self.windows:
+            if window.document_viewport.owners:
+                self.screen.app.window_presentation_pool.remember(window)
             window.retire_presentation_wait()
             window.document_viewport.request()
         for window in self.anchors:
             window.retire_presentation_wait()
 
-    def prepare(self, wait_for_bodies: bool) -> bool:
+    def prepare(self) -> bool:
         screen = self.screen
         if not screen.is_current:
             return True
-        if wait_for_bodies:
-            for window in self.windows:
-                if not window.document_viewport.visible_bodies_ready:
-                    window.document_viewport.request()
-                    screen._repaint_required = True
-                    return False
+        # A rapid Page Down/End can expose a previously cold source body outside
+        # a mode activation. Never submit a frame containing its empty native
+        # presentation while the document's measured extent says it is visible.
+        for window in self.windows:
+            if not window.document_viewport.visible_bodies_ready:
+                window.document_viewport.request()
+                screen._repaint_required = True
+                return False
         changed = False
         for window in self.windows:
             changed |= window.check_follow()
@@ -81,7 +85,7 @@ class ViewportPresentation:
 class DocumentViewport:
     """One bounded warm working set for a history window, not one per message."""
 
-    DEFAULT_WARM_BODIES = 8
+    DEFAULT_WARM_BODIES = 24
     """Initial working-set budget; callers may tune it, including zero."""
 
     def __init__(self, window, *, max_warm_bodies: int = DEFAULT_WARM_BODIES):
@@ -138,8 +142,12 @@ class DocumentViewport:
 
     @property
     def visible_bodies_ready(self) -> bool:
+        if not self.owners:
+            return True
         visible = self.window.screen._compositor.visible_widgets
-        return all(owner.body_ready for owner in self.owners if owner in visible)
+        # Paint admission is viewport-local even when a source has thousands of
+        # offscreen documents. Do not scan its entire owner inventory per frame.
+        return all(widget.body_ready for widget in visible if widget in self.owners)
 
     async def _reconcile(self) -> None:
         try:
@@ -157,7 +165,8 @@ class DocumentViewport:
                         self._warm.move_to_end(key)
                 while len(self._warm) > self.max_warm_bodies:
                     self._warm.popitem(last=False)
-                warm = {key() for key in self._warm} if active else set()
+                keep_warm = active or screen.app.window_presentation_pool.protects(self.window)
+                warm = {key() for key in self._warm} if keep_warm else set()
                 retained = protected | warm | visible.keys()
                 # Restore visible source before retiring unrelated bodies.
                 ordered = sorted(owners, key=lambda owner: owner not in visible)

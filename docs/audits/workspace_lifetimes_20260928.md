@@ -240,3 +240,38 @@ reducer. This PR remains draft until that actual ownership change and fresh
 loaded worst-case/native tests are complete.
 
 No installed runtime, live data, user preview or other agent worktree was changed.
+
+## Viewport follow-tail and recent-window checkpoint
+
+On the branch pinned to core `853630552df22e16106a016ab24dfa70f5538ae5`
+and Textual `d9def32ff25b56304b3e03ad4bf59d750b4d238b`, a mounted
+48-record source reproduced two separate regressions. Repeated reverse/forward
+scrolling rebuilt a recently viewed non-tail body three times with the old
+eight-body window. An End key press after its tail was retired submitted a
+frame with follow-tail enabled and the tail visible but its source body not
+ready. The fail-before frame tuple was `(True, True, False, 834, 834)` for
+`(follows_tail, tail_visible, tail_body_ready, scroll_y, max_scroll_y)`.
+
+The active document warm set is now 24 bodies and an application-owned pool
+retains at most three recently visited windows. Displaced windows request
+reconciliation, retiring their warm bodies; this is a global recent-window
+budget, not an unbounded per-tab cache. Every current-screen compositor refresh
+checks **visible** source-body readiness before painting. Repeated Page Down/End
+now reaches the painted source tail with at most one rebuild of the sampled
+recent tail/non-tail bodies. A two-window test budget verifies the oldest body
+retires across four tabs and a recent tab is ready on return.
+
+Seven serial focused pilots pass: rapid-scroll/End, recent-tab retirement,
+viewport body lifetime, history scroll frames, 2,000-record anchor geometry,
+off-tail checkpoint retirement and shared blank-editor transfer. The existing
+240-second loaded-64 run and its phase-only worst GC are not displaced by
+these focused checks. The current native terminal fixture, after updating its
+diagnostic observer for the core's typed transcript/category/target APIs,
+completes **83 actions / 10 tabs / eight sidebars resizes** with four channel
+identities each singleton across modes. Capture
+`toad-round2-viewport-native-nav-5` has scope peak 615.2 MiB, zero swap;
+loop gap median/p95/max 15.02/53.54/129.95 ms and GC maximum 119.33 ms
+(UI-thread maximum 109.54 ms). Those tails are still above the user's target;
+the fixture exercises native navigation and scrolling, while the held-source
+End frame is checked by the focused mounted pilot. A full integrated test
+result and bounded executing-agent presentation remain outstanding.

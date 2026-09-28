@@ -27,7 +27,7 @@ async def main():
             original_task = shared_surface._task
             window = shared_surface.window
             viewport = window.document_viewport
-            assert window in first.body_windows
+            assert window in first.viewport_presentation.windows
             editor = first.conversation.prompt.prompt_text_area
             editor.insert("first draft")
             editor.history.checkpoint()
@@ -49,7 +49,7 @@ async def main():
             second = app.screen
             assert second.conversation is shared_surface
             assert shared_surface._task is original_task
-            assert window not in first.body_windows and window in second.body_windows
+            assert window not in first.viewport_presentation.windows and window in second.viewport_presentation.windows
             assert window not in first.screen_layout_refresh_signal._subscriptions
             assert len(second.screen_layout_refresh_signal._subscriptions[window]) == 2
             second.conversation.prompt.text = "second draft"
@@ -58,7 +58,7 @@ async def main():
             await pilot.pause()
             restored = first.query_one(PromptTextArea)
             assert first.conversation is shared_surface and shared_surface._task is original_task
-            assert window in first.body_windows and window not in second.body_windows
+            assert window in first.viewport_presentation.windows and window not in second.viewport_presentation.windows
             assert restored.text == expected
             assert restored.document is document and restored.history is history
             assert restored.selection == Selection((0, 1), (0, 5))

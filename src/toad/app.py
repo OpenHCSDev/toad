@@ -16,7 +16,7 @@ from time import monotonic
 from typing import TYPE_CHECKING, Any, Callable, ClassVar, TypeVar, cast
 from weakref import WeakKeyDictionary
 
-from agent_comms.acp_extension import CoordinationChangedUpdate, TranscriptChangedUpdate
+from agent_comms.acp_extension import CoordinationChangedUpdate
 from rich import terminal_theme
 from textual import events, on, work
 from textual.app import App
@@ -948,7 +948,7 @@ class ToadApp(App, inherit_bindings=False):
         target: NavigationTarget,
     ) -> str:
         """Open or reuse one view of a wire destination for this owner tab."""
-        from toad.navigation_target import NavigationContext, NavigationTarget
+        from toad.navigation_target import NavigationContext
 
         return await target.open(
             NavigationContext(self, owner_mode, project_path, me)
@@ -1118,6 +1118,15 @@ class ToadApp(App, inherit_bindings=False):
         from toad.workspace_chrome import WorkspaceChrome
 
         return WorkspaceChrome(self)
+
+    @cached_property
+    def window_presentation_pool(self):
+        from toad.window_presentation_pool import WindowPresentationPool
+
+        return WindowPresentationPool(max_windows=self.WARM_DOCUMENT_WINDOWS)
+
+    WARM_DOCUMENT_WINDOWS = 3
+    """Application-wide budget for recently visited document viewports."""
 
     PREPARED_TAB_SHELLS = 1
     """Tunable UI-only lookahead count; zero disables preparation."""

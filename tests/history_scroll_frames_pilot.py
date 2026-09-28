@@ -88,6 +88,10 @@ async def main():
                                          me="sender", target=channel_target("#scroll"))
             await pilot.pause()
             chat = app.screen.query_one(CommsChatView)
+            async with asyncio.timeout(8):
+                while not chat._history and not str(chat.status).startswith("Wire error:"):
+                    await pilot.pause(.02)
+            assert chat._history, chat.status
             window = chat.window
             for _ in range(3):
                 chat._edge_load_scheduled = True

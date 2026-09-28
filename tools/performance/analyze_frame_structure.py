@@ -67,7 +67,7 @@ def summarize(path: Path, *, detail: bool = False) -> dict:
             "fragment_views": classes.get("TranscriptFragmentView", 0),
             "conversations": classes.get("Conversation", 0),
             "editors": classes.get("PromptTextArea", 0),
-            "right_sidebars": classes.get("SideBar", 0),
+            "right_sidebars": classes.get("SideBar", 0) + classes.get("ThreadSidebar", 0),
             "preparation": census["preparation"],
         })
     return report

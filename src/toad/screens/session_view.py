@@ -164,7 +164,7 @@ class SessionView(SidebarFocusOwner, Screen):
             # screen after ending the transaction, including error paths.
             self._repaint_required = True
             return
-        if not self.viewport_presentation.prepare(self._navigation_frame_pending and self._first_frame_presented):
+        if not self.viewport_presentation.prepare():
             return
         super()._compositor_refresh()
 

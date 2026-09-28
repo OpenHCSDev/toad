@@ -16,12 +16,11 @@ from __future__ import annotations
 import asyncio
 import os
 from dataclasses import dataclass
-from collections.abc import Callable, Mapping
+from collections.abc import Mapping
 from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
-from agent_comms import context_tool_catalog
 from agent_comms.comms import Comms, wire
 from agent_comms.presentation import ChannelView, CoordinationSnapshot, ThreadView, WireRevision
 from textual import on
@@ -37,7 +36,6 @@ from textual.widgets.option_list import Option
 
 from toad.constants import COMMS_REFRESH_INTERVAL
 
-from toad.session_tracker import UnreadPresentation, ExactUnread
 from toad import messages
 from toad.constants import ALL_COMMS_TARGET
 from toad.navigation_target import NavigationOwner

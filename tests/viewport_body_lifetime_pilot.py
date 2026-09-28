@@ -22,6 +22,15 @@ async def settled(view, pilot):
                 return
 
 
+def assert_bounded_bodies(view, docs):
+    window = view.window
+    visible = view.screen._compositor.visible_widgets
+    live = sum(not doc.body_dormant for doc in docs)
+    bound = (window.document_viewport.max_warm_bodies
+             + sum(doc in visible for doc in docs) + len(view.screen.selections))
+    assert live <= bound, (live, bound)
+
+
 async def main():
     with TemporaryDirectory(prefix="toad-viewport-body-") as directory:
         root = Path(directory)
@@ -36,7 +45,7 @@ async def main():
             await view.contents.mount(*docs)
             view.window.anchor()
             await settled(view, pilot)
-            assert sum(doc.body_dormant for doc in docs) >= 20
+            assert_bounded_bodies(view, docs)
             assert all(doc.source == source(i) for i, doc in enumerate(docs))
             dormant = next(doc for doc in docs if doc.body_dormant)
             assert not dormant.query(MarkdownParagraph), "Cold body retained its native message pumps"
@@ -51,7 +60,7 @@ async def main():
             view.window.scroll_end(animate=False, immediate=True)
             await settled(view, pilot)
             assert text.is_attached and expected in app.screen.get_selected_text()
-            assert sum(doc.body_dormant for doc in docs) >= 18
+            assert_bounded_bodies(view, docs)
             app.screen.clear_selection()
             for index in (0, 31, 4, 29, 0, 31):
                 view.window.release_anchor()
