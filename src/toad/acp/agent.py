@@ -507,6 +507,9 @@ class Agent(AgentBase):
 
     def update_status_line(self) -> None:
         """Update the current status line."""
+        if self._context_usage is None:
+            self.post_message(messages.UpdateStatusLine(Content("Context estimate unavailable")))
+            return
         if (usage := self._context_usage) is not None:
             status: list[Content] = []
             status.append(
