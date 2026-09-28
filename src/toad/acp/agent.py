@@ -37,6 +37,8 @@ from toad.acp.prompt import build as build_prompt
 from toad.db import DB, SessionMeta
 from toad.private_native_cursor import CursorReducer
 from toad.queue_view import QueueItem, QueueReducer
+from toad.acp.comms_updates import CommsUpdateConsumer
+from agent_comms.acp_extension import decode_updates
 from toad import paths
 from toad import constants
 from toad.answer import Answer
@@ -407,12 +409,20 @@ class Agent(AgentBase):
 
     def _apply_session_update(self, sessionId: str, update: protocol.SessionUpdate) -> None:
         metadata = update.get("_meta")
+        consumer = CommsUpdateConsumer(self, sessionId)
+        try:
+            facts = decode_updates(metadata)
+        except (TypeError, ValueError) as error:
+            self._reject_session_update(sessionId, update, metadata, str(error))
+            return
+        for fact in facts:
+            consumer.dispatch_sync(fact)
         if isinstance(metadata, dict):
             cursor_meta = metadata.get("agentComms")
             if isinstance(cursor_meta, dict) and "privateNativeCursor" in cursor_meta:
                 self._private_cursor.callback(cursor_meta["privateNativeCursor"], sessionId)
                 self._post_private_cursor()
-        route: MessageRoute | None = None
+        route: MessageRoute | None = consumer.route
         if isinstance(metadata, dict) and isinstance(metadata.get("agentComms"), dict):
             state = metadata["agentComms"]
             if "queueState" in state:
@@ -449,15 +459,6 @@ class Agent(AgentBase):
                 self._publish_coordination_metadata({"_meta": metadata})
             if "inputDisposition" in state or state.get("inputDeliveryChanged") is True:
                 self.post_message(messages.InputDispositionsChanged())
-            failed = state.get("inputFailed")
-            if isinstance(failed, dict) and isinstance(failed.get("text"), str):
-                self.post_message(
-                    messages.InputFailed(
-                        failed["text"],
-                        failed.get("reason") if isinstance(failed.get("reason"), str) else "Send failed",
-                        recover_draft=False, agent=self, session_id=sessionId,
-                    )
-                )
             if "goal" in state or "goalExecution" in state:
                 self._publish_goal_snapshot(state)
                 self._post_coordination_update()
@@ -490,16 +491,6 @@ class Agent(AgentBase):
                     summary_phase if isinstance(summary_phase, str) and summary_phase else None,
                 ))
                 return
-            if state.get("transcriptChanged") is True:
-                from agent_comms.transcripts import TranscriptCursor
-
-                checkpoint = state.get("transcriptCursor")
-                self.post_message(messages.TranscriptChanged(
-                    TranscriptCursor(**checkpoint) if isinstance(checkpoint, dict) else None
-                ))
-                return
-            if isinstance(state.get("route"), dict):
-                route = MessageRoute.from_wire(state["route"])
             if "queueState" in state:
                 return
             if "inputStarted" in state:
@@ -525,45 +516,6 @@ class Agent(AgentBase):
                         **state["transcriptPage"], "events": state["transcript"],
                     })
                     self.post_message(messages.TranscriptSnapshot(page.events, page))
-                return
-            turn_id = state.get("turnId")
-            if state.get("turnStarted") is True:
-                if (sessionId != self.session_id or self._stopping
-                        or not isinstance(turn_id, str) or not turn_id):
-                    return
-                self.uses_turn_events = True
-                self._active_turn_id = turn_id
-                self._turn_lifecycle_sequence += 1
-                import math
-
-                started_at = state.get("startedAt")
-                if not isinstance(started_at, (int, float)) or not math.isfinite(started_at) or started_at <= 0:
-                    started_at = None
-                self.post_message(messages.TurnStarted(
-                    turn_id, started_at,
-                    state.get("activity") if isinstance(state.get("activity"), str) else None,
-                    state.get("activityDetail") if isinstance(state.get("activityDetail"), str) else None,
-                    agent=self, session_id=self.session_id,
-                    sequence=self._turn_lifecycle_sequence,
-                ))
-                return
-            if state.get("turnSettled") is True:
-                if sessionId != self.session_id or self._stopping:
-                    return
-                if turn_id is not None and not isinstance(turn_id, str):
-                    return
-                # An idle snapshot (empty/missing ID) is only meaningful while
-                # idle. A stale settlement cannot retire a successor's gate.
-                if self._active_turn_id is not None and turn_id != self._active_turn_id:
-                    return
-                if isinstance(turn_id, str):
-                    self.uses_turn_events = True
-                self._active_turn_id = None
-                self._turn_lifecycle_sequence += 1
-                self.post_message(messages.TurnSettled(
-                    turn_id, agent=self, session_id=self.session_id,
-                    sequence=self._turn_lifecycle_sequence,
-                ))
                 return
             incoming = metadata["agentComms"].get("incoming")
             if isinstance(incoming, dict):
