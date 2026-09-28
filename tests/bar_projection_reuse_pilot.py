@@ -12,6 +12,7 @@ import time
 from agent_comms.threads import Thread
 from agent_comms.comms import wire
 
+from toad.session_tracker import ExactUnread
 from toad.sidebar_preparation import ThreadRowInput, ThreadRowsWork, prepare_thread_row
 from toad.work_preparation import PreparationRuntime
 from work_preparation_pilot import Backend
@@ -48,7 +49,7 @@ async def main(observe):
                               "max_ms": round(max(durations), 2)}))
             if not observe:
                 assert runtime.misses == 1, "Unrendered metadata invalidated every bar's prepared content"
-            changed = ThreadRowInput(people[0], unread=7, pinned=True, action_status="Stopping")
+            changed = ThreadRowInput(people[0], unread=ExactUnread(7), pinned=True, action_status="Stopping")
             result = await runtime.submit(ThreadRowsWork((changed,)))
             expected = prepare_thread_row(changed)
             assert result[0].frames[0].plain == expected.frames[0].plain

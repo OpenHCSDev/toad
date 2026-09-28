@@ -1,0 +1,1 @@
+PASS virtual: actual pending index → exact 8192 → read zero, rows and tabs
