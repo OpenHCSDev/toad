@@ -1,0 +1,2 @@
+{'blocked_recursive_start_cancel_seconds': 0.013040414996794425, 'shared_observer_rss_bytes': 39723008, 'independent_directory_and_surviving_subscriber': 'pass'}
+PASS: startup cancellation, shared subscription, independent paths, stop-before-start; no child leaks
