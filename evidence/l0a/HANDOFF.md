@@ -1,3 +1,19 @@
+## Installed notification acceptance closed
+
+Core PR241 92b42ba + Toad 2844f66 candidate wheels: focused
+`tests/l0a_native_installed_pilot.py --notification-only` exits 0.
+Actual mounted Toad -> ACP subprocess -> detached owner -> prepared Pi native RPC
+-> local HTTP provider (one request) -> channel IGNORE -> visible
+`Checked — no response (1)`. Active roster and return to idle both observed;
+real owner navigation passes with ProcessIdentity. No mocked ACP/native callbacks
+or notification projection, no paid calls. Logs in evidence/l0a-notification.
+
+Toad core pin advances to the tested published 92b42ba. Parent owns final merged
+integration pin, durable cutover, quiet install and live activation. This focused
+receipt does not assert the complete suite ran on 92b42ba; prior queue, DM, cold
+reattach, restart and idle evidence remains at its recorded candidate. None was
+rerun for this notification fix. The dependency described below is now resolved.
+
 ## Latest caller audit: thread navigation
 
 Removed one remaining production call to the deleted OwnerLifecycle._process_alive:
