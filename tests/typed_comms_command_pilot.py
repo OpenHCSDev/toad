@@ -24,13 +24,18 @@ async def main():
     await consumer.on_compaction(agent_events.CompactionEnd(summary="Native event summary"))
     await consumer.settled("stale-turn")
     await consumer.settled("actual-producer")
+    from acp.schema import AgentMessageChunk, TextContentBlock
+    from agent_comms.acp_extension import GoalChangedUpdate, encode_updates
+    await pipe.session_update("pilot", AgentMessageChunk(
+        session_update="agent_message_chunk", content=TextContentBlock(type="text",text=""),
+        field_meta=encode_updates(GoalChangedUpdate(None,None))))
 asyncio.run(main())
 '''
 
 async def main():
-    from runtime_fixture import ToadApp
+    from command_family_pilot import CommandPilotApp as ToadApp
     from toad.acp.agent import Agent
-    with tempfile.TemporaryDirectory(prefix="t2-paired-",dir=Path(__file__).parents[2]) as directory:
+    with tempfile.TemporaryDirectory(prefix="t2-paired-",dir="/var/tmp") as directory:
         root=Path(directory)
         os.environ.update(XDG_CONFIG_HOME=str(root/'config'),XDG_DATA_HOME=str(root/'data'),
                           XDG_STATE_HOME=str(root/'state'),AGENT_COMMS_ROOT=str(root/'wire'))
@@ -66,6 +71,9 @@ async def main():
             assert agent._active_turn_id is None
             assert view._managed_turn_id is None
             assert view.busy_count==0
+            await agent.server.call(json.loads(raw[6]))
+            await pilot.pause()
+            assert view.goal is None and view.goal_execution is None
             assert app._exception is None
     print('Fresh producer ACP notifications reached mounted Toad turn and compaction states; stale settle rejected; no provider call')
 
