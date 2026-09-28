@@ -198,4 +198,45 @@ This revision remains draft: native data-layout/GC tails, exact stable-switch
 budget, full suite failures and unbounded agent-backed presentations are still
 real acceptance gaps. Do not merge on the strength of the blank fixture alone.
 
+## Loaded agent-backed scaling: outstanding tail owner
+
+With the same `2bfbdb2` core, Textual editor branch and source inventory, the
+synthetic loaded fixture deliberately keeps a Conversation attached to each
+agent-backed tab. Those message targets receive ACP updates and own protocol/
+permission handling; evicting them as if they were blank would discard or
+misdirect operations. These tests are an explicit counterexample to treating
+the blank-session improvement as a general bound:
+
+- Strict **16-tab loaded** visit/resize/close run:17 Conversations/editors,
+  2,367 widgets after visits; warm medians~50–53ms. One observed warm switch
+  119.15ms with69.04ms GC and121.30ms loop gap.
+- Strict **32-tab loaded** run:33 Conversations/editors,4,479 widgets after
+  visits and~0.71–0.76m tracked objects. Warm median~60–61ms. A collection
+  lasted156.64ms and produced a162.83ms loop gap during forward visits,
+  despite switch-to-await maximum84.36ms: frame/loop stalls and coroutine
+  completion are different measures. Scope peak398.6MiB, zero swap.
+- The **64-tab loaded full run** reached its unchanged240s diagnostic cap
+  after creation (8,704 widgets) and two63-visit phases; it has no completed
+  full acceptance receipt. A follow-up explicitly marked `--phase-only` and
+  limited to reverse-first/forward-second completed those phases in234.24s.
+  Its first/warm medians74.38/77.58ms; maxima371.83/321.99ms, with GC
+  285.46/242.09ms and loop gaps375.91/325.33ms. 65 Conversations/editors,
+  8,703widgets and~1.19–1.24m tracked objects persisted. This result does NOT
+  include resize, same-mode, close or third-visit acceptance. A distinct
+  incomplete `.phases.json` receipt is written at each completed phase for a
+  bounded run; it cannot be misreported as a full pass.
+
+Conclusion: the quadratic tab-strip duplication is removed and blank sessions
+have one rich view, but **executing-agent presentation is still proportional to
+the number of mounted modes and retains an expensive collector graph**. Source
+handling cannot be replaced with an unbounded queue of raw UI messages or a
+widget teardown that calls `Agent.stop`. A long-lived nominal session/source
+controller must receive actual ACP/queue/permission updates independently of
+the rich optional surface, with typed source-backed restoration, editor intent,
+and a bounded global presentation admission policy. The T2/T5/viewport owners
+are being integrated on main; #116 has requested assignment of that Agent
+target boundary through the parent dispatch instead of inventing a parallel
+reducer. This PR remains draft until that actual ownership change and fresh
+loaded worst-case/native tests are complete.
+
 No installed runtime, live data, user preview or other agent worktree was changed.

@@ -59,7 +59,7 @@ class ReturnApp(ToadApp):
 
 async def main(*, empty=False, trace=False, observe=False, output=None, peers=0, channels=0, cycles=1,
                gc_census=False, display_only=False, tabs=10, source_threads=None, records=20,
-               ownership_census=False, gc_observe=False, phase_only=False):
+               ownership_census=False, gc_observe=False, phase_only=False, phases=None):
     if tabs < 4 or (source_threads is not None and source_threads < tabs) or records < 1:
         raise ValueError("Use at least four tabs, source_threads >= tabs, and positive history records")
     measurements = []
@@ -138,7 +138,8 @@ async def main(*, empty=False, trace=False, observe=False, output=None, peers=0,
                           for cycle in range(cycles)
                           for phase, order in (("reverse-first", tuple(reversed(modes))),
                                                ("forward-second", tuple(modes)),
-                                               ("reverse-third", tuple(reversed(modes))))]
+                                               ("reverse-third", tuple(reversed(modes))))
+                          if phases is None or phase in phases]
                 for phase, visits in passes:
                     for mode in visits:
                         if mode == app.current_mode:
@@ -383,6 +384,16 @@ async def main(*, empty=False, trace=False, observe=False, output=None, peers=0,
                             assert not replaced_rows, (phase, mode, "Unchanged threads were remounted", replaced_rows)
                         assert app._exception is None
                     census(app, phase)
+                    if output is not None:
+                        output.with_suffix(".phases.json").write_text(json.dumps({
+                            "completed": False, "phase_completed": phase,
+                            "boundary": "phase-only headless diagnostic; post-switch/teardown unverified",
+                            "tabs": tabs, "empty": empty, "source_threads": source_threads or tabs,
+                            "history_records": records, "peers": peers, "channels": channels,
+                            "gc_observation": trace or gc_observe,
+                            "instrumentation": "detailed timing/rule-map copies" if trace else "lightweight counts",
+                            "returns": measurements, "ownership_censuses": censuses,
+                        }, indent=2) + "\n")
 
                 if output is not None:
                     # A distinct, explicitly incomplete phase receipt survives
@@ -399,13 +410,15 @@ async def main(*, empty=False, trace=False, observe=False, output=None, peers=0,
         await asyncio.get_running_loop().shutdown_default_executor()
         if ownership_census:
             print(json.dumps({"phase_completed": "executor-shutdown", "elapsed_s": round(time.perf_counter() - run_started, 2)}), flush=True)
-    result = {"boundary": "headless switch/settlement; not terminal-presented frames",
+    result = {"completed": True,
+               "boundary": "headless switch/settlement; not terminal-presented frames",
                "empty": empty, "peers": peers, "channels": channels,
                "tabs": tabs, "source_threads": source_threads or tabs, "history_records": records,
                "ownership_censuses": censuses,
                "gc_observation": trace or gc_observe,
                "observation_only": observe,
                "phase_only": phase_only,
+               "phase_filter": sorted(phases) if phases is not None else None,
                "instrumentation": "detailed timing/rule-map copies" if trace else "lightweight counts",
                "display_only": display_only, "returns": measurements}
     result["provenance"] = {
@@ -520,6 +533,8 @@ if __name__ == "__main__":
     parser.add_argument("--ownership-census", action="store_true", help="Sample registered widgets and tracked types outside timed navigation")
     parser.add_argument("--gc-observe", action="store_true", help="Observe ordinary GC durations without stack capture or policy changes")
     parser.add_argument("--phase-only", action="store_true", help="Diagnostic: skip resize/close acceptance after timed visit phases")
+    parser.add_argument("--phases", nargs="+", choices=("reverse-first", "forward-second", "reverse-third"),
+                        help="Diagnostic: select visit phases; omitted runs all three")
     args = parser.parse_args()
     previous_debug = gc.get_debug()
     try:
@@ -529,7 +544,7 @@ if __name__ == "__main__":
                           peers=args.peers, channels=args.channels, cycles=args.cycles, gc_census=args.gc_census,
                           display_only=args.display_only, tabs=args.tabs, source_threads=args.source_threads,
                           records=args.records, ownership_census=args.ownership_census, gc_observe=args.gc_observe,
-                          phase_only=args.phase_only))
+                          phase_only=args.phase_only, phases=frozenset(args.phases) if args.phases else None))
     finally:
         if args.gc_census:
             gc.set_debug(previous_debug)
