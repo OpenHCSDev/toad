@@ -4,7 +4,6 @@ import asyncio
 import os
 import tempfile
 from pathlib import Path
-from types import SimpleNamespace
 
 from agent_comms import Goal
 from agent_comms.acp import CommsAgent
@@ -23,6 +22,9 @@ class FakeAgent:
         self.actions.append(action)
         self.goal = Goal(self.goal.text, self.goal.id, status="active")
         return self.goal
+
+    async def get_goal_snapshot(self):
+        return self.goal, None
 
     async def stop(self) -> None:
         pass
@@ -50,21 +52,23 @@ async def mounted_retry_control(root: Path) -> None:
 async def owner_retry_route(root: Path) -> None:
     comms = wire(root / "wire")
     owner = CommsAgent(comms, agent_bin="pi", runtime_enabled=True)
-    owner._ensure_live_drain = lambda _session: None
-    owner._schedule_wake = lambda _session: None
-    owner._schedule_goal = lambda _session: None
+    owner.inputs.ensure_live_drain = lambda _session: None
+    owner.inputs.schedule_wake = lambda _session: None
+    owner.turns.schedule_goal = lambda _session: None
     project = root / "project"
     project.mkdir()
     await owner.new_session(str(project))
-    toad_agent = SimpleNamespace(_coordination_root=comms.root, _coordination_thread="project")
+    toad_agent = Agent(project, {"name": "agent-comms", "run_command": {"*": "true"}}, None)
+    toad_agent._coordination_root = str(comms.root)
+    toad_agent._coordination_thread = "project"
     goal = await Agent.update_goal(toad_agent, "set", "Learn architectural factoring")
-    store = owner._open_goal_store()
+    store = owner.turns.open_goal_store()
     assert store.snapshot(goal.id).state == "ready"
     assert store.ready_grant(goal.id, 1)
     attempt = store.reserve(goal.id, 1)
     store.claim_launch(attempt)
     store.record_failed(attempt, "Original turn failed")
-    comms.update_goal("project", "blocked", goal_id=goal.id)
+    comms.update_goal("project", "blocked", goal_id=goal.id, block_reason="Original turn failed")
     try:
         resumed = await Agent.update_goal(toad_agent, "retry")
         assert resumed.id == goal.id and resumed.status == "active"
