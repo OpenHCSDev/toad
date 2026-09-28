@@ -4,16 +4,16 @@ Base: merged Toad PR65 at `94507dd0e727acd9ba64494dfd477a33b4800da3`, with
 merged Textual PR5 at `4fa6a9c440eaaa7dfaad45a33af146fc4b7e922e` and the preserved
 current-main core pin `b1e5bfd5c39ea69c507833e8ed5efc96a7fb038b`.
 
-Status: **landing integration in progress; native latency remains follow-up work**.
+Status: **validated landing checkpoint; native latency remains follow-up work**.
 
 ## Current-main landing integration
 
 The user approved merging Textual PR6, then Toad PR73 after checks, while another
 agent retains ownership of installed comms-pin/runtime updates.
 
-The performance branch now includes current Toad main through `16b0697`, preserving
+The performance branch now includes current Toad main through `a27814f`, preserving
 its nominal core transcript/goal/queue/read-proof APIs, notification feedback and
-visibility-scoped route observation. The core pin is `0c63715eb4a7a0835c7d47e9d38bdbddff7034cf`;
+visibility-scoped route observation. The final core pin is `ab98c1993013d659fb7cdf8d4c941225cb7cf5f9`;
 Textual PR6 is merged at `6ac3cdd919b1bfb3333091c9ac94df6c114d9fa9`, whose Git tree
 exactly equals tested candidate `bfdb4ad4`. The Channels retention fix `c2efb16` is included.
 No production source was rolled back to the older performance baseline.
@@ -78,9 +78,23 @@ unchanged. Five affected/related pilots pass after those corrections.
 The late comms click additionally required completed roster reconciliation and
 an exposed native hit target, not simply membership in the visible geometry map.
 The existing 10 s navigation and 100 s whole-pilot limits remain; the corrected
-comms case passes in 57.14 s. Final full repeat is pending. All owned native
-scopes were stopped after capture. Textual was merged only after its checks;
-Toad remains gated on the final combined receipt.
+comms case passes in 57.14 s. The final full repeat passes **129 tests and 73
+subtests in 637.09 s** (all 99 pilots plus 30 queue/cursor unit cases), including
+comms in 65.33 s. Peak memory 540.8 MiB, zero swap. All owned native scopes were
+stopped after capture. Textual was merged only after its checks, with exact-tree
+readback against the tested candidate.
+
+During that full run, main advanced through pin-only PR104/105 (`a27814f`), adopting
+the merged Textual SHA and core `ab98c19`. The full run above used its explicitly
+selected isolated `0c63715` environment; it is not relabeled as an `ab98c19` run.
+The newer core pin is preserved and received a separate targeted run of native
+input, owner/route, transcript, queue, maintenance and observed-status contracts:
+**all 24 passed in 235.33 s**, with comms in 63.53 s, peak 532.1 MiB and zero swap.
+No Toad production source changed in the pin-only merge. Scoped lint and diff
+checks pass. There are no configured GitHub checks on either PR; the explicit
+local receipts above are the validation evidence. The user authorized this
+checkpoint to land before further optimization, without changing the shared
+installed runtime here.
 
 ## Widget cohorts and Channels correction handoff
 
