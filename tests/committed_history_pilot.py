@@ -1,3 +1,4 @@
+from toad.conversation_turn import AgentTurn, ClientTurn
 """Committed model history bounds the complete live view, not only individual messages."""
 
 import asyncio
@@ -109,9 +110,8 @@ async def main():
             await pilot.pause()
             assert not conversation.contents.query(TranscriptHistory)
             agent.ready = True
-            conversation._managed_turn_id = "cancelled-turn"
+            conversation.turns.owner = AgentTurn("cancelled-turn")
             conversation.busy_count = 1
-            conversation.turn = "agent"
             app.frames = []
             conversation.post_message(
                 CommsUpdated(
@@ -134,7 +134,7 @@ async def main():
                     for _, y, maximum, text in painted
                 )
             ), painted
-            assert conversation.turn == "client" and conversation.busy_count == 0
+            assert conversation.turns.owner.accepts_prompt and conversation.busy_count == 0
             assert conversation.window.follows_tail
             assert len(list(conversation.contents.query("*"))) < 100
             assert conversation.prompt.text == "Keep my draft"

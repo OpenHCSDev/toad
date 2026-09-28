@@ -1,0 +1,9 @@
+test_actual_mixed_blocks_and_new_block (__main__.T4Tests.test_actual_mixed_blocks_and_new_block) ... Executing <Task pending name="run_test ToadApp(title='ToadApp', classes={'-dark-mode'}, pseudo_classes={'dark', 'nocolor', 'focus'})" coro=<App.run_test.<locals>.run_app() running at /home/ts/.local/share/agent-comms/runtime-watcher-20260928/lib/python3.14/site-packages/textual/app.py:2191> wait_for=<Future pending cb=[_chain_future.<locals>._call_check_cancel() at /home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/futures.py:393, Task.task_wakeup()] created at /home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py:459> created at /home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py:395> took 0.409 seconds
+Executing <Task pending name="run_test ToadApp(title='ToadApp', classes={'-dark-mode'}, pseudo_classes={'dark', 'nocolor', 'focus'})" coro=<App.run_test.<locals>.run_app() running at /home/ts/.local/share/agent-comms/runtime-watcher-20260928/lib/python3.14/site-packages/textual/app.py:2191> wait_for=<_GatheringFuture pending cb=[Task.task_wakeup()] created at /home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py:749> created at /home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py:395> took 0.133 seconds
+ok
+test_turn_family_permissions_and_new_case (__main__.T4Tests.test_turn_family_permissions_and_new_case) ... ok
+
+----------------------------------------------------------------------
+Ran 2 tests in 2.069s
+
+OK

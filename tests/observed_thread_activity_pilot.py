@@ -80,7 +80,7 @@ async def main():
                 await pilot.pause()
                 assert observed.display and observed.has_class("-working")
                 assert tracker.state == "busy" and detail in tracker.summary
-                assert native._managed_turn_id is None and native.turn != "agent"
+                assert native.turns.managed_id is None and not native.turns.owner.busy
             comms.agents.set_activity("peer", ActivityState.IDLE)
             await until(
                 lambda: (
