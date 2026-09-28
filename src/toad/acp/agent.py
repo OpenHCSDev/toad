@@ -1937,6 +1937,19 @@ class Agent(AgentBase):
             self._transcript_reader_root = root
         return self._transcript_reader
 
+    async def get_thread_presentation(self):
+        from toad.owner_preparation import read_thread_presentation
+
+        root, thread = self._coordination_root, self._coordination_thread
+        if root is None or thread is None:
+            return None
+        async with self._transcript_reader_lock:
+            reader = await self._get_coordination_reader(root)
+            presentation = await asyncio.to_thread(read_thread_presentation, reader, thread)
+        if (root, thread) != (self._coordination_root, self._coordination_thread):
+            raise ValueError("Thread attachment changed while reading status")
+        return presentation
+
     async def get_transcript_page(
         self, *, before: "TranscriptCursor | None" = None,
         after: "TranscriptCursor | None" = None,
