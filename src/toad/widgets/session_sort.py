@@ -1,14 +1,17 @@
 from toad.preferences import SidebarSettings
+
 """Shared sorting control for model-owned channel and member ordering."""
 
-from textual import events
-from textual.geometry import Offset
-from textual.widgets import Static
-from agent_comms.display_order import ChannelSort, ThreadSort
 import asyncio
 from pathlib import Path
 
+from agent_comms.display_order import ChannelSort, ThreadSort
+from textual import events
+from textual.geometry import Offset
+from textual.widgets import Static
+
 from toad.widgets.comms_menu import ContextMenu
+
 
 class SortControl[Order: (ThreadSort, ChannelSort)](Static, can_focus=True):
     BINDINGS = [("enter,space", "choose_sort", "Sort")]
@@ -111,9 +114,7 @@ class SessionSort(SortControl[ThreadSort]):
         from toad.comms_root import implicit_root, run_selected_write
 
         comms = self.app.coordination_wire
-        source_root = getattr(self.screen, "wire_root", None) or getattr(
-            self.screen, "_coordination_root", None
-        )
+        source_root = self.screen.coordination_root
         if source_root is None:
             from toad.widgets.comms_sidebar import CommsSidebar
 
@@ -136,9 +137,7 @@ class ChannelListSort(SortControl[ChannelSort]):
         from toad.comms_root import implicit_root, run_selected_write
 
         comms = self.app.coordination_wire
-        source_root = getattr(self.screen, "wire_root", None) or getattr(
-            self.screen, "_coordination_root", None
-        )
+        source_root = self.screen.coordination_root
         if source_root is None:
             from toad.widgets.comms_sidebar import CommsSidebar
 

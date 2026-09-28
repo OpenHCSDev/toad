@@ -15,7 +15,7 @@ import sys
 from toad.render_service import RenderServiceConfig
 
 
-# Packages used by the closed render-task set, its result types and wire codec.
+# External packages used by render tasks, captured results and the private IPC codec.
 _RENDER_PACKAGES = (
     "toad", "agent_comms", "textual", "textual_diff_view", "rich", "pygments",
     "markdown_it", "mdurl", "mdit_py_plugins", "linkify_it",
@@ -54,7 +54,7 @@ class RendererBuild:
 
     @property
     def version(self) -> str:
-        digest = sha256(b"toad-render-protocol-1\0")
+        digest = sha256(b"toad-render-protocol\0")
         digest.update(self.interpreter.encode() + b"\0")
         config = self.config
         digest.update(f"{config.max_workers}:{config.max_pending}:{config.client_lease_seconds:g}\0".encode())

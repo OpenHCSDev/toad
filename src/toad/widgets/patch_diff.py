@@ -137,7 +137,7 @@ class PreparedPatch:
     theme: tuple[bool, bool]
     patch: Patch | None
     lines: tuple[dict[int, Content], dict[int, Content]] | None
-    fallback: Text | None = None
+    plain_text: Text | None = None
 
 
 def prepare_patch(text: str, ansi: bool, dark: bool) -> PreparedPatch:

@@ -6,22 +6,24 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Generic, TypeVar
 
+from agent_comms.declared_family import DeclaredFamily
 from agent_comms.transcript_events import TranscriptEvent
 from markdown_it.token import Token
 
 from toad.markdown_preparation import PreparedMarkdown, prepare_markdown, prepare_tokens
 from toad.widgets.patch_diff import PreparedPatch, prepare_patch
 from toad.widgets.transcript_fragments import TranscriptFragment, transcript_fragments
-from toad.rich_preparation import PreparedRichContent, RichPresentation, RichSource, prepare_rich
+from toad.rich_preparation import (
+    PreparedRichContent,
+    RichPresentation,
+    RichSource,
+    prepare_rich,
+)
 
 ResultT = TypeVar("ResultT", covariant=True)
 
 
-class RenderTask(ABC, Generic[ResultT]):
-    """A nominal operation with an exact input and result contract."""
-
-    reusable_result = False
-
+class RenderExecution(ABC, Generic[ResultT]):
     @abstractmethod
     def execute(self) -> ResultT:
         """Execute pure preparation in the renderer process."""
@@ -31,10 +33,17 @@ class RenderTask(ABC, Generic[ResultT]):
         """Validate the result at a transport boundary."""
 
 
-class ReusableRenderTask(RenderTask[ResultT]):
-    """Pure captured-input preparation, safe to retain across consumers."""
 
-    reusable_result = True
+class RenderTask(RenderExecution[ResultT], DeclaredFamily, affix="RenderTask"):
+    """A nominal operation with an exact input and result contract."""
+
+    def reusable_inputs(self) -> object | None:
+        """None means external state prevents sharing or retaining this capture."""
+        return None
+
+class ReusableRenderTask(RenderTask[ResultT]):
+    def reusable_inputs(self) -> object:
+        return self
 
 
 @dataclass(frozen=True, slots=True)
@@ -62,7 +71,7 @@ class ValidateSessionUpdateTask(RenderTask[SessionUpdateValidation]):
 
     def accept_result(self, result: object) -> SessionUpdateValidation:
         if not isinstance(result, SessionUpdateValidation):
-            raise TypeError("ACP validation worker returned an incompatible result")
+            raise TypeError("ACP validation worker returned an invalid result")
         return result
 
 
@@ -77,7 +86,7 @@ class PatchRenderTask(ReusableRenderTask[PreparedPatch]):
 
     def accept_result(self, result: object) -> PreparedPatch:
         if not isinstance(result, PreparedPatch):
-            raise TypeError("Patch renderer returned an incompatible result")
+            raise TypeError("Patch renderer returned an invalid result")
         return result
 
 
@@ -93,7 +102,7 @@ class MarkdownRenderTask(RenderTask[PreparedMarkdown]):
 
     def accept_result(self, result: object) -> PreparedMarkdown:
         if not isinstance(result, PreparedMarkdown):
-            raise TypeError("Markdown renderer returned an incompatible result")
+            raise TypeError("Markdown renderer returned an invalid result")
         return result
 
 
@@ -108,7 +117,7 @@ class TokenRenderTask(ReusableRenderTask[PreparedMarkdown]):
 
     def accept_result(self, result: object) -> PreparedMarkdown:
         if not isinstance(result, PreparedMarkdown):
-            raise TypeError("Token renderer returned an incompatible result")
+            raise TypeError("Token renderer returned an invalid result")
         return result
 
 
@@ -121,7 +130,7 @@ class TranscriptRenderTask(ReusableRenderTask[tuple[TranscriptFragment, ...]]):
 
     def accept_result(self, result: object) -> tuple[TranscriptFragment, ...]:
         if not isinstance(result, tuple) or not all(isinstance(item, TranscriptFragment) for item in result):
-            raise TypeError("Transcript renderer returned an incompatible result")
+            raise TypeError("Transcript renderer returned an invalid result")
         return result
 
 
@@ -135,14 +144,8 @@ class RichRenderTask(ReusableRenderTask[PreparedRichContent]):
 
     def accept_result(self, result: object) -> PreparedRichContent:
         if not isinstance(result, PreparedRichContent):
-            raise TypeError("Rich renderer returned an incompatible result")
+            raise TypeError("Rich renderer returned an invalid result")
         return result
-
-
-type RendererTask = PatchRenderTask | MarkdownRenderTask | TokenRenderTask | TranscriptRenderTask | RichRenderTask | ValidateSessionUpdateTask
-type RendererResult = PreparedPatch | PreparedMarkdown | tuple[TranscriptFragment, ...] | PreparedRichContent | SessionUpdateValidation
-
-RENDER_TASK_TYPES = (PatchRenderTask, MarkdownRenderTask, TokenRenderTask, TranscriptRenderTask, RichRenderTask, ValidateSessionUpdateTask)
 
 
 def execute_render_task(task: RenderTask[ResultT]) -> ResultT:

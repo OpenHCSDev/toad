@@ -1,5 +1,7 @@
 """An attributed wire message with native thread navigation."""
 
+from toad.widgets.message_filter import InboundCategory
+
 from textual.app import ComposeResult
 from textual.containers import VerticalGroup
 from toad.widgets.route_header import RouteHeader
@@ -7,6 +9,7 @@ from toad.widgets.message_divider import MessageDivider
 from agent_comms.routing import MessageRoute
 from toad.widgets.message_filter import CategorizedBlock, MessageCategory
 from toad.widgets.committed_presentation import CommitParticipant, SequenceClaim
+
 
 
 class IncomingSender(RouteHeader):
@@ -25,8 +28,8 @@ class IncomingMessage(CommitParticipant, CategorizedBlock, VerticalGroup):
     DEFAULT_CLASSES = "block"
 
     @property
-    def message_category(self) -> MessageCategory:
-        return MessageCategory.INBOUND
+    def message_category(self) -> type[MessageCategory]:
+        return InboundCategory
 
     @property
     def commit_claim(self) -> SequenceClaim:

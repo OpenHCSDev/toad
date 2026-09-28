@@ -1,5 +1,7 @@
 """Channels state must remain visible on every loading and destination frame."""
 
+from toad.navigation_target import channel_target
+
 import asyncio
 import os
 from pathlib import Path
@@ -140,7 +142,7 @@ async def main():
                     with patch.object(CommsScreen, "_start_hydration", hold_hydration):
                         app.frames = []
                         opening = asyncio.create_task(app.open_comms_session(
-                            owner_mode=owner, project_path=root, me=me, target=target, kind="channel"))
+                            owner_mode=owner, project_path=root, me=me, target=channel_target(target)))
                         try:
                             await asyncio.wait_for(blocked.wait(), 4)
                             await pilot.pause()

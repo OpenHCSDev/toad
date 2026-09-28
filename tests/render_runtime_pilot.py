@@ -7,7 +7,7 @@ from typing import TypeVar
 import unittest
 from unittest.mock import patch
 
-from toad.render_runtime import PersistentRenderer
+from toad.render_runtime import PersistentRenderClient
 from toad.render_service import RenderServiceConfig
 from toad.render_tasks import PatchRenderTask, RenderTask
 from toad.render_zmq import PersistentRendererPool, RendererEndpoint, RendererSessionFailed
@@ -36,7 +36,7 @@ class ControlledPool(PersistentRendererPool):
 class RuntimeTests(unittest.IsolatedAsyncioTestCase):
     async def test_construct_and_unused_close_do_not_fingerprint_or_start_backend(self) -> None:
         with patch("toad.render_runtime.RendererEndpoint.for_runtime") as resolve:
-            renderer = PersistentRenderer(Path("/unused-render-test"))
+            renderer = PersistentRenderClient(Path("/unused-render-test"))
             self.assertIsNone(renderer.resolved_pool)
             await renderer.aclose()
             with self.assertRaisesRegex(RuntimeError, "closed"):
@@ -59,7 +59,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
 
         with (patch("toad.render_runtime.RendererEndpoint.for_runtime", side_effect=resolve),
               patch("toad.render_runtime.PersistentRendererPool", return_value=pool)):
-            renderer = PersistentRenderer(endpoint.directory, config)
+            renderer = PersistentRenderClient(endpoint.directory, config)
             waiting = asyncio.create_task(renderer.submit(PatchRenderTask("patch", False, True)))
             try:
                 self.assertTrue(await asyncio.to_thread(entered.wait, 2))
@@ -83,7 +83,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
         failed, successor = ControlledPool(endpoint, config, fail=True), ControlledPool(endpoint, config)
         with (patch("toad.render_runtime.RendererEndpoint.for_runtime", return_value=endpoint),
               patch("toad.render_runtime.PersistentRendererPool", side_effect=[failed, successor])):
-            renderer = PersistentRenderer(endpoint.directory, config)
+            renderer = PersistentRenderClient(endpoint.directory, config)
             task = PatchRenderTask("patch", False, True)
             try:
                 with self.assertRaises(RendererSessionFailed):

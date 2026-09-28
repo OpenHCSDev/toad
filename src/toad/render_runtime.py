@@ -17,7 +17,7 @@ def _observe(task: asyncio.Task[ResultT]) -> None:
         task.exception()
 
 
-class PersistentRenderer(Renderer):
+class PersistentRenderClient(Renderer):
     """Construct synchronously; resolve code identity and connect only on demand.
 
     Initializing and retiring a client are owned operations, independent of any
@@ -91,7 +91,7 @@ class PersistentRenderer(Renderer):
             raise
 
     async def warm_up(self, *, project: Path, ansi: bool, dark: bool) -> None:
-        """Start compatible workers and common parser/highlighter imports off-loop.
+        """Start matching workers and common parser/highlighter imports off-loop.
 
         These small, data-only tasks use normal admission and cancellation. No
         source files are opened, no user history is fetched and nothing is mounted.

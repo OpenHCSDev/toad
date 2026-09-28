@@ -14,11 +14,18 @@ from textual.widgets import Static
 
 from committed_history_pilot import SnapshotAgent
 from history_scroll_frames_pilot import ScrollFrameApp
-from inbound_reconciliation_pilot import routed
+from agent_comms.messages import Message, MessageType
+from agent_comms.routing import TurnRouting
+from agent_comms.transcript_events import UserTranscript
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.committed_presentation import CheckpointBarrier
 from toad.widgets.incoming_message import IncomingMessage
 from toad.widgets.transcript_history import TranscriptHistory
+
+
+def routed(sequence, text):
+    message = Message("peer", "owner", text, MessageType.INFO, seq=sequence)
+    return UserTranscript(text, routing=TurnRouting((message,), None))
 
 
 class PagedAgent(SnapshotAgent):

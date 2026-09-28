@@ -51,7 +51,7 @@ class SlashCommand(Command, affix="Command"):
 
     @classmethod
     def parse(cls, arguments: str) -> Self: ...        # typed arguments, parsed by the command
-    async def run(self, conversation: Conversation) -> None: ...
+    async def apply(self, conversation: Conversation) -> bool: ...
 
 class ToadLocal:
     """Capability: Toad's own commands, spelled with the toad: prefix."""
@@ -66,7 +66,7 @@ class AboutCommand(SlashCommand, ToadLocal):
     help = "About Toad"
 ```
 
-- The completion list is derived from the family; `slash_command` becomes: find the member by name, `parse`, `run`. The 146-line dispatch and the hand-written list are deleted.
+- The completion list is derived from the family; `slash_command` becomes: find the member by name, `parse`, `apply`. The 146-line dispatch and the hand-written list are deleted.
 - Commands the agent advertises over ACP (`available_commands_update`, an external format) become `AgentAdvertisedCommand` instances at the boundary, forwarded to the agent; they join the same completion list.
 - The seven `hasattr` probes are deleted: the methods exist on every agent this fork serves.
 
@@ -123,3 +123,26 @@ Commands and thread actions are families from which every list, label and dispat
 ## Dispatch
 
 > **`toad-t3`:** Complete T3 per `docs/refactor/T3-commands.md`. Read `00-RULES.md` first. Start after T2 merges. Build the `ThreadAction` family in its own module first, so T5 can adopt it in its widgets while you convert `app.py` and `Conversation`. Delete the dispatch functions outright once the families cover them.
+
+## Implemented closure (PR120)
+
+Slash commands implement core `Command.apply` directly. `CommandCatalog` is the
+single derived ACP/local/contextual completion view; there is no `run` adapter,
+maintained roster or name dispatch. Goal argument hints derive from GoalControl.
+ThreadAction owns its ToolDeclaration and calls the existing domain service in
+route admission; no second tool registry or result dictionary interpretation.
+`ThreadContext`, `ChannelContext`, `FeedContext` and `ViewContext` own action and
+pin behavior; `TargetContext.is_thread` is deleted. ChannelAction is a nominal
+scope capability. Pointer and slash routes share declarations and ForkDialog.
+
+The published paired T2 checkpoint08bc602 is integrated; typed goal/turn/
+compaction/MCP facts and their consumers remain present. Compaction success is
+its declared return or exception, with no result.get("ok") path. The two awaited
+consumer handlers are async, matching shared MroDispatch's contract. All removed
+command/probe/viewport helper callers are migrated; guards run in the shared
+collector. Four class-growth findings are resolved; shared ratchet unchanged.
+
+Current source and installed acceptance receipts: evidence/t3-sol/HANDOFF.md.
+Parent owns merge and live activation, T2 owns remaining internal request/error
+work, and T5 consumes the published nominal menu context contract. No live root,
+route, launcher, conversion tool or independent error codec was changed by T3.

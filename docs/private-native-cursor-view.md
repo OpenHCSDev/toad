@@ -81,7 +81,6 @@ PYTHONPATH=src python tests/test_private_native_cursor.py
 PYTHONPATH="$PWD/src:$PWD/tests:/path/to/backend/src" \
   CURSOR_EVIDENCE_DIR=/tmp/cursor-evidence python tests/private_native_cursor_pilot.py
 PYTHONPATH="$PWD/src:$PWD/tests:/path/to/backend/src" python tests/private_native_cursor_request_pilot.py
-PYTHONPATH="$PWD/src:$PWD/tests:/path/to/backend/src" python tests/mcp_live_status_pilot.py
 ```
 
 The mounted pilot uses actual Agent new/load and validated callback methods,

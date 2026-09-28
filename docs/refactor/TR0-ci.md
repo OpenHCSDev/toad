@@ -1,3 +1,5 @@
+> Active implementation: Pascal, paired core/Toad TR0 branches. Newest owner override: CI remains deferred; workflows are manual and no merge gates are enabled. All acceptance is local against installed packages.
+
 # TR0: CI, the ratchet, and a real test suite
 
 **Heads:** Toad fork `main` at `511a1a2` (#106); agent-comms `main` at `3996e82` (#231). **Rules:** [00-RULES.md](00-RULES.md). **Step 1.** Everything else in this package depends on it.

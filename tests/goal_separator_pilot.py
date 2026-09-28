@@ -1,5 +1,7 @@
 """Goal separators follow the actual loading and delivery-controls presentation."""
 
+from toad.goal_display import GoalDisplay
+
 import asyncio
 import os
 from pathlib import Path
@@ -26,7 +28,7 @@ async def main():
             prompt = view.prompt
             draft = "Keep this draft while separator edges move"
             prompt.text = draft
-            view.goal = Goal("Verify layout", "separator-test", state=PausedGoal(), progress="Working on presentation")
+            view.goal_display = GoalDisplay.current(Goal("Verify layout", "separator-test", state=PausedGoal(), progress="Working on presentation"))
             cases = [
                 (0, "client", True, "solid", "", "idle"),
                 (1, "agent", True, "", "solid", "loading-and-queue"),
@@ -54,7 +56,7 @@ async def main():
                     assert goal.query_one(".goal-header").region.y == goal.region.y
                 assert prompt.text == draft
 
-            view.goal = None
+            view.goal_display = GoalDisplay.current(None)
             view.busy_count = 1
             view.turn = "agent"
             await pilot.pause()

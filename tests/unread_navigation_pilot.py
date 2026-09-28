@@ -1,5 +1,7 @@
 """A displayed channel page clears its own unread rows after every navigation."""
 
+from toad.navigation_target import DirectTarget, FeedTarget, channel_target
+
 import asyncio
 import os
 import tempfile
@@ -49,7 +51,7 @@ async def main() -> None:
             owner = app.current_mode
             name = app.screen._comms_thread
             mode = await app.open_comms_session(owner_mode=owner, project_path=root,
-                                               me=name, target="#all", kind="channel")
+                                               me=name, target=channel_target("#all"))
             chat = app.screen.query_one(CommsChatView)
             await wait_for(pilot, lambda: chat._history_initialized)
             assert any(item.body == "first-pending" for item, _ in chat._history)
@@ -73,7 +75,7 @@ async def main() -> None:
 
             assert dm_unread() == 1
             dm_mode = await app.open_comms_session(owner_mode=owner, project_path=root,
-                                                   me=viewer.name, target="sender", kind="dm")
+                                                   me=viewer.name, target=DirectTarget("sender"))
             dm = app.screen.query_one(CommsChatView)
             await wait_for(pilot, lambda: any(
                 item.body == "dm-pending" for item, _ in dm._history
@@ -88,7 +90,7 @@ async def main() -> None:
 
             assert aggregate_unread() >= 1
             aggregate_mode = await app.open_comms_session(owner_mode=owner, project_path=root,
-                                                          me=viewer.name, target="#any", kind="irc")
+                                                          me=viewer.name, target=FeedTarget())
             aggregate = app.screen.query_one(CommsChatView)
             await wait_for(pilot, lambda: any(
                 item.body == "aggregate-pending" for item, _ in aggregate._history

@@ -1,23 +1,22 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
-
 from asyncio import Future
-from typing import Literal, Mapping, TYPE_CHECKING
-from textual.message import Message
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Mapping
 
 import rich.repr
-from agent_comms.goals import Goal
-from agent_comms.goal_presentation import GoalExecution
-from agent_comms.transcripts import TranscriptCursor, TranscriptPage
-from agent_comms.transcript_events import TranscriptEvent
+from agent_comms.acp_extension import (
+    AgentCommsUpdate,
+    QueueScope,
+)
 from agent_comms.routing import MessageRoute
+from textual.message import Message
 
-from toad.answer import Answer
-from toad.private_native_cursor import CursorStatus
-from toad.queue_view import QueueItem, QueueProjection
 from toad.acp import protocol
 from toad.acp.encode_tool_call_id import encode_tool_call_id
+from toad.answer import Answer
+
+from .attachment_presentation import CursorPresentation, QueuePresentation
 
 if TYPE_CHECKING:
     from textual.content import Content
@@ -29,40 +28,12 @@ class AgentMessage(Message):
     """Base class for agent messages."""
 
 
-@dataclass
-class GoalSnapshotUpdate(AgentMessage):
-    """One paired projection published by the backend goal owner."""
-
-    goal: Goal | None
-    execution: GoalExecution | None
-
-
 class InputDispositionsChanged(AgentMessage):
-    """Invalidate the unresolved delivery view; the backend ledger owns its contents."""
+    """Invalidate delivery display; the producer ledger owns its contents."""
 
 
 class RejectedSessionUpdate(AgentMessage):
-    """An invalid ACP notification was logged and excluded from the conversation."""
-
-
-@dataclass
-class PrivateNativeCursorUpdate(AgentMessage):
-    """Immutable-in-flight presentation receipt; contains no private proof data."""
-
-    status: CursorStatus | None
-    agent: object
-    session_id: str | None
-    sequence: int
-
-
-@dataclass
-class McpClientStatus(AgentMessage):
-    """Turn-bound package-owned live MCP projection; never a grant or approval."""
-
-    receipt: dict
-    turn_id: str
-    session_id: str
-    agent: object
+    """Invalid ACP input was logged and excluded from the conversation."""
 
 
 @dataclass
@@ -70,60 +41,6 @@ class McpClientStopped(AgentMessage):
     """The owning connection stopped; its live projection is no longer valid."""
 
     agent: object
-
-
-@dataclass
-class QueueViewUpdate(AgentMessage):
-    """Exact-ID projection and once-only accepted starts, fenced at ingress."""
-
-    projection: QueueProjection
-    starts: tuple[QueueItem, ...]
-    agent: object
-    session_id: str | None
-    sequence: int
-
-
-@dataclass
-class InputStarted(AgentMessage):
-    """An unscoped initial user echo, never queue membership authority."""
-    text: str | None
-    agent: object | None = None
-    session_id: str | None = None
-
-
-@dataclass
-class InputFailed(AgentMessage):
-    text: str
-    reason: str
-    recover_draft: bool = True
-    agent: object | None = None
-    session_id: str | None = None
-    queue_scope: object | None = None
-
-
-@dataclass
-class TranscriptSnapshot(AgentMessage):
-    events: tuple[TranscriptEvent, ...]
-    page: TranscriptPage | None = None
-
-
-@dataclass
-class TranscriptChanged(AgentMessage):
-    cursor: TranscriptCursor | None = None
-
-
-@dataclass
-class CompactionUpdate(AgentMessage):
-    """Typed mid-turn lifecycle from agent-comms; not a new user turn."""
-
-    phase: Literal["start", "progress", "end", "abort"]
-    reason: str
-    summary: str = ""
-    will_retry: bool = False
-    chunk_index: int = 0
-    source_bytes_done: int | None = None
-    source_bytes_total: int | None = None
-    summary_phase: str | None = None
 
 
 @dataclass
@@ -142,14 +59,6 @@ class Update(AgentMessage):
     type: str
     text: str
     route: MessageRoute | None = None
-
-
-@dataclass
-class IncomingMessage(AgentMessage):
-    sender: str
-    target: str
-    text: str
-    sequence: int
 
 
 @dataclass
@@ -283,38 +192,15 @@ class SessionInfoUpdate(AgentMessage):
 
 
 @dataclass
-class CoordinationUpdate(AgentMessage):
-    """Persistent coordination identity advertised by an ACP agent."""
+class CommsUpdated(AgentMessage):
+    """The exact shared record plus local attachment context."""
 
-    thread: str
-    wire_root: str
-    persistence: str
-    transport: str
-    worktree: str | None = None
-    prompt_queue: bool = False
-
-
-@dataclass
-class TurnStarted(AgentMessage):
-    """A server-owned turn began, regardless of who supplied the input."""
-
-    turn_id: str
-    started_at: float | None = None
-    activity: str | None = None
-    activity_detail: str | None = None
+    update: AgentCommsUpdate | QueuePresentation | CursorPresentation
     agent: object | None = None
     session_id: str | None = None
     sequence: int | None = None
-
-
-@dataclass
-class TurnSettled(AgentMessage):
-    """The agent finished writing while trailing metadata may still arrive."""
-
-    turn_id: str | None = None
-    agent: object | None = None
-    session_id: str | None = None
-    sequence: int | None = None
+    recover_draft: bool = False
+    queue_scope: QueueScope | None = None
 
 
 @dataclass

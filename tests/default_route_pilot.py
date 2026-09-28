@@ -7,6 +7,8 @@ When /var/tmp lacks space, this non-durability UI pilot uses /dev/shm.
 
 from __future__ import annotations
 
+from toad.navigation_target import channel_target
+
 import asyncio
 import json
 import os
@@ -131,8 +133,8 @@ async def main() -> None:
                     owner_mode=owner_mode,
                     project_path=sandbox,
                     me="user",
-                    target="#team",
-                    kind="channel",
+                    target=channel_target("#team"),
+
                 )
                 assert mode == app.current_mode
                 view = app.screen.query_one(CommsChatView)
@@ -187,8 +189,8 @@ async def main() -> None:
                     owner_mode=new_app.current_mode,
                     project_path=sandbox,
                     me="user",
-                    target="#team",
-                    kind="channel",
+                    target=channel_target("#team"),
+
                 )
                 new_view = new_app.screen.query_one(CommsChatView)
                 await new_view._refresh()

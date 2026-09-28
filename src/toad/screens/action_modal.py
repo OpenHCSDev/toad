@@ -99,13 +99,11 @@ class ActionModal(ModalScreen):
             fail=self.command_pane.return_code != 0,
         )
 
-    @on(widgets.Button.Pressed)
-    async def on_button_pressed(self, event: widgets.Button.Pressed) -> None:
-        if event.button.id == "cancel":
-            await self.command_pane.cancel_command()
-            self.dismiss(None)
-        else:
-            self.action_dismiss_modal()
+    @on(widgets.Button.Pressed, "#cancel")
+    async def cancel_command(self, event: widgets.Button.Pressed) -> None:
+        await self.command_pane.cancel_command()
+        self.dismiss(None)
 
+    @on(widgets.Button.Pressed, "#ok")
     def action_dismiss_modal(self) -> None:
         self.dismiss(self.command_pane.return_code)

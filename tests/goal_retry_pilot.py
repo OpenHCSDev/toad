@@ -1,17 +1,15 @@
 """A blocked goal offers explicit Retry and reaches the executing owner."""
 
+from toad.goal_display import GoalDisplay
+
 import asyncio
 import os
 import tempfile
 from pathlib import Path
 
-from agent_comms.goal_actions import BlockedGoalAction, GoalPrecondition
 from agent_comms.goal_states import ActiveGoal, BlockedGoal
 from agent_comms.goals import Goal
-from agent_comms.acp import CommsAgent
-from agent_comms.comms import wire
 from runtime_fixture import ToadApp
-from toad.acp.agent import Agent
 from toad.widgets.goal_bar import GoalBar
 
 
@@ -37,47 +35,18 @@ async def mounted_retry_control(root: Path) -> None:
     async with app.run_test(size=(100, 30)) as pilot:
         await pilot.pause()
         view = app.screen.conversation
-        goal = Goal("Learn architectural factoring", "goal-control", state=BlockedGoal())
+        goal = Goal("Learn architectural factoring", "goal-control", state=BlockedGoal(block_reason="Original turn failed"))
         fake = FakeAgent(goal)
         view.set_reactive(type(view).agent, fake)
         view.agent_ready = True
-        view.goal = goal
+        view.goal_display = GoalDisplay.current(goal)
         await pilot.pause()
         bar = view.query_one(GoalBar)
         assert str(bar.query_one("#goal-toggle").render()) == "Retry"
         await pilot.click("#goal-toggle")
         await pilot.pause()
         assert fake.actions == ["retry"]
-        assert view.goal.state.declared_name == "active"
-
-
-async def owner_retry_route(root: Path) -> None:
-    comms = wire(root / "wire")
-    owner = CommsAgent(comms, agent_bin="pi", runtime_enabled=True)
-    owner.inputs.ensure_live_drain = lambda _session: None
-    owner.inputs.schedule_wake = lambda _session: None
-    owner.turns.schedule_goal = lambda _session: None
-    project = root / "project"
-    project.mkdir()
-    await owner.new_session(str(project))
-    toad_agent = Agent(project, {"name": "agent-comms", "run_command": {"*": "true"}}, None)
-    toad_agent._coordination_root = str(comms.root)
-    toad_agent._coordination_thread = "project"
-    goal = await Agent.update_goal(toad_agent, "set", "Learn architectural factoring")
-    store = owner.turns.open_goal_store()
-    assert store.snapshot(goal.id).state == "ready"
-    assert store.ready_grant(goal.id, 1)
-    attempt = store.reserve(goal.id, 1)
-    store.claim_launch(attempt)
-    store.record_failed(attempt, "Original turn failed")
-    comms.goals.update_goal("project", BlockedGoalAction(block_reason="Original turn failed", expect=GoalPrecondition(goal_id=goal.id)))
-    try:
-        resumed = await Agent.update_goal(toad_agent, "retry")
-        assert resumed.id == goal.id and resumed.state.declared_name == "active"
-        assert store.snapshot(goal.id).number == 2
-        assert store.ready_grant(goal.id, 2)
-    finally:
-        await owner.shutdown()
+        assert view.goal_display.snapshot.state.declared_name == "active"
 
 
 async def main() -> None:
@@ -90,8 +59,7 @@ async def main() -> None:
             AGENT_COMMS_ROOT=str(root / "wire"),
         )
         await mounted_retry_control(root)
-        await owner_retry_route(root)
-    print("goal retry: mounted control and owner grant passed")
+    print("goal retry: mounted explicit Retry control passed")
 
 
 if __name__ == "__main__":

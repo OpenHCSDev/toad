@@ -16,13 +16,5 @@ class AgentActivityBoundary:
     def reset(self) -> None:
         self._pending = True
 
-    def observe(self, category: MessageCategory | None) -> bool:
-        if category in {MessageCategory.USER, MessageCategory.INBOUND}:
-            self.reset()
-        elif category in {MessageCategory.AGENT, MessageCategory.OUTBOUND}:
-            self._pending = False
-        elif category in {MessageCategory.THINKING, MessageCategory.TOOL}:
-            show = self._pending
-            self._pending = False
-            return show
-        return False
+    def observe(self, category: type[MessageCategory] | None) -> bool:
+        return category.observe(self) if category is not None else False

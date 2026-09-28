@@ -1,5 +1,7 @@
 """Absent goal documents must not rebuild offscreen geometry during resize."""
 
+from toad.goal_display import GoalDisplay, GoalUnavailable
+
 import asyncio
 import os
 from pathlib import Path
@@ -32,15 +34,15 @@ async def main():
                         update()
                     assert arrange.call_count == 0, "Hidden goal measurement rebuilt the full widget tree"
 
-            assert bar.goal is None and not bar.display
+            assert bar.goal_display.snapshot is None and not bar.display
             assert_no_full_layout(bar.update_document_height, bar._update_control_layout)
-            view.goal_unavailable = True
+            view.goal_display = GoalUnavailable(view.goal_display.snapshot)
             await pilot.pause()
-            assert bar.display and bar.goal is None
+            assert bar.display and bar.goal_display.snapshot is None
             assert_no_full_layout(bar.update_document_height)
 
-            view.goal_unavailable = False
-            view.goal = Goal("Visible wrapped goal text. " * 60, "geometry")
+            view.goal_display = GoalDisplay.current(view.goal_display.snapshot)
+            view.goal_display = GoalDisplay.current(Goal("Visible wrapped goal text. " * 60, "geometry"))
             await pilot.pause()
             document = bar.query_one(".goal-document", VerticalScroll)
             assert document.display and 1 < document.region.height <= app.size.height // 5
@@ -51,7 +53,7 @@ async def main():
             await pilot.resize_terminal(85, 30)
             await pilot.pause()
             assert document.display and 1 < document.region.height <= 6
-            view.goal = None
+            view.goal_display = GoalDisplay.current(None)
             await pilot.pause()
             assert_no_full_layout(bar.update_document_height, bar._update_control_layout)
             assert app._exception is None

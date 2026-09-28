@@ -13,45 +13,49 @@ acts through ``agent_comms`` operations.
 
 from __future__ import annotations
 
-from toad.settings import PreferenceChange
-from toad.preferences import SidebarSettings
-
-import os
 import asyncio
+import os
 from dataclasses import dataclass
 from collections.abc import Callable, Mapping
 from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
+from agent_comms import context_tool_catalog
+from agent_comms.comms import Comms, wire
+from agent_comms.presentation import ChannelView, CoordinationSnapshot, ThreadView, WireRevision
 from textual import on
-from textual.binding import Binding
 from textual.app import ComposeResult
+from textual.binding import Binding
+from textual.content import Content
 from textual.dom import DOMNode
 from textual.message import Message
 from textual.reactive import reactive
-from textual.content import Content
+from textual.widget import Widget
 from textual.widgets import OptionList, Static
 from textual.widgets.option_list import Option
-from textual.widget import Widget
 
-from agent_comms import context_tool_catalog
-from agent_comms.presentation import ChannelView, CoordinationSnapshot, ThreadView, WireRevision
 from toad.constants import COMMS_REFRESH_INTERVAL
-from agent_comms.comms import Comms, wire
 
 from toad.session_tracker import UnreadPresentation, ExactUnread
 from toad import messages
 from toad.constants import ALL_COMMS_TARGET
-from toad.session_tracker import SessionDetails, SidebarSelection, SidebarState
+from toad.navigation_target import NavigationOwner
+from toad.preferences import SidebarSettings
+from toad.session_tracker import (
+    SessionDetails,
+    SidebarSelection,
+    SidebarState,
+)
+from toad.settings import PreferenceChange
 from toad.sidebar_preparation import ThreadRowInput, ThreadRowsWork
+from toad.widgets.activity_spinner import FRAMES
 from toad.widgets.session_sidebar import ThreadStatusRow
 from toad.widgets.session_sort import ChannelListSort, SessionSort
-from toad.widgets.virtual_channel_list import VirtualChannelList, VirtualChoice, styled_row
-from toad.widgets.activity_spinner import FRAMES
+from toad.widgets.virtual_channel_list import VirtualChannelList, VirtualChoice, TargetChoice, NewSessionChoice, styled_row
 from toad.widgets.sidebar_tree import SidebarDisclosure, SidebarGroup, TargetTree
 from toad.widgets.side_bar import SidebarVisibilityObserver
-from toad.navigation_target import NavigationOwner
+from toad.navigation_target import NavigationTarget, channel_target, person_target
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
@@ -62,6 +66,7 @@ class SidebarSnapshot:
     wire: CoordinationSnapshot
     session_threads: Mapping[str, str]
     all_people: Mapping[str, ThreadView]
+
 
 class ChannelDisclosure(SidebarDisclosure):
     pass
@@ -147,9 +152,7 @@ class ChannelGroup(SidebarGroup):
             view, snapshot = self._view, self._snapshot
             inputs = tuple(ThreadRowInput(
                 snapshot.all_people[name],
-                unread=(UnreadPresentation.for_thread(snapshot.wire, name)
-                        if CommsSidebar._person_kind(snapshot.all_people[name]) == "thread"
-                        else ExactUnread(snapshot.wire.unread.get(name, 0))),
+                unread=person_target(snapshot.all_people[name]).unread(snapshot.wire),
                 pinned=name in view.pinned_members,
                 action_status=app.pending_thread_actions.get(name),
             ) for name in wanted)
@@ -166,13 +169,13 @@ class ChannelGroup(SidebarGroup):
 
             def create(name):
                 person = self._snapshot.all_people[name]
-                return ThreadRow(CommsSidebar._person_kind(person), name, name)
+                return ThreadRow(person_target(person), name)
 
             def update(name, row):
                 # The thread is the row identity. Opening/closing one of its
                 # views changes navigation, not its content widget or geometry.
                 row.mode_name = modes.get(name)
-                row.kind = CommsSidebar._person_kind(self._snapshot.all_people[name])
+                row.target = person_target(self._snapshot.all_people[name])
                 row.apply_thread_preparation(prepared_rows[name])
                 row.current = row.mode_name == app.current_mode
 
@@ -196,13 +199,27 @@ def _display_path(path: Path) -> str:
 class SelectTarget(Message):
     """User picked a view target: a channel, a DM peer, or the session."""
 
-    def __init__(self, target: str, kind: str) -> None:
+    def __init__(self, target: NavigationTarget) -> None:
         self.target = target
-        self.kind = kind  # "channel" | "dm" | "session"
         super().__init__()
 
 
-class CommsRow(ThreadStatusRow):
+class RowNavigation:
+    """Selection and menu context shared by open and unopened destinations."""
+
+    mode_name: str | None = None
+
+    @property
+    def target_name(self) -> str:
+        return self.target.name
+
+    def show_menu(self, sidebar, offset) -> None:
+        if self.mode_name is None:
+            sidebar._select(self)
+        self.target.show_menu(sidebar, offset, mode_name=self.mode_name, channel=self.query_ancestor(ChannelGroup).row.target_name)
+
+
+class CommsRow(RowNavigation, ThreadStatusRow):
     """One interactive row: a channel or a thread."""
 
     DEFAULT_CSS = """
@@ -229,10 +246,9 @@ class CommsRow(ThreadStatusRow):
         # Avoid restyling/repainting the departing transcript before Click runs.
         return False
 
-    def __init__(self, kind: str, name: str, label: str, unread: int = 0) -> None:
+    def __init__(self, target: NavigationTarget, label: str, unread: int = 0) -> None:
         super().__init__(label)
-        self.kind = kind  # "channel" | "dm" | "session"
-        self.target_name = name
+        self.target = target
         self._label = label
         self.unread = unread
 
@@ -273,11 +289,11 @@ class CommsRow(ThreadStatusRow):
             # presentation). Dispatch through its declared view owner without
             # another message bubbling through each sidebar container.
             self.app.run_worker(
-                screen.open_sidebar_target(self.target_name, self.kind),
+                screen.open_sidebar_target(self.target),
                 group="sidebar-open",
             )
         else:
-            self.post_message(SelectTarget(self.target_name, self.kind))
+            self.post_message(SelectTarget(self.target))
 
     def on_focus(self) -> None:
         """Keep the sidebar cursor in sync with keyboard focus."""
@@ -295,8 +311,6 @@ class CommsRow(ThreadStatusRow):
 
 class ThreadRow(CommsRow):
     """A retained wire thread row, with an optional currently open native view."""
-
-    mode_name: str | None = None
 
     def action_open_selected(self) -> None:
         if self.mode_name is None or cast("ToadApp", self.app).session_tracker.get_session(self.mode_name) is None:
@@ -452,14 +466,6 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
     selected: reactive[str] = reactive("", init=False)
     session_thread: reactive[str] = reactive("", init=False)
 
-    class ThreadAction(Message):
-        """Context-menu action on a thread."""
-
-        def __init__(self, name: str, action: str) -> None:
-            self.name = name
-            self.action = action
-            super().__init__()
-
     def __init__(
         self, session_thread: str = "", selected_target: str = "", *, observe: bool = True, **kwargs
     ) -> None:
@@ -467,7 +473,7 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
         self.session_thread = session_thread
         self.selected = selected_target
         self._observe = observe
-        self._row_map: dict[tuple[str, str], CommsRow] = {}
+        self._row_map: dict[str, CommsRow] = {}
         self._virtual = os.environ.get("TOAD_BENCH_VIRTUAL_CHANNELS") == "1"
         self._virtual_targets: dict[str, VirtualChoice] = {}
         self._busy_virtual_rows: dict[int, tuple[str, bool, bool, bool]] = {}
@@ -841,8 +847,10 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
             screen = app._main_session_screen(details.mode_name)
             if screen is None:
                 continue
-            if (screen._coordination_root is not None
-                    and Path(screen._coordination_root).expanduser().resolve() != comms.root):
+            if (
+                screen.coordination_root is not None
+                and Path(screen.coordination_root).expanduser().resolve() != comms.root
+            ):
                 continue  # A same-named thread on another wire is not this open view.
             name = screen._comms_thread
             if name not in all_people and screen._agent_session_id in all_people:
@@ -851,14 +859,6 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
                 session_threads[details.mode_name] = name
                 claimed_threads.add(name)
         return SidebarSnapshot(state, session_threads, all_people)
-
-    @staticmethod
-    def _person_kind(person: ThreadView) -> str:
-        if not person.status.active:
-            # A stopped/archived executor has no runnable native owner. Its
-            # wire DM stays viewable without implicitly starting it on click.
-            return "dm"
-        return "thread" if person.thread.session_file or person.thread.pid > 0 else "dm"
 
     def _route_stamp(self) -> tuple[tuple[int, int, int, int] | None, ...]:
         # Stat-only change tokens avoid taking the private bus store lock on
@@ -1037,7 +1037,7 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
         assert isinstance(control, ChannelListSort)
         control.update_order(snapshot.wire.channel_order)
         desired_keys = [
-            ("irc" if view.channel.aggregate else "channel", view.channel.name)
+            view.channel.name
             for view in snapshot.wire.channels
         ]
         if not self.query(NewSessionButton):
@@ -1052,17 +1052,16 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
         new_groups: list[ChannelGroup] = []
         for key in desired_keys:
             if key not in self._row_map:
-                row = self._row_map[key] = CommsRow(*key, key[1])
+                row = self._row_map[key] = CommsRow(channel_target(key), key)
                 new_groups.append(ChannelGroup(
-                    row, expanded=self.navigation.expanded.get(key[1], key[0] == "irc"),
+                    row, expanded=self.navigation.expanded.get(key, row.target.expanded_by_default),
                 ))
         if new_groups:
             await self.mount(*new_groups)
             if not self._can_publish:
                 return
         for view in snapshot.wire.channels:
-            kind = "irc" if view.channel.aggregate else "channel"
-            channel_row = self._row_map[(kind, view.channel.name)]
+            channel_row = self._row_map[view.channel.name]
             unread = snapshot.wire.channel_unread.get(view.channel.name, 0)
             channel_row.set_label(f"{'* ' if view.channel.pinned else ''}{view.channel.name}")
             group = channel_row.query_ancestor(ChannelGroup)
@@ -1111,7 +1110,7 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
         selected = self.navigation.selected
         busy_rows: dict[int, tuple[str, bool, bool, bool]] = {}
         choices: dict[str, VirtualChoice] = {}
-        choices["new-session"] = VirtualChoice("new-session", "", "")
+        choices["new-session"] = NewSessionChoice()
         options: list[Option] = [Option("+ New Session", id="new-session")]
         ansi = app.theme.startswith("ansi-")
         listing = self.query_one(VirtualChannelList)
@@ -1119,11 +1118,10 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
         longest = width
         for view in snapshot.wire.channels:
             channel = view.channel.name
-            kind = "irc" if view.channel.aggregate else "channel"
             key = f"channel:{channel}"
-            choices[key] = VirtualChoice(kind, channel, channel)
+            choices[key] = TargetChoice(channel_target(channel), channel)
             unread = snapshot.wire.channel_unread.get(channel, 0)
-            prefix = "▾" if self.navigation.expanded.get(channel, kind == "irc") else "▸"
+            prefix = "▾" if self.navigation.expanded.get(channel, channel_target(channel).expanded_by_default) else "▸"
             name = f"{'* ' if view.channel.pinned else ''}{channel}"
             right = f"{'(' + str(unread) + ') ' if unread else ''}{view.channel.order.label} ▾"
             left = f"{prefix} {name}"
@@ -1143,12 +1141,9 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
                 if person is None:
                     continue
                 mode = modes.get(member)
-                member_kind = "session" if mode else self._person_kind(person)
                 choice_id = f"member:{channel}:{member}"
-                choices[choice_id] = VirtualChoice(member_kind, member, channel, mode)
-                badge = (UnreadPresentation.for_thread(snapshot.wire, member)
-                         if self._person_kind(person) == "thread"
-                         else ExactUnread(snapshot.wire.unread.get(member, 0)))
+                choices[choice_id] = TargetChoice(person_target(person), channel, mode)
+                badge = person_target(person).unread(snapshot.wire)
                 label = person.presentation.label
                 action_status = app.pending_thread_actions.get(member)
                 summary = " ".join((action_status or person.presentation.summary).splitlines())
@@ -1187,11 +1182,7 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
             self._rebuild_virtual(self._last_snapshot)
 
     def _virtual_context_menu(self, choice: VirtualChoice, offset) -> None:
-        if choice.kind in {"irc", "channel"}:
-            self._show_channel_menu(choice.channel, offset)
-        elif choice.kind != "new-session":
-            self._show_thread_menu(choice.target, offset, mode_name=choice.mode,
-                                    channel=choice.channel)
+        choice.show_menu(self, offset)
 
     @on(OptionList.OptionSelected)
     async def on_virtual_option_selected(self, event: OptionList.OptionSelected) -> None:
@@ -1201,26 +1192,14 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
         choice = self._virtual_targets.get(event.option_id or "")
         if choice is None:
             return
-        if choice.kind == "new-session":
-            self.app.post_message(messages.SessionCreate(self.screen.id or self.app.current_mode))
-            return
-        self.navigation.selected = SidebarSelection(choice.channel, choice.target)
-        self.selected = choice.target
-        self.apply_selection(force=True)
-        if choice.mode is not None:
-            self.app.switch_mode(choice.mode)
-        else:
-            if isinstance(self.screen, NavigationOwner):
-                await self.screen.open_sidebar_target(choice.target, choice.kind)
-            else:
-                self.post_message(SelectTarget(choice.target, choice.kind))
+        await choice.activate(self)
 
     async def _update_channel_group(self, row: CommsRow, view: ChannelView,
                                snapshot: SidebarSnapshot) -> None:
         if row.is_attached:
             row.tooltip = f"{len(view.members)} threads · tags: {', '.join(sorted(view.channel.tags)) or 'all'}"
             group = row.query_ancestor(ChannelGroup)
-            expanded = self.navigation.expanded.get(row.target_name, row.kind == "irc")
+            expanded = self.navigation.expanded.get(row.target_name, row.target.expanded_by_default)
             if group.expanded != expanded:
                 group.expanded = expanded
                 # The glyph has fixed dimensions. Mounting/removing members
@@ -1278,14 +1257,14 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
             current_mode = cast("ToadApp", self.app).current_mode
             listing = self.query_one(VirtualChannelList)
             selected_id = next((key for key, choice in self._virtual_targets.items()
-                                if choice.mode == current_mode and choice.channel == ALL_COMMS_TARGET), None)
+                                if choice.represents_mode(current_mode, ALL_COMMS_TARGET)), None)
             if selected_id is None:
                 if not self.navigation.expanded.get(ALL_COMMS_TARGET, True):
                     self.navigation.expanded[ALL_COMMS_TARGET] = True
                     if self._last_snapshot is not None:
                         self._rebuild_virtual(self._last_snapshot)
                 selected_id = next((key for key, choice in self._virtual_targets.items()
-                                    if choice.mode == current_mode), None)
+                                    if choice.represents_mode(current_mode)), None)
             selected_id = selected_id or f"channel:{ALL_COMMS_TARGET}"
             if selected_id in self._virtual_targets:
                 listing.highlighted = listing.get_option_index(selected_id)
@@ -1297,7 +1276,7 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
             return
         current_mode = cast("ToadApp", self.app).current_mode
         if not any(row.mode_name == current_mode for row in self.session_rows):
-            aggregate = self._row_map.get(("irc", ALL_COMMS_TARGET))
+            aggregate = self._row_map.get(ALL_COMMS_TARGET)
             if aggregate is not None:
                 group = aggregate.query_ancestor(ChannelGroup)
                 if not group.expanded:
@@ -1326,22 +1305,7 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
             node = node.parent
         if row is None:
             return
-        if isinstance(row, ThreadRow):
-            if row.mode_name is None:
-                self._select(row)
-            self._show_thread_menu(
-                row.target_name, event.screen_offset, mode_name=row.mode_name,
-                channel=row.query_ancestor(ChannelGroup).row.target_name,
-            )
-            return
-        self._select(row)
-        if row.kind in {"dm", "thread", "session"}:
-            self._show_thread_menu(
-                row.target_name, event.screen_offset,
-                channel=row.query_ancestor(ChannelGroup).row.target_name,
-            )
-        elif row.kind in {"channel", "irc"}:
-            self._show_channel_menu(row.target_name, event.screen_offset)
+        row.show_menu(self, event.screen_offset)
 
     def _select(self, row: CommsRow) -> None:
         row.focus()
@@ -1350,147 +1314,38 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
         self, name: str, menu_offset, *, mode_name: str | None = None,
         channel: str | None = None,
     ) -> None:
-        from toad.widgets.comms_menu import show_thread_menu
-
-        def post(action: str) -> None:
-            self.post_message(self.ThreadAction(name, action))
-
-        declared_actions = context_tool_catalog("thread")
-        person = (self._last_snapshot or self._snapshot()).all_people.get(name)
-        if person is not None:
-            declared_actions = [
-                item for item in declared_actions
-                if person.status.allows_control(item["name"], owner_pid=person.thread.pid)
-            ]
-        actions: dict[str, Callable[[], None]] = {
-            str(declaration["name"]): partial(post, str(declaration["name"]))
-            for declaration in declared_actions
-        }
-        actions["copy"] = lambda: post("copy")
-        if mode_name is not None:
-            actions["close_view"] = lambda: self.app.post_message(
-                messages.SessionArchive(mode_name)
-            )
-
-        items = [
-            (str(declaration["name"]), str(declaration["action_label"]))
-            for declaration in declared_actions
-        ] + [("copy", "Copy name")]
-        if channel is not None:
-            snapshot = self._last_snapshot or self._snapshot()
-            view = next(view for view in snapshot.wire.channels if view.channel.name == channel)
-            pinned = name in view.pinned_members
-            items.insert(0, ("pin", "Unpin from this channel" if pinned else "Pin in this channel"))
-            actions["pin"] = partial(self._set_pin, channel, not pinned, thread=name)
-        if mode_name is not None:
-            items.append(("close_view", "Close view"))
-
-        show_thread_menu(
-            self.app.screen,
-            menu_offset,
-            name,
-            items,
-            actions,
-        )
+        from toad.target_commands import ThreadContext
+        self._show_target_commands(ThreadContext(self.app, self._wire, name,
+            self.session_thread, self.app.project_dir, mode_name, channel), menu_offset)
 
     def _show_channel_menu(self, name: str, menu_offset) -> None:
-        from toad.widgets.comms_menu import show_channel_menu
+        from toad.target_commands import ChannelContext
+        self._show_target_commands(ChannelContext(self.app, self._wire, name,
+            self.session_thread, self.app.project_dir), menu_offset)
 
-        def post(action: str) -> None:
-            self.post_message(self.ThreadAction(name, action))
+    def _show_target_commands(self, ctx, menu_offset) -> None:
+        from toad.target_commands import target_commands
+        from toad.widgets.comms_menu import show_target_menu
+        choices = target_commands(ctx)
 
-        acknowledge = next(
-            declaration
-            for declaration in context_tool_catalog("thread")
-            if declaration["name"] == "comms_ack"
-        )
-        channel = self._wire.channels.catalog.read().resolve(name)
-        actions = {
-            "pin": partial(self._set_pin, name, not channel.pinned),
-            "comms_ack": lambda: post("comms_ack"),
-            "copy": lambda: post("copy"),
-        }
-        any_mode_label = None
-        if channel.exact:
-            actions["any_mode"] = partial(
-                self._set_any_mode, name, not channel.any_mode
-            )
-            any_mode_label = (
-                "Show channel only" if channel.any_mode else "Show member activity"
-            )
-        show_channel_menu(
-            self.app.screen,
-            menu_offset,
-            name,
-            actions,
-            acknowledge_label=str(acknowledge["action_label"]),
-            pin_label="Unpin channel" if channel.pinned else "Pin channel",
-            any_mode_label=any_mode_label,
-        )
+        def execute(command) -> None:
+            try:
+                ctx.current()
+                if not command.available(ctx):
+                    raise ValueError("Action is no longer available for this target")
+                command.execute(ctx)
+                self._refresh()
+            except (OSError, ValueError) as error:
+                self.notify(str(error), title="Target action", severity="error")
 
-    def _set_any_mode(self, channel: str, enabled: bool) -> None:
-        from toad.comms_root import implicit_root, run_selected_write
-
-        try:
-            run_selected_write(
-                self._wire.root, self._wire.channels.set_channel_any_mode,
-                channel, enabled, implicit=implicit_root(),
-            )
-        except (OSError, ValueError) as error:
-            self.notify(str(error), title="Channel activity", severity="error")
-        self._refresh()
-
-    def _set_pin(self, channel: str, pinned: bool, *, thread: str | None = None) -> None:
-        from toad.comms_root import implicit_root, run_selected_write
-
-        try:
-            if thread is None:
-                run_selected_write(
-                    self._wire.root, self._wire.channels.set_channel_pinned,
-                    channel, pinned, implicit=implicit_root(),
-                )
-            else:
-                run_selected_write(
-                    self._wire.root, self._wire.channels.set_thread_pinned,
-                    channel, thread, pinned, implicit=implicit_root(),
-                )
-        except (OSError, ValueError) as error:
-            self.notify(str(error), title="Pin action", severity="error")
-        self._refresh()
+        show_target_menu(self.app.screen, menu_offset, ctx.subject,
+            [(command.command.removeprefix("/"), command.label(ctx)) for command in choices],
+            {command.command.removeprefix("/"): partial(execute, command) for command in choices})
 
     def _show_view_menu(self, mode_name: str, menu_offset) -> None:
-        from toad.widgets.comms_menu import show_view_menu
-
+        from toad.target_commands import ViewContext
         details = cast("ToadApp", self.app).session_tracker.get_session(mode_name)
         if details is None:
             return
-        show_view_menu(
-            self.app.screen,
-            menu_offset,
-            details.title or "Session view",
-            lambda: self.app.post_message(messages.SessionArchive(mode_name)),
-        )
-
-    # ─── Actions ──────────────────────────────────────────────────────────────
-
-    @on(ThreadAction)
-    def _do_thread_action(self, event: ThreadAction) -> None:
-        if event.action == "comms_fork":
-            return  # The owning screen collects the fork specification.
-        event.stop()
-        name = event.name
-        session_modes = [
-            mode
-            for mode, thread in (self._last_snapshot.session_threads if self._last_snapshot else {}).items()
-            if thread == name
-        ]
-        try:
-            if event.action == "copy":
-                self.app.copy_to_clipboard(name)
-            else:
-                cast("ToadApp", self.app).invoke_thread_action(
-                    event.action, name, self.session_thread, tuple(session_modes)
-                )
-        except Exception as error:
-            self.notify(str(error), title="Session action", severity="error")
-        self._refresh()
+        self._show_target_commands(ViewContext(self.app, self._wire, details.title or "Session view",
+            self.session_thread, self.app.project_dir, mode_name), menu_offset)

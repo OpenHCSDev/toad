@@ -26,6 +26,9 @@ async def main():
         comms = wire(root/'wire')
         for name, tags in ((root.name, set()), ('api-agent', {'api'}), ('ui-agent', {'ui'})):
             comms.threads.register(Thread(name, frozenset(tags), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
+        rows = [comms.messaging.send_message('api-agent', target, body)
+                for target, body in (('#engineering', 'original union message'),
+                    ('#api', 'current exact message'), ('#engineering', 'another original message'))]
         comms.channels.catalog.replace(CatalogDocument(
             tags=frozenset({'api', 'ui'}),
             preferences={'#engineering': ChannelPreferences(pinned=True, created_at=17)},
@@ -33,10 +36,6 @@ async def main():
                 ViewPredicate(AnyOfMatch, frozenset({'api','ui'})), 17,
                 frozenset({'#engineering'}))},
         ))
-        rows = [Message('api-agent', target, body, MessageType.INFO, timestamp=i, seq=i)
-                for i,(target,body) in enumerate((('#engineering','original union message'),
-                    ('#api','current exact message'),('#engineering','another original message')),1)]
-        comms.bus.log.path.write_text(''.join(json.dumps(m.to_wire())+'\n' for m in rows))
         original = comms.bus.log.path.read_bytes()
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(110,35)) as pilot:

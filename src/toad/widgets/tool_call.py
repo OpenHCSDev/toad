@@ -1,3 +1,5 @@
+
+from toad.widgets.message_filter import ToolCategory
 import asyncio
 from copy import deepcopy
 from dataclasses import dataclass
@@ -32,6 +34,7 @@ if TYPE_CHECKING:
     from textual.screen import Screen
     from textual.worker import Worker
     from toad.widgets.patch_diff import PreparedPatch
+
 
 
 class TextContent(Static):
@@ -101,8 +104,8 @@ class ToolCallDiff(containers.VerticalGroup):
             indicator.styles.height = 1
             yield indicator
         elif prepared.patch is None:
-            assert prepared.fallback is not None
-            highlighted = Content.from_rich_text(prepared.fallback)
+            assert prepared.plain_text is not None
+            highlighted = Content.from_rich_text(prepared.plain_text)
             yield TextContent(Content(self.patch, list(highlighted.spans)))
         else:
             mode = self.app.settings.diff.view
@@ -219,8 +222,8 @@ class ToolCall(SnapshotPresentation, CategorizedBlock, containers.VerticalGroup)
     DEFAULT_CLASSES = "block"
 
     @property
-    def message_category(self) -> MessageCategory:
-        return MessageCategory.TOOL
+    def message_category(self) -> type[MessageCategory]:
+        return ToolCategory
 
     app = getters.app(ToadApp)
     has_content: var[bool] = var(False, toggle_class="-has-content")

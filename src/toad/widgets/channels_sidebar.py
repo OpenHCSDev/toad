@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, cast
 
 from toad.widgets.comms_sidebar import CommsSidebar
 from toad.widgets.session_sort import ChannelListSort
-from toad.widgets.side_bar import SideBar
+from toad.widgets.side_bar import SideBar, CommsSideBar
 from textual.widget import Widget
 from textual.screen import Screen
 
@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from toad.app import ToadApp
 
 
-class ChannelsSidebar(SideBar):
+class ChannelsSidebar(CommsSideBar):
     def __init__(self, session_thread: str = "", selected_target: str = "", *,
                  observe: bool = True, defer_mount: bool = False) -> None:
         self.roster = CommsSidebar(

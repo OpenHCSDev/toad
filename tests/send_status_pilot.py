@@ -6,8 +6,33 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
+from agent_comms.acp_extension import (
+    AvailableQueueProjection,
+    InputStartedUpdate,
+    QueueChangedUpdate,
+    QueueItem,
+    QueueScope,
+    encode_updates,
+)
+from agent_comms.thread_identity import OwnerIdentity, ThreadIncarnation
 from runtime_fixture import ToadApp
-from queue_view_pilot import AGENT, F, update
+
+AGENT = {
+    "name": "Queue",
+    "identity": "queue",
+    "run_command": {"*": "true"},
+    "protocol": "acp",
+}
+
+
+def update(fact):
+    return {
+        "sessionUpdate": "agent_message_chunk",
+        "content": {"type": "text", "text": ""},
+        "_meta": encode_updates(fact),
+    }
+
+
 from toad.acp.agent import Agent
 from toad.widgets.prompt import QueueSummary, SendNow
 from toad.widgets.user_input import UserInput
@@ -62,10 +87,15 @@ async def main():
                         not in view.query_one(QueueSummary).render().plain
                     )
 
-            binding = F["trustedLoad"]
-            token = agent._queue_view.begin("beta")
-            agent._queue_view.bind(
-                binding["queueBinding"], binding["queueState"], "beta", token
+            scope = QueueScope(
+                "beta", OwnerIdentity(ThreadIncarnation("beta", 1.0), 1), 123
+            )
+            items = (QueueItem("a" * 32, "same text"), QueueItem("b" * 32, "same text"))
+            token = agent.queue_attachment.begin("beta")
+            agent.queue_attachment.bind(
+                QueueChangedUpdate(scope, 1, AvailableQueueProjection(items)),
+                "beta",
+                token,
             )
             agent._post_queue_view()
             view.turn = "agent"
@@ -100,7 +130,13 @@ async def main():
                     assert len(view.queue_projection.items) == 2
                     submit.assert_not_called()
             agent.rpc_session_update(
-                "beta", update({"inputStarted": F["updates"][0]["value"]})
+                "beta", update(InputStartedUpdate("a" * 32, "same text", scope, 2))
+            )
+            agent.rpc_session_update(
+                "beta",
+                update(
+                    QueueChangedUpdate(scope, 3, AvailableQueueProjection((items[1],)))
+                ),
             )
             await pilot.pause()
             assert not view.sending_queued_prompt
@@ -109,7 +145,12 @@ async def main():
             view.prompt.text = "my unsent draft"
             for _ in range(2):
                 agent.rpc_session_update(
-                    "beta", update({"queueState": F["updates"][3]["value"]})
+                    "beta",
+                    update(
+                        QueueChangedUpdate(
+                            scope, 4, AvailableQueueProjection((), (items[1],))
+                        )
+                    ),
                 )
                 await pilot.pause()
             assert view.prompt.text == "my unsent draft"

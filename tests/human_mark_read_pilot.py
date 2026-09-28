@@ -1,5 +1,6 @@
 """The TUI menu clears human badges without advancing executor inbox cursors."""
 
+from toad.thread_actions import AcknowledgeAction
 import asyncio
 import json
 import os
@@ -19,7 +20,7 @@ async def click_ack(app, pilot, row):
     await pilot.click(row, button=3)
     await pilot.pause()
     await pilot.click(next(item for item in app.screen.query(ContextMenuItem)
-                           if item.action == "comms_ack"))
+                           if item.action == AcknowledgeAction.declared_name))
 
 
 async def until(predicate, pilot):

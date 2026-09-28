@@ -1,5 +1,7 @@
 """Full-width timed headers stay inside text blocks across native and wire views."""
 
+from toad.navigation_target import channel_target
+
 import asyncio
 import os
 import tempfile
@@ -11,7 +13,7 @@ from agent_comms.threads import Thread
 from agent_comms.comms import wire
 from runtime_fixture import ToadApp
 
-from toad.widgets.agent_response import AgentResponse
+from toad.widgets.agent_response import AgentResponse, ResponseDelivery
 from toad.widgets.agent_thought import AgentThought
 from toad.widgets.comms_chat import CommsChatView, session_thread_name
 from toad.widgets.incoming_message import IncomingMessage
@@ -53,7 +55,7 @@ async def main() -> None:
             assert not thought.query(MessageDivider)
             assert not tool.query(MessageDivider)
             routed = await native.post(AgentResponse(
-                "routed answer", route=MessageRoute(me, ("#all",)),
+                "routed answer", delivery=ResponseDelivery.from_route(MessageRoute(me, ("#all",))),
             ))
             await pilot.pause()
             assert "Outbound" in routed.query_one(MessageDivider).render().plain
@@ -81,7 +83,7 @@ async def main() -> None:
 
             await app.open_comms_session(owner_mode=owner, project_path=root,
                                          me=app._main_session_screen(owner)._comms_thread,
-                                         target="#all", kind="channel")
+                                         target=channel_target("#all"))
             chat = app.screen.query_one(CommsChatView)
             async with asyncio.timeout(5):
                 while not any(message.seq == sent.seq for message, _ in chat._history):

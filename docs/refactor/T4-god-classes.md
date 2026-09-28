@@ -67,3 +67,7 @@ direction wording. Remove the remaining TL0 marker vocabulary while closing
 these files; preserve clipboard and pending-thread behavior. The `getattr`
 shape probes remain assigned to T4 by TL0's original plan. TL0A has removed
 Conversation's `in_out_only` and migrated all retained filtering callers.
+
+## TR0 class-size closure (2026-09-28)
+
+Comms PR268 adds the required independent class-size measure to the existing installed ratchet. Paired Toad117 pins that implementation and passes it against current main. Unique qualified-name moves retain their baseline; new owners report no baseline until their first merge. Existing classes cannot offset their growth with another class shrinking. This closes the immediate TR0 guard requirement; the remaining T4 decomposition is still assigned in its existing order.

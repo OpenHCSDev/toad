@@ -1,6 +1,6 @@
 import asyncio
-import re
 import os
+import re
 from collections import OrderedDict
 from pathlib import Path
 from threading import local
@@ -10,18 +10,16 @@ from urllib.parse import quote, unquote, urlsplit
 from markdown_it import MarkdownIt
 from markdown_it.rules_core import StateCore
 from markdown_it.token import Token
-from textual.widgets import Markdown
 from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
+from textual.layout import WidgetPlacement
+from textual.widgets import Markdown
 from textual.widgets._markdown import MarkdownBlock
 
-
-from toad.menus import MenuItem
 from toad.layout import trim_trailing_margin
-from textual.layout import WidgetPlacement
+from toad.menus import MenuItem
 
 
 class ConversationCodeFence(Markdown.BLOCKS["fence"]):
-
     def get_block_menu(self) -> Iterable[MenuItem]:
         yield from ()
 
@@ -224,12 +222,12 @@ class ConversationMarkdown(Markdown):
         super().__init__(*args, **kwargs)
 
     def _make_parser(self) -> _ThreadLocalPathParser:
-        project = Path(getattr(self.screen, "project_path", Path.cwd()))
+        project = Path(self.screen.project_path)
         return _ThreadLocalPathParser(project.resolve())
 
     async def on_markdown_link_clicked(self, event: Markdown.LinkClicked) -> None:
         screen = self.screen
-        root = Path(getattr(screen, "project_path", Path.cwd())).resolve()
+        root = Path(screen.project_path).resolve()
         if event.href.startswith("toad-file:"):
             path = Path(unquote(event.href.removeprefix("toad-file:")))
         elif event.href.startswith("toad-file-search:"):

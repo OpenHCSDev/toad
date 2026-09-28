@@ -33,6 +33,51 @@ class ViewportBody:
         raise NotImplementedError
 
 
+class ViewportPresentation:
+    """Own the selected screen's window membership and paint preparation."""
+
+    def __init__(self, screen):
+        self._screen = ref(screen)
+        self.windows = WeakSet()
+        self.anchors = set()
+
+    @property
+    def screen(self):
+        screen = self._screen()
+        if screen is None:
+            raise ReferenceError("The viewport presentation has been retired")
+        return screen
+
+    def request(self) -> None:
+        for window in self.windows:
+            window.document_viewport.request()
+
+    def suspend(self) -> None:
+        for window in self.windows:
+            window.retire_presentation_wait()
+            window.document_viewport.request()
+        for window in self.anchors:
+            window.retire_presentation_wait()
+
+    def prepare(self, wait_for_bodies: bool) -> bool:
+        screen = self.screen
+        if not screen.is_current:
+            return True
+        if wait_for_bodies:
+            for window in self.windows:
+                if not window.document_viewport.visible_bodies_ready:
+                    window.document_viewport.request()
+                    screen._repaint_required = True
+                    return False
+        changed = False
+        for window in self.windows:
+            changed |= window.check_follow()
+        if changed:
+            screen._refresh_layout(scroll=True)
+            return False
+        return True
+
+
 class DocumentViewport:
     """One bounded warm working set for a history window, not one per message."""
 
@@ -50,7 +95,7 @@ class DocumentViewport:
         self._running = False
         window.watch(window, "scroll_y", self.request, init=False)
         window.screen.screen_layout_refresh_signal.subscribe(window, self.request)
-        window.screen.body_windows.add(window)
+        window.screen.viewport_presentation.windows.add(window)
 
     @property
     def window(self):

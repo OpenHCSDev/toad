@@ -8,7 +8,27 @@ from textual.app import App, ComposeResult
 
 from toad.widgets.comms_sidebar import SelectTarget
 from toad.widgets.irc_message import IRCMessage, IRCMessageText
-from thread_controls_pilot import click_target
+
+
+async def click_target(app, pilot, target):
+    """Click the rendered routing span, including when the header wraps."""
+    for row in app.screen.query(IRCMessage):
+        if target not in {row.message.sender, row.message.target}:
+            continue
+        row.scroll_visible(animate=False)
+        await pilot.pause()
+        text = row.query_one(IRCMessageText)
+        for y in range(text.size.height):
+            x = 0
+            for segment in text.render_line(y):
+                if segment.style and segment.style.meta.get("@click") == (
+                    "open_target",
+                    (target,),
+                ):
+                    assert await pilot.click(text, offset=(x, y))
+                    return
+                x += segment.cell_length
+    raise AssertionError(f"No clickable routing span for {target}")
 
 
 class WrapApp(App):
@@ -30,7 +50,7 @@ class WrapApp(App):
     @on(SelectTarget)
     def selected(self, event: SelectTarget):
         event.stop()
-        self.opened.append((event.target, event.kind))
+        self.opened.append((event.target.name, event.target.declared_name))
 
 
 async def main():

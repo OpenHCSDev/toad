@@ -1,5 +1,7 @@
 """Complete a thread mention while preserving shared-channel delivery and the draft."""
 
+from toad.navigation_target import channel_target
+
 import asyncio
 import os
 import tempfile
@@ -28,7 +30,7 @@ async def main():
             await pilot.pause()
             owner = app.current_mode
             mode = await app.open_comms_session(
-                owner_mode=owner, project_path=root, me="alpha", target="#team", kind="channel",
+                owner_mode=owner, project_path=root, me="alpha", target=channel_target("#team"),
             )
             await pilot.pause()
             chat = app.screen.query_one(CommsChatView)

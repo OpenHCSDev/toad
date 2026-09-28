@@ -1,5 +1,7 @@
 """Visited-tab Back/Forward controls and the native tab-strip scrollbar."""
 
+from toad.navigation_target import channel_target
+
 import asyncio
 import os
 import tempfile
@@ -74,7 +76,7 @@ async def main():
             assert controls.display
 
             channel = await app.open_comms_session(
-                owner_mode=first, project_path=root, me="owner", target="#all", kind="channel")
+                owner_mode=first, project_path=root, me="owner", target=channel_target("#all"))
             await pilot.pause()
             assert app.current_mode == channel
             assert app.screen.query_one(SessionsTabs).display

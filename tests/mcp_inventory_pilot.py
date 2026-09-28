@@ -65,7 +65,7 @@ async def main() -> None:
         encoded = json.dumps(valid).encode()
         inventory = parse_inventory(encoded, root)
         assert inventory.project_trusted_saved is False
-        assert inventory.user[0].status == "trust_required"
+        assert inventory.user[0].status.declared_name == "trust_required"
         assert inventory.user[0].digest == DIGEST
         display = render_inventory(inventory)
         assert "not live" in display and "next Pi turn" in display
@@ -88,7 +88,7 @@ async def main() -> None:
         )
         trusted["declarations"]["project"] = [project]
         shadowed = parse_inventory(json.dumps(trusted).encode(), root)
-        assert shadowed.user[0].status == "shadowed"
+        assert shadowed.user[0].status.declared_name == "shadowed"
         assert shadowed.project[0].call_policy == "ask"
         assert "do-not-leak" not in render_inventory(shadowed)
 

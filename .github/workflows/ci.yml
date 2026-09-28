@@ -1,0 +1,73 @@
+name: Local-equivalent verification (manual while CI is deferred)
+on:
+  workflow_dispatch:
+    inputs:
+      base:
+        required: true
+        type: string
+      head:
+        required: true
+        type: string
+      stock_pi_version:
+        description: Stock Pi version accepted by the pinned core native builder
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  ratchet:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.head }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+      - run: python -m pip install uv==0.12.0
+      - run: uv sync --locked --all-extras --no-editable
+      - name: Compare production source and run guards
+        env:
+          PR_BASE: ${{ inputs.base }}
+          PR_HEAD: ${{ inputs.head }}
+        run: |
+          .venv/bin/agent-comms-ratchet --root src/toad --base "$PR_BASE" --head "$PR_HEAD"
+          .venv/bin/pytest tests/guards
+  suite:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.head }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+      - run: python -m pip install uv==0.12.0
+      - run: uv sync --locked --all-extras --no-editable
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Prepare native package through its pinned core owner
+        env:
+          STOCK_PI_VERSION: ${{ inputs.stock_pi_version }}
+        run: |
+          python - <<'PYCORE'
+          import pathlib, subprocess, tomllib
+          source = tomllib.loads(pathlib.Path('pyproject.toml').read_text())['tool']['uv']['sources']['agent-comms']
+          subprocess.run(['git', 'clone', '--filter=blob:none', '--no-checkout', source['git'], '.artifacts/core'], check=True)
+          subprocess.run(['git', '-C', '.artifacts/core', 'checkout', '--detach', source['rev']], check=True)
+          PYCORE
+          npm install --prefix .artifacts/pi-stock --install-strategy=nested "@earendil-works/pi-coding-agent@$STOCK_PI_VERSION"
+          export PI_STOCK_DIR="$PWD/.artifacts/pi-stock/node_modules/@earendil-works/pi-coding-agent"
+          .artifacts/core/stack/bin/prepare-pi-native
+          .venv/bin/python - <<'PYCORE'
+          import os
+          from pathlib import Path
+          from agent_comms.native_package import verify_native_package
+          package, = Path('.artifacts/core/stack').glob('.pi-native-*/node_modules/@earendil-works/pi-coding-agent')
+          verify_native_package(package.resolve())
+          with open(os.environ['GITHUB_ENV'], 'a') as env:
+              env.write(f'AC_NATIVE_COPIED_PACKAGE={package.resolve()}\n')
+          PYCORE
+      - run: .venv/bin/pytest -n 2 --basetemp .artifacts/pilots

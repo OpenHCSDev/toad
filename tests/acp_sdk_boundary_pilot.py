@@ -6,6 +6,7 @@ import tempfile
 from pathlib import Path
 
 from pydantic import ValidationError
+from agent_comms.acp_extension import TextRouteUpdate, encode_updates
 from runtime_fixture import ToadApp
 
 from toad.acp.agent import Agent
@@ -17,7 +18,7 @@ from toad.widgets.note import Note
 def verify_valid_updates_preserve_identity() -> None:
     updates = [
         {"sessionUpdate": "agent_message_chunk", "content": {"type": "text", "text": "hi",
-            "displayExtension": "keep"}, "_meta": {"agentComms": {"route": {"from": "a"}}}},
+            "displayExtension": "keep"}, "_meta": encode_updates(TextRouteUpdate(None))},
         {"sessionUpdate": "tool_call", "toolCallId": "t1", "title": "Inspect",
             "customToolField": {"nested": [1, 2]}},
         {"sessionUpdate": "tool_call_update", "toolCallId": "t1", "status": "completed"},

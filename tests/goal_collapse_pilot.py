@@ -1,5 +1,7 @@
 """Goal collapse is local presentation; history and owner updates remain usable."""
 
+from toad.goal_display import GoalDisplay, GoalUnavailable
+
 import asyncio
 import os
 import tempfile
@@ -29,7 +31,7 @@ async def main():
             await pilot.pause()
             view = app.screen.conversation
             goal = Goal("OBJECTIVE " * 150, "goal", progress="PROGRESS", revision=29)
-            view.goal = goal
+            view.goal_display = GoalDisplay.current(goal)
             view.prompt.text = "Keep this draft"
             await pilot.pause()
             bar = view.query_one(GoalBar)
@@ -49,10 +51,10 @@ async def main():
             assert not bar.query_one(".goal-execution-row").display
             assert bar.query_one_optional(".goal-scroll-hint") is None
             assert bar.region.height == 2, bar.region  # One row plus its separator.
-            assert view.goal == goal and view.prompt.text == "Keep this draft"
+            assert view.goal_display.snapshot == goal and view.prompt.text == "Keep this draft"
 
             # Owner refreshes update the compact header without expanding it.
-            view.goal = replace(goal, revision=30, progress="UPDATED_PROGRESS")
+            view.goal_display = GoalDisplay.current(replace(goal, revision=30, progress="UPDATED_PROGRESS"))
             await pilot.pause()
             assert bar.collapsed and "rev 30" in str(header.render())
             for width in (65, 58, 100):
@@ -85,10 +87,10 @@ async def main():
             assert bar.query_one(".goal-document").display
             assert bar.query_one(".goal-execution-row").display
             assert bar.query_one(StandbyPulse).active
-            assert view.goal.progress == "UPDATED_PROGRESS"
+            assert view.goal_display.snapshot.progress == "UPDATED_PROGRESS"
 
             # An owner outage disables mutations, not this presentation toggle.
-            view.goal_unavailable = True
+            view.goal_display = GoalUnavailable(view.goal_display.snapshot)
             await pilot.pause()
             assert not toggle.disabled and history.disabled
             assert await pilot.click(toggle)

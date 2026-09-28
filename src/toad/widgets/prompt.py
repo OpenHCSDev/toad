@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 import shlex
-from typing import TYPE_CHECKING, Callable, Literal, Self
+from typing import TYPE_CHECKING, Literal, Self
 
 from textual import on, work
 import asyncio
@@ -34,7 +34,7 @@ from toad.widgets.model_switcher import ModelSwitcher
 from toad.messages import UserInputSubmitted
 from toad.slash_command import SlashCommand
 from toad.path_complete import PathComplete
-from toad.queue_view import QueueProjection
+from agent_comms.acp_extension import QueueProjection, PendingQueueProjection
 from toad.widgets.selection import SelectionOptionList
 
 if TYPE_CHECKING:
@@ -116,7 +116,18 @@ class PromptContainer(containers.HorizontalGroup):
             prompt_text_area.focus()
 
 
-class PromptTextArea(HighlightedTextArea):
+class PromptSubmission:
+    """Admit model and local command submission through the current prompt."""
+
+    def action_submit(self) -> None:
+        # The callback is queued behind this widget's input events. Unlike a
+        # timer, it preserves paste/typing order without adding a fixed latency.
+        if not self._submit_pending:
+            self._submit_pending = True
+            self.call_later(self._submit)
+
+
+class PromptTextArea(PromptSubmission, HighlightedTextArea):
     HELP = """\
 ## Prompt
 
@@ -255,21 +266,6 @@ See on-screen instructions for details.
             self.suggestions = None
             self.suggestion = ""
 
-    def update_suggestion(self) -> None:
-        if self.simple_input:
-            self.suggestion = ""
-            return
-        prompt = self.query_ancestor(Prompt)
-
-        if self.selection.start == self.selection.end and self.text.startswith("/"):
-            return
-
-        if self.shell_mode and self.cursor_at_end_of_text and "\n" not in self.text:
-            if prompt.complete_callback is not None:
-                if completes := prompt.complete_callback(self.text):
-                    if self.text not in completes:
-                        self.suggestion = completes[-1]
-
     def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
         if action == "submit_now":
             return self.agent_ready and self.agent_busy and self.queue_supported
@@ -328,12 +324,6 @@ See on-screen instructions for details.
         except (OSError, ValueError, TimeoutError) as error:
             self.notify(str(error), title="Paste failed", severity="error")
 
-    def action_submit(self) -> None:
-        # The callback is queued behind this widget's input events. Unlike a
-        # timer, it preserves paste/typing order without adding a fixed latency.
-        if not self._submit_pending:
-            self._submit_pending = True
-            self.call_later(self._submit)
 
     def action_submit_now(self) -> None:
         self._submit_immediate = True
@@ -344,7 +334,11 @@ See on-screen instructions for details.
         immediate, self._submit_immediate = self._submit_immediate, False
         if not self.has_focus:
             return
-        if not self.agent_ready and not self.shell_mode:
+        local_command = any(
+            command.command == self.text.partition(" ")[0] and not command.requires_agent
+            for command in self.slash_commands
+        )
+        if not self.agent_ready and not self.shell_mode and not local_command:
             self.app.bell()
             self.post_message(
                 messages.Flash(
@@ -475,8 +469,6 @@ See on-screen instructions for details.
     async def watch_selection(
         self, previous_selection: Selection, selection: Selection
     ) -> None:
-        if self.simple_input:
-            return
         if previous_selection == selection:
             return
         if selection.start == selection.end:
@@ -505,7 +497,18 @@ See on-screen instructions for details.
                     return
 
 
-class Prompt(containers.VerticalGroup):
+class PromptCompletion:
+    """Refresh declared commands before opening completion."""
+
+    @on(InvokeSlashComplete)
+    def on_invoke_slash_complete(self, event: InvokeSlashComplete) -> None:
+        event.stop()
+        from toad.widgets.conversation import Conversation
+        self.query_ancestor(Conversation).update_slash_commands()
+        self.show_slash_complete = True
+
+
+class Prompt(PromptCompletion, containers.VerticalGroup):
 
     DEFAULT_CSS = """
     Prompt .queue-summary { display: none; height: auto; max-height: 3; color: $text-muted; }
@@ -555,7 +558,7 @@ class Prompt(containers.VerticalGroup):
     model_history_scope = var("")
     queue_supported = var(False)
     queued_prompts: var[list[str]] = var(list)
-    queue_projection: var[QueueProjection] = var(QueueProjection())
+    queue_projection: var[QueueProjection] = var(PendingQueueProjection())
     delivering_prompt = var("")
     sending_queued_prompt = var("")
     turn: var[str | None] = var(None)
@@ -571,13 +574,11 @@ class Prompt(containers.VerticalGroup):
         id: str | None = None,
         classes: str | None = None,
         disabled: bool = False,
-        complete_callback: Callable[[str], list[str]] | None = None,
         simple_input: bool = False,
         placeholder: str | None = None,
     ):
         super().__init__(name=name, id=id, classes=classes, disabled=disabled)
         self.ask_queue: list[Ask] = []
-        self.complete_callback = complete_callback
         self.simple_input = simple_input
         self.simple_placeholder = placeholder
 
@@ -838,7 +839,7 @@ class Prompt(containers.VerticalGroup):
         self.prompt_text_area.suggestion = ""
 
     def watch_show_slash_complete(self, show: bool) -> None:
-        if show and not self.simple_input:
+        if show:
             self.slash_complete.focus()
 
     def project_directory_updated(self) -> None:
@@ -876,11 +877,6 @@ class Prompt(containers.VerticalGroup):
             self.show_path_search = True
             self.path_search.reset()
 
-    @on(InvokeSlashComplete)
-    def on_invoke_slash_complete(self, event: InvokeSlashComplete) -> None:
-        event.stop()
-        if not self.simple_input:
-            self.show_slash_complete = True
 
     @on(messages.PromptSuggestion)
     def on_prompt_suggestion(self, event: messages.PromptSuggestion) -> None:
@@ -898,7 +894,7 @@ class Prompt(containers.VerticalGroup):
     @on(messages.Dismiss)
     def on_dismiss(self, event: messages.Dismiss) -> None:
         event.stop()
-        if self.show_slash_complete and not self.simple_input and event.widget is self.slash_complete:
+        if self.show_slash_complete and event.widget is self.slash_complete:
             self.show_slash_complete = False
             self.prompt_text_area.suggestion = ""
             self.focus()
@@ -938,9 +934,9 @@ class Prompt(containers.VerticalGroup):
             self.prompt_text_area.suggestion = suggestion[len(self.text) :]
 
     def compose(self) -> ComposeResult:
+        yield SlashComplete().data_bind(slash_commands=Prompt.slash_commands)
         if not self.simple_input:
             yield PathSearch(self.project_path).data_bind(root=Prompt.project_path)
-            yield SlashComplete().data_bind(slash_commands=Prompt.slash_commands)
             yield QueueSummary("", classes="queue-summary", markup=False)
             with containers.HorizontalGroup(classes="delivery-controls"):
                 yield Label("Enter queues · ")

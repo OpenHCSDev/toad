@@ -1,5 +1,7 @@
 """History paging must wait for refresh completion without callback churn."""
 
+from toad.navigation_target import channel_target
+
 import asyncio
 import json
 import os
@@ -38,7 +40,7 @@ async def main():
             await pilot.pause()
             owner = app.current_mode
             mode = await app.open_comms_session(owner_mode=owner, project_path=root,
-                                                me="edge-reader", target="#edge", kind="channel")
+                                                me="edge-reader", target=channel_target("#edge"))
             chat = app.screen.query_one(CommsChatView)
             await until(lambda: chat._history_initialized and not chat._refresh_lock.locked()
                         and not chat._edge_load_scheduled)
@@ -212,7 +214,7 @@ async def main():
             for index in range(12):
                 comms.messaging.send("edge-reader", "#short", f"Small {index}")
             await app.open_comms_session(owner_mode=owner, project_path=root,
-                                         me="edge-reader", target="#short", kind="channel")
+                                         me="edge-reader", target=channel_target("#short"))
             short = app.screen.query_one(CommsChatView)
             await until(lambda: len(short._history) == 12 and not short._edge_load_scheduled)
             assert not short._has_older and app._exception is None

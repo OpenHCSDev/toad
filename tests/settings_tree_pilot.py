@@ -60,7 +60,7 @@ class SettingsApp(ToadApp):
 
 
 async def main() -> None:
-    source = Path("/home/ts/.config/toad/toad.json")
+    source = Path(os.environ.get("TOAD_SETTINGS_SAMPLE", str(Path(__file__).with_name("fixtures") / "saved-settings.json")))
     original = source.read_bytes()
     raw = json.loads(original)
     current = ToadSettings(raw)

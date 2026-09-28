@@ -1,5 +1,8 @@
 """Stop waits off the UI loop, survives view closure, and reports failures."""
 
+from toad.navigation_target import DirectTarget, channel_target
+
+from toad.thread_actions import StopAction
 import asyncio
 import os
 import tempfile
@@ -51,9 +54,9 @@ async def main():
                 source = app.current_mode
                 other = (await app.new_session_screen(app.get_main_screen)).mode_name
                 dm = await app.open_comms_session(owner_mode=other, project_path=root,
-                    me="actor", target="victim", kind="dm")
+                    me="actor", target=DirectTarget("victim"))
                 channel = await app.open_comms_session(owner_mode=other, project_path=root,
-                    me="actor", target="#all", kind="channel")
+                    me="actor", target=channel_target("#all"))
                 await pilot.pause()
                 await app.switch_mode(source)
                 sidebar = app.screen.query_one(CommsSidebar)
@@ -68,7 +71,7 @@ async def main():
                 with patch.object(type(comms.owners), "stop", slow_stop), patch.object(app, "notify", notify):
                     await pilot.click(row, button=3)
                     await pilot.pause()
-                    stop = next(item for item in app.screen.query(ContextMenuItem) if item.action == "comms_stop")
+                    stop = next(item for item in app.screen.query(ContextMenuItem) if item.action == StopAction.declared_name)
                     await pilot.click(stop)
                     await until(started.is_set)
                     await pilot.pause()
@@ -82,9 +85,7 @@ async def main():
                     await pilot.pause()
                     await asyncio.wait_for(app.switch_mode(channel), 2)
                     await pilot.pause()
-                    app.screen.query_one(CommsSidebar).post_message(
-                        CommsSidebar.ThreadAction("victim", "comms_stop")
-                    )
+                    app.invoke_thread_action(StopAction(), "victim", "actor")
                     await pilot.pause()
                     assert stopped == ["victim"]
                     assert not release.is_set()
@@ -94,7 +95,7 @@ async def main():
                     await until(lambda: not app.pending_thread_actions)
                     assert comms.registry.status("victim").stopped
                     assert any("Stopped @victim" in message for message, _ in notices)
-                    app.invoke_thread_action("comms_stop", "refuses-stop", "actor")
+                    app.invoke_thread_action(StopAction(), "refuses-stop", "actor")
                     await until(lambda: not app.pending_thread_actions)
                     assert comms.registry.status("refuses-stop").active
                     assert any(message == "Refused test stop" and severity == "error"

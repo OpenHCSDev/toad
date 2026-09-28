@@ -1,5 +1,7 @@
 """Mounted regression: a Comms Back target belongs to the opening owner."""
 
+from toad.navigation_target import channel_target
+
 import asyncio
 import os
 import tempfile
@@ -36,8 +38,8 @@ async def main() -> None:
             owner_mode=first,
             project_path=root,
             me="owner-a",
-            target="#all",
-            kind="channel",
+            target=channel_target("#all"),
+
         )
         assert isinstance(app.screen, CommsScreen)
         assert (app.screen.owner_mode, app.screen.me) == (first, "owner-a")
@@ -47,8 +49,8 @@ async def main() -> None:
             owner_mode=second,
             project_path=root,
             me="owner-b",
-            target="#all",
-            kind="channel",
+            target=channel_target("#all"),
+
         )
         assert (
             view_a != view_b
@@ -67,8 +69,8 @@ async def main() -> None:
             owner_mode=second,
             project_path=root,
             me="owner-b",
-            target="#all",
-            kind="channel",
+            target=channel_target("#all"),
+
         )
         assert duplicate == view_b, (
             duplicate,
@@ -92,8 +94,8 @@ async def main() -> None:
                 owner_mode=first,
                 project_path=root,
                 me="owner-a",
-                target="#all",
-                kind="channel",
+                target=channel_target("#all"),
+
             )
             == view_a
         ), "A late old alias must resolve to the existing renamed view"
@@ -108,8 +110,8 @@ async def main() -> None:
                 owner_mode=first,
                 project_path=root,
                 me="owner-a",
-                target="#all",
-                kind="channel",
+                target=channel_target("#all"),
+
             )
             == active
         ), "A late action from a removed owner must not create a tab"
@@ -120,8 +122,8 @@ async def main() -> None:
             owner_mode=replacement,
             project_path=root,
             me="owner-renamed",
-            target="#all",
-            kind="channel",
+            target=channel_target("#all"),
+
         )
         assert view_reconnected not in (view_a, view_b)
         await app.screen.action_back_to_agent()

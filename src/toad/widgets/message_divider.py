@@ -58,10 +58,10 @@ class AgentActivityDivider(SnapshotPresentation, CategorizedBlock, MessageDivide
 
     ALLOW_SELECT = False
 
-    def __init__(self, category: MessageCategory) -> None:
+    def __init__(self, category: type[MessageCategory]) -> None:
         super().__init__("Agent")
         self._category = category
 
     @property
-    def message_category(self) -> MessageCategory:
+    def message_category(self) -> type[MessageCategory]:
         return self._category

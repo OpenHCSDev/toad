@@ -73,8 +73,8 @@ class LocalDecisionPTY:
             not row.effective
             or not row.enabled
             or not inventory.project_trusted_saved
-            or (action == "trust" and row.scope != "project")
-            or (action == "calls" and row.status != "approved")
+            or (action == "trust" and not row.scope.allows_trust_decision())
+            or (action == "calls" and not row.status.allows_call_decision())
         ):
             return "unsupported"
         try:
@@ -86,7 +86,7 @@ class LocalDecisionPTY:
             not controller_visible()
             or fresh is None
             or fresh != inventory
-            or row not in (fresh.project if row.scope == "project" else fresh.user)
+            or row not in row.scope.rows(fresh)
         ):
             return "stale_snapshot"
 
