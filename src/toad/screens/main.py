@@ -36,14 +36,10 @@ from toad.widgets.project_directory_tree import ProjectDirectoryTree
 from toad.widgets.project_panel import ProjectPanel, ProjectSearchButton
 from toad.widgets.recovery_view import RecoveryView
 from toad.widgets.thread_comms import RelationshipSort, ThreadCommsSidebar
-from toad.widgets.comms_chat import resolve_session_thread, session_thread_name
-from toad.widgets.comms_sidebar import CoordinationStatus, CommsSidebar, SelectTarget
 from toad.widgets.channels_sidebar import ChannelsSidebar
 from toad.widgets.side_bar import SideBar, ThreadSidebar, SideBarCollapsible, TabHistoryControls
-from toad.navigation_target import FeedTarget, DirectTarget, NavigationContext, NavigationOwner
+from toad.navigation_target import FeedTarget, DirectTarget
 from toad.widgets.session_tabs import SessionsTabs
-from toad.widgets.side_bar import SideBar, SideBarCollapsible, TabHistoryControls
-from toad.widgets.thread_comms import RelationshipSort, ThreadCommsSidebar
 from toad.widgets.throbber import Throbber
 
 

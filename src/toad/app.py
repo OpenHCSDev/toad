@@ -4,7 +4,6 @@ from toad.navigation_target import DirectTarget, NavigationTarget
 from toad.thread_actions import ThreadAction, ThreadActionContext
 import asyncio
 import ast
-import asyncio
 import json
 import os
 import platform
@@ -34,10 +33,7 @@ from textual.timer import Timer
 import toad
 from toad import atomic, messages, paths
 from toad.agent_schema import Agent as AgentData
-from toad import messages
 from toad.version import VersionMeta
-from toad import paths
-from toad import atomic
 from toad.render_backend import Renderer
 from toad.channel_preparation import ChannelHistoryReader
 from toad.conversation_kind import ConversationKind
@@ -45,11 +41,7 @@ from toad.navigation_preparation import (
     CommsNavigationRequest, NavigationReader, OpenThread, ThreadNavigationRequest,
 )
 from toad.db import DB
-from toad.navigation_preparation import (
-    CommsNavigationRequest, NavigationReader, OpenThread, ThreadNavigationRequest,
-)
 from toad.preferences import ToadSettings
-from toad.render_backend import Renderer
 from toad.session_tracker import (
     CommsViewKey,
     ExactUnread,
@@ -62,7 +54,6 @@ from toad.session_tracker import (
 )
 from toad.settings import PreferenceChange
 from toad.sidebar_layout import SidebarLayout
-from toad.version import VersionMeta
 
 if TYPE_CHECKING:
     from toad.db import DB
@@ -1139,11 +1130,8 @@ class ToadApp(App, inherit_bindings=False):
         selected = resolve_comms_route()
         selected_root = selected.observe_root()
         cached = self._coordination_wire
-        if (
-            cached is None
-            or cached.root.resolve() != selected_root
-            or self._coordination_route != selected
-        ):
+        if (cached is None or cached.root.resolve() != selected_root
+                or self._coordination_route != selected):
             service = wire()
             # Never associate a service from a concurrent route flip with the
             # earlier observation. The next access resolves the route afresh.

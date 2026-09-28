@@ -8,7 +8,6 @@ from toad.preferences import SidebarSettings, ShellSettings
 from asyncio import Future
 import asyncio
 import hashlib
-from asyncio import Future
 from contextlib import suppress
 from functools import partial
 from itertools import filterfalse
@@ -80,11 +79,8 @@ from toad.widgets.observed_thread_activity import ObservedThreadActivity
 from toad.widgets.session_details import SessionDetails
 from toad.private_native_cursor import CursorStatus
 from toad.protocol import BlockProtocol, ExpandProtocol, MenuProtocol
-from toad.settings import PreferenceChange
 from toad.shell import CurrentWorkingDirectoryChanged, Shell
 from toad.slash_command import SlashCommand
-from toad.widgets.flash import Flash
-from toad.widgets.goal_bar import GoalBar, GoalControl
 from toad.widgets.history_anchor import HistoryWindow
 from toad.widgets.input_delivery import (
     InputDeliveryBar,
@@ -93,18 +89,12 @@ from toad.widgets.input_delivery import (
 )
 from toad.widgets.user_input import UserInput
 from toad.widgets.agent_response import ResponseDelivery, UnroutedResponse
-from toad.widgets.history_anchor import HistoryWindow
 from toad.widgets.message_filter import all_categories, MessageCategory
 from toad.layout import trim_trailing_margin
-from toad.shell import Shell, CurrentWorkingDirectoryChanged
 from toad.command_catalog import CommandCatalog
-from toad.slash_command import AgentAdvertisedCommand, LocalCommand, SlashCommand
-from toad.protocol import BlockProtocol, MenuProtocol, ExpandProtocol
+from toad.slash_command import AgentAdvertisedCommand, LocalCommand
 from toad.menus import MenuItem
 from toad.widgets.shell_terminal import ShellTerminal
-from toad.widgets.terminal import Terminal
-from toad.widgets.throbber import Throbber
-from toad.widgets.user_input import UserInput
 
 AUTO_SESSION_TITLE_MAX_LENGTH = 50
 

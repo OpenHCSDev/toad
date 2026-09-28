@@ -16,17 +16,12 @@ from toad.widgets.irc_message import SelectHistoricalIdentity
 from toad.widgets.comms_sidebar import CoordinationStatus, CommsSidebar, SelectTarget
 from toad.widgets.channels_sidebar import ChannelsSlot, ChannelsSidebar
 from toad.session_tracker import SidebarState
-from toad.widgets.channels_sidebar import ChannelsSlot
-from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.comms_fork_dialog import ForkDialog
-from toad.widgets.comms_sidebar import CommsSidebar, CoordinationStatus, SelectTarget
 from toad.widgets.footer import Footer
-from toad.widgets.irc_message import SelectHistoricalIdentity
 from toad.widgets.recovery_view import RecoveryView
 from toad.widgets.session_tabs import SessionsTabs
 from toad.widgets.side_bar import SideBar, ThreadSidebar, TabHistoryControls
 from toad.navigation_target import FeedTarget, DirectTarget, NavigationContext, NavigationOwner
-from toad.widgets.recovery_view import RecoveryView
 from toad.widgets.thread_comms import RelationshipSort, ThreadCommsSidebar
 
 
