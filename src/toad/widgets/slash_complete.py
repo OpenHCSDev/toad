@@ -219,18 +219,3 @@ class SlashComplete(containers.VerticalGroup):
             self.post_message(self.Completed(option.id or ""))
 
 
-if __name__ == "__main__":
-    from textual.app import App, ComposeResult
-
-    COMMANDS = [
-        SlashCommand("/help", "Help with slash commands"),
-        SlashCommand("/foo", "This is FOO"),
-        SlashCommand("/bar", "This is BAR"),
-        SlashCommand("/baz", "This is BAZ"),
-    ]
-
-    class SlashApp(App):
-        def compose(self) -> ComposeResult:
-            yield SlashComplete(COMMANDS)
-
-    SlashApp().run()

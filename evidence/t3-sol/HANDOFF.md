@@ -1,36 +1,61 @@
-# T3 Sol takeover
+# T3 command and discovery closure
 
-Own checkout: /home/ts/wt/toad-t3-commands-sol-20260928.
-Recovered predecessor committed cccbe4a and all seven tracked modifications plus
-untracked src/toad/mcp_declarations.py from toad-t3-commands-20260928.
-Predecessor files are untouched. Recovery patch retained locally, not published.
-Existing PR120 branch reused; no competing PR.
+Own checkout: /home/ts/wt/toad-t3-commands-sol-20260928. Existing PR120 reused.
+Recovered predecessor cccbe4a, seven tracked modifications and untracked
+mcp_declarations.py; predecessor files untouched.
 
-MCP scope/status names and behavior now belong to shared DeclaredFamily members.
-The duplicate status roster and state comparisons in inventory, decisions and
-mounted screen are deleted. External version-2 package format remains exact.
-Inventory and action-modal buttons use Textual selector declarations; identifier
-switches and decision lookup map are removed. Core extension codec is untouched.
+Implemented:
+- SlashCommand reuses core Command/DeclaredFamily. Concrete commands own spelling,
+  help, typed argument parsing and behavior. Completion derives from members.
+- Deleted the maintained builtin roster, eleven-way Conversation dispatch, seven
+  self.agent capability probes and the hard-coded SlashComplete demo roster.
+- ACP advertised commands become typed instances at their external boundary.
+  Local declarations own display/execution on collisions; native commands still
+  pass to the established agent submission path.
+- ThreadCommand projects existing ThreadAction declarations without a second
+  registry or copied tool metadata. Contextual UI actions own copy/pin/close/
+  any-mode. Both pointer menus and slash suggestions derive from these owners.
+- Deleted sidebar action maps/mutations/message wrapper/handler and obsolete
+  thread/channel/view menu builders. Generic Textual menu lookup remains its
+  external input boundary. Exact open target is used, independent of sidebar
+  selection. Execution rechecks route/state; unavailable actions are consumed
+  visibly instead of becoming user messages. Channel member pin has an explicit
+  optional @member argument and validates membership.
+- DM/channel simple prompts now expose SlashComplete. Local commands can execute
+  before model readiness. Shell/path/model extras remain restricted to agent views.
+- MCP scope/status decode once into declarations. Deleted status roster and state
+  comparisons; MCP/action-modal buttons use Textual selector declarations.
 
-Evidence in this directory:
-- inventory-format.log: strict package DTO/redaction/trust/rejection pilot passed.
-- actions-guard.log: predecessor thread action deletion guard passed.
-- mcp-native-parent-current.log: mounted Textual inventory plus real installed
-  package approve/allow/ask/deny, stale-snapshot refusal and controller cancellation
-  passed; child processes reaped. No provider or MCP server was started.
-- earlier failure logs retained: initial runs selected older core source; entry-store
-  package has owner-read-only root and old helper requires mode700. Current native
-  package689ce paired with current integrated core passed. No live permissions changed.
+Actual evidence (provider-free, isolated owned stores):
+- commands-acp-mounted.log: fresh ACP SDK producer -> real JSON-RPC validation ->
+  mounted advertised completion; collision and forwarding; declaration insertion;
+  real agent/DM/channel prompt submission; pointer/slash labels and target parity;
+  archive, stale availability, channel/member pin and any-mode; history unchanged.
+- archive-family-current.log: new ThreadAction declaration archives via actual
+  mounted menu while retaining wire, goals, identity, transcript and saved session.
+- stop-current.log: responsive typing/navigation, duplicate suppression, surviving
+  view closure, and visible failure. Slow owner shutdown is intentionally injected
+  only for this timing/error behavior; this is not native backend readiness proof.
+- command-guards.log + actions-guard.log: retired rosters/dispatch/probes absent.
+- mcp-native-parent-current.log: real installed native689 MCP package approve/
+  allow/ask/deny, stale refusal/cancellation, mounted inventory, child cleanup pass.
+- inventory-format.log: external strict DTO/redaction/trust/rejection contract pass.
 
-Actual successful command:
-AC_NATIVE_COPIED_PACKAGE=/home/ts/.local/share/agent-comms/native-current-689ce4b5d0592b9a/node_modules/@earendil-works/pi-coding-agent
+Current test command:
 PYTHONPATH=src:/home/ts/wt/comms-acp-saved-session-startup-20260928/src
-TMPDIR=$PWD/.artifacts timeout60 runtime-peer-close-20260928/bin/python
- evidence/t1/run_consumer.py tests/mcp_decision_pty_pilot.py
+TMPDIR=$PWD/.artifacts timeout60
+/home/ts/.local/share/agent-comms/runtime-round2-final-20260928/bin/python
+ evidence/t1/run_consumer.py tests/command_family_pilot.py
 
-Remaining required T3 closure: declaration-owned slash command family and argument
-parsing, ACP advertised-command boundary, all Conversation capability probes,
-shared command discovery53 across agent/DM/channel contexts and mounted submission
-acceptance. Parent must supply T2 merged consumer contract/checkpoint; no duplicate
-extension decoder is introduced here. Existing thread-action family is retained.
-This checkpoint proves MCP sub-scope only, not full T3 completion or deployment.
+T2 integration contract read from Dalton's current paired tree:
+update_project(path:str)->str; update_goal(action:str,text:str)->Goal|None;
+compact_context(instructions:str|None)->dict; get_goal_snapshot()->tuple;
+get_goal_history and get_input_delivery currently retain existing signatures.
+T3 adds no extension codec. Parent must integrate final T2 request/snapshot records
+into existing Conversation input-delivery/goal/compaction handlers before calling
+combined T2/T3 caller closure done. Direct subagent messaging tools are unavailable
+in this fork; authoritative source/checkpoint was inspected read-only instead.
+
+D22 already live; no migration tools, live root, route, launcher or owner changes.
+No CI wait or paid calls. T3 command/discovery batch is independently reviewable;
+combined T2 final caller/type acceptance remains outstanding.

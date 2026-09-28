@@ -1,0 +1,30 @@
+"""T3 guards against restoring maintained command rosters and dispatch."""
+import ast
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1] / "src/toad"
+for path in ROOT.rglob("*.py"):
+    tree = ast.parse(path.read_text())
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
+            if node.func.id == "SlashCommand":
+                raise AssertionError(f"Maintained slash roster: {path}:{node.lineno}")
+            if node.func.id == "hasattr" and node.args and ast.unparse(node.args[0]) == "self.agent":
+                raise AssertionError(f"Agent capability probe: {path}:{node.lineno}")
+        if isinstance(node, ast.Compare):
+            operands = (node.left, *node.comparators)
+            # Shell command validation is outside the slash-command domain.
+            if path.name == "conversation.py" and any(isinstance(x, ast.Name) and x.id in {"command", "name"} for x in operands):
+                assert not any(isinstance(x, ast.Constant) and isinstance(x.value, str) for x in operands), (path, node.lineno)
+            if path.name in {"mcp_inventory.py", "action_modal.py"}:
+                assert not any(isinstance(x, ast.Attribute) and x.attr == "id" for x in operands), (path, node.lineno)
+        if isinstance(node, ast.Constant) and isinstance(node.value, str):
+            if node.value in {"comms_start", "comms_stop", "comms_archive", "comms_ack", "comms_fork", "comms_delete"}:
+                assert path.name == "thread_actions.py", (path, node.lineno)
+
+for name in ("comms_sidebar.py", "comms_menu.py"):
+    path = ROOT / "widgets" / name
+    for node in ast.walk(ast.parse(path.read_text())):
+        if isinstance(node, ast.Constant) and node.value in ("copy", "pin", "any_mode", "close_view"):
+            raise AssertionError(f"Duplicated UI action roster: {path}:{node.lineno}")
+print("T3 guards: no maintained slash roster, command-name dispatch, agent probes, action rosters or button-ID dispatch")

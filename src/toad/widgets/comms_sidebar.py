@@ -19,7 +19,7 @@ from toad.preferences import SidebarSettings
 import os
 import asyncio
 from dataclasses import dataclass
-from collections.abc import Callable, Mapping
+from collections.abc import Mapping
 from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, cast
@@ -35,7 +35,6 @@ from textual.widgets import OptionList, Static
 from textual.widgets.option_list import Option
 from textual.widget import Widget
 
-from toad.thread_actions import AcknowledgeAction, ThreadAction as DeclaredThreadAction
 from agent_comms.presentation import ChannelView, CoordinationSnapshot, ThreadView, WireRevision
 from toad.constants import COMMS_REFRESH_INTERVAL
 from agent_comms.comms import Comms, wire
@@ -451,14 +450,6 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
 
     selected: reactive[str] = reactive("", init=False)
     session_thread: reactive[str] = reactive("", init=False)
-
-    class ThreadAction(Message):
-        """Context-menu action on a thread."""
-
-        def __init__(self, name: str, action: type[DeclaredThreadAction]) -> None:
-            self.name = name
-            self.action = action
-            super().__init__()
 
     def __init__(
         self, session_thread: str = "", selected_target: str = "", *, observe: bool = True, **kwargs
@@ -1350,137 +1341,38 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
         self, name: str, menu_offset, *, mode_name: str | None = None,
         channel: str | None = None,
     ) -> None:
-        from toad.widgets.comms_menu import show_thread_menu
-
-        def post(action: type[DeclaredThreadAction]) -> None:
-            self.post_message(self.ThreadAction(name, action))
-
-        declared_actions = DeclaredThreadAction.menu()
-        person = (self._last_snapshot or self._snapshot()).all_people.get(name)
-        if person is not None:
-            declared_actions = [
-                item for item in declared_actions
-                if item.available(person.status, person.thread.pid)
-            ]
-        actions: dict[str, Callable[[], None]] = {
-            declaration.declared_name: partial(post, declaration)
-            for declaration in declared_actions
-        }
-        actions["copy"] = partial(self.app.copy_to_clipboard, name)
-        if mode_name is not None:
-            actions["close_view"] = lambda: self.app.post_message(
-                messages.SessionArchive(mode_name)
-            )
-
-        items = [
-            (declaration.declared_name, declaration.menu_label())
-            for declaration in declared_actions
-        ] + [("copy", "Copy name")]
-        if channel is not None:
-            snapshot = self._last_snapshot or self._snapshot()
-            view = next(view for view in snapshot.wire.channels if view.channel.name == channel)
-            pinned = name in view.pinned_members
-            items.insert(0, ("pin", "Unpin from this channel" if pinned else "Pin in this channel"))
-            actions["pin"] = partial(self._set_pin, channel, not pinned, thread=name)
-        if mode_name is not None:
-            items.append(("close_view", "Close view"))
-
-        show_thread_menu(
-            self.app.screen,
-            menu_offset,
-            name,
-            items,
-            actions,
-        )
+        from toad.target_commands import TargetContext
+        self._show_target_commands(TargetContext(self.app, self._wire, name,
+            self.session_thread, self.app.project_dir, mode_name, channel), menu_offset)
 
     def _show_channel_menu(self, name: str, menu_offset) -> None:
-        from toad.widgets.comms_menu import show_channel_menu
+        from toad.target_commands import TargetContext
+        self._show_target_commands(TargetContext(self.app, self._wire, name,
+            self.session_thread, self.app.project_dir, is_thread=False), menu_offset)
 
-        def post(action: type[DeclaredThreadAction]) -> None:
-            self.post_message(self.ThreadAction(name, action))
+    def _show_target_commands(self, ctx, menu_offset) -> None:
+        from toad.target_commands import target_commands
+        from toad.widgets.comms_menu import show_target_menu
+        choices = target_commands(ctx)
 
-        channel = self._wire.channels.catalog.read().resolve(name)
-        actions = {
-            "pin": partial(self._set_pin, name, not channel.pinned),
-            AcknowledgeAction.declared_name: partial(post, AcknowledgeAction),
-            "copy": partial(self.app.copy_to_clipboard, name),
-        }
-        any_mode_label = None
-        if channel.exact:
-            actions["any_mode"] = partial(
-                self._set_any_mode, name, not channel.any_mode
-            )
-            any_mode_label = (
-                "Show channel only" if channel.any_mode else "Show member activity"
-            )
-        show_channel_menu(
-            self.app.screen,
-            menu_offset,
-            name,
-            actions,
+        def execute(command) -> None:
+            try:
+                ctx.current()
+                if not command.available(ctx):
+                    raise ValueError("Action is no longer available for this target")
+                command.execute(ctx)
+                self._refresh()
+            except (OSError, ValueError) as error:
+                self.notify(str(error), title="Target action", severity="error")
 
-            pin_label="Unpin channel" if channel.pinned else "Pin channel",
-            any_mode_label=any_mode_label,
-        )
-
-    def _set_any_mode(self, channel: str, enabled: bool) -> None:
-        from toad.comms_root import implicit_root, run_selected_write
-
-        try:
-            run_selected_write(
-                self._wire.root, self._wire.channels.set_channel_any_mode,
-                channel, enabled, implicit=implicit_root(),
-            )
-        except (OSError, ValueError) as error:
-            self.notify(str(error), title="Channel activity", severity="error")
-        self._refresh()
-
-    def _set_pin(self, channel: str, pinned: bool, *, thread: str | None = None) -> None:
-        from toad.comms_root import implicit_root, run_selected_write
-
-        try:
-            if thread is None:
-                run_selected_write(
-                    self._wire.root, self._wire.channels.set_channel_pinned,
-                    channel, pinned, implicit=implicit_root(),
-                )
-            else:
-                run_selected_write(
-                    self._wire.root, self._wire.channels.set_thread_pinned,
-                    channel, thread, pinned, implicit=implicit_root(),
-                )
-        except (OSError, ValueError) as error:
-            self.notify(str(error), title="Pin action", severity="error")
-        self._refresh()
+        show_target_menu(self.app.screen, menu_offset, ctx.subject,
+            [(command.command.removeprefix("/"), command.label(ctx)) for command in choices],
+            {command.command.removeprefix("/"): partial(execute, command) for command in choices})
 
     def _show_view_menu(self, mode_name: str, menu_offset) -> None:
-        from toad.widgets.comms_menu import show_view_menu
-
+        from toad.target_commands import ViewContext
         details = cast("ToadApp", self.app).session_tracker.get_session(mode_name)
         if details is None:
             return
-        show_view_menu(
-            self.app.screen,
-            menu_offset,
-            details.title or "Session view",
-            lambda: self.app.post_message(messages.SessionArchive(mode_name)),
-        )
-
-    # ─── Actions ──────────────────────────────────────────────────────────────
-
-    @on(ThreadAction)
-    def _do_thread_action(self, event: ThreadAction) -> None:
-        event.stop()
-        name = event.name
-        session_modes = [
-            mode
-            for mode, thread in (self._last_snapshot.session_threads if self._last_snapshot else {}).items()
-            if thread == name
-        ]
-        try:
-            event.action.request(
-                cast("ToadApp", self.app), name, self.session_thread, tuple(session_modes)
-            )
-        except Exception as error:
-            self.notify(str(error), title="Session action", severity="error")
-        self._refresh()
+        self._show_target_commands(ViewContext(self.app, self._wire, details.title or "Session view",
+            self.session_thread, self.app.project_dir, mode_name), menu_offset)

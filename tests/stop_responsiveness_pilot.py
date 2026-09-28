@@ -83,9 +83,7 @@ async def main():
                     await pilot.pause()
                     await asyncio.wait_for(app.switch_mode(channel), 2)
                     await pilot.pause()
-                    app.screen.query_one(CommsSidebar).post_message(
-                        CommsSidebar.ThreadAction("victim", StopAction)
-                    )
+                    app.invoke_thread_action(StopAction(), "victim", "actor")
                     await pilot.pause()
                     assert stopped == ["victim"]
                     assert not release.is_set()

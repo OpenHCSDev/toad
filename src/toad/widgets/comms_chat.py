@@ -202,6 +202,7 @@ class CommsChatView(Conversation):
             if self.is_attached:
                 self.call_after_refresh(self.prepare_prompt)
             return
+        self.update_slash_commands()
         prompt.agent_info = self.agent_info
         prompt.agent_ready = True
         prompt.shell_mode = False
@@ -757,6 +758,7 @@ class CommsChatView(Conversation):
                     return
                 if not self.screen.is_active:
                     return
+                self.update_slash_commands()
                 revision = read.revision
                 if revision == self._revision:
                     self.call_after_refresh(self._mark_visible_after_layout)
@@ -814,7 +816,18 @@ class CommsChatView(Conversation):
         if self._has_newer or (self._has_older and self.window.max_scroll_y == 0):
             self.call_after_refresh(self._on_window_scroll)
 
+    def command_target_context(self):
+        from toad.target_commands import TargetContext
+        if self._wire is None:
+            return None
+        nav = self.screen.navigation_context
+        return TargetContext(self.app, self._wire, self.target, self._me, self.project_path,
+                             self.app.current_mode,
+                             is_thread=self.kind == "dm")
+
     async def submit_input(self, event: messages.UserInputSubmitted) -> None:
+        if event.body.strip().startswith("/") and await self.slash_command(event.body.strip()):
+            return
         if not event.body.strip():
             return
         if self._unknown_send is not None or self._human_admission_blocked:

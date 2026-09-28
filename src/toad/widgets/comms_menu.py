@@ -14,7 +14,6 @@ from textual.message import Message
 from textual.screen import ModalScreen
 from textual.widgets import Static
 from toad.widgets.selection import FocusSelection
-from toad.thread_actions import AcknowledgeAction
 
 
 class ContextMenuItem(FocusSelection):
@@ -195,58 +194,3 @@ def show_target_menu(
         callback=handle,
     )
 
-
-def show_thread_menu(
-    screen,
-    menu_offset: Offset,
-    name: str,
-    items: list[tuple[str, str]],
-    actions: dict[str, Callable[[], None]],
-) -> None:
-    show_target_menu(
-        screen,
-        menu_offset,
-        f"@{name}",
-        items,
-        actions,
-    )
-
-
-def show_view_menu(
-    screen,
-    menu_offset: Offset,
-    title: str,
-    close: Callable[[], None],
-) -> None:
-    show_target_menu(
-        screen,
-        menu_offset,
-        title,
-        [("close_view", "Close view")],
-        {"close_view": close},
-    )
-
-
-def show_channel_menu(
-    screen,
-    menu_offset: Offset,
-    name: str,
-    actions: dict[str, Callable[[], None]],
-    *,
-    pin_label: str,
-    any_mode_label: str | None = None,
-) -> None:
-    items = [("pin", pin_label)]
-    if any_mode_label is not None:
-        items.append(("any_mode", any_mode_label))
-    items.extend([
-        (AcknowledgeAction.declared_name, AcknowledgeAction.menu_label()),
-        ("copy", "Copy name"),
-    ])
-    show_target_menu(
-        screen,
-        menu_offset,
-        name,
-        items,
-        actions,
-    )

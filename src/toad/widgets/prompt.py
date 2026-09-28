@@ -344,7 +344,11 @@ See on-screen instructions for details.
         immediate, self._submit_immediate = self._submit_immediate, False
         if not self.has_focus:
             return
-        if not self.agent_ready and not self.shell_mode:
+        local_command = any(
+            command.command == self.text.partition(" ")[0] and not command.requires_agent
+            for command in self.slash_commands
+        )
+        if not self.agent_ready and not self.shell_mode and not local_command:
             self.app.bell()
             self.post_message(
                 messages.Flash(
@@ -475,8 +479,6 @@ See on-screen instructions for details.
     async def watch_selection(
         self, previous_selection: Selection, selection: Selection
     ) -> None:
-        if self.simple_input:
-            return
         if previous_selection == selection:
             return
         if selection.start == selection.end:
@@ -838,7 +840,7 @@ class Prompt(containers.VerticalGroup):
         self.prompt_text_area.suggestion = ""
 
     def watch_show_slash_complete(self, show: bool) -> None:
-        if show and not self.simple_input:
+        if show:
             self.slash_complete.focus()
 
     def project_directory_updated(self) -> None:
@@ -879,8 +881,9 @@ class Prompt(containers.VerticalGroup):
     @on(InvokeSlashComplete)
     def on_invoke_slash_complete(self, event: InvokeSlashComplete) -> None:
         event.stop()
-        if not self.simple_input:
-            self.show_slash_complete = True
+        from toad.widgets.conversation import Conversation
+        self.query_ancestor(Conversation).update_slash_commands()
+        self.show_slash_complete = True
 
     @on(messages.PromptSuggestion)
     def on_prompt_suggestion(self, event: messages.PromptSuggestion) -> None:
@@ -898,7 +901,7 @@ class Prompt(containers.VerticalGroup):
     @on(messages.Dismiss)
     def on_dismiss(self, event: messages.Dismiss) -> None:
         event.stop()
-        if self.show_slash_complete and not self.simple_input and event.widget is self.slash_complete:
+        if self.show_slash_complete and event.widget is self.slash_complete:
             self.show_slash_complete = False
             self.prompt_text_area.suggestion = ""
             self.focus()
@@ -938,9 +941,9 @@ class Prompt(containers.VerticalGroup):
             self.prompt_text_area.suggestion = suggestion[len(self.text) :]
 
     def compose(self) -> ComposeResult:
+        yield SlashComplete().data_bind(slash_commands=Prompt.slash_commands)
         if not self.simple_input:
             yield PathSearch(self.project_path).data_bind(root=Prompt.project_path)
-            yield SlashComplete().data_bind(slash_commands=Prompt.slash_commands)
             yield QueueSummary("", classes="queue-summary", markup=False)
             with containers.HorizontalGroup(classes="delivery-controls"):
                 yield Label("Enter queues · ")

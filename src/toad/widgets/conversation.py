@@ -74,7 +74,7 @@ from toad.widgets.history_anchor import HistoryWindow
 from toad.widgets.message_filter import ALL_CATEGORIES, MessageCategory
 from toad.layout import trim_trailing_margin
 from toad.shell import Shell, CurrentWorkingDirectoryChanged
-from toad.slash_command import SlashCommand
+from toad.slash_command import AgentAdvertisedCommand, LocalCommand, SlashCommand
 from toad.protocol import BlockProtocol, MenuProtocol, ExpandProtocol
 from toad.menus import MenuItem
 from toad.widgets.shell_terminal import ShellTerminal
@@ -543,7 +543,7 @@ class Conversation(containers.Vertical):
 
         self.set_reactive(Conversation.project_path, project_path)
         self.set_reactive(Conversation.working_directory, str(project_path))
-        self.agent_slash_commands: list[SlashCommand] = []
+        self.agent_slash_commands: list[AgentAdvertisedCommand] = []
         self.terminals: dict[str, TerminalTool] = {}
         self._loading: Loading | None = None
         self._agent_response: AgentResponse | None = None
@@ -2039,16 +2039,9 @@ class Conversation(containers.Vertical):
     async def on_acp_available_commands_update(
         self, message: acp_messages.AvailableCommandsUpdate
     ):
-        slash_commands: list[SlashCommand] = []
-        for available_command in message.commands:
-            input = available_command.get("input", {}) or {}
-            slash_command = SlashCommand(
-                f"/{available_command['name']}",
-                available_command["description"],
-                hint=input.get("hint"),
-            )
-            slash_commands.append(slash_command)
-        self.agent_slash_commands = slash_commands
+        self.agent_slash_commands = [
+            AgentAdvertisedCommand.from_acp(record) for record in message.commands
+        ]
         self.update_slash_commands()
 
     def get_terminal(self, terminal_id: str) -> TerminalTool | None:
@@ -2386,59 +2379,30 @@ class Conversation(containers.Vertical):
         return ask
 
     def _build_slash_commands(self) -> list[SlashCommand]:
-        slash_commands = [
-            SlashCommand(
-                "/login", "Connect a provider using the agent's native login UI"
-            ),
-            SlashCommand(
-                "/project", "Change this thread's project directory", "<directory>"
-            ),
-            SlashCommand(
-                "/goal",
-                "Set or manage a persistent thread goal",
-                "<objective | pause | resume | clear>",
-            ),
-            SlashCommand(
-                "/compact",
-                "Compact this thread's model context",
-                "<optional summary instructions>",
-            ),
-            SlashCommand("/model", "Choose this thread's model"),
-            SlashCommand("/toad:about", "About Toad"),
-            SlashCommand(
-                "/toad:clear",
-                "Clear conversation window",
-                "<optional number of lines to preserve>",
-            ),
-            SlashCommand(
-                "/toad:rename",
-                "Give the current session a friendly name",
-                "<session name>",
-            ),
-            SlashCommand(
-                "/toad:session-close",
-                "Close the current session",
-            ),
-            SlashCommand(
-                "/toad:session-new",
-                "Open a new session in the current working directory",
-                "<initial prompt or command>",
-            ),
-            SlashCommand(
-                "/toad:testimonial",
-                "Tweet a testimonial regarding Toad",
-                "<what you think of toad>",
-            ),
-        ]
+        from toad.target_commands import target_completion
+        commands = SlashCommand.completions(self.agent_slash_commands)
+        ctx = self.command_target_context()
+        projected = {command.command: command for command in commands}
+        if ctx is not None:
+            for command in target_completion(ctx):
+                existing = projected.get(command.command)
+                if existing is None or isinstance(existing, AgentAdvertisedCommand):
+                    projected[command.command] = command
+        return sorted(projected.values(), key=lambda command: command.command)
 
-        slash_commands.extend(self.agent_slash_commands)
-        deduplicated_slash_commands = {
-            slash_command.command: slash_command for slash_command in slash_commands
-        }
-        slash_commands = sorted(
-            deduplicated_slash_commands.values(), key=attrgetter("command")
-        )
-        return slash_commands
+    def command_target_context(self):
+        from toad.navigation_target import NavigationOwner
+        from toad.target_commands import TargetContext
+        if not isinstance(self.screen, NavigationOwner):
+            return None
+        nav = self.screen.navigation_context
+        comms = self.app.coordination_wire
+        from agent_comms.errors import UnregisteredThreadError
+        try:
+            comms.registry.require(nav.actor)
+        except UnregisteredThreadError:
+            return None
+        return TargetContext(self.app, comms, nav.actor, nav.actor, nav.project_path, nav.owner_mode)
 
     def update_slash_commands(self) -> None:
         """Update slash commands, which may have changed since mounting."""
@@ -2501,7 +2465,7 @@ class Conversation(containers.Vertical):
             self.call_after_refresh(self._compact_committed_history)
 
     def _invalidate_input_dispositions(self) -> None:
-        if not self.is_attached or self.agent is None or not hasattr(self.agent, "get_input_delivery"):
+        if not self.is_attached or self.agent is None:
             return
         self._delivery_refresh_revision += 1
         if self._delivery_refresh_task is None or self._delivery_refresh_task.done():
@@ -2616,7 +2580,7 @@ class Conversation(containers.Vertical):
             self._invalidate_goal_snapshot()
 
     def _invalidate_goal_snapshot(self) -> None:
-        if not self.is_attached or self.agent is None or not hasattr(self.agent, "get_goal_snapshot"):
+        if not self.is_attached or self.agent is None:
             return
         self._goal_refresh_revision += 1
         if self._goal_refresh_task is None or self._goal_refresh_task.done():
@@ -2652,6 +2616,7 @@ class Conversation(containers.Vertical):
         self._invalidate_goal_snapshot()
 
     async def _coordination_changed(self, _update: None) -> None:
+        self.update_slash_commands()
         await self.refresh_goal()
 
     @on(GoalControl.Activated)
@@ -2665,7 +2630,7 @@ class Conversation(containers.Vertical):
 
             goal = self.goal
             history = ()
-            if self.agent is not None and hasattr(self.agent, "get_goal_history"):
+            if self.agent is not None:
                 try:
                     history = await self.agent.get_goal_history(goal.id)
                 except (OSError, ValueError) as error:
@@ -2682,7 +2647,7 @@ class Conversation(containers.Vertical):
             from toad.widgets.goal_text import goal_mention_candidates
 
             goal = self.goal
-            if goal is None or self.agent is None or not hasattr(self.agent, "edit_goal"):
+            if goal is None or self.agent is None:
                 self.flash("Editing requires an agent-comms goal", style="error")
                 return
 
@@ -2703,7 +2668,7 @@ class Conversation(containers.Vertical):
                 self.flash("This goal is completed; set a new goal to continue.")
 
     async def change_goal(self, action: str, text: str = "") -> None:
-        if self.agent is None or not hasattr(self.agent, "update_goal"):
+        if self.agent is None:
             self.flash("Persistent goals require an agent-comms session", style="error")
             return
         try:
@@ -3264,148 +3229,28 @@ class Conversation(containers.Vertical):
         self.refresh_bindings()
 
     async def slash_command(self, text: str) -> bool:
-        """Give Toad the opertunity to process slash commands.
-
-        Args:
-            text: The prompt, including the slash in the first position.
-
-        Returns:
-            `True` if Toad has processed the slash command, `False` if it should
-                be forwarded to the agent.
-        """
-        command, _, parameters = text[1:].partition(" ")
-        if command == "login":
-            self.action_provider_login()
-            return True
-        elif command == "project":
-            if not parameters.strip():
-                self.flash(Content(f"Project: {self.project_path}"))
-            elif self.agent is None or not hasattr(self.agent, "update_project"):
-                self.flash(
-                    "Project changes require an agent-comms session", style="error"
-                )
-            else:
-                try:
-                    path = parameters.strip()
-                    if path.startswith(("'", '"')):
-                        import shlex
-
-                        values = shlex.split(path)
-                        if len(values) != 1:
-                            raise ValueError("Expected one project directory")
-                        path = values[0]
-                    project = await self.agent.update_project(path)
-                    self.flash(
-                        Content(f"Project changed to {project}"), style="success"
-                    )
-                except (OSError, ValueError) as error:
-                    self.flash(str(error), style="error")
-            return True
-        elif command == "goal":
-            parameter = parameters.strip()
-            actions = {
-                "pause": "paused", "resume": "active", "retry": "retry", "clear": "clear"
-            }
-            if parameter in actions:
-                await self.change_goal(actions[parameter])
-            elif parameter:
-                await self.change_goal("set", parameter)
-            else:
-                await self.refresh_goal()
-                self.flash(
-                    "Use /goal <objective> to set or edit; pause, resume, retry, or clear to manage it."
-                )
-            return True
-        elif command == "compact":
-            if self._compacting:
-                self.flash("Context compaction is already running")
-            elif self.turn == "agent":
-                self.flash("Wait for the current response before compacting", style="error")
-            elif self.agent is None or not hasattr(self.agent, "compact_context"):
-                self.flash("This agent does not support context compaction", style="error")
-            else:
-                self._compacting = True
-                self.compact_context(parameters.strip() or None)
-            return True
-        elif command == "model":
-            if self.models:
-                self.prompt.model_switcher.focus()
-            else:
-                self.flash("This agent has no model selector", style="error")
-            return True
-        elif command == "toad:about":
-            from toad import about
-            from toad.widgets.markdown_note import MarkdownNote
-
-            app = self.app
-            about_md = about.render(app)
-            await self.post(MarkdownNote(about_md, classes="about"))
-            self.app.copy_to_clipboard(about_md)
-            self.notify(
-                "A copy of /about:toad has been placed in your clipboard",
-                title="/toad:about",
-            )
-            return True
-        elif command == "toad:clear":
+        """Resolve local declarations before forwarding advertised commands."""
+        name, _, arguments = text.partition(" ")
+        commands = {command.command: command for command in self._build_slash_commands()}
+        command = commands.get(name)
+        if command is None:
+            from toad.thread_actions import ThreadAction
             try:
-                line_count = max(0, int(parameters) if parameters.strip() else 0)
+                member = SlashCommand.decode(name.removeprefix("/"))
             except ValueError:
-                self.notify(
-                    "Unable to clear—a number was expected",
-                    title="/toad:clear",
-                    severity="error",
-                )
-                return True
-            await self.prune_window(line_count, line_count)
-            return True
-        elif command == "toad:rename":
-            name = parameters.strip()
-            if not name:
-                self.notify(
-                    "Expected a name for the session.\n"
-                    'For example: "add comments to blog"',
-                    title="/toad:rename",
-                    severity="error",
-                )
-                return True
-            await self.rename_session(name)
-            self.flash(f"Renamed session to [b]'{name}'", style="success")
-            return True
-        elif command == "toad:session-close":
-            if self.turn == "agent" and self.agent is not None:
-                await self.agent.cancel()
-            if self.screen.id is not None:
-                self.post_message(messages.SessionClose(self.screen.id))
-                return True
-        elif command == "toad:session-new":
-            if self._agent_data is not None:
-                self.post_message(
-                    messages.SessionNew(
-                        self.working_directory,
-                        self._agent_data["identity"],
-                        parameters.strip(),
-                    )
-                )
-                return True
-        elif command == "toad:testimonial":
-            if self.agent_title is not None:
-                default_testimonial = (
-                    f"I'm running {self.agent_title} in the terminal with Toad."
-                )
+                try:
+                    ThreadAction.decode(name.removeprefix("/"))
+                except ValueError:
+                    return False
             else:
-                default_testimonial = (
-                    "Try Toad, the universal interface for AI in your terminal"
-                )
-
-            testimonial = parameters or default_testimonial
-            from toad.twitter import open_tweet_intent
-
-            open_tweet_intent(
-                testimonial,
-                url="https://github.com/textualize/toad",
-                via="willmcgugan",
-                hashtags=["ai"],
-            )
+                if not issubclass(member, LocalCommand):
+                    return False
+            self.flash("Action is not available for the current target", style="error")
             return True
-
-        return False
+        if isinstance(command, AgentAdvertisedCommand):
+            return False
+        try:
+            return await command.parse_arguments(arguments).apply(self)
+        except (OSError, ValueError) as error:
+            self.flash(str(error), style="error")
+            return True
