@@ -9,7 +9,8 @@ from unittest.mock import patch
 from textual.widgets import Markdown
 from textual.widgets._markdown import MarkdownParagraph
 
-from agent_comms import Thread, wire
+from agent_comms.threads import Thread
+from agent_comms.comms import wire
 from toad.app import ToadApp
 from toad.screens.file_preview import FilePreviewScreen
 from toad.widgets.comms_chat import CommsChatView
@@ -33,7 +34,7 @@ async def main():
         path = project / "plans" / "tag-channel-view-plan.md"
         path.parent.mkdir(parents=True)
         path.write_text("# Previewed plan\n\nResolved from chat.")
-        wire(root / "wire").register(Thread("project", frozenset(), str(project), pid=os.getpid()))
+        wire(root / "wire").threads.register(Thread("project", frozenset(), str(project), pid=os.getpid()))
         app = ToadApp(project_dir=str(project))
         async with app.run_test(size=(110, 35)) as pilot:
             await pilot.pause()

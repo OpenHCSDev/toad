@@ -7,7 +7,8 @@ import tempfile
 from pathlib import Path
 from unittest.mock import AsyncMock, Mock, patch
 
-from agent_comms import Thread, wire
+from agent_comms.threads import Thread
+from agent_comms.comms import wire
 from runtime_fixture import ToadApp
 
 from toad.acp.agent import Agent
@@ -36,7 +37,7 @@ async def check_title(title: str | None) -> None:
         thread = "existing-worker"
         expected = title or thread
         comms = wire(root / "wire")
-        comms.register(Thread(thread, frozenset({"acp"}), str(root), title=title))
+        comms.threads.register(Thread(thread, frozenset({"acp"}), str(root), title=title))
         payload = {"sessionId": thread, "_meta": {"agentComms": {
             "thread": thread, "title": title, "wireRoot": str(root / "wire"),
             "worktree": str(root), "autoTitle": True,

@@ -9,7 +9,7 @@ from collections.abc import Awaitable, Callable, Iterator
 from typing import TYPE_CHECKING
 from weakref import ref
 
-from agent_comms import TranscriptCursor, TranscriptEvent, TranscriptPage
+from agent_comms.transcripts import TranscriptCursor, TranscriptEvent, TranscriptPage
 from agent_comms.tool_results import tool_result_content
 from agent_comms.backend import tool_kind
 from textual import events, on

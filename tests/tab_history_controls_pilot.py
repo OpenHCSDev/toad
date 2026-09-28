@@ -5,7 +5,8 @@ import os
 import tempfile
 from pathlib import Path
 
-from agent_comms import Thread, wire
+from agent_comms.threads import Thread
+from agent_comms.comms import wire
 from runtime_fixture import ToadApp
 
 from toad.widgets.session_tabs import SessionLabel, SessionsTabs
@@ -30,7 +31,7 @@ async def main():
                           XDG_STATE_HOME=str(root / "state"),
                           XDG_DATA_HOME=str(root / "data"),
                           AGENT_COMMS_ROOT=str(root / "wire"))
-        wire(root / "wire").register(Thread("owner", frozenset(), str(root)))
+        wire(root / "wire").threads.register(Thread("owner", frozenset(), str(root)))
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(100, 36)) as pilot:
             await pilot.pause()

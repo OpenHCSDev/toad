@@ -6,7 +6,8 @@ import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
-from agent_comms import Thread, wire
+from agent_comms.threads import Thread
+from agent_comms.comms import wire
 from runtime_fixture import ToadApp
 from toad.widgets.comms_chat import CommsChatView
 
@@ -19,9 +20,9 @@ async def main():
             XDG_STATE_HOME=str(root / "state"), XDG_DATA_HOME=str(root / "data"),
         )
         comms = wire(root / "wire")
-        comms.register(Thread("peer", frozenset({"team"}), str(root), pid=os.getpid()))
-        viewer = comms.user_identity(str(root)).name
-        rows = [comms.send_message("peer", "#team", f"row {i}\n" + "body\n" * 10) for i in range(8)]
+        comms.threads.register(Thread("peer", frozenset({"team"}), str(root), pid=os.getpid()))
+        viewer = comms.messaging.user_identity(str(root)).name
+        rows = [comms.messaging.send_message("peer", "#team", f"row {i}\n" + "body\n" * 10) for i in range(8)]
         acknowledged = set()
         original_mark = CommsChatView._mark_painted_page
 
@@ -47,7 +48,7 @@ async def main():
                 async with asyncio.timeout(5):
                     while not acknowledged or chat._ack_inflight:
                         await pilot.pause(.02)
-                seen = comms.reads.seen_sequences(viewer, comms.registry.snapshot())
+                seen = comms.bus.reads.seen_sequences(viewer, comms.registry.snapshot())
                 assert 0 < len(seen) < len(rows)
                 assert seen == acknowledged
                 # Revisit every mounted body. Rows from the original page stay
@@ -61,9 +62,9 @@ async def main():
                         animate=False, immediate=True,
                     )
                     async with asyncio.timeout(5):
-                        while message.seq not in comms.reads.seen_sequences(viewer, comms.registry.snapshot()):
+                        while message.seq not in comms.bus.reads.seen_sequences(viewer, comms.registry.snapshot()):
                             await pilot.pause(.02)
-                assert comms.reads.seen_sequences(viewer, comms.registry.snapshot()) == {row.seq for row in rows}
+                assert comms.bus.reads.seen_sequences(viewer, comms.registry.snapshot()) == {row.seq for row in rows}
                 assert app._exception is None
         await asyncio.get_running_loop().shutdown_default_executor()
     print("Partial viewport ACKs contain only painted bodies; scrolling acknowledges the remaining captured rows")

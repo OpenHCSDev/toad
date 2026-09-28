@@ -8,7 +8,7 @@ import tempfile
 from pathlib import Path
 
 import psutil
-from agent_comms import wire
+from agent_comms.comms import wire
 from toad import messages
 from runtime_fixture import ToadApp
 from toad.db import DB
@@ -39,7 +39,7 @@ async def main():
         stub.write_text(f"#!{sys.executable}\n" + """
 import json, os, sys
 from pathlib import Path
-from agent_comms import wire
+from agent_comms.comms import wire
 def emit(value):
     print(json.dumps(value), flush=True)
 for line in sys.stdin:

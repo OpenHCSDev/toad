@@ -7,9 +7,9 @@ from pathlib import Path
 
 from agent_comms.goal_actions import BlockedGoalAction, GoalPrecondition
 from agent_comms.goal_states import ActiveGoal, BlockedGoal
-from agent_comms import Goal
+from agent_comms.goals import Goal
 from agent_comms.acp import CommsAgent
-from agent_comms.operations import wire
+from agent_comms.comms import wire
 from runtime_fixture import ToadApp
 from toad.acp.agent import Agent
 from toad.widgets.goal_bar import GoalBar
@@ -70,7 +70,7 @@ async def owner_retry_route(root: Path) -> None:
     attempt = store.reserve(goal.id, 1)
     store.claim_launch(attempt)
     store.record_failed(attempt, "Original turn failed")
-    comms.update_goal("project", BlockedGoalAction(block_reason="Original turn failed", expect=GoalPrecondition(goal_id=goal.id)))
+    comms.goals.update_goal("project", BlockedGoalAction(block_reason="Original turn failed", expect=GoalPrecondition(goal_id=goal.id)))
     try:
         resumed = await Agent.update_goal(toad_agent, "retry")
         assert resumed.id == goal.id and resumed.state.declared_name == "active"

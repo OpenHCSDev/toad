@@ -8,9 +8,13 @@ from collections.abc import Callable
 from dataclasses import replace
 from pathlib import Path
 
-from agent_comms import Comms, MessagePage, OBSERVATION_INTERVAL, ThreadRole, WireRevision
-from agent_comms import Message as WireMessage
-from agent_comms.operations import wire
+from agent_comms.comms import Comms
+from agent_comms.message_page import MessagePage
+from agent_comms.owner_lifecycle import OBSERVATION_INTERVAL
+from agent_comms.thread_identity import ThreadRole
+from agent_comms.presentation import WireRevision
+from agent_comms.messages import Message as WireMessage
+from agent_comms.comms import wire
 from textual import containers, work
 from textual.app import ComposeResult
 from textual.content import Content
@@ -225,7 +229,7 @@ class CommsChatView(Conversation):
         limit: int = HISTORY_PAGE_SIZE,
     ) -> MessagePage:
         if self.kind == "dm":
-            return comms.dm_display_page(
+            return comms.views.dm_display_page(
                 self.target,
                 worktree=str(self.project_path),
                 before=before,
@@ -233,7 +237,7 @@ class CommsChatView(Conversation):
                 limit=limit,
                 max_bytes=HISTORY_PAGE_BYTES,
             )
-        return comms.channel_display_page(
+        return comms.views.channel_display_page(
             self.target,
             worktree=str(self.project_path),
             before=before,
@@ -635,7 +639,7 @@ class CommsChatView(Conversation):
                 return
             displayed = page.historical_display.select({seq for _, seq in keys})
             await asyncio.to_thread(run_selected_write, self._wire.root,
-                self._wire.mark_historical_view_read, displayed, implicit=implicit_root())
+                self._wire.views.mark_historical_view_read, displayed, implicit=implicit_root())
             for key in keys:
                 if self._historical_ack_pages.get(key) is page:
                     del self._historical_ack_pages[key]
@@ -659,14 +663,14 @@ class CommsChatView(Conversation):
             if self.kind == "dm":
                 assert page.display_basis is not None and page.newest_seq is not None
                 await asyncio.to_thread(
-                    run_selected_write, comms.root, comms.mark_dm_view_read, target,
+                    run_selected_write, comms.root, comms.views.mark_dm_view_read, target,
                     worktree=project, through=page.newest_seq,
                     expected_display_basis=page.display_basis, implicit=implicit_root(),
                 )
             else:
                 assert page.display_scope is not None and page.newest_seq is not None
                 await asyncio.to_thread(
-                    run_selected_write, comms.root, comms.mark_channel_view_read, target,
+                    run_selected_write, comms.root, comms.views.mark_channel_view_read, target,
                     worktree=project, through=page.newest_seq,
                     expected_scope=page.display_scope, implicit=implicit_root(),
                 )
@@ -742,7 +746,7 @@ class CommsChatView(Conversation):
                 # which can scan a much larger coordination history.
                 follow = await self._refresh_history(read)
                 if self.kind != "dm":
-                    snapshot = await asyncio.to_thread(comms.coordination_snapshot)
+                    snapshot = await asyncio.to_thread(comms.views.coordination_snapshot)
                     self.query_one(ChannelParticipants).update_participants(
                         snapshot.participants(self.target)
                     )
@@ -765,7 +769,7 @@ class CommsChatView(Conversation):
             self._revision = revision
 
             target = self.target
-            info = await asyncio.to_thread(comms.agent_info_of, target) if self.kind == "dm" else None
+            info = await asyncio.to_thread(comms.agents.agent_info_of, target) if self.kind == "dm" else None
             if not self.is_attached or self.target != target:
                 return
             if self._unknown_send is not None:
@@ -810,7 +814,7 @@ class CommsChatView(Conversation):
             self.prompt.prompt_text_area.disabled = True
             send_task = asyncio.create_task(
                 asyncio.to_thread(
-                    run_selected_write, comms.root, comms.send_user_message,
+                    run_selected_write, comms.root, comms.messaging.send_user_message,
                     "#all" if self.kind == "irc" else self.target, event.body,
                     worktree=str(self.project_path), implicit=implicit_root(),
                 )
@@ -836,10 +840,9 @@ class CommsChatView(Conversation):
                 )
                 return
         except Exception as error:
-            from agent_comms import declarations as core_declarations
+            from agent_comms.errors import HumanInitialUnknownError, RelationViolationError
 
-            unknown_type = getattr(core_declarations, "HumanInitialUnknownError", None)
-            if unknown_type is not None and isinstance(error, unknown_type):
+            if isinstance(error, HumanInitialUnknownError):
                 self._unknown_send = (error.wire_root_id, error.wire_seq, error.message_id)
                 # Preserve the user's text for inspection, but never put an
                 # uncertain send back into an actionable compose control.
@@ -849,10 +852,8 @@ class CommsChatView(Conversation):
                 self.prompt.prompt_text_area.tooltip = self.status
                 self.flash(self.status, style="error")
                 return
-            violation_type = getattr(core_declarations, "RelationViolationError", None)
             if (
-                violation_type is not None
-                and isinstance(error, violation_type)
+                isinstance(error, RelationViolationError)
                 and "UNKNOWN outcome" in str(error)
                 and "human send blocked" in str(error)
             ):

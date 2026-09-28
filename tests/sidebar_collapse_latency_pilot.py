@@ -10,7 +10,8 @@ import time
 from collections import Counter
 from pathlib import Path
 
-from agent_comms import Thread, wire
+from agent_comms.threads import Thread
+from agent_comms.comms import wire
 from runtime_fixture import ToadApp
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.side_bar import SideBar
@@ -41,7 +42,7 @@ async def main():
         comms = wire(root / "wire")
         tags = frozenset(f"team-{index}" for index in range(5))
         for index in range(24):
-            comms.register(Thread(f"worker-{index:02}", tags, str(root)))
+            comms.threads.register(Thread(f"worker-{index:02}", tags, str(root)))
         app = FrameApp(project_dir=str(root))
         async with app.run_test(size=(120, 42)) as pilot:
             await pilot.pause()

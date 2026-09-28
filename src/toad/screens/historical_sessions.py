@@ -7,7 +7,8 @@ from functools import partial
 from pathlib import Path
 from typing import ClassVar
 
-from agent_comms import Comms, HistoricalThread
+from agent_comms.comms import Comms
+from agent_comms import HistoricalThread
 from textual import on
 from textual.app import ComposeResult
 from textual.containers import Vertical, VerticalGroup
@@ -92,7 +93,7 @@ class HistoricalSessions(SessionView, ModalScreen):
             f"Session: {item.thread.session_file or 'No saved session recorded'} · read only"
         )
         loader = partial(
-            self.comms.thread_transcript_page,
+            self.comms.transcripts.thread_transcript_page,
             item.thread.name,
             historical_source=item.source.key,
         )

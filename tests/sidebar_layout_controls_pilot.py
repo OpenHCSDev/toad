@@ -5,7 +5,8 @@ import os
 import tempfile
 from pathlib import Path
 
-from agent_comms import Thread, wire
+from agent_comms.threads import Thread
+from agent_comms.comms import wire
 from runtime_fixture import ToadApp
 from textual.content import Content
 from textual.containers import VerticalScroll
@@ -26,7 +27,7 @@ async def main() -> None:
                           TOAD_BENCH_VIRTUAL_CHANNELS="1")
         name = "very-long-thread-name-with-an-explanatory-suffix-that-exceeds-the-sidebar-width"
         comms = wire(root / "wire")
-        comms.register(Thread(name, frozenset({"alpha"}), str(root)))
+        comms.threads.register(Thread(name, frozenset({"alpha"}), str(root)))
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(110, 34)) as pilot:
             await pilot.pause()

@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Generic, TypeVar
 
-from agent_comms import TranscriptEvent
+from agent_comms.transcripts import TranscriptEvent
 from markdown_it.token import Token
 
 from toad.markdown_preparation import PreparedMarkdown, prepare_markdown, prepare_tokens

@@ -5,7 +5,7 @@ import os
 import tempfile
 from pathlib import Path
 
-from agent_comms import MessageRoute
+from agent_comms.routing import MessageRoute
 from runtime_fixture import ToadApp
 from toad.screens.main import MainScreen
 from toad.widgets.agent_response import AgentResponse

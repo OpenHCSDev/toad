@@ -4,7 +4,7 @@ from textual.app import ComposeResult
 from textual.containers import VerticalGroup
 from toad.widgets.route_header import RouteHeader
 from toad.widgets.message_divider import MessageDivider
-from agent_comms import MessageRoute
+from agent_comms.routing import MessageRoute
 from toad.widgets.message_filter import CategorizedBlock, MessageCategory
 from toad.widgets.committed_presentation import CommitParticipant, SequenceClaim
 

@@ -3,7 +3,8 @@
 from functools import cached_property
 from pathlib import Path
 
-from agent_comms import Comms, ThreadSort, wire
+from agent_comms.comms import Comms, wire
+from agent_comms.display_order import ThreadSort
 
 
 class WireRelationshipSource:

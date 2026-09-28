@@ -5,7 +5,10 @@ import os
 import tempfile
 from pathlib import Path
 
-from agent_comms import ActivityState, ChannelSort, Thread, ThreadSort, wire
+from agent_comms.activity import ActivityState
+from agent_comms.display_order import ChannelSort, ThreadSort
+from agent_comms.threads import Thread
+from agent_comms.comms import wire
 from toad.app import ToadApp
 from toad.screens.comms import CommsScreen
 from toad.screens.main import MainScreen
@@ -28,8 +31,8 @@ async def main():
                           AGENT_COMMS_ROOT=str(root / "wire"))
         comms = wire(root / "wire")
         for name, tags in ((root.name, set()), ("api-agent", {"api"}), ("ui-agent", {"ui"}), ("other", set())):
-            comms.register(Thread(name, frozenset(tags), str(root), pid=os.getpid()))
-        comms.set_channel("engineering", frozenset({"api", "ui"}))
+            comms.threads.register(Thread(name, frozenset(tags), str(root), pid=os.getpid()))
+        comms.channels.set_channel("engineering", frozenset({"api", "ui"}))
         order_saved = asyncio.Event()
 
         def worker_changed(message):
@@ -53,8 +56,8 @@ async def main():
             await pilot.pause()
             await pilot.click(next(item for item in app.screen.query(ContextMenuItem) if item.action == "last_activity"))
             await pilot.pause()
-            assert comms.channel_catalog.resolve("#none").order is ThreadSort.LAST_ACTIVITY
-            assert comms.channel_catalog.resolve("#any").order is ThreadSort.CREATED
+            assert comms.channels.catalog.resolve("#none").order is ThreadSort.LAST_ACTIVITY
+            assert comms.channels.catalog.resolve("#any").order is ThreadSort.CREATED
             group = next(group for group in sidebar.query(ChannelGroup) if group.row.target_name == "#engineering")
             assert len(group.query(CommsRow)) == 1
             group.query_one(ChannelDisclosure).focus()
@@ -62,7 +65,7 @@ async def main():
             await pilot.pause()
             assert set(group._members) == {"api-agent", "ui-agent"}
             other = wire(root / "wire")
-            other.update_tags("other", add=frozenset({"api"}))
+            other.channels.update_tags("other", add=frozenset({"api"}))
             sidebar._refresh()
             await pilot.pause()
             assert set(group._members) == {"api-agent", "ui-agent", "other"}
@@ -80,7 +83,7 @@ async def main():
             chat.prompt.focus()
             await pilot.press("enter")
             await pilot.pause()
-            sent = comms.channel_history("#engineering")
+            sent = comms.views.channel_history("#engineering")
             authored = [message for message in sent if message.membership is None]
             assert len(authored) == 1 and authored[0].sender == "user"
             assert len(chat.query(MembershipNotice)) == 1
@@ -96,14 +99,14 @@ async def main():
             await pilot.press("down")
             await pilot.pause()
             assert chat.prompt.text == ""
-            comms.begin_turn("api-agent", "api-turn")
-            comms.begin_turn("ui-agent", "ui-turn")
+            comms.agents.begin_turn("api-agent", "api-turn")
+            comms.agents.begin_turn("ui-agent", "ui-turn")
             await chat._refresh()
             roster = chat.query_one(ChannelParticipants)
             assert "api-agent" in roster.names.render().plain and "ui-agent" in roster.names.render().plain
             assert "other" not in roster.names.render().plain
-            comms.finish_turn("api-agent", "api-turn")
-            comms.finish_turn("ui-agent", "ui-turn")
+            comms.agents.finish_turn("api-agent", "api-turn")
+            comms.agents.finish_turn("ui-agent", "ui-turn")
             assert roster.region.bottom <= chat.prompt.region.y
             chat.prompt.text = "first second"
             chat.prompt.focus()
@@ -159,10 +162,10 @@ async def main():
             assert app.screen.query_one("Prompt").text == "draft stays here"
             # An old sidebar and a newly opened view must use the same model
             # order even when channels were created after the first view.
-            comms.create_tag("z-last")
-            comms.create_tag("a-first")
+            comms.channels.create_tag("z-last")
+            comms.channels.create_tag("a-first")
             await app.screen.query_one(CommsSidebar).sync_sessions()
-            expected = [view.channel.name for view in comms.channel_views()]
+            expected = [view.channel.name for view in comms.views.channel_views()]
             assert [group.row.target_name for group in app.screen.query(ChannelGroup)] == expected
             await app.switch_mode(owner)
             await pilot.pause()
@@ -181,8 +184,8 @@ async def main():
                 await order_saved.wait()
             await app.screen.query_one(CommsSidebar).sync_sessions()
             assert selector.order is ChannelSort.LAST_USER_INPUT
-            assert comms.channel_catalog.list_order is ChannelSort.LAST_USER_INPUT
-            assert comms.channel_catalog.resolve("#none").order is ThreadSort.LAST_ACTIVITY
+            assert comms.channels.catalog.list_order is ChannelSort.LAST_USER_INPUT
+            assert comms.channels.catalog.resolve("#none").order is ThreadSort.LAST_ACTIVITY
             await app.switch_mode(engineering)
             await pilot.pause()
             assert app.screen.query_one(ChannelListSort).order is ChannelSort.LAST_USER_INPUT
@@ -193,7 +196,7 @@ async def main():
             assert app.current_mode == engineering
             assert sum(tab.title == "#engineering" for tab in app.open_tabs) == 2
             # The channel header must glow while any member is mid-turn or busy.
-            comms.set_activity("ui-agent", ActivityState.WORKING, "Rendering")
+            comms.agents.set_activity("ui-agent", ActivityState.WORKING, "Rendering")
             sidebar = app.screen.query_one(CommsSidebar)
             await sidebar.sync_sessions()
             engineering_group = next(
@@ -205,7 +208,7 @@ async def main():
                 "channel must indicate member activity: "
                 + engineering_group.row.render().plain
             )
-            comms.set_activity("ui-agent", ActivityState.IDLE, "")
+            comms.agents.set_activity("ui-agent", ActivityState.IDLE, "")
             await sidebar.sync_sessions()
             await pilot.pause()
             assert not engineering_group.row.has_class("-channel-active")
@@ -218,7 +221,7 @@ async def main():
             await pilot.click(pin)
             await pilot.pause()
             await sidebar.sync_sessions()
-            assert wire(root / "wire").channel_views()[0].channel.name == "#engineering"
+            assert wire(root / "wire").views.channel_views()[0].channel.name == "#engineering"
             assert next(iter(sidebar.query(ChannelGroup))) is engineering_group
             assert engineering_group.row.render().plain.startswith("* ")
             if not engineering_group.expanded:
@@ -231,7 +234,7 @@ async def main():
             await pilot.click(pin)
             await pilot.pause()
             await sidebar.sync_sessions()
-            views = {view.channel.name: view for view in wire(root / "wire").channel_views()}
+            views = {view.channel.name: view for view in wire(root / "wire").views.channel_views()}
             assert views["#engineering"].pinned_members == {"api-agent"}
             assert not views["#any"].pinned_members
             assert engineering_group.member_rows[0].thread_name == "api-agent"
@@ -257,7 +260,7 @@ async def main():
             assert "Unpin channel" in pin.render().plain
             await pilot.click(pin)
             await pilot.pause()
-            views = {view.channel.name: view for view in comms.channel_views()}
+            views = {view.channel.name: view for view in comms.views.channel_views()}
             assert not views["#engineering"].channel.pinned
             assert not views["#engineering"].pinned_members
     print("channel views: lazy union membership, external tag updates, persistent tabs/drafts and inactive close passed")

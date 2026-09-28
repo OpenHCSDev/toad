@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 
-from agent_comms import ThreadView
+from agent_comms.presentation import ThreadView
 from textual.content import Content
 
 from toad.session_tracker import OpenTab

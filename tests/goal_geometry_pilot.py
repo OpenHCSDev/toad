@@ -6,7 +6,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
-from agent_comms import Goal
+from agent_comms.goals import Goal
 from runtime_fixture import ToadApp
 from textual.containers import VerticalScroll
 

@@ -2,7 +2,8 @@
 
 from collections.abc import Awaitable, Callable
 
-from agent_comms import Goal, MentionCandidate
+from agent_comms.goals import Goal
+from agent_comms.mentions import MentionCandidate
 from textual import on
 from textual.app import ComposeResult
 from textual.containers import HorizontalGroup, Vertical

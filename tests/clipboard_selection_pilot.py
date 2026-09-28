@@ -7,7 +7,7 @@ import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
-from agent_comms import Message, MessageType
+from agent_comms.messages import Message, MessageType
 from runtime_fixture import ToadApp
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.irc_message import IRCMessage, IRCMessageText

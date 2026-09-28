@@ -1137,7 +1137,7 @@ class ToadApp(App, inherit_bindings=False):
 
     @property
     def coordination_wire(self):
-        from agent_comms.operations import wire
+        from agent_comms.comms import wire
 
         # Every access revalidates the route marker; never reuse a cached wire
         # after publication changes the default root.
@@ -1166,7 +1166,7 @@ class ToadApp(App, inherit_bindings=False):
             if comms.root.resolve() != selected_root.resolve():
                 raise ValueError("Comms route changed before export")
             receipt = await asyncio.to_thread(
-                run_selected_write, comms.root, comms.export_wire,
+                run_selected_write, comms.root, comms.views.export_wire,
                 request.destination,
                 format=request.format,
                 scope=request.scope,
@@ -1199,7 +1199,7 @@ class ToadApp(App, inherit_bindings=False):
             if comms.root.resolve() != selected_root.resolve():
                 raise ValueError("Comms route changed before import")
             receipt = await asyncio.to_thread(
-                run_selected_write, comms.root, comms.import_thread,
+                run_selected_write, comms.root, comms.threads.import_thread,
                 request.source,
                 request.format,
                 name=request.name,
@@ -1426,7 +1426,7 @@ class ToadApp(App, inherit_bindings=False):
         from toad.widgets.comms_chat import CommsChatView
         from toad.widgets.comms_sidebar import CoordinationStatus, CommsSidebar
         from toad.widgets.recovery_view import RecoveryView
-        from agent_comms.operations import wire
+        from agent_comms.comms import wire
 
         for key, mode_name in list(self._comms_modes.items()):
             if key.owner_mode != owner_mode:
@@ -1520,7 +1520,7 @@ class ToadApp(App, inherit_bindings=False):
         try:
             comms = self.coordination_wire
             await asyncio.to_thread(
-                run_selected_write, comms.root, comms.mark_thread_view_read,
+                run_selected_write, comms.root, comms.views.mark_thread_view_read,
                 screen._session_thread, worktree=str(self.project_dir),
                 through=through, implicit=implicit_root(),
             )
@@ -1575,7 +1575,7 @@ class ToadApp(App, inherit_bindings=False):
                 raise ValueError("Comms route changed before the thread action")
             if action == "comms_ack":
                 result = await asyncio.to_thread(
-                    run_selected_write, comms.root, comms.mark_user_view_read,
+                    run_selected_write, comms.root, comms.views.mark_user_view_read,
                     subject, worktree=str(self.project_dir), implicit=implicit_root(),
                 )
                 self.notify(f"Marked {subject} read", title="Session action")
@@ -2014,7 +2014,7 @@ class ToadApp(App, inherit_bindings=False):
             if agent is not None:
                 session_pk = getattr(agent, "session_pk", None) or session_pk
             if screen._coordination_root is not None:
-                from agent_comms.operations import wire
+                from agent_comms.comms import wire
 
                 comms = wire(screen._coordination_root)
                 thread_name = screen._session_thread
@@ -2024,8 +2024,8 @@ class ToadApp(App, inherit_bindings=False):
                     if agent is not None:
                         await agent.stop()
                     if thread_name in comms.registry:
-                        await asyncio.to_thread(comms.stop, thread_name)
-                        comms.delete(thread_name)
+                        await asyncio.to_thread(comms.owners.stop, thread_name)
+                        comms.threads.delete(thread_name)
                 except Exception as error:
                     self.notify(str(error), title="Delete thread", severity="error")
                     return
@@ -2120,7 +2120,7 @@ class ToadApp(App, inherit_bindings=False):
                 }
                 matches = agent_session_id in session_ids
                 if existing._coordination_root is not None:
-                    from agent_comms.operations import wire
+                    from agent_comms.comms import wire
 
                     comms = wire(existing._coordination_root)
                     matches = matches or (

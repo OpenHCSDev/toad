@@ -7,7 +7,8 @@ import threading
 from pathlib import Path
 from unittest.mock import patch
 
-from agent_comms import Thread, wire
+from agent_comms.threads import Thread
+from agent_comms.comms import wire
 from runtime_fixture import ToadApp
 from toad.widgets.comms_menu import ContextMenuItem
 from toad.widgets.comms_sidebar import CommsRow, CommsSidebar
@@ -26,7 +27,7 @@ async def main():
                           XDG_DATA_HOME=str(root / "data"), AGENT_COMMS_ROOT=str(root / "wire"))
         comms = wire(root / "wire")
         for name in ("actor", "victim", "refuses-stop"):
-            comms.register(Thread(name, frozenset(), str(root)))
+            comms.threads.register(Thread(name, frozenset(), str(root)))
         started, release = threading.Event(), threading.Event()
         stopped = []
         notices = []

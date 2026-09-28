@@ -5,7 +5,7 @@ import os
 import tempfile
 from pathlib import Path
 
-from agent_comms import TranscriptCursor, TranscriptEvent, TranscriptPage
+from agent_comms.transcripts import TranscriptCursor, TranscriptEvent, TranscriptPage
 from toad.acp.messages import TranscriptSnapshot
 from toad.app import ToadApp
 from toad.screens.main import MainScreen

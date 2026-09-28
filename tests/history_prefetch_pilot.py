@@ -5,7 +5,8 @@ import os
 from pathlib import Path
 import tempfile
 
-from agent_comms import MessageRoute, TranscriptCursor, TranscriptEvent, TranscriptPage, TurnRouting
+from agent_comms.routing import MessageRoute, TurnRouting
+from agent_comms.transcripts import TranscriptCursor, TranscriptEvent, TranscriptPage
 from runtime_fixture import ToadApp
 from toad.widgets.transcript_history import TranscriptHistory
 

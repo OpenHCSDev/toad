@@ -9,7 +9,7 @@ import tempfile
 import time
 from unittest.mock import patch
 
-from agent_comms import TranscriptCursor, TranscriptEvent, TranscriptPage
+from agent_comms.transcripts import TranscriptCursor, TranscriptEvent, TranscriptPage
 from textual.selection import SELECT_ALL
 from textual.widgets._markdown import MarkdownParagraph
 

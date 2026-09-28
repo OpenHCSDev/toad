@@ -6,7 +6,7 @@ import asyncio
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from agent_comms import ThreadSort
+from agent_comms.display_order import ThreadSort
 from textual import on
 from textual.binding import Binding
 from textual.content import Content

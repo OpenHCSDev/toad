@@ -13,7 +13,9 @@ from typing import TYPE_CHECKING, Literal
 from pathlib import Path
 from time import monotonic, time
 from urllib.parse import quote
-from agent_comms import Goal, GoalExecution, MessageRoute
+from agent_comms.goals import Goal
+from agent_comms.goal_presentation import GoalExecution
+from agent_comms.routing import MessageRoute
 
 from typing import Callable, Any
 
@@ -1815,7 +1817,7 @@ class Conversation(containers.Vertical):
 
     @work(exclusive=True, group="transcript-window")
     async def _compact_committed_history(self) -> None:
-        from agent_comms import UnregisteredThreadError
+        from agent_comms.errors import UnregisteredThreadError
         from toad.acp.agent import Agent
         from toad.widgets.transcript_history import TranscriptHistory
         from toad.widgets.committed_presentation import (

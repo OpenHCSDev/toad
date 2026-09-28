@@ -6,10 +6,11 @@ from pathlib import Path
 import tempfile
 from unittest.mock import patch
 
-from agent_comms import (
-    Message, MessageRoute, MessageType, Thread, TranscriptCursor, TranscriptEvent,
-    TranscriptPage, TurnRouting, wire,
-)
+from agent_comms.messages import Message, MessageType
+from agent_comms.routing import MessageRoute, TurnRouting
+from agent_comms.threads import Thread
+from agent_comms.transcripts import TranscriptCursor, TranscriptEvent, TranscriptPage
+from agent_comms.comms import wire
 from textual.widgets import Checkbox, Static
 
 from runtime_fixture import ToadApp
@@ -31,7 +32,7 @@ async def main():
                           XDG_STATE_HOME=str(root / "state"), AGENT_COMMS_ROOT=str(root / "wire"))
         comms = wire(root / "wire")
         for name in ("owner", "peer"):
-            comms.register(Thread(name, frozenset({"team"}), str(root)))
+            comms.threads.register(Thread(name, frozenset({"team"}), str(root)))
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(130, 44)) as pilot:
             await pilot.pause()

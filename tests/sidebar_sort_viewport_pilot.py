@@ -5,7 +5,8 @@ import os
 import tempfile
 from pathlib import Path
 
-from agent_comms import Thread, wire
+from agent_comms.threads import Thread
+from agent_comms.comms import wire
 from runtime_fixture import ToadApp
 
 from toad.acp.messages import CoordinationUpdate
@@ -26,9 +27,9 @@ async def main() -> None:
             XDG_STATE_HOME=str(root / "state"),
         )
         comms = wire(root / "wire")
-        comms.register(Thread("owner", frozenset({"team"}), str(root)))
+        comms.threads.register(Thread("owner", frozenset({"team"}), str(root)))
         peer = "collaborator-with-a-long-label-" * 4
-        comms.register(Thread(peer, frozenset({"team"}), str(root)))
+        comms.threads.register(Thread(peer, frozenset({"team"}), str(root)))
         comms.relationships.edit("owner", "add", peer, "Review")
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(120, 40)) as pilot:

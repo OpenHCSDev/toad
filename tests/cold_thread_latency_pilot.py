@@ -12,7 +12,9 @@ import sys
 from contextlib import ExitStack
 from unittest.mock import patch
 
-from agent_comms import Thread, TranscriptCursor, TranscriptEvent, TranscriptPage, wire
+from agent_comms.threads import Thread
+from agent_comms.transcripts import TranscriptCursor, TranscriptEvent, TranscriptPage
+from agent_comms.comms import wire
 from runtime_fixture import ToadApp
 from toad.acp.agent import Agent
 from toad.acp.messages import TranscriptSnapshot
@@ -34,7 +36,7 @@ async def main(profile_path=None, trace=False):
         root = Path(directory)
         os.environ.update(AGENT_COMMS_ROOT=str(root / "wire"), XDG_CONFIG_HOME=str(root / "config"),
                           XDG_STATE_HOME=str(root / "state"), XDG_DATA_HOME=str(root / "data"))
-        wire(root / "wire").register(Thread("cold-replay", frozenset(), str(root), pid=os.getpid()))
+        wire(root / "wire").threads.register(Thread("cold-replay", frozenset(), str(root), pid=os.getpid()))
         released = asyncio.Event()
         body = "## Saved response\n\n" + "Paragraph **with markup** and content.\n\n" * 10
         body += "```python\n" + "def calculate(value): return value + 1\n" * 60 + "```\n"

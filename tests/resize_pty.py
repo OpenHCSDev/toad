@@ -5,7 +5,8 @@ import json
 import tempfile
 from pathlib import Path
 
-from agent_comms import Thread, wire
+from agent_comms.threads import Thread
+from agent_comms.comms import wire
 from e2e_pty import AGENT_PY, FORK_TOAD, PtyLaunch, ToadSession
 
 
@@ -17,7 +18,7 @@ async def main():
             "role": "assistant", "content": f"REPLAY_MARKER_{i}\n\n" + "A paragraph to wrap. " * 100
         }}) + "\n" for i in range(40)))
         comms = wire(root / "wire")
-        comms.register(Thread("resize", frozenset(), str(root), session_file=str(history)))
+        comms.threads.register(Thread("resize", frozenset(), str(root), session_file=str(history)))
         session = ToadSession(PtyLaunch(
             (str(FORK_TOAD), "acp", f"{AGENT_PY} -m agent_comms.acp", "--session", "resize"),
             root,

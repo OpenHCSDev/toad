@@ -6,7 +6,7 @@ import tempfile
 from dataclasses import replace
 from pathlib import Path
 
-from agent_comms import Goal
+from agent_comms.goals import Goal
 from runtime_fixture import ToadApp
 from textual.containers import VerticalScroll
 

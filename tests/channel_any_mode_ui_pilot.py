@@ -5,7 +5,8 @@ import os
 import tempfile
 from pathlib import Path
 
-from agent_comms import Thread, wire
+from agent_comms.threads import Thread
+from agent_comms.comms import wire
 from runtime_fixture import ToadApp
 from toad.widgets.comms_menu import ContextMenuItem
 from toad.widgets.comms_chat import CommsChatView
@@ -24,13 +25,13 @@ async def main() -> None:
             XDG_STATE_HOME=str(root / "state"), XDG_DATA_HOME=str(root / "data"),
         )
         comms = wire(root / "wire")
-        comms.register(Thread("alice", frozenset({"team"}), str(root)))
-        comms.register(Thread("bob", frozenset({"other"}), str(root)))
-        comms.send("alice", "#team", "exact route")
-        comms.send("alice", "bob", "outbound from member")
-        comms.send("bob", "alice", "inbound to member")
-        comms.send("bob", "#other", "unrelated route")
-        assert [m.body for m in comms.channel_display_page("#team").messages] == ["exact route"]
+        comms.threads.register(Thread("alice", frozenset({"team"}), str(root)))
+        comms.threads.register(Thread("bob", frozenset({"other"}), str(root)))
+        comms.messaging.send("alice", "#team", "exact route")
+        comms.messaging.send("alice", "bob", "outbound from member")
+        comms.messaging.send("bob", "alice", "inbound to member")
+        comms.messaging.send("bob", "#other", "unrelated route")
+        assert [m.body for m in comms.views.channel_display_page("#team").messages] == ["exact route"]
 
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(100, 30)) as pilot:
@@ -44,11 +45,11 @@ async def main() -> None:
             assert "Show member activity" in item.render().plain
             await pilot.click(item)
             await pilot.pause()
-            assert wire(root / "wire").channel_catalog.resolve("#team").any_mode
-            assert [m.body for m in comms.channel_display_page("#team").messages] == [
+            assert wire(root / "wire").channels.catalog.resolve("#team").any_mode
+            assert [m.body for m in comms.views.channel_display_page("#team").messages] == [
                 "exact route", "outbound from member", "inbound to member",
             ]
-            assert comms.viewer_snapshot(str(root)).channel_unread["#team"] == 3
+            assert comms.views.viewer_snapshot(str(root)).channel_unread["#team"] == 3
 
             await app.open_comms_session(
                 owner_mode=owner, project_path=root, me="alice",
@@ -72,8 +73,8 @@ async def main() -> None:
             assert "Show channel only" in item.render().plain
             await pilot.click(item)
             await pilot.pause()
-            assert not wire(root / "wire").channel_catalog.resolve("#team").any_mode
-            assert [m.body for m in comms.channel_display_page("#team").messages] == ["exact route"]
+            assert not wire(root / "wire").channels.catalog.resolve("#team").any_mode
+            assert [m.body for m in comms.views.channel_display_page("#team").messages] == ["exact route"]
 
             await pilot.click(group(sidebar, "#any").row, button=3)
             await pilot.pause()

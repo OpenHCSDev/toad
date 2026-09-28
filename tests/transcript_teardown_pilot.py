@@ -5,7 +5,7 @@ import os
 from pathlib import Path
 import tempfile
 
-from agent_comms import TranscriptCursor, TranscriptEvent, TranscriptPage
+from agent_comms.transcripts import TranscriptCursor, TranscriptEvent, TranscriptPage
 from committed_history_pilot import SnapshotAgent
 from runtime_fixture import ToadApp
 

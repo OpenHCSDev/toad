@@ -7,7 +7,8 @@ import tempfile
 import threading
 from unittest.mock import patch
 
-from agent_comms import Thread, wire
+from agent_comms.threads import Thread
+from agent_comms.comms import wire
 from agent_comms.runtime import RuntimeProxy
 from toad.acp.agent import Agent
 from runtime_fixture import ToadApp
@@ -20,7 +21,7 @@ async def main():
                           XDG_DATA_HOME=str(root / "data"), AGENT_COMMS_ROOT=str(root / "first"))
         roots = [root / "first", root / "second"]
         for source in roots:
-            wire(source).register(Thread("owner", frozenset(), str(root), pid=os.getpid()))
+            wire(source).threads.register(Thread("owner", frozenset(), str(root), pid=os.getpid()))
         agent = Agent(root, {"name": "fixture", "run_command": {"*": "false"}}, None)
         agent._coordination_root, agent._coordination_thread = str(roots[0]), "owner"
         ui_thread = threading.get_ident()
@@ -36,7 +37,7 @@ async def main():
             requests.append((proxy._comms, proxy.session_id, method, params))
             return {"ok": True}
 
-        with patch("agent_comms.wire", construct), patch("agent_comms.operations.wire", construct), \
+        with patch("agent_comms.comms.wire", construct), \
                 patch.object(RuntimeProxy, "request", request):
             await asyncio.gather(*(agent._owner_request("fixture") for _ in range(6)))
             assert len(constructors) == 1 and len(requests) == 6
@@ -57,7 +58,7 @@ async def main():
 
         agent._coordination_root = str(roots[0])
         try:
-            with patch("agent_comms.wire", blocked), patch.object(RuntimeProxy, "request", request):
+            with patch("agent_comms.comms.wire", blocked), patch.object(RuntimeProxy, "request", request):
                 pending = asyncio.create_task(agent._owner_request("must-not-send"))
                 assert await asyncio.to_thread(entered.wait, 2)
                 agent._coordination_root = str(roots[1])
@@ -77,7 +78,7 @@ async def main():
             shared = app.coordination_wire
             agent._message_target = app.screen.conversation
             agent._transcript_reader = None
-            with patch("agent_comms.wire", side_effect=AssertionError("Shared reader reconstructed")):
+            with patch("agent_comms.comms.wire", side_effect=AssertionError("Shared reader reconstructed")):
                 async with agent._transcript_reader_lock:
                     reader = await agent._get_coordination_reader(str(shared.root))
             assert reader is shared

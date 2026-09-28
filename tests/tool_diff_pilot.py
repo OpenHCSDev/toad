@@ -8,7 +8,7 @@ from rich.syntax import Syntax
 from textual.content import Content
 from textual.selection import SELECT_ALL
 
-from agent_comms import TranscriptEvent
+from agent_comms.transcripts import TranscriptEvent
 from agent_comms.tool_results import ToolDiff, tool_result_content
 from runtime_fixture import ToadApp
 from tool_diff_fixture import wait_for_tool_diff

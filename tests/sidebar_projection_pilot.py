@@ -5,7 +5,8 @@ import os
 from pathlib import Path
 import tempfile
 
-from agent_comms import Thread, wire
+from agent_comms.threads import Thread
+from agent_comms.comms import wire
 from runtime_fixture import ToadApp
 from toad.widgets.comms_chat import session_thread_name
 from toad.widgets.side_bar import SideBar
@@ -34,9 +35,9 @@ async def main():
                           XDG_STATE_HOME=str(root / "state"), XDG_DATA_HOME=str(root / "data"))
         comms = wire(root / "wire")
         me = session_thread_name(root)
-        comms.register(Thread(me, frozenset({"fixture"}), str(root), pid=os.getpid()))
-        comms.set_channel("#projection", frozenset({"fixture"}))
-        comms.send(me, "#projection", "Channel history")
+        comms.threads.register(Thread(me, frozenset({"fixture"}), str(root), pid=os.getpid()))
+        comms.channels.set_channel("#projection", frozenset({"fixture"}))
+        comms.messaging.send(me, "#projection", "Channel history")
         app = FrameApp(project_dir=str(root))
         async with app.run_test(size=(120, 40)) as pilot:
             await pilot.pause()

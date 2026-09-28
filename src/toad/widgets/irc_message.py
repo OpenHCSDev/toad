@@ -8,7 +8,8 @@ from textual.style import Style
 from textual.widget import Widget
 from textual.message import Message as UIMessage
 from textual.widgets import Static
-from agent_comms import Message, HistoricalMessage
+from agent_comms.messages import Message
+from agent_comms import HistoricalMessage
 from toad.widgets.comms_sidebar import SelectTarget
 from toad.widgets.inline_message import inline_message
 from toad.widgets.message_divider import MessageDivider

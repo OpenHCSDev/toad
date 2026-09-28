@@ -1,7 +1,7 @@
 from textual.reactive import var
 from textual.widget import Widget
 from toad.widgets.streaming_markdown import StreamingMarkdown
-from agent_comms import MessageRoute
+from agent_comms.routing import MessageRoute
 from toad.widgets.route_header import RouteHeader
 from toad.widgets.message_divider import MessageDivider
 from toad.widgets.message_filter import CategorizedBlock, MessageCategory

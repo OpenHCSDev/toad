@@ -8,8 +8,10 @@ import time
 from pathlib import Path
 from statistics import median
 
-from agent_comms import Activity, ActivityState, Thread, wire
-from agent_comms.declarations import ActivityLog
+from agent_comms.activity import Activity, ActivityState
+from agent_comms.threads import Thread
+from agent_comms.comms import wire
+from agent_comms.activity import ActivityLog
 from runtime_fixture import ToadApp
 from toad.widgets.agent_response import AgentResponse
 
@@ -38,8 +40,8 @@ async def main():
             activity_ms.append((time.perf_counter() - start) * 1000)
         comms = wire(root / "wire")
         for index in range(24):
-            comms.register(Thread(f"worker-{index}", frozenset({"team"}), str(root)))
-        activity_file(comms.activity._path)
+            comms.threads.register(Thread(f"worker-{index}", frozenset({"team"}), str(root)))
+        activity_file(comms.agents.activity._path)
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(120, 40)) as pilot:
             await pilot.pause()
@@ -54,10 +56,10 @@ async def main():
             for _ in range(200):
                 await app.screen.on_project_directory_update()
             directory_ms = (time.perf_counter() - start) * 1000
-            app._sidebar_snapshot = comms.viewer_snapshot(str(root))
+            app._sidebar_snapshot = comms.views.viewer_snapshot(str(root))
             tabs_ms = []
             for index in range(20):
-                comms.set_activity("worker-0", ActivityState.THINKING, f"Change {index}")
+                comms.agents.set_activity("worker-0", ActivityState.THINKING, f"Change {index}")
                 start = time.perf_counter()
                 assert app.open_tabs
                 tabs_ms.append((time.perf_counter() - start) * 1000)

@@ -5,7 +5,8 @@ import os
 import tempfile
 from pathlib import Path
 
-from agent_comms import Thread, wire
+from agent_comms.threads import Thread
+from agent_comms.comms import wire
 from runtime_fixture import ToadApp
 from textual.containers import VerticalScroll
 
@@ -24,7 +25,7 @@ async def check_left() -> None:
                           AGENT_COMMS_ROOT=str(root / "wire"),
                           TOAD_BENCH_VIRTUAL_CHANNELS="")
         name = "long-thread-name-" * 5
-        wire(root / "wire").register(Thread(name, frozenset({"alpha"}), str(root)))
+        wire(root / "wire").threads.register(Thread(name, frozenset({"alpha"}), str(root)))
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(100, 34)) as pilot:
             await pilot.pause()
@@ -52,7 +53,7 @@ async def check_right() -> None:
         comms = wire(root / "wire")
         name = "long-collaborator-" * 5
         for peer in ("owner", name):
-            comms.register(Thread(peer, frozenset(), str(root)))
+            comms.threads.register(Thread(peer, frozenset(), str(root)))
         comms.relationships.edit("owner", "add", name, "Review the whole implementation")
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(100, 34)) as pilot:

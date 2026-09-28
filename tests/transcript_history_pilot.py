@@ -6,7 +6,8 @@ import os
 import tempfile
 from pathlib import Path
 
-from agent_comms import Thread, wire
+from agent_comms.threads import Thread
+from agent_comms.comms import wire
 from toad.app import ToadApp
 from toad.widgets.transcript_history import TranscriptHistory
 
@@ -27,7 +28,7 @@ async def main():
             "role": "assistant", "content": f"Record {i}\n\nContent."
         }}) + "\n" for i in range(105)))
         comms = wire(root / "wire")
-        comms.register(Thread("worker", frozenset(), str(root), session_file=str(path)))
+        comms.threads.register(Thread("worker", frozenset(), str(root), session_file=str(path)))
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(120, 40)) as pilot:
             await pilot.pause()
@@ -35,7 +36,7 @@ async def main():
             await conversation.contents.remove_children()
 
             async def load(**kwargs):
-                return await asyncio.to_thread(comms.thread_transcript_page, "worker", **kwargs)
+                return await asyncio.to_thread(comms.transcripts.thread_transcript_page, "worker", **kwargs)
 
             history = TranscriptHistory(await load(), load)
             await conversation.post(history)

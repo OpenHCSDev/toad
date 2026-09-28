@@ -2,7 +2,7 @@ from functools import partial
 from pathlib import Path
 import asyncio
 import random
-from agent_comms import Comms
+from agent_comms.comms import Comms
 
 from textual import on
 from textual.app import ComposeResult
@@ -344,7 +344,7 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
     def _resolve_comms_thread(self) -> str:
         resolved: str | None
         try:
-            from agent_comms.operations import wire
+            from agent_comms.comms import wire
 
             from toad.comms_root import current_root, root_is_current
 
@@ -430,7 +430,7 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
             if not spec:
                 return
             from agent_comms import invoke_context_tool
-            from agent_comms.operations import wire as _wire
+            from agent_comms.comms import wire as _wire
 
             from toad.comms_root import implicit_root, root_is_current, run_selected_write
 

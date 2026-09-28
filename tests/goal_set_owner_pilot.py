@@ -8,7 +8,7 @@ from pathlib import Path
 from agent_comms.goal_actions import BlockedGoalAction, GoalPrecondition, SetGoalAction
 from agent_comms.acp import CommsAgent
 from agent_comms.goal_attempts import GoalAttemptStore
-from agent_comms.operations import wire
+from agent_comms.comms import wire
 from toad.acp.agent import Agent
 
 
@@ -34,8 +34,8 @@ async def owner_set_route(*, legacy_blocked: bool) -> None:
         toad_agent._coordination_thread = session
         try:
             if legacy_blocked:
-                old = comms.update_goal(session, SetGoalAction(text="legacy goal"))
-                blocked = comms.update_goal(session, BlockedGoalAction(progress="Goal attempt unresolved", expect=GoalPrecondition(goal_id=old.id)))
+                old = comms.goals.update_goal(session, SetGoalAction(text="legacy goal"))
+                blocked = comms.goals.update_goal(session, BlockedGoalAction(progress="Goal attempt unresolved", expect=GoalPrecondition(goal_id=old.id)))
                 assert blocked is not None and blocked.state.declared_name == "blocked"
                 assert comms.registry.require(session).goal == blocked
                 assert not (

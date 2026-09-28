@@ -6,7 +6,8 @@ import sys
 import tempfile
 from pathlib import Path
 
-from agent_comms import Thread, wire
+from agent_comms.threads import Thread
+from agent_comms.comms import wire
 from runtime_fixture import ToadApp
 
 
@@ -23,8 +24,8 @@ async def main():
             AGENT_COMMS_AGENT_MODELS="test/model",
         )
         comms = wire(root / "wire")
-        comms.register(Thread("saved", frozenset({"acp"}), str(root)))
-        comms.set_agent_info("saved", model="test/model", context_used=38723, context_size=272000)
+        comms.threads.register(Thread("saved", frozenset({"acp"}), str(root)))
+        comms.agents.set_agent_info("saved", model="test/model", context_used=38723, context_size=272000)
         app = ToadApp(agent_data={
             "name": "Comms", "identity": "context-replay-test", "short_name": "context",
             "run_command": {"*": f"{sys.executable} -m agent_comms.acp"}, "protocol": "acp",

@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 
-from agent_comms import Comms
+from agent_comms.comms import Comms
 
 
 @dataclass(frozen=True, slots=True)

@@ -13,13 +13,13 @@ import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
-from agent_comms import ThreadRole
+from agent_comms.thread_identity import ThreadRole
 from agent_comms.bus_publication import stable_thread_lookup
 from agent_comms.cohort_schema import install_private_cohort_schema
 from agent_comms.coordination_cohort import accept_initial_cohort
 from agent_comms.coordination_store import MutationStore
-from agent_comms.declarations import HumanInitialUnknownError
-from agent_comms.operations import wire
+from agent_comms.errors import HumanInitialUnknownError
+from agent_comms.comms import wire
 from default_route_pilot import private_root, route
 
 from toad import messages
@@ -42,7 +42,7 @@ async def main() -> None:
         # private root quiescent through cleanup.
         with (
             patch(
-                "agent_comms.operations.schedule_private_candidate_after_commit",
+                "agent_comms.messaging.schedule_private_candidate_after_commit",
                 lambda *_: None,
             ),
             tempfile.TemporaryDirectory(
@@ -214,7 +214,7 @@ async def main() -> None:
                     original_open = os.open
                     pre_row_calls = 0
                     pre_row_errors: list[HumanInitialUnknownError] = []
-                    channel_send = channel._wire.send_user_message
+                    channel_send = channel._wire.messaging.send_user_message
 
                     def fail_bus_open(path, *args, **kwargs):
                         if Path(path) == root / "bus.jsonl":
@@ -233,7 +233,7 @@ async def main() -> None:
                     with (
                         patch("os.open", fail_bus_open),
                         patch.object(
-                            channel._wire, "send_user_message", observe_pre_row
+                            channel._wire.messaging, 'send_user_message', observe_pre_row
                         ),
                     ):
                         pre_row = messages.UserInputSubmitted("PRE-ROW-UNKNOWN")

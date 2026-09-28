@@ -6,7 +6,8 @@ The core adapter or an isolated test fixture supplies the facts.
 
 from typing import Protocol
 
-from agent_comms import ThreadSort, ThreadView
+from agent_comms.display_order import ThreadSort
+from agent_comms.presentation import ThreadView
 
 
 class RelationshipEntry(Protocol):

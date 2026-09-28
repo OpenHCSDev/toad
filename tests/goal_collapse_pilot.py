@@ -6,7 +6,8 @@ import tempfile
 from dataclasses import replace
 from pathlib import Path
 
-from agent_comms import Goal, GoalExecution, GoalExecutionState, GoalWaitTarget
+from agent_comms.goals import Goal
+from agent_comms.goal_presentation import GoalExecution, GoalExecutionState, GoalWaitTarget
 from runtime_fixture import ToadApp
 from textual.widgets import Static
 

@@ -5,7 +5,8 @@ import os
 import tempfile
 from pathlib import Path
 
-from agent_comms import Thread, wire
+from agent_comms.threads import Thread
+from agent_comms.comms import wire
 from toad.app import ToadApp
 from toad.widgets.channel_prompt import ChannelPrompt
 from toad.widgets.comms_chat import CommsChatView
@@ -21,7 +22,7 @@ async def main():
         )
         comms = wire(root / "wire")
         for name in ("alpha", "beta"):
-            comms.register(Thread(name, frozenset({"team"}), str(root)))
+            comms.threads.register(Thread(name, frozenset({"team"}), str(root)))
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(100, 35)) as pilot:
             await pilot.pause()
@@ -42,10 +43,10 @@ async def main():
             prompt.text += "review this?"
             await pilot.press("enter")
             await pilot.pause()
-            history = comms.channel_history("#team")
+            history = comms.views.channel_history("#team")
             assert len(history) == 1 and history[0].target == "#team"
             assert history[0].mentions[0].thread == "alpha"
-            assert len(comms.inbox("alpha")) == len(comms.inbox("beta")) == 1
+            assert len(comms.bus.inbox("alpha")) == len(comms.bus.inbox("beta")) == 1
             rendered = chat.query_one(IRCMessage).mentioned_body()
             assert "@alpha" in rendered.plain and rendered.spans
             prompt.text = "@"

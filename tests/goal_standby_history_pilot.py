@@ -7,14 +7,10 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 from agent_comms.goal_states import PausedGoal
-from agent_comms import (
-    Goal,
-    GoalExecution,
-    GoalExecutionState,
-    GoalWaitTarget,
-    Thread,
-    wire,
-)
+from agent_comms.goals import Goal
+from agent_comms.goal_presentation import GoalExecution, GoalExecutionState, GoalWaitTarget
+from agent_comms.threads import Thread
+from agent_comms.comms import wire
 from textual.content import Content
 from textual.widgets import Button, Static
 

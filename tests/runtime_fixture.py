@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 
 import psutil
-from agent_comms import wire
+from agent_comms.comms import wire
 from toad.app import ToadApp as Application
 
 
@@ -21,7 +21,7 @@ def stop_test_owners(root: Path) -> None:
                 continue
             if Path(process.environ().get("AGENT_COMMS_ROOT", "")).resolve() != root.resolve():
                 continue
-            comms.stop(thread.name)
+            comms.owners.stop(thread.name)
             process.wait(timeout=10)
         except psutil.NoSuchProcess:
             pass

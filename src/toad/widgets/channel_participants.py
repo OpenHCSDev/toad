@@ -1,6 +1,6 @@
 """Compact projection of the model's active channel members above the composer."""
 
-from agent_comms import ThreadView
+from agent_comms.presentation import ThreadView
 from textual.app import ComposeResult
 from textual.containers import VerticalScroll
 from textual.content import Content

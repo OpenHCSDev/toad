@@ -5,7 +5,7 @@ from collections.abc import Iterator
 from typing import TYPE_CHECKING
 from threading import local
 
-from agent_comms import TranscriptEvent
+from agent_comms.transcripts import TranscriptEvent
 from markdown_it import MarkdownIt
 
 from toad.widgets.agent_activity import AgentActivityBoundary

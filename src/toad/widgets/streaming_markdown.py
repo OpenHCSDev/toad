@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 from markdown_it import MarkdownIt
 from markdown_it.token import Token
 
-from agent_comms import TranscriptCursor, TranscriptEvent, TranscriptPage
+from agent_comms.transcripts import TranscriptCursor, TranscriptEvent, TranscriptPage
 from textual.await_complete import AwaitComplete
 from textual.widgets.markdown import MarkdownStream
 from textual.widget import Widget
