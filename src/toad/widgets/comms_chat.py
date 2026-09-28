@@ -40,6 +40,9 @@ from toad.widgets.throbber import Throbber
 from toad.widgets.irc_message import IRCMessage, MembershipNotice, WireMarkdownMessage
 from toad.widgets.channel_participants import ChannelParticipants
 from toad.widgets.channel_prompt import ChannelPrompt
+from toad.widgets.message_notifications import MessageNotifications
+from toad.widgets.observed_thread_activity import ObservedThreadActivity
+from toad.owner_preparation import read_thread_presentation
 
 HISTORY_PAGE_SIZE = 40
 INITIAL_HISTORY_PAGE_SIZE = 8
@@ -117,14 +120,12 @@ class CommsChatView(Conversation):
         self._edge_load_scheduled = False
         self._edge_check_on_resume = False
         self._refresh_lock = asyncio.Lock()
+        self._notification_task: asyncio.Task[None] | None = None
         # This widget is constructed during screen composition; the App's
         # revision-aware reader becomes available when the view mounts.
         self._wire: Comms | None = None
         self._revision: WireRevision | None = None
         self._display_identity: tuple | None = None
-        self._prepared_history: HistoryReadResult | None = None
-        self._history_warm_task: asyncio.Task[HistoryReadResult] | None = None
-        self._history_warm_request: HistoryReadRequest | None = None
         self._ack_page: MessagePage | None = None
         self._channel_ack_pages: dict[int, MessagePage] = {}
         self._historical_ack_pages: dict[tuple[str, int], MessagePage] = {}
@@ -143,6 +144,8 @@ class CommsChatView(Conversation):
         with containers.Vertical(id="prompt-stack"):
             if self.kind != "dm":
                 yield ChannelParticipants()
+            else:
+                yield ObservedThreadActivity(self._read_thread_activity)
             yield Throbber(id="throbber")
             prompt_type = ChannelPrompt if self.kind != "dm" else Prompt
             yield prompt_type(
@@ -292,59 +295,9 @@ class CommsChatView(Conversation):
             self._display_identity,
         )
 
-    def _warm_history(self) -> None:
-        if self._history_warm_task is not None and not self._history_warm_task.done():
-            return
-        request = self._history_request()
-        self._history_warm_request = request
-        self._history_warm_task = asyncio.create_task(
-            self.app.channel_history_reader.read(request, self._prepared_history, background=True),
-            name="warm-channel-history",
-        )
-        self._history_warm_task.add_done_callback(self._history_warmed)
-
-    def _history_warmed(self, task: asyncio.Task[HistoryReadResult]) -> None:
-        if task.cancelled():
-            return
-        try:
-            result = task.result()
-        except Exception:
-            # Active loading reports failures through the existing visible path.
-            return
-        if (
-            self.is_attached
-            and self.query_one_optional(Window) is not None
-            and result.request == self._history_request()
-        ):
-            self._prepared_history = result
-
-    async def _read_history(self) -> HistoryReadResult:
-        request = self._history_request()
-        prepared = self._prepared_history
-        if prepared is not None and prepared.request == request:
-            self._prepared_history = None
-            if self._history_warm_task is not None and self._history_warm_task.done():
-                self._history_warm_task = None
-                self._history_warm_request = None
-            return prepared
-        warming = self._history_warm_task
-        if warming is not None and self._history_warm_request == request:
-            self._history_warm_task = None
-            await asyncio.wait((warming,))
-            return warming.result()
-        return await self.app.channel_history_reader.read(request)
-
     async def on_unmount(self) -> None:
         self._ack_page = None
         self._channel_ack_pages.clear()
-        if self._history_warm_task is not None:
-            task = self._history_warm_task
-            task.cancel()
-            self._history_warm_task = None
-            await asyncio.gather(task, return_exceptions=True)
-        self._history_warm_request = None
-        self._prepared_history = None
-
     async def toggle_message_style(self) -> None:
         """Re-render only the bounded visible history when switching styles."""
         async with self._refresh_lock:
@@ -700,31 +653,94 @@ class CommsChatView(Conversation):
             if self.is_attached:
                 self.call_after_refresh(self._mark_visible_after_layout)
 
+    def _refresh_notifications(self) -> None:
+        """One bounded batch for the painted window; independent of bus revision."""
+        if (not self.is_attached or self._wire is None
+                or not self.screen.is_active or not self.display
+                or self._notification_task is not None and not self._notification_task.done()):
+            return
+        rows = self._visible_notification_rows()
+        if rows:
+            self._notification_task = asyncio.create_task(self._read_notifications(rows))
+
+    def _visible_notification_rows(self) -> tuple[tuple[WireMessage, Widget], ...]:
+        """The whole message includes expanded details; this is not read-ack proof."""
+        geometry = self.screen._compositor.visible_widgets
+        viewport = self.window.content_region
+        rows = []
+        for message, widget in self._history:
+            if not isinstance(widget, (IRCMessage, WireMarkdownMessage)) or not widget.is_attached:
+                continue
+            placement = geometry.get(widget)
+            if placement is None:
+                continue
+            region, clip = placement
+            if region.overlaps(viewport) and region.overlaps(clip) and clip.overlaps(viewport):
+                rows.append((message, widget))
+        return tuple(rows)
+
+    async def _read_thread_activity(self):
+        from toad.comms_root import root_is_current
+
+        comms, target = self._wire, self.target
+        if comms is None:
+            return None
+        if not root_is_current(comms.root):
+            raise ValueError("Comms route changed")
+        presentation = await asyncio.to_thread(read_thread_presentation, comms, target)
+        if comms is not self._wire or target != self.target or not root_is_current(comms.root):
+            raise ValueError("Comms route changed")
+        return presentation
+
+    async def _read_notifications(self, rows: tuple[tuple[WireMessage, Widget], ...]) -> None:
+        from toad.comms_root import root_is_current
+
+        comms, target = self._wire, self.target
+        if comms is None or not root_is_current(comms.root):
+            return
+        error = None
+        try:
+            results = await asyncio.to_thread(
+                comms.views.message_notifications, tuple(message for message, _ in rows),
+            )
+        except Exception as failure:
+            error, results = failure, {}
+        if (not self.is_attached or self._wire is not comms or self.target != target
+                or not self.screen.is_active
+                or not root_is_current(comms.root)):
+            return
+        visible = {widget for _, widget in self._visible_notification_rows()}
+        for message, widget in rows:
+            if widget in visible:
+                feedback = next(iter(widget.query(MessageNotifications)), None)
+                if feedback is None:
+                    continue  # Style replacement has unmounted this row's children.
+                if error is not None:
+                    feedback.show_error(error)
+                else:
+                    feedback.show_result(results.get((message.seq, message.message_id), ()))
+
     async def _refresh(self) -> None:
         if not self.is_attached or self._wire is None:
+            return
+        if not self.screen.is_active:
             return
         from toad.comms_root import root_is_current
 
         if not root_is_current(self._wire.root):
             self.display = False
             return
-        try:
-            if self.screen is not self.app.screen:
-                self._warm_history()
-                return
-        except Exception:
-            return
+        self._refresh_notifications()
         if self._refresh_lock.locked():
             return
         async with self._refresh_lock:
             try:
                 comms = self._wire
-                show_loading = (not self._history_initialized or
-                                self._history_warm_task is not None and not self._history_warm_task.done())
+                show_loading = not self._history_initialized
                 if show_loading:
                     self.throbber.busy = True
                 try:
-                    read = await self._read_history()
+                    read = await self.app.channel_history_reader.read(self._history_request())
                 finally:
                     if show_loading and self.is_attached:
                         self.throbber.busy = False
@@ -733,8 +749,7 @@ class CommsChatView(Conversation):
                 if not root_is_current(comms.root):
                     self.display = False
                     return
-                if self.screen is not self.app.screen:
-                    self._prepared_history = read
+                if not self.screen.is_active:
                     return
                 revision = read.revision
                 if revision == self._revision:

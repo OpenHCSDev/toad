@@ -117,7 +117,7 @@ class ReaderTests(unittest.IsolatedAsyncioTestCase):
             self.assertTrue(detached.replace_tail)
             self.assertFalse(detached.page.has_older)
 
-    async def test_revision_reuse_limits_and_background_admission(self) -> None:
+    async def test_revision_reuse_limits_and_cancelled_read_ownership(self) -> None:
         with tempfile.TemporaryDirectory(prefix="channel-reader-") as directory:
             root = Path(directory)
             comms = wire(root)
@@ -131,12 +131,13 @@ class ReaderTests(unittest.IsolatedAsyncioTestCase):
             release = Event()
             try:
                 with patch.object(comms.views, 'channel_display_page', wraps=comms.views.channel_display_page) as page:
-                    result = await reader.read(request, background=True)
+                    result = await reader.read(request)
                     assert result.page is not None
                     self.assertLessEqual(len(result.page.messages), 8)
                     self.assertTrue(result.page.has_older)
-                    reused = await reader.read(request, result, background=True)
-                    self.assertIs(reused, result)
+                    reused = await reader.read(replace(request, initialized=True, after=result.high_water,
+                                                       known_revision=result.revision))
+                    self.assertIsNone(reused.page)
                     self.assertEqual(page.call_count, 1)
 
                 # A cancelled UI waiter does not release an in-flight kernel read.
@@ -153,20 +154,17 @@ class ReaderTests(unittest.IsolatedAsyncioTestCase):
                     return original(target, **kwargs)
 
                 with patch.object(comms.views, 'channel_display_page', side_effect=gated) as page:
-                    first = asyncio.create_task(reader.read(request, background=True))
+                    first = asyncio.create_task(reader.read(request))
                     self.assertTrue(await asyncio.to_thread(entered.wait, 2))
                     first.cancel()
                     with self.assertRaises(asyncio.CancelledError):
                         await first
-                    queued = asyncio.create_task(reader.read(replace(request, target="#two"), background=True))
-                    await asyncio.sleep(0)
-                    self.assertEqual(page.call_count, 1)
-                    # Foreground uses its own I/O slot rather than joining the
-                    # queue for unrelated inactive tabs.
+                    self.assertTrue(reader._pending)
+                    # Cancellation does not cancel the actual I/O; a different
+                    # current-view request can still complete independently.
                     active = await asyncio.wait_for(reader.read(replace(request, target="#two")), 2)
                     self.assertEqual(active.request.target, "#two")
                     release.set()
-                    await asyncio.wait_for(queued, 3)
             finally:
                 release.set()
                 await reader.aclose()

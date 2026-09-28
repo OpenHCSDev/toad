@@ -13,6 +13,7 @@ from agent_comms import HistoricalMessage
 from toad.widgets.comms_sidebar import SelectTarget
 from toad.widgets.inline_message import inline_message
 from toad.widgets.message_divider import MessageDivider
+from toad.widgets.message_notifications import MessageNotifications
 
 
 class SelectHistoricalIdentity(UIMessage):
@@ -108,6 +109,7 @@ class IRCMessage(VerticalGroup, can_focus=True):
                 ),
                 markup=False,
             )
+        yield MessageNotifications()
 
     @staticmethod
     def _link(target: str) -> Content:
@@ -167,6 +169,7 @@ class WireMarkdownMessage(VerticalGroup):
                 yield Static("Mentioned: ", expand=False)
                 for target in dict.fromkeys(mention.thread for mention in self.message.mentions):
                     yield ThreadLink(target, source)
+        yield MessageNotifications()
 
     def read_ack_widget(self) -> Widget:
         """Only the rendered message body can authorize a read."""
