@@ -324,22 +324,21 @@ async def main(*, empty=False, trace=False, observe=False, output=None, peers=0,
                 await asyncio.wait_for(finished.wait(), 3)
                 assert not app._atomic_mode_switch
 
-                # Hidden channel trees are retired, then rebuilt from the
-                # shared projection. Closed tabs must lose their routes even
-                # when no old row objects survive to receive an update.
+                # Hidden channel trees remain mounted across switches. Closing
+                # tabs must still reconcile their routes on the next activation.
                 destination = app.get_screen_stack(modes[3])[0]
                 hidden_sidebar = destination.query_one(CommsSidebar)
-                async with asyncio.timeout(5):
-                    while hidden_sidebar._last_snapshot is not None or hidden_sidebar._retirement_pending:
-                        await pilot.pause(.01)
-                assert not hidden_sidebar.query(ThreadStatusRow)
-                assert not hidden_sidebar._row_map
+                retained_channels = dict(hidden_sidebar._row_map)
+                assert retained_channels
+                assert all(row.is_attached for row in retained_channels.values())
                 for mode in modes[:3]:
                     await app.close_session_mode(mode)
                 await app.switch_mode(modes[3])
                 async with asyncio.timeout(5):
                     await hidden_sidebar.navigation_ready.wait()
                 await pilot.pause()
+                assert all(hidden_sidebar._row_map[key] is row
+                           for key, row in retained_channels.items())
                 assert tuple(label.id for label in app.screen.query(SessionLabel)) == tuple(
                     tab.mode_name for tab in app.open_tabs
                 )

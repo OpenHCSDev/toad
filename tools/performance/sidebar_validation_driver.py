@@ -461,6 +461,7 @@ class ValidationDriver(LinuxDriver):
         return result
 
     def _snapshot(self):
+        from agent_comms.transcript_events import TranscriptCodec
         from toad.widgets.comms_sidebar import CommsRow, ThreadRow
         from toad.widgets.comms_sidebar import CommsSidebar
         from toad.widgets.virtual_channel_list import VirtualChannelList
@@ -511,6 +512,8 @@ class ValidationDriver(LinuxDriver):
                 if not visible:
                     continue
                 row = {"kind": type(widget).__name__, "id": widget.id, "rect": list(visible)}
+                if isinstance(widget, CommsRow):
+                    row["object_id"] = id(widget)
                 if isinstance(widget, SideBarToggle):
                     bar = widget.query_ancestor(SideBar)
                     row.update(sidebar=bar.id, collapsed=bar.collapsed)
@@ -535,8 +538,7 @@ class ValidationDriver(LinuxDriver):
         histories = [{"loading": history._loading, "fragments": history.fragment_count,
                       "has_older": history.has_older, "has_newer": history.has_newer,
                       "pages": [{"before": str(page.page.before), "after": str(page.page.after),
-                                 "text_sha256": sha256(json.dumps([(event.kind, event.text, event.tool_call_id,
-                                                                  event.tool_name, event.raw_input)
+                                 "text_sha256": sha256(json.dumps([TranscriptCodec.encode(event)
                                                                  for event in page.page.events],
                                                                 sort_keys=True, default=str).encode()).hexdigest(),
                                  "start": page.start, "stop": page.stop} for page in history.pages]}
