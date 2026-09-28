@@ -161,7 +161,7 @@ class AgentProcess:
             agent.session_ready_event.set()
             agent.post_message(AgentFail("Failed to start agent", details=str(error)))
             return
-        self.session_task = asyncio.create_task(agent.run())
+        self.session_task = asyncio.create_task(agent.controller.initialize())
         assert process.stdout is not None
         assert process.stdin is not None
         tasks = self.responses
