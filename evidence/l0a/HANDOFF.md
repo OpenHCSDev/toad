@@ -1,3 +1,24 @@
+## Paired L0A readiness: current parent integration passes
+
+Core parent branch a5809ab169638eff2b0b0570f21261e15d6a7623 (contains
+PR241 92b42ba and Darwin S9 73c9dbc) plus Toad aafd19c runtime:
+**paired L0A ready for parent integration/activation**. Installed candidate wheels,
+notification-only acceptance exits 0. Actual Toad -> ACP subprocess -> detached
+owner -> prepared Pi native RPC -> one loopback HTTP request -> IGNORE -> visible
+`Checked — no response (1)`. Participant active/idle and real owner navigation pass.
+
+Evidence: evidence/l0a-parent-notification. Core pin is the tested parent a5809ab.
+Toad includes the post-4b15e57 navigation fix in2844f66; integrate the full PR107
+head, not only4b15e57. No waiting on separate hotfix242. No live activation here.
+Parent owns publishing its integrated core, final quiet cutover/install and activation.
+
+Only notification acceptance reran on this parent. Earlier queue, DM, cold reattach,
+stopped-owner reopen and idle results remain at their recorded candidates. This
+is the requested paired closure decision, not a claim that the entire suite ran
+again on a5809ab. No paid calls or mocked native/notification callbacks.
+
+### Earlier receipts (superseded candidate heads retained for provenance)
+
 ## Installed notification acceptance closed
 
 Core PR241 92b42ba + Toad 2844f66 candidate wheels: focused
