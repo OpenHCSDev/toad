@@ -13,6 +13,9 @@ acts through ``agent_comms`` operations.
 
 from __future__ import annotations
 
+from toad.settings import PreferenceChange
+from toad.preferences import SidebarSettings
+
 import os
 import asyncio
 from dataclasses import dataclass
@@ -777,10 +780,10 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
     @property
     def visible_filters(self) -> tuple[bool, bool]:
         settings = cast("ToadApp", self.app).settings
-        return settings.get("sidebar.show_stopped", bool), settings.get("sidebar.show_archived", bool)
+        return settings.sidebar.show_stopped, settings.sidebar.show_archived
 
-    def _settings_changed(self, update: tuple[str, object]) -> None:
-        if update[0] in {"sidebar.show_stopped", "sidebar.show_archived"}:
+    def _settings_changed(self, update: PreferenceChange) -> None:
+        if update.field in {SidebarSettings.show_stopped, SidebarSettings.show_archived}:
             self._last_revision = None
             self._refresh()
 

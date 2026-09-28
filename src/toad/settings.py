@@ -1,353 +1,392 @@
+"""Typed preference declarations, one load boundary and descriptor-owned editing."""
+
 from __future__ import annotations
 
-from collections.abc import Mapping
-import copy
-from functools import cached_property
-from json import dumps
+import json
+from abc import ABC, abstractmethod
+from collections.abc import Callable, Iterator
 from dataclasses import dataclass
-from typing import Callable, Iterable, KeysView, Sequence, TypedDict, Required
+from pathlib import Path
+from typing import TYPE_CHECKING, Any, TypeVar, overload
 
-from toad._loop import loop_last
+from agent_comms.field_codec import FieldCodec
+from textual.widget import Widget
 
+if TYPE_CHECKING:
+    from toad.app import ToadApp
+    from toad.setting_choices import Choice
 
-@dataclass
-class Setting:
-    """A setting or group of setting."""
-
-    key: str
-    title: str
-    type: str = "object"
-    help: str = ""
-    choices: list[str] | None = None
-    default: object | None = None
-    validate: list[dict] | None = None
-    children: dict[str, Setting] | None = None
-    editable: bool = True
+T = TypeVar("T")
+G = TypeVar("G", bound="SettingsGroup")
+_UNSET = object()
 
 
-class SchemaDict(TypedDict, total=False):
-    """Typing for schema data structure."""
-
-    key: Required[str]
-    title: Required[str]
-    type: Required[str]
-    help: str
-    choices: list[str] | list[tuple[str, str]] | None
-    default: object
-    fields: list[SchemaDict]
-    validate: list[dict]
-    editable: bool
+def no_effect(app: ToadApp, value: object) -> None:
+    """Preference is consumed directly when its operation runs."""
 
 
-type SettingsType = dict[str, object]
-
-
-INPUT_TYPES = {"boolean", "integer", "number", "string", "choices", "text"}
-
-
-class SettingsError(Exception):
-    """Base class for settings related errors."""
-
-
-class InvalidKey(SettingsError):
-    """The key is not in the schema."""
-
-
-class InvalidValue(SettingsError):
-    """The value was not of the expected type."""
-
-
-def parse_key(key: str) -> Sequence[str]:
-    return key.split(".")
-
-
-def get_setting[ExpectType](
-    settings: dict[str, object], key: str, expect_type: type[ExpectType] = object
-) -> ExpectType:
-    """Get a key from a settings structure.
-
-    Args:
-        settings: A settings dictionary.
-        key: A dot delimited key, e.g. "ui.column"
-        expect_type: The expected type of the value.
-
-    Raises:
-        InvalidValue: If the value is not the expected type.
-        KeyError: If the key doesn't exist in settings.
-
-    Returns:
-        The value matching they key.
-    """
-    for last, key_component in loop_last(parse_key(key)):
-        if last:
-            result = settings[key_component]
-            if not isinstance(result, expect_type):
-                raise InvalidValue(
-                    f"Expected {expect_type.__name__} type; found {result!r}"
-                )
-            return result
-        else:
-            sub_settings = settings.setdefault(key_component, {})
-            assert isinstance(sub_settings, dict)
-            settings = sub_settings
-    raise KeyError(key)
-
-
-class Schema:
-    def __init__(self, schema: list[SchemaDict]) -> None:
-        self.schema = schema
-
-    def set_value(self, settings: SettingsType, key: str, value: object) -> None:
-        schema = self.schema
-        keys = parse_key(key)
-        for last, key in loop_last(keys):
-            if last:
-                settings[key] = value
-            if key not in schema:
-                raise InvalidKey()
-            schema = schema[key]
-            assert isinstance(schema, dict)
-            if key not in settings:
-                settings = settings[key] = {}
-
-    def get_default(self, key: str) -> object | None:
-        """Get a default for the given key.
-
-        Args:
-            key: Key in dotted notation
-
-        Returns:
-            Default, or `None`.
-        """
-        defaults = self.defaults
-
-        schema_object = defaults
-        for last, sub_key in loop_last(parse_key(key)):
-            if last:
-                return schema_object.get(sub_key, None)
-            else:
-                if isinstance(schema_object, dict):
-                    schema_object = schema_object.get(sub_key, {})
-                else:
-                    return None
-        return None
-
-    @cached_property
-    def defaults(self) -> dict[str, object]:
-        settings: dict[str, object] = {}
-
-        def set_defaults(schema: list[SchemaDict], settings: dict[str, object]) -> None:
-            sub_settings: SettingsType
-            for sub_schema in schema:
-                key = sub_schema["key"]
-                assert isinstance(sub_schema, dict)
-                type = sub_schema["type"]
-
-                if type == "object":
-                    if fields := sub_schema.get("fields"):
-                        sub_settings = settings[key] = {}
-                        set_defaults(fields, sub_settings)
-
-                else:
-                    if (default := sub_schema.get("default")) is not None:
-                        settings[key] = default
-
-        set_defaults(self.schema, settings)
-        return settings
-
-    @cached_property
-    def key_to_type(self) -> Mapping[str, type]:
-        TYPE_MAP = {
-            "object": SchemaDict,
-            "string": str,
-            "integer": int,
-            "number": float,
-            "boolean": bool,
-            "choices": str,
-            "text": str,
-        }
-
-        def get_keys(setting: Setting) -> Iterable[tuple[str, type]]:
-            if setting.type == "object" and setting.children:
-                for child in setting.children.values():
-                    yield from get_keys(child)
-            else:
-                yield (setting.key, TYPE_MAP[setting.type])
-
-        keys = {
-            key: value_type
-            for setting in self.settings_map.values()
-            for key, value_type in get_keys(setting)
-        }
-        return keys
-
-    @property
-    def keys(self) -> KeysView:
-        return self.key_to_type.keys()
-
-    @cached_property
-    def settings_map(self) -> dict[str, Setting]:
-        form_settings: dict[str, Setting] = {}
-
-        def build_settings(
-            name: str, schema: SchemaDict, default: object = None
-        ) -> Setting:
-            schema_type = schema.get("type")
-            assert schema_type is not None
-            if schema_type == "object":
-                return Setting(
-                    name,
-                    schema["title"],
-                    schema_type,
-                    help=schema.get("help") or "",
-                    default=schema.get("default", default),
-                    validate=schema.get("validate"),
-                    children={
-                        schema["key"]: build_settings(f"{name}.{schema['key']}", schema)
-                        for schema in schema.get("fields", [])
-                    },
-                    editable=schema.get("editable", True),
-                )
-            else:
-                return Setting(
-                    name,
-                    schema["title"],
-                    schema_type,
-                    choices=schema.get("choices"),
-                    help=schema.get("help") or "",
-                    default=schema.get("default", default),
-                    validate=schema.get("validate"),
-                    editable=schema.get("editable", True),
-                )
-
-        for sub_schema in self.schema:
-            form_settings[sub_schema["key"]] = build_settings(
-                sub_schema["key"], sub_schema
-            )
-        return form_settings
-
-
-class Settings:
-    """Stores schema backed settings."""
-
+class SettingsNode(ABC):
     def __init__(
         self,
-        schema: Schema,
-        settings: dict[str, object],
-        on_set_callback: Callable[[str, object]] | None = None,
+        *,
+        title: str,
+        help: str = "",
+        editable: bool = True,
+        wire_name: str | None = None,
     ) -> None:
-        self._schema = schema
-        self._settings = settings
-        self._on_set_callback = on_set_callback
-        self._changed: bool = False
+        self.title, self.help, self.editable = title, help, editable
+        self._wire_name = wire_name
+
+    def __set_name__(self, owner: type, name: str) -> None:
+        self.name = name
 
     @property
-    def changed(self) -> bool:
-        return self._changed
+    def wire_name(self) -> str:
+        return self._wire_name or self.name.replace("_", "-")
+
+    @abstractmethod
+    def load(self, group: SettingsGroup, raw: object, present: bool) -> None: ...
+
+    @abstractmethod
+    def encode(self, group: SettingsGroup) -> object: ...
+
+    @abstractmethod
+    def form(self, group: SettingsGroup) -> Widget: ...
+
+    @abstractmethod
+    def leaves(self, group: SettingsGroup) -> Iterator[BoundSetting]: ...
+
+
+class SettingKind[T](SettingsNode):
+    def __init__(
+        self,
+        *,
+        default: T,
+        effect: Callable[[ToadApp, T], None] = no_effect,
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(**kwargs)
+        self.default, self.effect = default, effect
+
+    @overload
+    def __get__(self, group: None, owner: type | None = None) -> SettingKind[T]: ...
+    @overload
+    def __get__(self, group: SettingsGroup, owner: type | None = None) -> T: ...
+    def __get__(self, group, owner=None):
+        return self if group is None else group._values[self.name]
+
+    def __set__(self, group: SettingsGroup, value: T) -> None:
+        if group._values[self.name] == value:
+            return
+        group._values[self.name] = value
+        group._present.add(self.name)
+        group._mark_present()
+        group._root._changed = True
+        group._root._notify(PreferenceChange(self, value))
+
+    @abstractmethod
+    def parse(self, raw: object) -> T: ...
+
+    @abstractmethod
+    def widget(self, bound: BoundSetting[T]) -> Widget: ...
+
+    def load(self, group: SettingsGroup, raw: object, present: bool) -> None:
+        group._values[self.name] = self.parse(raw) if present else self.default
+
+    def encode(self, group: SettingsGroup) -> object:
+        return FieldCodec.encode(self.__get__(group))
+
+    def leaves(self, group: SettingsGroup) -> Iterator[BoundSetting[T]]:
+        yield BoundSetting(self, group)
+
+    def form(self, group: SettingsGroup) -> Widget:
+        from textual.containers import VerticalGroup
+        from textual.content import Content
+        from textual.widgets import Static
+
+        bound = BoundSetting(self, group)
+        help_text = Content.assemble(
+            Content.from_markup(self.help),
+            (f"\ndefault: {self.display(self.default)}", "$text-secondary"),
+        )
+        title = group._declaration.title if group._declaration else ""
+        return VerticalGroup(
+            Static(self.title, classes="title"),
+            Static(help_text, classes="help"),
+            self.widget(bound),
+            classes="setting",
+            name=f"{title.lower()} {self.title.lower()}",
+        )
+
+    def display(self, value: T) -> str:
+        return str(value)
+
+    def parse_text(self, text: str) -> T:
+        return self.parse(text)
+
+
+@dataclass(frozen=True)
+class PreferenceChange[T]:
+    field: SettingKind[T]
+    value: T
+
+    def apply(self, app: ToadApp) -> None:
+        self.field.effect(app, self.value)
+
+
+@dataclass(frozen=True)
+class BoundSetting[T]:
+    kind: SettingKind[T]
+    group: SettingsGroup
 
     @property
-    def schema(self) -> Schema:
-        return self._schema
+    def value(self) -> T:
+        return self.kind.__get__(self.group)
 
-    def up_to_date(self) -> None:
-        """Set settings as up to date (clears changed flag)."""
-        self._changed = False
+    def set(self, value: T) -> None:
+        self.kind.__set__(self.group, value)
+
+    @property
+    def key(self) -> str:
+        return ".".join((*self.group.path, self.kind.wire_name))
+
+
+class Group[G: "SettingsGroup"](SettingsNode):
+    def __init__(self, declaration: type[G], **kwargs: Any) -> None:
+        super().__init__(**kwargs)
+        self.declaration = declaration
+
+    @overload
+    def __get__(self, group: None, owner: type | None = None) -> Group[G]: ...
+    @overload
+    def __get__(self, group: SettingsGroup, owner: type | None = None) -> G: ...
+    def __get__(self, group, owner=None):
+        return self if group is None else group._values[self.name]
+
+    def load(self, group: SettingsGroup, raw: object, present: bool) -> None:
+        group._values[self.name] = self.declaration(
+            raw if present else {},
+            parent=group,
+            declaration=self,
+        )
+
+    def encode(self, group: SettingsGroup) -> object:
+        return self.__get__(group).document()
+
+    def form(self, group: SettingsGroup) -> Widget:
+        from textual.containers import VerticalGroup
+        from textual.widgets import Static
+
+        return VerticalGroup(
+            VerticalGroup(
+                Static(self.title, classes="title"),
+                Static(self.help, classes="help"),
+                classes="heading",
+            ),
+            VerticalGroup(
+                *self.__get__(group).form(), id="setting-group", classes="setting-group"
+            ),
+            classes="setting-object",
+        )
+
+    def leaves(self, group: SettingsGroup) -> Iterator[BoundSetting]:
+        yield from self.__get__(group).leaves()
+
+
+class SettingsGroup:
+    def __init__(
+        self,
+        raw: object = _UNSET,
+        *,
+        parent: SettingsGroup | None = None,
+        declaration: Group | None = None,
+        notify: Callable[[PreferenceChange], None] = lambda change: None,
+    ) -> None:
+        self._parent, self._declaration = parent, declaration
+        self._root = parent._root if parent is not None else self
+        self._notify, self._changed = notify, False
+        self._values: dict[str, Any] = {}
+        self._present: set[str] = set()
+        raw = {} if raw is _UNSET else raw
+        if not isinstance(raw, dict):
+            raise TypeError("Settings group must be an object")
+        nodes = self.nodes()
+        unknown = raw.keys() - {node.wire_name for node in nodes}
+        if unknown:
+            raise ValueError(
+                f"Unknown settings in {'.'.join(self.path)}: {sorted(unknown)}"
+            )
+        for node in nodes:
+            present = node.wire_name in raw
+            node.load(self, raw.get(node.wire_name), present)
+            if present:
+                self._present.add(node.name)
+
+    @classmethod
+    def nodes(cls) -> tuple[SettingsNode, ...]:
+        declarations = {
+            name: value
+            for base in reversed(cls.__mro__)
+            for name, value in vars(base).items()
+        }
+        return tuple(
+            value for value in declarations.values() if isinstance(value, SettingsNode)
+        )
+
+    @property
+    def path(self) -> tuple[str, ...]:
+        return (
+            (*self._parent.path, self._declaration.wire_name)
+            if self._parent is not None
+            else ()
+        )
+
+    def _mark_present(self) -> None:
+        if self._parent is not None:
+            self._parent._present.add(self._declaration.name)
+            self._parent._mark_present()
+
+    def document(self) -> dict[str, object]:
+        return {
+            node.wire_name: node.encode(self)
+            for node in self.nodes()
+            if node.name in self._present
+        }
 
     @property
     def json(self) -> str:
-        """Settings in JSON form."""
-        settings_json = dumps(self._settings, indent=4, separators=(", ", ": "))
-        return settings_json
+        return json.dumps(self.document(), indent=4, allow_nan=False)
 
-    def set_all(self) -> None:
-        if self._on_set_callback is not None:
-            for key in self._schema.keys:
-                self._on_set_callback(key, self.get(key))
+    @property
+    def changed(self) -> bool:
+        return self._root._changed
 
-    def get[ExpectType](
-        self,
-        key: str,
-        expect_type: type[ExpectType] = object,
-        *,
-        expand: bool = True,
-    ) -> ExpectType:
+    def up_to_date(self) -> None:
+        self._root._changed = False
+
+    def leaves(self) -> Iterator[BoundSetting]:
+        for node in self.nodes():
+            yield from node.leaves(self)
+
+    def form(self) -> Iterator[Widget]:
+        for node in self.nodes():
+            if node.editable:
+                yield node.form(self)
+
+    def apply_all(self) -> None:
+        for bound in self.leaves():
+            self._notify(PreferenceChange(bound.kind, bound.value))
+
+
+class BooleanSetting(SettingKind[bool]):
+    def parse(self, raw: object) -> bool:
+        return FieldCodec.decode(bool, raw)
+
+    def widget(self, bound: BoundSetting[bool]) -> Widget:
+        from toad.setting_widgets import BooleanEditor
+
+        return BooleanEditor(bound)
+
+
+class StringSetting(SettingKind[str]):
+    def parse(self, raw: object) -> str:
+        return FieldCodec.decode(str, raw)
+
+    def widget(self, bound: BoundSetting[str]) -> Widget:
+        from toad.setting_widgets import InputEditor
+
+        return InputEditor(bound)
+
+
+class TextSetting(StringSetting):
+    def widget(self, bound: BoundSetting[str]) -> Widget:
+        from toad.setting_widgets import TextEditor
+
+        return TextEditor(bound)
+
+
+class PathSetting(SettingKind[Path]):
+    def parse(self, raw: object) -> Path:
         from os.path import expandvars
 
-        sub_settings = self._settings
+        return Path(expandvars(FieldCodec.decode(str, raw))).expanduser()
 
-        for last, sub_key in loop_last(parse_key(key)):
-            if last:
-                if (value := sub_settings.get(sub_key)) is None:
-                    default = self._schema.get_default(key)
-                    if default is None:
-                        default = expect_type()
-                    if not isinstance(default, expect_type):
-                        default = expect_type(default)
-                    assert isinstance(default, expect_type)
-                    return default
+    def encode(self, group: SettingsGroup) -> str:
+        return str(self.__get__(group))
 
-                if isinstance(value, str) and expand:
-                    value = expandvars(value)
-                if not isinstance(value, expect_type):
-                    value = expect_type(value)
-                if not isinstance(value, expect_type):
-                    raise InvalidValue(
-                        f"key {sub_key!r} is not of expected type {expect_type.__name__}"
-                    )
-                return value
-            if not isinstance((sub_settings := sub_settings.get(sub_key, {})), dict):
-                default = self._schema.get_default(key)
-                if default is None:
-                    default = expect_type()
-                if not isinstance(default, expect_type):
-                    default = expect_type(default)
-                assert isinstance(default, expect_type)
-                return default
-        assert False, "Can't get here"
+    def widget(self, bound: BoundSetting[Path]) -> Widget:
+        from toad.setting_widgets import InputEditor
 
-    def set(self, key: str, value: object) -> None:
-        """Set a setting value.
-
-        Args:
-            key: Key in dot notation.
-            value: New value.
-        """
-        current_value = self.get(key, expand=False)
-        updated_settings = copy.deepcopy(self._settings)
-
-        setting = updated_settings
-        for last, sub_key in loop_last(parse_key(key)):
-            if last:
-                if current_value != value:
-                    self._changed = True
-                    self._settings = updated_settings
-                assert isinstance(setting, dict)
-                setting[sub_key] = value
-            else:
-                setting_node = setting.setdefault(sub_key, {})
-                if isinstance(setting_node, dict):
-                    setting = setting_node
-                else:
-                    assert isinstance(setting, dict)
-                    setting[sub_key] = {}
-                    setting = setting[sub_key]
-
-        if self._on_set_callback is not None:
-            self._on_set_callback(key, value)
+        return InputEditor(bound)
 
 
-if __name__ == "__main__":
-    from rich import print
-    from rich.traceback import install
+class Bounded:
+    def __init__(
+        self,
+        *,
+        minimum: float | None = None,
+        maximum: float | None = None,
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(**kwargs)
+        self.minimum, self.maximum = minimum, maximum
 
-    from toad.settings_schema import SCHEMA
+    def constrain(self, value: T) -> T:
+        if self.minimum is not None and value < self.minimum:
+            raise ValueError(f"Minimum is {self.minimum}")
+        if self.maximum is not None and value > self.maximum:
+            raise ValueError(f"Maximum is {self.maximum}")
+        return value
 
-    install(show_locals=True, width=None)
 
-    schema = Schema(SCHEMA)
-    settings = schema.defaults
-    print(settings)
+class NumericSetting(Bounded, SettingKind[T], ABC):
+    def widget(self, bound: BoundSetting[T]) -> Widget:
+        from textual.validation import Number
 
-    print(schema.settings_map)
+        from toad.setting_widgets import InputEditor
 
-    print(schema.key_to_type)
+        return InputEditor(
+            bound,
+            type=self.input_type,
+            validators=[Number(minimum=self.minimum, maximum=self.maximum)],
+        )
+
+
+class IntegerSetting(NumericSetting[int]):
+    input_type = "integer"
+
+    def parse(self, raw: object) -> int:
+        return self.constrain(FieldCodec.decode(int, raw))
+
+    def parse_text(self, text: str) -> int:
+        return self.parse(int(text))
+
+
+class NumberSetting(NumericSetting[float]):
+    input_type = "number"
+
+    def parse(self, raw: object) -> float:
+        return self.constrain(FieldCodec.decode(float, raw))
+
+    def parse_text(self, text: str) -> float:
+        return self.parse(float(text))
+
+
+C = TypeVar("C", bound="Choice")
+
+
+class ChoiceSetting(SettingKind[type[C]]):
+    def __init__(self, family: type[C], **kwargs: Any) -> None:
+        super().__init__(**kwargs)
+        self.family = family
+
+    def parse(self, raw: object) -> type[C]:
+        return FieldCodec.decode(type[self.family], raw)
+
+    def display(self, value: type[C]) -> str:
+        return value.label()
+
+    def widget(self, bound: BoundSetting[type[C]]) -> Widget:
+        from toad.setting_widgets import ChoiceEditor
+
+        return ChoiceEditor(bound, self.family)

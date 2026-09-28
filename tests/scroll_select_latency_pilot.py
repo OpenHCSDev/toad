@@ -121,7 +121,7 @@ async def main():
             await pilot.pause()
             # Selection still uses native Textual hit-testing and copy text,
             # but pyperclip/xclip must not retain the runner's stdout pipe.
-            app.settings.set("ui.auto_copy", False)
+            app.settings.ui.auto_copy = False
             conversation = app.screen.conversation
             replies = int(os.environ.get("TOAD_BENCH_RESPONSES", "4"))
             age_sweep = os.environ.get("TOAD_BENCH_AGE_SWEEP") == "1"

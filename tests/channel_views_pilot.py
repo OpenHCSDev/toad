@@ -45,7 +45,7 @@ async def main():
         async with app.run_test(size=(120, 50), message_hook=worker_changed) as pilot:
             await pilot.pause()
             await app.action_set_footer(False)
-            assert app.settings.get("ui.footer", bool) is False
+            assert app.settings.ui.footer is False
             assert app.has_class("-hide-footer")
             owner = app.current_mode
             sidebar = await wait_channel_roster(app, pilot, "#any", "#none", "#engineering")

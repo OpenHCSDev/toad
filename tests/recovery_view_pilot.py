@@ -60,7 +60,7 @@ async def main():
                 await pilot.pause()
                 view = app.screen.query_one(RecoveryView)
                 panel = view.query_ancestor(SideBarCollapsible)
-                assert not app.settings.get("ui.recovery-view", bool)
+                assert not app.settings.ui.recovery_view
                 assert not panel.display and not seen, "Default-off created a gateway read"
                 await app.screen.on_coordination_update(CoordinationUpdate(
                     thread="fixture", wire_root=str(root / "wire"),
@@ -69,7 +69,7 @@ async def main():
                 assert view.thread == "fixture"
                 started = time.perf_counter()
                 painted_before = app.painted
-                app.settings.set("ui.recovery-view", True)
+                app.settings.ui.recovery_view = True
                 sidebar = app.screen.query_one("#thread-sidebar", SideBar)
                 sidebar.reveal()
                 panel.collapsed = False
@@ -97,7 +97,7 @@ async def main():
                         await pilot.pause(.02)
                 assert seen[-1][2] == "renamed-fixture"
                 assert "Recovery: recovered" in view.render().plain
-                app.settings.set("ui.recovery-view", False)
+                app.settings.ui.recovery_view = False
                 await pilot.pause()
                 assert not panel.display
                 assert view.render().plain.startswith("Recovery unavailable")
@@ -109,7 +109,7 @@ async def main():
                 assert channel_view.thread == "fixture"
                 assert not channel_view.query_ancestor(SideBarCollapsible).display
                 assert len(seen) == reads
-                app.settings.set("ui.recovery-view", True)
+                app.settings.ui.recovery_view = True
                 app.screen.query_one("#thread-sidebar", SideBar).reveal()
                 channel_view.query_ancestor(SideBarCollapsible).collapsed = False
                 async with asyncio.timeout(5):
