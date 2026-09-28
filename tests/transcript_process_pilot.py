@@ -62,8 +62,8 @@ class ObservedPool(RenderProcessPool):
         return result
 
 
-def page(text, *, older=False):
-    cursor = TranscriptCursor("process-fixture", 1)
+def page(text, *, older=False, cursor=None):
+    cursor = cursor or TranscriptCursor("process-fixture", 1)
     return TranscriptPage((TranscriptEvent("assistant", text),), cursor, cursor, older, False)
 
 
@@ -131,12 +131,11 @@ async def main():
         root = Path(directory)
         os.environ.update(XDG_CONFIG_HOME=str(root / "config"), XDG_STATE_HOME=str(root / "state"),
                           XDG_DATA_HOME=str(root / "data"), AGENT_COMMS_ROOT=str(root / "wire"))
-        app = ToadApp(project_dir=str(root))
+        app = ToadApp(project_dir=str(root), renderer=pool)
         pool.app = app
         # Keep edge requests deterministic here; real scrolling is exercised by
         # transcript_history/history_scroll_frames/long_message pilots.
-        with patch.object(ToadApp, "render_processes", property(lambda self: pool), create=True), \
-                patch.object(TranscriptHistory, "_check_edges", lambda self: None):
+        with patch.object(TranscriptHistory, "_check_edges", lambda self: None):
             async with app.run_test(size=(90, 35)) as pilot:
                 await pilot.pause()
                 conversation = app.screen.conversation
@@ -167,7 +166,8 @@ async def main():
                 await pilot.pause()
 
                 pool.hold()
-                obsolete = asyncio.create_task(response._update_content(live_text, append=False))
+                # Each race needs uncached work on the real preparation runtime.
+                obsolete = asyncio.create_task(response._update_content(live_text + "\n\nOBSOLETE", append=False))
                 await until(pool.entered.is_set)
                 latest = asyncio.create_task(response._update_content("latest", append=False))
                 await asyncio.sleep(0)
@@ -176,7 +176,7 @@ async def main():
                 assert response.source == "latest" and response._paged is None
 
                 pool.hold()
-                cancelled = asyncio.create_task(response._update_content(live_text, append=False))
+                cancelled = asyncio.create_task(response._update_content(live_text + "\n\nCANCELLED", append=False))
                 await until(pool.entered.is_set)
                 cancelled.cancel()
                 with suppress(asyncio.CancelledError):
@@ -204,15 +204,17 @@ async def main():
                     TranscriptPageView(page(text), fragments=history.pages[0].fragments)
 
                 pool.hold()
-                stale_live = asyncio.create_task(history.update_live(page(live_text + "\n\nOLD")))
+                stale_live = asyncio.create_task(history.update_live(
+                    page(live_text + "\n\nOLD", cursor=history.through),
+                ))
                 await until(pool.entered.is_set)
-                await history.update_live(page("NEW"))
+                await history.update_live(page("NEW", cursor=history.through))
                 pool.release.set()
                 await stale_live
                 assert history.pages[0].page.events[0].text == "NEW"
 
                 async def load(**kwargs):
-                    return page(live_text)
+                    return page(live_text + "\n\nEDGE", cursor=kwargs["through"])
 
                 history.loader = load
                 before = tuple(history.pages)
@@ -224,6 +226,11 @@ async def main():
                 await edge
                 assert tuple(history.pages) == before
 
+                async def load_latest(**kwargs):
+                    return page(live_text + "\n\nLATEST", cursor=kwargs["through"])
+
+                # A distinct source prevents reusing the previous edge request.
+                history.loader = load_latest
                 pool.hold()
                 jump = asyncio.create_task(history._jump_latest())
                 await until(pool.entered.is_set)
