@@ -7,7 +7,9 @@ from pathlib import Path
 import tempfile
 from unittest.mock import patch
 
-from agent_comms import Comms, MessageRoute, Thread, TurnRouting, wire
+from agent_comms.comms import Comms, wire
+from agent_comms.routing import MessageRoute, TurnRouting
+from agent_comms.threads import Thread
 from toad.acp.agent import Agent
 from runtime_fixture import ToadApp
 

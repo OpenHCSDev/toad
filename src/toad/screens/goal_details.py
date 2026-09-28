@@ -2,7 +2,8 @@
 
 from datetime import datetime
 
-from agent_comms import Goal, GoalExecution, GoalExecutionState
+from agent_comms.goals import Goal
+from agent_comms.goal_presentation import GoalExecution, GoalExecutionState
 from textual import on
 from textual.app import ComposeResult
 from textual.containers import Vertical, VerticalScroll

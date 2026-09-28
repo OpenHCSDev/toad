@@ -5,7 +5,7 @@ import os
 import tempfile
 from pathlib import Path
 
-from agent_comms import Goal
+from agent_comms.goals import Goal
 from textual.containers import VerticalScroll
 from toad.app import ToadApp
 from toad.screens.goal_details import GoalDetails

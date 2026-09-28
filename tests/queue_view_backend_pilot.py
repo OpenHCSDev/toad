@@ -17,8 +17,8 @@ from unittest.mock import AsyncMock, patch
 from agent_comms import agent_events as events
 from agent_comms import backend
 from agent_comms.acp import CommsAgent
-from agent_comms.declarations import Thread
-from agent_comms.operations import Comms
+from agent_comms.threads import Thread
+from agent_comms.comms import Comms
 from agent_comms.runtime import _present_cursor_session
 from runtime_fixture import ToadApp
 

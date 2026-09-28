@@ -12,7 +12,9 @@ import sys
 from contextlib import ExitStack
 from unittest.mock import patch
 
-from agent_comms import Thread, TranscriptCursor, TranscriptEvent, TranscriptPage, wire
+from agent_comms.threads import Thread
+from agent_comms.transcripts import TranscriptCursor, TranscriptEvent, TranscriptPage
+from agent_comms.comms import wire
 from runtime_fixture import ToadApp
 from toad.acp.agent import Agent
 from toad.acp.messages import TranscriptSnapshot

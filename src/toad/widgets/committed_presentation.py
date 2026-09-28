@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING
 
-from agent_comms import TranscriptCursor, TranscriptPage
+from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from textual.widget import Widget
 
 from toad.widgets.presentation_window import protected_presentations

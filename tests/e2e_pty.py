@@ -291,8 +291,8 @@ printf '%s\n' '{"type":"response","command":"get_session_stats","success":true,"
             pass
     WIRE.mkdir(exist_ok=True)
 
-    from agent_comms import Thread
-    from agent_comms.operations import wire
+    from agent_comms.threads import Thread
+    from agent_comms.comms import wire
 
     comms = wire(WIRE)
     comms.register(

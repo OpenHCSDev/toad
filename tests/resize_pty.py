@@ -5,7 +5,8 @@ import json
 import tempfile
 from pathlib import Path
 
-from agent_comms import Thread, wire
+from agent_comms.threads import Thread
+from agent_comms.comms import wire
 from e2e_pty import AGENT_PY, FORK_TOAD, PtyLaunch, ToadSession
 
 

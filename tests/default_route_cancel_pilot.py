@@ -9,7 +9,7 @@ import threading
 from pathlib import Path
 from unittest.mock import patch
 
-from agent_comms.operations import wire
+from agent_comms.comms import wire
 from default_route_pilot import private_root, route
 
 from toad import messages

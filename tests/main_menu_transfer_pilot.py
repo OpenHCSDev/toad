@@ -6,7 +6,7 @@ import os
 import tempfile
 from pathlib import Path
 
-from agent_comms import Thread
+from agent_comms.threads import Thread
 from runtime_fixture import ToadApp
 from textual.widgets import Input, Select, Static
 

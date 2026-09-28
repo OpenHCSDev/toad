@@ -5,7 +5,8 @@ import tempfile
 import time
 from pathlib import Path
 
-from agent_comms import Thread, wire
+from agent_comms.threads import Thread
+from agent_comms.comms import wire
 
 
 with tempfile.TemporaryDirectory(prefix="toad-poll-profile-") as directory:

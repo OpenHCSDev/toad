@@ -14,9 +14,11 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from agent_comms import Thread, ThreadRole, cohort_foreground
+from agent_comms.threads import Thread
+from agent_comms.thread_identity import ThreadRole
+from agent_comms import cohort_foreground
 from agent_comms.active_route import ActiveRoute, publish_active_route
-from agent_comms.operations import Comms
+from agent_comms.comms import Comms
 from agent_comms.private_nk_entrypoint import PACKAGE_ENV, ROOT_ID_ENV
 from default_route_pilot import private_root
 

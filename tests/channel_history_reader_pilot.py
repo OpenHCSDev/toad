@@ -8,7 +8,8 @@ from threading import Event, get_ident
 import unittest
 from unittest.mock import patch
 
-from agent_comms import Thread, wire
+from agent_comms.threads import Thread
+from agent_comms.comms import wire
 from toad.channel_preparation import (
     ChannelHistoryReader, HistoryKind, HistoryReadRequest, display_identity,
 )

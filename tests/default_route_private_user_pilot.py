@@ -13,13 +13,13 @@ import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
-from agent_comms import ThreadRole
+from agent_comms.thread_identity import ThreadRole
 from agent_comms.bus_publication import stable_thread_lookup
 from agent_comms.cohort_schema import install_private_cohort_schema
 from agent_comms.coordination_cohort import accept_initial_cohort
 from agent_comms.coordination_store import MutationStore
-from agent_comms.declarations import HumanInitialUnknownError
-from agent_comms.operations import wire
+from agent_comms.errors import HumanInitialUnknownError
+from agent_comms.comms import wire
 from default_route_pilot import private_root, route
 
 from toad import messages

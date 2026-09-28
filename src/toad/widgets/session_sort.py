@@ -3,7 +3,7 @@
 from textual import events
 from textual.geometry import Offset
 from textual.widgets import Static
-from agent_comms import ChannelSort, ThreadSort
+from agent_comms.display_order import ChannelSort, ThreadSort
 import asyncio
 from pathlib import Path
 
@@ -121,7 +121,7 @@ class SessionSort(SortControl[ThreadSort]):
         if source_root is not None and comms.root.resolve() != Path(source_root).resolve():
             raise ValueError("Comms route changed before sorting")
         channel = await asyncio.to_thread(
-            run_selected_write, comms.root, comms.set_channel_sort,
+            run_selected_write, comms.root, comms.channels.set_channel_sort,
             self.channel, order, implicit=implicit_root(),
         )
         return channel.order
@@ -146,7 +146,7 @@ class ChannelListSort(SortControl[ChannelSort]):
         if source_root is not None and comms.root.resolve() != Path(source_root).resolve():
             raise ValueError("Comms route changed before sorting")
         return await asyncio.to_thread(
-            run_selected_write, comms.root, comms.set_channel_order,
+            run_selected_write, comms.root, comms.channels.set_channel_order,
             order, implicit=implicit_root(),
         )
 

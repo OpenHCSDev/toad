@@ -7,8 +7,10 @@ import os
 from pathlib import Path
 import tempfile
 
-from agent_comms import Thread, TurnRouting, wire
-from agent_comms.declarations import ScheduledTurn
+from agent_comms.threads import Thread
+from agent_comms.routing import TurnRouting
+from agent_comms.comms import wire
+from agent_comms.routing import ScheduledTurn
 from runtime_fixture import ToadApp
 from toad.acp.messages import TranscriptSnapshot
 from toad.widgets.agent_response import AgentResponse

@@ -8,7 +8,7 @@ from pathlib import Path
 from agent_comms.goal_actions import BlockedGoalAction, GoalPrecondition, SetGoalAction
 from agent_comms.acp import CommsAgent
 from agent_comms.goal_attempts import GoalAttemptStore
-from agent_comms.operations import wire
+from agent_comms.comms import wire
 from toad.acp.agent import Agent
 
 

@@ -7,7 +7,7 @@ from tempfile import TemporaryDirectory
 
 from agent_comms.acp import CommsAgent
 from agent_comms.input_disposition import AcpDeliveryCursors
-from agent_comms.operations import wire
+from agent_comms.comms import wire
 from agent_comms.runtime import RuntimeProxy, socket_path
 from textual.widgets import Static
 

@@ -6,10 +6,11 @@ from pathlib import Path
 import tempfile
 from unittest.mock import patch
 
-from agent_comms import (
-    Message, MessageRoute, MessageType, Thread, TranscriptCursor, TranscriptEvent,
-    TranscriptPage, TurnRouting, wire,
-)
+from agent_comms.messages import Message, MessageType
+from agent_comms.routing import MessageRoute, TurnRouting
+from agent_comms.threads import Thread
+from agent_comms.transcripts import TranscriptCursor, TranscriptEvent, TranscriptPage
+from agent_comms.comms import wire
 from textual.widgets import Checkbox, Static
 
 from runtime_fixture import ToadApp

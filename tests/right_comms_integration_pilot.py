@@ -12,7 +12,10 @@ from toad.widgets.comms_menu import ContextMenu, ContextMenuItem
 from toad.widgets.side_bar import SideBar, SideBarCollapsible
 from toad.widgets.thread_comms import RelationshipSort, ThreadCommsSidebar
 
-from agent_comms import ActivityState, Thread, ThreadSort, wire
+from agent_comms.activity import ActivityState
+from agent_comms.threads import Thread
+from agent_comms.display_order import ThreadSort
+from agent_comms.comms import wire
 from agent_comms.tools import invoke_tool
 
 

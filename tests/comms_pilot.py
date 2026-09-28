@@ -10,8 +10,10 @@ import tempfile
 from pathlib import Path
 from types import SimpleNamespace
 
-from agent_comms import ActivityState, ForkSpec, Thread
-from agent_comms.operations import wire
+from agent_comms.activity import ActivityState
+from agent_comms.thread_management import ForkSpec
+from agent_comms.threads import Thread
+from agent_comms.comms import wire
 from textual.content import Content
 from textual.widgets import Footer, Markdown
 from textual.widgets._footer import FooterKey

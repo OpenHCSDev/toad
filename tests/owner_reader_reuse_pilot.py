@@ -7,7 +7,8 @@ import tempfile
 import threading
 from unittest.mock import patch
 
-from agent_comms import Thread, wire
+from agent_comms.threads import Thread
+from agent_comms.comms import wire
 from agent_comms.runtime import RuntimeProxy
 from toad.acp.agent import Agent
 from runtime_fixture import ToadApp

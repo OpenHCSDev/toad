@@ -8,8 +8,10 @@ import time
 from pathlib import Path
 from statistics import median
 
-from agent_comms import Activity, ActivityState, Thread, wire
-from agent_comms.declarations import ActivityLog
+from agent_comms.activity import Activity, ActivityState
+from agent_comms.threads import Thread
+from agent_comms.comms import wire
+from agent_comms.activity import ActivityLog
 from runtime_fixture import ToadApp
 from toad.widgets.agent_response import AgentResponse
 

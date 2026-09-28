@@ -9,7 +9,9 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 
-from agent_comms import ActivityState, Thread, wire
+from agent_comms.activity import ActivityState
+from agent_comms.threads import Thread
+from agent_comms.comms import wire
 from textual import events
 from textual.widget import Widget
 from toad.app import ToadApp

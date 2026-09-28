@@ -7,7 +7,11 @@ import sys
 import tempfile
 from pathlib import Path
 
-from agent_comms import Activity, ActivityState, Message, MessageType, Thread, TranscriptCursor, wire
+from agent_comms.activity import Activity, ActivityState
+from agent_comms.messages import Message, MessageType
+from agent_comms.threads import Thread
+from agent_comms.transcripts import TranscriptCursor
+from agent_comms.comms import wire
 from runtime_fixture import ToadApp
 from toad.widgets.comms_menu import ContextMenu, ContextMenuItem
 from toad.widgets.comms_sidebar import CommsRow, CommsSidebar, ChannelGroup, ThreadRow

@@ -6,7 +6,8 @@ import tempfile
 from pathlib import Path
 
 from agent_comms.thread_status import ArchivedThreadStatus
-from agent_comms import Thread, wire
+from agent_comms.threads import Thread
+from agent_comms.comms import wire
 from runtime_fixture import ToadApp
 from toad.screens.comms import CommsScreen
 from toad.widgets.comms_menu import ContextMenuItem

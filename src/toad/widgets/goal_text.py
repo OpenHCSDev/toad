@@ -1,6 +1,6 @@
 """Goal text uses the same mention syntax and navigation as wire messages."""
 
-from agent_comms import MentionCandidate, ThreadMention
+from agent_comms.mentions import MentionCandidate, ThreadMention
 from textual.widgets import Static
 
 from toad.widgets.comms_sidebar import SelectTarget

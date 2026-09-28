@@ -6,7 +6,9 @@ import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
-from agent_comms import ActivityState, Thread, wire
+from agent_comms.activity import ActivityState
+from agent_comms.threads import Thread
+from agent_comms.comms import wire
 from runtime_fixture import ToadApp
 from textual.app import App, ComposeResult
 from textual.content import Content

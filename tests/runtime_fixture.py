@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 
 import psutil
-from agent_comms import wire
+from agent_comms.comms import wire
 from toad.app import ToadApp as Application
 
 

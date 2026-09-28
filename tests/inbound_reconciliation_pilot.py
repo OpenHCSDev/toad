@@ -7,16 +7,11 @@ import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
-from agent_comms import (
-    Message,
-    MessageType,
-    Thread,
-    TranscriptCursor,
-    TranscriptEvent,
-    TranscriptPage,
-    TurnRouting,
-    wire,
-)
+from agent_comms.messages import Message, MessageType
+from agent_comms.threads import Thread
+from agent_comms.transcripts import TranscriptCursor, TranscriptEvent, TranscriptPage
+from agent_comms.routing import TurnRouting
+from agent_comms.comms import wire
 from committed_history_pilot import SnapshotAgent
 from runtime_fixture import ToadApp
 from textual.selection import SELECT_ALL

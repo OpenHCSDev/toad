@@ -5,7 +5,10 @@ import os
 import tempfile
 from pathlib import Path
 
-from agent_comms import ActivityState, ChannelSort, Thread, ThreadSort, wire
+from agent_comms.activity import ActivityState
+from agent_comms.display_order import ChannelSort, ThreadSort
+from agent_comms.threads import Thread
+from agent_comms.comms import wire
 from toad.app import ToadApp
 from toad.screens.comms import CommsScreen
 from toad.screens.main import MainScreen

@@ -9,7 +9,8 @@ import statistics
 import tempfile
 import time
 
-from agent_comms import Thread, wire
+from agent_comms.threads import Thread
+from agent_comms.comms import wire
 
 from toad.sidebar_preparation import ThreadRowInput, ThreadRowsWork, prepare_thread_row
 from toad.work_preparation import PreparationRuntime

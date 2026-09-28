@@ -15,7 +15,7 @@ import tempfile
 import time
 from unittest.mock import patch
 
-from agent_comms import Comms
+from agent_comms.comms import Comms
 from scroll_select_latency_pilot import PaintProbe
 from toad.widgets.comms_sidebar import CommsSidebar
 from toad.widgets.transcript_history import TranscriptHistory

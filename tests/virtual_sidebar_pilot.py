@@ -5,7 +5,8 @@ import os
 from pathlib import Path
 import tempfile
 
-from agent_comms import Thread, wire
+from agent_comms.threads import Thread
+from agent_comms.comms import wire
 from rich.style import Style as RichStyle
 from runtime_fixture import ToadApp
 from textual.events import Click

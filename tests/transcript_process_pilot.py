@@ -11,8 +11,9 @@ import time
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from agent_comms import TranscriptCursor, TranscriptEvent, TranscriptPage
-from agent_comms.declarations import Message, MessageRoute, MessageType, TurnRouting
+from agent_comms.transcripts import TranscriptCursor, TranscriptEvent, TranscriptPage
+from agent_comms.messages import Message, MessageType
+from agent_comms.routing import MessageRoute, TurnRouting
 from agent_comms.tool_results import ToolDiff
 from textual.app import App
 

@@ -2,7 +2,8 @@
 
 from typing import ClassVar
 
-from agent_comms import Goal, GoalExecution, GoalExecutionState
+from agent_comms.goals import Goal
+from agent_comms.goal_presentation import GoalExecution, GoalExecutionState
 from rich.cells import cell_len
 from textual import events
 from textual.app import ComposeResult, ScreenStackError, UnknownModeError

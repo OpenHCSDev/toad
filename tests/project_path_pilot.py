@@ -8,7 +8,7 @@ import tempfile
 from pathlib import Path
 
 import psutil
-from agent_comms import wire
+from agent_comms.comms import wire
 from toad import messages
 from runtime_fixture import ToadApp
 from toad.db import DB

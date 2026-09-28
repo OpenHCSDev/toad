@@ -6,7 +6,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-from agent_comms import wire
+from agent_comms.comms import wire
 from runtime_fixture import ToadApp
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.prompt import QueueSummary, SendNow

@@ -6,7 +6,9 @@ import os
 import tempfile
 from pathlib import Path
 
-from agent_comms import HistoricalMessage, Thread, wire
+from agent_comms import HistoricalMessage
+from agent_comms.threads import Thread
+from agent_comms.comms import wire
 from agent_comms.read_ledger import ReadLedger
 from runtime_fixture import ToadApp
 

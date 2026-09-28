@@ -5,10 +5,10 @@ import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from agent_comms import Thread
+from agent_comms.threads import Thread
 from agent_comms.goal_actions import EditGoalAction, GoalPrecondition, OwnerInvocable, StandbyGoalAction
 from agent_comms.acp import CommsAgent
-from agent_comms.operations import wire
+from agent_comms.comms import wire
 from textual.containers import VerticalScroll
 from textual.widgets import Static
 

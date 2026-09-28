@@ -5,7 +5,8 @@ import os
 import tempfile
 from pathlib import Path
 
-from agent_comms import Thread, wire
+from agent_comms.threads import Thread
+from agent_comms.comms import wire
 from toad.app import ToadApp
 from toad.widgets.channel_prompt import ChannelPrompt
 from toad.widgets.comms_chat import CommsChatView

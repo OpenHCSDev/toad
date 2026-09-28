@@ -5,7 +5,8 @@ import os
 import tempfile
 from pathlib import Path
 
-from agent_comms import Thread, wire
+from agent_comms.threads import Thread
+from agent_comms.comms import wire
 from textual.worker import WorkerCancelled
 
 from toad.app import ToadApp

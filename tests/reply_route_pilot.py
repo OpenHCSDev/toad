@@ -5,7 +5,8 @@ import os
 import tempfile
 from pathlib import Path
 
-from agent_comms import MessageRoute, TurnRouting, TranscriptEvent
+from agent_comms.routing import MessageRoute, TurnRouting
+from agent_comms.transcripts import TranscriptEvent
 from toad.acp.messages import Update, IncomingMessage as IncomingUpdate
 from toad.app import ToadApp
 from toad.widgets.agent_response import AgentResponse

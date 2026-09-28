@@ -5,7 +5,7 @@ from dataclasses import dataclass
 import threading
 from typing import ClassVar
 
-from agent_comms import TranscriptEvent
+from agent_comms.transcripts import TranscriptEvent
 from toad.render_backend import Renderer
 from toad.render_tasks import MarkdownRenderTask, TranscriptRenderTask
 from toad.work_preparation import (

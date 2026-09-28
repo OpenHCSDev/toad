@@ -6,7 +6,7 @@ from pathlib import Path
 import tempfile
 
 from agent_comms.goal_states import PausedGoal
-from agent_comms import Goal
+from agent_comms.goals import Goal
 from runtime_fixture import ToadApp
 from toad.widgets.goal_bar import GoalBar
 from toad.widgets.throbber import Throbber

@@ -21,7 +21,11 @@ from toad.widgets.thread_comms import RelationshipSort, ThreadCommsSidebar
 from toad.widgets.thread_comms_source import WireRelationshipSource
 
 from agent_comms.thread_status import RunningThreadStatus
-from agent_comms import Activity, ActivityState, Comms, Thread, ThreadSort, ThreadView
+from agent_comms.activity import Activity, ActivityState
+from agent_comms.comms import Comms
+from agent_comms.threads import Thread
+from agent_comms.display_order import ThreadSort
+from agent_comms.presentation import ThreadView
 
 
 @dataclass(frozen=True)

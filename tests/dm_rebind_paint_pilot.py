@@ -7,7 +7,8 @@ from pathlib import Path
 from threading import Event
 from unittest.mock import patch
 
-from agent_comms import Comms, Thread, wire
+from agent_comms.comms import Comms, wire
+from agent_comms.threads import Thread
 from runtime_fixture import ToadApp
 from toad.widgets.comms_chat import CommsChatView
 

@@ -7,7 +7,8 @@ import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
-from agent_comms import Thread, wire
+from agent_comms.threads import Thread
+from agent_comms.comms import wire
 from runtime_fixture import ToadApp
 from toad.widgets.comms_sidebar import CommsSidebar
 

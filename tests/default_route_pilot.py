@@ -14,9 +14,10 @@ import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
-from agent_comms import Thread, ThreadRole
+from agent_comms.threads import Thread
+from agent_comms.thread_identity import ThreadRole
 from agent_comms import declarations as core_declarations
-from agent_comms.operations import Comms, wire
+from agent_comms.comms import Comms, wire
 
 from toad import messages
 from toad.acp.maintenance_ingress import barrier_for, configured_root

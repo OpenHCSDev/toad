@@ -7,7 +7,7 @@ from tempfile import TemporaryDirectory
 
 from agent_comms.goal_actions import ActiveGoalAction, GoalPrecondition
 from agent_comms.acp import CommsAgent
-from agent_comms.operations import wire
+from agent_comms.comms import wire
 from textual.widgets import Static
 
 from toad.acp.agent import Agent

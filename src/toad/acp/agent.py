@@ -12,7 +12,11 @@ from copy import deepcopy
 from math import floor
 import rich.repr
 from agent_comms.goal_actions import RetryGoalAction
-from agent_comms import Comms, Goal, GoalExecution, TranscriptCursor, TranscriptPage, MessageRoute
+from agent_comms.comms import Comms
+from agent_comms.goals import Goal
+from agent_comms.goal_presentation import GoalExecution
+from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.routing import MessageRoute
 
 from textual.content import Content
 from textual.message import Message
@@ -486,7 +490,7 @@ class Agent(AgentBase):
                 ))
                 return
             if state.get("transcriptChanged") is True:
-                from agent_comms import TranscriptCursor
+                from agent_comms.transcripts import TranscriptCursor
 
                 checkpoint = state.get("transcriptCursor")
                 self.post_message(messages.TranscriptChanged(
@@ -519,7 +523,7 @@ class Agent(AgentBase):
                 self._post_coordination_update()
             if isinstance(state.get("transcript"), list):
                 if not self._reconnecting:
-                    from agent_comms import TranscriptEvent, TranscriptPage, TranscriptCursor
+                    from agent_comms.transcripts import TranscriptEvent, TranscriptPage, TranscriptCursor
 
                     events = tuple(TranscriptEvent.from_wire(event) for event in state["transcript"])
                     page_data = state.get("transcriptPage")
@@ -1716,9 +1720,9 @@ class Agent(AgentBase):
         if thread is None or wire_root is None or process is None:
             return
 
-        from agent_comms.operations import wire
+        from agent_comms.comms import wire
 
-        result = wire(wire_root).rename_managed_thread(
+        result = wire(wire_root).threads.rename_managed_thread(
             thread,
             display_name,
             owner_pid=getattr(self, "_coordination_owner_pid", None) or process.pid,
@@ -1920,7 +1924,7 @@ class Agent(AgentBase):
 
     async def _get_coordination_reader(self, root: str) -> Comms:
         """Use under the reader lock; initialization and registry I/O stay off-loop."""
-        from agent_comms import wire
+        from agent_comms.comms import wire
         from toad.app import ToadApp
 
         if self._transcript_reader is None or self._transcript_reader_root != root:
@@ -1947,17 +1951,17 @@ class Agent(AgentBase):
         async with self._transcript_reader_lock:
             reader = await self._get_coordination_reader(root)
             return await asyncio.to_thread(
-                reader.thread_transcript_page,
+                reader.transcripts.thread_transcript_page,
                 thread, before=before, after=after, through=through,
             )
 
     async def update_project(self, path: str) -> str:
         if self._coordination_root is None or self._coordination_thread is None:
             raise ValueError("Project changes require an agent-comms thread.")
-        from agent_comms.operations import wire
+        from agent_comms.comms import wire
 
         result = await asyncio.to_thread(
-            wire(self._coordination_root).set_project, self._coordination_thread, path
+            wire(self._coordination_root).threads.set_project, self._coordination_thread, path
         )
         self._coordination_worktree = result.current
         self.project_root_path = Path(result.current)
