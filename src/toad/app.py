@@ -2065,9 +2065,8 @@ class ToadApp(App, inherit_bindings=False):
             db = DB()
             session = await db.session_get(session_pk)
             if session is not None:
-                session_title = session["title"]
-                meta = json.loads(session["meta_json"])
-                if agent_data := meta.get("agent_data"):
+                session_title = session.title
+                if agent_data := session.meta_json.agent_data:
                     agent = agent_data
 
         if agent is None:

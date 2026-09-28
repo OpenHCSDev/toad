@@ -123,10 +123,10 @@ for line in sys.stdin:
                 lambda: psutil.Process(conversation.shell._pid).cwd() == str(new)
             )
             saved = await DB().session_get(conversation.agent.session_pk)
-            meta = json.loads(saved["meta_json"])
+            meta = saved.meta_json
             assert (
-                meta["cwd"] == str(new)
-                and meta["agent_data"]["identity"] == "project-test"
+                meta.cwd == new
+                and meta.agent_data["identity"] == "project-test"
             )
             assert chat_screen.project_path == new
             assert chat_screen.query_one(CommsChatView).working_directory == str(new)

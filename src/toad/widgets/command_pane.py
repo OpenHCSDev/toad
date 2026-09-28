@@ -1,20 +1,18 @@
 import asyncio
 import codecs
-from dataclasses import dataclass
-
-import os
-import signal
 import fcntl
+import os
 import pty
+import signal
 import struct
 import termios
-
+from dataclasses import dataclass
 
 from textual import events
 from textual.message import Message
 
 from toad.shell_read import shell_read
-
+from toad.terminal_environment import TerminalEnvironment
 from toad.widgets.terminal import Terminal
 
 
@@ -122,13 +120,7 @@ class CommandPane(Terminal):
         # # Apply the changes
         # termios.tcsetattr(slave, termios.TCSANOW, attrs)
 
-        env = os.environ.copy()
-        env["FORCE_COLOR"] = "1"
-        env["TTY_COMPATIBLE"] = "1"
-        env["TERM"] = "xterm-256color"
-        env["COLORTERM"] = "truecolor"
-        env["TOAD"] = "1"
-        env["CLICOLOR"] = "1"
+        env = TerminalEnvironment.for_child(os.environ)
         env.update(extra_env or {})
 
         try:
@@ -223,7 +215,7 @@ if __name__ == "__main__":
     from textual.app import App, ComposeResult
     from textual.content import Content
 
-    COMMAND = os.environ["SHELL"]
+    COMMAND = TerminalEnvironment.login_shell(os.environ)
     # COMMAND = "python test_input.py"
 
     # COMMAND = "htop"

@@ -1,0 +1,76 @@
+{
+  "scope": "All src/toad with src context; external Comms DeclaredFamily inspected directly, not a cross-package proof",
+  "python": "3.14.6",
+  "exit_code": 0,
+  "timing": {
+    "parse_seconds": 0.667,
+    "analysis_seconds": 18.283,
+    "planning_seconds": 0.0,
+    "source_index_seconds": 0.087,
+    "analysis_cache_status": "disabled",
+    "total_seconds": 19.037
+  },
+  "parsed_file_count": 191,
+  "findings": 14,
+  "supporting_raw_count": 14,
+  "ansi_findings": [],
+  "r1_raw": [],
+  "raw_inventory": [
+    {
+      "detector_id": "external_enum_case_recovery",
+      "summary": "Enum `HistoryKind` has 4 external branch site(s) across 3 function(s) for cases HistoryKind.ALL, HistoryKind.DIRECT."
+    },
+    {
+      "detector_id": "external_enum_case_recovery",
+      "summary": "Enum `DangerLevel` has 6 external branch site(s) across 4 function(s) for cases DangerLevel.DANGEROUS, DangerLevel.DESTRUCTIVE."
+    },
+    {
+      "detector_id": "semantic_mirror_without_descent",
+      "summary": "`_TARGET_TYPES` mirrors 5 member(s) of `NavigationTarget` without a descent path"
+    },
+    {
+      "detector_id": "external_enum_case_recovery",
+      "summary": "Enum `RendererBackend` has 2 external branch site(s) across 1 function(s) for cases RendererBackend.LOCAL, RendererBackend.PERSISTENT."
+    },
+    {
+      "detector_id": "external_enum_case_recovery",
+      "summary": "Enum `RenderCommandKind` has 2 external branch site(s) across 1 function(s) for cases RenderCommandKind.ACKNOWLEDGE, RenderCommandKind.CANCEL, RenderCommandKind.POLL, RenderCommandKind.RELEASE, RenderCommandKind.SHUTDOWN, RenderCommandKind.SUBMIT."
+    },
+    {
+      "detector_id": "external_enum_case_recovery",
+      "summary": "Enum `RenderStatus` has 7 external branch site(s) across 1 function(s) for cases RenderStatus.ACCEPTED, RenderStatus.BUSY, RenderStatus.CANCELLED, RenderStatus.COMPLETE, RenderStatus.FAILED, RenderStatus.PENDING, RenderStatus.UNKNOWN."
+    },
+    {
+      "detector_id": "semantic_mirror_without_descent",
+      "summary": "`RENDER_TASK_TYPES` mirrors 6 member(s) of `RenderTask` without a descent path"
+    },
+    {
+      "detector_id": "semantic_mirror_without_descent",
+      "summary": "`RENDER_TASK_TYPES` mirrors 4 member(s) of `ReusableRenderTask` without a descent path"
+    },
+    {
+      "detector_id": "repeated_property_alias_hooks",
+      "summary": "Subclasses AgentItem, LauncherItem of `VerticalGroup` all implement `agent` as `return self._agent`."
+    },
+    {
+      "detector_id": "repeated_property_alias_hooks",
+      "summary": "Subclasses Selected, Highlighted of `Message` all implement `control` as `return self.grid_select`."
+    },
+    {
+      "detector_id": "external_enum_case_recovery",
+      "summary": "Enum `MessageCategory` has 3 external branch site(s) across 1 function(s) for cases MessageCategory.AGENT, MessageCategory.INBOUND, MessageCategory.OUTBOUND, MessageCategory.THINKING, MessageCategory.TOOL, MessageCategory.USER."
+    },
+    {
+      "detector_id": "numeric_literal_dispatch",
+      "summary": "/home/ts/wt/toad-t7-terminal-20260928/src/toad/widgets/session_tabs.py dispatches on `event.button` through numeric cases ('2', '1')."
+    },
+    {
+      "detector_id": "repeated_property_alias_hooks",
+      "summary": "Subclasses Terminate, Interrupt of `Message` all implement `control` as `return self.terminal`."
+    },
+    {
+      "detector_id": "repeated_property_alias_hooks",
+      "summary": "Subclasses Finalized, AlternateScreenChanged, LongRunning of `Message` all implement `control` as `return self.terminal`."
+    }
+  ]
+}

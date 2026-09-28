@@ -1,0 +1,37 @@
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/ts/code/projects/nominal-refactor-advisor/nominal_refactor_advisor/__main__.py", line 4, in <module>
+    raise SystemExit(process_main())
+                     ^^^^^^^^^^^^^^
+  File "/home/ts/code/projects/nominal-refactor-advisor/nominal_refactor_advisor/cli.py", line 4270, in process_main
+    return main(hard_exit_on_deadline=True)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.11-linux-x86_64-gnu/lib/python3.11/contextlib.py", line 81, in inner
+    return func(*args, **kwds)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/code/projects/nominal-refactor-advisor/nominal_refactor_advisor/cli.py", line 4259, in main
+    return _main_without_deadline(invocation)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/code/projects/nominal-refactor-advisor/nominal_refactor_advisor/cli.py", line 3960, in _main_without_deadline
+    modules = parse_python_module_roots(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/code/projects/nominal-refactor-advisor/nominal_refactor_advisor/ast_tools.py", line 2764, in parse_python_module_roots
+    modules.extend(parser.parsed_source_paths(tuple(admitted_paths)))
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/code/projects/nominal-refactor-advisor/nominal_refactor_advisor/ast_tools.py", line 2716, in parsed_source_paths
+    return _parse_module_roots(self, allowed_paths)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/code/projects/nominal-refactor-advisor/nominal_refactor_advisor/ast_tools.py", line 2490, in _parse_module_roots
+    modules.append(_parse_source_module(path, context=root_parser))
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/code/projects/nominal-refactor-advisor/nominal_refactor_advisor/ast_tools.py", line 678, in _parse_source_module
+    module = ast.parse(source, filename=str(path))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.11-linux-x86_64-gnu/lib/python3.11/ast.py", line 50, in parse
+    return compile(source, filename, mode, flags,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-t7-terminal-20260928/src/toad/__init__.py", line 7
+    type OS = Literal["linux", "macos", "windows", "*"]
+         ^^
+SyntaxError: invalid syntax

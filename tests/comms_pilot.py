@@ -25,7 +25,7 @@ from toad.acp.agent import Agent as ACPAgent
 from toad.acp import messages as acp_messages
 from toad import paths
 from runtime_fixture import ToadApp, wait_channel_roster
-from toad.db import DB
+from toad.db import DB, SessionMeta
 from toad.pill import pill
 from toad.screens.comms import CommsScreen
 from toad.screens.main import MainScreen
@@ -1142,7 +1142,7 @@ for line in sys.stdin:
                 "Agent Comms",
                 "agent-comms.openhcs.dev",
                 "resumable-peer",
-                meta={"cwd": str(project), "agent_data": app.screen._agent},
+                meta=SessionMeta(cwd=project, agent_data=app.screen._agent),
             )
             assert first_pk is not None
             app.screen.conversation.agent.session_pk = first_pk
