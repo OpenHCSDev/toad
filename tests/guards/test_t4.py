@@ -13,6 +13,8 @@ def test_t4_ownership_and_deletion():
                 assert node.attr not in {'turn','_managed_turn_id','_turn_lifecycle_source','_turn_lifecycle_sequence'}, (relative,node.lineno)
             if isinstance(node,ast.Name):
                 assert node.id!='BlockProtocol', (relative,node.lineno)
+                if relative == 'widgets/conversation.py':
+                    assert node.id not in {'getattr', 'hasattr'}, (relative,node.lineno)
     assert 'BlockProtocol' not in (ROOT/'protocol.py').read_text()
     response=ast.parse((ROOT/'widgets/agent_response.py').read_text())
     for node in ast.walk(response):
@@ -23,7 +25,7 @@ def test_t4_ownership_and_deletion():
     agent=ast.parse((ROOT/'acp/agent.py').read_text())
     for node in ast.walk(agent):
         if isinstance(node,ast.Attribute):
-            assert node.attr not in {'_process','_process_group_id','_agent_task','_task','_stopping'}
+            assert node.attr not in {'_process','_process_group_id','_agent_task','_task','_stopping','_log_file_path'}
         if isinstance(node,(ast.FunctionDef,ast.AsyncFunctionDef)):
             assert node.name not in {'_run_agent','_process_group_alive'}
     question=ast.parse((ROOT/'widgets/question.py').read_text())
