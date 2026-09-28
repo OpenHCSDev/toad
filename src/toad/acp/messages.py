@@ -38,8 +38,6 @@ class RejectedSessionUpdate(AgentMessage):
     """Invalid ACP input was logged and excluded from the conversation."""
 
 
-
-
 @dataclass
 class PrivateNativeCursorUpdate(AgentMessage):
     """Immutable-in-flight presentation receipt; contains no private proof data."""
@@ -48,16 +46,6 @@ class PrivateNativeCursorUpdate(AgentMessage):
     agent: object
     session_id: str | None
     sequence: int
-
-
-@dataclass
-class McpClientStatus(AgentMessage):
-    """Turn-bound package-owned live MCP projection; never a grant or approval."""
-
-    receipt: dict
-    turn_id: str
-    session_id: str
-    agent: object
 
 
 @dataclass
@@ -81,6 +69,7 @@ class QueueViewUpdate(AgentMessage):
 @dataclass
 class InputStarted(AgentMessage):
     """An unscoped initial user echo, never queue membership authority."""
+
     text: str | None
     agent: object | None = None
     session_id: str | None = None
@@ -97,28 +86,8 @@ class InputFailed(AgentMessage):
 
 
 @dataclass
-class TranscriptSnapshot(AgentMessage):
-    events: tuple[TranscriptEvent, ...]
-    page: TranscriptPage | None = None
-
-
-@dataclass
 class TranscriptChanged(AgentMessage):
     cursor: TranscriptCursor | None = None
-
-
-@dataclass
-class CompactionUpdate(AgentMessage):
-    """Typed mid-turn lifecycle from agent-comms; not a new user turn."""
-
-    phase: Literal["start", "progress", "end", "abort"]
-    reason: str
-    summary: str = ""
-    will_retry: bool = False
-    chunk_index: int = 0
-    source_bytes_done: int | None = None
-    source_bytes_total: int | None = None
-    summary_phase: str | None = None
 
 
 @dataclass
@@ -137,14 +106,6 @@ class Update(AgentMessage):
     type: str
     text: str
     route: MessageRoute | None = None
-
-
-@dataclass
-class IncomingMessage(AgentMessage):
-    sender: str
-    target: str
-    text: str
-    sequence: int
 
 
 @dataclass
@@ -280,6 +241,7 @@ class SessionInfoUpdate(AgentMessage):
 @dataclass
 class CommsUpdated(AgentMessage):
     """The exact shared record plus local attachment context."""
+
     update: AgentCommsUpdate
     agent: object | None = None
     session_id: str | None = None

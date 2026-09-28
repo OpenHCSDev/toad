@@ -3,7 +3,15 @@
 from __future__ import annotations
 
 from agent_comms.acp_extension import (
-    CoordinationChangedUpdate, GoalChangedUpdate, CursorAdvancedUpdate,
+    TranscriptSnapshotUpdate,
+    InputDeliveryChangedUpdate,
+    CompactionPublishedUpdate,
+    McpClientReceiptUpdate,
+    CompactionChangedUpdate,
+    CompactionCommittedUpdate,
+    CoordinationChangedUpdate,
+    GoalChangedUpdate,
+    CursorAdvancedUpdate,
     InputFailedUpdate,
     InputStartedUpdate,
     QueueChangedUpdate,
@@ -29,6 +37,7 @@ class CommsUpdateConsumer(MroDispatch):
         self.agent = agent
         self.session_id = session_id
         self.route = None
+        self.compaction_receipt = None
         self.cursor_token = cursor_token
         self.queue_token = queue_token
 
@@ -136,23 +145,34 @@ class CommsUpdateConsumer(MroDispatch):
         from .maintenance_ingress import configured_root
         from .agent import ContextUsage
         from textual.content import Content
+
         agent = self.agent
-        attached_env = (agent._maintenance_env or __import__('os').environ).copy()
-        attached_env['AGENT_COMMS_ROOT'] = update.wire_root
-        root = configured_root(attached_env, agent._maintenance_cwd or agent.project_root_path.resolve())
+        attached_env = (agent._maintenance_env or __import__("os").environ).copy()
+        attached_env["AGENT_COMMS_ROOT"] = update.wire_root
+        root = configured_root(
+            attached_env, agent._maintenance_cwd or agent.project_root_path.resolve()
+        )
         agent.coordination = replace(update, wire_root=str(root))
         agent.project_root_path = Path(update.worktree)
-        agent.uses_turn_events = agent.server_titles = agent.supports_prompt_queue = True
+        agent.uses_turn_events = agent.server_titles = agent.supports_prompt_queue = (
+            True
+        )
         agent.supports_prompt_images = True
         if update.context_usage is None:
             agent._context_usage = None
             agent._context_usage_saved = False
-            agent.post_message(messages.UpdateStatusLine(Content('Context estimate unavailable')))
+            agent.post_message(
+                messages.UpdateStatusLine(Content("Context estimate unavailable"))
+            )
         else:
-            agent._context_usage = ContextUsage(update.context_usage.used, update.context_usage.size)
+            agent._context_usage = ContextUsage(
+                update.context_usage.used, update.context_usage.size
+            )
             agent._context_usage_saved = True
             agent.update_status_line()
-        agent.post_message(messages.CommsUpdated(agent.coordination, agent, self.session_id))
+        agent.post_message(
+            messages.CommsUpdated(agent.coordination, agent, self.session_id)
+        )
         title = agent._pending_session_name or update.title
         agent.post_message(messages.SessionInfoUpdate(title))
         if agent._pending_session_name is not None:
@@ -161,4 +181,48 @@ class CommsUpdateConsumer(MroDispatch):
 
     @handles(GoalChangedUpdate)
     def goal_changed(self, update: GoalChangedUpdate) -> None:
-        self.agent.post_message(messages.CommsUpdated(update, self.agent, self.session_id))
+        self.agent.post_message(
+            messages.CommsUpdated(update, self.agent, self.session_id)
+        )
+
+    @handles(CompactionChangedUpdate)
+    def compaction_changed(self, update: CompactionChangedUpdate) -> None:
+        self.agent._context_usage = None
+        self.agent.post_message(
+            messages.CommsUpdated(update, self.agent, self.session_id)
+        )
+
+    @handles(CompactionCommittedUpdate)
+    def compaction_committed(self, update: CompactionCommittedUpdate) -> None:
+        self.compaction_receipt = update
+
+    @handles(TranscriptSnapshotUpdate)
+    def transcript_snapshot(self, update: TranscriptSnapshotUpdate) -> None:
+        if not self.agent._reconnecting:
+            self.agent.post_message(
+                messages.CommsUpdated(update, self.agent, self.session_id)
+            )
+
+    @handles(InputDeliveryChangedUpdate)
+    def input_delivery_changed(self, update: InputDeliveryChangedUpdate) -> None:
+        self.agent.post_message(messages.InputDispositionsChanged())
+
+    @handles(CompactionPublishedUpdate)
+    def compaction_published(self, update: CompactionPublishedUpdate) -> None:
+        self.agent.post_message(
+            messages.CommsUpdated(update, self.agent, self.session_id)
+        )
+
+    @handles(McpClientReceiptUpdate)
+    def mcp_receipt(self, update: McpClientReceiptUpdate) -> None:
+        if (
+            self.session_id != self.agent.session_id
+            or update.turn_id != self.agent._active_turn_id
+        ):
+            self.agent.log(
+                "[ACP MCP live receipt rejected] receipt is not bound to the active session/turn"
+            )
+            return
+        self.agent.post_message(
+            messages.CommsUpdated(update, self.agent, self.session_id)
+        )

@@ -19,6 +19,9 @@ async def main():
     pipe=Pipe()
     await StartedTranscriptUpdate(turn_id="actual-producer",started_at=1.0).publish("pilot",pipe)
     consumer=AcpEventConsumer(None,"pilot",pipe)
+    await consumer.on_compaction(agent_events.CompactionStart())
+    await consumer.on_compaction(agent_events.CompactionProgress(1, 50, 100))
+    await consumer.on_compaction(agent_events.CompactionEnd(summary="Native event summary"))
     await consumer.settled("stale-turn")
     await consumer.settled("actual-producer")
 asyncio.run(main())
@@ -48,14 +51,23 @@ async def main():
             assert view.busy_count==1
             await agent.server.call(json.loads(raw[1]))
             await pilot.pause()
-            assert view._managed_turn_id=="actual-producer"
+            assert view.activity == "Compacting context…"
             await agent.server.call(json.loads(raw[2]))
+            await pilot.pause()
+            assert "50% of input processed" in view.activity
+            await agent.server.call(json.loads(raw[3]))
+            await pilot.pause()
+            assert "50% of input processed" not in view.activity
+            await agent.server.call(json.loads(raw[4]))
+            await pilot.pause()
+            assert view._managed_turn_id=="actual-producer"
+            await agent.server.call(json.loads(raw[5]))
             await pilot.pause()
             assert agent._active_turn_id is None
             assert view._managed_turn_id is None
             assert view.busy_count==0
             assert app._exception is None
-    print('Fresh producer ACP notification reached mounted Toad turn state; no provider call')
+    print('Fresh producer ACP notifications reached mounted Toad turn and compaction states; stale settle rejected; no provider call')
 
 if __name__ == '__main__':
     asyncio.run(main())

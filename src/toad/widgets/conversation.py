@@ -1,5 +1,13 @@
 from __future__ import annotations
-from agent_comms.acp_extension import GoalChangedUpdate
+from agent_comms.acp_extension import (
+    GoalChangedUpdate,
+    CompactionChangedUpdate,
+    TranscriptSnapshotUpdate,
+    McpClientReceiptUpdate,
+    CompactionPublishedUpdate,
+)
+from agent_comms import agent_events as comms_events
+from agent_comms.backend import compaction_summary
 from agent_comms.mro_dispatch import MroDispatch, handles
 
 from toad.settings import PreferenceChange
@@ -70,7 +78,11 @@ from toad.widgets.observed_thread_activity import ObservedThreadActivity
 from toad.widgets.session_details import SessionDetails
 from toad.private_native_cursor import CursorStatus
 from agent_comms.acp_extension import QueueProjection, PendingQueueProjection
-from toad.widgets.input_delivery import InputDeliveryBar, InputDeliveryDetails, empty_delivery
+from toad.widgets.input_delivery import (
+    InputDeliveryBar,
+    InputDeliveryDetails,
+    empty_delivery,
+)
 from toad.widgets.user_input import UserInput
 from toad.widgets.history_anchor import HistoryWindow
 from toad.widgets.message_filter import ALL_CATEGORIES, MessageCategory
@@ -231,15 +243,18 @@ class ThreadLoading(Static):
             row = []
             for x in range(-horizontal_radius, horizontal_radius + 1):
                 distance = (x / horizontal_radius) ** 2 + (y / radius) ** 2
-                if not .7 <= distance <= 1.3:
+                if not 0.7 <= distance <= 1.3:
                     row.append(" ")
                     continue
-                position = int((atan2(y / radius, x / horizontal_radius) + pi) * 6 / pi) % 12
+                position = (
+                    int((atan2(y / radius, x / horizontal_radius) + pi) * 6 / pi) % 12
+                )
                 gap = (position - phase) % 12
                 row.append("●" if gap < 2 else "•" if gap < 5 else "·")
             rows.append("".join(row).strip())
-        label = ("Loading new thread and history…" if width >= 32
-                 else "Loading new thread…")
+        label = (
+            "Loading new thread and history…" if width >= 32 else "Loading new thread…"
+        )
         block_width = max(len(label), 2 * horizontal_radius + 1)
         centered = (row.center(block_width) for row in rows)
         return Content("\n".join((*centered, "", label.center(block_width))))
@@ -318,9 +333,17 @@ class Contents(containers.VerticalGroup, can_focus=False):
     CACHE_HEIGHT_INDEPENDENT_ARRANGEMENT = True
 
     def mount(self, *widgets, **kwargs):
-        from toad.widgets.message_filter import apply_block_filter, block_category, keep_live_block
+        from toad.widgets.message_filter import (
+            apply_block_filter,
+            block_category,
+            keep_live_block,
+        )
 
-        selected = self.query_ancestor(Conversation).visible_categories if self.is_attached else ALL_CATEGORIES
+        selected = (
+            self.query_ancestor(Conversation).visible_categories
+            if self.is_attached
+            else ALL_CATEGORIES
+        )
         for widget in widgets:
             widget.set_class(not keep_live_block(widget), "-unrouted")
             if category := block_category(widget):
@@ -370,7 +393,9 @@ This is a view of your conversation with the agent.
 
     def on_mount(self) -> None:
         self.app.settings_changed_signal.subscribe(self, self._settings_changed)
-        self._settings_changed(PreferenceChange(SidebarSettings.hide, self.app.settings.sidebar.hide))
+        self._settings_changed(
+            PreferenceChange(SidebarSettings.hide, self.app.settings.sidebar.hide)
+        )
         self.watch(self, "scroll_y", self.hydrate_visible_tools, init=False)
         self.screen.screen_layout_refresh_signal.subscribe(
             self, lambda _screen: self.hydrate_visible_tools()
@@ -379,7 +404,12 @@ This is a view of your conversation with the agent.
     def _settings_changed(self, update: PreferenceChange) -> None:
         if update.field is SidebarSettings.hide:
             top, right, bottom, _ = self.styles.padding
-            self.styles.padding = (top, right, bottom, int(self.app.settings.sidebar.hide))
+            self.styles.padding = (
+                top,
+                right,
+                bottom,
+                int(self.app.settings.sidebar.hide),
+            )
 
 
 class Conversation(containers.Vertical):
@@ -454,7 +484,9 @@ class Conversation(containers.Vertical):
     ]
 
     busy_count = var(0)
-    visible_categories: var[frozenset[MessageCategory]] = var(lambda: ALL_CATEGORIES, init=False)
+    visible_categories: var[frozenset[MessageCategory]] = var(
+        lambda: ALL_CATEGORIES, init=False
+    )
     cursor_offset = var(-1, init=False)
     project_path = var("")
     working_directory: var[str] = var("")
@@ -468,7 +500,9 @@ class Conversation(containers.Vertical):
     app = getters.app(ToadApp)
 
     def watch_visible_categories(
-        self, previous: frozenset[MessageCategory], selected: frozenset[MessageCategory],
+        self,
+        previous: frozenset[MessageCategory],
+        selected: frozenset[MessageCategory],
     ) -> None:
         from toad.widgets.message_filter import apply_block_filter
 
@@ -476,7 +510,9 @@ class Conversation(containers.Vertical):
         if not hasattr(self, "_filter_scroll_positions"):
             self._filter_scroll_positions = {}
         self._filter_scroll_positions[previous] = (window.scroll_y, window.follows_tail)
-        position = self._filter_scroll_positions.get(selected, (window.scroll_y, window.follows_tail))
+        position = self._filter_scroll_positions.get(
+            selected, (window.scroll_y, window.follows_tail)
+        )
         self.cursor_offset = -1
         self.screen.clear_selection()
         for block in self.contents.children:
@@ -486,8 +522,11 @@ class Conversation(containers.Vertical):
         revision = window.scroll_revision
 
         def restore_position():
-            if (not self.is_attached or self.visible_categories != selected
-                    or window.scroll_revision != revision):
+            if (
+                not self.is_attached
+                or self.visible_categories != selected
+                or window.scroll_revision != revision
+            ):
                 return
             scroll_y, following = position
             if following:
@@ -579,8 +618,8 @@ class Conversation(containers.Vertical):
         self._focusable_terminals: list[Terminal] = []
 
         self.project_data_path = paths.get_project_data(project_path)
-        self._prompt_history_scope = (
-            agent_session_id or (f"session-{session_pk}" if session_pk is not None else "")
+        self._prompt_history_scope = agent_session_id or (
+            f"session-{session_pk}" if session_pk is not None else ""
         )
         self.shell_history = History(self.project_data_path / "shell_history.jsonl")
         self.prompt_history = History(self._prompt_history_path())
@@ -757,17 +796,26 @@ class Conversation(containers.Vertical):
                         yield ThreadLoading()
         yield Flash()
         with containers.Vertical(id="prompt-stack"):
-            yield TurnActivity().data_bind(activity=Conversation.activity,
-                                           started_at=Conversation.activity_started_at)
+            yield TurnActivity().data_bind(
+                activity=Conversation.activity,
+                started_at=Conversation.activity_started_at,
+            )
             yield SessionDetails(
                 self._read_thread_activity,
-                history=NativeHistory().data_bind(status=Conversation.native_history_status),
+                history=NativeHistory().data_bind(
+                    status=Conversation.native_history_status
+                ),
                 delivery=InputDeliveryBar().data_bind(
-                    delivery=Conversation.input_delivery, error=Conversation.input_delivery_error,
+                    delivery=Conversation.input_delivery,
+                    error=Conversation.input_delivery_error,
                 ),
             )
             yield Throbber(id="throbber")
-            yield GoalBar().data_bind(goal=Conversation.goal, execution=Conversation.goal_execution, unavailable=Conversation.goal_unavailable)
+            yield GoalBar().data_bind(
+                goal=Conversation.goal,
+                execution=Conversation.goal_execution,
+                unavailable=Conversation.goal_unavailable,
+            )
             yield Prompt(complete_callback=self.shell_complete).data_bind(
                 project_path=Conversation.project_path,
                 working_directory=Conversation.working_directory,
@@ -929,7 +977,9 @@ class Conversation(containers.Vertical):
                 self.refresh_bindings()
                 self.call_after_refresh(self.cursor.follow, cursor_block)
 
-    async def post_agent_response(self, fragment: str = "", route: MessageRoute | None = None) -> AgentResponse | None:
+    async def post_agent_response(
+        self, fragment: str = "", route: MessageRoute | None = None
+    ) -> AgentResponse | None:
         """Get or create an agent response widget."""
         from toad.widgets.agent_response import AgentResponse
 
@@ -938,7 +988,9 @@ class Conversation(containers.Vertical):
                 await self._agent_response.finish_stream()
                 self._agent_response = None
             if self._agent_response is None:
-                self._agent_response = agent_response = AgentResponse(fragment, route=route)
+                self._agent_response = agent_response = AgentResponse(
+                    fragment, route=route
+                )
                 await self.post(agent_response, new_block=False)
             else:
                 await self._agent_response.append_fragment(fragment)
@@ -1002,17 +1054,23 @@ class Conversation(containers.Vertical):
         return presentation
 
     @on(ObservedThreadActivity.Changed)
-    def on_observed_thread_activity(self, event: ObservedThreadActivity.Changed) -> None:
+    def on_observed_thread_activity(
+        self, event: ObservedThreadActivity.Changed
+    ) -> None:
         event.stop()
         if self._managed_turn_id is not None or self.turn == "agent":
             return
         if event.unavailable:
-            self.post_message(messages.SessionUpdate(state="idle", summary="Agent status unavailable"))
+            self.post_message(
+                messages.SessionUpdate(state="idle", summary="Agent status unavailable")
+            )
         elif event.presentation is not None:
-            self.post_message(messages.SessionUpdate(
-                state="busy" if event.presentation.busy else "idle",
-                summary=event.presentation.summary,
-            ))
+            self.post_message(
+                messages.SessionUpdate(
+                    state="busy" if event.presentation.busy else "idle",
+                    summary=event.presentation.summary,
+                )
+            )
 
     @on(messages.SessionUpdate)
     def preserve_observed_activity(self, event: messages.SessionUpdate) -> None:
@@ -1074,7 +1132,11 @@ class Conversation(containers.Vertical):
         self, message: acp_messages.SessionInfoUpdate
     ) -> None:
         message.stop()
-        if (self.agent.coordination.wire_root if self.agent and self.agent.coordination else None) is not None:
+        if (
+            self.agent.coordination.wire_root
+            if self.agent and self.agent.coordination
+            else None
+        ) is not None:
             from toad.db import DB
 
             self._auto_title_eligible = False
@@ -1139,7 +1201,8 @@ class Conversation(containers.Vertical):
                 from toad.widgets.agent_response import AgentResponse
 
                 link = AgentResponse(
-                    f"[Open ACP log]({quote(str(log_path))})", show_divider=False,
+                    f"[Open ACP log]({quote(str(log_path))})",
+                    show_divider=False,
                     category=MessageCategory.OTHER,
                 )
                 link.add_class("-error-log-link")
@@ -1227,7 +1290,11 @@ class Conversation(containers.Vertical):
                 ):
                     await asyncio.sleep(0.1)
                 self.prompt.disabled = True
-                if (agent.coordination.wire_root if agent and agent.coordination else None) is None:
+                if (
+                    agent.coordination.wire_root
+                    if agent and agent.coordination
+                    else None
+                ) is None:
                     await self.prune_window(0, 0)
                     self.new_block()
                 await agent.reconnect_after_auth()
@@ -1299,10 +1366,18 @@ class Conversation(containers.Vertical):
     async def submit_input(self, event: messages.UserInputSubmitted) -> None:
         """Agent conversation submission; wire views override this single hook."""
         if not event.body.strip():
-            if event.immediate and not event.shell and self.queue_supported and self.queued_prompts:
+            if (
+                event.immediate
+                and not event.shell
+                and self.queue_supported
+                and self.queued_prompts
+            ):
                 # This requests scheduling, not membership mutation. Retain
                 # every remote row until authoritative exact-ID evidence.
-                if self.queue_projection.status == "available" and self.queue_projection.items:
+                if (
+                    self.queue_projection.status == "available"
+                    and self.queue_projection.items
+                ):
                     first = self.queue_projection.items[0]
                     self._sending_queue_input_id = first.input_id
                     self.sending_queued_prompt = first.text
@@ -1324,7 +1399,9 @@ class Conversation(containers.Vertical):
             if text.startswith("/") and await self.slash_command(text):
                 # Toad has processed the slash command.
                 return
-            queued = self.turn == "agent" and self.queue_supported and not event.immediate
+            queued = (
+                self.turn == "agent" and self.queue_supported and not event.immediate
+            )
             if event.immediate and self.queue_supported:
                 self.delivering_prompt = text
             if not queued:
@@ -1370,12 +1447,20 @@ class Conversation(containers.Vertical):
         sending_scope = queue.scope if queue is not None else None
 
         def current_request_owner() -> bool:
-            return (self.agent is sending_agent
-                    and getattr(sending_agent, "session_id", None) == sending_session
-                    and (queue is None or (
+            return (
+                self.agent is sending_agent
+                and getattr(sending_agent, "session_id", None) == sending_session
+                and (
+                    queue is None
+                    or (
                         queue.scope == sending_scope
-                        and (sending_scope is None or queue.projection.status == "available")
-                    )))
+                        and (
+                            sending_scope is None
+                            or queue.projection.status == "available"
+                        )
+                    )
+                )
+            )
 
         if sending_agent is not None:
             stop_reason: str | None = None
@@ -1393,14 +1478,21 @@ class Conversation(containers.Vertical):
                     )
                 else:
                     stop_reason = await sending_agent.send_prompt(prompt)
-            except (jsonrpc.APIError, jsonrpc.JSONRPCError, OSError, ValueError) as error:
+            except (
+                jsonrpc.APIError,
+                jsonrpc.JSONRPCError,
+                OSError,
+                ValueError,
+            ) as error:
                 from toad.widgets.markdown_note import MarkdownNote
 
                 if not current_request_owner():
                     return
                 self.turn = "client"
 
-                message = getattr(error, "message", str(error)) or "no details were provided"
+                message = (
+                    getattr(error, "message", str(error)) or "no details were provided"
+                )
                 self.activity = ""
                 self.activity_started_at = None
                 # A send failure cannot identify/remove a remote row by text.
@@ -1413,7 +1505,11 @@ class Conversation(containers.Vertical):
                     )
                 )
             finally:
-                if current_request_owner() and immediate and self.delivering_prompt == prompt:
+                if (
+                    current_request_owner()
+                    and immediate
+                    and self.delivering_prompt == prompt
+                ):
                     self.delivering_prompt = ""
                 if not uses_turn_events:
                     self.busy_count -= 1
@@ -1540,33 +1636,39 @@ class Conversation(containers.Vertical):
             self._mcp_live_note = None
 
     @on(acp_messages.PrivateNativeCursorUpdate)
-    def on_private_native_cursor_update(self, message: acp_messages.PrivateNativeCursorUpdate) -> None:
+    def on_private_native_cursor_update(
+        self, message: acp_messages.PrivateNativeCursorUpdate
+    ) -> None:
         message.stop()
-        if (message.agent is not self.agent or self.agent is None
-                or message.session_id != self.agent.session_id
-                or message.sequence <= self._private_cursor_sequence):
+        if (
+            message.agent is not self.agent
+            or self.agent is None
+            or message.session_id != self.agent.session_id
+            or message.sequence <= self._private_cursor_sequence
+        ):
             return
         self._private_cursor_sequence = message.sequence
         self.native_history_status = message.status
 
     @on(acp_messages.McpClientStopped)
-    async def on_mcp_client_stopped(self, message: acp_messages.McpClientStopped) -> None:
+    async def on_mcp_client_stopped(
+        self, message: acp_messages.McpClientStopped
+    ) -> None:
         message.stop()
         if message.agent is self.agent:
             await self._clear_mcp_live()
 
-    @on(acp_messages.McpClientStatus)
-    async def on_mcp_client_status(self, message: acp_messages.McpClientStatus) -> None:
+    async def on_mcp_client_status(self, message: acp_messages.CommsUpdated) -> None:
         """Render the turn-bound receipt only inside an active server-owned turn."""
-        message.stop()
         # The message carries the validated turn identity; a delayed or queued
         # message from an older agent cannot attach to a successor turn here.
-        agent_session = getattr(self.agent, "session_id", None)
+        agent_session = self.agent.session_id if self.agent else None
         if (
             message.agent is not self.agent
-            or getattr(self.agent, "_active_turn_id", None) != message.turn_id
+            or (self.agent._active_turn_id if self.agent else None)
+            != message.update.turn_id
             or self._managed_turn_id is None
-            or message.turn_id != self._managed_turn_id
+            or message.update.turn_id != self._managed_turn_id
             or (agent_session is not None and message.session_id != agent_session)
         ):
             # Late or forged: the projection dies with its turn and is never
@@ -1575,12 +1677,15 @@ class Conversation(containers.Vertical):
         if self._mcp_live_turn == self._managed_turn_id:
             return  # The package emits at most one receipt per turn.
         self._mcp_live_turn = self._managed_turn_id
-        rows = message.receipt.get("servers") or []
-        summary = "; ".join(
-            f"{row['id']}[{row['scope']}] {row['state']} calls={row['calls']}"
-            f" tools={row['tools']} resources={row['resources']} prompts={row['prompts']}"
-            for row in rows
-        ) or "no approved servers"
+        rows = message.update.receipt.servers
+        summary = (
+            "; ".join(
+                f"{row.id}[{row.scope}] {row.state.declared_name} calls={row.calls.declared_name}"
+                f" tools={row.tools} resources={row.resources} prompts={row.prompts}"
+                for row in rows
+            )
+            or "no approved servers"
+        )
         self.new_block()
         self._mcp_live_note = Note(
             Content.styled(
@@ -1684,42 +1789,24 @@ class Conversation(containers.Vertical):
             messages.SessionUpdate(state="idle", summary="Ready for review")
         )
 
-    @on(acp_messages.IncomingMessage)
-    async def on_incoming_message(self, message: acp_messages.IncomingMessage) -> None:
-        from toad.widgets.incoming_message import IncomingMessage
-
-        message.stop()
-        if message.sequence <= getattr(self, "_last_incoming_sequence", 0):
-            return
-        self._last_incoming_sequence = message.sequence
-        from toad.widgets.committed_presentation import CommittedHistory
-
-        if any(isinstance(child, CommittedHistory) and child.covers_incoming(message.sequence)
-               for child in self.contents.children):
-            return
-        self.new_block()
-        await self.post(IncomingMessage(
-            message.sender, message.text, message.target, sequence=message.sequence,
-        ))
-
-    @on(acp_messages.UserMessage)
-    async def on_acp_user_message(self, message: acp_messages.UserMessage):
-        self.new_block()
-        message.stop()
-        await self.post(UserInput(message.text))
-
     @on(acp_messages.QueueViewUpdate)
     async def on_queue_view_update(self, message: acp_messages.QueueViewUpdate) -> None:
         message.stop()
-        if (self.agent is None or message.agent is not self.agent
-                or message.session_id != self.agent.session_id
-                or message.sequence <= self._queue_sequence):
+        if (
+            self.agent is None
+            or message.agent is not self.agent
+            or message.session_id != self.agent.session_id
+            or message.sequence <= self._queue_sequence
+        ):
             return
         self._queue_sequence = message.sequence
         self.queue_projection = message.projection
         self.queued_prompts = [row.text for row in message.projection.items]
         for started in message.starts:
-            if message.agent is not self.agent or message.session_id != self.agent.session_id:
+            if (
+                message.agent is not self.agent
+                or message.session_id != self.agent.session_id
+            ):
                 return
             if started.input_id == self._sending_queue_input_id:
                 self._sending_queue_input_id = None
@@ -1730,8 +1817,11 @@ class Conversation(containers.Vertical):
     @on(acp_messages.InputStarted)
     async def on_input_started(self, message: acp_messages.InputStarted):
         message.stop()
-        if (self.agent is None or message.agent is not self.agent
-                or message.session_id != self.agent.session_id):
+        if (
+            self.agent is None
+            or message.agent is not self.agent
+            or message.session_id != self.agent.session_id
+        ):
             return
         if isinstance(message.text, str):
             self.new_block()
@@ -1741,13 +1831,19 @@ class Conversation(containers.Vertical):
     def on_input_failed(self, message: acp_messages.InputFailed) -> None:
         """Only a locally failed request may recover its own draft text."""
         message.stop()
-        if (self.agent is None or message.agent is not self.agent
-                or message.session_id != self.agent.session_id):
+        if (
+            self.agent is None
+            or message.agent is not self.agent
+            or message.session_id != self.agent.session_id
+        ):
             return
         queue = self.agent.queue_attachment
         if message.recover_draft and (
             message.queue_scope != (queue.scope if queue is not None else None)
-            or (message.queue_scope is not None and queue.projection.status != "available")
+            or (
+                message.queue_scope is not None
+                and queue.projection.status != "available"
+            )
         ):
             return
         if not message.recover_draft:
@@ -1759,34 +1855,52 @@ class Conversation(containers.Vertical):
             self.prompt.text == message.text
             or self.prompt.text.endswith("\n\n" + message.text)
         ):
-            self.prompt.text = "\n\n".join(filter(None, [self.prompt.text, message.text]))
+            self.prompt.text = "\n\n".join(
+                filter(None, [self.prompt.text, message.text])
+            )
         self.delivering_prompt = ""
-        self.flash(f"Delivery unconfirmed; text restored: {message.reason}", style="error")
+        self.flash(
+            f"Delivery unconfirmed; text restored: {message.reason}", style="error"
+        )
 
-    @on(acp_messages.TranscriptSnapshot)
-    async def on_transcript_snapshot(self, message: acp_messages.TranscriptSnapshot):
+    async def on_transcript_snapshot(self, message: TranscriptSnapshotUpdate):
         """Mount saved history once; never feed it through live Markdown streams."""
         from toad.widgets.transcript_history import TranscriptHistory, transcript_blocks
         from toad.widgets.transcript_fragments import prepare_transcript_fragments
 
-        message.stop()
         self._transcript_generation += 1
         generation, agent = self._transcript_generation, self.agent
         window, contents = self.window, self.contents
         scroll_revision = window.scroll_revision
         fragments = await prepare_transcript_fragments(
-            message.page.events if message.page is not None else message.events,
+            message.page.events,
             getattr(self.app, "render_processes", None),
         )
-        if (not self.is_attached or generation != self._transcript_generation
-                or self.agent is not agent or self.window is not window or self.contents is not contents):
+        if (
+            not self.is_attached
+            or generation != self._transcript_generation
+            or self.agent is not agent
+            or self.window is not window
+            or self.contents is not contents
+        ):
             return
-        blocks = ([TranscriptHistory(message.page, agent.get_transcript_page, fragments=fragments)]
-                  if message.page is not None and agent is not None else
-                  [block for fragment in fragments for block in transcript_blocks(
-                      fragment.events, fragment=True,
-                      show_divider=not fragment.continuation,
-                  )])
+        blocks = (
+            [
+                TranscriptHistory(
+                    message.page, agent.get_transcript_page, fragments=fragments
+                )
+            ]
+            if message.page is not None and agent is not None
+            else [
+                block
+                for fragment in fragments
+                for block in transcript_blocks(
+                    fragment.events,
+                    fragment=True,
+                    show_divider=not fragment.continuation,
+                )
+            ]
+        )
         self.new_block()
         if blocks:
             # The first replay frame is a latest view, not a remembered scroll
@@ -1797,7 +1911,9 @@ class Conversation(containers.Vertical):
             with self.app.batch_update():
                 await self.contents.mount(*blocks)
         if message.page is not None:
-            self.call_after_refresh(self._record_displayed_transcript, message.page.after)
+            self.call_after_refresh(
+                self._record_displayed_transcript, message.page.after
+            )
 
     def _record_displayed_transcript(self, cursor) -> None:
         self.displayed_transcript_cursor = cursor
@@ -1814,67 +1930,37 @@ class Conversation(containers.Vertical):
             self._needs_transcript_checkpoint = True
         self._compact_committed_history()
 
-    @on(acp_messages.CompactionUpdate)
-    async def on_acp_compaction_update(self, message: acp_messages.CompactionUpdate) -> None:
-        """Display one typed mid-turn notice without settling the current turn."""
-        from toad.widgets.agent_response import AgentResponse
-
-        message.stop()
-        if message.phase == "progress":
-            if message.source_bytes_done is not None and message.source_bytes_total:
-                percent = message.source_bytes_done * 100 // message.source_bytes_total
-                summaries = "summary" if message.chunk_index == 1 else "summaries"
-                self.activity = (
-                    f"Compacting context… {percent}% of input processed · "
-                    f"{message.chunk_index} {summaries} completed"
-                )
-                if message.summary_phase == "shrink":
-                    self.activity += " (last step: summary shrink)"
-            else:
-                self.activity = f"Compacting context… summary step {message.chunk_index} completed"
-            if message.summary_phase == "synthesis":
-                self.activity += " · combining summaries"
-            self.post_message(messages.SessionUpdate(state="busy", summary=self.activity))
-            return
-        if message.phase == "start":
-            self.activity = "Compacting context…"
-            self.post_message(messages.SessionUpdate(state="busy", summary="Compacting context"))
-            return
-        active = self.turn == "agent"
-        self.activity = "Thinking…" if active else ""
-        title = "Context compacted" if message.phase == "end" else "Compaction aborted"
-        self.post_message(messages.SessionUpdate(
-            state="busy" if active else "idle", summary=title,
-        ))
-        detail = (
-            message.summary or "Context estimate unavailable until a new measurement arrives."
-            if message.phase == "end"
-            else message.summary
-            or "Compaction did not complete. Context usage will update after the next measurement."
-        )
-        await self.post(AgentResponse(f"## {title}\n\n{detail}", category=MessageCategory.OTHER))
-
     @work(exclusive=True, group="transcript-window")
     async def _compact_committed_history(self) -> None:
         from agent_comms.errors import UnregisteredThreadError
         from toad.acp.agent import Agent
         from toad.widgets.transcript_history import TranscriptHistory
         from toad.widgets.committed_presentation import (
-            CheckpointBarrier, CommitEvidence, CommitParticipant, CommittedHistory,
-            checkpoint_plan, retirement_candidates,
+            CheckpointBarrier,
+            CommitEvidence,
+            CommitParticipant,
+            CommittedHistory,
+            checkpoint_plan,
+            retirement_candidates,
         )
 
         window = self.query_one_optional(Window)
         contents = self.query_one_optional(Contents)
         if (
-            window is None or contents is None
+            window is None
+            or contents is None
             or not self._transcript_dirty
             or not isinstance(self.agent, Agent)
             or not self.agent_ready
             or not self.agent.transcript_ready
             or self._managed_turn_id is not None
-            or any(isinstance(node, CheckpointBarrier) for node in contents.walk_children())
-            or (not self._needs_transcript_checkpoint and len(contents.children) < self.MAX_LIVE_BLOCKS)
+            or any(
+                isinstance(node, CheckpointBarrier) for node in contents.walk_children()
+            )
+            or (
+                not self._needs_transcript_checkpoint
+                and len(contents.children) < self.MAX_LIVE_BLOCKS
+            )
         ):
             return
         generation = self._transcript_generation
@@ -1883,19 +1969,30 @@ class Conversation(containers.Vertical):
         # A page cannot replace live blocks posted while its read or fragment
         # preparation is in flight unless it explicitly contains their identity.
         before_read = tuple(contents.children)
-        history = next((child for child in before_read if isinstance(child, CommittedHistory)), None)
-        potential = tuple(child for child in before_read
-                          if child is not history and isinstance(child, CommitParticipant))
+        history = next(
+            (child for child in before_read if isinstance(child, CommittedHistory)),
+            None,
+        )
+        potential = tuple(
+            child
+            for child in before_read
+            if child is not history and isinstance(child, CommitParticipant)
+        )
         if not plan.ready(history) or not plan.permits(self, potential):
             return
 
         def is_current() -> bool:
-            return (generation == self._transcript_generation
-                    and self.is_attached and not self._closing and not self._pruning
-                    and self.agent is agent
-                    and self.query_one_optional(Window) is window
-                    and self.query_one_optional(Contents) is contents
-                    and self._managed_turn_id is None and plan.current(window))
+            return (
+                generation == self._transcript_generation
+                and self.is_attached
+                and not self._closing
+                and not self._pruning
+                and self.agent is agent
+                and self.query_one_optional(Window) is window
+                and self.query_one_optional(Contents) is contents
+                and self._managed_turn_id is None
+                and plan.current(window)
+            )
 
         try:
             page = await agent.get_transcript_page()
@@ -1912,11 +2009,16 @@ class Conversation(containers.Vertical):
             return
         if prepared is None or not is_current():
             return
-        evidence = CommitEvidence(frozenset(before_read), prepared.sequences, prepared.history)
+        evidence = CommitEvidence(
+            frozenset(before_read), prepared.sequences, prepared.history
+        )
         async with window.history_lock:
             retired = retirement_candidates(contents.children, evidence)
-            if (not is_current() or not plan.ready(prepared.history)
-                    or not plan.permits(self, retired)):
+            if (
+                not is_current()
+                or not plan.ready(prepared.history)
+                or not plan.permits(self, retired)
+            ):
                 return
             self.new_block()
             if self.cursor_block in retired:
@@ -1927,7 +2029,9 @@ class Conversation(containers.Vertical):
                 try:
                     if prepared.history is None:
                         replacement = TranscriptHistory(
-                            page, agent.get_transcript_page, fragments=prepared.fragments,
+                            page,
+                            agent.get_transcript_page,
+                            fragments=prepared.fragments,
                             committed=False,
                         )
                         await contents.mount(replacement, before=0)
@@ -1946,7 +2050,11 @@ class Conversation(containers.Vertical):
                     accepted = True
                     await contents.remove_children(retired)
                 finally:
-                    if not accepted and replacement is not None and replacement.is_attached:
+                    if (
+                        not accepted
+                        and replacement is not None
+                        and replacement.is_attached
+                    ):
                         await replacement.remove()
         if not window.is_attached or not contents.is_attached:
             return
@@ -1955,17 +2063,32 @@ class Conversation(containers.Vertical):
         plan.finish(self, page.after)
 
     async def on_transcript_history_covered(self, message) -> None:
-        from toad.widgets.committed_presentation import CommitEvidence, protected_blocks, retirement_candidates
+        from toad.widgets.committed_presentation import (
+            CommitEvidence,
+            protected_blocks,
+            retirement_candidates,
+        )
 
         message.stop()
         contents = self.query_one_optional(Contents)
-        if (contents is not None and message.history is not None
-                and message.history.is_attached and message.history.parent is contents):
-            candidates = retirement_candidates(contents.children, CommitEvidence(
-                frozenset(), frozenset(message.sequences), message.history,
-            ))
+        if (
+            contents is not None
+            and message.history is not None
+            and message.history.is_attached
+            and message.history.parent is contents
+        ):
+            candidates = retirement_candidates(
+                contents.children,
+                CommitEvidence(
+                    frozenset(),
+                    frozenset(message.sequences),
+                    message.history,
+                ),
+            )
             protected = protected_blocks(self, candidates)
-            await contents.remove_children([child for child in candidates if child not in protected])
+            await contents.remove_children(
+                [child for child in candidates if child not in protected]
+            )
 
     @on(acp_messages.Thinking)
     async def on_acp_agent_thinking(self, message: acp_messages.Thinking):
@@ -2503,11 +2626,17 @@ class Conversation(containers.Vertical):
             self.call_after_refresh(self._compact_committed_history)
 
     def _invalidate_input_dispositions(self) -> None:
-        if not self.is_attached or self.agent is None or not hasattr(self.agent, "get_input_delivery"):
+        if (
+            not self.is_attached
+            or self.agent is None
+            or not hasattr(self.agent, "get_input_delivery")
+        ):
             return
         self._delivery_refresh_revision += 1
         if self._delivery_refresh_task is None or self._delivery_refresh_task.done():
-            self._delivery_refresh_task = asyncio.create_task(self._read_input_dispositions())
+            self._delivery_refresh_task = asyncio.create_task(
+                self._read_input_dispositions()
+            )
 
     async def refresh_input_dispositions(self) -> None:
         self._invalidate_input_dispositions()
@@ -2576,7 +2705,9 @@ class Conversation(containers.Vertical):
         if self.input_delivery_error:
             raise ValueError(self.input_delivery_error)
 
-    def on_input_dispositions_changed(self, event: acp_messages.InputDispositionsChanged) -> None:
+    def on_input_dispositions_changed(
+        self, event: acp_messages.InputDispositionsChanged
+    ) -> None:
         event.stop()
         self._invalidate_input_dispositions()
 
@@ -2596,10 +2727,18 @@ class Conversation(containers.Vertical):
         if session_details is not None:
             details.overview_text = session_details.overview_text
         self.app.push_screen(details)
-        details.watch(self, "input_delivery", lambda state: setattr(details, "delivery", state))
-        details.watch(self, "input_delivery_error", lambda error: setattr(details, "error", error))
+        details.watch(
+            self, "input_delivery", lambda state: setattr(details, "delivery", state)
+        )
+        details.watch(
+            self, "input_delivery_error", lambda error: setattr(details, "error", error)
+        )
         if session_details is not None:
-            details.watch(session_details, "overview_text", lambda value: setattr(details, "overview_text", value))
+            details.watch(
+                session_details,
+                "overview_text",
+                lambda value: setattr(details, "overview_text", value),
+            )
 
     def _poll_goal(self) -> None:
         if not self.is_attached:
@@ -2612,13 +2751,19 @@ class Conversation(containers.Vertical):
                 current is self.screen
                 and self in self.screen._compositor.visible_widgets
             ) or current is self._goal_modal
-        except (ScreenStackError, UnknownModeError):
+        except ScreenStackError, UnknownModeError:
             return
-        if visible and (self._goal_refresh_task is None or self._goal_refresh_task.done()):
+        if visible and (
+            self._goal_refresh_task is None or self._goal_refresh_task.done()
+        ):
             self._invalidate_goal_snapshot()
 
     def _invalidate_goal_snapshot(self) -> None:
-        if not self.is_attached or self.agent is None or not hasattr(self.agent, "get_goal_snapshot"):
+        if (
+            not self.is_attached
+            or self.agent is None
+            or not hasattr(self.agent, "get_goal_snapshot")
+        ):
             return
         self._goal_refresh_revision += 1
         if self._goal_refresh_task is None or self._goal_refresh_task.done():
@@ -2638,7 +2783,7 @@ class Conversation(containers.Vertical):
                 return
             try:
                 goal, execution = await agent.get_goal_snapshot()
-            except (OSError, ValueError):
+            except OSError, ValueError:
                 if revision != self._goal_refresh_revision:
                     continue
                 self.goal_unavailable = True
@@ -2652,7 +2797,7 @@ class Conversation(containers.Vertical):
 
     @on(acp_messages.CommsUpdated)
     async def on_comms_updated(self, event: acp_messages.CommsUpdated) -> None:
-        await ConversationCommsConsumer(self).dispatch(event.update)
+        await ConversationCommsConsumer(self, event).dispatch(event.update)
 
     async def _coordination_changed(self, _update: None) -> None:
         await self.refresh_goal()
@@ -2678,14 +2823,26 @@ class Conversation(containers.Vertical):
             self._goal_modal = details
             self.app.push_screen(details)
             details.watch(self, "goal", lambda value: setattr(details, "goal", value))
-            details.watch(self, "goal_unavailable", lambda value: setattr(details, "unavailable", value))
-            details.watch(self, "goal_execution", lambda value: setattr(details, "execution", value))
+            details.watch(
+                self,
+                "goal_unavailable",
+                lambda value: setattr(details, "unavailable", value),
+            )
+            details.watch(
+                self,
+                "goal_execution",
+                lambda value: setattr(details, "execution", value),
+            )
         elif event.action == "goal-edit":
             from toad.screens.goal_edit import GoalEdit
             from toad.widgets.goal_text import goal_mention_candidates
 
             goal = self.goal
-            if goal is None or self.agent is None or not hasattr(self.agent, "edit_goal"):
+            if (
+                goal is None
+                or self.agent is None
+                or not hasattr(self.agent, "edit_goal")
+            ):
                 self.flash("Editing requires an agent-comms goal", style="error")
                 return
 
@@ -2728,15 +2885,13 @@ class Conversation(containers.Vertical):
             self.window.anchor()
             self.flash("Compaction requested")
             result = await self.agent.compact_context(instructions)
-            if not result.get("ok"):
-                await self.post(AgentResponse(
-                    "## Compaction failed\n\n" + str(result.get("error") or "No result returned"),
-                    category=MessageCategory.OTHER,
-                ))
-            else:
-                self.flash("Context compacted", style="success")
+            self.flash("Context compacted", style="success")
         except (OSError, ValueError, jsonrpc.JSONRPCError) as error:
-            await self.post(AgentResponse(f"## Compaction failed\n\n{error}", category=MessageCategory.OTHER))
+            await self.post(
+                AgentResponse(
+                    f"## Compaction failed\n\n{error}", category=MessageCategory.OTHER
+                )
+            )
         finally:
             self._compacting = False
 
@@ -2769,7 +2924,9 @@ class Conversation(containers.Vertical):
 
     def _settings_changed(self, change: PreferenceChange) -> None:
         if change.field is ShellSettings.allow_commands:
-            self.shell_history.complete.add_words(self.app.settings.shell.allow_commands.split())
+            self.shell_history.complete.add_words(
+                self.app.settings.shell.allow_commands.split()
+            )
 
     @work
     async def post_welcome(self) -> None:
@@ -2783,7 +2940,9 @@ class Conversation(containers.Vertical):
         self.native_history_status = cursor.status if cursor is not None else None
         self._private_cursor_sequence = getattr(agent, "_private_cursor_sequence", 0)
         queue = agent.queue_attachment if agent is not None else None
-        self.queue_projection = queue.projection if queue is not None else PendingQueueProjection()
+        self.queue_projection = (
+            queue.projection if queue is not None else PendingQueueProjection()
+        )
         self.queued_prompts = [row.text for row in self.queue_projection.items]
         self._queue_sequence = getattr(agent, "_queue_sequence", 0)
         self._sending_queue_input_id = None
@@ -3307,7 +3466,10 @@ class Conversation(containers.Vertical):
         elif command == "goal":
             parameter = parameters.strip()
             actions = {
-                "pause": "paused", "resume": "active", "retry": "retry", "clear": "clear"
+                "pause": "paused",
+                "resume": "active",
+                "retry": "retry",
+                "clear": "clear",
             }
             if parameter in actions:
                 await self.change_goal(actions[parameter])
@@ -3323,9 +3485,13 @@ class Conversation(containers.Vertical):
             if self._compacting:
                 self.flash("Context compaction is already running")
             elif self.turn == "agent":
-                self.flash("Wait for the current response before compacting", style="error")
+                self.flash(
+                    "Wait for the current response before compacting", style="error"
+                )
             elif self.agent is None or not hasattr(self.agent, "compact_context"):
-                self.flash("This agent does not support context compaction", style="error")
+                self.flash(
+                    "This agent does not support context compaction", style="error"
+                )
             else:
                 self._compacting = True
                 self.compact_context(parameters.strip() or None)
@@ -3415,9 +3581,79 @@ class Conversation(containers.Vertical):
 
 
 class ConversationCommsConsumer(MroDispatch):
-    def __init__(self, conversation):
+    def __init__(self, conversation, message):
         self.conversation = conversation
+        self.message = message
 
     @handles(GoalChangedUpdate)
     def goal_changed(self, update: GoalChangedUpdate):
         self.conversation._invalidate_goal_snapshot()
+
+    @handles(CompactionChangedUpdate)
+    async def compaction_changed(self, update: CompactionChangedUpdate):
+        await CompactionRenderer(self.conversation).dispatch(update.event)
+
+    @handles(TranscriptSnapshotUpdate)
+    async def transcript_snapshot(self, update: TranscriptSnapshotUpdate):
+        await self.conversation.on_transcript_snapshot(update)
+
+    @handles(McpClientReceiptUpdate)
+    async def mcp_receipt(self, update: McpClientReceiptUpdate):
+        await self.conversation.on_mcp_client_status(self.message)
+
+    @handles(CompactionPublishedUpdate)
+    def compaction_published(self, update: CompactionPublishedUpdate):
+        self.conversation._transcript_dirty = True
+        self.conversation._needs_transcript_checkpoint = True
+        self.conversation._compact_committed_history()
+
+
+class CompactionRenderer(MroDispatch):
+    def __init__(self, conversation):
+        self.conversation = conversation
+
+    @handles(comms_events.CompactionStart)
+    async def start(self, event):
+        view = self.conversation
+        view.activity = "Compacting context…"
+        view.post_message(
+            messages.SessionUpdate(state="busy", summary="Compacting context")
+        )
+
+    @handles(comms_events.CompactionProgress)
+    async def progress(self, event):
+        view = self.conversation
+        done, total = event.source_bytes_done, event.source_bytes_total
+        if done is not None and total is not None and 0 <= done <= total and total > 0:
+            summaries = "summary" if event.chunk_index == 1 else "summaries"
+            view.activity = f"Compacting context… {done * 100 // total}% of input processed · {event.chunk_index} {summaries} completed"
+            if event.summary_phase == "shrink":
+                view.activity += " (last step: summary shrink)"
+        else:
+            view.activity = (
+                f"Compacting context… summary step {event.chunk_index} completed"
+            )
+        if event.summary_phase == "synthesis":
+            view.activity += " · combining summaries"
+        view.post_message(messages.SessionUpdate(state="busy", summary=view.activity))
+
+    @handles(comms_events.CompactionEnd)
+    async def end(self, event):
+        from toad.widgets.agent_response import AgentResponse
+
+        view = self.conversation
+        active = view.turn == "agent"
+        view.activity = "Thinking…" if active else ""
+        title = "Compaction aborted" if event.aborted else "Context compacted"
+        view.post_message(
+            messages.SessionUpdate(state="busy" if active else "idle", summary=title)
+        )
+        summary = compaction_summary(event.publication_summary)
+        detail = summary or (
+            "Compaction did not complete. Context usage will update after the next measurement."
+            if event.aborted
+            else "Context estimate unavailable until a new measurement arrives."
+        )
+        await view.post(
+            AgentResponse(f"## {title}\n\n{detail}", category=MessageCategory.OTHER)
+        )
