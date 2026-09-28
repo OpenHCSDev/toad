@@ -21,3 +21,13 @@ Package path must be the parent's newly verified prepared package after257;
 never alter existing prepared bytes or bypass package verification. No paid
 providers, live changes or116 feature integration. Final paired acceptance is
 pending that explicit checkpoint; previous proof boundaries remain unchanged.
+
+## Parent final source checkpoint
+
+Paired107 now pins Comms c3e7252aa7d11468370f29ced79bfe42636fabb9,
+including256 awareness,257 MCP producer retirement and alias deletion. No Toad
+runtime code changed with this pin. Textual remains16ede007;116 remains excluded.
+Parent owns runtime build and cutover. Darwin is preparing the new immutable
+native package for257; final installed MCP acceptance requires that package.
+Live Toad894792/ACP895195 remain untouched. User close is the final activation
+step after all candidate preparation and acceptance.
