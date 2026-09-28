@@ -53,8 +53,19 @@ class ObservedThreadActivity(Static):
             return
         self.presentation, self.unavailable = presentation, unavailable
         self.display = presentation is not None or unavailable
-        self.update("Agent status unavailable" if unavailable else
-                    presentation.summary if presentation else "")
+        lines = ["Agent status unavailable" if unavailable else
+                 presentation.summary if presentation else ""]
+        if presentation is not None and presentation.notifications:
+            lines.append("Recent incoming messages:")
+            for receipt in presentation.notifications:
+                message = receipt.message
+                if message is None:
+                    continue
+                excerpt = " ".join(message.body.split())
+                if len(excerpt) > 110:
+                    excerpt = excerpt[:107] + "…"
+                lines.append(f"{message.target} · {message.sender}: {excerpt} — {receipt.state}")
+        self.update("\n".join(lines))
         self.set_class(bool(presentation and presentation.busy), "-working")
         self.set_class(unavailable, "-unavailable")
         self.post_message(self.Changed(presentation, unavailable))
