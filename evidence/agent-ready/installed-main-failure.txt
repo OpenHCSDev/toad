@@ -1,0 +1,1 @@
+RuntimeError: Message is missing attributes; did you forget to call super().__init__() ?

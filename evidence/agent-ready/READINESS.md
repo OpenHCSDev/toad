@@ -1,0 +1,7 @@
+Urgent isolated AgentReady correction: 08b61a098806ecbc4cbd5ef7dc715c1d7a019ba6, branch fix/agent-ready-message-live-20260928, parent b4bdae1 (current main). One production line replaces incorrect LocalAgentPresentation(self) with super().__init__(). No broad PR131 changes needed.
+
+Actual installed runtime-registry-tools main baseline App.post_message(AgentReady()) raises RuntimeError: Message is missing attributes; did you forget to call super().__init__() ?. Four required Message fields are absent. Agent.run sets session_ready_event before posting AgentReady; the event therefore proves backend readiness despite failure to dispatch UI readiness. Conversation.on_agent_ready clears -initial-loading and removes ThreadLoading: missing event leaves initializing UI. This is independently concrete; cannot prove the entire large transcript paints until parent native retained-pr95 reproduction completes.
+
+Own noneditable current-main-plus-one-line wheel at ~/wt/toad-agent-ready-live-20260928/.venv passed actual mounted Textual dispatch of installed AgentReady, no product PYTHONPATH. Evidence installed-main-failure.txt and installed-message-pass.txt. Parent owns actual retained-pr95 native UI run 43040, installation and merge; no live/history mutation here.
+
+The stale viewport membership fix from131 is separate: it addresses removed source windows at screen reactivation, not this initial readiness-event failure.
