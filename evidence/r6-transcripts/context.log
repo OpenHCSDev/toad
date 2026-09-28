@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-refactor-r6-transcripts-20260928/tests/coordination_context_pilot.py", line 18, in <module>
+    from toad.acp.agent import Agent
+  File "/home/ts/wt/toad-refactor-r6-transcripts-20260928/src/toad/acp/agent.py", line 529
+    events = tuple(TranscriptCodec.decode(TranscriptEvent, event) for event in state["transcript"])
+IndentationError: unexpected indent
