@@ -37,7 +37,7 @@ persistent-renderer = ["zmqruntime==0.2.24"]
 
 [tool.uv.sources]
 agent-comms = { git = "https://github.com/OpenHCSDev/agent-comms.git", rev = "b1e5bfd5c39ea69c507833e8ed5efc96a7fb038b" }
-textual = { git = "https://github.com/OpenHCSDev/textual.git", rev = "1c72ea4f2c2ee15dc7104dcd00f1d2f9a78fc754" }
+textual = { git = "https://github.com/OpenHCSDev/textual.git", rev = "39b15d1297b7f1b5b342d444629f4e67a18297bb" }
 #textual-serve = { path = "../textual-serve", editable = true }
 #textual = { path = "../textual", editable = true }
 #textual-dev = { path = "../textual-dev", editable = true }

@@ -12,6 +12,7 @@ from rich.segment import Segment
 from rich.style import Style as RichStyle
 
 from textual.content import Content
+from textual._measurement import NATIVE_WIDGET_HEIGHT, height_dependency
 from textual.app import ComposeResult
 from textual.css.styles import RulesMap
 from textual.geometry import Offset, Size
@@ -82,6 +83,7 @@ class PreparedConversationMarkdown(ViewportBody, ConversationMarkdown):
     def body_ready(self) -> bool:
         return not self._body_dormant and not self._body_restoring
 
+    @height_dependency(NATIVE_WIDGET_HEIGHT)
     def get_content_height(self, container: Size, viewport: Size, width: int) -> int:
         if self._body_dormant and self._body_measurement is not None:
             if width != self._body_measurement[0]:

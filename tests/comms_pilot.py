@@ -52,7 +52,7 @@ from toad.widgets.tool_call import ToolCall
 from toad.widgets.project_panel import FilePreview, ProjectSearchButton
 from toad.widgets.user_input import UserInput
 from toad.widgets.incoming_message import IncomingMessage, IncomingSender
-from toad.widgets.irc_message import IRCMessage, ThreadLink
+from toad.widgets.irc_message import IRCMessage
 
 
 def row(screen, target: str) -> CommsRow:
@@ -1329,7 +1329,11 @@ for line in sys.stdin:
             app.screen.query_one(CommsSidebar)._refresh()
             await pilot.pause()
 
-            await pilot.click(row(app.screen, "#all"))
+            channel_row = row(app.screen, "#all")
+            assert await pilot.click(channel_row), (
+                "Channel revisit click missed its native row", channel_row.region,
+                app.screen.query_one(SideBar).collapsed,
+            )
             await pilot.pause()
             async with asyncio.timeout(10):
                 while app.current_mode != first_channel_mode:

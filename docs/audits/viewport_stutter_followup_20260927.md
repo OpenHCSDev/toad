@@ -10,8 +10,8 @@ remaining native latency targets and current-main reconciliation are open**.
 ## Structural measurement correction
 
 Dependency: [Textual PR6](https://github.com/OpenHCSDev/textual/pull/6), pinned at
-`1c72ea4f2c2ee15dc7104dcd00f1d2f9a78fc754` (structural fix plus owner-clock idle
-measurement). The merged framework baseline alone
+`39b15d1297b7f1b5b342d444629f4e67a18297bb` (structural fix, owner-clock idle
+measurement and opt-in declaration-proved box reuse). The merged framework baseline alone
 does not contain this correction.
 
 The clipped frame was reproduced with committed geometry evidence: the history
@@ -93,6 +93,57 @@ overall loop maxima still exceed100ms. Keep both repeats; there is no universal
 sub50ms or indefinite-aging memory claim.
 
 ## Candidate
+
+### Declaration-proved measurement reuse
+
+The new companion framework surface `CACHE_HEIGHT_INDEPENDENT_BOX` is disabled
+by default. This draft opts in the transcript fragment/page/history classes.
+Method and layout owners declare dependency behavior once; a conservative proof
+checks live CSS and child declarations before normalizing unused available-height
+inputs. Unknown overrides and context-sensitive sizing retain native full keys.
+The framework's existing cache budget and source-owned mutation epochs still own
+retirement; proofs retain only data, not child widgets.
+
+The native Markdown measurement and margin-trimming hooks declare their contracts.
+The initial four-toggle diagnostic dropped page misses18to9 and fragment misses
+312to129 (total box calls1,386to1,021). Local style-plan caching and shared child
+proofs then removed duplicate dependency traversals; no performance is inferred
+by summing these recursive call timings.
+
+Initial serial native72-action/52-marker comparison, with all masks/drafts intact:
+
+| Capture | Input median / p95 / maximum ms | Layout median / p95 ms | Loop max ms |
+| --- | --- | --- | --- |
+| `toad-height-reuse-control-1` |36.79 /68.20 /92.78|15.04 /46.25|129.65|
+| `toad-height-reuse-candidate-1` |27.89 /56.90 /86.46|12.14 /33.98|159.08|
+
+The candidate's worse loop maximum overlapped65.93ms GC. Keep that failure visible;
+there is no universal maximum-stutter win. These preliminary timings preceded the
+final conservative custom-scalar and raw-percentage fallback checks. Repeated
+final-source measurements follow below.
+
+Final correctness:3,470framework tests passed (1skip,4xfail),45snapshots passed
+with broad native opt-in, and all80Toad pilots passed in526.41s. A preliminary
+79-pass run timed out on a late channel revisit; the test now explicitly checks
+that its native row click succeeded, and the full final run passes with the same
+deadline. The frame stability and content assertions remain unchanged.
+
+Final-source serial native runs, each72actions/52markers with masks/drafts intact:
+
+| Capture | Input median / p95 / maximum ms | Layout median / p95 ms | Loop max ms | GC max ms |
+| --- | --- | --- | --- | --- |
+| `toad-height-reuse-control-2` |30.68 /55.41 /72.71|14.55 /43.58|162.31|76.08|
+| `toad-height-reuse-final-1` |28.60 /55.60 /80.32|12.52 /33.45|152.70|63.90|
+| `toad-height-reuse-final-2` |37.45 /66.03 /146.59|13.55 /36.96|141.53|87.10|
+
+Layout p95 improves in both repeats, but the maximum-input target does not.
+The146.59ms input outlier overlapped87.10ms UI-threadGC. Do not replace that
+failure with the better median or one favorable maximum. Final framework/Toad
+validation peaked247.3/476.7MiB; native control/candidate peaks were below475MiB,
+all with swap disabled. Remaining work includes GC/paint tails and newer-main
+reconciliation before landing these drafts.
+
+### Tail anchoring
 
 `HistoryAnchor` selects an immutable `TailAnchor` or `RecordAnchor` from current
 reader intent. Stored policies own compensation; the screen directly calls their
