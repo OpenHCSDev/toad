@@ -1,0 +1,2 @@
+Installed Agent/direct ToolRequest imports pass
+{"url":"https://github.com/OpenHCSDev/agent-comms.git","vcs_info":{"vcs":"git","commit_id":"4510dddf737da3d445ba20d90c79f3dcb3f08b27","requested_revision":"4510dddf737da3d445ba20d90c79f3dcb3f08b27"}}
