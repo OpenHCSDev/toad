@@ -24,7 +24,7 @@ from textual.message import Message
 from textual.widget import Widget
 from textual.widgets import Static
 
-from toad.transcript_state import TranscriptState, LiveTranscript, ProvisionalTranscript
+from toad.transcript_state import TranscriptState, LiveTranscript, ProvisionalTranscript, RetiredProjectionTranscript
 from toad.acp import protocol
 from toad.acp.encode_tool_call_id import encode_tool_call_id
 from toad.transcript_preparation import (
@@ -322,12 +322,8 @@ class TranscriptHistory(CommittedHistory, CategorizedBlock, VerticalGroup):
     def state(self) -> TranscriptState:
         return self._source_state.observed(self)
 
-    @property
-    def _publication_current(self) -> bool:
-        return self.state.accepts_publication
-
     def _require_publication(self) -> None:
-        if not self._publication_current:
+        if not self.state.accepts_publication:
             raise _PublicationRetired
 
     @property
@@ -428,7 +424,7 @@ class TranscriptHistory(CommittedHistory, CategorizedBlock, VerticalGroup):
         return reader
 
     def _warm_pages(self) -> None:
-        if (self.loader is None or not self.is_mounted or not self._publication_current or not self.screen.is_current
+        if (self.loader is None or not self.is_mounted or not self.state.accepts_publication or not self.screen.is_current
                 or not self._selected_categories):
             return
         reader = self._reader()
@@ -523,7 +519,7 @@ class TranscriptHistory(CommittedHistory, CategorizedBlock, VerticalGroup):
         source = None
 
         def is_current() -> bool:
-            return (generation == self._generation and self._publication_current
+            return (generation == self._generation and self.state.accepts_publication
                     and self._filtered_source and bool(self._selected_categories))
 
         try:
@@ -617,7 +613,7 @@ class TranscriptHistory(CommittedHistory, CategorizedBlock, VerticalGroup):
 
     @property
     def checkpoint_available(self) -> bool:
-        return (self._publication_current and not self._loading and not self._advancing
+        return (self.state.accepts_publication and not self._loading and not self._advancing
                 and not self._filter_scanning
                 and (self._filter_overlay is None or self._filter_overlay.checkpoint_available))
 
@@ -702,7 +698,7 @@ class TranscriptHistory(CommittedHistory, CategorizedBlock, VerticalGroup):
 
     def _check_edges(self) -> None:
         self._check_pending = False
-        if (self._loading or self._advancing or not self._publication_current
+        if (self._loading or self._advancing or not self.state.accepts_publication
                 or not self.screen.is_active or not self._selected_categories):
             return
         # Off-screen pagers must not ask for their region: after a scroll that
@@ -817,7 +813,7 @@ class TranscriptHistory(CommittedHistory, CategorizedBlock, VerticalGroup):
                 ))
                 page, fragments = prepared.page, prepared.fragments
             async with window.history_lock:
-                if (not self._publication_current or self.window is not window or self.loader is not loader
+                if (not self.state.accepts_publication or self.window is not window or self.loader is not loader
                         or not self.screen.is_current
                         or generation != self._generation
                         or (self.pages[0] if older else self.pages[-1]) is not edge
@@ -983,14 +979,16 @@ class ProjectedTranscriptHistory(TranscriptHistory):
             self._update_edges()
         finally:
             self._loading = False
-            if self._publication_current:
+            if self.state.accepts_publication:
                 self._scroll_changed()
 
     @property
-    def _publication_current(self) -> bool:
+    def state(self) -> TranscriptState:
+        source = super().state
         owner = self._projection_owner()
-        return (super()._publication_current and owner is not None
-                and owner._publication_current and owner._filter_overlay is self)
+        if owner is None or not owner.state.accepts_publication or owner._filter_overlay is not self:
+            return RetiredProjectionTranscript(source)
+        return source
 
     @property
     def _selected_categories(self) -> frozenset[MessageCategory]:

@@ -199,7 +199,22 @@ class SelectTarget(Message):
         super().__init__()
 
 
-class CommsRow(ThreadStatusRow):
+class RowNavigation:
+    """Selection and menu context shared by open and unopened destinations."""
+
+    mode_name: str | None = None
+
+    @property
+    def target_name(self) -> str:
+        return self.target.name
+
+    def show_menu(self, sidebar, offset) -> None:
+        if self.mode_name is None:
+            sidebar._select(self)
+        self.target.show_menu(sidebar, offset, mode_name=self.mode_name, channel=self.query_ancestor(ChannelGroup).row.target_name)
+
+
+class CommsRow(RowNavigation, ThreadStatusRow):
     """One interactive row: a channel or a thread."""
 
     DEFAULT_CSS = """
@@ -231,14 +246,6 @@ class CommsRow(ThreadStatusRow):
         self.target = target
         self._label = label
         self.unread = unread
-
-    @property
-    def target_name(self) -> str:
-        return self.target.name
-
-    def show_menu(self, sidebar, offset) -> None:
-        sidebar._select(self)
-        self.target.show_menu(sidebar, offset, channel=self.query_ancestor(ChannelGroup).row.target_name)
 
     @property
     def selected(self) -> bool:
@@ -299,14 +306,6 @@ class CommsRow(ThreadStatusRow):
 
 class ThreadRow(CommsRow):
     """A retained wire thread row, with an optional currently open native view."""
-
-    mode_name: str | None = None
-
-    def show_menu(self, sidebar, offset) -> None:
-        if self.mode_name is None:
-            sidebar._select(self)
-        self.target.show_menu(sidebar, offset, mode_name=self.mode_name,
-                              channel=self.query_ancestor(ChannelGroup).row.target_name)
 
     def action_open_selected(self) -> None:
         if self.mode_name is None or cast("ToadApp", self.app).session_tracker.get_session(self.mode_name) is None:

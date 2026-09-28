@@ -20,16 +20,20 @@ from agent_comms.declared_family import DeclaredFamily
 from toad.navigation_target import NavigationTarget
 
 
-class VirtualChoice(DeclaredFamily, affix="Choice"):
+class ChoiceInteractions:
+    """Default unavailable interactions; destinations override their capabilities."""
+
     def represents_mode(self, mode: str, channel: str | None = None) -> bool:
         return False
 
-    @abstractmethod
-    def show_menu(self, sidebar, offset) -> None: ...
+    def show_menu(self, sidebar, offset) -> None:
+        pass
 
-    @abstractmethod
-    def toggle_members(self, sidebar) -> bool: ...
+    def toggle_members(self, sidebar) -> bool:
+        return False
 
+
+class VirtualChoice(ChoiceInteractions, DeclaredFamily, affix="Choice"):
     @abstractmethod
     async def activate(self, sidebar) -> None: ...
 
@@ -66,12 +70,6 @@ class TargetChoice(VirtualChoice):
 
 @dataclass(frozen=True)
 class NewSessionChoice(VirtualChoice):
-    def show_menu(self, sidebar, offset) -> None:
-        pass
-
-    def toggle_members(self, sidebar) -> bool:
-        return False
-
     async def activate(self, sidebar) -> None:
         from toad import messages
         sidebar.app.post_message(messages.SessionCreate(sidebar.screen.id or sidebar.app.current_mode))

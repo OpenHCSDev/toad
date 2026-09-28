@@ -71,22 +71,28 @@ class SessionTarget(NavigationTarget):
         return app.current_mode
 
 
-class ThreadTarget(NavigationTarget):
+class NativeUnread:
+    """Unread identity for destinations backed by a native owner journal."""
+
     def unread(self, snapshot):
         from toad.session_tracker import UnreadPresentation
         return UnreadPresentation.for_thread(snapshot, self.name)
 
+class ThreadTarget(NativeUnread, NavigationTarget):
     async def open(self, context: NavigationContext) -> str:
         return await context.app.open_thread_session(
             owner_mode=context.owner_mode, project_path=context.project_path, target=self.name,
         )
 
 
-class HistoryTarget(NavigationTarget):
+class HistoryRoute:
+    """Conversation families declare the history source used for navigation."""
+
     @property
     @abstractmethod
     def history_kind(self) -> type[ConversationKind]: ...
 
+class HistoryTarget(HistoryRoute, NavigationTarget):
     async def open(self, context: NavigationContext) -> str:
         return await context.app._open_comms_history(
             owner_mode=context.owner_mode, project_path=context.project_path,

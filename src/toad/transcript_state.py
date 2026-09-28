@@ -83,3 +83,11 @@ class ClosingTranscript(SuspendedTranscript):
     @classmethod
     def successors(cls):
         return (DetachedTranscript,)
+
+
+class RetiredProjectionTranscript(SuspendedTranscript):
+    """A filtered view whose owning publication is no longer current."""
+
+    @classmethod
+    def successors(cls):
+        return (DetachedTranscript,)
