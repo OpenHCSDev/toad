@@ -1,0 +1,38 @@
+test_category_capabilities_and_new_member (__main__.RenderingFamilyTests.test_category_capabilities_and_new_member) ... ok
+test_commands_and_replies_round_trip (__main__.RenderingFamilyTests.test_commands_and_replies_round_trip) ... ERROR
+test_each_reply_owns_its_transition_and_new_member (__main__.RenderingFamilyTests.test_each_reply_owns_its_transition_and_new_member) ... ok
+test_real_service_new_task_retention_isolation_and_release (__main__.RenderingFamilyTests.test_real_service_new_task_retention_isolation_and_release) ... Executing <Task finished name='Task-15' coro=<RenderingFamilyTests.test_real_service_new_task_retention_isolation_and_release() done, defined at /home/ts/wt/toad-t6-rendering-20260928/tests/render_families_pilot.py:162> result=None created at /home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py:109> took 0.202 seconds
+ok
+
+======================================================================
+ERROR: test_commands_and_replies_round_trip (__main__.RenderingFamilyTests.test_commands_and_replies_round_trip)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-t6-rendering-20260928/tests/render_families_pilot.py", line 83, in test_commands_and_replies_round_trip
+    RenderCodec.decode(family, RenderCodec.encode(value)), value
+                               ~~~~~~~~~~~~~~~~~~^^^^^^^
+  File "/home/ts/wt/toad-t6-rendering-20260928/.venv/lib/python3.14/site-packages/toad/render_protocol.py", line 40, in encode
+    return super().encode(value)
+           ~~~~~~~~~~~~~~^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-round2-final-20260928/lib/python3.14/site-packages/agent_comms/field_codec.py", line 93, in encode
+    result.update(
+    ~~~~~~~~~~~~~^
+        (key, cls.encode(getattr(value, field.name)))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<13 lines>...
+        )
+        ^
+    )
+    ^
+  File "/home/ts/.local/share/agent-comms/runtime-round2-final-20260928/lib/python3.14/site-packages/agent_comms/field_codec.py", line 94, in <genexpr>
+    (key, cls.encode(getattr(value, field.name)))
+          ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-t6-rendering-20260928/.venv/lib/python3.14/site-packages/toad/render_protocol.py", line 37, in encode
+    return base64.b64encode(
+           ^^^^^^
+NameError: name 'base64' is not defined. Did you forget to import 'base64'?
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.771s
+
+FAILED (errors=1)

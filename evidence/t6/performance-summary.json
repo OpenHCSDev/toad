@@ -1,0 +1,62 @@
+{
+  "baseline": {
+    "cold_ms": {
+      "median": 2134.45,
+      "range": [
+        2085.69,
+        2186.62
+      ]
+    },
+    "warm_median_ms": {
+      "median": 32.43,
+      "range": [
+        32.28,
+        32.56
+      ]
+    },
+    "warm_p95_ms": {
+      "median": 55.32,
+      "range": [
+        48.89,
+        61.57
+      ]
+    },
+    "heartbeat_max_ms": {
+      "median": 15.44,
+      "range": [
+        15.2,
+        19.36
+      ]
+    }
+  },
+  "current": {
+    "cold_ms": {
+      "median": 2076.86,
+      "range": [
+        2035.2,
+        2285.57
+      ]
+    },
+    "warm_median_ms": {
+      "median": 32.89,
+      "range": [
+        32.78,
+        33.1
+      ]
+    },
+    "warm_p95_ms": {
+      "median": 52.39,
+      "range": [
+        43.4,
+        56.57
+      ]
+    },
+    "heartbeat_max_ms": {
+      "median": 20.42,
+      "range": [
+        16.29,
+        21.52
+      ]
+    }
+  }
+}

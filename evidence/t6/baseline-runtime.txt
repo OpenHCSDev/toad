@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-t6-rendering-20260928/tests/render_runtime_pilot.py", line 10, in <module>
+    from toad.render_runtime import PersistentRenderer
+  File "/home/ts/wt/toad-t6-rendering-20260928/.venv/lib/python3.14/site-packages/toad/render_runtime.py", line 10, in <module>
+    from toad.render_zmq import PersistentRendererPool, RendererEndpoint, RendererSessionFailed
+  File "/home/ts/wt/toad-t6-rendering-20260928/.venv/lib/python3.14/site-packages/toad/render_zmq.py", line 21, in <module>
+    from zmqruntime import ZMQClient, ZMQConfig, ZMQServer
+ModuleNotFoundError: No module named 'zmqruntime'
