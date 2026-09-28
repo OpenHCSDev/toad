@@ -79,6 +79,11 @@ async def main():
                 assert all(item.is_attached and not item._closed
                            for item in original_rows[mode].values()), (
                     "Warm channel rows retired on tab switch", mode)
+            for mode in modes[:-1]:
+                sidebar = sidebars[mode]
+                with patch.object(sidebar, "_route_stamp", wraps=sidebar._route_stamp) as probe:
+                    sidebar._refresh()
+                    assert not probe.called, "An inactive retained roster still polls its source"
 
             app.expected_modes = set(modes)
             for mode in (*reversed(modes), *modes, *reversed(modes)):

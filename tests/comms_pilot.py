@@ -793,6 +793,7 @@ for line in sys.stdin:
                 item.target_name == "delete-peer" for item in app.screen.query(CommsRow)
             )
 
+            retained_owner_rows = tuple(open_rows(app.screen))
             await pilot.click(row(app.screen, "#all"))
             await pilot.pause()
             assert isinstance(app.screen, CommsScreen)
@@ -801,7 +802,8 @@ for line in sys.stdin:
             assert app.session_tracker.session_count == 1
             assert len(open_rows(app.screen)) == 1
             owner_screen = app.get_screen_stack(owner_mode)[-1]
-            assert not open_rows(owner_screen), "Inactive tab retained a duplicate native roster"
+            assert tuple(open_rows(owner_screen)) == retained_owner_rows, "Tab switch rebuilt the warm roster"
+            assert all(item.is_attached for item in retained_owner_rows)
             first_channel_mode = app.current_mode
             chat = app.screen.query_one(CommsChatView)
             assert chat.prompt.prompt_text_area.has_focus

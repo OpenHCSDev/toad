@@ -860,6 +860,11 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
             self.display = False
             return
         try:
+            # Retained inactive rosters reconcile on activation. Do not queue
+            # source reads for every hidden tab; stack lookup may fail during
+            # ordinary shutdown and belongs inside this existing error boundary.
+            if self.screen is not self.app.screen:
+                return
             route_stamp = self._route_stamp()
             if (
                 self._last_route_stamp is None

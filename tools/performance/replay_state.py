@@ -20,7 +20,9 @@ import threading
 import time
 from unittest.mock import patch
 
-from agent_comms import Thread, TranscriptPage, wire
+from agent_comms.threads import Thread
+from agent_comms.transcripts import TranscriptPage
+from agent_comms.comms import wire
 from toad.app import ToadApp
 from toad.acp.messages import CoordinationUpdate
 from toad.screens.main import MainScreen
@@ -192,16 +194,16 @@ async def main(args):
         snapshot = saved["sidebar_snapshot"]
         for person in snapshot.threads:
             # Recreate names/tags, not live executor ownership or active turns.
-            comms.register(Thread(person.thread.name, person.thread.tags, str(root), pid=os.getpid()))
+            comms.threads.register(Thread(person.thread.name, person.thread.tags, str(root), pid=os.getpid()))
         for channel in snapshot.channels:
             if channel.channel.builtin is None:
-                comms.set_channel(channel.channel.name, channel.channel.tags)
+                comms.channels.set_channel(channel.channel.name, channel.channel.tags)
         registered = {person.thread.name for person in snapshot.threads}
         for view in saved["views"]:
             for message in view.get("wire_history", ()):
                 for target in (message.sender, message.target):
                     if not target.startswith("#") and target not in registered:
-                        comms.register(Thread(target, frozenset(), str(root), pid=os.getpid()))
+                        comms.threads.register(Thread(target, frozenset(), str(root), pid=os.getpid()))
                         registered.add(target)
         seen_messages = set()
         for view in saved["views"]:
@@ -209,7 +211,7 @@ async def main(args):
                 identity = (message.sender, message.target, message.seq, message.body)
                 if identity not in seen_messages:
                     seen_messages.add(identity)
-                    comms.send(message.sender, message.target, message.body)
+                    comms.messaging.send(message.sender, message.target, message.body)
         app = ToadApp(project_dir=str(root))
         app._sidebar_snapshot = snapshot
         if state := saved.get("sidebar_state"):
