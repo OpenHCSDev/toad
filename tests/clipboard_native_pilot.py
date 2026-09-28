@@ -60,6 +60,7 @@ def copy_in_terminal(root, display):
     os.close(slave)
     output = bytearray()
     sent = False
+    paste_sent = False
     try:
         deadline = time.monotonic() + 20
         while time.monotonic() < deadline:
@@ -72,14 +73,31 @@ def copy_in_terminal(root, display):
             if not sent and (root / "ready.json").exists():
                 os.write(master, b"\x19")
                 sent = True
+            if sent and not paste_sent and (root / "copied.json").exists():
+                os.write(master, b"\x16")
+                paste_sent = True
             if (
                 process.poll() is not None
                 and not select.select([master], [], [], 0.05)[0]
             ):
                 break
-        assert sent and process.wait(timeout=3) == 0, output[-3000:]
+        assert sent and process.poll() is not None, {
+            "terminal": output[-3000:].decode(errors="replace"),
+            "ready": (root / "ready.json").read_text()
+            if (root / "ready.json").exists()
+            else None,
+            "copied": (root / "copied.json").read_text()
+            if (root / "copied.json").exists()
+            else None,
+            "paste_sent": paste_sent,
+            "state": (root / "paste-state.json").read_text() if (root / "paste-state.json").exists() else None,
+            "keys": (root / "keys.txt").read_text() if (root / "keys.txt").exists() else None,
+        }
+        assert process.wait(timeout=3) == 0, output[-3000:]
         copied = json.loads((root / "copied.json").read_text())
         assert copied["complete_local_value"] and copied["length"] == len(PAYLOAD)
+        pasted = json.loads((root / "pasted.json").read_text())
+        assert paste_sent and pasted["complete_prompt_value"]
         ready = json.loads((root / "ready.json").read_text())
         assert "site-packages" in ready["installed"], ready
         sequences = re.findall(rb"\x1b\]52;c;([^\x07]*)\x07", output)
@@ -106,6 +124,7 @@ def copy_in_terminal(root, display):
             "transport": ready["transport"],
             "length": copied["length"],
             "physical_input": True,
+            "prompt_paste": pasted["complete_prompt_value"],
             "terminal_sequences": len(sequences),
         }
     finally:

@@ -853,7 +853,7 @@ class ToadApp(App, inherit_bindings=False):
                         self._atomic_mode_switch = False
                 if isinstance(screen, SessionView) and screen.is_current:
                     screen.present_navigation()
-                if mode != previous_mode or history_index is not None:
+                if mode != previous_mode:
                     self.tab_order.record_visit(mode, history_index)
         finally:
             if self._pending_mode_switch == mode:

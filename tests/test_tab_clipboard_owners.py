@@ -66,4 +66,6 @@ def test_t4_tab_clipboard_deletion_guards():
                 assert node.name not in retired, (path, node.lineno, node.name)
             if isinstance(node, ast.Import) and path.name != "clipboard.py":
                 assert all(alias.name != "pyperclip" for alias in node.names), path
+            if isinstance(node, ast.ImportFrom) and path.name != "clipboard.py":
+                assert node.module != "pyperclip", path
     assert not (root.parents[1] / "tests/clipboard_selection_pilot.py").exists()

@@ -63,7 +63,10 @@ class TabOrder:
     def navigate(self, direction: int) -> None:
         if target := self.history_target(direction):
             index, mode = target
-            self._focus(mode, index)
+            if mode == self._visits[self._cursor]:
+                self.record_visit(mode, index)
+            else:
+                self._focus(mode, index)
 
     def record_visit(self, mode: str, history_index: int | None = None) -> None:
         if mode not in self:
