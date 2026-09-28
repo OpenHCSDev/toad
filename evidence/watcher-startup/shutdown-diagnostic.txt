@@ -1,0 +1,57 @@
+{"messages_sent": 0, "project": "/home/ts/.agent-comms", "views": [{"target": "#comms", "history_entries": 8}, {"target": "agent-comms-ux", "history_entries": 2}, {"target": "pr95-selected-pi-summary-owner", "history_entries": 0}], "watch_child": 482933, "watcher_and_child_joined": true}
+EXECUTOR_TASKS {140378590148288: 'HistoryViews.viewer_snapshot'}
+TASK_STACK HistoryViews.viewer_snapshot
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py", line 1044, in _bootstrap
+    self._bootstrap_inner()
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py", line 1082, in _bootstrap_inner
+    self._context.run(self.run)
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py", line 1024, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/thread.py", line 119, in _worker
+    work_item.run(ctx)
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/thread.py", line 86, in run
+    result = ctx.run(self.task)
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/thread.py", line 73, in run
+    return fn(*args, **kwargs)
+  File "/home/ts/wt/toad-watcher-startup-cancel-20260928/.artifacts/diagnose_shutdown.py", line 17, in run
+    return function(*args, **kwargs)
+  File "/home/ts/.local/share/agent-comms/runtime-compaction-policy-b3a9c06/lib/python3.14/site-packages/agent_comms/history_views.py", line 871, in viewer_snapshot
+    self.transcript_reads.counts(
+  File "/home/ts/.local/share/agent-comms/runtime-compaction-policy-b3a9c06/lib/python3.14/site-packages/agent_comms/view_unread.py", line 151, in counts
+    return self._counts_locked(viewer, sources)
+  File "/home/ts/.local/share/agent-comms/runtime-compaction-policy-b3a9c06/lib/python3.14/site-packages/agent_comms/view_unread.py", line 162, in _counts_locked
+    index = self._index(source)
+  File "/home/ts/.local/share/agent-comms/runtime-compaction-policy-b3a9c06/lib/python3.14/site-packages/agent_comms/view_unread.py", line 125, in _index
+    while stream.tell() < revision[1]:
+Timeout (0:00:35)!
+Thread 0x00007fac814276c0 [Thread-3 (_do_s] (most recent call first):
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py", line 1133 in join
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/thread.py", line 273 in shutdown
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 621 in _do_shutdown
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py", line 1024 in run
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py", line 1082 in _bootstrap_inner
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py", line 1044 in _bootstrap
+
+Thread 0x00007fac6ffff6c0 [asyncio_1] (most recent call first):
+  File "/home/ts/.local/share/agent-comms/runtime-compaction-policy-b3a9c06/lib/python3.14/site-packages/agent_comms/pi_payloads.py", line ??? in normalize
+  <invalid frame>
+
+Thread 0x00007fac81d286c0 [asyncio-waitpid] (most recent call first):
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/unix_events.py", line 931 in _do_waitpid
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py", line 1024 in run
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py", line 1082 in _bootstrap_inner
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py", line 1044 in _bootstrap
+
+Thread 0x00007fac8b1d1780 [python] (most recent call first):
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/selectors.py", line 452 in select
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 2008 in _run_once
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 677 in run_forever
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 706 in run_until_complete
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 73 in close
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 63 in __exit__
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 203 in run
+  File "tests/watcher_archived_ui_pilot.py", line 73 in <module>
+  File "<frozen runpy>", line 88 in _run_code
+  File "<frozen runpy>", line 98 in _run_module_code
+  File "<frozen runpy>", line 287 in run_path
+  File "/home/ts/wt/toad-watcher-startup-cancel-20260928/.artifacts/diagnose_shutdown.py", line 34 in <module>
