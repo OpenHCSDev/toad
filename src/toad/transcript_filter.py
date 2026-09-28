@@ -4,9 +4,13 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 from agent_comms.declared_family import DeclaredFamily
 from toad.transcript_preparation import ProjectedTranscriptSource, PreparedTranscriptPage, CategoryProjection
 from toad.widgets.message_filter import ALL_CATEGORIES
+
+if TYPE_CHECKING:
+    from toad.widgets.transcript_history import TranscriptHistory, ProjectedTranscriptHistory
 
 
 class FilterState(DeclaredFamily, affix="Filter"):
@@ -32,7 +36,7 @@ class NoFilter(FilterState):
 
 @dataclass(frozen=True)
 class Filtered(FilterState):
-    view: object
+    view: ProjectedTranscriptHistory
 
     @property
     def overlay(self):
@@ -91,10 +95,10 @@ class ForcedRunningScan(RunningScan):
 
 
 class TranscriptFilter:
-    def __init__(self, owner):
+    def __init__(self, owner: TranscriptHistory):
         self.owner = owner
-        self.state = NoFilter()
-        self.phase = IdleScan()
+        self.state: FilterState = NoFilter()
+        self.phase: ScanState = IdleScan()
 
     @property
     def overlay(self): return self.state.overlay

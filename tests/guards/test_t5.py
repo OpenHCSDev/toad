@@ -36,3 +36,9 @@ def test_t5_deletion_closure():
     for node in ast.walk(fragment):
         if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
             assert node.func.id != 'type', node.lineno
+
+    conversation = ast.parse((ROOT / 'widgets/conversation.py').read_text())
+    consumer = next(node for node in conversation.body if isinstance(node, ast.ClassDef) and node.name == 'ConversationCommsConsumer')
+    for handler in consumer.body:
+        if isinstance(handler, (ast.FunctionDef, ast.AsyncFunctionDef)) and any(isinstance(decorator, ast.Call) and isinstance(decorator.func, ast.Name) and decorator.func.id == 'handles' for decorator in handler.decorator_list):
+            assert isinstance(handler, ast.AsyncFunctionDef), handler.name
