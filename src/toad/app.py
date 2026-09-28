@@ -936,6 +936,12 @@ class ToadApp(App, inherit_bindings=False):
                 with self.batch_update():
                     self._atomic_mode_switch = True
                     try:
+                        # Initialization may queue an early ScreenResume. Transfer
+                        # Channels before selection and the first painted frame;
+                        # mounting/early hooks must tolerate the unfilled slot.
+                        await self._init_mode(mode)
+                        if not await self.shared_channels.attach(self.get_screen_stack(mode)[0], mode=mode):
+                            return  # The destination closed during route binding.
                         mounted = super().switch_mode(mode)
                         await mounted
                         screen = self.screen
@@ -1126,6 +1132,12 @@ class ToadApp(App, inherit_bindings=False):
         by_mode = {tab.mode_name: tab for tab in tabs}
         return tuple(by_mode[mode] for mode in self._open_tab_order if mode in by_mode)
 
+    @cached_property
+    def shared_channels(self):
+        from toad.widgets.channels_sidebar import SharedChannels
+
+        return SharedChannels()
+
     PREPARED_TAB_SHELLS = 1
     """Tunable UI-only lookahead count; zero disables preparation."""
 
@@ -1154,6 +1166,7 @@ class ToadApp(App, inherit_bindings=False):
                 raise ValueError("Comms route changed while opening the service")
             self._coordination_wire = service
             self._coordination_route = selected
+            self._sidebar_snapshot = None
         return self._coordination_wire
 
     def open_wire_export_dialog(self) -> None:

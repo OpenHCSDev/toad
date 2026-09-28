@@ -10,7 +10,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
-from runtime_fixture import ToadApp
+from runtime_fixture import ToadApp, reveal_session_details
 
 from toad.acp.agent import Agent
 from toad.widgets.native_history import NativeHistory
@@ -111,6 +111,7 @@ async def main():
                             == "new-session"
                         )
                         row = view.query_one(NativeHistory)
+                        await reveal_session_details(app, pilot, row)
                         assert (
                             row.display
                             and row in app.screen._compositor.visible_widgets

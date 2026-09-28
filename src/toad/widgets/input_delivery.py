@@ -131,6 +131,7 @@ class InputDeliveryDetails(ModalScreen[None]):
     """
     delivery: var[dict] = var(empty_delivery)
     error: var[str] = var("")
+    overview_text: var[str] = var("")
 
     def __init__(
         self,
@@ -152,9 +153,12 @@ class InputDeliveryDetails(ModalScreen[None]):
 
     def compose(self) -> ComposeResult:
         with Vertical():
-            yield Static("Input delivery", markup=False)
+            yield Static("Session details", markup=False)
             yield Static(markup=False, id="delivery-error")
             with VerticalScroll():
+                overview = Static(self.overview_text, markup=False, id="session-overview")
+                overview.display = bool(self.overview_text)
+                yield overview
                 yield Static(
                     "These inputs have no confirmed start. They may still be queued. "
                     "They are not automatically retried.",
@@ -202,6 +206,12 @@ class InputDeliveryDetails(ModalScreen[None]):
         ):
             self._historical_inputs = None
         self._refresh_records()
+
+    def watch_overview_text(self, value: str) -> None:
+        if self.is_mounted:
+            overview = self.query_one("#session-overview", Static)
+            overview.display = bool(value)
+            overview.update(value)
 
     def watch_error(self) -> None:
         if self.is_attached:

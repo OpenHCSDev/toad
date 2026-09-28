@@ -272,6 +272,10 @@ class SessionView(SidebarFocusOwner, Screen):
         if sidebar := self.query_one_optional(CommsSidebar):
             sidebar.capture_navigation()
 
+    def channels_context(self) -> tuple[str, str]:
+        """Identity fields supplied to the shared navigation presentation."""
+        return "", ""
+
     async def prepare_navigation(self) -> None:
         from toad.widgets.comms_sidebar import CommsSidebar
         from toad.widgets.session_tabs import SessionsTabs

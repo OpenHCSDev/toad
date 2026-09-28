@@ -13,9 +13,9 @@ terminal runner also needs Linux, Xvfb, `st`, `xdotool`, and ImageMagick `import
 It creates its own X display, verifies the target process/window, and refuses an
 already-used display. Input automation is confined to that display.
 
-The current implementation also needs the companion Textual performance branch.
-See [Textual PR #6](https://github.com/OpenHCSDev/textual/pull/6); the draft's
-`pyproject.toml` pins its commit.
+The current implementation needs the Textual fork pinned in `pyproject.toml`,
+including native retained-widget transfer for the shared Channels panel. See the
+[shared Channels audit](../../docs/audits/shared_channels_and_details_20260928.md).
 Use `PYTHONPATH` to select both source trees, or install their exact commits.
 `--dependency-path` can add dependencies from a separate diagnostic environment;
 the selected application environment's packages take precedence.
@@ -214,6 +214,11 @@ loaded-text/page representation: transient tool widgets and some live input
 metadata were not fully captured. Later capture code also records direct
 contents, but the legacy replay projection remains partial and explicitly so.
 
+Use captures from the matching core declaration revision. Replay restores exact
+tag channels through the current catalog API. Partial captures containing saved
+views are rejected: their complete catalog must be captured before those views
+can be replayed faithfully, rather than recreating them as writable channels.
+
 `--legacy-watches` disables the new subscription teardown in the replay only for
 an ownership control. Headless `settled_ms` includes pilot settlement and must
 not be presented as terminal/pixel latency. The reports separately include
@@ -225,6 +230,10 @@ All analysis commands take full capture prefixes or files, not machine-specific
 cache names:
 
 - `analyze_trace.py PREFIX`: loop/GC/layout/render and slow-gap attribution.
+- `analyze_channel_rosters.py PREFIX --shared`: verify observed Channels widget
+  identities are shared across modes, not merely stable per-tab copies. Omit
+  `--shared` when comparing the historical per-tab implementation. Native snapshots
+  sample identity; the shared-Channels pilot separately checks every observed frame.
 - `analyze_filters.py PREFIX...`: category coverage, drafts and key acknowledgment.
 - `summarize_opening.py PREFIX...`: click-to-target flush / ready completion;
   excludes no-op same-tab clicks.
@@ -239,7 +248,7 @@ cache names:
 - `analyze_focused.py FILE`: Memray or cProfile reports.
 - `inspect_replay.py BUNDLE`, `compare_replays.py FILE...`: saved-data summaries.
 - `check_receipts.py PREFIX... [--same-code]`: source/action/code comparability.
-- `python -m pytest tools/performance/test_pilots.py -q -n 2`: subprocess pilots.
+- `python -m pytest tools/performance/test_pilots.py -q -n 1`: subprocess pilots.
   Set `TOAD_TEST_PYTHON` for a separate application interpreter.
 
 The pilot wrapper uses file-backed output capture: a persistent descendant can

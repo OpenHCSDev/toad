@@ -41,7 +41,7 @@ from toad.widgets.irc_message import IRCMessage, MembershipNotice, WireMarkdownM
 from toad.widgets.channel_participants import ChannelParticipants
 from toad.widgets.channel_prompt import ChannelPrompt
 from toad.widgets.message_notifications import MessageNotifications
-from toad.widgets.observed_thread_activity import ObservedThreadActivity
+from toad.widgets.session_details import SessionDetails
 from toad.owner_preparation import read_thread_presentation
 
 HISTORY_PAGE_SIZE = 40
@@ -145,7 +145,7 @@ class CommsChatView(Conversation):
             if self.kind != "dm":
                 yield ChannelParticipants()
             else:
-                yield ObservedThreadActivity(self._read_thread_activity)
+                yield SessionDetails(self._read_thread_activity)
             yield Throbber(id="throbber")
             prompt_type = ChannelPrompt if self.kind != "dm" else Prompt
             yield prompt_type(
