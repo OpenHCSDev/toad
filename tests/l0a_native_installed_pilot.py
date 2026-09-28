@@ -90,7 +90,7 @@ async def notification_feedback(
     print("CHANNEL_NOTIFICATION", str(notification.title), flush=True)
 
 
-async def main(*, notification_only=False):
+async def main(*, notification_only=False, app_type=ToadApp, acceptance=None):
     package = Path(os.environ["AC_NATIVE_COPIED_PACKAGE"])
     verify_native_package(package)
     requests, failures = [], []
@@ -243,7 +243,7 @@ async def main(*, notification_only=False):
             "protocol": "acp",
             "run_command": {"*": shlex.join([sys.executable, "-m", "agent_comms.acp"])},
         }
-        app = ToadApp(project_dir=str(project))
+        app = app_type(project_dir=str(project))
         agent = None
         turn = None
         try:
@@ -263,6 +263,12 @@ async def main(*, notification_only=False):
                 )
                 assert navigation.resumable and navigation.thread.process_alive
                 print("ATTACHED_AND_NAVIGABLE", flush=True)
+                if acceptance is not None:
+                    await acceptance(app, pilot, agent, comms, entered, release,
+                                     hold_next, requests)
+                    assert not failures, failures
+                    assert app._exception is None
+                    return
                 if notification_only:
                     await notification_feedback(
                         pilot,

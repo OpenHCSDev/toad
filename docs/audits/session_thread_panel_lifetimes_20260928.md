@@ -2,13 +2,19 @@
 
 ## Ownership
 
-PR116 published head `4dea0d6ea7f5b2f5dff518d869f9ffccc8553a4b`
-and dispatch111 reserve workspace/session presentation ownership for the110
-investigation agent. Its tree at `~/wt/toad-navigation-allocation-20260925`
-contains unpublished production/test/audit edits. None were changed or copied.
-The current comms ledger is empty; active registered threads do not identify a
-116 worker, and the current channel history search contains no116 handoff.
-The existing PR claim is preserved; current agent activity is not verified.
+PR116's live external owner is OpenCode PID3635740, session
+`ses_f313e4945ffeDPKKenjqdrDnPD`, titled “textual/toad performance”.
+Its published checkpoint `1cb7c74` is incorporated here. Its ongoing PR125
+integration in `~/wt/toad-navigation-allocation-20260925` remains untouched.
+The current registered `opencode-toad-maintenance` identity is stale/stopped;
+one CLI handoff was queued (`ae8e3a690a8a`), with no acknowledged delivery claim.
+The owner retains persistent workspace/global presentation/controller scope.
+Sol owns the independent sidebar implementation and actual ACP retention acceptance.
+
+Journal attribution identifies PID1872762 as the owner's rich64 two-phase test.
+It exited on its diagnostic timeout; its later rich32 service completed successfully.
+Neither test is ours and no signals were sent. Our initial process environment
+explicitly declares an owned private root, avoiding default-root cutover ambiguity.
 
 Sol owns only demand-built session thread panels in
 `~/wt/toad-session-panels-sol-20260928`, branch
@@ -73,13 +79,50 @@ state and shell assertions. No Agent.start, wire read, renderer, or editor mock.
 No provider prompt was sent: real model-backed ACP retention is not claimed.
 Reproduce with `python evidence/session-panels/native_runner.py` in the own tree.
 
-Four focused ownership/TL0 guards pass (`focused-final.log`). The broader five
-case guard attempt has **one existing false-positive** (`guards.log`): the shell
-activation guard rejects `app.settings.shell` in initialize_view even though it
-is settings access rather than `self.shell` resource activation. The116 owner's
-unpublished test already corrects that exact distinction; that edit was preserved
-and not duplicated. No full-suite green claim. Setup import failure and expected
-race failure receipts are retained; later results do not erase them.
+All five focused ownership/TL0 guards now pass after incorporating the owner's
+published6f06384 correction to distinguish shell settings from resource activation.
+Earlier failure receipts remain; no full-suite green claim.
+
+## Matched installed native ACP retention
+
+`tests/native_session_retention_pilot.py` extends the existing installed native
+fixture through an acceptance callback rather than adding another backend or
+codec. One real native Pi owner and one real stdio ACP attachment are fixed across
+4/16/32/64 logical presentations. A loopback-only model HTTP endpoint returns
+fixture responses; no paid provider, Agent, transport, queue, editor or renderer
+method is mocked. Other logical tabs do not claim executing native owners.
+
+At every cohort, the original session receives a held prompt and a queued prompt
+while inactive, completes exactly two native calls, then renders the native answer
+on return. The same transport read loop, process, owner identity and session remain
+live; original Document/EditHistory, draft and undo/redo are preserved. All three
+reverse/forward/reverse visit phases run; no phase-only acceptance filtering.
+The final painted-answer receipt completed all four cohorts and eight native calls.
+
+Matched baseline6f and candidate share core2bfbdb23, Textuald9def32f and verified
+native689. Both use noneditable installed wheels and the same fixed source cohort.
+RSS is sampled, summed RSS includes shared pages (not PSS or peak); timings include
+20ms headless pilot settling and are not native terminal frame latency.
+
+| Tabs | Baseline UI MiB | Candidate UI MiB | Baseline tasks | Candidate tasks | Baseline panels | Candidate panels |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| 4 | 141.7 | 139.8 | 570 | 456 | 20 | 0 |
+| 16 | 173.1 | 163.6 | 2128 | 1558 | 80 | 0 |
+| 32 | 216.6 | 194.6 | 4202 | 3023 | 160 | 0 |
+| 64 | 299.1 | 256.8 | 8338 | 5944 | 320 | 0 |
+
+The matched final resource run at64 reduced summed process-scope RSS from818.3
+to776.7MiB and settled-switch median from99.25 to83.13ms; >100ms switches fell
+from83/189 to8/189. The subsequent painted-answer run also passed all assertions
+(64:255.4MiB UI,80.56ms median,3/189 >100ms). These are individual measured runs,
+not a stable30–40ms claim. Baseline and candidate logs/JSON, actual ACP logs, the
+incorrect initial handshake-task assertion and strict native905 refusal are retained
+under `evidence/native-retention/`.
+
+The inherited116 core correctly refused native905 because its package manifest
+pins689; this was not bypassed. PR125's current core/native bootstrap contract must
+be consumed and this affected path rerun on final paired pins before claiming live
+integration. Do not restore deleted migration helpers or compatibility imports.
 
 ## Remaining PR116 work
 
@@ -92,5 +135,14 @@ failure closure. This slice does not replace its owner's controller/pool work.
 Revealed panes are deliberately retained until that state-preserving boundary
 exists. No default-off feature or compatibility path was introduced.
 
-No live route/root/launcher/install changes, CI wait, provider calls or predecessor
+No live route/root/launcher/install changes, CI wait, paid provider calls or predecessor
 edits occurred. Parent owns merge/integration and live activation.
+
+Concrete global-bound gap at published1161cb7c74: RetainedSessionPresentation
+still owns one Screen/Conversation per agent-backed mode. The owner's loaded64
+run retained65 Conversations/editors and8703 widgets, and its full run timed out;
+its two-phase diagnostic is not full acceptance. The required migration is the
+existing Agent target/queue/permission lifetime into a long-lived typed source
+controller independent of optional rich surfaces, followed by global admission
+and state-backed restoration. That ownership boundary remains with116/parent
+and the T2/T5/viewport interfaces; this sidebar slice does not invent a reducer.
