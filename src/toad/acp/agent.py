@@ -359,7 +359,7 @@ class Agent(AgentBase):
 
     @jsonrpc.expose("session/update", ordered=True)
     async def _rpc_session_update(
-        self, sessionId: str, update: Any, _meta: dict[str, Any] | None = None
+        self, sessionId: str, update: Any, _meta: dict[str, Any] | None = None,
     ) -> None:
         """Validate wire notifications off-process, then publish to the same owner."""
         from toad.render_tasks import ValidateSessionUpdateTask
@@ -369,20 +369,12 @@ class Agent(AgentBase):
             return
         session = self.session_id
         async with self._session_update_lock:
-            if (
-                target is not self._message_target
-                or self.session_id != session
-                or target._closing
-            ):
+            if target is not self._message_target or self.session_id != session or target._closing:
                 return
             validation = await target.app.render_processes.submit(
                 ValidateSessionUpdateTask(sessionId, update, _meta)
             )
-            if (
-                target is not self._message_target
-                or self.session_id != session
-                or target._closing
-            ):
+            if target is not self._message_target or self.session_id != session or target._closing:
                 return
             if validation.error is not None:
                 self._reject_session_update(sessionId, update, _meta, validation.error)
@@ -546,46 +538,35 @@ class Agent(AgentBase):
         Returns:
             The response to the permission request.
         """
-        cancelled: protocol.RequestPermissionResponse = {
-            "outcome": {"outcome": "cancelled"}
-        }
+        cancelled: protocol.RequestPermissionResponse = {"outcome": {"outcome": "cancelled"}}
         if self._stopping or sessionId != self.session_id:
             return cancelled
-        result_future: asyncio.Future[Answer | None] = (
-            asyncio.get_running_loop().create_future()
-        )
+        result_future: asyncio.Future[Answer | None] = asyncio.get_running_loop().create_future()
         tool_call_id = toolCall["toolCallId"]
+
         permission_tool_call = cast(dict[str, Any], toolCall.copy())
         permission_tool_call.pop("sessionUpdate", None)
         visible_tool_call: dict[str, Any] = (
-            deepcopy(dict(self.tool_calls[tool_call_id]))
-            if tool_call_id in self.tool_calls
-            else {}
+            deepcopy(dict(self.tool_calls[tool_call_id])) if tool_call_id in self.tool_calls else {}
         )
         visible_tool_call.update(permission_tool_call)
         message = messages.RequestPermission(
-            options,
-            cast(protocol.ToolCallUpdatePermissionRequest, visible_tool_call),
-            result_future,
+            options, cast(protocol.ToolCallUpdatePermissionRequest, visible_tool_call), result_future
         )
         if not self.post_message(message):
-            return cancelled
-        self.tool_calls[tool_call_id] = cast(
-            protocol.ToolCall, deepcopy(visible_tool_call)
-        )
+            return cancelled  # No mounted controller can answer this request.
+        self.tool_calls[tool_call_id] = cast(protocol.ToolCall, deepcopy(visible_tool_call))
         self._pending_permission_answers.add(result_future)
         try:
             try:
-                ask_result = await asyncio.wait_for(
-                    result_future, PERMISSION_TIMEOUT_SECONDS
-                )
+                ask_result = await asyncio.wait_for(result_future, PERMISSION_TIMEOUT_SECONDS)
             except TimeoutError:
                 return cancelled
         finally:
             self._pending_permission_answers.discard(result_future)
         if ask_result is None or self._stopping or sessionId != self.session_id:
             return cancelled
-        if not any((option["optionId"] == ask_result.id for option in options)):
+        if not any(option["optionId"] == ask_result.id for option in options):
             return cancelled
         return {"outcome": {"optionId": ask_result.id, "outcome": "selected"}}
 
@@ -1585,16 +1566,10 @@ class Agent(AgentBase):
                 )
             else:
                 result = await self._owner_request(
-                    "update_goal",
-                    status=action,
-                    goal_id=goal.id,
+                    "update_goal", status=action, goal_id=goal.id,
                     expected_revision=goal.revision,
                 )
-        return (
-            FieldCodec.decode(Goal, result["goal"])
-            if result["goal"] is not None
-            else None
-        )
+        return FieldCodec.decode(Goal, result["goal"]) if result["goal"] is not None else None
 
     async def set_session_name(self, name: str) -> None:
         self._pending_session_name = name

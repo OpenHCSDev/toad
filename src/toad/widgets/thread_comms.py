@@ -58,9 +58,7 @@ class RelationshipSort(SortControl[ThreadSort]):
 
     def _update_label(self) -> None:
         if self._mixed:
-            self._set_label(
-                "Sort ▾", "Sort children and collaborators (currently different orders)"
-            )
+            self._set_label("Sort ▾", "Sort children and collaborators (currently different orders)")
         else:
             super()._update_label()
 
@@ -94,19 +92,15 @@ class RelationshipRow(CommsRow):
         tree = self.query_ancestor(ThreadCommsSidebar)
         tree.remember_row(self)
         if not self.available:
-            self.notify(
-                "This historical thread is unavailable. Ctrl+C copies its name.",
-                title="Comms",
-            )
+            self.notify("This historical thread is unavailable. Ctrl+C copies its name.",
+                        title="Comms")
             return
         tree.request_navigation(self)
 
     def on_click(self, event) -> None:
         if event.button == 3:
             event.stop()
-            self.query_ancestor(ThreadCommsSidebar).show_row_menu(
-                self, event.screen_offset
-            )
+            self.query_ancestor(ThreadCommsSidebar).show_row_menu(self, event.screen_offset)
         else:
             super().on_click(event)
 
@@ -128,12 +122,8 @@ class RelationshipRows(SidebarGroup):
         self.model = model
         self.rows: dict[tuple[str, str], RelationshipRow] = {}
         self._sync_lock = asyncio.Lock()
-        super().__init__(
-            Static(model.title),
-            expanded=expanded,
-            scrollable=False,
-            id=f"relationships-{model.key}",
-        )
+        super().__init__(Static(model.title), expanded=expanded, scrollable=False,
+                         id=f"relationships-{model.key}")
 
     async def update_group(self, model: RelationshipGroup) -> None:
         self.model = model
@@ -153,33 +143,15 @@ class RelationshipRows(SidebarGroup):
                 return
             was_hidden = not container.display
             container.display = True
-            entries = {
-                (entry.kind, entry.target): entry for entry in self.model.entries
-            }
+            entries = {(entry.kind, entry.target): entry for entry in self.model.entries}
             model, owner = self.model, tree.owner
-            row_keys = tuple(
-                key
-                for key, entry in entries.items()
-                if entry.available and entry.person is not None
-            )
-            inputs = tuple(
-                ThreadRowInput(
-                    entries[key].person,
-                    unread=tree.unread(
-                        entries[key].target,
-                        CommsSidebar._person_kind(entries[key].person),
-                    ),
-                    action_status=tree.app.pending_thread_actions.get(
-                        entries[key].target
-                    ),
-                )
-                for key in row_keys
-            )
-            prepared = (
-                await tree.app.preparation.submit(ThreadRowsWork(inputs))
-                if inputs
-                else ()
-            )
+            row_keys = tuple(key for key, entry in entries.items() if entry.available and entry.person is not None)
+            inputs = tuple(ThreadRowInput(
+                entries[key].person,
+                unread=tree.unread(entries[key].target, CommsSidebar._person_kind(entries[key].person)),
+                action_status=tree.app.pending_thread_actions.get(entries[key].target),
+            ) for key in row_keys)
+            prepared = await tree.app.preparation.submit(ThreadRowsWork(inputs)) if inputs else ()
             if not self.is_attached or self.model is not model or tree.owner != owner:
                 return
             prepared_rows = dict(zip(row_keys, prepared))
@@ -187,55 +159,30 @@ class RelationshipRows(SidebarGroup):
             if entries and empty is not None:
                 await empty.remove()
             if not entries and empty is None:
-                await container.mount(
-                    Static(self.EMPTY[self.model.key], classes="relationship-empty")
-                )
+                await container.mount(Static(self.EMPTY[self.model.key], classes="relationship-empty"))
             # Keep the top visible row stable when newer entries reorder a
             # scrolled list. Identity, rather than list index, owns selection.
             old_scroll = container.scroll_y
-            anchor = (
-                next(
-                    (
-                        row
-                        for row in container.children
-                        if isinstance(row, RelationshipRow)
-                        and row.region.bottom > container.content_region.y
-                    ),
-                    None,
-                )
-                if old_scroll > 0
-                else None
-            )
+            anchor = (next((row for row in container.children
+                            if isinstance(row, RelationshipRow) and row.region.bottom > container.content_region.y), None)
+                      if old_scroll > 0 else None)
             previous_order = tuple(container.children)
 
             def create(key):
                 entry = entries[key]
-                kind = (
-                    CommsSidebar._person_kind(entry.person)
-                    if entry.person
-                    else entry.kind
-                )
+                kind = (CommsSidebar._person_kind(entry.person) if entry.person else entry.kind)
                 return RelationshipRow(kind, entry.target, entry.target)
 
             def update(key, row):
                 entry = entries[key]
                 row.entry = entry
                 row.available = entry.available
-                row.kind = (
-                    CommsSidebar._person_kind(entry.person)
-                    if entry.person
-                    else entry.kind
-                )
+                row.kind = CommsSidebar._person_kind(entry.person) if entry.person else entry.kind
                 if not entry.available:
                     row.remove_class("-busy", "-unread", "-current")
                     row.add_class("-wire-thread")
                     row._thread_signature = None
-                    _update_content(
-                        row,
-                        Content(
-                            f"? {entry.target}\n  Unavailable · Ctrl+C copies name"
-                        ),
-                    )
+                    _update_content(row, Content(f"? {entry.target}\n  Unavailable · Ctrl+C copies name"))
                 elif entry.person is not None:
                     row.apply_thread_preparation(prepared_rows[key])
                 else:
@@ -243,22 +190,16 @@ class RelationshipRows(SidebarGroup):
                     row.tooltip = entry.target
                 if entry.detail:
                     row.tooltip = Content(f"{entry.target}\n{entry.detail}")
-                row.set_class(
-                    state.selected == (self.model.key, entry.target), "-selected"
-                )
+                row.set_class(state.selected == (self.model.key, entry.target), "-selected")
 
             ordered = await self.reconcile_rows(entries, self.rows, create, update)
             if ordered != previous_order:
                 if old_scroll > 0 and anchor in ordered:
-                    new_y = sum(
-                        2 if row.has_class("-wire-thread") else 1
-                        for row in ordered[: ordered.index(anchor)]
-                    )
+                    new_y = sum(2 if row.has_class("-wire-thread") else 1
+                                for row in ordered[:ordered.index(anchor)])
                     container.scroll_to(y=new_y, animate=False, immediate=True)
             if was_hidden:
-                container.scroll_to(
-                    y=state.scroll.get(self.model.key, 0), animate=False
-                )
+                container.scroll_to(y=state.scroll.get(self.model.key, 0), animate=False)
 
 
 class ThreadCommsSidebar(SidebarVisibilityObserver, TargetTree):
@@ -274,14 +215,8 @@ class ThreadCommsSidebar(SidebarVisibilityObserver, TargetTree):
         ("enter", "open_selected", "Open"),
     ]
 
-    def __init__(
-        self,
-        owner: str,
-        *,
-        wire_root: str | None = None,
-        source: RelationshipSource | None = None,
-        live: bool = False,
-    ):
+    def __init__(self, owner: str, *, wire_root: str | None = None,
+                 source: RelationshipSource | None = None, live: bool = False):
         super().__init__()
         self.owner = owner
         self.wire_root = wire_root
@@ -303,9 +238,7 @@ class ThreadCommsSidebar(SidebarVisibilityObserver, TargetTree):
 
     @property
     def view_state(self):
-        return self._states.setdefault(
-            (self.wire_root, self.owner), RelationshipTreeState()
-        )
+        return self._states.setdefault((self.wire_root, self.owner), RelationshipTreeState())
 
     @property
     def service(self):
@@ -317,12 +250,8 @@ class ThreadCommsSidebar(SidebarVisibilityObserver, TargetTree):
         yield Static("Connecting…", classes="relationship-context", markup=False)
         self._filter_controls.clear()
         for category in MESSAGE_CATEGORIES:
-            checkbox = Checkbox(
-                MESSAGE_LABELS[category],
-                id=f"filter-{category.value}",
-                classes="message-filter",
-                compact=True,
-            )
+            checkbox = Checkbox(MESSAGE_LABELS[category], id=f"filter-{category.value}",
+                                classes="message-filter", compact=True)
             self._filter_controls[checkbox] = category
             yield checkbox
 
@@ -343,15 +272,8 @@ class ThreadCommsSidebar(SidebarVisibilityObserver, TargetTree):
         if self._spinner_timer is None:
             return
         sidebar = self.query_ancestor(SideBar)
-        if (
-            self.screen.is_active
-            and not sidebar.collapsed
-            and any(
-                row.has_class("-busy")
-                for group in self.groups.values()
-                for row in group.rows.values()
-            )
-        ):
+        if (self.screen.is_active and not sidebar.collapsed
+                and any(row.has_class("-busy") for group in self.groups.values() for row in group.rows.values())):
             self._spinner_timer.resume()
         else:
             self._spinner_timer.pause()
@@ -385,27 +307,16 @@ class ThreadCommsSidebar(SidebarVisibilityObserver, TargetTree):
         if self._refresh_task is not None:
             self._refresh_task.cancel()
 
-    def set_identity(
-        self,
-        owner: str,
-        wire_root: str | None,
-        *,
-        source: RelationshipSource | None = None,
-    ):
+    def set_identity(self, owner: str, wire_root: str | None, *,
+                     source: RelationshipSource | None = None):
         if self._live and source is None:
-            if (owner, wire_root) == (
-                self.owner,
-                self.wire_root,
-            ) and self._source is not None:
+            if (owner, wire_root) == (self.owner, self.wire_root) and self._source is not None:
                 return
             if wire_root is not None:
                 from toad.widgets.thread_comms_source import WireRelationshipSource
 
                 source = WireRelationshipSource(wire_root, self.app.coordination_wire)
-        if (owner, wire_root) == (
-            self.owner,
-            self.wire_root,
-        ) and source is self._source:
+        if (owner, wire_root) == (self.owner, self.wire_root) and source is self._source:
             return
         for group in self.groups.values():
             self.view_state.scroll[group.model.key] = group.member_container.scroll_y
@@ -431,11 +342,7 @@ class ThreadCommsSidebar(SidebarVisibilityObserver, TargetTree):
         from toad.screens.main import MainScreen
         from toad.widgets.conversation import Conversation
 
-        view = (
-            self.screen.query_one_optional(Conversation)
-            if isinstance(self.screen, MainScreen)
-            else None
-        )
+        view = self.screen.query_one_optional(Conversation) if isinstance(self.screen, MainScreen) else None
         checkboxes = tuple(self.query(Checkbox))
         for checkbox in checkboxes:
             checkbox.display = view is not None
@@ -445,9 +352,7 @@ class ThreadCommsSidebar(SidebarVisibilityObserver, TargetTree):
                 self.watch(view, "visible_categories", self._sync_filter_control)
             with self.prevent(Checkbox.Changed):
                 for checkbox in checkboxes:
-                    checkbox.value = (
-                        self._filter_controls[checkbox] in view.visible_categories
-                    )
+                    checkbox.value = self._filter_controls[checkbox] in view.visible_categories
 
     @on(Checkbox.Changed, ".message-filter")
     def filter_changed(self, event):
@@ -470,12 +375,9 @@ class ThreadCommsSidebar(SidebarVisibilityObserver, TargetTree):
             self.set_identity(self.screen.me, self.screen.recovery_root)
 
     def _visible(self):
-        return (
-            self.is_attached
-            and self.screen is self.app.screen
-            and self in self.screen._compositor.visible_widgets
-            and not self.query_ancestor(SideBarCollapsible).collapsed
-        )
+        return (self.is_attached and self.screen is self.app.screen
+                and self in self.screen._compositor.visible_widgets
+                and not self.query_ancestor(SideBarCollapsible).collapsed)
 
     def refresh_relationships(self, *, force=False):
         if force:
@@ -502,29 +404,14 @@ class ThreadCommsSidebar(SidebarVisibilityObserver, TargetTree):
             snapshot = await asyncio.to_thread(service.snapshot, owner)
             if generation != self._generation or not self._visible():
                 return
-            if (
-                snapshot.owner != owner
-                or Path(snapshot.root).resolve() != Path(self.wire_root).resolve()
-            ):
-                raise ValueError(
-                    "Relationship snapshot does not match this thread and wire"
-                )
+            if snapshot.owner != owner or Path(snapshot.root).resolve() != Path(self.wire_root).resolve():
+                raise ValueError("Relationship snapshot does not match this thread and wire")
             with self.app.batch_update():
                 context = self.query_one(".relationship-context", Static)
-                _update_content(
-                    context,
-                    Content.assemble(
-                        (f"For @{snapshot.owner}", "bold"),
-                        " · recent window" if snapshot.history_limited else "",
-                    ),
-                )
-                context.tooltip = (
-                    snapshot.incoming_basis
-                    + f"\nLatest {snapshot.history_messages} wire messages"
-                )
-                control = self.query_ancestor(SideBarCollapsible).query_one_optional(
-                    RelationshipSort
-                )
+                _update_content(context, Content.assemble((f"For @{snapshot.owner}", "bold"),
+                    " · recent window" if snapshot.history_limited else ""))
+                context.tooltip = snapshot.incoming_basis + f"\nLatest {snapshot.history_messages} wire messages"
+                control = self.query_ancestor(SideBarCollapsible).query_one_optional(RelationshipSort)
                 if control is not None:
                     control.update_groups(snapshot.groups)
                 for model in snapshot.groups:
@@ -533,8 +420,7 @@ class ThreadCommsSidebar(SidebarVisibilityObserver, TargetTree):
                     group = self.groups.get(model.key)
                     if group is None:
                         group = self.groups[model.key] = RelationshipRows(
-                            model, self.view_state.expanded.get(model.key, True)
-                        )
+                            model, self.view_state.expanded.get(model.key, True))
                         await self.mount(group)
                         if generation != self._generation:
                             group.display = False
@@ -550,20 +436,14 @@ class ThreadCommsSidebar(SidebarVisibilityObserver, TargetTree):
                         return
                 if generation != self._generation:
                     return
-                widest = (
-                    Content(f"For @{snapshot.owner} · recent window").cell_length + 4
-                )
+                widest = Content(f"For @{snapshot.owner} · recent window").cell_length + 4
                 for model in snapshot.groups:
                     for entry in model.entries:
                         widest = max(widest, Content(entry.target).cell_length + 8)
                         if entry.person is not None:
-                            widest = max(
-                                widest,
-                                Content(entry.person.presentation.label).cell_length
-                                + 8,
-                                Content(entry.person.presentation.summary).cell_length
-                                + 8,
-                            )
+                            widest = max(widest,
+                                         Content(entry.person.presentation.label).cell_length + 8,
+                                         Content(entry.person.presentation.summary).cell_length + 8)
                         if entry.detail:
                             widest = max(widest, Content(entry.detail).cell_length + 8)
                 panel = self.query_ancestor(SideBarCollapsible)
@@ -588,13 +468,8 @@ class ThreadCommsSidebar(SidebarVisibilityObserver, TargetTree):
             self.view_state.expanded[event.group.model.key] = event.group.expanded
 
     def _ordered_rows(self):
-        return [
-            row
-            for group in self.groups.values()
-            if group.expanded and group.display
-            for row in group.member_container.children
-            if isinstance(row, RelationshipRow)
-        ]
+        return [row for group in self.groups.values() if group.expanded and group.display
+                for row in group.member_container.children if isinstance(row, RelationshipRow)]
 
     def remember_row(self, row):
         group = row.query_ancestor(RelationshipRows)
@@ -605,30 +480,16 @@ class ThreadCommsSidebar(SidebarVisibilityObserver, TargetTree):
 
     def unread(self, name, kind):
         snapshot = self.app._sidebar_snapshot
-        if (
-            snapshot is None
-            or self.wire_root is None
-            or Path(self.wire_root).resolve()
-            != self.app.coordination_wire.root.resolve()
-        ):
+        if (snapshot is None or self.wire_root is None
+                or Path(self.wire_root).resolve() != self.app.coordination_wire.root.resolve()):
             return ExactUnread()
-        return (
-            UnreadPresentation.for_thread(snapshot, name)
-            if kind == "thread"
-            else ExactUnread(snapshot.unread.get(name, 0))
-        )
+        return (UnreadPresentation.for_thread(snapshot, name) if kind == "thread"
+                else ExactUnread(snapshot.unread.get(name, 0)))
 
     def open_target(self, target: str, kind: str):
-        if (
-            self.wire_root is None
-            or Path(self.wire_root).resolve()
-            != self.app.coordination_wire.root.resolve()
-        ):
-            self.notify(
-                "This view uses a different wire; open its matching connection to navigate.",
-                title="Comms",
-                severity="warning",
-            )
+        if self.wire_root is None or Path(self.wire_root).resolve() != self.app.coordination_wire.root.resolve():
+            self.notify("This view uses a different wire; open its matching connection to navigate.",
+                        title="Comms", severity="warning")
             return
         self.post_message(SelectTarget(target, kind))
 
@@ -646,47 +507,22 @@ class ThreadCommsSidebar(SidebarVisibilityObserver, TargetTree):
         owner, service = self.owner, self.service
         try:
             snapshot = await asyncio.to_thread(service.snapshot, owner)
-            if (
-                generation != self._generation
-                or not self.is_attached
-                or self.screen is not self.app.screen
-            ):
+            if (generation != self._generation or not self.is_attached
+                    or self.screen is not self.app.screen):
                 return
-            if (
-                snapshot.owner != owner
-                or Path(snapshot.root).resolve() != Path(self.wire_root).resolve()
-            ):
-                raise ValueError(
-                    "Relationship snapshot does not match this thread and wire"
-                )
-            current = next(
-                (
-                    entry
-                    for group in snapshot.groups
-                    if group.key == group_key
-                    for entry in group.entries
-                    if (entry.kind, entry.target) == (expected.kind, expected.target)
-                ),
-                None,
-            )
-            same_incarnation = expected.person is None or (
-                current is not None
-                and current.person is not None
-                and current.person.thread.created_at
-                == expected.person.thread.created_at
-            )
+            if snapshot.owner != owner or Path(snapshot.root).resolve() != Path(self.wire_root).resolve():
+                raise ValueError("Relationship snapshot does not match this thread and wire")
+            current = next((entry for group in snapshot.groups if group.key == group_key
+                            for entry in group.entries
+                            if (entry.kind, entry.target) == (expected.kind, expected.target)), None)
+            same_incarnation = (expected.person is None or
+                (current is not None and current.person is not None and
+                 current.person.thread.created_at == expected.person.thread.created_at))
             if current is None or not current.available or not same_incarnation:
-                self.notify(
-                    "This relationship changed; refresh the list before opening it.",
-                    title="Comms",
-                )
+                self.notify("This relationship changed; refresh the list before opening it.", title="Comms")
                 self.refresh_relationships(force=True)
                 return
-            kind = (
-                CommsSidebar._person_kind(current.person)
-                if current.person
-                else current.kind
-            )
+            kind = CommsSidebar._person_kind(current.person) if current.person else current.kind
             self.open_target(current.target, kind)
         except (OSError, ValueError) as error:
             self.notify(str(error), title="Comms target unavailable", severity="error")
@@ -704,10 +540,6 @@ class ThreadCommsSidebar(SidebarVisibilityObserver, TargetTree):
 
         items = [("open", "Open")] if row.available else []
         items.append(("copy", "Copy name"))
-        show_target_menu(
-            self.screen,
-            offset,
-            target,
-            items,
-            {"open": open_selected, "copy": lambda: self.app.copy_to_clipboard(target)},
-        )
+        show_target_menu(self.screen, offset, target, items,
+                         {"open": open_selected,
+                          "copy": lambda: self.app.copy_to_clipboard(target)})

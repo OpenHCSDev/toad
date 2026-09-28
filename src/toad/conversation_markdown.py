@@ -68,14 +68,8 @@ def _searchable_basename(href: str) -> str | None:
     if parsed.scheme or parsed.netloc or parsed.fragment or parsed.query:
         return None
     name = unquote(parsed.path)
-    return (
-        name
-        if name
-        and Path(name).name == name
-        and Path(name).suffix
-        and not name.startswith(".")
-        else None
-    )
+    return (name if name and Path(name).name == name and Path(name).suffix
+            and not name.startswith(".") else None)
 
 
 def _unique_project_file(root: Path, name: str) -> tuple[Path | None, str]:
@@ -95,11 +89,8 @@ def _unique_project_file(root: Path, name: str) -> tuple[Path | None, str]:
             files_seen += len(files)
             if directories > 800 or files_seen > 8000:
                 return None, "limit"
-            directories_here[:] = [
-                directory
-                for directory in directories_here
-                if not directory.startswith(".") and directory not in ignored
-            ]
+            directories_here[:] = [directory for directory in directories_here
+                                   if not directory.startswith(".") and directory not in ignored]
             if name not in files:
                 continue
             path = _resolve_path(root, str(Path(current) / name))
@@ -165,14 +156,7 @@ def _path_parser(root: Path) -> MarkdownIt:
                     else:
                         href = f"toad-file:{quote(str(path))}"
                     if match.start() > position:
-                        children.append(
-                            Token(
-                                "text",
-                                "",
-                                0,
-                                content=child.content[position : match.start()],
-                            )
-                        )
+                        children.append(Token("text", "", 0, content=child.content[position:match.start()]))
                     children.append(
                         Token(
                             "link_open",
@@ -189,9 +173,7 @@ def _path_parser(root: Path) -> MarkdownIt:
                     position = match.end()
                 if position:
                     if position < len(child.content):
-                        children.append(
-                            Token("text", "", 0, content=child.content[position:])
-                        )
+                        children.append(Token("text", "", 0, content=child.content[position:]))
                 else:
                     children.append(child)
             block.children = children
@@ -280,9 +262,7 @@ class ConversationMarkdown(Markdown):
         await open_preview(path)
 
     @height_dependency(INDEPENDENT_HEIGHT)
-    def process_layout(
-        self, placements: list[WidgetPlacement]
-    ) -> list[WidgetPlacement]:
+    def process_layout(self, placements: list[WidgetPlacement]) -> list[WidgetPlacement]:
         return trim_trailing_margin(placements)
 
     def get_block_class(self, block_name: str) -> type[MarkdownBlock]:

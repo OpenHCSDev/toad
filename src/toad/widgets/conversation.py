@@ -239,18 +239,15 @@ class ThreadLoading(Static):
             row = []
             for x in range(-horizontal_radius, horizontal_radius + 1):
                 distance = (x / horizontal_radius) ** 2 + (y / radius) ** 2
-                if not 0.7 <= distance <= 1.3:
+                if not .7 <= distance <= 1.3:
                     row.append(" ")
                     continue
-                position = (
-                    int((atan2(y / radius, x / horizontal_radius) + pi) * 6 / pi) % 12
-                )
+                position = int((atan2(y / radius, x / horizontal_radius) + pi) * 6 / pi) % 12
                 gap = (position - phase) % 12
                 row.append("●" if gap < 2 else "•" if gap < 5 else "·")
             rows.append("".join(row).strip())
-        label = (
-            "Loading new thread and history…" if width >= 32 else "Loading new thread…"
-        )
+        label = ("Loading new thread and history…" if width >= 32
+                 else "Loading new thread…")
         block_width = max(len(label), 2 * horizontal_radius + 1)
         centered = (row.center(block_width) for row in rows)
         return Content("\n".join((*centered, "", label.center(block_width))))
@@ -329,17 +326,9 @@ class Contents(containers.VerticalGroup, can_focus=False):
     CACHE_HEIGHT_INDEPENDENT_ARRANGEMENT = True
 
     def mount(self, *widgets, **kwargs):
-        from toad.widgets.message_filter import (
-            apply_block_filter,
-            block_category,
-            keep_live_block,
-        )
+        from toad.widgets.message_filter import apply_block_filter, block_category, keep_live_block
 
-        selected = (
-            self.query_ancestor(Conversation).visible_categories
-            if self.is_attached
-            else ALL_CATEGORIES
-        )
+        selected = self.query_ancestor(Conversation).visible_categories if self.is_attached else ALL_CATEGORIES
         for widget in widgets:
             widget.set_class(not keep_live_block(widget), "-unrouted")
             if category := block_category(widget):
@@ -389,9 +378,7 @@ This is a view of your conversation with the agent.
 
     def on_mount(self) -> None:
         self.app.settings_changed_signal.subscribe(self, self._settings_changed)
-        self._settings_changed(
-            PreferenceChange(SidebarSettings.hide, self.app.settings.sidebar.hide)
-        )
+        self._settings_changed(PreferenceChange(SidebarSettings.hide, self.app.settings.sidebar.hide))
         self.watch(self, "scroll_y", self.hydrate_visible_tools, init=False)
         self.screen.screen_layout_refresh_signal.subscribe(
             self, lambda _screen: self.hydrate_visible_tools()
@@ -400,12 +387,7 @@ This is a view of your conversation with the agent.
     def _settings_changed(self, update: PreferenceChange) -> None:
         if update.field is SidebarSettings.hide:
             top, right, bottom, _ = self.styles.padding
-            self.styles.padding = (
-                top,
-                right,
-                bottom,
-                int(self.app.settings.sidebar.hide),
-            )
+            self.styles.padding = (top, right, bottom, int(self.app.settings.sidebar.hide))
 
 
 class Conversation(containers.Vertical):
@@ -496,9 +478,7 @@ class Conversation(containers.Vertical):
     app = getters.app(ToadApp)
 
     def watch_visible_categories(
-        self,
-        previous: frozenset[MessageCategory],
-        selected: frozenset[MessageCategory],
+        self, previous: frozenset[MessageCategory], selected: frozenset[MessageCategory],
     ) -> None:
         from toad.widgets.message_filter import apply_block_filter
 
@@ -506,9 +486,7 @@ class Conversation(containers.Vertical):
         if not hasattr(self, "_filter_scroll_positions"):
             self._filter_scroll_positions = {}
         self._filter_scroll_positions[previous] = (window.scroll_y, window.follows_tail)
-        position = self._filter_scroll_positions.get(
-            selected, (window.scroll_y, window.follows_tail)
-        )
+        position = self._filter_scroll_positions.get(selected, (window.scroll_y, window.follows_tail))
         self.cursor_offset = -1
         self.screen.clear_selection()
         for block in self.contents.children:
@@ -518,11 +496,8 @@ class Conversation(containers.Vertical):
         revision = window.scroll_revision
 
         def restore_position():
-            if (
-                not self.is_attached
-                or self.visible_categories != selected
-                or window.scroll_revision != revision
-            ):
+            if (not self.is_attached or self.visible_categories != selected
+                    or window.scroll_revision != revision):
                 return
             scroll_y, following = position
             if following:
@@ -792,26 +767,17 @@ class Conversation(containers.Vertical):
                         yield ThreadLoading()
         yield Flash()
         with containers.Vertical(id="prompt-stack"):
-            yield TurnActivity().data_bind(
-                activity=Conversation.activity,
-                started_at=Conversation.activity_started_at,
-            )
+            yield TurnActivity().data_bind(activity=Conversation.activity,
+                                           started_at=Conversation.activity_started_at)
             yield SessionDetails(
                 self._read_thread_activity,
-                history=NativeHistory().data_bind(
-                    status=Conversation.native_history_status
-                ),
+                history=NativeHistory().data_bind(status=Conversation.native_history_status),
                 delivery=InputDeliveryBar().data_bind(
-                    delivery=Conversation.input_delivery,
-                    error=Conversation.input_delivery_error,
+                    delivery=Conversation.input_delivery, error=Conversation.input_delivery_error,
                 ),
             )
             yield Throbber(id="throbber")
-            yield GoalBar().data_bind(
-                goal=Conversation.goal,
-                execution=Conversation.goal_execution,
-                unavailable=Conversation.goal_unavailable,
-            )
+            yield GoalBar().data_bind(goal=Conversation.goal, execution=Conversation.goal_execution, unavailable=Conversation.goal_unavailable)
             yield Prompt(complete_callback=self.shell_complete).data_bind(
                 project_path=Conversation.project_path,
                 working_directory=Conversation.working_directory,
@@ -973,9 +939,7 @@ class Conversation(containers.Vertical):
                 self.refresh_bindings()
                 self.call_after_refresh(self.cursor.follow, cursor_block)
 
-    async def post_agent_response(
-        self, fragment: str = "", route: MessageRoute | None = None
-    ) -> AgentResponse | None:
+    async def post_agent_response(self, fragment: str = "", route: MessageRoute | None = None) -> AgentResponse | None:
         """Get or create an agent response widget."""
         from toad.widgets.agent_response import AgentResponse
 
@@ -984,9 +948,7 @@ class Conversation(containers.Vertical):
                 await self._agent_response.finish_stream()
                 self._agent_response = None
             if self._agent_response is None:
-                self._agent_response = agent_response = AgentResponse(
-                    fragment, route=route
-                )
+                self._agent_response = agent_response = AgentResponse(fragment, route=route)
                 await self.post(agent_response, new_block=False)
             else:
                 await self._agent_response.append_fragment(fragment)
@@ -1050,23 +1012,17 @@ class Conversation(containers.Vertical):
         return presentation
 
     @on(ObservedThreadActivity.Changed)
-    def on_observed_thread_activity(
-        self, event: ObservedThreadActivity.Changed
-    ) -> None:
+    def on_observed_thread_activity(self, event: ObservedThreadActivity.Changed) -> None:
         event.stop()
         if self._managed_turn_id is not None or self.turn == "agent":
             return
         if event.unavailable:
-            self.post_message(
-                messages.SessionUpdate(state="idle", summary="Agent status unavailable")
-            )
+            self.post_message(messages.SessionUpdate(state="idle", summary="Agent status unavailable"))
         elif event.presentation is not None:
-            self.post_message(
-                messages.SessionUpdate(
-                    state="busy" if event.presentation.busy else "idle",
-                    summary=event.presentation.summary,
-                )
-            )
+            self.post_message(messages.SessionUpdate(
+                state="busy" if event.presentation.busy else "idle",
+                summary=event.presentation.summary,
+            ))
 
     @on(messages.SessionUpdate)
     def preserve_observed_activity(self, event: messages.SessionUpdate) -> None:
@@ -1197,8 +1153,7 @@ class Conversation(containers.Vertical):
                 from toad.widgets.agent_response import AgentResponse
 
                 link = AgentResponse(
-                    f"[Open ACP log]({quote(str(log_path))})",
-                    show_divider=False,
+                    f"[Open ACP log]({quote(str(log_path))})", show_divider=False,
                     category=MessageCategory.OTHER,
                 )
                 link.add_class("-error-log-link")
@@ -1365,18 +1320,10 @@ class Conversation(containers.Vertical):
     async def submit_input(self, event: messages.UserInputSubmitted) -> None:
         """Agent conversation submission; wire views override this single hook."""
         if not event.body.strip():
-            if (
-                event.immediate
-                and not event.shell
-                and self.queue_supported
-                and self.queued_prompts
-            ):
+            if event.immediate and not event.shell and self.queue_supported and self.queued_prompts:
                 # This requests scheduling, not membership mutation. Retain
                 # every remote row until authoritative exact-ID evidence.
-                if (
-                    self.queue_projection.status == "available"
-                    and self.queue_projection.items
-                ):
+                if self.queue_projection.status == "available" and self.queue_projection.items:
                     first = self.queue_projection.items[0]
                     self._sending_queue_input_id = first.input_id
                     self.sending_queued_prompt = first.text
@@ -1398,9 +1345,7 @@ class Conversation(containers.Vertical):
             if text.startswith("/") and await self.slash_command(text):
                 # Toad has processed the slash command.
                 return
-            queued = (
-                self.turn == "agent" and self.queue_supported and not event.immediate
-            )
+            queued = self.turn == "agent" and self.queue_supported and not event.immediate
             if event.immediate and self.queue_supported:
                 self.delivering_prompt = text
             if not queued:
@@ -1649,9 +1594,7 @@ class Conversation(containers.Vertical):
         self.native_history_status = message.update.status
 
     @on(acp_messages.McpClientStopped)
-    async def on_mcp_client_stopped(
-        self, message: acp_messages.McpClientStopped
-    ) -> None:
+    async def on_mcp_client_stopped(self, message: acp_messages.McpClientStopped) -> None:
         message.stop()
         if message.agent is self.agent:
             await self._clear_mcp_live()
@@ -2041,32 +1984,17 @@ class Conversation(containers.Vertical):
         plan.finish(self, page.after)
 
     async def on_transcript_history_covered(self, message) -> None:
-        from toad.widgets.committed_presentation import (
-            CommitEvidence,
-            protected_blocks,
-            retirement_candidates,
-        )
+        from toad.widgets.committed_presentation import CommitEvidence, protected_blocks, retirement_candidates
 
         message.stop()
         contents = self.query_one_optional(Contents)
-        if (
-            contents is not None
-            and message.history is not None
-            and message.history.is_attached
-            and message.history.parent is contents
-        ):
-            candidates = retirement_candidates(
-                contents.children,
-                CommitEvidence(
-                    frozenset(),
-                    frozenset(message.sequences),
-                    message.history,
-                ),
-            )
+        if (contents is not None and message.history is not None
+                and message.history.is_attached and message.history.parent is contents):
+            candidates = retirement_candidates(contents.children, CommitEvidence(
+                frozenset(), frozenset(message.sequences), message.history,
+            ))
             protected = protected_blocks(self, candidates)
-            await contents.remove_children(
-                [child for child in candidates if child not in protected]
-            )
+            await contents.remove_children([child for child in candidates if child not in protected])
 
     @on(acp_messages.Thinking)
     async def on_acp_agent_thinking(self, message: acp_messages.Thinking):
@@ -2679,9 +2607,7 @@ class Conversation(containers.Vertical):
         if self.input_delivery_error:
             raise ValueError(self.input_delivery_error)
 
-    def on_input_dispositions_changed(
-        self, event: acp_messages.InputDispositionsChanged
-    ) -> None:
+    def on_input_dispositions_changed(self, event: acp_messages.InputDispositionsChanged) -> None:
         event.stop()
         self._invalidate_input_dispositions()
 
@@ -2701,18 +2627,10 @@ class Conversation(containers.Vertical):
         if session_details is not None:
             details.overview_text = session_details.overview_text
         self.app.push_screen(details)
-        details.watch(
-            self, "input_delivery", lambda state: setattr(details, "delivery", state)
-        )
-        details.watch(
-            self, "input_delivery_error", lambda error: setattr(details, "error", error)
-        )
+        details.watch(self, "input_delivery", lambda state: setattr(details, "delivery", state))
+        details.watch(self, "input_delivery_error", lambda error: setattr(details, "error", error))
         if session_details is not None:
-            details.watch(
-                session_details,
-                "overview_text",
-                lambda value: setattr(details, "overview_text", value),
-            )
+            details.watch(session_details, "overview_text", lambda value: setattr(details, "overview_text", value))
 
     def _poll_goal(self) -> None:
         if not self.is_attached:
@@ -2725,19 +2643,13 @@ class Conversation(containers.Vertical):
                 current is self.screen
                 and self in self.screen._compositor.visible_widgets
             ) or current is self._goal_modal
-        except ScreenStackError, UnknownModeError:
+        except (ScreenStackError, UnknownModeError):
             return
-        if visible and (
-            self._goal_refresh_task is None or self._goal_refresh_task.done()
-        ):
+        if visible and (self._goal_refresh_task is None or self._goal_refresh_task.done()):
             self._invalidate_goal_snapshot()
 
     def _invalidate_goal_snapshot(self) -> None:
-        if (
-            not self.is_attached
-            or self.agent is None
-            or not hasattr(self.agent, "get_goal_snapshot")
-        ):
+        if not self.is_attached or self.agent is None or not hasattr(self.agent, "get_goal_snapshot"):
             return
         self._goal_refresh_revision += 1
         if self._goal_refresh_task is None or self._goal_refresh_task.done():
@@ -2802,26 +2714,14 @@ class Conversation(containers.Vertical):
             self._goal_modal = details
             self.app.push_screen(details)
             details.watch(self, "goal", lambda value: setattr(details, "goal", value))
-            details.watch(
-                self,
-                "goal_unavailable",
-                lambda value: setattr(details, "unavailable", value),
-            )
-            details.watch(
-                self,
-                "goal_execution",
-                lambda value: setattr(details, "execution", value),
-            )
+            details.watch(self, "goal_unavailable", lambda value: setattr(details, "unavailable", value))
+            details.watch(self, "goal_execution", lambda value: setattr(details, "execution", value))
         elif event.action == "goal-edit":
             from toad.screens.goal_edit import GoalEdit
             from toad.widgets.goal_text import goal_mention_candidates
 
             goal = self.goal
-            if (
-                goal is None
-                or self.agent is None
-                or not hasattr(self.agent, "edit_goal")
-            ):
+            if goal is None or self.agent is None or not hasattr(self.agent, "edit_goal"):
                 self.flash("Editing requires an agent-comms goal", style="error")
                 return
 
@@ -2903,9 +2803,7 @@ class Conversation(containers.Vertical):
 
     def _settings_changed(self, change: PreferenceChange) -> None:
         if change.field is ShellSettings.allow_commands:
-            self.shell_history.complete.add_words(
-                self.app.settings.shell.allow_commands.split()
-            )
+            self.shell_history.complete.add_words(self.app.settings.shell.allow_commands.split())
 
     @work
     async def post_welcome(self) -> None:
@@ -3446,10 +3344,7 @@ class Conversation(containers.Vertical):
         elif command == "goal":
             parameter = parameters.strip()
             actions = {
-                "pause": "paused",
-                "resume": "active",
-                "retry": "retry",
-                "clear": "clear",
+                "pause": "paused", "resume": "active", "retry": "retry", "clear": "clear"
             }
             if parameter in actions:
                 await self.change_goal(actions[parameter])
@@ -3465,13 +3360,9 @@ class Conversation(containers.Vertical):
             if self._compacting:
                 self.flash("Context compaction is already running")
             elif self.turn == "agent":
-                self.flash(
-                    "Wait for the current response before compacting", style="error"
-                )
+                self.flash("Wait for the current response before compacting", style="error")
             elif self.agent is None or not hasattr(self.agent, "compact_context"):
-                self.flash(
-                    "This agent does not support context compaction", style="error"
-                )
+                self.flash("This agent does not support context compaction", style="error")
             else:
                 self._compacting = True
                 self.compact_context(parameters.strip() or None)
