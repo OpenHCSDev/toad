@@ -1,3 +1,5 @@
+from toad.settings import PreferenceChange
+from toad.preferences import SidebarSettings
 from dataclasses import dataclass
 import asyncio
 from typing import TYPE_CHECKING, ClassVar, cast
@@ -895,10 +897,9 @@ class SideBar(containers.Vertical):
     def render(self) -> str:
         return ("<" if self.right else ">") if self.collapsed else ""
 
-    def _settings_changed(self, update: tuple[str, object]) -> None:
-        key, value = update
-        if key == "sidebar.hide":
-            self.collapsed = bool(value)
+    def _settings_changed(self, update: PreferenceChange) -> None:
+        if update.field is SidebarSettings.hide:
+            self.collapsed = cast("ToadApp", self.app).settings.sidebar.hide
 
     @on(SideBarToggle.Pressed)
     def on_toggle_pressed(self, event: SideBarToggle.Pressed) -> None:

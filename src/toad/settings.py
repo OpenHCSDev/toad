@@ -101,14 +101,10 @@ class SettingKind[T](SettingsNode):
 
     def form(self, group: SettingsGroup) -> Widget:
         from textual.containers import VerticalGroup
-        from textual.content import Content
         from textual.widgets import Static
 
         bound = BoundSetting(self, group)
-        help_text = Content.assemble(
-            Content.from_markup(self.help),
-            (f"\ndefault: {self.display(self.default)}", "$text-secondary"),
-        )
+        help_text = self.description()
         title = group._declaration.title if group._declaration else ""
         return VerticalGroup(
             Static(self.title, classes="title"),
@@ -116,6 +112,14 @@ class SettingKind[T](SettingsNode):
             self.widget(bound),
             classes="setting",
             name=f"{title.lower()} {self.title.lower()}",
+        )
+
+    def description(self):
+        from textual.content import Content
+
+        return Content.assemble(
+            Content.from_markup(self.help),
+            (f"\ndefault: {self.display(self.default)}", "$text-secondary"),
         )
 
     def display(self, value: T) -> str:
@@ -204,7 +208,8 @@ class SettingsGroup:
     ) -> None:
         self._parent, self._declaration = parent, declaration
         self._root = parent._root if parent is not None else self
-        self._notify, self._changed = notify, False
+        if parent is None:
+            self._notify, self._changed = notify, False
         self._values: dict[str, Any] = {}
         self._present: set[str] = set()
         raw = {} if raw is _UNSET else raw
@@ -275,7 +280,7 @@ class SettingsGroup:
 
     def apply_all(self) -> None:
         for bound in self.leaves():
-            self._notify(PreferenceChange(bound.kind, bound.value))
+            self._root._notify(PreferenceChange(bound.kind, bound.value))
 
 
 class BooleanSetting(SettingKind[bool]):
@@ -299,6 +304,11 @@ class StringSetting(SettingKind[str]):
 
 
 class TextSetting(StringSetting):
+    def description(self):
+        from textual.content import Content
+
+        return Content.from_markup(self.help)
+
     def widget(self, bound: BoundSetting[str]) -> Widget:
         from toad.setting_widgets import TextEditor
 
@@ -366,7 +376,7 @@ class NumberSetting(NumericSetting[float]):
     input_type = "number"
 
     def parse(self, raw: object) -> float:
-        return self.constrain(FieldCodec.decode(float, raw))
+        return self.constrain(float(FieldCodec.decode(float | int, raw)))
 
     def parse_text(self, text: str) -> float:
         return self.parse(float(text))

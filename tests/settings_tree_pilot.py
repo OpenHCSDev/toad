@@ -13,19 +13,19 @@ from unittest.mock import patch
 from toad.app import ToadApp
 from toad.preferences import ToadSettings, UiSettings
 from toad.screens.settings import SettingsScreen
+from toad.setting_choices import BothExpansion, Expansion, FailExpansion, ThemeChoice
+from toad.setting_widgets import BooleanEditor, ChoiceEditor, InputEditor
 from toad.settings import (
     BooleanSetting,
-    IntegerSetting,
-    NumberSetting,
-    StringSetting,
-    TextSetting,
-    PathSetting,
     ChoiceSetting,
     Group,
+    IntegerSetting,
+    NumberSetting,
+    PathSetting,
     SettingsGroup,
+    StringSetting,
+    TextSetting,
 )
-from toad.setting_choices import Expansion, FailExpansion, BothExpansion
-from toad.setting_widgets import InputEditor, BooleanEditor, ChoiceEditor
 
 
 class UppercaseSetting(StringSetting):
@@ -50,6 +50,7 @@ class SettingsApp(ToadApp):
 
     def _handle_exception(self, error: Exception) -> None:
         import traceback
+
         traceback.print_exception(error)
         super()._handle_exception(error)
 
@@ -106,6 +107,15 @@ async def main() -> None:
             pass
         else:
             raise AssertionError("Bounds not enforced")
+    number = NumberSetting(title="number", default=1.0)
+    assert number.parse(2) == 2.0
+    for value in (float("nan"), float("inf"), True):
+        try:
+            number.parse(value)
+        except ValueError:
+            pass
+        else:
+            raise AssertionError("Invalid JSON number accepted")
     root_parent = Path(__file__).resolve().parents[1] / ".artifacts"
     root_parent.mkdir(exist_ok=True)
     with TemporaryDirectory(dir=root_parent, prefix="settings-") as temporary:
@@ -127,8 +137,14 @@ async def main() -> None:
                 for bound in kinds.leaves():
                     assert bound.kind.widget(bound) is not None
                 assert app.settings.document() == raw
-                expected = len([bound for node in ToadSettings.nodes() if node.editable
-                                for bound in node.leaves(app.settings)])
+                expected = len(
+                    [
+                        bound
+                        for node in ToadSettings.nodes()
+                        if node.editable
+                        for bound in node.leaves(app.settings)
+                    ]
+                )
                 async with asyncio.timeout(5):
                     while len(app.screen.query(".setting")) != expected:
                         await pilot.pause(0.05)
@@ -145,6 +161,15 @@ async def main() -> None:
                 await pilot.pause()
                 assert app.settings.ui.footer is not before
                 assert app.has_class("-hide-footer") is before
+                theme = next(
+                    w
+                    for w in app.screen.query(ChoiceEditor)
+                    if w.bound.kind is UiSettings.theme
+                )
+                theme.value = ThemeChoice.decode("ansi-light")
+                await pilot.pause()
+                assert app.theme == "ansi-light"
+                assert app.settings.document()["ui"]["theme"] == "ansi-light"
                 width = next(
                     w
                     for w in app.screen.query(InputEditor)
