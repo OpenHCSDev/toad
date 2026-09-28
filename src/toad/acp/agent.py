@@ -1,3 +1,4 @@
+from dataclasses import replace
 import asyncio
 
 from collections.abc import Mapping
@@ -35,10 +36,11 @@ from toad.acp import messages
 from toad.acp.sdk_boundary import validate_session_update
 from toad.acp.prompt import build as build_prompt
 from toad.db import DB, SessionMeta
-from toad.private_native_cursor import CursorReducer
-from toad.queue_view import QueueItem, QueueReducer
+from toad.acp.projection_attachment import ProjectionAttachment
+from agent_comms.acp_extension import QueueItem
+from toad.acp.queue_attachment import QueueAttachment
 from toad.acp.comms_updates import CommsUpdateConsumer
-from agent_comms.acp_extension import decode_updates
+from agent_comms.acp_extension import decode_updates, CoordinationChangedUpdate
 from toad import paths
 from toad import constants
 from toad.answer import Answer
@@ -173,9 +175,7 @@ class Agent(AgentBase):
         self._deferred_submissions: set[asyncio.Task] = set()
         self.uses_turn_events = False
         self._pending_session_name: str | None = None
-        self._coordination_thread: str | None = None
-        self._coordination_root: str | None = None
-        self._coordination_worktree: str | None = None
+        self.coordination: CoordinationChangedUpdate | None = None
         self._maintenance_env: dict[str, str] | None = None
         self._maintenance_cwd: str | None = None
         self._maintenance_root: Path | None = None
@@ -184,8 +184,6 @@ class Agent(AgentBase):
         self._transcript_reader_lock = asyncio.Lock()
         self.server_titles = False
         self.supports_prompt_queue = False
-        self._coordination_persistence = "shared on-disk wire"
-        self._coordination_transport = "per-session stdio ACP"
         self.session_ready_event = asyncio.Event()
         self.done_event = asyncio.Event()
 
@@ -204,9 +202,9 @@ class Agent(AgentBase):
         self._pending_permission_answers: set[asyncio.Future[Answer | None]] = set()
         self._active_turn_id: str | None = None
         self._turn_lifecycle_sequence = 0
-        self._private_cursor = CursorReducer()
+        self._private_cursor = ProjectionAttachment()
         self._private_cursor_sequence = 0
-        self._queue_view = QueueReducer(self.session_id)
+        self.queue_attachment = QueueAttachment()
         self._queue_sequence = 0
 
         self._terminal_count: int = 0
@@ -295,7 +293,7 @@ class Agent(AgentBase):
         self._maintenance_env["AGENT_COMMS_ROOT"] = str(self._maintenance_root)
         try:
             await asyncio.to_thread(
-                preflight, self._coordination_root,
+                preflight, (self.coordination.wire_root if self.coordination else None),
                 ingress_root=self._maintenance_root, cwd=self._maintenance_cwd,
             )
         except Exception as error:
@@ -332,7 +330,7 @@ class Agent(AgentBase):
                 from .maintenance_ingress import admitted_prompt
 
                 with admitted_prompt(
-                    self._coordination_root, ingress_root=self._maintenance_root,
+                    (self.coordination.wire_root if self.coordination else None), ingress_root=self._maintenance_root,
                     cwd=self._maintenance_cwd,
                     implicit=getattr(self, "_maintenance_implicit_root", None),
                 ):
@@ -417,25 +415,9 @@ class Agent(AgentBase):
             return
         for fact in facts:
             consumer.dispatch_sync(fact)
-        if isinstance(metadata, dict):
-            cursor_meta = metadata.get("agentComms")
-            if isinstance(cursor_meta, dict) and "privateNativeCursor" in cursor_meta:
-                self._private_cursor.callback(cursor_meta["privateNativeCursor"], sessionId)
-                self._post_private_cursor()
         route: MessageRoute | None = consumer.route
         if isinstance(metadata, dict) and isinstance(metadata.get("agentComms"), dict):
             state = metadata["agentComms"]
-            if "queueState" in state:
-                _, starts = self._queue_view.callback("queueState", state["queueState"], sessionId)
-                self._post_queue_view(starts)
-            started = state.get("inputStarted")
-            if "inputStarted" in state and (
-                not isinstance(started, dict)
-                or any(key in started for key in ("version", "scope", "revision"))
-                or ("inputId" in started and isinstance(started.get("text"), str))
-            ):
-                _, starts = self._queue_view.callback("inputStarted", started, sessionId)
-                self._post_queue_view(starts)
             mcp_client = state.get("mcpClient")
             if mcp_client is not None:
                 receipt = None
@@ -455,13 +437,8 @@ class Agent(AgentBase):
                         session_id=self.session_id, agent=self,
                     ))
                 return
-            if isinstance(state.get("thread"), str) and isinstance(state.get("wireRoot"), str):
-                self._publish_coordination_metadata({"_meta": metadata})
             if "inputDisposition" in state or state.get("inputDeliveryChanged") is True:
                 self.post_message(messages.InputDispositionsChanged())
-            if "goal" in state or "goalExecution" in state:
-                self._publish_goal_snapshot(state)
-                self._post_coordination_update()
             compaction = state.get("compaction")
             if isinstance(compaction, dict) and compaction.get("phase") in {"start", "progress", "end", "abort"}:
                 if (compaction.get("contextState") == "unknown"
@@ -491,22 +468,6 @@ class Agent(AgentBase):
                     summary_phase if isinstance(summary_phase, str) and summary_phase else None,
                 ))
                 return
-            if "queueState" in state:
-                return
-            if "inputStarted" in state:
-                # Unscoped initial user echoes are not queue-start authority.
-                # Versioned queue starts were handled above; never fall back.
-                if (isinstance(started, dict)
-                        and not any(key in started for key in ("version", "scope", "revision", "inputId"))
-                        and sessionId == self.session_id):
-                    self.post_message(messages.InputStarted(
-                        started.get("text"), agent=self, session_id=sessionId,
-                    ))
-                return
-            if isinstance(state.get("worktree"), str):
-                self._coordination_worktree = state["worktree"]
-                self.project_root_path = Path(state["worktree"])
-                self._post_coordination_update()
             if isinstance(state.get("transcript"), list):
                 if not self._reconnecting:
                     from agent_comms.transcripts import TranscriptPage
@@ -605,17 +566,7 @@ class Agent(AgentBase):
 
             case {"sessionUpdate": "session_info_update"} if "title" in update:
                 title = update.get("title")
-                if self._coordination_root is not None and isinstance(title, str):
-                    identity = (
-                        (update.get("_meta") or {})
-                        .get("agentComms", {})
-                        .get("thread", title)
-                    )
-                    self._coordination_thread = identity
-                    self._post_coordination_update()
-                    self.post_message(messages.SessionInfoUpdate(title))
-                else:
-                    self.post_message(messages.SessionInfoUpdate(title))
+                self.post_message(messages.SessionInfoUpdate(title))
 
             case {"sessionUpdate": "usage_update", "used": used, "size": size}:
                 self._context_usage_saved = False
@@ -919,7 +870,7 @@ class Agent(AgentBase):
 
             process = self._process = await admitted_spawn(
                 command,
-                root=self._coordination_root,
+                root=(self.coordination.wire_root if self.coordination else None),
                 stdin=PIPE,
                 stdout=PIPE,
                 stderr=PIPE,
@@ -1188,7 +1139,7 @@ class Agent(AgentBase):
             if any(block.get("type") == "image" for block in prompt_content_blocks):
                 supported = (
                     getattr(self, "supports_prompt_images", False)
-                    if self._coordination_root is not None
+                    if (self.coordination.wire_root if self.coordination else None) is not None
                     else (self.agent_capabilities.get("promptCapabilities") or {}).get("image", False)
                 )
                 if not supported:
@@ -1260,7 +1211,7 @@ class Agent(AgentBase):
         requested_root = configured_root(requested_env, requested_cwd)
         try:
             await asyncio.to_thread(
-                preflight, self._coordination_root,
+                preflight, (self.coordination.wire_root if self.coordination else None),
                 ingress_root=requested_root, cwd=requested_cwd,
             )
         except Exception as error:
@@ -1316,7 +1267,7 @@ class Agent(AgentBase):
     async def acp_new_session(self) -> None:
         """Create a new session."""
         cursor_token = self._private_cursor.begin(None)
-        queue_token = self._queue_view.begin(None)
+        queue_token = self.queue_attachment.begin(None)
         self._post_private_cursor()
         self._post_queue_view()
         with self.request():
@@ -1371,7 +1322,7 @@ class Agent(AgentBase):
         assert self.session_id is not None, "Session id must be set"
         request_session_id = self.session_id
         cursor_token = self._private_cursor.begin(request_session_id)
-        queue_token = self._queue_view.begin(request_session_id)
+        queue_token = self.queue_attachment.begin(request_session_id)
         self._post_private_cursor()
         self._post_queue_view()
         cwd = str(self.project_root_path)
@@ -1468,55 +1419,18 @@ class Agent(AgentBase):
 
     @staticmethod
     def _initial_session_title(response: Mapping[str, object]) -> str | None:
-        """Opening metadata owns the display title; otherwise use canonical identity."""
-        metadata = response.get("_meta")
-        if not isinstance(metadata, dict):
-            return None
-        coordination = metadata.get("agentComms")
-        if (not isinstance(coordination, dict)
-                or not isinstance(coordination.get("thread"), str)
-                or not isinstance(coordination.get("wireRoot"), str)):
-            return None
-        for field in ("title", "thread"):
-            value = coordination.get(field)
-            if isinstance(value, str) and value.strip():
-                return value
-        return None
-
-    def _publish_goal_snapshot(self, state: Mapping[str, object]) -> None:
-        if "goal" not in state or "goalExecution" not in state:
-            return
-        try:
-            raw_goal, raw_execution = state["goal"], state["goalExecution"]
-            goal = FieldCodec.decode(Goal, raw_goal) if isinstance(raw_goal, dict) else None
-            execution = GoalExecution.from_wire(raw_execution) if isinstance(raw_execution, dict) else None
-            if raw_goal is not None and goal is None or raw_execution is not None and execution is None:
-                raise ValueError("Invalid goal snapshot")
-            if execution is not None and (goal is None or execution.goal_id != goal.id):
-                raise ValueError("Goal execution identity does not match goal snapshot")
-        except (KeyError, TypeError, ValueError) as error:
-            self.log(f"[ACP rejected goal snapshot] {error}")
-            return
-        self.post_message(messages.GoalSnapshotUpdate(goal, execution))
+        return next((fact.title for fact in decode_updates(response.get('_meta'))
+            if isinstance(fact, CoordinationChangedUpdate)), None)
 
     def _post_queue_view(self, starts: tuple[QueueItem, ...] = ()) -> None:
         self._queue_sequence += 1
         self.post_message(messages.QueueViewUpdate(
-            self._queue_view.projection, starts, self, self.session_id, self._queue_sequence,
+            self.queue_attachment.projection, starts, self, self.session_id, self._queue_sequence,
         ))
 
     def _bind_queue_view(self, response: Mapping[str, object], token: int, session_id: str) -> None:
-        metadata = response.get("_meta")
-        state = metadata.get("agentComms") if isinstance(metadata, dict) else None
-        state = state if isinstance(state, dict) else {}
-        if not ("queueBinding" in state or "queueState" in state
-                or state.get("promptQueue") is True
-                or self._queue_view.projection.status is not None):
-            return
-        _, starts = self._queue_view.bind(
-            state.get("queueBinding"), state.get("queueState"), session_id, token,
-        )
-        self._post_queue_view(starts)
+        for update in decode_updates(response.get("_meta")):
+            CommsUpdateConsumer(self, session_id, queue_token=token).dispatch_sync(update)
 
     def _post_private_cursor(self) -> None:
         self._private_cursor_sequence += 1
@@ -1530,108 +1444,22 @@ class Agent(AgentBase):
     ) -> None:
         if not self._private_cursor.is_current_request(token):
             return
-        metadata = response.get("_meta")
-        coordination = metadata.get("agentComms") if isinstance(metadata, dict) else None
-        value = coordination.get("privateNativeCursor") if isinstance(coordination, dict) else None
-        self._private_cursor.bind(value, session_id, token)
-        self._post_private_cursor()
+        for update in decode_updates(response.get("_meta")):
+            CommsUpdateConsumer(self, session_id, cursor_token=token).dispatch_sync(update)
 
     def _invalidate_attachment_views(self) -> None:
         self._private_cursor.invalidate()
         self._post_private_cursor()
-        self._queue_view.invalidate()
+        self.queue_attachment.invalidate()
         self._post_queue_view()
 
-    def _publish_coordination_metadata(
-        self, response: Mapping[str, object], *, initial: bool = False,
-    ) -> None:
-        metadata = response.get("_meta")
-        if not isinstance(metadata, dict):
-            return
-        coordination = metadata.get("agentComms")
-        if not isinstance(coordination, dict):
-            return
-        if initial:
-            self._publish_goal_snapshot(coordination)
-            self.post_message(messages.InputDispositionsChanged())
-        thread = coordination.get("thread")
-        wire_root = coordination.get("wireRoot")
-        if not isinstance(thread, str) or not isinstance(wire_root, str):
-            return
-        if "contextUsage" in coordination:
-            saved = coordination["contextUsage"]
-            if (
-                isinstance(saved, dict)
-                and isinstance(saved.get("used"), int) and saved["used"] > 0
-                and isinstance(saved.get("size"), int) and saved["size"] > 0
-            ):
-                self._context_usage = ContextUsage(saved["used"], saved["size"])
-                self._context_usage_saved = True
-                self.update_status_line()
-            else:
-                self._context_usage = None
-                self._context_usage_saved = False
-                self.post_message(messages.UpdateStatusLine(Content("Context estimate unavailable")))
-        # ACP may report an alias or relative attached root. Freeze its exact
-        # target before any later Toad prompt or Comms UI action can use it;
-        # otherwise retargeting a symlink after an admission check redirects
-        # Toad to a different (possibly paused) wire.
-        from .maintenance_ingress import configured_root
-
-        attached_env = (self._maintenance_env or os.environ).copy()
-        attached_env["AGENT_COMMS_ROOT"] = wire_root
-        try:
-            attached_root = configured_root(
-                attached_env, self._maintenance_cwd or self.project_root_path.resolve()
-            )
-        except (OSError, ValueError, RuntimeError):
-            return
-        self._coordination_thread = thread
-        self._coordination_root = str(attached_root)
-        if isinstance(worktree := coordination.get("worktree"), str):
-            self._coordination_worktree = worktree
-            self.project_root_path = Path(worktree)
-        self.uses_turn_events = coordination.get("turnLifecycle") is True
-        self.server_titles = coordination.get("autoTitle") is True
-        self.supports_prompt_queue = coordination.get("promptQueue") is True
-        self.supports_prompt_images = coordination.get("imagePrompts") is True
-        pending_name = self._pending_session_name
-        title = (pending_name if pending_name is not None else
-                 self._initial_session_title(response) if initial else coordination.get("title"))
-        if isinstance(title, str):
-            self.post_message(messages.SessionInfoUpdate(title))
-        self._coordination_owner_pid = coordination.get("ownerPid")
-        self._coordination_persistence = str(
-            coordination.get("persistence", "shared on-disk wire")
-        )
-        self._coordination_transport = str(
-            coordination.get("transport", "per-session stdio ACP")
-        )
-        if pending_name:
-            self._rename_coordination_thread(pending_name)
-            self._pending_session_name = None
-        else:
-            self._post_coordination_update()
-
-    def _post_coordination_update(self) -> None:
-        thread = self._coordination_thread
-        wire_root = self._coordination_root
-        if thread is None or wire_root is None:
-            return
-        self.post_message(
-            messages.CoordinationUpdate(
-                thread=thread,
-                wire_root=wire_root,
-                persistence=self._coordination_persistence,
-                transport=self._coordination_transport,
-                worktree=getattr(self, "_coordination_worktree", None),
-                prompt_queue=getattr(self, "supports_prompt_queue", False),
-            )
-        )
+    def _publish_coordination_metadata(self, response: Mapping[str, object], *, initial: bool = False) -> None:
+        for fact in decode_updates(response.get('_meta')):
+            CommsUpdateConsumer(self, self.session_id).dispatch_sync(fact)
 
     def _rename_coordination_thread(self, display_name: str) -> None:
-        thread = self._coordination_thread
-        wire_root = self._coordination_root
+        thread = (self.coordination.thread.name if self.coordination else None)
+        wire_root = (self.coordination.wire_root if self.coordination else None)
         process = self._process
         if thread is None or wire_root is None or process is None:
             return
@@ -1641,10 +1469,11 @@ class Agent(AgentBase):
         result = wire(wire_root).threads.rename_managed_thread(
             thread,
             display_name,
-            owner_pid=getattr(self, "_coordination_owner_pid", None) or process.pid,
+            owner_pid=self.coordination.owner_pid,
         )
-        self._coordination_thread = result.current
-        self._post_coordination_update()
+        self.coordination = replace(self.coordination,
+            thread=replace(self.coordination.thread, name=result.current), title=display_name)
+        self.post_message(messages.CommsUpdated(self.coordination, self, self.session_id))
 
     async def acp_session_prompt(
         self, prompt: list[protocol.ContentBlock], metadata: dict | None = None
@@ -1656,7 +1485,7 @@ class Agent(AgentBase):
 
         """
         request_session_id = self.session_id
-        request_queue_scope = self._queue_view.scope
+        request_queue_scope = self.queue_attachment.scope
         with self.request():
             session_prompt = api.session_prompt(prompt, request_session_id, metadata or {})
         try:
@@ -1768,7 +1597,7 @@ class Agent(AgentBase):
         return (await self.get_goal_snapshot())[0]
 
     async def get_goal_snapshot(self) -> tuple[Goal | None, GoalExecution | None]:
-        if self._coordination_root is None or self._coordination_thread is None:
+        if (self.coordination.wire_root if self.coordination else None) is None or (self.coordination.thread.name if self.coordination else None) is None:
             return None, None
         async with asyncio.timeout(3):
             result = await self._owner_request("goal_snapshot")
@@ -1783,11 +1612,11 @@ class Agent(AgentBase):
         return (await self.get_goal_snapshot())[1]
 
     async def _owner_request(self, method: str, **params):
-        if self._coordination_root is None or self._coordination_thread is None:
+        if (self.coordination.wire_root if self.coordination else None) is None or (self.coordination.thread.name if self.coordination else None) is None:
             raise ValueError("This action requires an agent-comms thread.")
         from agent_comms.runtime import RuntimeProxy, socket_path
 
-        root, thread = self._coordination_root, self._coordination_thread
+        root, thread = (self.coordination.wire_root if self.coordination else None), (self.coordination.thread.name if self.coordination else None)
         async with self._transcript_reader_lock:
             comms = await self._get_coordination_reader(root)
 
@@ -1802,7 +1631,7 @@ class Agent(AgentBase):
 
             proxy = await asyncio.to_thread(resolve)
         try:
-            if (root, thread) != (self._coordination_root, self._coordination_thread):
+            if (root, thread) != ((self.coordination.wire_root if self.coordination else None), (self.coordination.thread.name if self.coordination else None)):
                 raise ValueError("The owner identity changed while preparing the request.")
             return await proxy.request(method, **params)
         except RuntimeError as error:
@@ -1811,7 +1640,7 @@ class Agent(AgentBase):
             await proxy.close()
 
     async def get_input_delivery(self, *, include_history: bool = False) -> dict:
-        if self._coordination_root is None or self._coordination_thread is None:
+        if (self.coordination.wire_root if self.coordination else None) is None or (self.coordination.thread.name if self.coordination else None) is None:
             return {
                 "inputs": [], "historicalCount": 0,
                 "dismissedHistoricalCount": 0, "historicalInputs": [],
@@ -1836,7 +1665,7 @@ class Agent(AgentBase):
 
     @property
     def transcript_ready(self) -> bool:
-        return self._coordination_root is not None and self._coordination_thread is not None
+        return (self.coordination.wire_root if self.coordination else None) is not None and (self.coordination.thread.name if self.coordination else None) is not None
 
     async def _get_coordination_reader(self, root: str) -> Comms:
         """Use under the reader lock; initialization and registry I/O stay off-loop."""
@@ -1859,13 +1688,13 @@ class Agent(AgentBase):
     async def get_thread_presentation(self):
         from toad.owner_preparation import read_thread_presentation
 
-        root, thread = self._coordination_root, self._coordination_thread
+        root, thread = (self.coordination.wire_root if self.coordination else None), (self.coordination.thread.name if self.coordination else None)
         if root is None or thread is None:
             return None
         async with self._transcript_reader_lock:
             reader = await self._get_coordination_reader(root)
             presentation = await asyncio.to_thread(read_thread_presentation, reader, thread)
-        if (root, thread) != (self._coordination_root, self._coordination_thread):
+        if (root, thread) != ((self.coordination.wire_root if self.coordination else None), (self.coordination.thread.name if self.coordination else None)):
             raise ValueError("Thread attachment changed while reading status")
         return presentation
 
@@ -1874,9 +1703,9 @@ class Agent(AgentBase):
         after: "TranscriptCursor | None" = None,
         through: "TranscriptCursor | None" = None,
     ) -> "TranscriptPage":
-        if self._coordination_root is None or self._coordination_thread is None:
+        if (self.coordination.wire_root if self.coordination else None) is None or (self.coordination.thread.name if self.coordination else None) is None:
             raise ValueError("Transcript paging requires an agent-comms thread.")
-        root, thread = self._coordination_root, self._coordination_thread
+        root, thread = (self.coordination.wire_root if self.coordination else None), (self.coordination.thread.name if self.coordination else None)
         async with self._transcript_reader_lock:
             reader = await self._get_coordination_reader(root)
             return await asyncio.to_thread(
@@ -1885,16 +1714,16 @@ class Agent(AgentBase):
             )
 
     async def update_project(self, path: str) -> str:
-        if self._coordination_root is None or self._coordination_thread is None:
+        if (self.coordination.wire_root if self.coordination else None) is None or (self.coordination.thread.name if self.coordination else None) is None:
             raise ValueError("Project changes require an agent-comms thread.")
         from agent_comms.comms import wire
 
         result = await asyncio.to_thread(
-            wire(self._coordination_root).threads.set_project, self._coordination_thread, path
+            wire((self.coordination.wire_root if self.coordination else None)).threads.set_project, (self.coordination.thread.name if self.coordination else None), path
         )
-        self._coordination_worktree = result.current
+        self.coordination = replace(self.coordination, worktree=result.current)
         self.project_root_path = Path(result.current)
-        self._post_coordination_update()
+        self.post_message(messages.CommsUpdated(self.coordination, self, self.session_id))
         return result.current
 
     async def update_goal(self, action: str, text: str = "") -> Goal | None:
@@ -1920,7 +1749,7 @@ class Agent(AgentBase):
     async def set_session_name(self, name: str) -> None:
         self._pending_session_name = name
         self._rename_coordination_thread(name)
-        if self._coordination_thread is not None:
+        if (self.coordination.thread.name if self.coordination else None) is not None:
             self._pending_session_name = None
         if self.session_pk is None:
             return

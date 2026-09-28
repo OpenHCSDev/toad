@@ -1,4 +1,6 @@
 from __future__ import annotations
+from agent_comms.acp_extension import GoalChangedUpdate
+from agent_comms.mro_dispatch import MroDispatch, handles
 
 from toad.settings import PreferenceChange
 from toad.preferences import SidebarSettings, ShellSettings
@@ -67,7 +69,7 @@ from toad.widgets.native_history import NativeHistory
 from toad.widgets.observed_thread_activity import ObservedThreadActivity
 from toad.widgets.session_details import SessionDetails
 from toad.private_native_cursor import CursorStatus
-from toad.queue_view import QueueProjection
+from agent_comms.acp_extension import QueueProjection, PendingQueueProjection
 from toad.widgets.input_delivery import InputDeliveryBar, InputDeliveryDetails, empty_delivery
 from toad.widgets.user_input import UserInput
 from toad.widgets.history_anchor import HistoryWindow
@@ -509,7 +511,7 @@ class Conversation(containers.Vertical):
     model_history_scope = var("")
     queue_supported = var(False)
     queued_prompts: var[list[str]] = var(list)
-    queue_projection: var[QueueProjection] = var(QueueProjection())
+    queue_projection: var[QueueProjection] = var(PendingQueueProjection())
     delivering_prompt = var("")
     activity = var("")
     activity_started_at: var[float | None] = var(None)
@@ -1072,7 +1074,7 @@ class Conversation(containers.Vertical):
         self, message: acp_messages.SessionInfoUpdate
     ) -> None:
         message.stop()
-        if getattr(self.agent, "_coordination_root", None) is not None:
+        if (self.agent.coordination.wire_root if self.agent and self.agent.coordination else None) is not None:
             from toad.db import DB
 
             self._auto_title_eligible = False
@@ -1225,7 +1227,7 @@ class Conversation(containers.Vertical):
                 ):
                     await asyncio.sleep(0.1)
                 self.prompt.disabled = True
-                if getattr(agent, "_coordination_root", None) is None:
+                if (agent.coordination.wire_root if agent and agent.coordination else None) is None:
                     await self.prune_window(0, 0)
                     self.new_block()
                 await agent.reconnect_after_auth()
@@ -1364,7 +1366,7 @@ class Conversation(containers.Vertical):
     ) -> None:
         sending_agent = self.agent
         sending_session = getattr(sending_agent, "session_id", None)
-        queue = getattr(sending_agent, "_queue_view", None)
+        queue = sending_agent.queue_attachment if sending_agent is not None else None
         sending_scope = queue.scope if queue is not None else None
 
         def current_request_owner() -> bool:
@@ -1742,9 +1744,9 @@ class Conversation(containers.Vertical):
         if (self.agent is None or message.agent is not self.agent
                 or message.session_id != self.agent.session_id):
             return
-        queue = getattr(self.agent, "_queue_view", None)
+        queue = self.agent.queue_attachment
         if message.recover_draft and (
-            message.queue_scope != getattr(queue, "scope", None)
+            message.queue_scope != (queue.scope if queue is not None else None)
             or (message.queue_scope is not None and queue.projection.status != "available")
         ):
             return
@@ -2648,8 +2650,9 @@ class Conversation(containers.Vertical):
                 self.goal_unavailable = False
             return
 
-    def on_goal_snapshot_update(self, event: acp_messages.GoalSnapshotUpdate) -> None:
-        self._invalidate_goal_snapshot()
+    @on(acp_messages.CommsUpdated)
+    async def on_comms_updated(self, event: acp_messages.CommsUpdated) -> None:
+        await ConversationCommsConsumer(self).dispatch(event.update)
 
     async def _coordination_changed(self, _update: None) -> None:
         await self.refresh_goal()
@@ -2779,8 +2782,8 @@ class Conversation(containers.Vertical):
         cursor = getattr(agent, "_private_cursor", None)
         self.native_history_status = cursor.status if cursor is not None else None
         self._private_cursor_sequence = getattr(agent, "_private_cursor_sequence", 0)
-        queue = getattr(agent, "_queue_view", None)
-        self.queue_projection = queue.projection if queue is not None else QueueProjection()
+        queue = agent.queue_attachment if agent is not None else None
+        self.queue_projection = queue.projection if queue is not None else PendingQueueProjection()
         self.queued_prompts = [row.text for row in self.queue_projection.items]
         self._queue_sequence = getattr(agent, "_queue_sequence", 0)
         self._sending_queue_input_id = None
@@ -3409,3 +3412,12 @@ class Conversation(containers.Vertical):
             return True
 
         return False
+
+
+class ConversationCommsConsumer(MroDispatch):
+    def __init__(self, conversation):
+        self.conversation = conversation
+
+    @handles(GoalChangedUpdate)
+    def goal_changed(self, update: GoalChangedUpdate):
+        self.conversation._invalidate_goal_snapshot()

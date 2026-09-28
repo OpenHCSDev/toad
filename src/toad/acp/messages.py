@@ -15,7 +15,8 @@ from agent_comms.routing import MessageRoute
 
 from toad.answer import Answer
 from toad.private_native_cursor import CursorStatus
-from toad.queue_view import QueueItem, QueueProjection
+from agent_comms.acp_extension import AgentCommsUpdate
+from agent_comms.acp_extension import QueueItem, QueueProjection
 from toad.acp import protocol
 from toad.acp.encode_tool_call_id import encode_tool_call_id
 
@@ -29,20 +30,14 @@ class AgentMessage(Message):
     """Base class for agent messages."""
 
 
-@dataclass
-class GoalSnapshotUpdate(AgentMessage):
-    """One paired projection published by the backend goal owner."""
-
-    goal: Goal | None
-    execution: GoalExecution | None
-
-
 class InputDispositionsChanged(AgentMessage):
-    """Invalidate the unresolved delivery view; the backend ledger owns its contents."""
+    """Invalidate delivery display; the producer ledger owns its contents."""
 
 
 class RejectedSessionUpdate(AgentMessage):
-    """An invalid ACP notification was logged and excluded from the conversation."""
+    """Invalid ACP input was logged and excluded from the conversation."""
+
+
 
 
 @dataclass
@@ -283,15 +278,12 @@ class SessionInfoUpdate(AgentMessage):
 
 
 @dataclass
-class CoordinationUpdate(AgentMessage):
-    """Persistent coordination identity advertised by an ACP agent."""
-
-    thread: str
-    wire_root: str
-    persistence: str
-    transport: str
-    worktree: str | None = None
-    prompt_queue: bool = False
+class CommsUpdated(AgentMessage):
+    """The exact shared record plus local attachment context."""
+    update: AgentCommsUpdate
+    agent: object | None = None
+    session_id: str | None = None
+    sequence: int | None = None
 
 
 @dataclass

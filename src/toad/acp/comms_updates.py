@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 from agent_comms.acp_extension import (
+    CoordinationChangedUpdate, GoalChangedUpdate, CursorAdvancedUpdate,
     InputFailedUpdate,
+    InputStartedUpdate,
+    QueueChangedUpdate,
     TextRouteUpdate,
     TranscriptChangedUpdate,
     TurnSettledUpdate,
@@ -15,10 +18,19 @@ from . import messages
 
 
 class CommsUpdateConsumer(MroDispatch):
-    def __init__(self, agent, session_id: str):
+    def __init__(
+        self,
+        agent,
+        session_id: str,
+        *,
+        cursor_token: int | None = None,
+        queue_token: int | None = None,
+    ):
         self.agent = agent
         self.session_id = session_id
         self.route = None
+        self.cursor_token = cursor_token
+        self.queue_token = queue_token
 
     @handles(TextRouteUpdate)
     def text_route(self, update: TextRouteUpdate) -> None:
@@ -82,3 +94,71 @@ class CommsUpdateConsumer(MroDispatch):
                 sequence=agent._turn_lifecycle_sequence,
             )
         )
+
+    @handles(CursorAdvancedUpdate)
+    def cursor_advanced(self, update: CursorAdvancedUpdate) -> None:
+        if self.cursor_token is None:
+            self.agent._private_cursor.callback(update.envelope, self.session_id)
+        else:
+            self.agent._private_cursor.bind(
+                update.envelope, self.session_id, self.cursor_token
+            )
+        self.agent._post_private_cursor()
+
+    @handles(QueueChangedUpdate)
+    def queue_changed(self, update: QueueChangedUpdate) -> None:
+        if self.queue_token is None:
+            self.agent.queue_attachment.callback(update, self.session_id)
+            starts = ()
+        else:
+            _, starts = self.agent.queue_attachment.bind(
+                update, self.session_id, self.queue_token
+            )
+        self.agent._post_queue_view(starts)
+
+    @handles(InputStartedUpdate)
+    def input_started(self, update: InputStartedUpdate) -> None:
+        if update.scope is None:
+            if update.input_id is None and self.session_id == self.agent.session_id:
+                self.agent.post_message(
+                    messages.InputStarted(
+                        update.text, agent=self.agent, session_id=self.session_id
+                    )
+                )
+            return
+        starts = self.agent.queue_attachment.started(update, self.session_id)
+        self.agent._post_queue_view(starts)
+
+    @handles(CoordinationChangedUpdate)
+    def coordination_changed(self, update: CoordinationChangedUpdate) -> None:
+        from dataclasses import replace
+        from pathlib import Path
+        from .maintenance_ingress import configured_root
+        from .agent import ContextUsage
+        from textual.content import Content
+        agent = self.agent
+        attached_env = (agent._maintenance_env or __import__('os').environ).copy()
+        attached_env['AGENT_COMMS_ROOT'] = update.wire_root
+        root = configured_root(attached_env, agent._maintenance_cwd or agent.project_root_path.resolve())
+        agent.coordination = replace(update, wire_root=str(root))
+        agent.project_root_path = Path(update.worktree)
+        agent.uses_turn_events = agent.server_titles = agent.supports_prompt_queue = True
+        agent.supports_prompt_images = True
+        if update.context_usage is None:
+            agent._context_usage = None
+            agent._context_usage_saved = False
+            agent.post_message(messages.UpdateStatusLine(Content('Context estimate unavailable')))
+        else:
+            agent._context_usage = ContextUsage(update.context_usage.used, update.context_usage.size)
+            agent._context_usage_saved = True
+            agent.update_status_line()
+        agent.post_message(messages.CommsUpdated(agent.coordination, agent, self.session_id))
+        title = agent._pending_session_name or update.title
+        agent.post_message(messages.SessionInfoUpdate(title))
+        if agent._pending_session_name is not None:
+            agent._rename_coordination_thread(agent._pending_session_name)
+            agent._pending_session_name = None
+
+    @handles(GoalChangedUpdate)
+    def goal_changed(self, update: GoalChangedUpdate) -> None:
+        self.agent.post_message(messages.CommsUpdated(update, self.agent, self.session_id))

@@ -1,3 +1,5 @@
+from agent_comms.acp_extension import CoordinationChangedUpdate
+from agent_comms.mro_dispatch import MroDispatch, handles
 from functools import partial
 from pathlib import Path
 import asyncio
@@ -306,12 +308,16 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
         if self.id is not None:
             self.app.sync_recovery_root(self.id, self._coordination_root)
 
-    @on(acp_messages.CoordinationUpdate)
+    @on(acp_messages.CommsUpdated)
+    async def on_comms_updated(self, event: acp_messages.CommsUpdated) -> None:
+        await ScreenCommsConsumer(self).dispatch(event.update)
+
+    @handles(CoordinationChangedUpdate)
     async def on_coordination_update(
-        self, event: acp_messages.CoordinationUpdate
+        self, event: CoordinationChangedUpdate
     ) -> None:
         self._coordination_root = event.wire_root
-        self.conversation.queue_supported = event.prompt_queue
+        self.conversation.queue_supported = True
         if event.worktree is not None:
             project = Path(event.worktree)
             if project != self.project_path:
@@ -321,8 +327,8 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
                 await self.conversation.sync_project_path(project)
                 if self.id is not None:
                     self.app.sync_coordination_project(self.id, project)
-        self.on_comms_session_named(event.thread)
-        self.conversation.set_prompt_history_scope(f"thread:{event.thread}")
+        self.on_comms_session_named(event.thread.name)
+        self.conversation.set_prompt_history_scope(f"thread:{event.thread.name}")
 
     _last_dm_target: str | None = None
 
@@ -587,3 +593,12 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
             conversation.remove_class(f"-scrollbar-{old_scrollbar}")
         if scrollbar:
             conversation.add_class(f"-scrollbar-{scrollbar}")
+
+
+class ScreenCommsConsumer(MroDispatch):
+    def __init__(self, screen):
+        self.screen = screen
+
+    @handles(CoordinationChangedUpdate)
+    async def coordination_changed(self, update: CoordinationChangedUpdate):
+        await self.screen.on_coordination_update(update)
