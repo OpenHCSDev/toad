@@ -7,9 +7,14 @@ def main():
     source = Path(__file__).resolve().parents[1] / 'src/toad'
     names = {'comms_start', 'comms_stop', 'comms_archive', 'comms_ack', 'comms_fork'}
     for path in source.rglob('*.py'):
+        tree = ast.parse(path.read_text())
+        for node in ast.walk(tree):
+            if isinstance(node, ast.ImportFrom) and node.module == 'agent_comms.tools':
+                assert not {entry.name for entry in node.names} & {
+                    'TOOLS', 'ToolDeclaration', 'ToolParameter'
+                }, (path, node.lineno)
         if path.name == 'thread_actions.py':
             continue
-        tree = ast.parse(path.read_text())
         for node in ast.walk(tree):
             if isinstance(node, ast.Constant) and isinstance(node.value, str):
                 assert node.value not in names, (path, node.lineno, node.value)
