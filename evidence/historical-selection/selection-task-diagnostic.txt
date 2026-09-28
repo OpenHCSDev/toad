@@ -1,0 +1,17 @@
+PAGE #comms 8 6 6 True False
+PAGE #comms 47 192 198 False True
+SELECT 36 36 0 Saved sessions · select an original identity · Esc returns to chats
+TASK message pump Select(id='saved-identity')
+   <coroutine object MessagePump._process_messages at 0x7f99481b7240>
+   <coroutine object MessagePump._process_messages_loop at 0x7f9932b4e770>
+   <coroutine object MessagePump._get_message at 0x7f993016b850>
+   <coroutine object Queue.get at 0x7f993016b440>
+   <coroutine object Event.wait at 0x7f9933443840>
+   <_asyncio.FutureIter object at 0x7f9932b31c00>
+TASK message pump HistoricalSessions()
+   <coroutine object MessagePump._process_messages at 0x7f994cf8ba40>
+   <coroutine object MessagePump._process_messages_loop at 0x7f994816fe00>
+   <coroutine object MessagePump._get_message at 0x7f993016b2a0>
+   <coroutine object Queue.get at 0x7f993016b5e0>
+   <coroutine object Event.wait at 0x7f99496a1fc0>
+   <_asyncio.FutureIter object at 0x7f9932b90700>
