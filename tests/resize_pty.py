@@ -6,7 +6,7 @@ import tempfile
 from pathlib import Path
 
 from agent_comms.threads import Thread
-from agent_comms.comms import wire
+from runtime_fixture import private_native_wire
 from e2e_pty import AGENT_PY, FORK_TOAD, PtyLaunch, ToadSession
 
 
@@ -17,18 +17,24 @@ async def main():
         history.write_text("".join(json.dumps({"type": "message", "message": {
             "role": "assistant", "content": f"REPLAY_MARKER_{i}\n\n" + "A paragraph to wrap. " * 100
         }}) + "\n" for i in range(40)))
-        comms = wire(root / "wire")
+        comms = private_native_wire(root / "wire")
         comms.threads.register(Thread("resize", frozenset(), str(root), session_file=str(history)))
         session = ToadSession(PtyLaunch(
             (str(FORK_TOAD), "acp", f"{AGENT_PY} -m agent_comms.acp", "--session", "resize"),
             root,
-            {"AGENT_COMMS_ROOT": str(root / "wire"), "AGENT_COMMS_AGENT_BIN": "/bin/echo",
+            {"AGENT_COMMS_ROOT": str(root / "wire"), "AGENT_COMMS_AGENT_BIN": "pi",
              "AGENT_COMMS_AGENT_MODELS": "test/model", "AGENT_COMMS_AGENT_ARGS": "--model test/model",
              "XDG_CONFIG_HOME": str(root / "config"), "XDG_STATE_HOME": str(root / "state"),
              "XDG_DATA_HOME": str(root / "data")},
         ))
         try:
             await session.start()
+            async with asyncio.timeout(30):
+                while True:
+                    frame = await session.frame(.1)
+                    if "A paragraph" in frame or "REPLAY_MARKER_39" in frame:
+                        break
+                    assert session.alive(), frame
             for height, width in ((25, 70), (28, 145), (25, 70), (50, 180), (35, 95), (25, 70)):
                 session._set_size(height, width)
                 frame = await session.frame(.7)

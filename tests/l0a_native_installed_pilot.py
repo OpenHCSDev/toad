@@ -28,6 +28,7 @@ from toad.widgets.prompt import QueueSummary
 from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.channel_participants import ChannelParticipants
 from toad.widgets.message_notifications import MessageNotifications
+from toad.widgets.comms_sidebar import CommsRow, CommsSidebar
 from toad import messages
 from toad.navigation_preparation import ThreadNavigationRequest
 
@@ -287,6 +288,25 @@ async def main(*, notification_only=False):
                 turn = asyncio.create_task(agent.send_prompt("FIRST_NATIVE_INPUT"))
                 await until(pilot, entered.is_set)
                 print("PROVIDER_FIRST", flush=True)
+                # An actual detached owner's turn is the status authority.
+                # UI-only state changes cannot clear its busy witness; geometry
+                # remains compact at both widths while the loopback holds it.
+                sidebar = app.screen.query_one(CommsSidebar)
+                sidebar._refresh()
+                await until(pilot, lambda: any(row.target_name == "beta" and row.has_class("-busy")
+                                              for row in sidebar.query(CommsRow)))
+                app.session_tracker.update_session(owner_mode, state="idle", summary="Ready from the view")
+                for width in (96, 120):
+                    await pilot.resize_terminal(width, 44)
+                    await pilot.pause()
+                    sidebar._refresh()
+                    await pilot.pause()
+                    row = next(row for row in sidebar.query(CommsRow) if row.target_name == "beta")
+                    assert row.has_class("-busy") and row.region.height == 2, (row.render(), row.region)
+                    assert "Ready from the view" not in row.render().plain
+                    assert "provider/" not in row.render().plain
+                await pilot.resize_terminal(160, 44)
+                print("NATIVE_SIDEBAR_BUSY_AUTHORITY_CONFIRMED", flush=True)
                 view.prompt.text = "unsent local draft"
                 await asyncio.wait_for(
                     agent.send_prompt("QUEUED_NATIVE_INPUT", defer_display=True), 10

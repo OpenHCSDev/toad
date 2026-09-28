@@ -60,6 +60,8 @@ dev = [
     "mypy>=1.19.1",
     "pyinstrument>=5.1.1",
     "pyte>=0.8.2",
+    "pillow>=12",
+    "python-xlib>=0.33",
     "textual-dev>=1.8.0",
 ]
 

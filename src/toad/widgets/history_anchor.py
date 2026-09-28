@@ -70,6 +70,14 @@ class HistoryWindow(VerticalScroll):
     def follows_tail(self) -> bool:
         return self.is_anchored and not self._anchor_released
 
+    def commit_follow(self) -> bool:
+        """Apply retained follow intent to measured geometry before its paint."""
+        if self.history_anchor is not None or not self.follows_tail:
+            return False
+        previous = self.scroll_y
+        self._scroll_to(y=self.max_scroll_y, animate=False, release_anchor=False)
+        return previous != self.scroll_y
+
     def anchor(self, anchor: bool = True) -> None:
         if not self._restoring:
             self.scroll_revision += 1

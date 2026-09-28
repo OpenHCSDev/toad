@@ -165,6 +165,19 @@ class SessionView(SidebarFocusOwner, Screen):
             # screen after ending the transaction, including error paths.
             self._repaint_required = True
             return
+        if self.is_current:
+            if self._navigation_frame_pending and self._first_frame_presented:
+                for window in self.body_windows:
+                    if not window.document_viewport.visible_bodies_ready:
+                        window.document_viewport.request()
+                        self._repaint_required = True
+                        return
+            changed = False
+            for window in self.body_windows:
+                changed |= window.commit_follow()
+            if changed:
+                self._refresh_layout(scroll=True)
+                return
         super()._compositor_refresh()
 
     def present_navigation(self) -> None:
