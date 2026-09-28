@@ -1,0 +1,2 @@
+PASS: mounted inventory reads verified pinned package, positive action available without negotiation
+PASS: actual package approve/allow/ask/deny receipts, stale refusal and controller cancellation; children reaped
