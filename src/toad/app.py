@@ -1137,14 +1137,23 @@ class ToadApp(App, inherit_bindings=False):
 
     @property
     def coordination_wire(self):
+        from agent_comms.active_route import resolve_comms_route
         from agent_comms.comms import wire
 
         # Every access revalidates the route marker; never reuse a cached wire
         # after publication changes the default root.
-        selected = wire()
+        selected = resolve_comms_route()
+        selected_root = selected.observe_root()
         cached = self.__dict__.get("_coordination_wire")
-        if cached is None or cached.root.resolve() != selected.root.resolve():
-            self._coordination_wire = selected
+        if (cached is None or cached.root.resolve() != selected_root
+                or self.__dict__.get("_coordination_route") != selected):
+            service = wire()
+            # Never associate a service from a concurrent route flip with the
+            # earlier observation. The next access resolves the route afresh.
+            if service.root.resolve() != selected_root or resolve_comms_route() != selected:
+                raise ValueError("Comms route changed while opening the service")
+            self._coordination_wire = service
+            self._coordination_route = selected
         return self._coordination_wire
 
     def open_wire_export_dialog(self) -> None:

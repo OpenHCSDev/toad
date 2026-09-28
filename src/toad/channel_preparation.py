@@ -74,11 +74,9 @@ class HistoryReadRequest:
             limit=limit, max_bytes=self.max_bytes,
         )
 
-    def read(self, previous: HistoryReadResult | None = None) -> HistoryReadResult:
+    def read(self) -> HistoryReadResult:
         """Perform all revision/watermark/page I/O on the reader thread."""
         revision = self.comms.views.revision()
-        if previous is not None and previous.request == self and previous.revision == revision:
-            return previous
         if self.initialized and revision == self.known_revision:
             return HistoryReadResult(self, revision, self.after, None, False)
         high_water = self.comms.bus.log.latest_sequence()
@@ -120,36 +118,22 @@ class HistoryReadResult:
 
 
 class ChannelHistoryReader:
-    """One hidden read at a time; current-view reads do not queue behind other tabs.
-
-    A cancelled widget waiter cannot release a running background read early.
-    The underlying I/O task owns admission until it really completes.
-    """
+    """Own in-flight visible history reads until their actual I/O completes."""
 
     def __init__(self) -> None:
-        self._background = asyncio.Semaphore(1)
         self._pending: set[asyncio.Task[HistoryReadResult]] = set()
         self._closed = False
 
-    async def read(
-        self, request: HistoryReadRequest, previous: HistoryReadResult | None = None,
-        *, background: bool = False,
-    ) -> HistoryReadResult:
-        if background:
-            await self._background.acquire()
+    async def read(self, request: HistoryReadRequest) -> HistoryReadResult:
         if self._closed:
-            if background:
-                self._background.release()
             raise RuntimeError("Channel history reader is closed")
-        task = asyncio.create_task(asyncio.to_thread(request.read, previous), name="channel-history-read")
+        task = asyncio.create_task(asyncio.to_thread(request.read), name="channel-history-read")
         self._pending.add(task)
 
         def finished(completed: asyncio.Task[HistoryReadResult]) -> None:
             self._pending.discard(completed)
             if not completed.cancelled():
                 completed.exception()
-            if background:
-                self._background.release()
 
         task.add_done_callback(finished)
         await asyncio.wait((task,))

@@ -1,7 +1,7 @@
 """Toad's view of the canonical Comms default root.
 
-The core wire factory owns active-route parsing and validates the private root
-marker under its store lock. Toad must not interpret active-route.json itself.
+The core route owner validates the current selection and private marker without
+constructing a service. Write admission remains separately guarded at its sink.
 """
 
 from __future__ import annotations
@@ -17,9 +17,9 @@ T = TypeVar("T")
 
 def current_root() -> Path:
     """Resolve the explicit override or the validated default Comms route."""
-    from agent_comms.comms import wire
+    from agent_comms.active_route import resolve_comms_route
 
-    return wire().root.resolve()
+    return resolve_comms_route().observe_root()
 
 
 def root_is_current(root: str | Path) -> bool:
