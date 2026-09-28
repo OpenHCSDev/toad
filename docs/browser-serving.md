@@ -29,7 +29,8 @@ publish or forward the port to another machine.
 ## Verify the installed path
 
 Install the candidate wheel, its pinned dependencies, and the developer
-dependencies. The pilot uses system Chromium (`/usr/bin/chromium`) and allocates
+dependencies and the configured Comms native installation. The pilot uses
+system Chromium (`/usr/bin/chromium`) and allocates
 disposable roots under `~/wt`; it never writes the live Comms root or sends a
 model prompt.
 

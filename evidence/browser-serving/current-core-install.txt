@@ -1,0 +1,4 @@
+Resolved 1 package in 352ms
+Prepared 1 package in 9ms
+Installed 1 package in 8ms
+ + agent-comms==0.1.0 (from git+https://github.com/OpenHCSDev/agent-comms.git@853630552df22e16106a016ab24dfa70f5538ae5)

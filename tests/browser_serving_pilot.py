@@ -44,6 +44,8 @@ class LocalServer:
             "AGENT_COMMS_ROOT": str(self.root / "wire"),
             "PI_CODING_AGENT_DIR": str(self.root / "pi"),
         }
+        if attempt := os.environ.get("TOAD_TEST_ATTEMPT"):
+            env["TOAD_TEST_ATTEMPT"] = attempt
         flags = ["--host", "127.0.0.1", "--port", str(self.port)]
         if self.entry == "serve":
             args = ["serve", *flags]
