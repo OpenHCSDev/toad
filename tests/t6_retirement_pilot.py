@@ -45,6 +45,13 @@ class RenderingRetirementTests(unittest.TestCase):
                         for name in node.names
                         if name.name in retired
                     )
+                if (
+                    isinstance(node, ast.Call)
+                    and isinstance(node.func, ast.Name)
+                    and node.func.id == "AgentResponse"
+                    and any(keyword.arg == "route" for keyword in node.keywords)
+                ):
+                    violations.append((str(path), node.lineno, "untyped response route"))
                 if isinstance(node, ast.Set) and any(
                     isinstance(item, ast.Attribute)
                     and isinstance(item.value, ast.Name)

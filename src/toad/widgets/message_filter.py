@@ -1,6 +1,6 @@
 """One semantic filter for native live blocks and saved transcript fragments."""
 
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from agent_comms.declared_family import DeclaredFamily
 
 from agent_comms.mro_dispatch import MroDispatch, handles
@@ -15,7 +15,13 @@ from agent_comms.transcript_events import (
 )
 
 
-class MessageCategory(DeclaredFamily, affix="Category"):
+class NativeMessagePresentation(ABC):
+    @classmethod
+    def keep_native_block(cls) -> bool:
+        return False
+
+
+class MessageCategory(NativeMessagePresentation, DeclaredFamily, affix="Category"):
     label: str
 
     @classmethod
@@ -45,8 +51,12 @@ class AgentWork:
         return show
 
 
-class RoutedMessage:
+class RoutedMessage(NativeMessagePresentation):
     """Messages retained while the native transcript supplies ordinary blocks."""
+
+    @classmethod
+    def keep_native_block(cls) -> bool:
+        return True
 
 
 class UserCategory(FromPerson, MessageCategory):
@@ -168,7 +178,7 @@ def keep_live_block(widget) -> bool:
     category = block_category(widget)
     return (
         category is None
-        or issubclass(category, RoutedMessage)
+        or category.keep_native_block()
         or widget.has_class("-error")
         or widget.has_class("-error-log-link")
     )

@@ -53,7 +53,7 @@ async def main() -> None:
             assert not thought.query(MessageDivider)
             assert not tool.query(MessageDivider)
             routed = await native.post(AgentResponse(
-                "routed answer", route=MessageRoute(me, ("#all",)),
+                "routed answer", delivery=ResponseDelivery.from_route(MessageRoute(me, ("#all",))),
             ))
             await pilot.pause()
             assert "Outbound" in routed.query_one(MessageDivider).render().plain

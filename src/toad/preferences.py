@@ -1,7 +1,7 @@
 """The current durable preference tree; declarations own values and effects."""
 
 from toad import setting_effects as effects
-from toad.render_backend import RendererChoice, LocalRenderer
+from toad.render_choices import RendererChoice, LocalRenderer
 from toad.setting_choices import (
     AlwaysSessionBar,
     AutoDiff,

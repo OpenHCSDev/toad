@@ -10,7 +10,8 @@ os.environ.setdefault("TEXTUAL_FPS", "120")
 import click
 from toad.app import ToadApp
 from toad.agent_schema import Agent
-from toad.render_backend import Renderer, RendererChoice
+from toad.render_backend import Renderer
+from toad.render_choices import RendererChoice
 
 
 def renderer_from_cli(backend: str | None) -> Renderer | None:

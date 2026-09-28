@@ -88,7 +88,7 @@ def launch(directory, options, settings, runtime):
 async def main():
     with (
         tempfile.TemporaryDirectory(prefix="rcli-") as temporary,
-        tempfile.TemporaryDirectory(prefix="rc-") as runtime,
+        tempfile.TemporaryDirectory(prefix="rc-", dir="/var/tmp") as runtime,
     ):
         base = Path(temporary)
         for name, options, saved in [

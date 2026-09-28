@@ -27,7 +27,7 @@ from toad.acp.agent import Agent
 from toad.acp.messages import CoordinationUpdate, TranscriptSnapshot
 from toad.agent import AgentReady
 from toad.app import ToadApp
-from toad.render_backend import RendererChoice, LocalRenderer, PersistentRenderer
+from toad.render_choices import RendererChoice, LocalRenderer, PersistentRenderer
 from toad.widgets.transcript_history import TranscriptHistory
 from toad.widgets.message_filter import event_category
 

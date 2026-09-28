@@ -12,7 +12,7 @@ from textual.app import App, ComposeResult
 from textual.signal import Signal
 from toad.sidebar_preparation import prepare_thread_row, ThreadRowInput
 from toad.session_tracker import ExactUnread
-from toad.render_backend import LocalRenderer
+from toad.render_choices import LocalRenderer
 from toad.sidebar_layout import SidebarLayout
 from toad.work_preparation import PreparationRuntime
 from toad.session_tracker import SidebarState
