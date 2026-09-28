@@ -7,7 +7,7 @@ import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
-from agent_comms import Message, MessageType
+from agent_comms.messages import Message, MessageType
 from runtime_fixture import ToadApp
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.irc_message import IRCMessage, IRCMessageText
@@ -21,7 +21,7 @@ async def main():
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(125, 65)) as pilot:
             await pilot.pause()
-            app.settings.set("ui.auto_copy", True)
+            app.settings.ui.auto_copy = True
             clipboard = ""
             terminal_writes = []
             truncate_terminal = True

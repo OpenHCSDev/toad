@@ -7,7 +7,8 @@ import tempfile
 from pathlib import Path
 from unittest.mock import AsyncMock, Mock, patch
 
-from agent_comms import Thread, wire
+from agent_comms.threads import Thread
+from agent_comms.comms import wire
 from runtime_fixture import ToadApp
 
 from toad.acp.agent import Agent
@@ -36,7 +37,7 @@ async def check_title(title: str | None) -> None:
         thread = "existing-worker"
         expected = title or thread
         comms = wire(root / "wire")
-        comms.register(Thread(thread, frozenset({"acp"}), str(root), title=title))
+        comms.threads.register(Thread(thread, frozenset({"acp"}), str(root), title=title))
         payload = {"sessionId": thread, "_meta": {"agentComms": {
             "thread": thread, "title": title, "wireRoot": str(root / "wire"),
             "worktree": str(root), "autoTitle": True,
@@ -70,7 +71,7 @@ async def check_title(title: str | None) -> None:
             assert app.session_tracker.get_session(mode).title == expected
             assert expected in screen.query_one(f"SessionLabel#{mode}", SessionLabel).render().plain
             assert agent.session_pk is not None
-            assert (await DB().session_get(agent.session_pk))["title"] == expected
+            assert (await DB().session_get(agent.session_pk)).title == expected
             assert comms.registry.require(thread).title == title, "Presenting a title must not rename the thread"
 
             # A new view of the existing server session, backed by its saved row.
@@ -87,7 +88,7 @@ async def check_title(title: str | None) -> None:
             assert app.current_mode == loaded.mode_name
             assert app.session_tracker.get_session(loaded.mode_name).title == expected
             assert expected in screen.query_one(f"SessionLabel#{loaded.mode_name}", SessionLabel).render().plain
-            assert (await DB().session_get(agent.session_pk))["title"] == expected
+            assert (await DB().session_get(agent.session_pk)).title == expected
 
             app.session_tracker.update_session(loaded.mode_name, title="My explicit label")
             screen.on_comms_session_named(thread)

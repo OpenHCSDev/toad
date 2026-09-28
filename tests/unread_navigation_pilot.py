@@ -5,9 +5,11 @@ import os
 import tempfile
 from pathlib import Path
 
-from agent_comms import Thread, wire
+from agent_comms.threads import Thread
+from agent_comms.comms import wire
 from runtime_fixture import ToadApp
 
+from toad.session_tracker import ExactUnread
 from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.session_tabs import SessionLabel
 
@@ -20,7 +22,7 @@ async def wait_for(pilot, predicate) -> None:
 
 async def badge_cleared(app, pilot, mode: str) -> None:
     await wait_for(pilot, lambda: (
-        next(tab for tab in app.open_tabs if tab.mode_name == mode).unread == 0
+        next(tab for tab in app.open_tabs if tab.mode_name == mode).unread == ExactUnread()
         and "(1)" not in app.screen.query_one(f"SessionLabel#{mode}", SessionLabel).render().plain
     ))
 
@@ -33,13 +35,13 @@ async def main() -> None:
                           XDG_STATE_HOME=str(root / "state"),
                           AGENT_COMMS_ROOT=str(root / "wire"))
         comms = wire(root / "wire")
-        comms.register(Thread("sender", frozenset(), str(root)))
-        viewer = comms.user_identity(str(root))
-        comms.send("sender", "#all", "first-pending")
+        comms.threads.register(Thread("sender", frozenset(), str(root)))
+        viewer = comms.messaging.user_identity(str(root))
+        comms.messaging.send("sender", "#all", "first-pending")
         app = ToadApp(project_dir=str(root))
 
         def unread() -> int:
-            return comms.viewer_snapshot(str(root)).channel_unread["#all"]
+            return comms.views.viewer_snapshot(str(root)).channel_unread["#all"]
 
         assert unread() == 1
         async with app.run_test(size=(110, 36)) as pilot:
@@ -54,7 +56,7 @@ async def main() -> None:
             await wait_for(pilot, lambda: unread() == 0)
             await badge_cleared(app, pilot, mode)
             await app.switch_mode(owner)
-            comms.send("sender", "#all", "second-pending")
+            comms.messaging.send("sender", "#all", "second-pending")
             assert unread() == 1
             await app.switch_mode(mode)
             chat = app.screen.query_one(CommsChatView)
@@ -64,10 +66,10 @@ async def main() -> None:
             await wait_for(pilot, lambda: unread() == 0)
             await badge_cleared(app, pilot, mode)
             await app.switch_mode(owner)
-            comms.send("sender", viewer.name, "dm-pending")
+            comms.messaging.send("sender", viewer.name, "dm-pending")
 
             def dm_unread() -> int:
-                return comms.viewer_snapshot(str(root)).unread.get("sender", 0)
+                return comms.views.viewer_snapshot(str(root)).unread.get("sender", 0)
 
             assert dm_unread() == 1
             dm_mode = await app.open_comms_session(owner_mode=owner, project_path=root,
@@ -79,10 +81,10 @@ async def main() -> None:
             await wait_for(pilot, lambda: dm_unread() == 0)
             await badge_cleared(app, pilot, dm_mode)
             await app.switch_mode(owner)
-            comms.send("sender", "#all", "aggregate-pending")
+            comms.messaging.send("sender", "#all", "aggregate-pending")
 
             def aggregate_unread() -> int:
-                return comms.viewer_snapshot(str(root)).channel_unread.get("#any", 0)
+                return comms.views.viewer_snapshot(str(root)).channel_unread.get("#any", 0)
 
             assert aggregate_unread() >= 1
             aggregate_mode = await app.open_comms_session(owner_mode=owner, project_path=root,

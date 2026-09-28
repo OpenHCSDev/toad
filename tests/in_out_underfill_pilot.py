@@ -5,8 +5,11 @@ import os
 from pathlib import Path
 import tempfile
 
-from agent_comms import MessageRoute, TranscriptCursor, TranscriptEvent, TranscriptPage, TurnRouting
+from agent_comms.routing import MessageRoute, TurnRouting
+from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcript_events import SentTranscript, ThinkingTranscript
 from runtime_fixture import ToadApp
+from toad.widgets.message_filter import ALL_CATEGORIES, IN_OUT_CATEGORIES
 from toad.widgets.transcript_history import TranscriptHistory
 
 
@@ -19,12 +22,11 @@ async def main():
         async with app.run_test(size=(110, 44)) as pilot:
             await pilot.pause()
             conversation = app.screen.conversation
-            conversation.in_out_only = True
+            conversation.visible_categories = IN_OUT_CATEGORIES
             file = "read-only-fixture"
-            tail = tuple(TranscriptEvent("thinking", f"HIDDEN_TAIL_{index}")
+            tail = tuple(ThinkingTranscript(f'HIDDEN_TAIL_{index}')
                          for index in range(90))
-            older = TranscriptEvent("sent", "OLDER_ROUTED_MESSAGE",
-                                    routing=TurnRouting(reply=MessageRoute("owner", ("#team",))))
+            older = SentTranscript('OLDER_ROUTED_MESSAGE', routing=TurnRouting(reply=MessageRoute('owner', ('#team',))))
             calls = []
 
             async def load_page(**kwargs):
@@ -42,7 +44,7 @@ async def main():
             def routed_visible(pager):
                 return (pager._filter_overlay is not None and
                         any(leaf.display and leaf.fragment.events[0].text == older.text
-                            for leaf in pager._filter_overlay.children))
+                             for leaf in pager._filter_overlay.fragment_views))
 
             try:
                 async with asyncio.timeout(8):
@@ -54,7 +56,7 @@ async def main():
                                       "scroll": conversation.window.max_scroll_y,
                                       "older": history.has_older}) from None
             assert calls and len(calls) <= 3, "Underfill walked the same page indefinitely"
-            assert conversation.in_out_only and conversation.window.max_scroll_y >= 0
+            assert conversation.visible_categories == IN_OUT_CATEGORIES and conversation.window.max_scroll_y >= 0
             assert history.pages[-1].page.events == tail, (
                 [len(page.page.events) for page in history.pages], history.pages[0].page.before,
                 history._filter_before)
@@ -66,7 +68,7 @@ async def main():
 
             # More hidden fragments than the raw widget budget must not make
             # a still-empty filtered viewport permanently unscrollable.
-            longer_tail = tuple(TranscriptEvent("thinking", f"HIDDEN_OLDER_{index}")
+            longer_tail = tuple(ThinkingTranscript(f'HIDDEN_OLDER_{index}')
                                 for index in range(340))
             calls.clear()
             sparse = TranscriptHistory(TranscriptPage(
@@ -90,16 +92,16 @@ async def main():
             await pilot.pause()
             frame = "\n".join(strip.text for strip in app.screen._compositor.render_strips())
             assert "OLDER_ROUTED_MESSAGE" in frame, "Sparse older result was not painted"
-            conversation.in_out_only = False
+            conversation.visible_categories = ALL_CATEGORIES
             await pilot.pause()
             assert sparse._filter_overlay is None or not sparse._filter_overlay.display
             assert any(leaf.display for leaf in sparse.pages[-1].children), (
                 "Unchecking did not restore retained native transcript")
-            conversation.in_out_only = True
+            conversation.visible_categories = IN_OUT_CATEGORIES
             async with asyncio.timeout(8):
                 while (sparse._filter_overlay is None or not sparse._filter_overlay.display
                        or not any(leaf.fragment.events[0].text == older.text
-                                  for leaf in sparse._filter_overlay.children)):
+                                   for leaf in sparse._filter_overlay.fragment_views)):
                     await pilot.pause(.02)
             await sparse.remove()
 
@@ -110,7 +112,7 @@ async def main():
             async def only_hidden(**kwargs):
                 empty_reads.append(kwargs["before"].offset)
                 offset = 50 if kwargs["before"].offset == 100 else 0
-                return TranscriptPage((TranscriptEvent("thinking", "NO_ROUTE"),),
+                return TranscriptPage((ThinkingTranscript('NO_ROUTE'),),
                                       TranscriptCursor(file, offset),
                                       TranscriptCursor(file, kwargs["before"].offset),
                                       bool(offset), True)

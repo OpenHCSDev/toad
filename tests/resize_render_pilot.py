@@ -5,7 +5,8 @@ import os
 import tempfile
 from pathlib import Path
 
-from agent_comms import TranscriptCursor, TranscriptEvent, TranscriptPage
+from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcript_events import AssistantTranscript
 from toad.app import ToadApp
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.transcript_history import TranscriptHistory
@@ -17,7 +18,7 @@ async def main():
         os.environ.update(XDG_CONFIG_HOME=str(root / "config"), XDG_STATE_HOME=str(root / "state"),
                           XDG_DATA_HOME=str(root / "data"), AGENT_COMMS_ROOT=str(root / "wire"))
         text = "## Resize test\n\n" + "A paragraph that wraps to the available viewport width. " * 80
-        events = tuple(TranscriptEvent("assistant", f"Record {i}\n\n{text}") for i in range(20))
+        events = tuple(AssistantTranscript(f'Record {i}\n\n{text}') for i in range(20))
         page = TranscriptPage(events, TranscriptCursor("", 0), TranscriptCursor("", 0), False, False)
 
         async def load(**kwargs):

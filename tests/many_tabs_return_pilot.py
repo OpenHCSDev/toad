@@ -17,7 +17,11 @@ from types import FunctionType
 from unittest.mock import patch
 from weakref import ref
 
-from agent_comms import Thread, TranscriptCursor, TranscriptEvent, TranscriptPage, wire
+from agent_comms.child_process import ProcessIdentity
+from agent_comms.threads import Thread
+from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcript_events import AssistantTranscript
+from agent_comms.comms import wire
 from runtime_fixture import ToadApp
 from textual.widget import Widget
 from toad.acp.agent import Agent
@@ -52,14 +56,14 @@ async def main(*, empty=False, trace=False, observe=False, output=None, peers=0,
                           XDG_STATE_HOME=str(root / "state"), XDG_DATA_HOME=str(root / "data"))
         targets = [f"return-{index}" for index in range(10)]
         for name in targets:
-            wire(root / "wire").register(Thread(name, frozenset(), str(root), pid=os.getpid()))
+            wire(root / "wire").threads.register(Thread(name, frozenset(), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
         for index in range(peers):
-            wire(root / "wire").register(Thread(f"peer-{index}", frozenset({"fixture"}), str(root), pid=os.getpid()))
+            wire(root / "wire").threads.register(Thread(f"peer-{index}", frozenset({"fixture", *(f"fixture-{i}" for i in range(channels))}), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
         for index in range(channels):
-            wire(root / "wire").set_channel(f"#fixture-{index}", frozenset({"fixture"}))
+            wire(root / "wire").channels.create_tag(f"fixture-{index}")
         body = "## Saved response\n\n" + "Paragraph **with markup** and content.\n\n" * 5
         body += "```python\n" + "def calculate(value): return value + 1\n" * 30 + "```\n"
-        events = tuple(TranscriptEvent("assistant", f"Record {i}\n\n" + body) for i in range(20))
+        events = tuple(AssistantTranscript(f'Record {i}\n\n' + body) for i in range(20))
         page = TranscriptPage(events, TranscriptCursor("fixture", 0),
                               TranscriptCursor("fixture", len(events)), False, False)
 
@@ -107,7 +111,7 @@ async def main(*, empty=False, trace=False, observe=False, output=None, peers=0,
                         tabs = screen.query_one(SessionsTabs)
                         rows_before = {
                             (row.query_ancestor(ChannelGroup).row.target_name, row.thread_name): ref(row)
-                            for row in screen.query(CommsSidebar).first().query(ThreadStatusRow)
+                            for row in app.shared_channels.bar.roster.query(ThreadStatusRow)
                             if row.thread_name is not None
                         }
                         record = {"phase": phase, "mode": mode,
@@ -283,7 +287,7 @@ async def main(*, empty=False, trace=False, observe=False, output=None, peers=0,
                                       styled_nodes=sum(styles.values()))
                         rows_after = {
                             (row.query_ancestor(ChannelGroup).row.target_name, row.thread_name): row
-                            for row in screen.query(CommsSidebar).first().query(ThreadStatusRow)
+                            for row in app.shared_channels.bar.roster.query(ThreadStatusRow)
                             if row.thread_name is not None
                         }
                         replaced_rows = [key for key, previous in rows_before.items()
@@ -321,24 +325,46 @@ async def main(*, empty=False, trace=False, observe=False, output=None, peers=0,
                 await asyncio.wait_for(finished.wait(), 3)
                 assert not app._atomic_mode_switch
 
-                # A hidden roster may be missing new tabs AND retain several
-                # closed ones. Bulk removal must preserve the remaining order.
-                destination = app.get_screen_stack(modes[3])[0]
-                retained = {row.thread_name: row for row in destination.query_one(CommsSidebar).query(ThreadStatusRow)
-                            if row.thread_name is not None}
+                # The shared channel tree survives switches. Closing tabs must
+                # reconcile routes without destroying the shared presentation.
+                hidden_sidebar = app.shared_channels.bar.roster
+                retained_channels = dict(hidden_sidebar._row_map)
+                assert retained_channels
+                assert all(row.is_attached for row in retained_channels.values())
                 for mode in modes[:3]:
                     await app.close_session_mode(mode)
                 await app.switch_mode(modes[3])
+                async with asyncio.timeout(5):
+                    await hidden_sidebar.navigation_ready.wait()
                 await pilot.pause()
+                assert all(hidden_sidebar._row_map[key] is row
+                           for key, row in retained_channels.items())
                 assert tuple(label.id for label in app.screen.query(SessionLabel)) == tuple(
                     tab.mode_name for tab in app.open_tabs
                 )
                 assert app.screen.conversation.prompt.text == f"draft-{modes[3]}"
                 if not observe and not empty:
-                    for row in app.screen.query_one(CommsSidebar).query(ThreadStatusRow):
-                        if row.thread_name in targets[:3]:
-                            assert row is retained[row.thread_name]
-                            assert row.mode_name is None, "A closed view remained a navigation target"
+                    rebuilt = {
+                        (row.query_ancestor(ChannelGroup).row.target_name, row.thread_name): row
+                        for row in hidden_sidebar.query(ThreadStatusRow)
+                        if row.thread_name in targets
+                    }
+                    assert {name for _, name in rebuilt} == set(targets), rebuilt
+                    expected_modes = dict(zip(targets[3:], modes[3:]))
+                    for (_, name), row in rebuilt.items():
+                        assert row.mode_name == expected_modes.get(name), (
+                            name, row.mode_name, expected_modes.get(name)
+                        )
+                    # Identity still matters within a live presentation:
+                    # unchanged model refreshes must retain every mounted row.
+                    await hidden_sidebar.sync_sessions()
+                    refreshed = {
+                        (row.query_ancestor(ChannelGroup).row.target_name, row.thread_name): row
+                        for row in hidden_sidebar.query(ThreadStatusRow)
+                        if row.thread_name in targets
+                    }
+                    assert refreshed.keys() == rebuilt.keys()
+                    assert all(refreshed[key] is row for key, row in rebuilt.items())
                 assert not app._atomic_mode_switch and app._exception is None
         await asyncio.get_running_loop().shutdown_default_executor()
     result = {"boundary": "headless switch/settlement; not terminal-presented frames",

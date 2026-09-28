@@ -1,4 +1,7 @@
+from toad.settings import PreferenceChange
+from toad.preferences import SidebarSettings
 from dataclasses import dataclass
+import asyncio
 from typing import TYPE_CHECKING, ClassVar, cast
 
 from textual import containers, events, on, widgets
@@ -24,7 +27,19 @@ class SidebarVisibilityObserver:
         raise NotImplementedError
 
 
+class SidebarFocusOwner:
+    """A screen declares its return target before a focused pane is hidden."""
+
+    def sidebar_focus_target(self) -> Widget | None:
+        raise NotImplementedError
+
+
 class SideBarCollapsible(widgets.Collapsible, inherit_css=False):
+    CACHE_HEIGHT_INDEPENDENT_ARRANGEMENT = True
+
+    class Contents(widgets.Collapsible.Contents):
+        CACHE_HEIGHT_INDEPENDENT_ARRANGEMENT = True
+
     # Selection is drawn on the focused row. Inheriting Collapsible's container
     # focus-within tint would restyle the entire channel tree on pointer entry.
     BINDING_GROUP_TITLE = "Sidebar collapsible"
@@ -339,6 +354,8 @@ class TabHistoryControls(containers.HorizontalGroup):
 class SidebarSlider(widgets.Static, can_focus=True):
     """A bottom-row pointer/keyboard slider; no polling or source snapshots."""
 
+    ALLOW_SELECT = False
+
     BINDINGS: ClassVar[list[BindingType]] = [
         Binding("left", "step(-1)", "Decrease", show=False),
         Binding("right", "step(1)", "Increase", show=False),
@@ -433,6 +450,9 @@ class SidebarSlider(widgets.Static, can_focus=True):
             self._dragging = False
             self.release_mouse()
 
+    def on_mouse_release(self) -> None:
+        self._dragging = False
+
 
 class SidebarAction(widgets.Static, can_focus=True):
     """One spatial arrow or float/push action."""
@@ -472,6 +492,11 @@ class SidebarAction(widgets.Static, can_focus=True):
 
 class SidebarResizeHandle(widgets.Static, can_focus=True):
     """Drag the conversation-facing edge; the placement model owns the width."""
+
+    # The screen starts text selection before forwarding MouseDown to us.
+    # Capturing/stopping that event alone cannot prevent a competing selection
+    # walk across conversation content as the edge moves under the pointer.
+    ALLOW_SELECT = False
 
     DEFAULT_CSS = """
     SidebarResizeHandle {
@@ -529,6 +554,9 @@ class SidebarResizeHandle(widgets.Static, can_focus=True):
             self._resize(event.screen_x)
             self._dragging = False
             self.release_mouse()
+
+    def on_mouse_release(self) -> None:
+        self._dragging = False
 
 
 class SideBar(containers.Vertical):
@@ -604,12 +632,16 @@ class SideBar(containers.Vertical):
         hide: bool = False,
         right: bool = False,
         navigation: SidebarState | None = None,
+        defer_mount: bool = False,
     ) -> None:
         super().__init__(name=name, id=id, classes=classes, disabled=disabled)
         self.panels: list[SideBar.Panel] = [*panels]
         self.hide = hide
         self.right = right
         self._navigation = navigation
+        self._panels_loaded = not defer_mount
+        self._panels_loading = False
+        self._panels_ready = asyncio.Event()
         self._presented_collapsed: bool | None = None
         self._presented_layout: tuple | None = None
         self.set_class(right, "-right")
@@ -630,34 +662,82 @@ class SideBar(containers.Vertical):
             cast("ToadApp", self.app).settings_changed_signal.subscribe(
                 self, self._settings_changed  # type: ignore[arg-type]
             )
-            self.collapsed = cast("ToadApp", self.app).settings.get("sidebar.hide", bool)
+            self.collapsed = cast("ToadApp", self.app).settings.sidebar.hide
         else:
             self.collapsed = self.hide
         self.watch_collapsed(self.collapsed)
         self._apply_layout()
+        if self._panels_loaded:
+            self._panels_ready.set()
+        else:
+            self.schedule_hydration()
+
+    def schedule_hydration(self) -> None:
+        if not self._panels_loaded and not self._panels_loading:
+            from toad.screens.session_view import SessionView
+
+            screen = self.screen
+            if isinstance(screen, SessionView):
+                screen.call_after_first_frame(self, self._start_hydration)
+            else:
+                self.call_after_refresh(self._start_hydration)
+
+    def _start_hydration(self) -> None:
+        if (self._panels_loaded or self._panels_loading or not self.is_attached
+                or not self.screen.is_current or self._closing):
+            return
+        self._panels_loading = True
+        self.run_worker(self._hydrate_panels(), group="sidebar-panels")
+
+    async def _hydrate_panels(self) -> None:
+        try:
+            await self.query_one("#sidebar-panels").mount_all(self._compose_panels())
+            if not self.is_attached or self._closing:
+                return
+            controls = self.query_one_optional("#sidebar-controls")
+            if controls is not None:
+                await controls.mount_all(self._compose_controls())
+            if self.is_attached and not self._closing:
+                self._panels_loaded = True
+                self._presented_layout = None
+                self.restore_navigation()
+        finally:
+            self._panels_ready.set()
+
+    async def wait_content_ready(self) -> None:
+        await self._panels_ready.wait()
+
+    def on_unmount(self) -> None:
+        self._panels_ready.set()
 
     def compose(self) -> ComposeResult:
         yield SideBarToggle(self.collapsed, right=self.right)
         if self.id in {"channels-sidebar", "thread-sidebar"}:
             yield SidebarResizeHandle()
-        navigation = self.navigation
         with SidebarViewport(id="sidebar-panels"):
-            for panel in self.panels:
-                yield SideBarCollapsible(
-                    panel.widget,
-                    title=panel.title,
-                    collapsed=navigation.panels_collapsed.get(panel.title, panel.collapsed),
-                    classes="-flex" if panel.flex else "-fixed",
-                    id=panel.id,
-                    header_control=panel.header_control,
-                )
+            if self._panels_loaded:
+                yield from self._compose_panels()
         if self.id in {"channels-sidebar", "thread-sidebar"}:
             with containers.Vertical(id="sidebar-controls"):
-                yield SidebarSlider("width", 15, 50, 40 if not self.right else 34)
-                with containers.Horizontal(id="sidebar-layout-actions"):
-                    yield SidebarAction("left", "<──")
-                    yield SidebarAction("right", "──>")
-                    yield SidebarAction("float", "Float")
+                if self._panels_loaded:
+                    yield from self._compose_controls()
+
+    def _compose_panels(self) -> ComposeResult:
+        navigation = self.navigation
+        for panel in self.panels:
+            yield SideBarCollapsible(
+                panel.widget, title=panel.title,
+                collapsed=navigation.panels_collapsed.get(panel.title, panel.collapsed),
+                classes="-flex" if panel.flex else "-fixed", id=panel.id,
+                header_control=panel.header_control,
+            )
+
+    def _compose_controls(self) -> ComposeResult:
+        yield SidebarSlider("width", 15, 50, 40 if not self.right else 34)
+        yield containers.Horizontal(
+            SidebarAction("left", "<──"), SidebarAction("right", "──>"),
+            SidebarAction("float", "Float"), id="sidebar-layout-actions",
+        )
 
     def _order_sidebars(self) -> None:
         parent = self.parent
@@ -683,7 +763,11 @@ class SideBar(containers.Vertical):
                     and bar.id in app.sidebar_layout.placements}
         other = next((bar for bar in siblings.values() if bar is not self), None)
         peer = app.sidebar_layout.get(other.id) if other is not None else None
-        viewport = parent.size.width or app.size.width
+        # Applying intent invalidates geometry. A fresh region lookup here can
+        # synchronously lay out the entire transcript before the queued frame.
+        # Use the parent's native committed extent; resize commits reapply this
+        # model through the ordinary resize notification path.
+        viewport = parent.outer_size.region.shrink(parent.styles.gutter).width or app.size.width
         resolved = app.sidebar_layout.resolve(viewport, {key: bar.collapsed for key, bar in siblings.items()})
         geometry = resolved.bars[self.id]
         width = geometry.width
@@ -703,7 +787,7 @@ class SideBar(containers.Vertical):
         self.offset = (geometry.x, 0)
         if handle := self.query_one_optional(SidebarResizeHandle):
             handle.display = not self.collapsed
-        if controls := self.query_one_optional("#sidebar-controls"):
+        if self._panels_loaded and (controls := self.query_one_optional("#sidebar-controls")):
             controls.display = not self.collapsed
             slider = controls.query_one("#sidebar-width-slider", SidebarSlider)
             slider.reversed = self.right
@@ -721,7 +805,8 @@ class SideBar(containers.Vertical):
             compact = all(action is not None for action in directions.values()) and width - 4 < 21
             actions.set_class(compact, "-compact")
             controls.styles.height = 3 if compact else 2
-        content = next((child for child in parent.children if not isinstance(child, SideBar)), None)
+        content = next((child for child in parent.children
+                        if child.display and not isinstance(child, SideBar)), None)
         if content is not None:
             content.styles.margin = (0, resolved.right_gutter, 0, resolved.left_gutter)
         return True
@@ -812,10 +897,9 @@ class SideBar(containers.Vertical):
     def render(self) -> str:
         return ("<" if self.right else ">") if self.collapsed else ""
 
-    def _settings_changed(self, update: tuple[str, object]) -> None:
-        key, value = update
-        if key == "sidebar.hide":
-            self.collapsed = bool(value)
+    def _settings_changed(self, update: PreferenceChange) -> None:
+        if update.field is SidebarSettings.hide:
+            self.collapsed = cast("ToadApp", self.app).settings.sidebar.hide
 
     @on(SideBarToggle.Pressed)
     def on_toggle_pressed(self, event: SideBarToggle.Pressed) -> None:
@@ -837,22 +921,33 @@ class SideBar(containers.Vertical):
 
     def toggle(self, *, focus: bool = True) -> None:
         collapsed = not self.collapsed
+        return_focus = collapsed and (focus or self.has_focus_within)
+        if return_focus and self.is_mounted and self.screen.is_current:
+            screen = self.screen
+            if isinstance(screen, SidebarFocusOwner):
+                target = screen.sidebar_focus_target()
+                # Native Hide otherwise reconstructs a full geometry-sorted
+                # focus chain before the queued Dismiss can return to input.
+                screen.set_focus(target, scroll_visible=False)
         if self._navigation is None:
             app = cast("ToadApp", self.app)
-            app.settings.set("sidebar.hide", collapsed)
+            app.settings.sidebar.hide = collapsed
             # Project this input on its visible owner immediately. The shared
             # settings signal still updates other views, idempotently.
-            self.collapsed = app.settings.get("sidebar.hide", bool)
+            self.collapsed = app.settings.sidebar.hide
         else:
             self.collapsed = collapsed
         if collapsed:
-            if focus or self.has_focus_within:
+            if return_focus:
                 self.post_message(self.Dismiss())
         elif focus:
             # Panels are already displayed by the synchronous watcher. Queue
             # native focus now so its highlight can share the opening frame,
             # rather than waiting for a painted frame to request another one.
-            self.query_one("SideBarCollapsible CollapsibleTitle").focus()
+            if title := self.query_one_optional("SideBarCollapsible CollapsibleTitle"):
+                title.focus()
+            else:
+                self.schedule_hydration()
         if not focus and self.is_mounted and self.screen.is_current:
             parent = self.parent
             if isinstance(parent, Widget):
@@ -868,12 +963,12 @@ class SideBar(containers.Vertical):
 
     def reveal(self) -> None:
         if self._navigation is None:
-            cast("ToadApp", self.app).settings.set("sidebar.hide", False)
+            cast("ToadApp", self.app).settings.sidebar.hide = False
         else:
             self.collapsed = False
 
     def action_dismiss(self) -> None:
-        if cast("ToadApp", self.app).settings.get("sidebar.hide", bool):
+        if cast("ToadApp", self.app).settings.sidebar.hide:
             self.collapsed = True
         self.post_message(self.Dismiss())
 

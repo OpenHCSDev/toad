@@ -60,7 +60,7 @@ def loop_from_index(
     Args:
         values: A sequence of values.
         index: Starting index.
-        direction: Direction to move index (+1 for forward, -1 for backward).
+        direction: Direction to move index (+1 for forward, -1 for previous).
         bool: Should the index wrap when out of bounds?
 
     Yields:

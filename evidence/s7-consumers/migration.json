@@ -1,0 +1,20 @@
+{
+  "changed_files": [
+    "src/toad/channel_preparation.py",
+    "tests/async_thread_open_pilot.py",
+    "tests/channel_history_reader_pilot.py",
+    "tests/comms_pilot.py",
+    "tests/default_route_cancel_pilot.py",
+    "tests/default_route_private_user_pilot.py",
+    "tests/e2e_pty.py",
+    "tests/historical_views_pilot.py",
+    "tests/hot_path_invalidation_pilot.py",
+    "tests/in_out_filter_pilot.py",
+    "tests/message_categories_pilot.py",
+    "tests/off_tail_checkpoint_pilot.py",
+    "tests/session_sort_pilot.py",
+    "tests/stop_responsiveness_pilot.py",
+    "tests/thread_unread_start_pilot.py"
+  ],
+  "method": "Reviewed AST caller migration plus explicit fixture-owner/status fixes"
+}

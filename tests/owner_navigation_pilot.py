@@ -5,7 +5,9 @@ import os
 import tempfile
 from pathlib import Path
 
-from agent_comms import Thread, wire
+from agent_comms.child_process import ProcessIdentity
+from agent_comms.threads import Thread
+from agent_comms.comms import wire
 from textual.worker import WorkerCancelled
 
 from toad.app import ToadApp
@@ -24,7 +26,7 @@ async def main() -> None:
     )
     comms = wire(root / "wire")
     for name in (root.name, "owner-a", "owner-b"):
-        comms.register(Thread(name, frozenset(), str(root), pid=os.getpid()))
+        comms.threads.register(Thread(name, frozenset(), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
 
     app = ToadApp(project_dir=str(root))
     async with app.run_test(size=(120, 44)) as pilot:

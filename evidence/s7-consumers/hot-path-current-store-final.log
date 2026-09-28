@@ -1,0 +1,1 @@
+hot paths: no missing-tree scans or tab I/O; directory bursts coalesce without lost changes

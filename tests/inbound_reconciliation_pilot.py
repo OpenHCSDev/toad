@@ -7,18 +7,16 @@ import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
-from agent_comms import (
-    Message,
-    MessageType,
-    Thread,
-    TranscriptCursor,
-    TranscriptEvent,
-    TranscriptPage,
-    TurnRouting,
-    wire,
-)
+from agent_comms.messages import Message, MessageType
+from agent_comms.threads import Thread
+from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcript_events import AssistantTranscript, UserTranscript
+from agent_comms.routing import TurnRouting
+from agent_comms.comms import wire
 from committed_history_pilot import SnapshotAgent
 from runtime_fixture import ToadApp
+from textual.selection import SELECT_ALL
+from textual.worker import WorkerCancelled
 
 from toad.acp.messages import IncomingMessage as IncomingEvent
 from toad.widgets import transcript_fragments
@@ -55,7 +53,7 @@ class TestAgent(SnapshotAgent):
 
 def routed(sequence, text):
     message = Message("peer", "owner", text, MessageType.INFO, seq=sequence)
-    return TranscriptEvent("user", text, routing=TurnRouting((message,), None))
+    return UserTranscript(text, routing=TurnRouting((message,), None))
 
 
 def inbound(view):
@@ -73,7 +71,7 @@ async def arrivals(view, pilot):
     cursor = TranscriptCursor("", 0)
     agent = TestAgent(
         TranscriptPage(
-            (TranscriptEvent("assistant", "saved reply"),), cursor, cursor, False, False
+            (AssistantTranscript('saved reply'),), cursor, cursor, False, False
         )
     )
     view.set_reactive(type(view).agent, agent)
@@ -141,13 +139,72 @@ async def arrivals(view, pilot):
     ), "detached page cannot retire a current live row"
 
 
+async def provisional_history(view, pilot):
+    """Rejected replacement mounts never acquire ownership of live notices."""
+    cursor = TranscriptCursor("provisional", 1)
+    agent = TestAgent(TranscriptPage(
+        (routed(41, "saved notice"), AssistantTranscript('saved reply')),
+        cursor, cursor, False, False,
+    ))
+    view.set_reactive(type(view).agent, agent)
+    view.agent_ready = True
+    await view.on_incoming_message(IncomingEvent("peer", "owner", "saved notice", 41))
+    notice = view.contents.query_one(IncomingMessage)
+    live = await view.post(AgentResponse("live reply"))
+    original = view.contents.mount
+    for cancel in (False, True):
+        entered, release = asyncio.Event(), asyncio.Event()
+
+        async def mount(*widgets, **kwargs):
+            result = await original(*widgets, **kwargs)
+            if any(isinstance(widget, TranscriptHistory) for widget in widgets):
+                entered.set()
+                await release.wait()
+            return result
+
+        with patch.object(view.contents, "mount", mount):
+            view.window.anchor()
+            view._transcript_dirty = view._needs_transcript_checkpoint = True
+            work = view._compact_committed_history()
+            await asyncio.wait_for(entered.wait(), 5)
+            await pilot.pause()
+            assert notice.is_attached, "Provisional page retired a live notice before acceptance"
+            if cancel:
+                work.cancel()
+            else:
+                view.window.release_anchor()
+            release.set()
+            try:
+                await work.wait()
+            except WorkerCancelled:
+                assert cancel
+        await pilot.pause()
+        assert notice.is_attached and live.is_attached
+        assert not view.contents.query(TranscriptHistory), "Rejected replacement leaked its pager"
+    await checkpoint(view)
+    await pilot.pause()
+    assert not notice.is_attached and not live.is_attached
+    assert inbound(view).count("saved notice") == 1
+    # A selected wire notice can outlive its Covered event. Once released, the
+    # same accepted source must still prove coverage without requiring new pages.
+    protected = IncomingMessage("peer", "saved notice", "owner", sequence=41)
+    await view.contents.mount(protected)
+    view.screen.selections = {protected: SELECT_ALL}
+    history = view.contents.query_one(TranscriptHistory)
+    await view.on_transcript_history_covered(history.Covered(agent.page.events, history))
+    assert protected.is_attached
+    view.screen.clear_selection()
+    await checkpoint(view)
+    assert not protected.is_attached
+
+
 async def disk_history(view, pilot, root):
     """A real saved range and filtered older overlay survive a newer bounded tail."""
     comms = wire(root / "wire")
-    comms.register(Thread("owner", frozenset(), str(root)))
+    comms.threads.register(Thread("owner", frozenset(), str(root)))
     session = root / "session.jsonl"
     session.touch()
-    comms.attach_session("owner", str(session))
+    comms.threads.attach_session("owner", str(session))
 
     def append(entry, role, text, sequence=None):
         row = {
@@ -160,7 +217,7 @@ async def disk_history(view, pilot, root):
         with session.open("a") as stream:
             stream.write(json.dumps(row) + "\n")
         if sequence is not None:
-            comms.transcript_routes.record(
+            comms.transcripts.routes.record(
                 str(session), (entry,), routed(sequence, text).routing
             )
 
@@ -170,7 +227,7 @@ async def disk_history(view, pilot, root):
 
     class DiskAgent(TestAgent):
         async def get_transcript_page(self, **kwargs):
-            return comms.thread_transcript_page("owner", **kwargs)
+            return comms.transcripts.thread_transcript_page("owner", **kwargs)
 
     agent = DiskAgent(None)
     view.set_reactive(type(view).agent, agent)
@@ -248,7 +305,7 @@ async def disk_history(view, pilot, root):
 
 
 async def main():
-    for case in (arrivals, disk_history):
+    for case in (arrivals, provisional_history, disk_history):
         with tempfile.TemporaryDirectory(prefix="toad-inbound-reconcile-") as directory:
             root = Path(directory)
             os.environ.update(

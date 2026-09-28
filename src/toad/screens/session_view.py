@@ -2,7 +2,9 @@
 
 from dataclasses import dataclass, replace
 from functools import cached_property
+from collections.abc import Callable
 from typing import TYPE_CHECKING, cast
+from weakref import WeakSet
 import asyncio
 
 from textual.events import Resize, ScreenResume
@@ -12,6 +14,7 @@ from textual.dom import DOMNode
 from textual.geometry import Size
 from textual.screen import Screen
 from textual.widget import Widget
+from toad.widgets.side_bar import SidebarFocusOwner
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
@@ -28,11 +31,87 @@ class ViewStyleRevision:
     css_generation: int
 
 
-class SessionView(Screen):
+class SessionView(SidebarFocusOwner, Screen):
+    # Keep measured geometry for fast revisits, but do not retain every inactive
+    # tab's rendered line/segment graph in the cyclic collector's live heap.
+    RETAIN_INACTIVE_PAINT = False
+
     _resume_style: ViewStyleRevision | None = None
     _navigation_applied = False
     _navigation_changed = False
     _resume_styles_changed = False
+    _first_frame_presented = False
+    _first_frame_flush_queued = False
+    _presentation_revision = 0
+    _navigation_frame_pending = False
+
+    @cached_property
+    def body_windows(self) -> WeakSet:
+        return WeakSet()
+
+    def on_screen_suspend(self) -> None:
+        self._presented_event.set()
+        for window in self.body_windows:
+            window.retire_presentation_wait()
+            window.document_viewport.request()
+        for window in self.history_anchors:
+            window.retire_presentation_wait()
+
+    def on_screen_resume(self) -> None:
+        for window in self.body_windows:
+            window.document_viewport.request()
+
+    @cached_property
+    def _presented_event(self) -> asyncio.Event:
+        return asyncio.Event()
+
+    async def wait_presented(self) -> bool:
+        await self._presented_event.wait()
+        return self.is_attached and self.is_current and not self._navigation_frame_pending
+
+    @cached_property
+    def _initial_frame_callbacks(self) -> dict[tuple[Widget, Callable[[], object]], None]:
+        return {}
+
+    def call_after_first_frame(self, owner: Widget, callback: Callable[[], object]) -> None:
+        """Defer initial source work until this view's first presented frame.
+
+        A normal after-refresh callback can run inside a paint-suppressed
+        navigation batch. The owning widget still receives and executes the
+        callback through its ordinary message pump once presentation completes.
+        """
+        if (self._first_frame_presented and not self._navigation_frame_pending
+                and not cast("ToadApp", self.app)._atomic_mode_switch):
+            owner.call_after_refresh(callback)
+        elif not self._closing and not self._closed:
+            self._initial_frame_callbacks[owner, callback] = None
+
+    def _finish_first_frame(self) -> None:
+        self._first_frame_flush_queued = False
+        if self._closing or self._closed or not self.is_attached or not self.is_current:
+            return
+        self._first_frame_presented = True
+        self._navigation_frame_pending = False
+        self._presented_event.set()
+        callbacks = tuple(self._initial_frame_callbacks)
+        self._initial_frame_callbacks.clear()
+        for owner, callback in callbacks:
+            if owner.is_attached and not owner._closing and not owner._closed:
+                owner.call_later(callback)
+
+    def _frame_presented(self, revision: int) -> None:
+        """A writer receipt belongs to the activation that submitted its frame."""
+        if revision == self._presentation_revision:
+            self._finish_first_frame()
+
+    async def _message_loop_exit(self) -> None:
+        self._presented_event.set()
+        self._initial_frame_callbacks.clear()
+        await super()._message_loop_exit()
+
+    def sidebar_focus_target(self) -> Widget | None:
+        # Provisional/loading screens have no input yet.
+        return None
 
     def on_resize(self, _event: Resize) -> None:
         from toad.widgets.side_bar import SideBar
@@ -88,13 +167,29 @@ class SessionView(Screen):
             return
         super()._compositor_refresh()
 
+    def present_navigation(self) -> None:
+        """Commit prepared geometry once, without remeasuring or repainting twice."""
+        if self.app._batch_count:
+            self.refresh()
+            return
+        self._set_dirty()
+        self._dirty_widgets.add(self)
+        self._repaint_required = False
+        self._compositor.update_widgets(self._dirty_widgets)
+        self._compositor_refresh()
+
     @cached_property
     def history_anchors(self) -> set["HistoryWindow"]:
         """Only windows with an active render transaction need compensation."""
         return set()
 
     def _use_viewport_layout(self) -> bool:
-        return self.is_current and not self.history_anchors
+        return self.is_current
+
+    def _layout_geometry_targets(self) -> tuple[Widget, ...]:
+        return tuple(target for window in self.history_anchors
+                     if window.history_anchor is not None
+                     for target in window.history_anchor.geometry_targets)
 
     def _refresh_layout(self, size: Size | None = None, scroll: bool = False) -> None:
         from toad.widgets.history_anchor import HistoryAnchor
@@ -102,18 +197,23 @@ class SessionView(Screen):
         # Keep the last committed geometry: reading virtual_region here can
         # itself rebuild Textual's invalidated map with the new child positions.
         # Only the reader's current scroll/follow intent is refreshed pre-layout.
+        tracked = tuple(self.history_anchors)
         anchors = [
-            (window, replace(window.history_anchor, scroll_y=window.scroll_y,
-                             follow_tail=window.follows_tail, scroll_revision=window.scroll_revision))
-            for window in self.history_anchors
+            (window, window.history_anchor.before_layout(window))
+            for window in tracked
             if window.history_anchor is not None and window.history_anchor.widget.is_attached
         ]
         if not anchors:
             super()._refresh_layout(size, scroll)
+            for window in tracked:
+                if window.history_layout_ready is not None:
+                    window.history_layout_ready.set()
             return
         # Screen normally paints from inside _refresh_layout. Do not expose the
         # prepend/eviction coordinates before compensating for their height.
         with self.app.batch_update():
+            for window, position in anchors:
+                window.history_anchor = position
             super()._refresh_layout(size, scroll)
             changed = False
             for window, position in anchors:
@@ -123,7 +223,7 @@ class SessionView(Screen):
                 changed |= window.scroll_y != previous
             if changed:
                 super()._refresh_layout(size, scroll=True)
-            for window, _position in anchors:
+            for window in tracked:
                 if window.history_layout_ready is not None:
                     window.history_layout_ready.set()
 
@@ -166,44 +266,35 @@ class SessionView(Screen):
             return None, None
         return widget, offset
 
-    def _update_focus_styles(
-        self, focused: Widget | None = None, blurred: Widget | None = None
-    ) -> None:
-        """Only changed focus-within ancestors can invalidate their descendants."""
-        entered = set(focused.ancestors_with_self) if focused is not None else set()
-        exited = set(blurred.ancestors_with_self) if blurred is not None else set()
-        changed = {node for node in entered ^ exited if node._has_focus_within}
-        roots = [node for node in changed if not any(parent in changed for parent in node.ancestors)]
-        if roots:
-            self.app.stylesheet.update_nodes(
-                {child for root in roots for child in root.walk_children(with_self=True)},
-                animate=True,
-            )
-
     def capture_navigation(self) -> None:
         from toad.widgets.comms_sidebar import CommsSidebar
 
         if sidebar := self.query_one_optional(CommsSidebar):
             sidebar.capture_navigation()
 
+    def channels_context(self) -> tuple[str, str]:
+        """Identity fields supplied to the shared navigation presentation."""
+        return "", ""
+
     async def prepare_navigation(self) -> None:
         from toad.widgets.comms_sidebar import CommsSidebar
         from toad.widgets.session_tabs import SessionsTabs
         from toad.widgets.side_bar import SideBar, SideBarCollapsible
 
+        self._presentation_revision += 1
+        self._navigation_frame_pending = True
+        self._presented_event.clear()
+        self._first_frame_flush_queued = False
         self._navigation_changed = False
         for side_bar in self.query(SideBar):
             panels = tuple(side_bar.query(SideBarCollapsible))
             before = tuple(panel.collapsed for panel in panels)
             self._navigation_changed |= side_bar.restore_navigation()
             self._navigation_changed |= before != tuple(panel.collapsed for panel in panels)
+            side_bar.schedule_hydration()
         if sidebar := self.query_one_optional(CommsSidebar):
             sidebar.prepare_navigation()
-            await sidebar.present_cached_sessions()
-            # The snapshot can differ only in activity, unread, or labels.
-            # Such rows repaint in place. Mount, reorder, expansion and size
-            # changes independently invalidate Textual's layout, so a new wire
-            # revision by itself does not justify reflowing the transcript.
+            self.call_after_first_frame(sidebar, sidebar.start_navigation_hydration)
 
         if tabs := self.query_one_optional(SessionsTabs):
             await tabs._sync_tabs()
@@ -211,7 +302,6 @@ class SessionView(Screen):
     async def layout_navigation(self) -> None:
         """Measure the complete tree, then position its viewport before painting."""
         from toad.widgets.comms_sidebar import CommsSidebar
-        from toad.widgets.side_bar import SideBar
 
         sidebar = self.query_one_optional(CommsSidebar)
         if (self._navigation_applied and not self._navigation_changed
@@ -220,43 +310,20 @@ class SessionView(Screen):
             # Textual's ScreenResume already reflowed this mounted screen.
             # Repeating its full compositor pass on every tab activation is
             # unnecessary when navigation/geometry did not change.
-            if sidebar is not None:
+            if sidebar is not None and sidebar._last_snapshot is not None:
                 if sidebar.restore_scroll():
                     self._refresh_layout(self.app.size, scroll=True)
-                sidebar.navigation_ready.set()
             return
-        sizes = {
-            widget: widget.size
-            for widget in sidebar.query_ancestor(SideBar).walk_children(Widget)
-        } if sidebar is not None else {}
         self._refresh_layout(self.app.size)
-        if sidebar is not None:
+        if sidebar is not None and sidebar._last_snapshot is not None:
             if sidebar.restore_scroll():
                 self._refresh_layout(self.app.size, scroll=True)
-            # Reflow exposes rows and queues their Resize/Show handlers. Let
-            # those handlers invalidate measurements before committing a frame.
-            resized = [widget for widget, size in sizes.items() if widget.size != size]
-            if resized:
-                await asyncio.gather(*(self._settle_widget(widget) for widget in resized))
-                self._refresh_layout(self.app.size)
-            sidebar.navigation_ready.set()
+        # The native resize handlers and sidebar hydration complete normally
+        # after the shell is presented, rather than holding a global paint mask.
         self._layout_required = False
         self._scroll_required = False
         self._dirty_widgets.clear()
         self._navigation_applied = True
-
-    @staticmethod
-    async def _settle_widget(widget: Widget) -> None:
-        """Await queued resize handlers, or the widget's removal, without polling."""
-        processed = asyncio.Event()
-        if widget._task is None or not widget.call_later(processed.set):
-            return
-        completed = asyncio.create_task(processed.wait())
-        try:
-            await asyncio.wait((completed, widget._task), return_when=asyncio.FIRST_COMPLETED)
-        finally:
-            completed.cancel()
-            await asyncio.gather(completed, return_exceptions=True)
 
     def _on_screen_resume(self, event: ScreenResume) -> None:
         # rules_map is a disposable cache. Re-parsing identical stylesheet

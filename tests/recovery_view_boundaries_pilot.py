@@ -8,7 +8,9 @@ import sys
 import tempfile
 from unittest.mock import patch
 
-from agent_comms import Thread, wire
+from agent_comms.child_process import ProcessIdentity
+from agent_comms.threads import Thread
+from agent_comms.comms import wire
 from runtime_fixture import ToadApp
 from toad.acp.messages import CoordinationUpdate
 from toad.widgets.recovery_view import RecoveryView, _read_gateway
@@ -56,7 +58,7 @@ async def dual_root_projection():
         os.environ.update(XDG_CONFIG_HOME=str(root / "config"), XDG_STATE_HOME=str(root / "state"),
                           XDG_DATA_HOME=str(root / "data"), AGENT_COMMS_ROOT=str(a))
         for target in (a, b):
-            wire(target).register(Thread("fixture", frozenset({"test"}), str(root), pid=os.getpid()))
+            wire(target).threads.register(Thread("fixture", frozenset({"test"}), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
         app = ToadApp(project_dir=str(root))
         requests = []
         blocked = [False]
@@ -82,7 +84,7 @@ async def dual_root_projection():
                 await owner_screen.on_coordination_update(CoordinationUpdate(
                     thread="fixture", wire_root=str(b), persistence="persistent", transport="stdio"))
                 assert view._wire_root == b
-                app.settings.set("ui.recovery-view", True)
+                app.settings.ui.recovery_view = True
                 owner_screen.query_one("#thread-sidebar", SideBar).reveal()
                 view.query_ancestor(SideBarCollapsible).collapsed = False
                 async with asyncio.timeout(5):
@@ -109,6 +111,14 @@ async def dual_root_projection():
                 # Move the authoritative owner to A while one B fetch is in
                 # flight; the stale B result is cancelled and must not paint.
                 await app.switch_mode(owner_mode)
+                owner_screen.query_one("#thread-sidebar", SideBar).reveal()
+                view.query_ancestor(SideBarCollapsible).collapsed = False
+                view.scroll_visible(animate=False)
+                async with asyncio.timeout(5):
+                    while view not in owner_screen._compositor.visible_widgets:
+                        await pilot.pause(.02)
+                if view._read_task is not None:
+                    await view._read_task
                 blocked[0] = True
                 view.action_refresh()
                 async with asyncio.timeout(5):

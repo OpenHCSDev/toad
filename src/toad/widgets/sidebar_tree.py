@@ -9,6 +9,14 @@ from textual.widgets import Static
 from toad.widgets.sidebar_viewport import SidebarHeader
 
 
+class SidebarMembers(VerticalGroup):
+    CACHE_HEIGHT_INDEPENDENT_ARRANGEMENT = True
+
+
+class ScrollingSidebarMembers(VerticalScroll):
+    CACHE_HEIGHT_INDEPENDENT_ARRANGEMENT = True
+
+
 class SidebarDisclosure(Static, can_focus=True):
     BINDINGS = [Binding("enter,space", "toggle", "Expand group", show=False)]
     DEFAULT_CSS = "SidebarDisclosure { width: 2; height: 1; pointer: pointer; }"
@@ -24,6 +32,8 @@ class SidebarDisclosure(Static, can_focus=True):
 
 class SidebarGroup(VerticalGroup):
     """A common header/disclosure and optional bounded member viewport."""
+
+    CACHE_HEIGHT_INDEPENDENT_ARRANGEMENT = True
 
     DEFAULT_CSS = """
     SidebarGroup { height: auto; }
@@ -46,7 +56,7 @@ class SidebarGroup(VerticalGroup):
         self.expanded = expanded
         self.disclosure = disclosure_type("▾" if expanded else "▸")
         self.controls = controls
-        container = VerticalScroll if scrollable else VerticalGroup
+        container = ScrollingSidebarMembers if scrollable else SidebarMembers
         self.member_container = container(classes="group-members channel-members")
 
     def compose(self) -> ComposeResult:
@@ -74,6 +84,8 @@ class SidebarGroup(VerticalGroup):
         The caller serializes updates and owns empty-state rows. Neither a
         title/status change nor a selection repaint remounts the list.
         """
+        if not self.is_attached or self._closing or self._pruning:
+            return ()
         keys = tuple(keys)
         wanted = set(keys)
         retired = [key for key, row in rows.items()
@@ -83,6 +95,8 @@ class SidebarGroup(VerticalGroup):
             # Retire that exact set in one DOM operation, not an intermediate
             # remove/layout/message-pump turn for every member of the roster.
             await self.member_container.remove_children([rows.pop(key) for key in retired])
+            if not self.is_attached or self._closing or self._pruning:
+                return ()
         mounted = []
         for key in keys:
             current = rows.get(key)
@@ -92,6 +106,8 @@ class SidebarGroup(VerticalGroup):
             update(key, current)
         if mounted:
             await self.member_container.mount(*mounted)
+            if not self.is_attached or self._closing or self._pruning:
+                return ()
         ordered = tuple(rows[key] for key in keys)
         if ordered and tuple(self.member_container.children) != ordered:
             positions = {row: index for index, row in enumerate(ordered)}
@@ -101,6 +117,8 @@ class SidebarGroup(VerticalGroup):
 
 class TargetTree(Vertical):
     """Common row keyboard mechanics; specialized trees own data and state."""
+
+    CACHE_HEIGHT_INDEPENDENT_ARRANGEMENT = True
 
     DEFAULT_CSS = """
     TargetTree .-selected, TargetTree .-selected:hover, TargetTree .-selected:focus {

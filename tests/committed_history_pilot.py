@@ -5,7 +5,8 @@ import os
 import tempfile
 from pathlib import Path
 
-from agent_comms import TranscriptCursor, TranscriptEvent, TranscriptPage
+from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcript_events import AssistantTranscript
 from textual.content import Content
 from thread_activation_pilot import FrameApp
 from toad.acp.agent import Agent
@@ -16,6 +17,10 @@ from toad.widgets.transcript_history import TranscriptHistory
 
 class SnapshotAgent(Agent):
     def __init__(self, page):
+        super().__init__(Path.cwd(), {
+            "name": "Snapshot fixture", "identity": "snapshot-fixture", "short_name": "fixture",
+            "run_command": {"*": "/bin/false"}, "protocol": "acp",
+        }, None)
         self.page = page
         self.ready = False
 
@@ -55,11 +60,12 @@ async def main():
             conversation = app.screen.conversation
             await conversation.contents.mount(*[AgentResponse(f"Old block {i}\n\nAnother paragraph") for i in range(100)])
             await pilot.pause()
-            assert len(list(conversation.contents.query("*"))) > 250
+            assert sum(isinstance(child, AgentResponse) for child in conversation.contents.children) == 100
+            assert len(conversation.contents.children) > conversation.MAX_LIVE_BLOCKS
             cursor = TranscriptCursor("", 0)
             page = TranscriptPage(
-                tuple(TranscriptEvent("assistant", f"Saved paragraph {i}") for i in range(40))
-                + (TranscriptEvent("assistant", "Canonical final reply"),),
+                tuple(AssistantTranscript(f'Saved paragraph {i}') for i in range(40))
+                + (AssistantTranscript('Canonical final reply'),),
                 cursor, cursor, False, False,
             )
             agent = SnapshotAgent(page)
@@ -77,7 +83,7 @@ async def main():
             conversation.busy_count = 1
             conversation.turn = "agent"
             app.frames = []
-            conversation.post_message(TurnSettled("cancelled-turn"))
+            conversation.post_message(TurnSettled("cancelled-turn", agent=agent, sequence=1))
             conversation.post_message(TranscriptChanged())
             async with asyncio.timeout(5):
                 while not conversation.contents.query(TranscriptHistory):

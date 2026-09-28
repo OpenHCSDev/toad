@@ -1,0 +1,22 @@
+E501 Line too long (89 > 88)
+    --> src/toad/ansi/_ansi.py:1427:89
+     |
+1425 |         """Remove blank lines at the end of the scrollback buffer.
+1426 |
+1427 |         A line is considered blank if it is whitespace and has no color or style applied.
+     |                                                                                         ^
+1428 |
+1429 |         """
+     |
+
+E501 Line too long (92 > 88)
+    --> src/toad/ansi/_ansi.py:1486:89
+     |
+1485 |         Returns:
+1486 |             A pair of deltas or `None for full refresh, for scrollback and alternate screen.
+     |                                                                                         ^^^^
+1487 |         """
+1488 |         alternate_buffer = self.alternate_buffer
+     |
+
+Found 2 errors.

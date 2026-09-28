@@ -1,4 +1,4 @@
-"""Queued prompts can be edited or removed without stopping the turn."""
+"""Remote edits are held without exact-ID/CAS support; never clear-and-resend."""
 
 import asyncio
 import os
@@ -7,7 +7,7 @@ from pathlib import Path
 
 from textual.content import Content
 
-from toad.app import ToadApp
+from runtime_fixture import ToadApp
 
 
 class FakeAgent:
@@ -48,23 +48,36 @@ async def main():
             conversation.agent_ready = True
             conversation.turn = "agent"
             conversation.queue_supported = True
-            conversation.queued_prompts = ["first", "second", "third"]
+            conversation.queued_prompts = ["same", "same", "unknown input"]
+            conversation.prompt.text = "local unsent draft"
             await pilot.pause()
 
-            conversation._on_queue_choice("remove:1")
-            await pilot.pause()
-            assert conversation.queued_prompts == ["first", "third"]
-            assert agent.cleared == 1
-            assert [text for text, _ in agent.sent] == ["first", "third"]
+            def unchanged():
+                assert conversation.queued_prompts == ["same", "same", "unknown input"]
+                assert conversation.prompt.text == "local unsent draft"
+                assert agent.cleared == 0 and agent.sent == []
+                assert conversation.turn == "agent"
 
-            agent.sent.clear()
-            conversation._on_queue_choice("edit:0")
+            screen = app.screen
+            conversation.open_queue_menu()
             await pilot.pause()
-            assert conversation.prompt.text == "first"
-            assert conversation.queued_prompts == ["third"]
-            assert agent.cleared == 2
-            assert [text for text, _ in agent.sent] == ["third"]
-    print("queue manage: remove/edit re-queue survivors and never cancel the turn")
+            assert app.screen is screen, "Unsupported remote edit menu was exposed"
+            unchanged()
+            for action in ("remove:1", "edit:0", "clear", None):
+                conversation._on_queue_choice(action)
+                await pilot.pause()
+                unchanged()
+            for replacement in ([], ["same"], ["same", "same", "unknown input"]):
+                conversation.replace_queued(replacement)
+                await pilot.pause()
+                unchanged()
+            # Holding remote controls must not prevent ordinary local editing.
+            conversation.prompt.text = "revised local draft"
+            assert conversation.prompt.text == "revised local draft"
+            assert agent.cleared == 0 and agent.sent == []
+            assert app._exception is None
+        await asyncio.get_running_loop().shutdown_default_executor()
+    print("queue manage: unsupported remote mutations held, no clear/resend, local draft untouched")
 
 
 if __name__ == "__main__":

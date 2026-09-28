@@ -7,15 +7,17 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 from agent_comms.acp import CommsAgent
-from agent_comms.operations import wire
+from agent_comms.comms import wire
 
 from toad.acp.agent import Agent
 from toad.acp.messages import GoalSnapshotUpdate
 
 
 async def main():
+    artifacts = Path(__file__).resolve().parents[1] / ".artifacts"
+    artifacts.mkdir(exist_ok=True)
     with TemporaryDirectory(
-        prefix="toad-goal-edit-owner-", dir="/var/tmp"
+        prefix="toad-goal-edit-owner-", dir=artifacts
     ) as directory:
         root = Path(directory)
         os.environ["AGENT_COMMS_AGENT_MODELS"] = "openrouter/fake"
@@ -40,7 +42,7 @@ async def main():
             changed = await agent.edit_goal(original, "Revised objective")
             assert changed.id == original.id
             assert changed.revision == original.revision + 1
-            assert changed.status == original.status
+            assert changed.state.declared_name == original.state.declared_name
             assert comms.registry.require(session).goal == changed
             try:
                 await agent.edit_goal(original, "Stale overwrite")
@@ -69,7 +71,7 @@ async def main():
             emitted = []
             agent.post_message = emitted.append
             for goal_value, execution_value in (
-                (asdict(changed), asdict(execution)),
+                (changed.to_wire(), asdict(execution)),
                 (None, None),
             ):
                 agent.rpc_session_update(
@@ -93,7 +95,7 @@ async def main():
                 assert snapshot.execution == (execution if execution_value else None)
             emitted.clear()
             agent._publish_coordination_metadata(
-                {"_meta": owner._session_metadata(session)}, initial=True
+                {"_meta": owner.sessions.metadata(session)}, initial=True
             )
             snapshot = next(
                 item for item in emitted if isinstance(item, GoalSnapshotUpdate)

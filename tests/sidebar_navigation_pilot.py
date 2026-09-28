@@ -1,11 +1,15 @@
 """Sidebar navigation survives switching between independently mounted views."""
 
+import argparse
 import asyncio
+from contextlib import nullcontext
 import os
 import tempfile
 from pathlib import Path
+from unittest.mock import patch
 
-from agent_comms import Thread, wire
+from agent_comms.threads import Thread
+from agent_comms.comms import wire
 from runtime_fixture import ToadApp
 
 from toad.screens.main import MainScreen
@@ -34,21 +38,40 @@ class FrameApp(ToadApp):
         if (self.panel_frames is not None and renderable is not None
                 and not self._batch_count and screen is self.screen
                 and screen.query_one_optional(CommsSidebar) is not None):
-            self.panel_frames.append((self.current_mode, self.panel_text(screen)))
+            sidebar = screen.query_one(CommsSidebar)
+            self.panel_frames.append((self.current_mode, sidebar.navigation_ready.is_set(),
+                                      self.panel_text(screen)))
         return super()._display(screen, renderable)
 
 
-async def main():
-    with tempfile.TemporaryDirectory(prefix="toad-sidebar-state-") as directory:
+async def main(*, finish_before_layout=False):
+    original_after_refresh = CommsSidebar.call_after_refresh
+    completion_attempts = []
+
+    def before_layout(sidebar, callback, *args, **kwargs):
+        if callback == sidebar._finish_navigation:
+            # Deterministically deliver completion before the row mounts'
+            # queued resize/layout work, as a refresh callback can do.
+            if not sidebar.navigation_ready.is_set():
+                completion_attempts.append((sidebar.display, sidebar.navigation.channel_scroll_y,
+                                            sidebar.scroll_containers[0].max_scroll_y))
+            callback(*args, **kwargs)
+            assert not sidebar.navigation_ready.is_set() or sidebar.display
+            return True
+        return original_after_refresh(sidebar, callback, *args, **kwargs)
+
+    completion_order = (patch.object(CommsSidebar, "call_after_refresh", before_layout)
+                        if finish_before_layout else nullcontext())
+    with completion_order, tempfile.TemporaryDirectory(prefix="toad-sidebar-state-") as directory:
         root = Path(directory)
         os.environ.update(
             XDG_CONFIG_HOME=str(root / "config"), XDG_STATE_HOME=str(root / "state"),
             XDG_DATA_HOME=str(root / "data"), AGENT_COMMS_ROOT=str(root / "wire"),
         )
         comms = wire(root / "wire")
-        comms.register(Thread("worker", frozenset({"experiment"}), str(root)))
+        comms.threads.register(Thread("worker", frozenset({"experiment", *(f"channel-{i:02}" for i in range(30))}), str(root)))
         for index in range(30):
-            comms.set_channel(f"channel-{index:02}", frozenset({"experiment"}))
+            comms.channels.create_tag(f"channel-{index:02}")
         app = FrameApp(project_dir=str(root))
         async with app.run_test(size=(100, 30)) as pilot:
             await pilot.pause()
@@ -87,8 +110,8 @@ async def main():
             assert channel_mode != owner
             current = app.screen.query_one(CommsSidebar)
             await settled(current)
-            assert app.panel_frames and any(mode == channel_mode for mode, _ in app.panel_frames)
-            assert all(frame == expected_frame for _, frame in app.panel_frames), app.panel_frames
+            assert app.panel_frames and any(mode == channel_mode and ready for mode, ready, _ in app.panel_frames)
+            assert all(frame == expected_frame for _, ready, frame in app.panel_frames if ready), app.panel_frames
             app.panel_frames = None
             assert group(current, "#channel-28").expanded
             assert not group(current, "#any").expanded
@@ -127,8 +150,8 @@ async def main():
             await pilot.pause()
             current = app.screen.query_one(CommsSidebar)
             await settled(current)
-            assert app.panel_frames and any(mode == worker.mode_name for mode, _ in app.panel_frames)
-            assert all(frame == expected_frame for _, frame in app.panel_frames), app.panel_frames
+            assert app.panel_frames and any(mode == worker.mode_name and ready for mode, ready, _ in app.panel_frames)
+            assert all(frame == expected_frame for _, ready, frame in app.panel_frames if ready), app.panel_frames
             app.panel_frames = None
             assert app.current_mode == worker.mode_name
             assert group(current, "#channel-28").expanded
@@ -147,9 +170,14 @@ async def main():
             await pilot.hover(app.screen.conversation.prompt)
             assert "hover" not in member.pseudo_classes and member.current
             assert tuple(widget.scroll_y for widget in current.scroll_containers) == expected_scroll
+            if finish_before_layout:
+                assert any(not visible and saved > 0 for visible, saved, _ in completion_attempts)
+                assert any(visible and saved > maximum for visible, saved, maximum in completion_attempts), completion_attempts
         await asyncio.get_running_loop().shutdown_default_executor()
     print("sidebar navigation: expansion, scroll, and one remembered selection survive view changes")
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--finish-before-layout", action="store_true")
+    asyncio.run(main(finish_before_layout=parser.parse_args().finish_before_layout))

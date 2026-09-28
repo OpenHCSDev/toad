@@ -5,7 +5,9 @@ import os
 import tempfile
 from pathlib import Path
 
-from agent_comms import Thread, wire
+from agent_comms.child_process import ProcessIdentity
+from agent_comms.threads import Thread
+from agent_comms.comms import wire
 from textual.worker import WorkerCancelled
 
 from toad.app import ToadApp
@@ -50,8 +52,8 @@ async def main() -> None:
         XDG_STATE_HOME=str(root / "state"),
         XDG_DATA_HOME=str(root / "data"),
     )
-    wire(root / "wire").register(
-        Thread(root.name, frozenset(), str(root), pid=os.getpid())
+    wire(root / "wire").threads.register(
+        Thread(root.name, frozenset(), str(root), process_identity=ProcessIdentity.capture(os.getpid()))
     )
     app = ToadApp(project_dir=str(root))
     width = int(os.getenv("TOAD_LAYOUT_WIDTH", "120"))

@@ -5,7 +5,9 @@ import os
 import tempfile
 from pathlib import Path
 
-from agent_comms import Thread, wire
+from agent_comms.child_process import ProcessIdentity
+from agent_comms.threads import Thread
+from agent_comms.comms import wire
 from toad.app import ToadApp
 from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.comms_sidebar import ChannelGroup, CommsSidebar
@@ -27,9 +29,9 @@ async def main():
         comms = wire(root / "wire")
         names = [f"worker-{index}-long-display-name" for index in range(8)]
         for name in names:
-            comms.register(Thread(name, frozenset({"talk"}), str(root), pid=os.getpid()))
+            comms.threads.register(Thread(name, frozenset({"talk"}), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
         for index in range(50):
-            comms.send(names[0], "#talk", f"Message {index}: " + "body " * 30)
+            comms.messaging.send(names[0], "#talk", f"Message {index}: " + "body " * 30)
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(100, 30)) as pilot:
             await pilot.pause()
@@ -40,42 +42,44 @@ async def main():
             await pilot.pause()
             chat = app.screen.query_one(CommsChatView)
             # A bounded initial page has not painted all 50 older messages.
-            assert comms.viewer_snapshot(str(root)).channel_unread["#talk"] > 0
-            comms.mark_user_view_read("#talk", worktree=str(root))
-            assert comms.viewer_snapshot(str(root)).channel_unread["#talk"] == 0
+            assert comms.views.viewer_snapshot(str(root)).channel_unread["#talk"] > 0
+            comms.views.mark_user_view_read("#talk", worktree=str(root))
+            assert comms.views.viewer_snapshot(str(root)).channel_unread["#talk"] == 0
             assert chat.window.follows_tail
             for name in names:
-                comms.begin_turn(name, name)
-            comms.send(names[0], "#talk", "ARRIVED_AFTER_ROSTER_GREW")
+                comms.agents.begin_turn(name, name)
+            comms.messaging.send(names[0], "#talk", "ARRIVED_AFTER_ROSTER_GREW")
             await chat._refresh()
-            await pilot.pause()
-            assert chat.window.follows_tail and chat.window.scroll_y == chat.window.max_scroll_y
+            # Participant hydration can resize the viewport after the history
+            # refresh returns; wait for the committed layout, not one tick.
+            await until(pilot, lambda: chat.window.follows_tail and
+                        chat.window.scroll_y == chat.window.max_scroll_y)
             assert any(message.body == "ARRIVED_AFTER_ROSTER_GREW" for message, _ in chat._history)
             chat.window.scroll_relative(y=-8, animate=False, immediate=True)
             await pilot.pause()
             position = chat.window.scroll_y
-            comms.send(names[0], "#talk", "WAIT_UNTIL_I_RETURN")
+            comms.messaging.send(names[0], "#talk", "WAIT_UNTIL_I_RETURN")
             await chat._refresh()
             await pilot.pause()
             assert not chat.window.follows_tail and chat.window.scroll_y == position
             chat.window.scroll_end(animate=False, immediate=True)
             await pilot.pause()
             assert chat.window.follows_tail
-            await until(pilot, lambda: comms.viewer_snapshot(str(root)).channel_unread["#talk"] == 0)
+            await until(pilot, lambda: comms.views.viewer_snapshot(str(root)).channel_unread["#talk"] == 0)
             await app.switch_mode(owner)
-            comms.send(names[0], "#talk", "unread one")
-            comms.send(names[0], "#talk", "unread two")
-            comms.acknowledge(names[1])
+            comms.messaging.send(names[0], "#talk", "unread one")
+            comms.messaging.send(names[0], "#talk", "unread two")
+            comms.messaging.acknowledge(names[1])
             sidebar = app.screen.query_one(CommsSidebar)
             await sidebar.sync_sessions()
             group = next(group for group in sidebar.query(ChannelGroup) if group.row.target_name == "#talk")
             assert group.unread_badge.render().plain == "(2)", (
                 group.unread_badge.render().plain,
-                comms.viewer_snapshot(str(root)).channel_unread["#talk"],
+                comms.views.viewer_snapshot(str(root)).channel_unread["#talk"],
             )
             await app.switch_mode(mode)
-            await until(pilot, lambda: comms.viewer_snapshot(str(root)).channel_unread["#talk"] == 0)
-            assert comms.viewer_snapshot(str(root)).channel_unread["#talk"] == 0
+            await until(pilot, lambda: comms.views.viewer_snapshot(str(root)).channel_unread["#talk"] == 0)
+            assert comms.views.viewer_snapshot(str(root)).channel_unread["#talk"] == 0
         # Deferred first-frame wire reads can still be finishing after the UI
         # closes; don't remove their test-owned files before the executor drains.
         await asyncio.get_running_loop().shutdown_default_executor()

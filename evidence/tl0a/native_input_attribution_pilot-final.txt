@@ -1,0 +1,5 @@
+/home/ts/.local/share/agent-comms/runtime-watcher-20260928/lib/python3.14/site-packages/textual/css/tokenizer.py:302: RuntimeWarning: coroutine 'connect_tcp.<locals>.try_connect' was never awaited
+  for name, value in zip(expect.names, match.groups()[1:]):
+RuntimeWarning: Enable tracemalloc to get the object allocation traceback
+native attribution: live/saved FROM/TO agree, human quotes preserved, historical=False
+native attribution: live/saved FROM/TO agree, human quotes preserved, historical=True

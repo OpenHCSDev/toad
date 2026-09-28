@@ -1,0 +1,11 @@
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-t8-small-boundaries-20260928/tests/t8_mounted_pilot.py", line 14, in <module>
+    from toad.db import DB, SessionMeta, Session
+  File "/home/ts/wt/toad-t8-small-boundaries-20260928/src/toad/db.py", line 72, in <module>
+    class Session(TypedTable, declared_name="sessions"):
+    ...<10 lines>...
+        meta_json: SessionMeta = field(default_factory=SessionMeta, metadata={"sql": Column(storage=SessionMetaStorage)})
+  File "/home/ts/wt/toad-t8-small-boundaries-20260928/src/toad/db.py", line 73, in Session
+    id: int | None = field(default=None, metadata={"sql": Column(primary_key=True, auto_increment=True)})
+                                                          ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: Column.__init__() got an unexpected keyword argument 'auto_increment'

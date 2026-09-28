@@ -5,7 +5,8 @@ import os
 import tempfile
 from pathlib import Path
 
-from agent_comms import TranscriptCursor, TranscriptEvent, TranscriptPage
+from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcript_events import AssistantTranscript
 from toad.acp.messages import TranscriptSnapshot
 from toad.app import ToadApp
 from toad.screens.main import MainScreen
@@ -80,7 +81,7 @@ async def main():
             app.frames = None
             await conversation.contents.remove_children()
             cursor = TranscriptCursor("test", 100)
-            page = TranscriptPage((TranscriptEvent("assistant", "LATEST-PAGED-ACTIVITY"),),
+            page = TranscriptPage((AssistantTranscript('LATEST-PAGED-ACTIVITY'),),
                                   cursor, cursor, True, False)
             started, release = asyncio.Event(), asyncio.Event()
 
@@ -88,7 +89,7 @@ async def main():
                 started.set()
                 await release.wait()
                 return TranscriptPage(
-                    tuple(TranscriptEvent("assistant", f"Earlier activity {i}: " + "wrapped text " * 30)
+                    tuple(AssistantTranscript(f'Earlier activity {i}: ' + 'wrapped text ' * 30)
                           for i in range(100)),
                     cursor, cursor, False, True,
                 )
@@ -110,8 +111,8 @@ async def main():
             # must not first show old records and then issue a deferred scroll.
             await conversation.contents.remove_children()
             snapshot = TranscriptPage(
-                tuple(TranscriptEvent("assistant", f"Snapshot paragraph {i}") for i in range(100))
-                + (TranscriptEvent("assistant", "LATEST-SNAPSHOT-ACTIVITY"),),
+                tuple(AssistantTranscript(f'Snapshot paragraph {i}') for i in range(100))
+                + (AssistantTranscript('LATEST-SNAPSHOT-ACTIVITY'),),
                 cursor, cursor, True, False,
             )
             app.frames = []

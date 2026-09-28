@@ -1,24 +1,28 @@
 """Owner socket compatibility when queue-scoped delivery projection is unavailable."""
 
 import asyncio
+from dataclasses import replace
 import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
 from agent_comms.acp import CommsAgent
-from agent_comms.input_disposition import AcpDeliveryCursors
-from agent_comms.operations import wire
+from agent_comms.input_disposition import AcpDeliveryCursors, InputDocument
+from agent_comms.input_attempt import UnknownInput
+from agent_comms.comms import wire
 from agent_comms.runtime import RuntimeProxy, socket_path
 from textual.widgets import Static
 
 from toad.acp.agent import Agent
 from toad.app import ToadApp
+from runtime_fixture import reveal_session_details
 from toad.widgets.input_delivery import (
     DeliveryHistoryAction,
     DeliveryInspect,
     InputDeliveryBar,
     InputDeliveryDetails,
 )
+from toad.widgets.session_details import SessionDetails
 
 
 async def main():
@@ -34,7 +38,7 @@ async def main():
         comms = wire(root / "wire")
         project = root / "project"
         project.mkdir()
-        AcpDeliveryCursors(comms.root).initialize(
+        AcpDeliveryCursors(comms.root / AcpDeliveryCursors.filename).initialize(
             frozenset({"project"}),
             "project",
             high_water=932,
@@ -47,31 +51,24 @@ async def main():
             runtime_enabled=True,
             auto_wake=False,
         )
-        owner._ensure_live_drain = lambda _: None
+        owner.inputs.ensure_live_drain = lambda _: None
         # Emulate the optional capability being unavailable. The separate
         # current_delivery_owner_pilot proves real live queue projection.
-        owner.awaiting_input_keys = lambda _: None
+        owner.inputs.awaiting_input_keys = lambda _: None
         proxy = None
         try:
             session = (await owner.new_session(cwd=str(project))).session_id
-            store = owner._dispositions
+            store = owner.inputs.dispositions
             admission = comms.registry.snapshot().admission_generations[session]
             old_rows = {
-                f"bus:{sequence}": {
-                    "key": f"bus:{sequence}",
-                    "sequence": sequence,
-                    "owner": session,
-                    "admission": admission,
-                    "target": "#review",
-                    "source_text": f"Historical notice {sequence}: " + "x" * 880,
-                    "turn_id": None,
-                    "native_id": None,
-                    "sent_text": None,
-                    "status": "unknown",
-                }
+                f"bus:{sequence}": UnknownInput(
+                    key=f"bus:{sequence}", sequence=sequence, owner=session,
+                    admission=admission, target="#review",
+                    source_text=f"Historical notice {sequence}: " + "x" * 880,
+                )
                 for sequence in range(1, 933)
             }
-            store._write(old_rows)
+            store.replace(InputDocument(old_rows))
             store.record(
                 "bus:933",
                 seq=933,
@@ -142,6 +139,7 @@ async def main():
                 await pilot.resize_terminal(65, 22)
                 await pilot.pause()
                 action = bar.query_one("#delivery-inspect", DeliveryInspect)
+                await reveal_session_details(app, pilot, action)
                 assert action.content_size.width >= len("Inspect")
                 assert action.content_size.height == 1
                 assert action.region.bottom <= bar.region.bottom
@@ -159,6 +157,10 @@ async def main():
                 await pilot.pause()
                 details = app.screen
                 assert isinstance(details, InputDeliveryDetails)
+                overview = details.query_one("#session-overview", Static)
+                session_details = conversation.query_one(SessionDetails)
+                assert overview.display and session_details.overview_text
+                assert str(overview.render()) == session_details.overview_text
                 records = details.query_one("#delivery-records", Static)
                 assert "Sequence: 933 · Target: #review" in str(records.render())
                 assert "Please inspect [this] exact change" in str(records.render())
@@ -216,7 +218,7 @@ async def main():
                         native_id=native_id,
                         text="native prompt",
                     )
-                    await owner._emit_input_disposition(session, store.get("bus:933"))
+                    await owner.inputs.emit_input_disposition(session, store.read().rows["bus:933"])
                     await conversation.refresh_input_dispositions()
                     assert conversation.unresolved_inputs == []
                 finally:
@@ -243,7 +245,7 @@ async def main():
                     target="#review",
                     text="A new current input",
                 )
-                await owner._emit_input_disposition(session, store.get("bus:935"))
+                await owner.inputs.emit_input_disposition(session, store.read().rows["bus:935"])
                 await conversation.refresh_input_dispositions()
 
                 # An older in-flight snapshot cannot resurrect a confirmed current input.
@@ -275,7 +277,7 @@ async def main():
                     "bus:935", turn_id="turn", native_id=native_id, text="native prompt"
                 )
                 previous = conversation._delivery_refresh_revision
-                await owner._emit_input_disposition(session, store.get("bus:935"))
+                await owner.inputs.emit_input_disposition(session, store.read().rows["bus:935"])
                 async with asyncio.timeout(3):
                     while conversation._delivery_refresh_revision == previous:
                         await asyncio.sleep(0.01)
@@ -322,7 +324,7 @@ async def main():
                     target="#review",
                     text="Current before clearing history",
                 )
-                await owner._emit_input_disposition(session, store.get("bus:936"))
+                await owner.inputs.emit_input_disposition(session, store.read().rows["bus:936"])
                 await conversation.refresh_input_dispositions()
                 captured, release = asyncio.Event(), asyncio.Event()
 
@@ -358,8 +360,8 @@ async def main():
                         target="#review",
                         text="Current admitted during history clear",
                     )
-                    await owner._emit_input_disposition(session, store.get("bus:936"))
-                    await owner._emit_input_disposition(session, store.get("bus:937"))
+                    await owner.inputs.emit_input_disposition(session, store.read().rows["bus:936"])
+                    await owner.inputs.emit_input_disposition(session, store.read().rows["bus:937"])
                     await conversation.refresh_input_dispositions()
                     assert [
                         row["sequence"] for row in conversation.unresolved_inputs
@@ -396,7 +398,7 @@ async def main():
                     native_id="c" * 32,
                     text="native prompt",
                 )
-                await owner._emit_input_disposition(session, store.get("bus:937"))
+                await owner.inputs.emit_input_disposition(session, store.read().rows["bus:937"])
                 await conversation.refresh_input_dispositions()
                 await pilot.pause()
                 assert (
@@ -411,22 +413,21 @@ async def main():
                 assert all(
                     row["noticeDismissed"] for row in detailed["historicalInputs"]
                 )
-                saved = store._read()
+                saved = store.read().rows
                 for key, original in old_rows.items():
-                    assert all(
-                        saved[key][field] == value for field, value in original.items()
-                    )
-                    assert not saved[key].get("goal_reviews")
+                    assert replace(saved[key], notice_dismissed=original.notice_dismissed) == original
+                    assert not saved[key].goal_reviews
                 # Late notifications invalidate the view without restoring dismissed history.
-                old = dict(store.get("bus:1"), status="unknown")
-                await owner._emit_input_disposition(session, old)
+                old = store.read().rows["bus:1"]
+                assert old.unresolved
+                await owner.inputs.emit_input_disposition(session, old)
                 await pilot.pause()
                 assert conversation.unresolved_inputs == []
                 assert conversation.input_delivery["historicalCount"] == 0
                 assert (
                     bar.display
                 )  # Cleared evidence remains reachable through Inspect.
-                assert store.status("bus:933") == "started"
+                assert not store.read().rows["bus:933"].unresolved
                 app.save_screenshot(
                     filename="toad-delivery-history-cleared.svg", path="/var/tmp"
                 )

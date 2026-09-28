@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 
 import psutil
-from agent_comms import wire
+from agent_comms.comms import wire
 from toad.app import ToadApp as Application
 
 
@@ -21,7 +21,7 @@ def stop_test_owners(root: Path) -> None:
                 continue
             if Path(process.environ().get("AGENT_COMMS_ROOT", "")).resolve() != root.resolve():
                 continue
-            comms.stop(thread.name)
+            comms.owners.stop(thread.name)
             process.wait(timeout=10)
         except psutil.NoSuchProcess:
             pass
@@ -71,3 +71,32 @@ async def reveal_project_tree(app, pilot):
                 await pilot.pause()
                 return tree
             await pilot.pause(.05)
+
+
+async def wait_channel_roster(app, pilot, *targets):
+    """Wait for the first-frame asynchronous roster, not merely an idle queue."""
+    from toad.widgets.comms_sidebar import CommsSidebar
+
+    async with asyncio.timeout(8):
+        while True:
+            sidebar = app.screen.query_one(CommsSidebar)
+            if (sidebar.navigation_ready.is_set() and sidebar.display
+                    and not sidebar._snapshot_pending
+                    and not sidebar._snapshot_lock.locked() and not sidebar._presentation_lock.locked()
+                    and set(targets) <= {row.target_name for row in sidebar._row_map.values()}):
+                return sidebar
+            await pilot.pause(.02)
+
+
+async def reveal_session_details(app, pilot, target=None):
+    """Use the native disclosure before inspecting normally collapsed metadata."""
+    from toad.widgets.session_details import SessionDetails
+
+    details = app.screen.query_one(SessionDetails)
+    if details.collapsed:
+        assert await pilot.click(details.query_one("CollapsibleTitle"))
+        await pilot.pause()
+    if target is not None:
+        target.scroll_visible(animate=False, immediate=True)
+        await pilot.pause()
+    return details

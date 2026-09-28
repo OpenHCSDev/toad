@@ -8,7 +8,7 @@ import tempfile
 from pathlib import Path
 
 import psutil
-from agent_comms import wire
+from agent_comms.comms import wire
 from runtime_fixture import ToadApp
 from toad.screens.action_modal import ActionModal
 from toad.widgets.agent_response import AgentResponse
@@ -98,7 +98,7 @@ for line in sys.stdin:
                 )
             )
             comms = wire(root / "wire")
-            comms.attach_session("project", str(transcript))
+            comms.threads.attach_session("project", str(transcript))
             conversation.prompt.text = "Preserve this draft"
 
             async def open_login():

@@ -6,7 +6,9 @@ import tempfile
 import time
 from pathlib import Path
 
-from agent_comms import MessageRoute, Thread, wire
+from agent_comms.routing import MessageRoute
+from agent_comms.threads import Thread
+from agent_comms.comms import wire
 from runtime_fixture import ToadApp
 
 from toad.widgets.agent_response import AgentResponse
@@ -27,11 +29,11 @@ async def main() -> None:
                           XDG_DATA_HOME=str(root / "data"),
                           AGENT_COMMS_ROOT=str(root / "wire"))
         comms = wire(root / "wire")
-        comms.register(Thread("peer", frozenset(), str(root)))
+        comms.threads.register(Thread("peer", frozenset(), str(root)))
         me = session_thread_name(root)
-        comms.register(Thread(me, frozenset(), str(root)))
-        sent = comms.send_message("peer", "#all", "incoming wire")
-        outbound = comms.send_message(me, "#all", "outbound wire")
+        comms.threads.register(Thread(me, frozenset(), str(root)))
+        sent = comms.messaging.send_message("peer", "#all", "incoming wire")
+        outbound = comms.messaging.send_message(me, "#all", "outbound wire")
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(110, 34)) as pilot:
             await pilot.pause()

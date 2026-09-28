@@ -5,7 +5,9 @@ import os
 from pathlib import Path
 import tempfile
 
-from agent_comms import Thread, wire
+from agent_comms.child_process import ProcessIdentity
+from agent_comms.threads import Thread
+from agent_comms.comms import wire
 from runtime_fixture import ToadApp
 from toad.widgets.comms_chat import session_thread_name
 from toad.widgets.side_bar import SideBar
@@ -34,9 +36,9 @@ async def main():
                           XDG_STATE_HOME=str(root / "state"), XDG_DATA_HOME=str(root / "data"))
         comms = wire(root / "wire")
         me = session_thread_name(root)
-        comms.register(Thread(me, frozenset({"fixture"}), str(root), pid=os.getpid()))
-        comms.set_channel("#projection", frozenset({"fixture"}))
-        comms.send(me, "#projection", "Channel history")
+        comms.threads.register(Thread(me, frozenset({"fixture"}), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
+        comms.channels.create_tag("projection")
+        comms.messaging.send(me, "#projection", "Channel history")
         app = FrameApp(project_dir=str(root))
         async with app.run_test(size=(120, 40)) as pilot:
             await pilot.pause()
@@ -50,25 +52,27 @@ async def main():
                 await pilot.pause()
             await app.switch_mode(first)
             await pilot.pause()
-            sidebars = {mode: app.get_screen_stack(mode)[0].query_one("#channels-sidebar", SideBar)
-                        for mode in modes}
+            shared = app.screen.query_one("#channels-sidebar", SideBar)
+            sidebars = {mode: shared for mode in modes}
+            thread_bars = {mode: app.get_screen_stack(mode)[0].query_one("#thread-sidebar", SideBar)
+                           for mode in modes}
             sidebars[first].reveal()
             await pilot.pause()
-            hidden_styles = {mode: sidebars[mode].styles.get_rules() for mode in (second, channel)}
-            hidden_layouts = {mode: sidebars[mode]._layout_updates for mode in (second, channel)}
+            hidden_styles = {mode: thread_bars[mode].styles.get_rules() for mode in (second, channel)}
+            hidden_layouts = {mode: thread_bars[mode]._layout_updates for mode in (second, channel)}
             right_states = {mode: app.get_screen_stack(mode)[0].query_one("#thread-sidebar", SideBar).collapsed
                             for mode in modes}
             sidebars[first].toggle()
             await pilot.pause()
             assert all(sidebar.collapsed for sidebar in sidebars.values())
             for mode in (second, channel):
-                assert sidebars[mode].styles.get_rules() == hidden_styles[mode]
-                assert sidebars[mode]._layout_updates == hidden_layouts[mode]
+                assert thread_bars[mode].styles.get_rules() == hidden_styles[mode]
+                assert thread_bars[mode]._layout_updates == hidden_layouts[mode]
             sidebars[first].toggle()
             await pilot.pause()
             for mode in (second, channel):
-                assert sidebars[mode].styles.get_rules() == hidden_styles[mode]
-                assert sidebars[mode]._layout_updates == hidden_layouts[mode]
+                assert thread_bars[mode].styles.get_rules() == hidden_styles[mode]
+                assert thread_bars[mode]._layout_updates == hidden_layouts[mode]
 
             # A one-way hidden collapse must be applied before its first frame,
             # for both native thread and channel screens.

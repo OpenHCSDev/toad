@@ -8,7 +8,10 @@ from tempfile import TemporaryDirectory
 from unittest.mock import patch
 from urllib.parse import quote
 
-from agent_comms import Comms, Goal, MessageRoute, TranscriptCursor, TranscriptPage, wire
+from agent_comms.comms import Comms, wire
+from agent_comms.goals import Goal
+from agent_comms.routing import MessageRoute
+from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 
 from toad.acp.agent import Agent
 from toad.acp.messages import CoordinationUpdate, Update

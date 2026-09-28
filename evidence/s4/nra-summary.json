@@ -1,0 +1,36 @@
+{
+  "source_base": "0894005f3cc7de82d002a374de03e92347c898fb",
+  "context_roots": [
+    "src/toad",
+    "/home/ts/wt/comms-refactor-s4-read-routing-20260927/src/agent_comms"
+  ],
+  "reported_paths": [
+    "src/toad/channel_preparation.py",
+    "src/toad/widgets/comms_chat.py"
+  ],
+  "scan_status": {
+    "mode": "exact_compact_global",
+    "analyzed_detector_count": 79,
+    "omitted_detector_count": 0,
+    "complete": true,
+    "reason": "all_context_detectors_use_compact_global_projections"
+  },
+  "finding_count": 1,
+  "finding_counts": {
+    "by_pattern": [
+      {
+        "pattern_id": 3,
+        "count": 1,
+        "pattern_name": "Closed-Family O(1) Dispatch"
+      }
+    ],
+    "by_detector": [
+      {
+        "detector_id": "external_enum_case_recovery",
+        "count": 1
+      }
+    ]
+  },
+  "report": ".artifacts/s4/nra-final.json",
+  "proof": "Authored integration fix, validated by mounted pilots; no automatic codemod equivalence claim."
+}

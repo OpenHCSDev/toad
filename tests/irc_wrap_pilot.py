@@ -2,7 +2,7 @@
 
 import asyncio
 
-from agent_comms import Message, MessageType
+from agent_comms.messages import Message, MessageType
 from textual import on
 from textual.app import App, ComposeResult
 

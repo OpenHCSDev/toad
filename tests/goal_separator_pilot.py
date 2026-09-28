@@ -5,7 +5,8 @@ import os
 from pathlib import Path
 import tempfile
 
-from agent_comms import Goal
+from agent_comms.goal_states import PausedGoal
+from agent_comms.goals import Goal
 from runtime_fixture import ToadApp
 from toad.widgets.goal_bar import GoalBar
 from toad.widgets.throbber import Throbber
@@ -25,7 +26,7 @@ async def main():
             prompt = view.prompt
             draft = "Keep this draft while separator edges move"
             prompt.text = draft
-            view.goal = Goal("Verify layout", "separator-test", status="paused", progress="Working on presentation")
+            view.goal = Goal("Verify layout", "separator-test", state=PausedGoal(), progress="Working on presentation")
             cases = [
                 (0, "client", True, "solid", "", "idle"),
                 (1, "agent", True, "", "solid", "loading-and-queue"),
@@ -50,7 +51,7 @@ async def main():
                     separator = lines[goal.region.bottom - 1].text[goal.region.x:goal.region.right]
                     assert "─" in separator, (label, separator)
                 if busy:
-                    assert goal.query_one(".goal-summary").region.y == goal.region.y
+                    assert goal.query_one(".goal-header").region.y == goal.region.y
                 assert prompt.text == draft
 
             view.goal = None

@@ -34,6 +34,7 @@ from toad.widgets.model_switcher import ModelSwitcher
 from toad.messages import UserInputSubmitted
 from toad.slash_command import SlashCommand
 from toad.path_complete import PathComplete
+from toad.queue_view import QueueProjection
 from toad.widgets.selection import SelectionOptionList
 
 if TYPE_CHECKING:
@@ -90,9 +91,9 @@ class StatusLine(Label):
 
 
 class QueueSummary(Label, can_focus=True):
-    """Shows the delivery queue; activating it offers edit/remove."""
+    """Shows the remote queue; activation reports available control support."""
 
-    BINDINGS = [("enter,space", "edit_queue", "Edit queued")]
+    BINDINGS = [("enter,space", "edit_queue", "Queue controls")]
 
     def action_edit_queue(self) -> None:
         from toad.widgets.conversation import Conversation
@@ -232,12 +233,12 @@ See on-screen instructions for details.
         """Override shell highlighting with additional danger detection."""
         content = super().highlight_shell(text)
 
-        if not self.app.settings.get("shell.warn_dangerous", bool):
+        if not self.app.settings.shell.warn_dangerous:
             return content
 
         from toad import danger
 
-        spans, _danger_level = danger.detect(
+        spans = danger.detect(
             str(self.project_path), self.working_directory, content.plain
         )
         content = content.add_spans(spans)
@@ -432,10 +433,10 @@ See on-screen instructions for details.
         exclude_node_type: Literal["file"] | Literal["dir"] | None = None
         if (
             command
-            in self.app.settings.get("shell.directory_commands", str).splitlines()
+            in self.app.settings.shell.directory_commands.splitlines()
         ):
             exclude_node_type = "file"
-        elif command in self.app.settings.get("shell.file_commands", str).splitlines():
+        elif command in self.app.settings.shell.file_commands.splitlines():
             exclude_node_type = "dir"
 
         tab_complete, suggestions = await self.path_complete(
@@ -554,6 +555,7 @@ class Prompt(containers.VerticalGroup):
     model_history_scope = var("")
     queue_supported = var(False)
     queued_prompts: var[list[str]] = var(list)
+    queue_projection: var[QueueProjection] = var(QueueProjection())
     delivering_prompt = var("")
     sending_queued_prompt = var("")
     turn: var[str | None] = var(None)
@@ -632,6 +634,15 @@ class Prompt(containers.VerticalGroup):
         if self._ask is None:
             self._ask = self.ask_queue.pop(0)
 
+    def remove_ask(self, ask: Ask) -> None:
+        """Retire one exact request after its controller has stopped waiting."""
+        if self._ask is ask:
+            self._ask = self.ask_queue.pop(0) if self.ask_queue else None
+            if self._ask is None:
+                self.app.terminal_alert(False)
+        else:
+            self.ask_queue = [pending for pending in self.ask_queue if pending is not ask]
+
     @on(events.Click, "ModeInfo")
     def on_mode_info_click(self):
         self.mode_switcher.focus()
@@ -681,8 +692,12 @@ class Prompt(containers.VerticalGroup):
 
     def watch_queue_supported(self, supported):
         self.watch_turn(self.turn)
+        self._update_queue_summary()
 
     def watch_queued_prompts(self, queued):
+        self._update_queue_summary()
+
+    def watch_queue_projection(self, _projection: QueueProjection) -> None:
         self._update_queue_summary()
 
     def watch_delivering_prompt(self, _prompt: str) -> None:
@@ -694,13 +709,20 @@ class Prompt(containers.VerticalGroup):
     def _update_queue_summary(self) -> None:
         if self.simple_input:
             return
-        queued = self.queued_prompts
+        projection = self.queue_projection
+        queued = [row.text for row in projection.items]
+        restored = [row.text for row in projection.restored]
+        unavailable = projection.status == "unavailable" or (
+            self.queue_supported and projection.status is None
+        )
         delivering = self.delivering_prompt
-        self.set_class(bool(queued or delivering), "-has-queue")
+        self.set_class(bool(queued or restored or delivering or unavailable
+                            or self.sending_queued_prompt), "-has-queue")
         parts: list[str] = []
-        if queued and queued[0] == self.sending_queued_prompt:
-            parts.append("Sending next: " + " ".join(queued[0].split())[:100])
-            queued = queued[1:]
+        if unavailable:
+            parts.append("Remote queue unavailable (input status unchanged)")
+        if self.sending_queued_prompt:
+            parts.append("Send requested: " + " ".join(self.sending_queued_prompt.split())[:100])
         if delivering:
             parts.append("Sending next: " + " ".join(delivering.split())[:100])
         if queued:
@@ -708,7 +730,14 @@ class Prompt(containers.VerticalGroup):
                 f"Queued ({len(queued)}): "
                 + " · ".join(" ".join(text.split())[:100] for text in queued[:3])
             )
-        self.query_one(".queue-summary", Label).update(Content(" | ".join(parts)))
+        if restored:
+            parts.append(
+                f"Restored ({len(restored)}, read-only): "
+                + " · ".join(" ".join(text.split())[:100] for text in restored[:3])
+            )
+        summary = self.query_one(".queue-summary", Label)
+        summary.tooltip = "Read-only queue projection, not input consumption, completion or ACK. Restored rows are not local drafts."
+        summary.update(Content(" | ".join(parts)))
 
     @on(messages.SendPromptNow)
     def on_send_prompt_now(self, event):
@@ -895,21 +924,14 @@ class Prompt(containers.VerticalGroup):
 
     @on(Question.Answer)
     def on_question_answer(self, event: Question.Answer) -> None:
-        """Question has been answered."""
+        """An old prompt must not select an option on a successor request."""
         event.stop()
-
-        def remove_question() -> None:
-            """Remove the question and restore the text prompt."""
-            if self.ask_queue:
-                self._ask = self.ask_queue.pop(0)
-            else:
-                self._ask = None
-            self.app.terminal_alert(False)
-
-        if self._ask is not None and (callback := self._ask.callback) is not None:
+        ask = self._ask
+        if ask is None or event.ask is not ask:
+            return
+        if (callback := ask.callback) is not None:
             callback(event.answer)
-
-        self.set_timer(0.3, remove_question)
+        self.set_timer(0.3, lambda: self.remove_ask(ask))
 
     def suggest(self, suggestion: str) -> None:
         if suggestion.startswith(self.text) and self.text != suggestion:

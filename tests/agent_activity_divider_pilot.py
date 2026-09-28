@@ -6,10 +6,12 @@ import tempfile
 from dataclasses import replace
 from pathlib import Path
 
-from agent_comms import TranscriptCursor, TranscriptEvent, TranscriptPage
+from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcript_events import AssistantTranscript, ThinkingTranscript, ToolEndTranscript, ToolStartTranscript, UserTranscript
 from runtime_fixture import ToadApp
 
 from toad.acp import messages as acp
+from toad.acp.agent import Agent
 from toad.widgets.agent_thought import AgentThought
 from toad.widgets.message_divider import AgentActivityDivider, MessageDivider
 from toad.widgets.message_filter import ALL_CATEGORIES, MessageCategory
@@ -29,8 +31,21 @@ async def main() -> None:
         async with app.run_test(size=(110, 40)) as pilot:
             await pilot.pause()
             view = app.screen.conversation
+            agent = Agent(root, {"name": "Activity fixture", "identity": "fixture",
+                                "run_command": {"*": "true"}}, "activity-fixture")
+            agent._message_target = view
+            view.set_reactive(type(view).agent, agent)
+            sequence = 0
+
+            async def start(turn_id):
+                nonlocal sequence
+                sequence += 1
+                await view.on_turn_started(acp.TurnStarted(
+                    turn_id, agent=agent, session_id=agent.session_id, sequence=sequence,
+                ))
+
             await view.post(UserInput("Please prepare the worktree"))
-            await view.on_turn_started(acp.TurnStarted("first"))
+            await start("first")
             assert not view.contents.query(AgentActivityDivider), "Empty turns should not create headers"
             await view.on_acp_agent_thinking(acp.Thinking("text", "Preparing the worktree"))
             await pilot.pause()
@@ -49,15 +64,17 @@ async def main() -> None:
             await view.on_acp_agent_thinking(acp.Thinking("text", "Check the result"))
             assert len(view.contents.query(AgentActivityDivider)) == 1
 
-            await view.on_input_started(acp.InputStarted("A follow-up in the same live turn"))
-            await view.on_turn_started(acp.TurnStarted("first"))
+            await view.on_input_started(acp.InputStarted(
+                "A follow-up in the same live turn", agent=agent, session_id=agent.session_id,
+            ))
+            await start("first")
             await view.on_acp_agent_thinking(acp.Thinking("text", "Process the follow-up"))
-            await view.on_turn_started(acp.TurnStarted("first"))
+            await start("first")
             await view.on_acp_agent_thinking(acp.Thinking("text", "\nStill the same activity"))
             assert len(view.contents.query(AgentActivityDivider)) == 2
 
             await view.post(UserInput("Use a tool first"))
-            await view.on_turn_started(acp.TurnStarted("tool-first"))
+            await start("tool-first")
             tool = {"toolCallId": "second-tool", "title": "Read first", "status": "in_progress"}
             await view.on_acp_tool_call_update(acp.ToolCall(tool))
             await pilot.pause()
@@ -72,22 +89,22 @@ async def main() -> None:
             view.visible_categories = ALL_CATEGORIES
 
             await view.post(UserInput("Answer with text first"))
-            await view.on_turn_started(acp.TurnStarted("text-first"))
+            await start("text-first")
             await view.on_acp_agent_message(acp.Update("text", "Text reply"))
             await view.on_acp_agent_thinking(acp.Thinking("text", "Later activity"))
             assert len(view.contents.query(AgentActivityDivider)) == 3, "Text already carries an Agent header"
 
             long_thought = "\n\n".join(f"Step {index}: " + "reasoning " * 30 for index in range(10))
             events = (
-                TranscriptEvent("user", "Saved request"),
-                TranscriptEvent("thinking", long_thought),
-                TranscriptEvent("tool_start", tool_call_id="saved-1", tool_name="read"),
-                TranscriptEvent("tool_end", "done", tool_call_id="saved-1", tool_name="read"),
-                TranscriptEvent("thinking", "After tool"),
-                TranscriptEvent("assistant", "Saved response"),
-                TranscriptEvent("user", "Saved follow-up"),
-                TranscriptEvent("tool_start", tool_call_id="saved-2", tool_name="read"),
-                TranscriptEvent("tool_end", "done", tool_call_id="saved-2", tool_name="read"),
+                UserTranscript('Saved request'),
+                ThinkingTranscript(long_thought),
+                ToolStartTranscript(tool_call_id='saved-1', tool_name='read'),
+                ToolEndTranscript(tool_call_id='saved-1', tool_name='read', text='done'),
+                ThinkingTranscript('After tool'),
+                AssistantTranscript('Saved response'),
+                UserTranscript('Saved follow-up'),
+                ToolStartTranscript(tool_call_id='saved-2', tool_name='read'),
+                ToolEndTranscript(tool_call_id='saved-2', tool_name='read', text='done'),
             )
             fragments = transcript_fragments(events)
             assert sum(fragment.starts_agent_activity for fragment in fragments) == 2

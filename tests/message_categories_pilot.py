@@ -6,10 +6,12 @@ from pathlib import Path
 import tempfile
 from unittest.mock import patch
 
-from agent_comms import (
-    Message, MessageRoute, MessageType, Thread, TranscriptCursor, TranscriptEvent,
-    TranscriptPage, TurnRouting, wire,
-)
+from agent_comms.messages import Message, MessageType
+from agent_comms.routing import MessageRoute, TurnRouting
+from agent_comms.threads import Thread
+from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcript_events import AssistantTranscript, NoticeTranscript, SentTranscript, ThinkingTranscript, ToolEndTranscript, ToolStartTranscript, UserTranscript
+from agent_comms.comms import wire
 from textual.widgets import Checkbox
 
 from runtime_fixture import ToadApp
@@ -33,7 +35,7 @@ async def main():
                           XDG_STATE_HOME=str(root / "state"), XDG_DATA_HOME=str(root / "data"))
         comms = wire(root / "wire")
         for name in ("owner", "peer"):
-            comms.register(Thread(name, frozenset(), str(root)))
+            comms.threads.register(Thread(name, frozenset(), str(root)))
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(130, 43)) as pilot:
             await pilot.pause()
@@ -65,15 +67,14 @@ async def main():
 
             message = Message("peer", "owner", "IN", MessageType.INFO)
             saved = (
-                TranscriptEvent("user", "SAVED_USER"),
-                TranscriptEvent("assistant", "SAVED_AGENT"),
-                TranscriptEvent("user", "SAVED_IN", routing=TurnRouting((message,), None)),
-                TranscriptEvent("sent", "SAVED_OUT", routing=TurnRouting(
-                    (), MessageRoute("owner", ("peer",)))),
-                TranscriptEvent("thinking", "SAVED_THINKING"),
-                TranscriptEvent("tool_start", "SAVED_TOOL", tool_call_id="t", tool_name="read"),
-                TranscriptEvent("tool_end", "SAVED_TOOL_DONE", tool_call_id="t", tool_name="read"),
-                TranscriptEvent("notice", "SAVED_NOTICE"),
+                UserTranscript('SAVED_USER'),
+                AssistantTranscript('SAVED_AGENT'),
+                UserTranscript('SAVED_IN', routing=TurnRouting((message,), None)),
+                SentTranscript('SAVED_OUT', routing=TurnRouting((), MessageRoute('owner', ('peer',)))),
+                ThinkingTranscript('SAVED_THINKING'),
+                ToolStartTranscript(tool_call_id='t', tool_name='read'),
+                ToolEndTranscript(tool_call_id='t', tool_name='read', text='SAVED_TOOL_DONE'),
+                NoticeTranscript('SAVED_NOTICE'),
             )
             cursor = TranscriptCursor("fixture", 0)
             history = TranscriptHistory(TranscriptPage(saved, cursor, cursor, False, False))
@@ -89,7 +90,7 @@ async def main():
                 assert all(widget.display == (kind == category) for kind, widget in live.items()), category
                 assert all(leaf.display == (kind == category) for kind, leaf in fragments.items()), category
                 assert history.display and view.prompt.text == "keep draft"
-                with patch.object(app.coordination_wire, "mark_thread_view_read") as mark:
+                with patch.object(app.coordination_wire.views, 'mark_thread_view_read') as mark:
                     view.displayed_transcript_cursor = cursor
                     await app.mark_visible_thread_read()
                     mark.assert_not_called()

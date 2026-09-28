@@ -5,8 +5,10 @@ import os
 import tempfile
 from pathlib import Path
 
-from agent_comms import Thread, wire
+from agent_comms.threads import Thread
+from agent_comms.comms import wire
 from runtime_fixture import ToadApp
+from toad.setting_choices import SuccessExpansion
 from toad.widgets.comms_sidebar import ChannelGroup, CommsSidebar
 from toad.widgets.session_sidebar import ThreadStatusRow
 from toad.widgets.tool_call import ToolCall, ToolCallHeader, TextContent
@@ -19,12 +21,12 @@ async def main():
                           XDG_DATA_HOME=str(root / "data"), AGENT_COMMS_ROOT=str(root / "wire"))
         comms = wire(root / "wire")
         for name in ("first", "second", "third"):
-            comms.register(Thread(name, frozenset({"review"}), str(root)))
+            comms.threads.register(Thread(name, frozenset({"review"}), str(root)))
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(120, 42)) as pilot:
             await pilot.pause()
             sidebar = app.screen.query_one(CommsSidebar)
-            await sidebar._read_snapshot(comms.revision())
+            await sidebar._read_snapshot(comms.views.revision())
             group = next(group for group in sidebar.query(ChannelGroup) if group.row.target_name == "#review")
             if not group.expanded:
                 group.toggle_members()
@@ -48,7 +50,7 @@ async def main():
                 background = rows[name].get_visual_style().background
                 assert background != purple, (name, background)
 
-            app.settings.set("tools.expand", "success")
+            app.settings.tools.expand = SuccessExpansion
             conversation = app.screen.conversation
             payload = {"sessionUpdate": "tool_call", "toolCallId": "last-tool", "title": "Run tests",
                        "status": "in_progress", "kind": "execute",

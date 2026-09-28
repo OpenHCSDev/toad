@@ -6,7 +6,10 @@ import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
-from agent_comms import ActivityState, Thread, wire
+from agent_comms.activity import ActivityState
+from agent_comms.child_process import ProcessIdentity
+from agent_comms.threads import Thread
+from agent_comms.comms import wire
 from runtime_fixture import ToadApp
 from textual.app import App, ComposeResult
 from textual.content import Content
@@ -51,8 +54,8 @@ async def check_busy_labels() -> None:
         me = session_thread_name(root)
         comms = wire(root / "wire")
         for name in (me, "busy-worker"):
-            comms.register(Thread(name, frozenset({"team"}), str(root), pid=os.getpid()))
-            comms.set_activity(name, ActivityState.THINKING, "working")
+            comms.threads.register(Thread(name, frozenset({"team"}), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
+            comms.agents.set_activity(name, ActivityState.THINKING, "working")
         comms.relationships.edit(me, "add", "busy-worker", "Joint review")
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(100, 34)) as pilot:
@@ -65,6 +68,10 @@ async def check_busy_labels() -> None:
             assert rows and any(frame in row.prompt.plain for frame in FRAMES for row in rows)
             tabs = app.screen.query_one(SessionsTabs)
             await tabs._sync_tabs()
+            # Reconciliation may still have a pending layout after its native
+            # removal receipt completes. Measure spinner-only work from a
+            # settled frame, rather than charging that earlier layout to it.
+            await pilot.pause()
             first = next(tab for tab in app.open_tabs if tab.mode_name == app.current_mode)
             label = app.screen.query_one(f"SessionLabel#{first.mode_name}", SessionLabel)
             assert first.title.startswith("⌛ ") and label.render().plain[0] in FRAMES

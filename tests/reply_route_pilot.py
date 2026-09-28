@@ -5,7 +5,8 @@ import os
 import tempfile
 from pathlib import Path
 
-from agent_comms import MessageRoute, TurnRouting, TranscriptEvent
+from agent_comms.routing import MessageRoute, TurnRouting
+from agent_comms.transcript_events import AssistantTranscript, SentTranscript
 from toad.acp.messages import Update, IncomingMessage as IncomingUpdate
 from toad.app import ToadApp
 from toad.widgets.agent_response import AgentResponse
@@ -31,11 +32,11 @@ async def main():
             conversation.post_message(Update("text", "Private answer"))
             await pilot.pause()
             assert conversation.query(AgentResponse).last().route is None
-            replay = transcript_blocks((TranscriptEvent("assistant", "Saved channel answer", routing=TurnRouting(reply=route)),))[0]
+            replay = transcript_blocks((AssistantTranscript('Saved channel answer', routing=TurnRouting(reply=route)),))[0]
             await conversation.post(replay)
             await pilot.pause()
             assert "[TO] #openhcs" in replay.query_one(RouteHeader).render().plain
-            sent = transcript_blocks((TranscriptEvent("sent", "Visible sent body", routing=TurnRouting(reply=route)),))[0]
+            sent = transcript_blocks((SentTranscript('Visible sent body', routing=TurnRouting(reply=route)),))[0]
             await conversation.post(sent)
             await pilot.pause()
             assert sent.source == "Visible sent body" and "[TO] #openhcs" in sent.query_one(RouteHeader).render().plain

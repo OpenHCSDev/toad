@@ -7,7 +7,10 @@ from pathlib import Path
 from threading import Event
 from unittest.mock import patch
 
-from agent_comms import Comms, Thread, wire
+from agent_comms.comms import wire
+from agent_comms.history_views import HistoryViews
+from agent_comms.threads import Thread
+from agent_comms.child_process import ProcessIdentity
 from runtime_fixture import ToadApp
 from toad.widgets.comms_chat import CommsChatView
 
@@ -28,11 +31,11 @@ async def main():
             XDG_DATA_HOME=str(root / "data"),
         )
         comms = wire(root / "wire")
-        comms.register(Thread("peer", frozenset(), str(root), pid=os.getpid()))
-        viewer = comms.user_identity(str(root)).name
-        comms.send("peer", viewer, "old peer painted")
+        comms.threads.register(Thread("peer", frozenset(), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
+        viewer = comms.messaging.user_identity(str(root)).name
+        comms.messaging.send("peer", viewer, "old peer painted")
         entered, release = Event(), Event()
-        original_mark = Comms.mark_dm_view_read
+        original_mark = HistoryViews.mark_dm_view_read
 
         def pause_old_mark(self, peer, **kwargs):
             entered.set()
@@ -42,7 +45,7 @@ async def main():
 
         app = ToadApp(project_dir=str(root))
         try:
-            with patch.object(Comms, "mark_dm_view_read", pause_old_mark):
+            with patch.object(HistoryViews, "mark_dm_view_read", pause_old_mark):
                 async with app.run_test(size=(120, 40)) as pilot:
                     await pilot.pause()
                     owner_mode = app.current_mode
@@ -58,18 +61,18 @@ async def main():
                     assert [message.body for message, _ in chat._history] == [
                         "old peer painted"
                     ]
-                    assert comms.pending_count(viewer, "peer") == 1
+                    assert comms.bus.pending_count(viewer, "peer") == 1
 
                     comms.registry.unregister("peer")
-                    comms.delete("peer")
-                    comms.register(
-                        Thread("peer", frozenset(), str(root), pid=os.getpid())
+                    comms.registry.remove("peer")
+                    comms.threads.register(
+                        Thread("peer", frozenset(), str(root), process_identity=ProcessIdentity.capture(os.getpid()))
                     )
-                    comms.send("peer", viewer, "new peer never painted")
+                    comms.messaging.send("peer", viewer, "new peer never painted")
                     await app.switch_mode(owner_mode)
                     release.set()
                     await until(pilot, lambda: not chat._ack_inflight)
-                    assert comms.pending_count(viewer, "peer") == 1
+                    assert comms.bus.pending_count(viewer, "peer") == 1
                     assert not any(
                         message.body == "new peer never painted"
                         for message, _ in chat._history

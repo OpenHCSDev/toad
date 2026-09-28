@@ -8,7 +8,7 @@ import tempfile
 from pathlib import Path
 
 import psutil
-from agent_comms import wire
+from agent_comms.comms import wire
 from toad import messages
 from runtime_fixture import ToadApp
 from toad.db import DB
@@ -39,7 +39,7 @@ async def main():
         stub.write_text(f"#!{sys.executable}\n" + """
 import json, os, sys
 from pathlib import Path
-from agent_comms import wire
+from agent_comms.comms import wire
 def emit(value):
     print(json.dumps(value), flush=True)
 for line in sys.stdin:
@@ -122,10 +122,10 @@ for line in sys.stdin:
                 lambda: psutil.Process(conversation.shell._pid).cwd() == str(new)
             )
             saved = await DB().session_get(conversation.agent.session_pk)
-            meta = json.loads(saved["meta_json"])
+            meta = saved.meta_json
             assert (
-                meta["cwd"] == str(new)
-                and meta["agent_data"]["identity"] == "project-test"
+                meta.cwd == new
+                and meta.agent_data["identity"] == "project-test"
             )
             assert chat_screen.project_path == new
             assert chat_screen.query_one(CommsChatView).working_directory == str(new)

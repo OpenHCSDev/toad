@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from toad.settings import PreferenceChange
+from toad.preferences import SidebarSettings, ShellSettings
+
 from asyncio import Future
 import asyncio
 
@@ -13,7 +16,9 @@ from typing import TYPE_CHECKING, Literal
 from pathlib import Path
 from time import monotonic, time
 from urllib.parse import quote
-from agent_comms import Goal, GoalExecution, MessageRoute
+from agent_comms.goals import Goal
+from agent_comms.goal_presentation import GoalExecution
+from agent_comms.routing import MessageRoute
 
 from typing import Callable, Any
 
@@ -24,6 +29,7 @@ from textual.app import ComposeResult, ScreenStackError, UnknownModeError
 from textual import containers
 from textual import getters
 from textual import events
+from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
 from textual.actions import SkipAction
 from textual.binding import Binding
 from textual.content import Content
@@ -32,7 +38,7 @@ from textual.css.query import NoMatches
 from textual.widget import Widget
 from textual.widgets import Static
 from textual.widgets.markdown import MarkdownBlock, MarkdownFence
-from textual.geometry import Offset, Spacing, Region
+from textual.geometry import Offset, Region
 from textual.reactive import var
 from textual.layouts.grid import GridLayout
 from textual.layout import WidgetPlacement
@@ -57,10 +63,15 @@ from toad.widgets.prompt import Prompt
 from toad.widgets.terminal import Terminal
 from toad.widgets.throbber import Throbber
 from toad.widgets.goal_bar import GoalBar, GoalControl
+from toad.widgets.native_history import NativeHistory
+from toad.widgets.observed_thread_activity import ObservedThreadActivity
+from toad.widgets.session_details import SessionDetails
+from toad.private_native_cursor import CursorStatus
+from toad.queue_view import QueueProjection
 from toad.widgets.input_delivery import InputDeliveryBar, InputDeliveryDetails, empty_delivery
 from toad.widgets.user_input import UserInput
 from toad.widgets.history_anchor import HistoryWindow
-from toad.widgets.message_filter import ALL_CATEGORIES, IN_OUT_CATEGORIES, MESSAGE_CATEGORIES, MessageCategory
+from toad.widgets.message_filter import ALL_CATEGORIES, MessageCategory
 from toad.layout import trim_trailing_margin
 from toad.shell import Shell, CurrentWorkingDirectoryChanged
 from toad.slash_command import SlashCommand
@@ -81,6 +92,7 @@ def make_session_title(prompt: str) -> str:
 
 if TYPE_CHECKING:
     from toad.acp.agent import Mode, Model
+    from toad.widgets.question import Ask
     from toad.widgets.terminal import Terminal
     from toad.widgets.agent_response import AgentResponse
     from toad.widgets.agent_thought import AgentThought
@@ -200,7 +212,7 @@ class ThreadLoading(Static):
         self.auto_refresh = 1 / 12
 
     def automatic_refresh(self) -> None:
-        if self.is_attached and self.screen is self.app.screen:
+        if self.is_attached and not self._closing and self.screen.is_current:
             if self in self.screen._compositor.visible_widgets:
                 self.refresh(layout=False)
 
@@ -301,16 +313,20 @@ class Cursor(Static):
 
 class Contents(containers.VerticalGroup, can_focus=False):
     BLANK = True
+    CACHE_HEIGHT_INDEPENDENT_ARRANGEMENT = True
 
     def mount(self, *widgets, **kwargs):
-        from toad.widgets.message_filter import block_category, keep_live_block
+        from toad.widgets.message_filter import apply_block_filter, block_category, keep_live_block
 
+        selected = self.query_ancestor(Conversation).visible_categories if self.is_attached else ALL_CATEGORIES
         for widget in widgets:
             widget.set_class(not keep_live_block(widget), "-unrouted")
             if category := block_category(widget):
                 widget.add_class(f"-message-{category.value}")
+            apply_block_filter(widget, selected)
         return super().mount(*widgets, **kwargs)
 
+    @height_dependency(INDEPENDENT_HEIGHT)
     def process_layout(
         self, placements: list[WidgetPlacement]
     ) -> list[WidgetPlacement]:
@@ -319,7 +335,9 @@ class Contents(containers.VerticalGroup, can_focus=False):
 
 class ContentsGrid(containers.Grid):
     BLANK = True
+    CACHE_HEIGHT_INDEPENDENT_ARRANGEMENT = True
 
+    @height_dependency(INDEPENDENT_HEIGHT)
     def pre_layout(self, layout) -> None:
         assert isinstance(layout, GridLayout)
         layout.stretch_height = True
@@ -350,42 +368,23 @@ This is a view of your conversation with the agent.
 
     def on_mount(self) -> None:
         self.app.settings_changed_signal.subscribe(self, self._settings_changed)
-        self._settings_changed(("sidebar.hide", self.app.settings.get("sidebar.hide", bool)))
+        self._settings_changed(PreferenceChange(SidebarSettings.hide, self.app.settings.sidebar.hide))
         self.watch(self, "scroll_y", self.hydrate_visible_tools, init=False)
         self.screen.screen_layout_refresh_signal.subscribe(
             self, lambda _screen: self.hydrate_visible_tools()
         )
 
-    def _settings_changed(self, update: tuple[str, object]) -> None:
-        if update[0] == "sidebar.hide":
+    def _settings_changed(self, update: PreferenceChange) -> None:
+        if update.field is SidebarSettings.hide:
             top, right, bottom, _ = self.styles.padding
-            self.styles.padding = (top, right, bottom, int(bool(update[1])))
+            self.styles.padding = (top, right, bottom, int(self.app.settings.sidebar.hide))
 
 
 class Conversation(containers.Vertical):
     """Holds the agent conversation (input, output, and various controls / information)."""
 
     BLANK = True
-    DEFAULT_CSS = """
-    Conversation.-hide-user #contents > .-message-user,
-    Conversation.-hide-user #contents > TranscriptHistory > TranscriptPageView > TranscriptFragmentView.-message-user,
-    Conversation.-hide-agent #contents > .-message-agent,
-    Conversation.-hide-agent #contents > TranscriptHistory > TranscriptPageView > TranscriptFragmentView.-message-agent,
-    Conversation.-hide-inbound #contents > .-message-inbound,
-    Conversation.-hide-inbound #contents > TranscriptHistory > TranscriptPageView > TranscriptFragmentView.-message-inbound,
-    Conversation.-hide-outbound #contents > .-message-outbound,
-    Conversation.-hide-outbound #contents > TranscriptHistory > TranscriptPageView > TranscriptFragmentView.-message-outbound,
-    Conversation.-hide-thinking #contents > .-message-thinking,
-    Conversation.-hide-thinking #contents > TranscriptHistory > TranscriptPageView > TranscriptFragmentView.-message-thinking,
-    Conversation.-hide-tool #contents > .-message-tool,
-    Conversation.-hide-tool #contents > TranscriptHistory > TranscriptPageView > TranscriptFragmentView.-message-tool,
-    Conversation.-hide-other #contents > .-message-other,
-    Conversation.-hide-other #contents > TranscriptHistory > TranscriptPageView > TranscriptFragmentView.-message-other {
-        display: none;
-    }
-    Conversation #contents > TranscriptHistory > .filtered-history-results { display: none; }
-    Conversation.-filter-active #contents > TranscriptHistory > .filtered-history-results { display: block; }
-    """
+    MAX_LIVE_BLOCKS = 32
     BINDING_GROUP_TITLE = "Conversation"
     CURSOR_BINDING_GROUP = Binding.Group(description="Cursor")
     BINDINGS = [
@@ -466,18 +465,11 @@ class Conversation(containers.Vertical):
     prompt = getters.query_one(Prompt)
     app = getters.app(ToadApp)
 
-    @property
-    def in_out_only(self) -> bool:
-        """Compatibility for callers selecting the original two routed kinds."""
-        return self.visible_categories == IN_OUT_CATEGORIES
-
-    @in_out_only.setter
-    def in_out_only(self, enabled: bool) -> None:
-        self.visible_categories = IN_OUT_CATEGORIES if enabled else ALL_CATEGORIES
-
     def watch_visible_categories(
         self, previous: frozenset[MessageCategory], selected: frozenset[MessageCategory],
     ) -> None:
+        from toad.widgets.message_filter import apply_block_filter
+
         window = self.window
         if not hasattr(self, "_filter_scroll_positions"):
             self._filter_scroll_positions = {}
@@ -485,9 +477,8 @@ class Conversation(containers.Vertical):
         position = self._filter_scroll_positions.get(selected, (window.scroll_y, window.follows_tail))
         self.cursor_offset = -1
         self.screen.clear_selection()
-        self.set_class(selected != ALL_CATEGORIES, "-filter-active")
-        for category in MESSAGE_CATEGORIES:
-            self.set_class(category not in selected, f"-hide-{category.value}")
+        for block in self.contents.children:
+            apply_block_filter(block, selected)
         for history in tuple(window.histories):
             history.filter_changed()
         revision = window.scroll_revision
@@ -518,6 +509,7 @@ class Conversation(containers.Vertical):
     model_history_scope = var("")
     queue_supported = var(False)
     queued_prompts: var[list[str]] = var(list)
+    queue_projection: var[QueueProjection] = var(QueueProjection())
     delivering_prompt = var("")
     activity = var("")
     activity_started_at: var[float | None] = var(None)
@@ -526,6 +518,7 @@ class Conversation(containers.Vertical):
     thinking_level = var("")
     input_delivery: var[dict] = var(empty_delivery)
     input_delivery_error: var[str] = var("")
+    native_history_status: var[CursorStatus | None] = var(None)
     goal_unavailable = var(False)
     goal: var[Goal | None] = var(None)
     goal_execution: var[GoalExecution | None] = var(None)
@@ -555,6 +548,13 @@ class Conversation(containers.Vertical):
         self._loading: Loading | None = None
         self._agent_response: AgentResponse | None = None
         self._managed_turn_id: str | None = None
+        self._mcp_live_turn: str | None = None
+        self._mcp_live_note: Note | None = None
+        self._private_cursor_sequence = 0
+        self._queue_sequence = 0
+        self._sending_queue_input_id: str | None = None
+        self._turn_lifecycle_source: tuple[object, str | None] | None = None
+        self._turn_lifecycle_sequence = 0
         self._agent_thought: AgentThought | None = None
         from toad.widgets.agent_activity import AgentActivityBoundary
 
@@ -690,6 +690,7 @@ class Conversation(containers.Vertical):
         self.prompt_history_index = 0
         if self._directory_watcher is not None:
             self._directory_watcher.stop()
+            await asyncio.to_thread(self._directory_watcher.join)
             self._directory_watcher = None
         if self.agent_ready:
             self._directory_watcher = DirectoryWatcher(path, self)
@@ -703,7 +704,7 @@ class Conversation(containers.Vertical):
             if (session_pk := getattr(self.agent, "session_pk", None)) is not None:
                 from toad.db import DB
 
-                await DB().session_update_project(session_pk, str(path))
+                await DB().session_update_project(session_pk, path)
         self.update_title()
 
     async def watch_shell_history_index(self, previous_index: int, index: int) -> None:
@@ -756,10 +757,14 @@ class Conversation(containers.Vertical):
         with containers.Vertical(id="prompt-stack"):
             yield TurnActivity().data_bind(activity=Conversation.activity,
                                            started_at=Conversation.activity_started_at)
-            yield Throbber(id="throbber")
-            yield InputDeliveryBar().data_bind(
-                delivery=Conversation.input_delivery, error=Conversation.input_delivery_error,
+            yield SessionDetails(
+                self._read_thread_activity,
+                history=NativeHistory().data_bind(status=Conversation.native_history_status),
+                delivery=InputDeliveryBar().data_bind(
+                    delivery=Conversation.input_delivery, error=Conversation.input_delivery_error,
+                ),
             )
+            yield Throbber(id="throbber")
             yield GoalBar().data_bind(goal=Conversation.goal, execution=Conversation.goal_execution, unavailable=Conversation.goal_unavailable)
             yield Prompt(complete_callback=self.shell_complete).data_bind(
                 project_path=Conversation.project_path,
@@ -773,6 +778,7 @@ class Conversation(containers.Vertical):
                 model_history_scope=Conversation.model_history_scope,
                 queue_supported=Conversation.queue_supported,
                 queued_prompts=Conversation.queued_prompts,
+                queue_projection=Conversation.queue_projection,
                 delivering_prompt=Conversation.delivering_prompt,
                 sending_queued_prompt=Conversation.sending_queued_prompt,
                 turn=Conversation.turn,
@@ -984,6 +990,42 @@ class Conversation(containers.Vertical):
             return cursor_block
         return None
 
+    async def _read_thread_activity(self):
+        agent = self.agent
+        if agent is None:
+            return None
+        presentation = await agent.get_thread_presentation()
+        if agent is not self.agent:
+            raise ValueError("Agent attachment changed")
+        return presentation
+
+    @on(ObservedThreadActivity.Changed)
+    def on_observed_thread_activity(self, event: ObservedThreadActivity.Changed) -> None:
+        event.stop()
+        if self._managed_turn_id is not None or self.turn == "agent":
+            return
+        if event.unavailable:
+            self.post_message(messages.SessionUpdate(state="idle", summary="Agent status unavailable"))
+        elif event.presentation is not None:
+            self.post_message(messages.SessionUpdate(
+                state="busy" if event.presentation.busy else "idle",
+                summary=event.presentation.summary,
+            ))
+
+    @on(messages.SessionUpdate)
+    def preserve_observed_activity(self, event: messages.SessionUpdate) -> None:
+        """ACP readiness is not proof that a separate channel turn is idle."""
+        if event.state != "idle":
+            return
+        observed = next(iter(self.query(ObservedThreadActivity)), None)
+        if observed is None:
+            return
+        if observed.unavailable:
+            event.summary = "Agent status unavailable"
+        elif observed.presentation is not None and observed.presentation.busy:
+            event.state = "busy"
+            event.summary = observed.presentation.summary
+
     @on(AgentReady)
     async def on_agent_ready(self, message: AgentReady) -> None:
         self.remove_class("-initial-loading")
@@ -1044,6 +1086,8 @@ class Conversation(containers.Vertical):
     async def on_unmount(self) -> None:
         if self._directory_watcher is not None:
             self._directory_watcher.stop()
+            await asyncio.to_thread(self._directory_watcher.join)
+            self._directory_watcher = None
         if self.agent is not None:
             await self.agent.stop()
 
@@ -1254,9 +1298,13 @@ class Conversation(containers.Vertical):
         """Agent conversation submission; wire views override this single hook."""
         if not event.body.strip():
             if event.immediate and not event.shell and self.queue_supported and self.queued_prompts:
-                # Keep the queue visible until the exact native input starts.
-                self.sending_queued_prompt = self.queued_prompts[0]
-                self.send_queued_now()
+                # This requests scheduling, not membership mutation. Retain
+                # every remote row until authoritative exact-ID evidence.
+                if self.queue_projection.status == "available" and self.queue_projection.items:
+                    first = self.queue_projection.items[0]
+                    self._sending_queue_input_id = first.input_id
+                    self.sending_queued_prompt = first.text
+                    self.send_queued_now()
             return
         self._transcript_generation += 1
         if event.shell:
@@ -1277,9 +1325,7 @@ class Conversation(containers.Vertical):
             queued = self.turn == "agent" and self.queue_supported and not event.immediate
             if event.immediate and self.queue_supported:
                 self.delivering_prompt = text
-            if queued:
-                self.queued_prompts = [*self.queued_prompts, text]
-            else:
+            if not queued:
                 await self.post(UserInput(text))
                 self.jump_to_latest()
             # Local feedback precedes persistence and agent metadata work.
@@ -1288,7 +1334,7 @@ class Conversation(containers.Vertical):
             self.prompt_history_index = 0
             if queued:
                 self.send_prompt_to_agent(text, queued=True)
-                self.flash("Message queued for after the current response")
+                self.flash("Queue request sent; awaiting authoritative queue state")
                 return
             await self._auto_name_from_prompt(text)
             waiting = (
@@ -1316,34 +1362,46 @@ class Conversation(containers.Vertical):
     async def send_prompt_to_agent(
         self, prompt: str, *, queued: bool = False, immediate: bool = False
     ) -> None:
-        if self.agent is not None:
+        sending_agent = self.agent
+        sending_session = getattr(sending_agent, "session_id", None)
+        queue = getattr(sending_agent, "_queue_view", None)
+        sending_scope = queue.scope if queue is not None else None
+
+        def current_request_owner() -> bool:
+            return (self.agent is sending_agent
+                    and getattr(sending_agent, "session_id", None) == sending_session
+                    and (queue is None or (
+                        queue.scope == sending_scope
+                        and (sending_scope is None or queue.projection.status == "available")
+                    )))
+
+        if sending_agent is not None:
             stop_reason: str | None = None
-            uses_turn_events = getattr(self.agent, "uses_turn_events", False)
+            uses_turn_events = getattr(sending_agent, "uses_turn_events", False)
             if not uses_turn_events:
                 self.busy_count += 1
             try:
                 if not uses_turn_events:
                     self.turn = "agent"
                 if self.queue_supported:
-                    stop_reason = await self.agent.send_prompt(
+                    stop_reason = await sending_agent.send_prompt(
                         prompt,
                         delivery="steer" if immediate else "queue",
                         defer_display=queued,
                     )
                 else:
-                    stop_reason = await self.agent.send_prompt(prompt)
-            except (jsonrpc.APIError, ValueError) as error:
+                    stop_reason = await sending_agent.send_prompt(prompt)
+            except (jsonrpc.APIError, jsonrpc.JSONRPCError, OSError, ValueError) as error:
                 from toad.widgets.markdown_note import MarkdownNote
 
+                if not current_request_owner():
+                    return
                 self.turn = "client"
 
                 message = getattr(error, "message", str(error)) or "no details were provided"
                 self.activity = ""
                 self.activity_started_at = None
-                if prompt in self.queued_prompts:
-                    remaining = list(self.queued_prompts)
-                    remaining.remove(prompt)
-                    self.queued_prompts = remaining
+                # A send failure cannot identify/remove a remote row by text.
                 self.prompt.text = "\n\n".join(filter(None, [self.prompt.text, prompt]))
 
                 await self.post(
@@ -1353,11 +1411,11 @@ class Conversation(containers.Vertical):
                     )
                 )
             finally:
-                if immediate and self.delivering_prompt == prompt:
+                if current_request_owner() and immediate and self.delivering_prompt == prompt:
                     self.delivering_prompt = ""
                 if not uses_turn_events:
                     self.busy_count -= 1
-            if not getattr(self.agent, "uses_turn_events", False):
+            if current_request_owner() and not uses_turn_events:
                 self.call_later(self.agent_turn_over, stop_reason)
 
     async def agent_turn_over(self, stop_reason: str | None) -> None:
@@ -1421,7 +1479,7 @@ class Conversation(containers.Vertical):
                     )
                 )
 
-        if self.app.settings.get("notifications.turn_over", bool):
+        if self.app.settings.notifications.turn_over:
             self.app.system_notify(
                 f"{self.agent_title} has finished working",
                 title="Waiting for input",
@@ -1473,6 +1531,62 @@ class Conversation(containers.Vertical):
             )
         )
 
+    async def _clear_mcp_live(self) -> None:
+        self._mcp_live_turn = None
+        if self._mcp_live_note is not None:
+            await self._mcp_live_note.remove()
+            self._mcp_live_note = None
+
+    @on(acp_messages.PrivateNativeCursorUpdate)
+    def on_private_native_cursor_update(self, message: acp_messages.PrivateNativeCursorUpdate) -> None:
+        message.stop()
+        if (message.agent is not self.agent or self.agent is None
+                or message.session_id != self.agent.session_id
+                or message.sequence <= self._private_cursor_sequence):
+            return
+        self._private_cursor_sequence = message.sequence
+        self.native_history_status = message.status
+
+    @on(acp_messages.McpClientStopped)
+    async def on_mcp_client_stopped(self, message: acp_messages.McpClientStopped) -> None:
+        message.stop()
+        if message.agent is self.agent:
+            await self._clear_mcp_live()
+
+    @on(acp_messages.McpClientStatus)
+    async def on_mcp_client_status(self, message: acp_messages.McpClientStatus) -> None:
+        """Render the turn-bound receipt only inside an active server-owned turn."""
+        message.stop()
+        # The message carries the validated turn identity; a delayed or queued
+        # message from an older agent cannot attach to a successor turn here.
+        agent_session = getattr(self.agent, "session_id", None)
+        if (
+            message.agent is not self.agent
+            or getattr(self.agent, "_active_turn_id", None) != message.turn_id
+            or self._managed_turn_id is None
+            or message.turn_id != self._managed_turn_id
+            or (agent_session is not None and message.session_id != agent_session)
+        ):
+            # Late or forged: the projection dies with its turn and is never
+            # shown outside the active-turn lifetime.
+            return
+        if self._mcp_live_turn == self._managed_turn_id:
+            return  # The package emits at most one receipt per turn.
+        self._mcp_live_turn = self._managed_turn_id
+        rows = message.receipt.get("servers") or []
+        summary = "; ".join(
+            f"{row['id']}[{row['scope']}] {row['state']} calls={row['calls']}"
+            f" tools={row['tools']} resources={row['resources']} prompts={row['prompts']}"
+            for row in rows
+        ) or "no approved servers"
+        self.new_block()
+        self._mcp_live_note = Note(
+            Content.styled(
+                f"MCP live (this turn, not a grant): {summary}", "$text-muted"
+            ),
+        )
+        await self.post(self._mcp_live_note)
+
     @on(acp_messages.Update)
     async def on_acp_agent_message(self, message: acp_messages.Update):
         from toad.widgets.agent_response import AgentResponse
@@ -1493,29 +1607,64 @@ class Conversation(containers.Vertical):
             )
         await self.post_agent_response(message.text, message.route)
 
+    def _accept_turn_lifecycle(
+        self, message: acp_messages.TurnStarted | acp_messages.TurnSettled
+    ) -> bool:
+        from toad.acp.agent import Agent
+
+        if not isinstance(self.agent, Agent) and message.agent is None:
+            return True  # Local non-ACP agents retain their direct event path.
+        if (
+            message.agent is not self.agent
+            or message.session_id != getattr(self.agent, "session_id", None)
+            or type(message.sequence) is not int
+            or message.sequence <= 0
+        ):
+            return False
+        source = (message.agent, message.session_id)
+        if source == self._turn_lifecycle_source:
+            if message.sequence <= self._turn_lifecycle_sequence:
+                return False
+        # Consume the immutable ingress order, NOT Agent._active_turn_id: the
+        # producer may already have settled multiple valid queued turns.
+        self._turn_lifecycle_source = source
+        self._turn_lifecycle_sequence = message.sequence
+        return True
+
     @on(acp_messages.TurnStarted)
     async def on_turn_started(self, message: acp_messages.TurnStarted) -> None:
         message.stop()
+        if not isinstance(message.turn_id, str) or not message.turn_id:
+            return
+        if not self._accept_turn_lifecycle(message):
+            return
         self.activity_started_at = message.started_at
-        activity = message.activity_detail if message.activity == "working" else "Thinking…"
-        self.activity = activity or "Working…"
+        self.activity = message.activity_detail or "Thinking…"
         if message.turn_id == self._managed_turn_id:
             return
         self._transcript_generation += 1
         if self._managed_turn_id is None:
             self.busy_count += 1
         self._managed_turn_id = message.turn_id
+        await self._clear_mcp_live()
         self._agent_activity_boundary.reset()
         self.app.open_tabs_changed.publish(None)
         self.new_block()
         self.turn = "agent"
-        self.post_message(messages.SessionUpdate(state="busy", summary="Thinking"))
+        self.post_message(messages.SessionUpdate(state="busy", summary=self.activity))
 
     @on(acp_messages.TurnSettled)
     async def on_turn_settled(self, message: acp_messages.TurnSettled) -> None:
         message.stop()
-        if message.turn_id and message.turn_id != self._managed_turn_id:
+        if not self._accept_turn_lifecycle(message):
             return
+        # Empty/missing IDs are initial idle snapshots, never authority to
+        # settle a nonempty live turn. Keep the same guard for local messages.
+        if message.turn_id != self._managed_turn_id and (
+            self._managed_turn_id is not None or message.turn_id
+        ):
+            return
+        await self._clear_mcp_live()
         self.delivering_prompt = ""
         self.sending_queued_prompt = ""
         self.activity = ""
@@ -1541,9 +1690,9 @@ class Conversation(containers.Vertical):
         if message.sequence <= getattr(self, "_last_incoming_sequence", 0):
             return
         self._last_incoming_sequence = message.sequence
-        from toad.widgets.transcript_history import TranscriptHistory
+        from toad.widgets.committed_presentation import CommittedHistory
 
-        if any(isinstance(child, TranscriptHistory) and child.covers_incoming(message.sequence)
+        if any(isinstance(child, CommittedHistory) and child.covers_incoming(message.sequence)
                for child in self.contents.children):
             return
         self.new_block()
@@ -1557,33 +1706,60 @@ class Conversation(containers.Vertical):
         message.stop()
         await self.post(UserInput(message.text))
 
-    @on(acp_messages.PromptQueueUpdate)
-    def on_prompt_queue_update(self, message: acp_messages.PromptQueueUpdate):
+    @on(acp_messages.QueueViewUpdate)
+    async def on_queue_view_update(self, message: acp_messages.QueueViewUpdate) -> None:
         message.stop()
-        if not message.queued or message.queued[0] != self.sending_queued_prompt:
-            self.sending_queued_prompt = ""
-        self.queued_prompts = message.queued
-        if message.restored:
-            self.prompt.text = "\n\n".join(
-                filter(None, [self.prompt.text, *message.restored])
-            )
-            self.flash("Unprocessed queued messages restored to the composer")
+        if (self.agent is None or message.agent is not self.agent
+                or message.session_id != self.agent.session_id
+                or message.sequence <= self._queue_sequence):
+            return
+        self._queue_sequence = message.sequence
+        self.queue_projection = message.projection
+        self.queued_prompts = [row.text for row in message.projection.items]
+        for started in message.starts:
+            if message.agent is not self.agent or message.session_id != self.agent.session_id:
+                return
+            if started.input_id == self._sending_queue_input_id:
+                self._sending_queue_input_id = None
+                self.sending_queued_prompt = ""
+            self.new_block()
+            await self.post(UserInput(started.text))
 
     @on(acp_messages.InputStarted)
     async def on_input_started(self, message: acp_messages.InputStarted):
         message.stop()
-        self.new_block()
-        if message.text is not None:
-            # Consumption is already authoritative even if the full queue
-            # snapshot arrives later. Don't flash this input back to "Queued"
-            # while its transcript echo is mounting.
-            if message.text in self.queued_prompts:
-                remaining = list(self.queued_prompts)
-                remaining.remove(message.text)
-                self.queued_prompts = remaining
-            if message.text == self.sending_queued_prompt:
-                self.sending_queued_prompt = ""
+        if (self.agent is None or message.agent is not self.agent
+                or message.session_id != self.agent.session_id):
+            return
+        if isinstance(message.text, str):
+            self.new_block()
             await self.post(UserInput(message.text))
+
+    @on(acp_messages.InputFailed)
+    def on_input_failed(self, message: acp_messages.InputFailed) -> None:
+        """Only a locally failed request may recover its own draft text."""
+        message.stop()
+        if (self.agent is None or message.agent is not self.agent
+                or message.session_id != self.agent.session_id):
+            return
+        queue = getattr(self.agent, "_queue_view", None)
+        if message.recover_draft and (
+            message.queue_scope != getattr(queue, "scope", None)
+            or (message.queue_scope is not None and queue.projection.status != "available")
+        ):
+            return
+        if not message.recover_draft:
+            # Server notices (including unstarted queued/restored inputs) are
+            # read-only evidence, not permission to change the local composer.
+            self.flash(f"Delivery unconfirmed: {message.reason}", style="error")
+            return
+        if message.text and not (
+            self.prompt.text == message.text
+            or self.prompt.text.endswith("\n\n" + message.text)
+        ):
+            self.prompt.text = "\n\n".join(filter(None, [self.prompt.text, message.text]))
+        self.delivering_prompt = ""
+        self.flash(f"Delivery unconfirmed; text restored: {message.reason}", style="error")
 
     @on(acp_messages.TranscriptSnapshot)
     async def on_transcript_snapshot(self, message: acp_messages.TranscriptSnapshot):
@@ -1678,12 +1854,13 @@ class Conversation(containers.Vertical):
 
     @work(exclusive=True, group="transcript-window")
     async def _compact_committed_history(self) -> None:
-        from agent_comms import UnregisteredThreadError
+        from agent_comms.errors import UnregisteredThreadError
         from toad.acp.agent import Agent
         from toad.widgets.transcript_history import TranscriptHistory
-        from toad.widgets.transcript_fragments import prepare_transcript_fragments
-        from toad.widgets.shell_result import ShellResult
-        from toad.widgets.incoming_message import IncomingMessage
+        from toad.widgets.committed_presentation import (
+            CheckpointBarrier, CommitEvidence, CommitParticipant, CommittedHistory,
+            checkpoint_plan, retirement_candidates,
+        )
 
         window = self.query_one_optional(Window)
         contents = self.query_one_optional(Contents)
@@ -1694,88 +1871,99 @@ class Conversation(containers.Vertical):
             or not self.agent_ready
             or not self.agent.transcript_ready
             or self._managed_turn_id is not None
-            or not window.follows_tail
-            or contents.query(ShellResult)
-            or (not self._needs_transcript_checkpoint and len(list(contents.query("*"))) < 250)
+            or any(isinstance(node, CheckpointBarrier) for node in contents.walk_children())
+            or (not self._needs_transcript_checkpoint and len(contents.children) < self.MAX_LIVE_BLOCKS)
         ):
             return
         generation = self._transcript_generation
         agent = self.agent
-        scroll_revision = window.scroll_revision
+        plan = checkpoint_plan(window)
         # A page cannot replace live blocks posted while its read or fragment
         # preparation is in flight unless it explicitly contains their identity.
         before_read = tuple(contents.children)
+        history = next((child for child in before_read if isinstance(child, CommittedHistory)), None)
+        potential = tuple(child for child in before_read
+                          if child is not history and isinstance(child, CommitParticipant))
+        if not plan.ready(history) or not plan.permits(self, potential):
+            return
+
+        def is_current() -> bool:
+            return (generation == self._transcript_generation
+                    and self.is_attached and not self._closing and not self._pruning
+                    and self.agent is agent
+                    and self.query_one_optional(Window) is window
+                    and self.query_one_optional(Contents) is contents
+                    and self._managed_turn_id is None and plan.current(window))
+
         try:
             page = await agent.get_transcript_page()
+            if not page.events or not is_current():
+                return
+            prepared = await plan.prepare(self, history, page, before_read, is_current)
         except UnregisteredThreadError:
             # Deletion can retire the model before the attachment's final
             # transcript notification has drained. Its view is closing too.
             return
-        def is_current() -> bool:
-            return (generation == self._transcript_generation
-                    and self.is_attached and self.agent is agent
-                    and self.query_one_optional(Window) is window
-                    and self.query_one_optional(Contents) is contents
-                    and window.scroll_revision == scroll_revision
-                    and self._managed_turn_id is None and window.follows_tail)
-
-        history = next((child for child in before_read
-                        if isinstance(child, TranscriptHistory)), None)
-        covered_incoming: set[int] = set()
-        if (history is not None and history.through.session_file == page.after.session_file
-                and history.through.offset <= page.after.offset):
-            # Read only the newly committed interval. Replacing with its last
-            # 64 KiB would discard loaded routed rows whenever a large tool or
-            # compaction record pushed them outside that page.
-            if not await history.advance_committed(page.after, is_current):
-                return
-            fragments = None
-        else:
-            fragments = await prepare_transcript_fragments(
-                page.events, getattr(self.app, "render_processes", None),
-            )
-            covered_incoming.update(TranscriptHistory.Covered(page.events).sequences)
-            history = None
-        if not page.events or not is_current():
+        except (OSError, ValueError) as error:
+            if is_current():
+                self.notify(str(error), title="Committed history", severity="error")
             return
-        self.new_block()
-        self.cursor.follow(None)
-        with self.app.batch_update():
-            if history is None:
-                await contents.mount(
-                    TranscriptHistory(page, agent.get_transcript_page, fragments=fragments), before=0,
-                )
-            # Never infer delivery from a save notification. Wire notices that
-            # have no saved user counterpart remain visible, including arrivals
-            # during either preparation or mounting. Covered arrivals retire
-            # exactly once rather than duplicating their saved counterpart.
-            retired = [
-                child for child in contents.children
-                if (
-                    child.sequence in covered_incoming
-                    if isinstance(child, IncomingMessage)
-                    else child in before_read and child is not history
-                )
-            ]
-            await contents.remove_children(retired)
+        if prepared is None or not is_current():
+            return
+        evidence = CommitEvidence(frozenset(before_read), prepared.sequences, prepared.history)
+        async with window.history_lock:
+            retired = retirement_candidates(contents.children, evidence)
+            if (not is_current() or not plan.ready(prepared.history)
+                    or not plan.permits(self, retired)):
+                return
+            self.new_block()
+            if self.cursor_block in retired:
+                self.cursor.follow(None)
+            async with plan.publication(self, prepared):
+                replacement = None
+                accepted = False
+                try:
+                    if prepared.history is None:
+                        replacement = TranscriptHistory(
+                            page, agent.get_transcript_page, fragments=prepared.fragments,
+                            committed=False,
+                        )
+                        await contents.mount(replacement, before=0)
+                    if not is_current():
+                        return
+                    # Identity-backed arrivals during a mount may now be covered;
+                    # ordinary late arrivals remain outside the captured cohort.
+                    retired = retirement_candidates(contents.children, evidence)
+                    if not plan.permits(self, retired):
+                        return
+                    plan.commit(prepared, page.after)
+                    if replacement is not None:
+                        replacement.publish_committed()
+                    # Once retiring live widgets begins, the accepted source must
+                    # survive cancellation so their saved content stays reachable.
+                    accepted = True
+                    await contents.remove_children(retired)
+                finally:
+                    if not accepted and replacement is not None and replacement.is_attached:
+                        await replacement.remove()
         if not window.is_attached or not contents.is_attached:
             return
         self._transcript_dirty = False
-        self.call_after_refresh(self._record_displayed_transcript, page.after)
         self._needs_transcript_checkpoint = False
-        self.call_after_refresh(window.anchor)
+        plan.finish(self, page.after)
 
     async def on_transcript_history_covered(self, message) -> None:
-        from toad.widgets.incoming_message import IncomingMessage
+        from toad.widgets.committed_presentation import CommitEvidence, protected_blocks, retirement_candidates
 
         message.stop()
         contents = self.query_one_optional(Contents)
         if (contents is not None and message.history is not None
                 and message.history.is_attached and message.history.parent is contents):
-            await contents.remove_children([
-                child for child in contents.children
-                if isinstance(child, IncomingMessage) and child.sequence in message.sequences
-            ])
+            candidates = retirement_candidates(contents.children, CommitEvidence(
+                frozenset(), frozenset(message.sequences), message.history,
+            ))
+            protected = protected_blocks(self, candidates)
+            await contents.remove_children([child for child in candidates if child not in protected])
 
     @on(acp_messages.Thinking)
     async def on_acp_agent_thinking(self, message: acp_messages.Thinking):
@@ -2044,10 +2232,12 @@ class Conversation(containers.Vertical):
     @work
     async def request_permissions(
         self,
-        result_future: Future[Answer],
+        result_future: Future[Answer | None],
         options: list[Answer],
         tool_call_update: acp_protocol.ToolCallUpdatePermissionRequest,
     ) -> None:
+        if result_future.done():
+            return  # The ACP controller may have disconnected before this worker ran.
         kind = tool_call_update.get("kind", None)
         title = tool_call_update.get("title", "") or ""
 
@@ -2087,28 +2277,34 @@ class Conversation(containers.Vertical):
                 permissions_screen = PermissionsScreen(
                     options, diffs, agent_name=self.agent_title or "The Agent"
                 )
+
+                def retire_expired_diff(future: Future[Answer | None]) -> None:
+                    if (
+                        future.cancelled() or future.result() is None
+                    ) and permissions_screen.is_attached:
+                        permissions_screen.dismiss(None)
+
+                result_future.add_done_callback(retire_expired_diff)
                 result = await self.app.push_screen_wait(
                     permissions_screen, mode=self.screen.id
                 )
                 self.post_message(messages.SessionUpdate(state="busy"))
                 self.app.terminal_alert(False)
-                result_future.set_result(result)
+                if not result_future.done():
+                    result_future.set_result(result)
                 return
 
         from toad.widgets.acp_content import ACPToolCallContent
 
         def answer_callback(answer: Answer) -> None:
-            try:
+            if not result_future.done():
                 result_future.set_result(answer)
-            except Exception:
-                # I've seen this occur in shutdown with an `InvalidStateError`
-                pass
 
             if not self.prompt.ask_queue:
                 self.post_message(messages.SessionUpdate(state="busy"))
 
         tool_call_content = tool_call_update.get("content", None) or []
-        self.ask(
+        ask = self.ask(
             options,
             title or "",
             (
@@ -2118,6 +2314,16 @@ class Conversation(containers.Vertical):
             ),
             answer_callback,
         )
+
+        def retire_expired_prompt(future: Future[Answer | None]) -> None:
+            if not future.cancelled() and future.result() is not None:
+                return
+            if self.is_attached:
+                self.prompt.remove_ask(ask)
+                if self.prompt._ask is None:
+                    self.post_message(messages.SessionUpdate(state="busy"))
+
+        result_future.add_done_callback(retire_expired_prompt)
         return
 
     async def post_tool_call(
@@ -2156,7 +2362,7 @@ class Conversation(containers.Vertical):
         title: str = "",
         get_content: Callable[[], Widget] | None = None,
         callback: Callable[[Answer], Any] | None = None,
-    ) -> None:
+    ) -> Ask:
         """Replace the prompt with a dialog to ask a question
 
         Args:
@@ -2175,7 +2381,9 @@ class Conversation(containers.Vertical):
         notify_message = "\n".join(f" • {option.text}" for option in options)
         self.app.system_notify(notify_message, title=notify_title, sound="question")
 
-        self.prompt.ask(Ask(title, options, get_content, callback))
+        ask = Ask(title, options, get_content, callback)
+        self.prompt.ask(ask)
+        return ask
 
     def _build_slash_commands(self) -> list[SlashCommand]:
         slash_commands = [
@@ -2251,7 +2459,7 @@ class Conversation(containers.Vertical):
         self.app.open_tabs_changed.subscribe(self, self._coordination_changed)
 
         self.shell_history.complete.add_words(
-            self.app.settings.get("shell.allow_commands", expect_type=str).split()
+            self.app.settings.shell.allow_commands.split()
         )
         self.shell
         if self._agent_data is not None:
@@ -2274,7 +2482,13 @@ class Conversation(containers.Vertical):
                     )
                 )
 
-            self.call_after_refresh(start_agent)
+            from toad.screens.session_view import SessionView
+
+            screen = self.screen
+            if isinstance(screen, SessionView):
+                screen.call_after_first_frame(self, start_agent)
+            else:
+                self.call_after_refresh(start_agent)
 
         else:
             self.agent_ready = True
@@ -2376,9 +2590,14 @@ class Conversation(containers.Vertical):
         # A modal remains a view of the same backend snapshot, including later starts.
         details.delivery = self.input_delivery
         details.error = self.input_delivery_error
+        session_details = self.query_one_optional(SessionDetails)
+        if session_details is not None:
+            details.overview_text = session_details.overview_text
         self.app.push_screen(details)
         details.watch(self, "input_delivery", lambda state: setattr(details, "delivery", state))
         details.watch(self, "input_delivery_error", lambda error: setattr(details, "error", error))
+        if session_details is not None:
+            details.watch(session_details, "overview_text", lambda value: setattr(details, "overview_text", value))
 
     def _poll_goal(self) -> None:
         if not self.is_attached:
@@ -2441,7 +2660,7 @@ class Conversation(containers.Vertical):
         if self.goal_unavailable:
             self.flash("Goal state unavailable; waiting for the owner", style="error")
             return
-        if event.action == "goal-expand" and self.goal is not None:
+        if event.action == "goal-history" and self.goal is not None:
             from toad.screens.goal_details import GoalDetails
 
             goal = self.goal
@@ -2477,9 +2696,9 @@ class Conversation(containers.Vertical):
         elif event.action == "goal-clear":
             await self.change_goal("clear")
         elif event.action == "goal-toggle":
-            action = self.goal.toggle_action if self.goal else ""
-            if action:
-                await self.change_goal(action)
+            action = self.goal.state.toggle if self.goal else None
+            if action is not None:
+                await self.change_goal(action.declared_name)
             else:
                 self.flash("This goal is completed; set a new goal to continue.")
 
@@ -2519,75 +2738,53 @@ class Conversation(containers.Vertical):
             self._compacting = False
 
     def open_queue_menu(self) -> None:
-        """Offer edit/remove for prompts waiting to be delivered."""
-        if not self.queued_prompts:
-            return
-        from textual.geometry import Offset
+        """Remote edits require exact input IDs and backend revision-CAS support."""
+        if self.queued_prompts:
+            self._queue_edit_unavailable()
 
-        from toad.widgets.comms_menu import ContextMenu
-
-        items: list[tuple[str, str]] = []
-        for index, text in enumerate(self.queued_prompts):
-            label = " ".join(text.split())[:44]
-            items.append((f"edit:{index}", f"✎ {label}"))
-            items.append((f"remove:{index}", f"✕ {label}"))
-        items.append(("clear", "Clear all queued"))
-        anchor = self.prompt.query_one(".queue-summary")
-        menu_width = max(len(label) for _, label in items) + 4
-        self.app.push_screen(
-            ContextMenu(
-                Offset(max(0, anchor.region.right - menu_width), anchor.region.bottom),
-                "Queued messages",
-                items,
-            ),
-            self._on_queue_choice,
+    def _queue_edit_unavailable(self) -> None:
+        self.flash(
+            "Remote queue editing unavailable: requires ID-targeted, revision-checked backend support",
+            style="error",
         )
 
     def _on_queue_choice(self, action: str | None) -> None:
-        if not action:
-            return
-        if action == "clear":
-            self.replace_queued([])
-            return
-        kind, _, raw_index = action.partition(":")
-        try:
-            index = int(raw_index)
-        except ValueError:
-            return
-        if not 0 <= index < len(self.queued_prompts):
-            return
-        remaining = list(self.queued_prompts)
-        text = remaining.pop(index)
-        if kind == "edit":
-            self.prompt.text = text
-            self.prompt.focus()
-        self.replace_queued(remaining)
+        # A stale menu callback must not edit the draft or mutate the remote
+        # queue. Text/index matching cannot identify an admitted input safely.
+        if action:
+            self._queue_edit_unavailable()
 
     @work
     async def replace_queued(self, prompts: list[str]) -> None:
-        """Clear prompts awaiting delivery and re-queue the ones kept."""
-        queued = list(prompts)
-        if self.agent is not None and hasattr(self.agent, "clear_queue"):
-            try:
-                await self.agent.clear_queue()
-            except (OSError, ValueError, jsonrpc.APIError):
-                self.flash("Could not reach the agent to update its queue", style="error")
-                return
-        for text in queued:
-            self.send_prompt_to_agent(text, queued=True)
-        self.queued_prompts = queued
-        self.flash("Cleared queued messages" if not queued else "Updated queued messages")
+        """Never clear-and-resend admitted inputs when editing the queue.
 
-    def _settings_changed(self, setting_item: tuple[str, str]) -> None:
-        key, value = setting_item
-        if key == "shell.allow_commands":
-            self.shell_history.complete.add_words(value.split())
+        An empty snapshot or control ACK does not prove consumption, and a
+        surviving row may be UNKNOWN. Reissuing its text could execute it twice.
+        Local unsent composer drafts remain editable without touching this API.
+        """
+        self._queue_edit_unavailable()
+
+    def _settings_changed(self, change: PreferenceChange) -> None:
+        if change.field is ShellSettings.allow_commands:
+            self.shell_history.complete.add_words(self.app.settings.shell.allow_commands.split())
 
     @work
     async def post_welcome(self) -> None:
         """Post any welcome content."""
 
     def watch_agent(self, agent: AgentBase | None) -> None:
+        # A presentation remount is not a fresh attachment. Start at the
+        # Agent's current projection/floor so previously queued receipts cannot
+        # revive proof after its reducer entered quarantine or evidence loss.
+        cursor = getattr(agent, "_private_cursor", None)
+        self.native_history_status = cursor.status if cursor is not None else None
+        self._private_cursor_sequence = getattr(agent, "_private_cursor_sequence", 0)
+        queue = getattr(agent, "_queue_view", None)
+        self.queue_projection = queue.projection if queue is not None else QueueProjection()
+        self.queued_prompts = [row.text for row in self.queue_projection.items]
+        self._queue_sequence = getattr(agent, "_queue_sequence", 0)
+        self._sending_queue_input_id = None
+        self.sending_queued_prompt = ""
         if agent is None:
             self.agent_info = Content.styled("shell")
         else:
@@ -2600,7 +2797,7 @@ class Conversation(containers.Vertical):
         with suppress(asyncio.TimeoutError):
             async with asyncio.timeout(2.0):
                 await self.shell.wait_for_ready()
-        if ready:
+        if ready and self._directory_watcher is None:
             self._directory_watcher = DirectoryWatcher(self.project_path, self)
             self._directory_watcher.start()
         if ready and (agent_data := self._agent_data) is not None:
@@ -2621,8 +2818,16 @@ class Conversation(containers.Vertical):
                 )
             self._initial_prompt = None
 
+    def on_resize(self) -> None:
+        # A goal can retain its own size while the surrounding viewport changes.
+        # Reapply its user-selected height against the new viewport bound.
+        if (goal_bar := self.query_one_optional(GoalBar)) is not None:
+            goal_bar.update_document_height()
+
     def on_mouse_down(self, event: events.MouseDown) -> None:
         self._mouse_down_offset = event.screen_offset
+        if (goal_bar := self.query_one_optional(GoalBar)) is not None:
+            goal_bar.begin_separator_resize(event)
 
     def on_click(self, event: events.Click) -> None:
         if (
@@ -2718,8 +2923,8 @@ class Conversation(containers.Vertical):
         """Check if a prune is required."""
         if self._require_check_prune:
             self._require_check_prune = False
-            low_mark = self.app.settings.get("ui.prune_low_mark", int)
-            high_mark = low_mark + self.app.settings.get("ui.prune_excess", int)
+            low_mark = self.app.settings.ui.prune_low_mark
+            high_mark = low_mark + self.app.settings.ui.prune_excess
             await self.prune_window(low_mark, high_mark)
 
     async def prune_window(self, low_mark: int, high_mark: int) -> None:
@@ -2820,16 +3025,8 @@ class Conversation(containers.Vertical):
         """A Shell instance."""
 
         if self._shell is None or self._shell.is_finished:
-            shell_command = self.app.settings.get(
-                "shell.command",
-                str,
-                expand=False,
-            )
-            shell_start = self.app.settings.get(
-                "shell.command_start",
-                str,
-                expand=False,
-            )
+            shell_command = self.app.settings.shell.command
+            shell_start = self.app.settings.shell.command_start
             shell_directory = self.working_directory
             self._shell = Shell(
                 self, shell_directory, shell=shell_command, start=shell_start

@@ -1,0 +1,25 @@
+test_any_mode_expansion_reloads_older_history_without_new_bus_rows (__main__.ReaderTests.test_any_mode_expansion_reloads_older_history_without_new_bus_rows) ... ok
+test_bus_replacement_reloads_unchanged_sequence_tail (__main__.ReaderTests.test_bus_replacement_reloads_unchanged_sequence_tail) ... ok
+test_dm_turn_claim_preserves_display_identity (__main__.ReaderTests.test_dm_turn_claim_preserves_display_identity) ... ok
+test_history_attachment_refreshes_without_new_live_messages (__main__.ReaderTests.test_history_attachment_refreshes_without_new_live_messages) ... ERROR
+test_revision_reuse_limits_and_background_admission (__main__.ReaderTests.test_revision_reuse_limits_and_background_admission) ... ok
+
+======================================================================
+ERROR: test_history_attachment_refreshes_without_new_live_messages (__main__.ReaderTests.test_history_attachment_refreshes_without_new_live_messages)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-export-caller-migration-20260928/tests/channel_history_reader_pilot.py", line 100, in test_history_attachment_refreshes_without_new_live_messages
+    source.register(Thread("alice", frozenset({"team"}), str(root)))
+    ^^^^^^^^^^^^^^^
+AttributeError: 'Comms' object has no attribute 'register'. Did you mean: 'registry'?
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.142s
+
+FAILED (errors=1)

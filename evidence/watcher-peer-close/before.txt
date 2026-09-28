@@ -1,0 +1,9 @@
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-watcher-peer-close-20260928/tests/watcher_peer_close.py", line 49, in <module>
+    main()
+    ~~~~^^
+  File "/home/ts/wt/toad-watcher-peer-close-20260928/tests/watcher_peer_close.py", line 41, in main
+    assert not result.stderr, result.stderr
+           ^^^^^^^^^^^^^^^^^
+AssertionError: Exception in thread Thread-2:
+

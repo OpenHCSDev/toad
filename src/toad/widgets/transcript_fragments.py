@@ -5,7 +5,10 @@ from collections.abc import Iterator
 from typing import TYPE_CHECKING
 from threading import local
 
-from agent_comms import TranscriptEvent
+from agent_comms.mro_dispatch import MroDispatch, handles
+from agent_comms.transcript_events import (
+    TranscriptEvent, TextTranscript, ContextTranscript, UserTranscript, LiveTextTranscript, ToolTranscript,
+)
 from markdown_it import MarkdownIt
 
 from toad.widgets.agent_activity import AgentActivityBoundary
@@ -34,14 +37,15 @@ def _fragment_parser() -> MarkdownIt:
 
 async def prepare_transcript_fragments(
     events: tuple[TranscriptEvent, ...], pool: "Renderer | None" = None,
+    *, background: bool = False,
 ) -> tuple["TranscriptFragment", ...]:
     """Prepare plain model data; never send widgets or application state to workers.
 
     Standalone Textual apps may not own a pool. Their large requests own and close
     a temporary pool, including on cancellation; there is no hidden global pool.
     """
-    if (len(events) <= FOREGROUND_EVENT_BUDGET
-            and sum(len(event.text) for event in events) <= FOREGROUND_CHARACTER_BUDGET):
+    if (not background and len(events) <= FOREGROUND_EVENT_BUDGET
+            and sum(event.text_size for event in events) <= FOREGROUND_CHARACTER_BUDGET):
         return transcript_fragments(events)
     from toad.render_tasks import TranscriptRenderTask
 
@@ -150,31 +154,41 @@ class TranscriptFragment:
     starts_agent_activity: bool = False
 
 
+class TranscriptFragmentConsumer(MroDispatch):
+    def __init__(self):
+        self.fragments: list[TranscriptFragment] = []
+        self.tools: dict[str, int] = {}
+        self.budget = RenderBudget()
+        self.boundary = AgentActivityBoundary()
+
+    @handles(ContextTranscript)
+    def context(self, event: ContextTranscript):
+        # One lazy disclosure owns the full metadata source.
+        self.fragments.append(TranscriptFragment((event,)))
+
+    @handles(UserTranscript, LiveTextTranscript)
+    def text(self, event: TextTranscript):
+        starts_activity = self.boundary.observe(event_category(event)) if event.starts_activity else False
+        self.fragments.extend(
+            TranscriptFragment((replace(event, text=part),), continuation=index > 0,
+                               starts_agent_activity=starts_activity and index == 0)
+            for index, part in enumerate(self.budget.split(event.text))
+        )
+
+    @handles(ToolTranscript)
+    def tool(self, event: ToolTranscript):
+        if event.tool_call_id in self.tools:
+            index = self.tools[event.tool_call_id]
+            self.fragments[index] = replace(self.fragments[index], events=(*self.fragments[index].events, event))
+        else:
+            self.tools[event.tool_call_id] = len(self.fragments)
+            self.fragments.append(TranscriptFragment(
+                (event,), starts_agent_activity=self.boundary.observe(event_category(event)),
+            ))
+
+
 def transcript_fragments(events: tuple[TranscriptEvent, ...]) -> tuple[TranscriptFragment, ...]:
-    fragments: list[TranscriptFragment] = []
-    tools: dict[str, int] = {}
-    budget = RenderBudget()
-    boundary = AgentActivityBoundary()
+    consumer = TranscriptFragmentConsumer()
     for event in events:
-        if event.kind == "context":
-            # A single lazy disclosure owns the full metadata source. Its body
-            # uses normal bounded Markdown paging only when the user opens it.
-            fragments.append(TranscriptFragment((event,)))
-        elif event.kind in {"user", "assistant", "thinking", "notice", "sent"}:
-            starts_activity = (boundary.observe(event_category(event))
-                               if event.kind != "thinking" or event.text.strip() else False)
-            fragments.extend(
-                TranscriptFragment((replace(event, text=part),), continuation=index > 0,
-                                   starts_agent_activity=starts_activity and index == 0)
-                for index, part in enumerate(budget.split(event.text))
-            )
-        elif event.kind in {"tool_start", "tool_end"}:
-            if event.tool_call_id in tools:
-                index = tools[event.tool_call_id]
-                fragments[index] = replace(fragments[index], events=(*fragments[index].events, event))
-            else:
-                tools[event.tool_call_id] = len(fragments)
-                fragments.append(TranscriptFragment(
-                    (event,), starts_agent_activity=boundary.observe(event_category(event)),
-                ))
-    return tuple(fragments)
+        consumer.dispatch_sync(event)
+    return tuple(consumer.fragments)

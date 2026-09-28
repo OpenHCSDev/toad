@@ -10,8 +10,12 @@ import tempfile
 from pathlib import Path
 from types import SimpleNamespace
 
-from agent_comms import ActivityState, ForkSpec, Thread
-from agent_comms.operations import wire
+from agent_comms.activity import ActivityState
+from agent_comms.thread_management import ForkSpec
+from agent_comms.thread_status import ArchivedThreadStatus
+from agent_comms.child_process import ProcessIdentity
+from agent_comms.threads import Thread
+from agent_comms.comms import wire
 from textual.content import Content
 from textual.widgets import Footer, Markdown
 from textual.widgets._footer import FooterKey
@@ -20,8 +24,8 @@ from toad import messages
 from toad.acp.agent import Agent as ACPAgent
 from toad.acp import messages as acp_messages
 from toad import paths
-from runtime_fixture import ToadApp
-from toad.db import DB
+from runtime_fixture import ToadApp, wait_channel_roster
+from toad.db import DB, SessionMeta
 from toad.pill import pill
 from toad.screens.comms import CommsScreen
 from toad.screens.main import MainScreen
@@ -52,7 +56,7 @@ from toad.widgets.tool_call import ToolCall
 from toad.widgets.project_panel import FilePreview, ProjectSearchButton
 from toad.widgets.user_input import UserInput
 from toad.widgets.incoming_message import IncomingMessage, IncomingSender
-from toad.widgets.irc_message import IRCMessage, ThreadLink
+from toad.widgets.irc_message import IRCMessage
 
 
 def row(screen, target: str) -> CommsRow:
@@ -60,7 +64,7 @@ def row(screen, target: str) -> CommsRow:
 
 
 def open_rows(screen):
-    return screen.query_one(CommsSidebar).session_rows
+    return screen.app.shared_channels.bar.roster.session_rows
 
 
 async def main() -> None:
@@ -122,17 +126,14 @@ for line in sys.stdin:
 
         comms = wire(wire_root)
         me = project.name
-        comms.register(
+        comms.threads.register(
             Thread(name=me, tags=frozenset({"session"}), worktree=str(project))
         )
-        comms.register(
+        comms.threads.register(
             Thread(name="peer", tags=frozenset({"test"}), worktree=str(project))
         )
-        comms.register(
+        comms.threads.register(
             Thread(name="other-peer", tags=frozenset(), worktree=str(project))
-        )
-        comms.register(
-            Thread(name="delete-peer", tags=frozenset(), worktree=str(project))
         )
         resumable_session = root / "resumable-session.jsonl"
         resumable_session.write_text(
@@ -185,7 +186,7 @@ for line in sys.stdin:
                 ]
             )
         )
-        comms.register(
+        comms.threads.register(
             Thread(
                 name="resumable-peer",
                 tags=frozenset({"test"}),
@@ -193,16 +194,16 @@ for line in sys.stdin:
                 session_file=str(resumable_session),
             )
         )
-        comms.send("peer", "#all", "hello from peer")
-        comms.send("peer", me, "private from peer")
-        comms.send("other-peer", me, "unrelated private message")
+        comms.messaging.send("peer", "#all", "hello from peer")
+        comms.messaging.send("peer", me, "private from peer")
+        comms.messaging.send("other-peer", me, "unrelated private message")
         for index in range(HISTORY_WINDOW_SIZE * 2):
-            comms.send("peer", "#test", f"long history {index:03}")
-        comms.acknowledge(me, "#test")
-        comms.set_agent_info(
+            comms.messaging.send("peer", "#test", f"long history {index:03}")
+        comms.messaging.acknowledge(me, "#test")
+        comms.agents.set_agent_info(
             "peer", model="openrouter/test-model", context_used=250, context_size=1000
         )
-        comms.set_activity("peer", ActivityState.THINKING, "reviewing the change")
+        comms.agents.set_activity("peer", ActivityState.THINKING, "reviewing the change")
 
         app = ToadApp(project_dir=str(project))
         async with app.run_test(size=(120, 40)) as pilot:
@@ -255,7 +256,7 @@ for line in sys.stdin:
             coordination = app.screen.query_one(CoordinationStatus)
             assert "persistent" in coordination.render().plain
             assert str(wire_root) in str(coordination.tooltip)
-            shell_sidebar = app.screen.query_one(SideBar)
+            shell_sidebar = app.screen.query_one("#channels-sidebar", SideBar)
             panels = list(shell_sidebar.query(SideBarCollapsible))
             assert (
                 panels[0].query_one("CollapsibleTitle").region.y == panels[0].region.y
@@ -376,15 +377,19 @@ for line in sys.stdin:
             created_conversation = app.screen.conversation
             assert app.session_tracker.get_session(created_mode).title == "New Session"
             managed_thread = "managed-test-thread"
-            comms.register(
+            comms.threads.register(
                 Thread(
                     name=managed_thread,
                     tags=frozenset({"acp"}),
                     worktree=str(project),
-                    pid=os.getpid(),
+                    process_identity=ProcessIdentity.capture(os.getpid()),
                 )
             )
-            startup_agent = object.__new__(ACPAgent)
+            startup_agent = ACPAgent(
+                project,
+                {"name": "Startup fixture", "identity": "fixture", "run_command": {"*": "true"}},
+                managed_thread,
+            )
             startup_agent._message_target = created_conversation
             startup_agent._pending_session_name = None
             startup_agent._process = SimpleNamespace(pid=os.getpid())
@@ -451,23 +456,23 @@ for line in sys.stdin:
                 app.session_tracker.get_session(created_mode).title
                 == "Name this from my first prompt"
             )
-            created_sidebar = app.screen.query_one(SideBar)
+            created_sidebar = app.screen.query_one("#channels-sidebar", SideBar)
             created_sidebar.toggle()
             await pilot.pause()
             assert created_sidebar.collapsed
-            assert app.settings.get("sidebar.hide", bool)
+            assert app.settings.sidebar.hide
             await app.switch_mode(owner_mode)
             await pilot.pause()
-            assert app.screen.query_one(SideBar).collapsed
+            assert app.screen.query_one("#channels-sidebar", SideBar).collapsed
             assert [item.mode_name for item in app.screen.query(ThreadRow)
                     if item.target_name == renamed_thread] == [created_mode]
             assert len(open_rows(app.screen)) == 2
             await app.switch_mode(created_mode)
             await pilot.pause()
-            assert app.screen.query_one(SideBar).collapsed
-            app.screen.query_one(SideBar).reveal()
+            assert app.screen.query_one("#channels-sidebar", SideBar).collapsed
+            app.screen.query_one("#channels-sidebar", SideBar).reveal()
             await pilot.pause()
-            assert not app.settings.get("sidebar.hide", bool)
+            assert not app.settings.sidebar.hide
             stopped_agents = 0
 
             class ClosingAgent:
@@ -509,7 +514,6 @@ for line in sys.stdin:
                 "comms_stop",
                 "comms_start",
                 "comms_archive",
-                "comms_delete",
                 "comms_ack",
                 "copy",
                 "close_view",
@@ -573,20 +577,32 @@ for line in sys.stdin:
                 app.session_tracker.get_session(owner_mode).summary
                 == "Writing response"
             )
-            protocol_agent = object.__new__(ACPAgent)
+            protocol_agent = ACPAgent(
+                project,
+                {"name": "Protocol fixture", "identity": "fixture", "run_command": {"*": "true"}},
+                "pilot-session",
+            )
             protocol_agent._message_target = conversation
+            previous_agent = conversation.agent
+            conversation.set_reactive(type(conversation).agent, protocol_agent)
+            protocol_agent.rpc_session_update(
+                "pilot-session",
+                {"sessionUpdate": "agent_message_chunk", "content": {"type": "text", "text": ""},
+                 "_meta": {"agentComms": {"turnStarted": True, "turnId": "pilot-turn"}}},
+            )
             protocol_agent.rpc_session_update(
                 "pilot-session",
                 {
                     "sessionUpdate": "agent_message_chunk",
                     "content": {"type": "text", "text": ""},
-                    "_meta": {"agentComms": {"turnSettled": True}},
+                    "_meta": {"agentComms": {"turnSettled": True, "turnId": "pilot-turn"}},
                 },
             )
             await pilot.pause()
             settled = app.session_tracker.get_session(owner_mode)
             assert settled.state == "idle"
             assert settled.summary == "Ready for review"
+            conversation.set_reactive(type(conversation).agent, previous_agent)
             conversation.post_message(
                 acp_messages.Thinking("agent_thought_chunk", "Inspecting the workspace")
             )
@@ -674,15 +690,15 @@ for line in sys.stdin:
             await pilot.click(thread_sidebar.query_one(SideBarToggle))
             await pilot.pause()
 
-            viewer = comms.user_identity(str(project)).name
-            comms.send("peer", viewer, "Unread message for human view")
-            comms.send("peer", "#all", "Unread channel message for human view")
+            viewer = comms.messaging.user_identity(str(project)).name
+            comms.messaging.send("peer", viewer, "Unread message for human view")
+            comms.messaging.send("peer", "#all", "Unread channel message for human view")
             pending_before_mark = {
-                target: comms.pending_count(me, target)
+                target: comms.bus.pending_count(me, target)
                 for target in ("peer", "other-peer", "#all")
             }
-            assert comms.viewer_snapshot(str(project)).unread["peer"] == 1
-            assert comms.viewer_snapshot(str(project)).channel_unread["#all"] >= 1
+            assert comms.views.viewer_snapshot(str(project)).unread["peer"] == 1
+            assert comms.views.viewer_snapshot(str(project)).channel_unread["#all"] >= 1
             await pilot.click(row(app.screen, "peer"), button=3)
             await pilot.pause()
             assert isinstance(app.screen, ContextMenu)
@@ -692,15 +708,16 @@ for line in sys.stdin:
                 "comms_stop",
                 "comms_start",
                 "comms_archive",
-                "comms_delete",
                 "comms_ack",
                 "copy",
             ]
-            await pilot.press("down", "down", "down", "down", "down", "down", "enter")
+            ack_item = next(item for item in app.screen.query(ContextMenuItem)
+                            if item.action == "comms_ack")
+            await pilot.click(ack_item)
             await pilot.pause()
             assert isinstance(app.screen, MainScreen)
-            assert comms.viewer_snapshot(str(project)).unread.get("peer", 0) == 0
-            assert {target: comms.pending_count(me, target)
+            assert comms.views.viewer_snapshot(str(project)).unread.get("peer", 0) == 0
+            assert {target: comms.bus.pending_count(me, target)
                     for target in pending_before_mark} == pending_before_mark
             await pilot.click(row(app.screen, "#all"), button=3)
             await pilot.pause()
@@ -713,8 +730,8 @@ for line in sys.stdin:
             await pilot.press("down", "enter")
             await pilot.pause()
             assert isinstance(app.screen, MainScreen)
-            assert comms.viewer_snapshot(str(project)).channel_unread["#all"] == 0
-            assert {target: comms.pending_count(me, target)
+            assert comms.views.viewer_snapshot(str(project)).channel_unread["#all"] == 0
+            assert {target: comms.bus.pending_count(me, target)
                     for target in pending_before_mark} == pending_before_mark
 
             await pilot.click(row(app.screen, "other-peer"), button=3)
@@ -726,7 +743,7 @@ for line in sys.stdin:
             )
             await pilot.click(stop_item)
             await pilot.pause()
-            assert comms.thread_detail("other-peer")["status"] == "stopped"
+            assert comms.views.thread_detail("other-peer")["status"] == "stopped"
             await pilot.click(row(app.screen, "other-peer"), button=3)
             await pilot.pause()
             archive_item = next(
@@ -736,34 +753,12 @@ for line in sys.stdin:
             )
             await pilot.click(archive_item)
             await pilot.pause()
-            assert comms.registry.status("other-peer").value == "archived"
+            assert comms.registry.status("other-peer") == ArchivedThreadStatus()
             assert not any(
                 item.target_name == "other-peer" for item in app.screen.query(CommsRow)
             )
 
-            await pilot.click(row(app.screen, "delete-peer"), button=3)
-            await pilot.pause()
-            stop_item = next(
-                item
-                for item in app.screen.query(ContextMenuItem)
-                if item.action == "comms_stop"
-            )
-            await pilot.click(stop_item)
-            await pilot.pause()
-            await pilot.click(row(app.screen, "delete-peer"), button=3)
-            await pilot.pause()
-            delete_item = next(
-                item
-                for item in app.screen.query(ContextMenuItem)
-                if item.action == "comms_delete"
-            )
-            await pilot.click(delete_item)
-            await pilot.pause()
-            assert "delete-peer" not in comms.registry
-            assert not any(
-                item.target_name == "delete-peer" for item in app.screen.query(CommsRow)
-            )
-
+            retained_owner_rows = tuple(open_rows(app.screen))
             await pilot.click(row(app.screen, "#all"))
             await pilot.pause()
             assert isinstance(app.screen, CommsScreen)
@@ -772,7 +767,8 @@ for line in sys.stdin:
             assert app.session_tracker.session_count == 1
             assert len(open_rows(app.screen)) == 1
             owner_screen = app.get_screen_stack(owner_mode)[-1]
-            assert len(open_rows(owner_screen)) == 1
+            assert tuple(open_rows(owner_screen)) == retained_owner_rows, "Tab switch rebuilt the warm roster"
+            assert all(item.is_attached for item in retained_owner_rows)
             first_channel_mode = app.current_mode
             chat = app.screen.query_one(CommsChatView)
             assert chat.prompt.prompt_text_area.has_focus
@@ -792,7 +788,7 @@ for line in sys.stdin:
             await pilot.press("enter")
             await pilot.pause()
             assert "message from pilot" in [
-                message.body for message in comms.channel_history("#all")
+                message.body for message in comms.views.channel_history("#all")
             ]
 
             owner_row = next(
@@ -803,8 +799,12 @@ for line in sys.stdin:
             await pilot.click(owner_row)
             await pilot.pause()
             assert isinstance(app.screen, MainScreen)
+            assert len(open_rows(app.screen)) == 1, "Resumed roster did not restore its model projection"
             await pilot.click(row(app.screen, "#all"))
             await pilot.pause()
+            async with asyncio.timeout(10):
+                while app.current_mode != first_channel_mode:
+                    await pilot.pause(.01)
             assert app.current_mode == first_channel_mode
             assert app.session_tracker.session_count == 1
 
@@ -883,7 +883,6 @@ for line in sys.stdin:
                 "comms_stop",
                 "comms_start",
                 "comms_archive",
-                "comms_delete",
                 "comms_ack",
                 "copy",
             ]
@@ -926,13 +925,15 @@ for line in sys.stdin:
             resumable_row.scroll_visible(animate=False)
             await pilot.pause()
             assert await pilot.click(resumable_row)
-            for _ in range(20):
-                await pilot.pause()
-                if any(
+            async with asyncio.timeout(10):
+                # Independently prepared saved blocks can finish out of order.
+                # The last reply alone is not completion of the thinking body.
+                while not (any(
                     "thread transcript complete" in response.source
                     for response in app.screen.query(AgentResponse)
-                ):
-                    break
+                ) and any("thread reasoning" in thought.source
+                          for thought in app.screen.query(AgentThought))):
+                    await pilot.pause(.02)
             assert isinstance(app.screen, MainScreen)
             assert not isinstance(app.screen, CommsScreen)
             thread_mode = app.current_mode
@@ -944,7 +945,8 @@ for line in sys.stdin:
             assert any(
                 "thread transcript request" in user_input.content
                 for user_input in app.screen.query(UserInput)
-            )
+            ), [(type(node).__name__, getattr(node, "source", getattr(node, "content", "")))
+                for node in app.screen.conversation.contents.children]
             assert any(
                 "thread reasoning" in thought.source
                 for thought in app.screen.query(AgentThought)
@@ -967,7 +969,7 @@ for line in sys.stdin:
             )
             second_file = root / "second-session.jsonl"
             second_file.write_text(resumable_session.read_text())
-            comms.register(
+            comms.threads.register(
                 Thread(
                     name="second-peer",
                     tags=frozenset(),
@@ -1006,7 +1008,7 @@ for line in sys.stdin:
             assert "second-peer-2" not in comms.registry
             hold = gates / "second-peer"
             hold.touch()
-            comms.send("resumable-peer", "second-peer", "live round one")
+            comms.messaging.send("resumable-peer", "second-peer", "live round one")
             for _ in range(80):
                 await pilot.pause(0.1)
                 if any(
@@ -1017,7 +1019,7 @@ for line in sys.stdin:
             assert app.screen.conversation.turn == "agent", (
                 [item.source for item in app.screen.query(AgentThought)],
                 hold.exists(),
-                comms.activity_of("second-peer"),
+                comms.agents.activity_of("second-peer"),
             )
             assert app.screen.conversation.busy_count == 1
             active_turn = app.screen.conversation._managed_turn_id
@@ -1069,7 +1071,7 @@ for line in sys.stdin:
             await pilot.pause()
             assert app.current_mode == thread_mode
             assert app.session_tracker.session_count == 3
-            comms.send("second-peer", "resumable-peer", "live round two")
+            comms.messaging.send("second-peer", "resumable-peer", "live round two")
             for _ in range(40):
                 await pilot.pause(0.1)
                 if any(
@@ -1118,7 +1120,7 @@ for line in sys.stdin:
             except TimeoutError:
                 raise AssertionError((
                     "Busy thread tab did not observe the activity snapshot within 3 seconds",
-                    app.open_tabs, comms.activity_of("resumable-peer"), app.screen._session_thread,
+                    app.open_tabs, comms.agents.activity_of("resumable-peer"), app.screen._session_thread,
                 )) from None
             assert all(
                 "user turn lifecycle" not in item.source for item in first_thoughts
@@ -1140,7 +1142,7 @@ for line in sys.stdin:
                 "Agent Comms",
                 "agent-comms.openhcs.dev",
                 "resumable-peer",
-                meta={"cwd": str(project), "agent_data": app.screen._agent},
+                meta=SessionMeta(cwd=project, agent_data=app.screen._agent),
             )
             assert first_pk is not None
             app.screen.conversation.agent.session_pk = first_pk
@@ -1163,10 +1165,10 @@ for line in sys.stdin:
             assert app.current_mode == thread_mode
             assert app.session_tracker.get_session(second_mode) is None
             assert "second-peer" in comms.registry
-            comms.stop("second-peer")
-            comms.delete("second-peer")
+            comms.owners.stop("second-peer")
+            comms.threads.archive("second-peer")
 
-            external = comms.fork(
+            external = comms.threads.fork(
                 ForkSpec(
                     name="external-peer",
                     parent="resumable-peer",
@@ -1183,7 +1185,7 @@ for line in sys.stdin:
                         break
                 external_file = root / "external-session.jsonl"
                 external_file.write_text(resumable_session.read_text())
-                comms.attach_session(external.name, str(external_file))
+                comms.threads.attach_session(external.name, str(external_file))
                 external_mode = await app.open_thread_session(
                     owner_mode=thread_mode, project_path=project, target=external.name
                 )
@@ -1193,7 +1195,7 @@ for line in sys.stdin:
                         break
                 assert external_mode != thread_mode
                 assert comms.registry.require(external.name).pid == external.pid
-                comms.send("resumable-peer", external.name, "live external attachment")
+                comms.messaging.send("resumable-peer", external.name, "live external attachment")
                 for _ in range(40):
                     await pilot.pause(0.1)
                     if any(
@@ -1211,96 +1213,63 @@ for line in sys.stdin:
                     )
                     == 1
                 )
-                app.post_message(messages.SessionDelete(external_mode))
+                app.post_message(messages.SessionArchive(external_mode))
                 for _ in range(80):
                     await pilot.pause(0.1)
                     if app.session_tracker.get_session(external_mode) is None:
                         break
                 assert app.session_tracker.get_session(external_mode) is None
-                assert external.name not in comms.registry
+                assert comms.registry.require(external.name).pid == external.pid
                 assert app.current_mode == thread_mode
             finally:
                 if external.name in comms.registry:
-                    await asyncio.to_thread(comms.stop, external.name)
-                    comms.delete(external.name)
+                    await asyncio.to_thread(comms.owners.stop, external.name)
+                    comms.threads.archive(external.name)
                 await asyncio.to_thread(os.waitpid, external.pid, 0)
-            await app.screen.conversation.rename_session("delete once")
-            await pilot.pause()
-            deleted_name = app.screen._comms_thread
-            assert deleted_name == "delete-once"
-            comms.register(
-                Thread(
-                    name="surviving-child",
-                    parent=deleted_name,
-                    tags=frozenset(),
-                    worktree=str(project),
-                    session_file=str(second_file),
-                )
-            )
-            app.screen.query_one(CommsSidebar)._refresh()
-            await pilot.pause()
-            deleted_pid = comms.registry.require(deleted_name).pid
-            deleted_pk = app.screen.conversation.agent.session_pk
-            await asyncio.to_thread(comms.stop, deleted_name)
-            thread_row = next(
-                item
-                for item in open_rows(app.screen)
-                if item.mode_name == thread_mode
-            )
-            thread_row.scroll_visible(animate=False)
-            await pilot.pause()
-            assert await pilot.click(thread_row, button=3)
-            await pilot.pause()
-            assert isinstance(app.screen, ContextMenu)
-            delete_item = next(
-                item
-                for item in app.screen.query(ContextMenuItem)
-                if item.action == "comms_delete"
-            )
-            assert await pilot.click(delete_item)
-            for _ in range(30):
-                await pilot.pause(0.1)
-                if app.session_tracker.get_session(thread_mode) is None:
-                    break
-            assert app.current_mode == owner_mode, (
-                app.current_mode,
-                [
-                    (item.mode_name, item.title)
-                    for item in app.session_tracker.ordered_sessions
-                ],
-                (
-                    comms.thread_detail(deleted_name)
-                    if deleted_name in comms.registry
-                    else "deleted"
-                ),
-            )
+            await app.close_session_mode(thread_mode)
+            assert app.current_mode == owner_mode
             assert app.session_tracker.session_count == 1
-            assert not comms._process_alive(deleted_pid)
-            assert deleted_name not in comms.registry
-            assert "resumable-peer" not in comms.registry
-            assert comms.registry.require("surviving-child").parent is None
-            assert comms.registry.require("surviving-child").session_file == str(
-                second_file
-            )
-            assert await DB().session_get(deleted_pk) is None
-            await pilot.pause(2)
-            assert not {deleted_name, "resumable-peer"} & {
-                item.target_name for item in app.screen.query(CommsRow)
-            }
-            replacement = comms.claim_thread(
-                deleted_name, tags=frozenset(), worktree=str(project)
-            )
-            assert replacement.name == deleted_name
-            comms.stop(replacement.name)
-            comms.delete(replacement.name)
-            comms.stop("surviving-child")
-            comms.delete("surviving-child")
+            assert await DB().session_get(first_pk) is not None
+            assert "resumable-peer" in comms.registry
             app.screen._agent = owner_agent
             app.screen.query_one(CommsSidebar)._refresh()
             await pilot.pause()
 
-            await pilot.click(row(app.screen, "#all"))
-            await pilot.pause()
+            async with asyncio.timeout(10):
+                # _refresh starts an asynchronous route/snapshot publication.
+                # An idle message queue does not promise a rendered roster yet.
+                # Keep readiness, click and destination inside the same deadline.
+                await wait_channel_roster(app, pilot, "#all")
+                await pilot.pause()
+                while True:
+                    channel_row = next((item for item in app.screen.query(CommsRow)
+                                        if item.target_name == "#all" and item.is_attached), None)
+                    if channel_row is not None:
+                        channel_row.scroll_visible(animate=False)
+                        await pilot.pause(.01)
+                        placement = app.screen._compositor.visible_widgets.get(channel_row)
+                        if placement is not None:
+                            region, clip = placement
+                            visible = region.intersection(clip).intersection(app.screen.size.region)
+                            if visible:
+                                x = visible.x + visible.width // 2
+                                y = visible.y + visible.height // 2
+                                # Scroll retention can clip a row's top-left;
+                                # click an actually exposed native hit target.
+                                if app.screen.get_widget_at(x, y)[0] is channel_row:
+                                    click_offset = (x - region.x, y - region.y)
+                                    break
+                    else:
+                        await pilot.pause(.01)
+                assert await pilot.click(channel_row, offset=click_offset), (
+                    "Channel revisit click missed its native row", channel_row.region,
+                    app.screen.query_one("#channels-sidebar", SideBar).collapsed,
+                    click_offset, app.current_mode,
+                    app.screen.get_widget_at(x, y)[0],
+                )
+                await pilot.pause()
+                while app.current_mode != first_channel_mode:
+                    await pilot.pause(.01)
             assert app.current_mode == first_channel_mode
             await pilot.press("escape")
             await pilot.pause()
@@ -1327,23 +1296,23 @@ for line in sys.stdin:
             paths.get_state = lambda: state_path
             await app.new_session_screen(app.get_main_screen)
             await pilot.pause()
-            delete_mode = app.current_mode
+            saved_mode = app.current_mode
             saved_db = DB()
             assert await saved_db.create()
             saved_pk = await saved_db.session_new(
-                "Delete me",
+                "Retain saved history",
                 "Pilot agent",
                 "pilot-agent",
                 "pilot-session",
             )
             assert saved_pk is not None
             app.screen._session_pk = saved_pk
-            delete_row = next(
+            saved_row = next(
                 item
                 for item in open_rows(app.screen)
-                if item.mode_name == delete_mode
+                if item.mode_name == saved_mode
             )
-            await pilot.click(delete_row, button=3)
+            await pilot.click(saved_row, button=3)
             await pilot.pause()
             close_view = next(
                 item

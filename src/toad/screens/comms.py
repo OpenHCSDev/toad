@@ -5,26 +5,28 @@ from textual import containers, getters, on
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.events import ScreenResume
-from textual.screen import Screen
-from textual.widgets import Static
+from textual.widgets import Static, Button
+from textual.widget import Widget
 from toad.widgets.footer import Footer
 
 from toad import messages
 from toad.constants import ALL_COMMS_TARGET
 from toad.app import ToadApp
 from toad.widgets.comms_chat import CommsChatView
+from toad.widgets.irc_message import SelectHistoricalIdentity
 from toad.widgets.comms_fork_dialog import ForkDialog
 from toad.widgets.comms_sidebar import CoordinationStatus, CommsSidebar, SelectTarget
-from toad.widgets.channels_sidebar import ChannelsSidebar
+from toad.widgets.channels_sidebar import ChannelsSlot
 from toad.session_tracker import SidebarState
 from toad.widgets.session_tabs import SessionsTabs
 from toad.widgets.side_bar import SideBar, TabHistoryControls
+from toad.navigation_target import NavigationContext, NavigationOwner
 from toad.widgets.recovery_view import RecoveryView
 from toad.widgets.thread_comms import RelationshipSort, ThreadCommsSidebar
 from toad.screens.session_view import SessionView
 
 
-class CommsScreen(SessionView, can_focus=False):
+class CommsScreen(SessionView, NavigationOwner, can_focus=False):
     """A channel or DM represented as a native concurrent Toad session."""
 
     AUTO_FOCUS = "CommsChatView Prompt TextArea"
@@ -32,6 +34,7 @@ class CommsScreen(SessionView, can_focus=False):
     SESSION_NAVIGATION_GROUP = Binding.Group(description="Sessions")
     BINDINGS = [
         Binding("escape", "back_to_agent", "Agent session"),
+        Binding("ctrl+h", "historical_sessions", "Saved sessions"),
         Binding("ctrl+g", "toggle_irc", "IRC view"),
         Binding("ctrl+b,f20", "show_sidebar", "Sidebar"),
         Binding("ctrl+t", "message_style", "IRC / Markdown"),
@@ -58,6 +61,7 @@ class CommsScreen(SessionView, can_focus=False):
         target: str,
         kind: str,
         recovery_root: str | None = None,
+        wire_root: str | None = None,
     ) -> None:
         super().__init__()
         self.project_path = project_path
@@ -66,23 +70,26 @@ class CommsScreen(SessionView, can_focus=False):
         self.target = target
         self.kind = kind
         self.recovery_root = recovery_root
+        self.wire_root = wire_root
         self._thread_sidebar_state = SidebarState()
         self._content_ready = asyncio.Event()
         self._content_error: BaseException | None = None
         self._content_loaded = False
         self._content_loading = False
         self._hydrate_queued = False
-        self._flush_queued = False
         self._sidebar_layout_watch = False
 
     app = getters.app(ToadApp)
+
+    def channels_context(self) -> tuple[str, str]:
+        return self.me, self.target
 
     def compose(self) -> ComposeResult:
         with containers.Horizontal(id="tab-navigation-header"):
             yield TabHistoryControls()
             yield SessionsTabs()
         with containers.Center():
-            yield ChannelsSidebar(self.me, self.target)
+            yield ChannelsSlot()
             yield SideBar(
                 SideBar.Panel(
                     "Connection",
@@ -97,6 +104,7 @@ class CommsScreen(SessionView, can_focus=False):
                 id="thread-sidebar", right=True, hide=True, navigation=self._thread_sidebar_state,
             )
             with containers.Vertical(id="comms-content"):
+                yield Button("Saved sessions", id="historical-sessions")
                 if not self._content_loaded:
                     yield Static(f"Opening {self.target}…", id="comms-opening")
                 else:
@@ -105,11 +113,35 @@ class CommsScreen(SessionView, can_focus=False):
                         me=self.me,
                         target=self.target,
                         kind=self.kind,
+                        wire_root=self.wire_root,
                     )
         yield Footer()
 
+    @on(SelectHistoricalIdentity)
+    async def select_historical_identity(self, event: SelectHistoricalIdentity) -> None:
+        event.stop()
+        from toad.screens.historical_sessions import HistoricalSessions
+        comms = self.app.coordination_wire
+        threads = await asyncio.to_thread(comms.views.historical_threads, event.name)
+        if not threads:
+            self.notify("This sender has no preserved identity declaration.")
+            return
+        self.app.push_screen(HistoricalSessions(comms, threads, name=event.name, source=event.source))
+
+    @on(Button.Pressed, "#historical-sessions")
+    async def action_historical_sessions(self) -> None:
+        from toad.screens.historical_sessions import HistoricalSessions
+        comms = self.app.coordination_wire
+        threads = await asyncio.to_thread(comms.views.historical_threads)
+        if not threads:
+            self.notify("No preserved history sources are attached yet.")
+            return
+        self.app.push_screen(HistoricalSessions(comms, threads,
+            name=self.target if self.kind == "dm" else None))
+
     def on_mount(self) -> None:
         if not self._content_loaded:
+            self.call_after_first_frame(self, self._start_hydration)
             return
         self._prepare_content()
 
@@ -124,10 +156,6 @@ class CommsScreen(SessionView, can_focus=False):
             sidebar._apply_layout()
         if not self._sidebar_layout_watch:
             self._sidebar_layout_watch = True
-            self.watch(
-                self.query_one("#channels-sidebar", SideBar), "collapsed",
-                lambda _collapsed: self.align_tabs_to_sidebars(),
-            )
             self.app.sidebar_layout_changed.subscribe(
                 self, lambda _event: self.align_tabs_to_sidebars()
             )
@@ -135,7 +163,8 @@ class CommsScreen(SessionView, can_focus=False):
         chat = self.query_one(CommsChatView)
         chat._me = self.me
         chat.project_path = self.project_path
-        self.query_one(CommsSidebar).session_thread = self.me
+        # Shared navigation may already belong to another tab when hydration
+        # finishes. Its actor/target are bound by the mode transition owner.
         self.query_one(CoordinationStatus).set_thread(self.me)
         chat.prepare_prompt()
 
@@ -188,8 +217,14 @@ class CommsScreen(SessionView, can_focus=False):
         if chat := self.query_one_optional(CommsChatView):
             chat.prepare_prompt()
 
+    def sidebar_focus_target(self) -> Widget | None:
+        if chat := self.query_one_optional(CommsChatView):
+            target = chat.prompt.prompt_text_area
+            return target if target.focusable else None
+        return None
+
     def action_show_sidebar(self) -> None:
-        sidebar = self.query_one(SideBar)
+        sidebar = self.query_one("#channels-sidebar", SideBar)
         sidebar.reveal()
         sidebar.query_one("SideBarCollapsible CollapsibleTitle").focus()
 
@@ -199,20 +234,15 @@ class CommsScreen(SessionView, can_focus=False):
         self.action_focus_prompt()
 
     async def _open(self, target: str, kind: str) -> None:
-        await self.app.open_comms_session(
-            owner_mode=self.owner_mode,
-            project_path=self.project_path,
-            me=self.me,
-            target=target,
-            kind=kind,
-        )
+        await self.open_sidebar_target(target, kind)
+
+    @property
+    def navigation_context(self) -> NavigationContext:
+        return NavigationContext(self.app, self.owner_mode, self.project_path, self.me)
 
     @on(SelectTarget)
     async def on_select_target(self, event: SelectTarget) -> None:
-        if event.kind == "session":
-            await self.action_back_to_agent()
-        else:
-            await self._open(event.target, event.kind)
+        await self.open_sidebar_target(event.target, event.kind)
 
     async def action_back_to_agent(self) -> None:
         if self.app.session_tracker.get_session(self.owner_mode) is None:
@@ -256,18 +286,19 @@ class CommsScreen(SessionView, can_focus=False):
         def do_fork(spec: tuple[str, str] | None) -> None:
             if not spec:
                 return
-            import os
-
             from agent_comms import invoke_context_tool
-            from agent_comms.operations import wire
+            from agent_comms.comms import wire
 
-            root = os.environ.get("AGENT_COMMS_ROOT", "~/.agent-comms")
+            from toad.comms_root import implicit_root, root_is_current, run_selected_write
+
             try:
-                invoke_context_tool(
-                    wire(root),
-                    event.action,
-                    subject=parent,
-                    arguments={"name": spec[0], "task": spec[1]},
+                if self.wire_root is not None and not root_is_current(self.wire_root):
+                    raise ValueError("Comms route changed; reopen the view before forking")
+                comms = wire()
+                run_selected_write(
+                    comms.root, invoke_context_tool, comms, event.action,
+                    subject=parent, arguments={"name": spec[0], "task": spec[1]},
+                    implicit=implicit_root(),
                 )
                 self.notify(f"forked {spec[0]} from {parent}", title="Comms")
             except Exception as error:

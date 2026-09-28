@@ -1,0 +1,34 @@
+native attribution: live/saved FROM/TO agree, human quotes preserved, historical=False
+native attribution: live/saved FROM/TO agree, human quotes preserved, historical=True
+Process Directory observer: /home/ts/wt/toad-tl0a-legacy-deletion-20260928/.artifacts/tmp/toad-native-attribution-cmvive87:
+Traceback (most recent call last):
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/process.py", line 320, in _bootstrap
+    self.run()
+    ~~~~~~~~^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-tl0a-legacy-deletion-20260928/.artifacts/candidate/toad/directory_watcher.py", line 146, in _observe_path
+    observer.start()
+    ~~~~~~~~~~~~~~^^
+  File "/home/ts/.local/share/agent-comms/runtime-watcher-20260928/lib/python3.14/site-packages/watchdog/observers/api.py", line 264, in start
+    emitter.start()
+    ~~~~~~~~~~~~~^^
+  File "/home/ts/.local/share/agent-comms/runtime-watcher-20260928/lib/python3.14/site-packages/watchdog/utils/__init__.py", line 75, in start
+    self.on_thread_start()
+    ~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/.local/share/agent-comms/runtime-watcher-20260928/lib/python3.14/site-packages/watchdog/observers/inotify.py", line 119, in on_thread_start
+    self._inotify = InotifyBuffer(path, recursive=self.watch.is_recursive, event_mask=event_mask)
+                    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-watcher-20260928/lib/python3.14/site-packages/watchdog/observers/inotify_buffer.py", line 30, in __init__
+    self._inotify = Inotify(path, recursive=recursive, event_mask=event_mask)
+                    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-watcher-20260928/lib/python3.14/site-packages/watchdog/observers/inotify_c.py", line 187, in __init__
+    self._add_watch(path, event_mask)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-watcher-20260928/lib/python3.14/site-packages/watchdog/observers/inotify_c.py", line 424, in _add_watch
+    Inotify._raise_error()
+    ~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/.local/share/agent-comms/runtime-watcher-20260928/lib/python3.14/site-packages/watchdog/observers/inotify_c.py", line 441, in _raise_error
+    raise OSError(err, os.strerror(err))
+FileNotFoundError: [Errno 2] No such file or directory

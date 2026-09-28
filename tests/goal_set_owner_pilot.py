@@ -4,11 +4,11 @@ import asyncio
 import os
 import tempfile
 from pathlib import Path
-from types import SimpleNamespace
 
+from agent_comms.goal_actions import BlockedGoalAction, GoalPrecondition, SetGoalAction
 from agent_comms.acp import CommsAgent
 from agent_comms.goal_attempts import GoalAttemptStore
-from agent_comms.operations import wire
+from agent_comms.comms import wire
 from toad.acp.agent import Agent
 
 
@@ -29,32 +29,26 @@ async def owner_set_route(*, legacy_blocked: bool) -> None:
             auto_wake=False,
         )
         session = (await owner.new_session(cwd=str(project))).session_id
-        toad_agent = SimpleNamespace(
-            _coordination_root=comms.root,
-            _coordination_thread=session,
-        )
+        toad_agent = Agent(project, {"name": "agent-comms", "run_command": {"*": "true"}}, None)
+        toad_agent._coordination_root = str(comms.root)
+        toad_agent._coordination_thread = session
         try:
             if legacy_blocked:
-                old = comms.update_goal(session, "set", text="legacy goal")
-                blocked = comms.update_goal(
-                    session,
-                    "blocked",
-                    goal_id=old.id,
-                    progress="Goal attempt unresolved",
-                )
-                assert blocked is not None and blocked.status == "blocked"
+                old = comms.goals.update_goal(session, SetGoalAction(text="legacy goal"))
+                blocked = comms.goals.update_goal(session, BlockedGoalAction(progress="Goal attempt unresolved", expect=GoalPrecondition(goal_id=old.id)))
+                assert blocked is not None and blocked.state.declared_name == "blocked"
                 assert comms.registry.require(session).goal == blocked
                 assert not (
                     comms.root / "goal-private" / "goal_attempts.sqlite3"
                 ).exists()
             goal = await Agent.update_goal(toad_agent, "set", "Finish the task")
-            assert goal is not None and goal.status == "active"
+            assert goal is not None and goal.state.declared_name == "active"
             assert goal.text == "Finish the task"
             if legacy_blocked:
                 assert goal.id != old.id
             generation = GoalAttemptStore(comms.root / "goal-private").snapshot(goal.id)
-            assert generation is not None and generation.state == "ready"
-            assert owner._goal_store.ready_grant(goal.id, generation.number)
+            assert generation is not None and generation.lifecycle.ready
+            assert owner.turns.goal_store.ready_grant(goal.id, generation.number)
             assert comms.registry.require(session).goal == goal
         finally:
             await owner.shutdown()

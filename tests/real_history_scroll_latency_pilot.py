@@ -15,7 +15,7 @@ import tempfile
 import time
 from unittest.mock import patch
 
-from agent_comms import Comms
+from agent_comms.comms import Comms
 from scroll_select_latency_pilot import PaintProbe
 from toad.widgets.comms_sidebar import CommsSidebar
 from toad.widgets.transcript_history import TranscriptHistory
@@ -23,7 +23,7 @@ from toad.widgets.transcript_history import TranscriptHistory
 
 async def main():
     source = Comms(Path(os.environ.get("TOAD_SOURCE_WIRE", "~/.agent-comms")).expanduser())
-    views = await asyncio.to_thread(source.channel_views)
+    views = await asyncio.to_thread(source.views.channel_views)
     thread_count = int(os.environ.get("TOAD_REAL_THREADS", "5"))
     page_steps = int(os.environ.get("TOAD_REAL_PAGE_STEPS", "4"))
     names = next(view.members for view in views if view.channel.name == "#any")[:thread_count]
@@ -41,7 +41,7 @@ async def main():
         app = PaintProbe(project_dir=str(root))
         with patch.object(CommsSidebar, "_read_snapshot", skip_snapshot):
             async with app.run_test(size=(120, 40)) as pilot:
-                app.settings.set("ui.auto_copy", False)
+                app.settings.ui.auto_copy = False
                 await pilot.pause()
                 modes = [app.current_mode]
                 for _ in names[1:]:
@@ -51,7 +51,7 @@ async def main():
                     await app.switch_mode(mode)
 
                     async def load(*, _name=name, **kwargs):
-                        return await asyncio.to_thread(source.thread_transcript_page, _name, **kwargs)
+                        return await asyncio.to_thread(source.transcripts.thread_transcript_page, _name, **kwargs)
 
                     page = await load()
                     history = TranscriptHistory(page, load)

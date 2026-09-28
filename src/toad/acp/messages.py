@@ -7,9 +7,15 @@ from typing import Literal, Mapping, TYPE_CHECKING
 from textual.message import Message
 
 import rich.repr
-from agent_comms import Goal, GoalExecution, TranscriptCursor, TranscriptEvent, TranscriptPage, MessageRoute
+from agent_comms.goals import Goal
+from agent_comms.goal_presentation import GoalExecution
+from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcript_events import TranscriptEvent
+from agent_comms.routing import MessageRoute
 
 from toad.answer import Answer
+from toad.private_native_cursor import CursorStatus
+from toad.queue_view import QueueItem, QueueProjection
 from toad.acp import protocol
 from toad.acp.encode_tool_call_id import encode_tool_call_id
 
@@ -40,14 +46,59 @@ class RejectedSessionUpdate(AgentMessage):
 
 
 @dataclass
-class PromptQueueUpdate(AgentMessage):
-    queued: list[str]
-    restored: list[str]
+class PrivateNativeCursorUpdate(AgentMessage):
+    """Immutable-in-flight presentation receipt; contains no private proof data."""
+
+    status: CursorStatus | None
+    agent: object
+    session_id: str | None
+    sequence: int
+
+
+@dataclass
+class McpClientStatus(AgentMessage):
+    """Turn-bound package-owned live MCP projection; never a grant or approval."""
+
+    receipt: dict
+    turn_id: str
+    session_id: str
+    agent: object
+
+
+@dataclass
+class McpClientStopped(AgentMessage):
+    """The owning connection stopped; its live projection is no longer valid."""
+
+    agent: object
+
+
+@dataclass
+class QueueViewUpdate(AgentMessage):
+    """Exact-ID projection and once-only accepted starts, fenced at ingress."""
+
+    projection: QueueProjection
+    starts: tuple[QueueItem, ...]
+    agent: object
+    session_id: str | None
+    sequence: int
 
 
 @dataclass
 class InputStarted(AgentMessage):
+    """An unscoped initial user echo, never queue membership authority."""
     text: str | None
+    agent: object | None = None
+    session_id: str | None = None
+
+
+@dataclass
+class InputFailed(AgentMessage):
+    text: str
+    reason: str
+    recover_draft: bool = True
+    agent: object | None = None
+    session_id: str | None = None
+    queue_scope: object | None = None
 
 
 @dataclass
@@ -112,7 +163,7 @@ class UserMessage(Message):
 class RequestPermission(AgentMessage):
     options: list[protocol.PermissionOption]
     tool_call: protocol.ToolCallUpdatePermissionRequest
-    result_future: Future[Answer]
+    result_future: Future[Answer | None]
 
 
 @dataclass
@@ -251,6 +302,9 @@ class TurnStarted(AgentMessage):
     started_at: float | None = None
     activity: str | None = None
     activity_detail: str | None = None
+    agent: object | None = None
+    session_id: str | None = None
+    sequence: int | None = None
 
 
 @dataclass
@@ -258,6 +312,9 @@ class TurnSettled(AgentMessage):
     """The agent finished writing while trailing metadata may still arrive."""
 
     turn_id: str | None = None
+    agent: object | None = None
+    session_id: str | None = None
+    sequence: int | None = None
 
 
 @dataclass

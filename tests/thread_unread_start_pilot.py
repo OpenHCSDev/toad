@@ -6,9 +6,11 @@ import os
 import tempfile
 from pathlib import Path
 
-from agent_comms import Thread, wire
+from agent_comms.threads import Thread
+from agent_comms.comms import wire
 from agent_comms.runtime import socket_path
 from runtime_fixture import ToadApp
+from toad.session_tracker import ExactUnread
 from toad.acp.messages import TranscriptSnapshot
 from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.comms_sidebar import ChannelGroup, CommsSidebar
@@ -24,7 +26,7 @@ def reply(path, text):
 
 async def refresh(app, pilot):
     sidebar = app.screen.query_one(CommsSidebar)
-    await sidebar._read_snapshot(app.coordination_wire.revision())
+    await sidebar._read_snapshot(app.coordination_wire.views.revision())
     await pilot.pause()
     return sidebar
 
@@ -38,10 +40,10 @@ async def main():
         comms = wire(root / "wire")
         source = root / "session.jsonl"
         source.touch()
-        comms.register(Thread("worker", frozenset({"team"}), str(root), session_file=str(source)))
+        comms.threads.register(Thread("worker", frozenset({"team"}), str(root), session_file=str(source)))
         stopped_source = root / "stopped.jsonl"
         stopped_source.touch()
-        comms.register(Thread("stopped", frozenset({"team"}), str(root), session_file=str(stopped_source)))
+        comms.threads.register(Thread("stopped", frozenset({"team"}), str(root), session_file=str(stopped_source)))
         comms.registry.unregister("stopped")
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(130, 45)) as pilot:
@@ -51,11 +53,11 @@ async def main():
             main_screen._comms_thread = "worker"
             conversation = main_screen.conversation
             reply(source, "Already viewed\n\n" + "\n".join(f"- visible line {i}" for i in range(45)))
-            page = comms.thread_transcript_page("worker")
+            page = comms.transcripts.thread_transcript_page("worker")
             conversation.post_message(TranscriptSnapshot(page.events, page))
             await pilot.pause()
             await refresh(app, pilot)
-            assert comms.viewer_snapshot(str(root)).thread_unread["worker"] == 0
+            assert comms.views.viewer_snapshot(str(root)).thread_unread["worker"] == 0
 
             channel_mode = await app.open_comms_session(owner_mode=owner_mode, project_path=root,
                                                         me="worker", target="#team", kind="channel")
@@ -70,23 +72,23 @@ async def main():
             worker_row = next(row for row in group.query(ThreadStatusRow) if row.thread_name == "worker")
             assert "(1)" in worker_row.render().plain and worker_row.has_class("-unread")
             # Hidden snapshots cannot mark a thread read.
-            page = comms.thread_transcript_page("worker")
+            page = comms.transcripts.thread_transcript_page("worker")
             conversation.post_message(TranscriptSnapshot(page.events, page))
             await pilot.pause()
             await refresh(app, pilot)
-            assert app.open_tabs[0].unread == 1
+            assert app.open_tabs[0].unread == ExactUnread(1)
             conversation.window.scroll_relative(y=-4, animate=False, immediate=True)
             await app.switch_mode(owner_mode)
             await pilot.pause()
             await refresh(app, pilot)
-            assert comms.viewer_snapshot(str(root)).thread_unread["worker"] == 1
+            assert comms.views.viewer_snapshot(str(root)).thread_unread["worker"] == 1
             conversation.window.scroll_end(animate=False, immediate=True)
             await pilot.pause()
             await refresh(app, pilot)
-            assert comms.viewer_snapshot(str(root)).thread_unread["worker"] == 0
+            assert comms.views.viewer_snapshot(str(root)).thread_unread["worker"] == 0
             assert app.screen.query_one(f"#{owner_mode}", SessionLabel).render().plain.endswith("worker")
 
-            comms.send("worker", "#team", "Unread channel tab")
+            comms.messaging.send("worker", "#team", "Unread channel tab")
             await refresh(app, pilot)
             assert app.screen.query_one(f"#{channel_mode}", SessionLabel).render().plain.endswith("(1)")
             await app.switch_mode(channel_mode)
@@ -94,7 +96,7 @@ async def main():
             chat = app.screen.query_one(CommsChatView)
             await chat._refresh()
             await refresh(app, pilot)
-            assert not next(tab for tab in app.open_tabs if tab.mode_name == channel_mode).unread
+            assert next(tab for tab in app.open_tabs if tab.mode_name == channel_mode).unread == ExactUnread()
 
             sidebar = app.screen.query_one(CommsSidebar)
             group = next(group for group in sidebar.query(ChannelGroup) if group.row.target_name == "#team")
@@ -110,11 +112,17 @@ async def main():
             )
             await pilot.pause()
             assert app.current_mode == stopped_view
-            assert comms.registry.status("stopped").value == "stopped"
+            assert comms.registry.status("stopped").stopped
             await app.switch_mode(channel_mode)
             await pilot.pause()
             assert chat.prompt.text == "Keep my draft"
-            await pilot.click(stopped_row, button=3)
+            # Opening a saved view rebuilds its row; click the current mounted row.
+            sidebar = await refresh(app, pilot)
+            group = next(group for group in sidebar.query(ChannelGroup) if group.row.target_name == "#team")
+            stopped_row = next(row for row in group.query(ThreadStatusRow) if row.thread_name == "stopped")
+            stopped_row.scroll_visible(animate=False)
+            await pilot.pause()
+            assert await pilot.click(stopped_row, button=3)
             await pilot.pause()
             item = next(item for item in app.screen.query(ContextMenuItem) if item.action == "comms_start")
             await pilot.click(item)

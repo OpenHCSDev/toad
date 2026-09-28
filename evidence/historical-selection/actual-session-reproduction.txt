@@ -1,0 +1,308 @@
+╭───────────────────── Traceback (most recent call last) ──────────────────────╮
+│ /home/ts/.local/share/agent-comms/runtime-goal-cleanup-20260928/lib/python3. │
+│ 14/site-packages/textual/widget.py:4790 in _compose                          │
+│                                                                              │
+│   4787 │                                                                     │
+│   4788 │   async def _compose(self) -> None:                                 │
+│   4789 │   │   try:                                                          │
+│ ❱ 4790 │   │   │   widgets = [*self._pending_children, *compose(self)]       │
+│   4791 │   │   │   self._pending_children.clear()                            │
+│   4792 │   │   except TypeError as error:                                    │
+│   4793 │   │   │   raise TypeError(                                          │
+│                                                                              │
+│ ╭───────────────────────────────── locals ─────────────────────────────────╮ │
+│ │ error = EmptySelectError("Select options cannot be empty if selection    │ │
+│ │         can't be blank.")                                                │ │
+│ │  self = HistoricalSessions()                                             │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
+│                                                                              │
+│ /home/ts/wt/toad-historical-selection-20260928/src/toad/screens/historical_s │
+│ essions.py:75 in compose                                                     │
+│                                                                              │
+│    72 │   │   │   │   ),                                                     │
+│    73 │   │   │   │   0,                                                     │
+│    74 │   │   │   )                                                          │
+│ ❱  75 │   │   │   yield Select(options, allow_blank=False, value=initial, id │
+│    76 │   │   │   with Window():                                             │
+│    77 │   │   │   │   yield VerticalGroup(id="saved-content")                │
+│    78                                                                        │
+│                                                                              │
+│ ╭──────────── locals ────────────╮                                           │
+│ │ initial = 0                    │                                           │
+│ │ options = []                   │                                           │
+│ │    self = HistoricalSessions() │                                           │
+│ ╰────────────────────────────────╯                                           │
+│                                                                              │
+│ /home/ts/.local/share/agent-comms/runtime-goal-cleanup-20260928/lib/python3. │
+│ 14/site-packages/textual/widgets/_select.py:443 in __init__                  │
+│                                                                              │
+│   440 │   │   self._allow_blank = allow_blank                                │
+│   441 │   │   self.prompt = prompt                                           │
+│   442 │   │   self._value = value                                            │
+│ ❱ 443 │   │   self._setup_variables_for_options(options)                     │
+│   444 │   │   self._type_to_search = type_to_search                          │
+│   445 │   │   if tooltip is not None:                                        │
+│   446 │   │   │   self.tooltip = tooltip                                     │
+│                                                                              │
+│ ╭─────────────────── locals ───────────────────╮                             │
+│ │    allow_blank = False                       │                             │
+│ │        classes = None                        │                             │
+│ │        compact = False                       │                             │
+│ │       disabled = False                       │                             │
+│ │             id = 'saved-identity'            │                             │
+│ │           name = None                        │                             │
+│ │        options = []                          │                             │
+│ │         prompt = 'Select'                    │                             │
+│ │           self = Select(id='saved-identity') │                             │
+│ │        tooltip = None                        │                             │
+│ │ type_to_search = True                        │                             │
+│ │          value = 0                           │                             │
+│ ╰──────────────────────────────────────────────╯                             │
+│                                                                              │
+│ /home/ts/.local/share/agent-comms/runtime-goal-cleanup-20260928/lib/python3. │
+│ 14/site-packages/textual/widgets/_select.py:530 in                           │
+│ _setup_variables_for_options                                                 │
+│                                                                              │
+│   527 │   │   self._options.extend(options)                                  │
+│   528 │   │                                                                  │
+│   529 │   │   if not self._options:                                          │
+│ ❱ 530 │   │   │   raise EmptySelectError(                                    │
+│   531 │   │   │   │   "Select options cannot be empty if selection can't be  │
+│   532 │   │   │   )                                                          │
+│   533                                                                        │
+│                                                                              │
+│ ╭─────────────── locals ────────────────╮                                    │
+│ │ options = []                          │                                    │
+│ │    self = Select(id='saved-identity') │                                    │
+│ ╰───────────────────────────────────────╯                                    │
+╰──────────────────────────────────────────────────────────────────────────────╯
+EmptySelectError: Select options cannot be empty if selection can't be blank.
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-historical-selection-20260928/.test-artifacts/reproduce-actual.py", line 11, in until
+    while not predicate():await asyncio.sleep(.02)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py", line 702, in sleep
+    return await future
+           ^^^^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/ts/.local/share/agent-comms/runtime-goal-cleanup-20260928/lib/python3.14/site-packages/textual/app.py", line 2210, in run_test
+    yield pilot
+  File "/home/ts/wt/toad-historical-selection-20260928/.test-artifacts/reproduce-actual.py", line 20, in main
+    await until(lambda:bool(modal.query(Select)))
+  File "/home/ts/wt/toad-historical-selection-20260928/.test-artifacts/reproduce-actual.py", line 10, in until
+    async with asyncio.timeout(8):
+               ~~~~~~~~~~~~~~~^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/timeouts.py", line 114, in __aexit__
+    raise TimeoutError from exc_val
+TimeoutError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=9, pipe_handle=21)
+                                                  ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/spawn.py", line 122, in spawn_main
+    exitcode = _main(fd, parent_sentinel)
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/spawn.py", line 131, in _main
+    prepare(preparation_data)
+    ~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/spawn.py", line 246, in prepare
+    _fixup_main_from_path(data['init_main_from_path'])
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/spawn.py", line 297, in _fixup_main_from_path
+    main_content = runpy.run_path(main_path,
+                                  run_name="__mp_main__")
+  File "<frozen runpy>", line 287, in run_path
+  File "<frozen runpy>", line 98, in _run_module_code
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/ts/wt/toad-historical-selection-20260928/.test-artifacts/reproduce-actual.py", line 31, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-historical-selection-20260928/.test-artifacts/reproduce-actual.py", line 18, in main
+    async with app.run_test(size=(120,40)) as pilot:
+               ~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 235, in __aexit__
+    await self.gen.athrow(value)
+  File "/home/ts/.local/share/agent-comms/runtime-goal-cleanup-20260928/lib/python3.14/site-packages/textual/app.py", line 2218, in run_test
+    raise self._exception
+  File "/home/ts/.local/share/agent-comms/runtime-goal-cleanup-20260928/lib/python3.14/site-packages/textual/widget.py", line 4790, in _compose
+    widgets = [*self._pending_children, *compose(self)]
+                                         ~~~~~~~^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-goal-cleanup-20260928/lib/python3.14/site-packages/textual/compose.py", line 54, in compose
+    child = next(iter_compose)
+  File "/home/ts/wt/toad-historical-selection-20260928/src/toad/screens/historical_sessions.py", line 75, in compose
+    yield Select(options, allow_blank=False, value=initial, id="saved-identity")
+          ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-goal-cleanup-20260928/lib/python3.14/site-packages/textual/widgets/_select.py", line 443, in __init__
+    self._setup_variables_for_options(options)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-goal-cleanup-20260928/lib/python3.14/site-packages/textual/widgets/_select.py", line 530, in _setup_variables_for_options
+    raise EmptySelectError(
+        "Select options cannot be empty if selection can't be blank."
+    )
+textual.widgets._select.EmptySelectError: Select options cannot be empty if selection can't be blank.
+╭───────────────────── Traceback (most recent call last) ──────────────────────╮
+│ /home/ts/.local/share/agent-comms/runtime-goal-cleanup-20260928/lib/python3. │
+│ 14/site-packages/textual/widgets/_markdown.py:1155 in _on_mount              │
+│                                                                              │
+│   1152 │   async def _on_mount(self, _: Mount) -> None:                      │
+│   1153 │   │   initial_markdown = self._initial_markdown                     │
+│   1154 │   │   self._initial_markdown = None                                 │
+│ ❱ 1155 │   │   await self.update(initial_markdown or "")                     │
+│   1156 │   │                                                                 │
+│   1157 │   │   if initial_markdown is None:                                  │
+│   1158 │   │   │   self.post_message(                                        │
+│                                                                              │
+│ ╭───────────────────────────────── locals ─────────────────────────────────╮ │
+│ │                _ = Mount()                                               │ │
+│ │ initial_markdown = "Coordination context: you are thread                 │ │
+│ │                    'agent-comms-ux'; parent=None. This identit"+1311     │ │
+│ │             self = PreparedConversationMarkdown(id='content')            │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
+│                                                                              │
+│ /home/ts/.local/share/agent-comms/runtime-goal-cleanup-20260928/lib/python3. │
+│ 14/site-packages/textual/widgets/_markdown.py:1427 in await_update           │
+│                                                                              │
+│   1424 │   │   │                                                             │
+│   1425 │   │   │   # Lock so that you can't update with more than one docume │
+│   1426 │   │   │   async with self.lock:                                     │
+│ ❱ 1427 │   │   │   │   tokens = await self._parse_tokens(parser, markdown, u │
+│   1428 │   │   │   │   if tokens is None:                                    │
+│   1429 │   │   │   │   │   return                                            │
+│   1430                                                                       │
+│                                                                              │
+│ ╭───────────────────────────────── locals ─────────────────────────────────╮ │
+│ │          batch = []                                                      │ │
+│ │     BATCH_SIZE = 200                                                     │ │
+│ │       markdown = "Coordination context: you are thread 'agent-comms-ux'; │ │
+│ │                  parent=None. This identit"+1311                         │ │
+│ │ markdown_block = <DOMQuery query='MarkdownBlock'>                        │ │
+│ │         parser = <toad.conversation_markdown._ThreadLocalPathParser      │ │
+│ │                  object at 0x7f2ecc6d81a0>                               │ │
+│ │           self = PreparedConversationMarkdown(id='content')              │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
+│                                                                              │
+│ /home/ts/wt/toad-historical-selection-20260928/src/toad/widgets/prepared_mar │
+│ kdown.py:161 in _parse_tokens                                                │
+│                                                                              │
+│   158 │   │   │   request = self.app.render_processes.submit(task)           │
+│   159 │   │   │   worker = self.run_worker(request, group="markdown-preparat │
+│   160 │   │   │   try:                                                       │
+│ ❱ 161 │   │   │   │   prepared = await worker.wait()                         │
+│   162 │   │   │   except WorkerCancelled:                                    │
+│   163 │   │   │   │   if self._preparation_closed or self._pruning or not se │
+│   164 │   │   │   │   │   return None                                        │
+│                                                                              │
+│ ╭───────────────────────────────── locals ─────────────────────────────────╮ │
+│ │   markdown = "Coordination context: you are thread 'agent-comms-ux';     │ │
+│ │              parent=None. This identit"+1311                             │ │
+│ │     parent = HorizontalGroup(classes='user-input-body')                  │ │
+│ │     parser = <toad.conversation_markdown._ThreadLocalPathParser object   │ │
+│ │              at 0x7f2ecc6d81a0>                                          │ │
+│ │    request = <coroutine object PreparedRenderer.submit at                │ │
+│ │              0x7f2ec46c6500>                                             │ │
+│ │       self = PreparedConversationMarkdown(id='content')                  │ │
+│ │       task = MarkdownRenderTask(                                         │ │
+│ │              │   source="Coordination context: you are thread            │ │
+│ │              'agent-comms-ux'; parent=None. This identit"+1311,          │ │
+│ │              │                                                           │ │
+│ │              project='/home/ts/wt/toad-historical-selection-20260928',   │ │
+│ │              │   ansi=True,                                              │ │
+│ │              │   dark=True                                               │ │
+│ │              )                                                           │ │
+│ │      theme = (True, True)                                                │ │
+│ │     tokens = None                                                        │ │
+│ │ use_thread = True                                                        │ │
+│ │     worker = <Worker                                                     │ │
+│ │              │   ERROR                                                   │ │
+│ │              │   name='submit'                                           │ │
+│ │              │   group='markdown-preparation'                            │ │
+│ │              │   description='<coroutine object PreparedRenderer.submit  │ │
+│ │              at 0x7f2ec46c6500>'                                         │ │
+│ │              >                                                           │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
+│                                                                              │
+│ /home/ts/.local/share/agent-comms/runtime-goal-cleanup-20260928/lib/python3. │
+│ 14/site-packages/textual/worker.py:467 in wait                               │
+│                                                                              │
+│   464 │   │   │   │   self._error = error                                    │
+│   465 │   │   if self.state == WorkerState.ERROR:                            │
+│   466 │   │   │   assert self._error is not None                             │
+│ ❱ 467 │   │   │   raise WorkerFailed(self._error)                            │
+│   468 │   │   elif self.state == WorkerState.CANCELLED:                      │
+│   469 │   │   │   raise WorkerCancelled("Worker was cancelled, and did not c │
+│   470 │   │   return cast("ResultType", self._result)                        │
+│                                                                              │
+│ ╭───────────────────────────────── locals ─────────────────────────────────╮ │
+│ │ self = <Worker                                                           │ │
+│ │        │   ERROR                                                         │ │
+│ │        │   name='submit'                                                 │ │
+│ │        │   group='markdown-preparation'                                  │ │
+│ │        │   description='<coroutine object PreparedRenderer.submit at     │ │
+│ │        0x7f2ec46c6500>'                                                  │ │
+│ │        >                                                                 │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
+╰──────────────────────────────────────────────────────────────────────────────╯
+WorkerFailed: Worker raised exception: BrokenProcessPool('A process in the 
+process pool was terminated abruptly while the future was running or pending.')
+select mounted
+second mounted
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-historical-selection-20260928/.test-artifacts/reproduce-actual.py", line 31, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-historical-selection-20260928/.test-artifacts/reproduce-actual.py", line 18, in main
+    async with app.run_test(size=(120,40)) as pilot:
+               ~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 221, in __aexit__
+    await anext(self.gen)
+  File "/home/ts/.local/share/agent-comms/runtime-goal-cleanup-20260928/lib/python3.14/site-packages/textual/app.py", line 2218, in run_test
+    raise self._exception
+  File "/home/ts/.local/share/agent-comms/runtime-goal-cleanup-20260928/lib/python3.14/site-packages/textual/message_pump.py", line 642, in _pre_process
+    await self._dispatch_message(events.Mount())
+  File "/home/ts/.local/share/agent-comms/runtime-goal-cleanup-20260928/lib/python3.14/site-packages/textual/message_pump.py", line 772, in _dispatch_message
+    await self.on_event(message)
+  File "/home/ts/.local/share/agent-comms/runtime-goal-cleanup-20260928/lib/python3.14/site-packages/textual/message_pump.py", line 853, in on_event
+    await self._on_message(event)
+  File "/home/ts/.local/share/agent-comms/runtime-goal-cleanup-20260928/lib/python3.14/site-packages/textual/message_pump.py", line 874, in _on_message
+    await invoke(method, message)
+  File "/home/ts/.local/share/agent-comms/runtime-goal-cleanup-20260928/lib/python3.14/site-packages/textual/_callback.py", line 96, in invoke
+    return await _invoke(callback, *params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-goal-cleanup-20260928/lib/python3.14/site-packages/textual/_callback.py", line 58, in _invoke
+    result = await result
+             ^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-goal-cleanup-20260928/lib/python3.14/site-packages/textual/widgets/_markdown.py", line 1155, in _on_mount
+    await self.update(initial_markdown or "")
+  File "/home/ts/.local/share/agent-comms/runtime-goal-cleanup-20260928/lib/python3.14/site-packages/textual/widgets/_markdown.py", line 1427, in await_update
+    tokens = await self._parse_tokens(parser, markdown, use_thread=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-historical-selection-20260928/src/toad/widgets/prepared_markdown.py", line 161, in _parse_tokens
+    prepared = await worker.wait()
+               ^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-goal-cleanup-20260928/lib/python3.14/site-packages/textual/worker.py", line 467, in wait
+    raise WorkerFailed(self._error)
+textual.worker.WorkerFailed: Worker raised exception: BrokenProcessPool('A process in the process pool was terminated abruptly while the future was running or pending.')

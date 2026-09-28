@@ -5,8 +5,11 @@ import os
 from pathlib import Path
 import tempfile
 
-from agent_comms import MessageRoute, TranscriptCursor, TranscriptEvent, TranscriptPage, TurnRouting
+from agent_comms.routing import MessageRoute, TurnRouting
+from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcript_events import AssistantTranscript, SentTranscript, ThinkingTranscript
 from runtime_fixture import ToadApp
+from toad.widgets.message_filter import ALL_CATEGORIES, IN_OUT_CATEGORIES
 from toad.widgets.transcript_history import TranscriptHistory
 
 
@@ -20,13 +23,13 @@ async def main():
             await pilot.pause()
             view = app.screen.conversation
             file = "prefetch-fixture"
-            tail = tuple(TranscriptEvent("assistant", f"Record {i}\n\n" + "Long line\n" * 5)
+            tail = tuple(AssistantTranscript(f'Record {i}\n\n' + 'Long line\n' * 5)
                          for i in range(64))
             calls = []
 
             async def loader(**kwargs):
                 calls.append((view.window.scroll_y, kwargs))
-                return TranscriptPage((TranscriptEvent("assistant", "OLDER_PREFETCHED_RECORD"),),
+                return TranscriptPage((AssistantTranscript('OLDER_PREFETCHED_RECORD'),),
                                       TranscriptCursor(file, 0), TranscriptCursor(file, 100),
                                       False, True)
 
@@ -36,12 +39,12 @@ async def main():
             await view.contents.mount(history)
             view.window.anchor()
             await pilot.pause()
-            assert view.window.max_scroll_y > history._prefetch_distance + 4
-            assert not calls, "Long tail fetched old content while still at latest"
+            assert view.window.max_scroll_y > history._prefetch_distance
+            assert history.pages[0].page.before.offset == 100, "Lookahead mounted old content at the tail"
             view.window.release_anchor()
             try:
                 async with asyncio.timeout(8):
-                    while not calls:
+                    while history.pages[0].page.before.offset != 0:
                         view.window.scroll_to(y=history._prefetch_distance - 1,
                                               animate=False, immediate=True)
                         await pilot.pause(.02)
@@ -54,23 +57,23 @@ async def main():
                                       "older": history.has_older,
                                       "count": history.fragment_count,
                                       "limit": history.fragment_limit}) from None
-            assert calls[0][0] > 2, "Older history was only fetched at the top"
+            assert view.window.scroll_y > 2, "Older history was only admitted at the top"
             assert calls[0][1]["before"].offset == 100
+            assert len(calls) == 1, "Foreground admission repeated the prepared page read"
             await pilot.pause()
             await history.remove()
 
-            view.in_out_only = False
+            view.visible_categories = ALL_CATEGORIES
             filtered_calls = []
             route = TurnRouting(reply=MessageRoute("owner", ("#team",)))
             filtered_tail = (
-                *(TranscriptEvent("thinking", f"HIDDEN_{index}") for index in range(90)),
-                TranscriptEvent("sent", "VISIBLE_ROUTE\n\n" + "Long routed line\n\n" * 50,
-                                routing=route),
+                *(ThinkingTranscript(f'HIDDEN_{index}') for index in range(90)),
+                SentTranscript('VISIBLE_ROUTE\n\n' + 'Long routed line\n\n' * 50, routing=route),
             )
 
             async def filtered_loader(**kwargs):
                 filtered_calls.append(view.window.scroll_y)
-                return TranscriptPage((TranscriptEvent("sent", "FILTERED_PREFETCH", routing=route),),
+                return TranscriptPage((SentTranscript('FILTERED_PREFETCH', routing=route),),
                                       TranscriptCursor(file, 0), TranscriptCursor(file, 100),
                                       False, True)
 
@@ -80,25 +83,26 @@ async def main():
             await view.contents.mount(filtered)
             view.window.anchor()
             await pilot.pause()
-            assert view.window.max_scroll_y >= filtered._prefetch_distance + 4, (
+            assert view.window.max_scroll_y > filtered._prefetch_distance, (
                 view.window.max_scroll_y, filtered._prefetch_distance,
                 filtered.fragment_count, filtered.widget_count,
                 filtered.pages[-1].start, filtered.pages[-1].stop,
                 filtered._filter_before, filtered_calls)
-            view.in_out_only = True
+            view.visible_categories = IN_OUT_CATEGORIES
             await pilot.pause()
-            assert not filtered_calls
+            assert filtered._filter_overlay is None, "Lookahead published filtered rows at the tail"
             view.window.release_anchor()
             try:
                 async with asyncio.timeout(8):
-                    while not filtered_calls:
+                    while filtered._filter_overlay is None:
                         view.window.scroll_to(y=filtered._prefetch_distance - 1,
                                               animate=False, immediate=True)
                         await pilot.pause(.02)
             except TimeoutError:
                 raise AssertionError(("Filtered prefetch never requested an older page",
                                       filtered._filter_before, view.window.scroll_y)) from None
-            assert filtered_calls[0] > 2, "Filtered result was only fetched at the top"
+            assert view.window.scroll_y > 2, "Filtered result was only admitted at the top"
+            assert len(filtered_calls) == 1
             assert app._exception is None
         await asyncio.get_running_loop().shutdown_default_executor()
     print("history prefetch: normal and filtered older pages start before the top edge")

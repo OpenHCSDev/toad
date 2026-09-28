@@ -1,10 +1,12 @@
+from toad.preferences import SidebarSettings
 """Shared sorting control for model-owned channel and member ordering."""
 
 from textual import events
 from textual.geometry import Offset
 from textual.widgets import Static
-from agent_comms import ChannelSort, ThreadSort
+from agent_comms.display_order import ChannelSort, ThreadSort
 import asyncio
+from pathlib import Path
 
 from toad.widgets.comms_menu import ContextMenu
 
@@ -106,8 +108,22 @@ class SessionSort(SortControl[ThreadSort]):
         super().__init__(ThreadSort.CREATED, channel)
 
     async def persist_order(self, order: ThreadSort) -> ThreadSort:
+        from toad.comms_root import implicit_root, run_selected_write
+
+        comms = self.app.coordination_wire
+        source_root = getattr(self.screen, "wire_root", None) or getattr(
+            self.screen, "_coordination_root", None
+        )
+        if source_root is None:
+            from toad.widgets.comms_sidebar import CommsSidebar
+
+            sidebar = self.screen.query_one_optional(CommsSidebar)
+            source_root = sidebar._wire.root if sidebar is not None and sidebar._wire is not None else None
+        if source_root is not None and comms.root.resolve() != Path(source_root).resolve():
+            raise ValueError("Comms route changed before sorting")
         channel = await asyncio.to_thread(
-            self.app.coordination_wire.set_channel_sort, self.channel, order,
+            run_selected_write, comms.root, comms.channels.set_channel_sort,
+            self.channel, order, implicit=implicit_root(),
         )
         return channel.order
 
@@ -117,23 +133,36 @@ class ChannelListSort(SortControl[ChannelSort]):
         super().__init__(ChannelSort.NAME, "channels")
 
     async def persist_order(self, order: ChannelSort) -> ChannelSort:
-        return await asyncio.to_thread(self.app.coordination_wire.set_channel_order, order)
+        from toad.comms_root import implicit_root, run_selected_write
 
-    _visibility_keys = {
-        "show_stopped": "sidebar.show_stopped",
-        "show_archived": "sidebar.show_archived",
-    }
+        comms = self.app.coordination_wire
+        source_root = getattr(self.screen, "wire_root", None) or getattr(
+            self.screen, "_coordination_root", None
+        )
+        if source_root is None:
+            from toad.widgets.comms_sidebar import CommsSidebar
+
+            sidebar = self.screen.query_one_optional(CommsSidebar)
+            source_root = sidebar._wire.root if sidebar is not None and sidebar._wire is not None else None
+        if source_root is not None and comms.root.resolve() != Path(source_root).resolve():
+            raise ValueError("Comms route changed before sorting")
+        return await asyncio.to_thread(
+            run_selected_write, comms.root, comms.channels.set_channel_order,
+            order, implicit=implicit_root(),
+        )
+
+    _visibility_fields = (SidebarSettings.show_stopped, SidebarSettings.show_archived)
 
     def extra_items(self) -> list[tuple[str, str]]:
         return [
-            (action, ("✓ " if self.app.settings.get(key, bool) else "  ") + label)
-            for action, key, label in (
-                ("show_stopped", self._visibility_keys["show_stopped"], "Show stopped"),
-                ("show_archived", self._visibility_keys["show_archived"], "Show archived"),
-            )
+            (field.name, ("✓ " if field.__get__(self.app.settings.sidebar) else "  ") + field.title)
+            for field in self._visibility_fields
         ]
 
     def choose_extra(self, value: str) -> None:
-        if key := self._visibility_keys.get(value):
-            self.app.settings.set(key, not self.app.settings.get(key, bool))
-            self.run_worker(self.app.save_settings(), group="channel-visibility")
+        for field in self._visibility_fields:
+            if field.name == value:
+                group = self.app.settings.sidebar
+                field.__set__(group, not field.__get__(group))
+                self.run_worker(self.app.save_settings(), group="channel-visibility")
+                return

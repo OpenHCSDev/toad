@@ -6,7 +6,7 @@ import os
 import tempfile
 from pathlib import Path
 
-from agent_comms import Thread, ThreadStatus
+from agent_comms.threads import Thread
 from runtime_fixture import ToadApp
 from textual.widgets import Input, Select, Static
 
@@ -32,8 +32,8 @@ async def main() -> None:
         )
         app = ToadApp(project_dir=str(root))
         comms = app.coordination_wire
-        comms.register(Thread("sender", frozenset(), str(root)))
-        comms.send("sender", "#all", "exported message")
+        comms.threads.register(Thread("sender", frozenset(), str(root)))
+        comms.messaging.send("sender", "#all", "exported message")
 
         source = root / "source.json"
         source.write_text(json.dumps({
@@ -89,7 +89,7 @@ async def main() -> None:
             dialog.action_submit()
             await wait_for(pilot, lambda: comms.registry.name_reserved("imported"))
             thread = comms.registry.require("imported")
-            assert comms.registry.status(thread.name) is ThreadStatus.STOPPED
+            assert comms.registry.status(thread.name).stopped
             assert "Imported history" in Path(thread.session_file).read_text()
             assert app._exception is None
         await asyncio.get_running_loop().shutdown_default_executor()

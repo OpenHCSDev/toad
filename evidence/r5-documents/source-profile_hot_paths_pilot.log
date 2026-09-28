@@ -1,0 +1,8 @@
+{
+  "widgets": 912,
+  "activity_log_records": 10000,
+  "activity_append_read_median_ms": 0.4991054993297439,
+  "directory_updates_200_ms": 0.3849399945465848,
+  "tab_projection_after_append_median_ms": 0.08538200199836865,
+  "scroll_layout_30_ms": 30.18025199708063
+}

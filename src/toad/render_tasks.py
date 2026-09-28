@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Generic, TypeVar
 
-from agent_comms import TranscriptEvent
+from agent_comms.transcript_events import TranscriptEvent
 from markdown_it.token import Token
 
 from toad.markdown_preparation import PreparedMarkdown, prepare_markdown, prepare_tokens
@@ -20,6 +20,8 @@ ResultT = TypeVar("ResultT", covariant=True)
 class RenderTask(ABC, Generic[ResultT]):
     """A nominal operation with an exact input and result contract."""
 
+    reusable_result = False
+
     @abstractmethod
     def execute(self) -> ResultT:
         """Execute pure preparation in the renderer process."""
@@ -29,8 +31,43 @@ class RenderTask(ABC, Generic[ResultT]):
         """Validate the result at a transport boundary."""
 
 
+class ReusableRenderTask(RenderTask[ResultT]):
+    """Pure captured-input preparation, safe to retain across consumers."""
+
+    reusable_result = True
+
+
+@dataclass(frozen=True, slots=True)
+class SessionUpdateValidation:
+    error: str | None = None
+
+
 @dataclass(frozen=True)
-class PatchRenderTask(RenderTask[PreparedPatch]):
+class ValidateSessionUpdateTask(RenderTask[SessionUpdateValidation]):
+    """Keep the official SDK's validator graph in process workers, not the UI."""
+
+    session_id: str
+    update: object
+    metadata: dict | None = None
+
+    def execute(self) -> SessionUpdateValidation:
+        from pydantic import ValidationError
+        from toad.acp.sdk_boundary import validate_session_update
+
+        try:
+            validate_session_update(self.session_id, self.update, self.metadata)
+        except ValidationError as error:
+            return SessionUpdateValidation(str(error))
+        return SessionUpdateValidation()
+
+    def accept_result(self, result: object) -> SessionUpdateValidation:
+        if not isinstance(result, SessionUpdateValidation):
+            raise TypeError("ACP validation worker returned an incompatible result")
+        return result
+
+
+@dataclass(frozen=True)
+class PatchRenderTask(ReusableRenderTask[PreparedPatch]):
     source: str
     ansi: bool
     dark: bool
@@ -61,7 +98,7 @@ class MarkdownRenderTask(RenderTask[PreparedMarkdown]):
 
 
 @dataclass(frozen=True)
-class TokenRenderTask(RenderTask[PreparedMarkdown]):
+class TokenRenderTask(ReusableRenderTask[PreparedMarkdown]):
     tokens: tuple[Token, ...]
     ansi: bool
     dark: bool
@@ -76,7 +113,7 @@ class TokenRenderTask(RenderTask[PreparedMarkdown]):
 
 
 @dataclass(frozen=True)
-class TranscriptRenderTask(RenderTask[tuple[TranscriptFragment, ...]]):
+class TranscriptRenderTask(ReusableRenderTask[tuple[TranscriptFragment, ...]]):
     events: tuple[TranscriptEvent, ...]
 
     def execute(self) -> tuple[TranscriptFragment, ...]:
@@ -89,7 +126,7 @@ class TranscriptRenderTask(RenderTask[tuple[TranscriptFragment, ...]]):
 
 
 @dataclass(frozen=True)
-class RichRenderTask(RenderTask[PreparedRichContent]):
+class RichRenderTask(ReusableRenderTask[PreparedRichContent]):
     source: RichSource
     presentation: RichPresentation
 
@@ -102,10 +139,10 @@ class RichRenderTask(RenderTask[PreparedRichContent]):
         return result
 
 
-type RendererTask = PatchRenderTask | MarkdownRenderTask | TokenRenderTask | TranscriptRenderTask | RichRenderTask
-type RendererResult = PreparedPatch | PreparedMarkdown | tuple[TranscriptFragment, ...] | PreparedRichContent
+type RendererTask = PatchRenderTask | MarkdownRenderTask | TokenRenderTask | TranscriptRenderTask | RichRenderTask | ValidateSessionUpdateTask
+type RendererResult = PreparedPatch | PreparedMarkdown | tuple[TranscriptFragment, ...] | PreparedRichContent | SessionUpdateValidation
 
-RENDER_TASK_TYPES = (PatchRenderTask, MarkdownRenderTask, TokenRenderTask, TranscriptRenderTask, RichRenderTask)
+RENDER_TASK_TYPES = (PatchRenderTask, MarkdownRenderTask, TokenRenderTask, TranscriptRenderTask, RichRenderTask, ValidateSessionUpdateTask)
 
 
 def execute_render_task(task: RenderTask[ResultT]) -> ResultT:

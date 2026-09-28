@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-t7-terminal-20260928/tests/large_stream_pilot.py", line 12, in <module>
+    from toad.widgets.agent_response import AgentResponse
+  File "/home/ts/wt/toad-t7-terminal-20260928/src/toad/widgets/agent_response.py", line 3, in <module>
+    from toad.widgets.streaming_markdown import StreamingMarkdown
+  File "/home/ts/wt/toad-t7-terminal-20260928/src/toad/widgets/streaming_markdown.py", line 20, in <module>
+    from toad.widgets.prepared_markdown import PreparedConversationMarkdown
+  File "/home/ts/wt/toad-t7-terminal-20260928/src/toad/widgets/prepared_markdown.py", line 15, in <module>
+    from textual._measurement import NATIVE_WIDGET_HEIGHT, height_dependency
+ModuleNotFoundError: No module named 'textual._measurement'

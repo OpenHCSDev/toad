@@ -2,7 +2,11 @@
 
 from enum import StrEnum
 
-from agent_comms import TranscriptEvent
+from agent_comms.mro_dispatch import MroDispatch, handles
+from agent_comms.transcript_events import (
+    TranscriptEvent, UserTranscript, AssistantTranscript, NoticeTranscript,
+    SentTranscript, ThinkingTranscript, ToolTranscript,
+)
 
 
 class MessageCategory(StrEnum):
@@ -34,7 +38,7 @@ class CategorizedBlock:
     """Nominal widget mixin for the declared presentation category.
 
     Textual widgets own a custom metaclass, so a separate ABCMeta would be
-    incompatible with their inheritance. Concrete blocks implement this member.
+    inconsistent with their inheritance. Concrete blocks implement this member.
     """
 
     @property
@@ -43,29 +47,39 @@ class CategorizedBlock:
         raise NotImplementedError
 
 
-def is_routed_event(event: TranscriptEvent) -> bool:
-    routing = event.routing
-    if routing is None:
-        return False
-    if event.kind == "user":
-        return bool(routing.requests)
-    return event.kind in {"assistant", "notice", "sent"} and routing.reply is not None
+class TranscriptCategoryConsumer(MroDispatch):
+    def __init__(self):
+        self.category = MessageCategory.OTHER
+
+    @handles(UserTranscript)
+    def user(self, event: UserTranscript):
+        self.category = MessageCategory.INBOUND if event.routed else MessageCategory.USER
+
+    @handles(AssistantTranscript)
+    def assistant(self, event: AssistantTranscript):
+        self.category = MessageCategory.OUTBOUND if event.routed else MessageCategory.AGENT
+
+    @handles(NoticeTranscript)
+    def notice(self, event: NoticeTranscript):
+        self.category = MessageCategory.OUTBOUND if event.routed else MessageCategory.OTHER
+
+    @handles(SentTranscript)
+    def sent(self, event: SentTranscript):
+        self.category = MessageCategory.OUTBOUND
+
+    @handles(ThinkingTranscript)
+    def thinking(self, event: ThinkingTranscript):
+        self.category = MessageCategory.THINKING
+
+    @handles(ToolTranscript)
+    def tool(self, event: ToolTranscript):
+        self.category = MessageCategory.TOOL
 
 
 def event_category(event: TranscriptEvent) -> MessageCategory:
-    if is_routed_event(event):
-        return MessageCategory.INBOUND if event.kind == "user" else MessageCategory.OUTBOUND
-    if event.kind == "user":
-        return MessageCategory.USER
-    if event.kind == "assistant":
-        return MessageCategory.AGENT
-    if event.kind == "sent":
-        return MessageCategory.OUTBOUND
-    if event.kind == "thinking":
-        return MessageCategory.THINKING
-    if event.kind in {"tool_start", "tool_end"}:
-        return MessageCategory.TOOL
-    return MessageCategory.OTHER
+    consumer = TranscriptCategoryConsumer()
+    consumer.dispatch_sync(event)
+    return consumer.category
 
 
 def keep_events(events: tuple[TranscriptEvent, ...], selected: frozenset[MessageCategory]) -> bool:
@@ -76,6 +90,21 @@ def keep_events(events: tuple[TranscriptEvent, ...], selected: frozenset[Message
 def block_category(widget) -> MessageCategory | None:
     """Ask the native block; uncategorized controls belong to Other."""
     return widget.message_category if isinstance(widget, CategorizedBlock) else MessageCategory.OTHER
+
+
+def apply_block_filter(widget, selected: frozenset[MessageCategory]) -> None:
+    """Change only this semantic owner, preserving its authored display rules."""
+    category = block_category(widget)
+    hidden = category is not None and category not in selected
+    marker = "-category-hidden"
+    if widget.has_class(marker) != hidden:
+        # Keep the marker available for custom styling. Ordinary filtering is a
+        # model-owned display constraint, not a request to rematch subtree CSS.
+        update_styles = (
+            widget.is_attached and widget.app.stylesheet.references_class(marker)
+        )
+        widget.set_class(hidden, marker, update=update_styles)
+    widget.set_display_constraint("message-category", not hidden)
 
 
 def keep_live_block(widget) -> bool:

@@ -1,0 +1,186 @@
+╭───────────────────── Traceback (most recent call last) ──────────────────────╮
+│ /home/ts/wt/toad-message-notification-feedback-20260928/src/toad/widgets/com │
+│ ms_chat.py:715 in _refresh_notifications                                     │
+│                                                                              │
+│   712 │   │   │   │   or self.screen is not self.app.screen or not self.disp │
+│   713 │   │   │   │   or self._notification_task is not None and not self._n │
+│   714 │   │   │   return                                                     │
+│ ❱ 715 │   │   visible = set(self._painted_message_keys())                    │
+│   716 │   │   rows = tuple((message, widget) for message, widget in self._hi │
+│   717 │   │   │   │   │    if message.view_key in visible                    │
+│   718 │   │   │   │   │    and isinstance(widget, (IRCMessage, WireMarkdownM │
+│                                                                              │
+│ ╭──────── locals ────────╮                                                   │
+│ │ self = CommsChatView() │                                                   │
+│ ╰────────────────────────╯                                                   │
+│                                                                              │
+│ /home/ts/wt/toad-message-notification-feedback-20260928/src/toad/widgets/com │
+│ ms_chat.py:276 in _painted_message_keys                                      │
+│                                                                              │
+│   273 │   │   visible: list[tuple[str, int]] = []                            │
+│   274 │   │   for message, widget in self._history:                          │
+│   275 │   │   │   painted = (                                                │
+│ ❱ 276 │   │   │   │   widget.read_ack_widget()                               │
+│   277 │   │   │   │   if isinstance(widget, (IRCMessage, WireMarkdownMessage │
+│   278 │   │   │   )                                                          │
+│   279 │   │   │   placement = geometry.get(painted)                          │
+│                                                                              │
+│ ╭───────────────────────────────── locals ─────────────────────────────────╮ │
+│ │ geometry = {                                                             │ │
+│ │            │   SideBarToggle(): (                                        │ │
+│ │            │   │   Region(x=107, y=3, width=3, height=36),               │ │
+│ │            │   │   Region(x=107, y=3, width=3, height=36)                │ │
+│ │            │   ),                                                        │ │
+│ │            │   SidebarResizeHandle(id='sidebar-resize-handle'): (        │ │
+│ │            │   │   Region(x=43, y=3, width=1, height=36),                │ │
+│ │            │   │   Region(x=0, y=3, width=44, height=36)                 │ │
+│ │            │   ),                                                        │ │
+│ │            │   SideBarToggle(): (                                        │ │
+│ │            │   │   Region(x=40, y=3, width=3, height=36),                │ │
+│ │            │   │   Region(x=0, y=3, width=44, height=36)                 │ │
+│ │            │   ),                                                        │ │
+│ │            │   SidebarAction(id='sidebar-float'): (                      │ │
+│ │            │   │   Region(x=7, y=38, width=7, height=1),                 │ │
+│ │            │   │   Region(x=0, y=38, width=40, height=1)                 │ │
+│ │            │   ),                                                        │ │
+│ │            │   SidebarAction(id='sidebar-right', classes='-direction'):  │ │
+│ │            (                                                             │ │
+│ │            │   │   Region(x=0, y=38, width=7, height=1),                 │ │
+│ │            │   │   Region(x=0, y=38, width=40, height=1)                 │ │
+│ │            │   ),                                                        │ │
+│ │            │   Horizontal(id='sidebar-layout-actions'): (                │ │
+│ │            │   │   Region(x=0, y=38, width=40, height=1),                │ │
+│ │            │   │   Region(x=0, y=37, width=40, height=2)                 │ │
+│ │            │   ),                                                        │ │
+│ │            │   SidebarSlider(id='sidebar-width-slider'): (               │ │
+│ │            │   │   Region(x=0, y=37, width=40, height=1),                │ │
+│ │            │   │   Region(x=0, y=37, width=40, height=2)                 │ │
+│ │            │   ),                                                        │ │
+│ │            │   Vertical(id='sidebar-controls'): (                        │ │
+│ │            │   │   Region(x=0, y=37, width=40, height=2),                │ │
+│ │            │   │   Region(x=0, y=3, width=44, height=36)                 │ │
+│ │            │   ),                                                        │ │
+│ │            │   SessionSort(): (                                          │ │
+│ │            │   │   Region(x=25, y=10, width=14, height=1),               │ │
+│ │            │   │   Region(x=0, y=10, width=39, height=1)                 │ │
+│ │            │   ),                                                        │ │
+│ │            │   ChannelUnread(): (                                        │ │
+│ │            │   │   Region(x=20, y=10, width=4, height=1),                │ │
+│ │            │   │   Region(x=0, y=10, width=39, height=1)                 │ │
+│ │            │   ),                                                        │ │
+│ │            │   ... +105                                                  │ │
+│ │            }                                                             │ │
+│ │  message = Message(                                                      │ │
+│ │            │   sender='peer',                                            │ │
+│ │            │   target='#comms',                                          │ │
+│ │            │   body='Test 22: body body body body body body body body    │ │
+│ │            body body body body ',                                        │ │
+│ │            │   type=<MessageType.INFO: 'info'>,                          │ │
+│ │            │   timestamp=1790597818.8955612,                             │ │
+│ │            │   seq=23,                                                   │ │
+│ │            │   sender_role=<ThreadRole.AGENT: 'agent'>,                  │ │
+│ │            │   membership=None,                                          │ │
+│ │            │   notice=False,                                             │ │
+│ │            │   mentions=(),                                              │ │
+│ │            │   claim_transition=None                                     │ │
+│ │            )                                                             │ │
+│ │     self = CommsChatView()                                               │ │
+│ │ viewport = Region(x=44, y=3, width=62, height=30)                        │ │
+│ │  visible = []                                                            │ │
+│ │   widget = IRCMessage(classes='-message-other -unrouted')                │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
+│                                                                              │
+│ /home/ts/wt/toad-message-notification-feedback-20260928/src/toad/widgets/irc │
+│ _message.py:125 in read_ack_widget                                           │
+│                                                                              │
+│   122 │                                                                      │
+│   123 │   def read_ack_widget(self) -> Widget:                               │
+│   124 │   │   """Only the text block can authorize a read, never its divider │
+│ ❱ 125 │   │   return self.query_one(IRCMessageText)                          │
+│   126 │                                                                      │
+│   127 │   def action_open_target(self, target: str):                         │
+│   128 │   │   if isinstance(self.message, HistoricalMessage) and not target. │
+│                                                                              │
+│ ╭─────────────────────── locals ────────────────────────╮                    │
+│ │ self = IRCMessage(classes='-message-other -unrouted') │                    │
+│ ╰───────────────────────────────────────────────────────╯                    │
+╰──────────────────────────────────────────────────────────────────────────────╯
+NoMatches: No nodes match 'IRCMessageText' on IRCMessage(classes='-message-other
+-unrouted')
+Traceback (most recent call last):
+  File "/home/ts/.local/share/agent-comms/runtime-acp-extensions-20260928/lib/python3.14/site-packages/textual/app.py", line 2210, in run_test
+    yield pilot
+  File "/home/ts/wt/toad-message-notification-feedback-20260928/tests/runtime_fixture.py", line 38, in run_test
+    yield pilot
+  File "/home/ts/wt/toad-message-notification-feedback-20260928/tests/message_notifications_pilot.py", line 128, in main
+    chat._refresh_notifications()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-message-notification-feedback-20260928/src/toad/widgets/comms_chat.py", line 715, in _refresh_notifications
+    visible = set(self._painted_message_keys())
+                  ~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-message-notification-feedback-20260928/src/toad/widgets/comms_chat.py", line 276, in _painted_message_keys
+    widget.read_ack_widget()
+    ~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-message-notification-feedback-20260928/src/toad/widgets/irc_message.py", line 178, in read_ack_widget
+    return self.query_one(AgentResponse)
+           ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-acp-extensions-20260928/lib/python3.14/site-packages/textual/dom.py", line 1582, in query_one
+    raise NoMatches(f"No nodes match {query_selector!r} on {base_node!r}")
+textual.css.query.NoMatches: No nodes match 'AgentResponse' on WireMarkdownMessage(classes='-message-other block -unrouted')
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-message-notification-feedback-20260928/tests/message_notifications_pilot.py", line 139, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-message-notification-feedback-20260928/tests/message_notifications_pilot.py", line 57, in main
+    async with app.run_test(size=(110, 40)) as pilot:
+               ~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 235, in __aexit__
+    await self.gen.athrow(value)
+  File "/home/ts/wt/toad-message-notification-feedback-20260928/tests/runtime_fixture.py", line 37, in run_test
+    async with super().run_test(**kwargs) as pilot:
+               ~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 235, in __aexit__
+    await self.gen.athrow(value)
+  File "/home/ts/.local/share/agent-comms/runtime-acp-extensions-20260928/lib/python3.14/site-packages/textual/app.py", line 2218, in run_test
+    raise self._exception
+  File "/home/ts/.local/share/agent-comms/runtime-acp-extensions-20260928/lib/python3.14/site-packages/textual/message_pump.py", line 734, in _process_messages_loop
+    await invoke(method, event)
+  File "/home/ts/.local/share/agent-comms/runtime-acp-extensions-20260928/lib/python3.14/site-packages/textual/_callback.py", line 96, in invoke
+    return await _invoke(callback, *params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-acp-extensions-20260928/lib/python3.14/site-packages/textual/_callback.py", line 58, in _invoke
+    result = await result
+             ^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-acp-extensions-20260928/lib/python3.14/site-packages/textual/screen.py", line 1196, in _on_idle
+    await self._invoke_and_clear_callbacks()
+  File "/home/ts/.local/share/agent-comms/runtime-acp-extensions-20260928/lib/python3.14/site-packages/textual/screen.py", line 1285, in _invoke_and_clear_callbacks
+    await invoke(callback)
+  File "/home/ts/.local/share/agent-comms/runtime-acp-extensions-20260928/lib/python3.14/site-packages/textual/_callback.py", line 96, in invoke
+    return await _invoke(callback, *params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-acp-extensions-20260928/lib/python3.14/site-packages/textual/_callback.py", line 56, in _invoke
+    result = callback(*params[:parameter_count])
+  File "/home/ts/wt/toad-message-notification-feedback-20260928/src/toad/widgets/comms_chat.py", line 715, in _refresh_notifications
+    visible = set(self._painted_message_keys())
+                  ~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-message-notification-feedback-20260928/src/toad/widgets/comms_chat.py", line 276, in _painted_message_keys
+    widget.read_ack_widget()
+    ~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-message-notification-feedback-20260928/src/toad/widgets/irc_message.py", line 125, in read_ack_widget
+    return self.query_one(IRCMessageText)
+           ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-acp-extensions-20260928/lib/python3.14/site-packages/textual/dom.py", line 1582, in query_one
+    raise NoMatches(f"No nodes match {query_selector!r} on {base_node!r}")
+textual.css.query.NoMatches: No nodes match 'IRCMessageText' on IRCMessage(classes='-message-other -unrouted')

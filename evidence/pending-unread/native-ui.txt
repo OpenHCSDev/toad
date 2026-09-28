@@ -1,0 +1,48 @@
+Exception in thread Thread-1 (_watch_owner):
+Exception in thread Thread-2:
+PASS native: actual pending index → exact 8192 → read zero, rows and tabs
+Traceback (most recent call last):
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py", line 1082, in _bootstrap_inner
+    self._context.run(self.run)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py", line 1024, in run
+    self._target(*self._args, **self._kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-pending-unread-feedback-20260928/.artifacts/candidate/toad/directory_watcher.py", line 124, in _watch_owner
+    owner.recv_bytes()
+    ~~~~~~~~~~~~~~~~^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/connection.py", line 222, in recv_bytes
+    buf = self._recv_bytes(maxlength)
+Traceback (most recent call last):
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py", line 1082, in _bootstrap_inner
+    self._context.run(self.run)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/connection.py", line 447, in _recv_bytes
+    buf = self._recv(4)
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/connection.py", line 412, in _recv
+    chunk = read(handle, to_read)
+  File "/home/ts/.local/share/agent-comms/runtime-watcher-20260928/lib/python3.14/site-packages/watchdog/observers/api.py", line 213, in run
+    self.dispatch_events(self.event_queue)
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-watcher-20260928/lib/python3.14/site-packages/watchdog/observers/api.py", line 391, in dispatch_events
+    handler.dispatch(event)
+    ~~~~~~~~~~~~~~~~^^^^^^^
+ConnectionResetError: [Errno 104] Connection reset by peer
+  File "/home/ts/.local/share/agent-comms/runtime-watcher-20260928/lib/python3.14/site-packages/watchdog/events.py", line 216, in dispatch
+    self.on_any_event(event)
+    ~~~~~~~~~~~~~~~~~^^^^^^^
+  File "/home/ts/wt/toad-pending-unread-feedback-20260928/.artifacts/candidate/toad/directory_watcher.py", line 118, in on_any_event
+    self.notify(_ObserverChanged())
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-pending-unread-feedback-20260928/.artifacts/candidate/toad/directory_watcher.py", line 115, in notify
+    self.connection.send(event)
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/connection.py", line 212, in send
+    self._send_bytes(_ForkingPickler.dumps(obj))
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/connection.py", line 444, in _send_bytes
+    self._send(header + buf)
+    ~~~~~~~~~~^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/connection.py", line 400, in _send
+    n = write(self._handle, buf)
+BrokenPipeError: [Errno 32] Broken pipe

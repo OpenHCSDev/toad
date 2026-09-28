@@ -1,0 +1,38 @@
+[
+  {
+    "path": "src/toad/channel_preparation.py",
+    "edits": 5
+  },
+  {
+    "path": "src/toad/navigation_preparation.py",
+    "edits": 2
+  },
+  {
+    "path": "src/toad/app.py",
+    "edits": 6
+  },
+  {
+    "path": "src/toad/screens/comms.py",
+    "edits": 2
+  },
+  {
+    "path": "src/toad/screens/historical_sessions.py",
+    "edits": 1
+  },
+  {
+    "path": "src/toad/widgets/comms_sidebar.py",
+    "edits": 8
+  },
+  {
+    "path": "src/toad/widgets/session_sort.py",
+    "edits": 2
+  },
+  {
+    "path": "src/toad/widgets/comms_chat.py",
+    "edits": 8
+  },
+  {
+    "path": "src/toad/acp/agent.py",
+    "edits": 3
+  }
+]

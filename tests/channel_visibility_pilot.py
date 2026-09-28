@@ -5,7 +5,9 @@ import os
 import tempfile
 from pathlib import Path
 
-from agent_comms import Thread, ThreadStatus, wire
+from agent_comms.thread_status import ArchivedThreadStatus
+from agent_comms.threads import Thread
+from agent_comms.comms import wire
 from runtime_fixture import ToadApp
 from toad.screens.comms import CommsScreen
 from toad.widgets.comms_menu import ContextMenuItem
@@ -44,10 +46,10 @@ async def main():
         for name in (owner, "stopped", "archived"):
             source = root / f"{name}.jsonl"
             source.touch()
-            comms.register(Thread(name, frozenset({"team"}), str(root), session_file=str(source)))
-        comms.stop("stopped")
-        comms.stop("archived")
-        comms.archive("archived")
+            comms.threads.register(Thread(name, frozenset({"team"}), str(root), session_file=str(source)))
+        comms.owners.stop("stopped")
+        comms.owners.stop("archived")
+        comms.threads.archive("archived")
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(120, 45)) as pilot:
             await pilot.pause()
@@ -66,8 +68,8 @@ async def main():
             await choose(app, pilot, "show_archived", False)
             group = await sync(app, pilot)
             assert set(group._members) == {owner, "archived"}
-            assert app.settings.get("sidebar.show_archived", bool)
-            assert not app.settings.get("sidebar.show_stopped", bool)
+            assert app.settings.sidebar.show_archived
+            assert not app.settings.sidebar.show_stopped
             assert group._members["archived"].kind == "dm"
             await choose(app, pilot, "show_archived", True)
             group = await sync(app, pilot)
@@ -79,7 +81,7 @@ async def main():
             archived.action_open_selected()
             await pilot.pause()
             assert isinstance(app.screen, CommsScreen) and app.screen.kind == "dm"
-            assert comms.registry.status("archived") is ThreadStatus.ARCHIVED
+            assert comms.registry.status("archived") == ArchivedThreadStatus()
             assert not comms.registry.status("stopped").active
             await app.switch_mode("session-1")
             await pilot.pause()

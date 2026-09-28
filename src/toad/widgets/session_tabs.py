@@ -1,23 +1,23 @@
 import asyncio
+from collections.abc import Iterable
 from functools import partial
+from typing import ClassVar
+
 from rich.style import Style as RichStyle
-
+from textual import containers, events, getters, widgets
 from textual.app import ComposeResult, RenderResult
-
-from textual import events
+from textual.binding import BindingType
 from textual.content import Content
-from textual.geometry import Offset
+from textual.geometry import Offset, Region
+from textual.message import Message
 from textual.reactive import reactive
 from textual.renderables.bar import Bar
 from textual.widget import Widget
-from textual import containers
-from textual import widgets
-from textual import getters
-from textual.message import Message
 
-from toad.app import ToadApp
-from toad.session_tracker import SessionDetails, OpenTab
 from toad import messages
+from toad.app import ToadApp
+from toad.session_tracker import OpenTab, SessionDetails
+from toad.sidebar_preparation import PreparedTab, TabRosterWork
 from toad.widgets.activity_spinner import FRAMES, animated_label
 
 
@@ -41,7 +41,7 @@ class SessionTabClose(widgets.Static, can_focus=True):
     """Close a tab without selecting it or deleting its saved thread."""
 
     ALLOW_SELECT = False
-    BINDINGS = [("enter,space", "close_tab", "Close tab")]
+    BINDINGS: ClassVar[list[BindingType]] = [("enter,space", "close_tab", "Close tab")]
     DEFAULT_CSS = """
     SessionTabClose {
         width: 2;
@@ -72,7 +72,7 @@ class SessionTabClose(widgets.Static, can_focus=True):
 class Underline(Widget):
     """The animated underline beneath tabs."""
 
-    COMPONENT_CLASSES = {"underline--bar"}
+    COMPONENT_CLASSES: ClassVar[set[str]] = {"underline--bar"}
     """
     | Class | Description |
     | :- | :- |
@@ -135,6 +135,20 @@ class SessionsTabs(Widget):
         self._spinner_phase = 0
         self._spinner_timer = None
         self._sync_lock = asyncio.Lock()
+        self._tab_projection: dict[str, PreparedTab] = {}
+
+    def _get_scrollable_region(self, region: Region) -> Region:
+        # The scrollbar occupies the explicit empty top row, not a bottom row.
+        # Keep the container origin: moving this clip origin makes viewport-only
+        # composition cull the CSS-offset underline even though full renders pass.
+        window = super()._get_scrollable_region(region)
+        return window.grow((0, 0, self.scrollbar_size_horizontal, 0))
+
+    def _arrange_scrollbars(self, region: Region) -> Iterable[tuple[Widget, Region]]:
+        for scrollbar, scrollbar_region in super()._arrange_scrollbars(region):
+            if scrollbar is self.horizontal_scrollbar:
+                scrollbar_region = scrollbar_region.translate((0, region.y - scrollbar_region.y))
+            yield scrollbar, scrollbar_region
 
     def _sync_spinner(self, tabs: tuple[OpenTab, ...]) -> None:
         timer = self._spinner_timer
@@ -154,9 +168,9 @@ class SessionsTabs(Widget):
             return
         self._spinner_phase = (self._spinner_phase + 1) % len(FRAMES)
         for tab in tabs:
-            if tab.title.startswith(("⌛ ", "● ")):
-                if label := self.query_one_optional(f"#{tab.mode_name}", SessionLabel):
-                    label.update(self.render_session_label(tab), layout=False)
+            if (tab.title.startswith(("⌛ ", "● "))
+                    and (label := self.query_one_optional(f"#{tab.mode_name}", SessionLabel))):
+                label.update(self.render_session_label(tab), layout=False)
 
     def on_mount(self) -> None:
         self._spinner_timer = self.set_interval(.18, self._animate_busy, pause=True)
@@ -215,13 +229,16 @@ class SessionsTabs(Widget):
                 self.scroll_to_center(current_label, animate=False)
 
     def render_session_label(self, session: OpenTab) -> Content:
+        prepared = self._tab_projection.get(session.mode_name)
+        if prepared is not None and prepared.source == session:
+            return prepared.content(self._spinner_phase)
         title = animated_label(
             session.title,
             busy=session.title.startswith(("⌛ ", "● ")),
             phase=self._spinner_phase,
         )
-        if session.unread:
-            return Content.assemble(title, (f" ({session.unread})", "bold $accent"))
+        if session.unread.label:
+            return Content.assemble(title, (f" {session.unread.label}", "bold $accent"))
         return Content(title)
 
     def compose(self) -> ComposeResult:
@@ -257,10 +274,23 @@ class SessionsTabs(Widget):
     async def _reconcile_tabs(self) -> None:
         if not self.is_attached or not self.screen.is_active:
             return
-        tabs = self.app.open_tabs
-        if tabs == self._last_tabs and self.current_session == self.app.current_mode:
-            self._sync_spinner(tabs)
-            return
+        while True:
+            tabs = self.app.open_tabs
+            if tabs == self._last_tabs:
+                # Selection does not change the worker-owned label projection.
+                # Its native reactive updates the selected class and underline.
+                self.current_session = self.app.current_mode
+                self._sync_spinner(tabs)
+                return
+            prepared = await self.app.preparation.submit(TabRosterWork(tabs))
+            if not self.is_attached or not self.screen.is_active:
+                return
+            if tabs == self.app.open_tabs:
+                break
+            # The caller may be the activation transaction. Finish its newest
+            # roster here rather than return "ready" with stale geometry and
+            # defer the real work to an unrelated callback.
+        self._tab_projection = {tab.source.mode_name: tab for tab in prepared}
         previous_tabs = {tab.mode_name: tab for tab in self._last_tabs or ()}
         geometry_changed = self._last_tabs is None
         mode_changed = self.current_session != self.app.current_mode
@@ -281,8 +311,8 @@ class SessionsTabs(Widget):
                     previous = previous_tabs.get(tab.mode_name)
                     same_width_count = (
                         previous is not None and previous.title == tab.title
-                        and bool(previous.unread) == bool(tab.unread)
-                        and len(str(previous.unread)) == len(str(tab.unread))
+                        and previous.unread.highlighted == tab.unread.highlighted
+                        and len(previous.unread.label) == len(tab.unread.label)
                     )
                     label.update(content, layout=not same_width_count)
                     geometry_changed |= not same_width_count

@@ -1,0 +1,31 @@
+{
+  "recipes": [
+    {
+      "recipe_id": "complete-visible-sidebar-navigation",
+      "operations": [
+        {
+          "operation": "patch_target",
+          "file_path": "src/toad/widgets/comms_sidebar.py",
+          "target_qualname": "CommsSidebar._finish_navigation",
+          "replacements": [
+            {
+              "old_source": "    def _finish_navigation(self, revision: int) -> None:\n        if (revision != self._navigation_revision or not self.is_attached\n                or not self.screen.is_current or self._closing):\n            return\n        if self._last_snapshot is not None:\n            self.restore_scroll()\n            self.navigation_ready.set()",
+              "new_source": "    def _finish_navigation(self, revision: int) -> None:\n        if (revision != self._navigation_revision or not self.is_attached\n                or not self.screen.is_current or self._closing):\n            return\n        if (self.display and self._last_snapshot is not None\n                and not self.navigation_ready.is_set()):\n            # A refresh callback may precede the resize messages from newly\n            # mounted rows. Commit their geometry before scroll_to can clamp\n            # the saved offset against the retired, empty shell's extent.\n            with self.app.batch_update():\n                for node in self.walk_children(Widget, with_self=True):\n                    node._check_refresh()\n                for ancestor in self.ancestors:\n                    if isinstance(ancestor, Widget):\n                        ancestor._check_refresh()\n                self.screen._refresh_layout(self.app.size)\n                if self.restore_scroll():\n                    self.screen._refresh_layout(self.app.size, scroll=True)\n                self.navigation_ready.set()"
+            }
+          ]
+        },
+        {
+          "operation": "patch_target",
+          "file_path": "src/toad/widgets/comms_sidebar.py",
+          "target_qualname": "CommsSidebar._refresh_checked",
+          "replacements": [
+            {
+              "old_source": "    async def _refresh_checked(\n        self, revision: WireRevision,\n        route_stamp: tuple[tuple[int, int, int, int] | None, ...],\n    ) -> None:\n        try:\n            from toad.comms_root import root_is_current\n\n            if not await asyncio.to_thread(root_is_current, self._wire.root):\n                self.display = False\n                return\n            if not self.is_attached or self.screen is not self.app.screen:\n                return\n            self.app.coordination_observed.publish(None)\n            await self._poll_snapshot(revision)\n            if (\n                self._last_revision == revision\n                and self._route_stamp() == route_stamp\n                and await asyncio.to_thread(root_is_current, self._wire.root)\n            ):\n                self._last_route_stamp = route_stamp\n                self.display = True\n        except Exception:\n            # Route publication or writer recovery will be retried next tick.\n            return\n        finally:\n            self._snapshot_pending = False",
+              "new_source": "    async def _refresh_checked(\n        self, revision: WireRevision,\n        route_stamp: tuple[tuple[int, int, int, int] | None, ...],\n    ) -> None:\n        try:\n            from toad.comms_root import root_is_current\n\n            if not await asyncio.to_thread(root_is_current, self._wire.root):\n                self.display = False\n                return\n            if not self.is_attached or self.screen is not self.app.screen:\n                return\n            self.app.coordination_observed.publish(None)\n            await self._poll_snapshot(revision)\n            if (\n                self._last_revision == revision\n                and self._route_stamp() == route_stamp\n                and await asyncio.to_thread(root_is_current, self._wire.root)\n            ):\n                self._last_route_stamp = route_stamp\n                self.display = True\n                if not self.navigation_ready.is_set():\n                    self.call_after_refresh(self._finish_navigation, self._navigation_revision)\n        except Exception:\n            # Route publication or writer recovery will be retried next tick.\n            return\n        finally:\n            self._snapshot_pending = False"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

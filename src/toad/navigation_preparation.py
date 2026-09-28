@@ -8,7 +8,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Generic, TypeVar, cast
 
-from agent_comms import Thread, wire
+from agent_comms.threads import Thread
+from agent_comms.comms import wire
 
 from toad.session_tracker import CommsViewKey
 from toad.channel_preparation import HistoryKind
@@ -48,7 +49,7 @@ class CommsNavigationRequest(NavigationRequest[CommsNavigation]):
             # Local sessions can browse channels before an executor registers.
             if me in comms.registry:
                 me = comms.registry.require(me).name
-            target = comms.channel_catalog.resolve(self.target).name
+            target = comms.channels.catalog.read().resolve(self.target).name
         recovery_root = self.recovery_root
         if recovery_root is not None and Path(recovery_root).expanduser().resolve() != root:
             recovery_root = None
@@ -87,7 +88,7 @@ class ThreadNavigationRequest(NavigationRequest[ThreadNavigation]):
         thread = comms.registry.require(self.target)
         active = comms.registry.status(thread.name).active
         persisted = bool(thread.session_file and Path(thread.session_file).is_file())
-        attachable = thread.pid > 0 and comms._process_alive(thread.pid)
+        attachable = thread.process_alive
         project = Path(thread.worktree)
         if not project.is_dir():
             project = self.project

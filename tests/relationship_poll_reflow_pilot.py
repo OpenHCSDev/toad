@@ -7,7 +7,7 @@ from pathlib import Path
 import tempfile
 from unittest.mock import patch
 
-from agent_comms import ThreadSort
+from agent_comms.display_order import ThreadSort
 from textual.widgets import TextArea
 from right_comms_pilot import FixtureSource
 from runtime_fixture import ToadApp
