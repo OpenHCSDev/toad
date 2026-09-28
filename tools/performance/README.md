@@ -119,6 +119,13 @@ diagnostic overrides; the manifest records them, and the state snapshot records
 the selected screen's declared policies. They do not change GC thresholds or
 force collection. Production Toad session views now declare paint-only retirement.
 
+`--census` also groups live/closing/closed widgets by active/inactive screen and
+transcript-fragment/sidebar/other ownership. Inspect the closing census with
+`analyze_widget_cohorts.py PREFIX`, or add `--initial` for its initial state.
+`TOAD_VALIDATION_CENSUS_LIMIT` controls the class-row report size (default 60).
+These are widget/message-pump counts and shallow instance-dictionary sizes, not
+transitive heap attribution. The census does not force collection.
+
 Add `--profile --profile-gil --profile-seconds 40` for py-spy, with
 `--py-spy /path/to/py-spy` and `--profile-sudo` if attachment requires it.
 GIL-only sample weights are not a wall timeline and cannot be aligned to actions

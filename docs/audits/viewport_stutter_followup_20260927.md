@@ -7,6 +7,36 @@ current-main core pin `b1e5bfd5c39ea69c507833e8ed5efc96a7fb038b`.
 Status: **draft; tail-frame regression and comms test-timeout resolved;
 remaining native latency targets and current-main reconciliation are open**.
 
+## Widget cohorts and Channels correction handoff
+
+The next read-only census (`toad-widget-cohorts-1`) completed the 72-action/52-marker
+fixture and counted 341,860 tracked objects. Live widget/message-pump cohorts were:
+
+| Screen cohort | Transcript fragments | Sidebar | Chrome/other |
+| --- | --- | --- | --- |
+| Active |128|146|100|
+| Inactive |336|285|327|
+
+Inactive means owned by a screen outside the active/backdrop set; it can include
+prepared screens. Shallow dictionary byte counts are explicitly not transitive
+heap ownership. No collection was forced. This identifies larger source-backed
+subtrees for future investigation rather than proving an aging bound.
+
+The user then reported Channels reloading on every tab switch in the actual
+agent-comms pin. Its Toad base `8adfcad` uses core `f7716d5` and Textual `4fa6a9c4`,
+a newer core API than this performance branch. A pin-compatible fix is pushed as
+**`c2efb1623cea9833601cf659bac2bef62d7b9e46`** on
+`fix/preserve-channel-rosters-20260928`: it preserves channel row trees across
+switches, retains route validation, and performs normal teardown on close.
+The new regression fails before and passes after; 17 targeted pilots, ten-tab
+headless returns and a 43-action native capture pass. Observed native channel
+identities remain unchanged across 44 repeated keys in 11 modes.
+
+The user assigned comms-pin updates to another agent. Preserve this correction
+when reconciling current main into the performance branch: reducing retained
+widgets must not reintroduce unnecessary channel reloads. The cohort census above
+predates that correction and is not a post-fix memory measurement.
+
 ## Higher-level arrangement reuse
 
 The next increment targets duplicated recursive work, rather than another leaf

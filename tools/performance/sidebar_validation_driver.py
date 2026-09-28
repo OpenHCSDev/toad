@@ -432,6 +432,10 @@ class ValidationDriver(LinuxDriver):
         # disable GC; release the temporary strong references immediately.
         begin = time.monotonic_ns()
         objects = gc.get_objects()
+        from widget_census import widget_cohorts
+
+        cohorts = widget_cohorts(objects, self._app,
+                                 limit=int(os.environ.get("TOAD_VALIDATION_CENSUS_LIMIT", "60")))
         counts = Counter((type(value).__module__, type(value).__qualname__) for value in objects)
         from textual._styles_cache import StylesCache
         from textual.widget import Widget
@@ -460,6 +464,7 @@ class ValidationDriver(LinuxDriver):
         total = len(objects)
         del objects
         data = {"ns": time.monotonic_ns(), "pid": os.getpid(), "tracked": total,
+                "widget_cohorts": cohorts,
                 "counts": counts.most_common(60), "widgets": widget_counts.most_common(50),
                 "closed_widgets": {name: count for (name, _mounted, _closing, closed), count in widget_counts.items() if closed},
                  "measurement_entries": dict(measurement_entries),
