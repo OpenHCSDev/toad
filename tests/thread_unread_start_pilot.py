@@ -96,7 +96,7 @@ async def main():
             chat = app.screen.query_one(CommsChatView)
             await chat._refresh()
             await refresh(app, pilot)
-            assert not next(tab for tab in app.open_tabs if tab.mode_name == channel_mode).unread
+            assert next(tab for tab in app.open_tabs if tab.mode_name == channel_mode).unread == ExactUnread()
 
             sidebar = app.screen.query_one(CommsSidebar)
             group = next(group for group in sidebar.query(ChannelGroup) if group.row.target_name == "#team")
