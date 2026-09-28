@@ -1,0 +1,34 @@
+[
+  {
+    "test": "goal_set_owner",
+    "exit_code": 0
+  },
+  {
+    "test": "goal_pause_owner",
+    "exit_code": 0
+  },
+  {
+    "test": "goal_retry",
+    "exit_code": 0
+  },
+  {
+    "test": "goal_edit_owner",
+    "exit_code": 1
+  },
+  {
+    "test": "goal_standby_history",
+    "exit_code": 0
+  },
+  {
+    "test": "goal_server_poll",
+    "exit_code": 0
+  },
+  {
+    "test": "goal_objective_edit",
+    "exit_code": 0
+  },
+  {
+    "test": "goal_edit_owner (canonical wire fixture corrected)",
+    "exit_code": 0
+  }
+]
