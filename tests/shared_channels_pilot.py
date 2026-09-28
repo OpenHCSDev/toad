@@ -76,7 +76,7 @@ async def main():
 
         async def start(agent, target):
             agent._message_target = target
-            agent._task = asyncio.create_task(asyncio.sleep(0))
+            agent.process.session_task = asyncio.create_task(asyncio.sleep(0))
             target.post_message(AgentReady())
 
         app = FrameApp(project_dir=str(root))

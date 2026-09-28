@@ -94,7 +94,7 @@ async def main():
             assert len(chat.query(MembershipNotice)) == 1
             assert len(chat.query(IRCMessage)) == 1
             assert not chat.query(UserInput) and not chat.query(Loading)
-            assert chat.turn != "agent"
+            assert not chat.turns.owner.busy
             assert not chat.prompt.query("#info-container")
             chat.prompt.text = ""
             chat.prompt.focus()

@@ -125,7 +125,7 @@ async def main(*, empty=False, trace=False, observe=False, output=None, peers=0,
                 target.post_message(CommsUpdated(TranscriptSnapshotUpdate(page)))
                 target.post_message(AgentReady())
 
-            agent._task = asyncio.create_task(deliver())
+            agent.process.session_task = asyncio.create_task(deliver())
 
         app = ReturnApp(project_dir=str(root))
         with patch.object(Agent, "start", start):

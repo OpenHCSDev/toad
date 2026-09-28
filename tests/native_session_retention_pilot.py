@@ -52,7 +52,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     editor.insert(" with undo")
     document, history = editor.document, editor.history
     session_id = agent.session_id
-    acp_process, acp_task = agent._process, agent._agent_task
+    acp_process, acp_task = agent.process.process, agent.process.runner
     owner = comms.registry.require("beta").process_identity
     modes = [owner_mode]
     records = []
@@ -86,8 +86,8 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
             await until(pilot, entered.is_set)
             assert app.current_mode != owner_mode
             assert original.agent is agent and agent._connected_ok
-            assert agent._process is acp_process and acp_process.returncode is None
-            assert agent._agent_task is acp_task and not acp_task.done()
+            assert agent.process.process is acp_process and acp_process.returncode is None
+            assert agent.process.runner is acp_task and not acp_task.done()
             assert comms.registry.require("beta").process_identity == owner
             assert comms.registry.require("beta").executing
             await asyncio.wait_for(agent.send_prompt(f"QUEUED_AT_{count}", defer_display=True), 10)

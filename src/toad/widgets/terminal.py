@@ -1,3 +1,4 @@
+from toad.block_navigation import ConversationBlock
 from dataclasses import dataclass
 
 from time import monotonic
@@ -25,7 +26,7 @@ from toad.menus import MenuItem
 ESCAPE_TAP_DURATION = 400 / 1000
 
 
-class Terminal(ScrollView, can_focus=True):
+class Terminal(ConversationBlock, ScrollView, can_focus=True):
     BINDING_GROUP_TITLE = "Terminal"
     HELP = """\
 ## Terminal

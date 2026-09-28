@@ -74,7 +74,7 @@ async def main():
                 target.post_message(CommsUpdated(TranscriptSnapshotUpdate(page)))
                 target.post_message(AgentReady())
 
-            agent._task = asyncio.create_task(attach())
+            agent.process.session_task = asyncio.create_task(attach())
 
         app = ToadApp(project_dir=str(root))
         try:

@@ -1,4 +1,5 @@
 from __future__ import annotations
+from toad.conversation_turn import TurnOwner, NoTurn
 
 from pathlib import Path
 import shlex
@@ -561,7 +562,7 @@ class Prompt(PromptCompletion, containers.VerticalGroup):
     queue_projection: var[QueueProjection] = var(PendingQueueProjection())
     delivering_prompt = var("")
     sending_queued_prompt = var("")
-    turn: var[str | None] = var(None)
+    turn_owner: var[TurnOwner] = var(NoTurn)
     agent_busy = var(False)
     status: var[str | Content] = var("")
 
@@ -687,12 +688,12 @@ class Prompt(PromptCompletion, containers.VerticalGroup):
             return
         self.model_switcher.set_models(models or {}, self.current_model)
 
-    def watch_turn(self, turn):
-        self.agent_busy = turn == "agent"
+    def watch_turn_owner(self, turn_owner):
+        self.agent_busy = turn_owner.busy
         self.set_class(self.agent_busy and self.queue_supported, "-queue-mode")
 
     def watch_queue_supported(self, supported):
-        self.watch_turn(self.turn)
+        self.watch_turn_owner(self.turn_owner)
         self._update_queue_summary()
 
     def watch_queued_prompts(self, queued):

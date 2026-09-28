@@ -1,10 +1,11 @@
+from toad.block_navigation import ConversationBlock
 from typing import Iterable
 from textual.widgets import Static
 
 from toad.menus import MenuItem
 
 
-class Note(Static):
+class Note(ConversationBlock, Static):
     DEFAULT_CLASSES = "block"
 
     def get_block_menu(self) -> Iterable[MenuItem]:

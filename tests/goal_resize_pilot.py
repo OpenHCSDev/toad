@@ -1,3 +1,4 @@
+from toad.conversation_turn import AgentTurn, ClientTurn
 """Drag the existing goal separator without changing goal or composer state."""
 
 from toad.goal_display import GoalDisplay
@@ -67,7 +68,7 @@ async def main():
 
             # During activity, the existing colored separator owns this row.
             view.busy_count = 1
-            view.turn = "agent"
+            view.turns.owner = AgentTurn()
             await pilot.pause()
             throbber = view.query_one(Throbber)
             assert throbber.busy and not bar.styles.border_top[0]

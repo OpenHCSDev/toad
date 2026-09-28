@@ -1,10 +1,11 @@
+from toad.block_navigation import ConversationBlock
 from typing import Iterable
 from textual.widgets import Markdown
 
 from toad.menus import MenuItem
 
 
-class MarkdownNote(Markdown):
+class MarkdownNote(ConversationBlock, Markdown):
     def get_block_menu(self) -> Iterable[MenuItem]:
         return
         yield
