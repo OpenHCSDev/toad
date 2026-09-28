@@ -70,11 +70,8 @@ class CommsUpdateConsumer(MroDispatch):
         agent._active_turn_id = update.turn_id
         agent._turn_lifecycle_sequence += 1
         agent.post_message(
-            messages.TurnStarted(
-                update.turn_id,
-                update.started_at,
-                update.activity,
-                update.activity_detail,
+            messages.CommsUpdated(
+                update,
                 agent=agent,
                 session_id=self.session_id,
                 sequence=agent._turn_lifecycle_sequence,
@@ -96,8 +93,8 @@ class CommsUpdateConsumer(MroDispatch):
         agent._active_turn_id = None
         agent._turn_lifecycle_sequence += 1
         agent.post_message(
-            messages.TurnSettled(
-                update.turn_id,
+            messages.CommsUpdated(
+                update,
                 agent=agent,
                 session_id=self.session_id,
                 sequence=agent._turn_lifecycle_sequence,

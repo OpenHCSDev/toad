@@ -248,27 +248,8 @@ class CommsUpdated(AgentMessage):
     sequence: int | None = None
 
 
-@dataclass
-class TurnStarted(AgentMessage):
-    """A server-owned turn began, regardless of who supplied the input."""
-
-    turn_id: str
-    started_at: float | None = None
-    activity: str | None = None
-    activity_detail: str | None = None
-    agent: object | None = None
-    session_id: str | None = None
-    sequence: int | None = None
 
 
-@dataclass
-class TurnSettled(AgentMessage):
-    """The agent finished writing while trailing metadata may still arrive."""
-
-    turn_id: str | None = None
-    agent: object | None = None
-    session_id: str | None = None
-    sequence: int | None = None
 
 
 @dataclass

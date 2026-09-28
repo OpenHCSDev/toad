@@ -1,5 +1,7 @@
 from __future__ import annotations
 from agent_comms.acp_extension import (
+    TurnStartedUpdate,
+    TurnSettledUpdate,
     GoalChangedUpdate,
     CompactionChangedUpdate,
     TranscriptSnapshotUpdate,
@@ -1715,7 +1717,7 @@ class Conversation(containers.Vertical):
         await self.post_agent_response(message.text, message.route)
 
     def _accept_turn_lifecycle(
-        self, message: acp_messages.TurnStarted | acp_messages.TurnSettled
+        self, message: acp_messages.CommsUpdated
     ) -> bool:
         from toad.acp.agent import Agent
 
@@ -1738,21 +1740,18 @@ class Conversation(containers.Vertical):
         self._turn_lifecycle_sequence = message.sequence
         return True
 
-    @on(acp_messages.TurnStarted)
-    async def on_turn_started(self, message: acp_messages.TurnStarted) -> None:
-        message.stop()
-        if not isinstance(message.turn_id, str) or not message.turn_id:
-            return
+    async def on_turn_started(self, message: acp_messages.CommsUpdated) -> None:
+        update = message.update
         if not self._accept_turn_lifecycle(message):
             return
-        self.activity_started_at = message.started_at
-        self.activity = message.activity_detail or "Thinking…"
-        if message.turn_id == self._managed_turn_id:
+        self.activity_started_at = update.started_at
+        self.activity = update.activity_detail or "Thinking…"
+        if update.turn_id == self._managed_turn_id:
             return
         self._transcript_generation += 1
         if self._managed_turn_id is None:
             self.busy_count += 1
-        self._managed_turn_id = message.turn_id
+        self._managed_turn_id = update.turn_id
         await self._clear_mcp_live()
         self._agent_activity_boundary.reset()
         self.app.open_tabs_changed.publish(None)
@@ -1760,15 +1759,14 @@ class Conversation(containers.Vertical):
         self.turn = "agent"
         self.post_message(messages.SessionUpdate(state="busy", summary=self.activity))
 
-    @on(acp_messages.TurnSettled)
-    async def on_turn_settled(self, message: acp_messages.TurnSettled) -> None:
-        message.stop()
+    async def on_turn_settled(self, message: acp_messages.CommsUpdated) -> None:
+        update = message.update
         if not self._accept_turn_lifecycle(message):
             return
         # Empty/missing IDs are initial idle snapshots, never authority to
         # settle a nonempty live turn. Keep the same guard for local messages.
-        if message.turn_id != self._managed_turn_id and (
-            self._managed_turn_id is not None or message.turn_id
+        if update.turn_id != self._managed_turn_id and (
+            self._managed_turn_id is not None or update.turn_id
         ):
             return
         await self._clear_mcp_live()
@@ -1777,7 +1775,7 @@ class Conversation(containers.Vertical):
         self.activity = ""
         self.activity_started_at = None
         self.app.open_tabs_changed.publish(None)
-        if message.turn_id is not None:
+        if update.turn_id is not None:
             if self._managed_turn_id is not None:
                 self._managed_turn_id = None
                 self.busy_count -= 1
@@ -3584,6 +3582,14 @@ class ConversationCommsConsumer(MroDispatch):
     def __init__(self, conversation, message):
         self.conversation = conversation
         self.message = message
+
+    @handles(TurnStartedUpdate)
+    async def turn_started(self, update: TurnStartedUpdate):
+        await self.conversation.on_turn_started(self.message)
+
+    @handles(TurnSettledUpdate)
+    async def turn_settled(self, update: TurnSettledUpdate):
+        await self.conversation.on_turn_settled(self.message)
 
     @handles(GoalChangedUpdate)
     def goal_changed(self, update: GoalChangedUpdate):
