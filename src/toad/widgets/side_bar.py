@@ -448,6 +448,9 @@ class SidebarSlider(widgets.Static, can_focus=True):
             self._dragging = False
             self.release_mouse()
 
+    def on_mouse_release(self) -> None:
+        self._dragging = False
+
 
 class SidebarAction(widgets.Static, can_focus=True):
     """One spatial arrow or float/push action."""
@@ -549,6 +552,9 @@ class SidebarResizeHandle(widgets.Static, can_focus=True):
             self._resize(event.screen_x)
             self._dragging = False
             self.release_mouse()
+
+    def on_mouse_release(self) -> None:
+        self._dragging = False
 
 
 class SideBar(containers.Vertical):
@@ -797,7 +803,8 @@ class SideBar(containers.Vertical):
             compact = all(action is not None for action in directions.values()) and width - 4 < 21
             actions.set_class(compact, "-compact")
             controls.styles.height = 3 if compact else 2
-        content = next((child for child in parent.children if not isinstance(child, SideBar)), None)
+        content = next((child for child in parent.children
+                        if child.display and not isinstance(child, SideBar)), None)
         if content is not None:
             content.styles.margin = (0, resolved.right_gutter, 0, resolved.left_gutter)
         return True

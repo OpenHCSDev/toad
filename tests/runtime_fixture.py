@@ -86,3 +86,17 @@ async def wait_channel_roster(app, pilot, *targets):
                     and set(targets) <= {row.target_name for row in sidebar._row_map.values()}):
                 return sidebar
             await pilot.pause(.02)
+
+
+async def reveal_session_details(app, pilot, target=None):
+    """Use the native disclosure before inspecting normally collapsed metadata."""
+    from toad.widgets.session_details import SessionDetails
+
+    details = app.screen.query_one(SessionDetails)
+    if details.collapsed:
+        assert await pilot.click(details.query_one("CollapsibleTitle"))
+        await pilot.pause()
+    if target is not None:
+        target.scroll_visible(animate=False, immediate=True)
+        await pilot.pause()
+    return details

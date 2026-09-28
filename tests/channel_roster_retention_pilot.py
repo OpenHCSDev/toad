@@ -80,11 +80,13 @@ async def main():
                 assert all(item.is_attached and not item._closed
                            for item in original_rows[mode].values()), (
                     "Warm channel rows retired on tab switch", mode)
-            for mode in modes[:-1]:
-                sidebar = sidebars[mode]
-                with patch.object(sidebar, "_route_stamp", wraps=sidebar._route_stamp) as probe:
-                    sidebar._refresh()
-                    assert not probe.called, "An inactive retained roster still polls its source"
+            assert all(sidebar is sidebars[first] for sidebar in sidebars.values())
+            await app.switch_mode("store")
+            with patch.object(sidebar, "_route_stamp", wraps=sidebar._route_stamp) as probe:
+                sidebar._refresh()
+                assert not probe.called, "A parked shared roster still polls its source"
+            await app.switch_mode(channel)
+            await settled(app, pilot)
 
             app.expected_modes = set(modes)
             for mode in (*reversed(modes), *modes, *reversed(modes)):
@@ -124,8 +126,9 @@ async def main():
             closed_rows = tuple(sidebars[second]._row_map.values())
             await app.close_session_mode(second)
             await pilot.pause()
-            assert closed_rows and all(item._closed and not item.is_attached for item in closed_rows)
+            assert closed_rows and all(not item._closed and item.is_attached for item in closed_rows)
             assert app._exception is None
+        assert all(item._closed for item in closed_rows), "Application shutdown must release the shared rows"
         await asyncio.get_running_loop().shutdown_default_executor()
     print("channel roster: retained identities and every warm frame; real updates and close cleanup pass")
 

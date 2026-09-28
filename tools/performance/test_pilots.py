@@ -23,6 +23,8 @@ PYTHON = os.environ.get("TOAD_TEST_PYTHON", sys.executable)
     "work_preparation_delivery", "serialized_preparation",
     "bar_projection_reuse", "activity_spinners", "session_sort", "sidebar_projection",
     "channel_roster_retention",
+    "shared_channels",
+    "session_details",
     "sidebar_drag_resize", "ui_sidebar_geometry", "tab_scrollbar_top",
     "owner_reader_reuse", "goal_server_poll", "goal_edit_owner",
     "history_mounted_budget", "history_prefetch", "transcript_history",
@@ -45,7 +47,7 @@ PYTHON = os.environ.get("TOAD_TEST_PYTHON", sys.executable)
     # Preserve current-main nominal transcript, goal, read-proof and historical
     # view contracts when integrating the framework performance checkpoint.
     "historical_views", "channel_partial_paint", "channel_display_basis",
-    "channel_views", "native_message_parts", "tool_diff", "transcript_process",
+    "channel_views", "channel_retirement", "native_message_parts", "tool_diff", "transcript_process",
     "right_comms_integration", "thread_unread_start", "goal_set_owner",
     "goal_pause_owner", "recovery_view_boundaries", "channel_any_mode_ui",
     "dm_rebind_paint",

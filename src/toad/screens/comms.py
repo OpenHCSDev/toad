@@ -16,7 +16,7 @@ from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.irc_message import SelectHistoricalIdentity
 from toad.widgets.comms_fork_dialog import ForkDialog
 from toad.widgets.comms_sidebar import CoordinationStatus, CommsSidebar, SelectTarget
-from toad.widgets.channels_sidebar import ChannelsSidebar
+from toad.widgets.channels_sidebar import ChannelsSlot
 from toad.session_tracker import SidebarState
 from toad.widgets.session_tabs import SessionsTabs
 from toad.widgets.side_bar import SideBar, TabHistoryControls
@@ -81,12 +81,15 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
 
     app = getters.app(ToadApp)
 
+    def channels_context(self) -> tuple[str, str]:
+        return self.me, self.target
+
     def compose(self) -> ComposeResult:
         with containers.Horizontal(id="tab-navigation-header"):
             yield TabHistoryControls()
             yield SessionsTabs()
         with containers.Center():
-            yield ChannelsSidebar(self.me, self.target)
+            yield ChannelsSlot()
             yield SideBar(
                 SideBar.Panel(
                     "Connection",
@@ -153,10 +156,6 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
             sidebar._apply_layout()
         if not self._sidebar_layout_watch:
             self._sidebar_layout_watch = True
-            self.watch(
-                self.query_one("#channels-sidebar", SideBar), "collapsed",
-                lambda _collapsed: self.align_tabs_to_sidebars(),
-            )
             self.app.sidebar_layout_changed.subscribe(
                 self, lambda _event: self.align_tabs_to_sidebars()
             )
@@ -164,7 +163,8 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
         chat = self.query_one(CommsChatView)
         chat._me = self.me
         chat.project_path = self.project_path
-        self.query_one(CommsSidebar).session_thread = self.me
+        # Shared navigation may already belong to another tab when hydration
+        # finishes. Its actor/target are bound by the mode transition owner.
         self.query_one(CoordinationStatus).set_thread(self.me)
         chat.prepare_prompt()
 
@@ -224,7 +224,7 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
         return None
 
     def action_show_sidebar(self) -> None:
-        sidebar = self.query_one(SideBar)
+        sidebar = self.query_one("#channels-sidebar", SideBar)
         sidebar.reveal()
         sidebar.query_one("SideBarCollapsible CollapsibleTitle").focus()
 

@@ -1,3 +1,25 @@
+## Current fork integration: shared Channels retained
+
+Merged Toad main43e57c91e9643cfab053630e1d5aaadd12cffad9 (PR108) into
+paired107 and pinned Textual16ede007c34bec893b2dbedb3999223381129678.
+Typed L0A core pin remains a5809ab; parent242 owns its production stack pins,
+b3a9c06 candidate and live install independently.
+
+Installed wheels (Toad merged candidate, requested Textual fork, typed corea5809ab):
+shared_channels_pilot, first_frame_startup_pilot and session_details_pilot all exit0.
+Shared Channels retains one tree, rows/tasks and first-frame paint across new,
+loading, existing and closed tabs; delayed route replacement cannot publish stale
+rows. Right-side session details remain independent, RGB/ANSI disclosure bounded,
+active status visible and local drafts intact. Actual mounted Textual UI with local
+behavior fixtures; backend start/IO scheduling are held fixtures, not native proof.
+No provider/native proof was repeated.
+
+Merge resolutions preserve COMMS_REFRESH_INTERVAL, current Comms import and
+ProcessIdentity fixtures; the L0A deletion guard passes. No retired Goal loaders,
+purge callers or old queue readers restored. No runtime/durable format changed;
+route replacement behavior was exercised on isolated fixture roots, so no copied
+live data was needed. Evidence: evidence/l0a-shared-channels.
+
 ## Paired L0A readiness: current parent integration passes
 
 Core parent branch a5809ab169638eff2b0b0570f21261e15d6a7623 (contains

@@ -10,7 +10,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
-from runtime_fixture import ToadApp
+from runtime_fixture import ToadApp, reveal_session_details
 
 from toad.acp import messages
 from toad.acp.agent import Agent
@@ -104,6 +104,7 @@ async def main():
 
             async def painted(status, artifact=None):
                 await pilot.pause()
+                await reveal_session_details(app, pilot, row)
                 assert view.native_history_status == status
                 assert row.status == status and row.display
                 assert LABELS[status] == str(row.render())

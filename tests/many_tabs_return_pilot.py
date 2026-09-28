@@ -111,7 +111,7 @@ async def main(*, empty=False, trace=False, observe=False, output=None, peers=0,
                         tabs = screen.query_one(SessionsTabs)
                         rows_before = {
                             (row.query_ancestor(ChannelGroup).row.target_name, row.thread_name): ref(row)
-                            for row in screen.query(CommsSidebar).first().query(ThreadStatusRow)
+                            for row in app.shared_channels.bar.roster.query(ThreadStatusRow)
                             if row.thread_name is not None
                         }
                         record = {"phase": phase, "mode": mode,
@@ -287,7 +287,7 @@ async def main(*, empty=False, trace=False, observe=False, output=None, peers=0,
                                       styled_nodes=sum(styles.values()))
                         rows_after = {
                             (row.query_ancestor(ChannelGroup).row.target_name, row.thread_name): row
-                            for row in screen.query(CommsSidebar).first().query(ThreadStatusRow)
+                            for row in app.shared_channels.bar.roster.query(ThreadStatusRow)
                             if row.thread_name is not None
                         }
                         replaced_rows = [key for key, previous in rows_before.items()
@@ -325,10 +325,9 @@ async def main(*, empty=False, trace=False, observe=False, output=None, peers=0,
                 await asyncio.wait_for(finished.wait(), 3)
                 assert not app._atomic_mode_switch
 
-                # Hidden channel trees remain mounted across switches. Closing
-                # tabs must still reconcile their routes on the next activation.
-                destination = app.get_screen_stack(modes[3])[0]
-                hidden_sidebar = destination.query_one(CommsSidebar)
+                # The shared channel tree survives switches. Closing tabs must
+                # reconcile routes without destroying the shared presentation.
+                hidden_sidebar = app.shared_channels.bar.roster
                 retained_channels = dict(hidden_sidebar._row_map)
                 assert retained_channels
                 assert all(row.is_attached for row in retained_channels.values())

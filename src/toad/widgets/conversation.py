@@ -62,6 +62,7 @@ from toad.widgets.throbber import Throbber
 from toad.widgets.goal_bar import GoalBar, GoalControl
 from toad.widgets.native_history import NativeHistory
 from toad.widgets.observed_thread_activity import ObservedThreadActivity
+from toad.widgets.session_details import SessionDetails
 from toad.private_native_cursor import CursorStatus
 from toad.queue_view import QueueProjection
 from toad.widgets.input_delivery import InputDeliveryBar, InputDeliveryDetails, empty_delivery
@@ -759,14 +760,16 @@ class Conversation(containers.Vertical):
                         yield ThreadLoading()
         yield Flash()
         with containers.Vertical(id="prompt-stack"):
-            yield ObservedThreadActivity(self._read_thread_activity)
             yield TurnActivity().data_bind(activity=Conversation.activity,
                                            started_at=Conversation.activity_started_at)
-            yield Throbber(id="throbber")
-            yield NativeHistory().data_bind(status=Conversation.native_history_status)
-            yield InputDeliveryBar().data_bind(
-                delivery=Conversation.input_delivery, error=Conversation.input_delivery_error,
+            yield SessionDetails(
+                self._read_thread_activity,
+                history=NativeHistory().data_bind(status=Conversation.native_history_status),
+                delivery=InputDeliveryBar().data_bind(
+                    delivery=Conversation.input_delivery, error=Conversation.input_delivery_error,
+                ),
             )
+            yield Throbber(id="throbber")
             yield GoalBar().data_bind(goal=Conversation.goal, execution=Conversation.goal_execution, unavailable=Conversation.goal_unavailable)
             yield Prompt(complete_callback=self.shell_complete).data_bind(
                 project_path=Conversation.project_path,
@@ -2590,9 +2593,14 @@ class Conversation(containers.Vertical):
         # A modal remains a view of the same backend snapshot, including later starts.
         details.delivery = self.input_delivery
         details.error = self.input_delivery_error
+        session_details = self.query_one_optional(SessionDetails)
+        if session_details is not None:
+            details.overview_text = session_details.overview_text
         self.app.push_screen(details)
         details.watch(self, "input_delivery", lambda state: setattr(details, "delivery", state))
         details.watch(self, "input_delivery_error", lambda error: setattr(details, "error", error))
+        if session_details is not None:
+            details.watch(session_details, "overview_text", lambda value: setattr(details, "overview_text", value))
 
     def _poll_goal(self) -> None:
         if not self.is_attached:
