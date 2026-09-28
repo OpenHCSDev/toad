@@ -26,7 +26,9 @@ class InstalledApp(ToadApp):
 
 
 async def main():
-    with TemporaryDirectory(prefix="toad-panels-", dir=os.environ["TOAD_ARTIFACT_ROOT"]) as directory:
+    artifacts = Path(os.environ.get("TOAD_ARTIFACT_ROOT", Path.cwd() / ".artifacts/session-panels"))
+    artifacts.mkdir(parents=True, exist_ok=True)
+    with TemporaryDirectory(prefix="toad-panels-", dir=artifacts) as directory:
         root = Path(directory)
         os.environ.update(AGENT_COMMS_ROOT=str(root / "wire"), XDG_CONFIG_HOME=str(root / "config"),
                           XDG_STATE_HOME=str(root / "state"), XDG_DATA_HOME=str(root / "data"))
@@ -119,7 +121,7 @@ async def main():
         result = {"measurements": measurements, "elapsed_seconds": time.monotonic()-started,
                   "native_terminal": os.environ.get("TOAD_NATIVE") == "1",
                   "evidence": "mounted retained-session UI; unchanged conversation/editor; no provider ACP claimed"}
-        Path(os.environ["TOAD_PANEL_RECEIPT"]).write_text(json.dumps(result, indent=2))
+        Path(os.environ.get("TOAD_PANEL_RECEIPT", str(artifacts / "receipt.json"))).write_text(json.dumps(result, indent=2))
         print(json.dumps(result), flush=True)
 
 

@@ -1,0 +1,21 @@
+{
+  "measurements": [
+    {
+      "tabs": 4,
+      "rss_bytes": 120500224,
+      "tasks": 534,
+      "tracked_objects": 227984,
+      "rich_panel_widgets": 0
+    },
+    {
+      "tabs": 16,
+      "rss_bytes": 139792384,
+      "tasks": 1626,
+      "tracked_objects": 341802,
+      "rich_panel_widgets": 0
+    }
+  ],
+  "elapsed_seconds": 6.868947052993462,
+  "native_terminal": false,
+  "evidence": "mounted retained-session UI; unchanged conversation/editor; no provider ACP claimed"
+}

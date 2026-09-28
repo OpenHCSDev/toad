@@ -1,0 +1,35 @@
+{
+  "measurements": [
+    {
+      "tabs": 4,
+      "rss_bytes": 115875840,
+      "tasks": 534,
+      "tracked_objects": 227801,
+      "constructed_panels": 0
+    },
+    {
+      "tabs": 16,
+      "rss_bytes": 138604544,
+      "tasks": 1626,
+      "tracked_objects": 341719,
+      "constructed_panels": 0
+    },
+    {
+      "tabs": 32,
+      "rss_bytes": 169803776,
+      "tasks": 3083,
+      "tracked_objects": 495859,
+      "constructed_panels": 0
+    },
+    {
+      "tabs": 64,
+      "rss_bytes": 232603648,
+      "tasks": 5998,
+      "tracked_objects": 804064,
+      "constructed_panels": 0
+    }
+  ],
+  "elapsed_seconds": 23.119608768000035,
+  "native_terminal": false,
+  "evidence": "mounted retained-session UI; unchanged conversation/editor; no provider ACP claimed"
+}
