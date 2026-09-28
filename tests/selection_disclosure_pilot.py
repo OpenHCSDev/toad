@@ -8,6 +8,7 @@ from pathlib import Path
 from agent_comms.threads import Thread
 from agent_comms.comms import wire
 from runtime_fixture import ToadApp
+from toad.setting_choices import SuccessExpansion
 from toad.widgets.comms_sidebar import ChannelGroup, CommsSidebar
 from toad.widgets.session_sidebar import ThreadStatusRow
 from toad.widgets.tool_call import ToolCall, ToolCallHeader, TextContent
@@ -49,7 +50,7 @@ async def main():
                 background = rows[name].get_visual_style().background
                 assert background != purple, (name, background)
 
-            app.settings.set("tools.expand", "success")
+            app.settings.tools.expand = SuccessExpansion
             conversation = app.screen.conversation
             payload = {"sessionUpdate": "tool_call", "toolCallId": "last-tool", "title": "Run tests",
                        "status": "in_progress", "kind": "execute",

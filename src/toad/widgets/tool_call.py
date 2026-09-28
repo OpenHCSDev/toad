@@ -105,11 +105,11 @@ class ToolCallDiff(containers.VerticalGroup):
             highlighted = Content.from_rich_text(prepared.fallback)
             yield TextContent(Content(self.patch, list(highlighted.spans)))
         else:
-            mode = self.app.settings.get("diff.view", str)
+            mode = self.app.settings.diff.view
             yield PatchDiffView(prepared.patch, prepared=prepared,
-                                 split=mode == "split", auto_split=mode == "auto",
-                                 wrap=self.app.settings.get("diff.wrap") == "wrap",
-                                 annotations=self.app.settings.get("diff.annotations", bool))
+                                 split=mode.split, auto_split=mode.auto_split,
+                                 wrap=self.app.settings.diff.wrap.enabled,
+                                 annotations=self.app.settings.diff.annotations)
 
     def _theme_key(self) -> tuple[bool, bool]:
         theme = self.app.current_theme
@@ -540,7 +540,7 @@ class ToolCall(SnapshotPresentation, CategorizedBlock, containers.VerticalGroup)
         if tool_call.get("kind", "") == "read":
             # Don't auto expand reads, as it can generate a lot of noise
             return
-        tool_call_expand = self.app.settings.get("tools.expand", str, expand=False)
+        tool_call_expand = self.app.settings.tools.expand
         status = tool_call.get("status")
         patches = [
             item["content"]["resource"]["text"]
@@ -549,23 +549,14 @@ class ToolCall(SnapshotPresentation, CategorizedBlock, containers.VerticalGroup)
             and item["content"].get("resource", {}).get("mimeType") == "text/x-diff"
             and isinstance(item["content"]["resource"].get("text"), str)
         ]
-        if (patches and status == "completed" and tool_call_expand != "never"
+        if (patches and status == "completed" and tool_call_expand.patch_preview
                 and sum(len(patch) for patch in patches) <= 16000
                 and sum(patch.count("\n") for patch in patches) <= 200):
             self._auto_expanded = True
             self.expanded = True
             return
-        if tool_call_expand == "always":
-            self._auto_expanded = True
-            self.expanded = True
-        elif tool_call_expand != "never" and status is not None:
-            if tool_call_expand == "success":
-                self.expanded = status == "completed"
-            elif tool_call_expand == "fail":
-                self.expanded = status == "failed"
-            elif tool_call_expand == "both":
-                self.expanded = status in ("completed", "failed")
-            self._auto_expanded = self.expanded
+        self.expanded = tool_call_expand.should_expand(status)
+        self._auto_expanded = self.expanded
 
     @property
     def tool_call_header_content(self) -> Content:
@@ -687,9 +678,9 @@ class ToolCall(SnapshotPresentation, CategorizedBlock, containers.VerticalGroup)
                     yield (diff_view := make_diff(path, path, old_text, new_text))
 
                     if isinstance(self.app, ToadApp):
-                        diff_view_setting = self.app.settings.get("diff.view", str)
-                        diff_view.split = diff_view_setting == "split"
-                        diff_view.auto_split = diff_view_setting == "auto"
+                        diff_view_setting = self.app.settings.diff.view
+                        diff_view.split = diff_view_setting.split
+                        diff_view.auto_split = diff_view_setting.auto_split
 
                 case {"type": "terminal", "terminalId": terminal_id}:
                     pass

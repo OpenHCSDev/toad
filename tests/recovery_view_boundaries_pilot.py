@@ -84,7 +84,7 @@ async def dual_root_projection():
                 await owner_screen.on_coordination_update(CoordinationUpdate(
                     thread="fixture", wire_root=str(b), persistence="persistent", transport="stdio"))
                 assert view._wire_root == b
-                app.settings.set("ui.recovery-view", True)
+                app.settings.ui.recovery_view = True
                 owner_screen.query_one("#thread-sidebar", SideBar).reveal()
                 view.query_ancestor(SideBarCollapsible).collapsed = False
                 async with asyncio.timeout(5):

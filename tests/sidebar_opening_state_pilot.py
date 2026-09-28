@@ -79,7 +79,7 @@ async def main():
                 for collapsed, peer in ((False, "open-peer"), (True, "closed-peer")):
                     app.frames = None
                     await app.switch_mode(owner)
-                    app.settings.set("sidebar.hide", collapsed)
+                    app.settings.sidebar.hide = collapsed
                     await pilot.pause()
                     bar = app.screen.query_one("#channels-sidebar", SideBar)
                     x, width = bar.region.x, bar.size.width
@@ -124,7 +124,7 @@ async def main():
                 for collapsed in (False, True):
                     app.frames = None
                     await app.switch_mode(owner)
-                    app.settings.set("sidebar.hide", collapsed)
+                    app.settings.sidebar.hide = collapsed
                     await pilot.pause()
                     bar = app.screen.query_one("#channels-sidebar", SideBar)
                     x, width = bar.region.x, bar.size.width

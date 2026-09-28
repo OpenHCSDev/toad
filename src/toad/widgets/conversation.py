@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from toad.settings import PreferenceChange
+from toad.preferences import SidebarSettings, ShellSettings
+
 from asyncio import Future
 import asyncio
 
@@ -365,16 +368,16 @@ This is a view of your conversation with the agent.
 
     def on_mount(self) -> None:
         self.app.settings_changed_signal.subscribe(self, self._settings_changed)
-        self._settings_changed(("sidebar.hide", self.app.settings.get("sidebar.hide", bool)))
+        self._settings_changed(PreferenceChange(SidebarSettings.hide, self.app.settings.sidebar.hide))
         self.watch(self, "scroll_y", self.hydrate_visible_tools, init=False)
         self.screen.screen_layout_refresh_signal.subscribe(
             self, lambda _screen: self.hydrate_visible_tools()
         )
 
-    def _settings_changed(self, update: tuple[str, object]) -> None:
-        if update[0] == "sidebar.hide":
+    def _settings_changed(self, update: PreferenceChange) -> None:
+        if update.field is SidebarSettings.hide:
             top, right, bottom, _ = self.styles.padding
-            self.styles.padding = (top, right, bottom, int(bool(update[1])))
+            self.styles.padding = (top, right, bottom, int(self.app.settings.sidebar.hide))
 
 
 class Conversation(containers.Vertical):
@@ -1482,7 +1485,7 @@ class Conversation(containers.Vertical):
                     )
                 )
 
-        if self.app.settings.get("notifications.turn_over", bool):
+        if self.app.settings.notifications.turn_over:
             self.app.system_notify(
                 f"{self.agent_title} has finished working",
                 title="Waiting for input",
@@ -2462,7 +2465,7 @@ class Conversation(containers.Vertical):
         self.app.open_tabs_changed.subscribe(self, self._coordination_changed)
 
         self.shell_history.complete.add_words(
-            self.app.settings.get("shell.allow_commands", expect_type=str).split()
+            self.app.settings.shell.allow_commands.split()
         )
         self.shell
         if self._agent_data is not None:
@@ -2767,10 +2770,9 @@ class Conversation(containers.Vertical):
         """
         self._queue_edit_unavailable()
 
-    def _settings_changed(self, setting_item: tuple[str, str]) -> None:
-        key, value = setting_item
-        if key == "shell.allow_commands":
-            self.shell_history.complete.add_words(value.split())
+    def _settings_changed(self, change: PreferenceChange) -> None:
+        if change.field is ShellSettings.allow_commands:
+            self.shell_history.complete.add_words(self.app.settings.shell.allow_commands.split())
 
     @work
     async def post_welcome(self) -> None:
@@ -2927,8 +2929,8 @@ class Conversation(containers.Vertical):
         """Check if a prune is required."""
         if self._require_check_prune:
             self._require_check_prune = False
-            low_mark = self.app.settings.get("ui.prune_low_mark", int)
-            high_mark = low_mark + self.app.settings.get("ui.prune_excess", int)
+            low_mark = self.app.settings.ui.prune_low_mark
+            high_mark = low_mark + self.app.settings.ui.prune_excess
             await self.prune_window(low_mark, high_mark)
 
     async def prune_window(self, low_mark: int, high_mark: int) -> None:
@@ -3029,16 +3031,8 @@ class Conversation(containers.Vertical):
         """A Shell instance."""
 
         if self._shell is None or self._shell.is_finished:
-            shell_command = self.app.settings.get(
-                "shell.command",
-                str,
-                expand=False,
-            )
-            shell_start = self.app.settings.get(
-                "shell.command_start",
-                str,
-                expand=False,
-            )
+            shell_command = self.app.settings.shell.command
+            shell_start = self.app.settings.shell.command_start
             shell_directory = self.working_directory
             self._shell = Shell(
                 self, shell_directory, shell=shell_command, start=shell_start
