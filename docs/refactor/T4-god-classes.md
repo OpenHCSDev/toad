@@ -24,6 +24,44 @@ Textual's public `copy_to_clipboard(text)` contract remains the framework bounda
 UI events and state guards exercise the installed components; private X11 and
 real PTY output establish clipboard transport. No live/shared checkout writes.
 
+### App slice completion receipt
+
+Integration base is merged `main` b472e487/Toad128. This slice preserves
+ViewportPresentation and Carver's merged owners. Compared with that main,
+ToadApp is **1,803 → 1,712** AST span lines; PromptTextArea **368 → 363**
+(check the shared ratchet for semantic-size counts). Conversation **2,829** and
+ACP Agent **1,354** are unchanged here and remain separately owned. FilePreviewScreen
+stays **26** semantic-size lines: the framework Screen name owns the filename,
+its project_path owns the containing directory, and the mounted preview owns
+its file path. No additional full-path mirror or compatibility property remains.
+
+TabOrder owns opening order, visit history, cursor, pruning and previous/next
+navigation plus its change Signal. Closed intervening visits can leave adjacent
+visits to the same mode; the owner now advances that cursor without remounting
+or replaying the same Screen. All main/channel/pending/preview callers use this
+owner; root-private history methods and fields are deleted.
+
+New-case edit counts: a new clipboard behavior adds **one declared subclass,
+zero App/Prompt/consumer branches or registry entries**, verified by the new-case
+guard. A new logical tab kind admits/retires its identity through the same
+open/close API, requiring **zero order/history/previous-tab implementation
+edits**; formerly its lifecycle sites had to maintain App's private order and
+history-pruning helpers. The component is not a second workspace catalog or a
+mixin carve.
+
+Clipboard selects its platform transport once, shares Textual's existing local
+value, and owns native copy and threaded paste. Actual X11 testing found that
+xclip may return text for an unsupported image/png target. The image boundary
+now reports no PNG and lets native text paste continue; genuine PNG capture,
+size bounds and attachment storage stay in their existing owner.
+
+The 106-line mocked clipboard transport test is deleted. Retained pilots use
+actual installed components, private runtime roots and local native transports;
+no provider prompt is sent. Receipts and exact installed dependency origins are
+recorded with the PR. Shared per-class/AST guards apply independently; CI is
+deferred by owner instruction. Workspace/resource/surface lifetime remains
+Tesla's scope and Conversation/blocks/operational Agent remains Carver's scope.
+
 This surface runs against classes the other surfaces will already have shrunk, so its file names what is known to remain and how to judge the rest. **Re-measure at dispatch** (`overlay.py --upstream upstream/main` shows each class's size then and now) and rewrite this file's findings against that head before starting.
 
 ---

@@ -5,7 +5,6 @@ import os
 from pathlib import Path
 from typing import ClassVar
 
-from textual import events
 from textual.screen import Screen
 
 import toad
@@ -56,16 +55,6 @@ class CopyApp(ToadApp):
         self.paste_target.focus()
 
     def record_paste(self) -> None:
-        (self.project_dir / "paste-state.json").write_text(
-            json.dumps(
-                {
-                    "focused": type(self.focused).__name__,
-                    "length": len(self.paste_target.text),
-                    "read_only": self.paste_target.read_only,
-                    "workers": [str(worker) for worker in self.paste_target.workers],
-                }
-            )
-        )
         if self.paste_target.text:
             (self.project_dir / "pasted.json").write_text(
                 json.dumps(
@@ -76,12 +65,6 @@ class CopyApp(ToadApp):
                 )
             )
             self.exit()
-
-    async def on_event(self, event) -> None:
-        if isinstance(event, events.Key):
-            with (self.project_dir / "keys.txt").open("a") as keys:
-                keys.write(str(event) + "\n")
-        await super().on_event(event)
 
 
 if __name__ == "__main__":

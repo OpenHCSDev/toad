@@ -83,7 +83,11 @@ def copy_in_terminal(root, display, *, missing_native=False):
                 and not select.select([master], [], [], 0.05)[0]
             ):
                 break
-        assert sent and process.poll() is not None, {
+        try:
+            exit_code = process.wait(timeout=3)
+        except subprocess.TimeoutExpired:
+            exit_code = None
+        assert sent and exit_code == 0, {
             "terminal": output[-3000:].decode(errors="replace"),
             "ready": (root / "ready.json").read_text()
             if (root / "ready.json").exists()
@@ -92,14 +96,10 @@ def copy_in_terminal(root, display, *, missing_native=False):
             if (root / "copied.json").exists()
             else None,
             "paste_sent": paste_sent,
-            "state": (root / "paste-state.json").read_text()
-            if (root / "paste-state.json").exists()
-            else None,
-            "keys": (root / "keys.txt").read_text()
-            if (root / "keys.txt").exists()
+            "pasted": (root / "pasted.json").read_text()
+            if (root / "pasted.json").exists()
             else None,
         }
-        assert process.wait(timeout=3) == 0, output[-3000:]
         copied = json.loads((root / "copied.json").read_text())
         assert copied["complete_local_value"] and copied["length"] == len(PAYLOAD)
         pasted = json.loads((root / "pasted.json").read_text())
