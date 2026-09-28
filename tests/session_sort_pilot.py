@@ -166,7 +166,7 @@ async def main():
                 )
                 assert await pilot.click(item)
                 await pilot.pause()
-                assert comms.channels.catalog.resolve("#any").order.value == criterion
+                assert comms.channels.catalog.read().resolve("#any").order.value == criterion
                 assert (
                     not sort_control()
                     .query_ancestor(SideBarCollapsible)
