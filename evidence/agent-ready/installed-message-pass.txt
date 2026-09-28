@@ -1,23 +1,2 @@
-Traceback (most recent call last):
-  File "/home/ts/wt/toad-agent-ready-live-20260928/evidence/agent-ready/installed-message-pilot.py", line 2, in <module>
-    import toad.agent
-  File "/home/ts/wt/toad-agent-ready-live-20260928/.venv/lib/python3.14/site-packages/toad/agent.py", line 1, in <module>
-    from toad.agent_presentation import LocalAgentPresentation
-  File "/home/ts/wt/toad-agent-ready-live-20260928/.venv/lib/python3.14/site-packages/toad/agent_presentation.py", line 5, in <module>
-    from agent_comms.declared_family import DeclaredFamily
-  File "/home/ts/wt/toad-agent-controller-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/__init__.py", line 5, in <module>
-    from .exporting import (
-    ...<6 lines>...
-    )
-  File "/home/ts/wt/toad-agent-controller-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/exporting.py", line 20, in <module>
-    from .catalog_store import ChannelCatalog
-  File "/home/ts/wt/toad-agent-controller-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/catalog_store.py", line 11, in <module>
-    from .catalog_document import CatalogDocument
-  File "/home/ts/wt/toad-agent-controller-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/catalog_document.py", line 10, in <module>
-    from .channels import Channel, SavedView, ViewPredicate
-  File "/home/ts/wt/toad-agent-controller-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/channels.py", line 11, in <module>
-    from .declared_family import DeclaredFamily
-  File "/home/ts/wt/toad-agent-controller-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/declared_family.py", line 9, in <module>
-    from metaclass_registry import AutoRegisterMeta, RegistryConfig  # type: ignore[import-untyped]
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-ModuleNotFoundError: No module named 'metaclass_registry'
+PASS: installed AgentReady through mounted Textual message dispatch
+/home/ts/wt/toad-agent-ready-live-20260928/.venv/lib/python3.14/site-packages/toad/agent.py
