@@ -1,6 +1,7 @@
 """Native Toad conversation view for an agent-comms channel or DM."""
 
 from __future__ import annotations
+from toad.delivery_failure_view import DeliveryFailureView
 
 import asyncio
 import re
@@ -90,7 +91,7 @@ def resolve_session_thread(
     return None
 
 
-class CommsChatView(Conversation):
+class CommsChatView(DeliveryFailureView, Conversation):
     """A wire-backed conversation using Toad's normal transcript primitives."""
 
     BINDINGS = Conversation.BINDINGS[:5]
@@ -868,39 +869,9 @@ class CommsChatView(Conversation):
                 )
                 return
         except Exception as error:
-            from agent_comms.errors import HumanInitialUnknownError, RelationViolationError
+            from agent_comms.delivery_failure import delivery_failure
 
-            if isinstance(error, HumanInitialUnknownError):
-                self._unknown_send = (error.wire_root_id, error.wire_seq, error.message_id)
-                # Preserve the user's text for inspection, but never put an
-                # uncertain send back into an actionable compose control.
-                self.prompt.text = event.body
-                self.prompt.prompt_text_area.disabled = True
-                self.status = f"Send UNKNOWN: {error}; do not retry"
-                self.prompt.prompt_text_area.tooltip = self.status
-                self.flash(self.status, style="error")
-                return
-            if (
-                isinstance(error, RelationViolationError)
-                and "UNKNOWN outcome" in str(error)
-                and "human send blocked" in str(error)
-            ):
-                # Core's fail-closed reservation/sequence-gap admission is
-                # non-actionable until manual reconciliation, not a fresh
-                # pre-append rejection that can safely be resubmitted.
-                self._human_admission_blocked = True
-                self.prompt.text = event.body
-                self.prompt.prompt_text_area.disabled = True
-                self._send_block_reason = f"Private human admission blocked: {error}"
-                self.status = self._send_block_reason
-                self.prompt.prompt_text_area.tooltip = self.status
-                self.flash(self.status, style="error")
-                return
-            self._human_admission_blocked = False
-            self._send_block_reason = ""
-            self.prompt.text = event.body
-            self.prompt.prompt_text_area.disabled = False
-            self.flash(f"Send failed: {error}", style="error")
+            delivery_failure(error).present(self, event.body)
             return
         self._send_block_reason = (
             f"Send receipt {comms.root}/{receipt.seq}/{receipt.message_id}; "
