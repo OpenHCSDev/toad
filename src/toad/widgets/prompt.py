@@ -34,7 +34,7 @@ from toad.widgets.model_switcher import ModelSwitcher
 from toad.messages import UserInputSubmitted
 from toad.slash_command import SlashCommand
 from toad.path_complete import PathComplete
-from toad.queue_view import QueueProjection
+from agent_comms.acp_extension import QueueProjection, PendingQueueProjection
 from toad.widgets.selection import SelectionOptionList
 
 if TYPE_CHECKING:
@@ -542,7 +542,7 @@ class Prompt(containers.VerticalGroup):
     model_history_scope = var("")
     queue_supported = var(False)
     queued_prompts: var[list[str]] = var(list)
-    queue_projection: var[QueueProjection] = var(QueueProjection())
+    queue_projection: var[QueueProjection] = var(PendingQueueProjection())
     delivering_prompt = var("")
     sending_queued_prompt = var("")
     turn: var[str | None] = var(None)
