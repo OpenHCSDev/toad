@@ -1,0 +1,5 @@
+# Unexpected initialization failure feedback
+
+Independent follow-up stacked on ready PR1311806851; does not hold or replace131 and does not duplicate parent AgentReady hotfix. AgentProcess originally created bare agent.run() task. An unexpected internal exception escaped that task without AgentFail, leaving ready backend witness with initial UI spinner. AgentController now owns a guarded initialization entry: original exception type/details logged and delivered through existing AgentFail, connection readiness cleared, waiters released. asyncio cancellation is not caught. No new state store, no App/MainScreen/workspace or live changes.
+
+Focused noneditable installed test injects the exact internal RuntimeError into a real Agent source and verifies actual mounted Textual AgentFail delivery; checks cancellation remains cancellation. This is explicit internal fault injection, not native/provider evidence. Parent owns retained native pr95 reproduction of actual urgent fix. No unchanged suites rerun. Ratchet compares scoped changes with ready131. Source24957c3.

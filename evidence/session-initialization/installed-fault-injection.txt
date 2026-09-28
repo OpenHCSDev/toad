@@ -1,0 +1,2 @@
+PASS: installed source initialization exception produces mounted AgentFail; cancellation remains cancellation
+Fault-injected internal RuntimeError; no native/provider coverage claimed
