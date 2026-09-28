@@ -46,7 +46,7 @@ async def main():
             assert roster.styles.text_wrap == "nowrap"
             assert not sidebar.query("ChannelGroup"), "Virtual roster still mounted every group"
             assert "member:#alpha:archived" not in sidebar._virtual_targets
-            app.settings.set("sidebar.show_archived", True)
+            app.settings.sidebar.show_archived = True
             await sidebar.sync_sessions()
             roster.highlighted = roster.get_option_index("channel:#alpha")
             roster.focus()
@@ -68,7 +68,7 @@ async def main():
                 await pilot.pause()
                 assert ("member:#alpha:archived" in sidebar._virtual_targets) is expanded
                 assert app.current_mode == first, "Disclosure inadvertently opened a tab"
-            app.settings.set("sidebar.show_archived", False)
+            app.settings.sidebar.show_archived = False
             await sidebar.sync_sessions()
             assert "member:#alpha:archived" not in sidebar._virtual_targets
             roster.highlighted = roster.get_option_index("channel:#alpha")

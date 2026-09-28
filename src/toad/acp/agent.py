@@ -1458,7 +1458,7 @@ class Agent(AgentBase):
         self._publish_coordination_metadata(response, initial=True)
 
     def _publish_models(self, response: Mapping[str, object]) -> None:
-        """Publish model and thinking-level config options, with legacy fallback."""
+        """Publish the current model and thinking-level config options."""
         config_options = response.get("configOptions")
         if isinstance(config_options, list):
             self._model_config_id = None
@@ -1514,32 +1514,9 @@ class Agent(AgentBase):
                 self.post_message(messages.SetModels("", {}))
             return
 
-        legacy_models = response.get("models")
-        if not isinstance(legacy_models, dict):
-            return
-        current = legacy_models.get("currentModelId")
-        available = legacy_models.get("availableModels")
-        if not isinstance(current, str) or not isinstance(available, list):
-            return
-        models = {
-            str(model["modelId"]): Model(
-                str(model["modelId"]),
-                str(model.get("name") or model["modelId"]),
-                (
-                    str(model["description"])
-                    if model.get("description") is not None
-                    else None
-                ),
-            )
-            for model in available
-            if isinstance(model, dict) and isinstance(model.get("modelId"), str)
-        }
-        if current in models:
-            self.post_message(messages.SetModels(current, models))
-
     @staticmethod
     def _initial_session_title(response: Mapping[str, object]) -> str | None:
-        """Opening metadata owns the display title, with canonical identity as fallback."""
+        """Opening metadata owns the display title; otherwise use canonical identity."""
         metadata = response.get("_meta")
         if not isinstance(metadata, dict):
             return None

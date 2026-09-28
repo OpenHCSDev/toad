@@ -80,7 +80,7 @@ async def main() -> None:
                 os.environ.pop("AGENT_COMMS_ROOT", None)
                 route(home, root, root_id)
                 app = ToadApp(project_dir=str(sandbox), mode="store")
-                app.settings.set("statistics.allow_collect", False)
+                app.settings.statistics.allow_collect = False
                 # No remote version query in this disposable pilot.
                 app.run_version_check = lambda: None
                 async with app.run_test(size=(115, 38)) as pilot:

@@ -421,7 +421,7 @@ async def main() -> None:
             created_sidebar.toggle()
             await pilot.pause()
             assert created_sidebar.collapsed
-            assert app.settings.get("sidebar.hide", bool)
+            assert app.settings.sidebar.hide
             await app.switch_mode(owner_mode)
             await pilot.pause()
             assert app.screen.query_one("#channels-sidebar", SideBar).collapsed
@@ -433,7 +433,7 @@ async def main() -> None:
             assert app.screen.query_one("#channels-sidebar", SideBar).collapsed
             app.screen.query_one("#channels-sidebar", SideBar).reveal()
             await pilot.pause()
-            assert not app.settings.get("sidebar.hide", bool)
+            assert not app.settings.sidebar.hide
             stopped_agents = 0
 
             class ClosingAgent:

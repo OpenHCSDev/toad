@@ -68,8 +68,8 @@ async def main():
             await choose(app, pilot, "show_archived", False)
             group = await sync(app, pilot)
             assert set(group._members) == {owner, "archived"}
-            assert app.settings.get("sidebar.show_archived", bool)
-            assert not app.settings.get("sidebar.show_stopped", bool)
+            assert app.settings.sidebar.show_archived
+            assert not app.settings.sidebar.show_stopped
             assert group._members["archived"].kind == "dm"
             await choose(app, pilot, "show_archived", True)
             group = await sync(app, pilot)

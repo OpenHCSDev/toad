@@ -13,6 +13,9 @@ acts through ``agent_comms`` operations.
 
 from __future__ import annotations
 
+from toad.settings import PreferenceChange
+from toad.preferences import SidebarSettings
+
 import os
 import asyncio
 from dataclasses import dataclass
@@ -393,7 +396,7 @@ class CoordinationStatus(Static):
             root = _comms_root()
         except (OSError, ValueError, RuntimeError) as error:
             self.update(f"Wire unavailable: {error}")
-            self.tooltip = "Invalid Comms route; no legacy fallback"
+            self.tooltip = "Invalid Comms route"
             return
         backend = os.environ.get("AGENT_COMMS_AGENT_BIN", "pi")
         thread = self.thread or "connecting..."
@@ -652,7 +655,6 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
         if isinstance(self.screen, SessionView):
             self.screen.call_after_first_frame(self, self.start_navigation_hydration)
         self._refresh_after_first_frame()
-        self._run_test_hook()
 
     def _refresh_after_first_frame(self) -> None:
         from toad.screens.session_view import SessionView
@@ -777,10 +779,10 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
     @property
     def visible_filters(self) -> tuple[bool, bool]:
         settings = cast("ToadApp", self.app).settings
-        return settings.get("sidebar.show_stopped", bool), settings.get("sidebar.show_archived", bool)
+        return settings.sidebar.show_stopped, settings.sidebar.show_archived
 
-    def _settings_changed(self, update: tuple[str, object]) -> None:
-        if update[0] in {"sidebar.show_stopped", "sidebar.show_archived"}:
+    def _settings_changed(self, update: PreferenceChange) -> None:
+        if update.field in {SidebarSettings.show_stopped, SidebarSettings.show_archived}:
             self._last_revision = None
             self._refresh()
 
@@ -809,20 +811,6 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
         for row in self._row_map.values():
             row.current = row.target_name == target
         self._rendered_mode = (mode_name, target)
-
-    def _run_test_hook(self) -> None:
-        """Opt-in test seam: TOAD_COMMS_TEST_TARGET drives the same code
-        path a row click takes (SelectTarget -> main pane switch). No-op
-        unless the env var is set."""
-        target = os.environ.pop("TOAD_COMMS_TEST_TARGET", "")
-        if not target:
-            return
-        if target.startswith("#"):
-            self.post_message(SelectTarget(target, "channel"))
-        elif self.session_thread and target == self.session_thread:
-            self.post_message(SelectTarget(target, "session"))
-        else:
-            self.post_message(SelectTarget(target, "dm"))
 
     def _comms_registry_names(self) -> list[str]:
         """Registered thread names on the wire (for view toggles)."""
