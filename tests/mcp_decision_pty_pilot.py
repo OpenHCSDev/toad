@@ -78,10 +78,12 @@ await writeNativeServer({ agentDir, projectRoot, configDirName: '.pi', scope: 'p
             output = []
 
             async def show(text):
+                print("MCP_PTY_OUTPUT", repr(text), flush=True)
                 output.append(text)
                 if " to apply:" in "".join(output):
                     appeared.set()
 
+            print("MCP_DECISION", action, decision, flush=True)
             task = asyncio.create_task(pty.run(inventory=snapshot, row=row, action=action,
                 decision=decision, show=show, controller_visible=lambda: visible))
             try:

@@ -8,7 +8,7 @@ import tempfile
 from pathlib import Path
 
 from agent_comms.threads import Thread
-from agent_comms.comms import wire
+from runtime_fixture import private_native_wire
 from agent_comms.runtime import socket_path
 from runtime_fixture import ToadApp
 from toad.session_tracker import ExactUnread
@@ -37,8 +37,8 @@ async def main():
         root = Path(directory)
         os.environ.update(XDG_CONFIG_HOME=str(root / "config"), XDG_STATE_HOME=str(root / "state"),
                           XDG_DATA_HOME=str(root / "data"), AGENT_COMMS_ROOT=str(root / "wire"),
-                          AGENT_COMMS_AGENT_BIN="/bin/echo", AGENT_COMMS_AGENT_MODELS="test/model")
-        comms = wire(root / "wire")
+                          AGENT_COMMS_AGENT_BIN="pi", AGENT_COMMS_AGENT_MODELS="test/model")
+        comms = private_native_wire(root / "wire")
         source = root / "session.jsonl"
         source.touch()
         comms.threads.register(Thread("worker", frozenset({"team"}), str(root), session_file=str(source)))

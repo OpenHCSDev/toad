@@ -1,0 +1,25 @@
+{
+  "root": "src/toad/",
+  "base_revision": "df0a758b5caa7ad03263a60b022ebc01df1b793c",
+  "head_revision": "d3e7ab3ef0820f134bafa2396601ab37df620a9e",
+  "paths": [
+    "src/toad/screens/session_view.py",
+    "src/toad/widgets/history_anchor.py",
+    "src/toad/widgets/project_panel.py"
+  ],
+  "base": {
+    "TypeIdentity": 0,
+    "LongBooleanChain": 5,
+    "StringSubscript": 1
+  },
+  "head": {
+    "TypeIdentity": 0,
+    "LongBooleanChain": 5,
+    "StringSubscript": 1
+  },
+  "delta": {
+    "TypeIdentity": 0,
+    "LongBooleanChain": 0,
+    "StringSubscript": 0
+  }
+}

@@ -9,7 +9,7 @@ from agent_comms.child_process import ProcessIdentity
 from agent_comms.threads import Thread
 from agent_comms.goal_actions import EditGoalAction, GoalPrecondition, OwnerInvocable, StandbyGoalAction
 from agent_comms.acp import CommsAgent
-from agent_comms.comms import wire
+from runtime_fixture import private_native_wire
 from textual.containers import VerticalScroll
 from textual.widgets import Static
 
@@ -39,7 +39,7 @@ async def main():
             AGENT_COMMS_ROOT=str(root / "wire"),
             AGENT_COMMS_AGENT_MODELS="openrouter/fake",
         )
-        comms = wire(root / "wire")
+        comms = private_native_wire(root / "wire")
         project = root / "project"
         project.mkdir()
         owner = CommsAgent(
@@ -48,6 +48,8 @@ async def main():
             agent_args=["--provider", "openrouter", "--model", "fake"],
             runtime_enabled=True,
             auto_wake=False,
+            private_nk_native_package=Path(os.environ["AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE"]),
+            private_nk_wire_root_id=os.environ["AGENT_COMMS_PRIVATE_NK_WIRE_ROOT_ID"],
         )
         peer_turn = None
         try:
