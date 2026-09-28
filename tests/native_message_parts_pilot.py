@@ -42,7 +42,7 @@ async def main():
             agent.rpc_session_update("fixture", {
                 "sessionUpdate": "agent_message_chunk",
                 "content": {"type": "text", "text": ""},
-                "_meta": {"agentComms": {"transcript": [TranscriptCodec.encode(event) for event in saved.events]}},
+                "_meta": {"agentComms": {"transcript": [TranscriptCodec.encode(event) for event in saved.events], "transcriptPage": saved.metadata()}},
             })
             await pilot.pause()
             assert len(view.contents.query(MessageDivider)) == 1, "one native row gained extra timestamps"

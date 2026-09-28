@@ -6,6 +6,7 @@ import os
 import tempfile
 from pathlib import Path
 
+from agent_comms.transcripts import TranscriptPage, TranscriptCursor
 from agent_comms.transcript_events import ContextTranscript, UserTranscript, TranscriptCodec
 from runtime_fixture import ToadApp
 from textual.widgets import Collapsible
@@ -61,7 +62,7 @@ async def main():
                 "_meta": {"agentComms": {"transcript": [
                     TranscriptCodec.encode(ContextTranscript(CONTEXT)),
                     TranscriptCodec.encode(UserTranscript(CONTEXT)),
-                ]}},
+                ], "transcriptPage": TranscriptPage((), TranscriptCursor("", 0), TranscriptCursor("", 0), False, False).metadata()}},
             })
             await pilot.pause()
             disclosure = view.contents.query_one(Collapsible)
