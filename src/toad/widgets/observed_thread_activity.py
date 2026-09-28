@@ -37,7 +37,7 @@ class ObservedThreadActivity(Static):
         self.refresh_observation()
 
     def refresh_observation(self) -> None:
-        if (not self.is_attached or self.screen is not self.app.screen
+        if (not self.is_attached or not self.screen.is_active
                 or self._read_task is not None and not self._read_task.done()):
             return
         self._read_task = asyncio.create_task(self._observe())
@@ -47,14 +47,25 @@ class ObservedThreadActivity(Static):
             presentation, unavailable = await self.read(), False
         except Exception:
             presentation, unavailable = None, True
-        if not self.is_attached or self.screen is not self.app.screen:
+        if not self.is_attached or not self.screen.is_active:
             return
         if (presentation, unavailable) == (self.presentation, self.unavailable):
             return
         self.presentation, self.unavailable = presentation, unavailable
         self.display = presentation is not None or unavailable
-        self.update("Agent status unavailable" if unavailable else
-                    presentation.summary if presentation else "")
+        lines = ["Agent status unavailable" if unavailable else
+                 presentation.summary if presentation else ""]
+        if presentation is not None and presentation.notifications:
+            lines.append("Recent incoming messages:")
+            for receipt in presentation.notifications:
+                message = receipt.message
+                if message is None:
+                    continue
+                excerpt = " ".join(message.body.split())
+                if len(excerpt) > 110:
+                    excerpt = excerpt[:107] + "…"
+                lines.append(f"{message.target} · {message.sender}: {excerpt} — {receipt.state}")
+        self.update("\n".join(lines))
         self.set_class(bool(presentation and presentation.busy), "-working")
         self.set_class(unavailable, "-unavailable")
         self.post_message(self.Changed(presentation, unavailable))

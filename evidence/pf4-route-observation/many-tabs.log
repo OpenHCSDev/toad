@@ -1,0 +1,85 @@
+╭───────────────────── Traceback (most recent call last) ──────────────────────╮
+│ /home/ts/wt/toad-pf4-route-observation-20260928/src/toad/widgets/observed_th │
+│ read_activity.py:40 in refresh_observation                                   │
+│                                                                              │
+│   37 │   │   self.refresh_observation()                                      │
+│   38 │                                                                       │
+│   39 │   def refresh_observation(self) -> None:                              │
+│ ❱ 40 │   │   if (not self.is_attached or self.screen is not self.app.screen  │
+│   41 │   │   │   │   or self._read_task is not None and not self._read_task. │
+│   42 │   │   │   return                                                      │
+│   43 │   │   self._read_task = asyncio.create_task(self._observe())          │
+│                                                                              │
+│ ╭──────────── locals ─────────────╮                                          │
+│ │ self = ObservedThreadActivity() │                                          │
+│ ╰─────────────────────────────────╯                                          │
+│                                                                              │
+│ /home/ts/.local/share/agent-comms/runtime-acp-extensions-20260928/lib/python │
+│ 3.14/site-packages/textual/app.py:1641 in screen                             │
+│                                                                              │
+│   1638 │   │   except KeyError:                                              │
+│   1639 │   │   │   raise UnknownModeError(f"No known mode {self._current_mod │
+│   1640 │   │   except IndexError:                                            │
+│ ❱ 1641 │   │   │   raise ScreenStackError("No screens on stack") from None   │
+│   1642 │                                                                     │
+│   1643 │   @property                                                         │
+│   1644 │   def _background_screens(self) -> list[Screen]:                    │
+│                                                                              │
+│ ╭──────────────────────────── locals ────────────────────────────╮           │
+│ │ self = ToadApp(                                                │           │
+│ │        │   title='ToadApp',                                    │           │
+│ │        │   classes={                                           │           │
+│ │        │   │   '-dark-mode',                                   │           │
+│ │        │   │   '-show-sessions-bar',                           │           │
+│ │        │   │   '-theme-ansi-dark'                              │           │
+│ │        │   },                                                  │           │
+│ │        │   pseudo_classes={                                    │           │
+│ │        │   │   'dark',                                         │           │
+│ │        │   │   'ansi',                                         │           │
+│ │        │   │   'nocolor',                                      │           │
+│ │        │   │   'focus'                                         │           │
+│ │        │   }                                                   │           │
+│ │        )                                                       │           │
+│ ╰────────────────────────────────────────────────────────────────╯           │
+╰──────────────────────────────────────────────────────────────────────────────╯
+ScreenStackError: No screens on stack
+
+NOTE: 1 of 696 errors shown. Run with textual run --dev to see all errors.
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-pf4-route-observation-20260928/tests/many_tabs_sidebar_observation_pilot.py", line 86, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-pf4-route-observation-20260928/tests/many_tabs_sidebar_observation_pilot.py", line 23, in main
+    async with app.run_test(size=(110, 37)) as pilot:
+               ~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 221, in __aexit__
+    await anext(self.gen)
+  File "/home/ts/wt/toad-pf4-route-observation-20260928/tests/runtime_fixture.py", line 37, in run_test
+    async with super().run_test(**kwargs) as pilot:
+               ~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 221, in __aexit__
+    await anext(self.gen)
+  File "/home/ts/.local/share/agent-comms/runtime-acp-extensions-20260928/lib/python3.14/site-packages/textual/app.py", line 2218, in run_test
+    raise self._exception
+  File "/home/ts/.local/share/agent-comms/runtime-acp-extensions-20260928/lib/python3.14/site-packages/textual/timer.py", line 199, in _tick
+    await invoke(self._callback)
+  File "/home/ts/.local/share/agent-comms/runtime-acp-extensions-20260928/lib/python3.14/site-packages/textual/_callback.py", line 96, in invoke
+    return await _invoke(callback, *params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-acp-extensions-20260928/lib/python3.14/site-packages/textual/_callback.py", line 56, in _invoke
+    result = callback(*params[:parameter_count])
+  File "/home/ts/wt/toad-pf4-route-observation-20260928/src/toad/widgets/observed_thread_activity.py", line 40, in refresh_observation
+    if (not self.is_attached or self.screen is not self.app.screen
+                                                   ^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-acp-extensions-20260928/lib/python3.14/site-packages/textual/app.py", line 1641, in screen
+    raise ScreenStackError("No screens on stack") from None
+textual.app.ScreenStackError: No screens on stack

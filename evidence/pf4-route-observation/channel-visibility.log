@@ -1,0 +1,1 @@
+PASS: hidden channel refresh has no root check/history query; resumed window fetches current message
