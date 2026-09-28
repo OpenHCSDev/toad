@@ -1,0 +1,14 @@
+[1790620107.450] incoming: {"jsonrpc": "2.0", "method": "initialize", "params": {"protocolVersion": 1, "clientCapabilities": {"fs": {"readTextFile": true, "writeTextFile": true}, "terminal": true, "auth": {"terminal": true}, "_
+[1790620107.450] outgoing: {"jsonrpc": "2.0", "id": 1, "result": {"protocolVersion": 1, "agentCapabilities": {"loadSession": true, "promptCapabilities": {"image": true}}, "authMethods": [{"id": "pi-login-openai-codex", "name": 
+[1790620107.456] incoming: {"jsonrpc": "2.0", "method": "session/load", "params": {"cwd": "/home/ts/wt/toad-refactor2-l0a-20260928/.artifacts/tmp/l0a-native-zw9v32ck/project", "mcpServers": [], "sessionId": "beta"}, "id": 2}
+[1790620109.367] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"content": {"text": "", "type": "text"}, "_meta": {"agentComms": {"thread": "beta", "goal": null, "goalExecuti
+[1790620109.368] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"content": {"text": "", "type": "text"}, "_meta": {"agentComms": {"transcript": [], "transcriptPage": {"before
+[1790620109.368] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"content": {"text": "", "type": "text"}, "_meta": {"agentComms": {"turnSettled": true, "turnId": ""}}, "sessio
+[1790620109.379] outgoing: {"jsonrpc": "2.0", "id": 2, "result": {"configOptions": [{"currentValue": "selected-offline/fixture", "options": [{"value": "selected-offline/fixture", "name": "selected-offline/fixture"}], "id": "mod
+=== watchdog: 4 tasks ===
+  Task-2: base_events.py:677 <- base_events.py:2046 <- events.py:94 <- acp.py:817
+  Task-1: acp.py:842
+  acp.Sender.loop: sender.py:46
+  Task-3: runtime.py:451
+[1790620115.114] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"content": {"text": "", "type": "text"}, "_meta": {"agentComms": {"inputDeliveryChanged": true}}, "sessionUpda
+[1790620115.206] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"_meta": {"agentComms": {"privateNativeCursor": {"version": 1, "scope": {"sessionId": "beta", "wireRootId": "c
