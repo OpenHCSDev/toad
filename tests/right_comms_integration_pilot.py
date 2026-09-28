@@ -75,7 +75,10 @@ async def main():
             with patch.dict(os.environ, {"PI_AGENT_ID": "peer"}):
                 invoke_tool(comms, "comms_collaboration", {
                     "action": "remove", "peer": "owner"})
-            await wait_until(pilot, lambda: not tree.groups["collaborating"].model.entries)
+            await wait_until(pilot, lambda: (
+                not tree.groups["collaborating"].model.entries
+                and ("thread", "peer") not in tree.groups["collaborating"].rows
+            ))
             assert comms.relationships.snapshot("peer").groups[4].entries == ()
             with patch.dict(os.environ, {"PI_AGENT_ID": "peer"}):
                 invoke_tool(comms, "comms_collaboration", {
