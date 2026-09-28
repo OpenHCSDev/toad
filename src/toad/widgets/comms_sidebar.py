@@ -1306,14 +1306,14 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
         self, name: str, menu_offset, *, mode_name: str | None = None,
         channel: str | None = None,
     ) -> None:
-        from toad.target_commands import TargetContext
-        self._show_target_commands(TargetContext(self.app, self._wire, name,
+        from toad.target_commands import ThreadContext
+        self._show_target_commands(ThreadContext(self.app, self._wire, name,
             self.session_thread, self.app.project_dir, mode_name, channel), menu_offset)
 
     def _show_channel_menu(self, name: str, menu_offset) -> None:
-        from toad.target_commands import TargetContext
-        self._show_target_commands(TargetContext(self.app, self._wire, name,
-            self.session_thread, self.app.project_dir, is_thread=False), menu_offset)
+        from toad.target_commands import ChannelContext
+        self._show_target_commands(ChannelContext(self.app, self._wire, name,
+            self.session_thread, self.app.project_dir), menu_offset)
 
     def _show_target_commands(self, ctx, menu_offset) -> None:
         from toad.target_commands import target_commands

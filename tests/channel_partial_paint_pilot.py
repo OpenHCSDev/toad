@@ -31,7 +31,7 @@ async def main():
 
         async def checked_mark(chat, page, original_page=None):
             selected = {message.seq for message in page.messages}
-            assert selected <= set(chat._painted_message_sequences())
+            assert selected <= {seq for source, seq in chat._painted_message_keys() if not source}
             assert page.display_scope is not None and page.display_scope.displayed is not None
             assert selected == {
                 seq for item in page.display_scope.displayed.conversations for seq in item.sequences

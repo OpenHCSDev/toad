@@ -22,8 +22,11 @@ from toad.slash_command import (
     NoArgumentsCommand,
     SlashCommand,
 )
+from toad.command_catalog import CommandCatalog
 from toad.target_commands import TargetLocal, target_commands
-from toad.thread_actions import ArchiveAction
+from toad.thread_actions import ArchiveAction, ForkAction, ThreadAction
+from toad.widgets.comms_fork_dialog import ForkDialog
+from textual.widgets import Static
 from toad.widgets.comms_menu import ContextMenuItem
 from toad.widgets.comms_sidebar import CommsSidebar
 from toad.widgets.comms_chat import CommsChatView
@@ -59,18 +62,21 @@ async def main():
     class InsertionCommand(NoArgumentsCommand):
         help = "A single declaration becomes discoverable and executable"
 
-        async def run(self, conversation):
+        async def apply(self, conversation):
             conversation.prompt.text = "declaration ran"
             return True
 
     for member in SlashCommand.members_with(LocalCommand):
         assert member.help and member().command
         assert member.parse("" if issubclass(member, TargetLocal) else "1")
+    for member in ThreadAction.menu():
+        assert member.pending and member.menu_label()
+        assert member.tool.action_label == member.menu_label()
     advertised = [
         AgentAdvertisedCommand("model", "wrong collision help"),
         AgentAdvertisedCommand("external", "Native agent command"),
     ]
-    completions = SlashCommand.completions(advertised)
+    completions = CommandCatalog(advertised).commands
     assert (
         next(c for c in completions if c.command == "/model").help
         != "wrong collision help"
@@ -205,6 +211,25 @@ print(json.dumps({'jsonrpc':'2.0','method':'session/update','params':{
             assert app.clipboard == "slash", (
                 "Sidebar selection must not change the slash target"
             )
+            # Both entry points use the existing parameter dialog; cancel never
+            # creates an owner or changes the exact target's registry/history.
+            registry_before = comms.registry.all_threads()
+            await submit(pilot, conversation, f"/{ForkAction.declared_name}")
+            await until(pilot, lambda: isinstance(app.screen, ForkDialog))
+            assert "@slash" in app.screen.query_one("#title", Static).render().plain
+            await pilot.press("escape")
+            await until(pilot, lambda: not isinstance(app.screen, ForkDialog))
+            sidebar._show_thread_menu("slash", Offset(3, 3), mode_name=dm)
+            await pilot.pause()
+            fork_item = next(item for item in app.screen.query(ContextMenuItem)
+                             if item.action == ForkAction.declared_name)
+            await pilot.click(fork_item)
+            await until(pilot, lambda: isinstance(app.screen, ForkDialog))
+            assert "@slash" in app.screen.query_one("#title", Static).render().plain
+            await pilot.press("escape")
+            await until(pilot, lambda: not isinstance(app.screen, ForkDialog))
+            assert comms.registry.all_threads() == registry_before
+            assert comms.views.full_history() == original_history
             await submit(pilot, conversation, f"/{ArchiveAction.declared_name}")
             await until(
                 pilot,

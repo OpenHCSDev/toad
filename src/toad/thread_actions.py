@@ -35,6 +35,10 @@ class ThreadActionContext:
     session_modes: tuple[str, ...]
 
 
+class ChannelAction:
+    """A thread action whose declared scope also includes channel views."""
+
+
 class ThreadAction(DeclaredFamily, Command, Generic[Result], affix="Action"):
     """One UI command; actual domain owners enforce all mutation authority."""
 
@@ -117,7 +121,7 @@ class ArchiveAction(FinishedAction):
         ctx.comms.threads.archive(ctx.subject)
 
 
-class AcknowledgeAction(FinishedAction):
+class AcknowledgeAction(ChannelAction, FinishedAction):
     tool = _tool("comms_ack")
     pending = "Acknowledging…"
 
