@@ -167,7 +167,7 @@ async def main():
             oversized_mode = await app.open_file_preview(oversized)
             await preview_ready(app, pilot)
             oversized_frame = "\n".join(strip.text for strip in app.screen._compositor.render_strips())
-            assert "exceeds 1 MiB; showing only the first 64 KiB" in oversized_frame
+            assert "exceeds 1 MiB; showing only the first 64 KiB" in oversized_frame, oversized_frame
             assert "FIRST-LINE-MARKER" in oversized_frame
             assert app.current_mode == oversized_mode and app._exception is None
             await app.close_session_mode(oversized_mode)

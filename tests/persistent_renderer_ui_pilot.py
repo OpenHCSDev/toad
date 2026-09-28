@@ -22,7 +22,7 @@ PATCH = "--- x.py\n+++ x.py\n@@ -1,2 +1,2 @@\n context\n-old = 1\n+new = 2\n"
 
 
 async def main() -> None:
-    with tempfile.TemporaryDirectory(prefix="toad-persistent-ui-") as directory:
+    with tempfile.TemporaryDirectory(prefix="render-ui-", dir="/var/tmp") as directory:
         root = Path(directory)
         config = RenderServiceConfig(max_workers=2, max_pending=4)
         identities = []
