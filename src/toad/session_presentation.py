@@ -48,17 +48,11 @@ class BlankViewState:
     shell_history_index: int
 
 
-class SessionPresentation(ABC):
+class SessionSurfaceLifetime(ABC):
     """A session declares its own UI placement and activation lifetime."""
 
     @abstractmethod
     def compose_content(self, screen: "MainScreen") -> Widget: ...
-
-    @abstractmethod
-    def defer_thread_panels(self, screen: "MainScreen") -> bool: ...
-
-    @abstractmethod
-    def hydrate_thread_panels_on_reveal(self) -> bool: ...
 
     @abstractmethod
     async def prepare(self, screen: "MainScreen") -> None: ...
@@ -67,17 +61,11 @@ class SessionPresentation(ABC):
     async def retire(self, screen: "MainScreen") -> None: ...
 
 
-class RetainedSessionPresentation(SessionPresentation):
+class RetainedSessionPresentation(SessionSurfaceLifetime):
     """Executing agents keep their actual message target and rich view attached."""
 
     def compose_content(self, screen: "MainScreen") -> Widget:
         return screen._make_conversation()
-
-    def defer_thread_panels(self, screen: "MainScreen") -> bool:
-        return not screen._content_loaded
-
-    def hydrate_thread_panels_on_reveal(self) -> bool:
-        return False
 
     async def prepare(self, screen: "MainScreen") -> None:
         return
@@ -86,7 +74,7 @@ class RetainedSessionPresentation(SessionPresentation):
         return
 
 
-class BlankSessionPresentation(SessionPresentation):
+class BlankSessionPresentation(SessionSurfaceLifetime):
     """One logical blank session, independent of any mounted editor widget."""
 
     def __init__(self) -> None:
@@ -98,12 +86,6 @@ class BlankSessionPresentation(SessionPresentation):
 
     def compose_content(self, screen: "MainScreen") -> Widget:
         return BlankSurfaceSlot()
-
-    def defer_thread_panels(self, screen: "MainScreen") -> bool:
-        return True
-
-    def hydrate_thread_panels_on_reveal(self) -> bool:
-        return True
 
     async def prepare(self, screen: "MainScreen") -> None:
         # Actual shell/agent use promotes the editor to a retained presentation.

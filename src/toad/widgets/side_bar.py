@@ -689,7 +689,8 @@ class SideBar(containers.Vertical):
 
     def _start_hydration(self) -> None:
         if (self._panels_loaded or self._panels_loading or not self.is_attached
-                or not self.screen.is_current or self._closing):
+                or not self.screen.is_current or self._closing
+                or (self._defer_until_reveal and self.collapsed)):
             return
         self._panels_loading = True
         self.run_worker(self._hydrate_panels(), group="sidebar-panels")

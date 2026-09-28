@@ -32,7 +32,7 @@ from toad.widgets.conversation import Conversation, ThreadLoading
 from toad.widgets.project_directory_tree import ProjectDirectoryTree
 from toad.widgets.project_panel import ProjectPanel, ProjectSearchButton
 from toad.widgets.recovery_view import RecoveryView
-from toad.widgets.thread_comms import RelationshipSort, ThreadCommsSidebar
+from toad.widgets.thread_comms import ThreadCommsSidebar
 from toad.widgets.comms_chat import resolve_session_thread, session_thread_name
 from toad.widgets.comms_fork_dialog import ForkDialog
 from toad.widgets.comms_sidebar import CoordinationStatus, CommsSidebar, SelectTarget
@@ -209,25 +209,12 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
     def compose(self) -> ComposeResult:
         from toad.widgets.channels_sidebar import ChannelsSlot
 
-        self._project_panel = ProjectPanel(self.project_path)
+        from toad.widgets.session_thread_sidebar import SessionThreadSidebar
+
         yield NavigationSlot()
         with containers.Center():
             yield ChannelsSlot()
-            yield SideBar(
-                SideBar.Panel("Thread", CoordinationStatus(self._comms_thread), id="coordination-panel"),
-                SideBar.Panel("Comms", ThreadCommsSidebar(
-                    self._comms_thread, wire_root=self._coordination_root, live=True),
-                    id="thread-comms-panel", header_control=RelationshipSort()),
-                SideBar.Panel("Plan", Plan([]), collapsed=True, id="plan-panel"),
-                SideBar.Panel("Project", self._project_panel, flex=True, collapsed=True),
-                SideBar.Panel("Recovery", RecoveryView(self._comms_thread,
-                                                       wire_root=self._coordination_root), collapsed=True,
-                              id="recovery-panel"),
-                id="thread-sidebar", right=True, hide=True, navigation=self._thread_sidebar_state,
-                defer_mount=self.presentation.defer_thread_panels(self),
-                defer_until_reveal=self.presentation.hydrate_thread_panels_on_reveal(),
-                on_hydrated=self._sync_thread_sidebar,
-            )
+            yield SessionThreadSidebar(self)
             with containers.Vertical(id="session-content"):
                 if self._content_loaded:
                     yield self.presentation.compose_content(self)
@@ -499,9 +486,9 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
             )
             for entry in message.entries
         ]
-        self.query_one("SideBar Plan", Plan).entries = entries
-        if entries:
-            self.query_one("#plan-panel", SideBarCollapsible).collapsed = False
+        from toad.widgets.session_thread_sidebar import SessionThreadSidebar
+
+        self.query_one(SessionThreadSidebar).update_plan(entries)
 
     @on(messages.SessionUpdate)
     async def on_session_update(self, event: messages.SessionUpdate) -> None:
