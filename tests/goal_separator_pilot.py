@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 import tempfile
 
+from agent_comms.goal_states import PausedGoal
 from agent_comms import Goal
 from runtime_fixture import ToadApp
 from toad.widgets.goal_bar import GoalBar
@@ -25,7 +26,7 @@ async def main():
             prompt = view.prompt
             draft = "Keep this draft while separator edges move"
             prompt.text = draft
-            view.goal = Goal("Verify layout", "separator-test", status="paused", progress="Working on presentation")
+            view.goal = Goal("Verify layout", "separator-test", state=PausedGoal(), progress="Working on presentation")
             cases = [
                 (0, "client", True, "solid", "", "idle"),
                 (1, "agent", True, "", "solid", "loading-and-queue"),

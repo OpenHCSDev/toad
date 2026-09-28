@@ -40,7 +40,7 @@ async def main():
             changed = await agent.edit_goal(original, "Revised objective")
             assert changed.id == original.id
             assert changed.revision == original.revision + 1
-            assert changed.status == original.status
+            assert changed.state.declared_name == original.state.declared_name
             assert comms.registry.require(session).goal == changed
             try:
                 await agent.edit_goal(original, "Stale overwrite")
@@ -69,7 +69,7 @@ async def main():
             emitted = []
             agent.post_message = emitted.append
             for goal_value, execution_value in (
-                (asdict(changed), asdict(execution)),
+                (changed.to_wire(), asdict(execution)),
                 (None, None),
             ):
                 agent.rpc_session_update(

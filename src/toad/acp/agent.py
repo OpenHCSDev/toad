@@ -11,6 +11,7 @@ from typing import Any, cast, NamedTuple
 from copy import deepcopy
 from math import floor
 import rich.repr
+from agent_comms.goal_actions import RetryGoalAction
 from agent_comms import Comms, Goal, GoalExecution, TranscriptCursor, TranscriptPage, MessageRoute
 
 from textual.content import Content
@@ -1567,7 +1568,7 @@ class Agent(AgentBase):
             return
         try:
             raw_goal, raw_execution = state["goal"], state["goalExecution"]
-            goal = Goal(**raw_goal) if isinstance(raw_goal, dict) else None
+            goal = Goal.from_wire(raw_goal) if isinstance(raw_goal, dict) else None
             execution = GoalExecution.from_wire(raw_execution) if isinstance(raw_execution, dict) else None
             if raw_goal is not None and goal is None or raw_execution is not None and execution is None:
                 raise ValueError("Invalid goal snapshot")
@@ -1852,7 +1853,7 @@ class Agent(AgentBase):
         async with asyncio.timeout(3):
             result = await self._owner_request("goal_snapshot")
         raw_goal, raw_execution = result["goal"], result["goalExecution"]
-        goal = Goal(**raw_goal) if raw_goal is not None else None
+        goal = Goal.from_wire(raw_goal) if raw_goal is not None else None
         execution = GoalExecution.from_wire(raw_execution) if raw_execution is not None else None
         if execution is not None and (goal is None or execution.goal_id != goal.id):
             raise ValueError("Goal execution identity does not match the owner snapshot.")
@@ -1911,7 +1912,7 @@ class Agent(AgentBase):
         result = await self._owner_request(
             "edit_goal", goal_id=goal.id, expected_revision=goal.revision, text=text
         )
-        return Goal(**result["goal"])
+        return Goal.from_wire(result["goal"])
 
     @property
     def transcript_ready(self) -> bool:
@@ -1971,7 +1972,7 @@ class Agent(AgentBase):
             if goal is None:
                 raise ValueError("The goal changed; refresh its state.")
             if action == "retry":
-                if goal.status != "blocked":
+                if goal.state.toggle is not RetryGoalAction:
                     raise ValueError("The blocked goal changed; refresh its state.")
                 result = await self._owner_request(
                     "retry_goal", goal_id=goal.id, expected_revision=goal.revision
@@ -1981,7 +1982,7 @@ class Agent(AgentBase):
                     "update_goal", status=action, goal_id=goal.id,
                     expected_revision=goal.revision,
                 )
-        return Goal(**result["goal"]) if result["goal"] is not None else None
+        return Goal.from_wire(result["goal"]) if result["goal"] is not None else None
 
     async def set_session_name(self, name: str) -> None:
         self._pending_session_name = name

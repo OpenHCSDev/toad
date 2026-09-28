@@ -5,6 +5,8 @@ import os
 import tempfile
 from pathlib import Path
 
+from agent_comms.goal_actions import BlockedGoalAction, GoalPrecondition
+from agent_comms.goal_states import ActiveGoal, BlockedGoal
 from agent_comms import Goal
 from agent_comms.acp import CommsAgent
 from agent_comms.operations import wire
@@ -20,7 +22,7 @@ class FakeAgent:
 
     async def update_goal(self, action: str, text: str = "") -> Goal:
         self.actions.append(action)
-        self.goal = Goal(self.goal.text, self.goal.id, status="active")
+        self.goal = Goal(self.goal.text, self.goal.id, state=ActiveGoal())
         return self.goal
 
     async def get_goal_snapshot(self):
@@ -35,7 +37,7 @@ async def mounted_retry_control(root: Path) -> None:
     async with app.run_test(size=(100, 30)) as pilot:
         await pilot.pause()
         view = app.screen.conversation
-        goal = Goal("Learn architectural factoring", "goal-control", status="blocked")
+        goal = Goal("Learn architectural factoring", "goal-control", state=BlockedGoal())
         fake = FakeAgent(goal)
         view.set_reactive(type(view).agent, fake)
         view.agent_ready = True
@@ -46,7 +48,7 @@ async def mounted_retry_control(root: Path) -> None:
         await pilot.click("#goal-toggle")
         await pilot.pause()
         assert fake.actions == ["retry"]
-        assert view.goal.status == "active"
+        assert view.goal.state.declared_name == "active"
 
 
 async def owner_retry_route(root: Path) -> None:
@@ -68,10 +70,10 @@ async def owner_retry_route(root: Path) -> None:
     attempt = store.reserve(goal.id, 1)
     store.claim_launch(attempt)
     store.record_failed(attempt, "Original turn failed")
-    comms.update_goal("project", "blocked", goal_id=goal.id, block_reason="Original turn failed")
+    comms.update_goal("project", BlockedGoalAction(block_reason="Original turn failed", expect=GoalPrecondition(goal_id=goal.id)))
     try:
         resumed = await Agent.update_goal(toad_agent, "retry")
-        assert resumed.id == goal.id and resumed.status == "active"
+        assert resumed.id == goal.id and resumed.state.declared_name == "active"
         assert store.snapshot(goal.id).number == 2
         assert store.ready_grant(goal.id, 2)
     finally:

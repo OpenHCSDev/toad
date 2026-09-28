@@ -82,9 +82,11 @@ for line in sys.stdin:
                 time.sleep(0.05)
             emit({"type": "tool_execution_start", "toolCallId": "goal-report",
                   "toolName": "comms_goal", "args": {"goal_id": goal[1], "status": "completed"}})
-            wire().update_goal(os.environ["AGENT_COMMS_THREAD"], "completed",
-                               goal_id=goal[1], progress="Verified the objective",
-                               model_report=True)
+            from agent_comms.goal_actions import CompletedGoalAction, GoalPrecondition, ModelInvocable
+            wire().update_goal(os.environ["AGENT_COMMS_THREAD"],
+                               CompletedGoalAction(expect=GoalPrecondition(goal_id=goal[1]),
+                                                   progress="Verified the objective"),
+                               actor=ModelInvocable)
             emit({"type": "tool_execution_end", "toolCallId": "goal-report",
                   "toolName": "comms_goal", "result": {"content": []}, "isError": False})
         emit({"type": "message_end", "message": {"role": "assistant", "stopReason": "stop"}})
@@ -184,11 +186,11 @@ for line in sys.stdin:
             await conversation.refresh_goal()
             assert conversation.query_one(GoalBar).display
             await conversation.slash_command("/goal pause")
-            assert comms.registry.require("project").goal.status == "paused"
+            assert comms.registry.require("project").goal.state.declared_name == "paused"
             gate.unlink()
             await conversation.slash_command("/goal resume")
             await until(
-                lambda: comms.registry.require("project").goal.status == "completed"
+                lambda: comms.registry.require("project").goal.state.declared_name == "completed"
             )
             await conversation.refresh_goal()
             assert conversation.goal.progress == "Verified the objective"
@@ -262,7 +264,7 @@ for line in sys.stdin:
             )
             await app.switch_mode(parent_mode)
             await conversation.refresh_goal()
-            assert conversation.goal.status == "completed"
+            assert conversation.goal.state.declared_name == "completed"
             await conversation.slash_command("/goal clear")
             assert comms.registry.require("project").goal is None
     print(

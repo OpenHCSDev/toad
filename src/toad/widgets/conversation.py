@@ -2652,9 +2652,9 @@ class Conversation(containers.Vertical):
         elif event.action == "goal-clear":
             await self.change_goal("clear")
         elif event.action == "goal-toggle":
-            action = self.goal.toggle_action if self.goal else ""
-            if action:
-                await self.change_goal(action)
+            action = self.goal.state.toggle if self.goal else None
+            if action is not None:
+                await self.change_goal(action.declared_name)
             else:
                 self.flash("This goal is completed; set a new goal to continue.")
 
