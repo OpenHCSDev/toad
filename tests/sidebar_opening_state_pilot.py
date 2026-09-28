@@ -128,7 +128,7 @@ async def main():
                     bar = app.screen.query_one("#channels-sidebar", SideBar)
                     x, width = bar.region.x, bar.size.width
                     target = f"#opening-{int(collapsed)}"
-                    comms.channels.set_channel(target, frozenset({"fixture"}))
+                    comms.channels.create_tag(target.removeprefix("#"))
                     comms.messaging.send(me, target, "Displayed only after hydration")
                     blocked = asyncio.Event()
                     original_start = CommsScreen._start_hydration

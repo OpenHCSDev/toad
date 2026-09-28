@@ -207,7 +207,7 @@ async def main():
                 chat._refresh_lock.release()
 
             await pilot.resize_terminal(100, 80)
-            comms.channels.set_channel("#short", frozenset({"edge"}))
+            comms.channels.create_tag("short")
             for index in range(12):
                 comms.messaging.send("edge-reader", "#short", f"Small {index}")
             await app.open_comms_session(owner_mode=owner, project_path=root,

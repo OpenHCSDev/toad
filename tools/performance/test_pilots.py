@@ -47,7 +47,7 @@ PYTHON = os.environ.get("TOAD_TEST_PYTHON", sys.executable)
     # Preserve current-main nominal transcript, goal, read-proof and historical
     # view contracts when integrating the framework performance checkpoint.
     "historical_views", "channel_partial_paint", "channel_display_basis",
-    "channel_views", "native_message_parts", "tool_diff", "transcript_process",
+    "channel_views", "channel_retirement", "native_message_parts", "tool_diff", "transcript_process",
     "right_comms_integration", "thread_unread_start", "goal_set_owner",
     "goal_pause_owner", "recovery_view_boundaries", "channel_any_mode_ui",
     "dm_rebind_paint",

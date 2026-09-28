@@ -214,6 +214,11 @@ loaded-text/page representation: transient tool widgets and some live input
 metadata were not fully captured. Later capture code also records direct
 contents, but the legacy replay projection remains partial and explicitly so.
 
+Use captures from the matching core declaration revision. Replay restores exact
+tag channels through the current catalog API. Partial captures containing saved
+views are rejected: their complete catalog must be captured before those views
+can be replayed faithfully, rather than recreating them as writable channels.
+
 `--legacy-watches` disables the new subscription teardown in the replay only for
 an ownership control. Headless `settled_ms` includes pilot settlement and must
 not be presented as terminal/pixel latency. The reports separately include

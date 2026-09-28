@@ -46,8 +46,8 @@ async def main():
                           XDG_STATE_HOME=str(root / "state"), XDG_DATA_HOME=str(root / "data"))
         comms = wire(root / "wire")
         for name in ("owner", "peer"):
-            comms.threads.register(Thread(name, frozenset({"fixture"}), str(root), pid=os.getpid()))
-        comms.channels.set_channel("#shared", frozenset({"fixture"}))
+            comms.threads.register(Thread(name, frozenset({"fixture", "shared", "slow"}), str(root), pid=os.getpid()))
+        comms.channels.create_tag("shared")
 
         async def start(agent, target):
             agent._message_target = target
@@ -134,7 +134,7 @@ async def main():
 
                 # Conversation composition may finish after leaving its tab.
                 # Its completion must not find or rebind another tab's Channels.
-                comms.channels.set_channel("#slow", frozenset({"fixture"}))
+                comms.channels.create_tag("slow")
                 mount_entered, mount_release = asyncio.Event(), asyncio.Event()
                 mount = CommsChatView.on_mount
 
@@ -162,8 +162,8 @@ async def main():
                 await app.get_screen_stack(owner)[0].on_coordination_update(CoordinationUpdate(
                     thread="owner", wire_root=str(root / "wire"), persistence="fixture", transport="fixture"))
                 other = wire(new_root)
-                other.threads.register(Thread("owner", frozenset({"new"}), str(root), pid=os.getpid()))
-                other.channels.set_channel("#new-source", frozenset({"new"}))
+                other.threads.register(Thread("owner", frozenset({"new", "new-source"}), str(root), pid=os.getpid()))
+                other.channels.create_tag("new-source")
                 old_service = roster._wire
                 read_entered, read_release = Event(), Event()
                 original_read = old_service.views.viewer_snapshot

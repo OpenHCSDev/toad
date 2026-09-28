@@ -196,8 +196,10 @@ async def main(args):
             # Recreate names/tags, not live executor ownership or active turns.
             comms.threads.register(Thread(person.thread.name, person.thread.tags, str(root), pid=os.getpid()))
         for channel in snapshot.channels:
+            if channel.channel.view is not None:
+                raise ValueError("Saved-view replay needs a complete captured catalog; this bundle is a partial view capture")
             if channel.channel.builtin is None:
-                comms.channels.set_channel(channel.channel.name, channel.channel.tags)
+                comms.channels.create_tag(channel.channel.name.removeprefix("#"))
         registered = {person.thread.name for person in snapshot.threads}
         for view in saved["views"]:
             for message in view.get("wire_history", ()):

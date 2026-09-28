@@ -53,7 +53,7 @@ async def main():
         comms = wire(root / "wire")
         me = session_thread_name(root)
         comms.threads.register(Thread(me, frozenset({"fixture"}), str(root), pid=os.getpid()))
-        comms.channels.set_channel("#kept", frozenset({"fixture"}))
+        comms.channels.create_tag("kept")
         comms.messaging.send(me, "#kept", "Retained source")
         app = FrameApp(project_dir=str(root))
         async with app.run_test(size=(130, 45)) as pilot:
@@ -97,7 +97,7 @@ async def main():
 
             # Real wire changes still reconcile, preserving unaffected row identities.
             retained = dict(sidebars[second]._row_map)
-            comms.channels.set_channel("#added", frozenset({"fixture"}))
+            comms.channels.create_tag("added")
             active = app.screen.query_one(CommsSidebar)
             active._refresh()
             async with asyncio.timeout(12):

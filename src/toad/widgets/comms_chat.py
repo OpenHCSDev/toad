@@ -736,6 +736,12 @@ class CommsChatView(Conversation):
         async with self._refresh_lock:
             try:
                 comms = self._wire
+                catalog = await asyncio.to_thread(comms.channels.catalog.read)
+                read_only = self.kind != "dm" and catalog.is_view_target(self.target)
+                if read_only:
+                    self.prompt.prompt_text_area.disabled = True
+                    self.prompt.prompt_text_area.tooltip = "Saved view: read-only history; open an exact channel to send"
+                    self.status = "Read-only saved view"
                 show_loading = not self._history_initialized
                 if show_loading:
                     self.throbber.busy = True
@@ -802,7 +808,7 @@ class CommsChatView(Conversation):
                     if value
                 )
             else:
-                self.status = ""
+                self.status = "Read-only saved view" if read_only else ""
             if follow and self.window.follows_tail:
                 self.window.anchor()
         if self._has_newer or (self._has_older and self.window.max_scroll_y == 0):
@@ -820,6 +826,13 @@ class CommsChatView(Conversation):
             if self._wire is None or not root_is_current(self._wire.root):
                 raise ValueError("Comms route changed; reopen this view before sending")
             comms = self._wire
+            catalog = await asyncio.to_thread(comms.channels.catalog.read)
+            if self.kind != "dm" and catalog.is_view_target(self.target):
+                self.prompt.text = event.body
+                self.prompt.prompt_text_area.disabled = True
+                self.status = "Read-only saved view; open an exact channel to send"
+                self.flash(self.status, style="error")
+                return
             # Disable compose through both the worker and the subsequent
             # receipt paint. Cancellation after a committed receipt must not
             # leave an apparently fresh, send-ready draft.

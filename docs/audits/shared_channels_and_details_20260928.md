@@ -1,7 +1,49 @@
 # Shared Channels and compact session details
 
-Base: merged Toad PR73 (`7a279b0`), preserving core `ab98c19`. This follow-up uses
-Textual `94e504dddb59f3fcfdcaab7b3954ed471b3c6120` for retained native subtree transfer.
+Development base: merged Toad PR73 (`7a279b0`), with core `ab98c19` and Textual
+`94e504dddb59f3fcfdcaab7b3954ed471b3c6120`. The development comparisons below retain
+those exact identities. The final integrated dependency pair is recorded next.
+
+## PR #108 landing integration
+
+Textual #7 merged at **`16ede007c34bec893b2dbedb3999223381129678`**. Its tree
+`096a8cbd411a62f9bf632194f4a2e4d02edd74d5` exactly equals the tested framework
+feature head. This Toad branch now pins that merge and integrates current main
+**`511a1a2` (#106)**, preserving saved-channel read-only history/composer behavior.
+
+The integration smoke test exposed #106's dependency mismatch: its SavedView
+provenance field is absent from the previous core `ab98c19` pin. The final core
+pin is the minimal paired, already-merged core #231 revision
+**`3996e820157b674f456974c1a8417de4776e1279`**. No unmerged L0A/core branches are
+included. The new shared-panel fixture uses exact tag channels and actual member
+tags; the full suite now includes #106's saved-channel retirement contract.
+
+Validation on this exact source/pin combination:
+
+- Four integration smoke cases: **4 passed in 27.42 s**.
+- Complete **132 tests plus 73 subtests passed in 647.74 s**, including all final
+  mouse-capture/status-order/ANSI fixes and the new saved-view test. Comms 59.88 s,
+  peak 596.6 MiB, zero swap; the 100 s per-pilot limit is unchanged.
+- `toad-pr108-landing-navigation`: **83 actions / 10 tabs / 8 resizes**; one widget
+  ID per channel across every mode, no replaced observed channel rows. Peak
+  507.3 MiB, zero swap.
+- `toad-pr108-landing-filters`: **72 actions, all seven categories, all four
+  restored masks/drafts, 52/52 input markers**. Input acknowledgment median/p95/max
+  **33.23/57.57/73.53 ms**; maximum loop gap **144.75 ms**, GC **72.95 ms**. Peak
+  480.5 MiB, zero swap. These receipts still do not establish universal sub-50-ms
+  latency; the earlier adverse measurements remain in this audit.
+- Offline replay's last retired `set_channel` call now uses the exact-tag API.
+  A disposable current-declaration capture completed all eight replay/filter
+  actions with draft checks. Partial saved-view captures are explicitly rejected
+  instead of synthesized as writable targets; matching capture/declaration
+  revisions are required. No private user capture was used for this check.
+- Scoped Ruff and diff checks pass. Tests/captures ran serially with 4 GiB/no-swap
+  caps; owned capture scopes were stopped after recording memory peaks.
+
+All package changes above are source pins and isolated validation. Core #231's
+existing quiet catalog-cutover requirement remains with the installation owner,
+as documented in `evidence/channel-deletion/HANDOFF.md`. No shared stack, live
+catalog, installed application, or running user preview was changed here.
 
 ## Ownership correction
 
