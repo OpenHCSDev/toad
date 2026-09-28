@@ -1,0 +1,3 @@
+{'blocked_recursive_start_cancel_seconds': 0.08303758599504363, 'shared_observer_rss_bytes': 39829504, 'independent_directory_and_surviving_subscriber': 'pass'}
+Parent EOF during blocked recursive start closes native child
+PASS: startup cancellation, shared subscription, independent paths, stop-before-start; no child leaks
