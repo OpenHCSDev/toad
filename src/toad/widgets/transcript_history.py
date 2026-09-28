@@ -24,7 +24,7 @@ from textual.message import Message
 from textual.widget import Widget
 from textual.widgets import Static
 
-from toad.transcript_state import TranscriptState, LiveTranscript, ProvisionalTranscript, RetiredProjectionTranscript
+from toad.transcript_state import TranscriptState, LiveTranscript, ProvisionalTranscript
 from toad.acp import protocol
 from toad.acp.encode_tool_call_id import encode_tool_call_id
 from toad.transcript_preparation import (
@@ -984,11 +984,7 @@ class ProjectedTranscriptHistory(TranscriptHistory):
 
     @property
     def state(self) -> TranscriptState:
-        source = super().state
-        owner = self._projection_owner()
-        if owner is None or not owner.state.accepts_publication or owner._filter_overlay is not self:
-            return RetiredProjectionTranscript(source)
-        return source
+        return super().state.for_projection(self, self._projection_owner())
 
     @property
     def _selected_categories(self) -> frozenset[MessageCategory]:
