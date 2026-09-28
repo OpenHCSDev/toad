@@ -14,6 +14,7 @@ from textual.message import Message
 from textual.screen import ModalScreen
 from textual.widgets import Static
 from toad.widgets.selection import FocusSelection
+from toad.thread_actions import AcknowledgeAction
 
 
 class ContextMenuItem(FocusSelection):
@@ -232,7 +233,6 @@ def show_channel_menu(
     name: str,
     actions: dict[str, Callable[[], None]],
     *,
-    acknowledge_label: str,
     pin_label: str,
     any_mode_label: str | None = None,
 ) -> None:
@@ -240,7 +240,7 @@ def show_channel_menu(
     if any_mode_label is not None:
         items.append(("any_mode", any_mode_label))
     items.extend([
-        ("comms_ack", acknowledge_label),
+        (AcknowledgeAction.declared_name, AcknowledgeAction.menu_label()),
         ("copy", "Copy name"),
     ])
     show_target_menu(

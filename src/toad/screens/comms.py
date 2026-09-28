@@ -14,7 +14,6 @@ from toad.constants import ALL_COMMS_TARGET
 from toad.app import ToadApp
 from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.irc_message import SelectHistoricalIdentity
-from toad.widgets.comms_fork_dialog import ForkDialog
 from toad.widgets.comms_sidebar import CoordinationStatus, CommsSidebar, SelectTarget
 from toad.widgets.channels_sidebar import ChannelsSlot
 from toad.session_tracker import SidebarState
@@ -277,31 +276,3 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
         if self.id is not None:
             await self.app.close_session_mode(self.id)
 
-    @on(CommsSidebar.ThreadAction)
-    async def on_thread_action(self, event: CommsSidebar.ThreadAction) -> None:
-        if event.action != "comms_fork":
-            return
-        parent = event.name
-
-        def do_fork(spec: tuple[str, str] | None) -> None:
-            if not spec:
-                return
-            from agent_comms import invoke_context_tool
-            from agent_comms.comms import wire
-
-            from toad.comms_root import implicit_root, root_is_current, run_selected_write
-
-            try:
-                if self.wire_root is not None and not root_is_current(self.wire_root):
-                    raise ValueError("Comms route changed; reopen the view before forking")
-                comms = wire()
-                run_selected_write(
-                    comms.root, invoke_context_tool, comms, event.action,
-                    subject=parent, arguments={"name": spec[0], "task": spec[1]},
-                    implicit=implicit_root(),
-                )
-                self.notify(f"forked {spec[0]} from {parent}", title="Comms")
-            except Exception as error:
-                self.notify(str(error), title="Comms fork failed", severity="error")
-
-        self.app.push_screen(ForkDialog(parent), do_fork)

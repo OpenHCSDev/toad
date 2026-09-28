@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from toad.thread_actions import StartAction, StopAction, ArchiveAction, AcknowledgeAction, ForkAction
 import asyncio
 import json
 import os
@@ -510,11 +511,11 @@ for line in sys.stdin:
             menu_items = list(app.screen.query(ContextMenuItem))
             assert [item.action for item in menu_items] == [
                 "pin",
-                "comms_fork",
-                "comms_stop",
-                "comms_start",
-                "comms_archive",
-                "comms_ack",
+                ForkAction.declared_name,
+                StopAction.declared_name,
+                StartAction.declared_name,
+                ArchiveAction.declared_name,
+                AcknowledgeAction.declared_name,
                 "copy",
                 "close_view",
             ]
@@ -704,15 +705,15 @@ for line in sys.stdin:
             assert isinstance(app.screen, ContextMenu)
             assert [item.action for item in app.screen.query(ContextMenuItem)] == [
                 "pin",
-                "comms_fork",
-                "comms_stop",
-                "comms_start",
-                "comms_archive",
-                "comms_ack",
+                ForkAction.declared_name,
+                StopAction.declared_name,
+                StartAction.declared_name,
+                ArchiveAction.declared_name,
+                AcknowledgeAction.declared_name,
                 "copy",
             ]
             ack_item = next(item for item in app.screen.query(ContextMenuItem)
-                            if item.action == "comms_ack")
+                            if item.action == AcknowledgeAction.declared_name)
             await pilot.click(ack_item)
             await pilot.pause()
             assert isinstance(app.screen, MainScreen)
@@ -724,7 +725,7 @@ for line in sys.stdin:
             assert isinstance(app.screen, ContextMenu)
             assert [item.action for item in app.screen.query(ContextMenuItem)] == [
                 "pin",
-                "comms_ack",
+                AcknowledgeAction.declared_name,
                 "copy",
             ]
             await pilot.press("down", "enter")
@@ -739,7 +740,7 @@ for line in sys.stdin:
             stop_item = next(
                 item
                 for item in app.screen.query(ContextMenuItem)
-                if item.action == "comms_stop"
+                if item.action == StopAction.declared_name
             )
             await pilot.click(stop_item)
             await pilot.pause()
@@ -749,7 +750,7 @@ for line in sys.stdin:
             archive_item = next(
                 item
                 for item in app.screen.query(ContextMenuItem)
-                if item.action == "comms_archive"
+                if item.action == ArchiveAction.declared_name
             )
             await pilot.click(archive_item)
             await pilot.pause()
@@ -879,11 +880,11 @@ for line in sys.stdin:
             assert isinstance(app.screen, ContextMenu)
             assert [item.action for item in app.screen.query(ContextMenuItem)] == [
                 "pin",
-                "comms_fork",
-                "comms_stop",
-                "comms_start",
-                "comms_archive",
-                "comms_ack",
+                ForkAction.declared_name,
+                StopAction.declared_name,
+                StartAction.declared_name,
+                ArchiveAction.declared_name,
+                AcknowledgeAction.declared_name,
                 "copy",
             ]
             await pilot.press("escape")

@@ -1,5 +1,6 @@
 """Installed Toad/ACP/owner/Pi path with a loopback-only model fixture."""
 
+from toad.thread_actions import StartAction
 import asyncio
 import json
 import os
@@ -397,7 +398,7 @@ async def main(*, notification_only=False):
                 await agent.stop()
                 await asyncio.to_thread(comms.owners.stop, "beta")
                 assert not comms.registry.require("beta").process_alive
-                app.invoke_thread_action("comms_start", "beta", user)
+                app.invoke_thread_action(StartAction(), "beta", user)
                 await until(pilot, lambda: "beta" not in app.pending_thread_actions)
                 assert comms.registry.require("beta").process_alive, (
                     "Explicit Start did not launch owner"

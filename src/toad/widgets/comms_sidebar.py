@@ -35,7 +35,7 @@ from textual.widgets import OptionList, Static
 from textual.widgets.option_list import Option
 from textual.widget import Widget
 
-from agent_comms import context_tool_catalog
+from toad.thread_actions import AcknowledgeAction, ThreadAction as DeclaredThreadAction
 from agent_comms.presentation import ChannelView, CoordinationSnapshot, ThreadView, WireRevision
 from toad.constants import COMMS_REFRESH_INTERVAL
 from agent_comms.comms import Comms, wire
@@ -455,7 +455,7 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
     class ThreadAction(Message):
         """Context-menu action on a thread."""
 
-        def __init__(self, name: str, action: str) -> None:
+        def __init__(self, name: str, action: type[DeclaredThreadAction]) -> None:
             self.name = name
             self.action = action
             super().__init__()
@@ -1352,28 +1352,28 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
     ) -> None:
         from toad.widgets.comms_menu import show_thread_menu
 
-        def post(action: str) -> None:
+        def post(action: type[DeclaredThreadAction]) -> None:
             self.post_message(self.ThreadAction(name, action))
 
-        declared_actions = context_tool_catalog("thread")
+        declared_actions = DeclaredThreadAction.menu()
         person = (self._last_snapshot or self._snapshot()).all_people.get(name)
         if person is not None:
             declared_actions = [
                 item for item in declared_actions
-                if person.status.allows_control(item["name"], owner_pid=person.thread.pid)
+                if item.available(person.status, person.thread.pid)
             ]
         actions: dict[str, Callable[[], None]] = {
-            str(declaration["name"]): partial(post, str(declaration["name"]))
+            declaration.declared_name: partial(post, declaration)
             for declaration in declared_actions
         }
-        actions["copy"] = lambda: post("copy")
+        actions["copy"] = partial(self.app.copy_to_clipboard, name)
         if mode_name is not None:
             actions["close_view"] = lambda: self.app.post_message(
                 messages.SessionArchive(mode_name)
             )
 
         items = [
-            (str(declaration["name"]), str(declaration["action_label"]))
+            (declaration.declared_name, declaration.menu_label())
             for declaration in declared_actions
         ] + [("copy", "Copy name")]
         if channel is not None:
@@ -1396,19 +1396,14 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
     def _show_channel_menu(self, name: str, menu_offset) -> None:
         from toad.widgets.comms_menu import show_channel_menu
 
-        def post(action: str) -> None:
+        def post(action: type[DeclaredThreadAction]) -> None:
             self.post_message(self.ThreadAction(name, action))
 
-        acknowledge = next(
-            declaration
-            for declaration in context_tool_catalog("thread")
-            if declaration["name"] == "comms_ack"
-        )
         channel = self._wire.channels.catalog.read().resolve(name)
         actions = {
             "pin": partial(self._set_pin, name, not channel.pinned),
-            "comms_ack": lambda: post("comms_ack"),
-            "copy": lambda: post("copy"),
+            AcknowledgeAction.declared_name: partial(post, AcknowledgeAction),
+            "copy": partial(self.app.copy_to_clipboard, name),
         }
         any_mode_label = None
         if channel.exact:
@@ -1423,7 +1418,7 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
             menu_offset,
             name,
             actions,
-            acknowledge_label=str(acknowledge["action_label"]),
+            
             pin_label="Unpin channel" if channel.pinned else "Pin channel",
             any_mode_label=any_mode_label,
         )
@@ -1475,8 +1470,6 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
 
     @on(ThreadAction)
     def _do_thread_action(self, event: ThreadAction) -> None:
-        if event.action == "comms_fork":
-            return  # The owning screen collects the fork specification.
         event.stop()
         name = event.name
         session_modes = [
@@ -1485,12 +1478,9 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
             if thread == name
         ]
         try:
-            if event.action == "copy":
-                self.app.copy_to_clipboard(name)
-            else:
-                cast("ToadApp", self.app).invoke_thread_action(
-                    event.action, name, self.session_thread, tuple(session_modes)
-                )
+            event.action.request(
+                cast("ToadApp", self.app), name, self.session_thread, tuple(session_modes)
+            )
         except Exception as error:
             self.notify(str(error), title="Session action", severity="error")
         self._refresh()

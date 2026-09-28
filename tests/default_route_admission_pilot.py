@@ -7,6 +7,7 @@ HOME, legacy wire and UI state remain disposable /dev/shm data.
 
 from __future__ import annotations
 
+from toad.thread_actions import StartAction
 import asyncio
 from contextlib import asynccontextmanager
 import os
@@ -105,25 +106,26 @@ async def main() -> None:
                             if name == "mark_channel_view_read":
                                 entered_ack.set()
                                 await release.wait()
-                            elif name in {"invoke_context_tool", "safe_spy"}:
+                            elif name == "safe_spy":
                                 entered_action.set()
                                 await release.wait()
                         return await original_to_thread(operation, *args, **kwargs)
 
-                    def safe_spy(_comms, _action, **_kwargs):
-                        invoked.append(_action)
-                        return {"launched": False}
+                    def safe_spy(_action, ctx):
+                        from agent_comms.owner_lifecycle import OwnerStartResult
+                        invoked.append(ctx.subject)
+                        return OwnerStartResult(ctx.subject, 0, False)
 
                     route = ActiveRoute(private, private_id, sandbox / "unused-package")
                     with (
                         patch("asyncio.to_thread", delayed_dispatch),
-                        patch("agent_comms.invoke_context_tool", safe_spy),
+                        patch.object(StartAction, "apply", safe_spy),
                         patch.object(
                             cohort_foreground, "_trusted_package", lambda _: None
                         ),
                     ):
                         ack = asyncio.create_task(view._mark_painted_page(page))
-                        app.invoke_thread_action("comms_start", "peer", "user")
+                        app.invoke_thread_action(StartAction(), "peer", "user")
                         async with asyncio.timeout(8):
                             await entered_ack.wait()
                             await entered_action.wait()
@@ -163,7 +165,7 @@ async def main() -> None:
                     assert not view.display or not view._wire.root == current_root()
                     try:
                         run_selected_write(
-                            legacy, safe_spy, None, "comms_start", implicit=True
+                            legacy, safe_spy, None, None, implicit=True
                         )
                     except ValueError:
                         pass

@@ -34,7 +34,6 @@ from toad.widgets.project_panel import ProjectPanel, ProjectSearchButton
 from toad.widgets.recovery_view import RecoveryView
 from toad.widgets.thread_comms import RelationshipSort, ThreadCommsSidebar
 from toad.widgets.comms_chat import resolve_session_thread, session_thread_name
-from toad.widgets.comms_fork_dialog import ForkDialog
 from toad.widgets.comms_sidebar import CoordinationStatus, CommsSidebar, SelectTarget
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, TabHistoryControls
 from toad.navigation_target import NavigationContext, NavigationOwner
@@ -406,35 +405,6 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
     async def on_comms_select_target(self, event: SelectTarget) -> None:
         """Open channels and DMs through Toad's native session modes."""
         await self.open_sidebar_target(event.target, event.kind)
-
-    @on(CommsSidebar.ThreadAction)
-    async def on_comms_thread_action(self, event: CommsSidebar.ThreadAction) -> None:
-        if event.action != "comms_fork":
-            return
-        parent = event.name
-
-        def do_fork(spec: tuple[str, str] | None) -> None:
-            if not spec:
-                return
-            from agent_comms import invoke_context_tool
-            from agent_comms.comms import wire as _wire
-
-            from toad.comms_root import implicit_root, root_is_current, run_selected_write
-
-            try:
-                if self._coordination_root is not None and not root_is_current(self._coordination_root):
-                    raise ValueError("Comms route changed; reopen the thread before forking")
-                comms = _wire()
-                run_selected_write(
-                    comms.root, invoke_context_tool, comms, event.action,
-                    subject=parent, arguments={"name": spec[0], "task": spec[1]},
-                    implicit=implicit_root(),
-                )
-                self.notify(f"forked {spec[0]} from {parent}", title="Comms")
-            except Exception as error:
-                self.notify(str(error), title="Comms fork failed", severity="error")
-
-        self.app.push_screen(ForkDialog(parent), do_fork)
 
     def action_session_previous(self) -> None:
         if self.screen.id is not None:

@@ -1,5 +1,6 @@
 """Persistent native unread counts reach sidebar/tabs; Start uses the core tool."""
 
+from toad.thread_actions import StartAction
 import asyncio
 import json
 import os
@@ -124,7 +125,7 @@ async def main():
             await pilot.pause()
             assert await pilot.click(stopped_row, button=3)
             await pilot.pause()
-            item = next(item for item in app.screen.query(ContextMenuItem) if item.action == "comms_start")
+            item = next(item for item in app.screen.query(ContextMenuItem) if item.action == StartAction.declared_name)
             await pilot.click(item)
             async with asyncio.timeout(15):
                 while not (comms.registry.status("stopped").active and
