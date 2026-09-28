@@ -12,7 +12,7 @@ class AgentReady(Message):
     """Agent is ready."""
 
     def __init__(self, *, reconnected: bool = False):
-        self.presentation = LocalAgentPresentation(self)
+        super().__init__()
         self.reconnected = reconnected
 
 
