@@ -5,10 +5,13 @@ import asyncio
 from collections import Counter
 from contextlib import ExitStack
 import gc
+from hashlib import sha256
+from importlib.metadata import distribution
 import json
 import os
 from pathlib import Path
 import statistics
+import subprocess
 import sys
 import tempfile
 import threading
@@ -21,8 +24,10 @@ from agent_comms.threads import Thread
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from agent_comms.transcript_events import AssistantTranscript
 from agent_comms.comms import wire
+from agent_comms import __file__ as comms_file
 from runtime_fixture import ToadApp
 from textual.widget import Widget
+from textual import __file__ as textual_file
 from toad.acp.agent import Agent
 from toad.acp.messages import TranscriptSnapshot
 from toad.agent import AgentReady
@@ -32,6 +37,8 @@ from toad.widgets.session_sidebar import ThreadStatusRow
 from toad.widgets.session_tabs import SessionLabel, SessionsTabs
 from toad.widgets.sidebar_tree import SidebarGroup
 from toad.widgets.footer import Footer
+from toad.widgets.side_bar import SideBar
+from toad.work_preparation import PreparationRuntime
 
 
 class ReturnApp(ToadApp):
@@ -47,14 +54,38 @@ class ReturnApp(ToadApp):
             pending[1].set_result(time.perf_counter())
 
 
-async def main(*, empty=False, trace=False, observe=False, output=None, peers=0, channels=0, cycles=1, gc_census=False, display_only=False):
+async def main(*, empty=False, trace=False, observe=False, output=None, peers=0, channels=0, cycles=1,
+               gc_census=False, display_only=False, tabs=10, source_threads=None, records=20,
+               ownership_census=False, gc_observe=False):
+    if tabs < 4 or (source_threads is not None and source_threads < tabs) or records < 1:
+        raise ValueError("Use at least four tabs, source_threads >= tabs, and positive history records")
     measurements = []
+    censuses = []
+
+    def census(app, phase):
+        if not ownership_census:
+            return
+        # Outside measured navigation. No collection, DEBUG_SAVEALL, retained
+        # object references, or changed GC policy. Registry and heap differ.
+        objects = gc.get_objects()
+        tracked = len(objects)
+        types = Counter(f"{type(obj).__module__}.{type(obj).__qualname__}" for obj in objects)
+        del objects
+        nodes = tuple(app._registry)
+        counts = Counter(type(node).__name__ for node in nodes)
+        active = sum(node.is_attached and node.screen is app.screen for node in nodes)
+        censuses.append({"phase": phase, "tracked": tracked, "tracked_types": types.most_common(40),
+                         "registered_widgets": len(nodes), "active_registered_widgets": active,
+                         "registered_types": dict(counts),
+                         "preparation": {key: getattr(app.preparation, key)
+                                         for key in ("hits", "misses", "shared", "retained_bytes")}})
     with tempfile.TemporaryDirectory(prefix="toad-tab-return-") as directory:
         root = Path(directory)
         os.environ.update(AGENT_COMMS_ROOT=str(root / "wire"), XDG_CONFIG_HOME=str(root / "config"),
                           XDG_STATE_HOME=str(root / "state"), XDG_DATA_HOME=str(root / "data"))
-        targets = [f"return-{index}" for index in range(10)]
-        for name in targets:
+        source_names = [f"return-{index}" for index in range(source_threads or tabs)]
+        targets = source_names[:tabs]
+        for name in source_names:
             wire(root / "wire").threads.register(Thread(name, frozenset(), str(root), pid=os.getpid()))
         for index in range(peers):
             wire(root / "wire").threads.register(Thread(f"peer-{index}", frozenset({"fixture", *(f"fixture-{i}" for i in range(channels))}), str(root), pid=os.getpid()))
@@ -62,7 +93,7 @@ async def main(*, empty=False, trace=False, observe=False, output=None, peers=0,
             wire(root / "wire").channels.create_tag(f"fixture-{index}")
         body = "## Saved response\n\n" + "Paragraph **with markup** and content.\n\n" * 5
         body += "```python\n" + "def calculate(value): return value + 1\n" * 30 + "```\n"
-        events = tuple(AssistantTranscript(f'Record {i}\n\n' + body) for i in range(20))
+        events = tuple(AssistantTranscript(f'Record {i}\n\n' + body) for i in range(records))
         page = TranscriptPage(events, TranscriptCursor("fixture", 0),
                               TranscriptCursor("fixture", len(events)), False, False)
 
@@ -95,6 +126,7 @@ async def main(*, empty=False, trace=False, observe=False, output=None, peers=0,
                     app.screen.conversation.prompt.text = f"draft-{mode}"
                     await pilot.pause()
 
+                census(app, "after-create")
                 passes = [(f"{cycle + 1}:" + phase if cycle else phase, order)
                           for cycle in range(cycles)
                           for phase, order in (("reverse-first", tuple(reversed(modes))),
@@ -107,7 +139,7 @@ async def main(*, empty=False, trace=False, observe=False, output=None, peers=0,
                         screen = app.get_screen_stack(mode)[0]
                         revision = screen._resume_style
                         current = screen._style_revision()
-                        tabs = screen.query_one(SessionsTabs)
+                        tab_strip = screen.query_one(SessionsTabs)
                         rows_before = {
                             (row.query_ancestor(ChannelGroup).row.target_name, row.thread_name): ref(row)
                             for row in app.shared_channels.bar.roster.query(ThreadStatusRow)
@@ -120,9 +152,9 @@ async def main(*, empty=False, trace=False, observe=False, output=None, peers=0,
                                   "css_generation": [revision.css_generation, current.css_generation],
                                   "css_sources": [len(revision.sources), len(current.sources)],
                                   "layout_before": screen._layout_required}
-                        record["header_before"] = {"height": tabs.parent.size.height,
-                                                   "tab_height": tabs.size.height,
-                                                   "horizontal_scrollbar": tabs.show_horizontal_scrollbar}
+                        record["header_before"] = {"height": tab_strip.parent.size.height,
+                                                    "tab_height": tab_strip.size.height,
+                                                    "horizontal_scrollbar": tab_strip.show_horizontal_scrollbar}
                         mounts = Counter()
                         reflows = []
                         stale_reflows = []
@@ -131,6 +163,7 @@ async def main(*, empty=False, trace=False, observe=False, output=None, peers=0,
                         gaps = []
                         timed_events = []
                         collecting = {}
+                        changed_style_maps = 0
                         started = time.perf_counter()
                         original_mount = Widget.mount
                         original_reflow = screen._compositor.reflow
@@ -141,13 +174,14 @@ async def main(*, empty=False, trace=False, observe=False, output=None, peers=0,
                         def gc_event(phase, info):
                             key = (threading.get_ident(), info["generation"])
                             if phase == "start":
-                                frame = sys._getframe(1)
                                 callers = []
-                                for _ in range(10):
-                                    if frame is None:
-                                        break
-                                    callers.append((Path(frame.f_code.co_filename).name, frame.f_code.co_name, frame.f_lineno))
-                                    frame = frame.f_back
+                                if trace:
+                                    frame = sys._getframe(1)
+                                    for _ in range(10):
+                                        if frame is None:
+                                            break
+                                        callers.append((Path(frame.f_code.co_filename).name, frame.f_code.co_name, frame.f_lineno))
+                                        frame = frame.f_back
                                 collecting[key] = (time.perf_counter(), callers, len(gc.garbage))
                             elif key in collecting:
                                 begin, callers, garbage_start = collecting.pop(key)
@@ -186,12 +220,18 @@ async def main(*, empty=False, trace=False, observe=False, output=None, peers=0,
                         def asynchronous(name, function):
                             async def measured(*args, **kwargs):
                                 begin = time.perf_counter()
+                                cpu = time.thread_time()
+                                origin, events = started, timed_events
+                                work_type = type(args[1]).__name__ if name == "submit" else None
                                 try:
                                     return await function(*args, **kwargs)
                                 finally:
-                                    timed_events.append({"operation": name,
-                                                         "start_ms": round((begin - started) * 1000, 2),
-                                                         "duration_ms": round((time.perf_counter() - begin) * 1000, 2)})
+                                    events.append({"operation": name, "work_type": work_type,
+                                                         "start_ms": round((begin - origin) * 1000, 2),
+                                                         "duration_ms": round((time.perf_counter() - begin) * 1000, 2),
+                                                         # Includes other UI tasks while awaiting;
+                                                         # it is not exclusive CPU for this coroutine.
+                                                         "ui_thread_cpu_during_span_ms": round((time.thread_time() - cpu) * 1000, 2)})
                             return measured
 
                         def counted_mount(widget, *children, **kwargs):
@@ -203,13 +243,28 @@ async def main(*, empty=False, trace=False, observe=False, output=None, peers=0,
                             desired = tuple(tab.mode_name for tab in app.open_tabs)
                             shown = tuple(label.id for label in screen.query(SessionLabel))
                             if shown != desired:
-                                stale_reflows.append({"shown": shown, "desired": desired})
+                                frame = sys._getframe(1)
+                                callers = []
+                                for _ in range(10):
+                                    if frame is None:
+                                        break
+                                    callers.append((Path(frame.f_code.co_filename).name, frame.f_code.co_name, frame.f_lineno))
+                                    frame = frame.f_back
+                                stale_reflows.append({"shown": shown, "desired": desired,
+                                                      "callers": callers, "batch_depth": app._batch_count,
+                                                      "atomic_switch": app._atomic_mode_switch})
                             return original_reflow(*args, **kwargs)
 
                         def counted_styles(nodes, *args, **kwargs):
+                            nonlocal changed_style_maps
                             nodes = list(nodes)
                             styles.update(type(node).__name__ for node in nodes)
-                            return original_styles(nodes, *args, **kwargs)
+                            previous = [dict(node.styles.get_rules()) for node in nodes] if trace else ()
+                            result = original_styles(nodes, *args, **kwargs)
+                            if trace:
+                                changed_style_maps += sum(before != node.styles.get_rules()
+                                                          for node, before in zip(nodes, previous))
+                            return result
 
                         def counted_render(*args, **kwargs):
                             if app._atomic_mode_switch and app._batch_count:
@@ -250,27 +305,34 @@ async def main(*, empty=False, trace=False, observe=False, output=None, peers=0,
                                 instrumentation.enter_context(patch.object(screen._compositor, "reflow", counted_reflow))
                                 instrumentation.enter_context(patch.object(app.stylesheet, "update_nodes", counted_styles))
                                 instrumentation.enter_context(patch.object(screen._compositor, "render_update", counted_render))
-                                if trace:
-                                    instrumentation.enter_context(patch.object(Widget, "refresh", traced_refresh))
+                                if trace or gc_observe:
                                     gc.callbacks.append(gc_event)
                                     instrumentation.callback(gc.callbacks.remove, gc_event)
+                                if trace:
+                                    instrumentation.enter_context(patch.object(Widget, "refresh", traced_refresh))
                                     for instance, method in ((screen, "_refresh_layout"),
-                                                             (screen._compositor, "render_update"),
-                                                             (Widget, "mount"),
-                                                             (app.stylesheet, "update_nodes")):
+                                                              (screen._compositor, "render_update"),
+                                                              (Widget, "mount"),
+                                                              (Widget, "reparent"),
+                                                              (SideBar, "_apply_layout"),
+                                                              (app.stylesheet, "update_nodes")):
                                         instrumentation.enter_context(patch.object(
                                             instance, method, synchronous(method, getattr(instance, method))))
                                     for instance, method in ((screen, "prepare_navigation"),
-                                                             (screen, "layout_navigation"),
-                                                             (CommsSidebar, "_present_snapshot"),
+                                                              (screen, "layout_navigation"),
+                                                              (SessionsTabs, "_sync_tabs"),
+                                                              (PreparationRuntime, "submit"),
+                                                              (CommsSidebar, "_present_snapshot"),
                                                              (SidebarGroup, "reconcile_rows")):
                                         instrumentation.enter_context(patch.object(
                                             instance, method, asynchronous(method, getattr(instance, method))))
                                 started = time.perf_counter()
+                                switch_cpu = time.thread_time()
                                 displayed = asyncio.get_running_loop().create_future()
                                 app.pending_display = (mode, displayed)
                                 await app.switch_mode(mode)
                                 record["switch_ms"] = round((time.perf_counter() - started) * 1000, 2)
+                                record["switch_ui_cpu_ms"] = round((time.thread_time() - switch_cpu) * 1000, 2)
                                 if not display_only:
                                     await pilot.pause()
                                 presented = await asyncio.wait_for(displayed, 5)
@@ -283,7 +345,11 @@ async def main(*, empty=False, trace=False, observe=False, output=None, peers=0,
                         record.update(max_loop_gap_ms=round(max(gaps, default=0), 2), mounts=dict(mounts),
                                       reflows=len(reflows), stale_roster_reflows=len(stale_reflows),
                                       discarded_navigation_renders=len(discarded_renders),
-                                      styled_nodes=sum(styles.values()))
+                                      styled_nodes=sum(styles.values()),
+                                      gc_max_ms=max((event["duration_ms"] for event in timed_events
+                                                     if event["operation"].startswith("gc-generation-")), default=0),
+                                      stale_reflow_details=stale_reflows[:3],
+                                      changed_native_style_rule_maps=changed_style_maps if trace else None)
                         rows_after = {
                             (row.query_ancestor(ChannelGroup).row.target_name, row.thread_name): row
                             for row in app.shared_channels.bar.roster.query(ThreadStatusRow)
@@ -292,9 +358,9 @@ async def main(*, empty=False, trace=False, observe=False, output=None, peers=0,
                         replaced_rows = [key for key, previous in rows_before.items()
                                          if key in rows_after and previous() is not rows_after[key]]
                         record["replaced_thread_rows"] = len(replaced_rows)
-                        record["header_after"] = {"height": tabs.parent.size.height,
-                                                  "tab_height": tabs.size.height,
-                                                  "horizontal_scrollbar": tabs.show_horizontal_scrollbar}
+                        record["header_after"] = {"height": tab_strip.parent.size.height,
+                                                  "tab_height": tab_strip.size.height,
+                                                  "horizontal_scrollbar": tab_strip.show_horizontal_scrollbar}
                         if trace:
                             record.update(reflow_invalidations=reflows, styles=dict(styles),
                                           timed_events=timed_events)
@@ -306,6 +372,7 @@ async def main(*, empty=False, trace=False, observe=False, output=None, peers=0,
                             assert not discarded_renders, (phase, mode, "Rendered an intermediate frame that App discards")
                             assert not replaced_rows, (phase, mode, "Unchanged threads were remounted", replaced_rows)
                         assert app._exception is None
+                    census(app, phase)
 
                 # Real geometry changes must survive the deferred activation
                 # pass. Also exercise a same-mode request from the screen's own
@@ -367,8 +434,28 @@ async def main(*, empty=False, trace=False, observe=False, output=None, peers=0,
                 assert not app._atomic_mode_switch and app._exception is None
         await asyncio.get_running_loop().shutdown_default_executor()
     result = {"boundary": "headless switch/settlement; not terminal-presented frames",
-              "empty": empty, "peers": peers, "channels": channels,
-              "display_only": display_only, "returns": measurements}
+               "empty": empty, "peers": peers, "channels": channels,
+               "tabs": tabs, "source_threads": source_threads or tabs, "history_records": records,
+               "ownership_censuses": censuses,
+               "gc_observation": trace or gc_observe,
+               "observation_only": observe,
+               "instrumentation": "detailed timing/rule-map copies" if trace else "lightweight counts",
+               "display_only": display_only, "returns": measurements}
+    result["provenance"] = {
+        "python": sys.version, "executable": sys.executable,
+        "gc_thresholds": gc.get_threshold(), "gc_debug": gc.get_debug(),
+        "probe_sha256": sha256(Path(__file__).read_bytes()).hexdigest(),
+        "toad_source": toad_file,
+        "toad_head": subprocess.check_output(["git", "rev-parse", "HEAD"], text=True,
+                                               cwd=Path(toad_file).parents[2]).strip(),
+        "textual_source": textual_file,
+        "textual_head": subprocess.check_output(["git", "rev-parse", "HEAD"], text=True,
+                                                  cwd=Path(textual_file).parents[2]).strip(),
+        "source_status": subprocess.check_output(["git", "status", "--short"], text=True,
+                                                   cwd=Path(toad_file).parents[2]),
+        "core_install": json.loads(distribution("agent-comms").read_text("direct_url.json") or "null"),
+        "core_source": comms_file,
+    }
     if output is not None:
         output.write_text(json.dumps(result, indent=2) + "\n")
     if trace and output is None:
@@ -395,21 +482,27 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--empty", action="store_true")
     parser.add_argument("--trace", action="store_true")
-    parser.add_argument("--observe", action="store_true", help="Record baseline layout counts without the catch-up gate")
+    parser.add_argument("--observe", action="store_true", help="Report stale-layout/discarded-render evidence without failing those optimization assertions")
     parser.add_argument("--output", type=Path)
     parser.add_argument("--peers", type=int, default=0)
     parser.add_argument("--channels", type=int, default=0)
     parser.add_argument("--cycles", type=int, default=1)
     parser.add_argument("--gc-census", action="store_true", help="Diagnostic-only retained garbage census; changes object lifetimes")
     parser.add_argument("--display-only", action="store_true", help="Observe native headless presentation without Pilot.pause during returns")
+    parser.add_argument("--tabs", type=int, default=10)
+    parser.add_argument("--source-threads", type=int, help="Hold the source cohort fixed while varying mounted tabs")
+    parser.add_argument("--records", type=int, default=20)
+    parser.add_argument("--ownership-census", action="store_true", help="Sample registered widgets and tracked types outside timed navigation")
+    parser.add_argument("--gc-observe", action="store_true", help="Observe ordinary GC durations without stack capture or policy changes")
     args = parser.parse_args()
     previous_debug = gc.get_debug()
     try:
         if args.gc_census:
             gc.set_debug(previous_debug | gc.DEBUG_SAVEALL)
         asyncio.run(main(empty=args.empty, trace=args.trace, observe=args.observe, output=args.output,
-                         peers=args.peers, channels=args.channels, cycles=args.cycles, gc_census=args.gc_census,
-                         display_only=args.display_only))
+                          peers=args.peers, channels=args.channels, cycles=args.cycles, gc_census=args.gc_census,
+                          display_only=args.display_only, tabs=args.tabs, source_threads=args.source_threads,
+                          records=args.records, ownership_census=args.ownership_census, gc_observe=args.gc_observe))
     finally:
         if args.gc_census:
             gc.set_debug(previous_debug)
