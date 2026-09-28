@@ -1,5 +1,7 @@
 """A mounted any-mode channel must reveal older messages entering its scope."""
 
+from toad.navigation_target import channel_target
+
 import asyncio
 import os
 import tempfile
@@ -44,8 +46,8 @@ async def main() -> None:
                 owner_mode=app.current_mode,
                 project_path=root,
                 me=viewer,
-                target="#team",
-                kind="channel",
+                target=channel_target("#team"),
+
             )
             chat = app.screen.query_one(CommsChatView)
             await chat._refresh()

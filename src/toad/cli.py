@@ -10,13 +10,16 @@ os.environ.setdefault("TEXTUAL_FPS", "120")
 import click
 from toad.app import ToadApp
 from toad.agent_schema import Agent
-from toad.render_backend import Renderer, RendererBackend, create_renderer
+from toad.render_backend import Renderer
+from toad.render_choices import RendererChoice
 
 
-def renderer_from_cli(backend: RendererBackend) -> Renderer:
+def renderer_from_cli(backend: str | None) -> Renderer | None:
+    if backend is None:
+        return None
     try:
-        return create_renderer(backend)
-    except RuntimeError as error:
+        return RendererChoice.decode(backend).start()
+    except (RuntimeError, ValueError) as error:
         raise click.ClickException(str(error)) from error
 
 
@@ -127,8 +130,8 @@ def main(ctx, version):
     help="Public URL to use in conjunction with --serve",
 )
 @click.option("-s", "--serve", is_flag=True, help="Serve Toad as a web application")
-@click.option("--renderer", type=click.Choice(RendererBackend, case_sensitive=False),
-              default=RendererBackend.LOCAL, envvar="TOAD_RENDERER",
+@click.option("--renderer", type=click.Choice(RendererChoice.names(), case_sensitive=False),
+              default=None, envvar="TOAD_RENDERER",
               help="CPU rendering backend (persistent requires the optional extra).")
 def run(
     port: int,
@@ -137,7 +140,7 @@ def run(
     project_dir: str = ".",
     agent: str = "1",
     public_url: str | None = None,
-    renderer: RendererBackend = RendererBackend.LOCAL,
+    renderer: str | None = None,
 ):
     """Run an installed agent (same as `toad PATH`)."""
 
@@ -216,8 +219,8 @@ def run(
     help="Host to use in conjunction with --serve",
 )
 @click.option("-s", "--serve", is_flag=True, help="Serve Toad as a web application")
-@click.option("--renderer", type=click.Choice(RendererBackend, case_sensitive=False),
-              default=RendererBackend.LOCAL, envvar="TOAD_RENDERER",
+@click.option("--renderer", type=click.Choice(RendererChoice.names(), case_sensitive=False),
+              default=None, envvar="TOAD_RENDERER",
               help="CPU rendering backend (persistent requires the optional extra).")
 def acp(
     command: str,
@@ -227,7 +230,7 @@ def acp(
     project_dir: str | None,
     serve: bool = False,
     session_id: str | None = None,
-    renderer: RendererBackend = RendererBackend.LOCAL,
+    renderer: str | None = None,
 ) -> None:
     """Run an ACP agent from a command."""
 

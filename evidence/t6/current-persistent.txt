@@ -1,0 +1,1 @@
+{'same_renderer_after_client_close': True, 'reattach_and_patch_ms': 136.13, 'typed_data_parity': True, 'cancelled_requests_drained': True, 'boundary': 'real persistent renderer RPC; not terminal pixels'}

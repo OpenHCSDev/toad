@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from toad.navigation_target import DirectTarget, channel_target
+
 import asyncio
 import os
 import tempfile
@@ -47,8 +49,8 @@ async def main() -> None:
                     owner_mode=owner_mode,
                     project_path=sandbox,
                     me="user",
-                    target="peer",
-                    kind="dm",
+                    target=DirectTarget("peer"),
+
                 )
                 view = app.screen.query_one(CommsChatView)
                 original_send = view._wire.messaging.send_user_message
@@ -95,8 +97,8 @@ async def main() -> None:
                     owner_mode=owner_mode,
                     project_path=sandbox,
                     me="user",
-                    target="#team",
-                    kind="channel",
+                    target=channel_target("#team"),
+
                 )
                 channel = app.screen.query_one(CommsChatView)
                 await channel._refresh()

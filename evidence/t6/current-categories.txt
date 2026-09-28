@@ -1,0 +1,1 @@
+seven categories: polymorphic live blocks, saved fragments, multi-select UI, per-tab state, draft and read boundary OK

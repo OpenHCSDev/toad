@@ -1,0 +1,28 @@
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-t6-rendering-20260928/.artifacts/renderer-benchmark.py", line 32, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-t6-rendering-20260928/.artifacts/renderer-benchmark.py", line 22, in main
+    begin=time.perf_counter();expected=await pool.submit(task);cold=(time.perf_counter()-begin)*1000
+                                       ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-t6-rendering-20260928/.venv/lib/python3.14/site-packages/toad/render_zmq.py", line 356, in submit
+    return running.result()
+           ~~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-t6-rendering-20260928/.venv/lib/python3.14/site-packages/toad/render_zmq.py", line 364, in _run
+    command = await reply.advance(submission, self)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-t6-rendering-20260928/.venv/lib/python3.14/site-packages/toad/render_protocol.py", line 182, in advance
+    await client.acknowledge(submission)
+  File "/home/ts/wt/toad-t6-rendering-20260928/.venv/lib/python3.14/site-packages/toad/render_zmq.py", line 368, in acknowledge
+    if submission.admitted:
+       ^^^^^^^^^^^^^^^^^^^
+AttributeError: 'RenderSubmission' object has no attribute 'admitted'

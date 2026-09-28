@@ -1,5 +1,7 @@
 """A readable, inspectable disclosure for context identified by the executing owner."""
 
+from toad.widgets.message_filter import OtherCategory
+
 import asyncio
 
 from textual.widgets import Collapsible
@@ -7,6 +9,7 @@ from textual.widgets import Collapsible
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.message_filter import MessageCategory
 from toad.coordination_context_format import format_coordination_context, literal_context
+
 
 
 class OriginalCoordinationContext(Collapsible):
@@ -18,7 +21,7 @@ class OriginalCoordinationContext(Collapsible):
     async def on_collapsible_expanded(self, event: Collapsible.Expanded) -> None:
         if event.collapsible is self and self._body is None:
             self._body = AgentResponse(literal_context(self.content), show_divider=False,
-                                       category=MessageCategory.OTHER)
+                                       category=OtherCategory)
             await self.query_one(Collapsible.Contents).mount(self._body)
 
     def get_block_content(self, destination: str) -> str:
@@ -44,7 +47,7 @@ class CoordinationContext(Collapsible):
                 self._formatted = await asyncio.to_thread(format_coordination_context, self.content)
             if not self.is_attached or self.collapsed:
                 return
-            self._body = AgentResponse(self._formatted, show_divider=False, category=MessageCategory.OTHER)
+            self._body = AgentResponse(self._formatted, show_divider=False, category=OtherCategory)
             contents = self.query_one(Collapsible.Contents)
             await contents.mount(self._body)
             if self._formatted != self.content:

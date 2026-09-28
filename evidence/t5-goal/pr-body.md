@@ -1,0 +1,7 @@
+Complete T5 production and deletion closure, consuming current T2 core262/Toad122 and T3 Toad120 4d30a9a in this existing PR. Paired core270 supplies event-owned merge and extends the existing DeliveryFailure family; pin/lock7acdb80f includes current main269 and live266/267. TR0 ViewportPresentation and shared per-class ratchet preserved.
+
+GoalDisplay, nominal row/navigation destinations, transcript publication states, independent filter/scan component, event-owned merging, nominal command/menu contexts and class-based sidebar queries now serve production. Delete replaced field pairs, kind/decode registries, publication proxy, filter flags, error type/text dispatch, maintained row action rosters and obsolete copied ACP-record tests. No compatibility path, converters or default-off feature. Parent owns final integration/live cutover.
+
+Focused local and installed-path evidence passes: both ratchets have zero positive deltas; 9 guards/family tests plus4 subtests; 4 paired core family/codec tests; actual ACP SDK/owner/native905 loopback queue/cold-attach/DM/channel/Checked/stopped-reopen; actual private-bus UNKNOWN/gap safety; mounted pointer/slash command parity; filter supersession/bounded8000-record projection; 432-block checkpoint retirement; actual native-bound goal RuntimeServer editing/polling; shared sidebar preservation. CI deferred. No paid calls or live changes. No full-suite claim.
+
+Exact checklist, recovery, deletions, failures fixed, counts and receipts: evidence/t5-goal/FULL-CLOSURE.md. No remaining T5 implementation blocker.

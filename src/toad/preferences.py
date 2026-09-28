@@ -1,6 +1,7 @@
 """The current durable preference tree; declarations own values and effects."""
 
 from toad import setting_effects as effects
+from toad.render_choices import RendererChoice, LocalRenderer
 from toad.setting_choices import (
     AlwaysSessionBar,
     AutoDiff,
@@ -30,7 +31,16 @@ from toad.settings import (
 )
 
 
-class UiSettings(SettingsGroup):
+class RendererSettings(SettingsGroup):
+    renderer = ChoiceSetting(
+        RendererChoice,
+        title="Rendering backend",
+        default=LocalRenderer,
+        help="CPU rendering backend for the next application launch. Persistent requires the optional extra.",
+    )
+
+
+class UiSettings(RendererSettings):
     theme = ChoiceSetting(
         ThemeChoice,
         title="Theme",

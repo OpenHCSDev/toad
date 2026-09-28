@@ -1,0 +1,17 @@
+{
+  "removed_owned_disposable_paths": [
+    "/var/tmp/toad-pilot-nsax119s",
+    "/var/tmp/toad-pilot-zy176q56",
+    "/home/ts/wt/toad-t6-rendering-20260928/.artifacts",
+    "/home/ts/wt/t6-tmp-20260928",
+    "/home/ts/wt/t6r",
+    "/home/ts/wt/toad-t6-rendering-20260928/evidence/t6/cli-persistent-terminal.txt",
+    "/home/ts/wt/toad-t6-rendering-20260928/evidence/t6/cli-local-terminal.txt"
+  ],
+  "active_owned_test_children": [],
+  "retained": [
+    "worktree and branch",
+    "candidate installed .venv, about104MiB",
+    "curated evidence/t6 receipts and recipes"
+  ]
+}

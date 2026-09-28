@@ -1,5 +1,7 @@
 """Goal text uses the same mention syntax and navigation as wire messages."""
 
+from toad.navigation_target import ThreadTarget
+
 from agent_comms.mentions import MentionCandidate, ThreadMention
 from textual.widgets import Static
 
@@ -34,7 +36,7 @@ class GoalText(Static):
         self.update(inline_message(text, mentions))
 
     def action_open_target(self, target: str) -> None:
-        self.post_message(SelectTarget(target, "thread"))
+        self.post_message(SelectTarget(ThreadTarget(target)))
 
     def action_open_url(self, url: str) -> None:
         self.app.open_url(url)

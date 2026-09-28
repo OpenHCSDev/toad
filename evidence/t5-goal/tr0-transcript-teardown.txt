@@ -1,0 +1,1 @@
+transcript teardown: late page safely discarded after Window removal

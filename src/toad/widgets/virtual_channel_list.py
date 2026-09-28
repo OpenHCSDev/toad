@@ -6,6 +6,7 @@ come from CommsSidebar's ordinary CoordinationSnapshot.
 """
 
 from dataclasses import dataclass
+from abc import abstractmethod
 
 from textual import events
 from textual.binding import Binding
@@ -15,12 +16,63 @@ from textual.visual import VisualType
 from textual.widgets import OptionList
 
 
-@dataclass(frozen=True, slots=True)
-class VirtualChoice:
-    kind: str
-    target: str
+from agent_comms.declared_family import DeclaredFamily
+from toad.navigation_target import NavigationTarget
+
+
+class ChoiceInteractions:
+    """Default unavailable interactions; destinations override their capabilities."""
+
+    def represents_mode(self, mode: str, channel: str | None = None) -> bool:
+        return False
+
+    def show_menu(self, sidebar, offset) -> None:
+        pass
+
+    def toggle_members(self, sidebar) -> bool:
+        return False
+
+
+class VirtualChoice(ChoiceInteractions, DeclaredFamily, affix="Choice"):
+    @abstractmethod
+    async def activate(self, sidebar) -> None: ...
+
+
+@dataclass(frozen=True)
+class TargetChoice(VirtualChoice):
+    target: NavigationTarget
     channel: str
     mode: str | None = None
+
+    def represents_mode(self, mode: str, channel: str | None = None) -> bool:
+        return self.mode == mode and (channel is None or channel == self.channel)
+
+    def show_menu(self, sidebar, offset) -> None:
+        self.target.show_menu(sidebar, offset, mode_name=self.mode, channel=self.channel)
+
+    def toggle_members(self, sidebar) -> bool:
+        return self.target.toggle_members(sidebar, self.channel)
+
+    async def activate(self, sidebar) -> None:
+        from toad.navigation_target import NavigationOwner
+        from toad.session_tracker import SidebarSelection
+        from toad.widgets.comms_sidebar import SelectTarget
+        sidebar.navigation.selected = SidebarSelection(self.channel, self.target.name)
+        sidebar.selected = self.target.name
+        sidebar.apply_selection(force=True)
+        if self.mode is not None:
+            sidebar.app.switch_mode(self.mode)
+        elif isinstance(sidebar.screen, NavigationOwner):
+            await sidebar.screen.open_sidebar_target(self.target)
+        else:
+            sidebar.post_message(SelectTarget(self.target))
+
+
+@dataclass(frozen=True)
+class NewSessionChoice(VirtualChoice):
+    async def activate(self, sidebar) -> None:
+        from toad import messages
+        sidebar.app.post_message(messages.SessionCreate(sidebar.screen.id or sidebar.app.current_mode))
 
 
 class VirtualChannelList(OptionList, inherit_css=False):
@@ -116,8 +168,8 @@ class VirtualChannelList(OptionList, inherit_css=False):
             return
         sidebar = self.query_ancestor(CommsSidebar)
         choice = sidebar._virtual_targets.get(option.id)
-        if choice is not None and choice.kind in {"irc", "channel"}:
-            sidebar._virtual_toggle(choice.channel)
+        if choice is not None:
+            choice.toggle_members(sidebar)
 
     def on_click(self, event: events.Click) -> None:
         index = event.style.meta.get("option")
@@ -134,10 +186,9 @@ class VirtualChannelList(OptionList, inherit_css=False):
             event.prevent_default()
             event.stop()
             sidebar._virtual_context_menu(choice, event.screen_offset)
-        elif event.button == 1 and event.x == 0 and choice.kind in {"irc", "channel"}:
+        elif event.button == 1 and event.x == 0 and choice.toggle_members(sidebar):
             event.prevent_default()
             event.stop()
-            sidebar._virtual_toggle(choice.channel)
 
 
 def styled_row(

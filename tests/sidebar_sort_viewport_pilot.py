@@ -1,15 +1,16 @@
 """Sorting stays on the visible right edge while long sidebar rows scroll."""
+from runtime_fixture import coordination_update
 
 import asyncio
 import os
 import tempfile
 from pathlib import Path
 
-from agent_comms.threads import Thread
 from agent_comms.comms import wire
+from agent_comms.threads import Thread
+from comms_boundary_fixture import coordination_fact
 from runtime_fixture import ToadApp
 
-from toad.acp.messages import CoordinationUpdate
 from toad.widgets.comms_menu import ContextMenu
 from toad.widgets.comms_sidebar import CommsSidebar
 from toad.widgets.session_sort import SortControl
@@ -34,17 +35,14 @@ async def main() -> None:
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(120, 40)) as pilot:
             await pilot.pause()
-            await app.screen.on_coordination_update(CoordinationUpdate(
-                thread="owner", wire_root=str(root / "wire"),
-                persistence="persistent", transport="stdio",
-            ))
+            await app.screen.on_coordination_update(coordination_update(str(root / 'wire'), 'owner'))
             await app.screen.query_one(CommsSidebar).sync_sessions()
             right = app.screen.query_one("#thread-sidebar", SideBar)
             right.reveal()
             tree = right.query_one(ThreadCommsSidebar)
             async with asyncio.timeout(5):
                 while tree._snapshot is None:
-                    await pilot.pause(.05)
+                    await pilot.pause(0.05)
             for identity in ("channels-sidebar", "thread-sidebar"):
                 bar = app.screen.query_one(f"#{identity}", SideBar)
                 panels = bar.query_one("#sidebar-panels")
@@ -57,13 +55,19 @@ async def main() -> None:
                         panels.scroll_to(x=x, animate=False, immediate=True)
                         await pilot.pause()
                         viewport = panels.scrollable_content_region
-                        visible = [control for control in bar.query(SortControl)
-                                   if viewport.y <= control.region.y < viewport.bottom]
+                        visible = [
+                            control
+                            for control in bar.query(SortControl)
+                            if viewport.y <= control.region.y < viewport.bottom
+                        ]
                         assert visible, "Expected a visible sort header"
                         for control in visible:
-                            assert viewport.x <= control.region.x < control.region.right <= viewport.right, (
-                                identity, width, x, control.region, viewport,
-                            )
+                            assert (
+                                viewport.x
+                                <= control.region.x
+                                < control.region.right
+                                <= viewport.right
+                            ), (identity, width, x, control.region, viewport)
                             assert control.region.right == viewport.right
                             assert await pilot.click(control)
                             assert isinstance(app.screen, ContextMenu)
@@ -71,7 +75,9 @@ async def main() -> None:
                             await pilot.pause()
             assert app._exception is None
         await asyncio.get_running_loop().shutdown_default_executor()
-    print("sort controls: fixed viewport-right alignment through resize and horizontal scrolling")
+    print(
+        "sort controls: fixed viewport-right alignment through resize and horizontal scrolling"
+    )
 
 
 if __name__ == "__main__":

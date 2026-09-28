@@ -4,7 +4,7 @@ from datetime import datetime
 
 from agent_comms.field_codec import FieldCodec
 from agent_comms.goals import Goal
-from agent_comms.goal_presentation import GoalExecution, GoalExecutionState
+from agent_comms.goal_presentation import GoalExecution
 from textual import on
 from textual.app import ComposeResult
 from textual.containers import Vertical, VerticalScroll
@@ -13,12 +13,12 @@ from textual.reactive import var
 from textual.widgets import Button, Static
 
 from toad.widgets.comms_sidebar import SelectTarget
+from toad.goal_display import GoalDisplay, NoGoal, ShowingGoal
 from toad.widgets.goal_text import GoalText
 
 
 class GoalDetails(ModalScreen[None]):
-    goal: var[Goal | None] = var(None)
-    unavailable = var(False)
+    goal_display: var[GoalDisplay] = var(NoGoal())
     execution: var[GoalExecution | None] = var(None)
 
     BINDINGS = [("escape", "close", "Close")]
@@ -36,7 +36,7 @@ class GoalDetails(ModalScreen[None]):
 
     def __init__(self, goal: Goal, *, history=()):
         super().__init__()
-        self.goal = goal
+        self.goal_display = ShowingGoal(goal)
         self.history = history
 
     def compose(self) -> ComposeResult:
@@ -68,13 +68,10 @@ class GoalDetails(ModalScreen[None]):
     def on_mount(self) -> None:
         self._update_current()
 
-    def watch_goal(self) -> None:
+    def watch_goal_display(self) -> None:
         self._update_current()
 
     def watch_execution(self) -> None:
-        self._update_current()
-
-    def watch_unavailable(self) -> None:
         self._update_current()
 
     def _update_current(self) -> None:
@@ -83,23 +80,8 @@ class GoalDetails(ModalScreen[None]):
         widget = self.query_one_optional("#goal-current-heading", Static)
         if widget is None:
             return
-        goal = self.goal
-        heading = (
-            "Goal state unavailable · last confirmed snapshot"
-            if self.unavailable
-            else f"Goal · {goal.state.declared_name} · rev {goal.revision}"
-            if goal
-            else "No current goal"
-        )
-        if (
-            not self.unavailable
-            and goal is not None
-            and goal.state.active
-            and self.execution is not None
-            and self.execution.goal_id == goal.id
-            and self.execution.state is GoalExecutionState.STANDBY
-        ):
-            heading = f"Goal · Standby · rev {goal.revision} · {self.execution.presentation('').summary}"
+        goal = self.goal_display.snapshot
+        heading = self.goal_display.details_heading(self.execution)
         widget.update(heading)
         self.query_one("#goal-current-objective", GoalText).update_goal_text(
             f"Objective: {goal.text}" if goal else ""
@@ -116,4 +98,4 @@ class GoalDetails(ModalScreen[None]):
     def open_target(self, event: SelectTarget) -> None:
         event.stop()
         self.dismiss(None)
-        self.app.post_message(SelectTarget(event.target, event.kind))
+        self.app.post_message(SelectTarget(event.target))

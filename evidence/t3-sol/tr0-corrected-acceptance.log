@@ -1,0 +1,100 @@
+....F.                                                                   [100%]
+=================================== FAILURES ===================================
+_________________________ pilot: command_family_pilot __________________________
+Pilot failed: ExitedOutcome(code=1)
+[31m╭─[0m[31m────────────────────[0m[31m [0m[1;31mTraceback [0m[1;2;31m(most recent call last)[0m[31m [0m[31m─────────────────────[0m[31m─╮[0m
+[31m│[0m [2m/home/ts/wt/toad-t3-commands-sol-20260928/.venv/lib/python3.14/site-packages[0m [31m│[0m
+[31m│[0m [2m/textual/[0m[1mapp.py[0m:3392 in app_prelude                                          [31m│[0m
+[31m│[0m                                                                              [31m│[0m
+[31m│[0m   [2m3389 [0m[2m│   │   │   [0m                                                          [31m│[0m
+[31m│[0m   [2m3390 [0m[2m│   │   │   [0m[94mtry[0m:                                                      [31m│[0m
+[31m│[0m   [2m3391 [0m[2m│   │   │   │   [0m[94mif[0m [96mself[0m.css_path:                                     [31m│[0m
+[31m│[0m [31m❱ [0m3392 [2m│   │   │   │   │   [0m[96mself[0m.stylesheet.read_all([96mself[0m.css_path)           [31m│[0m
+[31m│[0m   [2m3393 [0m[2m│   │   │   │   [0m[94mfor[0m read_from, css, tie_breaker, scope [95min[0m [96mself[0m._get_d [31m│[0m
+[31m│[0m   [2m3394 [0m[2m│   │   │   │   │   [0m[96mself[0m.stylesheet.add_source(                       [31m│[0m
+[31m│[0m   [2m3395 [0m[2m│   │   │   │   │   │   [0mcss,                                          [31m│[0m
+[31m│[0m                                                                              [31m│[0m
+[31m│[0m [34m╭─[0m[34m────────────────────────────────[0m[34m locals [0m[34m────────────────────────────────[0m[34m─╮[0m [31m│[0m
+[31m│[0m [34m│[0m [3;33merror[0m[31m =[0m [1;35mStylesheetError[0m[1m([0m[32m"unable to read CSS file [0m                        [34m│[0m [31m│[0m
+[31m│[0m [34m│[0m         [32m'/home/ts/wt/toad-t3-commands-sol-20260928/tests/toad.tcss'"[0m[1m)[0m    [34m│[0m [31m│[0m
+[31m│[0m [34m│[0m  [3;33mself[0m[31m =[0m [1;35mCommandPilotApp[0m[1m([0m                                                 [34m│[0m [31m│[0m
+[31m│[0m [34m│[0m         [2;32m│   [0m[33mtitle[0m=[32m'CommandPilotApp'[0m,                                     [34m│[0m [31m│[0m
+[31m│[0m [34m│[0m         [2;32m│   [0m[33mclasses[0m=[1m{[0m[32m'-dark-mode'[0m[1m}[0m,                                      [34m│[0m [31m│[0m
+[31m│[0m [34m│[0m         [2;32m│   [0m[33mpseudo_classes[0m=[1m{[0m[32m'dark'[0m, [32m'focus'[0m[1m}[0m                             [34m│[0m [31m│[0m
+[31m│[0m [34m│[0m         [1m)[0m                                                                [34m│[0m [31m│[0m
+[31m│[0m [34m╰──────────────────────────────────────────────────────────────────────────╯[0m [31m│[0m
+[31m│[0m                                                                              [31m│[0m
+[31m│[0m [2m/home/ts/wt/toad-t3-commands-sol-20260928/.venv/lib/python3.14/site-packages[0m [31m│[0m
+[31m│[0m [2m/textual/css/[0m[1mstylesheet.py[0m:348 in read_all                                   [31m│[0m
+[31m│[0m                                                                              [31m│[0m
+[31m│[0m   [2m 345 [0m[2;33m│   │   │   [0m[33mStylesheetParseError: If the CSS is invalid.[0m              [31m│[0m
+[31m│[0m   [2m 346 [0m[2;33m│   │   [0m[33m"""[0m                                                           [31m│[0m
+[31m│[0m   [2m 347 [0m[2m│   │   [0m[94mfor[0m path [95min[0m paths:                                            [31m│[0m
+[31m│[0m [31m❱ [0m 348 [2m│   │   │   [0m[1;4;96mself[0m[1;4m.read(path)[0m                                           [31m│[0m
+[31m│[0m   [2m 349 [0m[2m│   [0m                                                                  [31m│[0m
+[31m│[0m   [2m 350 [0m[2m│   [0m[94mdef[0m[90m [0m[92mhas_source[0m([96mself[0m, path: [96mstr[0m, class_var: [96mstr[0m = [33m"[0m[33m"[0m) -> [96mbool[0m:     [31m│[0m
+[31m│[0m   [2m 351 [0m[2;90m│   │   [0m[33m"""Check if the stylesheet has this CSS source already.[0m       [31m│[0m
+[31m│[0m                                                                              [31m│[0m
+[31m│[0m [34m╭─[0m[34m────────────────────────────────[0m[34m locals [0m[34m────────────────────────────────[0m[34m─╮[0m [31m│[0m
+[31m│[0m [34m│[0m  [3;33mpath[0m[31m =[0m [1;35mPosixPath[0m[1m([0m[32m'/home/ts/wt/toad-t3-commands-sol-20260928/tests/toad…[0m [34m│[0m [31m│[0m
+[31m│[0m [34m│[0m [3;33mpaths[0m[31m =[0m [1m[[0m                                                                [34m│[0m [31m│[0m
+[31m│[0m [34m│[0m         [2;32m│   [0m                                                             [34m│[0m [31m│[0m
+[31m│[0m [34m│[0m         [1;35mPosixPath[0m[1m([0m[32m'/home/ts/wt/toad-t3-commands-sol-20260928/tests/toad…[0m [34m│[0m [31m│[0m
+[31m│[0m [34m│[0m         [2;32m│   [0m                                                             [34m│[0m [31m│[0m
+[31m│[0m [34m│[0m         [1;35mPosixPath[0m[1m([0m[32m'/home/ts/wt/toad-t3-commands-sol-20260928/tests/scre…[0m [34m│[0m [31m│[0m
+[31m│[0m [34m│[0m         [1m][0m                                                                [34m│[0m [31m│[0m
+[31m│[0m [34m│[0m  [3;33mself[0m[31m =[0m [1m<[0m[1;95mStylesheet[0m[39m [0m[1;39m[[0m[1;39m][0m[1m>[0m                                                  [34m│[0m [31m│[0m
+[31m│[0m [34m╰──────────────────────────────────────────────────────────────────────────╯[0m [31m│[0m
+[31m│[0m                                                                              [31m│[0m
+[31m│[0m [2m/home/ts/wt/toad-t3-commands-sol-20260928/.venv/lib/python3.14/site-packages[0m [31m│[0m
+[31m│[0m [2m/textual/css/[0m[1mstylesheet.py[0m:333 in read                                       [31m│[0m
+[31m│[0m                                                                              [31m│[0m
+[31m│[0m   [2m 330 [0m[2m│   │   │   │   [0mcss = css_file.read()                                 [31m│[0m
+[31m│[0m   [2m 331 [0m[2m│   │   │   [0mpath = os.path.abspath(filename)                          [31m│[0m
+[31m│[0m   [2m 332 [0m[2m│   │   [0m[94mexcept[0m [96mException[0m:                                             [31m│[0m
+[31m│[0m [31m❱ [0m 333 [2m│   │   │   [0m[1;4;94mraise[0m[1;4m StylesheetError([0m[1;4;33mf[0m[1;4;33m"[0m[1;4;33munable to read CSS file [0m[1;4;33m{[0m[1;4mfilename[0m [31m│[0m
+[31m│[0m   [2m 334 [0m[2m│   │   [0m[96mself[0m.source[([96mstr[0m(path), [33m"[0m[33m"[0m)] = CssSource(css, [94mFalse[0m, [94m0[0m)       [31m│[0m
+[31m│[0m   [2m 335 [0m[2m│   │   [0m[96mself[0m._require_parse = [94mTrue[0m                                    [31m│[0m
+[31m│[0m   [2m 336 [0m                                                                      [31m│[0m
+[31m│[0m                                                                              [31m│[0m
+[31m│[0m [34m╭─[0m[34m───────────────────────────────[0m[34m locals [0m[34m───────────────────────────────[0m[34m─╮[0m   [31m│[0m
+[31m│[0m [34m│[0m [3;33mfilename[0m[31m =[0m [32m'/home/ts/wt/toad-t3-commands-sol-20260928/tests/toad.tcss'[0m [34m│[0m   [31m│[0m
+[31m│[0m [34m│[0m     [3;33mself[0m[31m =[0m [1m<[0m[1;95mStylesheet[0m[39m [0m[1;39m[[0m[1;39m][0m[1m>[0m                                             [34m│[0m   [31m│[0m
+[31m│[0m [34m╰────────────────────────────────────────────────────────────────────────╯[0m   [31m│[0m
+[31m╰──────────────────────────────────────────────────────────────────────────────╯[0m
+[1;91mStylesheetError: [0munable to read CSS file 
+[32m'/home/ts/wt/toad-t3-commands-sol-20260928/tests/toad.tcss'[0m
+Traceback (most recent call last):
+  File [35m"/home/ts/wt/toad-t3-commands-sol-20260928/tests/command_family_pilot.py"[0m, line [35m296[0m, in [35m<module>[0m
+    [31masyncio.run[0m[1;31m(main())[0m
+    [31m~~~~~~~~~~~[0m[1;31m^^^^^^^^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py"[0m, line [35m204[0m, in [35mrun[0m
+    return [31mrunner.run[0m[1;31m(main)[0m
+           [31m~~~~~~~~~~[0m[1;31m^^^^^^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py"[0m, line [35m127[0m, in [35mrun[0m
+    return [31mself._loop.run_until_complete[0m[1;31m(task)[0m
+           [31m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m[1;31m^^^^^^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py"[0m, line [35m719[0m, in [35mrun_until_complete[0m
+    return [31mfuture.result[0m[1;31m()[0m
+           [31m~~~~~~~~~~~~~[0m[1;31m^^[0m
+  File [35m"/home/ts/wt/toad-t3-commands-sol-20260928/tests/command_family_pilot.py"[0m, line [35m97[0m, in [35mmain[0m
+    async with [31mapp.run_test[0m[1;31m(size=(110, 38))[0m as pilot:
+               [31m~~~~~~~~~~~~[0m[1;31m^^^^^^^^^^^^^^^^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py"[0m, line [35m235[0m, in [35m__aexit__[0m
+    await self.gen.athrow(value)
+  File [35m"/home/ts/wt/toad-t3-commands-sol-20260928/.venv/lib/python3.14/site-packages/textual/app.py"[0m, line [35m2218[0m, in [35mrun_test[0m
+    raise self._exception
+  File [35m"/home/ts/wt/toad-t3-commands-sol-20260928/.venv/lib/python3.14/site-packages/textual/app.py"[0m, line [35m3392[0m, in [35mapp_prelude[0m
+    [31mself.stylesheet.read_all[0m[1;31m(self.css_path)[0m
+    [31m~~~~~~~~~~~~~~~~~~~~~~~~[0m[1;31m^^^^^^^^^^^^^^^[0m
+  File [35m"/home/ts/wt/toad-t3-commands-sol-20260928/.venv/lib/python3.14/site-packages/textual/css/stylesheet.py"[0m, line [35m348[0m, in [35mread_all[0m
+    [31mself.read[0m[1;31m(path)[0m
+    [31m~~~~~~~~~[0m[1;31m^^^^^^[0m
+  File [35m"/home/ts/wt/toad-t3-commands-sol-20260928/.venv/lib/python3.14/site-packages/textual/css/stylesheet.py"[0m, line [35m333[0m, in [35mread[0m
+    raise StylesheetError(f"unable to read CSS file {filename!r}") from None
+[1;35mtextual.css.errors.StylesheetError[0m: [35munable to read CSS file '/home/ts/wt/toad-t3-commands-sol-20260928/tests/toad.tcss'[0m
+
+Logs: /home/ts/wt/toad-t3-commands-sol-20260928/.artifacts/t3-corrected-acceptance/command_family_pilot0
+=========================== short test summary info ============================
+FAILED tests/command_family_pilot.py::command_family_pilot - Failed: Pilot fa...
+1 failed, 5 passed in 53.14s
