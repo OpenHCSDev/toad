@@ -259,6 +259,7 @@ type ClearType = Literal["cursor_to_end", "cursor_to_beginning", "screen", "scro
 class ANSICommand(ABC):
     """A decoded terminal operation owns its effect."""
 
+    __slots__ = ()
     visible_output: ClassVar[bool] = False
 
     @abstractmethod
@@ -635,6 +636,8 @@ class TerminalMode(DeclaredFamily, affix="Mode"):
 
     @classmethod
     def parse(cls, sequence: str) -> tuple[SetMode, ...] | None:
+        if not sequence.endswith(("h", "l")):
+            return None
         match = re.fullmatch(r"\[(\??)([0-9;]+)([hl])", sequence)
         if match is None:
             return None
@@ -646,8 +649,13 @@ class TerminalMode(DeclaredFamily, affix="Mode"):
             except ValueError:
                 continue  # Unrecognized external modes have no effect.
             if mode.private == bool(private):
-                commands.append(SetMode(mode, operation == "h"))
+                commands.append(mode.command(operation == "h"))
         return tuple(commands)
+
+    @classmethod
+    @lru_cache(maxsize=128)
+    def command(cls, enabled: bool) -> SetMode:
+        return SetMode(cls, enabled)
 
     @classmethod
     def apply(cls, state: TerminalState, enabled: bool) -> None:
@@ -782,7 +790,6 @@ class ANSIStream:
     def __init__(self) -> None:
         self.parser = ANSIParser()
         self.style = NULL_STYLE
-        self.show_cursor = True
 
     @classmethod
     @lru_cache(maxsize=1024)
@@ -940,7 +947,6 @@ class ANSIStream:
                     return ANSICursorPositionRequest()
 
                 case _:
-                    print("Unknown CSI (a)", repr(csi))
                     return None
 
         return None
@@ -958,7 +964,6 @@ class ANSIStream:
                     case ["8", *_, link]:
                         self.style += Style(link=link or None)
                     case ["2025", current_directory, *_]:
-                        self.current_directory = current_directory
                         yield ANSIWorkingDirectory(current_directory)
 
             case ["csi", csi]:
@@ -1002,16 +1007,12 @@ class ANSIStream:
                         yield ANSICursor(delta_y=-1, auto_scroll=True)
                     elif control == "ind":
                         yield ANSICursor(delta_y=+1, auto_scroll=True)
-                    else:
-                        print("CONTROL", repr(code), repr(control))
-                else:
-                    print("NOT HANDLED", code)
 
             case ["content", text]:
                 yield ANSIContent(text)
 
             case _:
-                print("UNKNWON TOKEN", repr(token))
+                return
 
 
 class LineFold(NamedTuple):
@@ -1423,7 +1424,7 @@ class TerminalState:
     def remove_trailing_blank_lines_from_scrollback(self) -> None:
         """Remove blank lines at the end of the scrollback buffer.
 
-        A line is considered blank if it is whitespace and has no color or style applied.
+        A line is blank if it is whitespace with no color or style applied.
 
         """
         buffer = self.scrollback_buffer
@@ -1482,7 +1483,7 @@ class TerminalState:
             hide_output: Hide visible output from buffers.
 
         Returns:
-            A pair of deltas or `None for full refresh, for scrollback and alternate screen.
+            A pair of deltas, or `None` for full refresh, for the two buffers.
         """
         alternate_buffer = self.alternate_buffer
         scrollback_buffer = self.scrollback_buffer
@@ -1494,10 +1495,10 @@ class TerminalState:
         if hide_output:
             for ansi_command in self._ansi_stream.feed(text):
                 if not ansi_command.visible_output:
-                    await self._handle_ansi_command(ansi_command)
+                    await ansi_command.apply(self)
         else:
             for ansi_command in self._ansi_stream.feed(text):
-                await self._handle_ansi_command(ansi_command)
+                await ansi_command.apply(self)
 
         # Get deltas
         scrollback_updates = (
@@ -1611,9 +1612,6 @@ class TerminalState:
         if offset > len(content):
             content += Content.blank(offset - len(content), style)
         return content
-
-    async def _handle_ansi_command(self, command: ANSICommand) -> None:
-        await command.apply(self)
 
     def _line_updated(self, buffer: Buffer, line_no: int) -> None:
         """Mark a line has having been udpated.

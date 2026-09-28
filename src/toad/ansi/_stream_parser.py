@@ -231,8 +231,9 @@ class StreamParser[ParseType]:
         """
         return Read(count)
 
+    @staticmethod
     @lru_cache(1024)
-    def read_until(self, *characters: str) -> ReadUntil:
+    def read_until(*characters: str) -> ReadUntil:
         """Read until the given characters.
 
         Args:

@@ -172,6 +172,16 @@ def test_terminal_dispatch_deletion_guard():
     for path in root.glob("*.py"):
         tree = ast.parse(path.read_text())
         for node in ast.walk(tree):
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                if node.name == "_parse_csi":
+                    assert not any(
+                        isinstance(part, ast.Constant) and part.value in ("h", "l")
+                        for part in ast.walk(node)
+                    ), "Mode decoding belongs to TerminalMode"
+                if node.name == "_handle_ansi_command":
+                    pytest.fail(
+                        "Commands apply directly; do not restore the dispatcher"
+                    )
             if isinstance(node, ast.ClassDef) and node.name.startswith("ANSI"):
                 assert all(
                     not isinstance(base, ast.Name) or base.id != "NamedTuple"
