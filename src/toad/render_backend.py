@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 ResultT = TypeVar("ResultT")
 
 
-class Renderer(ABC):
+class RendererSpawn(ABC):
     @staticmethod
     def prepare_spawn() -> None:
         """Initialize POSIX spawn bookkeeping before a UI captures stderr.
@@ -33,6 +33,8 @@ class Renderer(ABC):
 
             resource_tracker.ensure_running()
 
+
+class Renderer(RendererSpawn):
     async def warm_up(self, *, project: Path, ansi: bool, dark: bool) -> None:
         """Optional off-loop preparation after the application presents its UI."""
 

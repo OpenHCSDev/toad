@@ -72,6 +72,7 @@ from toad.private_native_cursor import CursorStatus
 from toad.queue_view import QueueProjection
 from toad.widgets.input_delivery import InputDeliveryBar, InputDeliveryDetails, empty_delivery
 from toad.widgets.user_input import UserInput
+from toad.widgets.agent_response import ResponseDelivery, UnroutedResponse
 from toad.widgets.history_anchor import HistoryWindow
 from toad.widgets.message_filter import all_categories, MessageCategory
 from toad.layout import trim_trailing_margin
@@ -97,7 +98,7 @@ if TYPE_CHECKING:
     from toad.acp.agent import Mode, Model
     from toad.widgets.question import Ask
     from toad.widgets.terminal import Terminal
-    from toad.widgets.agent_response import AgentResponse, ResponseDelivery
+    from toad.widgets.agent_response import AgentResponse
     from toad.widgets.agent_thought import AgentThought
     from toad.widgets.terminal_tool import TerminalTool
 
@@ -930,11 +931,10 @@ class Conversation(containers.Vertical):
                 self.refresh_bindings()
                 self.call_after_refresh(self.cursor.follow, cursor_block)
 
-    async def post_agent_response(self, fragment: str = "", route: MessageRoute | None = None) -> AgentResponse | None:
+    async def post_agent_response(self, fragment: str = "", delivery: ResponseDelivery = UnroutedResponse()) -> AgentResponse | None:
         """Get or create an agent response widget."""
-        from toad.widgets.agent_response import AgentResponse, ResponseDelivery
+        from toad.widgets.agent_response import AgentResponse
 
-        delivery = ResponseDelivery.from_route(route)
         async with self._post_lock:
             if self._agent_response is not None and self._agent_response.delivery != delivery:
                 await self._agent_response.finish_stream()
@@ -1138,7 +1138,7 @@ class Conversation(containers.Vertical):
         if message.help == "prompt":
             log_path = getattr(self.agent, "_log_file_path", None)
             if isinstance(log_path, Path):
-                from toad.widgets.agent_response import AgentResponse, ResponseDelivery
+                from toad.widgets.agent_response import AgentResponse
 
                 link = AgentResponse(
                     f"[Open ACP log]({quote(str(log_path))})", show_divider=False,
@@ -1593,7 +1593,7 @@ class Conversation(containers.Vertical):
 
     @on(acp_messages.Update)
     async def on_acp_agent_message(self, message: acp_messages.Update):
-        from toad.widgets.agent_response import AgentResponse, ResponseDelivery
+        from toad.widgets.agent_response import AgentResponse
 
         message.stop()
         if self.turn != "agent":
@@ -1609,7 +1609,7 @@ class Conversation(containers.Vertical):
             self.post_message(
                 messages.SessionUpdate(state="busy", summary="Writing response")
             )
-        await self.post_agent_response(message.text, message.route)
+        await self.post_agent_response(message.text, ResponseDelivery.from_route(message.route))
 
     def _accept_turn_lifecycle(
         self, message: acp_messages.TurnStarted | acp_messages.TurnSettled
@@ -1819,7 +1819,7 @@ class Conversation(containers.Vertical):
     @on(acp_messages.CompactionUpdate)
     async def on_acp_compaction_update(self, message: acp_messages.CompactionUpdate) -> None:
         """Display one typed mid-turn notice without settling the current turn."""
-        from toad.widgets.agent_response import AgentResponse, ResponseDelivery
+        from toad.widgets.agent_response import AgentResponse
 
         message.stop()
         if message.phase == "progress":
@@ -2723,7 +2723,7 @@ class Conversation(containers.Vertical):
     @work(group="context-compaction")
     async def compact_context(self, instructions: str | None) -> None:
         """Keep processing owner notifications while compaction is in flight."""
-        from toad.widgets.agent_response import AgentResponse, ResponseDelivery
+        from toad.widgets.agent_response import AgentResponse
 
         try:
             self.window.anchor()

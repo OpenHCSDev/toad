@@ -31,7 +31,7 @@ from toad.settings import (
 )
 
 
-class UiSettings(SettingsGroup):
+class RendererSettings(SettingsGroup):
     renderer = ChoiceSetting(
         RendererChoice,
         title="Rendering backend",
@@ -39,6 +39,8 @@ class UiSettings(SettingsGroup):
         help="CPU rendering backend for the next application launch. Persistent requires the optional extra.",
     )
 
+
+class UiSettings(RendererSettings):
     theme = ChoiceSetting(
         ThemeChoice,
         title="Theme",

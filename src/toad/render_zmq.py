@@ -114,7 +114,18 @@ class RendererServer(ZMQServer):
         raise TypeError("Renderer requests use the declared control boundary")
 
 
-class RendererClient(ExecutionClient[RenderCommand, None]):
+class RendererTransport(ExecutionClient[RenderCommand, None]):
+    def serialize_task(self, task: RenderCommand, config: None = None) -> dict[str, object]:
+        return RenderCodec.encode(task)
+
+    def send_data(self, data: RenderCommand) -> RenderReply:
+        return RenderCodec.decode(
+            RenderReply,
+            self._send_control_request(self.serialize_task(data), timeout_ms=5000),
+        )
+
+
+class RendererClient(RendererTransport):
     def __init__(self, endpoint: RendererEndpoint, service_config: RenderServiceConfig) -> None:
         self.renderer_endpoint = endpoint
         self.service_config = service_config
@@ -133,15 +144,6 @@ class RendererClient(ExecutionClient[RenderCommand, None]):
              "--client-lease", str(config.client_lease_seconds)],
             env=environment, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL, start_new_session=True,
-        )
-
-    def serialize_task(self, task: RenderCommand, config: None = None) -> dict[str, object]:
-        return RenderCodec.encode(task)
-
-    def send_data(self, data: RenderCommand) -> RenderReply:
-        return RenderCodec.decode(
-            RenderReply,
-            self._send_control_request(self.serialize_task(data), timeout_ms=5000),
         )
 
     def require_identity(self) -> None:
@@ -190,14 +192,17 @@ class RendererConnection:
             self.client = None
 
 
-@dataclass
-class RenderSubmission(Generic[ResultT]):
-    request_id: UUID
-    task: RenderTask[ResultT]
-    result: asyncio.Future[ResultT]
+@dataclass(kw_only=True)
+class RenderCancellation:
     cancel_requested: bool = False
     cancellation_sent: bool = False
 
+
+@dataclass
+class RenderSubmission(RenderCancellation, Generic[ResultT]):
+    request_id: UUID
+    task: RenderTask[ResultT]
+    result: asyncio.Future[ResultT]
 
 class RendererSessionFailed(RuntimeError):
     """An uncertain transport outcome ends this client lease; use a new client."""

@@ -67,15 +67,9 @@ class AgentResponse(CategorizedBlock, StreamingMarkdown):
     def message_category(self) -> type[MessageCategory]:
         return self._message_category
 
-    def __init__(
-        self,
-        markdown: str | None = None,
-        *,
-        delivery: ResponseDelivery = UnroutedResponse(),
-        category: type[MessageCategory] | None = None,
-        paginate: bool = True,
-        show_divider: bool = True,
-    ) -> None:
+    def __init__(self, markdown: str | None = None, *, delivery: ResponseDelivery = UnroutedResponse(),
+                 category: type[MessageCategory] | None = None,
+                 paginate: bool = True, show_divider: bool = True) -> None:
         self._message_category = category or delivery.category
         super().__init__(
             markdown,

@@ -170,8 +170,7 @@ class RenderPreparation(ContentAddressedWork[ResultT], RendererWork[ResultT]):
     async def identity(self, runtime: PreparationRuntime) -> WorkKey:
         # Tasks such as path-aware Markdown read external state not represented
         # by their text. Their declaration opts out of both retention and sharing.
-        inputs = self.task.reusable_inputs()
-        if inputs is None:
+        if self.task.reusable_inputs() is None:
             return WorkKey(type(self), object())
         return await super().identity(runtime)
 

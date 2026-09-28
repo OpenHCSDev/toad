@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Generic, TypeVar
 
@@ -23,13 +23,7 @@ from toad.rich_preparation import (
 ResultT = TypeVar("ResultT", covariant=True)
 
 
-class RenderTask(DeclaredFamily, Generic[ResultT], affix="RenderTask"):
-    """A nominal operation with an exact input and result contract."""
-
-    def reusable_inputs(self) -> object | None:
-        """None means external state prevents sharing or retaining this capture."""
-        return None
-
+class RenderExecution(ABC, Generic[ResultT]):
     @abstractmethod
     def execute(self) -> ResultT:
         """Execute pure preparation in the renderer process."""
@@ -39,9 +33,15 @@ class RenderTask(DeclaredFamily, Generic[ResultT], affix="RenderTask"):
         """Validate the result at a transport boundary."""
 
 
-class ReusableRenderTask(RenderTask[ResultT]):
-    """Pure captured-input preparation, safe to retain across consumers."""
 
+class RenderTask(RenderExecution[ResultT], DeclaredFamily, affix="RenderTask"):
+    """A nominal operation with an exact input and result contract."""
+
+    def reusable_inputs(self) -> object | None:
+        """None means external state prevents sharing or retaining this capture."""
+        return None
+
+class ReusableRenderTask(RenderTask[ResultT]):
     def reusable_inputs(self) -> object:
         return self
 

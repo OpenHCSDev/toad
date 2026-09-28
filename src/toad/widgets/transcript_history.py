@@ -157,14 +157,13 @@ class TranscriptFragmentView(CategorizedBlock, VerticalGroup):
     CACHE_HEIGHT_INDEPENDENT_ARRANGEMENT = True
 
     def __init__(self, fragment: TranscriptFragment, selected=None):
-        selected = all_categories() if selected is None else selected
         super().__init__()
         self.fragment = fragment
         self._message_category = (event_category(fragment.events[0]) if fragment.events
                                   else OtherCategory)
         self.add_class(f"-message-{self._message_category.declared_name}")
         self.set_class(not any(event.routed for event in fragment.events), "-unrouted")
-        self.set_categories(selected)
+        self.set_categories(all_categories() if selected is None else selected)
 
     @property
     def message_category(self) -> type[MessageCategory]:

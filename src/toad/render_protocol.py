@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import pickle
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 from uuid import UUID
@@ -37,7 +37,7 @@ class RenderCodec(FieldCodec):
 
     @staticmethod
     def _capture(data: object) -> object:
-        if type(data) is not bytes:
+        if not isinstance(data, bytes):
             raise ValueError("Expected a captured renderer byte payload")
         return pickle.loads(data)
 
@@ -60,15 +60,17 @@ class CapturedResult:
     value: object
 
 
-class RenderCommand(DeclaredFamily, affix="Render"):
-    family_discriminator = "type"
-
+class RenderCommandTransport(ABC):
     @abstractmethod
     def execute(self, service: RenderService) -> RenderReply: ...
 
     async def exchange(self, client: PersistentRendererPool, submission: RenderSubmission) -> RenderReply:
         return await client._exchange(self)
 
+
+
+class RenderCommand(RenderCommandTransport, DeclaredFamily, affix="Render"):
+    family_discriminator = "type"
 
 @dataclass(frozen=True)
 class ClientCommand(RenderCommand):
@@ -80,30 +82,34 @@ class RequestCommand(ClientCommand):
     request_id: UUID
 
 
-@dataclass(frozen=True)
-class SubmitRender(RequestCommand):
-    task: RenderTask
-
-    def execute(self, service):
-        return service.submit(self)
-
+class InitialRenderRequest(RequestCommand):
     async def exchange(self, client, submission):
         if client._closed or submission.cancel_requested:
             raise asyncio.CancelledError
         return await super().exchange(client, submission)
 
 
-@dataclass(frozen=True)
-class PollRender(RequestCommand):
-    def execute(self, service):
-        return service.poll(self)
 
+class RetainedRenderRequest(RequestCommand):
     async def exchange(self, client, submission):
         if (submission.cancel_requested or client._closed) and not submission.cancellation_sent:
             await client._exchange(CancelRender(self.client_id, self.request_id))
             submission.cancellation_sent = True
         return await super().exchange(client, submission)
 
+
+
+@dataclass(frozen=True)
+class SubmitRender(InitialRenderRequest):
+    task: RenderTask
+
+    def execute(self, service):
+        return service.submit(self)
+
+@dataclass(frozen=True)
+class PollRender(RetainedRenderRequest):
+    def execute(self, service):
+        return service.poll(self)
 
 @dataclass(frozen=True)
 class CancelRender(RequestCommand):
@@ -129,16 +135,18 @@ class ShutdownRender(RenderCommand):
         return service.shutdown(self)
 
 
-@dataclass(frozen=True, kw_only=True)
-class RenderReply(DeclaredFamily, affix="Reply"):
-    renderer_pid: int | None = None
-
+class RenderReplyProgression(ABC):
     def request_identity(self) -> UUID | None:
         return None
 
     @abstractmethod
     async def advance(self, submission: RenderSubmission, client: PersistentRendererPool) -> RenderCommand | None: ...
 
+
+
+@dataclass(frozen=True, kw_only=True)
+class RenderReply(RenderReplyProgression, DeclaredFamily, affix="Reply"):
+    renderer_pid: int | None = None
 
 @dataclass(frozen=True)
 class RequestReply(RenderReply):
