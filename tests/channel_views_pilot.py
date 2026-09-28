@@ -30,9 +30,9 @@ async def main():
                           XDG_STATE_HOME=str(root / "state"), XDG_DATA_HOME=str(root / "data"),
                           AGENT_COMMS_ROOT=str(root / "wire"))
         comms = wire(root / "wire")
-        for name, tags in ((root.name, set()), ("api-agent", {"api"}), ("ui-agent", {"ui"}), ("other", set())):
+        for name, tags in ((root.name, set()), ("api-agent", {"api", "engineering"}), ("ui-agent", {"ui", "engineering"}), ("other", set())):
             comms.threads.register(Thread(name, frozenset(tags), str(root), pid=os.getpid()))
-        comms.channels.set_channel("engineering", frozenset({"api", "ui"}))
+        comms.channels.create_tag("engineering")
         order_saved = asyncio.Event()
 
         def worker_changed(message):
@@ -65,7 +65,7 @@ async def main():
             await pilot.pause()
             assert set(group._members) == {"api-agent", "ui-agent"}
             other = wire(root / "wire")
-            other.channels.update_tags("other", add=frozenset({"api"}))
+            other.channels.update_tags("other", add=frozenset({"engineering"}))
             sidebar._refresh()
             await pilot.pause()
             assert set(group._members) == {"api-agent", "ui-agent", "other"}
@@ -268,7 +268,7 @@ async def main():
             views = {view.channel.name: view for view in comms.views.channel_views()}
             assert not views["#engineering"].channel.pinned
             assert not views["#engineering"].pinned_members
-    print("channel views: lazy union membership, external tag updates, persistent tabs/drafts and inactive close passed")
+    print("channel views: exact channel membership, external tag updates, persistent tabs/drafts and inactive close passed")
 
 
 if __name__ == "__main__":
