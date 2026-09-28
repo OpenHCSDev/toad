@@ -185,6 +185,8 @@ class CommsUpdateConsumer(MroDispatch):
     @handles(CompactionChangedUpdate)
     def compaction_changed(self, update: CompactionChangedUpdate) -> None:
         self.agent._context_usage = None
+        self.agent._context_usage_saved = False
+        self.agent.update_status_line()
         self.agent.post_message(
             messages.CommsUpdated(update, self.agent, self.session_id)
         )
