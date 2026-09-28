@@ -10,6 +10,7 @@ from agent_comms.declared_family import DeclaredFamily
 from toad import jsonrpc
 from toad.agent import AgentFail
 from toad.acp.wire_message import IncomingWireMessage
+from toad.acp.agent_controller import SessionInitialization
 
 
 class ProcessControl(DeclaredFamily, affix="ProcessControl"):
@@ -161,7 +162,7 @@ class AgentProcess:
             agent.session_ready_event.set()
             agent.post_message(AgentFail("Failed to start agent", details=str(error)))
             return
-        self.session_task = asyncio.create_task(agent.controller.initialize())
+        self.session_task = asyncio.create_task(SessionInitialization(agent).run())
         assert process.stdout is not None
         assert process.stdin is not None
         tasks = self.responses

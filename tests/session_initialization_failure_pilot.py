@@ -5,6 +5,7 @@ from textual import on
 from textual.app import App
 from toad.agent import AgentFail
 from toad.acp.agent import Agent
+from toad.acp.agent_controller import SessionInitialization
 from toad.render_processes import RenderProcessPool
 
 class FailureDelivery(App):
@@ -28,7 +29,7 @@ async def main():
             raise RuntimeError('Message is missing attributes; did you forget to call super().__init__() ?')
         agent.run = fail
         agent._connected_ok = True
-        await agent.controller.initialize()
+        await SessionInitialization(agent).run()
         await asyncio.wait_for(app.delivered.wait(), 3)
         assert app.failure.message == 'Agent initialization failed'
         assert app.failure.details.startswith('RuntimeError: Message is missing attributes')
@@ -37,7 +38,7 @@ async def main():
         async def blocked():
             await asyncio.Event().wait()
         agent.run = blocked
-        task = asyncio.create_task(agent.controller.initialize())
+        task = asyncio.create_task(SessionInitialization(agent).run())
         await asyncio.sleep(0)
         task.cancel()
         try:
