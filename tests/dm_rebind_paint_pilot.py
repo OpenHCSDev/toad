@@ -10,6 +10,7 @@ from unittest.mock import patch
 from agent_comms.comms import wire
 from agent_comms.history_views import HistoryViews
 from agent_comms.threads import Thread
+from agent_comms.child_process import ProcessIdentity
 from runtime_fixture import ToadApp
 from toad.widgets.comms_chat import CommsChatView
 
@@ -30,7 +31,7 @@ async def main():
             XDG_DATA_HOME=str(root / "data"),
         )
         comms = wire(root / "wire")
-        comms.threads.register(Thread("peer", frozenset(), str(root), pid=os.getpid()))
+        comms.threads.register(Thread("peer", frozenset(), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
         viewer = comms.messaging.user_identity(str(root)).name
         comms.messaging.send("peer", viewer, "old peer painted")
         entered, release = Event(), Event()
@@ -65,7 +66,7 @@ async def main():
                     comms.registry.unregister("peer")
                     comms.registry.remove("peer")
                     comms.threads.register(
-                        Thread("peer", frozenset(), str(root), pid=os.getpid())
+                        Thread("peer", frozenset(), str(root), process_identity=ProcessIdentity.capture(os.getpid()))
                     )
                     comms.messaging.send("peer", viewer, "new peer never painted")
                     await app.switch_mode(owner_mode)

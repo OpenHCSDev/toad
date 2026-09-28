@@ -34,7 +34,7 @@ from textual.widget import Widget
 
 from agent_comms import context_tool_catalog
 from agent_comms.presentation import ChannelView, CoordinationSnapshot, ThreadView, WireRevision
-from agent_comms.owner_lifecycle import OBSERVATION_INTERVAL
+from toad.constants import COMMS_REFRESH_INTERVAL
 from agent_comms.comms import wire
 
 from toad import messages
@@ -640,7 +640,7 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
         app.thread_actions_changed.subscribe(self, self._thread_actions_changed)
         app.settings_changed_signal.subscribe(self, self._settings_changed)
         if self._observe:
-            self.set_interval(OBSERVATION_INTERVAL, self._refresh)
+            self.set_interval(COMMS_REFRESH_INTERVAL, self._refresh)
         self.prepare_navigation()
         from toad.screens.session_view import SessionView
 

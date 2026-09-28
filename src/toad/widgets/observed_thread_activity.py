@@ -3,7 +3,7 @@
 import asyncio
 from collections.abc import Awaitable, Callable
 
-from agent_comms.owner_lifecycle import OBSERVATION_INTERVAL
+from toad.constants import COMMS_REFRESH_INTERVAL
 from agent_comms.thread_presentation import ThreadPresentation
 from textual.message import Message
 from textual.widgets import Static
@@ -33,7 +33,7 @@ class ObservedThreadActivity(Static):
         self._read_task: asyncio.Task[None] | None = None
 
     def on_mount(self) -> None:
-        self.set_interval(OBSERVATION_INTERVAL, self.refresh_observation)
+        self.set_interval(COMMS_REFRESH_INTERVAL, self.refresh_observation)
         self.refresh_observation()
 
     def refresh_observation(self) -> None:

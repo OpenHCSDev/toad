@@ -502,12 +502,6 @@ class Agent(AgentBase):
                 route = MessageRoute.from_wire(state["route"])
             if "queueState" in state:
                 return
-            if "queue" in state:
-                # Legacy text-only rows cannot establish membership or restore
-                # remote text into a local draft, even on an older producer.
-                self._queue_view.callback("queueState", None, sessionId)
-                self._post_queue_view()
-                return
             if "inputStarted" in state:
                 # Unscoped initial user echoes are not queue-start authority.
                 # Versioned queue starts were handled above; never fall back.
