@@ -47,7 +47,7 @@ async def owner_set_route(*, legacy_blocked: bool) -> None:
             if legacy_blocked:
                 assert goal.id != old.id
             generation = GoalAttemptStore(comms.root / "goal-private").snapshot(goal.id)
-            assert generation is not None and generation.state == "ready"
+            assert generation is not None and generation.lifecycle.ready
             assert owner.turns.goal_store.ready_grant(goal.id, generation.number)
             assert comms.registry.require(session).goal == goal
         finally:
