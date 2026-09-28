@@ -44,9 +44,7 @@ class HistoryReadRequest:
             return HistoryReadResult(self, revision, self.after, None, False)
         high_water = self.comms.bus.log.latest_sequence()
         if not self.initialized:
-            return HistoryReadResult(
-                self, revision, high_water, self.page(limit=self.initial_limit), False
-            )
+            return HistoryReadResult(self, revision, high_water, self.page(limit=self.initial_limit), False)
         if high_water <= self.after:
             if (
                 self.known_display is not None
@@ -64,13 +62,8 @@ class HistoryReadRequest:
                     )
             return HistoryReadResult(self, revision, high_water, None, False)
         page = self.page(after=self.after, limit=self.page_limit)
-        if (
-            self.known_display is not None
-            and self.kind.display_identity(page) != self.known_display
-        ):
-            return HistoryReadResult(
-                self, revision, high_water, self.page(limit=self.initial_limit), True
-            )
+        if self.known_display is not None and self.kind.display_identity(page) != self.known_display:
+            return HistoryReadResult(self, revision, high_water, self.page(limit=self.initial_limit), True)
         replace_tail = bool(page.messages and page.has_newer and self.follow_tail)
         if replace_tail:
             page = self.page(limit=self.initial_limit)
@@ -96,9 +89,7 @@ class ChannelHistoryReader:
     async def read(self, request: HistoryReadRequest) -> HistoryReadResult:
         if self._closed:
             raise RuntimeError("Channel history reader is closed")
-        task = asyncio.create_task(
-            asyncio.to_thread(request.read), name="channel-history-read"
-        )
+        task = asyncio.create_task(asyncio.to_thread(request.read), name="channel-history-read")
         self._pending.add(task)
 
         def finished(completed: asyncio.Task[HistoryReadResult]) -> None:

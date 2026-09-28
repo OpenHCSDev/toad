@@ -43,15 +43,10 @@ class CommsNavigationRequest(NavigationRequest[CommsNavigation]):
         comms = wire(root)
         me, target = self.kind.resolve(comms, self.me, self.target)
         recovery_root = self.recovery_root
-        if (
-            recovery_root is not None
-            and Path(recovery_root).expanduser().resolve() != root
-        ):
+        if recovery_root is not None and Path(recovery_root).expanduser().resolve() != root:
             recovery_root = None
         return CommsNavigation(
-            CommsViewKey(
-                str(root), self.owner_mode, me, self.kind.declared_name, target
-            ),
+            CommsViewKey(str(root), self.owner_mode, me, self.kind.declared_name, target),
             recovery_root,
         )
 
@@ -90,18 +85,10 @@ class ThreadNavigationRequest(NavigationRequest[ThreadNavigation]):
         project = Path(thread.worktree)
         if not project.is_dir():
             project = self.project
-        existing = next(
-            (
-                view
-                for view in self.open_threads
-                if view.root == str(root)
-                and comms.registry.canonical_name(view.name) == thread.name
-            ),
-            None,
-        )
-        return ThreadNavigation(
-            str(root), thread, active, persisted or attachable, project, existing
-        )
+        existing = next((view for view in self.open_threads
+                         if view.root == str(root)
+                         and comms.registry.canonical_name(view.name) == thread.name), None)
+        return ThreadNavigation(str(root), thread, active, persisted or attachable, project, existing)
 
 
 class NavigationReader:
@@ -128,9 +115,7 @@ class NavigationReader:
             self._slots.release()
             return None
         try:
-            pending = asyncio.create_task(
-                asyncio.to_thread(request.read), name="navigation-read"
-            )
+            pending = asyncio.create_task(asyncio.to_thread(request.read), name="navigation-read")
         except BaseException:
             self._slots.release()
             raise

@@ -33,7 +33,9 @@ from toad.settings import (
 
 class UiSettings(SettingsGroup):
     renderer = ChoiceSetting(
-        RendererChoice, title="Rendering backend", default=LocalRenderer,
+        RendererChoice,
+        title="Rendering backend",
+        default=LocalRenderer,
         help="CPU rendering backend for the next application launch. Persistent requires the optional extra.",
     )
 

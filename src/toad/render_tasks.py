@@ -129,9 +129,7 @@ class TranscriptRenderTask(ReusableRenderTask[tuple[TranscriptFragment, ...]]):
         return transcript_fragments(self.events)
 
     def accept_result(self, result: object) -> tuple[TranscriptFragment, ...]:
-        if not isinstance(result, tuple) or not all(
-            isinstance(item, TranscriptFragment) for item in result
-        ):
+        if not isinstance(result, tuple) or not all(isinstance(item, TranscriptFragment) for item in result):
             raise TypeError("Transcript renderer returned an invalid result")
         return result
 

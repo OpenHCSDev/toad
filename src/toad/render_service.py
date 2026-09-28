@@ -38,21 +38,13 @@ class RenderServiceConfig:
     client_lease_seconds: float = 60.0
 
     def __post_init__(self) -> None:
-        if (
-            any(
-                type(value) is not int or value < 1
-                for value in (self.max_workers, self.max_pending)
-            )
-            or isinstance(self.client_lease_seconds, bool)
-            or not math.isfinite(self.client_lease_seconds)
-            or self.client_lease_seconds <= 0
-        ):
+        if (any(type(value) is not int or value < 1 for value in (self.max_workers, self.max_pending))
+                or isinstance(self.client_lease_seconds, bool)
+                or not math.isfinite(self.client_lease_seconds) or self.client_lease_seconds <= 0):
             raise ValueError("Renderer capacities and client lease must be positive")
 
 
-def _initialize_render_worker(
-    config: RenderServiceConfig, expected_build: str | None
-) -> None:
+def _initialize_render_worker(config: RenderServiceConfig, expected_build: str | None) -> None:
     """Lazy-spawned workers must still match the service's advertised build."""
     _initialize_worker()
     if expected_build is not None:
@@ -78,15 +70,11 @@ class RenderService:
     Expired clients abandon delivery; CPU admission is released only on completion.
     """
 
-    def __init__(
-        self, config: RenderServiceConfig, *, expected_build: str | None = None
-    ) -> None:
+    def __init__(self, config: RenderServiceConfig, *, expected_build: str | None = None) -> None:
         self.config = config
         self._executor = ProcessPoolExecutor(
-            max_workers=config.max_workers,
-            mp_context=multiprocessing.get_context("spawn"),
-            initializer=_initialize_render_worker,
-            initargs=(config, expected_build),
+            max_workers=config.max_workers, mp_context=multiprocessing.get_context("spawn"),
+            initializer=_initialize_render_worker, initargs=(config, expected_build),
         )
         self._jobs: dict[UUID, PendingRender] = {}
         self._clients: dict[UUID, float] = {}
@@ -98,11 +86,8 @@ class RenderService:
 
     def reap(self, now: float | None = None) -> None:
         current = time.monotonic() if now is None else now
-        expired = [
-            client
-            for client, seen in self._clients.items()
-            if current - seen >= self.config.client_lease_seconds
-        ]
+        expired = [client for client, seen in self._clients.items()
+                   if current - seen >= self.config.client_lease_seconds]
         for client in expired:
             self._abandon(client)
         for request_id, job in tuple(self._jobs.items()):

@@ -66,9 +66,7 @@ class RenderCommand(DeclaredFamily, affix="Render"):
     @abstractmethod
     def execute(self, service: RenderService) -> RenderReply: ...
 
-    async def exchange(
-        self, client: PersistentRendererPool, submission: RenderSubmission
-    ) -> RenderReply:
+    async def exchange(self, client: PersistentRendererPool, submission: RenderSubmission) -> RenderReply:
         return await client._exchange(self)
 
 
@@ -101,9 +99,7 @@ class PollRender(RequestCommand):
         return service.poll(self)
 
     async def exchange(self, client, submission):
-        if (
-            submission.cancel_requested or client._closed
-        ) and not submission.cancellation_sent:
+        if (submission.cancel_requested or client._closed) and not submission.cancellation_sent:
             await client._exchange(CancelRender(self.client_id, self.request_id))
             submission.cancellation_sent = True
         return await super().exchange(client, submission)
@@ -141,9 +137,7 @@ class RenderReply(DeclaredFamily, affix="Reply"):
         return None
 
     @abstractmethod
-    async def advance(
-        self, submission: RenderSubmission, client: PersistentRendererPool
-    ) -> RenderCommand | None: ...
+    async def advance(self, submission: RenderSubmission, client: PersistentRendererPool) -> RenderCommand | None: ...
 
 
 @dataclass(frozen=True)

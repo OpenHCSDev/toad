@@ -19,7 +19,7 @@ from toad.render_service import RenderServiceConfig
 from toad.render_zmq import RendererEndpoint, PersistentRendererPool
 
 
-def launch(directory, options, settings):
+def launch(directory, options, settings, runtime):
     environment = dict(os.environ)
     for key in ("AGENT_COMMS_THREAD", "PI_AGENT_ID", "PI_PROMPT", "TOAD_RENDERER"):
         environment.pop(key, None)
@@ -29,7 +29,7 @@ def launch(directory, options, settings):
         ("XDG_DATA_HOME", "data"),
     ]:
         environment[key] = str(directory / name)
-    environment["XDG_RUNTIME_DIR"] = str(Path("/home/ts/wt/t6r") / directory.name)
+    environment["XDG_RUNTIME_DIR"] = str(runtime / directory.name)
     Path(environment["XDG_RUNTIME_DIR"]).mkdir(mode=0o700, parents=True, exist_ok=True)
     environment["AGENT_COMMS_ROOT"] = str(directory / "wire")
     environment["TERM"] = "xterm-256color"
@@ -86,7 +86,10 @@ def launch(directory, options, settings):
 
 
 async def main():
-    with tempfile.TemporaryDirectory(prefix="rcli-") as temporary:
+    with (
+        tempfile.TemporaryDirectory(prefix="rcli-") as temporary,
+        tempfile.TemporaryDirectory(prefix="rc-") as runtime,
+    ):
         base = Path(temporary)
         for name, options, saved in [
             ("local", ["--renderer", "local"], "local"),
@@ -95,7 +98,7 @@ async def main():
             directory = base / name
             directory.mkdir()
             environment, size = await asyncio.to_thread(
-                launch, directory, options, saved
+                launch, directory, options, saved, Path(runtime)
             )
             if name == "persistent":
                 previous = os.environ.get("XDG_RUNTIME_DIR")

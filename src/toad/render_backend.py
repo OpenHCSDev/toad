@@ -65,9 +65,7 @@ class PersistentRenderer(RendererChoice):
         if os.name != "posix":
             raise RuntimeError("The persistent renderer currently requires POSIX IPC")
         if find_spec("zmqruntime") is None:
-            raise RuntimeError(
-                "Install batrachian-toad[persistent-renderer] to use the persistent renderer"
-            )
+            raise RuntimeError("Install batrachian-toad[persistent-renderer] to use the persistent renderer")
         from toad.render_runtime import PersistentRenderClient
 
         if directory is None:

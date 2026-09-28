@@ -16,12 +16,18 @@ from agent_comms.transcript_events import TranscriptEvent
 from toad.widgets.transcript_fragments import TranscriptFragment, prepare_transcript_fragments
 from toad.widgets.message_filter import MessageCategory, event_category, keep_events
 from toad.work_preparation import (
-    PreparationRuntime, PreparationScope, SerializedWork, ScopedWork, ThreadWork, WorkKey, WorkLane, retained_bytes,
+    PreparationRuntime,
+    PreparationScope,
+    SerializedWork,
+    ScopedWork,
+    ThreadWork,
+    WorkKey,
+    WorkLane,
+    retained_bytes,
 )
 
 
 @dataclass(frozen=True)
-
 class PreparedTranscriptPage:
     page: TranscriptPage
     fragments: tuple[TranscriptFragment, ...]
@@ -36,9 +42,12 @@ class PageRequest:
 
 def incoming_sequences(events: tuple[TranscriptEvent, ...]) -> frozenset[int]:
     return frozenset(
-        event.routing.requests[0].seq for event in events
-        if event_category(event) is InboundCategory and event.routing is not None
-        and event.routing.requests and event.routing.requests[0].seq > 0
+        event.routing.requests[0].seq
+        for event in events
+        if event_category(event) is InboundCategory
+        and event.routing is not None
+        and event.routing.requests
+        and event.routing.requests[0].seq > 0
     )
 
 
