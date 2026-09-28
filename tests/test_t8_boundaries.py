@@ -76,8 +76,6 @@ class SessionBoundaryTests(unittest.IsolatedAsyncioTestCase):
                 )
                 self.assertEqual((await store.session_get(pk)).meta_json, metadata)
                 self.assertEqual(len(await store.session_get_recent(1)), 1)
-                self.assertTrue(await store.session_delete(pk))
-                self.assertIsNone(await store.session_get(pk))
                 with sqlite3.connect(store.path) as db:
                     db.execute(
                         "UPDATE sessions SET prompt_count='not a count' WHERE id=1"

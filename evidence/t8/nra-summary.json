@@ -1,0 +1,28 @@
+{
+  "timing": {
+    "parse_seconds": 3.027,
+    "analysis_seconds": 51.192,
+    "planning_seconds": 0.0,
+    "source_index_seconds": 0.17,
+    "analysis_cache_status": "miss",
+    "total_seconds": 54.389
+  },
+  "finding_count": 3,
+  "raw_findings": [
+    {
+      "title": "`TOOLS` mirrors `DeclaredFamily`",
+      "detector_id": "semantic_mirror_without_descent",
+      "why": "The collection literal at /home/ts/wt/comms-acp-saved-session-startup-20260928/src/agent_comms/tools.py:548 repeats FamilyClassStorage, Fork, InputAttempt, JsonStorage, ModelConfigOption, NativeEntry from the `DeclaredFamily` semantic authority. A later class, enum member, or schema field can diverge from this hand-maintained view."
+    },
+    {
+      "title": "`Agent._apply_session_update:if` mirrors `DeclaredFamily`",
+      "detector_id": "semantic_mirror_without_descent",
+      "why": "The branch literal at /home/ts/wt/toad-t8-small-boundaries-20260928/src/toad/acp/agent.py:421 repeats CheckpointSeal, ExactStorage, FamilyClassStorage, JsonStorage, SessionTimestampStorage, StringEnumStorage from the `DeclaredFamily` semantic authority. A later class, enum member, or schema field can diverge from this hand-maintained view."
+    },
+    {
+      "title": "`TOOL_CALL_CONTENT` mirrors `DeclaredFamily`",
+      "detector_id": "semantic_mirror_without_descent",
+      "why": "The mapping literal at /home/ts/wt/toad-t8-small-boundaries-20260928/src/toad/widgets/tool_call.py:716 repeats CompletedGoal, FamilyClassStorage, InputAttempt, JsonStorage, NativeEntry, NativeOutcome from the `DeclaredFamily` semantic authority. A later class, enum member, or schema field can diverge from this hand-maintained view."
+    }
+  ]
+}
