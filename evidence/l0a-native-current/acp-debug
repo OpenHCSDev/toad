@@ -1,0 +1,94 @@
+[1790622898.471] incoming: {"jsonrpc": "2.0", "method": "initialize", "params": {"protocolVersion": 1, "clientCapabilities": {"fs": {"readTextFile": true, "writeTextFile": true}, "terminal": true, "auth": {"terminal": true}, "_
+[1790622898.471] outgoing: {"jsonrpc": "2.0", "id": 1, "result": {"protocolVersion": 1, "agentCapabilities": {"loadSession": true, "promptCapabilities": {"image": true}}, "authMethods": [{"id": "pi-login-openai-codex", "name": 
+[1790622898.472] incoming: {"jsonrpc": "2.0", "method": "session/load", "params": {"cwd": "/home/ts/wt/toad-refactor2-l0a-20260928/.artifacts/tmp/l0a-native-hs3dj3mm/project", "mcpServers": [], "sessionId": "beta"}, "id": 2}
+[1790622900.114] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"content": {"text": "", "type": "text"}, "_meta": {"agentComms": {"thread": "beta", "goal": null, "goalExecuti
+[1790622900.115] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"content": {"text": "", "type": "text"}, "_meta": {"agentComms": {"transcript": [], "transcriptPage": {"before
+[1790622900.116] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"content": {"text": "", "type": "text"}, "_meta": {"agentComms": {"turnSettled": true, "turnId": ""}}, "sessio
+[1790622900.129] outgoing: {"jsonrpc": "2.0", "id": 2, "result": {"configOptions": [{"currentValue": "selected-offline/fixture", "options": [{"value": "selected-offline/fixture", "name": "selected-offline/fixture"}], "id": "mod
+[1790622901.706] incoming: {"jsonrpc": "2.0", "method": "session/prompt", "params": {"prompt": [{"type": "text", "text": "FIRST_NATIVE_INPUT"}], "sessionId": "beta", "_meta": {"agentComms": {"delivery": "queue", "deferDisplay":
+[1790622901.710] prompt:start sender=beta mode=agent sent_seq=0
+[1790622901.716] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"content": {"text": "", "type": "text"}, "_meta": {"agentComms": {"inputDisposition": {"sequence": null, "targ
+[1790622901.750] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"content": {"text": "", "type": "text"}, "_meta": {"agentComms": {"turnStarted": true, "turnId": "1b482d608d18
+[1790622901.750] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"content": {"text": "", "type": "text"}, "_meta": {"agentComms": {"inputDeliveryChanged": true}}, "sessionUpda
+=== watchdog: 5 tasks ===
+  Task-2: base_events.py:677 <- base_events.py:2046 <- events.py:94 <- acp.py:802
+  Task-1: acp.py:827
+  Task-3: runtime.py:451
+  acp.Connection.request: connection.py:188
+  acp.Sender.loop: sender.py:46
+[1790622904.846] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"_meta": {"agentComms": {"privateNativeCursor": {"version": 1, "scope": {"sessionId": "beta", "wireRootId": "4
+[1790622904.856] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"content": {"text": "", "type": "text"}, "_meta": {"agentComms": {"inputDisposition": {"sequence": null, "targ
+[1790622904.856] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"content": {"text": "", "type": "text"}, "_meta": {"agentComms": {"inputStarted": {"text": null}}}, "sessionUp
+[1790622904.856] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"content": {"text": "", "type": "text"}, "_meta": {"agentComms": {"queueBinding": {"version": 1, "sessionId": 
+[1790622904.963] incoming: {"jsonrpc": "2.0", "method": "session/prompt", "params": {"prompt": [{"type": "text", "text": "QUEUED_NATIVE_INPUT"}], "sessionId": "beta", "_meta": {"agentComms": {"delivery": "queue", "deferDisplay"
+[1790622904.974] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"content": {"text": "", "type": "text"}, "_meta": {"agentComms": {"queueBinding": {"version": 1, "sessionId": 
+[1790622904.974] outgoing: {"jsonrpc": "2.0", "id": 4, "result": {"stopReason": "end_turn", "_meta": {"agentComms": {"inputDisposition": {"inputId": "fc687cdc898f467791cb28b1c05eefce", "status": "accepted_not_started", "deliver
+[1790622905.002] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"used": 110, "size": 32768, "sessionUpdate": "usage_update"}}}
+[1790622905.009] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"used": 110, "size": 32768, "sessionUpdate": "usage_update"}}}
+[1790622905.009] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"content": {"text": "NATIVE_RESPONSE_1", "type": "text"}, "_meta": {"agentComms": {"route": null}}, "sessionUp
+[1790622905.024] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"used": 110, "size": 32768, "sessionUpdate": "usage_update"}}}
+[1790622905.060] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"used": 110, "size": 32768, "sessionUpdate": "usage_update"}}}
+[1790622905.066] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"content": {"text": "", "type": "text"}, "_meta": {"agentComms": {"inputDisposition": {"sequence": null, "targ
+[1790622905.067] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"content": {"text": "", "type": "text"}, "_meta": {"agentComms": {"inputStarted": {"text": "QUEUED_NATIVE_INPU
+[1790622905.067] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"content": {"text": "", "type": "text"}, "_meta": {"agentComms": {"queueBinding": {"version": 1, "sessionId": 
+[1790622905.076] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"used": 110, "size": 32768, "sessionUpdate": "usage_update"}}}
+[1790622905.081] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"used": 110, "size": 32768, "sessionUpdate": "usage_update"}}}
+[1790622905.081] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"content": {"text": "NATIVE_RESPONSE_2", "type": "text"}, "_meta": {"agentComms": {"route": null}}, "sessionUp
+[1790622905.087] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"used": 110, "size": 32768, "sessionUpdate": "usage_update"}}}
+[1790622905.095] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"used": 110, "size": 32768, "sessionUpdate": "usage_update"}}}
+[1790622905.106] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"used": 110, "size": 32768, "sessionUpdate": "usage_update"}}}
+[1790622905.154] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"used": 110, "size": 32768, "sessionUpdate": "usage_update"}}}
+[1790622905.200] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"content": {"text": "", "type": "text"}, "_meta": {"agentComms": {"turnSettled": true, "turnId": "1b482d608d18
+[1790622905.246] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"content": {"text": "", "type": "text"}, "_meta": {"agentComms": {"transcriptChanged": true, "transcriptCursor
+[1790622905.246] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"content": {"text": "", "type": "text"}, "_meta": {"agentComms": {"inputDeliveryChanged": true}}, "sessionUpda
+[1790622905.247] prompt:returning
+[1790622905.247] outgoing: {"jsonrpc": "2.0", "id": 3, "result": {"stopReason": "end_turn"}}
+[1790622908.433] incoming: {"jsonrpc": "2.0", "method": "initialize", "params": {"protocolVersion": 1, "clientCapabilities": {"fs": {"readTextFile": true, "writeTextFile": true}, "terminal": true, "auth": {"terminal": true}, "_
+[1790622908.433] outgoing: {"jsonrpc": "2.0", "id": 5, "result": {"protocolVersion": 1, "agentCapabilities": {"loadSession": true, "promptCapabilities": {"image": true}}, "authMethods": [{"id": "pi-login-openai-codex", "name": 
+[1790622908.434] incoming: {"jsonrpc": "2.0", "method": "session/load", "params": {"cwd": "/home/ts/wt/toad-refactor2-l0a-20260928/.artifacts/tmp/l0a-native-hs3dj3mm/project", "mcpServers": [], "sessionId": "beta"}, "id": 6}
+[1790622908.449] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"content": {"text": "", "type": "text"}, "_meta": {"agentComms": {"thread": "beta", "goal": null, "goalExecuti
+[1790622908.455] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"content": {"text": "", "type": "text"}, "_meta": {"agentComms": {"transcript": [{"kind": "context", "routing"
+[1790622908.455] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"content": {"text": "", "type": "text"}, "_meta": {"agentComms": {"turnSettled": true, "turnId": ""}}, "sessio
+[1790622908.470] outgoing: {"jsonrpc": "2.0", "id": 6, "result": {"configOptions": [{"currentValue": "selected-offline/fixture", "options": [{"value": "selected-offline/fixture", "name": "selected-offline/fixture"}], "id": "mod
+[1790622912.950] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"content": {"text": "", "type": "text"}, "_meta": {"agentComms": {"inputDeliveryChanged": true}}, "sessionUpda
+=== watchdog: 4 tasks ===
+  Task-3: runtime.py:451
+  acp.Sender.loop: sender.py:46
+  Task-2: base_events.py:677 <- base_events.py:2046 <- events.py:94 <- acp.py:802
+  Task-1: acp.py:827
+[1790622917.269] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"content": {"text": "", "type": "text"}, "_meta": {"agentComms": {"inputDeliveryChanged": true}}, "sessionUpda
+[1790622917.375] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"_meta": {"agentComms": {"privateNativeCursor": {"version": 1, "scope": {"sessionId": "beta", "wireRootId": "4
+[1790622921.113] incoming: {"jsonrpc": "2.0", "method": "initialize", "params": {"protocolVersion": 1, "clientCapabilities": {"fs": {"readTextFile": true, "writeTextFile": true}, "terminal": true, "auth": {"terminal": true}, "_
+[1790622921.114] outgoing: {"jsonrpc": "2.0", "id": 7, "result": {"protocolVersion": 1, "agentCapabilities": {"loadSession": true, "promptCapabilities": {"image": true}}, "authMethods": [{"id": "pi-login-openai-codex", "name": 
+[1790622921.114] incoming: {"jsonrpc": "2.0", "method": "session/load", "params": {"cwd": "/home/ts/wt/toad-refactor2-l0a-20260928/.artifacts/tmp/l0a-native-hs3dj3mm/project", "mcpServers": [], "sessionId": "beta"}, "id": 8}
+[1790622921.137] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"content": {"text": "", "type": "text"}, "_meta": {"agentComms": {"thread": "beta", "goal": null, "goalExecuti
+[1790622921.140] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"content": {"text": "", "type": "text"}, "_meta": {"agentComms": {"transcript": [{"kind": "context", "routing"
+[1790622921.141] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"content": {"text": "", "type": "text"}, "_meta": {"agentComms": {"turnSettled": true, "turnId": ""}}, "sessio
+[1790622921.154] outgoing: {"jsonrpc": "2.0", "id": 8, "result": {"configOptions": [{"currentValue": "selected-offline/fixture", "options": [{"value": "selected-offline/fixture", "name": "selected-offline/fixture"}], "id": "mod
+[1790622921.327] incoming: {"jsonrpc": "2.0", "method": "session/prompt", "params": {"prompt": [{"type": "text", "text": "AFTER_RESTART_NATIVE"}], "sessionId": "beta", "_meta": {"agentComms": {"delivery": "queue", "deferDisplay
+[1790622921.332] prompt:start sender=beta mode=agent sent_seq=0
+[1790622921.339] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"content": {"text": "", "type": "text"}, "_meta": {"agentComms": {"inputDisposition": {"sequence": null, "targ
+[1790622921.361] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"content": {"text": "", "type": "text"}, "_meta": {"agentComms": {"turnStarted": true, "turnId": "15c856bc7f11
+[1790622921.361] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"content": {"text": "", "type": "text"}, "_meta": {"agentComms": {"inputDeliveryChanged": true}}, "sessionUpda
+[1790622925.841] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"content": {"text": "", "type": "text"}, "_meta": {"agentComms": {"inputDisposition": {"sequence": null, "targ
+[1790622925.841] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"content": {"text": "", "type": "text"}, "_meta": {"agentComms": {"inputStarted": {"text": null}}}, "sessionUp
+[1790622925.842] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"content": {"text": "", "type": "text"}, "_meta": {"agentComms": {"queueBinding": {"version": 1, "sessionId": 
+[1790622925.999] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"used": 110, "size": 32768, "sessionUpdate": "usage_update"}}}
+[1790622926.004] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"used": 110, "size": 32768, "sessionUpdate": "usage_update"}}}
+[1790622926.004] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"content": {"text": "NATIVE_RESPONSE_5", "type": "text"}, "_meta": {"agentComms": {"route": null}}, "sessionUp
+[1790622926.009] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"used": 110, "size": 32768, "sessionUpdate": "usage_update"}}}
+[1790622926.041] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"used": 110, "size": 32768, "sessionUpdate": "usage_update"}}}
+[1790622926.077] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"used": 110, "size": 32768, "sessionUpdate": "usage_update"}}}
+[1790622926.088] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"used": 110, "size": 32768, "sessionUpdate": "usage_update"}}}
+[1790622926.098] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"content": {"text": "", "type": "text"}, "_meta": {"agentComms": {"turnSettled": true, "turnId": "15c856bc7f11
+=== watchdog: 5 tasks ===
+  acp.Sender.loop: sender.py:46
+  Task-3: runtime.py:451
+  Task-2: base_events.py:677 <- base_events.py:2046 <- events.py:94 <- acp.py:802
+  Task-1: acp.py:827
+  acp.Connection.request: connection.py:188
+[1790622926.127] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"content": {"text": "", "type": "text"}, "_meta": {"agentComms": {"transcriptChanged": true, "transcriptCursor
+[1790622926.128] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"content": {"text": "", "type": "text"}, "_meta": {"agentComms": {"inputDeliveryChanged": true}}, "sessionUpda
+[1790622926.128] prompt:returning
+[1790622926.129] outgoing: {"jsonrpc": "2.0", "id": 9, "result": {"stopReason": "end_turn"}}
+[1790622927.138] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"_meta": {"agentComms": {"privateNativeCursor": {"version": 1, "scope": {"sessionId": "beta", "wireRootId": "4

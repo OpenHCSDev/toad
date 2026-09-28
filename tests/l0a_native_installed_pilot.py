@@ -207,7 +207,6 @@ async def main(*, notification_only=False):
         )
         comms = Comms(Path(wire_dir) / "wire")
         root_id = comms.messaging.initialize_private_initial_protocol()
-        comms.messaging.initialize_private_claim_protocol()
         with MutationStore(str(comms.root / "coordination.sqlite3")) as store:
             install_private_cohort_schema(store)
             install_private_response_schema(store)
