@@ -26,7 +26,10 @@ real PTY output establish clipboard transport. No live/shared checkout writes.
 
 ### App slice completion receipt
 
-Integration base is merged `main` b472e487/Toad128. This slice preserves
+Initial integration base is merged `main` b472e487/Toad128; final branch is
+rebased onto parent132/main b4bdae1 with core287 and merged Textual8. Six installed
+owner/native/tab UI checks pass; the independent per-class ratchet has zero
+positive deltas. This slice preserves
 ViewportPresentation and Carver's merged owners. Compared with that main,
 ToadApp is **1,803 → 1,712** AST span lines; PromptTextArea **368 → 363**
 (check the shared ratchet for semantic-size counts). Conversation **2,829** and

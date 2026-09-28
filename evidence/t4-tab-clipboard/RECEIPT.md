@@ -5,7 +5,27 @@ Own persistent tree: /home/ts/wt/toad-t4-tab-clipboard-sol-20260928.
 Parent owns merge and paired live installation. Carver owns Conversation/Agent;
 Tesla/workspace owner owns resources and global rich-surface lifetime.
 
-## Installed acceptance
+## Final current-main integration
+
+Parent132 landed as main b4bdae1657a819dd943ed1fbd5a2b684c2683019.
+This branch is rebased onto it and preserves its direct ToolRequest callers,
+updated lock/pins and all predecessor owners. The new installed acceptance uses
+core287 4510dddf737da3d445ba20d90c79f3dcb3f08b27 plus merged Textual8
+c9743801c98dc570f82f82e25915ecce89800f4b, exactly the merged project pins.
+
+**6 passed in 50.98s**, one complete focused invocation: state/new-case/deletion
+contracts, real LinuxDriver/private-X11/OSC52 copy-paste-failure-PNG pilot,
+installed tab-history controls and interleaved tab-order UI. No paid/provider
+prompt, source/editable import, CI wait or live change. Shared per-class/AST
+ratchet still has zero positive deltas against new main; App -91, Prompt -5,
+preview0. All scope implementation and deletion are complete; no blocker.
+
+The earlier acceptance and NRA structural audit below remain as history. They
+are not substituted for this final installed current-main result. Full archived
+NRA JSON is retained locally; the final update changes integration/dependency
+context, not this slice's production implementation.
+
+## Original installed acceptance
 
 Noneditable Toad wheel in own Python3.14 venv; no PYTHONPATH/editable overrides.
 Installed framework c9743801c98dc570f82f82e25915ecce89800f4b (Textual8) and

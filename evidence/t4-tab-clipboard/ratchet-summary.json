@@ -1,6 +1,6 @@
 {
-  "base_revision": "b472e487d69c600490609fec7163376e30b1b5d1",
-  "head_revision": "b358ae4e4caa4df149beb227908c6bf9d5e1012c",
+  "base_revision": "b4bdae1657a819dd943ed1fbd5a2b684c2683019",
+  "head_revision": "e25179065c530251df6bddffd50f4a86c2dd0107",
   "paths": [
     "src/toad/app.py",
     "src/toad/clipboard.py",
