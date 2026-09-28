@@ -1,0 +1,18 @@
+{
+  "baseline": {
+    "cold_ms": 2520.77,
+    "warm_median_ms": 33.93,
+    "warm_p95_ms": 47.67,
+    "heartbeat_max_ms": 27.81,
+    "rounds": 3,
+    "warm_requests_per_round": 21
+  },
+  "current": {
+    "cold_ms": 2518.87,
+    "warm_median_ms": 33.78,
+    "warm_p95_ms": 48.67,
+    "heartbeat_max_ms": 21.15,
+    "rounds": 3,
+    "warm_requests_per_round": 21
+  }
+}

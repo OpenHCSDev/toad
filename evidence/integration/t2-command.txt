@@ -1,0 +1,9 @@
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-integration-20260928/tests/command_family_pilot.py", line 19, in <module>
+    from toad.screens.main import MainScreen
+  File "/home/ts/wt/toad-integration-20260928/.venv/lib/python3.14/site-packages/toad/screens/main.py", line 38, in <module>
+    from toad.widgets.thread_comms import RelationshipSort, ThreadCommsSidebar
+  File "/home/ts/wt/toad-integration-20260928/.venv/lib/python3.14/site-packages/toad/widgets/thread_comms.py", line 83, in <module>
+    class RelationshipRow(CommsRow):
+                          ^^^^^^^^
+NameError: name 'CommsRow' is not defined

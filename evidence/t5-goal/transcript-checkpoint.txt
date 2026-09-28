@@ -1,0 +1,1 @@
+off-tail checkpoint: 432 committed live blocks retired; peak 3 outer widgets; stable painted viewport, selection, identities, supersession and source access

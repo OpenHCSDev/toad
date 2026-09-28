@@ -16,10 +16,10 @@ from toad.app import ToadApp
 from toad.screens.session_view import SessionView
 from toad.session_tracker import SidebarState
 from toad.widgets.channels_sidebar import ChannelsSlot
-from toad.widgets.comms_sidebar import CommsSidebar, SelectTarget
+from toad.widgets.comms_sidebar import SelectTarget
 from toad.widgets.conversation import ThreadLoading
 from toad.widgets.session_tabs import SessionsTabs
-from toad.widgets.side_bar import SideBar, TabHistoryControls
+from toad.widgets.side_bar import SideBar, ThreadSidebar, TabHistoryControls
 from toad.navigation_target import NavigationContext, NavigationOwner
 
 
@@ -57,9 +57,9 @@ class PendingThreadScreen(SessionView, NavigationOwner, can_focus=False):
             # unresolved destination. Shared hide/placement/scroll intent stays
             # visible without adding another wire read to route discovery.
             yield self._channels
-            yield SideBar(
+            yield ThreadSidebar(
                 SideBar.Panel("Thread", Static("Opening thread…")),
-                id="thread-sidebar", right=True, hide=True, navigation=self._thread_sidebar_state,
+                right=True, hide=True, navigation=self._thread_sidebar_state,
                 defer_mount=True,
             )
             with containers.Vertical(id="pending-thread-content"):
@@ -68,7 +68,7 @@ class PendingThreadScreen(SessionView, NavigationOwner, can_focus=False):
     @on(SelectTarget)
     async def on_select_target(self, event: SelectTarget) -> None:
         event.stop()
-        await self.open_sidebar_target(event.target, event.kind)
+        await self.open_sidebar_target(event.target)
 
     @property
     def navigation_context(self) -> NavigationContext:
@@ -78,13 +78,6 @@ class PendingThreadScreen(SessionView, NavigationOwner, can_focus=False):
     def on_session_create(self, event: messages.SessionCreate) -> None:
         event.stop()
         self.app.post_message(messages.SessionCreate(self.owner_mode))
-
-    @on(CommsSidebar.ThreadAction)
-    def on_thread_action(self, event: CommsSidebar.ThreadAction) -> None:
-        if event.action == "comms_fork":
-            event.stop()
-            if owner := cast(ToadApp, self.app)._main_session_screen(self.owner_mode):
-                owner.post_message(CommsSidebar.ThreadAction(event.name, event.action))
 
     async def action_close_pending(self) -> None:
         if self.id is not None:

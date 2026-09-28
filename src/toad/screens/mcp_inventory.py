@@ -71,6 +71,7 @@ class MCPInventoryScreen(ModalScreen[None]):
         if self._read_task is not None:
             self._read_task.cancel()
 
+    @on(Button.Pressed, "#refresh")
     def action_refresh(self) -> None:
         self._generation += 1
         if self._read_task is not None:
@@ -115,8 +116,8 @@ class MCPInventoryScreen(ModalScreen[None]):
             project = calls = False
         else:
             eligible = row.effective and row.enabled and snapshot.project_trusted_saved
-            project = eligible and row.scope == "project"
-            calls = eligible and row.status == "approved"
+            project = eligible and row.scope.allows_trust_decision()
+            calls = eligible and row.status.allows_call_decision()
         for identifier, enabled in (
             ("trust_approve", project),
             ("trust_deny", project),
@@ -142,35 +143,33 @@ class MCPInventoryScreen(ModalScreen[None]):
         )
         self._update_actions()
 
-    @on(Button.Pressed)
-    def on_button_pressed(self, event: Button.Pressed) -> None:
-        identifier = event.button.id
-        if identifier == "close":
-            self.dismiss()
-        elif identifier == "refresh":
-            self.action_refresh()
-        elif identifier in {"trust_approve", "trust_deny", "calls_allow", "calls_ask"}:
-            from toad.screens.mcp_decision import MCPDecisionScreen
+    @on(Button.Pressed, "#close")
+    def close_inventory(self, event: Button.Pressed) -> None:
+        self.dismiss()
 
-            snapshot, row = self._inventory, self._selected
-            if snapshot is None or row is None or event.button.disabled:
-                return
-            action: DecisionAction = (
-                "trust" if identifier.startswith("trust_") else "calls"
-            )
-            choices: dict[str, Decision] = {
-                "trust_approve": "approve",
-                "trust_deny": "deny",
-                "calls_allow": "allow",
-                "calls_ask": "ask",
-            }
-            decision = choices[identifier]
-            self.app.push_screen(
-                MCPDecisionScreen(
-                    snapshot,
-                    row,
-                    action=action,
-                    decision=decision,
-                ),
-                lambda _: self.action_refresh(),
-            )
+    @on(Button.Pressed, "#trust_approve")
+    def approve_project(self, event: Button.Pressed) -> None:
+        self.open_decision(event, "trust", "approve")
+
+    @on(Button.Pressed, "#trust_deny")
+    def deny_project(self, event: Button.Pressed) -> None:
+        self.open_decision(event, "trust", "deny")
+
+    @on(Button.Pressed, "#calls_allow")
+    def allow_calls(self, event: Button.Pressed) -> None:
+        self.open_decision(event, "calls", "allow")
+
+    @on(Button.Pressed, "#calls_ask")
+    def ask_calls(self, event: Button.Pressed) -> None:
+        self.open_decision(event, "calls", "ask")
+
+    def open_decision(self, event: Button.Pressed, action: DecisionAction, decision: Decision) -> None:
+        from toad.screens.mcp_decision import MCPDecisionScreen
+
+        snapshot, row = self._inventory, self._selected
+        if snapshot is None or row is None or event.button.disabled:
+            return
+        self.app.push_screen(
+            MCPDecisionScreen(snapshot, row, action=action, decision=decision),
+            lambda _: self.action_refresh(),
+        )

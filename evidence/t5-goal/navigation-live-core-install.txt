@@ -1,0 +1,5 @@
+Resolved 1 package in 315ms
+Uninstalled 1 package in 7ms
+Installed 1 package in 7ms
+ - agent-comms==0.1.0 (from git+https://github.com/OpenHCSDev/agent-comms.git@2bfbdb23ed1eaf39238d84e18c386a707e9a6f6e)
+ + agent-comms==0.1.0 (from git+https://github.com/OpenHCSDev/agent-comms.git@1853503b432144e9a3becf358bb870b6b71c8119)

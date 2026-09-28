@@ -1,0 +1,65 @@
+test_any_mode_expansion_reloads_older_history_without_new_bus_rows (__main__.ReaderTests.test_any_mode_expansion_reloads_older_history_without_new_bus_rows) ... Executing <Task finished name='Task-2' coro=<ReaderTests.test_any_mode_expansion_reloads_older_history_without_new_bus_rows() done, defined at /home/ts/wt/toad-t6-rendering-20260928/tests/channel_history_reader_pilot.py:64> result=None created at /home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py:109> took 0.238 seconds
+ok
+test_bus_replacement_reloads_unchanged_sequence_tail (__main__.ReaderTests.test_bus_replacement_reloads_unchanged_sequence_tail) ... 
+  test_bus_replacement_reloads_unchanged_sequence_tail (__main__.ReaderTests.test_bus_replacement_reloads_unchanged_sequence_tail) (kind=<class 'toad.conversation_kind.ChannelConversation'>) ... ERROR
+Candidate maintenance unavailable (ProjectionUnavailableError)
+Candidate maintenance unavailable (ProjectionUnavailableError)
+  test_bus_replacement_reloads_unchanged_sequence_tail (__main__.ReaderTests.test_bus_replacement_reloads_unchanged_sequence_tail) (kind=<class 'toad.conversation_kind.DmConversation'>) ... ERROR
+Executing <Task finished name='Task-7' coro=<ReaderTests.test_bus_replacement_reloads_unchanged_sequence_tail() done, defined at /home/ts/wt/toad-t6-rendering-20260928/tests/channel_history_reader_pilot.py:21> result=None created at /home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py:109> took 0.224 seconds
+test_dm_turn_lease_preserves_display_identity (__main__.ReaderTests.test_dm_turn_lease_preserves_display_identity) ... Executing <Task finished name='Task-12' coro=<ReaderTests.test_dm_turn_lease_preserves_display_identity() done, defined at /home/ts/wt/toad-t6-rendering-20260928/tests/channel_history_reader_pilot.py:49> result=None created at /home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py:109> took 0.131 seconds
+ok
+test_history_attachment_refreshes_without_new_live_messages (__main__.ReaderTests.test_history_attachment_refreshes_without_new_live_messages) ... Executing <Task finished name='Task-17' coro=<ReaderTests.test_history_attachment_refreshes_without_new_live_messages() done, defined at /home/ts/wt/toad-t6-rendering-20260928/tests/channel_history_reader_pilot.py:96> result=None created at /home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py:109> took 0.239 seconds
+ok
+test_revision_reuse_limits_and_cancelled_read_ownership (__main__.ReaderTests.test_revision_reuse_limits_and_cancelled_read_ownership) ... Executing <Task pending name='Task-22' coro=<ReaderTests.test_revision_reuse_limits_and_cancelled_read_ownership() running at /home/ts/wt/toad-t6-rendering-20260928/tests/channel_history_reader_pilot.py:136> wait_for=<Future pending cb=[Task.task_wakeup()] created at /home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py:459> cb=[_run_until_complete_cb() at /home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py:181] created at /home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py:109> took 1.825 seconds
+<string>:3: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7f923b28c040>
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+
+======================================================================
+ERROR: test_bus_replacement_reloads_unchanged_sequence_tail (__main__.ReaderTests.test_bus_replacement_reloads_unchanged_sequence_tail) (kind=<class 'toad.conversation_kind.ChannelConversation'>)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-t6-rendering-20260928/tests/channel_history_reader_pilot.py", line 43, in test_bus_replacement_reloads_unchanged_sequence_tail
+    refreshed = following.read()
+  File "/home/ts/wt/toad-t6-rendering-20260928/.venv/lib/python3.14/site-packages/toad/channel_preparation.py", line 41, in read
+    high_water = self.comms.bus.log.latest_sequence()
+  File "/home/ts/wt/toad-t6-rendering-20260928/.venv/lib/python3.14/site-packages/agent_comms/wire_log.py", line 513, in latest_sequence
+    with _store_lock(self.path):
+         ~~~~~~~~~~~^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 141, in __enter__
+    return next(self.gen)
+  File "/home/ts/wt/toad-t6-rendering-20260928/.venv/lib/python3.14/site-packages/agent_comms/store_files.py", line 69, in _store_lock
+    WireLog(store_path).verify_before_read_unlocked()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-t6-rendering-20260928/.venv/lib/python3.14/site-packages/agent_comms/wire_log.py", line 626, in verify_before_read_unlocked
+    private_marker = self._private_marker_unlocked()
+  File "/home/ts/wt/toad-t6-rendering-20260928/.venv/lib/python3.14/site-packages/agent_comms/wire_log.py", line 153, in _private_marker_unlocked
+    raise RelationViolationError("Private bus files require regular owner-only mode.")
+agent_comms.errors.RelationViolationError: Private bus files require regular owner-only mode.
+
+======================================================================
+ERROR: test_bus_replacement_reloads_unchanged_sequence_tail (__main__.ReaderTests.test_bus_replacement_reloads_unchanged_sequence_tail) (kind=<class 'toad.conversation_kind.DmConversation'>)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-t6-rendering-20260928/tests/channel_history_reader_pilot.py", line 43, in test_bus_replacement_reloads_unchanged_sequence_tail
+    refreshed = following.read()
+  File "/home/ts/wt/toad-t6-rendering-20260928/.venv/lib/python3.14/site-packages/toad/channel_preparation.py", line 41, in read
+    high_water = self.comms.bus.log.latest_sequence()
+  File "/home/ts/wt/toad-t6-rendering-20260928/.venv/lib/python3.14/site-packages/agent_comms/wire_log.py", line 513, in latest_sequence
+    with _store_lock(self.path):
+         ~~~~~~~~~~~^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 141, in __enter__
+    return next(self.gen)
+  File "/home/ts/wt/toad-t6-rendering-20260928/.venv/lib/python3.14/site-packages/agent_comms/store_files.py", line 69, in _store_lock
+    WireLog(store_path).verify_before_read_unlocked()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-t6-rendering-20260928/.venv/lib/python3.14/site-packages/agent_comms/wire_log.py", line 626, in verify_before_read_unlocked
+    private_marker = self._private_marker_unlocked()
+  File "/home/ts/wt/toad-t6-rendering-20260928/.venv/lib/python3.14/site-packages/agent_comms/wire_log.py", line 153, in _private_marker_unlocked
+    raise RelationViolationError("Private bus files require regular owner-only mode.")
+agent_comms.errors.RelationViolationError: Private bus files require regular owner-only mode.
+
+----------------------------------------------------------------------
+Ran 5 tests in 2.726s
+
+FAILED (errors=2)

@@ -1,0 +1,9 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+________________________ pilot: mcp_decision_pty_pilot _________________________
+Pilot failed: TimedOutOutcome(termination=GracefulStopOutcome(termination=SignaledOutcome(signal_number=15)))
+
+Logs: /home/ts/wt/toad-tr0-sol-20260928/.artifacts/mcp-current/mcp_decision_pty_pilot0
+=========================== short test summary info ============================
+FAILED tests/mcp_decision_pty_pilot.py::mcp_decision_pty_pilot - Failed: Pilo...
+1 failed in 45.35s

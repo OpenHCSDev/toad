@@ -1,0 +1,1 @@
+{'first_paint_route': 'real OptionSelected', 'channels': ('#alpha', '#any'), 'existing_session_reused': True, 'virtual_scroll_restored': True, 'right_click_menu': True, 'sidebar_widget_count': 1}

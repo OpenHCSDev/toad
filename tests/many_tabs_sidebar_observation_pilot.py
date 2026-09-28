@@ -1,5 +1,7 @@
 """Global observations should not repeatedly traverse hidden tab sidebars."""
 
+from toad.widgets.message_filter import ThinkingCategory
+
 import asyncio
 from collections import Counter
 import os
@@ -12,6 +14,7 @@ from toad.widgets.message_filter import MessageCategory
 from toad.widgets.thread_comms import ThreadCommsSidebar
 from toad.widgets.comms_sidebar import CommsSidebar
 from textual.widgets import Checkbox
+
 
 
 async def main():
@@ -69,14 +72,14 @@ async def main():
 
             old = modes[0]
             view = app.get_screen_stack(old)[0].conversation
-            view.visible_categories = frozenset((MessageCategory.THINKING,))
+            view.visible_categories = frozenset((ThinkingCategory,))
             await asyncio.wait_for(app.switch_mode(old), 3)
             await pilot.pause()
             assert sidebars[old].query_one("#filter-thinking", Checkbox).value
             assert not sidebars[old].query_one("#filter-user", Checkbox).value
             left = app.screen.query_one(CommsSidebar)
             assert left._rendered_mode is not None and left._rendered_mode[0] == old
-            assert view.visible_categories == frozenset((MessageCategory.THINKING,))
+            assert view.visible_categories == frozenset((ThinkingCategory,))
             assert app._exception is None
         await asyncio.get_running_loop().shutdown_default_executor()
     print(f"10 mounted tabs, 40 observations: selected sidebar synced {counts[active]} times; hidden sidebars synced 0; routed/session rows caught up on return")

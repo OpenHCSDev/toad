@@ -1,5 +1,7 @@
 """Thread and channel tabs share one opening order across every screen."""
 
+from toad.navigation_target import channel_target
+
 import asyncio
 import os
 import tempfile
@@ -23,7 +25,7 @@ async def main():
             await pilot.pause()
             first = app.current_mode
             channel = await app.open_comms_session(owner_mode=first, project_path=root,
-                me="owner", target="#all", kind="channel")
+                me="owner", target=channel_target("#all"))
             second = (await app.new_session_screen(app.get_main_screen)).mode_name
             expected = [first, channel, second]
             for mode in expected * 2:

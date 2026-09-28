@@ -82,11 +82,7 @@ class SlashComplete(containers.VerticalGroup):
     ) -> None:
         super().__init__(id=id, classes=classes)
         self.slash_commands = list(slash_commands) if slash_commands else []
-        self.hints: dict[str, str] = {
-            slash_command.command: slash_command.hint
-            for slash_command in self.slash_commands
-            if slash_command.hint
-        }
+
 
         self.fuzzy_search = FuzzySearch(case_sensitive=False)
 
@@ -111,11 +107,6 @@ class SlashComplete(containers.VerticalGroup):
         self.filter_slash_commands(event.value)
 
     async def watch_slash_commands(self, slash_commands: list[SlashCommand]) -> None:
-        self.hints = {
-            slash_command.command: slash_command.hint
-            for slash_command in slash_commands
-            if slash_command.hint
-        }
         self.filter_slash_commands(self.input.value)
 
     def filter_slash_commands(self, prompt: str) -> None:
@@ -131,10 +122,7 @@ class SlashComplete(containers.VerticalGroup):
             self.slash_commands,
             key=lambda slash_command: slash_command.command.casefold(),
         )
-        deduplicated_slash_commands = {
-            slash_command.command: slash_command for slash_command in slash_commands
-        }
-        self.fuzzy_search.cache.grow(len(deduplicated_slash_commands))
+        self.fuzzy_search.cache.grow(len(slash_commands))
 
         if prompt:
             slash_prompt = f"/{prompt}"
@@ -217,20 +205,3 @@ class SlashComplete(containers.VerticalGroup):
             with self.input.prevent(widgets.Input.Changed):
                 self.input.clear()
             self.post_message(self.Completed(option.id or ""))
-
-
-if __name__ == "__main__":
-    from textual.app import App, ComposeResult
-
-    COMMANDS = [
-        SlashCommand("/help", "Help with slash commands"),
-        SlashCommand("/foo", "This is FOO"),
-        SlashCommand("/bar", "This is BAR"),
-        SlashCommand("/baz", "This is BAZ"),
-    ]
-
-    class SlashApp(App):
-        def compose(self) -> ComposeResult:
-            yield SlashComplete(COMMANDS)
-
-    SlashApp().run()

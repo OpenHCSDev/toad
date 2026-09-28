@@ -1,0 +1,158 @@
+╭───────────────────── Traceback (most recent call last) ──────────────────────╮
+│ /home/ts/wt/toad-integration-20260928/.venv/lib/python3.14/site-packages/toa │
+│ d/app.py:733 in on_load                                                      │
+│                                                                              │
+│    730 │   │   self.settings_changed_signal.publish(change)                  │
+│    731 │                                                                     │
+│    732 │   async def on_load(self) -> None:                                  │
+│ ❱  733 │   │   self._prewarm_conversation_css()                              │
+│    734 │   │   db = await self.get_db()                                      │
+│    735 │   │   await db.create()                                             │
+│    736 │   │   settings_path = self.settings_path                            │
+│                                                                              │
+│ ╭──────────────────────── locals ────────────────────────╮                   │
+│ │ self = ToadApp(                                        │                   │
+│ │        │   title='ToadApp',                            │                   │
+│ │        │   classes={'-dark-mode'},                     │                   │
+│ │        │   pseudo_classes={                            │                   │
+│ │        │   │   'dark',                                 │                   │
+│ │        │   │   'focus',                                │                   │
+│ │        │   │   'nocolor'                               │                   │
+│ │        │   }                                           │                   │
+│ │        )                                               │                   │
+│ ╰────────────────────────────────────────────────────────╯                   │
+│                                                                              │
+│ /home/ts/wt/toad-integration-20260928/.venv/lib/python3.14/site-packages/toa │
+│ d/app.py:755 in _prewarm_conversation_css                                    │
+│                                                                              │
+│    752 │   │   from textual.widgets._footer import KeyGroup                  │
+│    753 │   │   from textual.widgets.markdown import Markdown                 │
+│    754 │   │                                                                 │
+│ ❱  755 │   │   from toad.screens import comms, main  # noqa: F401 - register │
+│    756 │   │   from toad.widgets import (  # noqa: F401 - register widget cl │
+│    757 │   │   │   irc_message,                                              │
+│    758 │   │   │   tool_call,                                                │
+│                                                                              │
+│ ╭──────────────────────── locals ────────────────────────╮                   │
+│ │ self = ToadApp(                                        │                   │
+│ │        │   title='ToadApp',                            │                   │
+│ │        │   classes={'-dark-mode'},                     │                   │
+│ │        │   pseudo_classes={                            │                   │
+│ │        │   │   'dark',                                 │                   │
+│ │        │   │   'focus',                                │                   │
+│ │        │   │   'nocolor'                               │                   │
+│ │        │   }                                           │                   │
+│ │        )                                               │                   │
+│ ╰────────────────────────────────────────────────────────╯                   │
+│                                                                              │
+│ /home/ts/wt/toad-integration-20260928/.venv/lib/python3.14/site-packages/toa │
+│ d/screens/comms.py:29 in <module>                                            │
+│                                                                              │
+│    26 from toad.widgets.side_bar import SideBar, ThreadSidebar, TabHistoryCo │
+│    27 from toad.navigation_target import FeedTarget, DirectTarget, Navigatio │
+│    28 from toad.widgets.recovery_view import RecoveryView                    │
+│ ❱  29 from toad.widgets.thread_comms import RelationshipSort, ThreadCommsSid │
+│    30                                                                        │
+│    31                                                                        │
+│    32 class CommsScreen(SessionView, NavigationOwner, can_focus=False):      │
+│                                                                              │
+│ ╭───────────────────────────────── locals ─────────────────────────────────╮ │
+│ │       asyncio = <module 'asyncio' from                                   │ │
+│ │                 '/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x… │ │
+│ │ ComposeResult = typing.Iterable[textual.widget.Widget]                   │ │
+│ │    containers = <module 'textual.containers' from                        │ │
+│ │                 '/home/ts/.local/share/agent-comms/runtime-watcher-2026… │ │
+│ │       getters = <module 'textual.getters' from                           │ │
+│ │                 '/home/ts/.local/share/agent-comms/runtime-watcher-2026… │ │
+│ │      messages = <module 'toad.messages' from                             │ │
+│ │                 '/home/ts/wt/toad-integration-20260928/.venv/lib/python… │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
+│                                                                              │
+│ /home/ts/wt/toad-integration-20260928/.venv/lib/python3.14/site-packages/toa │
+│ d/widgets/thread_comms.py:83 in <module>                                     │
+│                                                                              │
+│    80 │   │   return order                                                   │
+│    81                                                                        │
+│    82                                                                        │
+│ ❱  83 class RelationshipRow(CommsRow):                                       │
+│    84 │   BINDINGS = [Binding("ctrl+c", "copy_identity", "Copy name", show=F │
+│    85 │   available = True                                                   │
+│    86                                                                        │
+│                                                                              │
+│ ╭───────────────────────────────── locals ─────────────────────────────────╮ │
+│ │ annotations = _Feature((3, 7, 0, 'beta', 1), None, 16777216)             │ │
+│ │     asyncio = <module 'asyncio' from                                     │ │
+│ │               '/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86… │ │
+│ │      FRAMES = ('⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏')         │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
+╰──────────────────────────────────────────────────────────────────────────────╯
+NameError: name 'CommsRow' is not defined
+Traceback (most recent call last):
+  File "/home/ts/.local/share/agent-comms/runtime-watcher-20260928/lib/python3.14/site-packages/textual/app.py", line 2210, in run_test
+    yield pilot
+  File "/home/ts/wt/toad-integration-20260928/tests/runtime_fixture.py", line 62, in run_test
+    yield pilot
+  File "/home/ts/wt/toad-integration-20260928/tests/comms_boundary_pilot.py", line 87, in main
+    await pilot.pause()
+  File "/home/ts/.local/share/agent-comms/runtime-watcher-20260928/lib/python3.14/site-packages/textual/pilot.py", line 547, in pause
+    self.app.screen._on_timer_update()
+    ^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-watcher-20260928/lib/python3.14/site-packages/textual/app.py", line 1641, in screen
+    raise ScreenStackError("No screens on stack") from None
+textual.app.ScreenStackError: No screens on stack
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-integration-20260928/tests/comms_boundary_pilot.py", line 205, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-integration-20260928/tests/comms_boundary_pilot.py", line 86, in main
+    async with app.run_test(size=(100, 34)) as pilot:
+               ~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 235, in __aexit__
+    await self.gen.athrow(value)
+  File "/home/ts/wt/toad-integration-20260928/tests/runtime_fixture.py", line 61, in run_test
+    async with super().run_test(**kwargs) as pilot:
+               ~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 235, in __aexit__
+    await self.gen.athrow(value)
+  File "/home/ts/.local/share/agent-comms/runtime-watcher-20260928/lib/python3.14/site-packages/textual/app.py", line 2218, in run_test
+    raise self._exception
+  File "/home/ts/.local/share/agent-comms/runtime-watcher-20260928/lib/python3.14/site-packages/textual/app.py", line 3478, in _process_messages
+    await self._dispatch_message(load_event)
+  File "/home/ts/.local/share/agent-comms/runtime-watcher-20260928/lib/python3.14/site-packages/textual/message_pump.py", line 774, in _dispatch_message
+    await self.on_event(message)
+  File "/home/ts/.local/share/agent-comms/runtime-watcher-20260928/lib/python3.14/site-packages/textual/app.py", line 4148, in on_event
+    await super().on_event(event)
+  File "/home/ts/.local/share/agent-comms/runtime-watcher-20260928/lib/python3.14/site-packages/textual/message_pump.py", line 855, in on_event
+    await self._on_message(event)
+  File "/home/ts/.local/share/agent-comms/runtime-watcher-20260928/lib/python3.14/site-packages/textual/message_pump.py", line 876, in _on_message
+    await invoke(method, message)
+  File "/home/ts/.local/share/agent-comms/runtime-watcher-20260928/lib/python3.14/site-packages/textual/_callback.py", line 96, in invoke
+    return await _invoke(callback, *params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-watcher-20260928/lib/python3.14/site-packages/textual/_callback.py", line 58, in _invoke
+    result = await result
+             ^^^^^^^^^^^^
+  File "/home/ts/wt/toad-integration-20260928/.venv/lib/python3.14/site-packages/toad/app.py", line 733, in on_load
+    self._prewarm_conversation_css()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-integration-20260928/.venv/lib/python3.14/site-packages/toad/app.py", line 755, in _prewarm_conversation_css
+    from toad.screens import comms, main  # noqa: F401 - register widget classes
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-integration-20260928/.venv/lib/python3.14/site-packages/toad/screens/comms.py", line 29, in <module>
+    from toad.widgets.thread_comms import RelationshipSort, ThreadCommsSidebar
+  File "/home/ts/wt/toad-integration-20260928/.venv/lib/python3.14/site-packages/toad/widgets/thread_comms.py", line 83, in <module>
+    class RelationshipRow(CommsRow):
+                          ^^^^^^^^
+NameError: name 'CommsRow' is not defined

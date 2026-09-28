@@ -1,4 +1,6 @@
 """Only current channel windows read; resuming fetches current data, never a warm stale page."""
+
+from toad.navigation_target import channel_target
 import asyncio
 import os
 from pathlib import Path
@@ -28,10 +30,10 @@ async def main():
         async with app.run_test(size=(100,35)) as pilot:
             await pilot.pause()
             owner = app.current_mode
-            first = await app.open_comms_session(owner_mode=owner, project_path=root, me='peer', target='#one', kind='channel')
+            first = await app.open_comms_session(owner_mode=owner, project_path=root, me='peer', target=channel_target('#one'))
             chat = app.screen.query_one(CommsChatView)
             await until(lambda: chat._history_initialized and not chat._refresh_lock.locked())
-            await app.open_comms_session(owner_mode=owner, project_path=root, me='peer', target='#two', kind='channel')
+            await app.open_comms_session(owner_mode=owner, project_path=root, me='peer', target=channel_target('#two'))
             await pilot.pause()
             # Mark current page loaded before instrumenting the hidden reader.
             await until(lambda: not chat._refresh_lock.locked() and not chat._ack_inflight)

@@ -1,0 +1,1 @@
+transcript lifecycle: real source, provisional mount, commit, synchronous prune admission and removal pass

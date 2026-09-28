@@ -1,5 +1,7 @@
 """Normal Comms mounted history crosses source boundaries and opens saved sessions."""
 
+from toad.navigation_target import channel_target
+
 import asyncio
 import json
 import os
@@ -80,8 +82,8 @@ async def main():
                 owner_mode=app.current_mode,
                 project_path=root,
                 me=viewer,
-                target="#team",
-                kind="channel",
+                target=channel_target("#team"),
+
             )
             chat = app.screen.query_one(CommsChatView)
             await until(pilot, lambda: chat._history_initialized)
@@ -142,7 +144,7 @@ async def main():
                         history.window.scroll_y,
                         history.window.max_scroll_y,
                         history._loading,
-                        history._publication_current,
+                        history.state.accepts_publication,
                         history.window.follows_tail,
                         history.fragment_count,
                         [

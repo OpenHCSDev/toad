@@ -1,0 +1,11 @@
+test_canceled_waiter_retains_submission_capacity (__main__.RenderProcessTests.test_canceled_waiter_retains_submission_capacity) ... ok
+test_cpu_responsiveness_and_cancel_resistant_shutdown (__main__.RenderProcessTests.test_cpu_responsiveness_and_cancel_resistant_shutdown) ... ok
+test_parallel_workers_and_total_submission_bound (__main__.RenderProcessTests.test_parallel_workers_and_total_submission_bound) ... CPU heartbeat: 20 ticks, maximum gap 0.011s
+ok
+test_spawn_identity_errors_and_import_safety (__main__.RenderProcessTests.test_spawn_identity_errors_and_import_safety) ... ok
+test_unused_close_and_validation (__main__.RenderProcessTests.test_unused_close_and_validation) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 3.488s
+
+OK

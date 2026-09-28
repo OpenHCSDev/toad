@@ -1,0 +1,52 @@
+F821 Undefined name `ThreadAction`
+    --> src/toad/app.py:1514:23
+     |
+1513 |     def invoke_thread_action(
+1514 |         self, action: ThreadAction, subject: str, actor: str, session_modes: tuple[str, ...] = ()
+     |                       ^^^^^^^^^^^^
+1515 |     ) -> None:
+1516 |         """Track one UI request per thread while the core operation runs off-loop."""
+     |
+
+F821 Undefined name `ThreadAction`
+    --> src/toad/app.py:1542:23
+     |
+1540 |     @work(group="thread-actions")
+1541 |     async def _run_thread_action(
+1542 |         self, action: ThreadAction, subject: str, actor: str, session_modes: tuple[str, ...],
+     |                       ^^^^^^^^^^^^
+1543 |         selected_root: str,
+1544 |     ) -> None:
+     |
+
+F821 Undefined name `ThreadActionContext`
+    --> src/toad/app.py:1551:19
+     |
+1549 |             if comms.root.resolve() != Path(selected_root):
+1550 |                 raise ValueError("Comms route changed before the thread action")
+1551 |             ctx = ThreadActionContext(comms, subject, actor, self.project_dir, session_modes)
+     |                   ^^^^^^^^^^^^^^^^^^^
+1552 |             result = await asyncio.to_thread(
+1553 |                 run_selected_write, comms.root, action.apply, ctx, implicit=implicit_root(),
+     |
+
+F401 [*] `toad.widgets.comms_sidebar.CommsSidebar` imported but unused
+  --> src/toad/screens/pending_thread.py:19:40
+   |
+17 | from toad.session_tracker import SidebarState
+18 | from toad.widgets.channels_sidebar import ChannelsSlot
+19 | from toad.widgets.comms_sidebar import CommsSidebar, SelectTarget
+   |                                        ^^^^^^^^^^^^
+20 | from toad.widgets.conversation import ThreadLoading
+21 | from toad.widgets.session_tabs import SessionsTabs
+   |
+help: Remove unused import: `toad.widgets.comms_sidebar.CommsSidebar`
+   |
+18 | from toad.widgets.channels_sidebar import ChannelsSlot
+   - from toad.widgets.comms_sidebar import CommsSidebar, SelectTarget
+19 + from toad.widgets.comms_sidebar import SelectTarget
+20 | from toad.widgets.conversation import ThreadLoading
+   |
+
+Found 4 errors.
+[*] 1 fixable with the `--fix` option.

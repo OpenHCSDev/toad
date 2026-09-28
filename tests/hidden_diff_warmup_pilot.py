@@ -73,7 +73,8 @@ async def main():
             await tool.remove()
 
             await app.switch_mode("store")
-            stale = await screen.conversation.post(ToolCall(data("stale")))
+            uncached = PATCH.replace("new = 2", "stale = 4")
+            stale = await screen.conversation.post(ToolCall(data("stale", uncached)))
             await until(pilot, lambda: len(renderer.requests) == 2)
             replacement = PATCH.replace("new = 2", "fresh = 3")
             await stale.update_tool_call(data("stale", replacement))
@@ -83,7 +84,7 @@ async def main():
             await until(pilot, lambda: len(renderer.requests) == 3)
             renderer.complete(2)
             await until(pilot, lambda: stale._warm_patches[replacement].result.done())
-            assert PATCH not in stale._warm_patches
+            assert uncached not in stale._warm_patches
             app.theme = "ansi-light"
             await until(pilot, lambda: len(renderer.requests) == 4)
             assert renderer.requests[3][0].ansi and not renderer.requests[3][0].dark

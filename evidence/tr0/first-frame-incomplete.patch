@@ -1,0 +1,64 @@
+diff --git a/src/toad/screens/session_view.py b/src/toad/screens/session_view.py
+index 4e9552b..847bc6c 100644
+--- a/src/toad/screens/session_view.py
++++ b/src/toad/screens/session_view.py
+@@ -165,6 +165,12 @@ class SessionView(SidebarFocusOwner, Screen):
+             # screen after ending the transaction, including error paths.
+             self._repaint_required = True
+             return
++        if self._navigation_frame_pending and self._first_frame_presented:
++            for window in self.body_windows:
++                if not window.document_viewport.visible_bodies_ready:
++                    window.document_viewport.request()
++                    self._repaint_required = True
++                    return
+         super()._compositor_refresh()
+ 
+     def present_navigation(self) -> None:
+@@ -203,12 +209,6 @@ class SessionView(SidebarFocusOwner, Screen):
+             for window in tracked
+             if window.history_anchor is not None and window.history_anchor.widget.is_attached
+         ]
+-        if not anchors:
+-            super()._refresh_layout(size, scroll)
+-            for window in tracked:
+-                if window.history_layout_ready is not None:
+-                    window.history_layout_ready.set()
+-            return
+         # Screen normally paints from inside _refresh_layout. Do not expose the
+         # prepend/eviction coordinates before compensating for their height.
+         with self.app.batch_update():
+@@ -221,8 +221,12 @@ class SessionView(SidebarFocusOwner, Screen):
+                 position.restore(window)
+                 window.history_anchor = HistoryAnchor.capture(position.widget, window)
+                 changed |= window.scroll_y != previous
+-            if changed:
+-                super()._refresh_layout(size, scroll=True)
++            follow_changed = False
++            if self.is_current:
++                for window in self.body_windows:
++                    follow_changed |= window.commit_follow()
++            if changed or follow_changed:
++                super()._refresh_layout(size, scroll=not follow_changed)
+             for window in tracked:
+                 if window.history_layout_ready is not None:
+                     window.history_layout_ready.set()
+diff --git a/src/toad/widgets/history_anchor.py b/src/toad/widgets/history_anchor.py
+index f3559cc..62ac21c 100644
+--- a/src/toad/widgets/history_anchor.py
++++ b/src/toad/widgets/history_anchor.py
+@@ -70,6 +70,14 @@ class HistoryWindow(VerticalScroll):
+     def follows_tail(self) -> bool:
+         return self.is_anchored and not self._anchor_released
+ 
++    def commit_follow(self) -> bool:
++        """Apply retained follow intent to measured geometry before its paint."""
++        if self.history_anchor is not None or not self.follows_tail:
++            return False
++        previous = self.scroll_y
++        self.scroll_to(y=self.max_scroll_y, animate=False, immediate=True, release_anchor=False)
++        return previous != self.scroll_y
++
+     def anchor(self, anchor: bool = True) -> None:
+         if not self._restoring:
+             self.scroll_revision += 1

@@ -1,0 +1,84 @@
+╭───────────────────── Traceback (most recent call last) ──────────────────────╮
+│ /home/ts/.local/share/agent-comms/runtime-watcher-20260928/lib/python3.14/si │
+│ te-packages/textual/widget.py:4949 in _compose                               │
+│                                                                              │
+│   4946 │                                                                     │
+│   4947 │   async def _compose(self) -> None:                                 │
+│   4948 │   │   try:                                                          │
+│ ❱ 4949 │   │   │   widgets = [*self._pending_children, *compose(self)]       │
+│   4950 │   │   │   self._pending_children.clear()                            │
+│   4951 │   │   except TypeError as error:                                    │
+│   4952 │   │   │   raise TypeError(                                          │
+│                                                                              │
+│ ╭───────────────────────────────── locals ─────────────────────────────────╮ │
+│ │ error = AttributeError("'MainScreen' object has no attribute             │ │
+│ │         '_coordination_root'")                                           │ │
+│ │  self = MainScreen(id='session-1')                                       │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
+│                                                                              │
+│ /home/ts/wt/toad-integration-20260928/.venv/lib/python3.14/site-packages/toa │
+│ d/screens/main.py:214 in compose                                             │
+│                                                                              │
+│   211 │   │   │   yield ThreadSidebar(                                       │
+│   212 │   │   │   │   SideBar.Panel("Thread", CoordinationStatus(self._comms │
+│   213 │   │   │   │   SideBar.Panel("Comms", ThreadCommsSidebar(             │
+│ ❱ 214 │   │   │   │   │   self._comms_thread, wire_root=self._coordination_r │
+│   215 │   │   │   │   │   id="thread-comms-panel", header_control=Relationsh │
+│   216 │   │   │   │   SideBar.Panel("Plan", Plan([]), collapsed=True, id="pl │
+│   217 │   │   │   │   SideBar.Panel("Project", self._project_panel, flex=Tru │
+│                                                                              │
+│ ╭───────────── locals ──────────────╮                                        │
+│ │ self = MainScreen(id='session-1') │                                        │
+│ ╰───────────────────────────────────╯                                        │
+╰──────────────────────────────────────────────────────────────────────────────╯
+AttributeError: 'MainScreen' object has no attribute '_coordination_root'
+Traceback (most recent call last):
+  File "/home/ts/.local/share/agent-comms/runtime-watcher-20260928/lib/python3.14/site-packages/textual/app.py", line 2210, in run_test
+    yield pilot
+  File "/home/ts/wt/toad-integration-20260928/tests/runtime_fixture.py", line 62, in run_test
+    yield pilot
+  File "/home/ts/wt/toad-integration-20260928/tests/l0a_native_installed_pilot.py", line 259, in main
+    view = app.screen.conversation
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-watcher-20260928/lib/python3.14/site-packages/textual/getters.py", line 149, in __get__
+    query_node = obj.query_one(self.selector, self.expect_type)
+  File "/home/ts/.local/share/agent-comms/runtime-watcher-20260928/lib/python3.14/site-packages/textual/dom.py", line 1595, in query_one
+    raise NoMatches(f"No nodes match {query_selector!r} on {base_node!r}")
+textual.css.query.NoMatches: No nodes match 'Conversation' on MainScreen(id='session-1', classes='-wide')
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-integration-20260928/tests/l0a_native_installed_pilot.py", line 505, in <module>
+    asyncio.run(main(notification_only=args.notification_only))
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-integration-20260928/tests/l0a_native_installed_pilot.py", line 256, in main
+    async with app.run_test(size=(160, 44)) as pilot:
+               ~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 235, in __aexit__
+    await self.gen.athrow(value)
+  File "/home/ts/wt/toad-integration-20260928/tests/runtime_fixture.py", line 61, in run_test
+    async with super().run_test(**kwargs) as pilot:
+               ~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 235, in __aexit__
+    await self.gen.athrow(value)
+  File "/home/ts/.local/share/agent-comms/runtime-watcher-20260928/lib/python3.14/site-packages/textual/app.py", line 2218, in run_test
+    raise self._exception
+  File "/home/ts/.local/share/agent-comms/runtime-watcher-20260928/lib/python3.14/site-packages/textual/widget.py", line 4949, in _compose
+    widgets = [*self._pending_children, *compose(self)]
+                                         ~~~~~~~^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-watcher-20260928/lib/python3.14/site-packages/textual/compose.py", line 54, in compose
+    child = next(iter_compose)
+  File "/home/ts/wt/toad-integration-20260928/.venv/lib/python3.14/site-packages/toad/screens/main.py", line 214, in compose
+    self._comms_thread, wire_root=self._coordination_root, live=True),
+                                  ^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'MainScreen' object has no attribute '_coordination_root'
