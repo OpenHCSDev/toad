@@ -1,3 +1,77 @@
+# T3 full plan closure — current authoritative result
+
+Owner Sol; own persistent checkout /home/ts/wt/toad-t3-commands-sol-20260928.
+Source checkpoint 3a1d3ab0379cb54482c9f764f4d0fe089074076e. Existing draft PR120, same remote branch.
+Predecessor files, live checkout/root/route/launcher and all ACP error/log-owner
+files untouched. No paid calls. CI deferred; parent owns merge/live activation.
+
+## Completed
+
+- Four class-growth findings resolved through owner/caller deletion; shared
+  per-class ratchet is unchanged and has zero positive deltas (fullplan-ratchet).
+- One CommandCatalog joins ACP and declaration-derived contextual commands.
+  Deleted duplicate catalogs, run/apply forwarding, dead prompt completion
+  callback/method and every capability probe on agent in this surface.
+- Shared message viewport owner removes duplicated geometry projections;
+  acknowledgment and notification cases own their different painted widgets.
+  All deleted helper callers migrated, including three meaningful paint pilots.
+- Nominal ThreadContext/ChannelContext/FeedContext/ViewContext replace is_thread.
+  Context members own pin selection, labels, availability and mutation; ChannelAction
+  is a nominal capability. T5 contract posted directly on existing PR121.
+- Goal hint choices derive from GoalControl, and execution derives SetGoalAction's
+  spelling. All pointer/slash targets use the same contextual/action declarations.
+- Published T2 Toad08bc602 integrated, pinned paired corebb8a6608. Its ancestry
+  contains deployed78adae36 and pins269/5620e294 (verified). Typed compaction return
+  replaces result dictionary handling; typed consumers and their UI envelope
+  remain intact. Awaited goal_changed/compaction_published consumers are async,
+  consuming T5's discovered fix. No T2 codec or ACP error mechanism duplicated.
+- Three merged classes plus InputStarted had only formatting growth; verified AST
+  equality to main, restored their original formatting, preserved all semantics.
+- Real X11 clipboard kept xclip alive with test attempt attestation and inherited
+  pipes. Fixture now retires only that attempt's external children before script
+  exit using PID-reuse-safe psutil. Shared collector remains standalone unchanged.
+  xclip is not treated as our ChildProcess session leader. No clipboard mock.
+
+## Installed evidence
+
+uv sync --locked --no-editable; actual distribution direct_url reports editable=false.
+Installed corebb8a6608, Textual16ede, Toad candidate wheel; no source PYTHONPATH.
+
+- final-daemon-acceptance.log: **11 passed, 59.81s**. TR0/T3 guards, fresh ACP SDK
+  command delivery, mounted agent/DM/channel commands, exact target, fork dialog
+  parity/cancel with no mutation, archive/stale availability, typed goal/turn/
+  compaction ACP producer-to-mounted-consumer, three paint/read-ack paths,
+  notifications and action deletion guard. Each pilot remained bounded at60s.
+- paired-native905.log: **1 passed, 47.24s**. Actual installed native905 Pi MCP
+  package PTY approve/allow/ask/deny, stale refusal, cancellation and child cleanup.
+- fullplan-ratchet.json: condensed output from installed shared ratchet, no exception
+  or copied measurement implementation. Zero positive class/scalar deltas.
+
+Earlier failed attempts are retained as receipts, not green claims. They exposed
+script-helper import location, copied collector portability, and treating an
+external xclip daemon as a DetachedProcess session leader. The final suite keeps
+all assertions and fixes actual caller/lifetime ownership. Typed ACP fixture
+compaction events do not claim model summary generation; parent owns that native
+compaction proof and urgent error work.
+
+## Diff size
+
+Against fetched main, including inherited T2/TR0 integration: production2472
+added/2289 deleted; tests1241 added/4171 deleted. Production net growth supplies
+explicit typed argument/state/declaration owners replacing implicit string behavior;
+existing classes shrink and the shared ratchet has no positive delta.
+
+## Scope closure / handoff
+
+T3 and shared discovery53 implementation/callers/guards are complete against the
+published paired T2 contract. Parent can review/merge this draft; no T3 merge hold.
+T2 continues its broader internal request/error migration in its own branch, and
+T5 owns navigation/filter/transcript integrations. Those are distinct assigned
+surfaces; T3 introduces no parallel mechanism. Parent should preserve typed
+consumers while combining their newer checkpoints with this source.
+
+## Historical checkpoints (superseded by the result above)
+
 # T3 command and discovery closure
 
 Own checkout: /home/ts/wt/toad-t3-commands-sol-20260928. Existing PR120 reused.

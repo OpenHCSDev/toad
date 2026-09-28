@@ -1,0 +1,9 @@
+....F.                                                                   [100%]
+=================================== FAILURES ===================================
+_________________________ pilot: command_family_pilot __________________________
+Pilot failed: TimedOutOutcome(termination=GracefulStopOutcome(termination=ExitedOutcome(code=0)))
+
+Logs: /home/ts/wt/toad-t3-commands-sol-20260928/.artifacts/final-command-typed/command_family_pilot0
+=========================== short test summary info ============================
+FAILED tests/command_family_pilot.py::command_family_pilot - Failed: Pilot fa...
+1 failed, 5 passed in 67.66s (0:01:07)

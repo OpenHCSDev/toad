@@ -7,6 +7,7 @@ from pathlib import Path
 
 import psutil
 from agent_comms.comms import wire
+from agent_comms.child_process import STOP_GRACE_SECONDS
 from toad.app import ToadApp as Application
 
 
@@ -27,6 +28,29 @@ def stop_test_owners(root: Path) -> None:
             pass
 
 
+async def stop_test_children(attempt: str | None) -> None:
+    """Retire only children carrying this runner's private attempt attestation."""
+    if attempt is None:
+        return
+    for process in psutil.process_iter():
+        try:
+            if process.pid != os.getpid() and process.environ().get("TOAD_TEST_ATTEMPT") == attempt:
+                # xclip is an external daemon, not a ChildProcess session leader.
+                # psutil guards PID reuse; zombies have already closed their pipes.
+                process.terminate()
+                try:
+                    async with asyncio.timeout(STOP_GRACE_SECONDS):
+                        while process.status() not in {psutil.STATUS_ZOMBIE, psutil.STATUS_DEAD}:
+                            await asyncio.sleep(.02)
+                except TimeoutError:
+                    process.kill()
+                    async with asyncio.timeout(STOP_GRACE_SECONDS):
+                        while process.status() not in {psutil.STATUS_ZOMBIE, psutil.STATUS_DEAD}:
+                            await asyncio.sleep(.02)
+        except (psutil.NoSuchProcess, psutil.AccessDenied, ProcessLookupError):
+            continue
+
+
 class ToadApp(Application):
     CSS_PATH = Path(__file__).resolve().parents[1] / "src/toad/toad.tcss"
 
@@ -38,6 +62,7 @@ class ToadApp(Application):
                 yield pilot
         finally:
             await asyncio.to_thread(stop_test_owners, root)
+            await stop_test_children(os.environ.get("TOAD_TEST_ATTEMPT"))
             await asyncio.to_thread(_clear_wire_locks, root)
 
 

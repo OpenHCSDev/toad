@@ -1,0 +1,11 @@
+Resolved 95 packages in 0.78ms
+   Building batrachian-toad @ file:///home/ts/wt/toad-t3-commands-sol-20260928
+   Building agent-comms @ git+https://github.com/OpenHCSDev/agent-comms.git@bb8a66089f3a5a72c4554ba1f29dc884cbf23896
+      Built agent-comms @ git+https://github.com/OpenHCSDev/agent-comms.git@bb8a66089f3a5a72c4554ba1f29dc884cbf23896
+      Built batrachian-toad @ file:///home/ts/wt/toad-t3-commands-sol-20260928
+Prepared 2 packages in 480ms
+Uninstalled 2 packages in 24ms
+Installed 2 packages in 7ms
+ - agent-comms==0.1.0 (from git+https://github.com/OpenHCSDev/agent-comms.git@5620e294e1f4b85ac54136171a075002dc2982b2)
+ + agent-comms==0.1.0 (from git+https://github.com/OpenHCSDev/agent-comms.git@bb8a66089f3a5a72c4554ba1f29dc884cbf23896)
+ ~ batrachian-toad==0.6.20 (from file:///home/ts/wt/toad-t3-commands-sol-20260928)

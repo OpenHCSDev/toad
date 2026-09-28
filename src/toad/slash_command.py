@@ -16,6 +16,7 @@ from agent_comms.goal_actions import (
     GoalAction,
     PausedGoalAction,
     RetryGoalAction,
+    SetGoalAction,
 )
 from textual.content import Content
 
@@ -157,9 +158,12 @@ class ClearControl(GoalControl):
 @dataclass(frozen=True)
 class GoalCommand(SlashCommand, LocalCommand):
     help = "Set or manage a persistent thread goal"
-    hint = "<objective | pause | resume | retry | clear>"
     objective: str = ""
     control: type[GoalControl] | None = None
+
+    @property
+    def hint(self) -> str:
+        return "<objective | " + " | ".join(GoalControl.names()) + ">"
 
     @classmethod
     def parse(cls, arguments: str) -> Self:
@@ -174,11 +178,11 @@ class GoalCommand(SlashCommand, LocalCommand):
         if self.control is not None:
             await conversation.change_goal(self.control.action.declared_name)
         elif self.objective:
-            await conversation.change_goal("set", self.objective)
+            await conversation.change_goal(SetGoalAction.declared_name, self.objective)
         else:
             await conversation.refresh_goal()
             conversation.flash(
-                "Use /goal <objective> to set or edit; pause, resume, retry, or clear to manage it."
+                f"Use /goal {self.hint} to set, edit or manage this thread's goal."
             )
         return True
 

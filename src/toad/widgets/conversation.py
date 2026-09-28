@@ -252,18 +252,15 @@ class ThreadLoading(PaintOnlyRefresh, Static):
             row = []
             for x in range(-horizontal_radius, horizontal_radius + 1):
                 distance = (x / horizontal_radius) ** 2 + (y / radius) ** 2
-                if not 0.7 <= distance <= 1.3:
+                if not .7 <= distance <= 1.3:
                     row.append(" ")
                     continue
-                position = (
-                    int((atan2(y / radius, x / horizontal_radius) + pi) * 6 / pi) % 12
-                )
+                position = int((atan2(y / radius, x / horizontal_radius) + pi) * 6 / pi) % 12
                 gap = (position - phase) % 12
                 row.append("●" if gap < 2 else "•" if gap < 5 else "·")
             rows.append("".join(row).strip())
-        label = (
-            "Loading new thread and history…" if width >= 32 else "Loading new thread…"
-        )
+        label = ("Loading new thread and history…" if width >= 32
+                 else "Loading new thread…")
         block_width = max(len(label), 2 * horizontal_radius + 1)
         centered = (row.center(block_width) for row in rows)
         return Content("\n".join((*centered, "", label.center(block_width))))
@@ -341,17 +338,9 @@ class CategorizedMount:
     """Apply the owning conversation category selection at widget admission."""
 
     def mount(self, *widgets, **kwargs):
-        from toad.widgets.message_filter import (
-            apply_block_filter,
-            block_category,
-            keep_live_block,
-        )
+        from toad.widgets.message_filter import apply_block_filter, block_category, keep_live_block
 
-        selected = (
-            self.query_ancestor(Conversation).visible_categories
-            if self.is_attached
-            else ALL_CATEGORIES
-        )
+        selected = self.query_ancestor(Conversation).visible_categories if self.is_attached else ALL_CATEGORIES
         for widget in widgets:
             widget.set_class(not keep_live_block(widget), "-unrouted")
             if category := block_category(widget):
@@ -397,9 +386,7 @@ class ConversationWindowSettings:
 
     def on_mount(self) -> None:
         self.app.settings_changed_signal.subscribe(self, self._settings_changed)
-        self._settings_changed(
-            PreferenceChange(SidebarSettings.hide, self.app.settings.sidebar.hide)
-        )
+        self._settings_changed(PreferenceChange(SidebarSettings.hide, self.app.settings.sidebar.hide))
         self.watch(self, "scroll_y", self.hydrate_visible_tools, init=False)
         self.screen.screen_layout_refresh_signal.subscribe(
             self, lambda _screen: self.hydrate_visible_tools()
@@ -408,12 +395,7 @@ class ConversationWindowSettings:
     def _settings_changed(self, update: PreferenceChange) -> None:
         if update.field is SidebarSettings.hide:
             top, right, bottom, _ = self.styles.padding
-            self.styles.padding = (
-                top,
-                right,
-                bottom,
-                int(self.app.settings.sidebar.hide),
-            )
+            self.styles.padding = (top, right, bottom, int(self.app.settings.sidebar.hide))
 
 
 class Window(ConversationWindowSettings, HistoryWindow):
@@ -2827,7 +2809,7 @@ class Conversation(containers.Vertical):
         try:
             self.window.anchor()
             self.flash("Compaction requested")
-            result = await self.agent.compact_context(instructions)
+            await self.agent.compact_context(instructions)
             self.flash("Context compacted", style="success")
         except (OSError, ValueError, jsonrpc.JSONRPCError) as error:
             await self.post(
