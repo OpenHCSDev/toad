@@ -193,7 +193,7 @@ for line in sys.stdin:
                 lambda: comms.registry.require("project").goal.state.declared_name == "completed"
             )
             await conversation.refresh_goal()
-            assert conversation.goal.progress == "Verified the objective"
+            assert conversation.goal_display.snapshot.progress == "Verified the objective"
             any_row = next(
                 row for row in app.screen.query(CommsRow) if row.target_name == "#any"
             )
@@ -264,7 +264,7 @@ for line in sys.stdin:
             )
             await app.switch_mode(parent_mode)
             await conversation.refresh_goal()
-            assert conversation.goal.state.declared_name == "completed"
+            assert conversation.goal_display.snapshot.state.declared_name == "completed"
             await conversation.slash_command("/goal clear")
             assert comms.registry.require("project").goal is None
     print(

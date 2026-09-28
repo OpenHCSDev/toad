@@ -1,0 +1,27 @@
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-t5-comms-interface-20260928/tests/goal_server_poll_pilot.py", line 214, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-t5-comms-interface-20260928/tests/goal_server_poll_pilot.py", line 54, in main
+    session = (await owner.new_session(cwd=str(project))).session_id
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-refactor2-l0a-20260928/.artifacts/settings-mcp/agent_comms/acp.py", line 179, in new_session
+    return await self.sessions.new_session(cwd, mcp_servers, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-refactor2-l0a-20260928/.artifacts/settings-mcp/agent_comms/session_lifecycle.py", line 160, in new_session
+    self.effects._private_nk_marker()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-refactor2-l0a-20260928/.artifacts/settings-mcp/agent_comms/acp.py", line 563, in _private_nk_marker
+    raise PublicationActivationBlocked(
+        "private N/K ACP session requires explicit matching root and package"
+    )
+agent_comms.coordination_store.PublicationActivationBlocked: private N/K ACP session requires explicit matching root and package

@@ -1,5 +1,7 @@
 """Drag the existing goal separator without changing goal or composer state."""
 
+from toad.goal_display import GoalDisplay
+
 import asyncio
 import os
 import tempfile
@@ -26,7 +28,7 @@ async def main():
             await pilot.pause()
             view = app.screen.conversation
             goal = Goal("Long goal detail.\n" * 100, "resizing", revision=7)
-            view.goal = goal
+            view.goal_display = GoalDisplay.current(goal)
             view.prompt.text = "Keep draft while resizing"
             await pilot.pause()
             bar = view.query_one(GoalBar)
@@ -49,11 +51,11 @@ async def main():
             assert bar.styles.border_top != normal
             await drag(bar, 4)
             assert document.region.height == initial + 4
-            assert view.goal == goal and view.prompt.text == "Keep draft while resizing"
+            assert view.goal_display.snapshot == goal and view.prompt.text == "Keep draft while resizing"
             await drag(bar, -3)
             resized = document.region.height
             assert resized == initial + 1
-            view.goal = replace(goal, revision=8)
+            view.goal_display = GoalDisplay.current(replace(goal, revision=8))
             await pilot.pause()
             assert document.region.height == resized
             await pilot.click("#goal-collapse")
@@ -82,7 +84,7 @@ async def main():
 
             assert await pilot.mouse_down(throbber, offset=(3, 0))
             assert app.mouse_captured is bar
-            view.goal = None
+            view.goal_display = GoalDisplay.current(None)
             await pilot.pause()
             assert app.mouse_captured is None and not bar.display
             assert app._exception is None

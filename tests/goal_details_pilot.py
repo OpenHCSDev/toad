@@ -1,5 +1,7 @@
 """Long objectives and progress remain readable without disturbing the composer."""
 
+from toad.goal_display import GoalDisplay
+
 import asyncio
 import os
 import tempfile
@@ -24,7 +26,7 @@ async def main():
             conversation = app.screen.conversation
             goal = Goal("GOAL_BEGIN\n" + "Long objective with important details.\n" * 100,
                         "goal", progress="Progress details.\n" * 80 + "PROGRESS_END")
-            conversation.goal = goal
+            conversation.goal_display = GoalDisplay.current(goal)
             conversation.prompt.text = "Keep this draft"
             await pilot.pause()
             await pilot.click("#goal-history")
@@ -44,7 +46,7 @@ async def main():
                 assert "GOAL_BEGIN" in frame, frame
             await pilot.press("escape")
             await pilot.pause()
-            assert conversation.goal == goal
+            assert conversation.goal_display.snapshot == goal
             assert conversation.prompt.text == "Keep this draft"
     print("goal details: full objective/progress scroll at narrow sizes; goal and draft preserved")
 

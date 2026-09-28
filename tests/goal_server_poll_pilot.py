@@ -40,6 +40,9 @@ async def main():
             AGENT_COMMS_AGENT_MODELS="openrouter/fake",
         )
         comms = wire(root / "wire")
+        root_id = comms.bus.publisher.initialize_private_protocol()
+        native_package = Path(os.environ["TOAD_TEST_NATIVE_PACKAGE"]).resolve()
+        comms.owners.pin_private_nk_launch(comms.root, root_id, native_package)
         project = root / "project"
         project.mkdir()
         owner = CommsAgent(
@@ -48,6 +51,8 @@ async def main():
             agent_args=["--provider", "openrouter", "--model", "fake"],
             runtime_enabled=True,
             auto_wake=False,
+            private_nk_native_package=native_package,
+            private_nk_wire_root_id=root_id,
         )
         peer_turn = None
         try:
@@ -81,7 +86,7 @@ async def main():
                 await pilot.pause()
                 bar = conversation.query_one(GoalBar)
                 assert "Standby" in str(bar.query_one(".goal-header", Static).render())
-                assert conversation.goal.state.declared_name == "active"
+                assert conversation.goal_display.snapshot.state.declared_name == "active"
                 pulse = bar.query_one(StandbyPulse)
                 assert pulse.active
                 throbber = conversation.query_one(Throbber)
@@ -106,7 +111,7 @@ async def main():
                     document.max_scroll_y,
                     document.region,
                     bar.region,
-                    conversation.goal.progress,
+                    conversation.goal_display.snapshot.progress,
                 )
                 document.scroll_home(animate=False)
                 await pilot.pause()
@@ -146,7 +151,7 @@ async def main():
                 current = comms.registry.require(session).goal
                 comms.goals.update_goal(session, EditGoalAction(text="Changed through owner backend", expect=GoalPrecondition(goal_id=current.id, expected_goal=current)), actor=OwnerInvocable)
                 await until(
-                    lambda: details.goal.text == "Changed through owner backend"
+                    lambda: details.goal_display.snapshot.text == "Changed through owner backend"
                 )
                 assert "Changed through owner backend" in str(
                     details.query_one("#goal-current-objective", Static).render()
@@ -159,14 +164,14 @@ async def main():
                 editor.editor.text = "UNSAVED DRAFT"
                 current = comms.registry.require(session).goal
                 comms.goals.update_goal(session, EditGoalAction(text="Concurrent owner edit", expect=GoalPrecondition(goal_id=current.id, expected_goal=current)), actor=OwnerInvocable)
-                await until(lambda: conversation.goal.text == "Concurrent owner edit")
+                await until(lambda: conversation.goal_display.snapshot.text == "Concurrent owner edit")
                 assert editor.editor.text == "UNSAVED DRAFT"
                 await pilot.press("escape")
                 # Every mutation goes through owner RPC, then a canonical read.
                 await conversation.change_goal("paused")
-                assert conversation.goal.state.declared_name == "paused" and not pulse.active
+                assert conversation.goal_display.snapshot.state.declared_name == "paused" and not pulse.active
                 await conversation.change_goal("active")
-                assert conversation.goal.state.declared_name == "active"
+                assert conversation.goal_display.snapshot.state.declared_name == "active"
                 # Actual server error marks the retained snapshot unavailable, never standby.
                 read = comms.goals.goal_snapshot
 
@@ -174,7 +179,7 @@ async def main():
                     raise OSError("Owner temporarily unavailable")
 
                 comms.goals.goal_snapshot = unavailable
-                await until(lambda: conversation.goal_unavailable)
+                await until(lambda: not conversation.goal_display.can_control)
                 assert "unavailable" in str(
                     bar.query_one(".goal-header", Static).render()
                 )
@@ -183,9 +188,9 @@ async def main():
                            if control.id != "goal-collapse")
                 assert not bar.query_one("#goal-collapse", GoalControl).disabled
                 comms.goals.goal_snapshot = read
-                await until(lambda: not conversation.goal_unavailable)
+                await until(lambda: conversation.goal_display.can_control)
                 await conversation.change_goal("clear")
-                assert conversation.goal is None and not bar.display
+                assert conversation.goal_display.snapshot is None and not bar.display
                 # A stalled read is bounded; mutations have no automatic timeout/replay.
                 request = agent._owner_request
 

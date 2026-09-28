@@ -1,0 +1,1 @@
+goal details: full objective/progress scroll at narrow sizes; goal and draft preserved
