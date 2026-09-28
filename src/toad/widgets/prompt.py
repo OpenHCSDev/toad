@@ -238,7 +238,7 @@ See on-screen instructions for details.
 
         from toad import danger
 
-        spans, _danger_level = danger.detect(
+        spans = danger.detect(
             str(self.project_path), self.working_directory, content.plain
         )
         content = content.add_spans(spans)

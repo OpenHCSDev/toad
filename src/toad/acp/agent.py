@@ -34,7 +34,7 @@ from toad.acp.api import API
 from toad.acp import messages
 from toad.acp.sdk_boundary import validate_session_update
 from toad.acp.prompt import build as build_prompt
-from toad.db import DB
+from toad.db import DB, SessionMeta
 from toad.private_native_cursor import CursorReducer
 from toad.queue_view import QueueItem, QueueReducer
 from toad import paths
@@ -1390,10 +1390,7 @@ class Agent(AgentBase):
                 self._agent_data["identity"],
                 self.session_id,
                 protocol="acp",
-                meta={
-                    "cwd": str(self.project_root_path),
-                    "agent_data": self._agent_data,
-                },
+                meta=SessionMeta(cwd=self.project_root_path, agent_data=self._agent_data),
             )
             if not self._private_cursor.is_current_request(cursor_token):
                 return
@@ -1432,12 +1429,10 @@ class Agent(AgentBase):
             if not self._private_cursor.is_current_request(cursor_token):
                 return
             if session is not None:
-                if session["meta_json"]:
-                    meta = json.loads(session["meta_json"])
-                    if session_cwd := meta.get("cwd", None):
-                        cwd = session_cwd
-                    if agent_data := meta.get("agent_data"):
-                        self._agent_data = agent_data
+                if session_cwd := session.meta_json.cwd:
+                    cwd = str(session_cwd)
+                if agent_data := session.meta_json.agent_data:
+                    self._agent_data = agent_data
 
         with self.request():
             session_load_response = api.session_load(cwd, [], request_session_id)
