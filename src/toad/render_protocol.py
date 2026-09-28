@@ -28,7 +28,7 @@ class RenderCodec(FieldCodec):
     @classmethod
     def encode(cls, value):
         if isinstance(value, UUID):
-            return str(value)
+            return value
         if isinstance(value, CapturedResult):
             return pickle.dumps(value.value, protocol=pickle.HIGHEST_PROTOCOL)
         if isinstance(value, RenderTask):
@@ -44,7 +44,9 @@ class RenderCodec(FieldCodec):
     @classmethod
     def _decode(cls, target, data):
         if target is UUID:
-            return UUID(FieldCodec.decode(str, data))
+            if not isinstance(data, UUID):
+                raise TypeError("Expected a renderer UUID")
+            return data
         if target is CapturedResult:
             return CapturedResult(cls._capture(data))
         if target is RenderTask:

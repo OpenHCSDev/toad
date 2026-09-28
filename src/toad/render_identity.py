@@ -15,7 +15,7 @@ import sys
 from toad.render_service import RenderServiceConfig
 
 
-# Packages used by the closed render-task set, its result types and wire codec.
+# External packages used by render tasks, captured results and the private IPC codec.
 _RENDER_PACKAGES = (
     "toad", "agent_comms", "textual", "textual_diff_view", "rich", "pygments",
     "markdown_it", "mdurl", "mdit_py_plugins", "linkify_it",
