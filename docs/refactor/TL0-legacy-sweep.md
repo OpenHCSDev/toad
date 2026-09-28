@@ -86,3 +86,8 @@ Global marker/dead-module coverage lands after those owners close their files.
 TL0A guards have no skip/exception mechanism. Runtime Rich/terminal names are
 external contracts. Installed main-screen MCP decisions and Channels/settings/
 filter tests are recorded in `evidence/tl0a/HANDOFF.md`.
+
+Paired core PR257 removes the retired MCP inventory capability producer and its
+historical module fixtures; five local CLI/ledger tests pass. Parent integrates
+and rebuilds the prepared package before package-side activation. No user data
+is changed by this paired deletion.

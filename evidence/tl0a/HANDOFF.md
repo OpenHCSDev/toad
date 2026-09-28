@@ -47,10 +47,15 @@ warning is reported rather than presenting the whole suite as clean.
 TL0-only source +44/-486, tests +190/-530, excluding inherited107/T1 changes.
 T4/T6 marker cleanup is recorded in their surface plans. TL0B remains afterT2.
 
-## Remaining package-side retirement
+## Paired package source and activation boundary
 
-Toad's complete caller closure is ready. The prepared package still emits the
-now-unused inventory compatibility claim. Its emitter, historical reconstruction
-test/fixtures and README are being deleted in a small paired core branch; package
-rebuild/pin activation belongs to parent. This receipt does not call the entire
-package-side retirement complete before that source and candidate are published.
+Core PR257/2b4aeb38 deletes the unused inventory capability producer, historical
+reconstruction test and both copied old modules. Five real local CLI/ledger/
+MCP fixture tests pass (no skips); existing stale-approval behavior coverage
+remains. Source closure is complete across both sides. Parent must integrate257
+and rebuild/pin its native package before calling that package deletion installed.
+The verified0d7 package used for the installed Toad acceptance still emitted the
+unused field; no claims are made about an unbuilt replacement package.
+
+Current Comms shipment via107 remains independently ready. TL0B and existing
+T4/T6 surfaces remain as dispatched; no TL0A caller or emitter is deferred there.
