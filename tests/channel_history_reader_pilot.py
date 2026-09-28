@@ -44,7 +44,7 @@ class ReaderTests(unittest.IsolatedAsyncioTestCase):
                 assert refreshed.page is not None
                 self.assertEqual([message.body for message in refreshed.page.messages], ["replaced"])
 
-    async def test_dm_turn_claim_preserves_display_identity(self) -> None:
+    async def test_dm_turn_lease_preserves_display_identity(self) -> None:
         import os
 
         with tempfile.TemporaryDirectory(prefix="dm-turn-basis-") as directory:
