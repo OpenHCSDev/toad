@@ -545,7 +545,7 @@ printf '%s\n' '{"type":"response","command":"get_session_stats","success":true,"
             f"closing final session failed (alive={session.alive()}):\n"
             f"frame:\n{frame[-1200:]}\noutput:\n{output}"
         )
-    assert comms.registry.status("renamed-e2e").value == "running"
+    assert comms.registry.status("renamed-e2e").running
     assert comms.owners._process_alive(comms.registry.require("renamed-e2e").pid)
     print("[10] final close replaces the view while its detached owner stays alive OK")
 

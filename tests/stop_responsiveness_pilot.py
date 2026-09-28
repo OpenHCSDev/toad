@@ -31,16 +31,16 @@ async def main():
         started, release = threading.Event(), threading.Event()
         stopped = []
         notices = []
-        original_stop = type(comms)._stop_unlocked
+        original_stop = type(comms.owners).stop
 
         def slow_stop(self, name):
             stopped.append(name)
             if name == "refuses-stop":
                 raise RuntimeError("Refused test stop")
             started.set()
-            # Comms.stop holds its actual shared wire lock here. Other UI
-            # readers must remain asynchronous while the process is stopping.
-            if not release.wait(8):
+            # Owner shutdown may wait on a process. UI readers and navigation
+            # must remain responsive while that operation is pending.
+            if not release.wait(45):
                 raise TimeoutError("Test shutdown gate was not released")
             return original_stop(self, name)
 
@@ -65,7 +65,7 @@ async def main():
                     notices.append((message, kwargs.get("severity")))
                     return real_notify(message, **kwargs)
 
-                with patch.object(type(comms), "_stop_unlocked", slow_stop), patch.object(app, "notify", notify):
+                with patch.object(type(comms.owners), "stop", slow_stop), patch.object(app, "notify", notify):
                     await pilot.click(row, button=3)
                     await pilot.pause()
                     stop = next(item for item in app.screen.query(ContextMenuItem) if item.action == "comms_stop")
@@ -92,7 +92,7 @@ async def main():
                     assert "victim" in app.pending_thread_actions
                     release.set()
                     await until(lambda: not app.pending_thread_actions)
-                    assert comms.registry.status("victim").value == "stopped"
+                    assert comms.registry.status("victim").stopped
                     assert any("Stopped @victim" in message for message, _ in notices)
                     app.invoke_thread_action("comms_stop", "refuses-stop", "actor")
                     await until(lambda: not app.pending_thread_actions)

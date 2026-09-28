@@ -63,7 +63,7 @@ async def main():
                 app.screen._agent = agent_data
                 sidebar = app.screen.query_one(CommsSidebar)
                 await sidebar.sync_sessions()
-                original_read = type(comms).viewer_snapshot
+                original_read = type(comms.views).viewer_snapshot
 
                 def slow_read(self, *args, **kwargs):
                     if not disk_release.wait(8):

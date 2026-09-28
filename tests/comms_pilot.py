@@ -12,6 +12,7 @@ from types import SimpleNamespace
 
 from agent_comms.activity import ActivityState
 from agent_comms.thread_management import ForkSpec
+from agent_comms.thread_status import ArchivedThreadStatus
 from agent_comms.threads import Thread
 from agent_comms.comms import wire
 from textual.content import Content
@@ -754,7 +755,7 @@ for line in sys.stdin:
             )
             await pilot.click(archive_item)
             await pilot.pause()
-            assert comms.registry.status("other-peer").value == "archived"
+            assert comms.registry.status("other-peer") == ArchivedThreadStatus()
             assert not any(
                 item.target_name == "other-peer" for item in app.screen.query(CommsRow)
             )
@@ -772,7 +773,7 @@ for line in sys.stdin:
             # Stop to release this subject before requesting its next action.
             async with asyncio.timeout(10):
                 while ("delete-peer" in app.pending_thread_actions
-                       or comms.registry.status("delete-peer").value != "stopped"):
+                       or not comms.registry.status("delete-peer").stopped):
                     await pilot.pause(.01)
             await pilot.click(row(app.screen, "delete-peer"), button=3)
             await pilot.pause()

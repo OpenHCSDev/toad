@@ -81,7 +81,7 @@ class HistoryReadRequest:
             return previous
         if self.initialized and revision == self.known_revision:
             return HistoryReadResult(self, revision, self.after, None, False)
-        high_water = self.comms.bus.latest_sequence()
+        high_water = self.comms.bus.log.latest_sequence()
         if not self.initialized:
             return HistoryReadResult(self, revision, high_water, self.page(limit=self.initial_limit), False)
         if high_water <= self.after:

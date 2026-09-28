@@ -112,7 +112,7 @@ async def main():
             assert seen <= {1, 2, 3}
             # Reaching older history has not allocated live sequences or queued turns.
             assert (live.root / "bus.jsonl").read_bytes() == bus_before
-            assert live.bus.latest_sequence() == 3
+            assert live.bus.log.latest_sequence() == 3
             await app.screen.action_historical_sessions()
             await until(pilot, lambda: isinstance(app.screen, HistoricalSessions))
             await until(pilot, lambda: bool(app.screen.query(TranscriptHistory)))

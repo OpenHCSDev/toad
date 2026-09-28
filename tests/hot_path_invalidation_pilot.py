@@ -35,8 +35,8 @@ async def main():
                     await screen.on_project_directory_update()
             assert screen._project_panel.directory_tree is None
             app._sidebar_snapshot = comms.views.viewer_snapshot(str(root))
-            with patch.object(app.coordination_wire, "thread_views", side_effect=AssertionError("UI wire scan")), \
-                 patch.object(app.coordination_wire.registry, "_load", side_effect=AssertionError("UI registry read")):
+            with patch.object(app.coordination_wire.views, 'thread_views', side_effect=AssertionError("UI wire scan")), \
+                 patch.object(type(app.coordination_wire.registry.store), "read", side_effect=AssertionError("UI registry read")):
                 for _ in range(100):
                     assert app.open_tabs[0].title.endswith("worker")
 

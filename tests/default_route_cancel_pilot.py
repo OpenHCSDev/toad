@@ -84,7 +84,7 @@ async def main() -> None:
                     await pilot.pause()
                     await view.submit_input(event)
                     assert calls == 1
-                    assert [row.body for row in wire(root).bus.full_history()].count(
+                    assert [row.body for row in wire(root).bus.log.full_history()].count(
                         event.body
                     ) == 1
 
@@ -126,7 +126,7 @@ async def main() -> None:
                         await entered_paint.wait()
                     rows = [
                         row
-                        for row in wire(root).bus.full_history()
+                        for row in wire(root).bus.log.full_history()
                         if row.body == postreceipt.body
                     ]
                     assert len(rows) == 1 and sender.call_count == 1
