@@ -7,7 +7,16 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import ClassVar
 
-from agent_comms.exporting import WireExportFormat, WireExportLimit, WireExportScope
+from agent_comms.exporting import (
+    ChannelScope,
+    DmScope,
+    EverythingScope,
+    FullLimit,
+    MaxBytesLimit,
+    WireExportFormat,
+    WireExportLimit,
+    WireExportScope,
+)
 from agent_comms.importing import ImportFormat
 from textual import on
 from textual.app import ComposeResult
@@ -106,17 +115,17 @@ class WireExportDialog(TransferDialog):
             kind = self.query_one("#export-scope", Select).value
             target = self.query_one("#export-target", Input).value.strip()
             if kind == "channel":
-                scope = WireExportScope.for_channel(target)
+                scope = ChannelScope(target)
             elif kind == "dm":
                 participants = [name.strip().removeprefix("@") for name in target.split(",")]
-                scope = WireExportScope.for_dm(*participants)
+                scope = DmScope(tuple(participants))
             else:
-                scope = WireExportScope.everything()
+                scope = EverythingScope()
             value = self.query_one("#export-limit", Input).value.strip()
-            limit = WireExportLimit.max_bytes(int(value)) if value else WireExportLimit.full()
+            limit = MaxBytesLimit(int(value)) if value else FullLimit()
             request = WireExportRequest(
                 Path(path).expanduser(),
-                WireExportFormat(self.query_one("#export-format", Select).value),
+                WireExportFormat.decode(self.query_one("#export-format", Select).value)(),
                 scope, limit,
             )
         except (TypeError, ValueError) as error:
