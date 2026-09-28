@@ -37,7 +37,7 @@ class ObservedThreadActivity(Static):
         self.refresh_observation()
 
     def refresh_observation(self) -> None:
-        if (not self.is_attached or self.screen is not self.app.screen
+        if (not self.is_attached or not self.screen.is_active
                 or self._read_task is not None and not self._read_task.done()):
             return
         self._read_task = asyncio.create_task(self._observe())
@@ -47,7 +47,7 @@ class ObservedThreadActivity(Static):
             presentation, unavailable = await self.read(), False
         except Exception:
             presentation, unavailable = None, True
-        if not self.is_attached or self.screen is not self.app.screen:
+        if not self.is_attached or not self.screen.is_active:
             return
         if (presentation, unavailable) == (self.presentation, self.unavailable):
             return

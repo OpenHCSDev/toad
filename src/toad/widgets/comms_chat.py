@@ -656,7 +656,7 @@ class CommsChatView(Conversation):
     def _refresh_notifications(self) -> None:
         """One bounded batch for the painted window; independent of bus revision."""
         if (not self.is_attached or self._wire is None
-                or self.screen is not self.app.screen or not self.display
+                or not self.screen.is_active or not self.display
                 or self._notification_task is not None and not self._notification_task.done()):
             return
         rows = self._visible_notification_rows()
@@ -706,7 +706,7 @@ class CommsChatView(Conversation):
         except Exception as failure:
             error, results = failure, {}
         if (not self.is_attached or self._wire is not comms or self.target != target
-                or self.screen is not self.app.screen
+                or not self.screen.is_active
                 or not root_is_current(comms.root)):
             return
         visible = {widget for _, widget in self._visible_notification_rows()}
@@ -723,7 +723,7 @@ class CommsChatView(Conversation):
     async def _refresh(self) -> None:
         if not self.is_attached or self._wire is None:
             return
-        if self.screen is not self.app.screen:
+        if not self.screen.is_active:
             return
         from toad.comms_root import root_is_current
 
@@ -749,7 +749,7 @@ class CommsChatView(Conversation):
                 if not root_is_current(comms.root):
                     self.display = False
                     return
-                if self.screen is not self.app.screen:
+                if not self.screen.is_active:
                     return
                 revision = read.revision
                 if revision == self._revision:
