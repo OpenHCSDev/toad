@@ -57,7 +57,7 @@ def attach_coordination(agent, wire_root, thread):
 
     if agent._message_target is None:
         app = ToadApp(project_dir=str(agent.project_root_path))
-        agent._message_target = SimpleNamespace(
+        agent.attach_surface(SimpleNamespace()
             app=app, screen=HeadlessScreen(), post_message=lambda value: True
         )
     agent.coordination = coordination_fact(

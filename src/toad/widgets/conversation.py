@@ -5,7 +5,6 @@ from toad.widgets.message_filter import OtherCategory
 from toad.settings import PreferenceChange
 from toad.preferences import SidebarSettings, ShellSettings
 
-from asyncio import Future
 import asyncio
 import hashlib
 from contextlib import suppress
@@ -35,9 +34,7 @@ from agent_comms.acp_extension import (
 )
 from agent_comms.backend import compaction_summary
 from agent_comms.goal_presentation import GoalExecution
-from agent_comms.goals import Goal
 from agent_comms.mro_dispatch import MroDispatch, handles
-from agent_comms.routing import MessageRoute
 from rich.segment import Segment
 from textual import containers, events, getters, log, on, work
 from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
@@ -1134,7 +1131,7 @@ class Conversation(containers.Vertical):
             await asyncio.to_thread(self._directory_watcher.join)
             self._directory_watcher = None
         if self.agent is not None:
-            await self.agent.stop()
+            await self.agent.retire_surface(self)
 
         if self._agent_data is not None and self.session_start_time is not None:
             session_time = monotonic() - self.session_start_time
@@ -2026,15 +2023,7 @@ class Conversation(containers.Vertical):
     @on(acp_messages.RequestPermission)
     async def on_acp_request_permission(self, message: acp_messages.RequestPermission):
         message.stop()
-        options = [
-            Answer(option["name"], option["optionId"], option["kind"])
-            for option in message.options
-        ]
-        self.request_permissions(
-            message.result_future,
-            options,
-            message.tool_call,
-        )
+        self.request_permissions(message.request)
         self.new_block()
 
     @on(acp_messages.Plan)
@@ -2273,14 +2262,10 @@ class Conversation(containers.Vertical):
             self.prompt_history_index += message.direction
 
     @work
-    async def request_permissions(
-        self,
-        result_future: Future[Answer | None],
-        options: list[Answer],
-        tool_call_update: acp_protocol.ToolCallUpdatePermissionRequest,
-    ) -> None:
-        if result_future.done():
-            return  # The ACP controller may have disconnected before this worker ran.
+    async def request_permissions(self, request) -> None:
+        if not request.pending:
+            return
+        options, tool_call_update = request.options, request.tool_call
         kind = tool_call_update.get("kind", None)
         title = tool_call_update.get("title", "") or ""
 
@@ -2321,27 +2306,23 @@ class Conversation(containers.Vertical):
                     options, diffs, agent_name=self.agent_title or "The Agent"
                 )
 
-                def retire_expired_diff(future: Future[Answer | None]) -> None:
-                    if (
-                        future.cancelled() or future.result() is None
-                    ) and permissions_screen.is_attached:
+                def retire_expired_diff() -> None:
+                    if permissions_screen.is_attached:
                         permissions_screen.dismiss(None)
 
-                result_future.add_done_callback(retire_expired_diff)
+                request.watch(self, retire_expired_diff)
                 result = await self.app.push_screen_wait(
                     permissions_screen, mode=self.screen.id
                 )
                 self.post_message(messages.SessionUpdate(state="busy"))
                 self.app.terminal_alert(False)
-                if not result_future.done():
-                    result_future.set_result(result)
+                request.answer(self, result)
                 return
 
         from toad.widgets.acp_content import ACPToolCallContent
 
         def answer_callback(answer: Answer) -> None:
-            if not result_future.done():
-                result_future.set_result(answer)
+            request.answer(self, answer)
 
             if not self.prompt.ask_queue:
                 self.post_message(messages.SessionUpdate(state="busy"))
@@ -2358,15 +2339,13 @@ class Conversation(containers.Vertical):
             answer_callback,
         )
 
-        def retire_expired_prompt(future: Future[Answer | None]) -> None:
-            if not future.cancelled() and future.result() is not None:
-                return
+        def retire_expired_prompt() -> None:
             if self.is_attached:
                 self.prompt.remove_ask(ask)
                 if self.prompt._ask is None:
                     self.post_message(messages.SessionUpdate(state="busy"))
 
-        result_future.add_done_callback(retire_expired_prompt)
+        request.watch(self, retire_expired_prompt)
         return
 
     async def post_tool_call(
@@ -2802,6 +2781,8 @@ class Conversation(containers.Vertical):
         # A presentation remount is not a fresh attachment. Start at the
         # Agent's current projection/floor so previously queued receipts cannot
         # revive proof after its reducer entered quarantine or evidence loss.
+        if agent is not None:
+            agent.attach_surface(self)
         attachments = (agent.presentation.attachments if agent is not None
                        else AgentAttachmentView(None, 0, PendingQueueProjection(), 0))
         self.native_history_status = attachments.cursor
@@ -2815,7 +2796,11 @@ class Conversation(containers.Vertical):
             self.agent_info = Content.styled("shell")
         else:
             self.agent_info = agent.get_info()
-            self.agent_ready = False
+            self.agent_ready = agent.ready
+            self.turns.owner = agent.current_turn
+            if self.agent_ready:
+                self.call_later(self.refresh_goal)
+                self.call_later(self.refresh_input_dispositions)
         self.update_title()
 
     @work
@@ -2863,7 +2848,6 @@ class Conversation(containers.Vertical):
             return
         widget = event.widget
 
-        contents = self.contents
         if self.screen.get_selected_text():
             return
         if widget is None or widget.is_maximized:

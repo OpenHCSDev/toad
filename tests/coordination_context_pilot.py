@@ -56,7 +56,7 @@ async def main():
             agent = Agent(root, {"name": "Fixture", "identity": "fixture",
                                  "short_name": "fixture", "run_command": {"*": "true"},
                                  "protocol": "acp"}, "fixture")
-            agent._message_target = view
+            agent.attach_surface(view)
             view.agent = agent
             agent.rpc_session_update("fixture", {
                 "sessionUpdate": "agent_message_chunk",

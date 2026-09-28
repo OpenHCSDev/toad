@@ -1,4 +1,5 @@
 from toad.agent_presentation import LocalAgentPresentation
+from toad.conversation_turn import NoTurn
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
@@ -32,38 +33,31 @@ class AgentBase(ABC):
         self.project_root_path = project_root
         self.presentation = LocalAgentPresentation(self)
 
+    ready = False
+
+    @property
+    def current_turn(self):
+        return NoTurn()
+
+    def attach_surface(self, surface):
+        pass
+
+    async def retire_surface(self, surface):
+        await self.stop()
+
     async def get_thread_presentation(self) -> ThreadPresentation | None:
         """Agents without a coordination identity have no observed thread status."""
         return None
 
     @abstractmethod
     async def send_prompt(self, prompt: str) -> str | None:
-        """Send a prompt to the agent.
-
-        Args:
-            prompt: Prompt text.
-
-        Returns:
-            str: The stop reason.
-        """
+        """Send a prompt; return its stop reason."""
 
     async def set_mode(self, mode_id: str) -> str | None:
-        """Put the agent in a new mode.
-
-        Args:
-            mode_id: Mode id.
-
-        Returns:
-            str: The stop reason.
-        """
+        """Select a mode; return its stop reason."""
 
     async def cancel(self) -> bool:
-        """Cancel prompt.
-
-        Returns:
-            bool: `True` if success, `False` if the turn wasn't cancelled.
-
-        """
+        """Cancel the active prompt if supported."""
         return False
 
     async def set_model(self, model_id: str) -> str | None:

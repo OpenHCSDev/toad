@@ -1,7 +1,9 @@
 from toad.acp.agent_process import AgentProcess
+from toad.acp.agent_controller import AgentController
+from toad.conversation_turn import AgentTurn, ClientTurn
+from toad.acp.permission_controller import PermissionController
 from toad.agent_presentation import ACPAgentPresentation
 import asyncio
-import json
 import os
 from collections.abc import Mapping
 from contextlib import suppress
@@ -49,10 +51,8 @@ from toad.acp.projection_attachment import ProjectionAttachment
 from toad.acp.prompt import build as build_prompt
 from toad.acp.queue_attachment import QueueAttachment
 from toad.acp.sdk_boundary import validate_session_update
-from toad.acp.wire_message import IncomingWireMessage
 from toad.agent import AgentBase, AgentFail, AgentReady
 from toad.agent_schema import Agent as AgentData
-from toad.answer import Answer
 from toad.db import DB, SessionMeta
 
 PROTOCOL_VERSION = 1
@@ -170,6 +170,8 @@ class Agent(AgentBase):
         super().__init__(project_root)
         self.process = AgentProcess(self)
         self.presentation = ACPAgentPresentation(self)
+        self.permissions = PermissionController(self)
+        self.controller = AgentController(self)
         self._agent_data = agent
         self.session_id = session_id
         self.server = jsonrpc.Server()
@@ -197,8 +199,6 @@ class Agent(AgentBase):
         }
         self.session_pk: int | None = session_pk
         self.tool_calls: dict[str, protocol.ToolCall] = {}
-        self._message_target: MessagePump | None = None
-        self._pending_permission_answers: set[asyncio.Future[Answer | None]] = set()
         self._active_turn_id: str | None = None
         self._turn_lifecycle_sequence = 0
         self._private_cursor = ProjectionAttachment()
@@ -241,8 +241,9 @@ class Agent(AgentBase):
             line: Text to be logged.
 
         """
-        if self._message_target is not None:
-            self._message_target.call_later(self._log, line)
+        task = asyncio.create_task(self._log(line))
+        self.process.responses.add(task)
+        task.add_done_callback(self.process.responses.discard)
 
     async def _log(self, line: str) -> None:
         """Write text to the agent log file.
@@ -252,9 +253,6 @@ class Agent(AgentBase):
         Args:
             line: Text to be logged.
         """
-
-        if self._message_target is None:
-            return
 
         def write_log(log_file_path: Path, line: str):
             """Write log in a thread."""
@@ -272,7 +270,8 @@ class Agent(AgentBase):
 
     async def start(self, message_target: MessagePump | None = None) -> None:
         """Start the agent."""
-        self._message_target = message_target
+        if message_target is not None:
+            self.attach_surface(message_target)
         # Freeze exactly the environment and working directory passed to the
         # child. A relative wire root is relative to the child cwd, not Toad's.
         # Preflight is early denial; the actual spawn takes the core wire lock.
@@ -355,9 +354,7 @@ class Agent(AgentBase):
         Returns:
             `True` if the message was posted successfully, or `False` if it wasn't.
         """
-        if (message_target := self._message_target) is None:
-            return False
-        return message_target.post_message(message)
+        return self.controller.surface.post(message)
 
     @jsonrpc.expose("session/update", ordered=True)
     async def _rpc_session_update(
@@ -367,27 +364,12 @@ class Agent(AgentBase):
         _meta: dict[str, Any] | None = None,
     ) -> None:
         """Validate wire notifications off-process, then publish to the same owner."""
-        from toad.render_tasks import ValidateSessionUpdateTask
-
-        target = self._message_target
-        if target is None:
-            return
         session = self.session_id
         async with self._session_update_lock:
-            if (
-                target is not self._message_target
-                or self.session_id != session
-                or target._closing
-            ):
+            if self.session_id != session or self.process.stopping:
                 return
-            validation = await target.app.render_processes.submit(
-                ValidateSessionUpdateTask(sessionId, update, _meta)
-            )
-            if (
-                target is not self._message_target
-                or self.session_id != session
-                or target._closing
-            ):
+            validation = await self.controller.validate(sessionId, update, _meta)
+            if self.session_id != session or self.process.stopping:
                 return
             if validation.error is not None:
                 self._reject_session_update(sessionId, update, _meta, validation.error)
@@ -561,9 +543,6 @@ class Agent(AgentBase):
         }
         if self.process.stopping or sessionId != self.session_id:
             return cancelled
-        result_future: asyncio.Future[Answer | None] = (
-            asyncio.get_running_loop().create_future()
-        )
         tool_call_id = toolCall["toolCallId"]
 
         permission_tool_call = cast(dict[str, Any], toolCall.copy())
@@ -574,26 +553,9 @@ class Agent(AgentBase):
             else {}
         )
         visible_tool_call.update(permission_tool_call)
-        message = messages.RequestPermission(
-            options,
-            cast(protocol.ToolCallUpdatePermissionRequest, visible_tool_call),
-            result_future,
-        )
-        if not self.post_message(message):
-            return cancelled  # No mounted controller can answer this request.
-        self.tool_calls[tool_call_id] = cast(
-            protocol.ToolCall, deepcopy(visible_tool_call)
-        )
-        self._pending_permission_answers.add(result_future)
-        try:
-            try:
-                ask_result = await asyncio.wait_for(
-                    result_future, PERMISSION_TIMEOUT_SECONDS
-                )
-            except TimeoutError:
-                return cancelled
-        finally:
-            self._pending_permission_answers.discard(result_future)
+        self.tool_calls[tool_call_id] = cast(protocol.ToolCall, deepcopy(visible_tool_call))
+        request = self.permissions.request(options, cast(protocol.ToolCallUpdatePermissionRequest, visible_tool_call))
+        ask_result = await request.wait(PERMISSION_TIMEOUT_SECONDS)
         if ask_result is None or self.process.stopping or sessionId != self.session_id:
             return cancelled
         if not any(option["optionId"] == ask_result.id for option in options):
@@ -721,12 +683,7 @@ class Agent(AgentBase):
     async def stop(self) -> None:
         """Gracefully stop the process."""
         self.process.stopping = True
-        self._invalidate_attachment_views()
-        self._active_turn_id = None
-        self.post_message(messages.McpClientStopped(self))
-        for answer in tuple(self._pending_permission_answers):
-            if not answer.done():
-                answer.set_result(None)
+        self.controller.connection_closed()
         if self.session_pk is not None:
             db = DB()
             await db.session_update_last_used(self.session_pk)
@@ -867,7 +824,7 @@ class Agent(AgentBase):
             raise ValueError(
                 f"Reconnect not attempted: maintenance admission denied: {error}"
             ) from error
-        target = self._message_target
+        target = self.controller.surface.target
         await self.stop()
         self._reconnecting = True
         self.session_ready_event.clear()
@@ -1070,23 +1027,42 @@ class Agent(AgentBase):
             return
 
     @property
+    def session_id(self):
+        return self.controller.session_id
+
+    @session_id.setter
+    def session_id(self, value):
+        if value != self.controller.session_id:
+            self.permissions.cancel()
+            self._active_turn_id = None
+            self.controller.session_id = value
+
+    @property
+    def ready(self):
+        return self._connected_ok and self.session_ready_event.is_set()
+
+    @property
+    def current_turn(self):
+        return AgentTurn(self._active_turn_id) if self._active_turn_id else ClientTurn()
+
+    async def retire_surface(self, surface):
+        if self.controller.surface.owns(surface):
+            self.detach_surface(surface)
+            await self.stop()
+
+    def attach_surface(self, surface) -> None:
+        self.controller.attach(surface)
+
+    def detach_surface(self, surface) -> None:
+        self.controller.detach(surface)
+
+    @property
     def coordination(self) -> CoordinationChangedUpdate | None:
-        target = self._message_target
-        return (
-            target.app.coordination_facts.get(target.screen)
-            if target is not None
-            else None
-        )
+        return self.controller.coordination
 
     @coordination.setter
     def coordination(self, value: CoordinationChangedUpdate | None) -> None:
-        target = self._message_target
-        if target is None:
-            raise RuntimeError("Coordination facts require their attached app owner")
-        if value is None:
-            target.app.coordination_facts.pop(target.screen, None)
-        else:
-            target.app.coordination_facts[target.screen] = value
+        self.controller.coordination = value
 
     def _receive_comms_response(
         self, response, cursor_token: int, queue_token: int
@@ -1379,7 +1355,7 @@ class Agent(AgentBase):
         from toad.app import ToadApp
 
         if self._transcript_reader is None or self._transcript_reader_root != root:
-            app = self._message_target.app if self._message_target is not None else None
+            app = self.controller.app
             shared = app._coordination_wire if isinstance(app, ToadApp) else None
             if shared is not None and shared.root == Path(root).expanduser():
                 self._transcript_reader = shared
