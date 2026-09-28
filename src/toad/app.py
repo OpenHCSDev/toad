@@ -400,9 +400,7 @@ class ToadApp(App, inherit_bindings=False):
         self._pending_mode_switch: str | None = None
         self.open_tabs_changed: Signal[None] = Signal(self, "open-tabs-changed")
         self.tab_history_changed: Signal[None] = Signal(self, "tab-history-changed")
-        self.coordination_facts: WeakKeyDictionary[
-            object, CoordinationChangedUpdate
-        ] = WeakKeyDictionary()
+        self.coordination_facts: WeakKeyDictionary[object, CoordinationChangedUpdate] = WeakKeyDictionary()
         self._coordination_wire = None
         self._coordination_route = None
         self.coordination_observed: Signal[None] = Signal(self, "coordination-observed")
