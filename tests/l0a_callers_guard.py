@@ -19,7 +19,12 @@ def main():
                 or isinstance(node, ast.Attribute)
                 and (
                     node.attr
-                    in {"SessionDelete", "session_delete", "PromptQueueUpdate"}
+                    in {
+                        "SessionDelete",
+                        "session_delete",
+                        "PromptQueueUpdate",
+                        "_process_alive",
+                    }
                     or isinstance(node.value, ast.Name)
                     and node.value.id == "Goal"
                     and node.attr in {"from_wire", "from_registry"}
@@ -40,6 +45,15 @@ def main():
                 )
             if retired:
                 findings.append(f"{path.name}:{node.lineno}")
+    for path in (Path(__file__).resolve().parent).glob("*.py"):
+        for node in ast.walk(ast.parse(path.read_text())):
+            if (
+                isinstance(node, ast.Call)
+                and isinstance(node.func, ast.Name)
+                and node.func.id == "Thread"
+                and any(keyword.arg == "pid" for keyword in node.keywords)
+            ):
+                findings.append(f"{path.name}:{node.lineno}: bare-PID Thread fixture")
     assert not findings, "\n".join(findings)
     print("L0A guard: no retired Goal decoder, purge caller or text-only queue reader")
 

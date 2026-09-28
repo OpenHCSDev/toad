@@ -13,6 +13,7 @@ from types import SimpleNamespace
 from agent_comms.activity import ActivityState
 from agent_comms.thread_management import ForkSpec
 from agent_comms.thread_status import ArchivedThreadStatus
+from agent_comms.child_process import ProcessIdentity
 from agent_comms.threads import Thread
 from agent_comms.comms import wire
 from textual.content import Content
@@ -381,7 +382,7 @@ for line in sys.stdin:
                     name=managed_thread,
                     tags=frozenset({"acp"}),
                     worktree=str(project),
-                    pid=os.getpid(),
+                    process_identity=ProcessIdentity.capture(os.getpid()),
                 )
             )
             startup_agent = ACPAgent(

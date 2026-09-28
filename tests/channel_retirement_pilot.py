@@ -10,6 +10,7 @@ from agent_comms.comms import wire
 from agent_comms.catalog_document import CatalogDocument, ChannelPreferences
 from agent_comms.channels import AnyOfMatch, SavedView, ViewKind, ViewPredicate
 from agent_comms.messages import Message, MessageType
+from agent_comms.child_process import ProcessIdentity
 from agent_comms.threads import Thread
 from runtime_fixture import ToadApp
 from toad import messages
@@ -24,7 +25,7 @@ async def main():
                           XDG_STATE_HOME=str(root/'state'), XDG_DATA_HOME=str(root/'data'))
         comms = wire(root/'wire')
         for name, tags in ((root.name, set()), ('api-agent', {'api'}), ('ui-agent', {'ui'})):
-            comms.threads.register(Thread(name, frozenset(tags), str(root), pid=os.getpid()))
+            comms.threads.register(Thread(name, frozenset(tags), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
         comms.channels.catalog.replace(CatalogDocument(
             tags=frozenset({'api', 'ui'}),
             preferences={'#engineering': ChannelPreferences(pinned=True, created_at=17)},

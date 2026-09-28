@@ -1,3 +1,25 @@
+## Latest caller audit: thread navigation
+
+Removed one remaining production call to the deleted OwnerLifecycle._process_alive:
+ThreadNavigationRequest now reads Thread.process_alive, the ProcessIdentity owner.
+Updated 39 behavioral UI fixture files from Thread(pid=...) to ProcessIdentity.capture;
+removed the same obsolete liveness call from e2e_pty. OS/ACP PID projections remain
+where the external contract still requires them. Guard now rejects bare-PID Thread
+fixtures and production _process_alive calls. No durable or runtime store changes.
+
+Local checks: navigation_preparation_pilot and pending_thread_open_pilot both pass
+against source Toad plus installed parent89e420b core. Caller guard and E9/F lint pass;
+full repository lint/full UI suite were not rerun. No changed performance invariants.
+Source change is +1/-1; fixture migration preserves existing behavior assertions.
+
+The installed native pilot now exposes --notification-only, reusing the existing
+fixture and channel assertion, with exactly one loopback request. It additionally
+checks real attached owner navigation through ThreadNavigationRequest. This mode
+has not yet run: Nietzsche owns PR241 history_views.py stale-table/process-liveness
+fix, still unpublished at 1e152bf when this update was written. Existing retained
+failure remains evidence, not a waived assertion. Parent can integrate this caller
+fix independently; notification acceptance is the only dependency under test here.
+
 # L0A paired Toad caller closure
 
 Paired core: OpenHCSDev/agent-comms#235 plus #238 (integrated by parent #229). Branch refactor/round2-l0a-callers starts from Toad main 511a1a2. Parent owns merge, D22 conversion and quiet installation.

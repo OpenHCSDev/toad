@@ -10,6 +10,7 @@ from unittest.mock import patch
 from agent_comms.comms import wire
 from agent_comms.presentation import MessageNotification
 from agent_comms.thread_presentation import ThreadPresentation
+from agent_comms.child_process import ProcessIdentity
 from agent_comms.threads import Thread
 from textual.screen import Screen
 
@@ -32,7 +33,7 @@ async def main():
         os.environ.update(AGENT_COMMS_ROOT=str(root / "wire"), XDG_CONFIG_HOME=str(root / "config"),
                           XDG_STATE_HOME=str(root / "state"), XDG_DATA_HOME=str(root / "data"))
         comms = wire(root / "wire")
-        comms.threads.register(Thread("peer", frozenset({"comms"}), str(root), pid=os.getpid()))
+        comms.threads.register(Thread("peer", frozenset({"comms"}), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
         for n in range(30):
             comms.messaging.send("peer", "#comms", f"Test {n}: " + "body " * 12)
         app = ToadApp(project_dir=str(root))

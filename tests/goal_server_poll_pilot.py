@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
+from agent_comms.child_process import ProcessIdentity
 from agent_comms.threads import Thread
 from agent_comms.goal_actions import EditGoalAction, GoalPrecondition, OwnerInvocable, StandbyGoalAction
 from agent_comms.acp import CommsAgent
@@ -51,7 +52,7 @@ async def main():
         peer_turn = None
         try:
             session = (await owner.new_session(cwd=str(project))).session_id
-            comms.threads.register(Thread("peer", frozenset(), str(project), pid=os.getpid()))
+            comms.threads.register(Thread("peer", frozenset(), str(project), process_identity=ProcessIdentity.capture(os.getpid())))
             # Standby requires an actually active declared dependency, not only
             # a registered name. This is a fixture turn, with no provider call.
             peer_turn = comms.agents.begin_turn("peer", "fixture-dependent-turn")

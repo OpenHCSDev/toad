@@ -29,6 +29,7 @@ from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.channel_participants import ChannelParticipants
 from toad.widgets.message_notifications import MessageNotifications
 from toad import messages
+from toad.navigation_preparation import ThreadNavigationRequest
 
 
 async def until(pilot, predicate, seconds=20):
@@ -37,11 +38,62 @@ async def until(pilot, predicate, seconds=20):
             await pilot.pause(0.05)
 
 
-async def main():
+async def notification_feedback(
+    pilot, app, comms, owner_mode, project, entered, release, hold_next
+):
+    user = comms.messaging.user_identity(str(project)).name
+    await app.open_comms_session(
+        owner_mode=owner_mode,
+        project_path=project,
+        me=user,
+        target="#team",
+        kind="channel",
+    )
+    channel = app.screen.query_one(CommsChatView)
+    entered.clear()
+    release.clear()
+    hold_next.set()
+    await channel.submit_input(messages.UserInputSubmitted("CHANNEL_NATIVE_TRIAGE"))
+    await until(pilot, entered.is_set)
+    await until(pilot, lambda: comms.registry.require("beta").executing)
+    await channel._refresh()
+    await pilot.pause()
+    roster = channel.query_one(ChannelParticipants)
+    assert "beta" in roster.names.render().plain, roster.names.render()
+    assert roster in app.screen._compositor.visible_widgets
+    print("CHANNEL_ACTIVE_STATUS", roster.names.render().plain, flush=True)
+    release.set()
+    await until(pilot, lambda: not comms.registry.require("beta").executing)
+    await channel._refresh()
+    await pilot.pause()
+    assert "No active turns" in roster.names.render().plain, roster.names.render()
+    print("CHANNEL_IDLE_STATUS_CONFIRMED", flush=True)
+    notification = channel.query_one(MessageNotifications)
+    try:
+        await until(pilot, lambda: "Checked" in str(notification.title), 5)
+        assert "no response" in str(notification.title).lower(), notification.title
+    except TimeoutError, AssertionError:
+        detail = {
+            "title": str(notification.title),
+            "details": str(notification.details.render()),
+            "history": [(m.seq, m.body) for m, _ in channel._history],
+            "visible": [m.seq for m, _ in channel._visible_notification_rows()],
+        }
+        try:
+            detail["core"] = repr(
+                comms.views.message_notifications(tuple(m for m, _ in channel._history))
+            )
+        except Exception as error:
+            detail["coreError"] = repr(error)
+        print("NOTIFICATION_FAILURE", json.dumps(detail), flush=True)
+        raise
+    print("CHANNEL_NOTIFICATION", str(notification.title), flush=True)
+
+
+async def main(*, notification_only=False):
     package = Path(os.environ["AC_NATIVE_COPIED_PACKAGE"])
     verify_native_package(package)
     requests, failures = [], []
-    acceptance_failures = []
     entered, release, hold_next = (
         threading.Event(),
         threading.Event(),
@@ -207,7 +259,30 @@ async def main():
                 assert agent._connected_ok, "Actual ACP attach failed"
                 owner = comms.registry.require("beta")
                 assert owner.process_identity is not None and owner.process_alive
-                print("ATTACHED", flush=True)
+                navigation = await asyncio.to_thread(
+                    ThreadNavigationRequest(str(comms.root), "beta", project, ()).read
+                )
+                assert navigation.resumable and navigation.thread.process_alive
+                print("ATTACHED_AND_NAVIGABLE", flush=True)
+                if notification_only:
+                    await notification_feedback(
+                        pilot,
+                        app,
+                        comms,
+                        owner_mode,
+                        project,
+                        entered,
+                        release,
+                        hold_next,
+                    )
+                    assert len(requests) == 1, requests
+                    assert not failures, failures
+                    assert app._exception is None
+                    print(
+                        "PASS: installed native notification feedback; one loopback request",
+                        flush=True,
+                    )
+                    return
                 turn = asyncio.create_task(agent.send_prompt("FIRST_NATIVE_INPUT"))
                 await until(pilot, entered.is_set)
                 print("PROVIDER_FIRST", flush=True)
@@ -314,62 +389,9 @@ async def main():
                 await until(pilot, lambda: not comms.registry.require("beta").executing)
                 print("DM_NATIVE_REPLY_CONFIRMED", flush=True)
 
-                await app.open_comms_session(
-                    owner_mode=owner_mode,
-                    project_path=project,
-                    me=user,
-                    target="#team",
-                    kind="channel",
+                await notification_feedback(
+                    pilot, app, comms, owner_mode, project, entered, release, hold_next
                 )
-                channel = app.screen.query_one(CommsChatView)
-                entered.clear()
-                release.clear()
-                hold_next.set()
-                await channel.submit_input(
-                    messages.UserInputSubmitted("CHANNEL_NATIVE_TRIAGE")
-                )
-                await until(pilot, entered.is_set)
-                await until(pilot, lambda: comms.registry.require("beta").executing)
-                await channel._refresh()
-                await pilot.pause()
-                roster = channel.query_one(ChannelParticipants)
-                assert "beta" in roster.names.render().plain, roster.names.render()
-                assert roster in app.screen._compositor.visible_widgets
-                print("CHANNEL_ACTIVE_STATUS", roster.names.render().plain, flush=True)
-                release.set()
-                await until(pilot, lambda: not comms.registry.require("beta").executing)
-                await channel._refresh()
-                await pilot.pause()
-                assert "No active turns" in roster.names.render().plain, (
-                    roster.names.render()
-                )
-                print("CHANNEL_IDLE_STATUS_CONFIRMED", flush=True)
-                notification = channel.query_one(MessageNotifications)
-                try:
-                    await until(pilot, lambda: "Checked" in str(notification.title), 5)
-                    assert "no response" in str(notification.title).lower(), (
-                        notification.title
-                    )
-                except TimeoutError, AssertionError:
-                    detail = {
-                        "title": str(notification.title),
-                        "details": str(notification.details.render()),
-                        "history": [(m.seq, m.body) for m, _ in channel._history],
-                        "visible": [
-                            m.seq for m, _ in channel._visible_notification_rows()
-                        ],
-                    }
-                    try:
-                        detail["core"] = repr(
-                            comms.views.message_notifications(
-                                tuple(m for m, _ in channel._history)
-                            )
-                        )
-                    except Exception as error:
-                        detail["coreError"] = repr(error)
-                    acceptance_failures.append(detail)
-                    print("NOTIFICATION_FAILURE", json.dumps(detail), flush=True)
-                print("CHANNEL_NOTIFICATION", str(notification.title), flush=True)
 
                 # A stopped owner's saved native session must reopen through
                 # the same installed entrypoint and accept a new native input.
@@ -429,7 +451,6 @@ async def main():
                     flush=True,
                 )
                 assert not failures, failures
-                assert not acceptance_failures, acceptance_failures
                 assert app._exception is None
         finally:
             release.set()
@@ -452,4 +473,9 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    import argparse
+
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--notification-only", action="store_true")
+    args = parser.parse_args()
+    asyncio.run(main(notification_only=args.notification_only))

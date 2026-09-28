@@ -1,0 +1,1 @@
+pending thread: mounted/loading frame before gated metadata; duplicate, close, stale result and invalid route safe
