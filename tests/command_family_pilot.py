@@ -14,7 +14,7 @@ from agent_comms.comms import wire
 from agent_comms.threads import Thread
 from agent_comms.thread_status import StoppedThreadStatus
 from textual.geometry import Offset
-from toad.app import ToadApp
+from runtime_fixture import ToadApp
 from toad.screens.main import MainScreen
 from toad.slash_command import (
     AgentAdvertisedCommand,
