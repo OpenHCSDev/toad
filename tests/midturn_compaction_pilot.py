@@ -2,6 +2,7 @@
 import asyncio
 import os
 import tempfile
+import time
 from pathlib import Path
 from runtime_fixture import ToadApp
 from toad.acp.agent import Agent
@@ -13,7 +14,7 @@ from agent_comms.agent_events import CompactionStart, CompactionEnd
 
 def compaction_packet(event):
     return {"sessionUpdate": "agent_message_chunk", "content": {
-        "type": "text", "text": "Core-only status; not an ordinary assistant reply"},
+        "type": "text", "text": ""},
         "_meta": encode_updates(CompactionChangedUpdate(event))}
 
 async def main():
@@ -27,7 +28,7 @@ async def main():
             agent = Agent(root, {'name': 'Fixture', 'identity': 'fixture', 'short_name': 'fixture', 'run_command': {'*': 'true'}, 'protocol': 'acp'}, 'fixture')
             agent._message_target = view
             view.agent = agent
-            agent.rpc_session_update('fixture', {'sessionUpdate': 'agent_message_chunk', 'content': {'type': 'text', 'text': ''}, '_meta': encode_updates(TurnStartedUpdate('active-turn', None, 'working', 'Thinking'))})
+            agent.rpc_session_update('fixture', {'sessionUpdate': 'agent_message_chunk', 'content': {'type': 'text', 'text': ''}, '_meta': encode_updates(TurnStartedUpdate('active-turn', time.time(), 'working', 'Thinking'))})
             agent.rpc_session_update('fixture', {'sessionUpdate': 'usage_update', 'used': 120000, 'size': 272000})
             await pilot.pause()
             assert '120.0K' in str(view.status)

@@ -203,33 +203,16 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
         with containers.Center():
             yield ChannelsSlot()
             yield SideBar(
-                SideBar.Panel(
-                    "Thread",
-                    CoordinationStatus(self._comms_thread),
-                    id="coordination-panel",
-                ),
-                SideBar.Panel(
-                    "Comms",
-                    ThreadCommsSidebar(
-                        self._comms_thread, wire_root=self.coordination_root, live=True
-                    ),
-                    id="thread-comms-panel",
-                    header_control=RelationshipSort(),
-                ),
+                SideBar.Panel("Thread", CoordinationStatus(self._comms_thread), id="coordination-panel"),
+                SideBar.Panel("Comms", ThreadCommsSidebar(
+                    self._comms_thread, wire_root=self.coordination_root, live=True),
+                    id="thread-comms-panel", header_control=RelationshipSort()),
                 SideBar.Panel("Plan", Plan([]), collapsed=True, id="plan-panel"),
-                SideBar.Panel(
-                    "Project", self._project_panel, flex=True, collapsed=True
-                ),
-                SideBar.Panel(
-                    "Recovery",
-                    RecoveryView(self._comms_thread, wire_root=self.coordination_root),
-                    collapsed=True,
-                    id="recovery-panel",
-                ),
-                id="thread-sidebar",
-                right=True,
-                hide=True,
-                navigation=self._thread_sidebar_state,
+                SideBar.Panel("Project", self._project_panel, flex=True, collapsed=True),
+                SideBar.Panel("Recovery", RecoveryView(self._comms_thread,
+                                                       wire_root=self.coordination_root), collapsed=True,
+                              id="recovery-panel"),
+                id="thread-sidebar", right=True, hide=True, navigation=self._thread_sidebar_state,
                 defer_mount=not self._content_loaded,
             )
             with containers.Vertical(id="session-content"):
@@ -359,15 +342,10 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
 
             from toad.comms_root import current_root, root_is_current
 
-            if self.coordination_root is not None and not root_is_current(
-                self.coordination_root
-            ):
+            if self.coordination_root is not None and not root_is_current(self.coordination_root):
                 raise ValueError("Comms route changed; this session retains its former wire")
-            root_path = (
-                Path(self.coordination_root).expanduser()
-                if self.coordination_root is not None
-                else current_root()
-            )
+            root_path = (Path(self.coordination_root).expanduser()
+                         if self.coordination_root is not None else current_root())
             if self._identity_wire is None or self._identity_wire.root != root_path:
                 shared = self.app.coordination_wire
                 self._identity_wire = shared if shared.root == root_path else wire(root_path)
@@ -449,9 +427,7 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
             from toad.comms_root import implicit_root, root_is_current, run_selected_write
 
             try:
-                if self.coordination_root is not None and not root_is_current(
-                    self.coordination_root
-                ):
+                if self.coordination_root is not None and not root_is_current(self.coordination_root):
                     raise ValueError("Comms route changed; reopen the thread before forking")
                 comms = _wire()
                 run_selected_write(
@@ -539,8 +515,7 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
         # Route discovery already resolved new wire-thread identities off-loop.
         if sidebar := self.query_one_optional(CommsSidebar):
             sidebar.session_thread = (
-                self._comms_thread
-                if self.coordination_root is not None
+                self._comms_thread if self.coordination_root is not None
                 else self._resolve_comms_thread()
             )
         if self._content_loaded:

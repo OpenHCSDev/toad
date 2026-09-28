@@ -948,13 +948,8 @@ class ToadApp(App, inherit_bindings=False):
         )
 
     async def _open_comms_history(
-        self,
-        *,
-        owner_mode: str,
-        project_path: Path,
-        me: str,
-        target: str,
-        kind: HistoryKind,
+        self, *, owner_mode: str, project_path: Path, me: str,
+        target: str, kind: HistoryKind,
     ) -> str:
         """Execute a declared history route after its target selected behavior."""
 
@@ -975,14 +970,11 @@ class ToadApp(App, inherit_bindings=False):
             self.notify(str(error), title="Comms target unavailable", severity="error")
             return self.current_mode
 
-        if (
-            prepared is None
-            or self._main_session_screen(owner_mode) is not owner_screen
-            or self.session_tracker.get_session(owner_mode) is None
-            or owner_screen._comms_thread != owner_identity
-            or owner_screen.coordination_root != owner_root
-            or not root_is_current(requested_root)
-        ):
+        if (prepared is None or self._main_session_screen(owner_mode) is not owner_screen
+                or self.session_tracker.get_session(owner_mode) is None
+                or owner_screen._comms_thread != owner_identity
+                or owner_screen.coordination_root != owner_root
+                or not root_is_current(requested_root)):
             # Metadata may finish after a route flip, rename, or owner close.
             # A delayed result cannot resurrect a tab or steal current focus.
             return self.current_mode
@@ -1249,11 +1241,8 @@ class ToadApp(App, inherit_bindings=False):
         mounted_root = str(Path(requested_root).expanduser())
         for details in self.session_tracker.ordered_sessions:
             screen = self._main_session_screen(details.mode_name)
-            if (
-                screen is not None
-                and screen.coordination_root == mounted_root
-                and screen._comms_thread == target
-            ):
+            if (screen is not None and screen.coordination_root == mounted_root
+                    and screen._comms_thread == target):
                 await self.switch_mode(details.mode_name)
                 return details.mode_name
         for mode, pending in self._pending_thread_modes.items():
@@ -1331,9 +1320,7 @@ class ToadApp(App, inherit_bindings=False):
         if pending_mode not in self._pending_thread_modes or self.current_mode != pending_mode:
             return self._pending_thread_fallback(pending_mode)
         open_threads = tuple(
-            OpenThread(
-                details.mode_name, screen.coordination_root, screen._comms_thread
-            )
+            OpenThread(details.mode_name, screen.coordination_root, screen._comms_thread)
             for details in self.session_tracker.ordered_sessions
             if (screen := self._main_session_screen(details.mode_name)) is not None
             and screen.coordination_root is not None
@@ -1345,15 +1332,12 @@ class ToadApp(App, inherit_bindings=False):
         except Exception as error:
             self.notify(str(error), title="Thread unavailable", severity="error")
             return self._pending_thread_fallback(pending_mode)
-        if (
-            prepared is None
-            or pending_mode not in self._pending_thread_modes
-            or not source.is_attached
-            or owner_mode not in self._screen_stacks
-            or source._comms_thread != source_identity
-            or source.coordination_root != source_root
-            or not root_is_current(requested_root)
-        ):
+        if (prepared is None or pending_mode not in self._pending_thread_modes
+                or not source.is_attached
+                or owner_mode not in self._screen_stacks
+                or source._comms_thread != source_identity
+                or source.coordination_root != source_root
+                or not root_is_current(requested_root)):
             return self._pending_thread_fallback(pending_mode)
         coordination_root, thread = prepared.root, prepared.thread
         if not prepared.active:
@@ -1367,11 +1351,8 @@ class ToadApp(App, inherit_bindings=False):
             )
         if existing := prepared.existing:
             screen = self._main_session_screen(existing.mode)
-            if (
-                screen is not None
-                and screen.coordination_root == existing.root
-                and screen._comms_thread == existing.name
-            ):
+            if (screen is not None and screen.coordination_root == existing.root
+                    and screen._comms_thread == existing.name):
                 await self.switch_mode(existing.mode)
                 return existing.mode
             # A view changed identity during discovery; don't create a duplicate
@@ -1516,11 +1497,8 @@ class ToadApp(App, inherit_bindings=False):
         from toad.widgets.comms_sidebar import CommsSidebar
 
         sidebar = screen.query_one_optional(CommsSidebar)
-        observed_root = screen.coordination_root or (
-            sidebar._wire.root
-            if sidebar is not None and sidebar._wire is not None
-            else None
-        )
+        observed_root = (screen.coordination_root or
+                         (sidebar._wire.root if sidebar is not None and sidebar._wire is not None else None))
         if observed_root is not None and not root_is_current(observed_root):
             return
         conversation = screen.query_one_optional(Conversation)
