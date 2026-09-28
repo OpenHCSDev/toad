@@ -193,4 +193,3 @@ def show_target_menu(
         ContextMenu(menu_offset, title, items),
         callback=handle,
     )
-

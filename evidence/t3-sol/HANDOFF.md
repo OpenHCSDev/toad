@@ -8,7 +8,8 @@ Implemented:
 - SlashCommand reuses core Command/DeclaredFamily. Concrete commands own spelling,
   help, typed argument parsing and behavior. Completion derives from members.
 - Deleted the maintained builtin roster, eleven-way Conversation dispatch, seven
-  self.agent capability probes and the hard-coded SlashComplete demo roster.
+  self.agent capability probes, hard-coded SlashComplete demo roster, unused hint
+  mirrors and redundant completion deduplication cache.
 - ACP advertised commands become typed instances at their external boundary.
   Local declarations own display/execution on collisions; native commands still
   pass to the established agent submission path.
@@ -59,3 +60,15 @@ in this fork; authoritative source/checkpoint was inspected read-only instead.
 D22 already live; no migration tools, live root, route, launcher or owner changes.
 No CI wait or paid calls. T3 command/discovery batch is independently reviewable;
 combined T2 final caller/type acceptance remains outstanding.
+
+Installed acceptance (final commands-installed-final.log): built candidate wheel,
+installed into owned .artifacts/t3-final-installed, ran with actual installed
+runtime-round2-final-20260928 core1853503b/Textual16ede and native689. No Toad source
+PYTHONPATH was used. All four ACP/agent/DM/channel receipt lines passed. MCP wheel
+acceptance mcp-installed-wheel.log passed actual package decisions and cleanup.
+Final pyproject pins the exact tested core1853503b; synced with Toaddf0a758 main.
+
+Source line count against current main: declaration classes add explicit typed
+argument/behavior owners while deleting dispatch and copied catalogs. Net growth
+is from those owners, not a second execution path. Tests add one combined family/
+new-case/mounted behavior pilot and one deletion guard; no per-member branch tests.
