@@ -128,30 +128,23 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
     async def select_historical_identity(self, event: SelectHistoricalIdentity) -> None:
         event.stop()
         from toad.screens.historical_sessions import HistoricalSessions
-
         comms = self.app.coordination_wire
         threads = await asyncio.to_thread(comms.views.historical_threads, event.name)
         if not threads:
             self.notify("This sender has no preserved identity declaration.")
             return
-        self.app.push_screen(
-            HistoricalSessions(comms, threads, name=event.name, source=event.source)
-        )
+        self.app.push_screen(HistoricalSessions(comms, threads, name=event.name, source=event.source))
 
     @on(Button.Pressed, "#historical-sessions")
     async def action_historical_sessions(self) -> None:
         from toad.screens.historical_sessions import HistoricalSessions
-
         comms = self.app.coordination_wire
         threads = await asyncio.to_thread(comms.views.historical_threads)
         if not threads:
             self.notify("No preserved history sources are attached yet.")
             return
-        self.app.push_screen(
-            HistoricalSessions(
-                comms, threads, name=self.target if self.kind == "dm" else None
-            )
-        )
+        self.app.push_screen(HistoricalSessions(comms, threads,
+            name=self.target if self.kind == "dm" else None))
 
     def on_mount(self) -> None:
         if not self._content_loaded:
@@ -194,14 +187,9 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
             with self.app.batch_update():
                 content = self.query_one("#comms-content", containers.Vertical)
                 await content.remove_children()
-                await content.mount(
-                    CommsChatView(
-                        self.project_path,
-                        me=self.me,
-                        target=self.target,
-                        kind=self.kind,
-                    )
-                )
+                await content.mount(CommsChatView(
+                    self.project_path, me=self.me, target=self.target, kind=self.kind,
+                ))
                 if self.is_attached:
                     self._prepare_content()
                     if self.is_current:

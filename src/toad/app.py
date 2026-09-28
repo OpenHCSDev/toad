@@ -431,20 +431,14 @@ class ToadApp(App, inherit_bindings=False):
         await self.navigation_reader.aclose()
         await self.render_processes.aclose()
         if self._background_render_tasks:
-            await asyncio.gather(
-                *tuple(self._background_render_tasks), return_exceptions=True
-            )
+            await asyncio.gather(*tuple(self._background_render_tasks), return_exceptions=True)
         await self.channel_history_reader.aclose()
 
-    async def prepare_background(
-        self, task: "RenderTask[RenderResultT]"
-    ) -> RenderResultT:
+    async def prepare_background(self, task: "RenderTask[RenderResultT]") -> RenderResultT:
         """Keep background admission occupied until the renderer really finishes."""
         await self.background_render_slots.acquire()
         try:
-            pending = asyncio.create_task(
-                self.render_processes.submit(task), name="background-render-preparation"
-            )
+            pending = asyncio.create_task(self.render_processes.submit(task), name="background-render-preparation")
         except BaseException:
             self.background_render_slots.release()
             raise
@@ -814,9 +808,7 @@ class ToadApp(App, inherit_bindings=False):
         await self.switch_mode(session_details.mode_name)
         return session_details
 
-    def switch_mode(
-        self, mode: str, *, history_index: int | None = None
-    ) -> AwaitComplete:
+    def switch_mode(self, mode: str, *, history_index: int | None = None) -> AwaitComplete:
         from toad.screens.session_view import SessionView
 
         if mode != self.current_mode:
@@ -860,14 +852,11 @@ class ToadApp(App, inherit_bindings=False):
     def _record_tab_visit(self, mode: str, history_index: int | None) -> None:
         if mode not in self._open_tab_order:
             return
-        if (
-            history_index is not None
-            and 0 <= history_index < len(self._tab_history)
-            and self._tab_history[history_index] == mode
-        ):
+        if (history_index is not None and 0 <= history_index < len(self._tab_history)
+                and self._tab_history[history_index] == mode):
             self._tab_history_index = history_index
         else:
-            del self._tab_history[self._tab_history_index + 1 :]
+            del self._tab_history[self._tab_history_index + 1:]
             self._tab_history.append(mode)
             self._tab_history_index = len(self._tab_history) - 1
         self.tab_history_changed.publish(None)
@@ -896,23 +885,15 @@ class ToadApp(App, inherit_bindings=False):
         from toad.screens.session_view import SessionView
 
         super()._display(screen, renderable)
-        if (
-            not self._renderer_warmup_started
-            and renderable is not None
-            and not self._batch_count
-            and screen is self.screen
-        ):
+        if (not self._renderer_warmup_started and renderable is not None
+                and not self._batch_count and screen is self.screen):
             self._renderer_warmup_started = True
             self._warm_renderer()
             self.pending_tab_shells.prepare()
-        if (
-            renderable is not None
-            and not self._batch_count
-            and screen is self.screen
-            and isinstance(screen, SessionView)
-            and (not screen._first_frame_presented or screen._navigation_frame_pending)
-            and not screen._first_frame_flush_queued
-        ):
+        if (renderable is not None and not self._batch_count and screen is self.screen
+                and isinstance(screen, SessionView)
+                and (not screen._first_frame_presented or screen._navigation_frame_pending)
+                and not screen._first_frame_flush_queued):
             # call_after_refresh may run on an unpainted update. A real Linux
             # terminal writes asynchronously: do not start expensive native
             # source work until the opening frame has actually been flushed.
@@ -935,9 +916,7 @@ class ToadApp(App, inherit_bindings=False):
     @work(group="renderer-warmup", exit_on_error=False)
     async def _warm_renderer(self) -> None:
         await self.render_processes.warm_up(
-            project=self.project_dir,
-            ansi=self.native_ansi_color,
-            dark=self.current_theme.dark,
+            project=self.project_dir, ansi=self.native_ansi_color, dark=self.current_theme.dark,
         )
 
     def _load_screen_css(self, screen: Screen) -> None:
@@ -951,9 +930,7 @@ class ToadApp(App, inherit_bindings=False):
             self.stylesheet.apply(screen)
             screen._css_update_count = self._css_update_count
 
-    async def _switch_mode_ready(
-        self, mode: str, *, history_index: int | None = None
-    ) -> None:
+    async def _switch_mode_ready(self, mode: str, *, history_index: int | None = None) -> None:
         from toad.screens.session_view import SessionView
 
         try:
@@ -966,9 +943,7 @@ class ToadApp(App, inherit_bindings=False):
                         # Channels before selection and the first painted frame;
                         # mounting/early hooks must tolerate the unfilled slot.
                         await self._init_mode(mode)
-                        if not await self.shared_channels.attach(
-                            self.get_screen_stack(mode)[0], mode=mode
-                        ):
+                        if not await self.shared_channels.attach(self.get_screen_stack(mode)[0], mode=mode):
                             return  # The destination closed during route binding.
                         mounted = super().switch_mode(mode)
                         await mounted
@@ -1123,11 +1098,8 @@ class ToadApp(App, inherit_bindings=False):
         # A new preview belongs beside the tab that opened it. Reusing a file
         # changes focus only, and never shuffles an existing tab unexpectedly.
         selected = self.current_mode
-        insertion = (
-            self._open_tab_order.index(selected) + 1
-            if selected in self._open_tab_order
-            else len(self._open_tab_order)
-        )
+        insertion = (self._open_tab_order.index(selected) + 1
+                     if selected in self._open_tab_order else len(self._open_tab_order))
         self._open_tab_order.insert(insertion, mode_name)
         self.open_tabs_changed.publish(None)
         self.update_show_sessions()
@@ -1136,14 +1108,8 @@ class ToadApp(App, inherit_bindings=False):
 
     async def return_from_preview(self, mode_name: str) -> None:
         """Return to the last originating tab, or another still-open view."""
-        fallback = next(
-            (
-                mode
-                for mode in reversed(self._open_tab_order)
-                if mode != mode_name and mode in self._screen_stacks
-            ),
-            "store",
-        )
+        fallback = next((mode for mode in reversed(self._open_tab_order)
+                         if mode != mode_name and mode in self._screen_stacks), "store")
         target = self._file_preview_return.get(mode_name)
         if target is None or target == mode_name or target not in self._screen_stacks:
             target = fallback
@@ -1153,11 +1119,9 @@ class ToadApp(App, inherit_bindings=False):
     def open_tabs(self) -> tuple[OpenTab, ...]:
         """All open views, independent of which view is currently selected."""
         snapshot = self._sidebar_snapshot
-        presentations = (
-            {view.thread.name: view.presentation for view in snapshot.threads}
-            if snapshot is not None
-            else {}
-        )
+        presentations = {
+            view.thread.name: view.presentation for view in snapshot.threads
+        } if snapshot is not None else {}
         tabs: list[OpenTab] = []
         for details in self.session_tracker.ordered_sessions:
             screen = self._main_session_screen(details.mode_name)
@@ -1165,38 +1129,18 @@ class ToadApp(App, inherit_bindings=False):
             # snapshot reconciliation. Painting labels must not read the wire.
             name = screen._comms_thread if screen else ""
             presentation = presentations.get(name)
-            tabs.append(
-                OpenTab(
-                    details.mode_name,
-                    presentation.label
-                    if presentation
-                    else details.title or "New Session",
-                    UnreadPresentation.for_thread(snapshot, name)
-                    if snapshot
-                    else ExactUnread(),
-                )
-            )
-        tabs.extend(
-            OpenTab(
-                mode,
-                key.title,
-                ExactUnread(
-                    (
-                        snapshot.unread if key.kind == "dm" else snapshot.channel_unread
-                    ).get(key.target, 0)
-                )
-                if snapshot
-                else ExactUnread(),
-            )
-            for key, mode in self._comms_modes.items()
-        )
-        tabs.extend(
-            OpenTab(mode, path.name) for path, mode in self._file_preview_modes.items()
-        )
-        tabs.extend(
-            OpenTab(mode, f"⌛ @{pending.target}")
-            for mode, pending in self._pending_thread_modes.items()
-        )
+            tabs.append(OpenTab(
+                details.mode_name, presentation.label if presentation else details.title or "New Session",
+                UnreadPresentation.for_thread(snapshot, name) if snapshot else ExactUnread(),
+            ))
+        tabs.extend(OpenTab(
+            mode, key.title,
+            ExactUnread((snapshot.unread if key.kind == "dm" else snapshot.channel_unread).get(key.target, 0))
+            if snapshot else ExactUnread(),
+        ) for key, mode in self._comms_modes.items())
+        tabs.extend(OpenTab(mode, path.name) for path, mode in self._file_preview_modes.items())
+        tabs.extend(OpenTab(mode, f"⌛ @{pending.target}")
+                    for mode, pending in self._pending_thread_modes.items())
         by_mode = {tab.mode_name: tab for tab in tabs}
         return tuple(by_mode[mode] for mode in self._open_tab_order if mode in by_mode)
 
@@ -1249,11 +1193,8 @@ class ToadApp(App, inherit_bindings=False):
         selected_root = self.coordination_wire.root
         self.push_screen(
             WireExportDialog(selected_root),
-            callback=lambda request: (
-                self._export_wire(request, selected_root)
-                if request is not None
-                else None
-            ),
+            callback=lambda request: self._export_wire(request, selected_root)
+            if request is not None else None,
         )
 
     @work(group="wire-export", exclusive=True, exit_on_error=False)
@@ -1265,14 +1206,11 @@ class ToadApp(App, inherit_bindings=False):
             if comms.root.resolve() != selected_root.resolve():
                 raise ValueError("Comms route changed before export")
             receipt = await asyncio.to_thread(
-                run_selected_write,
-                comms.root,
-                comms.views.export_wire,
+                run_selected_write, comms.root, comms.views.export_wire,
                 request.destination,
                 format=request.format,
                 scope=request.scope,
-                limit=request.limit,
-                implicit=implicit_root(),
+                limit=request.limit, implicit=implicit_root(),
             )
         except Exception as error:
             self.notify(str(error), title="Wire export failed", severity="error")
@@ -1288,11 +1226,8 @@ class ToadApp(App, inherit_bindings=False):
         selected_root = self.coordination_wire.root
         self.push_screen(
             ThreadImportDialog(),
-            callback=lambda request: (
-                self._import_thread(request, selected_root)
-                if request is not None
-                else None
-            ),
+            callback=lambda request: self._import_thread(request, selected_root)
+            if request is not None else None,
         )
 
     @work(group="thread-import", exclusive=True, exit_on_error=False)
@@ -1304,15 +1239,12 @@ class ToadApp(App, inherit_bindings=False):
             if comms.root.resolve() != selected_root.resolve():
                 raise ValueError("Comms route changed before import")
             receipt = await asyncio.to_thread(
-                run_selected_write,
-                comms.root,
-                comms.threads.import_thread,
+                run_selected_write, comms.root, comms.threads.import_thread,
                 request.source,
                 request.format,
                 name=request.name,
                 session_id=request.session_id,
-                worktree=request.worktree,
-                implicit=implicit_root(),
+                worktree=request.worktree, implicit=implicit_root(),
             )
         except Exception as error:
             self.notify(str(error), title="Thread import failed", severity="error")
@@ -1407,16 +1339,8 @@ class ToadApp(App, inherit_bindings=False):
                     return candidate
         return "store"
 
-    async def _open_pending_thread_tab(
-        self,
-        owner_mode: str,
-        target: str,
-        root: str,
-        *,
-        navigation_owner: str,
-        project_path: Path,
-        me: str,
-    ) -> str:
+    async def _open_pending_thread_tab(self, owner_mode: str, target: str, root: str, *,
+                                       navigation_owner: str, project_path: Path, me: str) -> str:
         from toad.navigation_target import NavigationContext
 
         return_mode = self.current_mode
@@ -1428,13 +1352,8 @@ class ToadApp(App, inherit_bindings=False):
         if self.current_mode != return_mode or not self._screen_stacks.get(owner_mode):
             await self.remove_mode(mode)
             return mode
-        pending = PendingThreadTab(
-            owner_mode,
-            root,
-            target,
-            return_mode,
-            asyncio.get_running_loop().create_future(),
-        )
+        pending = PendingThreadTab(owner_mode, root, target, return_mode,
+                                   asyncio.get_running_loop().create_future())
         self._pending_thread_modes[mode] = pending
         self._open_tab_order.append(mode)
         self.open_tabs_changed.publish(None)
@@ -1626,15 +1545,13 @@ class ToadApp(App, inherit_bindings=False):
                 continue
             try:
                 screen = self.get_screen_stack(mode_name)[-1]
-            except KeyError, IndexError:
+            except (KeyError, IndexError):
                 continue
             if not isinstance(screen, CommsScreen):
                 continue
             root = (
-                trusted_root
-                if trusted_root is not None
-                and Path(trusted_root).expanduser().resolve() == Path(key.root)
-                else None
+                trusted_root if trusted_root is not None
+                and Path(trusted_root).expanduser().resolve() == Path(key.root) else None
             )
             screen.recovery_root = root
             if recovery := screen.query_one_optional(RecoveryView):
@@ -1754,9 +1671,7 @@ class ToadApp(App, inherit_bindings=False):
             )
             await action.completed(self, ctx, result)
         except Exception as error:
-            self.notify(
-                str(error), title=f"Session action: {subject}", severity="error"
-            )
+            self.notify(str(error), title=f"Session action: {subject}", severity="error")
         finally:
             self.pending_thread_actions.pop(subject, None)
             self.thread_actions_changed.publish(None)
@@ -1786,12 +1701,8 @@ class ToadApp(App, inherit_bindings=False):
                 self.navigation_reader.invalidate()
             if self.current_mode == mode_name:
                 destination = next(
-                    (
-                        mode
-                        for mode in (pending.return_mode, pending.owner_mode)
-                        if mode != mode_name and self._screen_stacks.get(mode)
-                    ),
-                    "store",
+                    (mode for mode in (pending.return_mode, pending.owner_mode)
+                     if mode != mode_name and self._screen_stacks.get(mode)), "store",
                 )
                 await self.switch_mode(destination)
             del self._pending_thread_modes[mode_name]
@@ -1803,14 +1714,8 @@ class ToadApp(App, inherit_bindings=False):
             if not pending.completion.done():
                 pending.completion.set_result(self.current_mode)
             return
-        if path := next(
-            (
-                path
-                for path, mode in self._file_preview_modes.items()
-                if mode == mode_name
-            ),
-            None,
-        ):
+        if path := next((path for path, mode in self._file_preview_modes.items()
+                         if mode == mode_name), None):
             if self.current_mode == mode_name:
                 await self.return_from_preview(mode_name)
             del self._file_preview_modes[path]
@@ -1897,9 +1802,7 @@ class ToadApp(App, inherit_bindings=False):
         for key, comms_mode in list(self._comms_modes.items()):
             if comms_mode in closing_modes:
                 del self._comms_modes[key]
-        self._open_tab_order[:] = [
-            mode for mode in self._open_tab_order if mode not in closing_modes
-        ]
+        self._open_tab_order[:] = [mode for mode in self._open_tab_order if mode not in closing_modes]
         self._prune_tab_history()
         self.open_tabs_changed.publish(None)
         self.update_show_sessions()
@@ -2110,9 +2013,7 @@ class ToadApp(App, inherit_bindings=False):
     def on_session_navigate(self, event: messages.SessionNavigate) -> None:
         modes = [tab.mode_name for tab in self.open_tabs]
         if self.current_mode in modes:
-            self.switch_mode(
-                modes[(modes.index(self.current_mode) + event.direction) % len(modes)]
-            )
+            self.switch_mode(modes[(modes.index(self.current_mode) + event.direction) % len(modes)])
 
     @on(messages.SessionSwitch)
     def on_session_switch(self, event: messages.SessionSwitch) -> None:

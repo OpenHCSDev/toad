@@ -1234,9 +1234,7 @@ class Conversation(containers.Vertical):
     @work(group="provider-login", exclusive=True)
     async def action_provider_login(self) -> None:
         import shlex
-
         from textual.geometry import Offset
-
         from toad.screens.action_modal import ActionModal
         from toad.widgets.comms_menu import ContextMenu
 

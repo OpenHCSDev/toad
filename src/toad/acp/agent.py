@@ -83,8 +83,9 @@ class ContextUsage(NamedTuple):
     @property
     def percentage_used(self) -> float:
         try:
-            return self.used / self.size * 100.0
+            return (self.used / self.size) * 100.0
         except ZeroDivisionError:
+            # Sanity check. If size is 0, then 100% is always used?
             return 100.0
 
     @property
@@ -138,6 +139,7 @@ def generate_datetime_filename(
         dt = datetime.now().isoformat()
     else:
         dt = datetime.now().strftime(datetime_format)
+
     file_name_stem = f"{prefix} {dt}"
     for reserved in ' <>:"/\\|?*.':
         file_name_stem = file_name_stem.replace(reserved, "_")
@@ -255,6 +257,7 @@ class Agent(AgentBase):
         Args:
             line: Text to be logged.
         """
+
         if self._message_target is None:
             return
 
@@ -275,6 +278,9 @@ class Agent(AgentBase):
     async def start(self, message_target: MessagePump | None = None) -> None:
         """Start the agent."""
         self._message_target = message_target
+        # Freeze exactly the environment and working directory passed to the
+        # child. A relative wire root is relative to the child cwd, not Toad's.
+        # Preflight is early denial; the actual spawn takes the core wire lock.
         from .maintenance_ingress import configured_root, preflight
 
         self._maintenance_env = os.environ.copy()
@@ -285,11 +291,13 @@ class Agent(AgentBase):
         self._maintenance_root = configured_root(
             self._maintenance_env, self._maintenance_cwd
         )
+        # The later _run_agent task must not re-resolve an alias after the
+        # preflight snapshot while prompt admission still uses this root.
         self._maintenance_env["AGENT_COMMS_ROOT"] = str(self._maintenance_root)
         try:
             await asyncio.to_thread(
                 preflight,
-                self.coordination.wire_root if self.coordination else None,
+                (self.coordination.wire_root if self.coordination else None),
                 ingress_root=self._maintenance_root,
                 cwd=self._maintenance_cwd,
             )
@@ -318,20 +326,19 @@ class Agent(AgentBase):
         if self._process is None:
             self.log("[error] Agent process isnt running")
             return
+
         body = request.body
         self.log(f"[client] {body}")
         if (stdin := self._process.stdin) is not None:
             calls = body if isinstance(body, list) else [body]
             if any(
-                (
-                    isinstance(call, dict) and call.get("method") == "session/prompt"
-                    for call in calls
-                )
+                isinstance(call, dict) and call.get("method") == "session/prompt"
+                for call in calls
             ):
                 from .maintenance_ingress import admitted_prompt
 
                 with admitted_prompt(
-                    self.coordination.wire_root if self.coordination else None,
+                    (self.coordination.wire_root if self.coordination else None),
                     ingress_root=self._maintenance_root,
                     cwd=self._maintenance_cwd,
                     implicit=getattr(self, "_maintenance_implicit_root", None),
@@ -359,7 +366,10 @@ class Agent(AgentBase):
 
     @jsonrpc.expose("session/update", ordered=True)
     async def _rpc_session_update(
-        self, sessionId: str, update: Any, _meta: dict[str, Any] | None = None
+        self,
+        sessionId: str,
+        update: Any,
+        _meta: dict[str, Any] | None = None,
     ) -> None:
         """Validate wire notifications off-process, then publish to the same owner."""
         from toad.render_tasks import ValidateSessionUpdateTask
@@ -390,7 +400,10 @@ class Agent(AgentBase):
             self._apply_session_update(sessionId, cast(protocol.SessionUpdate, update))
 
     def rpc_session_update(
-        self, sessionId: str, update: Any, _meta: dict[str, Any] | None = None
+        self,
+        sessionId: str,
+        update: Any,
+        _meta: dict[str, Any] | None = None,
     ):
         """Synchronous in-process SDK boundary for direct protocol consumers.
 
@@ -407,7 +420,8 @@ class Agent(AgentBase):
 
     def _reject_session_update(self, session_id, update, metadata, error) -> None:
         self.log(
-            f"[ACP rejected session/update] raw={{'sessionId': {session_id!r}, 'update': {update!r}, '_meta': {metadata!r}}}; validation={error}"
+            f"[ACP rejected session/update] raw={{'sessionId': {session_id!r}, "
+            f"'update': {update!r}, '_meta': {metadata!r}}}; validation={error}"
         )
         self.post_message(messages.RejectedSessionUpdate())
 
@@ -507,6 +521,7 @@ class Agent(AgentBase):
 
     def update_status_line(self) -> None:
         """Update the current status line."""
+
         if (usage := self._context_usage) is not None:
             status: list[Content] = []
             status.append(
@@ -521,6 +536,7 @@ class Agent(AgentBase):
                 status.append(Content("last response"))
             if (cost := usage.cost) is not None:
                 status.append(Content.assemble((f"{cost}", "bold")))
+
             status_line = Content(" • ").join(status)
             self.post_message(messages.UpdateStatusLine(status_line))
 
@@ -552,6 +568,7 @@ class Agent(AgentBase):
             asyncio.get_running_loop().create_future()
         )
         tool_call_id = toolCall["toolCallId"]
+
         permission_tool_call = cast(dict[str, Any], toolCall.copy())
         permission_tool_call.pop("sessionUpdate", None)
         visible_tool_call: dict[str, Any] = (
@@ -566,7 +583,7 @@ class Agent(AgentBase):
             result_future,
         )
         if not self.post_message(message):
-            return cancelled
+            return cancelled  # No mounted controller can answer this request.
         self.tool_calls[tool_call_id] = cast(
             protocol.ToolCall, deepcopy(visible_tool_call)
         )
@@ -582,7 +599,7 @@ class Agent(AgentBase):
             self._pending_permission_answers.discard(result_future)
         if ask_result is None or self._stopping or sessionId != self.session_id:
             return cancelled
-        if not any((option["optionId"] == ask_result.id for option in options)):
+        if not any(option["optionId"] == ask_result.id for option in options):
             return cancelled
         return {"outcome": {"optionId": ask_result.id, "outcome": "selected"}}
 
@@ -595,6 +612,8 @@ class Agent(AgentBase):
         limit: int | None = None,
     ) -> dict[str, str]:
         """Read a file in the project."""
+        # TODO: what if the read is outside of the project path?
+        # https://agentclientprotocol.com/protocol/file-system#reading-files
         read_path = self.project_root_path / path
         try:
             text = read_path.read_text(encoding="utf-8", errors="ignore")
@@ -610,6 +629,9 @@ class Agent(AgentBase):
 
     @jsonrpc.expose("fs/write_text_file")
     def rpc_write_text_file(self, sessionId: str, path: str, content: str) -> None:
+        # TODO: What if the agent wants to write outside of the project path?
+        # https://agentclientprotocol.com/protocol/file-system#writing-files
+
         write_path = self.project_root_path / path
         write_path.write_text(content, encoding="utf-8", errors="ignore")
 
@@ -624,8 +646,10 @@ class Agent(AgentBase):
         outputByteLimit: int | None = None,
         sessionId: str | None = None,
     ) -> protocol.CreateTerminalResponse:
+        # Assign a terminal id
         self._terminal_count = self._terminal_count + 1
         terminal_id = f"terminal-{self._terminal_count}"
+
         terminal_env = (
             {variable["name"]: variable["value"] for variable in env} if env else {}
         )
@@ -660,10 +684,13 @@ class Agent(AgentBase):
         from toad.widgets.terminal_tool import ToolState
 
         result_future: asyncio.Future[ToolState] = asyncio.Future()
+
         if not self.post_message(messages.GetTerminalState(terminalId, result_future)):
             raise RuntimeError("Unable to get terminal output")
+
         await result_future
         terminal_state = result_future.result()
+
         result: protocol.TerminalOutputResponse = {
             "output": terminal_state.output,
             "truncated": terminal_state.truncated,
@@ -688,6 +715,7 @@ class Agent(AgentBase):
             messages.WaitForTerminalExit(terminalId, result_future)
         ):
             raise RuntimeError("Unable to wait for terminal exit; no terminal found")
+
         await result_future
         return_code, signal = result_future.result()
         return {"exitCode": return_code, "signal": signal}
@@ -730,7 +758,7 @@ class Agent(AgentBase):
 
         async def call_jsonrpc(request: jsonrpc.JSONObject | jsonrpc.JSONList) -> None:
             try:
-                if (result := (await self.server.call(request))) is not None:
+                if (result := await self.server.call(request)) is not None:
                     result_json = json.dumps(result).encode("utf-8")
                     if process.stdin is not None:
                         process.stdin.write(b"%s\n" % result_json)
@@ -800,12 +828,13 @@ class Agent(AgentBase):
         if self.session_pk is not None:
             db = DB()
             await db.session_update_last_used(self.session_pk)
+
         process = self._process
         process_group = self._process_group_id
         if (
             process is not None
             and process.returncode is None
-            and (process.stdin is not None)
+            and process.stdin is not None
         ):
             process.stdin.close()
             with suppress(BrokenPipeError, ConnectionResetError):
@@ -844,9 +873,10 @@ class Agent(AgentBase):
                     pass
                 with suppress(TimeoutError):
                     await asyncio.wait_for(process.wait(), timeout=1)
+
         current = asyncio.current_task()
         for task in (self._task, self._agent_task):
-            if task is not None and task is not current and (not task.done()):
+            if task is not None and task is not current and not task.done():
                 task.cancel()
         pending = [
             task
@@ -983,7 +1013,7 @@ class Agent(AgentBase):
 
     async def reconnect(self) -> None:
         """Reattach the existing view after login or an explicit owner start."""
-        if self.session_id is not None and (not self.supports_load_session):
+        if self.session_id is not None and not self.supports_load_session:
             raise ValueError("This agent cannot resume its session.")
         from .maintenance_ingress import configured_root, preflight
 
@@ -993,7 +1023,7 @@ class Agent(AgentBase):
         try:
             await asyncio.to_thread(
                 preflight,
-                self.coordination.wire_root if self.coordination else None,
+                (self.coordination.wire_root if self.coordination else None),
                 ingress_root=requested_root,
                 cwd=requested_cwd,
             )
@@ -1026,14 +1056,24 @@ class Agent(AgentBase):
             initialize_response = api.initialize(
                 PROTOCOL_VERSION,
                 {
-                    "fs": {"readTextFile": True, "writeTextFile": True},
+                    "fs": {
+                        "readTextFile": True,
+                        "writeTextFile": True,
+                    },
                     "terminal": True,
                     "auth": {"terminal": os.name != "nt"},
                 },
-                {"name": toad.NAME, "title": toad.TITLE, "version": toad.get_version()},
+                {
+                    "name": toad.NAME,
+                    "title": toad.TITLE,
+                    "version": toad.get_version(),
+                },
             )
+
         response = await initialize_response.wait()
         assert response is not None
+
+        # Store agents capabilities
         if agent_capabilities := response.get("agentCapabilities"):
             self.agent_capabilities = agent_capabilities
         self.auth_methods = response.get("authMethods") or []
@@ -1045,21 +1085,23 @@ class Agent(AgentBase):
         self._post_private_cursor()
         self._post_queue_view()
         with self.request():
-            session_new_response = api.session_new(str(self.project_root_path), [])
+            session_new_response = api.session_new(
+                str(self.project_root_path),
+                [],
+            )
         response = await session_new_response.wait()
         if not self._private_cursor.is_current_request(cursor_token):
             return
         assert response is not None
         self.session_id = response["sessionId"]
         self._receive_comms_response(response, cursor_token, queue_token)
+
         if self.supports_load_session:
             db = DB()
             session_name = (
                 self._pending_session_name
                 if self._pending_session_name is not None
-                else self.coordination.title
-                if self.coordination
-                else "New Session"
+                else (self.coordination.title if self.coordination else "New Session")
             )
             session_pk = await db.session_new(
                 session_name,
@@ -1078,6 +1120,7 @@ class Agent(AgentBase):
                 await db.session_update_title(
                     self.session_pk, self._pending_session_name
                 )
+
         if not self._private_cursor.is_current_request(cursor_token):
             return
         if (modes := response.get("modes", None)) is not None:
@@ -1110,6 +1153,7 @@ class Agent(AgentBase):
                     cwd = str(session_cwd)
                 if agent_data := session.meta_json.agent_data:
                     self._agent_data = agent_data
+
         with self.request():
             session_load_response = api.session_load(cwd, [], request_session_id)
         response = await session_load_response.wait()
@@ -1120,6 +1164,7 @@ class Agent(AgentBase):
             return
         assert response is not None
         self._receive_comms_response(response, cursor_token, queue_token)
+
         if (modes := response.get("modes", None)) is not None:
             current_mode = modes["currentModeId"]
             available_modes = modes["availableModes"]
@@ -1152,7 +1197,7 @@ class Agent(AgentBase):
                     grouped = option.get("options")
                     if isinstance(grouped, list):
                         options.extend(
-                            (item for item in grouped if isinstance(item, dict))
+                            item for item in grouped if isinstance(item, dict)
                         )
                     else:
                         options.append(option)
@@ -1161,9 +1206,11 @@ class Agent(AgentBase):
                         str(option["value"]): Model(
                             str(option["value"]),
                             str(option.get("name") or option["value"]),
-                            str(option["description"])
-                            if option.get("description") is not None
-                            else None,
+                            (
+                                str(option["description"])
+                                if option.get("description") is not None
+                                else None
+                            ),
                         )
                         for option in options
                         if isinstance(option.get("value"), str)
@@ -1249,10 +1296,13 @@ class Agent(AgentBase):
         process = self._process
         if thread is None or wire_root is None or process is None:
             return
+
         from agent_comms.comms import wire
 
         result = wire(wire_root).threads.rename_managed_thread(
-            thread, display_name, owner_pid=self.coordination.owner_pid
+            thread,
+            display_name,
+            owner_pid=self.coordination.owner_pid,
         )
         self.coordination = replace(
             self.coordination,
@@ -1388,10 +1438,10 @@ class Agent(AgentBase):
         if (self.coordination.wire_root if self.coordination else None) is None or (
             self.coordination.thread.name if self.coordination else None
         ) is None:
-            return (None, None)
+            return None, None
         async with asyncio.timeout(3):
             result = await self._owner_request("goal_snapshot")
-        raw_goal, raw_execution = (result["goal"], result["goalExecution"])
+        raw_goal, raw_execution = result["goal"], result["goalExecution"]
         goal = FieldCodec.decode(Goal, raw_goal) if raw_goal is not None else None
         execution = (
             GoalExecution.from_wire(raw_execution)
@@ -1402,7 +1452,7 @@ class Agent(AgentBase):
             raise ValueError(
                 "Goal execution identity does not match the owner snapshot."
             )
-        return (goal, execution)
+        return goal, execution
 
     async def get_goal_execution(self) -> GoalExecution | None:
         return (await self.get_goal_snapshot())[1]
@@ -1415,8 +1465,8 @@ class Agent(AgentBase):
         from agent_comms.runtime import RuntimeProxy, socket_path
 
         root, thread = (
-            self.coordination.wire_root if self.coordination else None,
-            self.coordination.thread.name if self.coordination else None,
+            (self.coordination.wire_root if self.coordination else None),
+            (self.coordination.thread.name if self.coordination else None),
         )
         async with self._transcript_reader_lock:
             comms = await self._get_coordination_reader(root)
@@ -1425,6 +1475,9 @@ class Agent(AgentBase):
                 from toad.owner_preparation import OwnerRequestContext
 
                 owner = comms.registry.require(thread)
+                # RuntimeProxy normally creates another wire when its caller
+                # has no service. Capture the existing service instead of
+                # reparsing the entire registry for each status poll.
                 return RuntimeProxy(
                     OwnerRequestContext(comms),
                     owner.name,
@@ -1434,8 +1487,8 @@ class Agent(AgentBase):
             proxy = await asyncio.to_thread(resolve)
         try:
             if (root, thread) != (
-                self.coordination.wire_root if self.coordination else None,
-                self.coordination.thread.name if self.coordination else None,
+                (self.coordination.wire_root if self.coordination else None),
+                (self.coordination.thread.name if self.coordination else None),
             ):
                 raise ValueError(
                     "The owner identity changed while preparing the request."
@@ -1504,8 +1557,8 @@ class Agent(AgentBase):
         from toad.owner_preparation import read_thread_presentation
 
         root, thread = (
-            self.coordination.wire_root if self.coordination else None,
-            self.coordination.thread.name if self.coordination else None,
+            (self.coordination.wire_root if self.coordination else None),
+            (self.coordination.thread.name if self.coordination else None),
         )
         if root is None or thread is None:
             return None
@@ -1515,8 +1568,8 @@ class Agent(AgentBase):
                 read_thread_presentation, reader, thread
             )
         if (root, thread) != (
-            self.coordination.wire_root if self.coordination else None,
-            self.coordination.thread.name if self.coordination else None,
+            (self.coordination.wire_root if self.coordination else None),
+            (self.coordination.thread.name if self.coordination else None),
         ):
             raise ValueError("Thread attachment changed while reading status")
         return presentation
@@ -1533,8 +1586,8 @@ class Agent(AgentBase):
         ) is None:
             raise ValueError("Transcript paging requires an agent-comms thread.")
         root, thread = (
-            self.coordination.wire_root if self.coordination else None,
-            self.coordination.thread.name if self.coordination else None,
+            (self.coordination.wire_root if self.coordination else None),
+            (self.coordination.thread.name if self.coordination else None),
         )
         async with self._transcript_reader_lock:
             reader = await self._get_coordination_reader(root)
@@ -1555,9 +1608,9 @@ class Agent(AgentBase):
 
         result = await asyncio.to_thread(
             wire(
-                self.coordination.wire_root if self.coordination else None
+                (self.coordination.wire_root if self.coordination else None)
             ).threads.set_project,
-            self.coordination.thread.name if self.coordination else None,
+            (self.coordination.thread.name if self.coordination else None),
             path,
         )
         self.coordination = replace(self.coordination, worktree=result.current)
@@ -1609,6 +1662,7 @@ class Agent(AgentBase):
         try:
             await response.wait()
         except jsonrpc.APIError:
+            # No-op if there is nothing to cancel
             return False
         return True
 

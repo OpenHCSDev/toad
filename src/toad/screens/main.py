@@ -91,21 +91,14 @@ class MCPInventoryProvider(Provider):
         screen = self.screen
         assert isinstance(screen, MainScreen)
         if score > 0:
-            yield Hit(
-                score,
-                matcher.highlight("Pi MCP inventory"),
-                screen.action_mcp_inventory,
-                help="Read-only package snapshot",
-            )
+            yield Hit(score, matcher.highlight("Pi MCP inventory"),
+                      screen.action_mcp_inventory, help="Read-only package snapshot")
 
     async def discover(self) -> Hits:
         screen = self.screen
         assert isinstance(screen, MainScreen)
-        yield DiscoveryHit(
-            "Pi MCP inventory",
-            screen.action_mcp_inventory,
-            help="Read-only package snapshot",
-        )
+        yield DiscoveryHit("Pi MCP inventory", screen.action_mcp_inventory,
+                           help="Read-only package snapshot")
 
 
 class MainScreen(SessionView, NavigationOwner, can_focus=False):
@@ -238,11 +231,8 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
     def _make_conversation(self) -> Conversation:
         with self._context():
             return Conversation(
-                self.project_path,
-                self._agent,
-                self._agent_session_id,
-                self._session_pk,
-                self._agent_session_title,
+                self.project_path, self._agent, self._agent_session_id,
+                self._session_pk, self._agent_session_title,
                 initial_prompt=self._initial_prompt,
             ).data_bind(project_path=MainScreen.project_path, column=MainScreen.column)
 
@@ -389,9 +379,7 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
     @property
     def navigation_context(self) -> NavigationContext:
         assert self.id is not None
-        return NavigationContext(
-            self.app, self.id, self.project_path, self._comms_thread
-        )
+        return NavigationContext(self.app, self.id, self.project_path, self._comms_thread)
 
     def remember_direct_target(self, target: str) -> None:
         self._last_dm_target = target
@@ -547,9 +535,7 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
 
     def action_show_sidebar(self) -> None:
         self.side_bar.reveal()
-        if title := self.side_bar.query_one_optional(
-            "SideBarCollapsible CollapsibleTitle"
-        ):
+        if title := self.side_bar.query_one_optional("SideBarCollapsible CollapsibleTitle"):
             title.focus()
 
     def action_focus_prompt(self) -> None:
@@ -574,9 +560,7 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
 
     def watch_column(self, column: bool) -> None:
         if conversation := self.query_one_optional(Conversation):
-            conversation.styles.max_width = (
-                max(10, self.column_width) if column else None
-            )
+            conversation.styles.max_width = max(10, self.column_width) if column else None
 
     def watch_column_width(self, column_width: int) -> None:
         self.watch_column(self.column)

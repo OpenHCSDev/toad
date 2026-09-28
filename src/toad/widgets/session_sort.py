@@ -54,9 +54,7 @@ class SortControl[Order: (ThreadSort, ChannelSort)](Static, can_focus=True):
         self._set_label(f"{label} ▾", f"Sort {self.scope} by {label.lower()}")
 
     def action_choose_sort(self):
-        selected = (
-            self.selected_order.value if self.selected_order is not None else None
-        )
+        selected = self.selected_order.value if self.selected_order is not None else None
         choices = {order.value: order.label for order in type(self.order)}
 
         def choose(value: str):
@@ -177,11 +175,7 @@ class ChannelListSort(SortControl[ChannelSort]):
 
     def extra_items(self) -> list[tuple[str, str]]:
         return [
-            (
-                field.name,
-                ("✓ " if field.__get__(self.app.settings.sidebar) else "  ")
-                + field.title,
-            )
+            (field.name, ("✓ " if field.__get__(self.app.settings.sidebar) else "  ") + field.title)
             for field in self._visibility_fields
         ]
 
