@@ -12,6 +12,8 @@ from agent_comms import agent_events as comms_events
 from agent_comms.backend import compaction_summary
 from agent_comms.mro_dispatch import MroDispatch, handles
 
+from toad.widgets.message_filter import OtherCategory
+
 from toad.settings import PreferenceChange
 from toad.preferences import SidebarSettings, ShellSettings
 
@@ -86,8 +88,9 @@ from toad.widgets.input_delivery import (
     empty_delivery,
 )
 from toad.widgets.user_input import UserInput
+from toad.widgets.agent_response import ResponseDelivery, UnroutedResponse
 from toad.widgets.history_anchor import HistoryWindow
-from toad.widgets.message_filter import ALL_CATEGORIES, MessageCategory
+from toad.widgets.message_filter import all_categories, MessageCategory
 from toad.layout import trim_trailing_margin
 from toad.shell import Shell, CurrentWorkingDirectoryChanged
 from toad.command_catalog import CommandCatalog
@@ -97,6 +100,7 @@ from toad.menus import MenuItem
 from toad.widgets.shell_terminal import ShellTerminal
 
 AUTO_SESSION_TITLE_MAX_LENGTH = 50
+
 
 
 def make_session_title(prompt: str) -> str:
@@ -340,11 +344,11 @@ class CategorizedMount:
     def mount(self, *widgets, **kwargs):
         from toad.widgets.message_filter import apply_block_filter, block_category, keep_live_block
 
-        selected = self.query_ancestor(Conversation).visible_categories if self.is_attached else ALL_CATEGORIES
+        selected = self.query_ancestor(Conversation).visible_categories if self.is_attached else all_categories()
         for widget in widgets:
             widget.set_class(not keep_live_block(widget), "-unrouted")
             if category := block_category(widget):
-                widget.add_class(f"-message-{category.value}")
+                widget.add_class(f"-message-{category.declared_name}")
             apply_block_filter(widget, selected)
         return super().mount(*widgets, **kwargs)
 
@@ -486,9 +490,7 @@ class Conversation(containers.Vertical):
     ]
 
     busy_count = var(0)
-    visible_categories: var[frozenset[MessageCategory]] = var(
-        lambda: ALL_CATEGORIES, init=False
-    )
+    visible_categories: var[frozenset[type[MessageCategory]]] = var(lambda: all_categories(), init=False)
     cursor_offset = var(-1, init=False)
     project_path = var("")
     working_directory: var[str] = var("")
@@ -502,9 +504,7 @@ class Conversation(containers.Vertical):
     app = getters.app(ToadApp)
 
     def watch_visible_categories(
-        self,
-        previous: frozenset[MessageCategory],
-        selected: frozenset[MessageCategory],
+        self, previous: frozenset[type[MessageCategory]], selected: frozenset[type[MessageCategory]],
     ) -> None:
         from toad.widgets.message_filter import apply_block_filter
 
@@ -970,20 +970,16 @@ class Conversation(containers.Vertical):
                 self.refresh_bindings()
                 self.call_after_refresh(self.cursor.follow, cursor_block)
 
-    async def post_agent_response(
-        self, fragment: str = "", route: MessageRoute | None = None
-    ) -> AgentResponse | None:
+    async def post_agent_response(self, fragment: str = "", delivery: ResponseDelivery = UnroutedResponse()) -> AgentResponse | None:
         """Get or create an agent response widget."""
         from toad.widgets.agent_response import AgentResponse
 
         async with self._post_lock:
-            if self._agent_response is not None and self._agent_response.route != route:
+            if self._agent_response is not None and self._agent_response.delivery != delivery:
                 await self._agent_response.finish_stream()
                 self._agent_response = None
             if self._agent_response is None:
-                self._agent_response = agent_response = AgentResponse(
-                    fragment, route=route
-                )
+                self._agent_response = agent_response = AgentResponse(fragment, delivery=delivery)
                 await self.post(agent_response, new_block=False)
             else:
                 await self._agent_response.append_fragment(fragment)
@@ -1194,9 +1190,8 @@ class Conversation(containers.Vertical):
                 from toad.widgets.agent_response import AgentResponse
 
                 link = AgentResponse(
-                    f"[Open ACP log]({quote(str(log_path))})",
-                    show_divider=False,
-                    category=MessageCategory.OTHER,
+                    f"[Open ACP log]({quote(str(log_path))})", show_divider=False,
+                    category=OtherCategory,
                 )
                 link.add_class("-error-log-link")
                 await self.post(link)
@@ -1695,7 +1690,7 @@ class Conversation(containers.Vertical):
         if self.turn != "agent":
             # Owner notices (including manual compaction) are complete messages,
             # not a live response waiting for a future turn-settled event.
-            await self.post(AgentResponse(message.text, route=message.route))
+            await self.post(AgentResponse(message.text, delivery=ResponseDelivery.from_route(message.route)))
             return
         if self._agent_thought is not None:
             await self._agent_thought.finish_stream()
@@ -1705,7 +1700,7 @@ class Conversation(containers.Vertical):
             self.post_message(
                 messages.SessionUpdate(state="busy", summary="Writing response")
             )
-        await self.post_agent_response(message.text, message.route)
+        await self.post_agent_response(message.text, ResponseDelivery.from_route(message.route))
 
     def _accept_turn_lifecycle(
         self, message: acp_messages.CommsUpdated
@@ -2814,7 +2809,7 @@ class Conversation(containers.Vertical):
         except (OSError, ValueError, jsonrpc.JSONRPCError) as error:
             await self.post(
                 AgentResponse(
-                    f"## Compaction failed\n\n{error}", category=MessageCategory.OTHER
+                    f"## Compaction failed\n\n{error}", category=OtherCategory
                 )
             )
         finally:
@@ -3462,6 +3457,6 @@ class CompactionRenderer(MroDispatch):
             else "Context estimate unavailable until a new measurement arrives."
         )
         await view.post(
-            AgentResponse(f"## {title}\n\n{detail}", category=MessageCategory.OTHER)
+            AgentResponse(f"## {title}\n\n{detail}", category=OtherCategory)
         )
 

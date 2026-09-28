@@ -1,0 +1,6 @@
+test_retired_owners_and_category_groupings_are_absent (__main__.RenderingRetirementTests.test_retired_owners_and_category_groupings_are_absent) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.527s
+
+OK

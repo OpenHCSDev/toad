@@ -1,5 +1,7 @@
 """Filter changes during either mount await must retire the old publication."""
 
+from toad.widgets.message_filter import InboundCategory, ThinkingCategory
+
 import asyncio
 import os
 import threading
@@ -15,14 +17,15 @@ from runtime_fixture import ToadApp
 from textual.await_complete import AwaitComplete
 from textual.containers import VerticalGroup
 
-from toad.widgets.message_filter import ALL_CATEGORIES, MessageCategory
+from toad.widgets.message_filter import all_categories, MessageCategory
 from toad.widgets.transcript_history import TranscriptHistory, TranscriptPageView
 from toad.transcript_preparation import TranscriptFilterWork
 
 
+
 async def exercise(app, pilot, stage):
     view = app.screen.conversation
-    view.visible_categories = ALL_CATEGORIES
+    view.visible_categories = all_categories()
     message = Message("peer", "owner", "OLD_INBOUND", MessageType.INFO, timestamp=0)
     incoming = UserTranscript(message.body, routing=TurnRouting((message,), None))
     thinking = ThinkingTranscript('NEW_THINKING')
@@ -63,7 +66,7 @@ async def exercise(app, pilot, stage):
     with patch.object(pager, "_scroll_changed"), patch.object(TranscriptHistory, "_check_edges"):
         await view.contents.mount(pager)
         await pilot.pause()
-        view.visible_categories = frozenset((MessageCategory.INBOUND,))
+        view.visible_categories = frozenset((InboundCategory,))
         if stage == "extend":
             await pager.filter.scan_older()
             await pilot.pause()
@@ -72,7 +75,7 @@ async def exercise(app, pilot, stage):
             with patch.object(VerticalGroup, "mount", mounted), patch.object(app.preparation, "submit", submitted):
                 scan = asyncio.create_task(pager.filter.scan_older())
                 await asyncio.wait_for(entered.wait(), 5)
-                view.visible_categories = frozenset((MessageCategory.THINKING,))
+                view.visible_categories = frozenset((ThinkingCategory,))
                 view.prompt.focus()
                 await pilot.press("x")
                 assert view.prompt.text.endswith("x"), "Typing blocked behind filter mount"
@@ -81,13 +84,13 @@ async def exercise(app, pilot, stage):
                 other = await app.new_session_screen(app.get_main_screen)
                 await pilot.pause()
                 other_view = app.screen.conversation
-                assert other_view.visible_categories == ALL_CATEGORIES
+                assert other_view.visible_categories == all_categories()
                 other_view.prompt.focus()
                 await pilot.press("y")
                 assert other_view.prompt.text == "y", "Another thread froze behind the old filter"
                 await app.switch_mode(owner_mode)
                 await pilot.pause()
-                assert view.visible_categories == frozenset((MessageCategory.THINKING,))
+                assert view.visible_categories == frozenset((ThinkingCategory,))
                 release.set()
                 await asyncio.wait_for(scan, 5)
                 assert pager.filter.before is None, "Stale filter advanced the new filter cursor"
@@ -107,7 +110,7 @@ async def exercise(app, pilot, stage):
 
 async def exercise_batched_selection(app, pilot):
     view = app.screen.conversation
-    view.visible_categories = ALL_CATEGORIES
+    view.visible_categories = all_categories()
     message = Message("peer", "owner", "INBOUND", MessageType.INFO, timestamp=0)
     events = tuple(event for index in range(20) for event in (
         UserTranscript(f'INBOUND_{index}', routing=TurnRouting((message,), None)),
@@ -127,7 +130,7 @@ async def exercise_batched_selection(app, pilot):
             patch.object(TranscriptFilterWork, "prepare", prepared):
         await view.contents.mount(pager)
         await pilot.pause()
-        view.visible_categories = frozenset((MessageCategory.INBOUND,))
+        view.visible_categories = frozenset((InboundCategory,))
         previous = 0
         while pager.filter.has_older:
             await pager.filter.scan_older()
@@ -170,7 +173,7 @@ async def main():
             await pilot.pause()
             assert not calls, "Empty filter speculatively read history that cannot match"
             assert not pager.older.display and not pager.newer.display
-            view.visible_categories = frozenset((MessageCategory.INBOUND,))
+            view.visible_categories = frozenset((InboundCategory,))
             async with asyncio.timeout(5):
                 while (pager.filter.overlay is None or not any(
                     child.fragment.events[0].text == "SELECTED_INBOUND"

@@ -1,5 +1,7 @@
 """Projected history shares bounded paging and can revisit every selected record."""
 
+from toad.widgets.message_filter import ThinkingCategory
+
 import asyncio
 import json
 import os
@@ -13,14 +15,15 @@ from textual.selection import SELECT_ALL
 from textual.widgets._markdown import MarkdownParagraph
 
 from runtime_fixture import ToadApp
-from toad.widgets.message_filter import ALL_CATEGORIES, MessageCategory
+from toad.widgets.message_filter import all_categories, MessageCategory
 from toad.widgets.presentation_window import PresentationBudget
 from toad.widgets.transcript_history import TranscriptHistory
 
 
+
 async def exercise(app, pilot, count, *, matches=True):
     view = app.screen.conversation
-    view.visible_categories = ALL_CATEGORIES
+    view.visible_categories = all_categories()
     events = tuple(
         (ThinkingTranscript if matches and index % 31 == 0 else AssistantTranscript)( f"record-{index}")
         for index in range(count)
@@ -49,7 +52,7 @@ async def exercise(app, pilot, count, *, matches=True):
         start = history.pages[0].start
         boundary = canonical.before.offset + start
         expected = {event.text for event in events[:boundary] if event.declared_name == "thinking"}
-        view.visible_categories = frozenset({MessageCategory.THINKING})
+        view.visible_categories = frozenset({ThinkingCategory})
         view.window.release_anchor()
         while history.filter.has_older:
             view.window.scroll_to(y=0, animate=False, immediate=True)
@@ -98,7 +101,7 @@ async def exercise(app, pilot, count, *, matches=True):
         if not matches:
             assert overlay.fragment_count == 0
             assert len(overlay.pages) <= 2, "Unmatched pages accumulated empty widget shells"
-        view.visible_categories = ALL_CATEGORIES
+        view.visible_categories = all_categories()
         await pilot.pause()
         assert history.filter.overlay is None and source.closed
         assert history.pages[0].page is canonical

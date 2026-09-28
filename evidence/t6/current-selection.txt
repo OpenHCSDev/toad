@@ -1,0 +1,9 @@
+test_cli_and_environment_deliver_declared_backend_to_app (__main__.SelectionTests.test_cli_and_environment_deliver_declared_backend_to_app) ... ok
+test_factories_are_lazy_and_nominal (__main__.SelectionTests.test_factories_are_lazy_and_nominal) ... ok
+test_invalid_backend_and_missing_extra_are_actionable_cli_errors (__main__.SelectionTests.test_invalid_backend_and_missing_extra_are_actionable_cli_errors) ... ok
+test_missing_optional_backend_leaves_default_available (__main__.SelectionTests.test_missing_optional_backend_leaves_default_available) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.015s
+
+OK

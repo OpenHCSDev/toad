@@ -9,8 +9,8 @@ from unittest.mock import patch
 from uuid import UUID
 
 from toad.render_protocol import (
-    AcknowledgeRender, CancelRender, PollRender, RenderReply, RendererCommand,
-    RenderStatus, SubmitRender,
+    AcknowledgeRender, CancelRender, PollRender, RenderReply, RenderCommand,
+    AcceptedReply, CancelledReply, PendingReply, AcknowledgedReply, SubmitRender,
 )
 from toad.render_service import RenderServiceConfig, _initialize_render_worker
 from toad.render_tasks import PatchRenderTask
@@ -31,10 +31,10 @@ class ControlledConnection(RendererConnection):
         self.closed = False
         self.calls = 0
 
-    def exchange(self, command: RendererCommand) -> RenderReply:
+    def exchange(self, command: RenderCommand) -> RenderReply:
         self.calls += 1
         if isinstance(command, SubmitRender):
-            return RenderReply(RenderStatus.ACCEPTED, command.request_id)
+            return AcceptedReply(command.request_id)
         if isinstance(command, PollRender):
             if not self.polling.is_set():
                 self.polling.set()
@@ -42,14 +42,13 @@ class ControlledConnection(RendererConnection):
                     raise AssertionError("Test did not release the controlled RPC")
             if self.fail:
                 raise TimeoutError("Lost poll reply after accepted work")
-            return RenderReply(RenderStatus.CANCELLED if self.cancelled else RenderStatus.PENDING,
-                               command.request_id)
+            return CancelledReply(command.request_id) if self.cancelled else PendingReply(command.request_id)
         if isinstance(command, CancelRender):
             self.cancelled = True
-            return RenderReply(RenderStatus.ACKNOWLEDGED, command.request_id)
+            return AcknowledgedReply(command.request_id)
         if isinstance(command, AcknowledgeRender):
             self.acknowledged = True
-            return RenderReply(RenderStatus.ACKNOWLEDGED, command.request_id)
+            return AcknowledgedReply(command.request_id)
         raise AssertionError(f"Unexpected command: {command}")
 
     def release(self, client_id: UUID) -> None:

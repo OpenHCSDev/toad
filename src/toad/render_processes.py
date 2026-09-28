@@ -33,8 +33,7 @@ class RenderProcessPool(Renderer):
 
     ``max_pending`` includes both queued and running jobs, even when their
     callers have been canceled. Cancellation discards delivery to that caller;
-    it does not stop CPU work or free its slot early. There is no local execution
-    fallback. The application must await ``aclose()`` before closing its loop.
+    it does not stop CPU work or free its slot early. Every accepted task executes in its worker. The application must await ``aclose()`` before closing its loop.
 
     Shutdown rejects new work, wakes admission waiters, cancels jobs which have
     not started, and joins running jobs off-loop. Running functions must finish:
@@ -55,22 +54,6 @@ class RenderProcessPool(Renderer):
         self._changed = asyncio.Event()
         self._closed = False
         self._shutdown: asyncio.Task[None] | None = None
-
-    @staticmethod
-    def prepare_spawn() -> None:
-        """Initialize POSIX spawn bookkeeping before a UI captures stderr.
-
-        Python 3.14's resource tracker inherits stderr's file descriptor on
-        first startup. Older Textual captures report -1 instead of raising
-        UnsupportedOperation, which is invalid in spawn's pass-fd list. An
-        application calls this before entering terminal mode; CPU worker
-        creation remains lazy. The tracker is multiprocessing-owned and is
-        shared with any other process pools in this interpreter.
-        """
-        if os.name == "posix":
-            from multiprocessing import resource_tracker
-
-            resource_tracker.ensure_running()
 
     @property
     def closed(self) -> bool:

@@ -17,7 +17,7 @@ from textual.widgets import Checkbox, Static
 from toad.session_tracker import UnreadPresentation, ExactUnread
 from toad.widgets.comms_sidebar import CommsRow, CommsSidebar, SelectTarget
 from toad.widgets.activity_spinner import FRAMES
-from toad.widgets.message_filter import MESSAGE_CATEGORIES, MESSAGE_LABELS, MessageCategory
+from toad.widgets.message_filter import MessageCategory
 from toad.widgets.session_sort import SortControl
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarVisibilityObserver
 from toad.widgets.sidebar_tree import SidebarGroup, TargetTree
@@ -215,7 +215,7 @@ class ThreadCommsSidebar(SidebarVisibilityObserver, TargetTree):
         self._source = source
         self._live = live
         self._filter_view = None
-        self._filter_controls: dict[Checkbox, MessageCategory] = {}
+        self._filter_controls: dict[Checkbox, type[MessageCategory]] = {}
         self._snapshot: ThreadCommsSnapshot | None = None
         self._states: dict[tuple[str | None, str], RelationshipTreeState] = {}
         self.groups: dict[str, RelationshipRows] = {}
@@ -236,8 +236,8 @@ class ThreadCommsSidebar(SidebarVisibilityObserver, TargetTree):
     def compose(self):
         yield Static("Connecting…", classes="relationship-context", markup=False)
         self._filter_controls.clear()
-        for category in MESSAGE_CATEGORIES:
-            checkbox = Checkbox(MESSAGE_LABELS[category], id=f"filter-{category.value}",
+        for category in MessageCategory.members_with(MessageCategory):
+            checkbox = Checkbox(category.label, id=f"filter-{category.declared_name}",
                                 classes="message-filter", compact=True)
             self._filter_controls[checkbox] = category
             yield checkbox

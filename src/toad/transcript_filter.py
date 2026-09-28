@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 from agent_comms.declared_family import DeclaredFamily
 from toad.transcript_preparation import ProjectedTranscriptSource, PreparedTranscriptPage, CategoryProjection
-from toad.widgets.message_filter import ALL_CATEGORIES
+from toad.widgets.message_filter import all_categories
 
 if TYPE_CHECKING:
     from toad.widgets.transcript_history import TranscriptHistory, ProjectedTranscriptHistory
@@ -116,7 +116,7 @@ class TranscriptFilter:
     def force_pending(self): return self.phase.forced
 
     @property
-    def active(self): return self.owner._selected_categories != ALL_CATEGORIES
+    def active(self): return self.owner._selected_categories != all_categories()
 
     def clear(self): self.state = NoFilter()
     def request_force(self): self.phase = self.phase.force()

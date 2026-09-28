@@ -46,7 +46,8 @@ class CommsNavigationRequest(NavigationRequest[CommsNavigation]):
         if recovery_root is not None and Path(recovery_root).expanduser().resolve() != root:
             recovery_root = None
         return CommsNavigation(
-            CommsViewKey(str(root), self.owner_mode, me, self.kind.declared_name, target), recovery_root,
+            CommsViewKey(str(root), self.owner_mode, me, self.kind.declared_name, target),
+            recovery_root,
         )
 
 

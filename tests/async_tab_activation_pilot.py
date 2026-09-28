@@ -12,7 +12,9 @@ from agent_comms.comms import wire
 from runtime_fixture import ToadApp
 from toad.acp.agent import Agent
 from toad.agent import AgentReady
-from toad.navigation_target import NavigationContext
+from toad.conversation_kind import ConversationKind, ChannelConversation, DmConversation, IrcConversation
+from toad.constants import ALL_COMMS_TARGET
+from toad.navigation_target import NavigationContext, NavigationTarget
 from toad.screens.pending_thread import PendingTabShells
 from toad.widgets.comms_sidebar import CommsSidebar
 
@@ -109,6 +111,31 @@ async def main():
                 await app.switch_mode(destination)
                 await until(sidebar.navigation_ready.is_set)
                 assert view.conversation.prompt.text.endswith("safe")
+
+                # External strings enter one registry boundary. Polymorphic
+                # targets call the appropriate executor with unchanged context.
+                context = NavigationContext(app, owner, root, "actor")
+                with (
+                    patch.object(app, "open_thread_session", new_callable=AsyncMock) as thread,
+                    patch.object(app, "_open_comms_history", new_callable=AsyncMock) as history,
+                ):
+                    await NavigationTarget.decode("peer", "thread").open(context)
+                    thread.assert_awaited_once_with(owner_mode=owner, project_path=root, target="peer")
+                    for serialized, name, expected_kind, expected_name in (
+                        ("channel", "#room", ChannelConversation, "#room"),
+                        ("channel", ALL_COMMS_TARGET, IrcConversation, ALL_COMMS_TARGET),
+                        ("irc", "ignored", IrcConversation, ALL_COMMS_TARGET),
+                        ("dm", "peer", DmConversation, "peer"),
+                    ):
+                        await NavigationTarget.decode(name, serialized).open(context)
+                        history.assert_awaited_with(owner_mode=owner, project_path=root, me="actor",
+                                                    target=expected_name, kind=expected_kind)
+                try:
+                    NavigationTarget.decode("peer", "invalid")
+                except ValueError:
+                    pass
+                else:
+                    raise AssertionError("Unknown target kind was silently routed")
 
                 entered, release = asyncio.Event(), asyncio.Event()
                 update_group = sidebar._update_channel_group

@@ -29,8 +29,12 @@ class HistoryReadRequest:
 
     def page(self, *, after: int | None = None, limit: int) -> MessagePage:
         return self.kind.page(
-            self.comms, self.target, worktree=str(self.project), after=after,
-            limit=limit, max_bytes=self.max_bytes,
+            self.comms,
+            self.target,
+            worktree=str(self.project),
+            after=after,
+            limit=limit,
+            max_bytes=self.max_bytes,
         )
 
     def read(self) -> HistoryReadResult:
@@ -50,17 +54,16 @@ class HistoryReadRequest:
                 probe = self.page(limit=1)
                 if self.kind.display_identity(probe) != self.known_display:
                     return HistoryReadResult(
-                        self, revision, high_water, self.page(limit=self.initial_limit), True
+                        self,
+                        revision,
+                        high_water,
+                        self.page(limit=self.initial_limit),
+                        True,
                     )
             return HistoryReadResult(self, revision, high_water, None, False)
         page = self.page(after=self.after, limit=self.page_limit)
-        if (
-            self.known_display is not None
-            and self.kind.display_identity(page) != self.known_display
-        ):
-            return HistoryReadResult(
-                self, revision, high_water, self.page(limit=self.initial_limit), True
-            )
+        if self.known_display is not None and self.kind.display_identity(page) != self.known_display:
+            return HistoryReadResult(self, revision, high_water, self.page(limit=self.initial_limit), True)
         replace_tail = bool(page.messages and page.has_newer and self.follow_tail)
         if replace_tail:
             page = self.page(limit=self.initial_limit)

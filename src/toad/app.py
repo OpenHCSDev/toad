@@ -39,7 +39,7 @@ from toad import messages
 from toad.version import VersionMeta
 from toad import paths
 from toad import atomic
-from toad.render_backend import Renderer, create_renderer
+from toad.render_backend import Renderer
 from toad.channel_preparation import ChannelHistoryReader
 from toad.conversation_kind import ConversationKind
 from toad.navigation_preparation import (
@@ -339,7 +339,11 @@ class ToadApp(App, inherit_bindings=False):
         """
         from toad.work_preparation import PreparationRuntime, PreparedRenderer
 
-        self.preparation = PreparationRuntime(create_renderer() if renderer is None else renderer)
+        Renderer.prepare_spawn()
+        settings_path = self.settings_path
+        raw_settings = json.loads(settings_path.read_text("utf-8")) if settings_path.exists() else {}
+        self.settings = ToadSettings(raw_settings, notify=self._apply_preference)
+        self.preparation = PreparationRuntime(self.settings.ui.renderer.start() if renderer is None else renderer)
         self.render_processes: Renderer = PreparedRenderer(self.preparation)
         self._renderer_warmup_started = False
         self.background_render_slots = asyncio.Semaphore(1)
@@ -697,16 +701,10 @@ class ToadApp(App, inherit_bindings=False):
         db = await self.get_db()
         await db.create()
         settings_path = self.settings_path
-        if settings_path.exists():
-            settings = json.loads(settings_path.read_text("utf-8"))
-        else:
-            settings = {}
-            settings_path.write_text(
-                json.dumps(settings, indent=4, separators=(", ", ": ")), "utf-8"
-            )
+        if not settings_path.exists():
+            settings_path.write_text(self.settings.json, "utf-8")
             self.notify(f"Wrote default settings to {settings_path}", title="Settings")
         self.ansi_theme_dark = DRACULA_TERMINAL_THEME
-        self.settings = ToadSettings(settings, notify=self._apply_preference)
         self.settings.apply_all()
 
     def _prewarm_conversation_css(self) -> None:
@@ -1486,9 +1484,9 @@ class ToadApp(App, inherit_bindings=False):
         conversation = screen.query_one_optional(Conversation)
         if conversation is None or not conversation.is_mounted:
             return
-        from toad.widgets.message_filter import ALL_CATEGORIES
+        from toad.widgets.message_filter import all_categories
 
-        if conversation.visible_categories != ALL_CATEGORIES:
+        if conversation.visible_categories != all_categories():
             # Filtered-out assistant replies were not displayed. Do not
             # acknowledge an unfiltered transcript cursor on their behalf.
             return
