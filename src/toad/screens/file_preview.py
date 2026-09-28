@@ -23,6 +23,10 @@ class FilePreviewScreen(SessionView, can_focus=False):
         super().__init__()
         self.path = path
 
+    @property
+    def project_path(self) -> Path:
+        return self.path.parent
+
     def compose(self) -> ComposeResult:
         with Vertical(id="file-preview-content"):
             with Horizontal(id="tab-navigation-header"):

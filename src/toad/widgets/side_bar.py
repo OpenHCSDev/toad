@@ -248,7 +248,7 @@ class TabHistoryButton(widgets.Static, can_focus=True):
 
     def action_navigate(self) -> None:
         if not self.has_class("-unavailable"):
-            cast("ToadApp", self.app).navigate_tab_history(self.direction)
+            cast("ToadApp", self.app).tab_order.navigate(self.direction)
 
     def on_click(self, event: Click) -> None:
         if event.button == 1:
@@ -334,14 +334,14 @@ class TabHistoryControls(containers.HorizontalGroup):
 
     def on_mount(self) -> None:
         app = cast("ToadApp", self.app)
-        app.tab_history_changed.subscribe(self, self._sync)
+        app.tab_order.changed.subscribe(self, self._sync)
         app.open_tabs_changed.subscribe(self, self._sync)
         self._sync(None)
 
     def _sync(self, _event: None) -> None:
         app = cast("ToadApp", self.app)
         for button in self.query(TabHistoryButton):
-            unavailable = not app.can_navigate_tab_history(button.direction)
+            unavailable = app.tab_order.history_target(button.direction) is None
             button.set_class(unavailable, "-unavailable")
             button.tooltip = (
                 "No earlier visited tab" if button.direction == -1 else "No later visited tab"

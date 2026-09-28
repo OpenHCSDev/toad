@@ -148,9 +148,7 @@ async def main():
             await wait_for(pilot, lambda: app.current_mode == preview)
             await app.close_session_mode(preview)
             assert app.current_mode == first
-            assert preview not in app._tab_history
             await app.close_session_mode(channel)
-            assert channel not in app._tab_history
             assert {tab.mode_name for tab in app.open_tabs} == {first, second}
             assert first_screen.conversation.prompt.text == "Preserve first draft"
 

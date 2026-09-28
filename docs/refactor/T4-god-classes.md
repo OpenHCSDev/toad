@@ -1,6 +1,28 @@
 # T4: Remaining god classes
 
-**Head audited:** Toad fork `main` at `43e57c9` (#108). **Rules:** [00-RULES.md](00-RULES.md). **Origin:** both. **Step 4,** last. Pattern IDs refer to the refactor-audit skill's catalog.
+**Dispatch head:** Toad fork `main` at `67ddc9e` (#125), 2026-09-28. **Rules:** [00-RULES.md](00-RULES.md). **Origin:** both. **Step 4,** last. Pattern IDs refer to the refactor-audit skill's catalog. The original audit below is retained as history.
+
+## Current independent App slice
+
+Parent assigns TabOrder and text clipboard strategy to Sol in
+`~/wt/toad-t4-tab-clipboard-sol-20260928`. Carver owns Conversation/blocks/Agent
+in PR127; Tesla/PR116 owns workspace/resource state, editor/shell/Agent lifetime
+and screen pooling. Coordination is recorded in their existing PR threads.
+
+AST dispatch sizes: ToadApp **1,803**, Conversation **2,943**, Agent **1,523**
+lines. ToadApp still owns open order, visited-history list/cursor and history
+pruning/traversal (16 order sites), and lazy clipboard support/per-copy branching.
+This slice transfers those fields and mutations into TabOrder and the clipboard
+family. Logical mode identities are not a second workspace/session registry.
+Screen construction, mount/reparent, resource teardown, existing target labels
+and Conversation/Agent ownership stay with their assigned owners.
+
+Completion includes deletion of `_open_tab_order`, `_tab_history`,
+`_tab_history_index`, history bookkeeping helpers, `_supports_pyperclip` and the
+mocked clipboard transport test; actual callers consume the new owners directly.
+Textual's public `copy_to_clipboard(text)` contract remains the framework boundary.
+UI events and state guards exercise the installed components; private X11 and
+real PTY output establish clipboard transport. No live/shared checkout writes.
 
 This surface runs against classes the other surfaces will already have shrunk, so its file names what is known to remain and how to judge the rest. **Re-measure at dispatch** (`overlay.py --upstream upstream/main` shows each class's size then and now) and rewrite this file's findings against that head before starting.
 

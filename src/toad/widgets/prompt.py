@@ -312,12 +312,7 @@ See on-screen instructions for details.
                 self.notify(f"PNG attached ({len(image):,} bytes). Enter sends it with your prompt.",
                             title="Image attachment")
                 return
-            try:
-                import pyperclip
-
-                text = await asyncio.to_thread(pyperclip.paste)
-            except Exception:
-                text = self.app.clipboard
+            text = await self.app.clipboard_transport.paste(self.app)
             if text:
                 self._paste_clipboard_text(text)
             else:
