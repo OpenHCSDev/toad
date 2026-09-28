@@ -129,7 +129,7 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
     busy_count = var(0)
     throbber: getters.query_one[Throbber] = getters.query_one("#throbber")
     conversation = getters.query_one(Conversation)
-    side_bar = getters.query_one("#channels-sidebar", SideBar)
+    side_bar = getters.query_one(ChannelsSidebar)
     project_directory_tree = getters.query_one("#project_directory_tree")
 
     column = reactive(False)
@@ -196,7 +196,7 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
             self.call_after_refresh(self._project_panel.refresh_if_visible)
 
     def compose(self) -> ComposeResult:
-        from toad.widgets.channels_sidebar import ChannelsSlot
+        from toad.widgets.channels_sidebar import ChannelsSlot, ChannelsSidebar
 
         self._project_panel = ProjectPanel(self.project_path)
         with containers.Horizontal(id="tab-navigation-header"):
@@ -204,7 +204,7 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
             yield SessionsTabs()
         with containers.Center():
             yield ChannelsSlot()
-            yield SideBar(
+            yield ThreadSidebar(
                 SideBar.Panel("Thread", CoordinationStatus(self._comms_thread), id="coordination-panel"),
                 SideBar.Panel("Comms", ThreadCommsSidebar(
                     self._comms_thread, wire_root=self._coordination_root, live=True),
@@ -214,7 +214,7 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
                 SideBar.Panel("Recovery", RecoveryView(self._comms_thread,
                                                        wire_root=self._coordination_root), collapsed=True,
                               id="recovery-panel"),
-                id="thread-sidebar", right=True, hide=True, navigation=self._thread_sidebar_state,
+                right=True, hide=True, navigation=self._thread_sidebar_state,
                 defer_mount=not self._content_loaded,
             )
             with containers.Vertical(id="session-content"):
@@ -536,7 +536,7 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
 
     def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
         if action == "show_sidebar":
-            sidebar = self.query_one_optional("#channels-sidebar", SideBar)
+            sidebar = self.query_one_optional(ChannelsSidebar)
             if sidebar is None or sidebar.has_focus_within:
                 return False
         return True

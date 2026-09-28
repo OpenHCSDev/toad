@@ -16,10 +16,10 @@ from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.irc_message import SelectHistoricalIdentity
 from toad.widgets.comms_fork_dialog import ForkDialog
 from toad.widgets.comms_sidebar import CoordinationStatus, CommsSidebar, SelectTarget
-from toad.widgets.channels_sidebar import ChannelsSlot
+from toad.widgets.channels_sidebar import ChannelsSlot, ChannelsSidebar
 from toad.session_tracker import SidebarState
 from toad.widgets.session_tabs import SessionsTabs
-from toad.widgets.side_bar import SideBar, TabHistoryControls
+from toad.widgets.side_bar import SideBar, ThreadSidebar, TabHistoryControls
 from toad.navigation_target import FeedTarget, DirectTarget, NavigationContext, NavigationOwner
 from toad.widgets.recovery_view import RecoveryView
 from toad.widgets.thread_comms import RelationshipSort, ThreadCommsSidebar
@@ -90,7 +90,7 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
             yield SessionsTabs()
         with containers.Center():
             yield ChannelsSlot()
-            yield SideBar(
+            yield ThreadSidebar(
                 SideBar.Panel(
                     "Connection",
                     CoordinationStatus(self.me),
@@ -101,7 +101,7 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
                 SideBar.Panel("Comms", ThreadCommsSidebar(
                     self.me, wire_root=self.recovery_root, live=True),
                     id="thread-comms-panel", header_control=RelationshipSort()),
-                id="thread-sidebar", right=True, hide=True, navigation=self._thread_sidebar_state,
+                right=True, hide=True, navigation=self._thread_sidebar_state,
             )
             with containers.Vertical(id="comms-content"):
                 yield Button("Saved sessions", id="historical-sessions")
@@ -224,7 +224,7 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
         return None
 
     def action_show_sidebar(self) -> None:
-        sidebar = self.query_one("#channels-sidebar", SideBar)
+        sidebar = self.query_one(ChannelsSidebar)
         sidebar.reveal()
         sidebar.query_one("SideBarCollapsible CollapsibleTitle").focus()
 

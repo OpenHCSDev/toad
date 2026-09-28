@@ -15,11 +15,11 @@ from toad import messages
 from toad.app import ToadApp
 from toad.screens.session_view import SessionView
 from toad.session_tracker import SidebarState
-from toad.widgets.channels_sidebar import ChannelsSlot
+from toad.widgets.channels_sidebar import ChannelsSlot, ChannelsSidebar
 from toad.widgets.comms_sidebar import CommsSidebar, SelectTarget
 from toad.widgets.conversation import ThreadLoading
 from toad.widgets.session_tabs import SessionsTabs
-from toad.widgets.side_bar import SideBar, TabHistoryControls
+from toad.widgets.side_bar import SideBar, ThreadSidebar, TabHistoryControls
 from toad.navigation_target import NavigationContext, NavigationOwner
 
 
@@ -57,9 +57,9 @@ class PendingThreadScreen(SessionView, NavigationOwner, can_focus=False):
             # unresolved destination. Shared hide/placement/scroll intent stays
             # visible without adding another wire read to route discovery.
             yield self._channels
-            yield SideBar(
+            yield ThreadSidebar(
                 SideBar.Panel("Thread", Static("Opening thread…")),
-                id="thread-sidebar", right=True, hide=True, navigation=self._thread_sidebar_state,
+                right=True, hide=True, navigation=self._thread_sidebar_state,
                 defer_mount=True,
             )
             with containers.Vertical(id="pending-thread-content"):
