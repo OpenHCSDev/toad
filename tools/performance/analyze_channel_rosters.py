@@ -13,7 +13,9 @@ identities = defaultdict(set)
 observations = defaultdict(int)
 for snapshot in workload["snapshots"]:
     for row in snapshot["widgets"]:
-        if row.get("row_kind") in {"channel", "irc"}:
+        # A right-side relationship can target the same channel as the left
+        # roster. Only the producer's native Channels owner belongs to this test.
+        if row.get("channel_roster") and row.get("row_kind") in {"channel", "irc"}:
             key = snapshot["mode"], row["row_kind"], row["target"]
             identities[key].add(row["object_id"])
             observations[key] += 1

@@ -49,6 +49,8 @@ PYTHON = os.environ.get("TOAD_TEST_PYTHON", sys.executable)
     "right_comms_integration", "thread_unread_start", "goal_set_owner",
     "goal_pause_owner", "recovery_view_boundaries", "channel_any_mode_ui",
     "dm_rebind_paint",
+    "message_notifications", "observed_thread_activity",
+    "channel_visibility_observation", "channel_history_reader",
 ])
 def test_pilot(name):
     # Test-owned persistent services may inherit stdout/stderr. Waiting for

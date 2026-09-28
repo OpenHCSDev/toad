@@ -23,7 +23,7 @@ from toad import messages
 from toad.acp.agent import Agent as ACPAgent
 from toad.acp import messages as acp_messages
 from toad import paths
-from runtime_fixture import ToadApp
+from runtime_fixture import ToadApp, wait_channel_roster
 from toad.db import DB
 from toad.pill import pill
 from toad.screens.comms import CommsScreen
@@ -962,10 +962,13 @@ for line in sys.stdin:
             await pilot.pause()
             assert await pilot.click(resumable_row)
             async with asyncio.timeout(10):
-                while not any(
+                # Independently prepared saved blocks can finish out of order.
+                # The last reply alone is not completion of the thinking body.
+                while not (any(
                     "thread transcript complete" in response.source
                     for response in app.screen.query(AgentResponse)
-                ):
+                ) and any("thread reasoning" in thought.source
+                          for thought in app.screen.query(AgentThought))):
                     await pilot.pause(.02)
             assert isinstance(app.screen, MainScreen)
             assert not isinstance(app.screen, CommsScreen)
@@ -1338,19 +1341,33 @@ for line in sys.stdin:
                 # _refresh starts an asynchronous route/snapshot publication.
                 # An idle message queue does not promise a rendered roster yet.
                 # Keep readiness, click and destination inside the same deadline.
+                await wait_channel_roster(app, pilot, "#all")
+                await pilot.pause()
                 while True:
                     channel_row = next((item for item in app.screen.query(CommsRow)
                                         if item.target_name == "#all" and item.is_attached), None)
                     if channel_row is not None:
                         channel_row.scroll_visible(animate=False)
                         await pilot.pause(.01)
-                        if channel_row in app.screen._compositor.visible_widgets:
-                            break
+                        placement = app.screen._compositor.visible_widgets.get(channel_row)
+                        if placement is not None:
+                            region, clip = placement
+                            visible = region.intersection(clip).intersection(app.screen.size.region)
+                            if visible:
+                                x = visible.x + visible.width // 2
+                                y = visible.y + visible.height // 2
+                                # Scroll retention can clip a row's top-left;
+                                # click an actually exposed native hit target.
+                                if app.screen.get_widget_at(x, y)[0] is channel_row:
+                                    click_offset = (x - region.x, y - region.y)
+                                    break
                     else:
                         await pilot.pause(.01)
-                assert await pilot.click(channel_row), (
+                assert await pilot.click(channel_row, offset=click_offset), (
                     "Channel revisit click missed its native row", channel_row.region,
                     app.screen.query_one(SideBar).collapsed,
+                    click_offset, app.current_mode,
+                    app.screen.get_widget_at(x, y)[0],
                 )
                 await pilot.pause()
                 while app.current_mode != first_channel_mode:

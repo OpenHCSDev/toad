@@ -570,6 +570,7 @@ class ValidationDriver(LinuxDriver):
                 row = {"kind": type(widget).__name__, "id": widget.id, "rect": list(visible)}
                 if isinstance(widget, CommsRow):
                     row["object_id"] = id(widget)
+                    row["channel_roster"] = any(isinstance(node, CommsSidebar) for node in widget.ancestors)
                 if isinstance(widget, SideBarToggle):
                     bar = widget.query_ancestor(SideBar)
                     row.update(sidebar=bar.id, collapsed=bar.collapsed)

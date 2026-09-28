@@ -4,8 +4,83 @@ Base: merged Toad PR65 at `94507dd0e727acd9ba64494dfd477a33b4800da3`, with
 merged Textual PR5 at `4fa6a9c440eaaa7dfaad45a33af146fc4b7e922e` and the preserved
 current-main core pin `b1e5bfd5c39ea69c507833e8ed5efc96a7fb038b`.
 
-Status: **draft; tail-frame regression and comms test-timeout resolved;
-remaining native latency targets and current-main reconciliation are open**.
+Status: **landing integration in progress; native latency remains follow-up work**.
+
+## Current-main landing integration
+
+The user approved merging Textual PR6, then Toad PR73 after checks, while another
+agent retains ownership of installed comms-pin/runtime updates.
+
+The performance branch now includes current Toad main through `16b0697`, preserving
+its nominal core transcript/goal/queue/read-proof APIs, notification feedback and
+visibility-scoped route observation. The core pin is `0c63715eb4a7a0835c7d47e9d38bdbddff7034cf`;
+Textual PR6 is merged at `6ac3cdd919b1bfb3333091c9ac94df6c114d9fa9`, whose Git tree
+exactly equals tested candidate `bfdb4ad4`. The Channels retention fix `c2efb16` is included.
+No production source was rolled back to the older performance baseline.
+
+The first expanded integration run against main `d1794c9` / core `c895ff0` passed
+88 of 95 pilots. Failures exposed fixture calls to removed core entry points,
+premature reads before asynchronous panel visibility, and the old expectation
+that inactive Channels rows disappear. Fixtures now call the canonical transcript
+route/history/turn-lease owners, wait for native readiness, and assert retained
+row identity rather than retirement. Message routing, read-ack and UI assertions
+remain. The legacy replay tool's owner imports/calls were migrated too; old pickles
+remain bound to their original DTO/runtime schema and are not a new replay receipt.
+
+The comms scenario then exceeded its unchanged 100 s limit. The diagnostic showed
+progress, but inactive retained rosters continued scheduling source polls. A new
+regression failed before an active-screen guard at the existing polling boundary.
+The guard is inside the normal shutdown error boundary; a preliminary placement
+outside it exposed an empty-screen-stack shutdown race and was corrected. The
+comms scenario then passed in 68.14 s, and the full repeat passed **125 tests and
+73 subtests in 630.00 s** (95 pilots plus 30 queue/cursor unit cases), including
+comms in 69.99 s. Peak memory was 550.4 MiB, zero swap. No deadlines were increased.
+
+While that run completed, main added notification/activity and route-observation
+changes (`75fcd89`, `16b0697`). They are now integrated with their four focused
+pilots added to the full runner. The final runner includes 99 pilots and 30
+queue/cursor unit cases. Runs remain serial,
+one pytest worker, 4 GiB RAM cap and no swap; the new core lives in an isolated
+validation environment rather than the shared installed runtime.
+
+Fresh framework verification on `bfdb4ad4` passes **3,507 tests**, 1 skipped and
+4 xfailed in 201.80 s, with a 250 MiB peak. The earlier broad-opt-in snapshot
+result remains 92/93 matches; its zero-width-SVG mismatch reproduces on unchanged
+baseline code and was not suppressed or updated. It also reproduces on the actual
+PR base `4fa6a9c4`; normalized SVG comparison confirms identical baseline/candidate output.
+
+Native current-stack captures:
+
+- `toad-pr73-landing-native-filter`: 72 actions, 52 typed markers, all category
+  masks and drafts retained. Input median/p95/max **34.04/51.97/60.64 ms**;
+  layout median/p95/max **10.20/31.59/94.95 ms**; loop max **110.31 ms**;
+  GC max **66.55 ms**. Peak scope memory 486.3 MiB, zero swap. This is one
+  integration receipt, not a replacement for earlier repeated adverse tails.
+- `toad-pr73-landing-native-navigation`: 83 actions, ten tabs and eight native
+  sidebar resize drags complete. Forty repeatedly observed channel keys across
+  ten modes retain their object IDs. Peak 522.6 MiB, zero swap.
+- The first identity analysis of the filter capture incorrectly grouped left
+  Channels rows together with right-side relationship rows for the same target.
+  Inspection showed one stable ID per owner/class, not recreated Channels rows.
+  The observer now records native Channels ownership and the analyzer filters on
+  that authority; the subsequent navigation receipt passes. No production row
+  behavior or acceptance assertion was changed to accommodate that tool error.
+
+The newer combination's first full run passed 126 cases and 73 subtests, with
+three fixture failures: an incompletely initialized synthetic Agent caused an
+unavailable-status layout change during a controlled checkpoint; the comms test
+observed its final reply before independently prepared thinking content; and a
+notification fixture deleted its wire before executor reads finished. The Agent
+fixture now initializes the native superclass, the transcript wait covers both
+required bodies, and executor reads drain before cleanup. Their semantics are
+unchanged. Five affected/related pilots pass after those corrections.
+
+The late comms click additionally required completed roster reconciliation and
+an exposed native hit target, not simply membership in the visible geometry map.
+The existing 10 s navigation and 100 s whole-pilot limits remain; the corrected
+comms case passes in 57.14 s. Final full repeat is pending. All owned native
+scopes were stopped after capture. Textual was merged only after its checks;
+Toad remains gated on the final combined receipt.
 
 ## Widget cohorts and Channels correction handoff
 
@@ -256,7 +331,7 @@ with the recorded runtime version.
 ## Structural measurement correction
 
 Dependency: [Textual PR6](https://github.com/OpenHCSDev/textual/pull/6), pinned at
-`bfdb4ad476982c50d43e929e01b8681a526e3778` (structural fix, owner-clock idle
+`6ac3cdd919b1bfb3333091c9ac94df6c114d9fa9` (structural fix, owner-clock idle
 measurement, declared box/arrangement reuse, local invalidation and paint lifetime). The merged framework baseline alone
 does not contain this correction.
 
