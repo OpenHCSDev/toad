@@ -139,7 +139,7 @@ async def main():
             assert any(leaf.display and leaf.fragment.events[0].text == "EARLIER_ROUTED_OUTPUT"
                        for leaf in tail._filter_overlay.fragment_views)
             view.displayed_transcript_cursor = cursor
-            with patch.object(app.coordination_wire, "mark_thread_view_read") as mark:
+            with patch.object(app.coordination_wire.views, 'mark_thread_view_read') as mark:
                 await app.mark_visible_thread_read()
                 assert not mark.called, "Hidden replies were acknowledged as displayed"
 

@@ -90,7 +90,7 @@ async def main():
                 assert all(widget.display == (kind == category) for kind, widget in live.items()), category
                 assert all(leaf.display == (kind == category) for kind, leaf in fragments.items()), category
                 assert history.display and view.prompt.text == "keep draft"
-                with patch.object(app.coordination_wire, "mark_thread_view_read") as mark:
+                with patch.object(app.coordination_wire.views, 'mark_thread_view_read') as mark:
                     view.displayed_transcript_cursor = cursor
                     await app.mark_visible_thread_read()
                     mark.assert_not_called()

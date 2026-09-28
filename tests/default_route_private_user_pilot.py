@@ -117,7 +117,7 @@ async def main() -> None:
                     assert channel_receipt.sender_role is ThreadRole.USER
                     assert (
                         wire(root)
-                        .bus.read_initial_cohort(root_id, channel_receipt.seq)
+                        .bus.log.read_initial_cohort(root_id, channel_receipt.seq)
                         .message
                         == channel_receipt
                     )
@@ -147,15 +147,15 @@ async def main() -> None:
                     assert dm_receipt.sender_role is ThreadRole.USER
                     assert (
                         wire(root)
-                        .bus.read_initial_cohort(root_id, dm_receipt.seq)
+                        .bus.log.read_initial_cohort(root_id, dm_receipt.seq)
                         .message
                         == dm_receipt
                     )
                     assert dm.prompt.text == "" and dm._unknown_send is None
                     assert_sql_receipt(dm_receipt.seq, dm_receipt.message_id, 1)
 
-                    original_append = dm._wire.bus._append_private_unlocked
-                    original_send = dm._wire.send_user_message
+                    original_append = dm._wire.bus.log._append_private_unlocked
+                    original_send = dm._wire.messaging.send_user_message
                     unknown_errors: list[HumanInitialUnknownError] = []
                     calls = 0
 
@@ -174,11 +174,11 @@ async def main() -> None:
 
                     with (
                         patch.object(
-                            dm._wire.bus,
-                            "_append_private_unlocked",
+                            dm._wire.bus.log,
+                            '_append_private_unlocked',
                             append_then_lose_receipt,
                         ),
-                        patch.object(dm._wire, "send_user_message", observe_unknown),
+                        patch.object(dm._wire.messaging, 'send_user_message', observe_unknown),
                     ):
                         uncertain = messages.UserInputSubmitted("UNCERTAIN-NO-RETRY")
                         await dm.submit_input(uncertain)
@@ -195,7 +195,7 @@ async def main() -> None:
                         )
                         assert unknown_id in dm.status and str(unknown_seq) in dm.status
                         assert unknown_root == root_id
-                        actual = wire(root).bus.read_initial_cohort(
+                        actual = wire(root).bus.log.read_initial_cohort(
                             root_id, unknown_seq
                         )
                         assert actual.message.message_id == unknown_id
@@ -210,7 +210,7 @@ async def main() -> None:
                         kind="channel",
                     )
                     channel = app.screen.query_one(CommsChatView)
-                    before = len(wire(root).bus.full_history())
+                    before = len(wire(root).bus.log.full_history())
                     original_open = os.open
                     pre_row_calls = 0
                     pre_row_errors: list[HumanInitialUnknownError] = []
@@ -248,7 +248,7 @@ async def main() -> None:
                         assert channel.prompt.prompt_text_area.disabled
                         await channel.submit_input(pre_row)
                         assert pre_row_calls == 1
-                    assert len(wire(root).bus.full_history()) == before
+                    assert len(wire(root).bus.log.full_history()) == before
 
                     # A different fresh mounted view must also fail closed on
                     # core's permanent human reservation-gap admission.
@@ -260,7 +260,7 @@ async def main() -> None:
                         kind="dm",
                     )
                     blocked = app.screen.query_one(CommsChatView)
-                    blocked_send = blocked._wire.send_user_message
+                    blocked_send = blocked._wire.messaging.send_user_message
                     blocked_calls = 0
 
                     def observe_blocked(*args, **kwargs):
@@ -269,7 +269,7 @@ async def main() -> None:
                         return blocked_send(*args, **kwargs)
 
                     with patch.object(
-                        blocked._wire, "send_user_message", observe_blocked
+                        blocked._wire.messaging, 'send_user_message', observe_blocked
                     ):
                         denied = messages.UserInputSubmitted("AFTER-GAP-BLOCKED")
                         await blocked.submit_input(denied)
@@ -279,7 +279,7 @@ async def main() -> None:
                         assert blocked.prompt.prompt_text_area.disabled
                         await blocked.submit_input(denied)
                         assert blocked_calls == 1
-                    assert len(wire(root).bus.full_history()) == before
+                    assert len(wire(root).bus.log.full_history()) == before
                 # Textual can cancel an async UI worker while its to_thread
                 # filesystem read is still settling. Drain those workers
                 # before removing the private root they read.

@@ -107,7 +107,7 @@ async def exercise(app, pilot):
         assert frames and set(frames) == {expected_y}, (expected_y, frames)
         app.observed = None
         assert peak <= 3, peak
-        with patch.object(app.coordination_wire, "mark_thread_view_read") as acknowledge:
+        with patch.object(app.coordination_wire.views, 'mark_thread_view_read') as acknowledge:
             await app.mark_visible_thread_read()
             acknowledge.assert_not_called()
 

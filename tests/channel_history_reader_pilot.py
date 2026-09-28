@@ -34,7 +34,7 @@ class ReaderTests(unittest.IsolatedAsyncioTestCase):
                     known_revision=first.revision,
                     known_display=display_identity(kind, first.page),
                 )
-                bus = comms.bus._path
+                bus = comms.bus.log.path
                 replacement = bus.with_suffix(".replacement")
                 replacement.write_bytes(bus.read_bytes().replace(b"original", b"replaced"))
                 replacement.replace(bus)
@@ -82,7 +82,7 @@ class ReaderTests(unittest.IsolatedAsyncioTestCase):
                 known_display=display_identity(request.kind, first.page),
             )
             comms.channels.set_channel_any_mode("#team", True)
-            self.assertEqual(comms.bus.latest_sequence(), first.high_water)
+            self.assertEqual(comms.bus.log.latest_sequence(), first.high_water)
             expanded = next_request.read()
             self.assertTrue(expanded.replace_tail)
             assert expanded.page is not None
@@ -97,8 +97,8 @@ class ReaderTests(unittest.IsolatedAsyncioTestCase):
             old = wire(root / "old")
             comms = wire(root / "live")
             for source in (old, comms):
-                source.register(Thread("alice", frozenset({"team"}), str(root)))
-                source.send("alice", "#team", source.root.name)
+                source.threads.register(Thread("alice", frozenset({"team"}), str(root)))
+                source.messaging.send("alice", "#team", source.root.name)
             request = HistoryReadRequest(comms, HistoryKind.CHANNEL, "#team", root,
                 False, 0, True, None, 8, 40, 256 * 1024)
             initial = request.read()

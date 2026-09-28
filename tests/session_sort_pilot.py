@@ -69,7 +69,7 @@ async def main():
             comms.agents.activity.emit(
                 Activity(thread=name, state=ActivityState.WORKING, timestamp=activity)
             )
-            comms.bus.send(
+            comms.bus.publisher.publish(
                 Message(
                     sender=name,
                     target="#all",
@@ -175,7 +175,7 @@ async def main():
 
             await choose("last_message_sent")
             assert order() == ["new", "old", "project"], order()
-            comms.bus.send(
+            comms.bus.publisher.publish(
                 Message(
                     sender="old",
                     target="#all",

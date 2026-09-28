@@ -25,7 +25,7 @@ def reply(path, text):
 
 async def refresh(app, pilot):
     sidebar = app.screen.query_one(CommsSidebar)
-    await sidebar._read_snapshot(app.coordination_wire.revision())
+    await sidebar._read_snapshot(app.coordination_wire.views.revision())
     await pilot.pause()
     return sidebar
 
@@ -111,11 +111,17 @@ async def main():
             )
             await pilot.pause()
             assert app.current_mode == stopped_view
-            assert comms.registry.status("stopped").value == "stopped"
+            assert comms.registry.status("stopped").stopped
             await app.switch_mode(channel_mode)
             await pilot.pause()
             assert chat.prompt.text == "Keep my draft"
-            await pilot.click(stopped_row, button=3)
+            # Opening a saved view rebuilds its row; click the current mounted row.
+            sidebar = await refresh(app, pilot)
+            group = next(group for group in sidebar.query(ChannelGroup) if group.row.target_name == "#team")
+            stopped_row = next(row for row in group.query(ThreadStatusRow) if row.thread_name == "stopped")
+            stopped_row.scroll_visible(animate=False)
+            await pilot.pause()
+            assert await pilot.click(stopped_row, button=3)
             await pilot.pause()
             item = next(item for item in app.screen.query(ContextMenuItem) if item.action == "comms_start")
             await pilot.click(item)
