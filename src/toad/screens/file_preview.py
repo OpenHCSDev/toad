@@ -6,9 +6,8 @@ from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Vertical
 from toad.screens.session_view import SessionView
-from toad.widgets.footer import Footer
 from toad.widgets.project_panel import FilePreview
-from toad.workspace_chrome import NavigationSlot
+from toad.workspace_chrome import FooterSlot, NavigationSlot
 
 
 class FilePreviewScreen(SessionView, can_focus=False):
@@ -26,7 +25,7 @@ class FilePreviewScreen(SessionView, can_focus=False):
         with Vertical(id="file-preview-content"):
             yield NavigationSlot()
             yield FilePreview(self.path, id="file-preview")
-        yield Footer(compact=True)
+        yield FooterSlot(compact=True)
 
     async def action_back(self) -> None:
         if self.id is not None:

@@ -27,6 +27,7 @@ from agent_comms.comms import wire
 from agent_comms import __file__ as comms_file
 from runtime_fixture import ToadApp
 from textual.widget import Widget
+from textual.widgets import TextArea
 from textual import __file__ as textual_file
 from toad.acp.agent import Agent
 from toad.acp.messages import TranscriptSnapshot
@@ -37,6 +38,7 @@ from toad.widgets.session_sidebar import ThreadStatusRow
 from toad.widgets.session_tabs import SessionLabel, SessionsTabs
 from toad.widgets.sidebar_tree import SidebarGroup
 from toad.widgets.footer import Footer
+from toad.session_presentation import BlankSessionSurface
 from toad.widgets.side_bar import SideBar
 from toad.work_preparation import PreparationRuntime
 
@@ -56,11 +58,12 @@ class ReturnApp(ToadApp):
 
 async def main(*, empty=False, trace=False, observe=False, output=None, peers=0, channels=0, cycles=1,
                gc_census=False, display_only=False, tabs=10, source_threads=None, records=20,
-               ownership_census=False, gc_observe=False):
+               ownership_census=False, gc_observe=False, phase_only=False):
     if tabs < 4 or (source_threads is not None and source_threads < tabs) or records < 1:
         raise ValueError("Use at least four tabs, source_threads >= tabs, and positive history records")
     measurements = []
     censuses = []
+    run_started = time.perf_counter()
 
     def census(app, phase):
         if not ownership_census:
@@ -79,6 +82,9 @@ async def main(*, empty=False, trace=False, observe=False, output=None, peers=0,
                          "registered_types": dict(counts),
                          "preparation": {key: getattr(app.preparation, key)
                                          for key in ("hits", "misses", "shared", "retained_bytes")}})
+        print(json.dumps({"phase_completed": phase, "elapsed_s": round(time.perf_counter() - run_started, 2),
+                          "switches_recorded": len(measurements), "widgets": len(nodes),
+                          "labels": counts["SessionLabel"]}), flush=True)
     with tempfile.TemporaryDirectory(prefix="toad-tab-return-") as directory:
         root = Path(directory)
         os.environ.update(AGENT_COMMS_ROOT=str(root / "wire"), XDG_CONFIG_HOME=str(root / "config"),
@@ -314,12 +320,15 @@ async def main(*, empty=False, trace=False, observe=False, output=None, peers=0,
                                                               (screen._compositor, "render_update"),
                                                               (Widget, "mount"),
                                                               (Widget, "reparent"),
+                                                              (TextArea, "restore_editor_state"),
                                                               (SideBar, "_apply_layout"),
                                                               (app.stylesheet, "update_nodes")):
                                         instrumentation.enter_context(patch.object(
                                             instance, method, synchronous(method, getattr(instance, method))))
                                     for instance, method in ((screen, "prepare_navigation"),
+                                                              (screen, "prepare_presentation"),
                                                               (screen, "layout_navigation"),
+                                                              (BlankSessionSurface, "activate"),
                                                               (SessionsTabs, "_sync_tabs"),
                                                               (PreparationRuntime, "submit"),
                                                               (CommsSidebar, "_present_snapshot"),
@@ -374,71 +383,28 @@ async def main(*, empty=False, trace=False, observe=False, output=None, peers=0,
                         assert app._exception is None
                     census(app, phase)
 
-                # Real geometry changes must survive the deferred activation
-                # pass. Also exercise a same-mode request from the screen's own
-                # message queue: navigation must not wait on that blocked queue.
-                await pilot.resize_terminal(96, 31)
-                await app.switch_mode(modes[-1])
-                await pilot.pause()
-                assert app.screen.size == app.size
-                finished = asyncio.Event()
+                if output is not None:
+                    # A distinct, explicitly incomplete phase receipt survives
+                    # bounded teardown stalls without masquerading as acceptance.
+                    output.with_suffix(".phases.json").write_text(json.dumps({
+                        "completed": False, "phase": "before-close-checks",
+                        "tabs": tabs, "empty": empty, "returns": measurements,
+                        "ownership_censuses": censuses,
+                    }, indent=2) + "\n")
 
-                async def same_mode():
-                    await app.switch_mode(app.current_mode)
-                    finished.set()
-
-                app.screen.call_later(same_mode)
-                await asyncio.wait_for(finished.wait(), 3)
-                assert not app._atomic_mode_switch
-
-                # The shared channel tree survives switches. Closing tabs must
-                # reconcile routes without destroying the shared presentation.
-                hidden_sidebar = app.screen.query_one(CommsSidebar)
-                retained_channels = dict(hidden_sidebar._row_map)
-                assert retained_channels
-                assert all(row.is_attached for row in retained_channels.values())
-                for mode in modes[:3]:
-                    await app.close_session_mode(mode)
-                await app.switch_mode(modes[3])
-                async with asyncio.timeout(5):
-                    await hidden_sidebar.navigation_ready.wait()
-                await pilot.pause()
-                assert all(hidden_sidebar._row_map[key] is row
-                           for key, row in retained_channels.items())
-                assert tuple(label.id for label in app.screen.query(SessionLabel)) == tuple(
-                    tab.mode_name for tab in app.open_tabs
-                )
-                assert app.screen.conversation.prompt.text == f"draft-{modes[3]}"
-                if not observe and not empty:
-                    rebuilt = {
-                        (row.query_ancestor(ChannelGroup).row.target_name, row.thread_name): row
-                        for row in hidden_sidebar.query(ThreadStatusRow)
-                        if row.thread_name in targets
-                    }
-                    assert {name for _, name in rebuilt} == set(targets), rebuilt
-                    expected_modes = dict(zip(targets[3:], modes[3:]))
-                    for (_, name), row in rebuilt.items():
-                        assert row.mode_name == expected_modes.get(name), (
-                            name, row.mode_name, expected_modes.get(name)
-                        )
-                    # Identity still matters within a live presentation:
-                    # unchanged model refreshes must retain every mounted row.
-                    await hidden_sidebar.sync_sessions()
-                    refreshed = {
-                        (row.query_ancestor(ChannelGroup).row.target_name, row.thread_name): row
-                        for row in hidden_sidebar.query(ThreadStatusRow)
-                        if row.thread_name in targets
-                    }
-                    assert refreshed.keys() == rebuilt.keys()
-                    assert all(refreshed[key] is row for key, row in rebuilt.items())
-                assert not app._atomic_mode_switch and app._exception is None
+                if not phase_only:
+                    await verify_post_switch(app, pilot, modes, empty, observe, targets, run_started,
+                                             ownership_census)
         await asyncio.get_running_loop().shutdown_default_executor()
+        if ownership_census:
+            print(json.dumps({"phase_completed": "executor-shutdown", "elapsed_s": round(time.perf_counter() - run_started, 2)}), flush=True)
     result = {"boundary": "headless switch/settlement; not terminal-presented frames",
                "empty": empty, "peers": peers, "channels": channels,
                "tabs": tabs, "source_threads": source_threads or tabs, "history_records": records,
                "ownership_censuses": censuses,
                "gc_observation": trace or gc_observe,
                "observation_only": observe,
+               "phase_only": phase_only,
                "instrumentation": "detailed timing/rule-map copies" if trace else "lightweight counts",
                "display_only": display_only, "returns": measurements}
     result["provenance"] = {
@@ -478,6 +444,64 @@ async def main(*, empty=False, trace=False, observe=False, output=None, peers=0,
                 for record in slowest]}, indent=2))
 
 
+async def verify_post_switch(app, pilot, modes, empty, observe, targets, run_started, ownership_census):
+    """Retain the original resize/same-mode/close and source-route assertions."""
+    await pilot.resize_terminal(96, 31)
+    await app.switch_mode(modes[-1])
+    await pilot.pause()
+    assert app.screen.size == app.size
+    finished = asyncio.Event()
+
+    async def same_mode():
+        await app.switch_mode(app.current_mode)
+        finished.set()
+
+    app.screen.call_later(same_mode)
+    await asyncio.wait_for(finished.wait(), 3)
+    assert not app._atomic_mode_switch
+
+    hidden_sidebar = app.screen.query_one(CommsSidebar)
+    retained_channels = dict(hidden_sidebar._row_map)
+    assert retained_channels
+    assert all(row.is_attached for row in retained_channels.values())
+    for mode in modes[:3]:
+        if ownership_census:
+            print(json.dumps({"closing": mode, "elapsed_s": round(time.perf_counter() - run_started, 2)}), flush=True)
+        await app.close_session_mode(mode)
+        if ownership_census:
+            print(json.dumps({"closed": mode, "elapsed_s": round(time.perf_counter() - run_started, 2)}), flush=True)
+    await app.switch_mode(modes[3])
+    async with asyncio.timeout(5):
+        await hidden_sidebar.navigation_ready.wait()
+    await pilot.pause()
+    assert all(hidden_sidebar._row_map[key] is row for key, row in retained_channels.items())
+    assert tuple(label.id for label in app.screen.query(SessionLabel)) == tuple(
+        tab.mode_name for tab in app.open_tabs
+    )
+    assert app.screen.conversation.prompt.text == f"draft-{modes[3]}"
+    if not observe and not empty:
+        rebuilt = {
+            (row.query_ancestor(ChannelGroup).row.target_name, row.thread_name): row
+            for row in hidden_sidebar.query(ThreadStatusRow)
+            if row.thread_name in targets
+        }
+        assert {name for _, name in rebuilt} == set(targets), rebuilt
+        expected_modes = dict(zip(targets[3:], modes[3:]))
+        for (_, name), row in rebuilt.items():
+            assert row.mode_name == expected_modes.get(name), (name, row.mode_name, expected_modes.get(name))
+        await hidden_sidebar.sync_sessions()
+        refreshed = {
+            (row.query_ancestor(ChannelGroup).row.target_name, row.thread_name): row
+            for row in hidden_sidebar.query(ThreadStatusRow)
+            if row.thread_name in targets
+        }
+        assert refreshed.keys() == rebuilt.keys()
+        assert all(refreshed[key] is row for key, row in rebuilt.items())
+    assert not app._atomic_mode_switch and app._exception is None
+    if ownership_census:
+        print(json.dumps({"phase_completed": "close-checks", "elapsed_s": round(time.perf_counter() - run_started, 2)}), flush=True)
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--empty", action="store_true")
@@ -494,6 +518,7 @@ if __name__ == "__main__":
     parser.add_argument("--records", type=int, default=20)
     parser.add_argument("--ownership-census", action="store_true", help="Sample registered widgets and tracked types outside timed navigation")
     parser.add_argument("--gc-observe", action="store_true", help="Observe ordinary GC durations without stack capture or policy changes")
+    parser.add_argument("--phase-only", action="store_true", help="Diagnostic: skip resize/close acceptance after timed visit phases")
     args = parser.parse_args()
     previous_debug = gc.get_debug()
     try:
@@ -502,7 +527,8 @@ if __name__ == "__main__":
         asyncio.run(main(empty=args.empty, trace=args.trace, observe=args.observe, output=args.output,
                           peers=args.peers, channels=args.channels, cycles=args.cycles, gc_census=args.gc_census,
                           display_only=args.display_only, tabs=args.tabs, source_threads=args.source_threads,
-                          records=args.records, ownership_census=args.ownership_census, gc_observe=args.gc_observe))
+                          records=args.records, ownership_census=args.ownership_census, gc_observe=args.gc_observe,
+                          phase_only=args.phase_only))
     finally:
         if args.gc_census:
             gc.set_debug(previous_debug)

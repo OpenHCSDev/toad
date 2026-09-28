@@ -16,6 +16,8 @@ from toad.acp.messages import CoordinationUpdate
 from toad.navigation_preparation import ThreadNavigationRequest
 from toad.screens.pending_thread import PendingThreadScreen
 from toad.widgets.channels_sidebar import ChannelsSidebar
+from toad.widgets.conversation import Conversation
+from toad.widgets.footer import Footer
 from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.comms_sidebar import CommsSidebar
 from toad.widgets.side_bar import SideBar, SidebarResizeHandle
@@ -62,6 +64,8 @@ async def main():
             async with app.run_test(size=(120, 42)) as pilot:
                 roster = await wait_channel_roster(app, pilot, "#all", "#shared")
                 bar = app.screen.query_one(ChannelsSidebar)
+                footer = app.screen.query_one(Footer)
+                assert footer.compact
                 bar.reveal()
                 await pilot.pause()
                 original_rows = dict(roster._row_map)
@@ -77,13 +81,16 @@ async def main():
                 second = (await app.new_session_screen(app.get_main_screen)).mode_name
                 await wait_channel_roster(app, pilot, "#all")
                 assert app.screen.query_one(ChannelsSidebar) is bar
+                assert app.screen.query_one(Footer) is footer
                 assert app.screen.query_one(CommsSidebar) is roster
                 assert all(marker._styles_cache._cache.get(y) is line for y, line in cached_lines.items()), (
                     "Opening a tab discarded unchanged Channels paint")
                 assert app.screen.query_one("#thread-sidebar", SideBar) is not right
                 assert app.screen.query_one("#thread-sidebar", SideBar).collapsed
                 assert app.screen.conversation._shell is None
-                assert app.get_screen_stack(owner)[0].conversation._shell is None
+                original = app.get_screen_stack(owner)[0]
+                assert not original.query(Conversation)
+                assert original.presentation.editor_state is not None
                 handle = bar.query_one(SidebarResizeHandle)
                 assert await pilot.mouse_down(handle, offset=(0, 4))
                 assert app.mouse_captured is handle and handle._dragging
@@ -127,6 +134,10 @@ async def main():
                     await app.switch_mode(mode)
                     await pilot.pause()
                     assert app.screen.query_one(ChannelsSidebar) is bar
+                    if app.screen.query_one_optional(Footer) is not None:
+                        assert app.screen.query_one(Footer) is footer
+                        assert footer in app.screen.bindings_updated_signal._subscriptions
+                        assert footer._binding_state == footer._current_binding_state(app.screen)
                     assert all(roster._row_map[key] is row for key, row in original_rows.items())
                     assert all(row._task is original_tasks[key] for key, row in original_rows.items())
                 assert sum(isinstance(node, ChannelsSidebar) for node in app._registry) == 1
@@ -141,10 +152,12 @@ async def main():
                 preview = await app.open_file_preview(preview_path)
                 await pilot.pause()
                 assert app.screen.query_one(WorkspaceHeader) is app.workspace_chrome.navigation.widget
+                assert app.screen.query_one(Footer) is footer and footer.compact
                 assert not bar.display
                 await app.close_session_mode(preview)
                 await app.switch_mode("store")
                 assert not app.workspace_chrome.navigation.widget.display
+                assert not footer.display
                 await app.switch_mode(second)
                 await app.close_session_mode(second)
                 await pilot.pause()

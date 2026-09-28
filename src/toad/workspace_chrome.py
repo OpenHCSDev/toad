@@ -8,6 +8,7 @@ from textual.containers import Horizontal
 from textual.screen import Screen
 from textual.widget import Widget
 from toad.widgets.channels_sidebar import ChannelsSidebar
+from toad.widgets.footer import Footer
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
@@ -17,6 +18,16 @@ class NavigationSlot(Widget):
     """A host location; it never constructs another global tab list."""
 
     DEFAULT_CSS = "NavigationSlot { display: none; }"
+
+
+class FooterSlot(Widget):
+    """A session declares footer placement and its compact presentation."""
+
+    DEFAULT_CSS = "FooterSlot { display: none; }"
+
+    def __init__(self, *, compact: bool = False) -> None:
+        super().__init__()
+        self.compact = compact
 
 
 class WorkspaceHeader(Horizontal):
@@ -98,17 +109,47 @@ class ChannelsProjection(WorkspaceProjection[ChannelsSidebar]):
             self.widget.roster.selected = target
 
 
+class FooterProjection(WorkspaceProjection[Footer]):
+    def __init__(self) -> None:
+        super().__init__(Footer(id="workspace-footer"))
+
+    def slot(self, screen: Screen) -> FooterSlot | None:
+        return screen.query_one_optional(FooterSlot)
+
+    async def attach(self, screen: Screen, slot: Widget | None) -> None:
+        previous = self.widget.screen if self.widget.is_mounted else None
+        await super().attach(screen, slot)
+        if previous is not None and previous is not screen:
+            self.widget.rebind_host(previous, screen)
+
+    def activate(self, screen: Screen, slot: Widget | None) -> None:
+        super().activate(screen, slot)
+        if isinstance(slot, FooterSlot):
+            self.widget.compact = slot.compact
+
+    def selected(self, screen: Screen) -> None:
+        if self.widget.is_mounted and self.widget.screen is screen and self.widget.display:
+            # Native Footer composes keys through data_bind, whose parent is
+            # the active message pump. Dispatch its notification on its own
+            # pump rather than the app's mode-switch callback context.
+            self.widget.call_later(self.widget.bindings_changed, screen)
+
+
 class WorkspaceChrome:
     """Single ownership of the workspace header and Channels presentation."""
 
-    def __init__(self) -> None:
+    def __init__(self, app: "ToadApp") -> None:
+        from toad.session_presentation import BlankSessionSurface
+
         self.navigation = NavigationProjection()
         self.channels = ChannelsProjection()
+        self.footer = FooterProjection()
+        self.blank = BlankSessionSurface(app)
 
     async def attach(self, screen: Screen, *, mode: str) -> bool:
         app = cast("ToadApp", screen.app)
         placements = tuple((projection, projection.slot(screen))
-                           for projection in (self.navigation, self.channels))
+                           for projection in (self.navigation, self.channels, self.footer))
         for projection, slot in placements:
             await projection.prepare(screen, slot)
         stack = app._screen_stacks.get(mode)

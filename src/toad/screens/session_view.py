@@ -276,6 +276,12 @@ class SessionView(SidebarFocusOwner, Screen):
         """Identity fields supplied to the shared navigation presentation."""
         return "", ""
 
+    async def prepare_presentation(self) -> None:
+        """Restore a selected session's retired rich surface, if it has one."""
+
+    async def retire_presentation(self) -> None:
+        """Release inactive rich UI without releasing its source or reader intent."""
+
     async def prepare_navigation(self) -> None:
         from toad.widgets.comms_sidebar import CommsSidebar
         from toad.widgets.session_tabs import SessionsTabs

@@ -39,8 +39,7 @@ from toad.widgets.comms_fork_dialog import ForkDialog
 from toad.widgets.comms_sidebar import CoordinationStatus, CommsSidebar, SelectTarget
 from toad.widgets.side_bar import SideBar, SideBarCollapsible
 from toad.navigation_target import NavigationContext, NavigationOwner
-from toad.workspace_chrome import NavigationSlot
-from toad.widgets.footer import Footer
+from toad.workspace_chrome import FooterSlot, NavigationSlot
 from toad.session_tracker import SidebarState
 
 
@@ -169,6 +168,18 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
         self._content_loading = False
         self._content_ready = asyncio.Event()
         self._content_error: BaseException | None = None
+        from toad.session_presentation import BlankSessionPresentation, RetainedSessionPresentation
+
+        self.presentation = (BlankSessionPresentation() if agent is None
+                             and agent_session_id is None and session_pk is None
+                             and initial_prompt is None
+                             else RetainedSessionPresentation())
+
+    async def prepare_presentation(self) -> None:
+        await self.presentation.prepare(self)
+
+    async def retire_presentation(self) -> None:
+        await self.presentation.retire(self)
 
     def watch_title(self, title: str) -> None:
         self.app.update_terminal_title()
@@ -222,14 +233,16 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
                                                        wire_root=self._coordination_root), collapsed=True,
                               id="recovery-panel"),
                 id="thread-sidebar", right=True, hide=True, navigation=self._thread_sidebar_state,
-                defer_mount=not self._content_loaded,
+                defer_mount=self.presentation.defer_thread_panels(self),
+                defer_until_reveal=self.presentation.hydrate_thread_panels_on_reveal(),
+                on_hydrated=self._sync_thread_sidebar,
             )
             with containers.Vertical(id="session-content"):
                 if self._content_loaded:
-                    yield self._make_conversation()
+                    yield self.presentation.compose_content(self)
                 else:
                     yield ThreadLoading(id="session-opening")
-        yield Footer(compact=True)
+        yield FooterSlot(compact=True)
 
     def _make_conversation(self) -> Conversation:
         with self._context():
@@ -238,6 +251,11 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
                 self._session_pk, self._agent_session_title,
                 initial_prompt=self._initial_prompt,
             ).data_bind(project_path=MainScreen.project_path, column=MainScreen.column)
+
+    def make_blank_conversation(self) -> Conversation:
+        """Construct the shared blank editor without binding it to one host."""
+        with self._context():
+            return Conversation(self.project_path)
 
     def _start_content_hydration(self) -> None:
         if not self._content_loaded and not self._content_loading and self.is_attached:
@@ -302,16 +320,18 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
             ):
                 self._agent_session_title = thread_name
                 self.app.session_tracker.update_session(self.id, title=thread_name)
-        try:
-            self.query_one(CoordinationStatus).set_thread(thread_name)
-        except Exception:
-            pass
-        if recovery := self.query_one_optional(RecoveryView):
-            recovery.set_identity(thread_name, self._coordination_root)
-        if comms_tree := self.query_one_optional(ThreadCommsSidebar):
-            comms_tree.set_identity(thread_name, self._coordination_root)
+        self._sync_thread_sidebar()
         if self.id is not None:
             self.app.sync_recovery_root(self.id, self._coordination_root)
+
+    def _sync_thread_sidebar(self) -> None:
+        """Bind a newly mounted right panel to the current session identity."""
+        if status := self.query_one_optional(CoordinationStatus):
+            status.set_thread(self._comms_thread)
+        if recovery := self.query_one_optional(RecoveryView):
+            recovery.set_identity(self._comms_thread, self._coordination_root)
+        if comms_tree := self.query_one_optional(ThreadCommsSidebar):
+            comms_tree.set_identity(self._comms_thread, self._coordination_root)
 
     @on(acp_messages.CoordinationUpdate)
     async def on_coordination_update(

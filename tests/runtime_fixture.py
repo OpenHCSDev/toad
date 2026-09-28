@@ -63,6 +63,7 @@ async def reveal_project_tree(app, pilot):
 
     sidebar = app.screen.query_one("#thread-sidebar", SideBar)
     sidebar.reveal()
+    await sidebar.wait_content_ready()
     next(panel for panel in sidebar.query(SideBarCollapsible) if panel.title == "Project").collapsed = False
     async with asyncio.timeout(5):
         while True:

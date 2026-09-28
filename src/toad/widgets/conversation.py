@@ -367,9 +367,19 @@ This is a view of your conversation with the agent.
         self.app.settings_changed_signal.subscribe(self, self._settings_changed)
         self._settings_changed(("sidebar.hide", self.app.settings.get("sidebar.hide", bool)))
         self.watch(self, "scroll_y", self.hydrate_visible_tools, init=False)
-        self.screen.screen_layout_refresh_signal.subscribe(
-            self, lambda _screen: self.hydrate_visible_tools()
-        )
+        self.screen.screen_layout_refresh_signal.subscribe(self, self.on_screen_layout_refresh)
+
+    def on_screen_layout_refresh(self, _screen) -> None:
+        self.hydrate_visible_tools()
+
+    def rebind_screen(self, previous, destination) -> None:
+        """Move explicit screen-owned observers with a retained conversation."""
+        previous.screen_layout_refresh_signal.unsubscribe(self)
+        previous.body_windows.discard(self)
+        destination.screen_layout_refresh_signal.subscribe(self, self.on_screen_layout_refresh)
+        if viewport := self.__dict__.get("document_viewport"):
+            destination.screen_layout_refresh_signal.subscribe(self, viewport.request)
+            destination.body_windows.add(self)
 
     def _settings_changed(self, update: tuple[str, object]) -> None:
         if update[0] == "sidebar.hide":

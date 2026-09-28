@@ -63,6 +63,9 @@ def summarize(path: Path, *, detail: bool = False) -> dict:
             "close_buttons": classes.get("SessionTabClose", 0), "footers": classes.get("Footer", 0),
             "channel_panels": classes.get("ChannelsSidebar", 0),
             "fragment_views": classes.get("TranscriptFragmentView", 0),
+            "conversations": classes.get("Conversation", 0),
+            "editors": classes.get("PromptTextArea", 0),
+            "right_sidebars": classes.get("SideBar", 0),
             "preparation": census["preparation"],
         })
     return report

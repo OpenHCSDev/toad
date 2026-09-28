@@ -7,7 +7,6 @@ from textual.binding import Binding
 from textual.events import ScreenResume
 from textual.widgets import Static, Button
 from textual.widget import Widget
-from toad.widgets.footer import Footer
 
 from toad import messages
 from toad.constants import ALL_COMMS_TARGET
@@ -18,7 +17,7 @@ from toad.widgets.comms_fork_dialog import ForkDialog
 from toad.widgets.comms_sidebar import CoordinationStatus, CommsSidebar, SelectTarget
 from toad.widgets.channels_sidebar import ChannelsSlot
 from toad.session_tracker import SidebarState
-from toad.workspace_chrome import NavigationSlot
+from toad.workspace_chrome import FooterSlot, NavigationSlot
 from toad.widgets.side_bar import SideBar
 from toad.navigation_target import NavigationContext, NavigationOwner
 from toad.widgets.recovery_view import RecoveryView
@@ -113,7 +112,7 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
                         kind=self.kind,
                         wire_root=self.wire_root,
                     )
-        yield Footer()
+        yield FooterSlot()
 
     @on(SelectHistoricalIdentity)
     async def select_historical_identity(self, event: SelectHistoricalIdentity) -> None:
