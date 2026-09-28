@@ -7,13 +7,13 @@ from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
 from toad.screens.session_view import SessionView
 from toad.widgets.footer import Footer
-from toad.widgets.project_panel import FilePreview
+from toad.widgets.acp_log import file_preview
 from toad.widgets.session_tabs import SessionsTabs
 from toad.widgets.side_bar import TabHistoryControls
 
 
 class FilePreviewScreen(SessionView, can_focus=False):
-    AUTO_FOCUS = "FilePreview"
+    AUTO_FOCUS = "TextArea, FilePreview"
     BINDINGS = [
         Binding("escape", "back", "Previous tab", show=False),
         Binding("ctrl+w", "close_preview", "Close preview", show=False),
@@ -28,7 +28,7 @@ class FilePreviewScreen(SessionView, can_focus=False):
             with Horizontal(id="tab-navigation-header"):
                 yield TabHistoryControls()
                 yield SessionsTabs()
-            yield FilePreview(self.path, id="file-preview")
+            yield file_preview(self.path)
         yield Footer(compact=True)
 
     async def action_back(self) -> None:
