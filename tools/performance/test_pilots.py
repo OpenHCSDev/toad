@@ -23,6 +23,8 @@ PYTHON = os.environ.get("TOAD_TEST_PYTHON", sys.executable)
     "work_preparation_delivery", "serialized_preparation",
     "bar_projection_reuse", "activity_spinners", "session_sort", "sidebar_projection",
     "channel_roster_retention",
+    "shared_channels",
+    "session_details",
     "sidebar_drag_resize", "ui_sidebar_geometry", "tab_scrollbar_top",
     "owner_reader_reuse", "goal_server_poll", "goal_edit_owner",
     "history_mounted_budget", "history_prefetch", "transcript_history",

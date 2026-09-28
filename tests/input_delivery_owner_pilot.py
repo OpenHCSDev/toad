@@ -15,12 +15,14 @@ from textual.widgets import Static
 
 from toad.acp.agent import Agent
 from toad.app import ToadApp
+from runtime_fixture import reveal_session_details
 from toad.widgets.input_delivery import (
     DeliveryHistoryAction,
     DeliveryInspect,
     InputDeliveryBar,
     InputDeliveryDetails,
 )
+from toad.widgets.session_details import SessionDetails
 
 
 async def main():
@@ -137,6 +139,7 @@ async def main():
                 await pilot.resize_terminal(65, 22)
                 await pilot.pause()
                 action = bar.query_one("#delivery-inspect", DeliveryInspect)
+                await reveal_session_details(app, pilot, action)
                 assert action.content_size.width >= len("Inspect")
                 assert action.content_size.height == 1
                 assert action.region.bottom <= bar.region.bottom
@@ -154,6 +157,10 @@ async def main():
                 await pilot.pause()
                 details = app.screen
                 assert isinstance(details, InputDeliveryDetails)
+                overview = details.query_one("#session-overview", Static)
+                session_details = conversation.query_one(SessionDetails)
+                assert overview.display and session_details.overview_text
+                assert str(overview.render()) == session_details.overview_text
                 records = details.query_one("#delivery-records", Static)
                 assert "Sequence: 933 · Target: #review" in str(records.render())
                 assert "Please inspect [this] exact change" in str(records.render())

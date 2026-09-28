@@ -130,7 +130,7 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
     busy_count = var(0)
     throbber: getters.query_one[Throbber] = getters.query_one("#throbber")
     conversation = getters.query_one(Conversation)
-    side_bar = getters.query_one(SideBar)
+    side_bar = getters.query_one("#channels-sidebar", SideBar)
     project_directory_tree = getters.query_one("#project_directory_tree")
 
     column = reactive(False)
@@ -197,9 +197,7 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
             pass
         # Hidden screens may defer sidebar geometry until they resume. Rebind
         # the header before the resumed screen's first paint, not on a timer.
-        self._align_tabs_with_sidebar(
-            self.query_one("#channels-sidebar", SideBar).collapsed
-        )
+        self._align_tabs_with_sidebar(False)
         if conversation := self.query_one_optional(Conversation):
             if watcher := conversation._directory_watcher:
                 self.call_after_refresh(watcher.notify_if_visible)
@@ -207,14 +205,14 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
             self.call_after_refresh(self._project_panel.refresh_if_visible)
 
     def compose(self) -> ComposeResult:
-        from toad.widgets.channels_sidebar import ChannelsSidebar
+        from toad.widgets.channels_sidebar import ChannelsSlot
 
         self._project_panel = ProjectPanel(self.project_path)
         with containers.Horizontal(id="tab-navigation-header"):
             yield TabHistoryControls()
             yield SessionsTabs()
         with containers.Center():
-            yield ChannelsSidebar(self._comms_thread, defer_mount=not self._content_loaded)
+            yield ChannelsSlot()
             yield SideBar(
                 SideBar.Panel("Thread", CoordinationStatus(self._comms_thread), id="coordination-panel"),
                 SideBar.Panel("Comms", ThreadCommsSidebar(
@@ -535,11 +533,6 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
         )
         # Keep the screen-wide navigation row independent of sidebar geometry,
         # including when restoring a previously mounted owner tab.
-        self.watch(
-            self.query_one("#channels-sidebar", SideBar),
-            "collapsed",
-            self._align_tabs_with_sidebar,
-        )
         for tree in self.query("#project_directory_tree").results(DirectoryTree):
             tree.data_bind(path=MainScreen.project_path)
         for tree in self.query(DirectoryTree):
@@ -547,6 +540,9 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
 
     def _align_tabs_with_sidebar(self, _collapsed: bool) -> None:
         self.align_tabs_to_sidebars()
+
+    def channels_context(self) -> tuple[str, str]:
+        return self._comms_thread, ""
 
     @on(OptionList.OptionHighlighted)
     def on_option_list_option_highlighted(
@@ -556,8 +552,10 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
             self.conversation.prompt.suggest(event.option.id)
 
     def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
-        if action == "show_sidebar" and self.side_bar.has_focus_within:
-            return False
+        if action == "show_sidebar":
+            sidebar = self.query_one_optional("#channels-sidebar", SideBar)
+            if sidebar is None or sidebar.has_focus_within:
+                return False
         return True
 
     def action_show_sidebar(self) -> None:
