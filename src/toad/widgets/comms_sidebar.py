@@ -14,8 +14,9 @@ acts through ``agent_comms`` operations.
 from __future__ import annotations
 
 import asyncio
+import os
 from dataclasses import dataclass
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, cast

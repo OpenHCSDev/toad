@@ -17,6 +17,7 @@ from textual.widgets import Checkbox, Static
 from toad.session_tracker import ExactUnread, UnreadPresentation
 from toad.sidebar_preparation import ThreadRowInput, ThreadRowsWork
 from toad.widgets.activity_spinner import FRAMES
+from toad.widgets.comms_sidebar import CommsRow, CommsSidebar, SelectTarget
 from toad.widgets.message_filter import MessageCategory
 from toad.widgets.session_sort import SortControl
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarVisibilityObserver
