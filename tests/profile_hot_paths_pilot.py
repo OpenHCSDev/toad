@@ -9,6 +9,7 @@ from pathlib import Path
 from statistics import median
 
 from agent_comms.activity import Activity, ActivityState
+from agent_comms.field_codec import FieldCodec
 from agent_comms.threads import Thread
 from agent_comms.comms import wire
 from agent_comms.activity import ActivityLog
@@ -18,8 +19,8 @@ from toad.widgets.agent_response import AgentResponse
 
 def activity_file(path, count=10000):
     now = time.time()
-    path.write_text("".join(json.dumps(Activity(f"worker-{i % 24}", ActivityState.WORKING,
-                                               f"Step {i}", now).to_wire()) + "\n"
+    path.write_text("".join(json.dumps(FieldCodec.encode(Activity(f"worker-{i % 24}", ActivityState.WORKING,
+                                               f"Step {i}", now))) + "\n"
                             for i in range(count)))
 
 
