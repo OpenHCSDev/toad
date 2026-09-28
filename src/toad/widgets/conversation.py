@@ -2806,7 +2806,7 @@ class Conversation(containers.Vertical):
         with suppress(asyncio.TimeoutError):
             async with asyncio.timeout(2.0):
                 await self.shell.wait_for_ready()
-        if ready:
+        if ready and self._directory_watcher is None:
             self._directory_watcher = DirectoryWatcher(self.project_path, self)
             self._directory_watcher.start()
         if ready and (agent_data := self._agent_data) is not None:

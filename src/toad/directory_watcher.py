@@ -1,4 +1,8 @@
 from pathlib import Path
+import os
+from multiprocessing import get_context
+from multiprocessing.connection import Connection
+from abc import ABC, abstractmethod
 import rich.repr
 
 import threading
@@ -83,85 +87,142 @@ class _PathEventDispatcher(FileSystemEventHandler):
             watcher.on_any_event(event)
 
 
+class _ObserverEvent(ABC):
+    @abstractmethod
+    def apply(self, observation: "_PathObservation") -> None:
+        """Apply a notification from the owned observer process."""
+
+
+class _ObserverReady(_ObserverEvent):
+    def apply(self, observation: "_PathObservation") -> None:
+        observation.ready.set()
+
+
+class _ObserverChanged(_ObserverEvent):
+    def apply(self, observation: "_PathObservation") -> None:
+        observation.dispatcher.on_any_event(FileSystemEvent(str(observation.path)))
+
+
+class _ChangeSignal(FileSystemEventHandler):
+    """Only invalidation crosses the pipe; filesystem payload stays in the child."""
+
+    def __init__(self, connection: Connection) -> None:
+        self.connection = connection
+        self._send_lock = threading.Lock()
+
+    def notify(self, event: _ObserverEvent) -> None:
+        with self._send_lock:
+            self.connection.send(event)
+
+    def on_any_event(self, event: FileSystemEvent) -> None:
+        self.notify(_ObserverChanged())
+
+
+def _watch_owner(owner: Connection) -> None:
+    """An exited parent must not leave a recursive scan or native handles alive."""
+    try:
+        owner.recv_bytes()
+    except EOFError:
+        os._exit(0)
+
+
+def _observe_path(path: Path, owner: Connection) -> None:
+    """Own native watch handles in a process cancellable during recursive start."""
+    threading.Thread(target=_watch_owner, args=(owner,), daemon=True).start()
+    observer = Observer()
+    if isinstance(observer, PollingObserver):
+        return
+    handler = _ChangeSignal(owner)
+    observer.schedule(
+        handler, str(path), recursive=True,
+        event_filter=[
+            FileCreatedEvent, FileDeletedEvent, FileMovedEvent,
+            DirCreatedEvent, DirDeletedEvent, DirMovedEvent,
+        ],
+    )
+    observer.start()
+    handler.notify(_ObserverReady())
+    # The parent owns this process through the last subscriber. Terminating
+    # it closes all native handles even when observer.start() is still walking.
+    threading.Event().wait()
+
+
+class _PathObservation(threading.Thread):
+    """One native observer per path; cancellation never waits on recursive IO."""
+
+    def __init__(self, path: Path) -> None:
+        super().__init__(name=f"Directory observation: {path}")
+        context = get_context("spawn")
+        self.ready = threading.Event()
+        self.stopped = threading.Event()
+        self.dispatcher = _PathEventDispatcher(path)
+        self.path = path
+        self._parent, self._child = context.Pipe()
+        self.process = context.Process(
+            target=_observe_path, args=(path, self._child),
+            name=f"Directory observer: {path}",
+        )
+
+    def run(self) -> None:
+        try:
+            if self.stopped.is_set():
+                return
+            self.process.start()
+            self._child.close()
+            while not self.stopped.is_set() and self.process.is_alive():
+                if self._parent.poll(0.1):
+                    try:
+                        event: _ObserverEvent = self._parent.recv()
+                    except EOFError:
+                        break
+                    event.apply(self)
+        finally:
+            self.ready.clear()
+            self._child.close()
+            self._parent.close()
+            if self.process.pid is not None:
+                self.process.join(timeout=0.5)
+                if self.process.is_alive():
+                    self.process.terminate()
+                    self.process.join(timeout=0.5)
+                if self.process.is_alive():
+                    self.process.kill()
+                    self.process.join(timeout=1)
+                self.process.close()
+
+    def stop(self) -> None:
+        self.stopped.set()
+
+
 class _SharedObserverManager:
-    """Manages shared Observer instances to avoid watchdog's limitation of scheduling the same path multiple times."""
+    """Own one observation per directory until its last subscriber leaves."""
 
     def __init__(self) -> None:
-        self._observers: dict[Path, tuple[Observer, _PathEventDispatcher]] = {}
+        self._observers: dict[Path, _PathObservation] = {}
         self._lock = threading.Lock()
 
-    def register(self, path: Path, watcher: "DirectoryWatcher") -> bool:
-        """Register a watcher for a path. Creates a shared observer if needed.
-
-        Args:
-            path: Path to watch.
-            watcher: DirectoryWatcher instance to register.
-
-        Returns:
-            True if successfully registered, False otherwise.
-        """
+    def register(self, path: Path, watcher: "DirectoryWatcher") -> _PathObservation:
         with self._lock:
-            if path in self._observers:
-                # Reuse existing observer and dispatcher for this path
-                observer, dispatcher = self._observers[path]
-                dispatcher.add_watcher(watcher)
-                return True
-
-            # Create a new observer and dispatcher for this path
-            try:
-                observer = Observer()
-            except Exception:
-                return False
-
-            if isinstance(observer, PollingObserver):
-                return False
-
-            dispatcher = _PathEventDispatcher(path)
-            dispatcher.add_watcher(watcher)
-
-            try:
-                observer.schedule(
-                    dispatcher,
-                    str(path),
-                    recursive=True,
-                    event_filter=[
-                        FileCreatedEvent,
-                        FileDeletedEvent,
-                        FileMovedEvent,
-                        DirCreatedEvent,
-                        DirDeletedEvent,
-                        DirMovedEvent,
-                    ],
-                )
-                observer.start()
-            except Exception:
-                return False
-
-            self._observers[path] = (observer, dispatcher)
-            return True
+            observation = self._observers.get(path)
+            if observation is None:
+                observation = _PathObservation(path)
+                observation.dispatcher.add_watcher(watcher)
+                self._observers[path] = observation
+                observation.start()
+            else:
+                observation.dispatcher.add_watcher(watcher)
+            return observation
 
     def unregister(self, path: Path, watcher: "DirectoryWatcher") -> None:
-        """Unregister a watcher. Stops the observer if no more watchers exist for this path.
-
-        Args:
-            path: Path that was being watched.
-            watcher: DirectoryWatcher instance to unregister.
-        """
         with self._lock:
-            if path not in self._observers:
+            observation = self._observers[path]
+            observation.dispatcher.remove_watcher(watcher)
+            if observation.dispatcher.has_watchers:
                 return
-
-            observer, dispatcher = self._observers[path]
-            dispatcher.remove_watcher(watcher)
-
-            # If no more watchers for this path, stop and remove the observer
-            if not dispatcher.has_watchers:
-                try:
-                    observer.stop()
-                    observer.join(timeout=1.0)
-                except Exception:
-                    pass
-                del self._observers[path]
+            del self._observers[path]
+            observation.stop()
+        # Unrelated directories can register/unregister during child teardown.
+        observation.join()
 
 
 # Global singleton instance
@@ -186,7 +247,7 @@ class DirectoryWatcher(threading.Thread):
         self._path = path.resolve()
         self._widget = widget
         self._stop_event = threading.Event()
-        self._enabled = False
+        self._observation: _PathObservation | None = None
         self._dirty = False
         self._delivery_lock = threading.Lock()
         super().__init__(name=repr(self))
@@ -194,7 +255,11 @@ class DirectoryWatcher(threading.Thread):
     @property
     def enabled(self) -> bool:
         """Is the DirectoryWatcher currently watching?"""
-        return self._enabled
+        return (
+            self._observation is not None
+            and self._observation.ready.is_set()
+            and not self._stop_event.is_set()
+        )
 
     def on_any_event(self, event: FileSystemEvent) -> None:
         """Send DirectoryChanged event when the FS is updated.
@@ -226,13 +291,13 @@ class DirectoryWatcher(threading.Thread):
         yield self._widget
 
     def run(self) -> None:
-        if not _shared_observer_manager.register(self._path, self):
+        if self._stop_event.is_set():
             return
-
-        self._enabled = True
-        self._stop_event.wait()
-
-        _shared_observer_manager.unregister(self._path, self)
+        self._observation = _shared_observer_manager.register(self._path, self)
+        try:
+            self._stop_event.wait()
+        finally:
+            _shared_observer_manager.unregister(self._path, self)
 
     def stop(self) -> None:
         """Stop the watcher."""
