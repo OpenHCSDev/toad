@@ -13,7 +13,7 @@ from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from agent_comms.mro_dispatch import MroDispatch, handles
 from agent_comms.transcript_events import (
     TranscriptEvent, ContextTranscript, UserTranscript, AgentTextTranscript,
-    ThinkingTranscript, LiveTextTranscript, ToolTranscript, ToolStartTranscript, ToolEndTranscript,
+    ThinkingTranscript, ToolTranscript, ToolStartTranscript, ToolEndTranscript,
 )
 from agent_comms.tool_results import tool_result_content
 from agent_comms.backend import tool_kind
@@ -24,6 +24,7 @@ from textual.message import Message
 from textual.widget import Widget
 from textual.widgets import Static
 
+from toad.transcript_filter import TranscriptFilter
 from toad.transcript_state import TranscriptState, LiveTranscript, ProvisionalTranscript
 from toad.acp import protocol
 from toad.acp.encode_tool_call_id import encode_tool_call_id
@@ -199,9 +200,7 @@ class TranscriptFragmentView(CategorizedBlock, VerticalGroup):
             apply_block_filter(self, self._selected_categories)
         self.set_class(not any(event.routed for event in new_events), "-unrouted")
         if (len(old_events) == len(new_events) == 1
-                and isinstance(old_events[0], LiveTextTranscript)
-                and type(new_events[0]) is type(old_events[0])
-                and replace(old_events[0], text=new_events[0].text) == new_events[0]
+                and old_events[0].merge(new_events[0]) is not None
                 and previous_fragment.starts_agent_activity == fragment.starts_agent_activity
                 and previous_fragment.continuation == fragment.continuation
                 and (len(self.children) == 1 or
@@ -305,9 +304,7 @@ class TranscriptHistory(CommittedHistory, CategorizedBlock, VerticalGroup):
         self._check_pending = False
         self._saturated_widget_limit = 0
         self._generation = 0
-        self._filter_overlay: ProjectedTranscriptHistory | None = None
-        self._filter_scanning = False
-        self._filter_force_pending = False
+        self.filter = TranscriptFilter(self)
         self._page_buffer: PreparedPageSource | None = None
         self._prefetch_worker = None
         self._prefetched_edges = None
@@ -330,13 +327,7 @@ class TranscriptHistory(CommittedHistory, CategorizedBlock, VerticalGroup):
     def _follow_source_tail(self) -> bool:
         return self.window.follows_tail
 
-    @property
-    def _filter_before(self) -> TranscriptCursor | None:
-        return self._filter_overlay.pages[0].page.before if self._filter_overlay is not None else None
 
-    @property
-    def _filter_has_older(self) -> bool:
-        return self._filter_overlay.has_older if self._filter_overlay is not None else self.has_older
 
     def _report_coverage(self, page: TranscriptPage, fragments: tuple[TranscriptFragment, ...]) -> None:
         if self._source_state.reports_coverage:
@@ -454,7 +445,7 @@ class TranscriptHistory(CommittedHistory, CategorizedBlock, VerticalGroup):
         if not self._selected_categories:
             self.older.display = self.newer.display = False
             return
-        self.older.display = self.has_older and self._filter_overlay is None
+        self.older.display = self.has_older and self.filter.overlay is None
         self.newer.display = self.has_newer
 
     @property
@@ -466,130 +457,16 @@ class TranscriptHistory(CommittedHistory, CategorizedBlock, VerticalGroup):
         return (self.query_ancestor(Conversation).visible_categories
                 if self.is_attached and isinstance(self.parent, Contents) else ALL_CATEGORIES)
 
-    @property
-    def _filtered_source(self) -> bool:
-        return self._selected_categories != ALL_CATEGORIES
 
-    def filter_changed(self) -> None:
-        """Retire only derived filtered rows when a visible-kind set changes."""
-        self._generation += 1
-        selected = self._selected_categories
-        for page in self.pages:
-            page.set_categories(selected)
-        overlay = self._filter_overlay
-        self._filter_overlay = None
-        self._filter_force_pending = False
-        if overlay is not None:
-            overlay.display = False
-            self.run_worker(self._remove_filtered_overlay(overlay), group="filter-reset")
-        self._update_edges()
-        self._scroll_changed()
 
-    async def _remove_filtered_overlay(self, overlay: ProjectedTranscriptHistory) -> None:
-        async with self.window.history_lock:
-            if overlay.is_attached:
-                await overlay.remove()
-        if self.is_attached:
-            self._scroll_changed()
 
     @property
     def _prefetch_distance(self) -> int:
         """Start background reads before the earlier edge enters the viewport."""
         return max(4, min(32, self.window.size.height // 2))
 
-    def _scan_needed(self) -> bool:
-        # Once mounted, the projected pager alone owns edge admission. Driving
-        # it from the parent too can repeatedly schedule scans while it awaits.
-        return (self._filter_overlay is None and bool(self._selected_categories)
-                and self._filtered_source and self._filter_has_older
-                and (self.window.max_scroll_y == 0
-                     or self.window.scroll_y <= self._prefetch_distance))
 
-    def _start_filtered_scan(self) -> None:
-        if (self._selected_categories and self._filter_has_older
-                and not self._filter_scanning and not self._advancing
-                and (self._filter_overlay is None or not self._filter_overlay._loading)):
-            self._filter_scanning = True
-            self.run_worker(self._scan_filtered_older(), group="filtered-history")
 
-    async def _scan_filtered_older(self) -> None:
-        """Bootstrap a projected source; ordinary paging owns all later admission."""
-        generation = self._generation
-        admitted = False
-        source = None
-
-        def is_current() -> bool:
-            return (generation == self._generation and self.state.accepts_publication
-                    and self._filtered_source and bool(self._selected_categories))
-
-        try:
-            overlay = self._filter_overlay
-            if overlay is not None:
-                previous = set(overlay.fragment_views)
-                if not overlay._loading and overlay.has_older:
-                    overlay._loading = True
-                    await overlay._load_page(True)
-                admitted = bool(set(overlay.fragment_views) - previous)
-                return
-            else:
-                page = self.pages[0]
-                source = ProjectedTranscriptSource(
-                    PreparedTranscriptPage(page.page, page.fragments[:page.start], 0),
-                    self.loader, self.app.preparation, CategoryProjection(self._selected_categories),
-                    upstream=self._reader() if self.loader is not None else None,
-                )
-                prepared = await source.boundary()
-            if not is_current() or self.screen is not self.app.screen:
-                return
-            async with self.window.history_lock:
-                if not is_current() or self.screen is not self.app.screen:
-                    return
-                visible = self.screen._compositor.visible_widgets
-                viewport = self.window.content_region
-                anchor = next((child for child in self.fragment_views
-                               if child in visible and visible[child][0].overlaps(viewport)), None)
-                overlay = self._filter_overlay = ProjectedTranscriptHistory(self, source, prepared)
-                async with self.window.preserve_history(anchor):
-                    await self.mount(overlay, before=self.pages[0])
-                    if not is_current() or self._filter_overlay is not overlay:
-                        raise _PublicationRetired
-                    await overlay.admit_initial()
-                    if not is_current() or self._filter_overlay is not overlay:
-                        raise _PublicationRetired
-                admitted = bool(overlay.fragment_views)
-                self._update_edges()
-                self._filter_force_pending = False
-                if not admitted and overlay.has_older:
-                    # Seed one real match when the boundary prefix is empty;
-                    # later batches are owned by the child's normal edge path.
-                    overlay._request_page(True)
-        except _PublicationRetired:
-            # filter_changed already hid/queued removal of the retired overlay.
-            # Exception unwinding skips waiting for its obsolete anchor frame.
-            return
-        except (OSError, ValueError) as error:
-            if is_current():
-                self.notify(str(error), title="Filtered history", severity="error")
-        finally:
-            if source is not None and (self._filter_overlay is None or self._filter_overlay._reader() is not source):
-                source.close()
-            self._filter_scanning = False
-            current_generation = generation == self._generation
-            if current_generation and (admitted or not self._filter_has_older):
-                self._filter_force_pending = False
-            if (self.state.accepts_publication and self._filtered_source
-                    and self.screen is self.app.screen):
-                # A page containing no routed entries has no new widget/layout
-                # event to drive the next step. Explicit clicks keep scanning
-                # even if the overlay is currently outside the viewport.
-                if current_generation and admitted and self._filter_has_older:
-                    # Painted height, not pre-layout geometry, decides whether
-                    # this result fills the viewport before reading more.
-                    self.call_after_refresh(self._check_edges)
-                elif self._filter_force_pending:
-                    self.call_later(self._start_filtered_scan)
-                elif self._scan_needed():
-                    self.call_later(self._check_edges)
 
     class Covered(Message):
         """A saved page now owns these exact inbound wire identities."""
@@ -605,7 +482,7 @@ class TranscriptHistory(CommittedHistory, CategorizedBlock, VerticalGroup):
             return False
         if sequence in self.Covered(tuple(self.coverage_events)).sequences:
             return True
-        return self._filter_overlay is not None and self._filter_overlay.covers_incoming(sequence)
+        return self.filter.overlay is not None and self.filter.overlay.covers_incoming(sequence)
 
     @property
     def committed_cursor(self) -> TranscriptCursor:
@@ -614,8 +491,8 @@ class TranscriptHistory(CommittedHistory, CategorizedBlock, VerticalGroup):
     @property
     def checkpoint_available(self) -> bool:
         return (self.state.accepts_publication and not self._loading and not self._advancing
-                and not self._filter_scanning
-                and (self._filter_overlay is None or self._filter_overlay.checkpoint_available))
+                and not self.filter.scanning
+                and (self.filter.overlay is None or self.filter.overlay.checkpoint_available))
 
     def retain_committed(self, through: TranscriptCursor) -> None:
         """Extend access to saved source without moving the displayed page window."""
@@ -678,9 +555,9 @@ class TranscriptHistory(CommittedHistory, CategorizedBlock, VerticalGroup):
                     or (is_current is not None and not is_current())):
                 return
             self._saturated_widget_limit = 0
-            if self._filter_overlay is not None:
-                await self._filter_overlay.remove()
-                self._filter_overlay = None
+            if self.filter.overlay is not None:
+                await self.filter.overlay.remove()
+                self.filter.clear()
             view.page = page
             # Read current follow intent after preprocessing, never restore an
             # intent captured before the user could scroll during the await.
@@ -719,9 +596,9 @@ class TranscriptHistory(CommittedHistory, CategorizedBlock, VerticalGroup):
         if self._follow_source_tail and self.has_newer:
             self._request_page(False)
             return
-        if self._filtered_source:
-            if self._scan_needed() or self._filter_force_pending:
-                self._start_filtered_scan()
+        if self.filter.active:
+            if self.filter.scan_needed() or self.filter.force_pending:
+                self.filter.start_scan()
             return
         if (self.has_older and region.y >= viewport.y - self._prefetch_distance
                and not (self._follow_source_tail and (
@@ -741,13 +618,13 @@ class TranscriptHistory(CommittedHistory, CategorizedBlock, VerticalGroup):
     @on(HistoryEdge.Requested)
     def on_earlier_history(self, event: HistoryEdge.Requested) -> None:
         event.stop()
-        if self._filtered_source:
-            if self._filter_overlay is not None:
-                if self._filter_overlay.has_older:
-                    self._filter_overlay._request_page(True)
+        if self.filter.active:
+            if self.filter.overlay is not None:
+                if self.filter.overlay.has_older:
+                    self.filter.overlay._request_page(True)
             else:
-                self._filter_force_pending = True
-                self._start_filtered_scan()
+                self.filter.request_force()
+                self.filter.start_scan()
         elif self.has_older and not self._loading:
             self._request_page(True)
 
@@ -865,12 +742,12 @@ class TranscriptHistory(CommittedHistory, CategorizedBlock, VerticalGroup):
         async with self.lock:
             previous_start = self.pages[0], self.pages[0].start
             overlay_visible = False
-            if self._filter_overlay is not None:
+            if self.filter.overlay is not None:
                 visible = self.screen._compositor.visible_widgets
                 viewport = self.window.content_region
                 overlay_visible = any(
                     child in visible and visible[child][0].overlaps(viewport)
-                    for child in self._filter_overlay.fragment_views
+                    for child in self.filter.overlay.fragment_views
                 )
             if local:
                 previous_children = set(edge.children)
@@ -946,12 +823,12 @@ class TranscriptHistory(CommittedHistory, CategorizedBlock, VerticalGroup):
                     await evicted.trim(min(remove_count, count), older=side)
                     self._require_publication()
                     excess -= remove_count
-            if (self._filter_overlay is not None and not overlay_visible
+            if (self.filter.overlay is not None and not overlay_visible
                     and previous_start != (self.pages[0], self.pages[0].start)):
                 # Normal bounded eviction moved the canonical start. An older
                 # overlay's cursor cannot skip the newly omitted interval.
-                await self._filter_overlay.remove()
-                self._filter_overlay = None
+                await self.filter.overlay.remove()
+                self.filter.clear()
                 self._generation += 1
             self._update_edges()
 
@@ -1006,7 +883,7 @@ class ProjectedTranscriptHistory(TranscriptHistory):
 
     def _report_coverage(self, page: TranscriptPage, fragments: tuple[TranscriptFragment, ...]) -> None:
         owner = self._projection_owner()
-        if owner is not None and owner._filter_overlay is self:
+        if owner is not None and owner.filter.overlay is self:
             owner._report_coverage(replace(page, events=tuple(
                 event for fragment in fragments for event in fragment.events
             )), fragments)

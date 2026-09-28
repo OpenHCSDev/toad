@@ -36,7 +36,8 @@ from toad.widgets.thread_comms import RelationshipSort, ThreadCommsSidebar
 from toad.widgets.comms_chat import resolve_session_thread, session_thread_name
 from toad.widgets.comms_fork_dialog import ForkDialog
 from toad.widgets.comms_sidebar import CoordinationStatus, CommsSidebar, SelectTarget
-from toad.widgets.side_bar import SideBar, SideBarCollapsible, TabHistoryControls
+from toad.widgets.channels_sidebar import ChannelsSidebar
+from toad.widgets.side_bar import SideBar, ThreadSidebar, SideBarCollapsible, TabHistoryControls
 from toad.navigation_target import FeedTarget, DirectTarget, NavigationContext, NavigationOwner
 from toad.widgets.session_tabs import SessionsTabs
 from toad.widgets.footer import Footer
@@ -196,7 +197,7 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
             self.call_after_refresh(self._project_panel.refresh_if_visible)
 
     def compose(self) -> ComposeResult:
-        from toad.widgets.channels_sidebar import ChannelsSlot, ChannelsSidebar
+        from toad.widgets.channels_sidebar import ChannelsSlot
 
         self._project_panel = ProjectPanel(self.project_path)
         with containers.Horizontal(id="tab-navigation-header"):

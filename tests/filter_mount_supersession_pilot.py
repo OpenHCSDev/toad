@@ -48,7 +48,7 @@ async def exercise(app, pilot, stage):
         result = original_mount(parent, *widgets, **kwargs)
         target = (parent is pager if stage == "container" else
                   stage in {"children", "extend"} and bool(widgets) and isinstance(parent, TranscriptPageView)
-                  and parent.parent is pager._filter_overlay)
+                  and parent.parent is pager.filter.overlay)
         if target and not held:
             held = True
 
@@ -65,14 +65,12 @@ async def exercise(app, pilot, stage):
         await pilot.pause()
         view.visible_categories = frozenset((MessageCategory.INBOUND,))
         if stage == "extend":
-            pager._filter_scanning = True
-            await pager._scan_filtered_older()
+            await pager.filter.scan_older()
             await pilot.pause()
         scan = None
         try:
             with patch.object(VerticalGroup, "mount", mounted), patch.object(app.preparation, "submit", submitted):
-                pager._filter_scanning = True
-                scan = asyncio.create_task(pager._scan_filtered_older())
+                scan = asyncio.create_task(pager.filter.scan_older())
                 await asyncio.wait_for(entered.wait(), 5)
                 view.visible_categories = frozenset((MessageCategory.THINKING,))
                 view.prompt.focus()
@@ -92,13 +90,12 @@ async def exercise(app, pilot, stage):
                 assert view.visible_categories == frozenset((MessageCategory.THINKING,))
                 release.set()
                 await asyncio.wait_for(scan, 5)
-                assert pager._filter_before is None, "Stale filter advanced the new filter cursor"
+                assert pager.filter.before is None, "Stale filter advanced the new filter cursor"
             await pilot.pause()
-            pager._filter_scanning = True
-            await pager._scan_filtered_older()
+            await pager.filter.scan_older()
             await pilot.pause()
-            assert pager._filter_overlay is not None
-            assert all(child.fragment.events[0].declared_name == "thinking" for child in pager._filter_overlay.fragment_views)
+            assert pager.filter.overlay is not None
+            assert all(child.fragment.events[0].declared_name == "thinking" for child in pager.filter.overlay.fragment_views)
             await app.close_session_mode(other.mode_name)
             assert app._exception is None
         finally:
@@ -132,17 +129,16 @@ async def exercise_batched_selection(app, pilot):
         await pilot.pause()
         view.visible_categories = frozenset((MessageCategory.INBOUND,))
         previous = 0
-        while pager._filter_has_older:
-            pager._filter_scanning = True
-            await pager._scan_filtered_older()
-            children = pager._filter_overlay.fragment_views
+        while pager.filter.has_older:
+            await pager.filter.scan_older()
+            children = pager.filter.overlay.fragment_views
             assert 0 < len(children) - previous <= 4, "Source-sized widget admission"
             previous = len(children)
             await pilot.pause()
         assert [child.fragment.events[0].text for child in children] == [f"INBOUND_{i}" for i in range(20)]
         assert pager.pages[0].page is page, "Filtering replaced canonical source data"
         assert threads and all(thread != threading.get_ident() for thread in threads)
-        assert not pager._filter_overlay.has_older
+        assert not pager.filter.overlay.has_older
         await pager.remove()
 
 
@@ -176,13 +172,13 @@ async def main():
             assert not pager.older.display and not pager.newer.display
             view.visible_categories = frozenset((MessageCategory.INBOUND,))
             async with asyncio.timeout(5):
-                while (pager._filter_overlay is None or not any(
+                while (pager.filter.overlay is None or not any(
                     child.fragment.events[0].text == "SELECTED_INBOUND"
-                    for child in pager._filter_overlay.fragment_views
+                    for child in pager.filter.overlay.fragment_views
                 )):
                     await pilot.pause(.01)
             assert calls and any(child.fragment.events[0].text == "SELECTED_INBOUND"
-                                  for child in pager._filter_overlay.fragment_views)
+                                  for child in pager.filter.overlay.fragment_views)
             assert app._exception is None
         await asyncio.get_running_loop().shutdown_default_executor()
     print("filter mount supersession: typing and thread switches remain live; stale container/child mounts cannot publish or advance cursors")

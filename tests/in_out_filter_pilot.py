@@ -128,15 +128,15 @@ async def main():
             async with asyncio.timeout(5):
                 # A lookahead read may finish before the explicit UI action.
                 # Wait for publication, not merely for source I/O to occur.
-                while (tail._filter_overlay is None or not any(
+                while (tail.filter.overlay is None or not any(
                     leaf.fragment.events[0].text == "EARLIER_ROUTED_OUTPUT"
-                    for leaf in tail._filter_overlay.fragment_views
+                    for leaf in tail.filter.overlay.fragment_views
                 )):
                     await pilot.pause(.02)
             assert calls[0]["before"] == page_cursor
-            assert tail._filter_overlay is not None
+            assert tail.filter.overlay is not None
             assert any(leaf.display and leaf.fragment.events[0].text == "EARLIER_ROUTED_OUTPUT"
-                       for leaf in tail._filter_overlay.fragment_views)
+                       for leaf in tail.filter.overlay.fragment_views)
             view.displayed_transcript_cursor = cursor
             with patch.object(app.coordination_wire.views, 'mark_thread_view_read') as mark:
                 await app.mark_visible_thread_read()

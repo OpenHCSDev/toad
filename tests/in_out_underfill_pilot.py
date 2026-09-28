@@ -42,9 +42,9 @@ async def main():
             await pilot.pause()
 
             def routed_visible(pager):
-                return (pager._filter_overlay is not None and
+                return (pager.filter.overlay is not None and
                         any(leaf.display and leaf.fragment.events[0].text == older.text
-                             for leaf in pager._filter_overlay.fragment_views))
+                             for leaf in pager.filter.overlay.fragment_views))
 
             try:
                 async with asyncio.timeout(8):
@@ -59,7 +59,7 @@ async def main():
             assert conversation.visible_categories == IN_OUT_CATEGORIES and conversation.window.max_scroll_y >= 0
             assert history.pages[-1].page.events == tail, (
                 [len(page.page.events) for page in history.pages], history.pages[0].page.before,
-                history._filter_before)
+                history.filter.before)
             assert history.widget_count < history.widget_limit
             await pilot.pause()
             frame = "\n".join(strip.text for strip in app.screen._compositor.render_strips())
@@ -88,20 +88,20 @@ async def main():
                                       "older": sparse.has_older}) from None
             assert len(calls) <= 3, "Sparse scan repeated a bounded page"
             assert sparse.widget_count < sparse.widget_limit, "Hidden fragments mounted to fill the view"
-            assert sparse._filter_overlay is not None and sparse._filter_overlay.display
+            assert sparse.filter.overlay is not None and sparse.filter.overlay.display
             await pilot.pause()
             frame = "\n".join(strip.text for strip in app.screen._compositor.render_strips())
             assert "OLDER_ROUTED_MESSAGE" in frame, "Sparse older result was not painted"
             conversation.visible_categories = ALL_CATEGORIES
             await pilot.pause()
-            assert sparse._filter_overlay is None or not sparse._filter_overlay.display
+            assert sparse.filter.overlay is None or not sparse.filter.overlay.display
             assert any(leaf.display for leaf in sparse.pages[-1].children), (
                 "Unchecking did not restore retained native transcript")
             conversation.visible_categories = IN_OUT_CATEGORIES
             async with asyncio.timeout(8):
-                while (sparse._filter_overlay is None or not sparse._filter_overlay.display
+                while (sparse.filter.overlay is None or not sparse.filter.overlay.display
                        or not any(leaf.fragment.events[0].text == older.text
-                                   for leaf in sparse._filter_overlay.fragment_views)):
+                                   for leaf in sparse.filter.overlay.fragment_views)):
                     await pilot.pause(.02)
             await sparse.remove()
 
@@ -123,7 +123,7 @@ async def main():
             await conversation.contents.mount(empty)
             conversation.window.anchor()
             async with asyncio.timeout(5):
-                while empty._filter_before is None or empty._filter_has_older:
+                while empty.filter.before is None or empty.filter.has_older:
                     await pilot.pause(.02)
             assert empty_reads == [100, 50], empty_reads
             await pilot.pause(.2)

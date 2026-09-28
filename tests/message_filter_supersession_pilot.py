@@ -50,12 +50,12 @@ async def main():
                 view.visible_categories = frozenset((MessageCategory.THINKING,))
                 release.set()
                 async with asyncio.timeout(8):
-                    while (pager._filter_overlay is None or
+                    while (pager.filter.overlay is None or
                            not any(child.fragment.events[0].text == "OLDER_THINKING"
-                                    for child in pager._filter_overlay.fragment_views)):
+                                    for child in pager.filter.overlay.fragment_views)):
                         await pilot.pause(.02)
                 assert all(child.fragment.events[0].text != "OLD_INBOUND"
-                            for child in pager._filter_overlay.fragment_views)
+                            for child in pager.filter.overlay.fragment_views)
                 assert len(calls) <= 2 and view.window.follows_tail is False
                 assert app._exception is None
             finally:

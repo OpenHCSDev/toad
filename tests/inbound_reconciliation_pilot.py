@@ -243,7 +243,7 @@ async def disk_history(view, pilot, root):
     async with asyncio.timeout(8):
         while "OLDER_INBOUND" not in inbound(view):
             await pilot.pause(0.05)
-    overlay = history._filter_overlay
+    overlay = history.filter.overlay
     assert overlay is not None
     append("new-inbound", "user", "NEWER_INBOUND", 52)
     append("new-tool", "toolResult", "y" * 70_000)
@@ -256,7 +256,7 @@ async def disk_history(view, pilot, root):
     await view.on_incoming_message(IncomingEvent("peer", "owner", "NEWER_INBOUND", 52))
     await checkpoint(view)
     await pilot.pause()
-    assert history.is_attached and history._filter_overlay is overlay
+    assert history.is_attached and history.filter.overlay is overlay
     assert inbound(view).count("OLDER_INBOUND") == 1, inbound(view)
     assert inbound(view).count("NEWER_INBOUND") == 1, inbound(view)
     await view.on_incoming_message(
@@ -291,7 +291,7 @@ async def disk_history(view, pilot, root):
     assert original_start > 0, "large saved row should keep only a bounded mounted tail"
     await pilot.pause()
     assert (
-        history._filter_before is None
+        history.filter.before is None
     ), "eviction must not leave a cursor across omitted fragments"
     view.visible_categories = ALL_CATEGORIES
     history._loading = True

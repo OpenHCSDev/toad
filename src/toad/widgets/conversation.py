@@ -480,7 +480,7 @@ class Conversation(containers.Vertical):
         for block in self.contents.children:
             apply_block_filter(block, selected)
         for history in tuple(window.histories):
-            history.filter_changed()
+            history.filter.changed()
         revision = window.scroll_revision
 
         def restore_position():

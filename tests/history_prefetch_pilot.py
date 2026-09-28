@@ -87,20 +87,20 @@ async def main():
                 view.window.max_scroll_y, filtered._prefetch_distance,
                 filtered.fragment_count, filtered.widget_count,
                 filtered.pages[-1].start, filtered.pages[-1].stop,
-                filtered._filter_before, filtered_calls)
+                filtered.filter.before, filtered_calls)
             view.visible_categories = IN_OUT_CATEGORIES
             await pilot.pause()
-            assert filtered._filter_overlay is None, "Lookahead published filtered rows at the tail"
+            assert filtered.filter.overlay is None, "Lookahead published filtered rows at the tail"
             view.window.release_anchor()
             try:
                 async with asyncio.timeout(8):
-                    while filtered._filter_overlay is None:
+                    while filtered.filter.overlay is None:
                         view.window.scroll_to(y=filtered._prefetch_distance - 1,
                                               animate=False, immediate=True)
                         await pilot.pause(.02)
             except TimeoutError:
                 raise AssertionError(("Filtered prefetch never requested an older page",
-                                      filtered._filter_before, view.window.scroll_y)) from None
+                                      filtered.filter.before, view.window.scroll_y)) from None
             assert view.window.scroll_y > 2, "Filtered result was only admitted at the top"
             assert len(filtered_calls) == 1
             assert app._exception is None
