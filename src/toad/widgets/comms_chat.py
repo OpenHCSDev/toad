@@ -40,6 +40,9 @@ from toad.widgets.throbber import Throbber
 from toad.widgets.irc_message import IRCMessage, MembershipNotice, WireMarkdownMessage
 from toad.widgets.channel_participants import ChannelParticipants
 from toad.widgets.channel_prompt import ChannelPrompt
+from toad.widgets.message_notifications import MessageNotifications
+from toad.widgets.observed_thread_activity import ObservedThreadActivity
+from toad.owner_preparation import read_thread_presentation
 
 HISTORY_PAGE_SIZE = 40
 INITIAL_HISTORY_PAGE_SIZE = 8
@@ -117,6 +120,7 @@ class CommsChatView(Conversation):
         self._edge_load_scheduled = False
         self._edge_check_on_resume = False
         self._refresh_lock = asyncio.Lock()
+        self._notification_task: asyncio.Task[None] | None = None
         # This widget is constructed during screen composition; the App's
         # revision-aware reader becomes available when the view mounts.
         self._wire: Comms | None = None
@@ -143,6 +147,8 @@ class CommsChatView(Conversation):
         with containers.Vertical(id="prompt-stack"):
             if self.kind != "dm":
                 yield ChannelParticipants()
+            else:
+                yield ObservedThreadActivity(self._read_thread_activity)
             yield Throbber(id="throbber")
             prompt_type = ChannelPrompt if self.kind != "dm" else Prompt
             yield prompt_type(
@@ -700,6 +706,73 @@ class CommsChatView(Conversation):
             if self.is_attached:
                 self.call_after_refresh(self._mark_visible_after_layout)
 
+    def _refresh_notifications(self) -> None:
+        """One bounded batch for the painted window; independent of bus revision."""
+        if (not self.is_attached or self._wire is None
+                or self.screen is not self.app.screen or not self.display
+                or self._notification_task is not None and not self._notification_task.done()):
+            return
+        rows = self._visible_notification_rows()
+        if rows:
+            self._notification_task = asyncio.create_task(self._read_notifications(rows))
+
+    def _visible_notification_rows(self) -> tuple[tuple[WireMessage, Widget], ...]:
+        """The whole message includes expanded details; this is not read-ack proof."""
+        geometry = self.screen._compositor.visible_widgets
+        viewport = self.window.content_region
+        rows = []
+        for message, widget in self._history:
+            if not isinstance(widget, (IRCMessage, WireMarkdownMessage)) or not widget.is_attached:
+                continue
+            placement = geometry.get(widget)
+            if placement is None:
+                continue
+            region, clip = placement
+            if region.overlaps(viewport) and region.overlaps(clip) and clip.overlaps(viewport):
+                rows.append((message, widget))
+        return tuple(rows)
+
+    async def _read_thread_activity(self):
+        from toad.comms_root import root_is_current
+
+        comms, target = self._wire, self.target
+        if comms is None:
+            return None
+        if not root_is_current(comms.root):
+            raise ValueError("Comms route changed")
+        presentation = await asyncio.to_thread(read_thread_presentation, comms, target)
+        if comms is not self._wire or target != self.target or not root_is_current(comms.root):
+            raise ValueError("Comms route changed")
+        return presentation
+
+    async def _read_notifications(self, rows: tuple[tuple[WireMessage, Widget], ...]) -> None:
+        from toad.comms_root import root_is_current
+
+        comms, target = self._wire, self.target
+        if comms is None or not root_is_current(comms.root):
+            return
+        error = None
+        try:
+            results = await asyncio.to_thread(
+                comms.views.message_notifications, tuple(message for message, _ in rows),
+            )
+        except Exception as failure:
+            error, results = failure, {}
+        if (not self.is_attached or self._wire is not comms or self.target != target
+                or self.screen is not self.app.screen
+                or not root_is_current(comms.root)):
+            return
+        visible = {widget for _, widget in self._visible_notification_rows()}
+        for message, widget in rows:
+            if widget in visible:
+                feedback = next(iter(widget.query(MessageNotifications)), None)
+                if feedback is None:
+                    continue  # Style replacement has unmounted this row's children.
+                if error is not None:
+                    feedback.show_error(error)
+                else:
+                    feedback.show_result(results.get((message.seq, message.message_id), ()))
+
     async def _refresh(self) -> None:
         if not self.is_attached or self._wire is None:
             return
@@ -714,6 +787,7 @@ class CommsChatView(Conversation):
                 return
         except Exception:
             return
+        self._refresh_notifications()
         if self._refresh_lock.locked():
             return
         async with self._refresh_lock:

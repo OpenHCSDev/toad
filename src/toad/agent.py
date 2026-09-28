@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
+from agent_comms.thread_presentation import ThreadPresentation
 
 from textual.content import Content
 from textual.message import Message
@@ -29,6 +30,10 @@ class AgentBase(ABC):
     def __init__(self, project_root: Path) -> None:
         self.project_root_path = project_root
         super().__init__()
+
+    async def get_thread_presentation(self) -> ThreadPresentation | None:
+        """Agents without a coordination identity have no observed thread status."""
+        return None
 
     @abstractmethod
     async def send_prompt(self, prompt: str) -> str | None:

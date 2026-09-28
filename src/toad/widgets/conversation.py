@@ -60,6 +60,7 @@ from toad.widgets.terminal import Terminal
 from toad.widgets.throbber import Throbber
 from toad.widgets.goal_bar import GoalBar, GoalControl
 from toad.widgets.native_history import NativeHistory
+from toad.widgets.observed_thread_activity import ObservedThreadActivity
 from toad.private_native_cursor import CursorStatus
 from toad.queue_view import QueueProjection
 from toad.widgets.input_delivery import InputDeliveryBar, InputDeliveryDetails, empty_delivery
@@ -753,6 +754,7 @@ class Conversation(containers.Vertical):
                         yield ThreadLoading()
         yield Flash()
         with containers.Vertical(id="prompt-stack"):
+            yield ObservedThreadActivity(self._read_thread_activity)
             yield TurnActivity().data_bind(activity=Conversation.activity,
                                            started_at=Conversation.activity_started_at)
             yield Throbber(id="throbber")
@@ -984,6 +986,42 @@ class Conversation(containers.Vertical):
         if isinstance(cursor_block, block_type):
             return cursor_block
         return None
+
+    async def _read_thread_activity(self):
+        agent = self.agent
+        if agent is None:
+            return None
+        presentation = await agent.get_thread_presentation()
+        if agent is not self.agent:
+            raise ValueError("Agent attachment changed")
+        return presentation
+
+    @on(ObservedThreadActivity.Changed)
+    def on_observed_thread_activity(self, event: ObservedThreadActivity.Changed) -> None:
+        event.stop()
+        if self._managed_turn_id is not None or self.turn == "agent":
+            return
+        if event.unavailable:
+            self.post_message(messages.SessionUpdate(state="idle", summary="Agent status unavailable"))
+        elif event.presentation is not None:
+            self.post_message(messages.SessionUpdate(
+                state="busy" if event.presentation.busy else "idle",
+                summary=event.presentation.summary,
+            ))
+
+    @on(messages.SessionUpdate)
+    def preserve_observed_activity(self, event: messages.SessionUpdate) -> None:
+        """ACP readiness is not proof that a separate channel turn is idle."""
+        if event.state != "idle":
+            return
+        observed = next(iter(self.query(ObservedThreadActivity)), None)
+        if observed is None:
+            return
+        if observed.unavailable:
+            event.summary = "Agent status unavailable"
+        elif observed.presentation is not None and observed.presentation.busy:
+            event.state = "busy"
+            event.summary = observed.presentation.summary
 
     @on(AgentReady)
     async def on_agent_ready(self, message: AgentReady) -> None:
@@ -1596,8 +1634,7 @@ class Conversation(containers.Vertical):
         if not self._accept_turn_lifecycle(message):
             return
         self.activity_started_at = message.started_at
-        activity = message.activity_detail if message.activity == "working" else "Thinking…"
-        self.activity = activity or "Working…"
+        self.activity = message.activity_detail or "Thinking…"
         if message.turn_id == self._managed_turn_id:
             return
         self._transcript_generation += 1
@@ -1609,7 +1646,7 @@ class Conversation(containers.Vertical):
         self.app.open_tabs_changed.publish(None)
         self.new_block()
         self.turn = "agent"
-        self.post_message(messages.SessionUpdate(state="busy", summary="Thinking"))
+        self.post_message(messages.SessionUpdate(state="busy", summary=self.activity))
 
     @on(acp_messages.TurnSettled)
     async def on_turn_settled(self, message: acp_messages.TurnSettled) -> None:
