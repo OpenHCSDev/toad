@@ -41,7 +41,7 @@ class HistoryWindow(VerticalScroll):
     def on_unmount(self) -> None:
         self.retire_presentation_wait()
         if "document_viewport" in self.__dict__:
-            self.document_viewport.retire()
+            self.document_viewport.membership.retire()
 
     @cached_property
     def document_viewport(self):
@@ -98,12 +98,8 @@ class HistoryWindow(VerticalScroll):
 
     @asynccontextmanager
     async def preserve_history(self, widget: Widget | None):
-        """Keep a retained record stationary through the mutation's first layout.
 
-        Callers serialize mutations with history_lock. SessionView captures the
-        *current* scroll position before each reflow, so input received while
-        children mount is incorporated rather than undone by a late callback.
-        """
+        """Serialize with history_lock; reflow retains the current reader position."""
         from toad.screens.session_view import SessionView
 
         screen = self.screen

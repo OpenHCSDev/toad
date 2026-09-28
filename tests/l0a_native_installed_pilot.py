@@ -277,6 +277,8 @@ async def main(*, notification_only=False, retire_surface=False):
                     )
                     return
                 view.prompt.text = "FIRST_NATIVE_INPUT"
+                await until(pilot, lambda: view.agent_ready)
+                view.prompt.prompt_text_area.focus()
                 await pilot.press("enter")
                 await until(pilot, entered.is_set)
                 print("PROVIDER_FIRST", flush=True)
