@@ -55,7 +55,7 @@ async def main() -> None:
                 await pilot.pause()
                 assert divider.region.overlaps(chat.window.content_region)
                 assert not body.region.overlaps(chat.window.content_region)
-                assert last.seq not in chat._painted_message_sequences()
+                assert last.seq not in {seq for source, seq in chat._painted_message_keys() if not source}
 
                 page = chat._message_page(comms, after=last.seq - 1)
                 chat._channel_ack_pages[last.seq] = page

@@ -46,7 +46,7 @@ async def main():
                     while comms.views.viewer_snapshot(str(root)).channel_unread["#team"] != 10:
                         await pilot.pause(.02)
                 assert chat._has_older
-                painted = set(chat._painted_message_sequences())
+                painted = {seq for source, seq in chat._painted_message_keys() if not source}
                 assert painted == {message.seq for message in messages[-2:]}
                 seen = comms.bus.reads.seen_sequences(viewer, comms.registry.snapshot())
                 assert seen == painted
