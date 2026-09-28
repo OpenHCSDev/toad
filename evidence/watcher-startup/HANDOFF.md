@@ -22,6 +22,29 @@ while the other keeps receiving events; early stop spawns none; no child leaks.
 Measured shared child RSS39.7MB. One child per distinct watched project, shared
 across tabs; it ends when the last tab subscriber leaves.
 
-Installed archive UI acceptance is in progress. It renders copied actual #comms
-and both DMs without messages and confirms watcher+child have joined; full Python
-interpreter shutdown is still under investigation and is not claimed green.
+## Installed acceptance and remaining core blocker
+
+Installed wheel on parent runtime-compaction-policy-b3a9c06, current Toad main and
+Textual16ede: watcher_project_shutdown_pilot exits0 on actual /home/ts/.agent-comms.
+Native registration is still incomplete at close (`native_ready_at_close: false`);
+repeated Ready reuses the watcher, watcher+child join, asyncio/interpreter shutdown
+completes normally. This directly closes the recursive-start shutdown defect.
+
+Installed copied archived-history probe renders #comms(8), agent-comms-ux(2), and
+pr95-selected-pi-summary-owner(0), with zero messages; watcher+child join. The full
+probe still exits124 on a separate core task. Executor instrumentation identifies
+HistoryViews.viewer_snapshot -> TranscriptReadLedger.counts -> view_unread._index,
+still scanning saved native history at line125 after18s. Diagnostic trace retained
+and assigned back to parent242. No core code changed or assertion weakened; this
+is explicitly NOT a green overall archived-history exit.
+
+Additional native cancellation test passes abrupt parent EOF during held recursive
+startup, as well as actual file delivery, last-subscriber cleanup, shared surviving
+subscriber and independent-directory registration. Burst coalescing retained:
+500 events across14 recipients yield two batches/28 notifications with a later event.
+No native model/ACP proof rerun, no paid calls, no live activation. Existing source
+plus added ownership code is137 additions/78 deletions; the extra code owns process
+lifetime/IPC because a Python thread cannot cancel watchdog's synchronous walk.
+
+Parent may merge109 and pin its head independently of paired107 and the separate
+core unread-scan cancellation. Paired107 receives this watcher correction too.

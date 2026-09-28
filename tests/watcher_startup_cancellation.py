@@ -1,5 +1,8 @@
 """Real recursive inotify startup cancels; one surviving subscriber still receives events."""
 
+import os
+import subprocess
+import sys
 import tempfile
 import threading
 import time
@@ -52,6 +55,15 @@ def stop(watcher):
     return time.monotonic() - started
 
 
+def abandon_parent(path):
+    with patch("toad.directory_watcher._observe_path", blocked_observe_path):
+        watcher = RecordingWatcher(path)
+        watcher.start()
+        until(lambda: (path / "entered-recursive-walk").exists())
+        (path / "child-pid").write_text(str(watcher._observation.process.pid))
+        os._exit(0)
+
+
 def main():
     with tempfile.TemporaryDirectory(prefix="watcher-cancel-") as directory:
         root = Path(directory)
@@ -97,6 +109,18 @@ def main():
             early.join(timeout=3)
             assert not early.is_alive() and not early.enabled
             assert not _shared_observer_manager._observers
+            abandoned = root / "abandoned" / "blocked"
+            abandoned.mkdir(parents=True)
+            subprocess.run([sys.executable, __file__, "--abandon", str(abandoned)],
+                           check=True, timeout=10)
+            abandoned_pid = int((abandoned / "child-pid").read_text())
+            def reaped_or_exited():
+                try:
+                    return psutil.Process(abandoned_pid).status() == psutil.STATUS_ZOMBIE
+                except psutil.NoSuchProcess:
+                    return True
+            until(reaped_or_exited, seconds=3)
+            print("Parent EOF during blocked recursive start closes native child")
         finally:
             for watcher in watchers:
                 watcher.stop()
@@ -106,4 +130,7 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) > 1:
+        abandon_parent(Path(sys.argv[2]))
+    else:
+        main()
