@@ -110,6 +110,14 @@ async def dual_root_projection():
                 # Move the authoritative owner to A while one B fetch is in
                 # flight; the stale B result is cancelled and must not paint.
                 await app.switch_mode(owner_mode)
+                owner_screen.query_one("#thread-sidebar", SideBar).reveal()
+                view.query_ancestor(SideBarCollapsible).collapsed = False
+                view.scroll_visible(animate=False)
+                async with asyncio.timeout(5):
+                    while view not in owner_screen._compositor.visible_widgets:
+                        await pilot.pause(.02)
+                if view._read_task is not None:
+                    await view._read_task
                 blocked[0] = True
                 view.action_refresh()
                 async with asyncio.timeout(5):

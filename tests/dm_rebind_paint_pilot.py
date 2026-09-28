@@ -7,7 +7,8 @@ from pathlib import Path
 from threading import Event
 from unittest.mock import patch
 
-from agent_comms.comms import Comms, wire
+from agent_comms.comms import wire
+from agent_comms.history_views import HistoryViews
 from agent_comms.threads import Thread
 from runtime_fixture import ToadApp
 from toad.widgets.comms_chat import CommsChatView
@@ -33,7 +34,7 @@ async def main():
         viewer = comms.messaging.user_identity(str(root)).name
         comms.messaging.send("peer", viewer, "old peer painted")
         entered, release = Event(), Event()
-        original_mark = Comms.mark_dm_view_read
+        original_mark = HistoryViews.mark_dm_view_read
 
         def pause_old_mark(self, peer, **kwargs):
             entered.set()
@@ -43,7 +44,7 @@ async def main():
 
         app = ToadApp(project_dir=str(root))
         try:
-            with patch.object(Comms, "mark_dm_view_read", pause_old_mark):
+            with patch.object(HistoryViews, "mark_dm_view_read", pause_old_mark):
                 async with app.run_test(size=(120, 40)) as pilot:
                     await pilot.pause()
                     owner_mode = app.current_mode

@@ -11,6 +11,8 @@ parser.add_argument("prefix", type=Path)
 parser.add_argument("--slowest", type=int, default=8)
 parser.add_argument("--slowest-inputs", type=int, default=0,
                     help="Show overlapping frame work for the worst native key acknowledgments")
+parser.add_argument("--gc", action="store_true",
+                    help="Show version-bound GC callbacks and first/last tracked-object censuses")
 args = parser.parse_args()
 trace = json.loads(Path(str(args.prefix) + "-trace.json").read_text())
 workload = json.loads(Path(str(args.prefix) + "-actions.json").read_text())
@@ -34,9 +36,12 @@ for action in actions:
 print(json.dumps({"completed": workload["completed"], "actions": len(actions),
     "overall": {kind: stats([event["duration_ms"] for event in selected if event["event"] == kind])
                 for kind in ("loop_gap", "gc", "_refresh_layout", "_compositor_refresh")},
+    "anchor_full_geometry": stats([event["duration_ms"] for event in selected
+        if event["event"] == "arrange_root" and event.get("visible_only") is False
+        and any(caller[0] == "history_anchor.py" for caller in event.get("callers", ()))]),
     "by_action": {kind: stats(values) for kind, values in groups.items()}}, indent=2))
 for gap in sorted((event for event in selected if event["event"] == "loop_gap"), key=lambda event:-event["duration_ms"])[:args.slowest]:
-    spans = [event for event in trace if event["event"] in {"gc", "_refresh_layout", "_compositor_refresh"}
+    spans = [event for event in trace if event["event"] in {"gc", "_refresh_layout", "_compositor_refresh", "arrange_root"}
              and event["ns"] >= gap["begin_ns"] and event["begin_ns"] <= gap["ns"]]
     print(json.dumps({"gap_ms": gap["duration_ms"], "actions": [action["action"] for action in actions if overlaps(gap, action)],
                       "overlapping_spans": spans}))
@@ -58,3 +63,34 @@ for key in sorted((event for event in trace if event["event"] == "prompt_key_app
              for event in trace if event["event"] == "key_route" and event.get("input_ns") == begin]
     print(json.dumps({"key": key, "overlapping_spans": spans,
                       "frames_before_acknowledgment": frames, "route": route}))
+
+if args.gc:
+    collections = defaultdict(list)
+    for event in selected:
+        if event["event"] == "gc":
+            collections[event["generation"], event["ui_thread"]].append(event)
+    manifest = json.loads(Path(str(args.prefix) + "-manifest.json").read_text())
+    census_path = Path(str(args.prefix) + "-census.jsonl")
+    censuses = []
+    if census_path.exists():
+        lines = census_path.read_text().splitlines()
+        for line in (lines[:1] + lines[-1:] if len(lines) > 1 else lines):
+            census = json.loads(line)
+            censuses.append({
+                "tracked": census["tracked"],
+                "paint_color_cache": census.get("paint_color_cache"),
+                "sampled_paint_types": {".".join(name): count for name, count in census["counts"]
+                                        if name[0] in {"textual._styles_cache", "textual.strip", "textual.style"}},
+                "closed_widgets": census["closed_widgets"],
+            })
+    print(json.dumps({
+        "runtime": manifest.get("runtime"),
+        "gc_callbacks": [{"generation": generation, "ui_thread": ui_thread,
+                          **stats([event["duration_ms"] for event in events]),
+                          "total_ms": round(sum(event["duration_ms"] for event in events), 2),
+                          "collected": sum(event["collected"] for event in events),
+                          "zero_collected": stats([event["duration_ms"] for event in events
+                                                   if not event["collected"]])}
+                         for (generation, ui_thread), events in sorted(collections.items())],
+        "first_last_census": censuses,
+    }, indent=2))

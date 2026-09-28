@@ -32,6 +32,10 @@ class ViewStyleRevision:
 
 
 class SessionView(SidebarFocusOwner, Screen):
+    # Keep measured geometry for fast revisits, but do not retain every inactive
+    # tab's rendered line/segment graph in the cyclic collector's live heap.
+    RETAIN_INACTIVE_PAINT = False
+
     _resume_style: ViewStyleRevision | None = None
     _navigation_applied = False
     _navigation_changed = False
@@ -183,8 +187,9 @@ class SessionView(SidebarFocusOwner, Screen):
         return self.is_current
 
     def _layout_geometry_targets(self) -> tuple[Widget, ...]:
-        return tuple(window.history_anchor.widget for window in self.history_anchors
-                     if window.history_anchor is not None and window.history_anchor.widget.is_attached)
+        return tuple(target for window in self.history_anchors
+                     if window.history_anchor is not None
+                     for target in window.history_anchor.geometry_targets)
 
     def _refresh_layout(self, size: Size | None = None, scroll: bool = False) -> None:
         from toad.widgets.history_anchor import HistoryAnchor
@@ -194,8 +199,7 @@ class SessionView(SidebarFocusOwner, Screen):
         # Only the reader's current scroll/follow intent is refreshed pre-layout.
         tracked = tuple(self.history_anchors)
         anchors = [
-            (window, replace(window.history_anchor, scroll_y=window.scroll_y,
-                             follow_tail=window.follows_tail, scroll_revision=window.scroll_revision))
+            (window, window.history_anchor.before_layout(window))
             for window in tracked
             if window.history_anchor is not None and window.history_anchor.widget.is_attached
         ]
@@ -208,6 +212,8 @@ class SessionView(SidebarFocusOwner, Screen):
         # Screen normally paints from inside _refresh_layout. Do not expose the
         # prepend/eviction coordinates before compensating for their height.
         with self.app.batch_update():
+            for window, position in anchors:
+                window.history_anchor = position
             super()._refresh_layout(size, scroll)
             changed = False
             for window, position in anchors:

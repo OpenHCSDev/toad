@@ -14,7 +14,7 @@ It creates its own X display, verifies the target process/window, and refuses an
 already-used display. Input automation is confined to that display.
 
 The current implementation also needs the companion Textual performance branch.
-See [Textual PR #5](https://github.com/OpenHCSDev/textual/pull/5); the draft's
+See [Textual PR #6](https://github.com/OpenHCSDev/textual/pull/6); the draft's
 `pyproject.toml` pins its commit.
 Use `PYTHONPATH` to select both source trees, or install their exact commits.
 `--dependency-path` can add dependencies from a separate diagnostic environment;
@@ -60,6 +60,11 @@ Xvfb startup). Application/input processes remain unprivileged.
 Each capture uses a fresh name and writes manifest, trace, action, state and
 screenshot artifacts; optional censuses add JSONL. Manifests include source-file
 hashes, observer hash, selected environments and diagnostic policy overrides.
+The runtime receipt includes the selected interpreter's exact version, build/GIL
+configuration and GC thresholds from a separate pre-launch probe. Live UI GC state
+is reported by the state snapshot. Python 3.14.5 changed the collector substantially;
+compare exact patch versions/builds rather than assuming all 3.14 runtimes behave
+alike. See the [GC comparison and paint ownership audit](../../docs/audits/viewport_stutter_followup_20260927.md#version-specific-gc-and-paint-owner-retention).
 
 For native input queue attribution, add `--key-route` to the isolated filter
 workload. This diagnostic records app/widget enqueue and dispatch timestamps for
@@ -69,6 +74,12 @@ the fixture's typed markers. Inspect the worst acknowledgments with:
 python tools/performance/analyze_trace.py "$CAPTURES/filter-route-1" \
   --slowest 3 --slowest-inputs 3
 ```
+
+Add `--gc` to report GC callbacks by generation and collecting thread, plus the
+runtime receipt and first/last tracked-object censuses. It does not trigger GC.
+Census color-memo occupancy helps distinguish data reuse from retired paint-owner
+retention. Measurement-entry labels compare the cache's stored owner generation;
+they do not predict whether a subsequent measurement would invalidate that owner.
 
 The report includes overlapping layout/paint/GC spans and frames submitted before
 the key was handled. Inclusive durations overlap and must not be summed. Repeat
@@ -94,6 +105,26 @@ dispatch of decorated transcript/ready messages. An earlier observer duplicated
 those handlers; the audit explicitly marks affected captures as invalid.
 
 ## CPU and allocation profiling
+
+Set `TOAD_VALIDATION_ARRANGEMENTS=1` for a diagnostic of complete native child
+arrangements. Run `analyze_box_models.py PREFIX --arrangements` to find repeated
+same-revision, same-placement misses at different available heights. This records
+placement geometry and process-local widget IDs, not widget references or text.
+Like box-model tracing, it adds overhead and must be disabled for acceptance runs.
+
+The fixture can compare native inactive-cache policies with
+`TOAD_VALIDATION_COLD_PRESENTATIONS=1` (retire geometry and paint) or
+`TOAD_VALIDATION_COLD_PAINT=1` (retire paint while keeping geometry). These are
+diagnostic overrides; the manifest records them, and the state snapshot records
+the selected screen's declared policies. They do not change GC thresholds or
+force collection. Production Toad session views now declare paint-only retirement.
+
+`--census` also groups live/closing/closed widgets by active/inactive screen and
+transcript-fragment/sidebar/other ownership. Inspect the closing census with
+`analyze_widget_cohorts.py PREFIX`, or add `--initial` for its initial state.
+`TOAD_VALIDATION_CENSUS_LIMIT` controls the class-row report size (default 60).
+These are widget/message-pump counts and shallow instance-dictionary sizes, not
+transitive heap attribution. The census does not force collection.
 
 Add `--profile --profile-gil --profile-seconds 40` for py-spy, with
 `--py-spy /path/to/py-spy` and `--profile-sudo` if attachment requires it.
@@ -121,6 +152,10 @@ the audit records suspicious caller attribution in a whole-interval CPython
 
 Optional source-backed probes:
 
+- `TOAD_VALIDATION_BOX_MODELS=1`: record native measurement keys, cache hits and
+  result dimensions. `analyze_box_models.py PREFIX` groups repeated same-revision
+  measurements and their container variants. Timings are recursive/inclusive;
+  this is attribution instrumentation, not acceptance timing.
 - `TOAD_VALIDATION_LAYOUT_CAUSES=1`: record new layout invalidation callers.
 - `TOAD_VALIDATION_OPEN_STAGES=1`: construction/mount and navigation-stage spans.
 - `TOAD_VALIDATION_LEGACY_MARKDOWN_MEASUREMENT=1`: explicit diagnostic control for

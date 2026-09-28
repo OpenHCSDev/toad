@@ -8,6 +8,7 @@ HOME, legacy wire and UI state remain disposable /dev/shm data.
 from __future__ import annotations
 
 import asyncio
+from contextlib import asynccontextmanager
 import os
 import tempfile
 from pathlib import Path
@@ -26,6 +27,15 @@ from toad.acp.maintenance_ingress import admitted_prompt, admitted_spawn
 from toad.app import ToadApp
 from toad.comms_root import current_root, run_selected_write
 from toad.widgets.comms_chat import CommsChatView
+
+
+@asynccontextmanager
+async def settled_test_executor():
+    """Finish read-only worker calls before deleting their disposable wire."""
+    try:
+        yield
+    finally:
+        await asyncio.get_running_loop().shutdown_default_executor()
 
 
 async def main() -> None:
@@ -62,7 +72,7 @@ async def main() -> None:
                 os.environ.pop("AGENT_COMMS_ROOT", None)
                 assert current_root() == legacy
                 app = ToadApp(project_dir=str(sandbox))
-                async with app.run_test(size=(115, 38)) as pilot:
+                async with settled_test_executor(), app.run_test(size=(115, 38)) as pilot:
                     await pilot.pause()
                     await app.open_comms_session(
                         owner_mode=app.current_mode,

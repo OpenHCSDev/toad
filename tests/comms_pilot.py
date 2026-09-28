@@ -23,7 +23,7 @@ from toad import messages
 from toad.acp.agent import Agent as ACPAgent
 from toad.acp import messages as acp_messages
 from toad import paths
-from runtime_fixture import ToadApp
+from runtime_fixture import ToadApp, wait_channel_roster
 from toad.db import DB
 from toad.pill import pill
 from toad.screens.comms import CommsScreen
@@ -55,7 +55,7 @@ from toad.widgets.tool_call import ToolCall
 from toad.widgets.project_panel import FilePreview, ProjectSearchButton
 from toad.widgets.user_input import UserInput
 from toad.widgets.incoming_message import IncomingMessage, IncomingSender
-from toad.widgets.irc_message import IRCMessage, ThreadLink
+from toad.widgets.irc_message import IRCMessage
 
 
 def row(screen, target: str) -> CommsRow:
@@ -793,6 +793,7 @@ for line in sys.stdin:
                 item.target_name == "delete-peer" for item in app.screen.query(CommsRow)
             )
 
+            retained_owner_rows = tuple(open_rows(app.screen))
             await pilot.click(row(app.screen, "#all"))
             await pilot.pause()
             assert isinstance(app.screen, CommsScreen)
@@ -801,7 +802,8 @@ for line in sys.stdin:
             assert app.session_tracker.session_count == 1
             assert len(open_rows(app.screen)) == 1
             owner_screen = app.get_screen_stack(owner_mode)[-1]
-            assert not open_rows(owner_screen), "Inactive tab retained a duplicate native roster"
+            assert tuple(open_rows(owner_screen)) == retained_owner_rows, "Tab switch rebuilt the warm roster"
+            assert all(item.is_attached for item in retained_owner_rows)
             first_channel_mode = app.current_mode
             chat = app.screen.query_one(CommsChatView)
             assert chat.prompt.prompt_text_area.has_focus
@@ -960,10 +962,13 @@ for line in sys.stdin:
             await pilot.pause()
             assert await pilot.click(resumable_row)
             async with asyncio.timeout(10):
-                while not any(
+                # Independently prepared saved blocks can finish out of order.
+                # The last reply alone is not completion of the thinking body.
+                while not (any(
                     "thread transcript complete" in response.source
                     for response in app.screen.query(AgentResponse)
-                ):
+                ) and any("thread reasoning" in thought.source
+                          for thought in app.screen.query(AgentThought))):
                     await pilot.pause(.02)
             assert isinstance(app.screen, MainScreen)
             assert not isinstance(app.screen, CommsScreen)
@@ -1332,9 +1337,39 @@ for line in sys.stdin:
             app.screen.query_one(CommsSidebar)._refresh()
             await pilot.pause()
 
-            await pilot.click(row(app.screen, "#all"))
-            await pilot.pause()
             async with asyncio.timeout(10):
+                # _refresh starts an asynchronous route/snapshot publication.
+                # An idle message queue does not promise a rendered roster yet.
+                # Keep readiness, click and destination inside the same deadline.
+                await wait_channel_roster(app, pilot, "#all")
+                await pilot.pause()
+                while True:
+                    channel_row = next((item for item in app.screen.query(CommsRow)
+                                        if item.target_name == "#all" and item.is_attached), None)
+                    if channel_row is not None:
+                        channel_row.scroll_visible(animate=False)
+                        await pilot.pause(.01)
+                        placement = app.screen._compositor.visible_widgets.get(channel_row)
+                        if placement is not None:
+                            region, clip = placement
+                            visible = region.intersection(clip).intersection(app.screen.size.region)
+                            if visible:
+                                x = visible.x + visible.width // 2
+                                y = visible.y + visible.height // 2
+                                # Scroll retention can clip a row's top-left;
+                                # click an actually exposed native hit target.
+                                if app.screen.get_widget_at(x, y)[0] is channel_row:
+                                    click_offset = (x - region.x, y - region.y)
+                                    break
+                    else:
+                        await pilot.pause(.01)
+                assert await pilot.click(channel_row, offset=click_offset), (
+                    "Channel revisit click missed its native row", channel_row.region,
+                    app.screen.query_one(SideBar).collapsed,
+                    click_offset, app.current_mode,
+                    app.screen.get_widget_at(x, y)[0],
+                )
+                await pilot.pause()
                 while app.current_mode != first_channel_mode:
                     await pilot.pause(.01)
             assert app.current_mode == first_channel_mode
