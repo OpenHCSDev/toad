@@ -1329,13 +1329,25 @@ for line in sys.stdin:
             app.screen.query_one(CommsSidebar)._refresh()
             await pilot.pause()
 
-            channel_row = row(app.screen, "#all")
-            assert await pilot.click(channel_row), (
-                "Channel revisit click missed its native row", channel_row.region,
-                app.screen.query_one(SideBar).collapsed,
-            )
-            await pilot.pause()
             async with asyncio.timeout(10):
+                # _refresh starts an asynchronous route/snapshot publication.
+                # An idle message queue does not promise a rendered roster yet.
+                # Keep readiness, click and destination inside the same deadline.
+                while True:
+                    channel_row = next((item for item in app.screen.query(CommsRow)
+                                        if item.target_name == "#all" and item.is_attached), None)
+                    if channel_row is not None:
+                        channel_row.scroll_visible(animate=False)
+                        await pilot.pause(.01)
+                        if channel_row in app.screen._compositor.visible_widgets:
+                            break
+                    else:
+                        await pilot.pause(.01)
+                assert await pilot.click(channel_row), (
+                    "Channel revisit click missed its native row", channel_row.region,
+                    app.screen.query_one(SideBar).collapsed,
+                )
+                await pilot.pause()
                 while app.current_mode != first_channel_mode:
                     await pilot.pause(.01)
             assert app.current_mode == first_channel_mode

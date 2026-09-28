@@ -32,6 +32,10 @@ class ViewStyleRevision:
 
 
 class SessionView(SidebarFocusOwner, Screen):
+    # Keep measured geometry for fast revisits, but do not retain every inactive
+    # tab's rendered line/segment graph in the cyclic collector's live heap.
+    RETAIN_INACTIVE_PAINT = False
+
     _resume_style: ViewStyleRevision | None = None
     _navigation_applied = False
     _navigation_changed = False

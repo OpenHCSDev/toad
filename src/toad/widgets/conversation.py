@@ -24,6 +24,7 @@ from textual.app import ComposeResult, ScreenStackError, UnknownModeError
 from textual import containers
 from textual import getters
 from textual import events
+from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
 from textual.actions import SkipAction
 from textual.binding import Binding
 from textual.content import Content
@@ -305,6 +306,7 @@ class Cursor(Static):
 
 class Contents(containers.VerticalGroup, can_focus=False):
     BLANK = True
+    CACHE_HEIGHT_INDEPENDENT_ARRANGEMENT = True
 
     def mount(self, *widgets, **kwargs):
         from toad.widgets.message_filter import apply_block_filter, block_category, keep_live_block
@@ -317,6 +319,7 @@ class Contents(containers.VerticalGroup, can_focus=False):
             apply_block_filter(widget, selected)
         return super().mount(*widgets, **kwargs)
 
+    @height_dependency(INDEPENDENT_HEIGHT)
     def process_layout(
         self, placements: list[WidgetPlacement]
     ) -> list[WidgetPlacement]:
@@ -325,7 +328,9 @@ class Contents(containers.VerticalGroup, can_focus=False):
 
 class ContentsGrid(containers.Grid):
     BLANK = True
+    CACHE_HEIGHT_INDEPENDENT_ARRANGEMENT = True
 
+    @height_dependency(INDEPENDENT_HEIGHT)
     def pre_layout(self, layout) -> None:
         assert isinstance(layout, GridLayout)
         layout.stretch_height = True

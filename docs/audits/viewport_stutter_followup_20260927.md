@@ -7,6 +7,117 @@ current-main core pin `b1e5bfd5c39ea69c507833e8ed5efc96a7fb038b`.
 Status: **draft; tail-frame regression and comms test-timeout resolved;
 remaining native latency targets and current-main reconciliation are open**.
 
+## Higher-level arrangement reuse
+
+The next increment targets duplicated recursive work, rather than another leaf
+allocation. A four-toggle diagnostic recorded identical transcript-grid placements
+at available heights 70 and 144 (and corresponding width-dependent content
+heights). The grid arranged again for measurement and final placement. It had
+18 misses in 19 calls; the local candidate reduced that to 9 misses in 20 calls.
+The inclusive grid span sum went from 75.79 to 41.09 ms. Instrumentation and
+recursive timing are diagnostic evidence, not an additive end-to-end saving.
+
+The framework extends its declaration-owned dependency strategies to whole native
+arrangements. `CACHE_HEIGHT_INDEPENDENT_ARRANGEMENT` is disabled by default and
+retains the existing bounded cache. Grid and stream policies check their direct
+content-measurement paths, not merely child box heights. Unknown/custom methods,
+height-sensitive tracks/extrema, docking/splits/overlays and non-default alignment
+retain native context. Width, viewport and optimal/greedy state stay distinct.
+
+The first candidate exposed over-invalidation: a style or attachment change in a
+sibling sidebar invalidated transcript proofs through global epochs. `Styles`
+now projects its mutation epoch to its owning node and ancestors, including raw
+writes without refresh. Measurement reuse consumes that subtree projection plus
+the existing child/geometry revisions. Parent-sensitive extrema retain immediate
+parent style and attachment stamps. There is no second layout model or cache of
+widget references in these proofs. Mutation boundaries own invalidation, and
+retirement clears the derived state.
+
+Toad enables this contract on transcript fragments/pages/history, conversation
+contents/grid, and its named sidebar container classes. The margin-trimming and
+grid-stretch hooks declare their complete height-independent behavior. Native
+selection, hit testing, scrolling, focus and source identities remain authoritative.
+
+### Verification
+
+- Eight initial reuse/invalidation tests failed on the old implementation; the
+  sibling-locality test then failed with global-epoch invalidation. The final
+  framework suite passes **3,505 tests**, 1 skipped, 4 xfailed, in 198.80 s with a
+  250.4 MiB peak. The new 32 cases exercise native placement parity, raw/pre-idle
+  mutations, sibling locality, parent extrema and conservative fallback.
+- Broad diagnostic opt-in across native widgets matched **92 of 93 snapshots**.
+  `test_dock_align` also fails on unchanged `ec244df7` and with both flags off.
+  Its sole SVG difference is an extra zero-width background rectangle; the
+  candidate/default SVG equals the unchanged baseline after normalizing generated
+  IDs. No snapshot was updated and no assertion weakened. Retain this pre-existing
+  serialized-SVG mismatch explicitly rather than claiming all snapshots pass.
+- Five focused Toad frame/lifetime/filter pilots passed. Full companion validation
+  initially passed 79 cases; the late comms channel click failed with a zero-size
+  row at 71.90 s. The test now waits for the native visible row before clicking,
+  keeping readiness, click and destination within the existing 10 s navigation
+  deadline. Its unchanged 100 s pilot limit remains; the isolated case passed in
+  93.67 s. The final full run with the paint-retention policy below passes all 80
+  pilots in 517.29 s (comms: 73.40 s), at 473.1 MiB peak and zero swap.
+
+### Native results
+
+Controls use detached Toad `84d25ae` / Textual `ec244df7`. Same CPython 3.14.2,
+dependency files, observer and fixture; arrangement tracing disabled. All four
+serial captures completed 72 actions/52 markers with filters and drafts intact.
+
+| Capture | Input median / p95 / max ms | Layout median / p95 / max ms | Loop max ms | GC max ms |
+| --- | --- | --- | --- | --- |
+| `toad-arrangement-control-1` |29.35 /51.80 /59.10|12.24 /32.63 /108.93|116.92|61.81|
+| `toad-arrangement-candidate-1` |35.10 /60.02 /64.00|11.17 /33.73 /91.74|132.07|79.21|
+| `toad-arrangement-candidate-2` |28.20 /58.33 /67.15|11.02 /28.99 /82.84|89.98|66.77|
+| `toad-arrangement-control-2` |37.80 /58.98 /69.75|12.92 /36.48 /129.41|144.20|71.97|
+
+The two candidates reduce median layout time and the measured layout maximum, but
+input and loop tails overlap the control range. Candidate1's worst gap includes
+a 79.21 ms zero-collected GC pause; candidate2's worst sidebar gap includes
+43.94 ms arrangement and 29.49 ms paint. These spans overlap their enclosing
+layout measurement and must not be summed with it. This is a measured reduction
+in duplicated layout work, not universal sub-50-ms latency. Native scope peaks
+were below 473 MiB, zero swap; all owned capture scopes were stopped afterward.
+
+### Retire paint graphs without making tab geometry cold
+
+The existing all-presentation retirement policy was tried first in a disposable
+fixture (`toad-arrangement-cold-1`). It reduced closing tracked objects to 334,745
+and GC maximum to 53.39 ms, but a tab revisit took a 129.82 ms loop gap, including
+62.87 ms arrangement. This aggressive setting is not enabled in Toad.
+
+The candidate instead declares `SessionView.RETAIN_INACTIVE_PAINT = False`.
+The framework defaults this new policy to true; opt-out releases render/line/style
+caches while preserving measured boxes, arrangements, compositor geometry and
+the source model. Visible backdrops are protected. Existing full-presentation
+retirement and closing still release both paint and measurements. A regression
+fails on the old framework and verifies cache release, retained arrangement
+identity, stable source widgets and identical painted pixels on resume; a second
+test protects a visible transparent-overlay backdrop.
+The final combined framework run passes **3,507 tests**, 1 skipped, 4 xfailed,
+in 200.19 s at a 250.3 MiB peak. All 80 companion pilots pass in 517.29 s with
+unchanged assertions/scenarios and the original per-pilot/navigation deadlines.
+
+Same 72-action/52-marker fixture, masks/drafts retained:
+
+| Capture | Input median / p95 / max ms | Layout median / p95 / max ms | Loop max ms | GC max ms |
+| --- | --- | --- | --- | --- |
+| `toad-arrangement-cold-1` (full-cold, rejected default) |32.19 /50.87 /69.63|11.68 /32.11 /78.24|129.82|53.39|
+| `toad-arrangement-cold-paint-1` (diagnostic paint-only opt-out) |33.46 /56.30 /63.23|10.86 /30.33 /92.65|99.16|45.01|
+| `toad-arrangement-cold-paint-final-2` (declared policy) |33.27 /54.51 /118.96|10.91 /32.18 /94.02|106.62|62.56|
+| `toad-arrangement-cold-paint-final-3` (declared policy) |31.13 /49.08 /67.38|10.86 /31.33 /77.68|115.37|54.92|
+
+The paint-only closing censuses contain 343,458 / 345,040 / 344,337 tracked objects
+and 3,286 / 3,265 / 3,290 strips, versus roughly 12,000 strips when retaining all
+inactive paint (controls: 381,947/383,672 tracked objects and 11,998/12,463 strips).
+Source widgets remain mounted. The final scopes peak below 467 MiB
+with zero swap. One final input tail still reaches **118.96 ms**; do not discard
+it or claim a universal maximum-input improvement. The retained paint graph and
+typical layout work are reduced,
+but the sub-50-ms objective remains unmet. Probe flags are recorded separately
+from the selected screen's declared retention policy in its live snapshot.
+
 ## Version-specific GC and paint-owner retention
 
 The acceptance environment uses GIL-enabled CPython3.14.2, not the currently
@@ -115,8 +226,8 @@ with the recorded runtime version.
 ## Structural measurement correction
 
 Dependency: [Textual PR6](https://github.com/OpenHCSDev/textual/pull/6), pinned at
-`ec244df727c586bd45edaf34a1f9a0c09d145918` (structural fix, owner-clock idle
-measurement, opt-in declaration-proved box reuse and paint memo ownership). The merged framework baseline alone
+`bfdb4ad476982c50d43e929e01b8681a526e3778` (structural fix, owner-clock idle
+measurement, declared box/arrangement reuse, local invalidation and paint lifetime). The merged framework baseline alone
 does not contain this correction.
 
 The clipped frame was reproduced with committed geometry evidence: the history

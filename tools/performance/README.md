@@ -106,6 +106,19 @@ those handlers; the audit explicitly marks affected captures as invalid.
 
 ## CPU and allocation profiling
 
+Set `TOAD_VALIDATION_ARRANGEMENTS=1` for a diagnostic of complete native child
+arrangements. Run `analyze_box_models.py PREFIX --arrangements` to find repeated
+same-revision, same-placement misses at different available heights. This records
+placement geometry and process-local widget IDs, not widget references or text.
+Like box-model tracing, it adds overhead and must be disabled for acceptance runs.
+
+The fixture can compare native inactive-cache policies with
+`TOAD_VALIDATION_COLD_PRESENTATIONS=1` (retire geometry and paint) or
+`TOAD_VALIDATION_COLD_PAINT=1` (retire paint while keeping geometry). These are
+diagnostic overrides; the manifest records them, and the state snapshot records
+the selected screen's declared policies. They do not change GC thresholds or
+force collection. Production Toad session views now declare paint-only retirement.
+
 Add `--profile --profile-gil --profile-seconds 40` for py-spy, with
 `--py-spy /path/to/py-spy` and `--profile-sudo` if attachment requires it.
 GIL-only sample weights are not a wall timeline and cannot be aligned to actions

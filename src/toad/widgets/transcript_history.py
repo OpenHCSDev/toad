@@ -126,6 +126,7 @@ class JumpToLatest(Static, can_focus=True):
 
 class TranscriptFragmentView(CategorizedBlock, VerticalGroup):
     CACHE_HEIGHT_INDEPENDENT_BOX = True
+    CACHE_HEIGHT_INDEPENDENT_ARRANGEMENT = True
 
     def __init__(self, fragment: TranscriptFragment, selected=ALL_CATEGORIES):
         super().__init__()
@@ -187,6 +188,7 @@ class TranscriptFragmentView(CategorizedBlock, VerticalGroup):
 
 class TranscriptPageView(VerticalGroup):
     CACHE_HEIGHT_INDEPENDENT_BOX = True
+    CACHE_HEIGHT_INDEPENDENT_ARRANGEMENT = True
     BATCH = 4
 
     def __init__(self, page: TranscriptPage, *, newest: bool = True,
@@ -248,6 +250,7 @@ class TranscriptPageView(VerticalGroup):
 
 class TranscriptHistory(CommittedHistory, CategorizedBlock, VerticalGroup):
     CACHE_HEIGHT_INDEPENDENT_BOX = True
+    CACHE_HEIGHT_INDEPENDENT_ARRANGEMENT = True
     MAX_FRAGMENTS = 24
 
     @property

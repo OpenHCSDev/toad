@@ -28,6 +28,27 @@ def record(event, **values):
 
 
 def install_observer():
+    if os.environ.get("TOAD_VALIDATION_ARRANGEMENTS") == "1":
+        from textual.widget import Widget
+
+        widget_arrange = Widget.arrange
+
+        def measured_arrangement(self, size, optimal=False):
+            hits = self._arrangement_cache.hits
+            revision = self._nodes._updates, self._layout_updates, self.styles._cache_key
+            begin = time.monotonic_ns()
+            result = widget_arrange(self, size, optimal=optimal)
+            duration_ms = (time.monotonic_ns() - begin) / 1e6
+            record("arrangement", begin_ns=begin, duration_ms=duration_ms,
+                   owner=id(self), widget=type(self).__name__, container=list(size),
+                   revision=revision, optimal=optimal,
+                   hit=self._arrangement_cache.hits > hits,
+                   result=[list(result.scroll_spacing), [
+                       [list(p.region), list(p.offset), list(p.margin), id(p.widget),
+                        p.order, p.fixed, p.overlay, p.absolute] for p in result.placements]])
+            return result
+
+        Widget.arrange = measured_arrangement
     if os.environ.get("TOAD_VALIDATION_BOX_MODELS") == "1":
         from textual.widget import Widget
 
@@ -117,6 +138,10 @@ def install_observer():
 
     SideBar.toggle = measured_toggle
     from toad.screens.session_view import SessionView
+    if os.environ.get("TOAD_VALIDATION_COLD_PRESENTATIONS") == "1":
+        SessionView.RETAIN_INACTIVE_PRESENTATION = False
+    if os.environ.get("TOAD_VALIDATION_COLD_PAINT") == "1":
+        SessionView.RETAIN_INACTIVE_PAINT = False
     from toad.app import ToadApp
     from toad.widgets.conversation import Conversation
     exception_handler = ToadApp._handle_exception
@@ -578,6 +603,10 @@ class ValidationDriver(LinuxDriver):
                 "size": list(app.size), "tabs": [(tab.mode_name, tab.title) for tab in app.open_tabs],
                 "histories": histories, "pid": os.getpid(), "widgets": rows,
                 "mouse_captured": app.mouse_captured is not None,
+                "presentation_policy": {
+                    "retain_inactive_presentation": screen.RETAIN_INACTIVE_PRESENTATION,
+                    "retain_inactive_paint": getattr(screen, "RETAIN_INACTIVE_PAINT", None),
+                },
                 "diagnostics": {"features": sorted(app.features),
                                 "decorated_dispatch_counts": dict(dispatch_counts),
                                 "devtools_connected": app._is_devtools_connected,
