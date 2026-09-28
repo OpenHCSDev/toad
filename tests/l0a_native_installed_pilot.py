@@ -1,5 +1,7 @@
 """Installed Toad/ACP/owner/Pi path with a loopback-only model fixture."""
 
+from toad.navigation_target import DirectTarget, channel_target
+
 import asyncio
 import json
 import os
@@ -46,8 +48,8 @@ async def notification_feedback(
         owner_mode=owner_mode,
         project_path=project,
         me=user,
-        target="#team",
-        kind="channel",
+        target=channel_target("#team"),
+
     )
     channel = app.screen.query_one(CommsChatView)
     entered.clear()
@@ -365,8 +367,8 @@ async def main(*, notification_only=False):
                     owner_mode=owner_mode,
                     project_path=project,
                     me=user,
-                    target="beta",
-                    kind="dm",
+                    target=DirectTarget("beta"),
+
                 )
                 dm = app.screen.query_one(CommsChatView)
                 entered.clear()

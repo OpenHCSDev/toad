@@ -98,4 +98,4 @@ class GoalDetails(ModalScreen[None]):
     def open_target(self, event: SelectTarget) -> None:
         event.stop()
         self.dismiss(None)
-        self.app.post_message(SelectTarget(event.target, event.kind))
+        self.app.post_message(SelectTarget(event.target))

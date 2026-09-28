@@ -1,5 +1,7 @@
 """One native Channels tree survives new/loading/existing tabs and tab closure."""
 
+from toad.navigation_target import channel_target
+
 import asyncio
 import os
 from pathlib import Path
@@ -117,7 +119,7 @@ async def main():
                         await asyncio.gather(opening, return_exceptions=True)
                 await wait_channel_roster(app, pilot, "#all")
                 channel = await app.open_comms_session(owner_mode=owner, project_path=root,
-                                                       me="owner", target="#shared", kind="channel")
+                                                       me="owner", target=channel_target("#shared"))
                 await wait_channel_roster(app, pilot, "#all")
                 for mode in (second, thread, owner, channel, second):
                     await app.switch_mode(mode)
@@ -146,7 +148,7 @@ async def main():
 
                 with patch.object(CommsChatView, "on_mount", slow_mount):
                     opening = asyncio.create_task(app.open_comms_session(
-                        owner_mode=owner, project_path=root, me="owner", target="#slow", kind="channel"))
+                        owner_mode=owner, project_path=root, me="owner", target=channel_target("#slow")))
                     try:
                         await asyncio.wait_for(mount_entered.wait(), 3)
                         await app.switch_mode(owner)

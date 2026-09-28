@@ -1,0 +1,16 @@
+ATTACHED_AND_NAVIGABLE
+PROVIDER_FIRST
+QUEUED ['948377b738cb448ea2ea7ee0a4045200']
+NATIVE_QUEUE_DONE 2
+QUEUE_PROJECTION QueueProjection(status='available', items=(), restored=())
+INPUT_DELIVERY {"inputs": [], "historicalCount": 0, "dismissedHistoricalCount": 0, "historicalInputs": [], "currentScope": "owner_queue"}
+NATIVE_MAPPING 948377b738cb448ea2ea7ee0a4045200 52de6e7024875a9ed50317511a570d9a
+NATIVE_CONSUMPTION_CONFIRMED
+COLD_REATTACH_CONFIRMED
+DM_NATIVE_REPLY_CONFIRMED
+CHANNEL_ACTIVE_STATUS Active: ⌛ beta
+CHANNEL_IDLE_STATUS_CONFIRMED
+CHANNEL_NOTIFICATION Checked — no response (1)
+STOPPED_OWNER_NATIVE_REOPEN_CONFIRMED
+IDLE {"seconds": 2.106888132999302, "ownerCpuSeconds": 0.10999999999999943, "uiCpuSeconds": 0.6700000000000017, "modelRequests": 0}
+PASS: installed actual native queue path; loopback model only

@@ -1,5 +1,7 @@
 """An attachment reuses core page-reader caches without retaining stale routes."""
 
+from toad.navigation_target import FeedTarget
+
 import asyncio
 import json
 import os
@@ -77,7 +79,7 @@ async def main():
                 patch("toad.widgets.comms_sidebar.wire", side_effect=AssertionError("new sidebar reader")),
             ):
                 await app.open_comms_session(owner_mode=owner_mode, project_path=root,
-                                             me="fixture", target="#all", kind="irc")
+                                             me="fixture", target=FeedTarget())
             from toad.widgets.comms_chat import CommsChatView
             from toad.widgets.comms_sidebar import CommsSidebar
 

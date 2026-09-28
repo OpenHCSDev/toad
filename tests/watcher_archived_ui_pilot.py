@@ -29,6 +29,7 @@ async def until(predicate):
 
 async def main():
     from agent_comms.comms import wire
+    from toad.navigation_target import channel_target, DirectTarget
     from toad.app import ToadApp
     from toad.widgets.comms_chat import CommsChatView
 
@@ -49,10 +50,11 @@ async def main():
                     and watcher._observation.process.pid is not None)
         child_pid = watcher._observation.process.pid
         report["watch_child"] = child_pid
-        for target, kind in (("#comms", "channel"), ("agent-comms-ux", "dm"),
-                             ("pr95-selected-pi-summary-owner", "dm")):
+        for destination in (channel_target("#comms"), DirectTarget("agent-comms-ux"),
+                            DirectTarget("pr95-selected-pi-summary-owner")):
+            target = destination.name
             await app.open_comms_session(owner_mode=original, project_path=project,
-                                         me="user", target=target, kind=kind)
+                                         me="user", target=destination)
             await until(lambda: bool(app.screen.query(CommsChatView)))
             chat = app.screen.query_one(CommsChatView)
             await until(lambda: chat.target == target and chat._history_initialized)

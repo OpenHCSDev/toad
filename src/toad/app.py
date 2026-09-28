@@ -1,3 +1,5 @@
+
+from toad.navigation_target import DirectTarget, NavigationTarget
 import asyncio
 import ast
 from dataclasses import replace
@@ -926,13 +928,12 @@ class ToadApp(App, inherit_bindings=False):
         owner_mode: str,
         project_path: Path,
         me: str,
-        target: str,
-        kind: str,
+        target: NavigationTarget,
     ) -> str:
         """Open or reuse one view of a wire destination for this owner tab."""
         from toad.navigation_target import NavigationContext, NavigationTarget
 
-        return await NavigationTarget.decode(target, kind).open(
+        return await target.open(
             NavigationContext(self, owner_mode, project_path, me)
         )
 
@@ -1327,7 +1328,7 @@ class ToadApp(App, inherit_bindings=False):
             )
             return await self.open_comms_session(
                 owner_mode=owner_mode, project_path=project_path,
-                me=source._comms_thread, target=thread.name, kind="dm",
+                me=source._comms_thread, target=DirectTarget(thread.name),
             )
         if existing := prepared.existing:
             screen = self._main_session_screen(existing.mode)
@@ -1351,8 +1352,8 @@ class ToadApp(App, inherit_bindings=False):
                 owner_mode=owner_mode,
                 project_path=project_path,
                 me=me,
-                target=thread.name,
-                kind="dm",
+                target=DirectTarget(thread.name),
+
             )
 
         if source._agent is None:

@@ -1,5 +1,7 @@
 """Warm tab switches retain native channel rows and never paint an empty roster."""
 
+from toad.navigation_target import channel_target
+
 import asyncio
 import os
 from pathlib import Path
@@ -63,7 +65,7 @@ async def main():
             second = (await app.new_session_screen(app.get_main_screen)).mode_name
             await settled(app, pilot)
             channel = await app.open_comms_session(owner_mode=first, project_path=root,
-                                                   me=me, target="#kept", kind="channel")
+                                                   me=me, target=channel_target("#kept"))
             await settled(app, pilot)
             modes = (first, second, channel)
             sidebars, original_rows = {}, {}

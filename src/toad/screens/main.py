@@ -37,7 +37,7 @@ from toad.widgets.comms_chat import resolve_session_thread, session_thread_name
 from toad.widgets.comms_fork_dialog import ForkDialog
 from toad.widgets.comms_sidebar import CoordinationStatus, CommsSidebar, SelectTarget
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, TabHistoryControls
-from toad.navigation_target import NavigationContext, NavigationOwner
+from toad.navigation_target import FeedTarget, DirectTarget, NavigationContext, NavigationOwner
 from toad.widgets.session_tabs import SessionsTabs
 from toad.widgets.footer import Footer
 from toad.session_tracker import SidebarState
@@ -356,11 +356,6 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
             self._comms_thread = resolved
         return self._comms_thread
 
-    async def _open_comms(self, target: str, kind: str) -> None:
-        if self.id is None:
-            return
-        await self.open_sidebar_target(target, kind)
-
     @property
     def navigation_context(self) -> NavigationContext:
         assert self.id is not None
@@ -381,9 +376,8 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
 
     async def action_toggle_irc(self) -> None:
         """Open the IRC feed as a native Toad session."""
-        from toad.constants import ALL_COMMS_TARGET
-
-        await self._open_comms(ALL_COMMS_TARGET, "irc")
+        if self.id is not None:
+            await self.open_sidebar_target(FeedTarget())
 
     async def action_toggle_dm(self) -> None:
         """Open the last-selected DM as a native Toad session."""
@@ -399,13 +393,13 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
                 if name != self._session_thread
             ]
             target = peers[0] if peers else ""
-        if target:
-            await self._open_comms(target, "dm")
+        if target and self.id is not None:
+            await self.open_sidebar_target(DirectTarget(target))
 
     @on(SelectTarget)
     async def on_comms_select_target(self, event: SelectTarget) -> None:
         """Open channels and DMs through Toad's native session modes."""
-        await self.open_sidebar_target(event.target, event.kind)
+        await self.open_sidebar_target(event.target)
 
     @on(CommsSidebar.ThreadAction)
     async def on_comms_thread_action(self, event: CommsSidebar.ThreadAction) -> None:

@@ -1,5 +1,7 @@
 """Existing chat file references resolve to highlighted in-terminal previews."""
 
+from toad.navigation_target import channel_target
+
 import asyncio
 import os
 import tempfile
@@ -236,7 +238,7 @@ async def main():
             # channel; closing it returns there, not through its owning agent.
             channel = await app.open_comms_session(
                 owner_mode=owner_mode, project_path=project,
-                me="project", target="#all", kind="channel",
+                me="project", target=channel_target("#all"),
             )
             chat = app.screen.query_one(CommsChatView)
             channel_response = AgentResponse("See plans/tag-channel-view-plan.md")

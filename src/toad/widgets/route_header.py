@@ -1,5 +1,7 @@
 """One compact, linked header for incoming and outgoing routed messages."""
 
+from toad.navigation_target import linked_target
+
 from agent_comms.routing import MessageRoute
 from textual.content import Content
 from textual.style import Style
@@ -44,7 +46,7 @@ class RouteHeader(Static, can_focus=True):
         )
 
     def action_open_target(self, target: str) -> None:
-        self.post_message(SelectTarget(target, "channel" if target.startswith("#") else "thread"))
+        self.post_message(SelectTarget(linked_target(target)))
 
     def action_open_primary(self) -> None:
         if self.incoming:

@@ -7,6 +7,8 @@ HOME, legacy wire and UI state remain disposable /dev/shm data.
 
 from __future__ import annotations
 
+from toad.navigation_target import channel_target
+
 import asyncio
 from contextlib import asynccontextmanager
 import os
@@ -78,8 +80,8 @@ async def main() -> None:
                         owner_mode=app.current_mode,
                         project_path=sandbox,
                         me="user",
-                        target="#team",
-                        kind="channel",
+                        target=channel_target("#team"),
+
                     )
                     view = app.screen.query_one(CommsChatView)
                     await view._refresh()

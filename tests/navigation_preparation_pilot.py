@@ -1,5 +1,7 @@
 """Blocked route metadata must not hold typing, steal focus, or reopen owners."""
 
+from toad.navigation_target import channel_target, ThreadTarget
+
 import asyncio
 import os
 from pathlib import Path
@@ -102,7 +104,7 @@ async def mounted() -> None:
                     with patch.object(request_type, "read", gated):
                         opening = asyncio.create_task(app.open_comms_session(
                             owner_mode=owner, project_path=root, me=source._comms_thread,
-                            target="metadata-peer" if kind == "thread" else "#all", kind=kind,
+                            target=ThreadTarget("metadata-peer") if kind == "thread" else channel_target("#all"),
                         ))
                         assert await asyncio.to_thread(entered.wait, 2)
                         assert thread_ids == [thread_ids[0]] and thread_ids[0] != threading.get_ident()
@@ -151,7 +153,7 @@ async def mounted() -> None:
                 with patch.object(CommsNavigationRequest, "read", after_close):
                     opening = asyncio.create_task(app.open_comms_session(
                         owner_mode=owner, project_path=root, me=source._comms_thread,
-                        target="#all", kind="channel",
+                        target=channel_target("#all"),
                     ))
                     assert await asyncio.to_thread(entered.wait, 2)
                     await asyncio.wait_for(app.close_session_mode(owner), 2)

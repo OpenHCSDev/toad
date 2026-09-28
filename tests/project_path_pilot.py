@@ -1,5 +1,7 @@
 """Real ACP project change, automatic continuation, and synchronized Toad views."""
 
+from toad.navigation_target import FeedTarget
+
 import asyncio
 import json
 import os
@@ -96,8 +98,8 @@ for line in sys.stdin:
                 owner_mode=mode,
                 project_path=old,
                 me="old-project",
-                target="#any",
-                kind="irc",
+                target=FeedTarget(),
+
             )
             chat_screen = app.screen
             await app.switch_mode(mode)
@@ -144,8 +146,8 @@ for line in sys.stdin:
                     owner_mode=mode,
                     project_path=new,
                     me=thread.name,
-                    target="#any",
-                    kind="irc",
+                    target=FeedTarget(),
+
                 )
                 == chat_mode
             )

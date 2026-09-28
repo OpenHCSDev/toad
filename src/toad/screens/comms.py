@@ -20,7 +20,7 @@ from toad.widgets.channels_sidebar import ChannelsSlot
 from toad.session_tracker import SidebarState
 from toad.widgets.session_tabs import SessionsTabs
 from toad.widgets.side_bar import SideBar, TabHistoryControls
-from toad.navigation_target import NavigationContext, NavigationOwner
+from toad.navigation_target import FeedTarget, DirectTarget, NavigationContext, NavigationOwner
 from toad.widgets.recovery_view import RecoveryView
 from toad.widgets.thread_comms import RelationshipSort, ThreadCommsSidebar
 from toad.screens.session_view import SessionView
@@ -233,16 +233,13 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
         event.stop()
         self.action_focus_prompt()
 
-    async def _open(self, target: str, kind: str) -> None:
-        await self.open_sidebar_target(target, kind)
-
     @property
     def navigation_context(self) -> NavigationContext:
         return NavigationContext(self.app, self.owner_mode, self.project_path, self.me)
 
     @on(SelectTarget)
     async def on_select_target(self, event: SelectTarget) -> None:
-        await self.open_sidebar_target(event.target, event.kind)
+        await self.open_sidebar_target(event.target)
 
     async def action_back_to_agent(self) -> None:
         if self.app.session_tracker.get_session(self.owner_mode) is None:
@@ -254,7 +251,7 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
         if self.kind == "irc":
             await self.action_back_to_agent()
         else:
-            await self._open(ALL_COMMS_TARGET, "irc")
+            await self.open_sidebar_target(FeedTarget())
 
     async def action_toggle_dm(self) -> None:
         if self.kind == "dm":
@@ -265,7 +262,7 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
             name for name in sorted(sidebar._comms_registry_names()) if name != self.me
         ]
         if peers:
-            await self._open(peers[0], "dm")
+            await self.open_sidebar_target(DirectTarget(peers[0]))
 
     def action_session_previous(self) -> None:
         self.post_message(messages.SessionNavigate(self.owner_mode, -1))

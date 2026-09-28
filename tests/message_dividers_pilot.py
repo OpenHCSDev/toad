@@ -1,5 +1,7 @@
 """Full-width timed headers stay inside text blocks across native and wire views."""
 
+from toad.navigation_target import channel_target
+
 import asyncio
 import os
 import tempfile
@@ -81,7 +83,7 @@ async def main() -> None:
 
             await app.open_comms_session(owner_mode=owner, project_path=root,
                                          me=app._main_session_screen(owner)._comms_thread,
-                                         target="#all", kind="channel")
+                                         target=channel_target("#all"))
             chat = app.screen.query_one(CommsChatView)
             async with asyncio.timeout(5):
                 while not any(message.seq == sent.seq for message, _ in chat._history):

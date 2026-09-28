@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from toad.navigation_target import DirectTarget
+
 import asyncio
 import json
 import os
@@ -555,8 +557,8 @@ for line in sys.stdin:
                 owner_mode=owner_mode,
                 project_path=project,
                 me=me,
-                target="missing-peer",
-                kind="dm",
+                target=DirectTarget("missing-peer"),
+
             )
             await pilot.pause()
             assert opened == owner_mode
@@ -921,7 +923,6 @@ for line in sys.stdin:
                 "actions": {},
             }
             resumable_row = row(app.screen, "resumable-peer")
-            assert resumable_row.kind == "thread"
             resumable_row.scroll_visible(animate=False)
             await pilot.pause()
             assert await pilot.click(resumable_row)

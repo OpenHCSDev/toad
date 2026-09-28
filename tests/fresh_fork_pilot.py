@@ -50,7 +50,6 @@ async def main():
             sidebar = app.screen.query_one(CommsSidebar)
             await sidebar.sync_sessions()
             row = next(row for row in sidebar.query(CommsRow) if row.target_name == "child")
-            assert row.kind == "dm"
             # Registry reservation becomes a live owner before its session file
             # exists. Refresh must update even an already-created sidebar row.
             comms.owners.acquire_thread("child", owner_pid=os.getpid())

@@ -30,7 +30,7 @@ class WrapApp(App):
     @on(SelectTarget)
     def selected(self, event: SelectTarget):
         event.stop()
-        self.opened.append((event.target, event.kind))
+        self.opened.append((event.target.name, event.target.declared_name))
 
 
 async def main():

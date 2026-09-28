@@ -1,5 +1,7 @@
 """Persistent native unread counts reach sidebar/tabs; Start uses the core tool."""
 
+from toad.navigation_target import channel_target
+
 import asyncio
 import json
 import os
@@ -60,7 +62,7 @@ async def main():
             assert comms.views.viewer_snapshot(str(root)).thread_unread["worker"] == 0
 
             channel_mode = await app.open_comms_session(owner_mode=owner_mode, project_path=root,
-                                                        me="worker", target="#team", kind="channel")
+                                                        me="worker", target=channel_target("#team"))
             await pilot.pause()
             reply(source, "New reply while another tab is selected")
             sidebar = await refresh(app, pilot)

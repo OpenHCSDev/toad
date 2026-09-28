@@ -6,6 +6,8 @@ reviewed private USER ingress. This pilot never launches ACP or a provider.
 
 from __future__ import annotations
 
+from toad.navigation_target import DirectTarget, channel_target
+
 import asyncio
 import os
 import sqlite3
@@ -98,8 +100,8 @@ async def main() -> None:
                         owner_mode=owner_mode,
                         project_path=sandbox,
                         me="user",
-                        target="#team",
-                        kind="channel",
+                        target=channel_target("#team"),
+
                     )
                     channel = app.screen.query_one(CommsChatView)
                     await channel._refresh()
@@ -130,8 +132,8 @@ async def main() -> None:
                         owner_mode=owner_mode,
                         project_path=sandbox,
                         me="user",
-                        target="peer",
-                        kind="dm",
+                        target=DirectTarget("peer"),
+
                     )
                     dm = app.screen.query_one(CommsChatView)
                     await dm._refresh()
@@ -206,8 +208,8 @@ async def main() -> None:
                         owner_mode=owner_mode,
                         project_path=sandbox,
                         me="user",
-                        target="#team",
-                        kind="channel",
+                        target=channel_target("#team"),
+
                     )
                     channel = app.screen.query_one(CommsChatView)
                     before = len(wire(root).bus.log.full_history())
@@ -256,8 +258,8 @@ async def main() -> None:
                         owner_mode=owner_mode,
                         project_path=sandbox,
                         me="user",
-                        target="owner",
-                        kind="dm",
+                        target=DirectTarget("owner"),
+
                     )
                     blocked = app.screen.query_one(CommsChatView)
                     blocked_send = blocked._wire.messaging.send_user_message

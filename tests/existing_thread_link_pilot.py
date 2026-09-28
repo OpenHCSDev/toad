@@ -1,5 +1,7 @@
 """Clicking an already-open thread never creates a provisional tab."""
 
+from toad.navigation_target import DirectTarget
+
 import asyncio
 import os
 import tempfile
@@ -78,7 +80,7 @@ async def main():
             # omit goal controls. A real link click must still reuse the tab.
             await app.new_session_screen(app.get_main_screen)
             await app.open_comms_session(
-                owner_mode=owner, project_path=root, me="owner", target="peer", kind="dm",
+                owner_mode=owner, project_path=root, me="owner", target=DirectTarget("peer"),
             )
             await pilot.pause()
             chat = app.screen.query_one(CommsChatView)

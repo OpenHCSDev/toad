@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from toad.navigation_target import NavigationTarget, person_target, linked_target
+
 import asyncio
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -136,7 +138,7 @@ class RelationshipRows(SidebarGroup):
             row_keys = tuple(key for key, entry in entries.items() if entry.available and entry.person is not None)
             inputs = tuple(ThreadRowInput(
                 entries[key].person,
-                unread=tree.unread(entries[key].target, CommsSidebar._person_kind(entries[key].person)),
+                unread=tree.unread(person_target(entries[key].person)),
                 action_status=tree.app.pending_thread_actions.get(entries[key].target),
             ) for key in row_keys)
             prepared = await tree.app.preparation.submit(ThreadRowsWork(inputs)) if inputs else ()
@@ -158,14 +160,14 @@ class RelationshipRows(SidebarGroup):
 
             def create(key):
                 entry = entries[key]
-                kind = (CommsSidebar._person_kind(entry.person) if entry.person else entry.kind)
-                return RelationshipRow(kind, entry.target, entry.target)
+                target = person_target(entry.person) if entry.person else linked_target(entry.target)
+                return RelationshipRow(target, entry.target)
 
             def update(key, row):
                 entry = entries[key]
                 row.entry = entry
                 row.available = entry.available
-                row.kind = CommsSidebar._person_kind(entry.person) if entry.person else entry.kind
+                row.target = person_target(entry.person) if entry.person else linked_target(entry.target)
                 if not entry.available:
                     row.remove_class("-busy", "-unread", "-current")
                     row.add_class("-wire-thread")
@@ -463,20 +465,19 @@ class ThreadCommsSidebar(SidebarVisibilityObserver, TargetTree):
         for visible in self._ordered_rows():
             visible.set_class(visible is row, "-selected")
 
-    def unread(self, name, kind):
+    def unread(self, target: NavigationTarget):
         snapshot = self.app._sidebar_snapshot
         if (snapshot is None or self.wire_root is None
                 or Path(self.wire_root).resolve() != self.app.coordination_wire.root.resolve()):
             return ExactUnread()
-        return (UnreadPresentation.for_thread(snapshot, name) if kind == "thread"
-                else ExactUnread(snapshot.unread.get(name, 0)))
+        return target.unread(snapshot)
 
-    def open_target(self, target: str, kind: str):
+    def open_target(self, target: NavigationTarget):
         if self.wire_root is None or Path(self.wire_root).resolve() != self.app.coordination_wire.root.resolve():
             self.notify("This view uses a different wire; open its matching connection to navigate.",
                         title="Comms", severity="warning")
             return
-        self.post_message(SelectTarget(target, kind))
+        self.post_message(SelectTarget(target))
 
     def request_navigation(self, row, *, entry=None, generation=None):
         if not row.is_attached:
@@ -507,8 +508,8 @@ class ThreadCommsSidebar(SidebarVisibilityObserver, TargetTree):
                 self.notify("This relationship changed; refresh the list before opening it.", title="Comms")
                 self.refresh_relationships(force=True)
                 return
-            kind = CommsSidebar._person_kind(current.person) if current.person else current.kind
-            self.open_target(current.target, kind)
+            target = person_target(current.person) if current.person else linked_target(current.target)
+            self.open_target(target)
         except (OSError, ValueError) as error:
             self.notify(str(error), title="Comms target unavailable", severity="error")
 

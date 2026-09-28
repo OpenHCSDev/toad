@@ -1,5 +1,7 @@
 """A visible divider cannot acknowledge a message whose body is below the viewport."""
 
+from toad.navigation_target import channel_target
+
 import asyncio
 import os
 import tempfile
@@ -37,7 +39,7 @@ async def main() -> None:
                 await pilot.pause()
                 await app.open_comms_session(
                     owner_mode=app.current_mode, project_path=root, me="peer",
-                    target="#team", kind="channel",
+                    target=channel_target("#team"),
                 )
                 chat = app.screen.query_one(CommsChatView)
                 async with asyncio.timeout(5):

@@ -1,5 +1,7 @@
 """A missing pinned gateway client and dual wire roots fail closed in Toad."""
 
+from toad.navigation_target import FeedTarget
+
 import asyncio
 import os
 from pathlib import Path
@@ -97,7 +99,7 @@ async def dual_root_projection():
                 # A channel tab is scoped to env wire A; it cannot borrow
                 # owner identity from B merely because both contain fixture.
                 mode = await app.open_comms_session(owner_mode=owner_mode, project_path=root,
-                                                    me="fixture", target="#any", kind="irc")
+                                                    me="fixture", target=FeedTarget())
                 await pilot.pause()
                 channel = app.screen.query_one(RecoveryView)
                 assert channel._wire_root is None

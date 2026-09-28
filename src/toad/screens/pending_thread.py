@@ -68,7 +68,7 @@ class PendingThreadScreen(SessionView, NavigationOwner, can_focus=False):
     @on(SelectTarget)
     async def on_select_target(self, event: SelectTarget) -> None:
         event.stop()
-        await self.open_sidebar_target(event.target, event.kind)
+        await self.open_sidebar_target(event.target)
 
     @property
     def navigation_context(self) -> NavigationContext:

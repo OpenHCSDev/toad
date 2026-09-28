@@ -1,5 +1,7 @@
 """Stop waits off the UI loop, survives view closure, and reports failures."""
 
+from toad.navigation_target import DirectTarget, channel_target
+
 import asyncio
 import os
 import tempfile
@@ -51,9 +53,9 @@ async def main():
                 source = app.current_mode
                 other = (await app.new_session_screen(app.get_main_screen)).mode_name
                 dm = await app.open_comms_session(owner_mode=other, project_path=root,
-                    me="actor", target="victim", kind="dm")
+                    me="actor", target=DirectTarget("victim"))
                 channel = await app.open_comms_session(owner_mode=other, project_path=root,
-                    me="actor", target="#all", kind="channel")
+                    me="actor", target=channel_target("#all"))
                 await pilot.pause()
                 await app.switch_mode(source)
                 sidebar = app.screen.query_one(CommsSidebar)
