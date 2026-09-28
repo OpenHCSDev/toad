@@ -72,11 +72,7 @@ from toad.slash_command import SlashCommand
 from toad.widgets.flash import Flash
 from toad.widgets.goal_bar import GoalBar, GoalControl
 from toad.widgets.history_anchor import HistoryWindow
-from toad.widgets.input_delivery import (
-    InputDeliveryBar,
-    InputDeliveryDetails,
-    empty_delivery,
-)
+from toad.widgets.input_delivery import InputDeliveryBar, InputDeliveryDetails, empty_delivery
 from toad.widgets.menu import Menu
 from toad.widgets.message_filter import ALL_CATEGORIES, MessageCategory
 from toad.widgets.native_history import NativeHistory
@@ -462,9 +458,7 @@ class Conversation(containers.Vertical):
     ]
 
     busy_count = var(0)
-    visible_categories: var[frozenset[MessageCategory]] = var(
-        lambda: ALL_CATEGORIES, init=False
-    )
+    visible_categories: var[frozenset[MessageCategory]] = var(lambda: ALL_CATEGORIES, init=False)
     cursor_offset = var(-1, init=False)
     project_path = var("")
     working_directory: var[str] = var("")
@@ -1434,9 +1428,7 @@ class Conversation(containers.Vertical):
                     return
                 self.turn = "client"
 
-                message = (
-                    getattr(error, "message", str(error)) or "no details were provided"
-                )
+                message = getattr(error, "message", str(error)) or "no details were provided"
                 self.activity = ""
                 self.activity_started_at = None
                 # A send failure cannot identify/remove a remote row by text.
@@ -1449,11 +1441,7 @@ class Conversation(containers.Vertical):
                     )
                 )
             finally:
-                if (
-                    current_request_owner()
-                    and immediate
-                    and self.delivering_prompt == prompt
-                ):
+                if current_request_owner() and immediate and self.delivering_prompt == prompt:
                     self.delivering_prompt = ""
                 if not server_owned_turn:
                     self.busy_count -= 1
@@ -1583,12 +1571,9 @@ class Conversation(containers.Vertical):
         self, message: acp_messages.CommsUpdated
     ) -> None:
         message.stop()
-        if (
-            message.agent is not self.agent
-            or self.agent is None
-            or message.session_id != self.agent.session_id
-            or message.sequence <= self._private_cursor_sequence
-        ):
+        if (message.agent is not self.agent or self.agent is None
+                or message.session_id != self.agent.session_id
+                or message.sequence <= self._private_cursor_sequence):
             return
         self._private_cursor_sequence = message.sequence
         self.native_history_status = message.update.status
@@ -1725,21 +1710,15 @@ class Conversation(containers.Vertical):
         )
 
     async def on_queue_view_update(self, message: acp_messages.CommsUpdated) -> None:
-        if (
-            self.agent is None
-            or message.agent is not self.agent
-            or message.session_id != self.agent.session_id
-            or message.sequence <= self._queue_sequence
-        ):
+        if (self.agent is None or message.agent is not self.agent
+                or message.session_id != self.agent.session_id
+                or message.sequence <= self._queue_sequence):
             return
         self._queue_sequence = message.sequence
         self.queue_projection = message.update.projection
         self.queued_prompts = [row.text for row in message.update.projection.items]
         for started in message.update.starts:
-            if (
-                message.agent is not self.agent
-                or message.session_id != self.agent.session_id
-            ):
+            if message.agent is not self.agent or message.session_id != self.agent.session_id:
                 return
             if started.input_id == self._sending_queue_input_id:
                 self._sending_queue_input_id = None
@@ -1748,11 +1727,8 @@ class Conversation(containers.Vertical):
             await self.post(UserInput(started.text))
 
     async def on_input_started(self, message: acp_messages.CommsUpdated):
-        if (
-            self.agent is None
-            or message.agent is not self.agent
-            or message.session_id != self.agent.session_id
-        ):
+        if (self.agent is None or message.agent is not self.agent
+                or message.session_id != self.agent.session_id):
             return
         if message.update.text is not None:
             self.new_block()
@@ -1760,11 +1736,8 @@ class Conversation(containers.Vertical):
 
     def on_input_failed(self, message: acp_messages.CommsUpdated) -> None:
         """Only a locally failed request may recover its own draft text."""
-        if (
-            self.agent is None
-            or message.agent is not self.agent
-            or message.session_id != self.agent.session_id
-        ):
+        if (self.agent is None or message.agent is not self.agent
+                or message.session_id != self.agent.session_id):
             return
         queue = self.agent.queue_attachment
         if message.recover_draft and (
@@ -1809,13 +1782,8 @@ class Conversation(containers.Vertical):
             message.page.events,
             self.app.render_processes,
         )
-        if (
-            not self.is_attached
-            or generation != self._transcript_generation
-            or self.agent is not agent
-            or self.window is not window
-            or self.contents is not contents
-        ):
+        if (not self.is_attached or generation != self._transcript_generation
+                or self.agent is not agent or self.window is not window or self.contents is not contents):
             return
         if agent is None:
             return
@@ -1856,32 +1824,22 @@ class Conversation(containers.Vertical):
 
         from toad.acp.agent import Agent
         from toad.widgets.committed_presentation import (
-            CheckpointBarrier,
-            CommitEvidence,
-            CommitParticipant,
-            CommittedHistory,
-            checkpoint_plan,
-            retirement_candidates,
+            CheckpointBarrier, CommitEvidence, CommitParticipant, CommittedHistory,
+            checkpoint_plan, retirement_candidates,
         )
         from toad.widgets.transcript_history import TranscriptHistory
 
         window = self.query_one_optional(Window)
         contents = self.query_one_optional(Contents)
         if (
-            window is None
-            or contents is None
+            window is None or contents is None
             or not self._transcript_dirty
             or not isinstance(self.agent, Agent)
             or not self.agent_ready
             or not self.agent.transcript_ready
             or self._managed_turn_id is not None
-            or any(
-                isinstance(node, CheckpointBarrier) for node in contents.walk_children()
-            )
-            or (
-                not self._needs_transcript_checkpoint
-                and len(contents.children) < self.MAX_LIVE_BLOCKS
-            )
+            or any(isinstance(node, CheckpointBarrier) for node in contents.walk_children())
+            or (not self._needs_transcript_checkpoint and len(contents.children) < self.MAX_LIVE_BLOCKS)
         ):
             return
         generation = self._transcript_generation
@@ -1890,30 +1848,19 @@ class Conversation(containers.Vertical):
         # A page cannot replace live blocks posted while its read or fragment
         # preparation is in flight unless it explicitly contains their identity.
         before_read = tuple(contents.children)
-        history = next(
-            (child for child in before_read if isinstance(child, CommittedHistory)),
-            None,
-        )
-        potential = tuple(
-            child
-            for child in before_read
-            if child is not history and isinstance(child, CommitParticipant)
-        )
+        history = next((child for child in before_read if isinstance(child, CommittedHistory)), None)
+        potential = tuple(child for child in before_read
+                          if child is not history and isinstance(child, CommitParticipant))
         if not plan.ready(history) or not plan.permits(self, potential):
             return
 
         def is_current() -> bool:
-            return (
-                generation == self._transcript_generation
-                and self.is_attached
-                and not self._closing
-                and not self._pruning
-                and self.agent is agent
-                and self.query_one_optional(Window) is window
-                and self.query_one_optional(Contents) is contents
-                and self._managed_turn_id is None
-                and plan.current(window)
-            )
+            return (generation == self._transcript_generation
+                    and self.is_attached and not self._closing and not self._pruning
+                    and self.agent is agent
+                    and self.query_one_optional(Window) is window
+                    and self.query_one_optional(Contents) is contents
+                    and self._managed_turn_id is None and plan.current(window))
 
         try:
             page = await agent.get_transcript_page()
@@ -1930,16 +1877,11 @@ class Conversation(containers.Vertical):
             return
         if prepared is None or not is_current():
             return
-        evidence = CommitEvidence(
-            frozenset(before_read), prepared.sequences, prepared.history
-        )
+        evidence = CommitEvidence(frozenset(before_read), prepared.sequences, prepared.history)
         async with window.history_lock:
             retired = retirement_candidates(contents.children, evidence)
-            if (
-                not is_current()
-                or not plan.ready(prepared.history)
-                or not plan.permits(self, retired)
-            ):
+            if (not is_current() or not plan.ready(prepared.history)
+                    or not plan.permits(self, retired)):
                 return
             self.new_block()
             if self.cursor_block in retired:
@@ -1950,9 +1892,7 @@ class Conversation(containers.Vertical):
                 try:
                     if prepared.history is None:
                         replacement = TranscriptHistory(
-                            page,
-                            agent.get_transcript_page,
-                            fragments=prepared.fragments,
+                            page, agent.get_transcript_page, fragments=prepared.fragments,
                             committed=False,
                         )
                         await contents.mount(replacement, before=0)
@@ -1971,11 +1911,7 @@ class Conversation(containers.Vertical):
                     accepted = True
                     await contents.remove_children(retired)
                 finally:
-                    if (
-                        not accepted
-                        and replacement is not None
-                        and replacement.is_attached
-                    ):
+                    if not accepted and replacement is not None and replacement.is_attached:
                         await replacement.remove()
         if not window.is_attached or not contents.is_attached:
             return
@@ -2536,9 +2472,7 @@ class Conversation(containers.Vertical):
             return
         self._delivery_refresh_revision += 1
         if self._delivery_refresh_task is None or self._delivery_refresh_task.done():
-            self._delivery_refresh_task = asyncio.create_task(
-                self._read_input_dispositions()
-            )
+            self._delivery_refresh_task = asyncio.create_task(self._read_input_dispositions())
 
     async def refresh_input_dispositions(self) -> None:
         self._invalidate_input_dispositions()
@@ -2766,11 +2700,7 @@ class Conversation(containers.Vertical):
             await self.agent.compact_context(instructions)
             self.flash("Context compacted", style="success")
         except (OSError, ValueError, jsonrpc.JSONRPCError) as error:
-            await self.post(
-                AgentResponse(
-                    f"## Compaction failed\n\n{error}", category=MessageCategory.OTHER
-                )
-            )
+            await self.post(AgentResponse(f"## Compaction failed\n\n{error}", category=MessageCategory.OTHER))
         finally:
             self._compacting = False
 

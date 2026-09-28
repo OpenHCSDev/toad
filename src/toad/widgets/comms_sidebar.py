@@ -23,12 +23,7 @@ from typing import TYPE_CHECKING, cast
 
 from agent_comms import context_tool_catalog
 from agent_comms.comms import Comms, wire
-from agent_comms.presentation import (
-    ChannelView,
-    CoordinationSnapshot,
-    ThreadView,
-    WireRevision,
-)
+from agent_comms.presentation import ChannelView, CoordinationSnapshot, ThreadView, WireRevision
 from textual import on
 from textual.app import ComposeResult
 from textual.binding import Binding
@@ -58,11 +53,7 @@ from toad.widgets.session_sidebar import ThreadStatusRow
 from toad.widgets.session_sort import ChannelListSort, SessionSort
 from toad.widgets.side_bar import SidebarVisibilityObserver
 from toad.widgets.sidebar_tree import SidebarDisclosure, SidebarGroup, TargetTree
-from toad.widgets.virtual_channel_list import (
-    VirtualChannelList,
-    VirtualChoice,
-    styled_row,
-)
+from toad.widgets.virtual_channel_list import VirtualChannelList, VirtualChoice, styled_row
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
@@ -80,9 +71,7 @@ class ChannelDisclosure(SidebarDisclosure):
 
 
 class ChannelUnread(Static):
-    DEFAULT_CSS = (
-        "ChannelUnread { width: auto; height: 1; color: $accent; pointer: pointer; }"
-    )
+    DEFAULT_CSS = "ChannelUnread { width: auto; height: 1; color: $accent; pointer: pointer; }"
 
     def on_click(self, event) -> None:
         if event.button == 1:
@@ -92,7 +81,6 @@ class ChannelUnread(Static):
 
 class ChannelGroup(SidebarGroup):
     """A lazy rendering of model-provided membership, never a second thread owner."""
-
     DEFAULT_CSS = """
     ChannelGroup { height: auto; }
     ChannelGroup > HorizontalGroup { height: 1; }
@@ -746,9 +734,6 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
 
     async def _session_updated(self, update: tuple[str, SessionDetails | None]) -> None:
         if not self.is_attached or self.screen is not self.app.screen:
-            # One update is published to every mounted sidebar. Inactive rows
-            # reconcile from the app's cached projection on activation instead
-            # of walking every hidden widget tree for each new/closed tab.
             self._last_revision = None
             return
         mode_name, details = update
@@ -847,9 +832,7 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
         if state is None:
             show_stopped, show_archived = self.visible_filters
             state = comms.views.viewer_snapshot(
-                str(app.project_dir),
-                show_stopped=show_stopped,
-                show_archived=show_archived,
+                str(app.project_dir), show_stopped=show_stopped, show_archived=show_archived
             )
         all_people = {person.thread.name: person for person in state.threads}
         session_threads: dict[str, str] = {}

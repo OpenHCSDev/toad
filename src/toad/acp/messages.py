@@ -20,7 +20,6 @@ from .attachment_presentation import CursorPresentation, QueuePresentation
 
 if TYPE_CHECKING:
     from textual.content import Content
-
     from toad.acp.agent import Mode, Model
     from toad.widgets.terminal_tool import ToolState
 

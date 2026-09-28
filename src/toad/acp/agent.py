@@ -278,13 +278,9 @@ class Agent(AgentBase):
         from .maintenance_ingress import configured_root, preflight
 
         self._maintenance_env = os.environ.copy()
-        self._maintenance_implicit_root = (
-            "AGENT_COMMS_ROOT" not in self._maintenance_env
-        )
+        self._maintenance_implicit_root = "AGENT_COMMS_ROOT" not in self._maintenance_env
         self._maintenance_cwd = str(self.project_root_path.resolve())
-        self._maintenance_root = configured_root(
-            self._maintenance_env, self._maintenance_cwd
-        )
+        self._maintenance_root = configured_root(self._maintenance_env, self._maintenance_cwd)
         self._maintenance_env["AGENT_COMMS_ROOT"] = str(self._maintenance_root)
         try:
             await asyncio.to_thread(
@@ -482,11 +478,7 @@ class Agent(AgentBase):
                 self._context_usage_saved = False
                 if used <= 0 or size <= 0:
                     self._context_usage = None
-                    self.post_message(
-                        messages.UpdateStatusLine(
-                            Content("Context estimate unavailable")
-                        )
-                    )
+                    self.post_message(messages.UpdateStatusLine(Content("Context estimate unavailable")))
                     return
                 match update.get("cost"):
                     case {"amount": amount, "currency": currency}:
@@ -911,9 +903,7 @@ class Agent(AgentBase):
                     )
                 )
                 if not supported:
-                    raise ValueError(
-                        "This agent owner does not support images yet; refresh it while idle."
-                    )
+                    raise ValueError("This agent owner does not support images yet; refresh it while idle.")
             request_type = PromptRequest.decode(delivery + "_prompt")
             return await self.acp_session_prompt(
                 prompt_content_blocks, request_type(prompt, defer_display)
@@ -982,9 +972,7 @@ class Agent(AgentBase):
                 cwd=requested_cwd,
             )
         except Exception as error:
-            raise ValueError(
-                f"Reconnect not attempted: maintenance admission denied: {error}"
-            ) from error
+            raise ValueError(f"Reconnect not attempted: maintenance admission denied: {error}") from error
         target = self._message_target
         await self.stop()
         self._stopping = False
@@ -1051,9 +1039,7 @@ class Agent(AgentBase):
                 self._agent_data["identity"],
                 self.session_id,
                 protocol="acp",
-                meta=SessionMeta(
-                    cwd=self.project_root_path, agent_data=self._agent_data
-                ),
+                meta=SessionMeta(cwd=self.project_root_path, agent_data=self._agent_data),
             )
             if not self._private_cursor.is_current_request(cursor_token):
                 return
@@ -1097,10 +1083,8 @@ class Agent(AgentBase):
         with self.request():
             session_load_response = api.session_load(cwd, [], request_session_id)
         response = await session_load_response.wait()
-        if (
-            not self._private_cursor.is_current_request(cursor_token)
-            or self.session_id != request_session_id
-        ):
+        if (not self._private_cursor.is_current_request(cursor_token)
+                or self.session_id != request_session_id):
             return
         assert response is not None
         self._receive_comms_response(response, cursor_token, queue_token)
@@ -1377,15 +1361,9 @@ class Agent(AgentBase):
             result = await self._owner_request("goal_snapshot")
         raw_goal, raw_execution = (result["goal"], result["goalExecution"])
         goal = FieldCodec.decode(Goal, raw_goal) if raw_goal is not None else None
-        execution = (
-            GoalExecution.from_wire(raw_execution)
-            if raw_execution is not None
-            else None
-        )
+        execution = GoalExecution.from_wire(raw_execution) if raw_execution is not None else None
         if execution is not None and (goal is None or execution.goal_id != goal.id):
-            raise ValueError(
-                "Goal execution identity does not match the owner snapshot."
-            )
+            raise ValueError("Goal execution identity does not match the owner snapshot.")
         return (goal, execution)
 
     async def get_goal_execution(self) -> GoalExecution | None:
@@ -1409,11 +1387,10 @@ class Agent(AgentBase):
                 from toad.owner_preparation import OwnerRequestContext
 
                 owner = comms.registry.require(thread)
-                return RuntimeProxy(
-                    OwnerRequestContext(comms),
-                    owner.name,
-                    socket_path(comms.root, owner.pid),
-                )
+                # RuntimeProxy normally creates another wire when its caller
+                # has no service. Capture the existing service instead of
+                # reparsing the entire registry for each status poll.
+                return RuntimeProxy(OwnerRequestContext(comms), owner.name, socket_path(comms.root, owner.pid))
 
             proxy = await asyncio.to_thread(resolve)
         try:
@@ -1421,9 +1398,7 @@ class Agent(AgentBase):
                 self.coordination.wire_root if self.coordination else None,
                 self.coordination.thread.name if self.coordination else None,
             ):
-                raise ValueError(
-                    "The owner identity changed while preparing the request."
-                )
+                raise ValueError("The owner identity changed while preparing the request.")
             return await proxy.request(method, **params)
         except RuntimeError as error:
             raise ValueError(str(error)) from error
@@ -1435,14 +1410,10 @@ class Agent(AgentBase):
             self.coordination.thread.name if self.coordination else None
         ) is None:
             return {
-                "inputs": [],
-                "historicalCount": 0,
-                "dismissedHistoricalCount": 0,
-                "historicalInputs": [],
+                "inputs": [], "historicalCount": 0,
+                "dismissedHistoricalCount": 0, "historicalInputs": [],
             }
-        return await self._owner_request(
-            "input_dispositions", include_history=include_history
-        )
+        return await self._owner_request("input_dispositions", include_history=include_history)
 
     async def dismiss_historical_inputs(self) -> dict:
         return await self._owner_request("dismiss_historical_inputs")
@@ -1495,9 +1466,7 @@ class Agent(AgentBase):
             return None
         async with self._transcript_reader_lock:
             reader = await self._get_coordination_reader(root)
-            presentation = await asyncio.to_thread(
-                read_thread_presentation, reader, thread
-            )
+            presentation = await asyncio.to_thread(read_thread_presentation, reader, thread)
         if (root, thread) != (
             self.coordination.wire_root if self.coordination else None,
             self.coordination.thread.name if self.coordination else None,
@@ -1524,10 +1493,7 @@ class Agent(AgentBase):
             reader = await self._get_coordination_reader(root)
             return await asyncio.to_thread(
                 reader.transcripts.thread_transcript_page,
-                thread,
-                before=before,
-                after=after,
-                through=through,
+                thread, before=before, after=after, through=through,
             )
 
     async def update_project(self, path: str) -> str:
