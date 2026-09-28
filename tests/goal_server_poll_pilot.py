@@ -6,6 +6,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 from agent_comms import Thread
+from agent_comms.goal_actions import EditGoalAction, GoalPrecondition, OwnerInvocable, StandbyGoalAction
 from agent_comms.acp import CommsAgent
 from agent_comms.operations import wire
 from textual.containers import VerticalScroll
@@ -63,13 +64,7 @@ async def main():
                 + "Fully wrapped acceptance criteria. " * 40
                 + " OBJECTIVE_END",
             )
-            comms.update_goal(
-                session,
-                "standby",
-                goal_id=goal.id,
-                wait_for=["peer"],
-                progress="Progress details. " * 40 + " PROGRESS_END",
-            )
+            comms.update_goal(session, StandbyGoalAction(wait_for=["peer"], progress="Progress details. " * 40 + " PROGRESS_END", expect=GoalPrecondition(goal_id=goal.id)))
             app = ToadApp(project_dir=str(project))
             async with app.run_test(size=(90, 35)) as pilot:
                 # A headless driver cannot answer terminal color probes.
@@ -83,7 +78,7 @@ async def main():
                 await pilot.pause()
                 bar = conversation.query_one(GoalBar)
                 assert "Standby" in str(bar.query_one(".goal-header", Static).render())
-                assert conversation.goal.status == "active"
+                assert conversation.goal.state.declared_name == "active"
                 pulse = bar.query_one(StandbyPulse)
                 assert pulse.active
                 throbber = conversation.query_one(Throbber)
@@ -146,14 +141,7 @@ async def main():
                 details = app.screen
                 assert isinstance(details, GoalDetails)
                 current = comms.registry.require(session).goal
-                comms.update_goal(
-                    session,
-                    "edit",
-                    text="Changed through owner backend",
-                    goal_id=current.id,
-                    expected_goal=current,
-                    owner_action=True,
-                )
+                comms.update_goal(session, EditGoalAction(text="Changed through owner backend", expect=GoalPrecondition(goal_id=current.id, expected_goal=current)), actor=OwnerInvocable)
                 await until(
                     lambda: details.goal.text == "Changed through owner backend"
                 )
@@ -167,22 +155,15 @@ async def main():
                 assert isinstance(editor, GoalEdit)
                 editor.editor.text = "UNSAVED DRAFT"
                 current = comms.registry.require(session).goal
-                comms.update_goal(
-                    session,
-                    "edit",
-                    text="Concurrent owner edit",
-                    goal_id=current.id,
-                    expected_goal=current,
-                    owner_action=True,
-                )
+                comms.update_goal(session, EditGoalAction(text="Concurrent owner edit", expect=GoalPrecondition(goal_id=current.id, expected_goal=current)), actor=OwnerInvocable)
                 await until(lambda: conversation.goal.text == "Concurrent owner edit")
                 assert editor.editor.text == "UNSAVED DRAFT"
                 await pilot.press("escape")
                 # Every mutation goes through owner RPC, then a canonical read.
                 await conversation.change_goal("paused")
-                assert conversation.goal.status == "paused" and not pulse.active
+                assert conversation.goal.state.declared_name == "paused" and not pulse.active
                 await conversation.change_goal("active")
-                assert conversation.goal.status == "active"
+                assert conversation.goal.state.declared_name == "active"
                 # Actual server error marks the retained snapshot unavailable, never standby.
                 read = comms.goal_snapshot
 

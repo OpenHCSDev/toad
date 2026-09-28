@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
+from agent_comms.goal_actions import ActiveGoalAction, GoalPrecondition
 from agent_comms.acp import CommsAgent
 from agent_comms.operations import wire
 from textual.widgets import Static
@@ -48,12 +49,7 @@ async def main():
                 "Work on draft PR #17 and report remaining gaps. "
                 + "Detailed acceptance criteria. " * 30,
             )
-            comms.update_goal(
-                session,
-                "active",
-                goal_id=original.id,
-                progress="Renamed parent thread to pr17 and forked implementation.",
-            )
+            comms.update_goal(session, ActiveGoalAction(progress="Renamed parent thread to pr17 and forked implementation.", expect=GoalPrecondition(goal_id=original.id)))
             app = ToadApp(project_dir=str(project))
             async with app.run_test(size=(110, 35)) as pilot:
                 await pilot.pause()
@@ -140,7 +136,7 @@ async def main():
                 await asyncio.wait_for(started.wait(), 2)
                 pause = asyncio.create_task(conversation.change_goal("paused"))
                 async with asyncio.timeout(2):
-                    while comms.registry.require(session).goal.status != "paused":
+                    while comms.registry.require(session).goal.state.declared_name != "paused":
                         await asyncio.sleep(0.01)
                 clear = asyncio.create_task(conversation.change_goal("clear"))
                 async with asyncio.timeout(2):

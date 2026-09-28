@@ -587,7 +587,7 @@ printf '%s\n' '{"type":"response","command":"get_session_stats","success":true,"
         frame = await session.frame(0.2)
         if "Resume" in frame:
             break
-    assert comms.registry.require("toad-e2e-proj-2").goal.status == "paused"
+    assert comms.registry.require("toad-e2e-proj-2").goal.state.declared_name == "paused"
     assert await session.click_text("Clear")
     await session.frame(0.5)
     assert comms.registry.require("toad-e2e-proj-2").goal is None

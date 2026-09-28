@@ -27,12 +27,12 @@ async def main():
             client._coordination_thread = session
             goal = await client.update_goal("set", "Keep investigating until stopped")
             paused = await client.update_goal("paused")
-            assert paused.id == goal.id and paused.status == "paused"
+            assert paused.id == goal.id and paused.state.declared_name == "paused"
             reopened = wire(comms.root)
             assert reopened.registry.require(session).goal == paused
-            assert reopened.goal_pause(session).source == "owner"
+            assert reopened.goal_pause(session).source.declared_name == "owner"
             resumed = await client.update_goal("active")
-            assert resumed.active and reopened.goal_pause(session) is None
+            assert resumed.state.active and reopened.goal_pause(session) is None
         finally:
             await owner.shutdown()
     print("goal pause: Toad owner intent survives reopen and explicit resume clears it")

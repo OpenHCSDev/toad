@@ -2,10 +2,11 @@
 
 import asyncio
 import os
-from dataclasses import asdict, replace
+from dataclasses import replace
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
+from agent_comms.goal_states import PausedGoal
 from agent_comms import (
     Goal,
     GoalExecution,
@@ -60,16 +61,14 @@ class GoalOwner:
                 "kind": "baseline",
                 "observed_at": 1000.0,
                 "before": None,
-                "after": asdict(
-                    replace(self.goal, text="HISTORICAL_OBJECTIVE", revision=4)
-                ),
+                "after": replace(self.goal, text="HISTORICAL_OBJECTIVE", revision=4).to_wire(),
             },
             {
                 "sequence": 2,
                 "kind": "transition",
                 "observed_at": 1001.0,
-                "before": asdict(replace(self.goal, revision=4)),
-                "after": asdict(self.goal),
+                "before": replace(self.goal, revision=4).to_wire(),
+                "after": self.goal.to_wire(),
             },
         ]
 
@@ -130,7 +129,7 @@ async def main():
             assert not status.display, "Goal prose must never infer standby"
             owner.execution = standby_execution
             active_goal = owner.goal
-            owner.goal = replace(owner.goal, status="paused")
+            owner.goal = replace(owner.goal, state=PausedGoal())
             await conversation.refresh_goal()
             await pilot.pause()
             assert not status.display, (

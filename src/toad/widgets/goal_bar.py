@@ -177,8 +177,8 @@ class GoalBar(VerticalGroup):
             )
             progress.display = bool(goal.progress)
             toggle = self.query_one("#goal-toggle", Static)
-            toggle.update(goal.toggle_label)
-            toggle.display = goal.status != "completed"
+            toggle.update(goal.state.toggle_label)
+            toggle.display = not goal.state.terminal
             self._update_control_layout()
 
     def watch_unavailable(self) -> None:
@@ -199,7 +199,7 @@ class GoalBar(VerticalGroup):
                 else "Goal state unavailable · reconnecting to owner"
             )
         elif self.goal is not None:
-            header.update(f"Goal · {self.goal.status} · rev {self.goal.revision}")
+            header.update(f"Goal · {self.goal.state.declared_name} · rev {self.goal.revision}")
         for control in self.query(GoalControl):
             control.disabled = self.unavailable and control.id != "goal-collapse"
         self.query_one(".goal-document").display = self.goal is not None and not self.collapsed
@@ -211,7 +211,7 @@ class GoalBar(VerticalGroup):
         standby = (
             not self.unavailable
             and self.goal is not None
-            and self.goal.active
+            and self.goal.state.active
             and execution is not None
             and execution.goal_id == self.goal.id
             and execution.state is GoalExecutionState.STANDBY

@@ -47,7 +47,7 @@ class GoalDetails(ModalScreen[None]):
                     yield Static("Revision history", markup=False)
                     for entry in reversed(self.history):
                         goal_data = entry["after"] or entry["before"]
-                        revision_goal = Goal(**goal_data)
+                        revision_goal = Goal.from_wire(goal_data)
                         when = (
                             datetime.fromtimestamp(entry["observed_at"])
                             .astimezone()
@@ -85,14 +85,14 @@ class GoalDetails(ModalScreen[None]):
         heading = (
             "Goal state unavailable · last confirmed snapshot"
             if self.unavailable
-            else f"Goal · {goal.status} · rev {goal.revision}"
+            else f"Goal · {goal.state.declared_name} · rev {goal.revision}"
             if goal
             else "No current goal"
         )
         if (
             not self.unavailable
             and goal is not None
-            and goal.active
+            and goal.state.active
             and self.execution is not None
             and self.execution.goal_id == goal.id
             and self.execution.state is GoalExecutionState.STANDBY
