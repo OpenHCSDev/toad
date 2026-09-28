@@ -19,7 +19,7 @@ from toad.widgets.channels_sidebar import ChannelsSlot
 from toad.widgets.comms_sidebar import SelectTarget
 from toad.widgets.conversation import ThreadLoading
 from toad.workspace_chrome import NavigationSlot
-from toad.widgets.side_bar import SideBar
+from toad.widgets.side_bar import SideBar, ThreadSidebar
 from toad.navigation_target import NavigationContext, NavigationOwner
 
 

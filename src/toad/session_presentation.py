@@ -13,7 +13,7 @@ from textual.widgets.text_area import Document, EditHistory, Selection, TextArea
 from toad.history import History
 from toad.screens.session_view import SessionView
 from toad.widgets.conversation import Conversation
-from toad.widgets.message_filter import ALL_CATEGORIES, MessageCategory
+from toad.widgets.message_filter import all_categories, MessageCategory
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
@@ -37,7 +37,7 @@ class BlankViewState:
     """The actual editor document/history and reader intent, not a transcript copy."""
 
     editor: TextAreaState
-    visible_categories: frozenset[MessageCategory]
+    visible_categories: frozenset[type[MessageCategory]]
     scroll_y: float
     follows_tail: bool
     shell_mode: bool
@@ -203,7 +203,7 @@ class BlankSessionSurface:
                     Selection.cursor((0, 0)), 0, 0, None, (), None,
                 ))
                 editor.shell_mode = False
-                conversation.visible_categories = ALL_CATEGORIES
+                conversation.visible_categories = all_categories()
                 conversation.prompt_history = History(conversation._prompt_history_path())
                 conversation.shell_history = History(conversation.project_data_path / "shell_history.jsonl")
                 conversation.prompt_history_index = conversation.shell_history_index = 0

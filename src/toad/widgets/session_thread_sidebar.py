@@ -77,12 +77,12 @@ class SessionThreadSidebar(SideBar):
                 self.Panel("Thread", CoordinationStatus(screen._comms_thread),
                            id="coordination-panel"),
                 self.Panel("Comms", ThreadCommsSidebar(
-                    screen._comms_thread, wire_root=screen._coordination_root, live=True),
+                    screen._comms_thread, wire_root=screen.coordination_root, live=True),
                     id="thread-comms-panel", header_control=RelationshipSort()),
                 self.Panel(self.PLAN_TITLE, Plan(self._plan_entries), collapsed=True, id="plan-panel"),
                 self.Panel("Project", project, flex=True, collapsed=True),
                 self.Panel("Recovery", RecoveryView(
-                    screen._comms_thread, wire_root=screen._coordination_root),
+                    screen._comms_thread, wire_root=screen.coordination_root),
                     collapsed=True, id="recovery-panel"),
             ))
         yield from super()._compose_panels()

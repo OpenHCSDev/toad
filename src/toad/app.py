@@ -918,6 +918,14 @@ class ToadApp(App, inherit_bindings=False):
                         mounted = super().switch_mode(mode)
                         await mounted
                         screen = self.screen
+                        # Retire the departing optional surface inside the same
+                        # admission lock, before preparing the selected surface.
+                        # A detached retirement worker can race a subsequent
+                        # return to its mode and retain arbitrary rich trees.
+                        if (mode != previous_mode
+                                and isinstance(previous_screen, SessionView)
+                                and previous_screen.is_attached):
+                            await previous_screen.retire_presentation()
                         self.workspace_chrome.footer.selected(screen)
                         if isinstance(screen, SessionView):
                             await screen.prepare_presentation()
@@ -930,9 +938,6 @@ class ToadApp(App, inherit_bindings=False):
                     screen.present_navigation()
                 if mode != previous_mode:
                     self._record_tab_visit(mode, history_index)
-                    if isinstance(previous_screen, SessionView) and previous_screen.is_attached:
-                        self.run_worker(previous_screen.retire_presentation(),
-                                        group=f"retire-presentation-{previous_mode}", exit_on_error=False)
         finally:
             if self._pending_mode_switch == mode:
                 self._pending_mode_switch = None

@@ -18,11 +18,6 @@ from pathlib import Path
 from agent_comms.comms import Comms
 from agent_comms.native_package import verify_native_package
 from agent_comms.threads import Thread
-from agent_comms.coordination_store import MutationStore
-from agent_comms.cohort_schema import install_private_cohort_schema
-from agent_comms.coordination_response import install_private_response_schema
-from agent_comms.coordinated_runtime_schema import install_native_runtime_schema
-from agent_comms.native_prompt_binding import install_prompt_binding_schema
 from agent_comms.input_disposition import InputDispositions
 from runtime_fixture import ToadApp
 from toad.acp.agent import Agent
@@ -213,11 +208,6 @@ async def main(*, notification_only=False, app_type=ToadApp, acceptance=None):
         )
         comms = Comms(Path(wire_dir) / "wire")
         root_id = comms.messaging.initialize_private_initial_protocol()
-        with MutationStore(str(comms.root / "coordination.sqlite3")) as store:
-            install_private_cohort_schema(store)
-            install_private_response_schema(store)
-            install_native_runtime_schema(store)
-            install_prompt_binding_schema(store)
         comms.threads.register(
             Thread(
                 "beta",

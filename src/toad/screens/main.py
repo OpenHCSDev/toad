@@ -43,6 +43,8 @@ from toad.widgets.side_bar import SideBar, SideBarCollapsible
 from toad.navigation_target import NavigationContext, NavigationOwner
 from toad.workspace_chrome import FooterSlot, NavigationSlot
 from toad.session_tracker import SidebarState
+from toad.widgets.throbber import Throbber
+from toad.widgets.channels_sidebar import ChannelsSidebar
 from toad.navigation_target import FeedTarget, DirectTarget
 
 

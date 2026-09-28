@@ -7,6 +7,7 @@ from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.events import ScreenResume
 from textual.widget import Widget
+from textual.widgets import Button, Static
 
 from toad import messages
 from toad.app import ToadApp
