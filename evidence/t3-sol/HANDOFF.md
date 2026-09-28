@@ -72,3 +72,46 @@ Source line count against current main: declaration classes add explicit typed
 argument/behavior owners while deleting dispatch and copied catalogs. Net growth
 is from those owners, not a second execution path. Tests add one combined family/
 new-case/mounted behavior pilot and one deletion guard; no per-member branch tests.
+
+## TR0 integration checkpoint (2026-09-28)
+
+Remote main remains df0a758; Toad117 was merged into the published integration
+branch refactor/round2-l0a-callers at e6c5227. Merged that checkpoint into this
+branch (d9d9610), including ViewportPresentation and the shared collector/ratchet.
+Pinned actual merged core268 main fc5dd38a, retained Textual16ede, regenerated
+uv.lock and installed this candidate with uv sync --locked --no-editable.
+No Screen.body_windows/history_anchors callers remain.
+
+T3 deletion guard is now tests/guards/test_t3.py: the previous top-level script
+had no main guard and would not be collected. Removed redundant OK/refresh
+button adapters instead of allowing their existing classes to grow.
+
+Evidence: tr0-commands-installed.log: five passed, real ACP+mounted command path.
+tr0-native-viewport.log: two passed, actual pinned native MCP PTY decisions and
+viewport source/selection/tree lifecycle. tr0-final-acceptance.log is a retained
+failed attempt: native package environment omitted for MCP; command process
+finished assertions but timed out during shutdown. Corrected command pilot
+suppresses only unrelated internet telemetry/version tasks, as the earlier
+run_consumer receipt did; command/ACP/storage/UI execution remains installed.
+
+Shared ratchet is unchanged. Current report shared-ratchet-current.json records
+four positive existing-class deltas: SlashCommand +18, CommsChatView +12,
+PromptTextArea +2, Prompt +1. TypeIdentity/LongBooleanChain unchanged;
+StringSubscript reduced 14. These are unresolved findings, not a green ratchet.
+Next scope: reduce these through real owner/caller deletion; no cap exceptions,
+class renames to evade matching, dispatch restoration or duplicate mechanisms.
+Final T2 caller/type integration remains separately coupled to Dalton's records.
+
+Final adapter-deletion installed receipts: tr0-final-native-mcp.log passes actual
+native approve/allow/ask/deny, stale refusal/cancellation and child cleanup.
+The first telemetry-only test subclass attempt also exposed inherited relative
+CSS_PATH resolution against tests/; the final pilot explicitly uses installed
+importlib.resources.files("toad")/toad.tcss, with no source CSS override.
+tr0-command-final.log is the authoritative final command/guard result.
+Earlier failed attempts remain identified and are not suite-green claims.
+
+Final result: tr0-command-final.log: 5 passed in 53.05s; command ACP,
+mounted agent/DM/channel and collected T3/TR0 guards passed on installed stack.
+tr0-corrected-acceptance.log: native MCP and four guards passed; its command
+failure was the test subclass relative CSS path, fixed in final command receipt.
+No claim that the failed intermediate run was green.

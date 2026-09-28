@@ -6,6 +6,7 @@ import asyncio
 import os
 import json
 import sys
+from importlib.resources import files
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
@@ -27,6 +28,18 @@ from toad.widgets.comms_menu import ContextMenuItem
 from toad.widgets.comms_sidebar import CommsSidebar
 from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.slash_complete import SlashComplete
+
+
+class CommandPilotApp(ToadApp):
+    """Exercise installed commands without unrelated internet telemetry tasks."""
+
+    CSS_PATH = files("toad").joinpath("toad.tcss")
+
+    def capture_event(self, *args, **kwargs):
+        pass
+
+    def run_version_check(self, *args, **kwargs):
+        pass
 
 
 async def until(pilot, predicate):
@@ -83,7 +96,7 @@ async def main():
         comms.messaging.send("pointer", "actor", "retained pointer history")
         comms.messaging.send("slash", "actor", "retained slash history")
         original_history = comms.views.full_history()
-        app = ToadApp(project_dir=str(root))
+        app = CommandPilotApp(project_dir=str(root))
         async with app.run_test(size=(110, 38)) as pilot:
             mode = (await app.new_session_screen(lambda: MainScreen(root))).mode_name
             conversation = app.screen.conversation
