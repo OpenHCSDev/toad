@@ -1,0 +1,293 @@
+Traceback (most recent call last):
+  File "/home/ts/.local/share/agent-comms/runtime-round2-final-20260928/lib/python3.14/site-packages/textual/app.py", line 2210, in run_test
+    yield pilot
+  File "/home/ts/wt/toad-acp-log-records-20260928/tests/runtime_fixture.py", line 38, in run_test
+    yield pilot
+  File "/home/ts/wt/toad-acp-log-records-20260928/tests/acp_log_ui_pilot.py", line 77, in main
+    assert button.region.right <= app.screen.size.width, (selector, button.region)
+           ^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-round2-final-20260928/lib/python3.14/site-packages/textual/widget.py", line 2462, in region
+    return self.screen.find_widget(self).region
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-round2-final-20260928/lib/python3.14/site-packages/textual/screen.py", line 771, in find_widget
+    return self._compositor.find_widget(widget)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-round2-final-20260928/lib/python3.14/site-packages/textual/_compositor.py", line 1146, in find_widget
+    region = self.full_map[widget]
+             ^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-round2-final-20260928/lib/python3.14/site-packages/textual/_compositor.py", line 560, in full_map
+    map, _widgets = self._arrange_root(self.root, self.size, visible_only=False)
+                    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-round2-final-20260928/lib/python3.14/site-packages/textual/_compositor.py", line 888, in _arrange_root
+    add_widget(
+    ~~~~~~~~~~^
+        root,
+        ^^^^^
+    ...<6 lines>...
+        NULL_SPACING,
+        ^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/ts/.local/share/agent-comms/runtime-round2-final-20260928/lib/python3.14/site-packages/textual/_compositor.py", line 862, in add_widget
+    arrange_widget(widget, virtual_region, region, order, layer_order, clip, visible, dock_gutter)  # noqa: F821 -- closure cleared after traversal
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-round2-final-20260928/lib/python3.14/site-packages/textual/_compositor.py", line 797, in arrange_widget
+    add_widget(  # noqa: F821 -- closure cleared only after traversal
+    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        sub_widget,
+        ^^^^^^^^^^^
+    ...<6 lines>...
+        arrange_result.scroll_spacing,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/ts/.local/share/agent-comms/runtime-round2-final-20260928/lib/python3.14/site-packages/textual/_compositor.py", line 862, in add_widget
+    arrange_widget(widget, virtual_region, region, order, layer_order, clip, visible, dock_gutter)  # noqa: F821 -- closure cleared after traversal
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-round2-final-20260928/lib/python3.14/site-packages/textual/_compositor.py", line 797, in arrange_widget
+    add_widget(  # noqa: F821 -- closure cleared only after traversal
+    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        sub_widget,
+        ^^^^^^^^^^^
+    ...<6 lines>...
+        arrange_result.scroll_spacing,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/ts/.local/share/agent-comms/runtime-round2-final-20260928/lib/python3.14/site-packages/textual/_compositor.py", line 862, in add_widget
+    arrange_widget(widget, virtual_region, region, order, layer_order, clip, visible, dock_gutter)  # noqa: F821 -- closure cleared after traversal
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-round2-final-20260928/lib/python3.14/site-packages/textual/_compositor.py", line 797, in arrange_widget
+    add_widget(  # noqa: F821 -- closure cleared only after traversal
+    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        sub_widget,
+        ^^^^^^^^^^^
+    ...<6 lines>...
+        arrange_result.scroll_spacing,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/ts/.local/share/agent-comms/runtime-round2-final-20260928/lib/python3.14/site-packages/textual/_compositor.py", line 862, in add_widget
+    arrange_widget(widget, virtual_region, region, order, layer_order, clip, visible, dock_gutter)  # noqa: F821 -- closure cleared after traversal
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-round2-final-20260928/lib/python3.14/site-packages/textual/_compositor.py", line 704, in arrange_widget
+    arrange_result = widget.arrange(child_region.size)
+  File "/home/ts/.local/share/agent-comms/runtime-round2-final-20260928/lib/python3.14/site-packages/textual/widget.py", line 1409, in arrange
+    arrangement = self._arrangement_cache[cache_key] = arrange(
+                                                       ~~~~~~~^
+        self, self._nodes, size, viewport, optimal=optimal
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/ts/.local/share/agent-comms/runtime-round2-final-20260928/lib/python3.14/site-packages/textual/_arrange.py", line 97, in arrange
+    widget.layout.arrange(
+    ~~~~~~~~~~~~~~~~~~~~~^
+        widget, layout_widgets, dock_region.size, greedy=not optimal
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/ts/.local/share/agent-comms/runtime-round2-final-20260928/lib/python3.14/site-packages/textual/layouts/grid.py", line 334, in arrange
+    box_width, box_height, margin = widget._get_box_model(
+                                    ~~~~~~~~~~~~~~~~~~~~~^
+        cell_size,
+        ^^^^^^^^^^
+    ...<4 lines>...
+        greedy=greedy,
+        ^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/ts/.local/share/agent-comms/runtime-round2-final-20260928/lib/python3.14/site-packages/textual/widget.py", line 2007, in _get_box_model
+    self.get_content_height(
+    ~~~~~~~~~~~~~~~~~~~~~~~^
+        content_container - margin.totals,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        viewport,
+        ^^^^^^^^^
+        int(content_width),
+        ^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/ts/.local/share/agent-comms/runtime-round2-final-20260928/lib/python3.14/site-packages/textual/widget.py", line 2110, in get_content_height
+    height = visual.get_height(self.styles, width)
+  File "/home/ts/.local/share/agent-comms/runtime-round2-final-20260928/lib/python3.14/site-packages/textual/content.py", line 615, in get_height
+    height = len(self.without_spans._wrap_and_format(
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        available, overflow=overflow, no_wrap=no_wrap,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ))
+    ^
+  File "/home/ts/.local/share/agent-comms/runtime-round2-final-20260928/lib/python3.14/site-packages/textual/content.py", line 697, in _wrap_and_format
+    offsets = divide_line(
+        line.plain, width - line_pad * 2, fold=overflow == "fold"
+    )
+  File "/home/ts/.local/share/agent-comms/runtime-round2-final-20260928/lib/python3.14/site-packages/rich/_wrap.py", line 59, in divide_line
+    folded_word = chop_cells(word, width=width)
+  File "/home/ts/.local/share/agent-comms/runtime-round2-final-20260928/lib/python3.14/site-packages/rich/cells.py", line 338, in chop_cells
+    return [text[index : index + width] for index in range(0, len(text), width)]
+                                                     ~~~~~^^^^^^^^^^^^^^^^^^^^^
+ValueError: range() arg 3 must not be zero
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-acp-log-records-20260928/tests/acp_log_ui_pilot.py", line 104, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-acp-log-records-20260928/tests/acp_log_ui_pilot.py", line 32, in main
+    async with app.run_test(size=(100, 32)) as pilot:
+               ~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 235, in __aexit__
+    await self.gen.athrow(value)
+  File "/home/ts/wt/toad-acp-log-records-20260928/tests/runtime_fixture.py", line 37, in run_test
+    async with super().run_test(**kwargs) as pilot:
+               ~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 235, in __aexit__
+    await self.gen.athrow(value)
+  File "/home/ts/.local/share/agent-comms/runtime-round2-final-20260928/lib/python3.14/site-packages/textual/app.py", line 2214, in run_test
+    await app._shutdown()
+  File "/home/ts/.local/share/agent-comms/runtime-round2-final-20260928/lib/python3.14/site-packages/textual/app.py", line 3744, in _shutdown
+    await self._close_all()
+  File "/home/ts/.local/share/agent-comms/runtime-round2-final-20260928/lib/python3.14/site-packages/textual/app.py", line 3726, in _close_all
+    await self._prune(stack_screen)
+          ~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-round2-final-20260928/lib/python3.14/site-packages/textual/app.py", line 4392, in _prune
+    screen._reset_focus(screen.focused, list(pruning_nodes))
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-round2-final-20260928/lib/python3.14/site-packages/textual/screen.py", line 1058, in _reset_focus
+    focusable_widgets = self.focus_chain
+                        ^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-round2-final-20260928/lib/python3.14/site-packages/textual/screen.py", line 814, in focus_chain
+    iter(sorted(root_node.displayed_children, key=focus_sorter)),
+         ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-round2-final-20260928/lib/python3.14/site-packages/textual/widget.py", line 2550, in _focus_sort_key
+    x, y, _, _ = self.virtual_region
+                 ^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-round2-final-20260928/lib/python3.14/site-packages/textual/widget.py", line 2500, in virtual_region
+    return self.screen.find_widget(self).virtual_region
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-round2-final-20260928/lib/python3.14/site-packages/textual/screen.py", line 771, in find_widget
+    return self._compositor.find_widget(widget)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-round2-final-20260928/lib/python3.14/site-packages/textual/_compositor.py", line 1146, in find_widget
+    region = self.full_map[widget]
+             ^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-round2-final-20260928/lib/python3.14/site-packages/textual/_compositor.py", line 560, in full_map
+    map, _widgets = self._arrange_root(self.root, self.size, visible_only=False)
+                    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-round2-final-20260928/lib/python3.14/site-packages/textual/_compositor.py", line 888, in _arrange_root
+    add_widget(
+    ~~~~~~~~~~^
+        root,
+        ^^^^^
+    ...<6 lines>...
+        NULL_SPACING,
+        ^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/ts/.local/share/agent-comms/runtime-round2-final-20260928/lib/python3.14/site-packages/textual/_compositor.py", line 862, in add_widget
+    arrange_widget(widget, virtual_region, region, order, layer_order, clip, visible, dock_gutter)  # noqa: F821 -- closure cleared after traversal
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-round2-final-20260928/lib/python3.14/site-packages/textual/_compositor.py", line 797, in arrange_widget
+    add_widget(  # noqa: F821 -- closure cleared only after traversal
+    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        sub_widget,
+        ^^^^^^^^^^^
+    ...<6 lines>...
+        arrange_result.scroll_spacing,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/ts/.local/share/agent-comms/runtime-round2-final-20260928/lib/python3.14/site-packages/textual/_compositor.py", line 862, in add_widget
+    arrange_widget(widget, virtual_region, region, order, layer_order, clip, visible, dock_gutter)  # noqa: F821 -- closure cleared after traversal
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-round2-final-20260928/lib/python3.14/site-packages/textual/_compositor.py", line 797, in arrange_widget
+    add_widget(  # noqa: F821 -- closure cleared only after traversal
+    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        sub_widget,
+        ^^^^^^^^^^^
+    ...<6 lines>...
+        arrange_result.scroll_spacing,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/ts/.local/share/agent-comms/runtime-round2-final-20260928/lib/python3.14/site-packages/textual/_compositor.py", line 862, in add_widget
+    arrange_widget(widget, virtual_region, region, order, layer_order, clip, visible, dock_gutter)  # noqa: F821 -- closure cleared after traversal
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-round2-final-20260928/lib/python3.14/site-packages/textual/_compositor.py", line 797, in arrange_widget
+    add_widget(  # noqa: F821 -- closure cleared only after traversal
+    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        sub_widget,
+        ^^^^^^^^^^^
+    ...<6 lines>...
+        arrange_result.scroll_spacing,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/ts/.local/share/agent-comms/runtime-round2-final-20260928/lib/python3.14/site-packages/textual/_compositor.py", line 862, in add_widget
+    arrange_widget(widget, virtual_region, region, order, layer_order, clip, visible, dock_gutter)  # noqa: F821 -- closure cleared after traversal
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-round2-final-20260928/lib/python3.14/site-packages/textual/_compositor.py", line 704, in arrange_widget
+    arrange_result = widget.arrange(child_region.size)
+  File "/home/ts/.local/share/agent-comms/runtime-round2-final-20260928/lib/python3.14/site-packages/textual/widget.py", line 1409, in arrange
+    arrangement = self._arrangement_cache[cache_key] = arrange(
+                                                       ~~~~~~~^
+        self, self._nodes, size, viewport, optimal=optimal
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/ts/.local/share/agent-comms/runtime-round2-final-20260928/lib/python3.14/site-packages/textual/_arrange.py", line 97, in arrange
+    widget.layout.arrange(
+    ~~~~~~~~~~~~~~~~~~~~~^
+        widget, layout_widgets, dock_region.size, greedy=not optimal
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/ts/.local/share/agent-comms/runtime-round2-final-20260928/lib/python3.14/site-packages/textual/layouts/grid.py", line 334, in arrange
+    box_width, box_height, margin = widget._get_box_model(
+                                    ~~~~~~~~~~~~~~~~~~~~~^
+        cell_size,
+        ^^^^^^^^^^
+    ...<4 lines>...
+        greedy=greedy,
+        ^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/ts/.local/share/agent-comms/runtime-round2-final-20260928/lib/python3.14/site-packages/textual/widget.py", line 2007, in _get_box_model
+    self.get_content_height(
+    ~~~~~~~~~~~~~~~~~~~~~~~^
+        content_container - margin.totals,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        viewport,
+        ^^^^^^^^^
+        int(content_width),
+        ^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/ts/.local/share/agent-comms/runtime-round2-final-20260928/lib/python3.14/site-packages/textual/widget.py", line 2110, in get_content_height
+    height = visual.get_height(self.styles, width)
+  File "/home/ts/.local/share/agent-comms/runtime-round2-final-20260928/lib/python3.14/site-packages/textual/content.py", line 615, in get_height
+    height = len(self.without_spans._wrap_and_format(
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        available, overflow=overflow, no_wrap=no_wrap,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ))
+    ^
+  File "/home/ts/.local/share/agent-comms/runtime-round2-final-20260928/lib/python3.14/site-packages/textual/content.py", line 697, in _wrap_and_format
+    offsets = divide_line(
+        line.plain, width - line_pad * 2, fold=overflow == "fold"
+    )
+  File "/home/ts/.local/share/agent-comms/runtime-round2-final-20260928/lib/python3.14/site-packages/rich/_wrap.py", line 59, in divide_line
+    folded_word = chop_cells(word, width=width)
+  File "/home/ts/.local/share/agent-comms/runtime-round2-final-20260928/lib/python3.14/site-packages/rich/cells.py", line 338, in chop_cells
+    return [text[index : index + width] for index in range(0, len(text), width)]
+                                                     ~~~~~^^^^^^^^^^^^^^^^^^^^^
+ValueError: range() arg 3 must not be zero

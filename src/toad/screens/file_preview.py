@@ -16,7 +16,7 @@ class FilePreviewScreen(SessionView, can_focus=False):
     AUTO_FOCUS = "TextArea, FilePreview"
     BINDINGS = [
         Binding("escape", "back", "Previous tab", show=False),
-        Binding("ctrl+w", "close_preview", "Close preview", show=False),
+        Binding("ctrl+w", "close_preview", "Close preview", show=False, priority=True),
     ]
 
     def __init__(self, path: Path) -> None:
