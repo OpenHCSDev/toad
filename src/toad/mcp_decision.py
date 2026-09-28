@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Awaitable, Callable, Literal
 
 from toad.mcp_inventory import (
-    POSITIVE_DECISIONS_CAPABILITY,
+    installed_mcp_command,
     Declaration,
     Inventory,
     read_inventory,
@@ -23,14 +23,6 @@ from toad.mcp_inventory import (
 
 DecisionAction = Literal["trust", "calls"]
 Decision = Literal["approve", "deny", "allow", "ask"]
-# Positive grants need the package-owned compatibility capability advertised by
-# the SAME inventory DTO that authorizes the decision (fresh equality is
-# re-checked below). The revival fix lives in imported package modules, not the
-# CLI entrypoint; Toad never infers authority from file bytes, settings or any
-# ledger knowledge.
-POSITIVE_ACTIONS = {("trust", "approve"), ("calls", "allow")}
-
-
 DECISION_TIMEOUT_SECONDS = 120.0
 MAX_DECISION_OUTPUT_BYTES = 128_000
 
@@ -59,8 +51,6 @@ class LocalDecisionPTY:
         row: Declaration,
         action: DecisionAction,
         decision: Decision,
-        node_path: str,
-        cli_path: str,
         show: Callable[[str], Awaitable[None]],
         controller_visible: Callable[[], bool],
     ) -> str:
@@ -79,13 +69,6 @@ class LocalDecisionPTY:
             ("calls", "ask"),
         }:
             return "unsupported"
-        if (action, decision) in POSITIVE_ACTIONS and (
-            inventory.positive_decisions != POSITIVE_DECISIONS_CAPABILITY
-        ):
-            # Missing/malformed/unsupported capability or any old build stays
-            # held. Revocations stay available because they only narrow
-            # authority.
-            return "positive_held"
         if (
             not row.effective
             or not row.enabled
@@ -94,20 +77,11 @@ class LocalDecisionPTY:
             or (action == "calls" and row.status != "approved")
         ):
             return "unsupported"
-        # Explicit configuration, never a PATH lookup or a source checkout fallback.
-        node, cli = Path(node_path), Path(cli_path)
-        if (
-            not node_path
-            or not cli_path
-            or not node.is_absolute()
-            or not cli.is_absolute()
-            or not node.is_file()
-            or not cli.is_file()
-        ):
+        try:
+            node, cli = await asyncio.to_thread(installed_mcp_command)
+        except (OSError, ValueError, RuntimeError):
             return "unavailable"
-        fresh = await read_inventory(
-            inventory.project_root, node_path=node_path, cli_path=cli_path
-        )
+        fresh = await read_inventory(inventory.project_root)
         if (
             not controller_visible()
             or fresh is None
@@ -140,7 +114,7 @@ class LocalDecisionPTY:
                 stdin=slave,
                 stdout=slave,
                 stderr=slave,
-                cwd=str(cli.parent),
+                cwd=str(Path(cli).parent),
                 env=env,
                 start_new_session=True,
             )

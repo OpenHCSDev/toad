@@ -136,11 +136,6 @@ class SessionArchive(Message):
 
 
 @dataclass
-class SessionDelete(Message):
-    mode_name: str
-
-
-@dataclass
 class SessionUpdate(Message):
     name: str | None = None
     """Name of the session, or `None` for no change."""

@@ -8,6 +8,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from unittest.mock import patch
 
+from agent_comms.child_process import ProcessIdentity
 from agent_comms.threads import Thread
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from agent_comms.transcript_events import AssistantTranscript
@@ -35,7 +36,7 @@ async def main():
         os.environ.update(XDG_CONFIG_HOME=str(root / "config"), XDG_STATE_HOME=str(root / "state"),
                           XDG_DATA_HOME=str(root / "data"), AGENT_COMMS_ROOT=str(root / "wire"))
         comms = wire(root / "wire")
-        comms.threads.register(Thread("slow-thread", frozenset(), str(root), pid=os.getpid()))
+        comms.threads.register(Thread("slow-thread", frozenset(), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
         release = asyncio.Event()
         started = asyncio.Event()
         disk_release = threading.Event()

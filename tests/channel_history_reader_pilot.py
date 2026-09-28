@@ -8,6 +8,7 @@ from threading import Event, get_ident
 import unittest
 from unittest.mock import patch
 
+from agent_comms.child_process import ProcessIdentity
 from agent_comms.threads import Thread
 from agent_comms.comms import wire
 from toad.channel_preparation import (
@@ -50,7 +51,7 @@ class ReaderTests(unittest.IsolatedAsyncioTestCase):
         with tempfile.TemporaryDirectory(prefix="dm-turn-basis-") as directory:
             root = Path(directory)
             comms = wire(root / "wire")
-            comms.threads.register(Thread("peer", frozenset(), str(root), pid=os.getpid()))
+            comms.threads.register(Thread("peer", frozenset(), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
             viewer = comms.messaging.user_identity(str(root)).name
             comms.messaging.send("peer", viewer, "painted across turn claim")
             page = comms.views.dm_display_page("peer", worktree=str(root))

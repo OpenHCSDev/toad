@@ -1,11 +1,7 @@
-from datetime import datetime, timezone
-import json
+from datetime import UTC, datetime
 
-from textual import on
+from textual import containers, getters, on, widgets
 from textual.app import ComposeResult
-from textual import getters
-from textual import widgets
-from textual import containers
 from textual.screen import ModalScreen
 
 from toad.db import DB, Session
@@ -42,36 +38,12 @@ class SessionResumeModal(ModalScreen[Session]):
                 yield widgets.Button("Cancel", id="cancel")
 
     @classmethod
-    def friendly_time_ago(cls, iso_timestamp: str) -> str:
-        """
-        Convert ISO timestamp to friendly time description.
-
-        Args:
-            iso_timestamp: ISO format timestamp string (e.g., '2024-01-30T15:30:00+00:00')
-
-        Returns:
-            - "just now" if < 1 minute ago
-            - "X minute(s) ago" if < 1 hour ago
-            - "X hour(s) ago" if < 24 hours ago
-            - Local datetime string if >= 24 hours ago (format: 'YYYY-MM-DD HH:MM AM/PM')
-
-        Examples:
-            >>> friendly_time_ago('2024-01-30T15:30:00+00:00')  # 30 seconds ago
-            'just now'
-            >>> friendly_time_ago('2024-01-30T15:00:00+00:00')  # 5 minutes ago
-            '5 minutes ago'
-            >>> friendly_time_ago('2024-01-30T13:00:00+00:00')  # 3 hours ago
-            '3 hours ago'
-            >>> friendly_time_ago('2024-01-28T15:30:00+00:00')  # 2 days ago
-            '2024-01-28 10:30 AM'  # (in local time)
-        """
-        # Parse the timestamp
-        past_dt = datetime.fromisoformat(iso_timestamp)
-
+    def friendly_time_ago(cls, past_dt: datetime) -> str:
+        """Present a timestamp already decoded by the session store."""
         # Get current time in appropriate timezone
         if past_dt.tzinfo is not None:
             # Timezone-aware: use UTC for comparison
-            now = datetime.now(timezone.utc)
+            now = datetime.now(UTC)
         else:
             # Naive datetime: use naive now
             now = datetime.now()
@@ -111,20 +83,15 @@ class SessionResumeModal(ModalScreen[Session]):
             return
 
         for session in sessions:
-            cwd = ""
-            if meta_json := session["meta_json"]:
-                try:
-                    cwd = json.loads(meta_json).get("cwd", None)
-                except Exception:
-                    pass
+            cwd = str(session.meta_json.cwd or "")
 
             table.add_row(
-                session["agent"],
-                session["title"],
-                self.friendly_time_ago(session["created_at"]),
-                self.friendly_time_ago(session["last_used"]),
+                session.agent,
+                session.title,
+                self.friendly_time_ago(session.created_at),
+                self.friendly_time_ago(session.last_used),
                 cwd,
-                key=str(session["id"]),
+                key=str(session.id),
             )
 
     async def dissmiss_with_session(self, row_key_value: str) -> Session | None:

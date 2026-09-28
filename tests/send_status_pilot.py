@@ -1,112 +1,127 @@
-"""Sending feedback paints before transport completion and disappears on receipt."""
+"""Mounted sending feedback uses current queue IDs and preserves local drafts."""
 
 import asyncio
 import os
-import tempfile
 from pathlib import Path
+from tempfile import TemporaryDirectory
+from unittest.mock import patch
 
-from toad.acp.messages import InputStarted, PromptQueueUpdate, Update
 from runtime_fixture import ToadApp
-from toad.widgets.conversation import Conversation
+from queue_view_pilot import AGENT, F, update
+from toad.acp.agent import Agent
 from toad.widgets.prompt import QueueSummary, SendNow
 from toad.widgets.user_input import UserInput
 
 
-class GatedAgent:
-    uses_turn_events = True
-    server_titles = True
-
-    def __init__(self):
-        self.started = asyncio.Event()
-        self.release = asyncio.Event()
-        self.sent = []
-
-    async def send_prompt(self, text, **kwargs):
-        self.sent.append(text)
-        self.started.set()
-        await self.release.wait()
-
-    async def stop(self):
-        pass
-
-
 async def main():
-    with tempfile.TemporaryDirectory(prefix="toad-send-status-") as directory:
+    with TemporaryDirectory(prefix="toad-send-status-") as directory:
         root = Path(directory)
-        os.environ.update(XDG_CONFIG_HOME=str(root / "config"), XDG_STATE_HOME=str(root / "state"),
-                          XDG_DATA_HOME=str(root / "data"), AGENT_COMMS_ROOT=str(root / "wire"))
+        os.environ.update(
+            XDG_CONFIG_HOME=str(root / "config"),
+            XDG_STATE_HOME=str(root / "state"),
+            XDG_DATA_HOME=str(root / "data"),
+            AGENT_COMMS_ROOT=str(root / "wire"),
+        )
         app = ToadApp(project_dir=str(root))
-        async with app.run_test(size=(110, 32)) as pilot:
+        async with app.run_test(size=(190, 40)) as pilot:
             await pilot.pause()
-            conversation = app.screen.conversation
-            agent = GatedAgent()
-            conversation.set_reactive(Conversation.agent, agent)
-            conversation.agent_ready = True
-            conversation.queue_supported = True
-            conversation.turn = "agent"
-            for key in ("ctrl+enter", "ctrl+y"):
-                agent.started.clear()
-                agent.release.clear()
-                conversation.prompt.text = "urgent follow-up"
-                conversation.prompt.focus()
-                await pilot.press(key)
-                await asyncio.wait_for(agent.started.wait(), 3)
-                await pilot.pause()
-                frame = "\n".join(strip.text for strip in app.screen._compositor.render_strips())
-                assert "Sending next: urgent follow-up" in frame
-                agent.release.set()
-                conversation.post_message(InputStarted(None))
-                conversation.post_message(Update("text", "Already processing the follow-up"))
-                await pilot.pause()
-                assert not conversation.delivering_prompt
-                assert "Sending next" not in conversation.query_one(QueueSummary).render().plain
-            # Deferred echo acknowledges delivery; it must not start a sending
-            # indicator that then remains for the entire response.
-            conversation.post_message(InputStarted("ordinary queued input"))
+            view = app.screen.conversation
+            agent = Agent(root, AGENT, "beta")
+            agent._message_target = view
+            view.agent = agent
             await pilot.pause()
-            assert not conversation.delivering_prompt
-            # Real click/shortcuts with an empty composer target the existing
-            # queue head, rather than submitting an empty message. Delivery is
-            # already scheduled by the owner; feedback must not resend it.
-            for key in (None, "ctrl+enter", "ctrl+y"):
-                conversation.post_message(PromptQueueUpdate(["already queued", "still waiting"], []))
-                await pilot.pause()
-                before = list(agent.sent)
-                if key is None:
-                    await pilot.click(SendNow)
-                else:
-                    conversation.prompt.focus()
+            view.agent_ready = True
+            view.queue_supported = True
+            entered, release = asyncio.Event(), asyncio.Event()
+
+            async def send(*args, **kwargs):
+                entered.set()
+                await release.wait()
+
+            # Pending local submission is visible before the transport returns.
+            with patch.object(agent, "send_prompt", side_effect=send):
+                for key in ("ctrl+enter", "ctrl+y"):
+                    entered.clear()
+                    release.clear()
+                    view.turn = "agent"
+                    view.prompt.text = "urgent follow-up"
+                    view.prompt.focus()
                     await pilot.press(key)
-                await pilot.pause()
-                frame = "\n".join(strip.text for strip in app.screen._compositor.render_strips())
-                assert "Sending next: already queued" in frame, frame
-                assert "Queued (1): still waiting" in frame, frame
-                assert agent.sent == before
-                # A repeated owner snapshot or repeated click cannot demote the
-                # sending status or dispatch a duplicate prompt.
-                conversation.post_message(PromptQueueUpdate(["already queued", "still waiting"], []))
-                await pilot.click(SendNow)
-                await pilot.pause()
-                assert "Sending next: already queued" in conversation.query_one(QueueSummary).render().plain
-                assert agent.sent == before
-                echoed = sum(block.content == "already queued" for block in conversation.query(UserInput))
-                conversation.post_message(InputStarted("already queued"))
-                await pilot.pause()
-                summary = conversation.query_one(QueueSummary).render().plain
-                assert "Sending next" not in summary, summary
-                assert summary == "Queued (1): still waiting", summary
-                assert sum(block.content == "already queued" for block in conversation.query(UserInput)) == echoed + 1
-                conversation.post_message(PromptQueueUpdate(["still waiting"], []))
-                await pilot.pause()
-                assert conversation.query_one(QueueSummary).render().plain == summary
-            # Queue cancellation/restoration clears pending presentation too.
-            await pilot.click(SendNow)
+                    await asyncio.wait_for(entered.wait(), 3)
+                    await pilot.pause()
+                    frame = "\n".join(
+                        strip.text for strip in app.screen._compositor.render_strips()
+                    )
+                    assert "Sending next: urgent follow-up" in frame, frame
+                    release.set()
+                    async with asyncio.timeout(3):
+                        while view.delivering_prompt:
+                            await pilot.pause()
+                    assert (
+                        "Sending next"
+                        not in view.query_one(QueueSummary).render().plain
+                    )
+
+            binding = F["trustedLoad"]
+            token = agent._queue_view.begin("beta")
+            agent._queue_view.bind(
+                binding["queueBinding"], binding["queueState"], "beta", token
+            )
+            agent._post_queue_view()
+            view.turn = "agent"
+            view.agent_ready = True
+            view.prompt.text = ""
             await pilot.pause()
-            conversation.post_message(PromptQueueUpdate([], ["still waiting"]))
+            before = len(view.query(UserInput))
+            # Scheduling acknowledges no consumption. Both equal-text rows stay
+            # until a current inputStarted receipt identifies one exact input.
+            with (
+                patch.object(agent, "send_now", return_value=True),
+                patch.object(agent, "send_prompt") as submit,
+            ):
+                for key in (None, "ctrl+enter", "ctrl+y"):
+                    if key is None:
+                        assert await pilot.click(SendNow)
+                    else:
+                        view.prompt.focus()
+                        await pilot.press(key)
+                    await pilot.pause()
+                    assert (
+                        "Send requested: same text"
+                        in view.query_one(QueueSummary).render().plain
+                    ), (
+                        key,
+                        view.query_one(QueueSummary).render().plain,
+                        view.queue_projection,
+                        view.queued_prompts,
+                        view.queue_supported,
+                        view.prompt.text,
+                    )
+                    assert len(view.queue_projection.items) == 2
+                    submit.assert_not_called()
+            agent.rpc_session_update(
+                "beta", update({"inputStarted": F["updates"][0]["value"]})
+            )
             await pilot.pause()
-            assert "Sending next" not in conversation.query_one(QueueSummary).render().plain
-            assert conversation.prompt.text == "still waiting"
-    print("send status: both shortcuts paint pending status before receipt; no stale sending label")
+            assert not view.sending_queued_prompt
+            assert len(view.query(UserInput)) == before + 1
+            assert [row.input_id for row in view.queue_projection.items] == ["b" * 32]
+            view.prompt.text = "my unsent draft"
+            for _ in range(2):
+                agent.rpc_session_update(
+                    "beta", update({"queueState": F["updates"][3]["value"]})
+                )
+                await pilot.pause()
+            assert view.prompt.text == "my unsent draft"
+            assert (
+                "Restored (1, read-only): same text"
+                in view.query_one(QueueSummary).render().plain
+            )
+            assert app._exception is None
+            await agent.stop()
+    print(
+        "PASS: shortcuts paint before transport, scheduling preserves exact rows, restoration preserves local draft"
+    )
 
 
 if __name__ == "__main__":

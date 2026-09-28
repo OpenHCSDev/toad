@@ -10,7 +10,7 @@ from pathlib import Path
 
 from agent_comms.comms import Comms
 from agent_comms.message_page import MessagePage
-from agent_comms.owner_lifecycle import OBSERVATION_INTERVAL
+from toad.constants import COMMS_REFRESH_INTERVAL
 from agent_comms.thread_identity import ThreadRole
 from agent_comms.presentation import WireRevision
 from agent_comms.messages import Message as WireMessage
@@ -183,7 +183,7 @@ class CommsChatView(Conversation):
         self.prepare_prompt()
         self.window.anchor()
         self.watch(self.window, "scroll_y", self._on_window_scroll, init=False)
-        self.set_interval(OBSERVATION_INTERVAL, self._refresh)
+        self.set_interval(COMMS_REFRESH_INTERVAL, self._refresh)
         # CommsScreen has already presented its route before mounting this
         # view. Start its asynchronous page read now, overlapping it with the
         # remaining control mounts rather than waiting for another empty

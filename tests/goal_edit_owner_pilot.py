@@ -14,8 +14,10 @@ from toad.acp.messages import GoalSnapshotUpdate
 
 
 async def main():
+    artifacts = Path(__file__).resolve().parents[1] / ".artifacts"
+    artifacts.mkdir(exist_ok=True)
     with TemporaryDirectory(
-        prefix="toad-goal-edit-owner-", dir="/var/tmp"
+        prefix="toad-goal-edit-owner-", dir=artifacts
     ) as directory:
         root = Path(directory)
         os.environ["AGENT_COMMS_AGENT_MODELS"] = "openrouter/fake"

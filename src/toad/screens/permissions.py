@@ -1,3 +1,4 @@
+from toad.setting_choices import DiffMode, AutoDiff
 import os
 from textual import work, on
 from textual.app import ComposeResult
@@ -194,23 +195,19 @@ class PermissionsScreen(Screen[Answer]):
         self.diffs = diffs
         self.agent_name = agent_name
 
-    def get_diff_type(self) -> str:
+    def get_diff_type(self) -> type[DiffMode]:
         app = self.app
-        diff_type = "auto"
+        diff_type = AutoDiff
         if isinstance(app, ToadApp):
-            diff_type = app.settings.get("diff.view", str)
+            diff_type = app.settings.diff.view
         return diff_type
 
-    diff_type: var[str] = var(Initialize(get_diff_type))
+    diff_type: var[type[DiffMode]] = var(Initialize(get_diff_type))
 
     def compose(self) -> ComposeResult:
         with containers.Grid(classes="top"):
             yield DiffViewSelect(
-                [
-                    ("Unified diff", "unified"),
-                    ("Split diff", "split"),
-                    ("Auto diff", "auto"),
-                ],
+                [(member.label(), member) for member in DiffMode.members_with(DiffMode)],
                 value=self.diff_type,
                 allow_blank=False,
                 id="diff-select",
@@ -253,7 +250,7 @@ class PermissionsScreen(Screen[Answer]):
     async def on_mount(self):
         app = self.app
         if isinstance(app, ToadApp):
-            diff_view_setting = app.settings.get("diff.view", str)
+            diff_view_setting = app.settings.diff.view
             self.query_one("#diff-select", Select).value = diff_view_setting
         self.navigator.highlighted = 0
 
@@ -314,8 +311,8 @@ class PermissionsScreen(Screen[Answer]):
         from textual_diff_view import DiffView
 
         for diff_view in self.query(DiffView):
-            diff_view.auto_split = diff_type == "auto"
-            diff_view.split = diff_type == "split"
+            diff_view.auto_split = diff_type.auto_split
+            diff_view.split = diff_type.split
 
     def action_next(self) -> None:
         self.navigator.action_cursor_down()

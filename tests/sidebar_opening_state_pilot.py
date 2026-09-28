@@ -7,6 +7,7 @@ import tempfile
 from threading import Event
 from unittest.mock import patch
 
+from agent_comms.child_process import ProcessIdentity
 from agent_comms.threads import Thread
 from agent_comms.comms import wire
 from runtime_fixture import ToadApp
@@ -52,9 +53,9 @@ async def main():
                           XDG_STATE_HOME=str(root / "state"), XDG_DATA_HOME=str(root / "data"))
         comms = wire(root / "wire")
         me = session_thread_name(root)
-        comms.threads.register(Thread(me, frozenset({"fixture"}), str(root), pid=os.getpid()))
+        comms.threads.register(Thread(me, frozenset({"fixture"}), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
         for name in ("open-peer", "closed-peer"):
-            comms.threads.register(Thread(name, frozenset(), str(root), pid=os.getpid()))
+            comms.threads.register(Thread(name, frozenset(), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
 
         async def start(agent, target):
             agent._message_target = target
@@ -78,7 +79,7 @@ async def main():
                 for collapsed, peer in ((False, "open-peer"), (True, "closed-peer")):
                     app.frames = None
                     await app.switch_mode(owner)
-                    app.settings.set("sidebar.hide", collapsed)
+                    app.settings.sidebar.hide = collapsed
                     await pilot.pause()
                     bar = app.screen.query_one("#channels-sidebar", SideBar)
                     x, width = bar.region.x, bar.size.width
@@ -123,7 +124,7 @@ async def main():
                 for collapsed in (False, True):
                     app.frames = None
                     await app.switch_mode(owner)
-                    app.settings.set("sidebar.hide", collapsed)
+                    app.settings.sidebar.hide = collapsed
                     await pilot.pause()
                     bar = app.screen.query_one("#channels-sidebar", SideBar)
                     x, width = bar.region.x, bar.size.width

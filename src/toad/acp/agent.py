@@ -13,6 +13,7 @@ from math import floor
 import rich.repr
 from agent_comms.goal_actions import RetryGoalAction
 from agent_comms.comms import Comms
+from agent_comms.field_codec import FieldCodec
 from agent_comms.goals import Goal
 from agent_comms.goal_presentation import GoalExecution
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
@@ -33,7 +34,7 @@ from toad.acp.api import API
 from toad.acp import messages
 from toad.acp.sdk_boundary import validate_session_update
 from toad.acp.prompt import build as build_prompt
-from toad.db import DB
+from toad.db import DB, SessionMeta
 from toad.private_native_cursor import CursorReducer
 from toad.queue_view import QueueItem, QueueReducer
 from toad import paths
@@ -500,12 +501,6 @@ class Agent(AgentBase):
             if isinstance(state.get("route"), dict):
                 route = MessageRoute.from_wire(state["route"])
             if "queueState" in state:
-                return
-            if "queue" in state:
-                # Legacy text-only rows cannot establish membership or restore
-                # remote text into a local draft, even on an older producer.
-                self._queue_view.callback("queueState", None, sessionId)
-                self._post_queue_view()
                 return
             if "inputStarted" in state:
                 # Unscoped initial user echoes are not queue-start authority.
@@ -1395,10 +1390,7 @@ class Agent(AgentBase):
                 self._agent_data["identity"],
                 self.session_id,
                 protocol="acp",
-                meta={
-                    "cwd": str(self.project_root_path),
-                    "agent_data": self._agent_data,
-                },
+                meta=SessionMeta(cwd=self.project_root_path, agent_data=self._agent_data),
             )
             if not self._private_cursor.is_current_request(cursor_token):
                 return
@@ -1437,12 +1429,10 @@ class Agent(AgentBase):
             if not self._private_cursor.is_current_request(cursor_token):
                 return
             if session is not None:
-                if session["meta_json"]:
-                    meta = json.loads(session["meta_json"])
-                    if session_cwd := meta.get("cwd", None):
-                        cwd = session_cwd
-                    if agent_data := meta.get("agent_data"):
-                        self._agent_data = agent_data
+                if session_cwd := session.meta_json.cwd:
+                    cwd = str(session_cwd)
+                if agent_data := session.meta_json.agent_data:
+                    self._agent_data = agent_data
 
         with self.request():
             session_load_response = api.session_load(cwd, [], request_session_id)
@@ -1468,7 +1458,7 @@ class Agent(AgentBase):
         self._publish_coordination_metadata(response, initial=True)
 
     def _publish_models(self, response: Mapping[str, object]) -> None:
-        """Publish model and thinking-level config options, with legacy fallback."""
+        """Publish the current model and thinking-level config options."""
         config_options = response.get("configOptions")
         if isinstance(config_options, list):
             self._model_config_id = None
@@ -1524,32 +1514,9 @@ class Agent(AgentBase):
                 self.post_message(messages.SetModels("", {}))
             return
 
-        legacy_models = response.get("models")
-        if not isinstance(legacy_models, dict):
-            return
-        current = legacy_models.get("currentModelId")
-        available = legacy_models.get("availableModels")
-        if not isinstance(current, str) or not isinstance(available, list):
-            return
-        models = {
-            str(model["modelId"]): Model(
-                str(model["modelId"]),
-                str(model.get("name") or model["modelId"]),
-                (
-                    str(model["description"])
-                    if model.get("description") is not None
-                    else None
-                ),
-            )
-            for model in available
-            if isinstance(model, dict) and isinstance(model.get("modelId"), str)
-        }
-        if current in models:
-            self.post_message(messages.SetModels(current, models))
-
     @staticmethod
     def _initial_session_title(response: Mapping[str, object]) -> str | None:
-        """Opening metadata owns the display title, with canonical identity as fallback."""
+        """Opening metadata owns the display title; otherwise use canonical identity."""
         metadata = response.get("_meta")
         if not isinstance(metadata, dict):
             return None
@@ -1569,7 +1536,7 @@ class Agent(AgentBase):
             return
         try:
             raw_goal, raw_execution = state["goal"], state["goalExecution"]
-            goal = Goal.from_wire(raw_goal) if isinstance(raw_goal, dict) else None
+            goal = FieldCodec.decode(Goal, raw_goal) if isinstance(raw_goal, dict) else None
             execution = GoalExecution.from_wire(raw_execution) if isinstance(raw_execution, dict) else None
             if raw_goal is not None and goal is None or raw_execution is not None and execution is None:
                 raise ValueError("Invalid goal snapshot")
@@ -1854,7 +1821,7 @@ class Agent(AgentBase):
         async with asyncio.timeout(3):
             result = await self._owner_request("goal_snapshot")
         raw_goal, raw_execution = result["goal"], result["goalExecution"]
-        goal = Goal.from_wire(raw_goal) if raw_goal is not None else None
+        goal = FieldCodec.decode(Goal, raw_goal) if raw_goal is not None else None
         execution = GoalExecution.from_wire(raw_execution) if raw_execution is not None else None
         if execution is not None and (goal is None or execution.goal_id != goal.id):
             raise ValueError("Goal execution identity does not match the owner snapshot.")
@@ -1913,7 +1880,7 @@ class Agent(AgentBase):
         result = await self._owner_request(
             "edit_goal", goal_id=goal.id, expected_revision=goal.revision, text=text
         )
-        return Goal.from_wire(result["goal"])
+        return FieldCodec.decode(Goal, result["goal"])
 
     @property
     def transcript_ready(self) -> bool:
@@ -1996,7 +1963,7 @@ class Agent(AgentBase):
                     "update_goal", status=action, goal_id=goal.id,
                     expected_revision=goal.revision,
                 )
-        return Goal.from_wire(result["goal"]) if result["goal"] is not None else None
+        return FieldCodec.decode(Goal, result["goal"]) if result["goal"] is not None else None
 
     async def set_session_name(self, name: str) -> None:
         self._pending_session_name = name

@@ -16,6 +16,7 @@ from unittest.mock import patch
 
 from agent_comms.messages import Message, MessageType
 from agent_comms.routing import MessageRoute, TurnRouting
+from agent_comms.child_process import ProcessIdentity
 from agent_comms.threads import Thread
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from agent_comms.transcript_events import AssistantTranscript, NoticeTranscript, SentTranscript, ThinkingTranscript, ToolEndTranscript, ToolStartTranscript, UserTranscript
@@ -43,7 +44,7 @@ async def main():
         comms = wire(root / "wire")
         names = ("fixture-owner", *(f"fixture-{index:02}" for index in range(24)))
         for name in names:
-            comms.threads.register(Thread(name, frozenset({"fixture"}), str(root), pid=os.getpid()))
+            comms.threads.register(Thread(name, frozenset({"fixture"}), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
         for index in range(100):
             comms.messaging.send("fixture-00", "#fixture", f"Wire record {index}: " + "fixed content " * 12)
         events = tuple(

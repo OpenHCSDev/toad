@@ -253,7 +253,6 @@ class ToadSession:
 
 
 async def main() -> None:
-    os.environ.pop("TOAD_COMMS_TEST_TARGET", None)
     os.makedirs(PROJECT, exist_ok=True)
     (PROJECT / "preview.md").write_text("# PTY file preview\n\nOpened as a native session tab.\n")
     PROGRESS_STUB.write_text(
@@ -546,7 +545,7 @@ printf '%s\n' '{"type":"response","command":"get_session_stats","success":true,"
             f"frame:\n{frame[-1200:]}\noutput:\n{output}"
         )
     assert comms.registry.status("renamed-e2e").running
-    assert comms.owners._process_alive(comms.registry.require("renamed-e2e").pid)
+    assert comms.registry.require("renamed-e2e").process_alive
     print("[10] final close replaces the view while its detached owner stays alive OK")
 
     assert await session.click_text("test/cursor-ux", last=True)

@@ -92,3 +92,13 @@ The five enums and the roster are gone; commands, replies, backends, categories 
 ## Dispatch
 
 > **`toad-t6`:** Complete T6 per `docs/refactor/T6-rendering.md`. Read `00-RULES.md` first. Answer the reuse question from the code before touching `ReusableRenderTask`. Build `ConversationKind` early and announce it on the wire, since T5 adopts it. The render pilots are your performance gate.
+
+## TL0 ownership handoff (Copernicus, 2026-09-28)
+
+Parent's existing T6 ownership includes marker wording in `render_processes`,
+`render_runtime`, `render_tasks`, `render_zmq`, and the plain-text member of
+`PreparedPatch` consumed by `widgets/tool_call.py`. Rename as part of the
+owned renderer closure; retain actual build mismatch refusal. The call
+`application.compatibility_with(...).require_match()` is owned by zmqruntime;
+change its declaration/callers together if renamed, never insert an alias in
+Toad. Rich `legacy_windows` remains an actual external keyword.

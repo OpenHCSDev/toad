@@ -71,7 +71,7 @@ async def check_title(title: str | None) -> None:
             assert app.session_tracker.get_session(mode).title == expected
             assert expected in screen.query_one(f"SessionLabel#{mode}", SessionLabel).render().plain
             assert agent.session_pk is not None
-            assert (await DB().session_get(agent.session_pk))["title"] == expected
+            assert (await DB().session_get(agent.session_pk)).title == expected
             assert comms.registry.require(thread).title == title, "Presenting a title must not rename the thread"
 
             # A new view of the existing server session, backed by its saved row.
@@ -88,7 +88,7 @@ async def check_title(title: str | None) -> None:
             assert app.current_mode == loaded.mode_name
             assert app.session_tracker.get_session(loaded.mode_name).title == expected
             assert expected in screen.query_one(f"SessionLabel#{loaded.mode_name}", SessionLabel).render().plain
-            assert (await DB().session_get(agent.session_pk))["title"] == expected
+            assert (await DB().session_get(agent.session_pk)).title == expected
 
             app.session_tracker.update_session(loaded.mode_name, title="My explicit label")
             screen.on_comms_session_named(thread)

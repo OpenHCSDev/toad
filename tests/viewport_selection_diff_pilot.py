@@ -24,7 +24,7 @@ async def main():
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(100, 35)) as pilot:
             await pilot.pause()
-            app.settings.set("ui.auto_copy", False)
+            app.settings.ui.auto_copy = False
             source = await app.screen.conversation.post(AgentResponse("START marker\n\nBefore the diff."))
             text = "very_long_identifier_" * 9
             patch_text = ("--- x.py\n+++ x.py\n@@ -1,2 +1,2 @@\n context\n"

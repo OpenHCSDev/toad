@@ -6,20 +6,13 @@ import asyncio
 from copy import deepcopy
 import json
 from pathlib import Path
-import sys
 from tempfile import TemporaryDirectory
 
-from textual.app import App, ComposeResult
-from textual.widgets import Static
-
-import toad.mcp_inventory as mcp_inventory
 from toad.mcp_inventory import (
     UnsupportedInventory,
     parse_inventory,
-    read_inventory,
     render_inventory,
 )
-from toad.screens.mcp_inventory import MCPInventoryScreen
 
 
 DIGEST = "a" * 64
@@ -99,33 +92,6 @@ async def main() -> None:
         assert shadowed.project[0].call_policy == "ask"
         assert "do-not-leak" not in render_inventory(shadowed)
 
-        # The package-owned capability field is exact: integer 1 (no bool),
-        # exact token, exact keys; anything else means positive-held.
-        assert parse_inventory(encoded, root).positive_decisions is None
-        for broken in (
-            {"version": 1},
-            {
-                "version": 1,
-                "positiveDecisions": "locked-project-approval-v1",
-                "extra": True,
-            },
-            {"version": True, "positiveDecisions": "locked-project-approval-v1"},
-            {"version": "1", "positiveDecisions": "locked-project-approval-v1"},
-            {"version": 1, "positiveDecisions": "legacy"},
-            {"version": 1, "positiveDecisions": 5},
-        ):
-            mutated = deepcopy(valid)
-            mutated["compatibility"] = broken
-            parsed = parse_inventory(json.dumps(mutated).encode(), root)
-            assert parsed.positive_decisions is None
-        capable = deepcopy(valid)
-        capable["compatibility"] = {
-            "version": 1,
-            "positiveDecisions": "locked-project-approval-v1",
-        }
-        parsed = parse_inventory(json.dumps(capable).encode(), root)
-        assert parsed.positive_decisions == "locked-project-approval-v1"
-
         rejected(encoded.replace(b'"version": 2', b'"version": 1'), root)
         rejected(encoded.replace(str(root).encode(), b"/some-other-root"), root)
         rejected(encoded.replace(b'"not_running"', b'"running"'), root)
@@ -139,62 +105,7 @@ async def main() -> None:
         rejected(b'{"version": 2, "declarations":', root)
         rejected(b" " * 128_001, root)
 
-        # An explicit executable path is necessary. Never consult PATH/checkout.
-        assert await read_inventory(root, node_path="", cli_path="") is None
-        script = root / "fake-package-cli.py"
-        script.write_text(
-            """\
-import json, sys
-assert sys.argv[1:4] == ['inventory', '--json', '--project']
-assert sys.argv[4] == ROOT
-print(json.dumps(DOC))
-""".replace("ROOT", repr(str(root))).replace("DOC", repr(valid))
-        )
-        dto = await read_inventory(root, node_path=sys.executable, cli_path=str(script))
-        assert dto == inventory
-
-        class InventoryApp(App):
-            def compose(self) -> ComposeResult:
-                yield Static("Home")
-
-        app = InventoryApp()
-        async with app.run_test(size=(100, 35)) as pilot:
-            screen = MCPInventoryScreen(
-                root,
-                node_path=sys.executable,
-                cli_path=str(script),
-            )
-            app.push_screen(screen)
-            await pilot.pause(0.1)
-            assert app.screen is screen
-            assert "fixture" in str(
-                screen.query_one("#mcp-inventory-status", Static).content
-            )
-            screen.dismiss()
-            await pilot.pause()
-            assert app.screen is not screen
-
-        script.write_text("print('wrong contract')\n")
-        assert (
-            await read_inventory(root, node_path=sys.executable, cli_path=str(script))
-            is None
-        )
-        script.write_text("import time; time.sleep(1)\n")
-        old_timeout = mcp_inventory.INVENTORY_TIMEOUT_SECONDS
-        mcp_inventory.INVENTORY_TIMEOUT_SECONDS = 0.02
-        try:
-            assert (
-                await read_inventory(
-                    root, node_path=sys.executable, cli_path=str(script)
-                )
-                is None
-            )
-        finally:
-            mcp_inventory.INVENTORY_TIMEOUT_SECONDS = old_timeout
-
-    print(
-        "Pi MCP inventory: explicit CLI, v2 trust/rows, fail-closed malformed/root/live, no authority"
-    )
+    print("MCP inventory: current strict DTO, redaction, trust and malformed input rejection pass")
 
 
 if __name__ == "__main__":

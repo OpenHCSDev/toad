@@ -2,17 +2,45 @@
 
 import asyncio
 import os
+import statistics
 import tempfile
 import time
 from pathlib import Path
 
 from textual.geometry import Size
 
-from toad.app import ToadApp
-from toad.widgets.agent_response import AgentResponse
+from toad.ansi import TerminalState
+
+
+async def terminal_stream_timing():
+    """Measure actual ANSI parsing, mode changes, styling and buffer writes."""
+    async def stdin(value):
+        raise AssertionError(f"Unexpected terminal input request: {value!r}")
+
+    chunk = "\x1b[?1049h\x1b[2J\x1b[H" + "hello \x1b[31mworld\x1b[0m\r\n" * 20
+    samples = []
+    for _ in range(3):
+        state = TerminalState(stdin, width=100, height=30)
+        started = time.perf_counter()
+        for _ in range(3000):
+            await state.write(chunk)
+        samples.append(time.perf_counter() - started)
+        assert len(state.buffer.lines) <= 30
+        assert state.buffer.lines[0].content.plain == "hello world"
+    result = {
+        "terminal_bytes_per_run": len(chunk) * 3000,
+        "terminal_seconds": samples,
+        "terminal_median_seconds": statistics.median(samples),
+    }
+    print(result, flush=True)
+    return result
 
 
 async def main():
+    from toad.app import ToadApp
+    from toad.widgets.agent_response import AgentResponse
+
+    await terminal_stream_timing()
     with tempfile.TemporaryDirectory(prefix="toad-large-stream-") as directory:
         root = Path(directory)
         os.environ.update(XDG_CONFIG_HOME=str(root / "config"), XDG_STATE_HOME=str(root / "state"),

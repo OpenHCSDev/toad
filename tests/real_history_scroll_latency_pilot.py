@@ -41,7 +41,7 @@ async def main():
         app = PaintProbe(project_dir=str(root))
         with patch.object(CommsSidebar, "_read_snapshot", skip_snapshot):
             async with app.run_test(size=(120, 40)) as pilot:
-                app.settings.set("ui.auto_copy", False)
+                app.settings.ui.auto_copy = False
                 await pilot.pause()
                 modes = [app.current_mode]
                 for _ in names[1:]:

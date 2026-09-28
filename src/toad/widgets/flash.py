@@ -81,6 +81,6 @@ class Flash(Static):
         self.visible = True
 
         if duration is None:
-            duration = self.app.settings.get("ui.flash_duration", float)
+            duration = self.app.settings.ui.flash_duration
 
         self.flash_timer = self.set_timer(duration or 3, hide)

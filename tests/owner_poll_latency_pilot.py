@@ -11,6 +11,7 @@ import threading
 import time
 from unittest.mock import patch
 
+from agent_comms.child_process import ProcessIdentity
 from agent_comms.threads import Thread
 from agent_comms.comms import wire
 from agent_comms.runtime import RuntimeProxy
@@ -25,7 +26,7 @@ async def main():
         os.environ["XDG_STATE_HOME"] = str(root / "state")
         comms = wire(root / "wire")
         for index in range(100):
-            comms.threads.register(Thread(f"worker-{index}", frozenset({"shared", "test"}), str(root), pid=os.getpid()))
+            comms.threads.register(Thread(f"worker-{index}", frozenset({"shared", "test"}), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
         agent = Agent(root, {"name": "fixture", "run_command": {"*": "false"}}, None)
         agent._coordination_root, agent._coordination_thread = str(comms.root), "worker-0"
         ui_thread = threading.get_ident()

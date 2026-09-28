@@ -38,7 +38,7 @@ class CategorizedBlock:
     """Nominal widget mixin for the declared presentation category.
 
     Textual widgets own a custom metaclass, so a separate ABCMeta would be
-    incompatible with their inheritance. Concrete blocks implement this member.
+    inconsistent with their inheritance. Concrete blocks implement this member.
     """
 
     @property

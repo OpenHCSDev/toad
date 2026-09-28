@@ -1,3 +1,5 @@
+from toad.settings import PreferenceChange
+from toad.preferences import SidebarSettings
 from dataclasses import dataclass
 import asyncio
 from typing import TYPE_CHECKING, ClassVar, cast
@@ -660,7 +662,7 @@ class SideBar(containers.Vertical):
             cast("ToadApp", self.app).settings_changed_signal.subscribe(
                 self, self._settings_changed  # type: ignore[arg-type]
             )
-            self.collapsed = cast("ToadApp", self.app).settings.get("sidebar.hide", bool)
+            self.collapsed = cast("ToadApp", self.app).settings.sidebar.hide
         else:
             self.collapsed = self.hide
         self.watch_collapsed(self.collapsed)
@@ -895,10 +897,9 @@ class SideBar(containers.Vertical):
     def render(self) -> str:
         return ("<" if self.right else ">") if self.collapsed else ""
 
-    def _settings_changed(self, update: tuple[str, object]) -> None:
-        key, value = update
-        if key == "sidebar.hide":
-            self.collapsed = bool(value)
+    def _settings_changed(self, update: PreferenceChange) -> None:
+        if update.field is SidebarSettings.hide:
+            self.collapsed = cast("ToadApp", self.app).settings.sidebar.hide
 
     @on(SideBarToggle.Pressed)
     def on_toggle_pressed(self, event: SideBarToggle.Pressed) -> None:
@@ -930,10 +931,10 @@ class SideBar(containers.Vertical):
                 screen.set_focus(target, scroll_visible=False)
         if self._navigation is None:
             app = cast("ToadApp", self.app)
-            app.settings.set("sidebar.hide", collapsed)
+            app.settings.sidebar.hide = collapsed
             # Project this input on its visible owner immediately. The shared
             # settings signal still updates other views, idempotently.
-            self.collapsed = app.settings.get("sidebar.hide", bool)
+            self.collapsed = app.settings.sidebar.hide
         else:
             self.collapsed = collapsed
         if collapsed:
@@ -962,12 +963,12 @@ class SideBar(containers.Vertical):
 
     def reveal(self) -> None:
         if self._navigation is None:
-            cast("ToadApp", self.app).settings.set("sidebar.hide", False)
+            cast("ToadApp", self.app).settings.sidebar.hide = False
         else:
             self.collapsed = False
 
     def action_dismiss(self) -> None:
-        if cast("ToadApp", self.app).settings.get("sidebar.hide", bool):
+        if cast("ToadApp", self.app).settings.sidebar.hide:
             self.collapsed = True
         self.post_message(self.Dismiss())
 

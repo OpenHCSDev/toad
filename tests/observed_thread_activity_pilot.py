@@ -7,6 +7,7 @@ import tempfile
 
 from agent_comms.activity import ActivityState
 from agent_comms.comms import wire
+from agent_comms.child_process import ProcessIdentity
 from agent_comms.threads import Thread
 from runtime_fixture import ToadApp
 from toad import messages
@@ -27,7 +28,7 @@ async def main():
         os.environ.update(AGENT_COMMS_ROOT=str(root / "wire"), XDG_CONFIG_HOME=str(root / "config"),
                           XDG_STATE_HOME=str(root / "state"), XDG_DATA_HOME=str(root / "data"))
         comms = wire(root / "wire")
-        comms.threads.register(Thread("peer", frozenset({"comms"}), str(root), pid=os.getpid()))
+        comms.threads.register(Thread("peer", frozenset({"comms"}), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(110, 40)) as pilot:
             await pilot.pause()
@@ -53,7 +54,7 @@ async def main():
             await until(lambda: observed.presentation is not None and not observed.presentation.busy)
             await pilot.pause()
             assert tracker.state == "idle" and tracker.summary == "Ready"
-            comms.threads.register(Thread("dm-peer", frozenset({"comms"}), str(root), pid=os.getpid()))
+            comms.threads.register(Thread("dm-peer", frozenset({"comms"}), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
             await app.open_comms_session(owner_mode=owner, project_path=root, me="peer", target="dm-peer", kind="dm")
             dm = app.screen.query_one(CommsChatView)
             observed = dm.query_one(ObservedThreadActivity)

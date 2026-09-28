@@ -14,6 +14,7 @@ from agent_comms.routing import ScheduledTurn
 from agent_comms.input_disposition import InputDispositions
 from runtime_fixture import ToadApp
 
+from toad.widgets.message_filter import IN_OUT_CATEGORIES
 from toad.acp.agent import Agent
 from toad.acp.messages import TranscriptSnapshot
 from toad.widgets.agent_response import AgentResponse
@@ -103,13 +104,15 @@ async def main(*, historical: bool) -> None:
             assert "peer" in copied and incoming.body in copied
             assert "[agent-comms from" not in copied
             assert comms.bus.pending_count("owner") == pending
-            view.in_out_only = True
+            view.visible_categories = IN_OUT_CATEGORIES
             await pilot.pause()
             frame = "\n".join(strip.text for strip in app.screen._compositor.render_strips())
             assert "[FROM]" in frame and "[TO]" in frame
             assert incoming.body in frame and outgoing.body in frame
             assert "A human quoting" not in frame
             assert app._exception is None
+            watcher = view._directory_watcher
+        assert watcher is None or not watcher.is_alive()
         await asyncio.get_running_loop().shutdown_default_executor()
     print(f"native attribution: live/saved FROM/TO agree, human quotes preserved, historical={historical}")
 

@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 import tempfile
 
+from agent_comms.child_process import ProcessIdentity
 from agent_comms.threads import Thread
 from agent_comms.comms import wire
 from rich.style import Style as RichStyle
@@ -24,8 +25,8 @@ async def main():
                           TOAD_BENCH_VIRTUAL_CHANNELS="1")
         name = session_thread_name(root)
         comms = wire(root / "wire")
-        comms.threads.register(Thread(name, frozenset({"alpha"}), str(root), pid=os.getpid()))
-        comms.threads.register(Thread("archived", frozenset({"alpha"}), str(root), pid=0))
+        comms.threads.register(Thread(name, frozenset({"alpha"}), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
+        comms.threads.register(Thread("archived", frozenset({"alpha"}), str(root), process_identity=None))
         comms.owners.stop("archived")
         comms.threads.archive("archived")
         comms.channels.create_tag("beta")
@@ -45,7 +46,7 @@ async def main():
             assert roster.styles.text_wrap == "nowrap"
             assert not sidebar.query("ChannelGroup"), "Virtual roster still mounted every group"
             assert "member:#alpha:archived" not in sidebar._virtual_targets
-            app.settings.set("sidebar.show_archived", True)
+            app.settings.sidebar.show_archived = True
             await sidebar.sync_sessions()
             roster.highlighted = roster.get_option_index("channel:#alpha")
             roster.focus()
@@ -67,7 +68,7 @@ async def main():
                 await pilot.pause()
                 assert ("member:#alpha:archived" in sidebar._virtual_targets) is expanded
                 assert app.current_mode == first, "Disclosure inadvertently opened a tab"
-            app.settings.set("sidebar.show_archived", False)
+            app.settings.sidebar.show_archived = False
             await sidebar.sync_sessions()
             assert "member:#alpha:archived" not in sidebar._virtual_targets
             roster.highlighted = roster.get_option_index("channel:#alpha")

@@ -7,6 +7,7 @@ import statistics
 import tempfile
 import time
 
+from agent_comms.child_process import ProcessIdentity
 from agent_comms.threads import Thread
 from agent_comms.comms import wire
 from runtime_fixture import ToadApp
@@ -41,7 +42,7 @@ async def main():
                           XDG_DATA_HOME=str(root / "data"), XDG_STATE_HOME=str(root / "state"))
         comms = wire(root / "wire")
         me = session_thread_name(root)
-        comms.threads.register(Thread(me, frozenset({"fixture"}), str(root), pid=os.getpid()))
+        comms.threads.register(Thread(me, frozenset({"fixture"}), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
         targets = [f"#scene-{index}" for index in range(6)]
         for target in targets:
             comms.channels.create_tag(target.removeprefix("#"))

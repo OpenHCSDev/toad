@@ -6,6 +6,7 @@ import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
+from agent_comms.child_process import ProcessIdentity
 from agent_comms.threads import Thread
 from agent_comms.comms import wire
 from runtime_fixture import ToadApp
@@ -29,8 +30,8 @@ async def main(title: str | None = None, *, cold_metadata: bool = False) -> None
         comms = wire(root / "wire")
         project = root / "other-project"
         project.mkdir()
-        comms.threads.register(Thread("owner", frozenset({"acp"}), str(root), pid=os.getpid(), title="Owner"))
-        comms.threads.register(Thread("existing-thread", frozenset({"acp"}), str(project), pid=os.getpid(), title=title))
+        comms.threads.register(Thread("owner", frozenset({"acp"}), str(root), process_identity=ProcessIdentity.capture(os.getpid()), title="Owner"))
+        comms.threads.register(Thread("existing-thread", frozenset({"acp"}), str(project), process_identity=ProcessIdentity.capture(os.getpid()), title=title))
         expected_title = title or "existing-thread"
         started, release = asyncio.Event(), asyncio.Event()
         observations = []
