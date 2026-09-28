@@ -10,6 +10,7 @@ from types import SimpleNamespace
 
 from textual.app import App, ComposeResult
 from textual.signal import Signal
+from toad.session_tracker import ExactUnread
 from toad.render_backend import create_renderer
 from toad.sidebar_layout import SidebarLayout
 from toad.work_preparation import PreparationRuntime
@@ -108,7 +109,7 @@ class ReferenceTree(TargetTree):
 
     def compose(self):
         row = CommsRow("thread", "peer", "peer")
-        row.update_thread(self.source.people["peer"], unread=22)
+        row.update_thread(self.source.people["peer"], unread=ExactUnread(22))
         yield row
 
     def _ordered_rows(self):
@@ -128,7 +129,7 @@ class FixtureApp(App):
         self.preparation = PreparationRuntime(create_renderer())
         self.pending_thread_actions = {}
         self.coordination_wire = SimpleNamespace(root=Path(source.root))
-        self._sidebar_snapshot = SimpleNamespace(thread_unread={"peer": 22}, unread={})
+        self._sidebar_snapshot = SimpleNamespace(thread_unread={"peer": 22}, thread_unread_pending=frozenset(), unread={})
         self.coordination_observed = Signal(self, "fixture-observed")
         self.open_tabs_changed = Signal(self, "fixture-tabs")
         self.mode_change_signal = Signal(self, "fixture-mode")

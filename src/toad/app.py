@@ -27,6 +27,7 @@ from textual.screen import Screen
 from textual.await_complete import AwaitComplete
 
 import toad
+from toad.session_tracker import UnreadPresentation, ExactUnread
 from toad.db import DB
 from toad.settings import Schema, Settings
 from toad.agent_schema import Agent as AgentData
@@ -1119,12 +1120,12 @@ class ToadApp(App, inherit_bindings=False):
             presentation = presentations.get(name)
             tabs.append(OpenTab(
                 details.mode_name, presentation.label if presentation else details.title or "New Session",
-                snapshot.thread_unread.get(name, 0) if snapshot else 0,
+                UnreadPresentation.for_thread(snapshot, name) if snapshot else ExactUnread(),
             ))
         tabs.extend(OpenTab(
             mode, key.title,
-            (snapshot.unread if key.kind == "dm" else snapshot.channel_unread).get(key.target, 0)
-            if snapshot else 0,
+            ExactUnread((snapshot.unread if key.kind == "dm" else snapshot.channel_unread).get(key.target, 0))
+            if snapshot else ExactUnread(),
         ) for key, mode in self._comms_modes.items())
         tabs.extend(OpenTab(mode, path.name) for path, mode in self._file_preview_modes.items())
         tabs.extend(OpenTab(mode, f"⌛ @{pending.target}")

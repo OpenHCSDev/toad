@@ -11,6 +11,7 @@ from agent_comms.threads import Thread
 from agent_comms.comms import wire
 
 from runtime_fixture import ToadApp
+from toad.session_tracker import ExactUnread
 from toad.sidebar_preparation import TabRosterWork, ThreadRowInput, ThreadRowsWork
 from toad.widgets.session_tabs import SessionLabel, SessionsTabs
 
@@ -35,12 +36,12 @@ async def main():
 
             with patch.object(ThreadRowsWork, "prepare", counted):
                 left, right = await asyncio.gather(*[
-                    app.preparation.submit(ThreadRowsWork((ThreadRowInput(person, unread=17),)))
+                    app.preparation.submit(ThreadRowsWork((ThreadRowInput(person, unread=ExactUnread(17)),)))
                     for _ in range(2)
                 ])
                 assert len(calls) == 1 and calls[0] != threading.get_ident()
                 assert left is not right and left[0].frames[0].plain == right[0].frames[0].plain
-                changed = await app.preparation.submit(ThreadRowsWork((ThreadRowInput(person, unread=18),)))
+                changed = await app.preparation.submit(ThreadRowsWork((ThreadRowInput(person, unread=ExactUnread(18)),)))
                 assert len(calls) == 2 and changed[0].frames[0].plain.startswith("(18)")
 
             tabs = app.screen.query_one(SessionsTabs)

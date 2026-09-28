@@ -10,6 +10,7 @@ from agent_comms.threads import Thread
 from agent_comms.comms import wire
 from agent_comms.runtime import socket_path
 from runtime_fixture import ToadApp
+from toad.session_tracker import ExactUnread
 from toad.acp.messages import TranscriptSnapshot
 from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.comms_sidebar import ChannelGroup, CommsSidebar
@@ -75,7 +76,7 @@ async def main():
             conversation.post_message(TranscriptSnapshot(page.events, page))
             await pilot.pause()
             await refresh(app, pilot)
-            assert app.open_tabs[0].unread == 1
+            assert app.open_tabs[0].unread == ExactUnread(1)
             conversation.window.scroll_relative(y=-4, animate=False, immediate=True)
             await app.switch_mode(owner_mode)
             await pilot.pause()
@@ -95,7 +96,7 @@ async def main():
             chat = app.screen.query_one(CommsChatView)
             await chat._refresh()
             await refresh(app, pilot)
-            assert not next(tab for tab in app.open_tabs if tab.mode_name == channel_mode).unread
+            assert next(tab for tab in app.open_tabs if tab.mode_name == channel_mode).unread == ExactUnread()
 
             sidebar = app.screen.query_one(CommsSidebar)
             group = next(group for group in sidebar.query(ChannelGroup) if group.row.target_name == "#team")
