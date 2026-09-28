@@ -67,5 +67,5 @@ class ObservedThreadActivity(Static):
                 lines.append(f"{message.target} · {message.sender}: {excerpt} — {receipt.state}")
         self.update("\n".join(lines))
         self.set_class(bool(presentation and presentation.busy), "-working")
-        self.set_class(unavailable, "-unavailable")
+        self.set_class(unavailable or bool(presentation and presentation.attention), "-unavailable")
         self.post_message(self.Changed(presentation, unavailable))

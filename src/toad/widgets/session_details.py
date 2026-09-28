@@ -60,7 +60,7 @@ class SessionDetails(Collapsible):
         activity = self.activity
         presentation = activity.presentation
         parts = ["Session details"]
-        attention = activity.unavailable
+        attention = activity.unavailable or bool(presentation and presentation.attention)
         if activity.unavailable:
             parts.append("Status unavailable")
         elif presentation is not None:
