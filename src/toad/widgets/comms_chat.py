@@ -492,7 +492,7 @@ class CommsChatView(DeliveryFailureView, Conversation):
             self._ack_inflight = True
             self.run_worker(self._mark_historical_paint(historical, selected), group="comms-painted-read")
             return
-        painted = set(self._painted_message_sequences())
+        painted = {sequence for source, sequence in visible if not source}
         selected = self.conversation_kind.painted_page(self, painted)
         if selected is None:
             return

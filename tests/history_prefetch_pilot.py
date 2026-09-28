@@ -87,7 +87,7 @@ async def main():
                 view.window.max_scroll_y, filtered._prefetch_distance,
                 filtered.fragment_count, filtered.widget_count,
                 filtered.pages[-1].start, filtered.pages[-1].stop,
-                filtered._filter_before, filtered_calls)
+                filtered.filter.before, filtered_calls)
             view.visible_categories = frozenset(MessageCategory.members_with(RoutedMessage))
             await pilot.pause()
             assert filtered.filter.overlay is None, "Lookahead published filtered rows at the tail"

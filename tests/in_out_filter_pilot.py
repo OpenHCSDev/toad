@@ -16,7 +16,6 @@ from agent_comms.comms import wire
 from textual.widgets import Checkbox, Static
 
 from runtime_fixture import ToadApp
-from toad.acp.messages import CoordinationUpdate
 from toad.widgets.agent_response import AgentResponse, ResponseDelivery
 from toad.widgets.agent_thought import AgentThought
 from toad.widgets.incoming_message import IncomingMessage
