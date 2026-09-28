@@ -107,15 +107,27 @@ is not an instantaneous terminal-pixel measurement. See
   shutdown API. Normal `aclose()` leaves the service running. Automatic retirement
   of older-build services and byte-based memory bounds remain future work.
 
+The renderer setting uses the declaration family (`local` and `persistent`).
+A saved `ui.renderer` choice supplies the backend unless CLI `--renderer` or
+`TOAD_RENDERER` overrides it. Each choice owns startup; no enum dispatcher remains.
+Renderer commands and replies use the shared FieldCodec, with the existing pickle
+contract for captured Markdown/Rich dependency objects in private IPC. Each reply
+owns its client transition; completed objects are decoded on the I/O thread.
+
 ## Verification checkpoint
 
-Run pilots with the intended Toad and Textual source directories first on
-`PYTHONPATH`; child processes must import those same sources. The persistent pilots
-also need the optional extra. They create disposable endpoints and shut them down.
+Build and install the candidate wheel into a disposable environment with the current
+Comms and Textual fork pins. Run these pilots with that environment’s Python;
+`PYTHONPATH` may contain the test fixture directory, but must not select Toad source
+over the installed wheel. Persistent pilots need the optional extra. They create
+private disposable IPC endpoints and shut them down. Keep IPC paths short enough
+for the operating system’s Unix socket limit.
 
 ```sh
 python tests/render_identity_pilot.py
-python tests/render_service_pilot.py
+python tests/render_families_pilot.py
+python tests/t6_retirement_pilot.py
+python tests/renderer_cli_pty_pilot.py
 python tests/persistent_renderer_lifecycle_pilot.py
 python tests/render_runtime_pilot.py
 python tests/renderer_warmup_pilot.py
@@ -134,7 +146,7 @@ verifies warm-up succeeds, renders Markdown, a native tool diff and a file previ
 reuse of the same service. The warm-up lifecycle pilot holds preparation behind
 a gate and verifies typing, tab navigation, drafts and shutdown still work.
 Existing process/transcript, Markdown lifecycle/row parity, diff lifecycle/style,
-retained text and footer pilots are the compatibility checks for this checkpoint.
+retained text and footer pilots are the behavior checks for this checkpoint.
 
 A manual desktop test was reported as “working pretty good.” A separate bounded
 headless fixture (35 KB Markdown, 1,200 code lines) observed first completed updates

@@ -1,0 +1,5 @@
+{"source_records": 80, "matching": 3, "peak_fragments": 3, "peak_pages": 3, "peak_widgets": 15}
+{"source_records": 800, "matching": 26, "peak_fragments": 10, "peak_pages": 9, "peak_widgets": 40}
+{"source_records": 8000, "matching": 258, "peak_fragments": 10, "peak_pages": 9, "peak_widgets": 40}
+{"source_records": 8000, "matching": 0, "peak_fragments": 0, "peak_pages": 2, "peak_widgets": 4}
+projected history: 100x source growth, bounded rows, bidirectional coverage and selection preserved

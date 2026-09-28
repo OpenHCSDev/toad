@@ -21,6 +21,7 @@ from unittest.mock import patch
 from weakref import ref
 
 from agent_comms.child_process import ProcessIdentity
+from agent_comms.acp_extension import TranscriptSnapshotUpdate
 from agent_comms.threads import Thread
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from agent_comms.transcript_events import AssistantTranscript
@@ -31,7 +32,7 @@ from textual.widget import Widget
 from textual.widgets import TextArea
 from textual import __file__ as textual_file
 from toad.acp.agent import Agent
-from toad.acp.messages import TranscriptSnapshot
+from toad.acp.messages import CommsUpdated
 from toad.agent import AgentReady
 from toad import __file__ as toad_file
 from toad.widgets.comms_sidebar import ChannelGroup, CommsSidebar
@@ -108,7 +109,7 @@ async def main(*, empty=False, trace=False, observe=False, output=None, peers=0,
             agent._message_target = target
 
             async def deliver():
-                target.post_message(TranscriptSnapshot(page.events, page))
+                target.post_message(CommsUpdated(TranscriptSnapshotUpdate(page)))
                 target.post_message(AgentReady())
 
             agent._task = asyncio.create_task(deliver())

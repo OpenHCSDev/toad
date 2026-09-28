@@ -1,0 +1,70 @@
+..F..F....                                                               [100%]
+=================================== FAILURES ===================================
+________________________ pilot: renderer_cli_pty_pilot _________________________
+Pilot failed: ExitedOutcome(code=1)
+Traceback (most recent call last):
+  File [35m"/home/ts/wt/toad-t6-rendering-20260928/tests/renderer_cli_pty_pilot.py"[0m, line [35m133[0m, in [35m<module>[0m
+    [31masyncio.run[0m[1;31m(main())[0m
+    [31m~~~~~~~~~~~[0m[1;31m^^^^^^^^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py"[0m, line [35m204[0m, in [35mrun[0m
+    return [31mrunner.run[0m[1;31m(main)[0m
+           [31m~~~~~~~~~~[0m[1;31m^^^^^^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py"[0m, line [35m127[0m, in [35mrun[0m
+    return [31mself._loop.run_until_complete[0m[1;31m(task)[0m
+           [31m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m[1;31m^^^^^^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py"[0m, line [35m719[0m, in [35mrun_until_complete[0m
+    return [31mfuture.result[0m[1;31m()[0m
+           [31m~~~~~~~~~~~~~[0m[1;31m^^[0m
+  File [35m"/home/ts/wt/toad-t6-rendering-20260928/tests/renderer_cli_pty_pilot.py"[0m, line [35m100[0m, in [35mmain[0m
+    environment, size = [1;31mawait asyncio.to_thread([0m
+                        [1;31m^^^^^^^^^^^^^^^^^^^^^^^^[0m
+        [1;31mlaunch, directory, options, saved, Path(runtime)[0m
+        [1;31m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+    [1;31m)[0m
+    [1;31m^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/threads.py"[0m, line [35m25[0m, in [35mto_thread[0m
+    return [1;31mawait loop.run_in_executor(None, func_call)[0m
+           [1;31m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/thread.py"[0m, line [35m86[0m, in [35mrun[0m
+    result = ctx.run(self.task)
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/thread.py"[0m, line [35m73[0m, in [35mrun[0m
+    return fn(*args, **kwargs)
+  File [35m"/home/ts/wt/toad-t6-rendering-20260928/tests/renderer_cli_pty_pilot.py"[0m, line [35m72[0m, in [35mlaunch[0m
+    result = process.wait(timeout=4)
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/subprocess.py"[0m, line [35m1278[0m, in [35mwait[0m
+    return [31mself._wait[0m[1;31m(timeout=timeout)[0m
+           [31m~~~~~~~~~~[0m[1;31m^^^^^^^^^^^^^^^^^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/subprocess.py"[0m, line [35m2075[0m, in [35m_wait[0m
+    raise TimeoutExpired(self.args, timeout)
+[1;35msubprocess.TimeoutExpired[0m: [35mCommand '['/home/ts/wt/toad-t6-rendering-20260928/.venv/bin/toad', 'run', '--agent', '', '/var/tmp/toad-pilot-nsax119s/rcli-ox_n2smu/persistent']' timed out after 4 seconds[0m
+
+Logs: /home/ts/wt/toad-t6-rendering-20260928/.artifacts/pytest-installed/renderer_cli_pty_pilot0
+________________________ pilot: message_dividers_pilot _________________________
+Pilot failed: ExitedOutcome(code=1)
+Traceback (most recent call last):
+  File [35m"/home/ts/wt/toad-t6-rendering-20260928/tests/message_dividers_pilot.py"[0m, line [35m120[0m, in [35m<module>[0m
+    [31masyncio.run[0m[1;31m(main())[0m
+    [31m~~~~~~~~~~~[0m[1;31m^^^^^^^^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py"[0m, line [35m204[0m, in [35mrun[0m
+    return [31mrunner.run[0m[1;31m(main)[0m
+           [31m~~~~~~~~~~[0m[1;31m^^^^^^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py"[0m, line [35m127[0m, in [35mrun[0m
+    return [31mself._loop.run_until_complete[0m[1;31m(task)[0m
+           [31m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m[1;31m^^^^^^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py"[0m, line [35m719[0m, in [35mrun_until_complete[0m
+    return [31mfuture.result[0m[1;31m()[0m
+           [31m~~~~~~~~~~~~~[0m[1;31m^^[0m
+  File [35m"/home/ts/wt/toad-t6-rendering-20260928/tests/message_dividers_pilot.py"[0m, line [35m55[0m, in [35mmain[0m
+    routed = await native.post([31mAgentResponse[0m[1;31m([0m
+                               [31m~~~~~~~~~~~~~[0m[1;31m^[0m
+        [1;31m"routed answer", route=MessageRoute(me, ("#all",)),[0m
+        [1;31m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+    [1;31m)[0m)
+    [1;31m^[0m
+[1;35mTypeError[0m: [35mAgentResponse.__init__() got an unexpected keyword argument 'route'[0m
+
+Logs: /home/ts/wt/toad-t6-rendering-20260928/.artifacts/pytest-installed/message_dividers_pilot0
+=========================== short test summary info ============================
+FAILED tests/renderer_cli_pty_pilot.py::renderer_cli_pty_pilot - Failed: Pilo...
+FAILED tests/message_dividers_pilot.py::message_dividers_pilot - Failed: Pilo...
+2 failed, 8 passed in 57.69s

@@ -1,4 +1,7 @@
 """One native Channels tree survives new/loading/existing tabs and tab closure."""
+from runtime_fixture import coordination_update
+
+from toad.navigation_target import channel_target
 
 import asyncio
 import os
@@ -7,13 +10,13 @@ from tempfile import TemporaryDirectory
 from threading import Event
 from unittest.mock import patch
 
+from agent_comms.child_process import ProcessIdentity
 from agent_comms.comms import wire
 from agent_comms.threads import Thread
-from agent_comms.child_process import ProcessIdentity
 from runtime_fixture import ToadApp, wait_channel_roster
+
 from toad.acp.agent import Agent
 from toad.agent import AgentReady
-from toad.acp.messages import CoordinationUpdate
 from toad.navigation_preparation import ThreadNavigationRequest
 from toad.screens.pending_thread import PendingThreadScreen
 from toad.widgets.channels_sidebar import ChannelsSidebar
@@ -35,8 +38,12 @@ class FrameApp(ToadApp):
 
     def _display(self, screen, renderable):
         super()._display(screen, renderable)
-        if (self.expected_bar is not None and screen is self.screen
-                and renderable is not None and not self._batch_count):
+        if (
+            self.expected_bar is not None
+            and screen is self.screen
+            and (renderable is not None)
+            and (not self._batch_count)
+        ):
             bar = screen.query_one_optional(ChannelsSidebar)
             self.frames.append((self.current_mode, bar is self.expected_bar,
                                 bar is not None and any(row.target_name == "#all"
@@ -48,11 +55,22 @@ class FrameApp(ToadApp):
 async def main():
     with TemporaryDirectory(prefix="toad-shared-channels-") as directory:
         root = Path(directory)
-        os.environ.update(AGENT_COMMS_ROOT=str(root / "wire"), XDG_CONFIG_HOME=str(root / "config"),
-                          XDG_STATE_HOME=str(root / "state"), XDG_DATA_HOME=str(root / "data"))
+        os.environ.update(
+            AGENT_COMMS_ROOT=str(root / "wire"),
+            XDG_CONFIG_HOME=str(root / "config"),
+            XDG_STATE_HOME=str(root / "state"),
+            XDG_DATA_HOME=str(root / "data"),
+        )
         comms = wire(root / "wire")
         for name in ("owner", "peer"):
-            comms.threads.register(Thread(name, frozenset({"fixture", "shared", "slow"}), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
+            comms.threads.register(
+                Thread(
+                    name,
+                    frozenset({"fixture", "shared", "slow"}),
+                    str(root),
+                    process_identity=ProcessIdentity.capture(os.getpid()),
+                )
+            )
         comms.channels.create_tag("shared")
 
         async def start(agent, target):
@@ -75,7 +93,9 @@ async def main():
                 right = app.screen.query_one("#thread-sidebar", SideBar)
                 right.reveal()
                 await pilot.pause()
-                marker = next(row for row in original_rows.values() if row.target_name == "#all")
+                marker = next(
+                    (row for row in original_rows.values() if row.target_name == "#all")
+                )
                 cached_lines = dict(marker._styles_cache._cache)
                 assert cached_lines
                 app.expected_bar = bar
@@ -84,8 +104,12 @@ async def main():
                 assert app.screen.query_one(ChannelsSidebar) is bar
                 assert app.screen.query_one(Footer) is footer
                 assert app.screen.query_one(CommsSidebar) is roster
-                assert all(marker._styles_cache._cache.get(y) is line for y, line in cached_lines.items()), (
-                    "Opening a tab discarded unchanged Channels paint")
+                assert all(
+                    (
+                        marker._styles_cache._cache.get(y) is line
+                        for y, line in cached_lines.items()
+                    )
+                ), "Opening a tab discarded unchanged Channels paint"
                 assert app.screen.query_one("#thread-sidebar", SideBar) is not right
                 assert app.screen.query_one("#thread-sidebar", SideBar).collapsed
                 assert app.screen.conversation._shell is None
@@ -98,13 +122,12 @@ async def main():
                 try:
                     await app.switch_mode(owner)
                     await pilot.pause()
-                    assert app.mouse_captured is None and not handle._dragging
+                    assert app.mouse_captured is None and (not handle._dragging)
                 finally:
                     await pilot.mouse_up()
                 await pilot.pause()
                 assert not right.collapsed
-
-                entered, release = Event(), Event()
+                entered, release = (Event(), Event())
                 read = ThreadNavigationRequest.read
 
                 def blocked(request):
@@ -112,11 +135,19 @@ async def main():
                     assert release.wait(8)
                     return read(request)
 
-                app.screen._agent = {"name": "Fixture", "identity": "fixture", "short_name": "fixture",
-                                     "run_command": {"*": "/bin/false"}, "protocol": "acp"}
+                app.screen._agent = {
+                    "name": "Fixture",
+                    "identity": "fixture",
+                    "short_name": "fixture",
+                    "run_command": {"*": "/bin/false"},
+                    "protocol": "acp",
+                }
                 with patch.object(ThreadNavigationRequest, "read", blocked):
-                    opening = asyncio.create_task(app.open_thread_session(
-                        owner_mode=owner, project_path=root, target="peer"))
+                    opening = asyncio.create_task(
+                        app.open_thread_session(
+                            owner_mode=owner, project_path=root, target="peer"
+                        )
+                    )
                     try:
                         assert await asyncio.to_thread(entered.wait, 3)
                         assert isinstance(app.screen, PendingThreadScreen)
@@ -129,7 +160,7 @@ async def main():
                         await asyncio.gather(opening, return_exceptions=True)
                 await wait_channel_roster(app, pilot, "#all")
                 channel = await app.open_comms_session(owner_mode=owner, project_path=root,
-                                                       me="owner", target="#shared", kind="channel")
+                                                       me="owner", target=channel_target("#shared"))
                 await wait_channel_roster(app, pilot, "#all")
                 for mode in (second, thread, owner, channel, second):
                     await app.switch_mode(mode)
@@ -162,13 +193,10 @@ async def main():
                 await app.switch_mode(second)
                 await app.close_session_mode(second)
                 await pilot.pause()
-                assert bar.is_attached and not bar._closed
-                assert all(row.is_attached for row in original_rows.values())
-
-                # Conversation composition may finish after leaving its tab.
-                # Its completion must not find or rebind another tab's Channels.
+                assert bar.is_attached and (not bar._closed)
+                assert all((row.is_attached for row in original_rows.values()))
                 comms.channels.create_tag("slow")
-                mount_entered, mount_release = asyncio.Event(), asyncio.Event()
+                mount_entered, mount_release = (asyncio.Event(), asyncio.Event())
                 mount = CommsChatView.on_mount
 
                 async def slow_mount(chat):
@@ -178,7 +206,7 @@ async def main():
 
                 with patch.object(CommsChatView, "on_mount", slow_mount):
                     opening = asyncio.create_task(app.open_comms_session(
-                        owner_mode=owner, project_path=root, me="owner", target="#slow", kind="channel"))
+                        owner_mode=owner, project_path=root, me="owner", target=channel_target("#slow")))
                     try:
                         await asyncio.wait_for(mount_entered.wait(), 3)
                         await app.switch_mode(owner)
@@ -188,17 +216,20 @@ async def main():
                 assert app.current_mode == owner and bar.screen is app.screen
                 assert not app.get_screen_stack(delayed)[0].query(ChannelsSidebar)
                 assert app._exception is None
-
-                # The shared panel is also a single route-bound observer. An
-                # old read released after a route replacement cannot publish.
                 new_root = root / "other-wire"
-                await app.get_screen_stack(owner)[0].on_coordination_update(CoordinationUpdate(
-                    thread="owner", wire_root=str(root / "wire"), persistence="fixture", transport="fixture"))
+                await app.get_screen_stack(owner)[0].on_coordination_update(coordination_update(str(root / 'wire'), 'owner'))
                 other = wire(new_root)
-                other.threads.register(Thread("owner", frozenset({"new", "new-source"}), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
+                other.threads.register(
+                    Thread(
+                        "owner",
+                        frozenset({"new", "new-source"}),
+                        str(root),
+                        process_identity=ProcessIdentity.capture(os.getpid()),
+                    )
+                )
                 other.channels.create_tag("new-source")
                 old_service = roster._wire
-                read_entered, read_release = Event(), Event()
+                read_entered, read_release = (Event(), Event())
                 original_read = old_service.views.viewer_snapshot
 
                 def held_read(*args, **kwargs):
@@ -221,15 +252,17 @@ async def main():
                         read_release.set()
                 assert roster._wire.root == new_root
                 assert "owner" not in roster._last_snapshot.session_threads.values(), (
-                    "A same-named new-wire thread borrowed an old-wire view")
-                assert not any(row.target_name == "#shared" for row in roster._row_map.values())
-
-                # A mode can close while the shared owner's asynchronous bind
-                # is waiting. It must never acquire (and prune) the shared tree.
+                    "A same-named new-wire thread borrowed an old-wire view"
+                )
+                assert not any(
+                    (row.target_name == "#shared" for row in roster._row_map.values())
+                )
                 remaining = app.current_mode
-                abandoned = (await app.new_session_screen(app.get_main_screen)).mode_name
+                abandoned = (
+                    await app.new_session_screen(app.get_main_screen)
+                ).mode_name
                 await app.switch_mode(remaining)
-                bind_entered, bind_release = asyncio.Event(), asyncio.Event()
+                bind_entered, bind_release = (asyncio.Event(), asyncio.Event())
                 bind = roster.bind_wire
 
                 async def slow_bind(service):

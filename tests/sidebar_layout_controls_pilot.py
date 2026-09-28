@@ -1,5 +1,7 @@
 """Mounted sidebar move/swap/size/float controls and real untruncated row scroll."""
 
+from toad.navigation_target import channel_target
+
 import asyncio
 import os
 import tempfile
@@ -83,7 +85,7 @@ async def main() -> None:
 
             owner = app.current_mode
             await app.open_comms_session(owner_mode=owner, project_path=root,
-                                         me=name, target="#alpha", kind="channel")
+                                         me=name, target=channel_target("#alpha"))
             comms_bar = app.screen.query_one("#channels-sidebar", SideBar)
             comms_tabs = app.screen.query_one(SessionsTabs)
             chat = app.screen.query_one("#comms-content")

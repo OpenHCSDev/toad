@@ -1,0 +1,7 @@
+Resolved 5 packages in 1ms
+Installed 5 packages in 10ms
+ + iniconfig==2.3.0
+ + packaging==26.3
+ + pluggy==1.6.0
+ + pygments==2.21.0
+ + pytest==9.1.1

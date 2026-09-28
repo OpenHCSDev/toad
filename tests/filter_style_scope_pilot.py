@@ -1,5 +1,7 @@
 """Display-only filtering stays local; authored descendant CSS keeps its semantics."""
 
+from toad.widgets.message_filter import ThinkingCategory
+
 import asyncio
 from unittest.mock import patch
 
@@ -7,13 +9,14 @@ from textual.app import App, ComposeResult
 from textual.containers import VerticalGroup
 from textual.widgets import Label
 
-from toad.widgets.message_filter import ALL_CATEGORIES, CategorizedBlock, MessageCategory, apply_block_filter
+from toad.widgets.message_filter import all_categories, CategorizedBlock, MessageCategory, apply_block_filter
+
 
 
 class Block(CategorizedBlock, VerticalGroup):
     @property
     def message_category(self):
-        return MessageCategory.THINKING
+        return ThinkingCategory
 
     def compose(self) -> ComposeResult:
         yield Label("Nested message body", classes="probe")
@@ -35,18 +38,18 @@ async def main():
         with patch.object(child, "notify_style_update", wraps=child.notify_style_update) as notify:
             apply_block_filter(block, frozenset())
             assert not block.display
-            apply_block_filter(block, ALL_CATEGORIES)
+            apply_block_filter(block, all_categories())
             assert block.display
             assert notify.call_count == 0, "Display-only filter restyled descendants"
         block.styles.display = "none"
         apply_block_filter(block, frozenset())
-        apply_block_filter(block, ALL_CATEGORIES)
+        apply_block_filter(block, all_categories())
         assert not block.display, "Filtering overwrote authored display intent"
         block.styles.display = None
         app.stylesheet.add_source(".-category-hidden .probe { color: red; }", read_from=("fixture", "descendant"))
         apply_block_filter(block, frozenset())
         assert child.styles.color.css == "rgb(255,0,0)"
-        apply_block_filter(block, ALL_CATEGORIES)
+        apply_block_filter(block, all_categories())
         assert child.styles.color.css == "rgb(0,0,255)"
     print("filter styles: local display changes skip descendants; authored display and descendant CSS preserved")
 

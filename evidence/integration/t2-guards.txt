@@ -1,0 +1,14 @@
+============================= test session starts ==============================
+platform linux -- Python 3.14.2, pytest-9.1.1, pluggy-1.6.0
+rootdir: /home/ts/wt/toad-integration-20260928
+configfile: pyproject.toml
+plugins: anyio-4.14.2, typeguard-4.5.2
+collected 7 items
+
+tests/guards/test_t2.py .                                                [ 14%]
+tests/guards/test_t3.py .                                                [ 28%]
+tests/guards/test_t5.py .                                                [ 42%]
+tests/guards/test_tr0.py ...                                             [ 85%]
+tests/t6_retirement_pilot.py .                                           [100%]
+
+============================== 7 passed in 4.46s ===============================

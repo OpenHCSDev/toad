@@ -1,5 +1,7 @@
 """Partial viewport ACKs retain pending evidence for rows reached by scrolling."""
 
+from toad.navigation_target import channel_target
+
 import asyncio
 import os
 import tempfile
@@ -29,7 +31,7 @@ async def main():
 
         async def checked_mark(chat, page, original_page=None):
             selected = {message.seq for message in page.messages}
-            assert selected <= set(chat._painted_message_sequences())
+            assert selected <= {seq for source, seq in chat._painted_message_keys() if not source}
             assert page.display_scope is not None and page.display_scope.displayed is not None
             assert selected == {
                 seq for item in page.display_scope.displayed.conversations for seq in item.sequences
@@ -43,7 +45,7 @@ async def main():
                 await pilot.pause()
                 await app.open_comms_session(
                     owner_mode=app.current_mode, project_path=root, me=viewer,
-                    target="#team", kind="channel",
+                    target=channel_target("#team"),
                 )
                 chat = app.screen.query_one(CommsChatView)
                 async with asyncio.timeout(5):

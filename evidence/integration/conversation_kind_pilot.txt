@@ -1,0 +1,6 @@
+test_declared_reads_and_new_member (__main__.ConversationFamilyTests.test_declared_reads_and_new_member) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 1.288s
+
+OK

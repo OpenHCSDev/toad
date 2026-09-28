@@ -1,0 +1,4 @@
+Resolved 2 packages in 72ms
+Installed 2 packages in 9ms
+ + pytest==9.1.1
+ + ruff==0.16.9

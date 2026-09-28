@@ -12,10 +12,11 @@ from textual.app import App, ComposeResult
 from textual.signal import Signal
 from toad.sidebar_preparation import prepare_thread_row, ThreadRowInput
 from toad.session_tracker import ExactUnread
-from toad.render_backend import create_renderer
+from toad.render_choices import LocalRenderer
 from toad.sidebar_layout import SidebarLayout
 from toad.work_preparation import PreparationRuntime
 from toad.session_tracker import SidebarState
+from toad.navigation_target import ThreadTarget
 from toad.widgets.comms_sidebar import CommsRow, SelectTarget
 from toad.widgets.side_bar import SideBar, SideBarCollapsible
 from toad.widgets.sidebar_tree import TargetTree
@@ -109,7 +110,7 @@ class ReferenceTree(TargetTree):
         self._cursor = 0
 
     def compose(self):
-        row = CommsRow("thread", "peer", "peer")
+        row = CommsRow(ThreadTarget("peer"), "peer")
         row.apply_thread_preparation(prepare_thread_row(ThreadRowInput(self.source.people["peer"], unread=ExactUnread(22))))
         yield row
 
@@ -127,7 +128,7 @@ class FixtureApp(App):
         super().__init__()
         self.source = source
         self.sidebar_layout = SidebarLayout()
-        self.preparation = PreparationRuntime(create_renderer())
+        self.preparation = PreparationRuntime(LocalRenderer.start())
         self.pending_thread_actions = {}
         self.coordination_wire = SimpleNamespace(root=Path(source.root))
         self._sidebar_snapshot = SimpleNamespace(thread_unread={"peer": 22}, thread_unread_pending=frozenset(), unread={})
@@ -153,7 +154,7 @@ class FixtureApp(App):
             await self.preparation.aclose()
 
     def on_select_target(self, event: SelectTarget):
-        self.opened.append((event.target, event.kind))
+        self.opened.append((event.target.name, event.target.declared_name))
 
 
 async def main():

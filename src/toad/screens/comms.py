@@ -1,3 +1,4 @@
+from toad.screens.session_view import SessionView
 import asyncio
 from pathlib import Path
 
@@ -5,24 +6,21 @@ from textual import containers, getters, on
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.events import ScreenResume
-from textual.widgets import Static, Button
 from textual.widget import Widget
+from textual.widgets import Button, Static
 
 from toad import messages
-from toad.constants import ALL_COMMS_TARGET
 from toad.app import ToadApp
 from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.irc_message import SelectHistoricalIdentity
-from toad.widgets.comms_fork_dialog import ForkDialog
 from toad.widgets.comms_sidebar import CoordinationStatus, CommsSidebar, SelectTarget
-from toad.widgets.channels_sidebar import ChannelsSlot
+from toad.widgets.channels_sidebar import ChannelsSlot, ChannelsSidebar
 from toad.session_tracker import SidebarState
 from toad.workspace_chrome import FooterSlot, NavigationSlot
-from toad.widgets.side_bar import SideBar
-from toad.navigation_target import NavigationContext, NavigationOwner
 from toad.widgets.recovery_view import RecoveryView
+from toad.widgets.side_bar import SideBar, ThreadSidebar
+from toad.navigation_target import FeedTarget, DirectTarget, NavigationContext, NavigationOwner
 from toad.widgets.thread_comms import RelationshipSort, ThreadCommsSidebar
-from toad.screens.session_view import SessionView
 
 
 class CommsScreen(SessionView, NavigationOwner, can_focus=False):
@@ -80,6 +78,10 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
 
     app = getters.app(ToadApp)
 
+    @property
+    def coordination_root(self) -> str | None:
+        return self.wire_root
+
     def channels_context(self) -> tuple[str, str]:
         return self.me, self.target
 
@@ -87,7 +89,7 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
         yield NavigationSlot()
         with containers.Center():
             yield ChannelsSlot()
-            yield SideBar(
+            yield ThreadSidebar(
                 SideBar.Panel(
                     "Connection",
                     CoordinationStatus(self.me),
@@ -98,7 +100,7 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
                 SideBar.Panel("Comms", ThreadCommsSidebar(
                     self.me, wire_root=self.recovery_root, live=True),
                     id="thread-comms-panel", header_control=RelationshipSort()),
-                id="thread-sidebar", right=True, hide=True, navigation=self._thread_sidebar_state,
+                right=True, hide=True, navigation=self._thread_sidebar_state,
             )
             with containers.Vertical(id="comms-content"):
                 yield Button("Saved sessions", id="historical-sessions")
@@ -221,7 +223,7 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
         return None
 
     def action_show_sidebar(self) -> None:
-        sidebar = self.query_one("#channels-sidebar", SideBar)
+        sidebar = self.query_one(ChannelsSidebar)
         sidebar.reveal()
         sidebar.query_one("SideBarCollapsible CollapsibleTitle").focus()
 
@@ -230,16 +232,13 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
         event.stop()
         self.action_focus_prompt()
 
-    async def _open(self, target: str, kind: str) -> None:
-        await self.open_sidebar_target(target, kind)
-
     @property
     def navigation_context(self) -> NavigationContext:
         return NavigationContext(self.app, self.owner_mode, self.project_path, self.me)
 
     @on(SelectTarget)
     async def on_select_target(self, event: SelectTarget) -> None:
-        await self.open_sidebar_target(event.target, event.kind)
+        await self.open_sidebar_target(event.target)
 
     async def action_back_to_agent(self) -> None:
         if self.app.session_tracker.get_session(self.owner_mode) is None:
@@ -251,7 +250,7 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
         if self.kind == "irc":
             await self.action_back_to_agent()
         else:
-            await self._open(ALL_COMMS_TARGET, "irc")
+            await self.open_sidebar_target(FeedTarget())
 
     async def action_toggle_dm(self) -> None:
         if self.kind == "dm":
@@ -262,7 +261,7 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
             name for name in sorted(sidebar._comms_registry_names()) if name != self.me
         ]
         if peers:
-            await self._open(peers[0], "dm")
+            await self.open_sidebar_target(DirectTarget(peers[0]))
 
     def action_session_previous(self) -> None:
         self.post_message(messages.SessionNavigate(self.owner_mode, -1))
@@ -273,32 +272,3 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
     async def action_close_session(self) -> None:
         if self.id is not None:
             await self.app.close_session_mode(self.id)
-
-    @on(CommsSidebar.ThreadAction)
-    async def on_thread_action(self, event: CommsSidebar.ThreadAction) -> None:
-        if event.action != "comms_fork":
-            return
-        parent = event.name
-
-        def do_fork(spec: tuple[str, str] | None) -> None:
-            if not spec:
-                return
-            from agent_comms import invoke_context_tool
-            from agent_comms.comms import wire
-
-            from toad.comms_root import implicit_root, root_is_current, run_selected_write
-
-            try:
-                if self.wire_root is not None and not root_is_current(self.wire_root):
-                    raise ValueError("Comms route changed; reopen the view before forking")
-                comms = wire()
-                run_selected_write(
-                    comms.root, invoke_context_tool, comms, event.action,
-                    subject=parent, arguments={"name": spec[0], "task": spec[1]},
-                    implicit=implicit_root(),
-                )
-                self.notify(f"forked {spec[0]} from {parent}", title="Comms")
-            except Exception as error:
-                self.notify(str(error), title="Comms fork failed", severity="error")
-
-        self.app.push_screen(ForkDialog(parent), do_fork)

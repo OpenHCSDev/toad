@@ -1,0 +1,2 @@
+{'actual_cli_backend': 'local', 'saved_choice_used': False, 'terminal_characters': 53389, 'exit': 0}
+{'actual_cli_backend': 'persistent', 'saved_choice_used': True, 'terminal_characters': 50794, 'exit': 0}

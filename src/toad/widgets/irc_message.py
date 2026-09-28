@@ -1,5 +1,7 @@
 """Compact wire messages with keyboard- and pointer-accessible routing names."""
 
+from toad.navigation_target import linked_target
+
 from textual import events
 from textual.app import ComposeResult
 from textual.containers import HorizontalGroup, VerticalGroup
@@ -40,9 +42,7 @@ class ThreadLink(Static, can_focus=True):
             self.post_message(SelectHistoricalIdentity(self.target, self.history_source))
             return
         self.post_message(
-            SelectTarget(
-                self.target, "channel" if self.target.startswith("#") else "thread"
-            )
+            SelectTarget(linked_target(self.target))
         )
 
     def on_click(self, event: events.Click):
@@ -129,7 +129,7 @@ class IRCMessage(VerticalGroup, can_focus=True):
             self.post_message(SelectHistoricalIdentity(target, self.message.source.key))
             return
         self.post_message(
-            SelectTarget(target, "channel" if target.startswith("#") else "thread")
+            SelectTarget(linked_target(target))
         )
 
     def action_open_sender(self):
