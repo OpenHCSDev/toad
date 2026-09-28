@@ -41,14 +41,14 @@ async def main(*, historical: bool) -> None:
         comms.transcripts.record_input_display("a" * 32, human, sent_text=human)
         if historical:
             comms.transcripts.record_input_display("b" * 32, prompt)
-            ledger = InputDispositions(comms.root)
+            ledger = InputDispositions(comms.root / InputDispositions.filename)
             key = f"bus:{incoming.seq}"
             ledger.record(key, seq=incoming.seq, owner="owner", admission=1,
                           target="owner", text=prompt)
             ledger.bind(key, admission=1, turn_id="old-turn", native_id="b" * 32, text=prompt)
             assert comms.transcripts.repair_input_routing()["eligible"] == 1
             assert comms.transcripts.repair_input_routing(dry_run=False)["repaired"] == 1
-            assert ledger.status(key) == "unknown", "Display repair is not an input ACK"
+            assert ledger.read().rows[key].unresolved, "Display repair is not an input ACK"
         else:
             comms.transcripts.record_input_display("b" * 32, prompt, sent_text=prompt,
                                        routing=TurnRouting((incoming,), None))
