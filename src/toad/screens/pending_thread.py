@@ -18,8 +18,8 @@ from toad.session_tracker import SidebarState
 from toad.widgets.channels_sidebar import ChannelsSlot
 from toad.widgets.comms_sidebar import CommsSidebar, SelectTarget
 from toad.widgets.conversation import ThreadLoading
-from toad.widgets.session_tabs import SessionsTabs
-from toad.widgets.side_bar import SideBar, TabHistoryControls
+from toad.workspace_chrome import NavigationSlot
+from toad.widgets.side_bar import SideBar
 from toad.navigation_target import NavigationContext, NavigationOwner
 
 
@@ -49,9 +49,7 @@ class PendingThreadScreen(SessionView, NavigationOwner, can_focus=False):
         return self.me, ""
 
     def compose(self) -> ComposeResult:
-        with containers.Horizontal(id="tab-navigation-header"):
-            yield TabHistoryControls()
-            yield SessionsTabs()
+        yield NavigationSlot()
         with containers.Center():
             # This is the existing owner's cached channel projection, not the
             # unresolved destination. Shared hide/placement/scroll intent stays

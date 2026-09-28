@@ -79,7 +79,7 @@ async def main():
                 await app.switch_mode(owner)
                 await pilot.pause()
                 view = app.get_screen_stack(destination)[0]
-                sidebar = app.shared_channels.bar.roster
+                sidebar = app.workspace_chrome.channels.widget.roster
                 entered, release = asyncio.Event(), asyncio.Event()
                 present = sidebar.present_cached_sessions
 

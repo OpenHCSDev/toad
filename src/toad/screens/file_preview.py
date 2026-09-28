@@ -4,12 +4,11 @@ from pathlib import Path
 
 from textual.app import ComposeResult
 from textual.binding import Binding
-from textual.containers import Horizontal, Vertical
+from textual.containers import Vertical
 from toad.screens.session_view import SessionView
 from toad.widgets.footer import Footer
 from toad.widgets.project_panel import FilePreview
-from toad.widgets.session_tabs import SessionsTabs
-from toad.widgets.side_bar import TabHistoryControls
+from toad.workspace_chrome import NavigationSlot
 
 
 class FilePreviewScreen(SessionView, can_focus=False):
@@ -25,9 +24,7 @@ class FilePreviewScreen(SessionView, can_focus=False):
 
     def compose(self) -> ComposeResult:
         with Vertical(id="file-preview-content"):
-            with Horizontal(id="tab-navigation-header"):
-                yield TabHistoryControls()
-                yield SessionsTabs()
+            yield NavigationSlot()
             yield FilePreview(self.path, id="file-preview")
         yield Footer(compact=True)
 

@@ -139,10 +139,10 @@ async def main(*, empty=False, trace=False, observe=False, output=None, peers=0,
                         screen = app.get_screen_stack(mode)[0]
                         revision = screen._resume_style
                         current = screen._style_revision()
-                        tab_strip = screen.query_one(SessionsTabs)
+                        tab_strip = app.screen.query_one(SessionsTabs)
                         rows_before = {
                             (row.query_ancestor(ChannelGroup).row.target_name, row.thread_name): ref(row)
-                            for row in app.shared_channels.bar.roster.query(ThreadStatusRow)
+                            for row in app.screen.query_one(CommsSidebar).query(ThreadStatusRow)
                             if row.thread_name is not None
                         }
                         record = {"phase": phase, "mode": mode,
@@ -352,7 +352,7 @@ async def main(*, empty=False, trace=False, observe=False, output=None, peers=0,
                                       changed_native_style_rule_maps=changed_style_maps if trace else None)
                         rows_after = {
                             (row.query_ancestor(ChannelGroup).row.target_name, row.thread_name): row
-                            for row in app.shared_channels.bar.roster.query(ThreadStatusRow)
+                            for row in app.screen.query_one(CommsSidebar).query(ThreadStatusRow)
                             if row.thread_name is not None
                         }
                         replaced_rows = [key for key, previous in rows_before.items()
@@ -393,7 +393,7 @@ async def main(*, empty=False, trace=False, observe=False, output=None, peers=0,
 
                 # The shared channel tree survives switches. Closing tabs must
                 # reconcile routes without destroying the shared presentation.
-                hidden_sidebar = app.shared_channels.bar.roster
+                hidden_sidebar = app.screen.query_one(CommsSidebar)
                 retained_channels = dict(hidden_sidebar._row_map)
                 assert retained_channels
                 assert all(row.is_attached for row in retained_channels.values())

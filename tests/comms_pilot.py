@@ -63,7 +63,7 @@ def row(screen, target: str) -> CommsRow:
 
 
 def open_rows(screen):
-    return screen.app.shared_channels.bar.roster.session_rows
+    return screen.app.workspace_chrome.channels.widget.roster.session_rows
 
 
 async def main() -> None:

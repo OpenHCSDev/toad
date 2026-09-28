@@ -18,8 +18,8 @@ from toad.widgets.comms_fork_dialog import ForkDialog
 from toad.widgets.comms_sidebar import CoordinationStatus, CommsSidebar, SelectTarget
 from toad.widgets.channels_sidebar import ChannelsSlot
 from toad.session_tracker import SidebarState
-from toad.widgets.session_tabs import SessionsTabs
-from toad.widgets.side_bar import SideBar, TabHistoryControls
+from toad.workspace_chrome import NavigationSlot
+from toad.widgets.side_bar import SideBar
 from toad.navigation_target import NavigationContext, NavigationOwner
 from toad.widgets.recovery_view import RecoveryView
 from toad.widgets.thread_comms import RelationshipSort, ThreadCommsSidebar
@@ -85,9 +85,7 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
         return self.me, self.target
 
     def compose(self) -> ComposeResult:
-        with containers.Horizontal(id="tab-navigation-header"):
-            yield TabHistoryControls()
-            yield SessionsTabs()
+        yield NavigationSlot()
         with containers.Center():
             yield ChannelsSlot()
             yield SideBar(

@@ -2469,7 +2469,6 @@ class Conversation(containers.Vertical):
         self.shell_history.complete.add_words(
             self.app.settings.get("shell.allow_commands", expect_type=str).split()
         )
-        self.shell
         if self._agent_data is not None:
 
             async def start_agent() -> None:
@@ -2803,9 +2802,6 @@ class Conversation(containers.Vertical):
 
     @work
     async def watch_agent_ready(self, ready: bool) -> None:
-        with suppress(asyncio.TimeoutError):
-            async with asyncio.timeout(2.0):
-                await self.shell.wait_for_ready()
         if ready and self._directory_watcher is None:
             self._directory_watcher = DirectoryWatcher(self.project_path, self)
             self._directory_watcher.start()

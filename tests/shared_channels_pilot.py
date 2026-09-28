@@ -19,6 +19,8 @@ from toad.widgets.channels_sidebar import ChannelsSidebar
 from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.comms_sidebar import CommsSidebar
 from toad.widgets.side_bar import SideBar, SidebarResizeHandle
+from toad.widgets.session_tabs import SessionLabel, SessionTabClose, SessionsTabs
+from toad.workspace_chrome import WorkspaceHeader
 
 
 class FrameApp(ToadApp):
@@ -36,7 +38,8 @@ class FrameApp(ToadApp):
             self.frames.append((self.current_mode, bar is self.expected_bar,
                                 bar is not None and any(row.target_name == "#all"
                                 and row in screen._compositor.visible_widgets
-                                for row in bar.roster._row_map.values())))
+                                for row in bar.roster._row_map.values()),
+                                screen.query_one_optional(WorkspaceHeader) is self.workspace_chrome.navigation.widget))
 
 
 async def main():
@@ -79,6 +82,8 @@ async def main():
                     "Opening a tab discarded unchanged Channels paint")
                 assert app.screen.query_one("#thread-sidebar", SideBar) is not right
                 assert app.screen.query_one("#thread-sidebar", SideBar).collapsed
+                assert app.screen.conversation._shell is None
+                assert app.get_screen_stack(owner)[0].conversation._shell is None
                 handle = bar.query_one(SidebarResizeHandle)
                 assert await pilot.mouse_down(handle, offset=(0, 4))
                 assert app.mouse_captured is handle and handle._dragging
@@ -125,8 +130,22 @@ async def main():
                     assert all(roster._row_map[key] is row for key, row in original_rows.items())
                     assert all(row._task is original_tasks[key] for key, row in original_rows.items())
                 assert sum(isinstance(node, ChannelsSidebar) for node in app._registry) == 1
-                assert app.frames and all(same and populated for _, same, populated in app.frames), app.frames
+                assert sum(isinstance(node, SessionsTabs) for node in app._registry) == 1
+                assert sum(isinstance(node, SessionLabel) for node in app._registry) == len(app.open_tabs)
+                assert sum(isinstance(node, SessionTabClose) for node in app._registry) == len(app.open_tabs)
+                assert app.frames and all(same and populated and header
+                                          for _, same, populated, header in app.frames), app.frames
                 app.expected_bar = None
+                preview_path = root / "preview.txt"
+                preview_path.write_text("Read-only workspace fixture")
+                preview = await app.open_file_preview(preview_path)
+                await pilot.pause()
+                assert app.screen.query_one(WorkspaceHeader) is app.workspace_chrome.navigation.widget
+                assert not bar.display
+                await app.close_session_mode(preview)
+                await app.switch_mode("store")
+                assert not app.workspace_chrome.navigation.widget.display
+                await app.switch_mode(second)
                 await app.close_session_mode(second)
                 await pilot.pause()
                 assert bar.is_attached and not bar._closed
@@ -214,9 +233,17 @@ async def main():
                     await asyncio.wait_for(activation, 3)
                 assert app.current_mode == remaining and bar.screen is app.screen
                 assert bar.is_attached and not bar._closed
+                conversation = app.screen.conversation
+                assert conversation._shell is None
+                await conversation.post_shell("printf 'workspace-shell-ready\\n'")
+                async with asyncio.timeout(5):
+                    while not any("workspace-shell-ready" in terminal.get_block_content("copy")
+                                  for terminal in conversation.query("ShellTerminal")):
+                        await pilot.pause(.02)
+                assert conversation._shell is not None
                 assert app._exception is None
         await asyncio.get_running_loop().shutdown_default_executor()
-    print("shared Channels: one tree, retained rows/tasks, every new/loading/warm frame, independent right panel")
+    print("workspace chrome: one header/Channels tree, linear labels, retained rows/tasks, native/loading/history/file/store/close")
 
 
 if __name__ == "__main__":

@@ -37,9 +37,9 @@ from toad.widgets.thread_comms import RelationshipSort, ThreadCommsSidebar
 from toad.widgets.comms_chat import resolve_session_thread, session_thread_name
 from toad.widgets.comms_fork_dialog import ForkDialog
 from toad.widgets.comms_sidebar import CoordinationStatus, CommsSidebar, SelectTarget
-from toad.widgets.side_bar import SideBar, SideBarCollapsible, TabHistoryControls
+from toad.widgets.side_bar import SideBar, SideBarCollapsible
 from toad.navigation_target import NavigationContext, NavigationOwner
-from toad.widgets.session_tabs import SessionsTabs
+from toad.workspace_chrome import NavigationSlot
 from toad.widgets.footer import Footer
 from toad.session_tracker import SidebarState
 
@@ -208,9 +208,7 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
         from toad.widgets.channels_sidebar import ChannelsSlot
 
         self._project_panel = ProjectPanel(self.project_path)
-        with containers.Horizontal(id="tab-navigation-header"):
-            yield TabHistoryControls()
-            yield SessionsTabs()
+        yield NavigationSlot()
         with containers.Center():
             yield ChannelsSlot()
             yield SideBar(
