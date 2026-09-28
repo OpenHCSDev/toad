@@ -1,4 +1,6 @@
 """Post-spinner transcript preparation must not block draft input or tab exit."""
+from agent_comms.acp_extension import TranscriptSnapshotUpdate
+from toad.acp.messages import CommsUpdated
 
 import asyncio
 from contextlib import asynccontextmanager
@@ -17,7 +19,6 @@ from agent_comms.comms import wire
 from runtime_fixture import ToadApp
 from worker_preview_pilot import GateRenderer
 from toad.acp.agent import Agent
-from toad.acp.messages import TranscriptSnapshot
 from toad.agent import AgentReady
 from toad.render_tasks import TranscriptRenderTask
 from toad.widgets.agent_response import AgentResponse
@@ -63,7 +64,7 @@ async def main():
 
             async def deliver():
                 await dispatch.wait()
-                target.post_message(TranscriptSnapshot(page.events, page))
+                target.post_message(CommsUpdated(TranscriptSnapshotUpdate(page)))
                 target.post_message(AgentReady())
 
             agent._task = asyncio.create_task(deliver())

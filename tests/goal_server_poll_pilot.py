@@ -1,3 +1,4 @@
+from runtime_fixture import coordination_update
 """Mounted goal UI polls the actual owner without notification or local mutations."""
 
 import asyncio
@@ -61,8 +62,7 @@ async def main():
             agent = Agent(
                 project, {"name": "agent-comms", "run_command": {"*": "true"}}, None
             )
-            agent._coordination_root = str(comms.root)
-            agent._coordination_thread = session
+            agent.coordination = coordination_update(str(comms.root), session)
             goal = await agent.update_goal(
                 "set",
                 "OBJECTIVE_BEGIN "

@@ -1,6 +1,7 @@
 """Mounted command discovery/submission using real isolated core stores."""
 
 from __future__ import annotations
+from toad.navigation_target import DirectTarget, channel_target
 
 import asyncio
 import os
@@ -173,13 +174,7 @@ print(json.dumps({'jsonrpc':'2.0','method':'session/update','params':{
                 flush=True,
             )
 
-            dm = await app.open_comms_session(
-                owner_mode=mode,
-                project_path=root,
-                me="actor",
-                target="slash",
-                kind="dm",
-            )
+            dm = await app.open_comms_session(owner_mode=mode, project_path=root, me='actor', target=DirectTarget('slash'))
             await pilot.pause()
             await until(
                 pilot, lambda: app.screen.query_one_optional(CommsChatView) is not None
@@ -249,13 +244,7 @@ print(json.dumps({'jsonrpc':'2.0','method':'session/update','params':{
                 flush=True,
             )
 
-            channel = await app.open_comms_session(
-                owner_mode=mode,
-                project_path=root,
-                me="actor",
-                target="#team",
-                kind="channel",
-            )
+            channel = await app.open_comms_session(owner_mode=mode, project_path=root, me='actor', target=channel_target('#team'))
             await pilot.pause()
             await until(
                 pilot, lambda: app.screen.query_one_optional(CommsChatView) is not None

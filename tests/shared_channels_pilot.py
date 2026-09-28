@@ -1,4 +1,5 @@
 """One native Channels tree survives new/loading/existing tabs and tab closure."""
+from runtime_fixture import coordination_update
 
 from toad.navigation_target import channel_target
 
@@ -15,7 +16,6 @@ from agent_comms.child_process import ProcessIdentity
 from runtime_fixture import ToadApp, wait_channel_roster
 from toad.acp.agent import Agent
 from toad.agent import AgentReady
-from toad.acp.messages import CoordinationUpdate
 from toad.navigation_preparation import ThreadNavigationRequest
 from toad.screens.pending_thread import PendingThreadScreen
 from toad.widgets.channels_sidebar import ChannelsSidebar
@@ -162,8 +162,7 @@ async def main():
                 # The shared panel is also a single route-bound observer. An
                 # old read released after a route replacement cannot publish.
                 new_root = root / "other-wire"
-                await app.get_screen_stack(owner)[0].on_coordination_update(CoordinationUpdate(
-                    thread="owner", wire_root=str(root / "wire"), persistence="fixture", transport="fixture"))
+                await app.get_screen_stack(owner)[0].on_coordination_update(coordination_update(str(root / 'wire'), 'owner'))
                 other = wire(new_root)
                 other.threads.register(Thread("owner", frozenset({"new", "new-source"}), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
                 other.channels.create_tag("new-source")

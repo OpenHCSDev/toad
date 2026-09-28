@@ -1,4 +1,5 @@
 """One multi-select semantic filter governs live blocks and saved transcript."""
+from runtime_fixture import coordination_update
 
 import asyncio
 import os
@@ -15,7 +16,6 @@ from agent_comms.comms import wire
 from textual.widgets import Checkbox
 
 from runtime_fixture import ToadApp
-from toad.acp.messages import CoordinationUpdate
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.agent_thought import AgentThought
 from toad.widgets.incoming_message import IncomingMessage
@@ -40,8 +40,7 @@ async def main():
         async with app.run_test(size=(130, 43)) as pilot:
             await pilot.pause()
             screen = app.screen
-            await screen.on_coordination_update(CoordinationUpdate(
-                thread="owner", wire_root=str(root / "wire"), persistence="persistent", transport="stdio"))
+            await screen.on_coordination_update(coordination_update(str(root / 'wire'), 'owner'))
             sidebar = screen.query_one("#thread-sidebar", SideBar)
             sidebar.reveal()
             filters = screen.query_one(ThreadCommsSidebar)

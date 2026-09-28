@@ -1,4 +1,7 @@
+from runtime_fixture import coordination_update
 """A real owner save updates the mounted goal preview, independently of progress."""
+from agent_comms.acp_extension import GoalChangedUpdate
+from toad.acp.messages import CommsUpdated
 
 import asyncio
 import os
@@ -11,7 +14,6 @@ from runtime_fixture import private_native_wire
 from textual.widgets import Static
 
 from toad.acp.agent import Agent
-from toad.acp.messages import GoalSnapshotUpdate
 from toad.app import ToadApp
 from toad.screens.goal_edit import GoalEdit
 from toad.widgets.goal_text import GoalText
@@ -44,8 +46,7 @@ async def main():
             agent = Agent(
                 project, {"name": "agent-comms", "run_command": {"*": "true"}}, None
             )
-            agent._coordination_root = str(comms.root)
-            agent._coordination_thread = session
+            agent.coordination = coordination_update(str(comms.root), session)
             original = await agent.update_goal(
                 "set",
                 "Work on draft PR #17 and report remaining gaps. "
@@ -87,7 +88,7 @@ async def main():
                     current = comms.registry.require(session).goal
                     assert current.id == original.id and current.text == objective
                     assert conversation.goal_display.snapshot == current
-                    conversation.post_message(GoalSnapshotUpdate(original, None))
+                    conversation.post_message(CommsUpdated(GoalChangedUpdate(original, None)))
                     await pilot.pause()
                     assert conversation.goal_display.snapshot == current, (
                         "Old notification must not overwrite the canonical snapshot"
@@ -151,7 +152,7 @@ async def main():
                 # Mutation preflights now also read the canonical owner snapshot.
                 assert reads >= 2, reads
                 assert conversation.goal_display.snapshot is None and conversation.goal_execution is None
-                conversation.post_message(GoalSnapshotUpdate(original, None))
+                conversation.post_message(CommsUpdated(GoalChangedUpdate(original, None)))
                 await pilot.pause()
                 assert conversation.goal_display.snapshot is None
         finally:

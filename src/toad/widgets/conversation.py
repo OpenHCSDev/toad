@@ -212,7 +212,7 @@ class Loading(Static):
 
 
 class PaintOnlyRefresh:
-    """Inherited owner of PaintOnlyRefresh behavior."""
+    """Refresh progress only while its native widget is visible and current."""
 
     def on_mount(self) -> None:
         self.auto_refresh = 1 / 12
@@ -338,7 +338,7 @@ class Cursor(Static):
 
 
 class CategorizedMount:
-    """Inherited owner of CategorizedMount behavior."""
+    """Apply the owning conversation category selection at widget admission."""
 
     def mount(self, *widgets, **kwargs):
         from toad.widgets.message_filter import (
@@ -393,7 +393,7 @@ class CursorContainer(containers.Vertical):
 
 
 class ConversationWindowSettings:
-    """Inherited owner of ConversationWindowSettings behavior."""
+    """Apply conversation preferences and subscribe tool hydration to layout."""
 
     def on_mount(self) -> None:
         self.app.settings_changed_signal.subscribe(self, self._settings_changed)

@@ -115,3 +115,13 @@ def private_native_wire(root: Path):
         AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE=str(package),
     )
     return comms
+
+
+def coordination_update(root, name):
+    """Stimulate the UI with current metadata derived from its real fixture registry."""
+    from agent_comms.acp_extension import CoordinationChangedUpdate
+    from agent_comms.comms import wire
+    thread = wire(Path(root)).registry.require(name)
+    return CoordinationChangedUpdate(thread.incarnation, str(root), thread.pid,
+        thread.worktree or "", thread.model, thread.thinking_level,
+        thread.title or thread.name, None)

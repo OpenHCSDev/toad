@@ -1,4 +1,6 @@
 """Owner-bound native inputs keep the same FROM/TO presentation live and saved."""
+from agent_comms.acp_extension import TranscriptSnapshotUpdate
+from toad.acp.messages import CommsUpdated
 
 import asyncio
 import json
@@ -16,7 +18,6 @@ from runtime_fixture import ToadApp
 
 from toad.widgets.message_filter import IN_OUT_CATEGORIES
 from toad.acp.agent import Agent
-from toad.acp.messages import TranscriptSnapshot
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.incoming_message import IncomingMessage
 from toad.widgets.route_header import RouteHeader
@@ -91,7 +92,7 @@ async def main(*, historical: bool) -> None:
             live_headers = (live_in.query_one(RouteHeader).render().plain,
                             live_out.query_one(RouteHeader).render().plain)
             await view.contents.remove_children()
-            view.post_message(TranscriptSnapshot(page.events, page))
+            view.post_message(CommsUpdated(TranscriptSnapshotUpdate(page)))
             await pilot.pause()
             received = view.contents.query_one(IncomingMessage)
             sent = next(block for block in view.contents.query(AgentResponse) if block.route is not None)

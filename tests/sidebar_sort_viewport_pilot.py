@@ -1,4 +1,5 @@
 """Sorting stays on the visible right edge while long sidebar rows scroll."""
+from runtime_fixture import coordination_update
 
 import asyncio
 import os
@@ -9,7 +10,6 @@ from agent_comms.threads import Thread
 from agent_comms.comms import wire
 from runtime_fixture import ToadApp
 
-from toad.acp.messages import CoordinationUpdate
 from toad.widgets.comms_menu import ContextMenu
 from toad.widgets.comms_sidebar import CommsSidebar
 from toad.widgets.session_sort import SortControl
@@ -34,10 +34,7 @@ async def main() -> None:
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(120, 40)) as pilot:
             await pilot.pause()
-            await app.screen.on_coordination_update(CoordinationUpdate(
-                thread="owner", wire_root=str(root / "wire"),
-                persistence="persistent", transport="stdio",
-            ))
+            await app.screen.on_coordination_update(coordination_update(str(root / 'wire'), 'owner'))
             await app.screen.query_one(CommsSidebar).sync_sessions()
             right = app.screen.query_one("#thread-sidebar", SideBar)
             right.reveal()

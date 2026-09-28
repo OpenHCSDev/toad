@@ -1,3 +1,4 @@
+from runtime_fixture import coordination_update
 """The Toad pause action records durable owner intent, not a model pause."""
 
 import asyncio
@@ -26,8 +27,7 @@ async def main():
         try:
             session = (await owner.new_session(cwd=str(root))).session_id
             client = Agent(root, {"name": "agent-comms", "run_command": {"*": "true"}}, None)
-            client._coordination_root = str(comms.root)
-            client._coordination_thread = session
+            client.coordination = coordination_update(str(comms.root), session)
             goal = await client.update_goal("set", "Keep investigating until stopped")
             paused = await client.update_goal("paused")
             assert paused.id == goal.id and paused.state.declared_name == "paused"

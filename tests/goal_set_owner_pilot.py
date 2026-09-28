@@ -1,3 +1,4 @@
+from runtime_fixture import coordination_update
 """The Toad Set Goal action must create the owner's private launch authority."""
 
 import asyncio
@@ -31,8 +32,7 @@ async def owner_set_route() -> None:
         )
         session = (await owner.new_session(cwd=str(project))).session_id
         toad_agent = Agent(project, {"name": "agent-comms", "run_command": {"*": "true"}}, None)
-        toad_agent._coordination_root = str(comms.root)
-        toad_agent._coordination_thread = session
+        toad_agent.coordination = coordination_update(str(comms.root), session)
         try:
             goal = await Agent.update_goal(toad_agent, "set", "Finish the task")
             assert goal is not None and goal.state.declared_name == "active"

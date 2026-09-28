@@ -1,4 +1,5 @@
 """Native thread in/out filtering preserves routed bodies and reversible history."""
+from runtime_fixture import coordination_update
 
 import asyncio
 import os
@@ -15,7 +16,6 @@ from agent_comms.comms import wire
 from textual.widgets import Checkbox, Static
 
 from runtime_fixture import ToadApp
-from toad.acp.messages import CoordinationUpdate
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.agent_thought import AgentThought
 from toad.widgets.incoming_message import IncomingMessage
@@ -39,8 +39,7 @@ async def main():
             await pilot.pause()
             owner_mode = app.current_mode
             screen = app.screen
-            await screen.on_coordination_update(CoordinationUpdate(
-                thread="owner", wire_root=str(root / "wire"), persistence="persistent", transport="stdio"))
+            await screen.on_coordination_update(coordination_update(str(root / 'wire'), 'owner'))
             screen.query_one("#thread-sidebar", SideBar).reveal()
             tree = screen.query_one(ThreadCommsSidebar)
             panel = tree.query_ancestor(SideBarCollapsible)

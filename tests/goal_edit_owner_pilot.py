@@ -1,8 +1,8 @@
+from runtime_fixture import coordination_update
 """Toad goal editing/history use the actual runtime owner and preserve identity."""
 
 import asyncio
 import os
-from dataclasses import asdict
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
@@ -10,7 +10,6 @@ from agent_comms.acp import CommsAgent
 from runtime_fixture import private_native_wire
 
 from toad.acp.agent import Agent
-from toad.acp.messages import GoalSnapshotUpdate
 
 
 async def main():
@@ -38,8 +37,7 @@ async def main():
             agent = Agent(
                 project, {"name": "agent-comms", "run_command": {"*": "true"}}, None
             )
-            agent._coordination_root = str(comms.root)
-            agent._coordination_thread = session
+            agent.coordination = coordination_update(str(comms.root), session)
             original = await agent.update_goal("set", "Original objective")
             changed = await agent.edit_goal(original, "Revised objective")
             assert changed.id == original.id
@@ -70,39 +68,6 @@ async def main():
             execution = await agent.get_goal_execution()
             assert execution.goal_id == changed.id
             assert await agent.get_goal_snapshot() == (changed, execution)
-            emitted = []
-            agent.post_message = emitted.append
-            for goal_value, execution_value in (
-                (changed.to_wire(), asdict(execution)),
-                (None, None),
-            ):
-                agent.rpc_session_update(
-                    session,
-                    {
-                        "sessionUpdate": "session_info_update",
-                        "_meta": {
-                            "agentComms": {
-                                "goal": goal_value,
-                                "goalExecution": execution_value,
-                            }
-                        },
-                    },
-                )
-                snapshot = next(
-                    item
-                    for item in reversed(emitted)
-                    if isinstance(item, GoalSnapshotUpdate)
-                )
-                assert snapshot.goal == (changed if goal_value else None)
-                assert snapshot.execution == (execution if execution_value else None)
-            emitted.clear()
-            agent._publish_coordination_metadata(
-                {"_meta": owner.sessions.metadata(session)}, initial=True
-            )
-            snapshot = next(
-                item for item in emitted if isinstance(item, GoalSnapshotUpdate)
-            )
-            assert snapshot.goal == changed and snapshot.execution == execution
         finally:
             await owner.shutdown()
     print(

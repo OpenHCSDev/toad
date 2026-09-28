@@ -3,6 +3,9 @@
 The ordinary UI and core wire model are used with fixed saved-history responses.
 This isolates renderer/navigation cost from changing production owner schemas.
 """
+from agent_comms.acp_extension import TranscriptSnapshotUpdate
+from toad.acp.messages import CommsUpdated
+from runtime_fixture import coordination_update
 
 import asyncio
 from collections import Counter
@@ -24,7 +27,6 @@ from agent_comms.comms import wire
 from setproctitle import setproctitle
 
 from toad.acp.agent import Agent
-from toad.acp.messages import CoordinationUpdate, TranscriptSnapshot
 from toad.agent import AgentReady
 from toad.app import ToadApp
 from toad.render_backend import RendererBackend, create_renderer
@@ -92,7 +94,7 @@ async def main():
 
             async def deliver():
                 initial = await page(agent)
-                target.post_message(TranscriptSnapshot(initial.events, initial))
+                target.post_message(CommsUpdated(TranscriptSnapshotUpdate(initial)))
                 target.post_message(AgentReady())
 
             agent._task = asyncio.create_task(deliver())
@@ -105,8 +107,7 @@ async def main():
                 await pilot.pause()
                 screen = app.screen
                 screen._agent = data
-                await screen.on_coordination_update(CoordinationUpdate(
-                    thread="fixture-owner", wire_root=str(comms.root), persistence="fixture", transport="fixture"))
+                await screen.on_coordination_update(coordination_update(str(comms.root), 'fixture-owner'))
                 agent = Agent(root, data, "fixture-owner")
                 agent._message_target = screen.conversation
                 screen.conversation.set_reactive(type(screen.conversation).agent, agent)

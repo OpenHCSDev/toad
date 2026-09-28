@@ -1,4 +1,5 @@
 """One-cell busy labels repaint in place; loading ring honors cell aspect ratio."""
+from runtime_fixture import coordination_update
 
 import asyncio
 import os
@@ -14,7 +15,6 @@ from runtime_fixture import ToadApp
 from textual.app import App, ComposeResult
 from textual.content import Content
 
-from toad.acp.messages import CoordinationUpdate
 from toad.widgets.activity_spinner import FRAMES
 from toad.widgets.comms_chat import session_thread_name
 from toad.widgets.comms_sidebar import CommsSidebar
@@ -86,10 +86,7 @@ async def check_busy_labels() -> None:
                 assert rows[0].prompt.plain[0] == " "  # Indent stays, marker remains one cell.
                 assert layout.call_count == 0, "Spinner repaint triggered full layout"
 
-            await app.screen.on_coordination_update(CoordinationUpdate(
-                thread=me, wire_root=str(root / "wire"),
-                persistence="persistent", transport="stdio",
-            ))
+            await app.screen.on_coordination_update(coordination_update(str(root / 'wire'), me))
             app.screen.query_one("#thread-sidebar", SideBar).reveal()
             tree = app.screen.query_one(ThreadCommsSidebar)
             async with asyncio.timeout(5):

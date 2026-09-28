@@ -1,4 +1,6 @@
 """Click a pre-persistence fork row, then scroll inherited history after persistence."""
+from agent_comms.acp_extension import TranscriptSnapshotUpdate
+from toad.acp.messages import CommsUpdated
 
 import asyncio
 import json
@@ -11,7 +13,6 @@ from agent_comms.threads import Thread
 from agent_comms.comms import wire
 from runtime_fixture import ToadApp
 from toad.acp.agent import Agent
-from toad.acp.messages import TranscriptSnapshot
 from toad.agent import AgentReady
 from toad.screens.main import MainScreen
 from toad.widgets.comms_sidebar import CommsSidebar, CommsRow
@@ -36,7 +37,7 @@ async def main():
             agent._coordination_root = str(root / "wire")
             agent._coordination_thread = "child"
             page = await agent.get_transcript_page()
-            target.post_message(TranscriptSnapshot(page.events, page))
+            target.post_message(CommsUpdated(TranscriptSnapshotUpdate(page)))
             target.post_message(AgentReady())
             started.set()
 

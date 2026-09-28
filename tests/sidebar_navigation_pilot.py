@@ -1,4 +1,5 @@
 """Sidebar navigation survives switching between independently mounted views."""
+from runtime_fixture import coordination_update
 
 import argparse
 import asyncio
@@ -12,7 +13,6 @@ from agent_comms.threads import Thread
 from agent_comms.child_process import ProcessIdentity
 from agent_comms.comms import wire
 from runtime_fixture import ToadApp
-from toad.acp.messages import CoordinationUpdate
 
 from toad.screens.main import MainScreen
 from toad.session_tracker import SidebarSelection
@@ -79,9 +79,7 @@ async def main(*, finish_before_layout=False):
             await pilot.pause()
             owner = app.current_mode
             worker = await app.new_session_screen(lambda: MainScreen(root, agent_session_id="worker"))
-            await app.screen.on_coordination_update(CoordinationUpdate(
-                thread="worker", wire_root=str(comms.root), persistence="persistent", transport="stdio",
-            ))
+            await app.screen.on_coordination_update(coordination_update(str(comms.root), 'worker'))
             await app.switch_mode(owner)
             await pilot.pause()
             sidebar = app.screen.query_one(CommsSidebar)

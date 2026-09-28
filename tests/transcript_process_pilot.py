@@ -1,4 +1,5 @@
 """Real process/heartbeat evidence and deterministic stale transcript publication races."""
+from agent_comms.acp_extension import TranscriptSnapshotUpdate
 
 import asyncio
 from contextlib import suppress
@@ -19,7 +20,6 @@ from agent_comms.tool_results import ToolDiff
 from textual.app import App
 
 from toad.render_processes import RenderProcessPool
-from toad.acp.messages import TranscriptSnapshot
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.transcript_fragments import prepare_transcript_fragments, transcript_fragments
 from toad.widgets.transcript_history import TranscriptHistory, TranscriptPageView
@@ -148,7 +148,7 @@ async def main():
                     before = tuple(conversation.contents.children)
                     pool.hold()
                     stale_snapshot = asyncio.create_task(conversation.on_transcript_snapshot(
-                        TranscriptSnapshot(snapshot.events, snapshot),
+                        TranscriptSnapshotUpdate(snapshot),
                     ))
                     await until(pool.entered.is_set)
                     conversation._transcript_generation += 1
@@ -156,7 +156,7 @@ async def main():
                     await stale_snapshot
                     assert tuple(conversation.contents.children) == before
                     with patch("toad.widgets.transcript_history.transcript_fragments", side_effect=AssertionError):
-                        await conversation.on_transcript_snapshot(TranscriptSnapshot(snapshot.events, snapshot))
+                        await conversation.on_transcript_snapshot(TranscriptSnapshotUpdate(snapshot))
                     first = conversation.contents.query_one(TranscriptHistory)
                     assert first.pages[0].fragments == transcript_fragments(snapshot.events)
                 await conversation.contents.remove_children()

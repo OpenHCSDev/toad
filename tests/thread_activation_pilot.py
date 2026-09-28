@@ -1,4 +1,6 @@
 """Returning to a thread paints its intended viewport without replaying old scroll positions."""
+from agent_comms.acp_extension import TranscriptSnapshotUpdate
+from toad.acp.messages import CommsUpdated
 
 import asyncio
 import os
@@ -7,7 +9,6 @@ from pathlib import Path
 
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from agent_comms.transcript_events import AssistantTranscript
-from toad.acp.messages import TranscriptSnapshot
 from toad.app import ToadApp
 from toad.screens.main import MainScreen
 from toad.widgets.agent_response import AgentResponse
@@ -116,7 +117,7 @@ async def main():
                 cursor, cursor, True, False,
             )
             app.frames = []
-            conversation.post_message(TranscriptSnapshot(snapshot.events, snapshot))
+            conversation.post_message(CommsUpdated(TranscriptSnapshotUpdate(snapshot)))
             async with asyncio.timeout(5):
                 while not any("LATEST-SNAPSHOT-ACTIVITY" in frame[3] for frame in app.frames):
                     await asyncio.sleep(.02)

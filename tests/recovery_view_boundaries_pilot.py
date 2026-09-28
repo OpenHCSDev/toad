@@ -1,4 +1,5 @@
 """A missing pinned gateway client and dual wire roots fail closed in Toad."""
+from runtime_fixture import coordination_update
 
 from toad.navigation_target import FeedTarget
 
@@ -14,7 +15,6 @@ from agent_comms.child_process import ProcessIdentity
 from agent_comms.threads import Thread
 from agent_comms.comms import wire
 from runtime_fixture import ToadApp
-from toad.acp.messages import CoordinationUpdate
 from toad.widgets.recovery_view import RecoveryView, _read_gateway
 from toad.widgets.side_bar import SideBar, SideBarCollapsible
 
@@ -83,8 +83,7 @@ async def dual_root_projection():
                 assert view._wire_root is None and not requests
                 # Same name exists in A and B. Trusted ACP says B; the env A
                 # must never be used as an implicit recovery identity.
-                await owner_screen.on_coordination_update(CoordinationUpdate(
-                    thread="fixture", wire_root=str(b), persistence="persistent", transport="stdio"))
+                await owner_screen.on_coordination_update(coordination_update(str(b), 'fixture'))
                 assert view._wire_root == b
                 app.settings.ui.recovery_view = True
                 owner_screen.query_one("#thread-sidebar", SideBar).reveal()
@@ -125,8 +124,7 @@ async def dual_root_projection():
                 view.action_refresh()
                 async with asyncio.timeout(5):
                     await began.wait()
-                await owner_screen.on_coordination_update(CoordinationUpdate(
-                    thread="fixture", wire_root=str(a), persistence="persistent", transport="stdio"))
+                await owner_screen.on_coordination_update(coordination_update(str(a), 'fixture'))
                 release.set()
                 async with asyncio.timeout(5):
                     while "Execution: completed" not in view.render().plain:

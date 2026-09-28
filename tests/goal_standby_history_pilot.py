@@ -1,3 +1,5 @@
+from agent_comms.acp_extension import GoalChangedUpdate
+from toad.acp.messages import CommsUpdated
 from runtime_fixture import wait_channel_roster
 """Mounted goal projections, stable editing, mentions, and backend revision history."""
 
@@ -17,7 +19,6 @@ from agent_comms.comms import wire
 from textual.content import Content
 from textual.widgets import Button, Static
 
-from toad.acp.messages import GoalSnapshotUpdate
 from toad.app import ToadApp
 from toad.screens.goal_details import GoalDetails
 from toad.screens.goal_edit import GoalEdit
@@ -196,14 +197,14 @@ async def main():
                 owner.goal, text="Backend edited the same goal", revision=6
             )
             owner.goal = pushed
-            conversation.post_message(GoalSnapshotUpdate(pushed, owner.execution))
+            conversation.post_message(CommsUpdated(GoalChangedUpdate(pushed, owner.execution)))
             await pilot.pause()
             assert conversation.goal_display.snapshot == pushed
             assert "Backend edited the same goal" in str(
                 bar.query_one(".goal-summary", Static).render()
             ), str(bar.query_one(".goal-summary", Static).render())
             owner.goal, owner.execution = None, None
-            conversation.post_message(GoalSnapshotUpdate(None, None))
+            conversation.post_message(CommsUpdated(GoalChangedUpdate(None, None)))
             await pilot.pause()
             assert conversation.goal_display.snapshot is None and conversation.goal_execution is None
             assert not bar.display

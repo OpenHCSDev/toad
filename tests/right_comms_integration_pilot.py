@@ -1,4 +1,5 @@
 """Real screen mounts and core-backed relationship updates in an isolated wire."""
+from runtime_fixture import coordination_update
 
 import asyncio
 import os
@@ -7,7 +8,6 @@ from pathlib import Path
 from unittest.mock import patch
 
 from runtime_fixture import ToadApp
-from toad.acp.messages import CoordinationUpdate
 from toad.widgets.comms_menu import ContextMenu, ContextMenuItem
 from toad.widgets.side_bar import SideBar, SideBarCollapsible
 from toad.widgets.thread_comms import RelationshipSort, ThreadCommsSidebar
@@ -51,9 +51,7 @@ async def main():
         async with app.run_test(size=(130, 44)) as pilot:
             await pilot.pause()
             owner_mode = app.current_mode
-            await app.screen.on_coordination_update(CoordinationUpdate(
-                thread="owner", wire_root=str(root / "wire"), persistence="persistent",
-                transport="stdio"))
+            await app.screen.on_coordination_update(coordination_update(str(root / 'wire'), 'owner'))
             main = app.screen
             draft = "Keep the native thread draft"
             main.conversation.prompt.text = draft
@@ -170,9 +168,7 @@ async def main():
             # Owner rename propagates to native and already-open channel panels.
             with patch.dict(os.environ, {"PI_AGENT_ID": "owner"}):
                 comms.threads.rename_self("renamed-owner")
-            await main.on_coordination_update(CoordinationUpdate(
-                thread="renamed-owner", wire_root=str(root / "wire"),
-                persistence="persistent", transport="stdio"))
+            await main.on_coordination_update(coordination_update(str(root / 'wire'), 'renamed-owner'))
             await wait_until(pilot, lambda: tree._snapshot is not None
                              and tree._snapshot.owner == "renamed-owner")
             await app.switch_mode(channel_mode)

@@ -1,4 +1,5 @@
 """The ordinary channel tree retains long names behind its bottom scrollbar."""
+from runtime_fixture import coordination_update
 
 import asyncio
 import os
@@ -10,7 +11,6 @@ from agent_comms.comms import wire
 from runtime_fixture import ToadApp
 from textual.containers import VerticalScroll
 
-from toad.acp.messages import CoordinationUpdate
 from toad.widgets.comms_sidebar import CommsSidebar
 from toad.widgets.side_bar import SideBar
 from toad.widgets.thread_comms import ThreadCommsSidebar
@@ -58,10 +58,7 @@ async def check_right() -> None:
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(100, 34)) as pilot:
             await pilot.pause()
-            await app.screen.on_coordination_update(CoordinationUpdate(
-                thread="owner", wire_root=str(root / "wire"),
-                persistence="persistent", transport="stdio",
-            ))
+            await app.screen.on_coordination_update(coordination_update(str(root / 'wire'), 'owner'))
             bar = app.screen.query_one("#thread-sidebar", SideBar)
             bar.reveal()
             tree = bar.query_one(ThreadCommsSidebar)

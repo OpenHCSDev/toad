@@ -117,7 +117,7 @@ class PromptContainer(containers.HorizontalGroup):
 
 
 class PromptSubmission:
-    """Inherited owner of PromptSubmission behavior."""
+    """Admit model and local command submission through the current prompt."""
 
     def action_submit(self) -> None:
         # The callback is queued behind this widget's input events. Unlike a
@@ -498,7 +498,7 @@ See on-screen instructions for details.
 
 
 class PromptCompletion:
-    """Inherited owner of PromptCompletion behavior."""
+    """Refresh declared commands before opening completion."""
 
     @on(InvokeSlashComplete)
     def on_invoke_slash_complete(self, event: InvokeSlashComplete) -> None:

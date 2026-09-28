@@ -1,4 +1,6 @@
 """Persistent native unread counts reach sidebar/tabs; Start uses the core tool."""
+from agent_comms.acp_extension import TranscriptSnapshotUpdate
+from toad.acp.messages import CommsUpdated
 
 from toad.navigation_target import channel_target
 
@@ -14,7 +16,6 @@ from runtime_fixture import private_native_wire
 from agent_comms.runtime import socket_path
 from runtime_fixture import ToadApp
 from toad.session_tracker import ExactUnread
-from toad.acp.messages import TranscriptSnapshot
 from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.comms_sidebar import ChannelGroup, CommsSidebar
 from toad.widgets.comms_menu import ContextMenuItem
@@ -57,7 +58,7 @@ async def main():
             conversation = main_screen.conversation
             reply(source, "Already viewed\n\n" + "\n".join(f"- visible line {i}" for i in range(45)))
             page = comms.transcripts.thread_transcript_page("worker")
-            conversation.post_message(TranscriptSnapshot(page.events, page))
+            conversation.post_message(CommsUpdated(TranscriptSnapshotUpdate(page)))
             await pilot.pause()
             await refresh(app, pilot)
             assert comms.views.viewer_snapshot(str(root)).thread_unread["worker"] == 0
@@ -76,7 +77,7 @@ async def main():
             assert "(1)" in worker_row.render().plain and worker_row.has_class("-unread")
             # Hidden snapshots cannot mark a thread read.
             page = comms.transcripts.thread_transcript_page("worker")
-            conversation.post_message(TranscriptSnapshot(page.events, page))
+            conversation.post_message(CommsUpdated(TranscriptSnapshotUpdate(page)))
             await pilot.pause()
             await refresh(app, pilot)
             assert app.open_tabs[0].unread == ExactUnread(1)

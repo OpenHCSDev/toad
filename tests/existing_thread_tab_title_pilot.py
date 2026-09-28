@@ -1,4 +1,5 @@
 """A sidebar-opened thread keeps the same correct tab label active and inactive."""
+from runtime_fixture import coordination_update
 
 import asyncio
 import os
@@ -12,7 +13,6 @@ from agent_comms.comms import wire
 from runtime_fixture import ToadApp
 
 from toad.acp.agent import Agent
-from toad.acp.messages import CoordinationUpdate
 from toad.agent import AgentReady
 from toad.widgets.comms_sidebar import CommsRow, CommsSidebar
 from toad.widgets.session_tabs import SessionLabel, SessionsTabs
@@ -71,9 +71,7 @@ async def main(title: str | None = None, *, cold_metadata: bool = False) -> None
             app.screen._agent = {"name": "Fixture", "identity": "agent-comms.openhcs.dev",
                                  "short_name": "fixture", "run_command": {"*": "false"},
                                  "protocol": "acp"}
-            await app.screen.on_coordination_update(CoordinationUpdate(
-                thread="owner", wire_root=str(root / "wire"), persistence="persistent", transport="stdio",
-            ))
+            await app.screen.on_coordination_update(coordination_update(str(root / 'wire'), 'owner'))
             sidebar = app.screen.query_one(CommsSidebar)
             await sidebar.sync_sessions()
             row = next(row for row in sidebar.query(CommsRow) if row.target_name == "existing-thread")

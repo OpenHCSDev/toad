@@ -1,4 +1,5 @@
 """Installed Toad menu archives a real isolated thread and retains its history."""
+from runtime_fixture import coordination_update
 
 from toad.thread_actions import ArchiveAction, ThreadAction
 import asyncio
@@ -12,7 +13,6 @@ from agent_comms.thread_status import ArchivedThreadStatus, StoppedThreadStatus
 from agent_comms.threads import Thread
 from textual.geometry import Offset
 
-from toad.acp.messages import CoordinationUpdate
 from toad.app import ToadApp
 from toad.db import DB
 from toad.widgets.comms_menu import ContextMenu, ContextMenuItem
@@ -63,10 +63,7 @@ async def main():
         async with app.run_test(size=(110, 38)) as pilot:
             app.theme = "textual-dark"
             await pilot.pause()
-            await app.screen.on_coordination_update(CoordinationUpdate(
-                thread="owner", wire_root=str(comms.root),
-                persistence="persistent", transport="stdio",
-            ))
+            await app.screen.on_coordination_update(coordination_update(str(comms.root), 'owner'))
             db = DB()
             assert await db.create()
             saved = await db.session_new("peer", "Comms", "agent-comms.openhcs.dev", "peer")

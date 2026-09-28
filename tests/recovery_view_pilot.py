@@ -1,4 +1,5 @@
 """Optional recovery presentation reads only the post-paint gateway DTO."""
+from runtime_fixture import coordination_update
 
 from toad.navigation_target import channel_target
 
@@ -13,7 +14,6 @@ from agent_comms.child_process import ProcessIdentity
 from agent_comms.threads import Thread
 from agent_comms.comms import wire
 from runtime_fixture import ToadApp
-from toad.acp.messages import CoordinationUpdate
 from toad.widgets.recovery_view import RecoveryView
 from toad.widgets.side_bar import SideBar, SideBarCollapsible
 
@@ -65,10 +65,7 @@ async def main():
                 panel = view.query_ancestor(SideBarCollapsible)
                 assert not app.settings.ui.recovery_view
                 assert not panel.display and not seen, "Default-off created a gateway read"
-                await app.screen.on_coordination_update(CoordinationUpdate(
-                    thread="fixture", wire_root=str(root / "wire"),
-                    persistence="persistent", transport="stdio",
-                ))
+                await app.screen.on_coordination_update(coordination_update(str(root / 'wire'), 'fixture'))
                 assert view.thread == "fixture"
                 started = time.perf_counter()
                 painted_before = app.painted

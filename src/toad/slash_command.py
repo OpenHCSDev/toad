@@ -28,7 +28,7 @@ class LocalCommand:
 
 
 class CommandPresentation:
-    """Inherited owner of CommandPresentation behavior."""
+    """Completion text and argument decoding shared by command declarations."""
 
     @property
     def content(self) -> Content:
