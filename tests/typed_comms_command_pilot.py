@@ -52,7 +52,7 @@ async def main():
             await agent.server.call(json.loads(raw[0]))
             await pilot.pause()
             assert agent._active_turn_id=='actual-producer'
-            assert view._managed_turn_id=='actual-producer'
+            assert view.turns.managed_id=='actual-producer'
             assert view.busy_count==1
             await agent.server.call(json.loads(raw[1]))
             await pilot.pause()
@@ -65,15 +65,15 @@ async def main():
             assert "50% of input processed" not in view.activity
             await agent.server.call(json.loads(raw[4]))
             await pilot.pause()
-            assert view._managed_turn_id=="actual-producer"
+            assert view.turns.managed_id=="actual-producer"
             await agent.server.call(json.loads(raw[5]))
             await pilot.pause()
             assert agent._active_turn_id is None
-            assert view._managed_turn_id is None
+            assert view.turns.managed_id is None
             assert view.busy_count==0
             await agent.server.call(json.loads(raw[6]))
             await pilot.pause()
-            assert view.goal is None and view.goal_execution is None
+            assert view.goal_display.snapshot is None and view.goal_execution is None
             assert app._exception is None
     print('Fresh producer ACP notifications reached mounted Toad turn and compaction states; stale settle rejected; no provider call')
 

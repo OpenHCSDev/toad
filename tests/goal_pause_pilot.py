@@ -1,3 +1,4 @@
+from toad.conversation_turn import AgentTurn, ClientTurn
 """Goal state governs auto-continuation only; changing it never cancels a turn."""
 
 import asyncio
@@ -43,7 +44,7 @@ async def main():
             agent = FakeAgent()
             conversation.set_reactive(type(conversation).agent, agent)
             conversation.agent_ready = True
-            conversation.turn = "agent"  # A turn is in progress.
+            conversation.turns.owner = AgentTurn()  # A turn is in progress.
             for action in ("paused", "active", "blocked", "completed", "clear"):
                 await conversation.change_goal(action)
             assert agent.cancel_calls == 0, "changing a goal must not cancel the running turn"

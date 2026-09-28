@@ -44,7 +44,7 @@ async def main():
             assert target.screen._first_frame_presented
             started.append(target.screen._comms_thread)
             agent._message_target = target
-            agent._task = asyncio.create_task(asyncio.sleep(0))
+            agent.process.session_task = asyncio.create_task(asyncio.sleep(0))
             target.post_message(AgentReady())
 
         app = ToadApp(project_dir=str(root))

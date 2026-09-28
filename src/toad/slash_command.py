@@ -200,7 +200,7 @@ class CompactCommand(SlashCommand, LocalCommand):
     async def apply(self, conversation: Conversation) -> bool:
         if conversation._compacting:
             conversation.flash("Context compaction is already running")
-        elif conversation.turn == "agent":
+        elif not conversation.turns.owner.can_compact:
             conversation.flash(
                 "Wait for the current response before compacting", style="error"
             )
@@ -287,7 +287,7 @@ class SessionCloseCommand(NoArgumentsCommand, declared_name="toad:session-close"
     async def apply(self, conversation: Conversation) -> bool:
         from toad import messages
 
-        if conversation.turn == "agent" and conversation.agent is not None:
+        if conversation.turns.owner.busy and conversation.agent is not None:
             await conversation.agent.cancel()
         if conversation.screen.id is not None:
             conversation.post_message(messages.SessionClose(conversation.screen.id))

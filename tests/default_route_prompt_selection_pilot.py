@@ -19,8 +19,8 @@ async def make_agent(project: Path) -> Agent:
     agent.post_message = lambda _message: None
     agent._run_agent = AsyncMock()
     await agent.start()
-    assert agent._agent_task is not None
-    await agent._agent_task
+    assert agent.process.runner is not None
+    await agent.process.runner
     return agent
 
 
@@ -53,7 +53,7 @@ async def main() -> None:
             assert implicit_agent._maintenance_implicit_root
             route(home, second, second_id)
             sent = []
-            implicit_agent._process = SimpleNamespace(
+            implicit_agent.process.process = SimpleNamespace(
                 stdin=SimpleNamespace(write=sent.append)
             )
             prompt = SimpleNamespace(body={"method": "session/prompt"}, body_json=b"{}")
@@ -73,7 +73,7 @@ async def main() -> None:
             with patch.dict(os.environ, {"AGENT_COMMS_ROOT": str(first)}):
                 explicit_agent = await make_agent(project)
             assert not explicit_agent._maintenance_implicit_root
-            explicit_agent._process = SimpleNamespace(
+            explicit_agent.process.process = SimpleNamespace(
                 stdin=SimpleNamespace(write=sent.append)
             )
             explicit_agent.send(prompt)

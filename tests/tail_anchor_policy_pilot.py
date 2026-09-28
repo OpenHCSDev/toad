@@ -6,7 +6,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
-from textual.widgets import Static
+from toad.widgets.note import Note
 
 from history_scroll_frames_pilot import ScrollFrameApp
 from toad.widgets.history_anchor import HistoryAnchor
@@ -22,7 +22,7 @@ async def main():
             await pilot.pause()
             view = app.screen.conversation
             window, contents = view.window, view.contents
-            blocks = [Static(f"Record {index}\nsecond line") for index in range(80)]
+            blocks = [Note(f"Record {index}\nsecond line") for index in range(80)]
             await contents.mount(*blocks)
             window.anchor()
             await pilot.pause()
@@ -37,7 +37,7 @@ async def main():
             )):
                 async with window.history_lock:
                     async with window.preserve_history(marker):
-                        await contents.mount(Static("New tail record\nsecond line"))
+                        await contents.mount(Note("New tail record\nsecond line"))
                         await pilot.pause()
                 assert window.follows_tail and window.scroll_y == window.max_scroll_y
 
@@ -51,7 +51,7 @@ async def main():
                     expected = marker.region.y - window.content_region.y
                     frames = []
                     app.observed = marker, window, frames
-                    await contents.mount(Static("Prepended one\nPrepended two"), before=0)
+                    await contents.mount(Note("Prepended one\nPrepended two"), before=0)
                     await pilot.pause()
             await pilot.pause()
             app.observed = None
@@ -65,7 +65,7 @@ async def main():
                     with patch.object(HistoryAnchor, "_offset", side_effect=AssertionError(
                         "Reader-to-tail transition retained a record geometry dependency"
                     )):
-                        await contents.mount(Static("Latest tail record\nsecond line"))
+                        await contents.mount(Note("Latest tail record\nsecond line"))
                         await pilot.pause()
             assert window.follows_tail and window.scroll_y == window.max_scroll_y
             assert window.history_anchor is None and not window.history_lock.locked()

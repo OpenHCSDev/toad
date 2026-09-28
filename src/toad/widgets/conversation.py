@@ -78,7 +78,11 @@ from toad.widgets.native_history import NativeHistory
 from toad.widgets.observed_thread_activity import ObservedThreadActivity
 from toad.widgets.session_details import SessionDetails
 from toad.private_native_cursor import CursorStatus
-from toad.protocol import BlockProtocol, ExpandProtocol, MenuProtocol
+from toad.protocol import ExpandProtocol, MenuProtocol
+from toad.block_navigation import admitted_blocks, ConversationBlock, ContentNavigation, UpCursor, DownCursor
+from functools import cached_property
+from toad.agent_presentation import AgentAttachmentView
+from toad.conversation_turn import TurnOwner, ConversationTurn, AgentTurn, ClientTurn
 from toad.shell import CurrentWorkingDirectoryChanged, Shell
 from toad.slash_command import SlashCommand
 from toad.widgets.history_anchor import HistoryWindow
@@ -201,7 +205,7 @@ Need help? Ask on {HELP_URL}
 """
 
 
-class Loading(Static):
+class Loading(ConversationBlock, Static):
     """Tiny widget to show loading indicator."""
 
     DEFAULT_CLASSES = "block"
@@ -224,7 +228,7 @@ class PaintOnlyRefresh:
                 self.refresh(layout=False)
 
 
-class ThreadLoading(PaintOnlyRefresh, Static):
+class ThreadLoading(ConversationBlock, PaintOnlyRefresh, Static):
     """Paint-only, viewport-scaled progress while a thread attaches."""
 
     DEFAULT_CSS = """
@@ -342,7 +346,7 @@ class CategorizedMount:
         from toad.widgets.message_filter import apply_block_filter, block_category, keep_live_block
 
         selected = self.query_ancestor(Conversation).visible_categories if self.is_attached else all_categories()
-        for widget in widgets:
+        for widget in admitted_blocks(widgets):
             widget.set_class(not keep_live_block(widget), "-unrouted")
             if category := block_category(widget):
                 widget.add_class(f"-message-{category.declared_name}")
@@ -488,7 +492,6 @@ class Conversation(containers.Vertical):
 
     busy_count = var(0)
     visible_categories: var[frozenset[type[MessageCategory]]] = var(lambda: all_categories(), init=False)
-    cursor_offset = var(-1, init=False)
     project_path = var("")
     working_directory: var[str] = var("")
     _blocks: var[list[MarkdownBlock] | None] = var(None)
@@ -506,13 +509,11 @@ class Conversation(containers.Vertical):
         from toad.widgets.message_filter import apply_block_filter
 
         window = self.window
-        if not hasattr(self, "_filter_scroll_positions"):
-            self._filter_scroll_positions = {}
         self._filter_scroll_positions[previous] = (window.scroll_y, window.follows_tail)
         position = self._filter_scroll_positions.get(
             selected, (window.scroll_y, window.follows_tail)
         )
-        self.cursor_offset = -1
+        self.navigation.index = -1
         self.screen.clear_selection()
         for block in self.contents.children:
             apply_block_filter(block, selected)
@@ -561,7 +562,6 @@ class Conversation(containers.Vertical):
     native_history_status: var[CursorStatus | None] = var(None)
     goal_display: var[GoalDisplay] = var(NoGoal())
     goal_execution: var[GoalExecution | None] = var(None)
-    turn: var[Literal["agent", "client"] | None] = var(None, bindings=True)
     status: var[str | Content] = var("")
     column: var[bool] = var(False, toggle_class="-column")
 
@@ -586,14 +586,13 @@ class Conversation(containers.Vertical):
         self.terminals: dict[str, TerminalTool] = {}
         self._loading: Loading | None = None
         self._agent_response: AgentResponse | None = None
-        self._managed_turn_id: str | None = None
+        self.turns = ConversationTurn(self._turn_changed)
+        self._filter_scroll_positions = {}
         self._mcp_live_turn: str | None = None
         self._mcp_live_note: Note | None = None
         self._private_cursor_sequence = 0
         self._queue_sequence = 0
         self._sending_queue_input_id: str | None = None
-        self._turn_lifecycle_source: tuple[object, str | None] | None = None
-        self._turn_lifecycle_sequence = 0
         self._agent_thought: AgentThought | None = None
         from toad.widgets.agent_activity import AgentActivityBoundary
 
@@ -763,11 +762,12 @@ class Conversation(containers.Vertical):
         else:
             self.prompt.text = history_entry.input
 
-    def watch_turn(self, turn: str) -> None:
-        if turn == "client":
-            self.post_message(messages.SessionUpdate(state="idle"))
-        elif turn == "agent":
-            self.post_message(messages.SessionUpdate(state="busy"))
+    def _turn_changed(self, owner: TurnOwner) -> None:
+        if self.is_mounted:
+            self.prompt.turn_owner = owner
+        self.refresh_bindings()
+        if owner.session_state is not None:
+            self.post_message(messages.SessionUpdate(state=owner.session_state))
 
     @on(events.Key)
     async def on_key(self, event: events.Key):
@@ -821,8 +821,7 @@ class Conversation(containers.Vertical):
                 queue_projection=Conversation.queue_projection,
                 delivering_prompt=Conversation.delivering_prompt,
                 sending_queued_prompt=Conversation.sending_queued_prompt,
-                turn=Conversation.turn,
-                status=Conversation.status,
+                                status=Conversation.status,
             )
 
     @property
@@ -856,13 +855,13 @@ class Conversation(containers.Vertical):
     async def on_shell_terminal_terminate(self, event: ShellTerminal.Terminate) -> None:
         if not event.teminal.is_finalized:
             await self.shell.interrupt()
-            self.cursor_offset = -1
+            self.navigation.index = -1
             self.flash("Command interrupted", style="success")
 
     @on(DirectoryChanged)
     def on_directory_changed(self, event: DirectoryChanged) -> None:
         event.stop()
-        if self.turn is None or self.turn == "client":
+        if self.turns.owner.accepts_prompt:
             self.post_message(messages.ProjectDirectoryUpdated())
         else:
             self._directory_changed = True
@@ -934,7 +933,7 @@ class Conversation(containers.Vertical):
         if action == "mode_switcher":
             return bool(self.modes)
         if action == "cancel":
-            return True if (self.agent and self.turn == "agent") else None
+            return True if (self.agent and self.turns.owner.busy) else None
         if action in {"expand_block", "collapse_block"}:
             if (cursor_block := self.cursor_block) is None:
                 return False
@@ -996,23 +995,17 @@ class Conversation(containers.Vertical):
                 await self._agent_thought.append_fragment(thought_fragment)
             return self._agent_thought
 
+    @cached_property
+    def navigation(self) -> ContentNavigation:
+        return ContentNavigation(self.contents)
+
     @property
-    def cursor_block(self) -> Widget | None:
-        """The block next to the cursor, or `None` if no block cursor."""
-        if self.cursor_offset == -1 or not self.contents.displayed_children:
-            return None
-        try:
-            block_widget = self.contents.displayed_children[self.cursor_offset]
-        except IndexError:
-            return None
-        return block_widget
+    def cursor_block(self) -> ConversationBlock | None:
+        return self.navigation.current
 
     @property
     def cursor_block_child(self) -> Widget | None:
-        if (cursor_block := self.cursor_block) is not None:
-            if isinstance(cursor_block, BlockProtocol):
-                return cursor_block.get_cursor_block()
-        return cursor_block
+        return self.navigation.selected
 
     def get_cursor_block[BlockType](
         self, block_type: type[BlockType] = Widget
@@ -1044,7 +1037,7 @@ class Conversation(containers.Vertical):
         self, event: ObservedThreadActivity.Changed
     ) -> None:
         event.stop()
-        if self._managed_turn_id is not None or self.turn == "agent":
+        if self.turns.managed_id is not None or self.turns.owner.busy:
             return
         if event.unavailable:
             self.post_message(
@@ -1092,7 +1085,7 @@ class Conversation(containers.Vertical):
         self.call_later(self.refresh_goal)
         self.call_later(self.refresh_input_dispositions)
         self._compact_committed_history()
-        if self._managed_turn_id is None:
+        if self.turns.managed_id is None:
             self.post_message(messages.SessionUpdate(state="idle", summary="Ready"))
 
     async def _apply_session_name(self, name: str) -> None:
@@ -1182,7 +1175,7 @@ class Conversation(containers.Vertical):
         await self.post(Note(error, classes="-error"))
 
         if message.help == "prompt":
-            log_path = getattr(self.agent, "_log_file_path", None)
+            log_path = self.agent.presentation.log_path if self.agent is not None else None
             if isinstance(log_path, Path):
                 from toad.widgets.agent_response import AgentResponse
 
@@ -1229,7 +1222,7 @@ class Conversation(containers.Vertical):
         from toad.widgets.comms_menu import ContextMenu
 
         agent = self.agent
-        methods = getattr(agent, "auth_methods", []) if agent is not None else []
+        methods = agent.presentation.auth_methods if agent is not None else []
         if not methods:
             self.flash("This agent has not advertised any login methods", style="error")
             return
@@ -1269,9 +1262,9 @@ class Conversation(containers.Vertical):
                 if code != 0:
                     return
                 while (
-                    self.turn == "agent"
+                    self.turns.owner.busy
                     or self.queued_prompts
-                    or getattr(agent, "prompt_in_flight", 0)
+                    or agent.presentation.prompt_in_flight
                 ):
                     await asyncio.sleep(0.1)
                 self.prompt.disabled = True
@@ -1309,7 +1302,7 @@ class Conversation(containers.Vertical):
             from toad.widgets.comms_menu import ContextMenu
 
             await DB().record_model_usage(self.model_history_scope, event.model_id)
-            levels = getattr(self.agent, "thinking_levels", [])
+            levels = self.agent.presentation.thinking_levels
             if len(levels) > 1:
                 level = await self.app.push_screen_wait(
                     ContextMenu(
@@ -1333,7 +1326,7 @@ class Conversation(containers.Vertical):
                 Content.from_markup(
                     "Model changed to [b]$model[/] · thinking [b]$level",
                     model=model.name,
-                    level=getattr(self.agent, "current_thinking_level", None) or "off",
+                    level=self.agent.presentation.current_thinking_level or "off",
                 ),
                 style="success",
             )
@@ -1386,7 +1379,7 @@ class Conversation(containers.Vertical):
                 # Toad has processed the slash command.
                 return
             queued = (
-                self.turn == "agent" and self.queue_supported and not event.immediate
+                self.turns.owner.busy and self.queue_supported and not event.immediate
             )
             if event.immediate and self.queue_supported:
                 self.delivering_prompt = text
@@ -1455,7 +1448,7 @@ class Conversation(containers.Vertical):
                 self.busy_count += 1
             try:
                 if not server_owned_turn:
-                    self.turn = "agent"
+                    self.turns.owner = AgentTurn()
                 if self.queue_supported:
                     stop_reason = await sending_agent.send_prompt(
                         prompt,
@@ -1474,10 +1467,10 @@ class Conversation(containers.Vertical):
 
                 if not current_request_owner():
                     return
-                self.turn = "client"
+                self.turns.owner = ClientTurn()
 
                 message = (
-                    getattr(error, "message", str(error)) or "no details were provided"
+                    str(error) or "no details were provided"
                 )
                 self.activity = ""
                 self.activity_started_at = None
@@ -1508,7 +1501,7 @@ class Conversation(containers.Vertical):
         Args:
             stop_reason: The stop reason returned from the Agent, or `None`.
         """
-        self.turn = "client"
+        self.turns.owner = ClientTurn()
         self._agent_activity_boundary.reset()
         self.activity = ""
         self.activity_started_at = None
@@ -1652,16 +1645,16 @@ class Conversation(containers.Vertical):
             message.agent is not self.agent
             or (self.agent._active_turn_id if self.agent else None)
             != message.update.turn_id
-            or self._managed_turn_id is None
-            or message.update.turn_id != self._managed_turn_id
+            or self.turns.managed_id is None
+            or message.update.turn_id != self.turns.managed_id
             or (agent_session is not None and message.session_id != agent_session)
         ):
             # Late or forged: the projection dies with its turn and is never
             # shown outside the active-turn lifetime.
             return
-        if self._mcp_live_turn == self._managed_turn_id:
+        if self._mcp_live_turn == self.turns.managed_id:
             return  # The package emits at most one receipt per turn.
-        self._mcp_live_turn = self._managed_turn_id
+        self._mcp_live_turn = self.turns.managed_id
         rows = message.update.receipt.servers
         summary = (
             "; ".join(
@@ -1684,7 +1677,7 @@ class Conversation(containers.Vertical):
         from toad.widgets.agent_response import AgentResponse
 
         message.stop()
-        if self.turn != "agent":
+        if not self.turns.owner.busy:
             # Owner notices (including manual compaction) are complete messages,
             # not a live response waiting for a future turn-settled event.
             await self.post(AgentResponse(message.text, delivery=ResponseDelivery.from_route(message.route)))
@@ -1692,63 +1685,32 @@ class Conversation(containers.Vertical):
         if self._agent_thought is not None:
             await self._agent_thought.finish_stream()
         self._agent_thought = None
-        if self.turn == "agent":
+        if self.turns.owner.busy:
             self.activity = "Writing response…"
             self.post_message(
                 messages.SessionUpdate(state="busy", summary="Writing response")
             )
         await self.post_agent_response(message.text, ResponseDelivery.from_route(message.route))
 
-    def _accept_turn_lifecycle(self, message: acp_messages.CommsUpdated) -> bool:
-        from toad.acp.agent import Agent
-
-        if not isinstance(self.agent, Agent) and message.agent is None:
-            return True  # Local non-ACP agents retain their direct event path.
-        if (
-            message.agent is not self.agent
-            or message.session_id != self.agent.session_id
-            or type(message.sequence) is not int
-            or message.sequence <= 0
-        ):
-            return False
-        source = (message.agent, message.session_id)
-        if source == self._turn_lifecycle_source:
-            if message.sequence <= self._turn_lifecycle_sequence:
-                return False
-        # Consume the immutable ingress order, NOT Agent._active_turn_id: the
-        # producer may already have settled multiple valid queued turns.
-        self._turn_lifecycle_source = source
-        self._turn_lifecycle_sequence = message.sequence
-        return True
-
     async def on_turn_started(self, message: acp_messages.CommsUpdated) -> None:
-        update = message.update
-        if not self._accept_turn_lifecycle(message):
+        previous = self.turns.start(message, self.agent)
+        if previous is None:
             return
+        update = message.update
         self.activity_started_at = update.started_at
         self.activity = update.activity_detail or "Thinking…"
-        if update.turn_id == self._managed_turn_id:
-            return
         self._transcript_generation += 1
-        if self._managed_turn_id is None:
+        if previous.managed_id is None:
             self.busy_count += 1
-        self._managed_turn_id = update.turn_id
         await self._clear_mcp_live()
         self._agent_activity_boundary.reset()
         self.app.open_tabs_changed.publish(None)
         self.new_block()
-        self.turn = "agent"
         self.post_message(messages.SessionUpdate(state="busy", summary=self.activity))
 
     async def on_turn_settled(self, message: acp_messages.CommsUpdated) -> None:
-        update = message.update
-        if not self._accept_turn_lifecycle(message):
-            return
-        # Empty/missing IDs are initial idle snapshots, never authority to
-        # settle a nonempty live turn. Keep the same guard for local messages.
-        if update.turn_id != self._managed_turn_id and (
-            self._managed_turn_id is not None or update.turn_id
-        ):
+        previous = self.turns.settle(message, self.agent)
+        if previous is None:
             return
         await self._clear_mcp_live()
         self.delivering_prompt = ""
@@ -1756,17 +1718,13 @@ class Conversation(containers.Vertical):
         self.activity = ""
         self.activity_started_at = None
         self.app.open_tabs_changed.publish(None)
-        if update.turn_id is not None:
-            if self._managed_turn_id is not None:
-                self._managed_turn_id = None
+        if message.update.turn_id is not None:
+            if previous.managed_id is not None:
                 self.busy_count -= 1
                 await self.agent_turn_over("end_turn")
                 return
             self.new_block()
-            self.turn = "client"
-        self.post_message(
-            messages.SessionUpdate(state="idle", summary="Ready for review")
-        )
+        self.post_message(messages.SessionUpdate(state="idle", summary="Ready for review"))
 
     async def on_queue_view_update(self, message: acp_messages.CommsUpdated) -> None:
         if (
@@ -1918,7 +1876,7 @@ class Conversation(containers.Vertical):
             or not isinstance(self.agent, Agent)
             or not self.agent_ready
             or not self.agent.transcript_ready
-            or self._managed_turn_id is not None
+            or self.turns.managed_id is not None
             or any(
                 isinstance(node, CheckpointBarrier) for node in contents.walk_children()
             )
@@ -1955,7 +1913,7 @@ class Conversation(containers.Vertical):
                 and self.agent is agent
                 and self.query_one_optional(Window) is window
                 and self.query_one_optional(Contents) is contents
-                and self._managed_turn_id is None
+                and self.turns.managed_id is None
                 and plan.current(window)
             )
 
@@ -2633,7 +2591,7 @@ class Conversation(containers.Vertical):
         event.stop()
         await self.refresh_input_dispositions()
         details = InputDeliveryDetails(
-            log_path=getattr(self.agent, "_log_file_path", None),
+            log_path=self.agent.presentation.log_path if self.agent is not None else None,
             load_history=self._load_delivery_history,
             dismiss_history=self._dismiss_delivery_history,
         )
@@ -2842,15 +2800,13 @@ class Conversation(containers.Vertical):
         # A presentation remount is not a fresh attachment. Start at the
         # Agent's current projection/floor so previously queued receipts cannot
         # revive proof after its reducer entered quarantine or evidence loss.
-        cursor = getattr(agent, "_private_cursor", None)
-        self.native_history_status = cursor.status if cursor is not None else None
-        self._private_cursor_sequence = getattr(agent, "_private_cursor_sequence", 0)
-        queue = agent.queue_attachment if agent is not None else None
-        self.queue_projection = (
-            queue.projection if queue is not None else PendingQueueProjection()
-        )
+        attachments = (agent.presentation.attachments if agent is not None
+                       else AgentAttachmentView(None, 0, PendingQueueProjection(), 0))
+        self.native_history_status = attachments.cursor
+        self._private_cursor_sequence = attachments.cursor_sequence
+        self.queue_projection = attachments.queue
         self.queued_prompts = [row.text for row in self.queue_projection.items]
-        self._queue_sequence = getattr(agent, "_queue_sequence", 0)
+        self._queue_sequence = attachments.queue_sequence
         self._sending_queue_input_id = None
         self.sending_queued_prompt = ""
         if agent is None:
@@ -2917,28 +2873,8 @@ class Conversation(containers.Vertical):
         else:
             return
 
-        if widget in contents.displayed_children:
-            self.cursor_offset = contents.displayed_children.index(widget)
+        if self.navigation.select(widget):
             self.refresh_block_cursor()
-            return
-        for parent in widget.ancestors:
-            if not isinstance(parent, Widget):
-                break
-            if (
-                parent is self or parent is contents
-            ) and widget in contents.displayed_children:
-                self.cursor_offset = contents.displayed_children.index(widget)
-                self.refresh_block_cursor()
-                break
-            if (
-                isinstance(parent, BlockProtocol)
-                and parent in contents.displayed_children
-            ):
-                self.cursor_offset = contents.displayed_children.index(parent)
-                parent.block_select(widget)
-                self.refresh_block_cursor()
-                break
-            widget = parent
 
     def new_block(self) -> None:
         """Start a new block for agent response."""
@@ -3033,7 +2969,7 @@ class Conversation(containers.Vertical):
                     break
                 prune_children.append(child)
 
-        self.cursor_offset = -1
+        self.navigation.index = -1
         self.cursor.visible = False
         self.cursor.follow(None)
         contents.refresh(layout=True)
@@ -3116,63 +3052,15 @@ class Conversation(containers.Vertical):
             width, height = self.get_terminal_dimensions()
             await self.shell.send(command, width, height)
 
-    def action_cursor_up(self) -> None:
-        if not self.contents.displayed_children or self.cursor_offset == 0:
-            # No children
-            return
-        if self.cursor_offset == -1:
-            # Start cursor at end
-            self.cursor_offset = len(self.contents.displayed_children) - 1
-            cursor_block = self.cursor_block
-            if isinstance(cursor_block, BlockProtocol):
-                cursor_block.block_cursor_clear()
-                cursor_block.block_cursor_up()
-        else:
-            cursor_block = self.cursor_block
-            if isinstance(cursor_block, BlockProtocol):
-                if cursor_block.block_cursor_up() is None:
-                    self.cursor_offset -= 1
-                    cursor_block = self.cursor_block
-                    if isinstance(cursor_block, BlockProtocol):
-                        cursor_block.block_cursor_clear()
-                        cursor_block.block_cursor_up()
-            else:
-                # Move cursor up
-                self.cursor_offset -= 1
-                cursor_block = self.cursor_block
-                if isinstance(cursor_block, BlockProtocol):
-                    cursor_block.block_cursor_clear()
-                    cursor_block.block_cursor_up()
+    def move_cursor(self, direction) -> None:
+        self.navigation.move(direction)
         self.refresh_block_cursor()
+
+    def action_cursor_up(self) -> None:
+        self.move_cursor(UpCursor())
 
     def action_cursor_down(self) -> None:
-        if not self.contents.displayed_children or self.cursor_offset == -1:
-            # No children, or no cursor
-            return
-
-        cursor_block = self.cursor_block
-        if isinstance(cursor_block, BlockProtocol):
-            if cursor_block.block_cursor_down() is None:
-                self.cursor_offset += 1
-                if self.cursor_offset >= len(self.contents.displayed_children):
-                    self.cursor_offset = -1
-                    self.refresh_block_cursor()
-                    return
-                cursor_block = self.cursor_block
-                if isinstance(cursor_block, BlockProtocol):
-                    cursor_block.block_cursor_clear()
-                    cursor_block.block_cursor_down()
-        else:
-            self.cursor_offset += 1
-            if self.cursor_offset >= len(self.contents.displayed_children):
-                self.cursor_offset = -1
-                self.refresh_block_cursor()
-                return
-            cursor_block = self.cursor_block
-            if isinstance(cursor_block, BlockProtocol):
-                cursor_block.block_cursor_clear()
-                cursor_block.block_cursor_down()
-        self.refresh_block_cursor()
+        self.move_cursor(DownCursor())
 
     @work
     async def action_cancel(self) -> None:
@@ -3202,7 +3090,7 @@ class Conversation(containers.Vertical):
             scroll_end: Scroll t the end of the content.
         """
         if reset_cursor:
-            self.cursor_offset = -1
+            self.navigation.index = -1
             self.cursor.visible = False
         if scroll_end:
             self.jump_to_latest()
@@ -3451,7 +3339,7 @@ class CompactionRenderer(MroDispatch):
         from toad.widgets.agent_response import AgentResponse
 
         view = self.conversation
-        active = view.turn == "agent"
+        active = view.turns.owner.busy
         view.activity = "Thinking…" if active else ""
         title = "Compaction aborted" if event.aborted else "Context compacted"
         view.post_message(

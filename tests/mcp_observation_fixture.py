@@ -34,7 +34,7 @@ async def exercise_boundaries(agent, view, pilot):
     await send(McpClientReceiptUpdate("retired", receipt))
     assert not notes(view)
     await send(TurnStartedUpdate("observed", None, None, None))
-    assert agent._active_turn_id == view._managed_turn_id == "observed"
+    assert agent._active_turn_id == view.turns.managed_id == "observed"
     await send(McpClientReceiptUpdate("observed", receipt), session="foreign")
     await send(McpClientReceiptUpdate("retired", receipt))
     assert not notes(view)
@@ -49,9 +49,9 @@ async def exercise_boundaries(agent, view, pilot):
     await send(McpClientReceiptUpdate("observed", receipt))
     assert notes(view) == rendered
     await send(TurnSettledUpdate("retired"))
-    assert agent._active_turn_id == view._managed_turn_id == "observed"
+    assert agent._active_turn_id == view.turns.managed_id == "observed"
     await send(TurnSettledUpdate("observed"))
-    assert agent._active_turn_id is view._managed_turn_id is view._mcp_live_turn is None
+    assert agent._active_turn_id is view.turns.managed_id is view._mcp_live_turn is None
     assert not notes(view)
     await send(McpClientReceiptUpdate("observed", receipt))
     assert not notes(view)

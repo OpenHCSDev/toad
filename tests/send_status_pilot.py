@@ -1,3 +1,4 @@
+from toad.conversation_turn import AgentTurn, ClientTurn
 """Mounted sending feedback uses current queue IDs and preserves local drafts."""
 
 import asyncio
@@ -68,7 +69,7 @@ async def main():
                 for key in ("ctrl+enter", "ctrl+y"):
                     entered.clear()
                     release.clear()
-                    view.turn = "agent"
+                    view.turns.owner = AgentTurn()
                     view.prompt.text = "urgent follow-up"
                     view.prompt.focus()
                     await pilot.press(key)
@@ -98,7 +99,7 @@ async def main():
                 token,
             )
             agent._post_queue_view()
-            view.turn = "agent"
+            view.turns.owner = AgentTurn()
             view.agent_ready = True
             view.prompt.text = ""
             await pilot.pause()

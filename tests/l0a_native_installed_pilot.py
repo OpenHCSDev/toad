@@ -483,9 +483,9 @@ async def main(*, notification_only=False):
                 await asyncio.gather(turn, return_exceptions=True)
             if agent:
                 await agent.stop()
-                if agent._log_file_path.exists():
+                if agent.presentation.log_path.exists():
                     (evidence / "toad-acp.log").write_bytes(
-                        agent._log_file_path.read_bytes()
+                        agent.presentation.log_path.read_bytes()
                     )
             for path in stage.glob("acp-debug*"):
                 destination = evidence / path.name

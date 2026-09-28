@@ -1,3 +1,4 @@
+from toad.block_navigation import ConversationBlock
 
 from toad.widgets.message_filter import UserCategory
 from typing import Iterable
@@ -13,7 +14,7 @@ from toad.widgets.committed_presentation import SnapshotPresentation
 
 
 
-class UserInput(SnapshotPresentation, CategorizedBlock, containers.VerticalGroup):
+class UserInput(ConversationBlock, SnapshotPresentation, CategorizedBlock, containers.VerticalGroup):
     @property
     def message_category(self) -> type[MessageCategory]:
         return UserCategory

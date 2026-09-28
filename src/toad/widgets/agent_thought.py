@@ -1,4 +1,5 @@
 from __future__ import annotations
+from toad.block_navigation import ConversationBlock
 
 from toad.widgets.message_filter import ThinkingCategory
 
@@ -11,7 +12,7 @@ from toad.widgets.message_filter import CategorizedBlock, MessageCategory
 
 
 
-class AgentThought(CategorizedBlock, StreamingMarkdown, can_focus=True):
+class AgentThought(ConversationBlock, CategorizedBlock, StreamingMarkdown, can_focus=True):
     """The agent's 'thoughts'."""
 
     TRANSCRIPT_EVENT = ThinkingTranscript

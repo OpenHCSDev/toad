@@ -85,7 +85,7 @@ async def main():
                 target.post_message(CommsUpdated(TranscriptSnapshotUpdate(page)))
                 target.post_message(AgentReady())
 
-            agent._task = asyncio.create_task(deliver())
+            agent.process.session_task = asyncio.create_task(deliver())
 
         renderer = ReplayGate()
         app = ToadApp(project_dir=str(root), renderer=renderer)

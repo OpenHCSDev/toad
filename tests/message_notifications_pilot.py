@@ -74,7 +74,7 @@ async def main():
                 await pilot.pause()
                 tracker = app.session_tracker.sessions[native_mode]
                 assert tracker.state == "busy" and "Checking #comms" in tracker.summary, tracker
-                assert native._managed_turn_id is None and native.turn != "agent"
+                assert native.turns.managed_id is None and not native.turns.owner.busy
                 current = ThreadPresentation("peer", "●", "Responding in #comms", True)
                 observed.refresh_observation()
                 await until(lambda: observed.presentation == current)

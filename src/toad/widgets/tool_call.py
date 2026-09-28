@@ -1,3 +1,4 @@
+from toad.block_navigation import ConversationBlock
 
 from toad.widgets.message_filter import ToolCategory
 import asyncio
@@ -218,7 +219,7 @@ class ToolCallHeader(Static):
     """
 
 
-class ToolCall(SnapshotPresentation, CategorizedBlock, containers.VerticalGroup):
+class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, containers.VerticalGroup):
     DEFAULT_CLASSES = "block"
 
     @property

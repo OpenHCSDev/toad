@@ -1,4 +1,5 @@
 from __future__ import annotations
+from toad.block_navigation import ConversationBlock
 from typing import Iterable
 
 from textual.app import ComposeResult
@@ -12,7 +13,7 @@ from toad.widgets.non_selectable_label import NonSelectableLabel
 from toad.widgets.committed_presentation import CheckpointBarrier
 
 
-class ShellResult(CheckpointBarrier, containers.HorizontalGroup):
+class ShellResult(ConversationBlock, CheckpointBarrier, containers.HorizontalGroup):
     def __init__(
         self,
         command: str,

@@ -154,7 +154,7 @@ async def main():
                 target.post_message(CommsUpdated(TranscriptSnapshotUpdate(initial)))
                 target.post_message(AgentReady())
 
-            agent._task = asyncio.create_task(deliver())
+            agent.process.session_task = asyncio.create_task(deliver())
 
         data = {"name": "Read-only fixture", "identity": "fixture", "short_name": "fixture",
                 "run_command": {"*": "/bin/false"}, "protocol": "acp"}

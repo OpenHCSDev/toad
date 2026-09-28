@@ -1,3 +1,4 @@
+from toad.conversation_turn import AgentTurn, ClientTurn
 """Goal separators follow the actual loading and delivery-controls presentation."""
 
 from toad.goal_display import GoalDisplay
@@ -30,14 +31,14 @@ async def main():
             prompt.text = draft
             view.goal_display = GoalDisplay.current(Goal("Verify layout", "separator-test", state=PausedGoal(), progress="Working on presentation"))
             cases = [
-                (0, "client", True, "solid", "", "idle"),
-                (1, "agent", True, "", "solid", "loading-and-queue"),
-                (1, "agent", False, "", "", "loading-without-queue"),
-                (0, "client", True, "solid", "", "back-to-idle"),
+                (0, ClientTurn(), True, "solid", "", "idle"),
+                (1, AgentTurn(), True, "", "solid", "loading-and-queue"),
+                (1, AgentTurn(), False, "", "", "loading-without-queue"),
+                (0, ClientTurn(), True, "solid", "", "back-to-idle"),
             ]
             for busy, turn, supported, top, bottom, label in cases:
                 view.busy_count = busy
-                view.turn = turn
+                view.turns.owner = turn
                 view.queue_supported = supported
                 await pilot.pause()
                 assert bar.busy == bool(busy)
@@ -58,7 +59,7 @@ async def main():
 
             view.goal_display = GoalDisplay.current(None)
             view.busy_count = 1
-            view.turn = "agent"
+            view.turns.owner = AgentTurn()
             await pilot.pause()
             assert not goal.display
             assert goal not in app.screen._compositor.visible_widgets

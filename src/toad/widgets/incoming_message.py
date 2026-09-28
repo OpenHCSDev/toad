@@ -1,3 +1,4 @@
+from toad.block_navigation import ConversationBlock
 """An attributed wire message with native thread navigation."""
 
 from toad.widgets.message_filter import InboundCategory
@@ -24,7 +25,7 @@ class IncomingSender(RouteHeader):
         self.action_open_target(self.sender)
 
 
-class IncomingMessage(CommitParticipant, CategorizedBlock, VerticalGroup):
+class IncomingMessage(ConversationBlock, CommitParticipant, CategorizedBlock, VerticalGroup):
     DEFAULT_CLASSES = "block"
 
     @property

@@ -1,3 +1,4 @@
+from toad.conversation_turn import AgentTurn, ClientTurn
 """Remote edits are held without exact-ID/CAS support; never clear-and-resend."""
 
 import asyncio
@@ -46,7 +47,7 @@ async def main():
             agent = FakeAgent()
             conversation.set_reactive(type(conversation).agent, agent)
             conversation.agent_ready = True
-            conversation.turn = "agent"
+            conversation.turns.owner = AgentTurn()
             conversation.queue_supported = True
             conversation.queued_prompts = ["same", "same", "unknown input"]
             conversation.prompt.text = "local unsent draft"
@@ -56,7 +57,7 @@ async def main():
                 assert conversation.queued_prompts == ["same", "same", "unknown input"]
                 assert conversation.prompt.text == "local unsent draft"
                 assert agent.cleared == 0 and agent.sent == []
-                assert conversation.turn == "agent"
+                assert conversation.turns.owner.busy
 
             screen = app.screen
             conversation.open_queue_menu()
