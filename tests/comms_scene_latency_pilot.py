@@ -44,7 +44,7 @@ async def main():
         comms.threads.register(Thread(me, frozenset({"fixture"}), str(root), pid=os.getpid()))
         targets = [f"#scene-{index}" for index in range(6)]
         for target in targets:
-            comms.channels.set_channel(target, frozenset({"fixture"}))
+            comms.channels.create_tag(target.removeprefix("#"))
             comms.messaging.send(me, target, "Scene history marker\n" + "message body " * 20)
         app = SceneProbe(project_dir=str(root))
         samples = []

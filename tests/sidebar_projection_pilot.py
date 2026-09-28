@@ -36,7 +36,7 @@ async def main():
         comms = wire(root / "wire")
         me = session_thread_name(root)
         comms.threads.register(Thread(me, frozenset({"fixture"}), str(root), pid=os.getpid()))
-        comms.channels.set_channel("#projection", frozenset({"fixture"}))
+        comms.channels.create_tag("projection")
         comms.messaging.send(me, "#projection", "Channel history")
         app = FrameApp(project_dir=str(root))
         async with app.run_test(size=(120, 40)) as pilot:
