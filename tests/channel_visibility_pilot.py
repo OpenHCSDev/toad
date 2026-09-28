@@ -5,7 +5,8 @@ import os
 import tempfile
 from pathlib import Path
 
-from agent_comms import Thread, ThreadStatus, wire
+from agent_comms.thread_status import ArchivedThreadStatus
+from agent_comms import Thread, wire
 from runtime_fixture import ToadApp
 from toad.screens.comms import CommsScreen
 from toad.widgets.comms_menu import ContextMenuItem
@@ -79,7 +80,7 @@ async def main():
             archived.action_open_selected()
             await pilot.pause()
             assert isinstance(app.screen, CommsScreen) and app.screen.kind == "dm"
-            assert comms.registry.status("archived") is ThreadStatus.ARCHIVED
+            assert comms.registry.status("archived") == ArchivedThreadStatus()
             assert not comms.registry.status("stopped").active
             await app.switch_mode("session-1")
             await pilot.pause()

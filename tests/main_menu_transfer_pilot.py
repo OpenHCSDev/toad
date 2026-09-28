@@ -6,7 +6,7 @@ import os
 import tempfile
 from pathlib import Path
 
-from agent_comms import Thread, ThreadStatus
+from agent_comms import Thread
 from runtime_fixture import ToadApp
 from textual.widgets import Input, Select, Static
 
@@ -89,7 +89,7 @@ async def main() -> None:
             dialog.action_submit()
             await wait_for(pilot, lambda: comms.registry.name_reserved("imported"))
             thread = comms.registry.require("imported")
-            assert comms.registry.status(thread.name) is ThreadStatus.STOPPED
+            assert comms.registry.status(thread.name).stopped
             assert "Imported history" in Path(thread.session_file).read_text()
             assert app._exception is None
         await asyncio.get_running_loop().shutdown_default_executor()

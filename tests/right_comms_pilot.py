@@ -3,12 +3,16 @@
 import asyncio
 import os
 import tempfile
+from contextlib import asynccontextmanager
 from dataclasses import dataclass, replace
 from pathlib import Path
 from types import SimpleNamespace
 
 from textual.app import App, ComposeResult
 from textual.signal import Signal
+from toad.render_backend import create_renderer
+from toad.sidebar_layout import SidebarLayout
+from toad.work_preparation import PreparationRuntime
 from toad.session_tracker import SidebarState
 from toad.widgets.comms_sidebar import CommsRow, SelectTarget
 from toad.widgets.side_bar import SideBar, SideBarCollapsible
@@ -16,7 +20,8 @@ from toad.widgets.sidebar_tree import TargetTree
 from toad.widgets.thread_comms import RelationshipSort, ThreadCommsSidebar
 from toad.widgets.thread_comms_source import WireRelationshipSource
 
-from agent_comms import Activity, ActivityState, Comms, Thread, ThreadSort, ThreadStatus, ThreadView
+from agent_comms.thread_status import RunningThreadStatus
+from agent_comms import Activity, ActivityState, Comms, Thread, ThreadSort, ThreadView
 
 
 @dataclass(frozen=True)
@@ -57,7 +62,7 @@ class FixtureSource:
         self.people = {
             name: ThreadView(Thread(name, frozenset(), self.root, created_at=index + 1,
                                     session_file=f"{root}/{name}.jsonl"),
-                             ThreadStatus.RUNNING,
+                             RunningThreadStatus(),
                              Activity(name, ActivityState.THINKING if index % 2
                                       else ActivityState.IDLE,
                                       "Reviewing sidebar changes" if index % 2 else "",
@@ -115,6 +120,8 @@ class FixtureApp(App):
     def __init__(self, source):
         super().__init__()
         self.source = source
+        self.sidebar_layout = SidebarLayout()
+        self.preparation = PreparationRuntime(create_renderer())
         self.pending_thread_actions = {}
         self.coordination_wire = SimpleNamespace(root=Path(source.root))
         self._sidebar_snapshot = SimpleNamespace(thread_unread={"peer": 22}, unread={})
@@ -130,6 +137,14 @@ class FixtureApp(App):
             "Comms", ThreadCommsSidebar("owner", wire_root=self.source.root, source=self.source),
             collapsed=True, id="comms-panel", header_control=RelationshipSort()),
             right=True, navigation=SidebarState())
+
+    @asynccontextmanager
+    async def run_test(self, **kwargs):
+        try:
+            async with super().run_test(**kwargs) as pilot:
+                yield pilot
+        finally:
+            await self.preparation.aclose()
 
     def on_select_target(self, event: SelectTarget):
         self.opened.append((event.target, event.kind))
@@ -184,7 +199,9 @@ async def main():
                 while children.model.entries[0].target != "child-00":
                     await pilot.pause(.02)
             assert all(children.rows[key] is row for key, row in identities.items())
-            assert children.member_container.max_scroll_y > 0
+            # Groups no longer introduce nested scroll owners. The actual sidebar
+            # viewport is exercised by sidebar_nonvirtual_scroll_pilot.py.
+            assert children.member_container.max_scroll_y == 0
             children.toggle_members()
             await pilot.pause()
             assert not children.member_container.display
