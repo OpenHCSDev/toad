@@ -1,6 +1,6 @@
 """One compact, linked header for incoming and outgoing routed messages."""
 
-from agent_comms import MessageRoute
+from agent_comms.routing import MessageRoute
 from textual.content import Content
 from textual.style import Style
 from textual.widgets import Static

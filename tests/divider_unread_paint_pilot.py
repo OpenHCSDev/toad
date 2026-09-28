@@ -6,7 +6,8 @@ import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
-from agent_comms import Thread, wire
+from agent_comms.threads import Thread
+from agent_comms.comms import wire
 from runtime_fixture import ToadApp
 from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.irc_message import IRCMessageText
@@ -21,11 +22,11 @@ async def main() -> None:
             XDG_STATE_HOME=str(root / "state"), XDG_DATA_HOME=str(root / "data"),
         )
         comms = wire(root / "wire")
-        comms.register(Thread("peer", frozenset({"team"}), str(root)))
+        comms.threads.register(Thread("peer", frozenset({"team"}), str(root)))
         for index in range(7):
-            comms.send("peer", "#team", f"earlier {index} " + "body " * 20)
-        comms.mark_user_view_read("#team", worktree=str(root))
-        last = comms.send_message("peer", "#team", "LAST " + "body " * 250)
+            comms.messaging.send("peer", "#team", f"earlier {index} " + "body " * 20)
+        comms.views.mark_user_view_read("#team", worktree=str(root))
+        last = comms.messaging.send_message("peer", "#team", "LAST " + "body " * 250)
 
         app = ToadApp(project_dir=str(root))
         # Hold automatic ACKs while arranging the divider-only viewport.
@@ -60,7 +61,7 @@ async def main() -> None:
                 chat._channel_ack_pages[last.seq] = page
                 mark_visible(chat)
                 await pilot.pause(.2)
-                assert comms.viewer_snapshot(str(root)).channel_unread["#team"] == 1
+                assert comms.views.viewer_snapshot(str(root)).channel_unread["#team"] == 1
                 assert app._exception is None
         await asyncio.get_running_loop().shutdown_default_executor()
     print("divider-only viewport leaves the unpainted message unread")

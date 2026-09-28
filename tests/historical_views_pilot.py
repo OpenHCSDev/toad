@@ -6,7 +6,9 @@ import os
 import tempfile
 from pathlib import Path
 
-from agent_comms import HistoricalMessage, Thread, wire
+from agent_comms import HistoricalMessage
+from agent_comms.threads import Thread
+from agent_comms.comms import wire
 from agent_comms.read_ledger import ReadLedger
 from runtime_fixture import ToadApp
 
@@ -53,7 +55,7 @@ async def main():
                 for i in range(45)
             )
         )
-        old.register(
+        old.threads.register(
             Thread(
                 "peer",
                 frozenset({"team"}),
@@ -63,13 +65,13 @@ async def main():
             )
         )
         for i in range(85):
-            old.send("peer", "#team", f"OLD row {i}\n" + "source content\n" * 3)
+            old.messaging.send("peer", "#team", f"OLD row {i}\n" + "source content\n" * 3)
         live = wire(root / "live")
-        live.register(Thread("peer", frozenset({"team"}), str(root), created_at=20.0))
-        viewer = live.user_identity(str(root)).name
+        live.threads.register(Thread("peer", frozenset({"team"}), str(root), created_at=20.0))
+        viewer = live.messaging.user_identity(str(root)).name
         for i in range(3):
-            live.send("peer", "#team", f"LIVE row {i}")
-        source = live.attach_history(old.root)
+            live.messaging.send("peer", "#team", f"LIVE row {i}")
+        source = live.views.attach_history(old.root)
         bus_before = (live.root / "bus.jsonl").read_bytes()
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(110, 32)) as pilot:
@@ -106,7 +108,7 @@ async def main():
                     ReadLedger(Path(source.root) / ReadLedger.filename).read().messages
                 ),
             )
-            seen = live.reads.seen_sequences(viewer, live.registry.snapshot())
+            seen = live.bus.reads.seen_sequences(viewer, live.registry.snapshot())
             assert seen <= {1, 2, 3}
             # Reaching older history has not allocated live sequences or queued turns.
             assert (live.root / "bus.jsonl").read_bytes() == bus_before

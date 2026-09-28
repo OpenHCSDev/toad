@@ -7,7 +7,7 @@ import tempfile
 import threading
 from unittest.mock import patch
 
-from agent_comms import TranscriptCursor, TranscriptEvent, TranscriptPage
+from agent_comms.transcripts import TranscriptCursor, TranscriptEvent, TranscriptPage
 
 from runtime_fixture import ToadApp
 from toad.transcript_preparation import PageRequest, TranscriptPageBuffer

@@ -6,7 +6,7 @@ import os
 import tempfile
 from pathlib import Path
 
-from agent_comms import TranscriptEvent
+from agent_comms.transcripts import TranscriptEvent
 from runtime_fixture import ToadApp
 from textual.widgets import Collapsible
 from textual.widgets._markdown import (

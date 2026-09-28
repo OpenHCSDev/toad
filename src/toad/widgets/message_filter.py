@@ -2,7 +2,7 @@
 
 from enum import StrEnum
 
-from agent_comms import TranscriptEvent
+from agent_comms.transcripts import TranscriptEvent
 
 
 class MessageCategory(StrEnum):

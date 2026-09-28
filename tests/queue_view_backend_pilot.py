@@ -17,8 +17,8 @@ from unittest.mock import AsyncMock, patch
 from agent_comms import agent_events as events
 from agent_comms import backend
 from agent_comms.acp import CommsAgent
-from agent_comms.declarations import Thread
-from agent_comms.operations import Comms
+from agent_comms.threads import Thread
+from agent_comms.comms import Comms
 from agent_comms.runtime import _present_cursor_session
 from runtime_fixture import ToadApp
 
@@ -46,7 +46,7 @@ async def main():
             AGENT_COMMS_AGENT_MODELS="test/base",
         )
         comms = Comms(root / "wire")
-        comms.register(Thread("alias", frozenset(), str(root), pid=os.getpid()))
+        comms.threads.register(Thread("alias", frozenset(), str(root), pid=os.getpid()))
         comms.registry.rename("alias", "beta")
         producer = CommsAgent(
             comms, agent_bin="pi", agent_args=["--model", "test/base"], auto_wake=False
@@ -79,7 +79,7 @@ async def main():
             producer.on_connect(Client())
 
             async def delivery(*, include_history=False):
-                return comms.input_delivery(
+                return comms.goals.input_delivery(
                     "beta",
                     include_history=include_history,
                     awaiting_keys=producer.inputs.awaiting_input_keys("beta"),

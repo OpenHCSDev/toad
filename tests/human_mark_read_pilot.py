@@ -6,7 +6,8 @@ import os
 import tempfile
 from pathlib import Path
 
-from agent_comms import Thread, wire
+from agent_comms.threads import Thread
+from agent_comms.comms import wire
 from runtime_fixture import ToadApp
 from toad.widgets.comms_menu import ContextMenuItem
 from toad.widgets.comms_sidebar import ChannelGroup, CommsSidebar
@@ -38,12 +39,12 @@ async def main():
         source.write_text(json.dumps({"type": "message", "message": {
             "role": "assistant", "content": "Saved answer",
         }}) + "\n")
-        comms.register(Thread(owner, frozenset({"ci"}), str(root)))
-        comms.register(Thread("sender", frozenset({"ci"}), str(root), session_file=str(source)))
-        human = comms.user_identity(str(root)).name
-        comms.send("sender", owner, "Keep executor DM pending")
-        comms.send("sender", "#ci", "Keep executor channel pending")
-        comms.send("sender", human, "Human DM badge")
+        comms.threads.register(Thread(owner, frozenset({"ci"}), str(root)))
+        comms.threads.register(Thread("sender", frozenset({"ci"}), str(root), session_file=str(source)))
+        human = comms.messaging.user_identity(str(root)).name
+        comms.messaging.send("sender", owner, "Keep executor DM pending")
+        comms.messaging.send("sender", "#ci", "Keep executor channel pending")
+        comms.messaging.send("sender", human, "Human DM badge")
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(120, 45)) as pilot:
             await pilot.pause()
@@ -55,18 +56,18 @@ async def main():
             await pilot.pause()
             sender = group._members["sender"]
             assert "(1)" in sender.render().plain
-            assert comms.viewer_snapshot(str(root)).channel_unread["#ci"] == 1
+            assert comms.views.viewer_snapshot(str(root)).channel_unread["#ci"] == 1
             await click_ack(app, pilot, sender)
-            await until(lambda: comms.viewer_snapshot(str(root)).thread_unread["sender"] == 0, pilot)
-            assert comms.viewer_snapshot(str(root)).unread.get("sender", 0) == 0
-            assert comms.pending_count(owner, "sender") == 1
-            assert comms.pending_count(owner, "#ci") == 1
+            await until(lambda: comms.views.viewer_snapshot(str(root)).thread_unread["sender"] == 0, pilot)
+            assert comms.views.viewer_snapshot(str(root)).unread.get("sender", 0) == 0
+            assert comms.bus.pending_count(owner, "sender") == 1
+            assert comms.bus.pending_count(owner, "#ci") == 1
             await sidebar.sync_sessions()
             await pilot.pause()
             assert "(1)" not in group._members["sender"].render().plain
             await click_ack(app, pilot, group.row)
-            await until(lambda: comms.viewer_snapshot(str(root)).channel_unread["#ci"] == 0, pilot)
-            assert comms.pending_count(owner, "#ci") == 1
+            await until(lambda: comms.views.viewer_snapshot(str(root)).channel_unread["#ci"] == 0, pilot)
+            assert comms.bus.pending_count(owner, "#ci") == 1
             assert app._exception is None
         await asyncio.get_running_loop().shutdown_default_executor()
     print("Mark inbox read: native/DM/channel human badges clear; agent delivery remains unread")

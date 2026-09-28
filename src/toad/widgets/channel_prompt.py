@@ -1,6 +1,7 @@
 """Channel mention completion uses model-provided members and mention syntax."""
 
-from agent_comms import MentionCandidate, MentionQuery
+from agent_comms.mentions import MentionCandidate
+from agent_comms import MentionQuery
 from textual import on
 from textual.app import ComposeResult
 from textual.widgets import OptionList, TextArea

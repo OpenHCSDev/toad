@@ -119,7 +119,7 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
         event.stop()
         from toad.screens.historical_sessions import HistoricalSessions
         comms = self.app.coordination_wire
-        threads = await asyncio.to_thread(comms.historical_threads, event.name)
+        threads = await asyncio.to_thread(comms.views.historical_threads, event.name)
         if not threads:
             self.notify("This sender has no preserved identity declaration.")
             return
@@ -129,7 +129,7 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
     async def action_historical_sessions(self) -> None:
         from toad.screens.historical_sessions import HistoricalSessions
         comms = self.app.coordination_wire
-        threads = await asyncio.to_thread(comms.historical_threads)
+        threads = await asyncio.to_thread(comms.views.historical_threads)
         if not threads:
             self.notify("No preserved history sources are attached yet.")
             return
@@ -287,7 +287,7 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
             if not spec:
                 return
             from agent_comms import invoke_context_tool
-            from agent_comms.operations import wire
+            from agent_comms.comms import wire
 
             from toad.comms_root import implicit_root, root_is_current, run_selected_write
 

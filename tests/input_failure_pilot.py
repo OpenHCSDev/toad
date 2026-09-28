@@ -9,7 +9,7 @@ from pathlib import Path
 from unittest.mock import AsyncMock, patch
 
 from agent_comms.acp import CommsAgent
-from agent_comms.operations import wire
+from agent_comms.comms import wire
 from runtime_fixture import ToadApp
 from toad import jsonrpc
 from toad.acp.agent import Agent

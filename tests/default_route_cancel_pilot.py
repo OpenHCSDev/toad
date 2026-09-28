@@ -9,7 +9,7 @@ import threading
 from pathlib import Path
 from unittest.mock import patch
 
-from agent_comms.operations import wire
+from agent_comms.comms import wire
 from default_route_pilot import private_root, route
 
 from toad import messages
@@ -51,7 +51,7 @@ async def main() -> None:
                     kind="dm",
                 )
                 view = app.screen.query_one(CommsChatView)
-                original_send = view._wire.send_user_message
+                original_send = view._wire.messaging.send_user_message
                 started = threading.Event()
                 release = threading.Event()
                 settled = threading.Event()
@@ -68,7 +68,7 @@ async def main() -> None:
                     finally:
                         settled.set()
 
-                with patch.object(view._wire, "send_user_message", delayed_send):
+                with patch.object(view._wire.messaging, 'send_user_message', delayed_send):
                     event = messages.UserInputSubmitted("CANCELLED-IN-FLIGHT")
                     task = asyncio.create_task(view.submit_input(event))
                     assert await asyncio.to_thread(started.wait, 8)
@@ -115,9 +115,9 @@ async def main() -> None:
                 with (
                     patch.object(channel, "_mount_page", delayed_paint),
                     patch.object(
-                        channel._wire,
-                        "send_user_message",
-                        wraps=channel._wire.send_user_message,
+                        channel._wire.messaging,
+                        'send_user_message',
+                        wraps=channel._wire.messaging.send_user_message,
                     ) as sender,
                 ):
                     postreceipt = messages.UserInputSubmitted("POSTRECEIPT-CANCEL")

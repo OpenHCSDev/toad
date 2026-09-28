@@ -14,9 +14,10 @@ import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
-from agent_comms import Thread, ThreadRole
-from agent_comms import declarations as core_declarations
-from agent_comms.operations import Comms, wire
+from agent_comms.threads import Thread
+from agent_comms.thread_identity import ThreadRole
+from agent_comms.errors import HumanInitialUnknownError
+from agent_comms.comms import Comms, wire
 
 from toad import messages
 from toad.acp.maintenance_ingress import barrier_for, configured_root
@@ -55,11 +56,11 @@ def route(home: Path, root: Path, root_id: str) -> Path:
 def private_root(path: Path, project: Path, message: str) -> tuple[Path, str]:
     path.mkdir(mode=0o700)
     comms = Comms(path, private_initial_writes=True)
-    comms.register(Thread("user", frozenset(), str(project), role=ThreadRole.USER))
-    comms.register(Thread("owner", frozenset({"team"}), str(project / "owner-project")))
-    comms.register(Thread("peer", frozenset({"team"}), str(project / "peer-project")))
-    root_id = comms.initialize_private_initial_protocol()
-    comms.send_initial_cohort("peer", "#team", message)
+    comms.threads.register(Thread("user", frozenset(), str(project), role=ThreadRole.USER))
+    comms.threads.register(Thread("owner", frozenset({"team"}), str(project / "owner-project")))
+    comms.threads.register(Thread("peer", frozenset({"team"}), str(project / "peer-project")))
+    root_id = comms.messaging.initialize_private_initial_protocol()
+    comms.messaging.send_initial_cohort("peer", "#team", message)
     return path, root_id
 
 
@@ -144,7 +145,7 @@ async def main() -> None:
 
                 # A read already in flight when the route flips must not paint
                 # a late page from the former wire into the successor view.
-                view._wire.send_initial_cohort("peer", "#team", "LATE-OLD-EDGE")
+                view._wire.messaging.send_initial_cohort("peer", "#team", "LATE-OLD-EDGE")
                 entered, release = asyncio.Event(), asyncio.Event()
                 original_read = app.channel_history_reader.read
 
@@ -205,7 +206,7 @@ async def main() -> None:
                 # UNKNOWN or an interrupted committed receipt, it is not a
                 # non-retryable outcome.
                 with patch.object(
-                    new_view._wire, "send_user_message",
+                    new_view._wire.messaging, 'send_user_message',
                     side_effect=ValueError("pre-append admission rejected"),
                 ) as rejected:
                     await new_view.submit_input(
@@ -217,35 +218,11 @@ async def main() -> None:
                     assert not new_view._human_admission_blocked
                 new_view.prompt.text = ""
 
-                # An uncertain private send retains text for inspection but
-                # disables compose. Older paired core sources lack this typed
-                # exception, so inject only its exact no-provider interface.
-                class FakeHumanUnknown(ValueError):
-                    def __init__(self):
-                        self.wire_root_id = second_id
-                        self.wire_seq = 17
-                        self.message_id = "opaque-unknown-id"
-                        super().__init__("Private send UNKNOWN; do not retry")
-
-                unknown_type = getattr(
-                    core_declarations, "HumanInitialUnknownError", FakeHumanUnknown
-                )
-                error = (
-                    unknown_type(second_id, 17, "opaque-unknown-id")
-                    if unknown_type is not FakeHumanUnknown
-                    else FakeHumanUnknown()
-                )
-                with (
-                    patch.object(
-                        core_declarations,
-                        "HumanInitialUnknownError",
-                        unknown_type,
-                        create=True,
-                    ),
-                    patch.object(
-                        new_view._wire, "send_user_message", side_effect=error
-                    ) as sender,
-                ):
+                # An uncertain private send retains text for inspection and disables compose.
+                error = HumanInitialUnknownError(second_id, 17, "opaque-unknown-id")
+                with patch.object(
+                    new_view._wire.messaging, "send_user_message", side_effect=error
+                ) as sender:
                     event = messages.UserInputSubmitted("UNCERTAIN-NO-RETRY")
                     await new_view.submit_input(event)
                     assert sender.call_count == 1

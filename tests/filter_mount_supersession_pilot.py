@@ -7,7 +7,9 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
-from agent_comms import Message, MessageType, TranscriptCursor, TranscriptEvent, TranscriptPage, TurnRouting
+from agent_comms.messages import Message, MessageType
+from agent_comms.transcripts import TranscriptCursor, TranscriptEvent, TranscriptPage
+from agent_comms.routing import TurnRouting
 from runtime_fixture import ToadApp
 from textual.await_complete import AwaitComplete
 from textual.containers import VerticalGroup

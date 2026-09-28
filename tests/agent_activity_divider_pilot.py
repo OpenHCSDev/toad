@@ -6,7 +6,7 @@ import tempfile
 from dataclasses import replace
 from pathlib import Path
 
-from agent_comms import TranscriptCursor, TranscriptEvent, TranscriptPage
+from agent_comms.transcripts import TranscriptCursor, TranscriptEvent, TranscriptPage
 from runtime_fixture import ToadApp
 
 from toad.acp import messages as acp

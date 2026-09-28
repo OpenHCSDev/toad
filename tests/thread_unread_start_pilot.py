@@ -6,7 +6,8 @@ import os
 import tempfile
 from pathlib import Path
 
-from agent_comms import Thread, wire
+from agent_comms.threads import Thread
+from agent_comms.comms import wire
 from agent_comms.runtime import socket_path
 from runtime_fixture import ToadApp
 from toad.acp.messages import TranscriptSnapshot
@@ -38,10 +39,10 @@ async def main():
         comms = wire(root / "wire")
         source = root / "session.jsonl"
         source.touch()
-        comms.register(Thread("worker", frozenset({"team"}), str(root), session_file=str(source)))
+        comms.threads.register(Thread("worker", frozenset({"team"}), str(root), session_file=str(source)))
         stopped_source = root / "stopped.jsonl"
         stopped_source.touch()
-        comms.register(Thread("stopped", frozenset({"team"}), str(root), session_file=str(stopped_source)))
+        comms.threads.register(Thread("stopped", frozenset({"team"}), str(root), session_file=str(stopped_source)))
         comms.registry.unregister("stopped")
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(130, 45)) as pilot:
@@ -51,11 +52,11 @@ async def main():
             main_screen._comms_thread = "worker"
             conversation = main_screen.conversation
             reply(source, "Already viewed\n\n" + "\n".join(f"- visible line {i}" for i in range(45)))
-            page = comms.thread_transcript_page("worker")
+            page = comms.transcripts.thread_transcript_page("worker")
             conversation.post_message(TranscriptSnapshot(page.events, page))
             await pilot.pause()
             await refresh(app, pilot)
-            assert comms.viewer_snapshot(str(root)).thread_unread["worker"] == 0
+            assert comms.views.viewer_snapshot(str(root)).thread_unread["worker"] == 0
 
             channel_mode = await app.open_comms_session(owner_mode=owner_mode, project_path=root,
                                                         me="worker", target="#team", kind="channel")
@@ -70,7 +71,7 @@ async def main():
             worker_row = next(row for row in group.query(ThreadStatusRow) if row.thread_name == "worker")
             assert "(1)" in worker_row.render().plain and worker_row.has_class("-unread")
             # Hidden snapshots cannot mark a thread read.
-            page = comms.thread_transcript_page("worker")
+            page = comms.transcripts.thread_transcript_page("worker")
             conversation.post_message(TranscriptSnapshot(page.events, page))
             await pilot.pause()
             await refresh(app, pilot)
@@ -79,14 +80,14 @@ async def main():
             await app.switch_mode(owner_mode)
             await pilot.pause()
             await refresh(app, pilot)
-            assert comms.viewer_snapshot(str(root)).thread_unread["worker"] == 1
+            assert comms.views.viewer_snapshot(str(root)).thread_unread["worker"] == 1
             conversation.window.scroll_end(animate=False, immediate=True)
             await pilot.pause()
             await refresh(app, pilot)
-            assert comms.viewer_snapshot(str(root)).thread_unread["worker"] == 0
+            assert comms.views.viewer_snapshot(str(root)).thread_unread["worker"] == 0
             assert app.screen.query_one(f"#{owner_mode}", SessionLabel).render().plain.endswith("worker")
 
-            comms.send("worker", "#team", "Unread channel tab")
+            comms.messaging.send("worker", "#team", "Unread channel tab")
             await refresh(app, pilot)
             assert app.screen.query_one(f"#{channel_mode}", SessionLabel).render().plain.endswith("(1)")
             await app.switch_mode(channel_mode)
