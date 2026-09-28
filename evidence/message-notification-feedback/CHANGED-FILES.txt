@@ -1,0 +1,13 @@
+evidence/message-notification-feedback/HANDOFF.md
+evidence/message-notification-feedback/mounted_route.py
+evidence/message-notification-feedback/nra.stderr
+src/toad/acp/agent.py
+src/toad/agent.py
+src/toad/owner_preparation.py
+src/toad/widgets/comms_chat.py
+src/toad/widgets/conversation.py
+src/toad/widgets/irc_message.py
+src/toad/widgets/message_notifications.py
+src/toad/widgets/observed_thread_activity.py
+tests/message_notifications_pilot.py
+tests/observed_thread_activity_pilot.py
