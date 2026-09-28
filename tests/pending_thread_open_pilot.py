@@ -43,7 +43,7 @@ async def main():
             comms.threads.register(Thread(name, frozenset(), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
 
         async def fake_start(agent, target):
-            agent._message_target = target
+            agent.attach_surface(target)
             agent.process.session_task = asyncio.create_task(asyncio.sleep(0))
             target.post_message(AgentReady())
 

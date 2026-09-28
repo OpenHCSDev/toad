@@ -104,7 +104,7 @@ class OperationalSessionPresentation(SessionSurfaceLifetime):
                 self.state = None
             if self.agent is not None:
                 conversation.agent = self.agent
-                self.agent.presentation.attach_surface(conversation)
+                self.agent.attach_surface(conversation)
 
     async def retire(self, screen: "MainScreen") -> None:
         async with self._lock:

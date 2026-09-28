@@ -119,7 +119,7 @@ async def main(*, empty=False, trace=False, observe=False, output=None, peers=0,
                               TranscriptCursor("fixture", len(events)), False, False)
 
         async def start(agent, target):
-            agent._message_target = target
+            agent.attach_surface(target)
 
             async def deliver():
                 target.post_message(CommsUpdated(TranscriptSnapshotUpdate(page)))

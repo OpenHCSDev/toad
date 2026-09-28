@@ -21,7 +21,7 @@ async def main():
             agent = Agent(root, {"name": "Fixture", "identity": "fixture",
                                  "short_name": "fixture", "run_command": {"*": "true"},
                                  "protocol": "acp"}, "fixture")
-            agent._message_target = view
+            agent.attach_surface(view)
             agent.rpc_session_update("fixture", {"sessionUpdate": "usage_update", "used": 120000,
                                                  "size": 272000})
             await pilot.pause()
