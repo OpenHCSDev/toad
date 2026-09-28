@@ -10,7 +10,6 @@ from textual.screen import Screen
 from textual.widget import Widget
 from textual.widgets.text_area import Document, EditHistory, Selection, TextAreaState
 
-from toad import paths
 from toad.history import History
 from toad.screens.session_view import SessionView
 from toad.widgets.conversation import Conversation
@@ -186,9 +185,11 @@ class BlankSessionSurface:
                 self._move(content, slot)
                 self.widget.display = True
             conversation = self.widget
-            conversation.project_path = screen.project_path
-            conversation.working_directory = str(screen.project_path)
-            conversation.project_data_path = paths.get_project_data(screen.project_path)
+            if conversation.project_path != screen.project_path:
+                # A retained editor may cross project roots. Its watcher and
+                # history scope follow the actual session through the existing
+                # project-path owner, not just a cosmetic reactive assignment.
+                await conversation.sync_project_path(screen.project_path)
             if (state := owner.state) is None:
                 # load_text clears its current EditHistory in place. That history
                 # belongs to the departing session; install independent model

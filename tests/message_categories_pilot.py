@@ -44,6 +44,7 @@ async def main():
                 thread="owner", wire_root=str(root / "wire"), persistence="persistent", transport="stdio"))
             sidebar = screen.query_one("#thread-sidebar", SideBar)
             sidebar.reveal()
+            await sidebar.wait_content_ready()
             filters = screen.query_one(ThreadCommsSidebar)
             filters.query_ancestor(SideBarCollapsible).collapsed = False
             await pilot.pause()
