@@ -210,7 +210,19 @@ class Loading(Static):
     """
 
 
-class ThreadLoading(Static):
+class PaintOnlyRefresh:
+    """Inherited owner of PaintOnlyRefresh behavior."""
+
+    def on_mount(self) -> None:
+        self.auto_refresh = 1 / 12
+
+    def automatic_refresh(self) -> None:
+        if self.is_attached and not self._closing and self.screen.is_current:
+            if self in self.screen._compositor.visible_widgets:
+                self.refresh(layout=False)
+
+
+class ThreadLoading(PaintOnlyRefresh, Static):
     """Paint-only, viewport-scaled progress while a thread attaches."""
 
     DEFAULT_CSS = """
@@ -224,13 +236,7 @@ class ThreadLoading(Static):
     }
     """
 
-    def on_mount(self) -> None:
-        self.auto_refresh = 1 / 12
 
-    def automatic_refresh(self) -> None:
-        if self.is_attached and not self._closing and self.screen.is_current:
-            if self in self.screen._compositor.visible_widgets:
-                self.refresh(layout=False)
 
     def render(self) -> Content:
         width, height = self.size
@@ -330,9 +336,8 @@ class Cursor(Static):
             self.update_follow()
 
 
-class Contents(containers.VerticalGroup, can_focus=False):
-    BLANK = True
-    CACHE_HEIGHT_INDEPENDENT_ARRANGEMENT = True
+class CategorizedMount:
+    """Inherited owner of CategorizedMount behavior."""
 
     def mount(self, *widgets, **kwargs):
         from toad.widgets.message_filter import (
@@ -352,6 +357,12 @@ class Contents(containers.VerticalGroup, can_focus=False):
                 widget.add_class(f"-message-{category.value}")
             apply_block_filter(widget, selected)
         return super().mount(*widgets, **kwargs)
+
+
+class Contents(CategorizedMount, containers.VerticalGroup, can_focus=False):
+    BLANK = True
+    CACHE_HEIGHT_INDEPENDENT_ARRANGEMENT = True
+
 
     @height_dependency(INDEPENDENT_HEIGHT)
     def process_layout(
@@ -380,18 +391,8 @@ class CursorContainer(containers.Vertical):
         return strips
 
 
-class Window(HistoryWindow):
-    HELP = """\
-## Conversation
-
-This is a view of your conversation with the agent.
-
-- **cursor keys** Scroll
-- **alt+up / alt+down** Navigate content
-- **start typing** Focus the prompt
-"""
-    BINDING_GROUP_TITLE = "View"
-    BINDINGS = [Binding("end", "screen.focus_prompt", "Latest / prompt")]
+class ConversationWindowSettings:
+    """Inherited owner of ConversationWindowSettings behavior."""
 
     def on_mount(self) -> None:
         self.app.settings_changed_signal.subscribe(self, self._settings_changed)
@@ -412,6 +413,22 @@ This is a view of your conversation with the agent.
                 bottom,
                 int(self.app.settings.sidebar.hide),
             )
+
+
+class Window(ConversationWindowSettings, HistoryWindow):
+    HELP = """\
+## Conversation
+
+This is a view of your conversation with the agent.
+
+- **cursor keys** Scroll
+- **alt+up / alt+down** Navigate content
+- **start typing** Focus the prompt
+"""
+    BINDING_GROUP_TITLE = "View"
+    BINDINGS = [Binding("end", "screen.focus_prompt", "Latest / prompt")]
+
+
 
 
 class Conversation(containers.Vertical):

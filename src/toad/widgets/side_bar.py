@@ -559,7 +559,17 @@ class SidebarResizeHandle(widgets.Static, can_focus=True):
         self._dragging = False
 
 
-class SideBar(containers.Vertical):
+class SidebarDecorations:
+    """Optional decorations are unavailable unless a panel declares them."""
+
+    def _compose_resize(self) -> ComposeResult:
+        return iter(())
+
+    def _compose_layout_controls(self) -> ComposeResult:
+        return iter(())
+
+
+class SideBar(SidebarDecorations, containers.Vertical):
     BINDING_GROUP_TITLE = "Sidebar"
     BINDINGS: ClassVar[list[BindingType]] = [("escape", "dismiss", "Dismiss sidebar")]
     DEFAULT_CSS = """
@@ -717,12 +727,6 @@ class SideBar(containers.Vertical):
             if self._panels_loaded:
                 yield from self._compose_panels()
         yield from self._compose_layout_controls()
-
-    def _compose_resize(self) -> ComposeResult:
-        return iter(())
-
-    def _compose_layout_controls(self) -> ComposeResult:
-        return iter(())
 
     def _compose_panels(self) -> ComposeResult:
         navigation = self.navigation

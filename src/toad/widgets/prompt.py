@@ -116,7 +116,18 @@ class PromptContainer(containers.HorizontalGroup):
             prompt_text_area.focus()
 
 
-class PromptTextArea(HighlightedTextArea):
+class PromptSubmission:
+    """Inherited owner of PromptSubmission behavior."""
+
+    def action_submit(self) -> None:
+        # The callback is queued behind this widget's input events. Unlike a
+        # timer, it preserves paste/typing order without adding a fixed latency.
+        if not self._submit_pending:
+            self._submit_pending = True
+            self.call_later(self._submit)
+
+
+class PromptTextArea(PromptSubmission, HighlightedTextArea):
     HELP = """\
 ## Prompt
 
@@ -328,12 +339,6 @@ See on-screen instructions for details.
         except (OSError, ValueError, TimeoutError) as error:
             self.notify(str(error), title="Paste failed", severity="error")
 
-    def action_submit(self) -> None:
-        # The callback is queued behind this widget's input events. Unlike a
-        # timer, it preserves paste/typing order without adding a fixed latency.
-        if not self._submit_pending:
-            self._submit_pending = True
-            self.call_later(self._submit)
 
     def action_submit_now(self) -> None:
         self._submit_immediate = True
@@ -507,7 +512,18 @@ See on-screen instructions for details.
                     return
 
 
-class Prompt(containers.VerticalGroup):
+class PromptCompletion:
+    """Inherited owner of PromptCompletion behavior."""
+
+    @on(InvokeSlashComplete)
+    def on_invoke_slash_complete(self, event: InvokeSlashComplete) -> None:
+        event.stop()
+        from toad.widgets.conversation import Conversation
+        self.query_ancestor(Conversation).update_slash_commands()
+        self.show_slash_complete = True
+
+
+class Prompt(PromptCompletion, containers.VerticalGroup):
 
     DEFAULT_CSS = """
     Prompt .queue-summary { display: none; height: auto; max-height: 3; color: $text-muted; }
@@ -878,12 +894,6 @@ class Prompt(containers.VerticalGroup):
             self.show_path_search = True
             self.path_search.reset()
 
-    @on(InvokeSlashComplete)
-    def on_invoke_slash_complete(self, event: InvokeSlashComplete) -> None:
-        event.stop()
-        from toad.widgets.conversation import Conversation
-        self.query_ancestor(Conversation).update_slash_commands()
-        self.show_slash_complete = True
 
     @on(messages.PromptSuggestion)
     def on_prompt_suggestion(self, event: messages.PromptSuggestion) -> None:

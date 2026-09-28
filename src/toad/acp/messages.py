@@ -69,7 +69,6 @@ class QueueViewUpdate(AgentMessage):
 @dataclass
 class InputStarted(AgentMessage):
     """An unscoped initial user echo, never queue membership authority."""
-
     text: str | None
     agent: object | None = None
     session_id: str | None = None

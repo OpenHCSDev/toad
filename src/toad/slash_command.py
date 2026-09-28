@@ -27,14 +27,8 @@ class LocalCommand:
     """Commands interpreted by the interface before model submission."""
 
 
-class SlashCommand(Command, DeclaredFamily, affix="Command"):
-    help: ClassVar[str]
-    hint: ClassVar[str | None] = None
-    requires_agent: ClassVar[bool] = False
-
-    @property
-    def command(self) -> str:
-        return f"/{self.declared_name}"
+class CommandPresentation:
+    """Inherited owner of CommandPresentation behavior."""
 
     @property
     def content(self) -> Content:
@@ -44,15 +38,6 @@ class SlashCommand(Command, DeclaredFamily, affix="Command"):
 
     def __str__(self) -> str:
         return self.command
-
-    @classmethod
-    @abstractmethod
-    def parse(cls, arguments: str) -> Self:
-        """Decode command arguments once."""
-
-    @abstractmethod
-    async def run(self, conversation: Conversation) -> bool:
-        """Return whether the interface consumed this command."""
 
     def parse_arguments(self, arguments: str) -> SlashCommand:
         return type(self).parse(arguments)
@@ -74,6 +59,30 @@ class SlashCommand(Command, DeclaredFamily, affix="Command"):
             if not issubclass(member, TargetLocal)
         )
         return sorted(commands.values(), key=lambda item: item.command)
+
+
+class SlashCommand(CommandPresentation, Command, DeclaredFamily, affix="Command"):
+    help: ClassVar[str]
+    hint: ClassVar[str | None] = None
+    requires_agent: ClassVar[bool] = False
+
+    @property
+    def command(self) -> str:
+        return f"/{self.declared_name}"
+
+
+
+    @classmethod
+    @abstractmethod
+    def parse(cls, arguments: str) -> Self:
+        """Decode command arguments once."""
+
+    @abstractmethod
+    async def run(self, conversation: Conversation) -> bool:
+        """Return whether the interface consumed this command."""
+
+
+
 
 
 @dataclass(frozen=True)
