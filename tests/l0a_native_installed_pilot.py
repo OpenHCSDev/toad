@@ -239,17 +239,15 @@ async def main(*, notification_only=False, retire_surface=False):
             "protocol": "acp",
             "run_command": {"*": shlex.join([sys.executable, "-m", "agent_comms.acp"])},
         }
-        app = ToadApp(project_dir=str(project))
+        app = ToadApp(agent_data=data, project_dir=str(project), agent_session_id="beta")
         agent = None
-        turn = None
         try:
             async with app.run_test(size=(160, 44)) as pilot:
                 await pilot.pause()
                 owner_mode = app.current_mode
                 view = app.screen.conversation
-                agent = Agent(project, data, "beta")
-                view.agent = agent
-                await agent.start(view)
+                await until(pilot, lambda: view.agent is not None)
+                agent = view.agent
                 await until(pilot, agent.session_ready_event.is_set)
                 assert agent._connected_ok, "Actual ACP attach failed"
                 owner = comms.registry.require("beta")
@@ -278,7 +276,8 @@ async def main(*, notification_only=False, retire_surface=False):
                         flush=True,
                     )
                     return
-                turn = asyncio.create_task(agent.send_prompt("FIRST_NATIVE_INPUT"))
+                view.prompt.text = "FIRST_NATIVE_INPUT"
+                await pilot.press("enter")
                 await until(pilot, entered.is_set)
                 print("PROVIDER_FIRST", flush=True)
                 # An actual detached owner's turn is the status authority.
@@ -323,6 +322,9 @@ async def main(*, notification_only=False, retire_surface=False):
                     replacement.agent = agent
                     view = replacement
                     await until(pilot, lambda: view.turns.managed_id == agent._active_turn_id)
+                    await until(pilot, lambda: view.current_model is not None)
+                    assert view.current_model.id == "selected-offline/fixture"
+                    assert view.busy_count == 1
                     assert agent.queue_attachment is original_queue
                     assert agent.process.process is process and process.returncode is None
                     print("RETIRED_SURFACE_NATIVE_QUEUE_REBOUND", flush=True)
@@ -334,7 +336,7 @@ async def main(*, notification_only=False, retire_surface=False):
                 )
                 print("QUEUED", queued_ids, flush=True)
                 release.set()
-                await asyncio.wait_for(turn, 25)
+                await until(pilot, lambda: agent.presentation.prompt_in_flight == 0, 25)
                 await until(pilot, lambda: not comms.registry.require("beta").executing)
                 await pilot.pause()
                 assert len(requests) >= 2, "Queued native input never reached provider"
@@ -375,11 +377,8 @@ async def main(*, notification_only=False, retire_surface=False):
                 old_process = comms.registry.require("beta").process_identity
                 original_watcher = view._directory_watcher
                 assert original_watcher is not None
-                await agent.stop()
                 await view.contents.remove_children()
-                agent = Agent(project, data, "beta")
-                view.agent = agent
-                await agent.start(view)
+                await agent.reconnect()
                 await until(pilot, agent.session_ready_event.is_set)
                 assert agent._connected_ok
                 await until(
@@ -431,7 +430,11 @@ async def main(*, notification_only=False, retire_surface=False):
 
                 # A stopped owner's saved native session must reopen through
                 # the same installed entrypoint and accept a new native input.
+                proxy_process = agent.process.process
                 await agent.stop()
+                assert proxy_process.returncode is not None
+                assert not agent.permissions.pending
+                print("ACTUAL_ACP_PROCESS_CLEANUP_CONFIRMED", flush=True)
                 await asyncio.to_thread(comms.owners.stop, "beta")
                 assert not comms.registry.require("beta").process_alive
                 app.invoke_thread_action(StartAction(), "beta", user)
@@ -442,9 +445,7 @@ async def main(*, notification_only=False, retire_surface=False):
                 before_restart = len(requests)
                 await app.switch_mode(owner_mode)
                 await view.contents.remove_children()
-                agent = Agent(project, data, "beta")
-                view.agent = agent
-                await agent.start(view)
+                await agent.reconnect()
                 await until(pilot, agent.session_ready_event.is_set)
                 assert agent._connected_ok, "Stopped native owner failed to reopen"
                 await until(
@@ -490,9 +491,6 @@ async def main(*, notification_only=False, retire_surface=False):
                 assert app._exception is None
         finally:
             release.set()
-            if turn and not turn.done():
-                turn.cancel()
-                await asyncio.gather(turn, return_exceptions=True)
             if agent:
                 await agent.stop()
                 if agent.presentation.log_path.exists():
