@@ -153,17 +153,12 @@ def run(
     else:
         agent_data = None
 
-    app = ToadApp(
-        mode=None if agent_data else "store",
-        agent_data=agent_data,
-        project_dir=project_dir,
-        renderer=renderer_from_cli(renderer),
-    )
     if serve:
         import shlex
-        from textual_serve.server import Server
 
-        command_args = sys.argv
+        from toad.web_server import ToadWebServer
+
+        command_args = list(sys.argv)
         # Remove serve flag from args (could be either --serve or -s)
         for flag in ["--serve", "-s"]:
             try:
@@ -172,7 +167,7 @@ def run(
             except ValueError:
                 pass
         serve_command = shlex.join(command_args)
-        server = Server(
+        server = ToadWebServer(
             serve_command,
             host=host,
             port=port,
@@ -182,8 +177,14 @@ def run(
         set_process_title("toad --serve")
         server.serve()
     else:
+        app = ToadApp(
+            mode=None if agent_data else "store",
+            agent_data=agent_data,
+            project_dir=project_dir,
+            renderer=renderer_from_cli(renderer),
+        )
         app.run()
-    app.run_on_exit()
+        app.run_on_exit()
 
 
 @main.command("acp")
@@ -260,16 +261,19 @@ def acp(
     }
     if serve:
         import shlex
-        from textual_serve.server import Server
 
-        command_components = [sys.argv[0], "acp", command, "--renderer", renderer.value]
+        from toad.web_server import ToadWebServer
+
+        command_components = [sys.argv[0], "acp", command]
+        if renderer is not None:
+            command_components.extend(["--renderer", renderer])
         if session_id:
             command_components.extend(["--session", session_id])
         if project_dir:
             command_components.append(f"--project-dir={project_dir}")
         serve_command = shlex.join(command_components)
 
-        server = Server(
+        server = ToadWebServer(
             serve_command,
             host=host,
             port=port,
@@ -336,9 +340,9 @@ def replay(path: str) -> None:
 )
 def serve(port: int, host: str, public_url: str | None = None) -> None:
     """Serve Toad as a web application."""
-    from textual_serve.server import Server
+    from toad.web_server import ToadWebServer
 
-    server = Server(
+    server = ToadWebServer(
         sys.argv[0], host=host, port=port, title="Toad", public_url=public_url
     )
     set_process_title("toad serve")
