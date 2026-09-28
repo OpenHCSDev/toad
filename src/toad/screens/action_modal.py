@@ -105,8 +105,5 @@ class ActionModal(ModalScreen):
         self.dismiss(None)
 
     @on(widgets.Button.Pressed, "#ok")
-    def accept_result(self, event: widgets.Button.Pressed) -> None:
-        self.action_dismiss_modal()
-
     def action_dismiss_modal(self) -> None:
         self.dismiss(self.command_pane.return_code)

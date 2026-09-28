@@ -820,7 +820,6 @@ class CommsChatView(Conversation):
         from toad.target_commands import TargetContext
         if self._wire is None:
             return None
-        nav = self.screen.navigation_context
         return TargetContext(self.app, self._wire, self.target, self._me, self.project_path,
                              self.app.current_mode,
                              is_thread=self.kind == "dm")

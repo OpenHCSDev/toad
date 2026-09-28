@@ -71,6 +71,7 @@ class MCPInventoryScreen(ModalScreen[None]):
         if self._read_task is not None:
             self._read_task.cancel()
 
+    @on(Button.Pressed, "#refresh")
     def action_refresh(self) -> None:
         self._generation += 1
         if self._read_task is not None:
@@ -145,10 +146,6 @@ class MCPInventoryScreen(ModalScreen[None]):
     @on(Button.Pressed, "#close")
     def close_inventory(self, event: Button.Pressed) -> None:
         self.dismiss()
-
-    @on(Button.Pressed, "#refresh")
-    def refresh_inventory(self, event: Button.Pressed) -> None:
-        self.action_refresh()
 
     @on(Button.Pressed, "#trust_approve")
     def approve_project(self, event: Button.Pressed) -> None:
