@@ -108,9 +108,14 @@ class _ChangeSignal(FileSystemEventHandler):
 
     def __init__(self, connection: Connection) -> None:
         self.connection = connection
+        self._send_lock = threading.Lock()
+
+    def notify(self, event: _ObserverEvent) -> None:
+        with self._send_lock:
+            self.connection.send(event)
 
     def on_any_event(self, event: FileSystemEvent) -> None:
-        self.connection.send(_ObserverChanged())
+        self.notify(_ObserverChanged())
 
 
 def _watch_owner(owner: Connection) -> None:
@@ -127,15 +132,16 @@ def _observe_path(path: Path, owner: Connection) -> None:
     observer = Observer()
     if isinstance(observer, PollingObserver):
         return
+    handler = _ChangeSignal(owner)
     observer.schedule(
-        _ChangeSignal(owner), str(path), recursive=True,
+        handler, str(path), recursive=True,
         event_filter=[
             FileCreatedEvent, FileDeletedEvent, FileMovedEvent,
             DirCreatedEvent, DirDeletedEvent, DirMovedEvent,
         ],
     )
     observer.start()
-    owner.send(_ObserverReady())
+    handler.notify(_ObserverReady())
     # The parent owns this process through the last subscriber. Terminating
     # it closes all native handles even when observer.start() is still walking.
     threading.Event().wait()
