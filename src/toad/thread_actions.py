@@ -14,16 +14,19 @@ from agent_comms.owner_lifecycle import OwnerStartResult
 from agent_comms.thread_management import ForkSpec
 from agent_comms.thread_status import ThreadStatus
 from agent_comms.threads import Thread
-from agent_comms.tools import TOOLS, ToolDeclaration
+from agent_comms.tools import (
+    CommsAckTool,
+    CommsArchiveTool,
+    CommsForkTool,
+    CommsStartTool,
+    CommsStopTool,
+    ToolRequest,
+)
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
 
 Result = TypeVar("Result")
-
-
-def _tool(name: str) -> ToolDeclaration:
-    return next(tool for tool in TOOLS if tool.name == name)
 
 
 @dataclass(frozen=True)
@@ -42,7 +45,7 @@ class ChannelAction:
 class ThreadAction(DeclaredFamily, Command, Generic[Result], affix="Action"):
     """One UI command; actual domain owners enforce all mutation authority."""
 
-    tool: ClassVar[ToolDeclaration]
+    tool: ClassVar[type[ToolRequest]]
     pending: ClassVar[str]
 
     @classmethod
@@ -51,7 +54,7 @@ class ThreadAction(DeclaredFamily, Command, Generic[Result], affix="Action"):
 
     @classmethod
     def available(cls, status: ThreadStatus, owner_pid: int) -> bool:
-        return status.allows_control(cls.tool.name, owner_pid=owner_pid)
+        return status.allows_control(cls.tool.declared_name, owner_pid=owner_pid)
 
     @classmethod
     def menu(cls) -> tuple[type[ThreadAction], ...]:
@@ -73,7 +76,7 @@ class ThreadAction(DeclaredFamily, Command, Generic[Result], affix="Action"):
 
 
 class StartAction(ThreadAction[OwnerStartResult]):
-    tool = _tool("comms_start")
+    tool = CommsStartTool
     pending = "Starting…"
 
     def apply(self, ctx: ThreadActionContext) -> OwnerStartResult:
@@ -106,7 +109,7 @@ class FinishedAction(ThreadAction[None]):
 
 
 class StopAction(FinishedAction):
-    tool = _tool("comms_stop")
+    tool = CommsStopTool
     pending = "Stopping…"
     completed_label = "Stopped"
 
@@ -115,7 +118,7 @@ class StopAction(FinishedAction):
 
 
 class ArchiveAction(FinishedAction):
-    tool = _tool("comms_archive")
+    tool = CommsArchiveTool
     pending = "Archiving…"
     completed_label = "Archived"
 
@@ -124,7 +127,7 @@ class ArchiveAction(FinishedAction):
 
 
 class AcknowledgeAction(ChannelAction, FinishedAction):
-    tool = _tool("comms_ack")
+    tool = CommsAckTool
     pending = "Acknowledging…"
 
     def apply(self, ctx: ThreadActionContext) -> None:
@@ -136,7 +139,7 @@ class AcknowledgeAction(ChannelAction, FinishedAction):
 
 @dataclass(frozen=True)
 class ForkAction(ThreadAction[Thread]):
-    tool = _tool("comms_fork")
+    tool = CommsForkTool
     pending = "Forking…"
     name: str
     task: str
