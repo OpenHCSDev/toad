@@ -57,9 +57,9 @@ class RenderingRetirementTests(unittest.TestCase):
                 if (
                     path.name == "render_zmq.py"
                     and isinstance(node, ast.Attribute)
-                    and node.attr == "status"
+                    and node.attr in {"status", "admitted"}
                 ):
-                    violations.append((str(path), node.lineno, "reply status switch"))
+                    violations.append((str(path), node.lineno, node.attr))
                 if path.name == "comms_chat.py" and isinstance(node, ast.Compare):
                     if any(
                         isinstance(part, ast.Constant)

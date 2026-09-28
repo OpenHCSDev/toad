@@ -365,10 +365,9 @@ class PersistentRendererPool(Renderer):
         return submission.result.result()
 
     async def acknowledge(self, submission: RenderSubmission) -> None:
-        if submission.admitted:
-            await self._exchange(
-                AcknowledgeRender(self._client_id, submission.request_id)
-            )
+        await self._exchange(
+            AcknowledgeRender(self._client_id, submission.request_id)
+        )
         if submission.cancel_requested or self._closed:
             raise asyncio.CancelledError
 
