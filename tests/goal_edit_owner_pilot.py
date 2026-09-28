@@ -93,7 +93,7 @@ async def main():
                 assert snapshot.execution == (execution if execution_value else None)
             emitted.clear()
             agent._publish_coordination_metadata(
-                {"_meta": owner._session_metadata(session)}, initial=True
+                {"_meta": owner.sessions.metadata(session)}, initial=True
             )
             snapshot = next(
                 item for item in emitted if isinstance(item, GoalSnapshotUpdate)

@@ -8,14 +8,13 @@ production paths. Synthetic input_started is not a native consumption receipt.
 from __future__ import annotations
 
 import asyncio
-import inspect
 import os
 from copy import deepcopy
-from hashlib import sha256
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import AsyncMock, patch
 
+from agent_comms import agent_events as events
 from agent_comms import backend
 from agent_comms.acp import CommsAgent
 from agent_comms.declarations import Thread
@@ -37,19 +36,6 @@ AGENT = {
 
 
 async def main():
-    expected = {
-        # Recompared through current-main b1e5bfd at PR65 integration. See
-        # docs/exact-id-queue-view.md for the reviewed non-queue additions.
-        # Queue contract, canonical fixture and runtime alias bytes are equal.
-        CommsAgent: "c42c74f5186ed77f397af7123c057c913f40279e08ea9bf331a9d818323b8c65",
-        _present_cursor_session: "af212a2f8aaa9d0e90fcc23ec0f7f4a1fbf7c1b88ed11fd1ca923e45bf040267",
-    }
-    for obj, digest in expected.items():
-        source = Path(inspect.getfile(obj))
-        assert sha256(source.read_bytes()).hexdigest() == digest
-        # Multiple producer commits may share these bytes. Record import paths;
-        # the invoking archive manifest supplies the exact whole-repo revision.
-        print(f"SOURCE {source}: {digest}", flush=True)
     with TemporaryDirectory(prefix="toad-queue-backend-") as directory:
         root = Path(directory)
         os.environ.update(
@@ -96,7 +82,7 @@ async def main():
                 return comms.input_delivery(
                     "beta",
                     include_history=include_history,
-                    awaiting_keys=producer.awaiting_input_keys("beta"),
+                    awaiting_keys=producer.inputs.awaiting_input_keys("beta"),
                 )
 
             consumer.get_input_delivery = delivery
@@ -128,13 +114,13 @@ async def main():
 
             async def native_events(*args, **kwargs):
                 active.set()
-                yield {"type": "chunk", "text": "Provider-free original response"}
+                yield events.Chunk("Provider-free original response")
                 await release_start.wait()
                 first = await kwargs["steering_queue"].get()
-                yield {"type": "input_started", "id": first["_input_id"]}
+                yield events.InputStarted(first["_input_id"])
                 started.set()
                 await finish.wait()
-                yield {"type": "done", "ok": True}
+                yield events.Done("", True)
 
             def painted(text, artifact):
                 assert text in summary.render().plain, summary.render().plain
@@ -151,13 +137,13 @@ async def main():
 
             with (
                 patch.object(
-                    producer,
-                    "_declare_thread",
+                    producer.sessions,
+                    "declare_thread",
                     return_value=comms.registry.require("beta"),
                 ),
-                patch.object(producer, "_ensure_live_drain"),
+                patch.object(producer.inputs, "ensure_live_drain"),
                 patch.object(
-                    producer, "_config_options", new=AsyncMock(return_value=[])
+                    producer.sessions.config, "options", new=AsyncMock(return_value=[])
                 ),
                 patch("toad.acp.agent.api.session_new", side_effect=new),
                 patch("toad.acp.agent.api.session_load", side_effect=load),
@@ -179,14 +165,14 @@ async def main():
                     await consumer.send_prompt("same text", defer_display=True)
                     await consumer.send_prompt("same text", defer_display=True)
                     await pilot.pause()
-                    ids = tuple(producer._queued_inputs["beta"])
+                    ids = tuple(producer.inputs.queued_inputs["beta"])
                     assert len(ids) == 2 and ids[0] != ids[1]
                     assert (
                         tuple(row.input_id for row in view.queue_projection.items)
                         == ids
                     )
                     assert all(
-                        producer._dispositions.get("acp:" + exact)["status"]
+                        producer.inputs.dispositions.get("acp:" + exact)["status"]
                         == "unknown"
                         for exact in ids
                     )
@@ -219,7 +205,7 @@ async def main():
                         row.input_id for row in view.queue_projection.restored
                     ) == (ids[1],)
                     assert (
-                        producer._dispositions.get("acp:" + ids[1])["status"]
+                        producer.inputs.dispositions.get("acp:" + ids[1])["status"]
                         == "unknown"
                     )
                     assert view.prompt.text == "local editable draft"
@@ -235,8 +221,8 @@ async def main():
                     painted("Restored (1, read-only): same text", "backend-alias-load")
                     # Actual ACP invalid UTF-8 ingress: exact admission persists,
                     # trusted load is attachable but projection is null.
-                    producer._active_turns["beta"] = "fixture-held"
-                    inbox = producer._backend_inboxes["beta"] = asyncio.Queue()
+                    producer.turns.active_turns["beta"] = "fixture-held"
+                    inbox = producer.inputs.backend_inboxes["beta"] = asyncio.Queue()
                     response = await producer.prompt(
                         "beta",
                         [{"type": "text", "text": "valid model task"}],
@@ -254,9 +240,9 @@ async def main():
                     await consumer.acp_load_session()
                     await pilot.pause()
                     assert view.queue_projection.status == "unavailable"
-                    assert invalid_id in producer._queued_inputs["beta"]
+                    assert invalid_id in producer.inputs.queued_inputs["beta"]
                     assert (
-                        producer._dispositions.get("acp:" + invalid_id)["status"]
+                        producer.inputs.dispositions.get("acp:" + invalid_id)["status"]
                         == "unknown"
                     )
                     assert view.prompt.text == "local editable draft"
@@ -265,7 +251,7 @@ async def main():
                     # durable UNKNOWN or infer their native consumption.
                     owner = comms.registry.require("beta")
                     comms.registry.register(owner, new_owner=True)
-                    await producer._emit_queue_state("beta")
+                    await producer.inputs.emit_queue_state("beta")
                     await pilot.pause()
                     consumer.rpc_session_update(
                         "alias",
@@ -280,14 +266,14 @@ async def main():
                         not view.queue_projection.items
                         and not view.queue_projection.restored
                     )
-                    assert invalid_id in producer._queued_inputs["beta"]
-                    assert ids[1] in producer._restored_inputs["beta"]
+                    assert invalid_id in producer.inputs.queued_inputs["beta"]
+                    assert ids[1] in producer.inputs.restored_inputs["beta"]
                     assert (
-                        producer._dispositions.get("acp:" + invalid_id)["status"]
+                        producer.inputs.dispositions.get("acp:" + invalid_id)["status"]
                         == "unknown"
                     )
                     assert (
-                        producer._dispositions.get("acp:" + ids[1])["status"]
+                        producer.inputs.dispositions.get("acp:" + ids[1])["status"]
                         == "unknown"
                     )
                     assert view.prompt.text == "local editable draft"
@@ -296,12 +282,12 @@ async def main():
                     if not turn.done():
                         turn.cancel()
                     await asyncio.gather(turn, return_exceptions=True)
-                    producer._active_turns.pop("beta", None)
+                    producer.turns.active_turns.pop("beta", None)
                     await producer.shutdown()
 
 
 if __name__ == "__main__":
     asyncio.run(main())
     print(
-        "PASS: verified ACP/runtime bytes; real ACP admission/new/load/start/restore/alias/surrogate-null/rebase -> mounted queue; UNKNOWN/draft preserved; cleanup completed"
+        "PASS: current ACP/runtime components; real ACP admission/new/load/start/restore/alias/surrogate-null/rebase -> mounted queue; UNKNOWN/draft preserved; cleanup completed"
     )

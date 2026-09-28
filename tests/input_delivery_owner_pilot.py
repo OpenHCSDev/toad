@@ -47,14 +47,14 @@ async def main():
             runtime_enabled=True,
             auto_wake=False,
         )
-        owner._ensure_live_drain = lambda _: None
+        owner.inputs.ensure_live_drain = lambda _: None
         # Emulate the optional capability being unavailable. The separate
         # current_delivery_owner_pilot proves real live queue projection.
-        owner.awaiting_input_keys = lambda _: None
+        owner.inputs.awaiting_input_keys = lambda _: None
         proxy = None
         try:
             session = (await owner.new_session(cwd=str(project))).session_id
-            store = owner._dispositions
+            store = owner.inputs.dispositions
             admission = comms.registry.snapshot().admission_generations[session]
             old_rows = {
                 f"bus:{sequence}": {
@@ -216,7 +216,7 @@ async def main():
                         native_id=native_id,
                         text="native prompt",
                     )
-                    await owner._emit_input_disposition(session, store.get("bus:933"))
+                    await owner.inputs.emit_input_disposition(session, store.get("bus:933"))
                     await conversation.refresh_input_dispositions()
                     assert conversation.unresolved_inputs == []
                 finally:
@@ -243,7 +243,7 @@ async def main():
                     target="#review",
                     text="A new current input",
                 )
-                await owner._emit_input_disposition(session, store.get("bus:935"))
+                await owner.inputs.emit_input_disposition(session, store.get("bus:935"))
                 await conversation.refresh_input_dispositions()
 
                 # An older in-flight snapshot cannot resurrect a confirmed current input.
@@ -275,7 +275,7 @@ async def main():
                     "bus:935", turn_id="turn", native_id=native_id, text="native prompt"
                 )
                 previous = conversation._delivery_refresh_revision
-                await owner._emit_input_disposition(session, store.get("bus:935"))
+                await owner.inputs.emit_input_disposition(session, store.get("bus:935"))
                 async with asyncio.timeout(3):
                     while conversation._delivery_refresh_revision == previous:
                         await asyncio.sleep(0.01)
@@ -322,7 +322,7 @@ async def main():
                     target="#review",
                     text="Current before clearing history",
                 )
-                await owner._emit_input_disposition(session, store.get("bus:936"))
+                await owner.inputs.emit_input_disposition(session, store.get("bus:936"))
                 await conversation.refresh_input_dispositions()
                 captured, release = asyncio.Event(), asyncio.Event()
 
@@ -358,8 +358,8 @@ async def main():
                         target="#review",
                         text="Current admitted during history clear",
                     )
-                    await owner._emit_input_disposition(session, store.get("bus:936"))
-                    await owner._emit_input_disposition(session, store.get("bus:937"))
+                    await owner.inputs.emit_input_disposition(session, store.get("bus:936"))
+                    await owner.inputs.emit_input_disposition(session, store.get("bus:937"))
                     await conversation.refresh_input_dispositions()
                     assert [
                         row["sequence"] for row in conversation.unresolved_inputs
@@ -396,7 +396,7 @@ async def main():
                     native_id="c" * 32,
                     text="native prompt",
                 )
-                await owner._emit_input_disposition(session, store.get("bus:937"))
+                await owner.inputs.emit_input_disposition(session, store.get("bus:937"))
                 await conversation.refresh_input_dispositions()
                 await pilot.pause()
                 assert (
@@ -419,7 +419,7 @@ async def main():
                     assert not saved[key].get("goal_reviews")
                 # Late notifications invalidate the view without restoring dismissed history.
                 old = dict(store.get("bus:1"), status="unknown")
-                await owner._emit_input_disposition(session, old)
+                await owner.inputs.emit_input_disposition(session, old)
                 await pilot.pause()
                 assert conversation.unresolved_inputs == []
                 assert conversation.input_delivery["historicalCount"] == 0
