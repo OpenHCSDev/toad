@@ -150,12 +150,6 @@ def run(
     else:
         agent_data = None
 
-    app = ToadApp(
-        mode=None if agent_data else "store",
-        agent_data=agent_data,
-        project_dir=project_dir,
-        renderer=renderer_from_cli(renderer),
-    )
     if serve:
         import shlex
 
@@ -180,8 +174,14 @@ def run(
         set_process_title("toad --serve")
         server.serve()
     else:
+        app = ToadApp(
+            mode=None if agent_data else "store",
+            agent_data=agent_data,
+            project_dir=project_dir,
+            renderer=renderer_from_cli(renderer),
+        )
         app.run()
-    app.run_on_exit()
+        app.run_on_exit()
 
 
 @main.command("acp")
