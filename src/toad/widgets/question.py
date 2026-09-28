@@ -283,9 +283,7 @@ class Question(containers.VerticalGroup, can_focus=True):
         self.presentation.mount.select(new_selection)
 
     async def recompose(self) -> None:
-        self.presentation.detach()
-        await super().recompose()
-        self.presentation.start(self, self._option_view)
+        await self.presentation.recompose(self, super().recompose)
 
     def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
         if self.selected and action in ("selection_up", "selection_down"):

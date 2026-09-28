@@ -91,3 +91,8 @@ class QuestionPresentation:
             question.blink = not question.blink if question.has_focus else False
 
         self.attach(container, question.set_interval(0.5, toggle_blink))
+
+    async def recompose(self, question, compose):
+        self.detach()
+        await compose()
+        self.start(question, question._option_view)
