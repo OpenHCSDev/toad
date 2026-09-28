@@ -1393,7 +1393,7 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
             for declaration in context_tool_catalog("thread")
             if declaration["name"] == "comms_ack"
         )
-        channel = self._wire.channels.catalog.resolve(name)
+        channel = self._wire.channels.catalog.read().resolve(name)
         actions = {
             "pin": partial(self._set_pin, name, not channel.pinned),
             "comms_ack": lambda: post("comms_ack"),

@@ -45,7 +45,7 @@ async def main() -> None:
             assert "Show member activity" in item.render().plain
             await pilot.click(item)
             await pilot.pause()
-            assert wire(root / "wire").channels.catalog.resolve("#team").any_mode
+            assert wire(root / "wire").channels.catalog.read().resolve("#team").any_mode
             assert [m.body for m in comms.views.channel_display_page("#team").messages] == [
                 "exact route", "outbound from member", "inbound to member",
             ]
@@ -73,7 +73,7 @@ async def main() -> None:
             assert "Show channel only" in item.render().plain
             await pilot.click(item)
             await pilot.pause()
-            assert not wire(root / "wire").channels.catalog.resolve("#team").any_mode
+            assert not wire(root / "wire").channels.catalog.read().resolve("#team").any_mode
             assert [m.body for m in comms.views.channel_display_page("#team").messages] == ["exact route"]
 
             await pilot.click(group(sidebar, "#any").row, button=3)

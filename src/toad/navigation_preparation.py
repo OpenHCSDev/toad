@@ -49,7 +49,7 @@ class CommsNavigationRequest(NavigationRequest[CommsNavigation]):
             # Local sessions can browse channels before an executor registers.
             if me in comms.registry:
                 me = comms.registry.require(me).name
-            target = comms.channels.catalog.resolve(self.target).name
+            target = comms.channels.catalog.read().resolve(self.target).name
         recovery_root = self.recovery_root
         if recovery_root is not None and Path(recovery_root).expanduser().resolve() != root:
             recovery_root = None

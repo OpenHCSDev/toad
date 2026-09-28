@@ -9,7 +9,7 @@ from agent_comms.activity import ActivityState
 from agent_comms.display_order import ChannelSort, ThreadSort
 from agent_comms.threads import Thread
 from agent_comms.comms import wire
-from toad.app import ToadApp
+from runtime_fixture import ToadApp
 from toad.screens.comms import CommsScreen
 from toad.screens.main import MainScreen
 from toad.widgets.comms_sidebar import CommsSidebar, CommsRow, ChannelGroup, ChannelDisclosure, NewSessionButton
@@ -24,7 +24,7 @@ from textual.worker import Worker, WorkerState
 
 
 async def main():
-    with tempfile.TemporaryDirectory(prefix="toad-channels-") as directory:
+    with tempfile.TemporaryDirectory(prefix="toad-channels-", dir="/var/tmp") as directory:
         root = Path(directory)
         os.environ.update(XDG_CONFIG_HOME=str(root / "config"),
                           XDG_STATE_HOME=str(root / "state"), XDG_DATA_HOME=str(root / "data"),
@@ -56,8 +56,8 @@ async def main():
             await pilot.pause()
             await pilot.click(next(item for item in app.screen.query(ContextMenuItem) if item.action == "last_activity"))
             await pilot.pause()
-            assert comms.channels.catalog.resolve("#none").order is ThreadSort.LAST_ACTIVITY
-            assert comms.channels.catalog.resolve("#any").order is ThreadSort.CREATED
+            assert comms.channels.catalog.read().resolve("#none").order is ThreadSort.LAST_ACTIVITY
+            assert comms.channels.catalog.read().resolve("#any").order is ThreadSort.CREATED
             group = next(group for group in sidebar.query(ChannelGroup) if group.row.target_name == "#engineering")
             assert len(group.query(CommsRow)) == 1
             group.query_one(ChannelDisclosure).focus()
@@ -99,14 +99,14 @@ async def main():
             await pilot.press("down")
             await pilot.pause()
             assert chat.prompt.text == ""
-            comms.agents.begin_turn("api-agent", "api-turn")
-            comms.agents.begin_turn("ui-agent", "ui-turn")
+            api_lease = comms.agents.begin_turn("api-agent", "api-turn")
+            ui_lease = comms.agents.begin_turn("ui-agent", "ui-turn")
             await chat._refresh()
             roster = chat.query_one(ChannelParticipants)
             assert "api-agent" in roster.names.render().plain and "ui-agent" in roster.names.render().plain
             assert "other" not in roster.names.render().plain
-            comms.agents.finish_turn("api-agent", "api-turn")
-            comms.agents.finish_turn("ui-agent", "ui-turn")
+            comms.agents.finish_turn(api_lease)
+            comms.agents.finish_turn(ui_lease)
             assert roster.region.bottom <= chat.prompt.region.y
             chat.prompt.text = "first second"
             chat.prompt.focus()
@@ -184,8 +184,8 @@ async def main():
                 await order_saved.wait()
             await app.screen.query_one(CommsSidebar).sync_sessions()
             assert selector.order is ChannelSort.LAST_USER_INPUT
-            assert comms.channels.catalog.list_order is ChannelSort.LAST_USER_INPUT
-            assert comms.channels.catalog.resolve("#none").order is ThreadSort.LAST_ACTIVITY
+            assert comms.channels.catalog.read().list_order is ChannelSort.LAST_USER_INPUT
+            assert comms.channels.catalog.read().resolve("#none").order is ThreadSort.LAST_ACTIVITY
             await app.switch_mode(engineering)
             await pilot.pause()
             assert app.screen.query_one(ChannelListSort).order is ChannelSort.LAST_USER_INPUT
@@ -237,7 +237,12 @@ async def main():
             views = {view.channel.name: view for view in wire(root / "wire").views.channel_views()}
             assert views["#engineering"].pinned_members == {"api-agent"}
             assert not views["#any"].pinned_members
-            assert engineering_group.member_rows[0].thread_name == "api-agent"
+            assert engineering_group.member_rows[0].thread_name == "api-agent", {
+                "stored": views["#engineering"].members,
+                "presented": engineering_group._view.members,
+                "rows": tuple(row.thread_name for row in engineering_group.member_rows),
+                "pins": engineering_group._view.pinned_members,
+            }
             assert engineering_group.member_rows[0].render().plain.startswith("* ")
             await app.switch_mode(owner)
             await pilot.pause()
