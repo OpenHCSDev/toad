@@ -3421,7 +3421,7 @@ class ConversationCommsConsumer(MroDispatch):
         await self.conversation.on_turn_settled(self.message)
 
     @handles(GoalChangedUpdate)
-    def goal_changed(self, update: GoalChangedUpdate):
+    async def goal_changed(self, update: GoalChangedUpdate):
         self.conversation._invalidate_goal_snapshot()
 
     @handles(CompactionChangedUpdate)
@@ -3437,7 +3437,7 @@ class ConversationCommsConsumer(MroDispatch):
         await self.conversation.on_mcp_client_status(self.message)
 
     @handles(CompactionPublishedUpdate)
-    def compaction_published(self, update: CompactionPublishedUpdate):
+    async def compaction_published(self, update: CompactionPublishedUpdate):
         self.conversation._transcript_dirty = True
         self.conversation._needs_transcript_checkpoint = True
         self.conversation._compact_committed_history()
