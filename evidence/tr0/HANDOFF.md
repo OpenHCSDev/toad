@@ -1,45 +1,18 @@
-# TR0 checkpoint — packaged owner and collector ready; remaining failures owned
+# TR0 recovered checkpoint — current main preserved
 
-Core254 e542fe82 (merged-main229 reconciled). Toad117, based current107540a602;
-pyproject/committed uv.lock pins core254, Textual16ede. Parent owns deployment.
-Newest instruction: do not hold these source changes for a full-suite/CI gate.
+Core254 merged at1853503b. Ready report7ab08688 and installed11 real Git/console passes are in the existing core PR. No CI hold.
 
-Completed:
-- One installed Comms ratchet; no copied script/manual pilot roster.
-- One derived collector runs each actual script entrypoint once, including explicit
-  unittest-script selection. No per-pilot adapter list. 3 collector/deletion guards
-  pass; actual packaged console has 11 passing real Git tests.
-- Installed packages only, private roots, bounded child execution, exact attempt
-  identity cleanup for detached workers. Short disposable /var/tmp runtime paths
-  respect Unix socket limits; worktrees and failure logs stay persistent ~/wt.
-  One configurable165sec attempt budget, no retries/skips. Successful roots cleaned.
-- Manual-only workflows; no required checks or branch protection changes.
-- Current107 T7/T8 integrated; retained failures and deletion rationale in triage.md.
-- Confirmed product fix: narrow preview warning clipped in pane; existing rendered
-  assertion passes after wrapping and removing redundant filename.
+Replacement worktrees: ~/wt/comms-tr0-sol-20260928 and ~/wt/toad-tr0-sol-20260928. Predecessors preserved; committed e542fe82/502ca75 recovered, retained-failures uncommitted patch saved in predecessor-uncommitted.patch. Existing PR117 branch reused.
 
-Evidence, without claiming a green whole suite:
-- First full installed pass:215passed49failed,73subtests,640.58s. Preserved XML/logs.
-- Current107/core229 failed-case rerun:14passed29failed,228.11s; then concrete fixes.
-- Real installed Toad→ACP→owner→Pi loopback pilot passes current native package:
-  queued input exactly once, cold attach/native reopen, DM and channel feedback.
-  No paid provider; reused native-session-entry-store package, no duplicate install.
-- Current goal socket/edit/pause/set/standby, saved context, project resume, routing,
-  responsive clipboard, invalid/open maintenance, throbber, renderer reuse/UI,
-  read-only old marker/history, collector and file-preview cases pass in bounded
-  batches. See current-goals/fixture-boundaries/current-ui/declared-native receipts.
-- Projected history8000/bidirectional budget passes in follow.log (1pass2fail,
- 90.81s); original90sec runner was too small. No behavior assertion weakened.
+Merged current main df0a758 (107 including119 typed settings and TL0 deletion); pin core1853503b432144e9a3becf358bb870b6b71c8119, preserve Textual16ede and current258 native manifest. Removed wire-replay pilot stays deleted; e2e raw Pi executor stays deleted; all current settings consumers keep typed declarations. Collector has317 derived tests, no copied ratchet/manual roster/skips.
 
-Concrete followup remains owned by Pascal, not unassigned or a merge gate:
-1. thread_activation first resumed paint shows stale viewport before latest text.
-   An attempted follow/layout correction did not meet the full frame assertion;
-   it is EXCLUDED from source candidate, retained first-frame-incomplete.patch.
-2. relationship_poll_reflow's zero-paint fixture includes deliberately animated
-   busy rows; idle-source correction needs final diagnosis (not a product verdict).
-3. session_sort's busy phase needs valid live turn witnesses for both rows;
-   no restoring activity-only busy fiction. Current failure retained.
-4. Remaining derived PTY/visual/operator scripts need classification; existing
-   headless UI subset and native loopback are established, not full terminal suite.
-Full plan triage continues in this ownership. No repeated paid/provider proof or
-CI wait required. All deletion/failure evidence retained; no live mutations.
+Closed retained failures:
+- Shared HistoryWindow commits follow at compositor boundary; resumed navigation waits for actual visible bodies. Existing complete activation test retains first frame, deliberate scroll-up, in-flight page and snapshot assertions.
+- Relationship polling test isolates fixture animation while retaining busy row geometry and real change assertions.
+- Sorting retains all criteria/selection/Stopped checks; starts/stops a real native owner instead of borrowing detached turn leases. Busy/status authority and two widths verified in actual native loopback pilot.
+- e2e_pty retains only explicit-launch real PTY fixture; retired fabricated raw-Pi main driver deleted. Resize uses private native route and awaits actual history readiness. No fake provider execution restored.
+- Saved settings test uses representative real-file-format fixture with synthetic anonymous ID and optional TOAD_SETTINGS_SAMPLE for explicit actual saved-file acceptance; no hardcoded owner path, exact save/load/unchanged-source assertions retained. Added required visual-test dev dependencies.
+
+Current-main evidence: sol-merged-current.log7pass2fail (old Stopped fixture and hardcoded T1 path), both corrected: sol-sort-current-owner.log1pass17.74s and sol-current-deletion-guards.log8pass8.84s. sol-final-native-busy.log1pass36.27s: actual queue ID/consumption, reopen/reattach, DM/channel feedback, owner restart and busy authority. Channel assertion now awaits real rendered roster state after registry idle, preserving original assertion. sol-final-ratchet.json production delta zero for all three configured measures; this is not a global zero-debt claim.
+
+Current terminal resize passed in sol-merged-current; pixel/MCP individual receipts pending after combined60-second outer batch expired. Prior pre-main pixel/MCP passed, not claimed current-main completion. Actual failed/timeout attempts preserved. No paid calls, CI waiting or live root/route/launcher changes. Parent owns deployment and final integration.

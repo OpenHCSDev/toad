@@ -1,0 +1,10 @@
+{
+    "anon_id": "00000000-0000-0000-0000-000000000001",
+    "sidebar": {
+        "hide": false,
+        "show_stopped": true
+    },
+    "ui": {
+        "footer": false
+    }
+}

@@ -42,6 +42,9 @@ async def main():
                 assert "Channels" in frame and "❯" in frame, (width, height, frame)
                 assert session.alive()
             print("PTY resize: transcript, sidebar, and composer repaint across fullscreen transitions")
+        except BaseException:
+            print(session.buffer.decode(errors="replace"), flush=True)
+            raise
         finally:
             await session.stop()
 

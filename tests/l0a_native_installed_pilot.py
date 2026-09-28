@@ -66,7 +66,7 @@ async def notification_feedback(
     release.set()
     await until(pilot, lambda: not comms.registry.require("beta").executing)
     await channel._refresh()
-    await pilot.pause()
+    await until(pilot, lambda: "No active turns" in roster.names.render().plain)
     assert "No active turns" in roster.names.render().plain, roster.names.render()
     print("CHANNEL_IDLE_STATUS_CONFIRMED", flush=True)
     notification = channel.query_one(MessageNotifications)

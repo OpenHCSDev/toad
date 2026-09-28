@@ -216,9 +216,12 @@ async def main():
             # process's lease or promotes activity metadata to execution proof.
             sidebar = app.screen.query_one(CommsSidebar)
             unopened = next(row for row in sidebar.query(CommsRow) if row.target_name == "new")
-            comms.owners.stop("new")
+            await asyncio.to_thread(comms.owners.start, "new")
+            await until(lambda: comms.registry.require("new").process_alive)
+            await asyncio.to_thread(comms.owners.stop, "new")
             sidebar._refresh()
             await pilot.pause()
+            await until(lambda: unopened.render().plain == "○ new\n  Stopped")
             assert unopened.render().plain == "○ new\n  Stopped"
             panel = app.screen.query_one(SessionSort).query_ancestor(SideBarCollapsible)
             assert await pilot.click(panel.query_one("CollapsibleTitle"))
