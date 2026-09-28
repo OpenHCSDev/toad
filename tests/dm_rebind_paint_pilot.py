@@ -63,7 +63,7 @@ async def main():
                     assert comms.bus.pending_count(viewer, "peer") == 1
 
                     comms.registry.unregister("peer")
-                    comms.threads.delete("peer")
+                    comms.registry.remove("peer")
                     comms.threads.register(
                         Thread("peer", frozenset(), str(root), pid=os.getpid())
                     )

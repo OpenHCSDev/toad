@@ -134,9 +134,6 @@ for line in sys.stdin:
         comms.threads.register(
             Thread(name="other-peer", tags=frozenset(), worktree=str(project))
         )
-        comms.threads.register(
-            Thread(name="delete-peer", tags=frozenset(), worktree=str(project))
-        )
         resumable_session = root / "resumable-session.jsonl"
         resumable_session.write_text(
             "\n".join(
@@ -516,7 +513,6 @@ for line in sys.stdin:
                 "comms_stop",
                 "comms_start",
                 "comms_archive",
-                "comms_delete",
                 "comms_ack",
                 "copy",
                 "close_view",
@@ -711,11 +707,12 @@ for line in sys.stdin:
                 "comms_stop",
                 "comms_start",
                 "comms_archive",
-                "comms_delete",
                 "comms_ack",
                 "copy",
             ]
-            await pilot.press("down", "down", "down", "down", "down", "down", "enter")
+            ack_item = next(item for item in app.screen.query(ContextMenuItem)
+                            if item.action == "comms_ack")
+            await pilot.click(ack_item)
             await pilot.pause()
             assert isinstance(app.screen, MainScreen)
             assert comms.views.viewer_snapshot(str(project)).unread.get("peer", 0) == 0
@@ -758,39 +755,6 @@ for line in sys.stdin:
             assert comms.registry.status("other-peer") == ArchivedThreadStatus()
             assert not any(
                 item.target_name == "other-peer" for item in app.screen.query(CommsRow)
-            )
-
-            await pilot.click(row(app.screen, "delete-peer"), button=3)
-            await pilot.pause()
-            stop_item = next(
-                item
-                for item in app.screen.query(ContextMenuItem)
-                if item.action == "comms_stop"
-            )
-            await pilot.click(stop_item)
-            await pilot.pause()
-            # Frame settlement is not an off-loop operation receipt. Wait for
-            # Stop to release this subject before requesting its next action.
-            async with asyncio.timeout(10):
-                while ("delete-peer" in app.pending_thread_actions
-                       or not comms.registry.status("delete-peer").stopped):
-                    await pilot.pause(.01)
-            await pilot.click(row(app.screen, "delete-peer"), button=3)
-            await pilot.pause()
-            delete_item = next(
-                item
-                for item in app.screen.query(ContextMenuItem)
-                if item.action == "comms_delete"
-            )
-            await pilot.click(delete_item)
-            await pilot.pause()
-            async with asyncio.timeout(10):
-                while ("delete-peer" in comms.registry
-                       or any(item.target_name == "delete-peer" for item in app.screen.query(CommsRow))):
-                    await pilot.pause(.01)
-            assert "delete-peer" not in comms.registry
-            assert not any(
-                item.target_name == "delete-peer" for item in app.screen.query(CommsRow)
             )
 
             retained_owner_rows = tuple(open_rows(app.screen))
@@ -918,7 +882,6 @@ for line in sys.stdin:
                 "comms_stop",
                 "comms_start",
                 "comms_archive",
-                "comms_delete",
                 "comms_ack",
                 "copy",
             ]
@@ -1202,7 +1165,7 @@ for line in sys.stdin:
             assert app.session_tracker.get_session(second_mode) is None
             assert "second-peer" in comms.registry
             comms.owners.stop("second-peer")
-            comms.threads.delete("second-peer")
+            comms.threads.archive("second-peer")
 
             external = comms.threads.fork(
                 ForkSpec(
@@ -1249,90 +1212,24 @@ for line in sys.stdin:
                     )
                     == 1
                 )
-                app.post_message(messages.SessionDelete(external_mode))
+                app.post_message(messages.SessionArchive(external_mode))
                 for _ in range(80):
                     await pilot.pause(0.1)
                     if app.session_tracker.get_session(external_mode) is None:
                         break
                 assert app.session_tracker.get_session(external_mode) is None
-                assert external.name not in comms.registry
+                assert comms.registry.require(external.name).pid == external.pid
                 assert app.current_mode == thread_mode
             finally:
                 if external.name in comms.registry:
                     await asyncio.to_thread(comms.owners.stop, external.name)
-                    comms.threads.delete(external.name)
+                    comms.threads.archive(external.name)
                 await asyncio.to_thread(os.waitpid, external.pid, 0)
-            await app.screen.conversation.rename_session("delete once")
-            await pilot.pause()
-            deleted_name = app.screen._comms_thread
-            assert deleted_name == "delete-once"
-            comms.threads.register(
-                Thread(
-                    name="surviving-child",
-                    parent=deleted_name,
-                    tags=frozenset(),
-                    worktree=str(project),
-                    session_file=str(second_file),
-                )
-            )
-            app.screen.query_one(CommsSidebar)._refresh()
-            await pilot.pause()
-            deleted_pid = comms.registry.require(deleted_name).pid
-            deleted_pk = app.screen.conversation.agent.session_pk
-            await asyncio.to_thread(comms.owners.stop, deleted_name)
-            thread_row = next(
-                item
-                for item in open_rows(app.screen)
-                if item.mode_name == thread_mode
-            )
-            thread_row.scroll_visible(animate=False)
-            await pilot.pause()
-            assert await pilot.click(thread_row, button=3)
-            await pilot.pause()
-            assert isinstance(app.screen, ContextMenu)
-            delete_item = next(
-                item
-                for item in app.screen.query(ContextMenuItem)
-                if item.action == "comms_delete"
-            )
-            assert await pilot.click(delete_item)
-            for _ in range(30):
-                await pilot.pause(0.1)
-                if app.session_tracker.get_session(thread_mode) is None:
-                    break
-            assert app.current_mode == owner_mode, (
-                app.current_mode,
-                [
-                    (item.mode_name, item.title)
-                    for item in app.session_tracker.ordered_sessions
-                ],
-                (
-                    comms.views.thread_detail(deleted_name)
-                    if deleted_name in comms.registry
-                    else "deleted"
-                ),
-            )
+            await app.close_session_mode(thread_mode)
+            assert app.current_mode == owner_mode
             assert app.session_tracker.session_count == 1
-            assert not comms.owners._process_alive(deleted_pid)
-            assert deleted_name not in comms.registry
-            assert "resumable-peer" not in comms.registry
-            assert comms.registry.require("surviving-child").parent is None
-            assert comms.registry.require("surviving-child").session_file == str(
-                second_file
-            )
-            assert await DB().session_get(deleted_pk) is None
-            await pilot.pause(2)
-            assert not {deleted_name, "resumable-peer"} & {
-                item.target_name for item in app.screen.query(CommsRow)
-            }
-            replacement = comms.threads.claim_thread(
-                deleted_name, tags=frozenset(), worktree=str(project)
-            )
-            assert replacement.name == deleted_name
-            comms.owners.stop(replacement.name)
-            comms.threads.delete(replacement.name)
-            comms.owners.stop("surviving-child")
-            comms.threads.delete("surviving-child")
+            assert await DB().session_get(first_pk) is not None
+            assert "resumable-peer" in comms.registry
             app.screen._agent = owner_agent
             app.screen.query_one(CommsSidebar)._refresh()
             await pilot.pause()
@@ -1398,23 +1295,23 @@ for line in sys.stdin:
             paths.get_state = lambda: state_path
             await app.new_session_screen(app.get_main_screen)
             await pilot.pause()
-            delete_mode = app.current_mode
+            saved_mode = app.current_mode
             saved_db = DB()
             assert await saved_db.create()
             saved_pk = await saved_db.session_new(
-                "Delete me",
+                "Retain saved history",
                 "Pilot agent",
                 "pilot-agent",
                 "pilot-session",
             )
             assert saved_pk is not None
             app.screen._session_pk = saved_pk
-            delete_row = next(
+            saved_row = next(
                 item
                 for item in open_rows(app.screen)
-                if item.mode_name == delete_mode
+                if item.mode_name == saved_mode
             )
-            await pilot.click(delete_row, button=3)
+            await pilot.click(saved_row, button=3)
             await pilot.pause()
             close_view = next(
                 item

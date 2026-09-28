@@ -1563,7 +1563,7 @@ class ToadApp(App, inherit_bindings=False):
         label = {
             "comms_start": "Starting…",
             "comms_stop": "Stopping…", "comms_archive": "Archiving…",
-            "comms_delete": "Deleting…", "comms_ack": "Acknowledging…",
+            "comms_ack": "Acknowledging…",
         }.get(action, "Updating…")
         self.pending_thread_actions[subject] = label
         self.thread_actions_changed.publish(None)
@@ -1605,9 +1605,6 @@ class ToadApp(App, inherit_bindings=False):
                             await screen.conversation.agent.reconnect()
                             from toad.acp.messages import TranscriptChanged
                             screen.conversation.post_message(TranscriptChanged())
-            if action == "comms_delete":
-                for mode_name in session_modes:
-                    self.post_message(messages.SessionDelete(mode_name))
             if action == "comms_stop":
                 self.notify(f"Stopped @{subject}", title="Session action")
         except Exception as error:
@@ -2000,52 +1997,6 @@ class ToadApp(App, inherit_bindings=False):
 
     @on(messages.SessionArchive)
     async def on_session_archive(self, event: messages.SessionArchive) -> None:
-        await self.close_session_mode(event.mode_name)
-
-    @on(messages.SessionDelete)
-    async def on_session_delete(self, event: messages.SessionDelete) -> None:
-        screen = self._main_session_screen(event.mode_name)
-        session_pk = None
-        if screen is not None:
-            agent = screen.conversation.agent
-            session_ready_event = getattr(agent, "session_ready_event", None)
-            if session_ready_event is not None and not session_ready_event.is_set():
-                try:
-                    await asyncio.wait_for(session_ready_event.wait(), timeout=5)
-                except TimeoutError:
-                    self.notify(
-                        "The agent is still starting; try delete again in a moment",
-                        title="Delete session",
-                        severity="warning",
-                    )
-                    return
-            session_pk = screen._session_pk
-            if agent is not None:
-                session_pk = getattr(agent, "session_pk", None) or session_pk
-            if screen._coordination_root is not None:
-                from agent_comms.comms import wire
-
-                comms = wire(screen._coordination_root)
-                thread_name = screen._session_thread
-                try:
-                    # Disconnect this view, then perform the explicitly requested
-                    # stop/delete against the independently owned thread.
-                    if agent is not None:
-                        await agent.stop()
-                    if thread_name in comms.registry:
-                        await asyncio.to_thread(comms.owners.stop, thread_name)
-                        comms.threads.delete(thread_name)
-                except Exception as error:
-                    self.notify(str(error), title="Delete thread", severity="error")
-                    return
-        if session_pk is not None:
-            if not await DB().session_delete(session_pk):
-                self.notify(
-                    "Unable to delete the saved session",
-                    title="Delete session",
-                    severity="error",
-                )
-                return
         await self.close_session_mode(event.mode_name)
 
     @on(messages.SessionClose)

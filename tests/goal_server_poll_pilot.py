@@ -27,7 +27,9 @@ async def until(predicate, timeout=4):
 
 
 async def main():
-    with TemporaryDirectory(prefix="toad-goal-server-", dir="/var/tmp") as directory:
+    artifacts = Path(__file__).resolve().parents[1] / ".artifacts"
+    artifacts.mkdir(exist_ok=True)
+    with TemporaryDirectory(prefix="toad-goal-server-", dir=artifacts) as directory:
         root = Path(directory)
         os.environ.update(
             XDG_CONFIG_HOME=str(root / "config"),
@@ -131,7 +133,7 @@ async def main():
                     await pilot.pause()
                     app.save_screenshot(
                         filename=f"toad-goal-layout-{width}x{height}.svg",
-                        path="/var/tmp",
+                        path=str(root),
                     )
                 await pilot.resize_terminal(90, 35)
                 await pilot.pause()
