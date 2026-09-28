@@ -106,11 +106,8 @@ class FilePreview(VerticalScroll):
         padding: 0 1;
     }
     FilePreview > Static {
-        width: auto;
-        height: auto;
-    }
-    FilePreview > .file-preview-notice {
         width: 1fr;
+        height: auto;
     }
     FilePreview > .file-preview-path {
         width: 1fr;
@@ -164,7 +161,7 @@ class FilePreview(VerticalScroll):
             if len(data) > self.MAX_BYTES:
                 data = data[:self.OVERSIZED_PREVIEW_BYTES]
                 await self.mount(
-                    Static("File exceeds 1 MiB; showing only the first 64 KiB.", classes="file-preview-notice")
+                    Static("File exceeds 1 MiB; showing only the first 64 KiB.")
                 )
             if not self.is_attached or self._pruning:
                 return

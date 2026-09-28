@@ -34,10 +34,9 @@ class HistoryWindow(VerticalScroll):
 
     def retire_presentation_wait(self) -> None:
         """Release a transaction whose scene no longer promises another frame."""
-        if self.history_layout_ready is not None:
-            self.history_layout_ready.set()
-        if self.history_paint_ready is not None:
-            self.history_paint_ready.set()
+        for ready in (self.history_layout_ready, self.history_paint_ready):
+            if ready is not None:
+                ready.set()
 
     def on_unmount(self) -> None:
         self.retire_presentation_wait()
@@ -70,14 +69,6 @@ class HistoryWindow(VerticalScroll):
     def follows_tail(self) -> bool:
         return self.is_anchored and not self._anchor_released
 
-    def commit_follow(self) -> bool:
-        """Apply retained follow intent to measured geometry before its paint."""
-        if self.history_anchor is not None or not self.follows_tail:
-            return False
-        previous = self.scroll_y
-        self._scroll_to(y=self.max_scroll_y, animate=False, release_anchor=False)
-        return previous != self.scroll_y
-
     def anchor(self, anchor: bool = True) -> None:
         if not self._restoring:
             self.scroll_revision += 1
@@ -90,16 +81,18 @@ class HistoryWindow(VerticalScroll):
             self.scroll_revision += 1
         super().release_anchor()
 
-    def suspend_follow(self) -> None:
-        super().release_anchor()
-
     def _check_anchor(self) -> None:
         if (self.max_scroll_y > 0 and not self.history_lock.locked()
                 and self.history_anchor is None):
             super()._check_anchor()
 
-    def check_follow(self) -> None:
+    def check_follow(self) -> bool:
         self._check_anchor()
+        if self.history_anchor is not None or not self.follows_tail:
+            return False
+        previous = self.scroll_y
+        self._scroll_to(y=self.max_scroll_y, animate=False, release_anchor=False)
+        return previous != self.scroll_y
 
     @asynccontextmanager
     async def preserve_history(self, widget: Widget | None):
@@ -114,7 +107,7 @@ class HistoryWindow(VerticalScroll):
         screen = self.screen
         self.history_anchor = HistoryAnchor.capture(widget, self) if widget is not None else None
         if self.history_anchor is not None and isinstance(screen, SessionView):
-            screen.history_anchors.add(self)
+            screen.viewport_presentation.anchors.add(self)
         try:
             yield
             if (widget is not None and widget.is_attached and self.is_attached
@@ -131,10 +124,9 @@ class HistoryWindow(VerticalScroll):
                 await painted.wait()
         finally:
             if isinstance(screen, SessionView):
-                screen.history_anchors.discard(self)
+                screen.viewport_presentation.anchors.discard(self)
             self.history_anchor = None
-            self.history_layout_ready = None
-            self.history_paint_ready = None
+            self.history_layout_ready = self.history_paint_ready = None
 
 
 @dataclass(frozen=True)
