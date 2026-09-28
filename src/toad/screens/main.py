@@ -173,12 +173,12 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
         self._content_loading = False
         self._content_ready = asyncio.Event()
         self._content_error: BaseException | None = None
-        from toad.session_presentation import BlankSessionPresentation, RetainedSessionPresentation
+        from toad.session_presentation import BlankSessionPresentation, OperationalSessionPresentation
 
         self.presentation = (BlankSessionPresentation() if agent is None
                              and agent_session_id is None and session_pk is None
                              and initial_prompt is None
-                             else RetainedSessionPresentation())
+                             else OperationalSessionPresentation())
 
     async def prepare_presentation(self) -> None:
         await self.presentation.prepare(self)
@@ -253,11 +253,10 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
             if not self.is_attached or self._closing:
                 return
             content = self.query_one("#session-content", containers.Vertical)
-            conversation = self._make_conversation()
-            conversation.display = False
-            # Mount asynchronously behind the loading row. No app-wide paint
-            # mask: other tabs, cancellation and input remain available.
-            await content.mount(conversation)
+            # The lifetime owner serializes initial activation and return.
+            # Hydration must not construct a second rich view beside it.
+            await self.presentation.prepare(self)
+            conversation = self.query_one(Conversation)
             if not self.is_attached or self._closing:
                 return
             self._content_loaded = True
@@ -278,8 +277,9 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
         if self._content_error is not None and not self._closing and not self._closed:
             raise self._content_error
 
-    def on_unmount(self) -> None:
+    async def on_unmount(self) -> None:
         self._content_ready.set()
+        await self.presentation.close(self)
 
     def run_prompt(self, prompt: str) -> None:
         self.conversation

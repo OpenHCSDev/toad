@@ -11,7 +11,6 @@ from textual.widget import Widget
 from textual.widgets.text_area import Document, EditHistory, Selection, TextAreaState
 
 from toad.history import History
-from toad.screens.session_view import SessionView
 from toad.widgets.conversation import Conversation
 from toad.widgets.message_filter import all_categories, MessageCategory
 
@@ -20,20 +19,14 @@ if TYPE_CHECKING:
     from toad.screens.main import MainScreen
 
 
-class BlankSurfaceSlot(Widget):
+class SessionSurfaceSlot(Widget):
     """A blank session declares placement but owns no second editor tree."""
 
-    DEFAULT_CSS = "BlankSurfaceSlot { display: none; }"
-
-
-class BlankParkingScreen(SessionView):
-    """Inactive app-owned custody for the single blank editor between view kinds."""
-
-    DEFAULT_CSS = "BlankParkingScreen { display: none; }"
+    DEFAULT_CSS = "SessionSurfaceSlot { display: none; }"
 
 
 @dataclass(frozen=True)
-class BlankViewState:
+class SessionViewState:
     """The actual editor document/history and reader intent, not a transcript copy."""
 
     editor: TextAreaState
@@ -45,6 +38,31 @@ class BlankViewState:
     shell_history: History
     prompt_history_index: int
     shell_history_index: int
+
+    @classmethod
+    def capture(cls, conversation: Conversation) -> "SessionViewState":
+        editor = conversation.prompt.prompt_text_area
+        return cls(
+            editor.capture_editor_state(), conversation.visible_categories,
+            conversation.window.scroll_y, conversation.window.follows_tail,
+            editor.shell_mode, conversation.prompt_history, conversation.shell_history,
+            conversation.prompt_history_index, conversation.shell_history_index,
+        )
+
+    def restore(self, conversation: Conversation) -> None:
+        conversation.prompt_history = self.prompt_history
+        conversation.shell_history = self.shell_history
+        conversation.prompt_history_index = self.prompt_history_index
+        conversation.shell_history_index = self.shell_history_index
+        conversation.visible_categories = self.visible_categories
+        editor = conversation.prompt.prompt_text_area
+        editor.restore_editor_state(self.editor)
+        editor.shell_mode = self.shell_mode
+        if self.follows_tail:
+            conversation.window.anchor()
+        else:
+            conversation.window.release_anchor()
+            conversation.window.scroll_to(y=self.scroll_y, animate=False, immediate=True)
 
 
 class SessionSurfaceLifetime(ABC):
@@ -59,32 +77,67 @@ class SessionSurfaceLifetime(ABC):
     @abstractmethod
     async def retire(self, screen: "MainScreen") -> None: ...
 
+    @abstractmethod
+    async def close(self, screen: "MainScreen") -> None: ...
 
-class RetainedSessionPresentation(SessionSurfaceLifetime):
-    """Executing agents keep their actual message target and rich view attached."""
+
+class OperationalSessionPresentation(SessionSurfaceLifetime):
+    """The operational Agent survives; only the selected rich view is mounted."""
+
+    def __init__(self) -> None:
+        self.state: SessionViewState | None = None
+        self.agent = None
+        self._lock = asyncio.Lock()
 
     def compose_content(self, screen: "MainScreen") -> Widget:
-        return screen._make_conversation()
+        return SessionSurfaceSlot()
 
     async def prepare(self, screen: "MainScreen") -> None:
-        return
+        async with self._lock:
+            if screen.query_one_optional(Conversation) is not None:
+                return
+            conversation = (screen.make_blank_conversation() if self.state is not None
+                            else screen._make_conversation())
+            await screen.query_one("#session-content").mount(conversation)
+            if self.state is not None:
+                self.state.restore(conversation)
+                self.state = None
+            if self.agent is not None:
+                conversation.agent = self.agent
+                self.agent.presentation.attach_surface(conversation)
 
     async def retire(self, screen: "MainScreen") -> None:
-        return
+        async with self._lock:
+            conversation = screen.query_one_optional(Conversation)
+            if conversation is None:
+                return
+            self.state = SessionViewState.capture(conversation)
+            self.agent = conversation.agent
+            if self.agent is not None:
+                # Detach before unmount: retiring optional UI must not call stop.
+                self.agent.detach_surface(conversation)
+            await conversation.remove()
+
+    async def close(self, screen: "MainScreen") -> None:
+        # Closing the logical session is distinct from retiring optional UI.
+        if self.agent is not None:
+            await self.agent.stop()
+            self.agent = None
+        self.state = None
 
 
 class BlankSessionPresentation(SessionSurfaceLifetime):
     """One logical blank session, independent of any mounted editor widget."""
 
     def __init__(self) -> None:
-        self.state: BlankViewState | None = None
+        self.state: SessionViewState | None = None
 
     @property
     def editor_state(self) -> TextAreaState | None:
         return self.state.editor if self.state is not None else None
 
     def compose_content(self, screen: "MainScreen") -> Widget:
-        return BlankSurfaceSlot()
+        return SessionSurfaceSlot()
 
     async def prepare(self, screen: "MainScreen") -> None:
         # Actual shell/agent use promotes the editor to a retained presentation.
@@ -96,11 +149,12 @@ class BlankSessionPresentation(SessionSurfaceLifetime):
         # session's editor before changing custody. No duplicate state owner.
         return
 
+    async def close(self, screen: "MainScreen") -> None:
+        self.state = None
+
 
 class BlankSessionSurface:
     """One native blank editor tree; session controllers own document identity."""
-
-    PARKING_MODE = "_blank_workspace_parking"
 
     def __init__(self, app: "ToadApp") -> None:
         self._app = ref(app)
@@ -131,17 +185,7 @@ class BlankSessionSurface:
             and not conversation.prompt.prompt_text_area.disabled
         )
 
-    @staticmethod
-    def _capture(conversation: Conversation) -> BlankViewState:
-        editor = conversation.prompt.prompt_text_area
-        return BlankViewState(
-            editor.capture_editor_state(), conversation.visible_categories,
-            conversation.window.scroll_y, conversation.window.follows_tail,
-            editor.shell_mode, conversation.prompt_history, conversation.shell_history,
-            conversation.prompt_history_index, conversation.shell_history_index,
-        )
-
-    def _release_owner(self) -> None:
+    async def _release_owner(self) -> None:
         widget, owner = self.widget, self.owner
         if widget is None or owner is None:
             return
@@ -150,12 +194,14 @@ class BlankSessionSurface:
         screen = widget.screen
         assert isinstance(screen, MainScreen)
         if not self._can_transfer(screen, widget):
-            # A real shell, agent, transcript or unresolved input now owns this
-            # view. Keep it attached to that session and start a new blank tree.
+            # First operational use changes custody in place. Detach its source
+            # before admitting another rich blank surface; keep no old UI tree.
+            screen.presentation = OperationalSessionPresentation()
             self.widget = None
             self.owner = None
+            await screen.presentation.retire(screen)
             return
-        owner.state = self._capture(widget)
+        owner.state = SessionViewState.capture(widget)
         self.owner = None
 
     def _move(self, parent: Widget, slot: Widget | None = None) -> None:
@@ -174,8 +220,8 @@ class BlankSessionSurface:
         async with self._lock:
             if self.owner is owner and self.widget is not None and self.widget.screen is screen:
                 return
-            self._release_owner()
-            slot = screen.query_one(BlankSurfaceSlot)
+            await self._release_owner()
+            slot = screen.query_one(SessionSurfaceSlot)
             content = slot.parent
             assert isinstance(content, Widget)
             if self.widget is None:
@@ -209,18 +255,7 @@ class BlankSessionSurface:
                 conversation.prompt_history_index = conversation.shell_history_index = 0
                 conversation.window.anchor()
             else:
-                conversation.prompt_history = state.prompt_history
-                conversation.shell_history = state.shell_history
-                conversation.prompt_history_index = state.prompt_history_index
-                conversation.shell_history_index = state.shell_history_index
-                conversation.visible_categories = state.visible_categories
-                conversation.prompt.prompt_text_area.restore_editor_state(state.editor)
-                conversation.prompt.prompt_text_area.shell_mode = state.shell_mode
-                if state.follows_tail:
-                    conversation.window.anchor()
-                else:
-                    conversation.window.release_anchor()
-                    conversation.window.scroll_to(y=state.scroll_y, animate=False, immediate=True)
+                state.restore(conversation)
                 owner.state = None
             conversation.column = screen.column
             self.owner = owner
@@ -230,13 +265,10 @@ class BlankSessionSurface:
             widget = self.widget
             if widget is None or widget.screen is screen:
                 return
-            self._release_owner()
+            await self._release_owner()
             if self.widget is None:
                 return
-            app = self.app
-            if self.PARKING_MODE not in app._modes:
-                app.add_mode(self.PARKING_MODE, BlankParkingScreen)
-            await app._init_mode(self.PARKING_MODE)
-            parking = app.get_screen_stack(self.PARKING_MODE)[0]
-            self._move(parking)
-            self.widget.display = False
+            # Only the selected editor is admitted. The actual document and
+            # undo objects already belong to the departing session's state.
+            await self.widget.remove()
+            self.widget = None

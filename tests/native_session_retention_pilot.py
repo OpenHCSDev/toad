@@ -85,16 +85,20 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
             active_prompt = asyncio.create_task(agent.send_prompt(f"HELD_AT_{count}"))
             await until(pilot, entered.is_set)
             assert app.current_mode != owner_mode
-            assert original.agent is agent and agent._connected_ok
+            assert agent._connected_ok
             assert agent.process.process is acp_process and acp_process.returncode is None
             assert agent.process.runner is acp_task and not acp_task.done()
             assert comms.registry.require("beta").process_identity == owner
             assert comms.registry.require("beta").executing
             await asyncio.wait_for(agent.send_prompt(f"QUEUED_AT_{count}", defer_display=True), 10)
-            await until(pilot, lambda: bool(original.queue_projection.items))
+            await until(pilot, lambda: bool(agent.queue_attachment.projection.items))
             assert editor.document is document and editor.history is history
             assert editor.text == "untouched native draft with undo"
+            rich_views = {id(view) for stack in app._screen_stacks.values()
+                          for screen in stack for view in screen.query("Conversation")}
+            assert len(rich_views) == 1, "Inactive rich presentation escaped global admission"
             record = {
+                "global_rich_views": len(rich_views),
                 "tabs": count, "rss_bytes": psutil.Process().memory_info().rss,
                 "tasks": len(asyncio.all_tasks()), "tracked_objects": len(gc.get_objects()),
                 "constructed_panels": sum(len(app.get_screen_stack(mode)[0].query_one(
@@ -111,16 +115,29 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
             await asyncio.wait_for(active_prompt, 25)
             active_prompt = None
             await until(pilot, lambda: not comms.registry.require("beta").executing)
-            await until(pilot, lambda: not original.queue_projection.items)
+            await until(pilot, lambda: not agent.queue_attachment.projection.items)
             assert len(requests) == before_requests + 2, "Queued prompt was lost or replayed"
             await app.switch_mode(owner_mode)
             await pilot.pause()
-            assert app.screen.conversation is original and original.agent is agent
+            original = app.screen.conversation
+            editor = original.prompt.prompt_text_area
+            assert original.agent is agent
             assert editor.document is document and editor.history is history
             assert editor.text == "untouched native draft with undo"
             expected = f"NATIVE_RESPONSE_{len(requests)}"
-            await until(pilot, lambda: expected in "\n".join(
-                strip.text for strip in app.screen._compositor.render_strips()))
+            try:
+                await until(pilot, lambda: expected in "\n".join(
+                    strip.text for strip in app.screen._compositor.render_strips()))
+            except TimeoutError:
+                print("RETURN_PAINT_FAILURE", json.dumps({
+                    "expected": expected,
+                    "turn": repr(original.turns.owner),
+                    "categories": sorted(case.__name__ for case in original.visible_categories),
+                    "regions": {"conversation": repr(original.region), "window": repr(original.window.region), "contents": repr(original.contents.region)},
+                    "children": [(type(child).__name__, child.display, repr(child.region), str(child.styles.display), list(child.classes)) for child in original.contents.children],
+                    "paint": "\n".join(strip.text for strip in app.screen._compositor.render_strips()),
+                }), flush=True)
+                raise
             record["native_calls"] = len(requests) - before_requests
             record["native_answer_painted"] = True
             records.append(record)

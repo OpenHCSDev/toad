@@ -66,3 +66,42 @@ optional rich view, the selected view restores actual editor state and observes
 existing source facts, and inactive rich trees are retired. No raw event buffering,
 second reducer, Agent.stop on surface retirement, default-off path or claim of
 full116 completion. Final matched loaded/native resource acceptance remains required.
+
+## Continuing selected-only implementation checkpoint
+
+Merged Textual8 mainc9743801c98dc570f82f82e25915ecce89800f4b now replaces the
+feature pin. Framework dependency is resolved, with exact focused/full evidence
+reported in126 comment5880516638; ready12651c901c is unchanged.129 now integrates
+Toad128b472e487 and core280487ebb9ec4468a70a92fc172dd5f2f50950a3c87.
+
+Actual new paired installed run caught a real native return-paint failure: both
+NATIVE_RESPONSE_1/2 reached ACP, but compositor did not paint the second answer.
+Failure receipts/regions retained; the assertion is not weakened. The response
+block is below the visible window while saved TranscriptHistory remains the old
+snapshot. Carver's source-backed restore(binding) on new presentation is the
+required contract; no raw UI-message replay or duplicate transcript store added.
+
+Implemented in source (not yet installed accepted against unpublished contract):
+- OperationalSessionPresentation replaces retained-per-mode custody in place.
+  Its Screen composes a lightweight SessionSurfaceSlot. Prepare constructs the
+  selected rich view; retire captures SessionViewState, retains the actual Agent,
+  calls its explicit detach_surface before remove, preserving operational custody.
+- SessionViewState capture/restore now owns editor/history/selection/scroll/filter
+  semantics shared with blank custody. No parallel editor-state carrier or alias.
+- MainScreen hydration delegates lifetime preparation under the owner's lock;
+  it no longer independently builds a second Conversation.
+- Blank operational promotion retires the old surface before another is admitted.
+  Blank parking Screen/mode deleted: only state survives nonblank selection.
+- Logical close stops the retained operational attachment; optional UI retirement
+  is distinct. Caller hooks migrated without resurrecting compatibility names.
+- Native acceptance now reads queue from Agent.queue_attachment while detached,
+  reacquires restored editor on return, checks same document/history/session/process,
+  and asserts one rich Conversation across all registered mode stacks at each cohort.
+  Actual native rendered-answer assertion remains required.
+
+Carver's unpublished AgentController/PermissionController/Agent attach/detach and
+source restore were inspected read-only, not copied. Publish/consume that coherent
+contract before claiming global installed acceptance. Operational shell/terminal
+custody and already-revealed optional sidebar state/global retirement still need
+closure; current source is not full116 readiness. The new source-bound gate remains
+strict; no mocks, no phase filtering, no default-off path or paid calls.
