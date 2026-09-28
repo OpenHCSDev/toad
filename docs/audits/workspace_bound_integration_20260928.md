@@ -47,8 +47,10 @@ One fixed native owner/ACP attachment, eight loopback-only HTTP model requests;
 no paid model calls or mocked transport/queue/editor/renderer methods.
 64 sample:262.6MiB UI RSS,5816 tasks, zero rich panels,79.87ms settled headless
 median,2/189 >100ms. This is not64 executing agents or native-terminal latency.
-Core278 production-bootstrap rerun follows the same installed path after the
-serialized retirement change. Exact result belongs in its retained receipt.
+Core278 production-bootstrap rerun passed the same installed path after the
+serialized retirement change, exit0: all four cohorts, eight native calls and
+painted answers.64:264.3MiB UI,5816 tasks,81.95ms settled median,6/189 >100ms.
+Receipts: current-bootstrap-retention.json/current-native-production-bootstrap.log.
 
 Strict manifest rejection of native905 and missing TextAreaState/import failures
 remain recorded rather than hidden. Focused settings guard passes and affected

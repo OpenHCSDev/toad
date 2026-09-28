@@ -1,0 +1,317 @@
+╭───────────────────── Traceback (most recent call last) ──────────────────────╮
+│ /home/ts/wt/toad-workspace-bound-sol-20260928/.venv/lib/python3.14/site-pack │
+│ ages/toad/app.py:1746 in on_mount                                            │
+│                                                                              │
+│   1743 │   │   if mode := self._initial_mode:                                │
+│   1744 │   │   │   self.switch_mode(mode)                                    │
+│   1745 │   │   else:                                                         │
+│ ❱ 1746 │   │   │   await self.new_session_screen(self.get_main_screen)       │
+│   1747 │   │                                                                 │
+│   1748 │   │   self.update_terminal_title()                                  │
+│   1749 │   │   self.set_timer(1, self.run_version_check)                     │
+│                                                                              │
+│ ╭──────────────────────────── locals ────────────────────────────╮           │
+│ │ mode = None                                                    │           │
+│ │ self = InstalledApp(                                           │           │
+│ │        │   title='InstalledApp',                               │           │
+│ │        │   classes={                                           │           │
+│ │        │   │   '-dark-mode',                                   │           │
+│ │        │   │   '-theme-ansi-dark',                             │           │
+│ │        │   │   '-show-sessions-bar'                            │           │
+│ │        │   },                                                  │           │
+│ │        │   pseudo_classes={                                    │           │
+│ │        │   │   'dark',                                         │           │
+│ │        │   │   'focus',                                        │           │
+│ │        │   │   'ansi',                                         │           │
+│ │        │   │   'nocolor'                                       │           │
+│ │        │   }                                                   │           │
+│ │        )                                                       │           │
+│ ╰────────────────────────────────────────────────────────────────╯           │
+│                                                                              │
+│ /home/ts/wt/toad-workspace-bound-sol-20260928/.venv/lib/python3.14/site-pack │
+│ ages/toad/app.py:776 in new_session_screen                                   │
+│                                                                              │
+│    773 │   │   │   return screen                                             │
+│    774 │   │                                                                 │
+│    775 │   │   self.add_mode(session_details.mode_name, make_screen)         │
+│ ❱  776 │   │   await self.switch_mode(session_details.mode_name)             │
+│    777 │   │   return session_details                                        │
+│    778 │                                                                     │
+│    779 │   def switch_mode(self, mode: str, *, history_index: int | None = N │
+│                                                                              │
+│ ╭───────────────────────────────── locals ─────────────────────────────────╮ │
+│ │      get_screen = <bound method ToadApp.get_main_screen of               │ │
+│ │                   InstalledApp(title='InstalledApp',                     │ │
+│ │                   classes={'-dark-mode', '-theme-ansi-dark',             │ │
+│ │                   '-show-sessions-bar'}, pseudo_classes={'dark',         │ │
+│ │                   'focus', 'ansi', 'nocolor'})>                          │ │
+│ │            self = InstalledApp(                                          │ │
+│ │                   │   title='InstalledApp',                              │ │
+│ │                   │   classes={                                          │ │
+│ │                   │   │   '-dark-mode',                                  │ │
+│ │                   │   │   '-theme-ansi-dark',                            │ │
+│ │                   │   │   '-show-sessions-bar'                           │ │
+│ │                   │   },                                                 │ │
+│ │                   │   pseudo_classes={                                   │ │
+│ │                   │   │   'dark',                                        │ │
+│ │                   │   │   'focus',                                       │ │
+│ │                   │   │   'ansi',                                        │ │
+│ │                   │   │   'nocolor'                                      │ │
+│ │                   │   }                                                  │ │
+│ │                   )                                                      │ │
+│ │ session_details = SessionDetails(                                        │ │
+│ │                   │   index=1,                                           │ │
+│ │                   │   mode_name='session-1',                             │ │
+│ │                   │   title='New Session',                               │ │
+│ │                   │   subtitle='',                                       │ │
+│ │                   │   path='',                                           │ │
+│ │                   │   state='notready',                                  │ │
+│ │                   │   summary='',                                        │ │
+│ │                   │   updates=0,                                         │ │
+│ │                   │   created_at=1790637195.412877                       │ │
+│ │                   )                                                      │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
+│                                                                              │
+│ /home/ts/wt/toad-workspace-bound-sol-20260928/.venv/lib/python3.14/site-pack │
+│ ages/toad/app.py:914 in _switch_mode_ready                                   │
+│                                                                              │
+│    911 │   │   │   │   │   │   # Initialization may queue an early ScreenRes │
+│    912 │   │   │   │   │   │   # Channels before selection and the first pai │
+│    913 │   │   │   │   │   │   # mounting/early hooks must tolerate the unfi │
+│ ❱  914 │   │   │   │   │   │   await self._init_mode(mode)                   │
+│    915 │   │   │   │   │   │   destination = self.get_screen_stack(mode)[0]  │
+│    916 │   │   │   │   │   │   if not await self.workspace_chrome.attach(des │
+│    917 │   │   │   │   │   │   │   return  # The destination closed during r │
+│                                                                              │
+│ ╭───────────────────────── locals ─────────────────────────╮                 │
+│ │   history_index = None                                   │                 │
+│ │            mode = 'session-1'                            │                 │
+│ │   previous_mode = '_default'                             │                 │
+│ │ previous_screen = Screen(id='_default', classes='-wide') │                 │
+│ │            self = InstalledApp(                          │                 │
+│ │                   │   title='InstalledApp',              │                 │
+│ │                   │   classes={                          │                 │
+│ │                   │   │   '-dark-mode',                  │                 │
+│ │                   │   │   '-theme-ansi-dark',            │                 │
+│ │                   │   │   '-show-sessions-bar'           │                 │
+│ │                   │   },                                 │                 │
+│ │                   │   pseudo_classes={                   │                 │
+│ │                   │   │   'dark',                        │                 │
+│ │                   │   │   'focus',                       │                 │
+│ │                   │   │   'ansi',                        │                 │
+│ │                   │   │   'nocolor'                      │                 │
+│ │                   │   }                                  │                 │
+│ │                   )                                      │                 │
+│ ╰──────────────────────────────────────────────────────────╯                 │
+│                                                                              │
+│ /home/ts/wt/toad-workspace-bound-sol-20260928/.venv/lib/python3.14/site-pack │
+│ ages/textual/app.py:2609 in _init_mode                                       │
+│                                                                              │
+│   2606 │   │   │   │   │   "MODES cannot contain instances, use a type inste │
+│   2607 │   │   │   │   │   f"(got instance of {type(_screen).__name__} for { │
+│   2608 │   │   │   │   )                                                     │
+│ ❱ 2609 │   │   │   new_screen: Screen | str = _screen() if callable(_screen) │
+│   2610 │   │   │   screen, await_mount = self._get_screen(new_screen)        │
+│   2611 │   │   │   stack.append(screen)                                      │
+│   2612 │   │   │   self._load_screen_css(screen)                             │
+│                                                                              │
+│ ╭──────────────────────────── locals ─────────────────────────────╮          │
+│ │  mode = 'session-1'                                             │          │
+│ │  self = InstalledApp(                                           │          │
+│ │         │   title='InstalledApp',                               │          │
+│ │         │   classes={                                           │          │
+│ │         │   │   '-dark-mode',                                   │          │
+│ │         │   │   '-theme-ansi-dark',                             │          │
+│ │         │   │   '-show-sessions-bar'                            │          │
+│ │         │   },                                                  │          │
+│ │         │   pseudo_classes={                                    │          │
+│ │         │   │   'dark',                                         │          │
+│ │         │   │   'focus',                                        │          │
+│ │         │   │   'ansi',                                         │          │
+│ │         │   │   'nocolor'                                       │          │
+│ │         │   }                                                   │          │
+│ │         )                                                       │          │
+│ │ stack = []                                                      │          │
+│ ╰─────────────────────────────────────────────────────────────────╯          │
+│                                                                              │
+│ /home/ts/wt/toad-workspace-bound-sol-20260928/.venv/lib/python3.14/site-pack │
+│ ages/toad/app.py:771 in make_screen                                          │
+│                                                                              │
+│    768 │   │   self.session_update_signal.publish((session_details.mode_name │
+│    769 │   │                                                                 │
+│    770 │   │   def make_screen() -> Screen:                                  │
+│ ❱  771 │   │   │   screen = get_screen()                                     │
+│    772 │   │   │   screen.id = session_details.mode_name                     │
+│    773 │   │   │   return screen                                             │
+│    774                                                                       │
+│                                                                              │
+│ ╭───────────────────────────────── locals ─────────────────────────────────╮ │
+│ │      get_screen = <bound method ToadApp.get_main_screen of               │ │
+│ │                   InstalledApp(title='InstalledApp',                     │ │
+│ │                   classes={'-dark-mode', '-theme-ansi-dark',             │ │
+│ │                   '-show-sessions-bar'}, pseudo_classes={'dark',         │ │
+│ │                   'focus', 'ansi', 'nocolor'})>                          │ │
+│ │ session_details = SessionDetails(                                        │ │
+│ │                   │   index=1,                                           │ │
+│ │                   │   mode_name='session-1',                             │ │
+│ │                   │   title='New Session',                               │ │
+│ │                   │   subtitle='',                                       │ │
+│ │                   │   path='',                                           │ │
+│ │                   │   state='notready',                                  │ │
+│ │                   │   summary='',                                        │ │
+│ │                   │   updates=0,                                         │ │
+│ │                   │   created_at=1790637195.412877                       │ │
+│ │                   )                                                      │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
+│                                                                              │
+│ /home/ts/wt/toad-workspace-bound-sol-20260928/.venv/lib/python3.14/site-pack │
+│ ages/toad/app.py:1863 in get_main_screen                                     │
+│                                                                              │
+│   1860 │   │   project_path = Path(self.project_dir or "./").resolve().absol │
+│   1861 │   │   session_id = self._initial_agent_session_id                   │
+│   1862 │   │   self._initial_agent_session_id = None                         │
+│ ❱ 1863 │   │   return MainScreen(                                            │
+│   1864 │   │   │   project_path,                                             │
+│   1865 │   │   │   self.agent_data,                                          │
+│   1866 │   │   │   agent_session_id=session_id,                              │
+│                                                                              │
+│ ╭───────────────────────────────── locals ─────────────────────────────────╮ │
+│ │ project_path = PosixPath('/home/ts/wt/toad-workspace-bound-sol-20260928… │ │
+│ │         self = InstalledApp(                                             │ │
+│ │                │   title='InstalledApp',                                 │ │
+│ │                │   classes={                                             │ │
+│ │                │   │   '-dark-mode',                                     │ │
+│ │                │   │   '-theme-ansi-dark',                               │ │
+│ │                │   │   '-show-sessions-bar'                              │ │
+│ │                │   },                                                    │ │
+│ │                │   pseudo_classes={'dark', 'focus', 'ansi', 'nocolor'}   │ │
+│ │                )                                                         │ │
+│ │   session_id = None                                                      │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
+│                                                                              │
+│ /home/ts/wt/toad-workspace-bound-sol-20260928/.venv/lib/python3.14/site-pack │
+│ ages/toad/screens/main.py:175 in __init__                                    │
+│                                                                              │
+│   172 │   │   self._content_loading = False                                  │
+│   173 │   │   self._content_ready = asyncio.Event()                          │
+│   174 │   │   self._content_error: BaseException | None = None               │
+│ ❱ 175 │   │   from toad.session_presentation import BlankSessionPresentation │
+│   176 │   │                                                                  │
+│   177 │   │   self.presentation = (BlankSessionPresentation() if agent is No │
+│   178 │   │   │   │   │   │   │    and agent_session_id is None and session_ │
+│                                                                              │
+│ ╭───────────────────────────────── locals ─────────────────────────────────╮ │
+│ │               agent = None                                               │ │
+│ │    agent_session_id = None                                               │ │
+│ │ agent_session_title = None                                               │ │
+│ │      initial_prompt = None                                               │ │
+│ │        project_path = PosixPath('/home/ts/wt/toad-workspace-bound-sol-2… │ │
+│ │                self = MainScreen()                                       │ │
+│ │          session_pk = None                                               │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
+│                                                                              │
+│ /home/ts/wt/toad-workspace-bound-sol-20260928/.venv/lib/python3.14/site-pack │
+│ ages/toad/session_presentation.py:16 in <module>                             │
+│                                                                              │
+│    13 from toad.history import History                                       │
+│    14 from toad.screens.session_view import SessionView                      │
+│    15 from toad.widgets.conversation import Conversation                     │
+│ ❱  16 from toad.widgets.message_filter import ALL_CATEGORIES, MessageCategor │
+│    17                                                                        │
+│    18 if TYPE_CHECKING:                                                      │
+│    19 │   from toad.app import ToadApp                                       │
+│                                                                              │
+│ ╭───────────────────────────────── locals ─────────────────────────────────╮ │
+│ │       asyncio = <module 'asyncio' from                                   │ │
+│ │                 '/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x… │ │
+│ │ TYPE_CHECKING = False                                                    │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
+╰──────────────────────────────────────────────────────────────────────────────╯
+ImportError: cannot import name 'ALL_CATEGORIES' from 
+'toad.widgets.message_filter' 
+(/home/ts/wt/toad-workspace-bound-sol-20260928/.venv/lib/python3.14/site-package
+s/toad/widgets/message_filter.py)
+
+NOTE: 1 of 2 errors shown. Run with textual run --dev to see all errors.
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-workspace-bound-sol-20260928/.venv/lib/python3.14/site-packages/textual/app.py", line 2210, in run_test
+    yield pilot
+  File "/home/ts/wt/toad-workspace-bound-sol-20260928/tests/runtime_fixture.py", line 62, in run_test
+    yield pilot
+  File "/home/ts/wt/toad-workspace-bound-sol-20260928/tests/l0a_native_installed_pilot.py", line 259, in main
+    view = app.screen.conversation
+           ^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'Screen' object has no attribute 'conversation'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-workspace-bound-sol-20260928/tests/native_session_retention_pilot.py", line 142, in <module>
+    asyncio.run(native_fixture(app_type=InstalledApp, acceptance=acceptance))
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-workspace-bound-sol-20260928/tests/l0a_native_installed_pilot.py", line 256, in main
+    async with app.run_test(size=(160, 44)) as pilot:
+               ~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 235, in __aexit__
+    await self.gen.athrow(value)
+  File "/home/ts/wt/toad-workspace-bound-sol-20260928/tests/runtime_fixture.py", line 61, in run_test
+    async with super().run_test(**kwargs) as pilot:
+               ~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 235, in __aexit__
+    await self.gen.athrow(value)
+  File "/home/ts/wt/toad-workspace-bound-sol-20260928/.venv/lib/python3.14/site-packages/textual/app.py", line 2218, in run_test
+    raise self._exception
+  File "/home/ts/wt/toad-workspace-bound-sol-20260928/.venv/lib/python3.14/site-packages/textual/app.py", line 3493, in _process_messages
+    await run_process_messages()
+  File "/home/ts/wt/toad-workspace-bound-sol-20260928/.venv/lib/python3.14/site-packages/textual/app.py", line 3438, in run_process_messages
+    await self._dispatch_message(events.Mount())
+  File "/home/ts/wt/toad-workspace-bound-sol-20260928/.venv/lib/python3.14/site-packages/textual/message_pump.py", line 774, in _dispatch_message
+    await self.on_event(message)
+  File "/home/ts/wt/toad-workspace-bound-sol-20260928/.venv/lib/python3.14/site-packages/textual/app.py", line 4148, in on_event
+    await super().on_event(event)
+  File "/home/ts/wt/toad-workspace-bound-sol-20260928/.venv/lib/python3.14/site-packages/textual/message_pump.py", line 855, in on_event
+    await self._on_message(event)
+  File "/home/ts/wt/toad-workspace-bound-sol-20260928/.venv/lib/python3.14/site-packages/textual/message_pump.py", line 876, in _on_message
+    await invoke(method, message)
+  File "/home/ts/wt/toad-workspace-bound-sol-20260928/.venv/lib/python3.14/site-packages/textual/_callback.py", line 96, in invoke
+    return await _invoke(callback, *params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-workspace-bound-sol-20260928/.venv/lib/python3.14/site-packages/textual/_callback.py", line 58, in _invoke
+    result = await result
+             ^^^^^^^^^^^^
+  File "/home/ts/wt/toad-workspace-bound-sol-20260928/.venv/lib/python3.14/site-packages/toad/app.py", line 1746, in on_mount
+    await self.new_session_screen(self.get_main_screen)
+  File "/home/ts/wt/toad-workspace-bound-sol-20260928/.venv/lib/python3.14/site-packages/toad/app.py", line 776, in new_session_screen
+    await self.switch_mode(session_details.mode_name)
+  File "/home/ts/wt/toad-workspace-bound-sol-20260928/.venv/lib/python3.14/site-packages/toad/app.py", line 914, in _switch_mode_ready
+    await self._init_mode(mode)
+          ~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/wt/toad-workspace-bound-sol-20260928/.venv/lib/python3.14/site-packages/textual/app.py", line 2609, in _init_mode
+    new_screen: Screen | str = _screen() if callable(_screen) else _screen
+                               ~~~~~~~^^
+  File "/home/ts/wt/toad-workspace-bound-sol-20260928/.venv/lib/python3.14/site-packages/toad/app.py", line 771, in make_screen
+    screen = get_screen()
+  File "/home/ts/wt/toad-workspace-bound-sol-20260928/.venv/lib/python3.14/site-packages/toad/app.py", line 1863, in get_main_screen
+    return MainScreen(
+           ~~~~~~~~~~^
+        project_path,
+        ^^^^^^^^^^^^^
+    ...<2 lines>...
+        agent_session_title=session_id,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ).data_bind(
+    ^
+  File "/home/ts/wt/toad-workspace-bound-sol-20260928/.venv/lib/python3.14/site-packages/toad/screens/main.py", line 175, in __init__
+    from toad.session_presentation import BlankSessionPresentation, RetainedSessionPresentation
+  File "/home/ts/wt/toad-workspace-bound-sol-20260928/.venv/lib/python3.14/site-packages/toad/session_presentation.py", line 16, in <module>
+    from toad.widgets.message_filter import ALL_CATEGORIES, MessageCategory
+ImportError: cannot import name 'ALL_CATEGORIES' from 'toad.widgets.message_filter' (/home/ts/wt/toad-workspace-bound-sol-20260928/.venv/lib/python3.14/site-packages/toad/widgets/message_filter.py)
