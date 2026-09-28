@@ -1,3 +1,4 @@
+from toad.conversation_turn import AgentTurn, ClientTurn
 """Session metadata occupies one collapsed row and a bounded, native disclosure."""
 
 import asyncio
@@ -84,7 +85,7 @@ async def check_live_activity():
             activity = view.query_one(TurnActivity)
             view.native_history_status = "none"
             view.busy_count = 1
-            view.turn = "agent"
+            view.turns.owner = AgentTurn()
             view.prompt.text = "Keep this unsent draft"
             for ansi, size in ((False, (100, 32)), (True, (76, 26))):
                 app.ansi_color = ansi

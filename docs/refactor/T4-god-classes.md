@@ -6,15 +6,21 @@ This surface runs against classes the other surfaces will already have shrunk, s
 
 ---
 
-## Where the classes stand
+## Current dispatch findings (2026-09-28)
 
-| Class | At the merge-base | At `43e57c9` | Taken by other surfaces |
-|---|---|---|---|
-| `Conversation` | 1,686 | 3,049 | T2 extension handling, T3 slash commands, T5 goal display |
-| `ToadApp` | 632 | 1,902 | T1 setting effects, T3 thread actions |
-| `Agent` | 773 | 1,886 | T2 extension decoding, coordination facts and hand mappings |
+Re-measured merged main67ddc9e after125, with all T2/T3/T5/T6 declarations retained. This worker owns Conversation turn state/block navigation and ACP Agent process lifecycle only. Parent retains App TabOrder/clipboard; Tesla116 owns App/MainScreen/workspace lifetimes.
 
-`Conversation` and `ToadApp` both grew again while these plans were being written (from 3,042 and 1,889 at `511a1a2`): **AGENT-4 is still happening.**
+| Class | Current AST span | Residual ownership |
+|---|---:|---|
+| Conversation | 2943 | string turns plus managed ID/ingress order; duplicated outer/inner block selection |
+| ToadApp | 1803 | parent and Tesla116; excluded from this slice |
+| Agent | 1523 | subprocess/group/task lifetime mixed into ACP protocol handling |
+
+Conversation still stores string turn permissions at13 sites plus watcher dispatch; managed turn ID and ingress source/sequence are independent fields. Prompt and two command callers repeat the string test. A TurnOwner family and a ConversationTurn component will own permissions, managed identity and ordering; adding a state requires its declaration, not consumer branch edits.
+
+Only AgentResponse implements inner BlockProtocol navigation. Conversation repeats protocol probing in cursor movement, selection and current-block access. A nominal block contract will supply an owned cursor component for atomic blocks or child navigation; one content navigation component owns outer selection. New block behavior belongs at its declaration; movement consumers stay unchanged.
+
+Agent owns process, process-group ID, stopping flag and two lifetime tasks, plus a separate response-task set. Start/run/EOF/stop duplicate cleanup and OS decisions. This is a real component boundary: AgentProcess will own subprocess/task lifetime, with one platform control selected at the OS boundary. ACP decoding/session/auth/attachment facts remain Agent-owned. No persisted store changes.
 
 ## Now, before step 4
 

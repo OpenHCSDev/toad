@@ -1,3 +1,5 @@
+from toad.acp.agent_process import AgentProcess
+from toad.agent_presentation import ACPAgentPresentation
 import asyncio
 import json
 import os
@@ -166,19 +168,15 @@ class Agent(AgentBase):
             command: Command to launch agent.
         """
         super().__init__(project_root)
+        self.process = AgentProcess(self)
+        self.presentation = ACPAgentPresentation(self)
         self._agent_data = agent
         self.session_id = session_id
         self.server = jsonrpc.Server()
         self._session_update_lock = asyncio.Lock()
         self.server.expose_instance(self)
-        self._agent_task: asyncio.Task | None = None
-        self._task: asyncio.Task | None = None
-        self._process: asyncio.subprocess.Process | None = None
-        self._process_group_id: int | None = None
-        self._stopping = False
         self._reconnecting = False
         self._connected_ok = False
-        self.prompt_in_flight = 0
         self._deferred_submissions: set[asyncio.Task] = set()
         self._pending_session_name: str | None = None
         self._maintenance_env: dict[str, str] | None = None
@@ -197,7 +195,6 @@ class Agent(AgentBase):
                 "image": False,
             },
         }
-        self.auth_methods: list[protocol.AuthMethod] = []
         self.session_pk: int | None = session_pk
         self.tool_calls: dict[str, protocol.ToolCall] = {}
         self._message_target: MessagePump | None = None
@@ -211,18 +208,16 @@ class Agent(AgentBase):
         self._terminal_count: int = 0
         log_filename: str = generate_datetime_filename(f"{agent['name']}", ".txt")
         if log_path := os.environ.get("TOAD_LOG"):
-            self._log_file_path = Path(log_path).resolve().absolute()
+            self.presentation.log_path = Path(log_path).resolve().absolute()
             with suppress(OSError):
-                self._log_file_path.unlink(missing_ok=True)
+                self.presentation.log_path.unlink(missing_ok=True)
         else:
-            self._log_file_path = paths.get_log() / log_filename
+            self.presentation.log_path = paths.get_log() / log_filename
         self._token_usage: TokenUsage | None = None
         self._context_usage: ContextUsage | None = None
         self._context_usage_saved = False
         self._model_config_id: str | None = None
         self._thinking_config_id: str | None = None
-        self.current_thinking_level: str | None = None
-        self.thinking_levels: list[str] = []
 
     @property
     def command(self) -> str | None:
@@ -269,7 +264,7 @@ class Agent(AgentBase):
             except OSError:
                 pass
 
-        await asyncio.to_thread(write_log, self._log_file_path, line)
+        await asyncio.to_thread(write_log, self.presentation.log_path, line)
 
     def get_info(self) -> Content:
         agent_name = self._agent_data["name"]
@@ -291,7 +286,7 @@ class Agent(AgentBase):
         self._maintenance_root = configured_root(
             self._maintenance_env, self._maintenance_cwd
         )
-        # The later _run_agent task must not re-resolve an alias after the
+        # The later process runner must not re-resolve an alias after the
         # preflight snapshot while prompt admission still uses this root.
         self._maintenance_env["AGENT_COMMS_ROOT"] = str(self._maintenance_root)
         try:
@@ -308,11 +303,11 @@ class Agent(AgentBase):
             return
         try:
             await asyncio.to_thread(
-                self._log_file_path.parent.mkdir, parents=True, exist_ok=True
+                self.presentation.log_path.parent.mkdir, parents=True, exist_ok=True
             )
         except OSError:
             pass
-        self._agent_task = asyncio.create_task(self._run_agent())
+        self.process.start()
 
     def send(self, request: jsonrpc.Request) -> None:
         """Send a request to the agent.
@@ -323,13 +318,13 @@ class Agent(AgentBase):
             request: JSONRPC request object.
 
         """
-        if self._process is None:
+        if self.process.process is None:
             self.log("[error] Agent process isnt running")
             return
 
         body = request.body
         self.log(f"[client] {body}")
-        if (stdin := self._process.stdin) is not None:
+        if (stdin := self.process.process.stdin) is not None:
             calls = body if isinstance(body, list) else [body]
             if any(
                 isinstance(call, dict) and call.get("method") == "session/prompt"
@@ -453,7 +448,7 @@ class Agent(AgentBase):
             }:
                 if text:
                     if type == "text" and text.startswith("[agent error]"):
-                        text += f"\n\n[Open ACP log]({quote(str(self._log_file_path))})"
+                        text += f"\n\n[Open ACP log]({quote(str(self.presentation.log_path))})"
                     self.post_message(messages.Update(type, text, route))
             case {
                 "sessionUpdate": "agent_thought_chunk",
@@ -564,7 +559,7 @@ class Agent(AgentBase):
         cancelled: protocol.RequestPermissionResponse = {
             "outcome": {"outcome": "cancelled"}
         }
-        if self._stopping or sessionId != self.session_id:
+        if self.process.stopping or sessionId != self.session_id:
             return cancelled
         result_future: asyncio.Future[Answer | None] = (
             asyncio.get_running_loop().create_future()
@@ -599,7 +594,7 @@ class Agent(AgentBase):
                 return cancelled
         finally:
             self._pending_permission_answers.discard(result_future)
-        if ask_result is None or self._stopping or sessionId != self.session_id:
+        if ask_result is None or self.process.stopping or sessionId != self.session_id:
             return cancelled
         if not any(option["optionId"] == ask_result.id for option in options):
             return cancelled
@@ -722,105 +717,10 @@ class Agent(AgentBase):
         return_code, signal = result_future.result()
         return {"exitCode": return_code, "signal": signal}
 
-    async def _run_agent(self) -> None:
-        """Task to communicate with the agent subprocess."""
-        PIPE = asyncio.subprocess.PIPE
-        env = (self._maintenance_env or os.environ).copy()
-        env["TOAD_CWD"] = str(Path("./").absolute())
-        if (command := self.command) is None:
-            self.post_message(
-                AgentFail("Failed to start agent; no run command for this OS")
-            )
-            return
-        try:
-            from .maintenance_ingress import admitted_spawn
-
-            process = self._process = await admitted_spawn(
-                command,
-                root=self.coordination.wire_root if self.coordination else None,
-                stdin=PIPE,
-                stdout=PIPE,
-                stderr=PIPE,
-                env=env,
-                cwd=self._maintenance_cwd or str(self.project_root_path.resolve()),
-                limit=10 * 1024 * 1024,
-                start_new_session=os.name != "nt",
-            )
-            if os.name != "nt":
-                self._process_group_id = process.pid
-        except Exception as error:
-            self._connected_ok = False
-            self.session_ready_event.set()
-            self.post_message(AgentFail("Failed to start agent", details=str(error)))
-            return
-        self._task = asyncio.create_task(self.run())
-        assert process.stdout is not None
-        assert process.stdin is not None
-        tasks: set[asyncio.Task] = set()
-
-        async def call_jsonrpc(request: jsonrpc.JSONObject | jsonrpc.JSONList) -> None:
-            try:
-                if (result := await self.server.call(request)) is not None:
-                    result_json = json.dumps(result).encode("utf-8")
-                    if process.stdin is not None:
-                        process.stdin.write(b"%s\n" % result_json)
-            finally:
-                if (task := asyncio.current_task()) is not None:
-                    tasks.discard(task)
-
-        while line := (await process.stdout.readline()):
-            if not line.strip():
-                continue
-            try:
-                line_str = line.decode("utf-8")
-            except Exception as error:
-                self.log(f"[error] Unable to decode utf-8 from agent: {error}")
-                continue
-            self.log(f"[agent] {line_str}")
-            try:
-                agent_data: jsonrpc.JSONType = json.loads(line_str)
-            except Exception as error:
-                self.log(f"[error] failed to decode JSON from agent: {error}")
-                continue
-            try:
-                incoming = IncomingWireMessage.decode(agent_data)
-            except ValueError as error:
-                self.log(f"[error] {error}")
-                continue
-            await incoming.receive(self, call_jsonrpc, tasks)
-        self._invalidate_attachment_views()
-        self._active_turn_id = None
-        self.post_message(messages.McpClientStopped(self))
-        for task in tasks:
-            task.cancel()
-        if tasks:
-            await asyncio.gather(*tasks, return_exceptions=True)
-        if process.returncode and (not self._stopping):
-            assert process.stderr is not None
-            fail_details = (await process.stderr.read()).decode("utf-8", "replace")
-            self.post_message(
-                AgentFail(
-                    f"Agent returned a failure code: [b]{process.returncode}",
-                    details=fail_details,
-                )
-            )
-        if (
-            not self._stopping
-            and self._process_group_id is not None
-            and self._process_group_alive(self._process_group_id)
-        ):
-            with suppress(OSError):
-                os.killpg(self._process_group_id, 15)
-            await asyncio.sleep(0.1)
-            if self._process_group_alive(self._process_group_id):
-                with suppress(OSError):
-                    os.killpg(self._process_group_id, 9)
-        self._process_group_id = None
-        self._process = None
 
     async def stop(self) -> None:
         """Gracefully stop the process."""
-        self._stopping = True
+        self.process.stopping = True
         self._invalidate_attachment_views()
         self._active_turn_id = None
         self.post_message(messages.McpClientStopped(self))
@@ -831,74 +731,8 @@ class Agent(AgentBase):
             db = DB()
             await db.session_update_last_used(self.session_pk)
 
-        process = self._process
-        process_group = self._process_group_id
-        if (
-            process is not None
-            and process.returncode is None
-            and process.stdin is not None
-        ):
-            process.stdin.close()
-            with suppress(BrokenPipeError, ConnectionResetError):
-                await process.stdin.wait_closed()
-            with suppress(TimeoutError):
-                await asyncio.wait_for(process.wait(), timeout=1)
-        if os.name != "nt" and process_group is not None:
-            with suppress(OSError):
-                os.killpg(process_group, 15)
-            if process is not None and process.returncode is None:
-                with suppress(TimeoutError):
-                    await asyncio.wait_for(process.wait(), timeout=3)
-            if self._process_group_alive(process_group):
-                with suppress(OSError):
-                    os.killpg(process_group, 9)
-                deadline = asyncio.get_running_loop().time() + 1
-                while (
-                    self._process_group_alive(process_group)
-                    and asyncio.get_running_loop().time() < deadline
-                ):
-                    await asyncio.sleep(0.05)
-            if process is not None and process.returncode is None:
-                with suppress(TimeoutError):
-                    await asyncio.wait_for(process.wait(), timeout=1)
-        elif process is not None and process.returncode is None:
-            try:
-                process.terminate()
-            except OSError:
-                pass
-            try:
-                await asyncio.wait_for(process.wait(), timeout=3)
-            except TimeoutError:
-                try:
-                    process.kill()
-                except OSError:
-                    pass
-                with suppress(TimeoutError):
-                    await asyncio.wait_for(process.wait(), timeout=1)
+        await self.process.stop()
 
-        current = asyncio.current_task()
-        for task in (self._task, self._agent_task):
-            if task is not None and task is not current and not task.done():
-                task.cancel()
-        pending = [
-            task
-            for task in (self._task, self._agent_task)
-            if task is not None and task is not current
-        ]
-        if pending:
-            await asyncio.gather(*pending, return_exceptions=True)
-        self._process_group_id = None
-        self._process = None
-
-    @staticmethod
-    def _process_group_alive(process_group: int) -> bool:
-        try:
-            os.killpg(process_group, 0)
-        except ProcessLookupError:
-            return False
-        except PermissionError:
-            return True
-        return True
 
     async def run(self) -> None:
         """The main logic of the Agent."""
@@ -941,7 +775,7 @@ class Agent(AgentBase):
         Args:
             prompt: Prompt text.
         """
-        self.prompt_in_flight += 1
+        self.presentation.prompt_in_flight += 1
         submission = asyncio.current_task() if defer_display else None
         if submission is not None:
             self._deferred_submissions.add(submission)
@@ -967,7 +801,7 @@ class Agent(AgentBase):
                 prompt_content_blocks, request_type(prompt, defer_display)
             )
         finally:
-            self.prompt_in_flight -= 1
+            self.presentation.prompt_in_flight -= 1
             if submission is not None:
                 self._deferred_submissions.discard(submission)
 
@@ -1035,7 +869,6 @@ class Agent(AgentBase):
             ) from error
         target = self._message_target
         await self.stop()
-        self._stopping = False
         self._reconnecting = True
         self.session_ready_event.clear()
         try:
@@ -1078,7 +911,7 @@ class Agent(AgentBase):
         # Store agents capabilities
         if agent_capabilities := response.get("agentCapabilities"):
             self.agent_capabilities = agent_capabilities
-        self.auth_methods = response.get("authMethods") or []
+        self.presentation.auth_methods = response.get("authMethods") or []
 
     async def acp_new_session(self) -> None:
         """Create a new session."""
@@ -1229,8 +1062,8 @@ class Agent(AgentBase):
                     ]
                     if current in levels:
                         self._thinking_config_id = str(config["id"])
-                        self.current_thinking_level = current
-                        self.thinking_levels = levels
+                        self.presentation.current_thinking_level = current
+                        self.presentation.thinking_levels = levels
                         self.post_message(messages.SetThinkingLevels(current, levels))
             if self._model_config_id is None:
                 self.post_message(messages.SetModels("", {}))
@@ -1295,7 +1128,7 @@ class Agent(AgentBase):
     def _rename_coordination_thread(self, display_name: str) -> None:
         thread = self.coordination.thread.name if self.coordination else None
         wire_root = self.coordination.wire_root if self.coordination else None
-        process = self._process
+        process = self.process.process
         if thread is None or wire_root is None or process is None:
             return
 

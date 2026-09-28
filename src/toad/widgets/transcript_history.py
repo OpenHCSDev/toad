@@ -1,6 +1,7 @@
 """Bounded, cursor-paged saved history; all transcript interpretation is model-owned."""
 
 from __future__ import annotations
+from toad.block_navigation import ConversationBlock
 
 from toad.widgets.message_filter import OtherCategory
 
@@ -277,7 +278,7 @@ class TranscriptPageView(VerticalGroup):
         self.start, self.stop = start, stop
 
 
-class TranscriptHistory(CommittedHistory, CategorizedBlock, VerticalGroup):
+class TranscriptHistory(ConversationBlock, CommittedHistory, CategorizedBlock, VerticalGroup):
     CACHE_HEIGHT_INDEPENDENT_BOX = True
     CACHE_HEIGHT_INDEPENDENT_ARRANGEMENT = True
     MAX_FRAGMENTS = 24

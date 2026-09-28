@@ -1,3 +1,4 @@
+from toad.conversation_turn import AgentTurn, ClientTurn
 """Measure next-frame latency when activating already-mounted conversation tabs."""
 
 import asyncio
@@ -110,7 +111,7 @@ async def main():
                     ])
                 if busy:
                     app.screen.conversation.busy_count = 1
-                    app.screen.conversation.turn = "agent"
+                    app.screen.conversation.turns.owner = AgentTurn()
                 await pilot.pause()
             timings = []
             profile_path = os.environ.get("TOAD_SWITCH_PROFILE")

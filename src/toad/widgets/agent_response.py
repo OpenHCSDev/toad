@@ -1,6 +1,7 @@
 from __future__ import annotations
+from toad.block_navigation import ConversationBlock, ChildBlockCursor
+from functools import cached_property
 
-from textual.reactive import var
 from textual.widget import Widget
 from toad.widgets.streaming_markdown import StreamingMarkdown
 from agent_comms.routing import MessageRoute
@@ -59,9 +60,8 @@ class RoutedResponse(ResponseDelivery):
         widget.add_class("-routed")
 
 
-class AgentResponse(CategorizedBlock, StreamingMarkdown):
+class AgentResponse(ConversationBlock, CategorizedBlock, StreamingMarkdown):
     DEFAULT_CLASSES = "block"
-    block_cursor_offset = var(-1)
 
     @property
     def message_category(self) -> type[MessageCategory]:
@@ -79,47 +79,6 @@ class AgentResponse(CategorizedBlock, StreamingMarkdown):
         self.delivery = delivery
         delivery.decorate(self)
 
-    def block_cursor_clear(self) -> None:
-        self.block_cursor_offset = -1
-
-    def block_cursor_up(self) -> Widget | None:
-        if self.block_cursor_offset == -1:
-            if self.children:
-                self.block_cursor_offset = len(self.children) - 1
-            else:
-                return None
-        else:
-            self.block_cursor_offset -= 1
-
-        if self.block_cursor_offset == -1:
-            return None
-        try:
-            return self.children[self.block_cursor_offset]
-        except IndexError:
-            self.block_cursor_offset = -1
-            return None
-
-    def block_cursor_down(self) -> Widget | None:
-        if self.block_cursor_offset == -1:
-            if self.children:
-                self.block_cursor_offset = 0
-            else:
-                return None
-        else:
-            self.block_cursor_offset += 1
-        if self.block_cursor_offset >= len(self.children):
-            self.block_cursor_offset = -1
-            return None
-        try:
-            return self.children[self.block_cursor_offset]
-        except IndexError:
-            self.block_cursor_offset = -1
-            return None
-
-    def get_cursor_block(self) -> Widget | None:
-        if self.block_cursor_offset == -1:
-            return None
-        return self.children[self.block_cursor_offset]
-
-    def block_select(self, widget: Widget) -> None:
-        self.block_cursor_offset = self.children.index(widget)
+    @cached_property
+    def block_cursor(self):
+        return ChildBlockCursor(self)

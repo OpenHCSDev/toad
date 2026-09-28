@@ -1,4 +1,5 @@
 from __future__ import annotations
+from toad.block_navigation import ConversationBlock
 
 from dataclasses import dataclass
 
@@ -16,7 +17,7 @@ class NonSelectableStatic(Static):
     ALLOW_SELECT = False
 
 
-class Plan(containers.Grid):
+class Plan(ConversationBlock, containers.Grid):
     # BORDER_TITLE = "Plan"
     DEFAULT_CLASSES = "block"
     DEFAULT_CSS = """
