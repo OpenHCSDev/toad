@@ -33,6 +33,11 @@ class SidebarFocusOwner:
 
 
 class SideBarCollapsible(widgets.Collapsible, inherit_css=False):
+    CACHE_HEIGHT_INDEPENDENT_ARRANGEMENT = True
+
+    class Contents(widgets.Collapsible.Contents):
+        CACHE_HEIGHT_INDEPENDENT_ARRANGEMENT = True
+
     # Selection is drawn on the focused row. Inheriting Collapsible's container
     # focus-within tint would restyle the entire channel tree on pointer entry.
     BINDING_GROUP_TITLE = "Sidebar collapsible"

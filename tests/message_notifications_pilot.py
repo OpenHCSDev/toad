@@ -137,6 +137,7 @@ async def main():
                 assert "Responded" in str(row.query_one(MessageNotifications).title)
                 row.query_one(MessageNotifications).show_result(())
                 assert "No recorded" in str(row.query_one(MessageNotifications).title)
+        await asyncio.get_running_loop().shutdown_default_executor()
         print("PASS: mounted IRC/Markdown, expanded details, live states without new messages, priority, batch/off-thread/visible bounds, errors/recovery, hidden/inflight guards, native Ready override, no fabricated ACP turn")
 
 

@@ -7,7 +7,7 @@ from pathlib import Path
 
 from agent_comms.threads import Thread
 from agent_comms.comms import wire
-from runtime_fixture import ToadApp
+from runtime_fixture import ToadApp, wait_channel_roster
 from toad.widgets.comms_menu import ContextMenuItem
 from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.comms_sidebar import ChannelGroup, CommsSidebar
@@ -37,7 +37,7 @@ async def main() -> None:
         async with app.run_test(size=(100, 30)) as pilot:
             await pilot.pause()
             owner = app.current_mode
-            sidebar = app.screen.query_one(CommsSidebar)
+            sidebar = await wait_channel_roster(app, pilot, "#team")
             await pilot.click(group(sidebar, "#team").row, button=3)
             await pilot.pause()
             item = next(item for item in app.screen.query(ContextMenuItem)

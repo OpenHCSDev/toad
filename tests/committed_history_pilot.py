@@ -17,6 +17,10 @@ from toad.widgets.transcript_history import TranscriptHistory
 
 class SnapshotAgent(Agent):
     def __init__(self, page):
+        super().__init__(Path.cwd(), {
+            "name": "Snapshot fixture", "identity": "snapshot-fixture", "short_name": "fixture",
+            "run_command": {"*": "/bin/false"}, "protocol": "acp",
+        }, None)
         self.page = page
         self.ready = False
 

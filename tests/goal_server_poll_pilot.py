@@ -201,7 +201,7 @@ async def main():
         finally:
             await owner.shutdown()
             if peer_turn is not None and "peer" in comms.registry:
-                comms.agents.finish_turn("peer", "fixture-dependent-turn", expected=peer_turn)
+                comms.agents.finish_turn(peer_turn)
     print(
         "goal server poll: actual owner read/mutations, standby, scrolling, live modal/draft, outage recovery and bounded read pass"
     )

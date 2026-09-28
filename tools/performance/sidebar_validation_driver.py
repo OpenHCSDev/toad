@@ -28,6 +28,46 @@ def record(event, **values):
 
 
 def install_observer():
+    if os.environ.get("TOAD_VALIDATION_ARRANGEMENTS") == "1":
+        from textual.widget import Widget
+
+        widget_arrange = Widget.arrange
+
+        def measured_arrangement(self, size, optimal=False):
+            hits = self._arrangement_cache.hits
+            revision = self._nodes._updates, self._layout_updates, self.styles._cache_key
+            begin = time.monotonic_ns()
+            result = widget_arrange(self, size, optimal=optimal)
+            duration_ms = (time.monotonic_ns() - begin) / 1e6
+            record("arrangement", begin_ns=begin, duration_ms=duration_ms,
+                   owner=id(self), widget=type(self).__name__, container=list(size),
+                   revision=revision, optimal=optimal,
+                   hit=self._arrangement_cache.hits > hits,
+                   result=[list(result.scroll_spacing), [
+                       [list(p.region), list(p.offset), list(p.margin), id(p.widget),
+                        p.order, p.fixed, p.overlay, p.absolute] for p in result.placements]])
+            return result
+
+        Widget.arrange = measured_arrangement
+    if os.environ.get("TOAD_VALIDATION_BOX_MODELS") == "1":
+        from textual.widget import Widget
+
+        get_box = Widget._get_box_model
+
+        def measured_box(self, container, viewport, width_fraction, height_fraction,
+                         constrain_width=False, greedy=True):
+            hits = self._box_model_cache.hits
+            begin = time.monotonic_ns()
+            result = get_box(self, container, viewport, width_fraction, height_fraction,
+                             constrain_width=constrain_width, greedy=greedy)
+            record("box_model", begin_ns=begin, duration_ms=(time.monotonic_ns()-begin)/1e6,
+                   owner=id(self), widget=type(self).__name__, container=list(container),
+                   viewport=list(viewport), width_fraction=str(width_fraction), height_fraction=str(height_fraction),
+                   revision=self._box_model_revision, hit=self._box_model_cache.hits > hits,
+                   result=[str(result.width), str(result.height)], greedy=greedy)
+            return result
+
+        Widget._get_box_model = measured_box
     if os.environ.get("TOAD_VALIDATION_FILTER_PROBE"):
         from textual.message_pump import MessagePump
         from toad.widgets.prompt import PromptTextArea
@@ -98,6 +138,10 @@ def install_observer():
 
     SideBar.toggle = measured_toggle
     from toad.screens.session_view import SessionView
+    if os.environ.get("TOAD_VALIDATION_COLD_PRESENTATIONS") == "1":
+        SessionView.RETAIN_INACTIVE_PRESENTATION = False
+    if os.environ.get("TOAD_VALIDATION_COLD_PAINT") == "1":
+        SessionView.RETAIN_INACTIVE_PAINT = False
     from toad.app import ToadApp
     from toad.widgets.conversation import Conversation
     exception_handler = ToadApp._handle_exception
@@ -388,7 +432,12 @@ class ValidationDriver(LinuxDriver):
         # disable GC; release the temporary strong references immediately.
         begin = time.monotonic_ns()
         objects = gc.get_objects()
+        from widget_census import widget_cohorts
+
+        cohorts = widget_cohorts(objects, self._app,
+                                 limit=int(os.environ.get("TOAD_VALIDATION_CENSUS_LIMIT", "60")))
         counts = Counter((type(value).__module__, type(value).__qualname__) for value in objects)
+        from textual._styles_cache import StylesCache
         from textual.widget import Widget
         from textual.dom import DOMNode
         widget_counts = Counter((type(value).__name__, value.is_mounted, value._closing, value._closed)
@@ -404,15 +453,22 @@ class ValidationDriver(LinuxDriver):
                         if subscriber._closed:
                             closed_watch_paths[(type(value).__name__, attribute, type(subscriber).__name__)] += 1
             if isinstance(value, Widget):
+                revision = value._box_model_revision
                 for key in value._box_model_cache.keys():
-                    current = (value._layout_updates, value.styles._cache_key)
-                    measurement_entries["current" if key[-2:] == current else "obsolete"] += 1
+                    # The owner-published suffix includes structure and optional proof
+                    # epochs; comparing a historical two-field suffix mislabels it.
+                    measurement_entries[
+                        "owner_generation" if revision is not None and key[-len(revision):] == revision
+                        else "other_generation"
+                    ] += 1
         total = len(objects)
         del objects
         data = {"ns": time.monotonic_ns(), "pid": os.getpid(), "tracked": total,
+                "widget_cohorts": cohorts,
                 "counts": counts.most_common(60), "widgets": widget_counts.most_common(50),
                 "closed_widgets": {name: count for (name, _mounted, _closing, closed), count in widget_counts.items() if closed},
                  "measurement_entries": dict(measurement_entries),
+                 "paint_color_cache": StylesCache.get_inner_outer.cache_info()._asdict(),
                  "reactive_subscriptions": dict(reactive_subscriptions),
                  "closed_reactive_watch_paths": closed_watch_paths.most_common(20),
                 "gc": gc.get_stats(),
@@ -461,6 +517,7 @@ class ValidationDriver(LinuxDriver):
         return result
 
     def _snapshot(self):
+        from agent_comms.transcript_events import TranscriptCodec
         from toad.widgets.comms_sidebar import CommsRow, ThreadRow
         from toad.widgets.comms_sidebar import CommsSidebar
         from toad.widgets.virtual_channel_list import VirtualChannelList
@@ -511,6 +568,9 @@ class ValidationDriver(LinuxDriver):
                 if not visible:
                     continue
                 row = {"kind": type(widget).__name__, "id": widget.id, "rect": list(visible)}
+                if isinstance(widget, CommsRow):
+                    row["object_id"] = id(widget)
+                    row["channel_roster"] = any(isinstance(node, CommsSidebar) for node in widget.ancestors)
                 if isinstance(widget, SideBarToggle):
                     bar = widget.query_ancestor(SideBar)
                     row.update(sidebar=bar.id, collapsed=bar.collapsed)
@@ -535,8 +595,7 @@ class ValidationDriver(LinuxDriver):
         histories = [{"loading": history._loading, "fragments": history.fragment_count,
                       "has_older": history.has_older, "has_newer": history.has_newer,
                       "pages": [{"before": str(page.page.before), "after": str(page.page.after),
-                                 "text_sha256": sha256(json.dumps([(event.kind, event.text, event.tool_call_id,
-                                                                  event.tool_name, event.raw_input)
+                                 "text_sha256": sha256(json.dumps([TranscriptCodec.encode(event)
                                                                  for event in page.page.events],
                                                                 sort_keys=True, default=str).encode()).hexdigest(),
                                  "start": page.start, "stop": page.stop} for page in history.pages]}
@@ -552,6 +611,10 @@ class ValidationDriver(LinuxDriver):
                 "size": list(app.size), "tabs": [(tab.mode_name, tab.title) for tab in app.open_tabs],
                 "histories": histories, "pid": os.getpid(), "widgets": rows,
                 "mouse_captured": app.mouse_captured is not None,
+                "presentation_policy": {
+                    "retain_inactive_presentation": screen.RETAIN_INACTIVE_PRESENTATION,
+                    "retain_inactive_paint": getattr(screen, "RETAIN_INACTIVE_PAINT", None),
+                },
                 "diagnostics": {"features": sorted(app.features),
                                 "decorated_dispatch_counts": dict(dispatch_counts),
                                 "devtools_connected": app._is_devtools_connected,

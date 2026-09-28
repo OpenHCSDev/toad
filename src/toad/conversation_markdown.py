@@ -11,6 +11,7 @@ from markdown_it import MarkdownIt
 from markdown_it.rules_core import StateCore
 from markdown_it.token import Token
 from textual.widgets import Markdown
+from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
 from textual.widgets._markdown import MarkdownBlock
 
 
@@ -254,6 +255,7 @@ class ConversationMarkdown(Markdown):
             open_preview = self.app.open_file_preview
         await open_preview(path)
 
+    @height_dependency(INDEPENDENT_HEIGHT)
     def process_layout(self, placements: list[WidgetPlacement]) -> list[WidgetPlacement]:
         return trim_trailing_margin(placements)
 

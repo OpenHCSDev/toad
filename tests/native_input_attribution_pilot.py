@@ -38,9 +38,9 @@ async def main(*, historical: bool) -> None:
         outgoing = comms.messaging.send_message("owner", "peer", "Outgoing peer body")
         prompt = ScheduledTurn.incoming(incoming).prompt
         human = "[agent-comms from example to owner]\nA human quoting a header"
-        comms.transcripts.record_input_display("a" * 32, human, sent_text=human)
+        comms.transcripts.routes.record_input_display("a" * 32, human, sent_text=human)
         if historical:
-            comms.transcripts.record_input_display("b" * 32, prompt)
+            comms.transcripts.routes.record_input_display("b" * 32, prompt)
             ledger = InputDispositions(comms.root / InputDispositions.filename)
             key = f"bus:{incoming.seq}"
             ledger.record(key, seq=incoming.seq, owner="owner", admission=1,
@@ -50,7 +50,7 @@ async def main(*, historical: bool) -> None:
             assert comms.transcripts.repair_input_routing(dry_run=False)["repaired"] == 1
             assert ledger.read().rows[key].unresolved, "Display repair is not an input ACK"
         else:
-            comms.transcripts.record_input_display("b" * 32, prompt, sent_text=prompt,
+            comms.transcripts.routes.record_input_display("b" * 32, prompt, sent_text=prompt,
                                        routing=TurnRouting((incoming,), None))
         records = [
             {"type": "message", "id": "human", "message": {

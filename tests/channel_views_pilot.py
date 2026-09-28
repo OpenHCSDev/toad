@@ -9,7 +9,7 @@ from agent_comms.activity import ActivityState
 from agent_comms.display_order import ChannelSort, ThreadSort
 from agent_comms.threads import Thread
 from agent_comms.comms import wire
-from runtime_fixture import ToadApp
+from runtime_fixture import ToadApp, wait_channel_roster
 from toad.screens.comms import CommsScreen
 from toad.screens.main import MainScreen
 from toad.widgets.comms_sidebar import CommsSidebar, CommsRow, ChannelGroup, ChannelDisclosure, NewSessionButton
@@ -48,7 +48,7 @@ async def main():
             assert app.settings.get("ui.footer", bool) is False
             assert app.has_class("-hide-footer")
             owner = app.current_mode
-            sidebar = app.screen.query_one(CommsSidebar)
+            sidebar = await wait_channel_roster(app, pilot, "#any", "#none", "#engineering")
             assert all(isinstance(child, (NewSessionButton, ChannelGroup)) for child in sidebar.children)
             assert {group.row.target_name for group in sidebar.query(ChannelGroup)} >= {"#any", "#none", "#engineering"}
             none_group = next(group for group in sidebar.query(ChannelGroup) if group.row.target_name == "#none")

@@ -6,6 +6,8 @@ from textual.containers import HorizontalGroup, VerticalScroll
 
 
 class SidebarHeader(HorizontalGroup):
+    CACHE_HEIGHT_INDEPENDENT_ARRANGEMENT = True
+
     def on_mount(self) -> None:
         viewport = next((node for node in self.ancestors if isinstance(node, SidebarViewport)), None)
         if viewport is not None:
