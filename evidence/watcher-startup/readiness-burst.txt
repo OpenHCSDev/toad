@@ -1,0 +1,2 @@
+{"native_burst_files": 200, "overlapped_threads": 2, "concurrent_pipe_writers": 0, "readiness_delivered": true, "later_delivery": true, "joined_seconds": 0.0848772120079957}
+PASS: real native burst overlaps readiness; delivery and process exit complete

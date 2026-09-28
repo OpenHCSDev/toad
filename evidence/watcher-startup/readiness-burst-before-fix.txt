@@ -1,0 +1,31 @@
+Exception in thread Thread-2:
+Traceback (most recent call last):
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py", line 1082, in _bootstrap_inner
+    self._context.run(self.run)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-compaction-policy-b3a9c06/lib/python3.14/site-packages/watchdog/observers/api.py", line 213, in run
+    self.dispatch_events(self.event_queue)
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-compaction-policy-b3a9c06/lib/python3.14/site-packages/watchdog/observers/api.py", line 391, in dispatch_events
+    handler.dispatch(event)
+    ~~~~~~~~~~~~~~~~^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-compaction-policy-b3a9c06/lib/python3.14/site-packages/watchdog/events.py", line 216, in dispatch
+    self.on_any_event(event)
+    ~~~~~~~~~~~~~~~~~^^^^^^^
+  File "/home/ts/wt/toad-watcher-startup-cancel-20260928/tests/watcher_readiness_burst.py", line 26, in dispatch
+    on_event(handler, event)
+    ~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-watcher-startup-cancel-20260928/.artifacts/unlocked/toad/directory_watcher.py", line 113, in on_any_event
+    self.connection.send(_ObserverChanged())
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-watcher-startup-cancel-20260928/tests/watcher_readiness_burst.py", line 35, in checked_send
+    raise AssertionError("Two threads entered Connection.send concurrently")
+AssertionError: Two threads entered Connection.send concurrently
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-watcher-startup-cancel-20260928/tests/watcher_readiness_burst.py", line 85, in <module>
+    main()
+    ~~~~^^
+  File "/home/ts/wt/toad-watcher-startup-cancel-20260928/tests/watcher_readiness_burst.py", line 66, in main
+    assert watcher.received.wait(5), "Burst invalidation was not delivered"
+           ~~~~~~~~~~~~~~~~~~~~~^^^
+AssertionError: Burst invalidation was not delivered

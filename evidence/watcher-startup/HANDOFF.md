@@ -1,3 +1,20 @@
+## Review correction: serialize readiness and event sends
+
+_ChangeSignal owns a child-local threading.Lock and notify(event). Both native
+Watchdog dispatch and the startup-ready notification use that method, so the
+single Connection has one writer at a time. No process-shared mutex was added.
+
+Installed-wheel watcher_readiness_burst passes:200 real file creations overlap
+the readiness send across native dispatch/main threads, readiness and subsequent
+invalidation deliver, and watcher/child join in0.085s. The test holds the real
+readiness write until native dispatch enters, instruments concurrent send entry,
+and otherwise uses actual watchdog, spawned child and Connection transport.
+Same test on the pre-fix source fails with “Two threads entered Connection.send
+concurrently” and missing burst delivery. Logs retain both outcomes. Only this
+focused race test ran; prior cancellation/UI receipts below remain unchanged.
+
+Core saved-history unread-scan blocker is now Cicero-owned; not a109 merge gate.
+
 # Cancel recursive directory watcher startup
 
 Independent of paired nominal-refactor PR107; based on current Toad main43e57c9.
