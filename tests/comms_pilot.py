@@ -434,7 +434,6 @@ async def main() -> None:
                 update={
                     "sessionUpdate": "session_info_update",
                     "title": "Name this from my first prompt",
-                    "_meta": {"agentComms": {"thread": renamed_thread}},
                 },
             )
             await pilot.pause()

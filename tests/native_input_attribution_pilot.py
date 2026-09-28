@@ -4,10 +4,10 @@ import asyncio
 import json
 import os
 import tempfile
-from dataclasses import asdict
 from pathlib import Path
 
 from agent_comms.comms import wire
+from agent_comms.acp_extension import TextRouteUpdate, encode_updates
 from agent_comms.input_disposition import InputDispositions
 from agent_comms.routing import MessageRoute, ScheduledTurn, TurnRouting
 from agent_comms.threads import Thread
@@ -121,30 +121,16 @@ async def main(*, historical: bool) -> None:
                 "owner",
             )
             agent._message_target = view
-            agent.rpc_session_update(
-                "owner",
-                {
-                    "sessionUpdate": "agent_message_chunk",
-                    "content": {"type": "text", "text": ""},
-                    "_meta": {
-                        "agentComms": {
-                            "incoming": {
-                                "sender": incoming.sender,
-                                "target": incoming.target,
-                                "body": incoming.body,
-                                "sequence": incoming.seq,
-                            }
-                        }
-                    },
-                },
-            )
+            await view.post(IncomingMessage(
+                incoming.sender, incoming.target, incoming.body, sequence=incoming.seq,
+            ))
             route = MessageRoute("owner", ("peer",))
             agent.rpc_session_update(
                 "owner",
                 {
                     "sessionUpdate": "agent_message_chunk",
                     "content": {"type": "text", "text": outgoing.body},
-                    "_meta": {"agentComms": {"route": asdict(route)}},
+                    "_meta": encode_updates(TextRouteUpdate(route)),
                 },
             )
             await pilot.pause()
