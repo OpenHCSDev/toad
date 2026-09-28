@@ -24,6 +24,7 @@ from textual.message import Message
 from textual.widget import Widget
 from textual.widgets import Static
 
+from toad.transcript_state import TranscriptState, LiveTranscript, ProvisionalTranscript
 from toad.acp import protocol
 from toad.acp.encode_tool_call_id import encode_tool_call_id
 from toad.transcript_preparation import (
@@ -288,7 +289,7 @@ class TranscriptHistory(CommittedHistory, CategorizedBlock, VerticalGroup):
                   *, fragments: tuple[TranscriptFragment, ...] | None = None,
                   budget: PresentationBudget | None = None, committed: bool = True):
         super().__init__()
-        self._committed = committed
+        self._source_state: TranscriptState = LiveTranscript() if committed else ProvisionalTranscript()
         self.budget = budget or PresentationBudget(
             max_items=self.MAX_FRAGMENTS, admission_items=TranscriptPageView.BATCH,
         )
@@ -319,8 +320,12 @@ class TranscriptHistory(CommittedHistory, CategorizedBlock, VerticalGroup):
         return tuple(child for page in self.pages for child in page.children)
 
     @property
+    def state(self) -> TranscriptState:
+        return self._source_state.observed(self)
+
+    @property
     def _publication_current(self) -> bool:
-        return self._committed and self.is_attached and not self._closing and not self._pruning
+        return self.state.accepts_publication
 
     def _require_publication(self) -> None:
         if not self._publication_current:
@@ -339,12 +344,12 @@ class TranscriptHistory(CommittedHistory, CategorizedBlock, VerticalGroup):
         return self._filter_overlay.has_older if self._filter_overlay is not None else self.has_older
 
     def _report_coverage(self, page: TranscriptPage, fragments: tuple[TranscriptFragment, ...]) -> None:
-        if self._committed:
+        if self._source_state.reports_coverage:
             self.post_message(self.Covered(page.events, self))
 
     def publish_committed(self) -> None:
         """Acquire live-row ownership only after a provisional mount is accepted."""
-        self._committed = True
+        self._source_state = self._source_state.publish()
         self.post_message(self.Covered(tuple(self.coverage_events), self))
         self._scroll_changed()
         self._warm_pages()
@@ -577,7 +582,7 @@ class TranscriptHistory(CommittedHistory, CategorizedBlock, VerticalGroup):
             current_generation = generation == self._generation
             if current_generation and (admitted or not self._filter_has_older):
                 self._filter_force_pending = False
-            if (self.is_attached and self._filtered_source and not self._closing
+            if (self.state.accepts_publication and self._filtered_source
                     and self.screen is self.app.screen):
                 # A page containing no routed entries has no new widget/layout
                 # event to drive the next step. Explicit clicks keep scanning
@@ -601,7 +606,7 @@ class TranscriptHistory(CommittedHistory, CategorizedBlock, VerticalGroup):
             self.sequences = incoming_sequences(events)
 
     def covers_incoming(self, sequence: int) -> bool:
-        if not self._committed:
+        if not self._source_state.reports_coverage:
             return False
         if sequence in self.Covered(tuple(self.coverage_events)).sequences:
             return True
