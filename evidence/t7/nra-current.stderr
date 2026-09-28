@@ -1,0 +1,25 @@
+Traceback (most recent call last):
+  File "<frozen runpy>", line 194, in _run_module_as_main
+  File "<frozen runpy>", line 151, in _get_module_details
+  File "<frozen runpy>", line 114, in _get_module_details
+  File "/home/ts/code/projects/nominal-refactor-advisor/nominal_refactor_advisor/__init__.py", line 8, in <module>
+    from .analysis import (
+        analyze_lean_export,
+    )
+  File "/home/ts/code/projects/nominal-refactor-advisor/nominal_refactor_advisor/analysis.py", line 24, in <module>
+    from .analysis_cache import (
+    ...<15 lines>...
+    )
+  File "/home/ts/code/projects/nominal-refactor-advisor/nominal_refactor_advisor/analysis_cache.py", line 18, in <module>
+    from .ast_tools import (
+    ...<6 lines>...
+    )
+  File "/home/ts/code/projects/nominal-refactor-advisor/nominal_refactor_advisor/ast_tools.py", line 59, in <module>
+    from .native_syntax import NativePythonSyntaxIndex
+  File "/home/ts/code/projects/nominal-refactor-advisor/nominal_refactor_advisor/native_syntax.py", line 14, in <module>
+    from tree_sitter import Language, Node, Parser, Query, QueryCursor, Tree
+  File "/home/ts/code/projects/nominal-refactor-advisor/.venv/lib/python3.11/site-packages/tree_sitter/__init__.py", line 5, in <module>
+    from ._binding import (
+    ...<14 lines>...
+    )
+ModuleNotFoundError: No module named 'tree_sitter._binding'

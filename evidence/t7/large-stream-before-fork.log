@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-t7-terminal-20260928/tests/large_stream_pilot.py", line 12, in <module>
+    from toad.widgets.agent_response import AgentResponse
+  File "/home/ts/wt/toad-t7-terminal-20260928/.artifacts/baseline/src/toad/widgets/agent_response.py", line 5, in <module>
+    from toad.widgets.route_header import RouteHeader
+  File "/home/ts/wt/toad-t7-terminal-20260928/.artifacts/baseline/src/toad/widgets/route_header.py", line 9, in <module>
+    from toad.widgets.comms_sidebar import SelectTarget
+  File "/home/ts/wt/toad-t7-terminal-20260928/.artifacts/baseline/src/toad/widgets/comms_sidebar.py", line 37, in <module>
+    from agent_comms.owner_lifecycle import OBSERVATION_INTERVAL
+ImportError: cannot import name 'OBSERVATION_INTERVAL' from 'agent_comms.owner_lifecycle' (/home/ts/wt/comms-refactor2-s13-20260928/src/agent_comms/owner_lifecycle.py)

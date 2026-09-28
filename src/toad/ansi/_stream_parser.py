@@ -1,15 +1,15 @@
-from functools import lru_cache
 import io
 import re
+from abc import ABC, abstractmethod
+from collections import deque
+from collections.abc import Callable, Generator, Iterable
+from functools import lru_cache
 
 import rich.repr
 
-from textual.cache import LRUCache
-from typing import Callable, Generator, Iterable
-
 type TokenMatch = tuple[str, str]
 
-type ParseResult[ParseType] = Generator[StreamRead | ParseType, Token, None]
+type ParseResult = Generator[StreamRead, Token]
 type PatternCheck = Generator[None, str, TokenMatch | bool | None]
 
 
@@ -38,22 +38,35 @@ class Pattern[ValueType]:
         yield
 
 
-class StreamRead[ResultType]:
-    pass
+class StreamRead[ResultType](ABC):
+    """A read owns how input is consumed and what reaches the parser."""
+
+    @property
+    def is_exhausted(self) -> bool:
+        return True
+
+    @property
+    def unconsumed_text(self) -> str:
+        return ""
+
+    @abstractmethod
+    def feed(self, text: str) -> tuple[int, tuple[Token, ...]]:
+        """Return consumed characters and completed tokens."""
 
 
 @rich.repr.auto
 class Read[ResultType](StreamRead[ResultType]):
-    __slots__ = ["remaining"]
-
     def __init__(self, count: int) -> None:
         self.remaining = count
+
+    def feed(self, text: str) -> tuple[int, tuple[Token, ...]]:
+        value = text[: self.remaining]
+        self.remaining -= len(value)
+        return len(value), (Token(value),)
 
 
 @rich.repr.auto
 class ReadUntil[ResultType](StreamRead[ResultType]):
-    __slots__ = ["characters", "_regex"]
-
     def __init__(self, *characters: str) -> None:
         self.characters = characters
         self._regex = re.compile(
@@ -63,99 +76,96 @@ class ReadUntil[ResultType](StreamRead[ResultType]):
     def __rich_repr__(self) -> rich.repr.Result:
         yield from self.characters
 
+    def feed(self, text: str) -> tuple[int, tuple[Token, ...]]:
+        match = self._regex.search(text)
+        if match is None:
+            return len(text), (Token(text),)
+        start, end = match.span(0)
+        if start:
+            return start, (Token(text[:start]),)
+        return end, (SeparatorToken(text[:end]),)
+
 
 @rich.repr.auto
 class ReadRegex[ResultType](StreamRead[ResultType]):
-    __slots__ = ["regex", "max_length", "_buffer"]
+    def __init__(self, regex: str) -> None:
+        self.regex = re.compile(regex, re.VERBOSE)
 
-    def __init__(self, regex: str, max_length: int | None = None) -> None:
-        self.regex = regex
-        self.max_length = max_length
-        self._buffer = io.StringIO()
+    def feed(self, text: str) -> tuple[int, tuple[Token, ...]]:
+        match = self.regex.search(text)
+        if match is None:
+            return len(text), (Token(text),)
+        tokens = (MatchToken(match.group(0), match),)
+        if match.start():
+            tokens = (Token(text[: match.start()]), *tokens)
+        return match.end(), tokens
 
-    def __rich_repr__(self) -> rich.repr.Result:
-        yield self.regex
+
+class PatternRead[ResultType](StreamRead[ResultType]):
+    """Shared incremental consumption for one or several pattern declarations."""
+
+    def __init__(self, start: str) -> None:
+        self._text = io.StringIO()
+        self._text.write(start)
+        self._exhausted = False
 
     @property
-    def buffer_size(self) -> int:
-        return self._buffer.tell()
+    def is_exhausted(self) -> bool:
+        return self._exhausted
+
+    @property
+    def unconsumed_text(self) -> str:
+        return self._text.getvalue()
+
+    @abstractmethod
+    def match(self, character: str) -> tuple[str, TokenMatch] | bool | None:
+        """Advance the owned pattern candidates."""
+
+    def feed(self, text: str) -> tuple[int, tuple[Token, ...]]:
+        consumed = 0
+        for character in text:
+            consumed += 1
+            result = self.match(character)
+            if result is False:
+                self._exhausted = True
+                self._text.write(text[:consumed])
+                return consumed, (Token(self.unconsumed_text),)
+            if result:
+                self._exhausted = True
+                return consumed, (PatternToken(*result),)
+        self._text.write(text)
+        return consumed, ()
 
 
 @rich.repr.auto
-class ReadPatterns[ResultType](StreamRead[ResultType]):
-    __slots__ = ["patterns", "_text"]
-
+class ReadPatterns[ResultType](PatternRead[ResultType]):
     def __init__(self, start: str = "", **patterns: Pattern) -> None:
+        super().__init__(start)
         self.patterns = patterns
-        self._text = io.StringIO()
-        self._text.write(start)
 
-    @property
-    def unconsumed_text(self) -> str:
-        return self._text.getvalue()
-
-    def __rich_repr__(self) -> rich.repr.Result:
-        for key, value in self.patterns.items():
-            yield key, value
-
-    @property
-    def is_exhausted(self) -> bool:
-        return not self.patterns
-
-    def feed(self, text: str) -> tuple[int, TokenMatch | None]:
-        consumed = 0
-        new_patterns = patterns = self.patterns
-        for character in text:
-            consumed += 1
-            for name, sequence_validator in patterns.items():
-                if (value := sequence_validator.feed(character)) is False:
-                    new_patterns = patterns.copy()
-                    new_patterns.pop(name)
-                elif value:
-                    return consumed, (name, value)
-            patterns = self._patterns = new_patterns
-        self._text.write(text[:consumed])
-        return consumed, None
+    def match(self, character: str) -> tuple[str, TokenMatch] | bool | None:
+        rejected = []
+        for name, pattern in self.patterns.items():
+            result = pattern.feed(character)
+            if result is False:
+                rejected.append(name)
+            elif result:
+                return name, result
+        for name in rejected:
+            del self.patterns[name]
+        return None if self.patterns else False
 
 
 @rich.repr.auto
-class ReadPattern[ResultType](StreamRead[ResultType]):
-    """Special case for a single pattern."""
-
-    __slots__ = ["name", "pattern", "_text", "_exhaused"]
-
+class ReadPattern[ResultType](PatternRead[ResultType]):
     def __init__(self, start: str, name: str, pattern: Pattern) -> None:
+        super().__init__(start)
         self.name = name
-        self.pattern: Pattern = pattern
-        self._text = io.StringIO()
-        self._text.write(start)
-        self._exhaused = False
+        self.pattern = pattern
 
-    @property
-    def unconsumed_text(self) -> str:
-        return self._text.getvalue()
-
-    def __rich_repr__(self) -> rich.repr.Result:
-        yield self.name
-        yield self.pattern
-
-    @property
-    def is_exhausted(self) -> bool:
-        return self._exhaused
-
-    def feed(self, text: str) -> tuple[int, TokenMatch | None]:
-        consumed = 0
-        feed = self.pattern.feed
-        for character in text:
-            consumed += 1
-            if (value := feed(character)) is False:
-                self._exhaused = True
-                break
-            elif value:
-                self._exhaused = True
-                return consumed, ("pattern", value)
-        self._text.write(text[:consumed])
-        return consumed, None
+    def match(self, character: str) -> tuple[str, TokenMatch] | bool | None:
+        result = self.pattern.feed(character)
+        return (self.name, result) if result else result
 
 
 @rich.repr.auto
@@ -189,10 +199,6 @@ class MatchToken(Token):
         yield self.match
 
 
-class EOFToken(Token):
-    pass
-
-
 class PatternToken(Token):
     __slots__ = ["name", "value"]
 
@@ -210,9 +216,12 @@ class StreamParser[ParseType]:
     """Parses a stream of text into tokens."""
 
     def __init__(self):
+        self._tokens: deque[ParseType] = deque()
         self._gen = self.parse()
-        self._reading: StreamRead | ParseType = next(self._gen)
-        self._cache = LRUCache(1024 * 4)
+        self._reading: StreamRead | None = next(self._gen)
+
+    def emit(self, token: ParseType) -> None:
+        self._tokens.append(token)
 
     def read(self, count: int) -> Read:
         """Read a specific number of bytes.
@@ -222,8 +231,9 @@ class StreamParser[ParseType]:
         """
         return Read(count)
 
+    @staticmethod
     @lru_cache(1024)
-    def read_until(self, *characters: str) -> ReadUntil:
+    def read_until(*characters: str) -> ReadUntil:
         """Read until the given characters.
 
         Args:
@@ -252,13 +262,12 @@ class StreamParser[ParseType]:
             return ReadPattern(start, name, pattern)
         return ReadPatterns(start, **patterns)
 
-    def feed(self, text: str) -> Iterable[Token | ParseType]:
+    def feed(self, text: str) -> Iterable[ParseType]:
         sequences = text.splitlines(keepends=True)
-        # TODO: Cache
         for sequence in sequences:
             yield from self._feed(sequence)
 
-    def _feed(self, text: str) -> Iterable[Token | ParseType]:
+    def _feed(self, text: str) -> Iterable[ParseType]:
         """Feed text in to parser.
 
         Args:
@@ -269,150 +278,22 @@ class StreamParser[ParseType]:
 
         """
         if not text or self._gen is None:
-            yield EOFToken()
             return
 
-        def send(token: Token) -> Iterable[Token]:
-            try:
-                while True:
-                    new_token = self._gen.send(token)
-                    if isinstance(new_token, StreamRead):
-                        self._reading = new_token
-                        break
-                    else:
-                        token = new_token
-                        yield token
+        while text and self._reading is not None:
+            consumed, tokens = self._reading.feed(text)
+            text = text[consumed:]
+            for token in tokens:
+                try:
+                    self._reading = self._gen.send(token)
+                except StopIteration:
+                    self._gen.close()
+                    self._gen = None
+                    self._reading = None
+                while self._tokens:
+                    yield self._tokens.popleft()
+                if self._reading is None:
+                    return
 
-            except StopIteration:
-                self._gen.close()
-                self._gen = None
-
-        while text:
-            if isinstance(self._reading, (ReadPattern, ReadPatterns)):
-                consumed, pattern_match = self._reading.feed(text)
-
-                if pattern_match is not None:
-                    name, value = pattern_match
-                    yield from send(PatternToken(name, value))
-                    text = text[consumed:]
-                else:
-                    if self._reading.is_exhausted:
-                        unconsumed_text = self._reading.unconsumed_text
-                        yield from send(Token(unconsumed_text))
-                        text = text[consumed:]
-                    else:
-                        text = ""
-
-            elif isinstance(self._reading, Read):
-                if self._reading.remaining:
-                    read_text = text[: self._reading.remaining]
-                    read_text_length = len(read_text)
-                    self._reading.remaining -= read_text_length
-                    text = text[read_text_length:]
-                    yield from send(Token(read_text))
-                else:
-                    yield from send(Token(""))
-
-            elif isinstance(self._reading, ReadUntil):
-                if (match := self._reading._regex.search(text)) is not None:
-                    start, end = match.span(0)
-                    read_text = text[:start]
-
-                    if read_text:
-                        yield from send(Token(read_text))
-                        text = text[start:]
-                    else:
-                        yield from send(SeparatorToken(text[start:end]))
-                        text = text[end:]
-                else:
-                    yield from send(Token(text))
-                    text = ""
-
-            elif isinstance(self._reading, ReadRegex):
-                self._reading._buffer.write(text)
-                match_text = self._reading._buffer.getvalue()
-                if (
-                    match := re.search(self._reading.regex, match_text, re.VERBOSE)
-                ) is not None:
-                    token_text = match_text[: match.start(0)]
-                    if token_text:
-                        yield from send(Token(token_text))
-                    end = match.end(0)
-                    yield from send(MatchToken(match.group(0), match))
-                    text = text[end:]
-                else:
-                    yield from send(Token(match_text))
-                    text = ""
-
-    def parse(self) -> ParseResult[ParseType]:
+    def parse(self) -> ParseResult:
         yield from ()
-
-
-if __name__ == "__main__":
-    # from rich import print
-
-    import string
-
-    class KeyValue(Pattern):
-        def check(self) -> PatternCheck:
-            """Parses text in the form key:'value'
-
-            e.g
-
-            """
-            key: str = ""
-            value: str = ""
-            is_letter = string.ascii_lowercase.__contains__
-            if not is_letter(character := (yield)):
-                return False
-            key += character
-            while is_letter(character := (yield)):
-                key += character
-            if character != ":":
-                return False
-            if (yield) != "'":
-                return False
-            while is_letter(character := (yield)):
-                value += character
-            if character != "'":
-                return False
-            self.value = (key, value)
-            return True
-
-    class TestParser(StreamParser):
-        def parse(self) -> ParseResult:
-            token = yield self.read_patterns(key_value=KeyValue())
-            print("!", repr(token))
-            yield token
-            while token := (yield self.read(1)):
-                print(repr(token))
-            # while True:
-            #     token = yield self.read_until(":")
-            #     if not token:
-            #         break
-            #     yield token
-            #     if isinstance(token, SeparatorToken):
-            #         break
-            #     key += token.text
-
-            # while token := (yield self.read_regex(r"\'.*?\'")):
-            #     yield token
-            #     if isinstance(token, MatchToken):
-            #         break
-
-            # string = yield self.read_regex("'.*?'")
-            # print("VALUE=", string)
-
-            # yield (yield self.read(3))
-            # while (text := (yield self.read_until("'"))) != "'":
-            #     yield text
-            # yield text
-            # while (text := (yield self.read_until("'"))) != "'":
-            #     yield text
-            # yield text
-
-    parser = TestParser()
-
-    for chunk in ["foo", ":", "'bar", "asd", "asdasd", "';"]:
-        for token in parser.feed(chunk):
-            print(repr(token))
