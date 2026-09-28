@@ -1777,17 +1777,9 @@ class ToadApp(App, inherit_bindings=False):
 
     async def _broker_event(self, event_name, event, default_namespace) -> bool:
         """Offer copy-path on right-click without activating a file link."""
-        if (
-            event_name == "click"
-            and isinstance(event, events.Click)
-            and event.button == 3
-        ):
+        if event_name == "click" and isinstance(event, events.Click) and event.button == 3:
             action = event.style.meta.get("@click")
-            if (
-                isinstance(action, str)
-                and action.startswith("link(")
-                and action.endswith(")")
-            ):
+            if isinstance(action, str) and action.startswith("link(") and action.endswith(")"):
                 try:
                     href = ast.literal_eval(action[5:-1])
                 except SyntaxError, ValueError:

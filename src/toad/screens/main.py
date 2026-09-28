@@ -211,12 +211,12 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
             yield ThreadSidebar(
                 SideBar.Panel("Thread", CoordinationStatus(self._comms_thread), id="coordination-panel"),
                 SideBar.Panel("Comms", ThreadCommsSidebar(
-                    self._comms_thread, wire_root=self._coordination_root, live=True),
+                    self._comms_thread, wire_root=self.coordination_root, live=True),
                     id="thread-comms-panel", header_control=RelationshipSort()),
                 SideBar.Panel("Plan", Plan([]), collapsed=True, id="plan-panel"),
                 SideBar.Panel("Project", self._project_panel, flex=True, collapsed=True),
                 SideBar.Panel("Recovery", RecoveryView(self._comms_thread,
-                                                       wire_root=self._coordination_root), collapsed=True,
+                                                       wire_root=self.coordination_root), collapsed=True,
                               id="recovery-panel"),
                 right=True, hide=True, navigation=self._thread_sidebar_state,
                 defer_mount=not self._content_loaded,
