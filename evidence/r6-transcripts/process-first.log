@@ -1,0 +1,9 @@
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-refactor-r6-transcripts-20260928/tests/transcript_process_pilot.py", line 25, in <module>
+    from toad.widgets.transcript_history import TranscriptHistory, TranscriptPageView
+  File "/home/ts/wt/toad-refactor-r6-transcripts-20260928/src/toad/widgets/transcript_history.py", line 34, in <module>
+    from toad.widgets.agent_thought import AgentThought
+  File "/home/ts/wt/toad-refactor-r6-transcripts-20260928/src/toad/widgets/agent_thought.py", line 2
+    from __future__ import annotations
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+SyntaxError: from __future__ imports must occur at the beginning of the file

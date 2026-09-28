@@ -42,12 +42,12 @@ async def main():
         if os.environ.get("TOAD_TEST_ANNOTATED") == "1":
             comms.transcripts.routes.record(str(transcript), ("wire-user",), TurnRouting((incoming,), None))
         page = comms.transcripts.thread_transcript_page("owner")
-        assert any(event.kind == "sent" and event.routing and event.routing.reply for event in page.events)
-        inbound = [event for event in page.events if event.kind == "user" and event.routing
+        assert any(event.declared_name == "sent" and event.routing and event.routing.reply for event in page.events)
+        inbound = [event for event in page.events if event.declared_name == "user" and event.routing
                    and event.routing.requests]
         assert inbound, (
             "Saved wire input lost typed routing before the UI filter: "
-            + repr([(event.kind, event.routing is not None) for event in page.events]))
+            + repr([(event.declared_name, event.routing is not None) for event in page.events]))
         assert inbound[0].routing.requests[0].message_id == incoming.message_id
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(120, 40)) as pilot:

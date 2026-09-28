@@ -9,7 +9,8 @@ from unittest.mock import patch
 
 from agent_comms.messages import Message, MessageType
 from agent_comms.threads import Thread
-from agent_comms.transcripts import TranscriptCursor, TranscriptEvent, TranscriptPage
+from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcript_events import AssistantTranscript, UserTranscript
 from agent_comms.routing import TurnRouting
 from agent_comms.comms import wire
 from committed_history_pilot import SnapshotAgent
@@ -52,7 +53,7 @@ class TestAgent(SnapshotAgent):
 
 def routed(sequence, text):
     message = Message("peer", "owner", text, MessageType.INFO, seq=sequence)
-    return TranscriptEvent("user", text, routing=TurnRouting((message,), None))
+    return UserTranscript(text, routing=TurnRouting((message,), None))
 
 
 def inbound(view):
@@ -70,7 +71,7 @@ async def arrivals(view, pilot):
     cursor = TranscriptCursor("", 0)
     agent = TestAgent(
         TranscriptPage(
-            (TranscriptEvent("assistant", "saved reply"),), cursor, cursor, False, False
+            (AssistantTranscript('saved reply'),), cursor, cursor, False, False
         )
     )
     view.set_reactive(type(view).agent, agent)
@@ -142,7 +143,7 @@ async def provisional_history(view, pilot):
     """Rejected replacement mounts never acquire ownership of live notices."""
     cursor = TranscriptCursor("provisional", 1)
     agent = TestAgent(TranscriptPage(
-        (routed(41, "saved notice"), TranscriptEvent("assistant", "saved reply")),
+        (routed(41, "saved notice"), AssistantTranscript('saved reply')),
         cursor, cursor, False, False,
     ))
     view.set_reactive(type(view).agent, agent)

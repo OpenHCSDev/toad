@@ -8,7 +8,8 @@ from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
 from agent_comms.messages import Message, MessageType
-from agent_comms.transcripts import TranscriptCursor, TranscriptEvent, TranscriptPage
+from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcript_events import AssistantTranscript, ThinkingTranscript, UserTranscript
 from agent_comms.routing import TurnRouting
 from runtime_fixture import ToadApp
 from textual.await_complete import AwaitComplete
@@ -23,9 +24,9 @@ async def exercise(app, pilot, stage):
     view = app.screen.conversation
     view.visible_categories = ALL_CATEGORIES
     message = Message("peer", "owner", "OLD_INBOUND", MessageType.INFO, timestamp=0)
-    incoming = TranscriptEvent("user", message.body, routing=TurnRouting((message,), None))
-    thinking = TranscriptEvent("thinking", "NEW_THINKING")
-    events = (incoming, thinking) * 8 + tuple(TranscriptEvent("assistant", f"tail {i}") for i in range(4))
+    incoming = UserTranscript(message.body, routing=TurnRouting((message,), None))
+    thinking = ThinkingTranscript('NEW_THINKING')
+    events = (incoming, thinking) * 8 + tuple(AssistantTranscript(f'tail {i}') for i in range(4))
     cursor = TranscriptCursor("mount-fixture", 0)
     pager = TranscriptHistory(TranscriptPage(events, cursor, TranscriptCursor("mount-fixture", len(events)), False, False))
     entered, release = asyncio.Event(), asyncio.Event()
@@ -97,7 +98,7 @@ async def exercise(app, pilot, stage):
             await pager._scan_filtered_older()
             await pilot.pause()
             assert pager._filter_overlay is not None
-            assert all(child.fragment.events[0].kind == "thinking" for child in pager._filter_overlay.fragment_views)
+            assert all(child.fragment.events[0].declared_name == "thinking" for child in pager._filter_overlay.fragment_views)
             await app.close_session_mode(other.mode_name)
             assert app._exception is None
         finally:
@@ -112,9 +113,9 @@ async def exercise_batched_selection(app, pilot):
     view.visible_categories = ALL_CATEGORIES
     message = Message("peer", "owner", "INBOUND", MessageType.INFO, timestamp=0)
     events = tuple(event for index in range(20) for event in (
-        TranscriptEvent("user", f"INBOUND_{index}", routing=TurnRouting((message,), None)),
-        TranscriptEvent("thinking", f"THINKING_{index}"),
-    )) + tuple(TranscriptEvent("assistant", f"tail {index}") for index in range(4))
+        UserTranscript(f'INBOUND_{index}', routing=TurnRouting((message,), None)),
+        ThinkingTranscript(f'THINKING_{index}'),
+    )) + tuple(AssistantTranscript(f'tail {index}') for index in range(4))
     page = TranscriptPage(events, TranscriptCursor("batch-fixture", 0),
                           TranscriptCursor("batch-fixture", len(events)), False, False)
     pager = TranscriptHistory(page)
@@ -161,13 +162,13 @@ async def main():
             cursor = TranscriptCursor("empty-filter", 10)
             calls = []
             message = Message("peer", "owner", "SELECTED_INBOUND", MessageType.INFO, timestamp=0)
-            incoming = TranscriptEvent("user", message.body, routing=TurnRouting((message,), None))
+            incoming = UserTranscript(message.body, routing=TurnRouting((message,), None))
 
             async def earlier(**kwargs):
                 calls.append(kwargs)
                 return TranscriptPage((incoming,), TranscriptCursor("empty-filter", 0), cursor, False, True)
 
-            pager = TranscriptHistory(TranscriptPage((TranscriptEvent("thinking", "TAIL"),),
+            pager = TranscriptHistory(TranscriptPage((ThinkingTranscript('TAIL'),),
                 cursor, TranscriptCursor("empty-filter", 20), True, False), loader=earlier)
             await view.contents.mount(pager)
             await pilot.pause()

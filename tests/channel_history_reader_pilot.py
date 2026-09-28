@@ -55,7 +55,7 @@ class ReaderTests(unittest.IsolatedAsyncioTestCase):
             comms.messaging.send("peer", viewer, "painted across turn claim")
             page = comms.views.dm_display_page("peer", worktree=str(root))
             identity = display_identity(HistoryKind.DIRECT, page)
-            comms.registry.claim_local_turn("peer", "new-turn")
+            comms.registry.lease_local_turn("peer", "new-turn")
             fresh = comms.views.dm_display_page("peer", worktree=str(root))
             self.assertEqual(identity, display_identity(HistoryKind.DIRECT, fresh))
 

@@ -8,7 +8,8 @@ from collections import OrderedDict
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, replace
 
-from agent_comms.transcripts import TranscriptCursor, TranscriptEvent, TranscriptPage
+from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcript_events import TranscriptEvent
 
 from toad.widgets.transcript_fragments import TranscriptFragment, prepare_transcript_fragments
 from toad.widgets.message_filter import MessageCategory, event_category, keep_events

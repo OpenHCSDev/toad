@@ -9,7 +9,8 @@ import sys
 from unittest.mock import patch
 
 from agent_comms.threads import Thread
-from agent_comms.transcripts import TranscriptCursor, TranscriptEvent, TranscriptPage
+from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcript_events import AssistantTranscript
 from agent_comms.comms import wire
 
 from runtime_fixture import ToadApp
@@ -51,8 +52,8 @@ async def main():
         os.environ.update(AGENT_COMMS_ROOT=str(root / "wire"), XDG_CONFIG_HOME=str(root / "config"),
                           XDG_STATE_HOME=str(root / "state"), XDG_DATA_HOME=str(root / "data"))
         wire(root / "wire").threads.register(Thread("replay", frozenset(), str(root), pid=os.getpid()))
-        events = tuple(TranscriptEvent("assistant", "Paragraph.\n\n" * 100) for _ in range(20))
-        events += (TranscriptEvent("assistant", "PREPARED_REPLAY_END"),)
+        events = tuple(AssistantTranscript('Paragraph.\n\n' * 100) for _ in range(20))
+        events += (AssistantTranscript('PREPARED_REPLAY_END'),)
         page = TranscriptPage(events, TranscriptCursor("fixture", 0), TranscriptCursor("fixture", len(events)), False, False)
         dispatch = asyncio.Event()
 

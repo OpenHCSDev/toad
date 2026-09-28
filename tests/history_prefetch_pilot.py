@@ -6,7 +6,8 @@ from pathlib import Path
 import tempfile
 
 from agent_comms.routing import MessageRoute, TurnRouting
-from agent_comms.transcripts import TranscriptCursor, TranscriptEvent, TranscriptPage
+from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcript_events import AssistantTranscript, SentTranscript, ThinkingTranscript
 from runtime_fixture import ToadApp
 from toad.widgets.transcript_history import TranscriptHistory
 
@@ -21,13 +22,13 @@ async def main():
             await pilot.pause()
             view = app.screen.conversation
             file = "prefetch-fixture"
-            tail = tuple(TranscriptEvent("assistant", f"Record {i}\n\n" + "Long line\n" * 5)
+            tail = tuple(AssistantTranscript(f'Record {i}\n\n' + 'Long line\n' * 5)
                          for i in range(64))
             calls = []
 
             async def loader(**kwargs):
                 calls.append((view.window.scroll_y, kwargs))
-                return TranscriptPage((TranscriptEvent("assistant", "OLDER_PREFETCHED_RECORD"),),
+                return TranscriptPage((AssistantTranscript('OLDER_PREFETCHED_RECORD'),),
                                       TranscriptCursor(file, 0), TranscriptCursor(file, 100),
                                       False, True)
 
@@ -65,14 +66,13 @@ async def main():
             filtered_calls = []
             route = TurnRouting(reply=MessageRoute("owner", ("#team",)))
             filtered_tail = (
-                *(TranscriptEvent("thinking", f"HIDDEN_{index}") for index in range(90)),
-                TranscriptEvent("sent", "VISIBLE_ROUTE\n\n" + "Long routed line\n\n" * 50,
-                                routing=route),
+                *(ThinkingTranscript(f'HIDDEN_{index}') for index in range(90)),
+                SentTranscript('VISIBLE_ROUTE\n\n' + 'Long routed line\n\n' * 50, routing=route),
             )
 
             async def filtered_loader(**kwargs):
                 filtered_calls.append(view.window.scroll_y)
-                return TranscriptPage((TranscriptEvent("sent", "FILTERED_PREFETCH", routing=route),),
+                return TranscriptPage((SentTranscript('FILTERED_PREFETCH', routing=route),),
                                       TranscriptCursor(file, 0), TranscriptCursor(file, 100),
                                       False, True)
 
