@@ -633,7 +633,6 @@ class SideBar(containers.Vertical):
         right: bool = False,
         navigation: SidebarState | None = None,
         defer_mount: bool = False,
-        defer_until_reveal: bool = False,
         on_hydrated: Callable[[], None] | None = None,
     ) -> None:
         super().__init__(name=name, id=id, classes=classes, disabled=disabled)
@@ -642,7 +641,6 @@ class SideBar(containers.Vertical):
         self.right = right
         self._navigation = navigation
         self._panels_loaded = not defer_mount
-        self._defer_until_reveal = defer_until_reveal
         self._on_hydrated = on_hydrated
         self._panels_loading = False
         self._panels_ready = asyncio.Event()
@@ -673,12 +671,11 @@ class SideBar(containers.Vertical):
         self._apply_layout()
         if self._panels_loaded:
             self._panels_ready.set()
-        elif not self._defer_until_reveal or not self.collapsed:
+        else:
             self.schedule_hydration()
 
     def schedule_hydration(self) -> None:
-        if (not self._panels_loaded and not self._panels_loading
-                and (not self._defer_until_reveal or not self.collapsed)):
+        if not self._panels_loaded and not self._panels_loading:
             from toad.screens.session_view import SessionView
 
             screen = self.screen
@@ -689,8 +686,7 @@ class SideBar(containers.Vertical):
 
     def _start_hydration(self) -> None:
         if (self._panels_loaded or self._panels_loading or not self.is_attached
-                or not self.screen.is_current or self._closing
-                or (self._defer_until_reveal and self.collapsed)):
+                or not self.screen.is_current or self._closing):
             return
         self._panels_loading = True
         self.run_worker(self._hydrate_panels(), group="sidebar-panels")
@@ -880,7 +876,7 @@ class SideBar(containers.Vertical):
             # Activation applies the latest value inside its render transaction;
             # an open/close round trip can therefore keep unchanged geometry.
             return
-        if not collapsed and self._defer_until_reveal and self.is_mounted:
+        if not collapsed and self.is_mounted:
             self.schedule_hydration()
         self._presented_collapsed = collapsed
         # The old -collapsed ancestor selector restyled every descendant row

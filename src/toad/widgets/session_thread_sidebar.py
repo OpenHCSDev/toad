@@ -25,15 +25,26 @@ class SessionThreadSidebar(SideBar):
     cannot discard tree selection, scrolling, or operational conversation state.
     """
 
+    PLAN_TITLE = "Plan"
+
     def __init__(self, screen: "MainScreen") -> None:
         self._owner = ref(screen)
         self._plan_entries: list[Plan.Entry] = []
         super().__init__(
             id="thread-sidebar", right=True, hide=True,
             navigation=screen._thread_sidebar_state,
-            defer_mount=True, defer_until_reveal=True,
+            defer_mount=True,
             on_hydrated=self._sync_hydrated,
         )
+
+    def schedule_hydration(self) -> None:
+        if not self.collapsed:
+            super().schedule_hydration()
+
+    def _start_hydration(self) -> None:
+        # The queued first-frame callback may outlive its revealing input.
+        if not self.collapsed:
+            super()._start_hydration()
 
     def _sync_hydrated(self) -> None:
         screen = self._owner()
@@ -47,7 +58,7 @@ class SessionThreadSidebar(SideBar):
         """Consume the latest plan while panels are absent, without buffering events."""
         self._plan_entries = entries
         if entries:
-            self.navigation.panels_collapsed["Plan"] = False
+            self.navigation.panels_collapsed[self.PLAN_TITLE] = False
         if plan := self.query_one_optional(Plan):
             plan.entries = entries
             if entries:
@@ -68,7 +79,7 @@ class SessionThreadSidebar(SideBar):
                 self.Panel("Comms", ThreadCommsSidebar(
                     screen._comms_thread, wire_root=screen._coordination_root, live=True),
                     id="thread-comms-panel", header_control=RelationshipSort()),
-                self.Panel("Plan", Plan(self._plan_entries), collapsed=True, id="plan-panel"),
+                self.Panel(self.PLAN_TITLE, Plan(self._plan_entries), collapsed=True, id="plan-panel"),
                 self.Panel("Project", project, flex=True, collapsed=True),
                 self.Panel("Recovery", RecoveryView(
                     screen._comms_thread, wire_root=screen._coordination_root),
