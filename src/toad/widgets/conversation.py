@@ -1068,8 +1068,10 @@ class Conversation(containers.Vertical):
             return
         if observed.unavailable:
             event.summary = "Agent status unavailable"
-        elif observed.presentation is not None and observed.presentation.busy:
-            event.state = "busy"
+        elif observed.presentation is not None and (
+            observed.presentation.busy or observed.presentation.attention
+        ):
+            event.state = "busy" if observed.presentation.busy else "idle"
             event.summary = observed.presentation.summary
 
     @on(AgentReady)
