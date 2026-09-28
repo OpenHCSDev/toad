@@ -54,10 +54,14 @@ class BrowserAdmission(ABC):
 
     @staticmethod
     def secure(response: web.StreamResponse) -> web.StreamResponse:
-        response.headers["Cache-Control"] = "no-store"
-        response.headers["Referrer-Policy"] = "no-referrer"
-        response.headers["Content-Security-Policy"] = "frame-ancestors 'none'"
-        response.headers["X-Frame-Options"] = "DENY"
+        response.headers.update(
+            {
+                "Cache-Control": "no-store",
+                "Referrer-Policy": "no-referrer",
+                "Content-Security-Policy": "frame-ancestors 'none'",
+                "X-Frame-Options": "DENY",
+            }
+        )
         return response
 
 
@@ -121,8 +125,9 @@ class LocalBrowserAuthentication:
             return RejectedBrowserAdmission()
         if origins and origins != [self.endpoint.url]:
             return RejectedBrowserAdmission()
-        if request.path == "/" and "token" in request.query:
-            if request.method == "GET" and self.accepts(request.query["token"]):
+        token = request.query.get("token")
+        if request.path == "/" and token is not None:
+            if request.method == "GET" and self.accepts(token):
                 return BootstrapBrowserAdmission(self)
             return RejectedBrowserAdmission()
         if self.accepts(request.cookies.get(self.endpoint.cookie_name, "")):

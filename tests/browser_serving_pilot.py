@@ -57,15 +57,19 @@ class LocalServer:
         else:
             # Actual installed Comms ACP adapter. No prompt is sent and no model
             # response is synthesized. The browser must render its real UI.
-            from agent_comms.active_route import resolve_comms_route
+            from agent_comms.active_route import read_active_route
             from agent_comms.comms import Comms
 
             root_id = Comms(
                 self.root / "wire"
             ).messaging.initialize_private_initial_protocol()
             env["AGENT_COMMS_PRIVATE_NK_WIRE_ROOT_ID"] = root_id
+            installed_route = read_active_route()
+            assert installed_route is not None, (
+                "Install the Comms native route before running the pilot"
+            )
             env["AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE"] = str(
-                resolve_comms_route().native_package
+                installed_route.native_package
             )
             env["TOAD_LOG"] = str(self.root / "actual-acp.jsonl")
             backend = shlex.join([sys.executable, "-m", "agent_comms.acp"])
