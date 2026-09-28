@@ -1,0 +1,22 @@
+{
+  "core": "a5809ab169638eff2b0b0570f21261e15d6a7623",
+  "toadRuntime": "aafd19cbb54f0f85260138a3767f2e8ab8c126fd",
+  "coreSource": "local branch refactor/canonical-bus-retirement-20260928 as requested",
+  "contains": [
+    "92b42ba",
+    "73c9dbc"
+  ],
+  "command": "tests/l0a_native_installed_pilot.py --notification-only",
+  "exitCode": 0,
+  "providerRequests": 1,
+  "paidCalls": 0,
+  "observed": [
+    "ATTACHED_AND_NAVIGABLE",
+    "CHANNEL_ACTIVE_STATUS Active: \u231b beta",
+    "CHANNEL_IDLE_STATUS_CONFIRMED",
+    "CHANNEL_NOTIFICATION Checked \u2014 no response (1)"
+  ],
+  "pairedL0A": "ready for parent integration and activation",
+  "liveActivated": false,
+  "priorAcceptances": "retained at recorded heads; unchanged cases not rerun"
+}

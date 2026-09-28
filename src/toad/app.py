@@ -29,10 +29,10 @@ from textual.await_complete import AwaitComplete
 import toad
 from toad.session_tracker import UnreadPresentation, ExactUnread
 from toad.db import DB
-from toad.settings import Schema, Settings
+from toad.settings import PreferenceChange
+from toad.preferences import ToadSettings
 from toad.agent_schema import Agent as AgentData
 from toad import messages
-from toad.settings_schema import SCHEMA
 from toad.version import VersionMeta
 from toad import paths
 from toad import atomic
@@ -227,7 +227,7 @@ class InterfaceProvider(Provider):
 
     def _footer_command(self) -> tuple[str, Callable[[], object]]:
         app = self.app
-        visible = app.settings.get("ui.footer", bool)
+        visible = app.settings.ui.footer
         return (
             "Hide footer shortcut bar" if visible else "Show footer shortcut bar",
             partial(app.action_set_footer, not visible),
@@ -300,7 +300,6 @@ class ToadApp(App, inherit_bindings=False):
     ]
     ALLOW_IN_MAXIMIZED_VIEW = ""
 
-    _settings = var(dict)
     column: reactive[bool] = reactive(False)
     column_width: reactive[int] = reactive(100)
     scrollbar: reactive[str] = reactive("normal")
@@ -343,7 +342,7 @@ class ToadApp(App, inherit_bindings=False):
         self._background_render_tasks: set[asyncio.Task[object]] = set()
         self.channel_history_reader = ChannelHistoryReader()
         self.navigation_reader = NavigationReader()
-        self.settings_changed_signal: Signal[tuple[int, object]] = Signal(
+        self.settings_changed_signal: Signal[PreferenceChange] = Signal(
             self, "settings_changed"
         )
         self.agent_data = agent_data
@@ -441,10 +440,6 @@ class ToadApp(App, inherit_bindings=False):
         return db
 
     @cached_property
-    def settings_schema(self) -> Schema:
-        return Schema(SCHEMA)
-
-    @cached_property
     def version(self) -> str:
         """Version of the app."""
         from toad import get_version
@@ -452,21 +447,18 @@ class ToadApp(App, inherit_bindings=False):
         return get_version()
 
     @cached_property
-    def settings(self) -> Settings:
-        """App settings"""
-        return Settings(
-            self.settings_schema, self._settings, on_set_callback=self.setting_updated
-        )
+    def settings(self) -> ToadSettings:
+        return ToadSettings(notify=self._apply_preference)
 
     @cached_property
     def anon_id(self) -> str:
         """An anonymous ID for usage collection."""
-        if not (anon_id := self.settings.get("anon_id", str, expand=False)):
+        if not (anon_id := self.settings.anon_id):
             # Create a random UUID on demand
             import uuid
 
             anon_id = str(uuid.uuid4())
-            self.settings.set("anon_id", anon_id)
+            self.settings.anon_id = anon_id
             self._save_settings()
             self.call_later(self.capture_event, "toad-install")
         return anon_id
@@ -532,7 +524,7 @@ class ToadApp(App, inherit_bindings=False):
 
     def watch_terminal_title_flash(self, terminal_title_flash: int) -> None:
 
-        if not self.settings.get("notifications.blink_title", bool):
+        if not self.settings.notifications.blink_title:
             # Ignore if blink title is disabled
             return
 
@@ -615,7 +607,7 @@ class ToadApp(App, inherit_bindings=False):
             "timestamp": timestamp,
             "os": platform.system(),
         }
-        if not self.settings.get("statistics.allow_collect", bool):
+        if not self.settings.statistics.allow_collect:
             # User has disabled stats
             return
 
@@ -638,11 +630,8 @@ class ToadApp(App, inherit_bindings=False):
             title: Title of the notificaiton.
             sound: filename (minus .wav) of a sound effect in the sounds/ directory.
         """
-        system_notifications = self.settings.get("notifications.system", str)
-        if not (
-            system_notifications == "always"
-            or (system_notifications == "blur" and not self.app_focus)
-        ):
+        system_notifications = self.settings.notifications.system
+        if not system_notifications.enabled(self.app_focus):
             return
 
         from notifypy import Notify
@@ -651,7 +640,7 @@ class ToadApp(App, inherit_bindings=False):
         notification.message = message
         notification.title = title
         notification.application_name = "🐸 Toad" if toad.os == "macos" else "Toad"
-        if sound and self.settings.get("notifications.enable_sounds", bool):
+        if sound and self.settings.notifications.enable_sounds:
             sound_path = str(files("toad.data").joinpath(f"sounds/{sound}.wav"))
             notification.audio = sound_path
 
@@ -662,13 +651,9 @@ class ToadApp(App, inherit_bindings=False):
 
     def on_notify(self, event: Notify) -> None:
         """Handle notification message."""
-        system_notifications = self.settings.get("notifications.system", str)
-        if system_notifications == "always" or (
-            system_notifications == "blur" and not self.app_focus
-        ):
-            hide_low_severity = self.settings.get(
-                "notifications.hide_low_severity", bool
-            )
+        system_notifications = self.settings.notifications.system
+        if system_notifications.enabled(self.app_focus):
+            hide_low_severity = self.settings.notifications.hide_low_severity
             if event.notification.markup:
                 # Strip content markup
                 message = Content.from_markup(event.notification.message).plain
@@ -699,35 +684,9 @@ class ToadApp(App, inherit_bindings=False):
             else:
                 self.settings.up_to_date()
 
-    def setting_updated(self, key: str, value: object) -> None:
-        if key == "ui.column":
-            if isinstance(value, bool):
-                self.column = value
-        elif key == "ui.column-width":
-            if isinstance(value, int):
-                self.column_width = value
-        elif key == "ui.theme":
-            if isinstance(value, str):
-                self.theme = value
-        elif key == "ui.scrollbar":
-            if isinstance(value, str):
-                self.scrollbar = value
-        elif key == "ui.compact-input":
-            self.set_class(bool(value), "-compact-input")
-        elif key == "ui.footer":
-            self.set_class(not bool(value), "-hide-footer")
-        elif key == "ui.status-line":
-            self.set_class(not bool(value), "-hide-status-line")
-        elif key == "ui.agent-title":
-            self.set_class(not bool(value), "-hide-agent-title")
-        elif key == "ui.info-bar":
-            self.set_class(not bool(value), "-hide-info-bar")
-        elif key == "agent.thoughts":
-            self.set_class(not bool(value), "-hide-thoughts")
-        elif key == "ui.sessions-bar":
-            self.update_show_sessions()
-
-        self.settings_changed_signal.publish((key, value))
+    def _apply_preference(self, change: PreferenceChange) -> None:
+        change.apply(self)
+        self.settings_changed_signal.publish(change)
 
     async def on_load(self) -> None:
         self._prewarm_conversation_css()
@@ -743,8 +702,8 @@ class ToadApp(App, inherit_bindings=False):
             )
             self.notify(f"Wrote default settings to {settings_path}", title="Settings")
         self.ansi_theme_dark = DRACULA_TERMINAL_THEME
-        self._settings = settings
-        self.settings.set_all()
+        self.settings = ToadSettings(settings, notify=self._apply_preference)
+        self.settings.apply_all()
 
     def _prewarm_conversation_css(self) -> None:
         """Load known conversation classes' default CSS in one parse.
@@ -1585,7 +1544,7 @@ class ToadApp(App, inherit_bindings=False):
         label = {
             "comms_start": "Starting…",
             "comms_stop": "Stopping…", "comms_archive": "Archiving…",
-            "comms_delete": "Deleting…", "comms_ack": "Acknowledging…",
+            "comms_ack": "Acknowledging…",
         }.get(action, "Updating…")
         self.pending_thread_actions[subject] = label
         self.thread_actions_changed.publish(None)
@@ -1627,9 +1586,6 @@ class ToadApp(App, inherit_bindings=False):
                             await screen.conversation.agent.reconnect()
                             from toad.acp.messages import TranscriptChanged
                             screen.conversation.post_message(TranscriptChanged())
-            if action == "comms_delete":
-                for mode_name in session_modes:
-                    self.post_message(messages.SessionDelete(mode_name))
             if action == "comms_stop":
                 self.notify(f"Stopped @{subject}", title="Session action")
         except Exception as error:
@@ -1798,7 +1754,7 @@ class ToadApp(App, inherit_bindings=False):
 
     @on(events.TextSelected)
     async def on_text_selected(self) -> None:
-        if self.settings.get("ui.auto_copy", bool):
+        if self.settings.ui.auto_copy:
             if selection := self.screen.get_selected_text():
                 self.copy_to_clipboard(selection)
                 self.notify(
@@ -1914,7 +1870,7 @@ class ToadApp(App, inherit_bindings=False):
 
     async def action_set_footer(self, visible: bool) -> None:
         """Persist footer visibility from the command palette."""
-        self.settings.set("ui.footer", visible)
+        self.settings.ui.footer = visible
         await self.save_settings()
         self.notify(
             "Footer shortcut bar shown" if visible else "Footer shortcut bar hidden",
@@ -1950,13 +1906,7 @@ class ToadApp(App, inherit_bindings=False):
             self.action_show_help_panel()
 
     def update_show_sessions(self) -> None:
-        match self.settings.get("ui.sessions-bar", str):
-            case "always":
-                self.show_sessions = True
-            case "never":
-                self.show_sessions = False
-            case "multiple":
-                self.show_sessions = len(self.open_tabs) > 1
+        self.show_sessions = self.settings.ui.sessions_bar.shown(len(self.open_tabs))
 
     @on(messages.SessionNavigate)
     def on_session_navigate(self, event: messages.SessionNavigate) -> None:
@@ -2024,52 +1974,6 @@ class ToadApp(App, inherit_bindings=False):
     async def on_session_archive(self, event: messages.SessionArchive) -> None:
         await self.close_session_mode(event.mode_name)
 
-    @on(messages.SessionDelete)
-    async def on_session_delete(self, event: messages.SessionDelete) -> None:
-        screen = self._main_session_screen(event.mode_name)
-        session_pk = None
-        if screen is not None:
-            agent = screen.conversation.agent
-            session_ready_event = getattr(agent, "session_ready_event", None)
-            if session_ready_event is not None and not session_ready_event.is_set():
-                try:
-                    await asyncio.wait_for(session_ready_event.wait(), timeout=5)
-                except TimeoutError:
-                    self.notify(
-                        "The agent is still starting; try delete again in a moment",
-                        title="Delete session",
-                        severity="warning",
-                    )
-                    return
-            session_pk = screen._session_pk
-            if agent is not None:
-                session_pk = getattr(agent, "session_pk", None) or session_pk
-            if screen._coordination_root is not None:
-                from agent_comms.comms import wire
-
-                comms = wire(screen._coordination_root)
-                thread_name = screen._session_thread
-                try:
-                    # Disconnect this view, then perform the explicitly requested
-                    # stop/delete against the independently owned thread.
-                    if agent is not None:
-                        await agent.stop()
-                    if thread_name in comms.registry:
-                        await asyncio.to_thread(comms.owners.stop, thread_name)
-                        comms.threads.delete(thread_name)
-                except Exception as error:
-                    self.notify(str(error), title="Delete thread", severity="error")
-                    return
-        if session_pk is not None:
-            if not await DB().session_delete(session_pk):
-                self.notify(
-                    "Unable to delete the saved session",
-                    title="Delete session",
-                    severity="error",
-                )
-                return
-        await self.close_session_mode(event.mode_name)
-
     @on(messages.SessionClose)
     def on_session_close(self) -> None:
         self.update_show_sessions()
@@ -2122,9 +2026,8 @@ class ToadApp(App, inherit_bindings=False):
             db = DB()
             session = await db.session_get(session_pk)
             if session is not None:
-                session_title = session["title"]
-                meta = json.loads(session["meta_json"])
-                if agent_data := meta.get("agent_data"):
+                session_title = session.title
+                if agent_data := session.meta_json.agent_data:
                     agent = agent_data
 
         if agent is None:

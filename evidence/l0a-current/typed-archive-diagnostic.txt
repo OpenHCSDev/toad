@@ -1,0 +1,32 @@
+{'target': 'agent-comms-ux', 'status': 'Wire error: Private bus checkpoint root/inode/size changed.', 'display': True}
+Traceback (most recent call last):
+  File "evidence/l0a-current/typed_archive_probe.py", line 50, in until
+    await asyncio.sleep(.02)
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py", line 702, in sleep
+    return await future
+           ^^^^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    import runpy,asyncio; p=runpy.run_path("evidence/l0a-current/typed_archive_probe.py"); asyncio.run(p["main"]()); print("PASS interpreter exit")
+                                                                                           ~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "evidence/l0a-current/typed_archive_probe.py", line 82, in main
+    await until(lambda: chat.target == target and chat._history_initialized)
+  File "evidence/l0a-current/typed_archive_probe.py", line 48, in until
+    async with asyncio.timeout(20):
+               ~~~~~~~~~~~~~~~^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/timeouts.py", line 114, in __aexit__
+    raise TimeoutError from exc_val
+TimeoutError

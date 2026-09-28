@@ -2,6 +2,7 @@
 
 from datetime import datetime
 
+from agent_comms.field_codec import FieldCodec
 from agent_comms.goals import Goal
 from agent_comms.goal_presentation import GoalExecution, GoalExecutionState
 from textual import on
@@ -48,7 +49,7 @@ class GoalDetails(ModalScreen[None]):
                     yield Static("Revision history", markup=False)
                     for entry in reversed(self.history):
                         goal_data = entry["after"] or entry["before"]
-                        revision_goal = Goal.from_wire(goal_data)
+                        revision_goal = FieldCodec.decode(Goal, goal_data)
                         when = (
                             datetime.fromtimestamp(entry["observed_at"])
                             .astimezone()

@@ -1,0 +1,2 @@
+{'terminal_bytes_per_run': 1365000, 'terminal_seconds': [4.042856297994149, 3.998055350006325, 4.444393594007124], 'terminal_median_seconds': 4.042856297994149}
+{'source_characters': 61356, 'maximum_message_widgets': 105, 'streaming_resize_ms': [19.303673994727433, 14.942348992917687, 21.168678998947144], 'streaming_max_loop_gap_ms': 101.28229099791497}

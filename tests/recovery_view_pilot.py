@@ -7,6 +7,7 @@ import tempfile
 import time
 from unittest.mock import patch
 
+from agent_comms.child_process import ProcessIdentity
 from agent_comms.threads import Thread
 from agent_comms.comms import wire
 from runtime_fixture import ToadApp
@@ -35,7 +36,7 @@ async def main():
         os.environ.update(XDG_CONFIG_HOME=str(root / "config"), XDG_STATE_HOME=str(root / "state"),
                           XDG_DATA_HOME=str(root / "data"), AGENT_COMMS_ROOT=str(root / "wire"))
         comms = wire(root / "wire")
-        comms.threads.register(Thread("fixture", frozenset({"test"}), str(root), pid=os.getpid()))
+        comms.threads.register(Thread("fixture", frozenset({"test"}), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
         app = PaintProbe(project_dir=str(root))
         seen = []
         available = [True]
@@ -60,7 +61,7 @@ async def main():
                 await pilot.pause()
                 view = app.screen.query_one(RecoveryView)
                 panel = view.query_ancestor(SideBarCollapsible)
-                assert not app.settings.get("ui.recovery-view", bool)
+                assert not app.settings.ui.recovery_view
                 assert not panel.display and not seen, "Default-off created a gateway read"
                 await app.screen.on_coordination_update(CoordinationUpdate(
                     thread="fixture", wire_root=str(root / "wire"),
@@ -69,7 +70,7 @@ async def main():
                 assert view.thread == "fixture"
                 started = time.perf_counter()
                 painted_before = app.painted
-                app.settings.set("ui.recovery-view", True)
+                app.settings.ui.recovery_view = True
                 sidebar = app.screen.query_one("#thread-sidebar", SideBar)
                 sidebar.reveal()
                 panel.collapsed = False
@@ -93,11 +94,12 @@ async def main():
                 available[0] = True
                 view.set_identity("renamed-fixture", root / "wire")
                 async with asyncio.timeout(5):
-                    while len(seen) < 3:
+                    while (not seen or seen[-1][2] != "renamed-fixture"
+                           or "Recovery: recovered" not in view.render().plain):
                         await pilot.pause(.02)
                 assert seen[-1][2] == "renamed-fixture"
                 assert "Recovery: recovered" in view.render().plain
-                app.settings.set("ui.recovery-view", False)
+                app.settings.ui.recovery_view = False
                 await pilot.pause()
                 assert not panel.display
                 assert view.render().plain.startswith("Recovery unavailable")
@@ -109,7 +111,7 @@ async def main():
                 assert channel_view.thread == "fixture"
                 assert not channel_view.query_ancestor(SideBarCollapsible).display
                 assert len(seen) == reads
-                app.settings.set("ui.recovery-view", True)
+                app.settings.ui.recovery_view = True
                 app.screen.query_one("#thread-sidebar", SideBar).reveal()
                 channel_view.query_ancestor(SideBarCollapsible).collapsed = False
                 async with asyncio.timeout(5):

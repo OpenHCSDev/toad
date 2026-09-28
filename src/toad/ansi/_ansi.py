@@ -1,35 +1,34 @@
 from __future__ import annotations
 
 import io
-from itertools import accumulate
 import re
-
+from abc import ABC, abstractmethod
+from collections.abc import Awaitable, Callable, Iterable
 from dataclasses import dataclass, field
 from functools import lru_cache
-from typing import Awaitable, Callable, Iterable, Literal, Mapping, NamedTuple
+from itertools import accumulate
+from typing import ClassVar, Literal, NamedTuple
 
 import rich.repr
-
+from agent_comms.declared_family import DeclaredFamily
 from textual import events
 from textual.color import Color
-from textual.content import Content, EMPTY_CONTENT
+from textual.content import EMPTY_CONTENT, Content
 from textual.geometry import clamp
-from textual.style import Style, NULL_STYLE
+from textual.style import NULL_STYLE, Style
 
 from toad.ansi._ansi_colors import ANSI_COLORS
-from toad.ansi._keys import TERMINAL_KEY_MAP, CURSOR_KEYS_APPLICATION
 from toad.ansi._control_codes import CONTROL_CODES
+from toad.ansi._keys import CURSOR_KEYS_APPLICATION, TERMINAL_KEY_MAP
 from toad.ansi._sgr_styles import SGR_STYLES
 from toad.ansi._stream_parser import (
-    StreamParser,
-    SeparatorToken,
-    PatternToken,
+    ParseResult,
     Pattern,
     PatternCheck,
-    ParseResult,
-    Token,
+    PatternToken,
+    SeparatorToken,
+    StreamParser,
 )
-
 from toad.dec import CHARSET_MAP
 
 
@@ -46,10 +45,6 @@ def character_range(start: int, end: int) -> frozenset:
     return frozenset(map(chr, range(start, end + 1)))
 
 
-class ANSIToken:
-    pass
-
-
 class DEC(NamedTuple):
     slot: int
     character_set: str
@@ -61,88 +56,181 @@ class DECInvoke(NamedTuple):
     shift: int | None = None
 
 
-DEC_SLOTS = {"(": 0, ")": 1, "*": 2, "+": 3, "-": 1, ".": 2, "//": 3}
+class EscapeSequence(DeclaredFamily, affix="Sequence"):
+    """External ESC introducer declarations own sequence consumption."""
+
+    @classmethod
+    @abstractmethod
+    def read(cls, introducer: str) -> PatternCheck:
+        """Read the remainder after the already decoded introducer."""
 
 
-def show(obj: object) -> object:
-    print(obj)
-    return obj
+class ControlSequence(EscapeSequence, declared_name="["):
+    FINAL = character_range(0x40, 0x7E)
+
+    @classmethod
+    def read(cls, introducer: str) -> PatternCheck:
+        text = io.StringIO()
+        text.write(introducer)
+        while (character := (yield)) not in cls.FINAL:
+            text.write(character)
+        text.write(character)
+        return "csi", text.getvalue()
+
+
+class TerminatedSequence(EscapeSequence):
+    terminators = frozenset({"\x9c"})
+
+    @property
+    @abstractmethod
+    def token_name(self) -> str:
+        """Parser token kind for this external sequence."""
+
+    @classmethod
+    def read(cls, introducer: str) -> PatternCheck:
+        text = io.StringIO()
+        text.write(introducer)
+        escaped = False
+        while True:
+            character = yield
+            if character in cls.terminators:
+                break
+            if escaped:
+                if character == "\\":
+                    break
+                text.write("\x1b")
+            escaped = character == "\x1b"
+            if not escaped:
+                text.write(character)
+        return cls.token_name, text.getvalue()
+
+
+class OperatingSystemSequence(TerminatedSequence, declared_name="]"):
+    terminators = frozenset({"\x07", "\x9c"})
+    token_name = "osc"
+
+
+class DeviceControlSequence(TerminatedSequence, declared_name="P"):
+    token_name = "dcs"
+
+
+class DesignateSequence(EscapeSequence):
+    FINAL = character_range(0x30, 0x7E)
+
+    @property
+    @abstractmethod
+    def slot(self) -> int:
+        """DEC character-set slot."""
+
+    @classmethod
+    def read(cls, introducer: str) -> PatternCheck:
+        character = yield
+        if character not in cls.FINAL:
+            return False
+        return "dec", introducer + character
+
+
+class G0Sequence(DesignateSequence, declared_name="("):
+    slot = 0
+
+
+class G1Sequence(DesignateSequence, declared_name=")"):
+    slot = 1
+
+
+class G2Sequence(DesignateSequence, declared_name="*"):
+    slot = 2
+
+
+class G3Sequence(DesignateSequence, declared_name="+"):
+    slot = 3
+
+
+class G1RightSequence(DesignateSequence, declared_name="-"):
+    slot = 1
+
+
+class G2RightSequence(DesignateSequence, declared_name="."):
+    slot = 2
+
+
+class G3RightSequence(DesignateSequence, declared_name="/"):
+    slot = 3
+
+
+class InvokeSequence(EscapeSequence):
+    @property
+    @abstractmethod
+    def invocation(self) -> DECInvoke:
+        """The declared character-set invocation."""
+
+    @classmethod
+    def read(cls, introducer: str) -> PatternCheck:
+        return "dec_invoke", introducer
+        yield
+
+
+class G2LeftSequence(InvokeSequence, declared_name="n"):
+    invocation = DECInvoke(gl=2)
+
+
+class G3LeftSequence(InvokeSequence, declared_name="o"):
+    invocation = DECInvoke(gl=3)
+
+
+class G1IntoRightSequence(InvokeSequence, declared_name="~"):
+    invocation = DECInvoke(gr=1)
+
+
+class G2IntoRightSequence(InvokeSequence, declared_name="}"):
+    invocation = DECInvoke(gr=2)
+
+
+class G3IntoRightSequence(InvokeSequence, declared_name="|"):
+    invocation = DECInvoke(gr=3)
+
+
+class ShiftG2Sequence(InvokeSequence, declared_name="N"):
+    invocation = DECInvoke(shift=2)
+
+
+class ShiftG3Sequence(InvokeSequence, declared_name="O"):
+    invocation = DECInvoke(shift=3)
+
+
+class SingleCharacterSequence(EscapeSequence):
+    @property
+    @abstractmethod
+    def token_name(self) -> str:
+        """Parser token kind for the one-character payload."""
+
+    @classmethod
+    def read(cls, introducer: str) -> PatternCheck:
+        return cls.token_name, introducer + (yield)
+
+
+class LineAttributeSequence(SingleCharacterSequence, declared_name="#"):
+    token_name = "la"
+
+
+class Iso2022Sequence(SingleCharacterSequence, declared_name=" "):
+    token_name = "sp"
 
 
 class FEPattern(Pattern):
-    FINAL = character_range(0x30, 0x7E)
-    INTERMEDIATE = character_range(0x20, 0x2F)
-    CSI_TERMINATORS = character_range(0x40, 0x7E)
-    OSC_TERMINATORS = frozenset({"\x07", "\x9c"})
-    DSC_TERMINATORS = frozenset({"\x9c"})
-
     def check(self) -> PatternCheck:
-        sequence = io.StringIO()
-        store = sequence.write
-        store(character := (yield))
-
-        match character:
-            # CSI
-            case "[":
-                CSI_TERMINATORS = self.CSI_TERMINATORS
-                while (character := (yield)) not in CSI_TERMINATORS:
-                    store(character)
-                store(character)
-                return ("csi", sequence.getvalue())
-
-            # OSC
-            case "]":
-                last_character = ""
-                OSC_TERMINATORS = self.OSC_TERMINATORS
-                while (character := (yield)) not in OSC_TERMINATORS:
-                    store(character)
-                    if last_character == "\x1b" and character in {"\\", "\0x5c"}:
-                        break
-                    last_character = character
-                store(character)
-
-                return ("osc", sequence.getvalue())
-
-            # DCS
-            case "P":
-                print("TODO DCS")
-                last_character = ""
-                DSC_TERMINATORS = self.DSC_TERMINATORS
-                while (character := (yield)) not in DSC_TERMINATORS:
-                    store(character)
-                    if last_character == "\x1b" and character == "\\":
-                        break
-                    last_character = character
-                store(character)
-                return ("dcs", sequence.getvalue())
-
-            # Character set designation
-            case "(" | ")" | "*" | "+" | "-" | "." | "/":
-                if (character := (yield)) not in self.FINAL:
-                    return False
-                store(character)
-                return ("dec", sequence.getvalue())
-
-            case "n" | "o" | "~" | "}" | "|" | "N" | "O":
-                return ("dec_invoke", sequence.getvalue())
-
-            # Line attribute
-            case "#":
-                print("LINE ATTRIBUTES")
-                store((yield))
-                return ("la", sequence.getvalue())
-            # ISO 2022: ESC SP
-            case " ":
-                store((yield))
-                return ("sp", sequence.getvalue())
-            case _:
-                return ("control", character)
+        character = yield
+        try:
+            sequence = EscapeSequence.decode(character)
+        except ValueError:
+            return "control", character
+        return (yield from sequence.read(character))
 
 
 class ANSIParser(StreamParser[tuple[str, str]]):
     """Parse a stream of text containing escape sequences in to logical tokens."""
 
-    def parse(self) -> ParseResult[tuple[str, str]]:
+    def parse(self) -> ParseResult:
         NEW_LINE = "\n"
         CARRIAGE_RETURN = "\r"
         ESCAPE = "\x1b"
@@ -154,28 +242,34 @@ class ANSIParser(StreamParser[tuple[str, str]]):
                 if token.text == ESCAPE:
                     token = yield self.read_patterns("\x1b", fe=FEPattern())
                     if isinstance(token, PatternToken):
-                        yield token.value
+                        self.emit(token.value)
                 else:
-                    yield "separator", token.text
+                    self.emit(("separator", token.text))
                 continue
 
-            yield "content", token.text
+            self.emit(("content", token.text))
 
 
 EMPTY_LINE = Content()
 
 
 type ClearType = Literal["cursor_to_end", "cursor_to_beginning", "screen", "scrollback"]
-ANSI_CLEAR: Mapping[int, ClearType] = {
-    0: "cursor_to_end",
-    1: "cursor_to_beginning",
-    2: "screen",
-    3: "scrollback",
-}
+
+
+class ANSICommand(ABC):
+    """A decoded terminal operation owns its effect."""
+
+    __slots__ = ()
+    visible_output: ClassVar[bool] = False
+
+    @abstractmethod
+    async def apply(self, state: TerminalState) -> None:
+        """Apply this operation to the current terminal."""
 
 
 @rich.repr.auto
-class ANSIContent(NamedTuple):
+@dataclass(frozen=True, slots=True)
+class ANSIContent(ANSICommand):
     """Content to be written to the terminal."""
 
     text: str
@@ -183,9 +277,51 @@ class ANSIContent(NamedTuple):
     def __rich_repr__(self) -> rich.repr.Result:
         yield self.text
 
+    visible_output: ClassVar[bool] = True
+
+    async def apply(self, state: TerminalState) -> None:
+        text = self.text
+        buffer = state.buffer
+        folded_lines = buffer.folded_lines
+        while buffer.cursor_line >= len(folded_lines):
+            state.add_line(buffer, EMPTY_LINE)
+        folded_line = folded_lines[buffer.cursor_line]
+        line_no = folded_line.line_no
+        line = buffer.lines[line_no]
+
+        cursor_line_offset = state.get_cursor_line_offset(buffer)
+        line_content = line.content
+        if cursor_line_offset > len(line_content):
+            line_content = state._expand_content(
+                line_content, cursor_line_offset, line.style
+            )
+        content = Content.styled(
+            state.dec_state.translate(text),
+            state.style,
+            strip_control_codes=False,
+        )
+        if state.replace_mode:
+            updated_line = Content.assemble(
+                line_content[:cursor_line_offset],
+                content,
+                line_content[cursor_line_offset + len(content) :],
+                strip_control_codes=False,
+            )
+        else:
+            updated_line = Content.assemble(
+                line_content[:cursor_line_offset],
+                content,
+                line_content[cursor_line_offset:],
+                strip_control_codes=False,
+            )
+        state.update_line(buffer, line_no, updated_line)
+        buffer.update_cursor(line_no, cursor_line_offset + len(content))
+        buffer.updates = state.advance_updates()
+
 
 @rich.repr.auto
-class ANSICursor(NamedTuple):
+@dataclass(frozen=True, slots=True)
+class ANSICursor(ANSICommand):
     """Represents a single operation on the ANSI output.
 
     All values may be `None` meaning "not set".
@@ -234,9 +370,9 @@ class ANSICursor(NamedTuple):
         Returns:
             A pair of offsets (inclusive).
         """
-        assert (
-            self.clear_range is not None
-        ), "Only call this if the replace attribute has a value"
+        assert self.clear_range is not None, (
+            "Only call this if the replace attribute has a value"
+        )
         replace_start, replace_end = self.clear_range
         if replace_start is None:
             replace_start = cursor_offset
@@ -251,14 +387,134 @@ class ANSICursor(NamedTuple):
         else:
             return (replace_start, replace_end)
 
+    visible_output: ClassVar[bool] = True
+
+    async def apply(self, state: TerminalState) -> None:
+        delta_x = self.delta_x
+        delta_y = self.delta_y
+        absolute_x = self.absolute_x
+        absolute_y = self.absolute_y
+        erase = self.erase
+        clear_range = self.clear_range
+        _relative = self.relative
+        update_background = self.update_background
+        auto_scroll = self.auto_scroll
+        buffer = state.buffer
+        folded_lines = buffer.folded_lines
+        while buffer.cursor_line >= len(folded_lines):
+            state.add_line(buffer, EMPTY_LINE)
+
+        if auto_scroll and delta_y is not None:
+            margins = buffer.scroll_margin.get_line_range(state.height)
+            margin_top, margin_bottom = margins
+
+            screen_cursor_line = buffer.cursor_line - state.screen_start_line_no
+
+            if screen_cursor_line >= margin_top and screen_cursor_line <= margin_bottom:
+                start_line_no = state.screen_start_line_no
+
+                scroll_cursor = screen_cursor_line + delta_y
+                if scroll_cursor > (start_line_no + margin_bottom):
+                    state.scroll_buffer(-1, 1)
+                    return
+                elif scroll_cursor < (start_line_no + margin_top):
+                    state.scroll_buffer(+1, 1)
+                    return
+
+        folded_line = folded_lines[buffer.cursor_line]
+        previous_content = folded_line.content
+        line = buffer.lines[folded_line.line_no]
+        if update_background:
+            line.style = state.style
+
+        if clear_range is not None:
+            cursor_line_offset = state.get_cursor_line_offset(buffer)
+
+            line_content = line.content
+            if cursor_line_offset > len(line.content):
+                line_content = state._expand_content(
+                    line.content, cursor_line_offset, line.style
+                )
+
+            # Start and end replace are *inclusive*
+            clear_start, clear_end = self.get_clear_offsets(
+                cursor_line_offset, len(line_content)
+            )
+
+            before_clear = line_content[:clear_start]
+            after_clear = line_content[clear_end + 1 :]
+
+            if erase:
+                # Range is remove
+                updated_line = Content.assemble(
+                    before_clear,
+                    after_clear,
+                    strip_control_codes=False,
+                )
+                state.update_line(buffer, folded_line.line_no, updated_line)
+            else:
+                # Range is replaced with spaces
+                blank_width = clear_end - clear_start + 1
+
+                updated_line = Content.assemble(
+                    before_clear,
+                    Content.blank(blank_width, state.style),
+                    after_clear,
+                    strip_control_codes=False,
+                )
+                state.update_line(buffer, folded_line.line_no, updated_line)
+
+        if not previous_content.is_same(folded_line.content):
+            buffer.updates = state.advance_updates()
+
+        if delta_x is not None:
+            buffer.cursor_offset = clamp(
+                buffer.cursor_offset + delta_x, 0, state.width - 1
+            )
+            buffer.update_line(buffer.cursor_line)
+        if absolute_x is not None:
+            buffer.cursor_offset = clamp(absolute_x, 0, state.width - 1)
+            buffer.update_line(buffer.cursor_line)
+
+        current_cursor_line = buffer.cursor_line
+        if delta_y is not None:
+            buffer.update_line(buffer.cursor_line)
+            buffer.cursor_line = max(
+                state.screen_start_line_no, buffer.cursor_line + delta_y
+            )
+            buffer.update_line(buffer.cursor_line)
+        if absolute_y is not None:
+            buffer.update_line(buffer.cursor_line)
+            if buffer.name == "scrollback":
+                buffer.cursor_line = state.screen_start_line_no + max(0, absolute_y)
+            else:
+                buffer.cursor_line = max(0, absolute_y)
+            buffer.update_line(buffer.cursor_line)
+
+        if current_cursor_line != buffer.cursor_line:
+            # Simplify when the cursor moves away from the current line
+            line.content.simplify()  # Reduce segments
+            state._line_updated(buffer, current_cursor_line)
+            state._line_updated(buffer, buffer.cursor_line)
+
 
 @rich.repr.auto
-class ANSINewLine:
+@dataclass(frozen=True, slots=True)
+class ANSINewLine(ANSICommand):
     """New line (diffrent in alternate buffer)"""
 
+    async def apply(self, state: TerminalState) -> None:
+        command = (
+            ANSICursor(delta_y=1, auto_scroll=True)
+            if state.alternate_screen
+            else ANSICursor(delta_y=1, absolute_x=0)
+        )
+        await command.apply(state)
+
 
 @rich.repr.auto
-class ANSIStyle(NamedTuple):
+@dataclass(frozen=True, slots=True)
+class ANSIStyle(ANSICommand):
     """Update style."""
 
     style: Style
@@ -266,9 +522,14 @@ class ANSIStyle(NamedTuple):
     def __rich_repr__(self) -> rich.repr.Result:
         yield self.style
 
+    async def apply(self, state: TerminalState) -> None:
+        style = self.style
+        state.style = style
+
 
 @rich.repr.auto
-class ANSIClear(NamedTuple):
+@dataclass(frozen=True, slots=True)
+class ANSIClear(ANSICommand):
     """Enumeration for clearing the 'screen'."""
 
     clear: ClearType
@@ -276,9 +537,14 @@ class ANSIClear(NamedTuple):
     def __rich_repr__(self) -> rich.repr.Result:
         yield self.clear
 
+    async def apply(self, state: TerminalState) -> None:
+        clear = self.clear
+        state.clear_buffer(clear)
+
 
 @rich.repr.auto
-class ANSIScrollMargin(NamedTuple):
+@dataclass(frozen=True, slots=True)
+class ANSIScrollMargin(ANSICommand):
     """Set the scroll margin."""
 
     top: int | None = None
@@ -288,9 +554,21 @@ class ANSIScrollMargin(NamedTuple):
         yield self.top
         yield self.bottom
 
+    async def apply(self, state: TerminalState) -> None:
+        top = self.top
+        bottom = self.bottom
+        state.buffer.scroll_margin = ScrollMargin(top, bottom)
+        # Setting the scroll margins moves the cursor to (1, 1)
+        buffer = state.buffer
+        state._line_updated(buffer, buffer.cursor_line)
+        buffer.cursor_line = 0
+        buffer.cursor_offset = 0
+        state._line_updated(buffer, buffer.cursor_line)
+
 
 @rich.repr.auto
-class ANSIScroll(NamedTuple):
+@dataclass(frozen=True, slots=True)
+class ANSIScroll(ANSICommand):
     """Scroll buffer."""
 
     direction: Literal[+1, -1]
@@ -300,35 +578,20 @@ class ANSIScroll(NamedTuple):
         yield self.direction
         yield self.lines
 
-
-class ANSIFeatures(NamedTuple):
-    """Terminal feature flags."""
-
-    show_cursor: bool | None = None
-    alternate_screen: bool | None = None
-    bracketed_paste: bool | None = None
-    cursor_blink: bool | None = None
-    cursor_keys: bool | None = None
-    replace_mode: bool | None = None
-    auto_wrap: bool | None = None
+    async def apply(self, state: TerminalState) -> None:
+        direction = self.direction
+        lines = self.lines
+        state.scroll_buffer(direction, lines)
 
 
 MOUSE_TRACKING_MODES = Literal["button", "drag", "all"]
 MOUSE_FORMAT = Literal["normal", "utf8", "sgr", "urxvt"]
 
 
-class ANSIMouseTracking(NamedTuple):
-    """Set mouse tracking."""
-
-    mode: Literal["none"] | MOUSE_TRACKING_MODES | None = None
-    format: MOUSE_FORMAT | None = None
-    focus_events: bool | None = None
-    alternate_scroll: bool | None = None
-
-
 # Not technically part of the terminal protocol
 @rich.repr.auto
-class ANSIWorkingDirectory(NamedTuple):
+@dataclass(frozen=True, slots=True)
+class ANSIWorkingDirectory(ANSICommand):
     """Working directory changed"""
 
     path: str
@@ -336,41 +599,197 @@ class ANSIWorkingDirectory(NamedTuple):
     def __rich_repr__(self) -> rich.repr.Result:
         yield self.path
 
+    async def apply(self, state: TerminalState) -> None:
+        path = self.path
+        state.current_directory = path
+
 
 @rich.repr.auto
-class ANSICharacterSet(NamedTuple):
+@dataclass(frozen=True, slots=True)
+class ANSICharacterSet(ANSICommand):
     """Updated character set state."""
 
     dec: DEC | None = None
     dec_invoke: DECInvoke | None = None
 
+    async def apply(self, state: TerminalState) -> None:
+        dec = self.dec
+        dec_invoke = self.dec_invoke
+        state.dec_state.update(dec, dec_invoke)
+
 
 @rich.repr.auto
-class ANSICursorPositionRequest(NamedTuple):
+@dataclass(frozen=True, slots=True)
+class ANSICursorPositionRequest(ANSICommand):
     pass
 
+    async def apply(self, state: TerminalState) -> None:
+        row = state.buffer.cursor_line + 1
+        column = state.buffer.cursor_offset + 1
+        await state.write_stdin(f"\x1b[{row};{column}R")
 
-type ANSICommand = (
-    ANSIStyle
-    | ANSIContent
-    | ANSICursor
-    | ANSINewLine
-    | ANSIClear
-    | ANSIScrollMargin
-    | ANSIScroll
-    | ANSIWorkingDirectory
-    | ANSICharacterSet
-    | ANSIFeatures
-    | ANSIMouseTracking
-    | ANSICursorPositionRequest
-)
+
+class TerminalMode(DeclaredFamily, affix="Mode"):
+    """One externally numbered mode; shared boundary decoding and application."""
+
+    private: ClassVar[bool] = True
+
+    @classmethod
+    def parse(cls, sequence: str) -> tuple[SetMode, ...] | None:
+        if not sequence.endswith(("h", "l")):
+            return None
+        match = re.fullmatch(r"\[(\??)([0-9;]+)([hl])", sequence)
+        if match is None:
+            return None
+        private, numbers, operation = match.groups()
+        commands = []
+        for number in numbers.split(";"):
+            try:
+                mode = cls.decode(number)
+            except ValueError:
+                continue  # Unrecognized external modes have no effect.
+            if mode.private == bool(private):
+                commands.append(mode.command(operation == "h"))
+        return tuple(commands)
+
+    @classmethod
+    @lru_cache(maxsize=128)
+    def command(cls, enabled: bool) -> SetMode:
+        return SetMode(cls, enabled)
+
+    @classmethod
+    def apply(cls, state: TerminalState, enabled: bool) -> None:
+        cls.change(state, enabled)
+        state.advance_updates()
+
+    @classmethod
+    @abstractmethod
+    def change(cls, state: TerminalState, enabled: bool) -> None:
+        """Change the mode's owned state."""
+
+
+@dataclass(frozen=True, slots=True)
+class SetMode(ANSICommand):
+    mode: type[TerminalMode]
+    enabled: bool
+
+    async def apply(self, state: TerminalState) -> None:
+        self.mode.apply(state, self.enabled)
+
+
+class ShowCursorMode(TerminalMode, declared_name="25"):
+    @classmethod
+    def change(cls, state: TerminalState, enabled: bool) -> None:
+        state.show_cursor = enabled
+
+
+class AlternateScreenMode(TerminalMode, declared_name="1049"):
+    @classmethod
+    def change(cls, state: TerminalState, enabled: bool) -> None:
+        state.alternate_screen = enabled
+
+
+class BracketedPasteMode(TerminalMode, declared_name="2004"):
+    @classmethod
+    def change(cls, state: TerminalState, enabled: bool) -> None:
+        state.bracketed_paste = enabled
+
+
+class CursorBlinkMode(TerminalMode, declared_name="12"):
+    @classmethod
+    def change(cls, state: TerminalState, enabled: bool) -> None:
+        state.cursor_blink = enabled
+
+
+class CursorKeysMode(TerminalMode, declared_name="1"):
+    @classmethod
+    def change(cls, state: TerminalState, enabled: bool) -> None:
+        state.cursor_keys = enabled
+
+
+class AutoWrapMode(TerminalMode, declared_name="7"):
+    @classmethod
+    def change(cls, state: TerminalState, enabled: bool) -> None:
+        state.auto_wrap = enabled
+
+
+class InsertMode(TerminalMode, declared_name="4"):
+    private = False
+
+    @classmethod
+    def change(cls, state: TerminalState, enabled: bool) -> None:
+        state.replace_mode = not enabled
+
+
+class MouseMode(TerminalMode):
+    @classmethod
+    def change(cls, state: TerminalState, enabled: bool) -> None:
+        if state.mouse_tracking is None:
+            state.mouse_tracking = MouseTracking()
+        cls.update(state.mouse_tracking, enabled)
+
+    @classmethod
+    @abstractmethod
+    def update(cls, mouse: MouseTracking, enabled: bool) -> None:
+        """Update this mouse capability."""
+
+
+class MouseTrackingMode(TerminalMode):
+    @property
+    @abstractmethod
+    def tracking(self) -> MOUSE_TRACKING_MODES:
+        """External tracking policy owned by the declaration."""
+
+    @classmethod
+    def change(cls, state: TerminalState, enabled: bool) -> None:
+        if not enabled:
+            state.mouse_tracking = None
+        else:
+            if state.mouse_tracking is None:
+                state.mouse_tracking = MouseTracking()
+            state.mouse_tracking.tracking = cls.tracking
+
+
+class MouseButtonMode(MouseTrackingMode, declared_name="1000"):
+    tracking = "button"
+
+
+class MouseDragMode(MouseTrackingMode, declared_name="1002"):
+    tracking = "drag"
+
+
+class MouseAnyEventMode(MouseTrackingMode, declared_name="1003"):
+    tracking = "all"
+
+
+class MouseSgrMode(MouseMode, declared_name="1006"):
+    @classmethod
+    def update(cls, mouse: MouseTracking, enabled: bool) -> None:
+        mouse.format = "sgr" if enabled else "normal"
+
+
+class MouseUrxvtMode(MouseMode, declared_name="1015"):
+    @classmethod
+    def update(cls, mouse: MouseTracking, enabled: bool) -> None:
+        mouse.format = "urxvt" if enabled else "normal"
+
+
+class FocusEventsMode(MouseMode, declared_name="1004"):
+    @classmethod
+    def update(cls, mouse: MouseTracking, enabled: bool) -> None:
+        mouse.focus_events = enabled
+
+
+class AlternateScrollMode(MouseMode, declared_name="1007"):
+    @classmethod
+    def update(cls, mouse: MouseTracking, enabled: bool) -> None:
+        mouse.alternate_scroll = enabled
 
 
 class ANSIStream:
     def __init__(self) -> None:
         self.parser = ANSIParser()
         self.style = NULL_STYLE
-        self.show_cursor = True
 
     @classmethod
     @lru_cache(maxsize=1024)
@@ -424,8 +843,7 @@ class ANSIStream:
         """
 
         for token in self.parser.feed(text):
-            if not isinstance(token, Token):
-                yield from self.on_token(token)
+            yield from self.on_token(token)
 
     ANSI_SEPARATORS = {
         "\n": ANSICursor(delta_y=+1, absolute_x=0),
@@ -443,38 +861,6 @@ class ANSIStream:
     CLEAR_SCREEN_CURSOR_TO_BEGINNING = ANSIClear("cursor_to_beginning")
     CLEAR_SCREEN = ANSIClear("screen")
     CLEAR_SCREEN_SCROLLBACK = ANSIClear("scrollback")
-    SHOW_CURSOR = ANSIFeatures(show_cursor=True)
-    HIDE_CURSOR = ANSIFeatures(show_cursor=False)
-    ENABLE_ALTERNATE_SCREEN = ANSIFeatures(alternate_screen=True)
-    DISABLE_ALTERNATE_SCREEN = ANSIFeatures(alternate_screen=False)
-    ENABLE_BRACKETED_PASTE = ANSIFeatures(bracketed_paste=True)
-    DISABLE_BRACKETED_PASTE = ANSIFeatures(bracketed_paste=False)
-    ENABLE_CURSOR_BLINK = ANSIFeatures(cursor_blink=True)
-    DISABLE_CURSOR_BLINK = ANSIFeatures(cursor_blink=False)
-    ENABLE_CURSOR_KEYS_APPLICATION_MODE = ANSIFeatures(cursor_keys=True)
-    DISABLE_CURSOR_KEYS_APPLICATION_MODE = ANSIFeatures(cursor_keys=False)
-    ENABLE_REPLACE_MODE = ANSIFeatures(replace_mode=True)
-    DISABLE_REPLACE_MODE = ANSIFeatures(replace_mode=False)
-    ENABLE_AUTO_WRAP = ANSIFeatures(auto_wrap=True)
-    DISABLE_AUTO_WRAP = ANSIFeatures(auto_wrap=False)
-
-    INVOKE_G2_INTO_GL = DECInvoke(gl=2)
-    INVOKE_G3_INTO_GL = DECInvoke(gl=3)
-    INVOKE_G1_INTO_GR = DECInvoke(gr=1)
-    INVOKE_G2_INTO_GR = DECInvoke(gr=2)
-    INVOKE_G3_INTO_GR = DECInvoke(gr=3)
-    SHIFT_G2 = DECInvoke(shift=2)
-    SHIFT_G3 = DECInvoke(shift=3)
-
-    DEC_INVOKE_MAP = {
-        "n": INVOKE_G2_INTO_GL,
-        "o": INVOKE_G3_INTO_GL,
-        "~": INVOKE_G1_INTO_GR,
-        "}": INVOKE_G2_INTO_GR,
-        "|": INVOKE_G3_INTO_GR,
-        "N": SHIFT_G2,
-        "O": SHIFT_G3,
-    }
 
     @classmethod
     @lru_cache(maxsize=1024)
@@ -557,86 +943,12 @@ class ANSIStream:
                         int(top or "1") - 1 if top else None,
                         int(bottom or "1") - 1 if top else None,
                     )
-                case ["4", _, "h" | "l" as replace_mode]:
-                    return (
-                        cls.ENABLE_REPLACE_MODE
-                        if replace_mode == "h"
-                        else cls.DISABLE_REPLACE_MODE
-                    )
-
                 case ["6", _, "n"]:
                     return ANSICursorPositionRequest()
 
                 case _:
-                    print("Unknown CSI (a)", repr(csi))
                     return None
 
-        elif match := re.fullmatch(r"\[([0-9:;<=>?]*)([!-/]*)([@-~])", csi):
-            match match.groups(default=""):
-                case ["?25", "", "h"]:
-                    return cls.SHOW_CURSOR
-                case ["?25", "", "l"]:
-                    return cls.HIDE_CURSOR
-                case ["?1049", "", "h"]:
-                    return cls.ENABLE_ALTERNATE_SCREEN
-                case ["?1049", "", "l"]:
-                    return cls.DISABLE_ALTERNATE_SCREEN
-                case ["?2004", "", "h"]:
-                    return cls.ENABLE_BRACKETED_PASTE
-                case ["?2004", "", "l"]:
-                    return cls.DISABLE_BRACKETED_PASTE
-                case ["?12", "", "h"]:
-                    return cls.ENABLE_CURSOR_BLINK
-                case ["?12", "", "l"]:
-                    return cls.DISABLE_CURSOR_BLINK
-                case ["?1", "", "h"]:
-                    return cls.ENABLE_CURSOR_KEYS_APPLICATION_MODE
-                case ["?1", "", "l"]:
-                    return cls.DISABLE_CURSOR_KEYS_APPLICATION_MODE
-                case ["?7", "", "h"]:
-                    return cls.ENABLE_AUTO_WRAP
-                case ["?7", "", "l"]:
-                    return cls.DISABLE_AUTO_WRAP
-
-                # \x1b[22;0;0t
-                case [param1, param2, "t"]:
-                    print("TODO", "XTWINOPS", param1, param2)
-                    # 't' = XTWINOPS (Window manipulation)
-                    return None
-                case _:
-                    if match := re.fullmatch(r"\[\?([0-9;]+)([hl])", csi):
-                        modes = [m for m in match.group(1).split(";")]
-                        enable = match.group(2) == "h"
-                        tracking: Literal["none"] | MOUSE_TRACKING_MODES | None = None
-                        format: MOUSE_FORMAT | None = None
-                        focus_events: bool | None = None
-                        alternate_scroll: bool | None = None
-                        for mode in modes:
-                            if mode == "1000":
-                                tracking = "button" if enable else "none"
-                            elif mode == "1002":
-                                tracking = "drag" if enable else "none"
-                            elif mode == "1003":
-                                tracking = "all" if enable else "none"
-                            elif mode == "1006":
-                                format = "sgr"
-                            elif mode == "1015":
-                                format = "urxvt"
-                            elif mode == "1004":
-                                focus_events = enable
-                            elif mode == "1007":
-                                alternate_scroll = enable
-                        return ANSIMouseTracking(
-                            mode=tracking,
-                            format=format,
-                            focus_events=focus_events,
-                            alternate_scroll=alternate_scroll,
-                        )
-                    else:
-                        print("Unknown CSI (b)", repr(csi))
-                        return None
-
-        print("Unknown CSI (c)", repr(csi))
         return None
 
     def on_token(self, token: tuple[str, str]) -> Iterable[ANSICommand]:
@@ -652,7 +964,6 @@ class ANSIStream:
                     case ["8", *_, link]:
                         self.style += Style(link=link or None)
                     case ["2025", current_directory, *_]:
-                        self.current_directory = current_directory
                         yield ANSIWorkingDirectory(current_directory)
 
             case ["csi", csi]:
@@ -673,15 +984,22 @@ class ANSIStream:
                             )
                     yield ANSIStyle(self.style)
                 else:
-                    if (ansi_segment := self._parse_csi(csi)) is not None:
+                    modes = TerminalMode.parse(csi)
+                    if modes is not None:
+                        yield from modes
+                    elif (ansi_segment := self._parse_csi(csi)) is not None:
                         yield ansi_segment
 
             case ["dec", dec]:
                 slot, character_set = list(dec)
-                yield ANSICharacterSet(DEC(DEC_SLOTS[slot], character_set))
+                yield ANSICharacterSet(
+                    DEC(DesignateSequence.decode(slot).slot, character_set)
+                )
 
             case ["dec_invoke", dec_invoke]:
-                yield ANSICharacterSet(dec_invoke=self.DEC_INVOKE_MAP[dec_invoke[0]])
+                yield ANSICharacterSet(
+                    dec_invoke=InvokeSequence.decode(dec_invoke[0]).invocation
+                )
 
             case ["control", code]:
                 if (control := CONTROL_CODES.get(code)) is not None:
@@ -689,16 +1007,12 @@ class ANSIStream:
                         yield ANSICursor(delta_y=-1, auto_scroll=True)
                     elif control == "ind":
                         yield ANSICursor(delta_y=+1, auto_scroll=True)
-                    else:
-                        print("CONTROL", repr(code), repr(control))
-                else:
-                    print("NOT HANDLED", code)
 
             case ["content", text]:
                 yield ANSIContent(text)
 
             case _:
-                print("UNKNWON TOKEN", repr(token))
+                return
 
 
 class LineFold(NamedTuple):
@@ -1110,7 +1424,7 @@ class TerminalState:
     def remove_trailing_blank_lines_from_scrollback(self) -> None:
         """Remove blank lines at the end of the scrollback buffer.
 
-        A line is considered blank if it is whitespace and has no color or style applied.
+        A line is blank if it is whitespace with no color or style applied.
 
         """
         buffer = self.scrollback_buffer
@@ -1169,7 +1483,7 @@ class TerminalState:
             hide_output: Hide visible output from buffers.
 
         Returns:
-            A pair of deltas or `None for full refresh, for scrollback and alternate screen.
+            A pair of deltas, or `None` for full refresh, for the two buffers.
         """
         alternate_buffer = self.alternate_buffer
         scrollback_buffer = self.scrollback_buffer
@@ -1180,11 +1494,11 @@ class TerminalState:
         # Write sequences and update
         if hide_output:
             for ansi_command in self._ansi_stream.feed(text):
-                if not isinstance(ansi_command, (ANSIContent, ANSICursor)):
-                    await self._handle_ansi_command(ansi_command)
+                if not ansi_command.visible_output:
+                    await ansi_command.apply(self)
         else:
             for ansi_command in self._ansi_stream.feed(text):
-                await self._handle_ansi_command(ansi_command)
+                await ansi_command.apply(self)
 
         # Get deltas
         scrollback_updates = (
@@ -1221,8 +1535,6 @@ class TerminalState:
         buffer = self.buffer
         if clear == "screen":
             buffer.clear(self.advance_updates())
-            # for _ in range(self.height):
-            #     self.add_line(buffer, EMPTY_CONTENT)
         elif clear == "cursor_to_end":
             buffer._updated_lines = None
             folded_cursor_line = buffer.cursor_line
@@ -1235,7 +1547,6 @@ class TerminalState:
             del buffer.folded_lines[folded_cursor_line + 1 :]
             self.update_line(buffer, cursor_line, line.content[:cursor_line_offset])
         else:
-            # print(f"TODO: clear_buffer({clear!r})")
             buffer.clear(self.advance_updates())
 
     def scroll_buffer(self, direction: int, lines: int) -> None:
@@ -1301,230 +1612,6 @@ class TerminalState:
         if offset > len(content):
             content += Content.blank(offset - len(content), style)
         return content
-
-    async def _handle_ansi_command(self, ansi_command: ANSICommand) -> None:
-        if isinstance(ansi_command, ANSINewLine):
-            if self.alternate_screen:
-                # New line behaves differently in alternate screen
-                ansi_command = ANSICursor(delta_y=+1, auto_scroll=True)
-            else:
-                ansi_command = ANSICursor(delta_y=+1, absolute_x=0)
-
-        match ansi_command:
-            case ANSIStyle(style):
-                self.style = style
-
-            case ANSIContent(text):
-                buffer = self.buffer
-                folded_lines = buffer.folded_lines
-                while buffer.cursor_line >= len(folded_lines):
-                    self.add_line(buffer, EMPTY_LINE)
-                folded_line = folded_lines[buffer.cursor_line]
-                previous_content = folded_line.content
-                line_no = folded_line.line_no
-                line = buffer.lines[line_no]
-
-                cursor_line_offset = self.get_cursor_line_offset(buffer)
-                line_content = line.content
-                if cursor_line_offset > len(line_content):
-                    line_content = self._expand_content(
-                        line_content, cursor_line_offset, line.style
-                    )
-                content = Content.styled(
-                    self.dec_state.translate(text),
-                    self.style,
-                    strip_control_codes=False,
-                )
-                if self.replace_mode:
-                    updated_line = Content.assemble(
-                        line_content[:cursor_line_offset],
-                        content,
-                        line_content[cursor_line_offset + len(content) :],
-                        strip_control_codes=False,
-                    )
-                else:
-                    updated_line = Content.assemble(
-                        line_content[:cursor_line_offset],
-                        content,
-                        line_content[cursor_line_offset:],
-                        strip_control_codes=False,
-                    )
-                self.update_line(buffer, line_no, updated_line)
-                buffer.update_cursor(line_no, cursor_line_offset + len(content))
-                buffer.updates = self.advance_updates()
-
-            case ANSICursor(
-                delta_x,
-                delta_y,
-                absolute_x,
-                absolute_y,
-                erase,
-                clear_range,
-                _relative,
-                update_background,
-                auto_scroll,
-            ):
-                buffer = self.buffer
-                folded_lines = buffer.folded_lines
-                while buffer.cursor_line >= len(folded_lines):
-                    self.add_line(buffer, EMPTY_LINE)
-
-                if auto_scroll and delta_y is not None:
-                    margins = buffer.scroll_margin.get_line_range(self.height)
-                    margin_top, margin_bottom = margins
-
-                    screen_cursor_line = buffer.cursor_line - self.screen_start_line_no
-
-                    if (
-                        screen_cursor_line >= margin_top
-                        and screen_cursor_line <= margin_bottom
-                    ):
-                        start_line_no = self.screen_start_line_no
-
-                        scroll_cursor = screen_cursor_line + delta_y
-                        if scroll_cursor > (start_line_no + margin_bottom):
-                            self.scroll_buffer(-1, 1)
-                            return
-                        elif scroll_cursor < (start_line_no + margin_top):
-                            self.scroll_buffer(+1, 1)
-                            return
-
-                folded_line = folded_lines[buffer.cursor_line]
-                previous_content = folded_line.content
-                line = buffer.lines[folded_line.line_no]
-                if update_background:
-                    line.style = self.style
-
-                if clear_range is not None:
-                    cursor_line_offset = self.get_cursor_line_offset(buffer)
-
-                    line_content = line.content
-                    if cursor_line_offset > len(line.content):
-                        line_content = self._expand_content(
-                            line.content, cursor_line_offset, line.style
-                        )
-
-                    # Start and end replace are *inclusive*
-                    clear_start, clear_end = ansi_command.get_clear_offsets(
-                        cursor_line_offset, len(line_content)
-                    )
-
-                    before_clear = line_content[:clear_start]
-                    after_clear = line_content[clear_end + 1 :]
-
-                    if erase:
-                        # Range is remove
-                        updated_line = Content.assemble(
-                            before_clear,
-                            after_clear,
-                            strip_control_codes=False,
-                        )
-                        self.update_line(buffer, folded_line.line_no, updated_line)
-                    else:
-                        # Range is replaced with spaces
-                        blank_width = clear_end - clear_start + 1
-
-                        updated_line = Content.assemble(
-                            before_clear,
-                            Content.blank(blank_width, self.style),
-                            after_clear,
-                            strip_control_codes=False,
-                        )
-                        self.update_line(buffer, folded_line.line_no, updated_line)
-
-                if not previous_content.is_same(folded_line.content):
-                    buffer.updates = self.advance_updates()
-
-                if delta_x is not None:
-                    buffer.cursor_offset = clamp(
-                        buffer.cursor_offset + delta_x, 0, self.width - 1
-                    )
-                    buffer.update_line(buffer.cursor_line)
-                if absolute_x is not None:
-                    buffer.cursor_offset = clamp(absolute_x, 0, self.width - 1)
-                    buffer.update_line(buffer.cursor_line)
-
-                current_cursor_line = buffer.cursor_line
-                if delta_y is not None:
-                    buffer.update_line(buffer.cursor_line)
-                    buffer.cursor_line = max(
-                        self.screen_start_line_no, buffer.cursor_line + delta_y
-                    )
-                    buffer.update_line(buffer.cursor_line)
-                if absolute_y is not None:
-                    buffer.update_line(buffer.cursor_line)
-                    if buffer.name == "scrollback":
-                        buffer.cursor_line = self.screen_start_line_no + max(
-                            0, absolute_y
-                        )
-                    else:
-                        buffer.cursor_line = max(0, absolute_y)
-                    buffer.update_line(buffer.cursor_line)
-
-                if current_cursor_line != buffer.cursor_line:
-                    # Simplify when the cursor moves away from the current line
-                    line.content.simplify()  # Reduce segments
-                    self._line_updated(buffer, current_cursor_line)
-                    self._line_updated(buffer, buffer.cursor_line)
-
-            case ANSIFeatures() as features:
-                if features.show_cursor is not None:
-                    self.show_cursor = features.show_cursor
-                if features.alternate_screen is not None:
-                    self.alternate_screen = features.alternate_screen
-                if features.bracketed_paste is not None:
-                    self.bracketed_paste = features.bracketed_paste
-                if features.cursor_blink is not None:
-                    self.cursor_blink = features.cursor_blink
-                if features.cursor_keys is not None:
-                    self.cursor_keys = features.cursor_keys
-                if features.auto_wrap is not None:
-                    self.auto_wrap = features.auto_wrap
-                self.advance_updates()
-
-            case ANSIClear(clear):
-                self.clear_buffer(clear)
-
-            case ANSIScrollMargin(top, bottom):
-                self.buffer.scroll_margin = ScrollMargin(top, bottom)
-                # Setting the scroll margins moves the cursor to (1, 1)
-                buffer = self.buffer
-                self._line_updated(buffer, buffer.cursor_line)
-                buffer.cursor_line = 0
-                buffer.cursor_offset = 0
-                self._line_updated(buffer, buffer.cursor_line)
-
-            case ANSIScroll(direction, lines):
-                self.scroll_buffer(direction, lines)
-
-            case ANSICharacterSet(dec, dec_invoke):
-                self.dec_state.update(dec, dec_invoke)
-
-            case ANSIWorkingDirectory(path):
-                self.current_directory = path
-
-            case ANSIMouseTracking(tracking, format, focus_events, alternate_scroll):
-                if tracking == "none":
-                    self.mouse_tracking = None
-                    return
-                if (mouse_tracking := self.mouse_tracking) is None:
-                    mouse_tracking = self.mouse_tracking = MouseTracking()
-                if tracking is not None:
-                    mouse_tracking.tracking = tracking
-                if format is not None:
-                    mouse_tracking.format = format
-                if focus_events is not None:
-                    mouse_tracking.focus_events = focus_events
-                if alternate_scroll is not None:
-                    mouse_tracking.alternate_scroll = alternate_scroll
-
-            case ANSICursorPositionRequest():
-                row = self.buffer.cursor_line + 1
-                column = self.buffer.cursor_offset + 1
-                await self.write_stdin(f"\x1b[{row};{column}R")
-
-            case _:
-                print("Unhandled", ansi_command)
 
     def _line_updated(self, buffer: Buffer, line_no: int) -> None:
         """Mark a line has having been udpated.

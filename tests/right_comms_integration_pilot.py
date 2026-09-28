@@ -138,7 +138,7 @@ async def main():
             await app.switch_mode(owner_mode)
             await pilot.pause()
 
-            # A menu opened before deletion/name reuse remains bound to the old
+            # A menu opened before synthetic incarnation replacement remains bound to the old
             # relationship. Choosing Open must not navigate to the new thread.
             row.scroll_visible(animate=False)
             await pilot.pause()
@@ -147,7 +147,7 @@ async def main():
             assert isinstance(app.screen, ContextMenu)
             old_peer = comms.registry.require("peer")
             comms.owners.stop("peer")
-            comms.threads.delete("peer")
+            comms.registry.remove("peer")
             comms.threads.register(Thread("peer", frozenset(), str(root),
                                   created_at=old_peer.created_at + 1))
             open_item = next(item for item in app.screen.query(ContextMenuItem)

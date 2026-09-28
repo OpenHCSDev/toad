@@ -116,7 +116,13 @@ the latest integrated Toad/core revisions.
 
 Toad main advanced to #107 (`df0a758`) while the above fixed-base probes ran.
 That integration updates core from492e26d to its paired nominal/L0A revision.
-This PR must merge and retest against that main before being considered ready;
-the measurements above remain labeled with their actual earlier source/core.
+This branch has now incorporated #107 and pins its current core revision
+`2bfbdb23ed1eaf39238d84e18c386a707e9a6f6e`, while retaining the
+Textual editor-state feature head `d9def32f`. `toad-workspace-l0a-smoke` passes
+the blank editor, shared Channels/footer, right Comms, typed settings and L0A
+caller guard cases on the isolated new-core environment (five pilot cases;
+24.39s/316.1MiB peak/zero swap). Complete-suite and native rendering acceptance
+on that merged combination remain outstanding. The measurements above remain
+labeled with their actual earlier source/core.
 
 No installed runtime, live data, user preview or other agent worktree was changed.

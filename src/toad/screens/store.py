@@ -1,3 +1,5 @@
+from toad.settings import PreferenceChange
+from toad.preferences import LauncherSettings
 from contextlib import suppress
 from dataclasses import dataclass
 from itertools import zip_longest
@@ -194,7 +196,7 @@ Your favorite agents.
         self.post_message(StoreScreen.OpenAgentDetails(agent_item._agent["identity"]))
 
     def action_remove(self) -> None:
-        agents = self.app.settings.get("launcher.agents", str).splitlines()
+        agents = self.app.settings.launcher.agents.splitlines()
         if self.highlighted is None:
             return
         try:
@@ -202,7 +204,7 @@ Your favorite agents.
         except IndexError:
             pass
         else:
-            self.app.settings.set("launcher.agents", "\n".join(agents))
+            self.app.settings.launcher.agents = "\n".join(agents)
 
     def action_launch(self) -> None:
         if self.highlighted is None:
@@ -247,9 +249,7 @@ class Launcher(containers.VerticalGroup):
         launcher_agents = list(
             dict.fromkeys(
                 identity
-                for identity in self.app.settings.get(
-                    "launcher.agents", str
-                ).splitlines()
+                for identity in self.app.settings.launcher.agents.splitlines()
                 if identity.strip()
             )
         )
@@ -557,7 +557,7 @@ class StoreScreen(Screen):
 
     @work
     async def on_mount(self) -> None:
-        self.app.settings_changed_signal.subscribe(self, self.setting_updated)
+        self.app.settings_changed_signal.subscribe(self, self._preferences_changed)
         try:
             self._agents = await read_agents()
         except Exception as error:
@@ -572,9 +572,8 @@ class StoreScreen(Screen):
                 first_grid = self.container.query(GridSelect).first()
                 first_grid.focus(scroll_visible=False)
 
-    async def setting_updated(self, setting: tuple[str, object]) -> None:
-        key, value = setting
-        if key == "launcher.agents":
+    async def _preferences_changed(self, change: PreferenceChange) -> None:
+        if change.field is LauncherSettings.agents:
             await self.launcher.recompose()
 
             def focus_screen():
@@ -617,9 +616,9 @@ class StoreScreen(Screen):
         if session is not None:
             self.post_message(
                 messages.LaunchAgent(
-                    session["agent_identity"],
-                    session["agent_session_id"],
-                    pk=session["id"],
+                    session.agent_identity,
+                    session.agent_session_id,
+                    pk=session.id,
                 )
             )
 

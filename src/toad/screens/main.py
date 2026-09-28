@@ -1,7 +1,6 @@
 from functools import partial
 from pathlib import Path
 import asyncio
-import random
 from agent_comms.comms import Comms
 
 from textual import on
@@ -185,15 +184,7 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
         self.app.update_terminal_title()
 
     def get_loading_widget(self) -> Widget:
-        throbber = self.app.settings.get("ui.throbber", str)
-        if throbber == "quotes":
-            from toad.app import QUOTES
-            from toad.widgets.future_text import FutureText
-
-            quotes = QUOTES.copy()
-            random.shuffle(quotes)
-            return FutureText([Content(quote) for quote in quotes])
-        return super().get_loading_widget()
+        return self.app.settings.ui.throbber.widget(self)
 
     def _on_screen_resume(self, event: ScreenResume) -> None:
         from toad.widgets.comms_sidebar import CommsSidebar
@@ -403,8 +394,6 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
         self.app.push_screen(
             MCPInventoryScreen(
                 self.project_path,
-                node_path=self.app.settings.get("mcp.node_path", str, expand=False),
-                cli_path=self.app.settings.get("mcp.cli_path", str, expand=False),
             )
         )
 

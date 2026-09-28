@@ -1,0 +1,5 @@
+ATTACHED_AND_NAVIGABLE
+CHANNEL_ACTIVE_STATUS Active: ⌛ beta
+CHANNEL_IDLE_STATUS_CONFIRMED
+CHANNEL_NOTIFICATION Checked — no response (1)
+PASS: installed native notification feedback; one loopback request

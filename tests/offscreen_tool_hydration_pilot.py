@@ -11,6 +11,7 @@ from unittest.mock import patch as mock_patch
 from agent_comms.tool_results import ToolDiff, tool_result_content
 from runtime_fixture import ToadApp
 from tool_diff_fixture import wait_for_tool_diff
+from toad.setting_choices import AlwaysExpansion
 from toad.widgets.tool_call import ToolCall, ToolCallDiff
 
 
@@ -22,7 +23,7 @@ async def main():
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(100, 35)) as pilot:
             await pilot.pause()
-            app.settings.set("tools.expand", "always")
+            app.settings.tools.expand = AlwaysExpansion
             patch = ("--- first.py\n+++ first.py\n@@ -1,2 +1,2 @@\n context\n-old\n+new\n")
             tools = [ToolCall({"toolCallId": f"edit-{index}", "title": f"Edit file {index}",
                 "kind": "edit", "status": "completed",

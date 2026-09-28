@@ -16,7 +16,6 @@ from toad.mcp_decision import Decision, DecisionAction
 from toad.mcp_inventory import (
     Declaration,
     Inventory,
-    POSITIVE_DECISIONS_CAPABILITY,
     read_inventory,
     render_inventory,
 )
@@ -38,12 +37,9 @@ class MCPInventoryScreen(ModalScreen[None]):
     """
     BINDINGS = [("escape", "dismiss", "Close inventory")]
 
-    def __init__(self, project_root: Path, *, node_path: str, cli_path: str) -> None:
+    def __init__(self, project_root: Path) -> None:
         super().__init__()
         self.project_root = project_root
-        self.node_path = node_path
-        self._positive_capable = False
-        self.cli_path = cli_path
         self._read_task: asyncio.Task[None] | None = None
         self._generation = 0
         self._inventory: Inventory | None = None
@@ -91,7 +87,7 @@ class MCPInventoryScreen(ModalScreen[None]):
     async def _fetch(self, generation: int) -> None:
         try:
             inventory = await read_inventory(
-                self.project_root, node_path=self.node_path, cli_path=self.cli_path
+                self.project_root
             )
         except asyncio.CancelledError:
             raise
@@ -115,10 +111,6 @@ class MCPInventoryScreen(ModalScreen[None]):
 
     def _update_actions(self) -> None:
         row, snapshot = self._selected, self._inventory
-        self._positive_capable = (
-            snapshot is not None
-            and snapshot.positive_decisions == POSITIVE_DECISIONS_CAPABILITY
-        )
         if row is None or snapshot is None or os.name != "posix":
             project = calls = False
         else:
@@ -126,11 +118,9 @@ class MCPInventoryScreen(ModalScreen[None]):
             project = eligible and row.scope == "project"
             calls = eligible and row.status == "approved"
         for identifier, enabled in (
-            # Positive grants need the package-owned compatibility capability
-            # advertised by the same snapshot that will authorize the launch.
-            ("trust_approve", project and self._positive_capable),
+            ("trust_approve", project),
             ("trust_deny", project),
-            ("calls_allow", calls and self._positive_capable),
+            ("calls_allow", calls),
             ("calls_ask", calls),
         ):
             self.query_one(f"#{identifier}", Button).disabled = not enabled
@@ -181,8 +171,6 @@ class MCPInventoryScreen(ModalScreen[None]):
                     row,
                     action=action,
                     decision=decision,
-                    node_path=self.node_path,
-                    cli_path=self.cli_path,
                 ),
                 lambda _: self.action_refresh(),
             )
