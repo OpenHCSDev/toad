@@ -1,0 +1,455 @@
+"""Installed Toad/ACP/owner/Pi path with a loopback-only model fixture."""
+
+import asyncio
+import json
+import os
+import shlex
+import sys
+import tempfile
+import threading
+import time
+import psutil
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
+
+from agent_comms.comms import Comms
+from agent_comms.native_package import verify_native_package
+from agent_comms.threads import Thread
+from agent_comms.coordination_store import MutationStore
+from agent_comms.cohort_schema import install_private_cohort_schema
+from agent_comms.coordination_response import install_private_response_schema
+from agent_comms.coordinated_runtime_schema import install_native_runtime_schema
+from agent_comms.native_prompt_binding import install_prompt_binding_schema
+from agent_comms.input_disposition import InputDispositions
+from runtime_fixture import ToadApp
+from toad.acp.agent import Agent
+from toad.widgets.agent_response import AgentResponse
+from toad.widgets.prompt import QueueSummary
+from toad.widgets.comms_chat import CommsChatView
+from toad.widgets.channel_participants import ChannelParticipants
+from toad.widgets.message_notifications import MessageNotifications
+from toad import messages
+
+
+async def until(pilot, predicate, seconds=20):
+    async with asyncio.timeout(seconds):
+        while not predicate():
+            await pilot.pause(0.05)
+
+
+async def main():
+    package = Path(os.environ["AC_NATIVE_COPIED_PACKAGE"])
+    verify_native_package(package)
+    requests, failures = [], []
+    acceptance_failures = []
+    entered, release, hold_next = (
+        threading.Event(),
+        threading.Event(),
+        threading.Event(),
+    )
+    hold_next.set()
+
+    class Handler(BaseHTTPRequestHandler):
+        def do_POST(self):
+            try:
+                request = json.loads(
+                    self.rfile.read(int(self.headers["Content-Length"]))
+                )
+                requests.append(request)
+                assert request["model"] == "fixture"
+                assert self.headers["Authorization"] == "Bearer offline-only-fixture"
+                assert len(requests) <= 12, "Unbounded model loop"
+                if hold_next.is_set():
+                    hold_next.clear()
+                    entered.set()
+                    assert release.wait(20), "UI did not release first response"
+                content = "NATIVE_RESPONSE_" + str(len(requests))
+                if any(
+                    "IGNORE" in str(m.get("content"))
+                    and "FULL" in str(m.get("content"))
+                    for m in request["messages"]
+                ):
+                    content = '{"decision":"IGNORE"}'
+                chunk = {
+                    "id": "offline",
+                    "object": "chat.completion.chunk",
+                    "created": 1,
+                    "model": "fixture",
+                    "choices": [
+                        {
+                            "index": 0,
+                            "delta": {"role": "assistant", "content": content},
+                            "finish_reason": None,
+                        }
+                    ],
+                }
+                final = {
+                    **chunk,
+                    "choices": [{"index": 0, "delta": {}, "finish_reason": "stop"}],
+                    "usage": {
+                        "prompt_tokens": 100,
+                        "completion_tokens": 10,
+                        "total_tokens": 110,
+                    },
+                }
+                body = (
+                    "".join(
+                        "data: " + json.dumps(row) + "\n\n" for row in (chunk, final)
+                    )
+                    + "data: [DONE]\n\n"
+                ).encode()
+                self.send_response(200)
+                self.send_header("Content-Type", "text/event-stream")
+                self.send_header("Content-Length", str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception as error:
+                failures.append(str(error))
+                self.send_error(400, "Offline fixture failed")
+
+        def log_message(self, *_args):
+            pass
+
+    server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    server_thread = threading.Thread(target=server.serve_forever, daemon=True)
+    server_thread.start()
+    # Core private-root validation currently requires /var/tmp. Only disposable
+    # wire data goes here; project/code/config/candidate wheels remain under ~/wt.
+    with (
+        tempfile.TemporaryDirectory(
+            prefix="comms-l0a-native-", dir="/var/tmp"
+        ) as wire_dir,
+        tempfile.TemporaryDirectory(
+            prefix="l0a-native-", dir=os.environ["TMPDIR"]
+        ) as stage_dir,
+    ):
+        stage = Path(stage_dir)
+        project = stage / "project"
+        project.mkdir()
+        config = stage / "pi"
+        config.mkdir(mode=0o700)
+        (config / "models.json").write_text(
+            json.dumps(
+                {
+                    "providers": {
+                        "selected-offline": {
+                            "baseUrl": f"http://127.0.0.1:{server.server_port}/v1",
+                            "api": "openai-completions",
+                            "models": [
+                                {
+                                    "id": "fixture",
+                                    "name": "Offline fixture",
+                                    "contextWindow": 32768,
+                                    "maxTokens": 2048,
+                                }
+                            ],
+                        }
+                    }
+                }
+            )
+        )
+        (config / "auth.json").write_text(
+            json.dumps(
+                {"selected-offline": {"type": "api_key", "key": "offline-only-fixture"}}
+            )
+        )
+        comms = Comms(Path(wire_dir) / "wire")
+        root_id = comms.messaging.initialize_private_initial_protocol()
+        comms.messaging.initialize_private_claim_protocol()
+        with MutationStore(str(comms.root / "coordination.sqlite3")) as store:
+            install_private_cohort_schema(store)
+            install_private_response_schema(store)
+            install_native_runtime_schema(store)
+            install_prompt_binding_schema(store)
+        comms.threads.register(
+            Thread(
+                "beta",
+                frozenset({"team"}),
+                str(project),
+                model="selected-offline/fixture",
+                thinking_level="off",
+            )
+        )
+        os.environ.update(
+            AGENT_COMMS_ROOT=str(comms.root),
+            AGENT_COMMS_PRIVATE_NK_WIRE_ROOT_ID=root_id,
+            AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE=str(package),
+            PI_CODING_AGENT_DIR=str(config),
+            AGENT_COMMS_AGENT_BIN="pi",
+            AGENT_COMMS_AGENT_ARGS="--provider selected-offline --model fixture --no-extensions --no-skills --no-context-files",
+            AGENT_COMMS_AGENT_MODELS="selected-offline/fixture",
+            XDG_CONFIG_HOME=str(stage / "config"),
+            XDG_DATA_HOME=str(stage / "data"),
+            XDG_STATE_HOME=str(stage / "state"),
+            AGENT_COMMS_DEBUG_LOG=str(stage / "acp-debug"),
+        )
+        for key in ("PI_PROMPT", "PI_PARENT_ID", "PI_AGENT_ID"):
+            os.environ.pop(key, None)
+        data = {
+            "name": "Native fixture",
+            "identity": "native-fixture",
+            "short_name": "native",
+            "protocol": "acp",
+            "run_command": {"*": shlex.join([sys.executable, "-m", "agent_comms.acp"])},
+        }
+        app = ToadApp(project_dir=str(project))
+        agent = None
+        turn = None
+        try:
+            async with app.run_test(size=(160, 44)) as pilot:
+                await pilot.pause()
+                owner_mode = app.current_mode
+                view = app.screen.conversation
+                agent = Agent(project, data, "beta")
+                view.agent = agent
+                await agent.start(view)
+                await until(pilot, agent.session_ready_event.is_set)
+                assert agent._connected_ok, "Actual ACP attach failed"
+                owner = comms.registry.require("beta")
+                assert owner.process_identity is not None and owner.process_alive
+                print("ATTACHED", flush=True)
+                turn = asyncio.create_task(agent.send_prompt("FIRST_NATIVE_INPUT"))
+                await until(pilot, entered.is_set)
+                print("PROVIDER_FIRST", flush=True)
+                view.prompt.text = "unsent local draft"
+                await asyncio.wait_for(
+                    agent.send_prompt("QUEUED_NATIVE_INPUT", defer_display=True), 10
+                )
+                await until(pilot, lambda: bool(view.queue_projection.items))
+                queued_ids = [row.input_id for row in view.queue_projection.items]
+                assert len(queued_ids) == 1
+                assert (
+                    "QUEUED_NATIVE_INPUT" in view.query_one(QueueSummary).render().plain
+                )
+                print("QUEUED", queued_ids, flush=True)
+                release.set()
+                await asyncio.wait_for(turn, 25)
+                await until(pilot, lambda: not comms.registry.require("beta").executing)
+                await pilot.pause()
+                assert len(requests) >= 2, "Queued native input never reached provider"
+                assert not view.queue_projection.items
+                assert view.prompt.text == "unsent local draft"
+                print("NATIVE_QUEUE_DONE", len(requests), flush=True)
+                print("QUEUE_PROJECTION", view.queue_projection, flush=True)
+                print(
+                    "INPUT_DELIVERY",
+                    json.dumps(view.input_delivery, default=str),
+                    flush=True,
+                )
+                native_file = Path(comms.registry.require("beta").session_file)
+                native_rows = [
+                    json.loads(line) for line in native_file.read_text().splitlines()
+                ]
+                disposition = (
+                    InputDispositions(comms.root / InputDispositions.filename)
+                    .read()
+                    .rows["acp:" + queued_ids[0]]
+                )
+                (Path(os.environ["L0A_EVIDENCE"]) / "native-session.jsonl").write_text(
+                    native_file.read_text()
+                )
+                print(
+                    "NATIVE_MAPPING", queued_ids[0], disposition.native_id, flush=True
+                )
+                assert any(
+                    row.get("message", {}).get("inputId") == disposition.native_id
+                    for row in native_rows
+                )
+                assert not disposition.unresolved
+                print("NATIVE_CONSUMPTION_CONFIRMED", flush=True)
+
+                # Cold ACP client attaches to the same detached owner and saved
+                # transcript; attachment must not produce another model request.
+                native_count = len(requests)
+                old_process = comms.registry.require("beta").process_identity
+                original_watcher = view._directory_watcher
+                assert original_watcher is not None
+                await agent.stop()
+                await view.contents.remove_children()
+                agent = Agent(project, data, "beta")
+                view.agent = agent
+                await agent.start(view)
+                await until(pilot, agent.session_ready_event.is_set)
+                assert agent._connected_ok
+                await until(
+                    pilot,
+                    lambda: any(
+                        "NATIVE_RESPONSE_2" in block.source
+                        for block in view.query(AgentResponse)
+                    ),
+                )
+                assert comms.registry.require("beta").process_identity == old_process
+                assert len(requests) == native_count
+                await until(pilot, lambda: view.queue_projection.status == "available")
+                assert not view.queue_projection.items
+                await pilot.pause()
+                assert view._directory_watcher is original_watcher
+                print("COLD_REATTACH_CONFIRMED", flush=True)
+
+                user = comms.messaging.user_identity(str(project)).name
+                await app.open_comms_session(
+                    owner_mode=owner_mode,
+                    project_path=project,
+                    me=user,
+                    target="beta",
+                    kind="dm",
+                )
+                dm = app.screen.query_one(CommsChatView)
+                entered.clear()
+                release.clear()
+                hold_next.set()
+                await dm.submit_input(
+                    messages.UserInputSubmitted("DIRECT_NATIVE_MESSAGE")
+                )
+                await until(pilot, entered.is_set)
+                assert comms.registry.require("beta").executing
+                release.set()
+                await until(
+                    pilot,
+                    lambda: any(
+                        row.sender == "beta" and row.body.startswith("NATIVE_RESPONSE_")
+                        for row, _ in dm._history
+                    ),
+                )
+                await until(pilot, lambda: not comms.registry.require("beta").executing)
+                print("DM_NATIVE_REPLY_CONFIRMED", flush=True)
+
+                await app.open_comms_session(
+                    owner_mode=owner_mode,
+                    project_path=project,
+                    me=user,
+                    target="#team",
+                    kind="channel",
+                )
+                channel = app.screen.query_one(CommsChatView)
+                entered.clear()
+                release.clear()
+                hold_next.set()
+                await channel.submit_input(
+                    messages.UserInputSubmitted("CHANNEL_NATIVE_TRIAGE")
+                )
+                await until(pilot, entered.is_set)
+                await until(pilot, lambda: comms.registry.require("beta").executing)
+                await channel._refresh()
+                await pilot.pause()
+                roster = channel.query_one(ChannelParticipants)
+                assert "beta" in roster.names.render().plain, roster.names.render()
+                assert roster in app.screen._compositor.visible_widgets
+                print("CHANNEL_ACTIVE_STATUS", roster.names.render().plain, flush=True)
+                release.set()
+                await until(pilot, lambda: not comms.registry.require("beta").executing)
+                await channel._refresh()
+                await pilot.pause()
+                assert "No active turns" in roster.names.render().plain, (
+                    roster.names.render()
+                )
+                print("CHANNEL_IDLE_STATUS_CONFIRMED", flush=True)
+                notification = channel.query_one(MessageNotifications)
+                try:
+                    await until(pilot, lambda: "Checked" in str(notification.title), 5)
+                    assert "no response" in str(notification.title).lower(), (
+                        notification.title
+                    )
+                except TimeoutError, AssertionError:
+                    detail = {
+                        "title": str(notification.title),
+                        "details": str(notification.details.render()),
+                        "history": [(m.seq, m.body) for m, _ in channel._history],
+                        "visible": [
+                            m.seq for m, _ in channel._visible_notification_rows()
+                        ],
+                    }
+                    try:
+                        detail["core"] = repr(
+                            comms.views.message_notifications(
+                                tuple(m for m, _ in channel._history)
+                            )
+                        )
+                    except Exception as error:
+                        detail["coreError"] = repr(error)
+                    acceptance_failures.append(detail)
+                    print("NOTIFICATION_FAILURE", json.dumps(detail), flush=True)
+                print("CHANNEL_NOTIFICATION", str(notification.title), flush=True)
+
+                # A stopped owner's saved native session must reopen through
+                # the same installed entrypoint and accept a new native input.
+                await agent.stop()
+                await asyncio.to_thread(comms.owners.stop, "beta")
+                assert not comms.registry.require("beta").process_alive
+                app.invoke_thread_action("comms_start", "beta", user)
+                await until(pilot, lambda: "beta" not in app.pending_thread_actions)
+                assert comms.registry.require("beta").process_alive, (
+                    "Explicit Start did not launch owner"
+                )
+                before_restart = len(requests)
+                await app.switch_mode(owner_mode)
+                await view.contents.remove_children()
+                agent = Agent(project, data, "beta")
+                view.agent = agent
+                await agent.start(view)
+                await until(pilot, agent.session_ready_event.is_set)
+                assert agent._connected_ok, "Stopped native owner failed to reopen"
+                await until(
+                    pilot,
+                    lambda: any(
+                        "NATIVE_RESPONSE_2" in block.source
+                        for block in view.query(AgentResponse)
+                    ),
+                )
+                assert len(requests) == before_restart, "Restart replayed a model input"
+                restarted = comms.registry.require("beta").process_identity
+                assert restarted is not None and restarted != old_process
+                await asyncio.wait_for(agent.send_prompt("AFTER_RESTART_NATIVE"), 20)
+                await until(pilot, lambda: not comms.registry.require("beta").executing)
+                assert len(requests) == before_restart + 1
+                print("STOPPED_OWNER_NATIVE_REOPEN_CONFIRMED", flush=True)
+                # Observe a quiescent installed owner and mounted UI: no model
+                # request or turn is permitted without a new input.
+                before = len(requests)
+                process = psutil.Process(restarted.pid)
+                cpu_before = sum(process.cpu_times()[:2])
+                ui_process = psutil.Process()
+                ui_cpu_before = sum(ui_process.cpu_times()[:2])
+                clock_before = time.monotonic()
+                await pilot.pause(2)
+                idle_cpu = sum(process.cpu_times()[:2]) - cpu_before
+                assert len(requests) == before
+                assert not comms.registry.require("beta").executing
+                print(
+                    "IDLE",
+                    json.dumps(
+                        {
+                            "seconds": time.monotonic() - clock_before,
+                            "ownerCpuSeconds": idle_cpu,
+                            "uiCpuSeconds": sum(ui_process.cpu_times()[:2])
+                            - ui_cpu_before,
+                            "modelRequests": len(requests) - before,
+                        }
+                    ),
+                    flush=True,
+                )
+                assert not failures, failures
+                assert not acceptance_failures, acceptance_failures
+                assert app._exception is None
+        finally:
+            release.set()
+            if turn and not turn.done():
+                turn.cancel()
+                await asyncio.gather(turn, return_exceptions=True)
+            if agent:
+                await agent.stop()
+                if agent._log_file_path.exists():
+                    (Path(os.environ["L0A_EVIDENCE"]) / "toad-acp.log").write_bytes(
+                        agent._log_file_path.read_bytes()
+                    )
+            for path in stage.glob("acp-debug*"):
+                destination = Path(os.environ["L0A_EVIDENCE"]) / path.name
+                destination.write_bytes(path.read_bytes())
+            await asyncio.to_thread(comms.owners.stop, "beta")
+            server.shutdown()
+            server.server_close()
+    print("PASS: installed actual native queue path; loopback model only", flush=True)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())

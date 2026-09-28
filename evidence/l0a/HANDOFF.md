@@ -8,7 +8,7 @@ Paired core: OpenHCSDev/agent-comms#235 plus #238 (integrated by parent #229). B
 - app.py removes retired comms_delete progress/dispatch and SessionDelete handler. Delete the now-unused SessionDelete event and DB.session_delete operation.
 - Context menu expectations remove delete; purge-exclusive pilot sections are deleted. Closing attached views retains the owner and saved session. Existing deliberate incarnation replacement tests use registry.remove only as test setup; their stale-basis assertions are retained.
 - Goal owner/UI pilots keep all temporary files and screenshots under this owned worktree and clean them after execution.
-- Pin agent-comms to published core #238 candidate 2eb571b. This pair cannot install on unconverted old saved roots.
+- Pin agent-comms to parent #229 candidate 89e420b. This pair cannot install on unconverted old saved roots.
 
 ## Stores and cutover
 
@@ -49,3 +49,23 @@ Toad production source: +8 / -70 lines (net -62). Test counts include deleted pu
 - This follow-up adds/deletes runtime +9/-23 and tests +271/-472. The full paired branch remains net deletion. Parent owns final pin to merged main and quiet D22 activation. No installed live environment changed.
 
 Final candidate pin2eb571b retested with built core/Toad wheels: DM rebind, actual queued ACP producer-to-mounted-UI, and current request/owner/stop/draft rollback fences all PASS (-final.txt). No native provider execution or live installation is claimed.
+
+## Installed native acceptance against parent89e420b
+
+Current branch pin:89e420b14d5e8a7839bb9d119f2fc75a2a6fb8f3. Core built from own persistent detached worktree ~/wt/comms-l0a-native-stage-20260928; both wheels installed only under this Toad worktree's .artifacts/candidate. Existing prepared Pi extensions package was verified by the installed core. The fixture uses the existing OpenAI-compatible loopback SSE pattern with isolated selected-offline/fixture credentials; no paid provider calls, no installed live environment changes.
+
+`tests/l0a_native_installed_pilot.py` exercises real Toad ACP stdio -> detached core owner -> prepared Pi -> loopback model, not injected native callbacks. Passing boundaries in latest run:
+
+- Native initial and queued inputs; queued UI ID maps through the durable disposition to the saved Pi input ID; disposition is started and queue row disappears without changing the local draft.
+- Cold ACP reattach to the same detached owner, saved transcript displayed, no extra model request.
+- Actual mounted DM send and native response.
+- Actual channel triage with visible busy participant, then idle roster.
+- Explicit Toad Start after stopping the isolated owner; fresh process identity, saved transcript reattach without replay, then one new native input succeeds.
+- Idle sample2.07s: owner0.05 CPU-seconds, UI0.38 CPU-seconds, zero model requests. This short fixture sample is not a scaled or workstation-wide performance claim.
+- Clean exit after the watcher fix below. Prior narrower complete run exited0; latest complete script exits1 for the deliberately retained core failure below.
+
+Actual cold reattach exposed an owned Toad leak: watch_agent_ready replaced an existing non-daemon DirectoryWatcher and lost its cleanup reference. Reuse the existing watcher; sync_project_path remains its replacement owner. The real acceptance asserts watcher identity survives reattach and process exit completes. Runtime delta+1/-1; pin+1/-1; one new455-line end-to-end fixture replaces no production mechanism. No unchanged index/performance invariants were rerun.
+
+**Parent-owned remaining blocker:** history_views.py:163 in core89e420b directly queries retired table native_runtime_inputs rather than NativeRuntimeInput's declared table. After native channel triage, both actual UI MessageNotifications and direct core message_notifications fail with OperationalError('no such table: native_runtime_inputs'). The UI correctly shows unavailable; the expected Checked/no-response assertion remains failing. Reported to parent229 with exact site and evidence, also still present in published d083703 when checked. No compatibility table, skip, or relaxed assertion added. Full paired acceptance is not complete until that core query is corrected and this installed pilot passes.
+
+Evidence: evidence/l0a-native/{receipt.json,native-reopen.txt,native-final.txt,native-session.jsonl,toad-acp.log,acp-debug,acp-debug.log,callers-guard.txt}. The source guard still passes. Parent owns durable D22 conversion, final merged-main pin and quiet activation.
