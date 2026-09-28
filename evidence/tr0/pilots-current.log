@@ -1,0 +1,2304 @@
+bringing up nodes...
+bringing up nodes...
+
+............F.........FF........F....F.................F.FF.F...F......F [ 27%]
+..FF.F....F......F..........F.....F..F..FFF...F.F.....F..FF......F.F.... [ 54%]
+.........FFF...F..........F..FFF..F..F..................F.F..uuuuuuuu.uu [ 78%]
+uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu..........uuuuuu......FF. [ 85%]
+.FF.....F..uuuu...uuuu..uu................FF...F.                        [100%]
+=================================== FAILURES ===================================
+___________________ pilot: default_route_private_user_pilot ____________________
+[gw1] linux -- Python 3.14.2 /home/ts/wt/toad-tr0-test-collection-20260928/.venv/bin/python
+Pilot failed: ExitedOutcome(code=1)
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/default_route_private_user_pilot.py", line 283, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/default_route_private_user_pilot.py", line 234, in main
+    assert pre_row_calls == 1 and len(pre_row_errors) == 1
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+
+Logs: /home/ts/wt/toad-tr0-test-collection-20260928/.artifacts/pilots-current/popen-gw1/default_route_private_user_pilot0
+_____________________ pilot: channel_history_reader_pilot ______________________
+[gw0] linux -- Python 3.14.2 /home/ts/wt/toad-tr0-test-collection-20260928/.venv/bin/python
+Pilot failed: ExitedOutcome(code=1)
+test_any_mode_expansion_reloads_older_history_without_new_bus_rows (__main__.ReaderTests.test_any_mode_expansion_reloads_older_history_without_new_bus_rows) ... Executing <Task finished name='Task-2' coro=<ReaderTests.test_any_mode_expansion_reloads_older_history_without_new_bus_rows() done, defined at /home/ts/wt/toad-tr0-test-collection-20260928/tests/channel_history_reader_pilot.py:63> result=None created at /home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py:109> took 0.228 seconds
+ok
+test_bus_replacement_reloads_unchanged_sequence_tail (__main__.ReaderTests.test_bus_replacement_reloads_unchanged_sequence_tail) ... 
+  test_bus_replacement_reloads_unchanged_sequence_tail (__main__.ReaderTests.test_bus_replacement_reloads_unchanged_sequence_tail) (kind=<HistoryKind.CHANNEL: 'channel'>) ... ERROR
+Candidate maintenance unavailable (ProjectionUnavailableError)
+  test_bus_replacement_reloads_unchanged_sequence_tail (__main__.ReaderTests.test_bus_replacement_reloads_unchanged_sequence_tail) (kind=<HistoryKind.DIRECT: 'dm'>) ... ERROR
+Executing <Task finished name='Task-7' coro=<ReaderTests.test_bus_replacement_reloads_unchanged_sequence_tail() done, defined at /home/ts/wt/toad-tr0-test-collection-20260928/tests/channel_history_reader_pilot.py:20> result=None created at /home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py:109> took 0.236 seconds
+test_dm_turn_lease_preserves_display_identity (__main__.ReaderTests.test_dm_turn_lease_preserves_display_identity) ... Executing <Task finished name='Task-12' coro=<ReaderTests.test_dm_turn_lease_preserves_display_identity() done, defined at /home/ts/wt/toad-tr0-test-collection-20260928/tests/channel_history_reader_pilot.py:48> result=None created at /home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py:109> took 0.151 seconds
+ok
+test_history_attachment_refreshes_without_new_live_messages (__main__.ReaderTests.test_history_attachment_refreshes_without_new_live_messages) ... Executing <Task finished name='Task-17' coro=<ReaderTests.test_history_attachment_refreshes_without_new_live_messages() done, defined at /home/ts/wt/toad-tr0-test-collection-20260928/tests/channel_history_reader_pilot.py:95> result=None created at /home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py:109> took 0.278 seconds
+ok
+test_revision_reuse_limits_and_cancelled_read_ownership (__main__.ReaderTests.test_revision_reuse_limits_and_cancelled_read_ownership) ... Executing <Task pending name='Task-22' coro=<ReaderTests.test_revision_reuse_limits_and_cancelled_read_ownership() running at /home/ts/wt/toad-tr0-test-collection-20260928/tests/channel_history_reader_pilot.py:135> wait_for=<Future pending cb=[Task.task_wakeup()] created at /home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py:459> cb=[_run_until_complete_cb() at /home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py:181] created at /home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py:109> took 3.740 seconds
+ok
+
+======================================================================
+ERROR: test_bus_replacement_reloads_unchanged_sequence_tail (__main__.ReaderTests.test_bus_replacement_reloads_unchanged_sequence_tail) (kind=<HistoryKind.CHANNEL: 'channel'>)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/channel_history_reader_pilot.py", line 42, in test_bus_replacement_reloads_unchanged_sequence_tail
+    refreshed = following.read()
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/toad/channel_preparation.py", line 82, in read
+    high_water = self.comms.bus.log.latest_sequence()
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/agent_comms/wire_log.py", line 513, in latest_sequence
+    with _store_lock(self.path):
+         ~~~~~~~~~~~^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 141, in __enter__
+    return next(self.gen)
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/agent_comms/store_files.py", line 69, in _store_lock
+    WireLog(store_path).verify_before_read_unlocked()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/agent_comms/wire_log.py", line 626, in verify_before_read_unlocked
+    private_marker = self._private_marker_unlocked()
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/agent_comms/wire_log.py", line 153, in _private_marker_unlocked
+    raise RelationViolationError("Private bus files require regular owner-only mode.")
+agent_comms.errors.RelationViolationError: Private bus files require regular owner-only mode.
+
+======================================================================
+ERROR: test_bus_replacement_reloads_unchanged_sequence_tail (__main__.ReaderTests.test_bus_replacement_reloads_unchanged_sequence_tail) (kind=<HistoryKind.DIRECT: 'dm'>)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/channel_history_reader_pilot.py", line 42, in test_bus_replacement_reloads_unchanged_sequence_tail
+    refreshed = following.read()
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/toad/channel_preparation.py", line 82, in read
+    high_water = self.comms.bus.log.latest_sequence()
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/agent_comms/wire_log.py", line 513, in latest_sequence
+    with _store_lock(self.path):
+         ~~~~~~~~~~~^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 141, in __enter__
+    return next(self.gen)
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/agent_comms/store_files.py", line 69, in _store_lock
+    WireLog(store_path).verify_before_read_unlocked()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/agent_comms/wire_log.py", line 626, in verify_before_read_unlocked
+    private_marker = self._private_marker_unlocked()
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/agent_comms/wire_log.py", line 153, in _private_marker_unlocked
+    raise RelationViolationError("Private bus files require regular owner-only mode.")
+agent_comms.errors.RelationViolationError: Private bus files require regular owner-only mode.
+
+----------------------------------------------------------------------
+Ran 5 tests in 4.687s
+
+FAILED (errors=2)
+
+Logs: /home/ts/wt/toad-tr0-test-collection-20260928/.artifacts/pilots-current/popen-gw0/channel_history_reader_pilot0
+______________________ pilot: channel_marker_notice_pilot ______________________
+[gw0] linux -- Python 3.14.2 /home/ts/wt/toad-tr0-test-collection-20260928/.venv/bin/python
+Pilot failed: ExitedOutcome(code=1)
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/channel_marker_notice_pilot.py", line 59, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/channel_marker_notice_pilot.py", line 31, in main
+    json.dumps({comms.bus._marker_key(viewer, "#team"): message.seq})
+                ^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'MessageBus' object has no attribute '_marker_key'
+
+Logs: /home/ts/wt/toad-tr0-test-collection-20260928/.artifacts/pilots-current/popen-gw0/channel_marker_notice_pilot0
+_______________________ pilot: channel_retirement_pilot ________________________
+[gw0] linux -- Python 3.14.2 /home/ts/wt/toad-tr0-test-collection-20260928/.venv/bin/python
+Pilot failed: ExitedOutcome(code=1)
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/channel_retirement_pilot.py", line 47, in main
+    await pilot.pause(.05)
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/textual/pilot.py", line 546, in pause
+    await asyncio.sleep(delay)
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py", line 702, in sleep
+    return await future
+           ^^^^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/channel_retirement_pilot.py", line 67, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/channel_retirement_pilot.py", line 45, in main
+    async with asyncio.timeout(8):
+               ~~~~~~~~~~~~~~~^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/timeouts.py", line 114, in __aexit__
+    raise TimeoutError from exc_val
+TimeoutError
+
+Logs: /home/ts/wt/toad-tr0-test-collection-20260928/.artifacts/pilots-current/popen-gw0/channel_retirement_pilot0
+________________________ pilot: file_path_preview_pilot ________________________
+[gw1] linux -- Python 3.14.2 /home/ts/wt/toad-tr0-test-collection-20260928/.venv/bin/python
+Pilot failed: ExitedOutcome(code=1)
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/file_path_preview_pilot.py", line 258, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/file_path_preview_pilot.py", line 170, in main
+    assert "exceeds 1 MiB; showing only the first 64 KiB" in oversized_frame
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+
+Logs: /home/ts/wt/toad-tr0-test-collection-20260928/.artifacts/pilots-current/popen-gw1/file_path_preview_pilot0
+_________________________ pilot: goal_edit_owner_pilot _________________________
+[gw1] linux -- Python 3.14.2 /home/ts/wt/toad-tr0-test-collection-20260928/.venv/bin/python
+Pilot failed: ExitedOutcome(code=1)
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/goal_edit_owner_pilot.py", line 112, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/goal_edit_owner_pilot.py", line 35, in main
+    session = (await owner.new_session(cwd=str(project))).session_id
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/agent_comms/acp.py", line 179, in new_session
+    return await self.sessions.new_session(cwd, mcp_servers, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/agent_comms/session_lifecycle.py", line 160, in new_session
+    self.effects._private_nk_marker()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/agent_comms/acp.py", line 563, in _private_nk_marker
+    raise PublicationActivationBlocked(
+        "private N/K ACP session requires explicit matching root and package"
+    )
+agent_comms.coordination_store.PublicationActivationBlocked: private N/K ACP session requires explicit matching root and package
+
+Logs: /home/ts/wt/toad-tr0-test-collection-20260928/.artifacts/pilots-current/popen-gw1/goal_edit_owner_pilot0
+_______________________ pilot: goal_objective_edit_pilot _______________________
+[gw1] linux -- Python 3.14.2 /home/ts/wt/toad-tr0-test-collection-20260928/.venv/bin/python
+Pilot failed: ExitedOutcome(code=1)
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/goal_objective_edit_pilot.py", line 163, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/goal_objective_edit_pilot.py", line 41, in main
+    session = (await owner.new_session(cwd=str(project))).session_id
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/agent_comms/acp.py", line 179, in new_session
+    return await self.sessions.new_session(cwd, mcp_servers, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/agent_comms/session_lifecycle.py", line 160, in new_session
+    self.effects._private_nk_marker()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/agent_comms/acp.py", line 563, in _private_nk_marker
+    raise PublicationActivationBlocked(
+        "private N/K ACP session requires explicit matching root and package"
+    )
+agent_comms.coordination_store.PublicationActivationBlocked: private N/K ACP session requires explicit matching root and package
+
+Logs: /home/ts/wt/toad-tr0-test-collection-20260928/.artifacts/pilots-current/popen-gw1/goal_objective_edit_pilot0
+________________________ pilot: goal_pause_owner_pilot _________________________
+[gw1] linux -- Python 3.14.2 /home/ts/wt/toad-tr0-test-collection-20260928/.venv/bin/python
+Pilot failed: ExitedOutcome(code=1)
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/goal_pause_owner_pilot.py", line 42, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/goal_pause_owner_pilot.py", line 24, in main
+    session = (await owner.new_session(cwd=str(root))).session_id
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/agent_comms/acp.py", line 179, in new_session
+    return await self.sessions.new_session(cwd, mcp_servers, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/agent_comms/session_lifecycle.py", line 160, in new_session
+    self.effects._private_nk_marker()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/agent_comms/acp.py", line 563, in _private_nk_marker
+    raise PublicationActivationBlocked(
+        "private N/K ACP session requires explicit matching root and package"
+    )
+agent_comms.coordination_store.PublicationActivationBlocked: private N/K ACP session requires explicit matching root and package
+
+Logs: /home/ts/wt/toad-tr0-test-collection-20260928/.artifacts/pilots-current/popen-gw1/goal_pause_owner_pilot0
+______________________________ pilot: comms_pilot ______________________________
+[gw0] linux -- Python 3.14.2 /home/ts/wt/toad-tr0-test-collection-20260928/.venv/bin/python
+Pilot failed: ExitedOutcome(code=1)
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/comms_pilot.py", line 936, in main
+    await pilot.pause(.02)
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/textual/pilot.py", line 546, in pause
+    await asyncio.sleep(delay)
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py", line 702, in sleep
+    return await future
+           ^^^^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/comms_pilot.py", line 1332, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/comms_pilot.py", line 928, in main
+    async with asyncio.timeout(10):
+               ~~~~~~~~~~~~~~~^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/timeouts.py", line 114, in __aexit__
+    raise TimeoutError from exc_val
+TimeoutError
+
+Logs: /home/ts/wt/toad-tr0-test-collection-20260928/.artifacts/pilots-current/popen-gw0/comms_pilot0
+_________________________ pilot: context_resume_pilot __________________________
+[gw0] linux -- Python 3.14.2 /home/ts/wt/toad-tr0-test-collection-20260928/.venv/bin/python
+Pilot failed: ExitedOutcome(code=1)
+                                                │
+│                                                                              │
+│ ╭───────────────────────── locals ──────────────────────────╮                │
+│ │ controls = Vertical(id='sidebar-controls')                │                │
+│ │     self = SideBar(id='thread-sidebar', classes='-right') │                │
+│ ╰───────────────────────────────────────────────────────────╯                │
+│                                                                              │
+│ /home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-pack │
+│ ages/toad/widgets/side_bar.py:851 in restore_navigation                      │
+│                                                                              │
+│   848 │   │   changed = self._presented_collapsed != self.collapsed          │
+│   849 │   │   if changed:                                                    │
+│   850 │   │   │   self.watch_collapsed(self.collapsed)                       │
+│ ❱ 851 │   │   changed |= self._apply_layout()                                │
+│   852 │   │   navigation = self.navigation                                   │
+│   853 │   │   for panel in self.query(SideBarCollapsible):                   │
+│   854 │   │   │   if str(panel.title) in navigation.panels_collapsed:        │
+│                                                                              │
+│ ╭───────────────────────── locals ─────────────────────────╮                 │
+│ │ changed = False                                          │                 │
+│ │    self = SideBar(id='thread-sidebar', classes='-right') │                 │
+│ ╰──────────────────────────────────────────────────────────╯                 │
+│                                                                              │
+│ /home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-pack │
+│ ages/toad/widgets/side_bar.py:795 in _apply_layout                           │
+│                                                                              │
+│   792 │   │   │   slider.set_range(15, 50, placement.width_percent)          │
+│   793 │   │   │   directions = app.sidebar_layout.directions(self.id)        │
+│   794 │   │   │   for direction, action in directions.items():               │
+│ ❱ 795 │   │   │   │   button = controls.query_one(f"#sidebar-{direction}", S │
+│   796 │   │   │   │   button.display = action is not None                    │
+│   797 │   │   │   │   button.tooltip = (f"Swap with the sidebar to the {dire │
+│   798 │   │   │   │   │   │   │   │     else f"Move sidebar to the {directio │
+│                                                                              │
+│ ╭───────────────────────────────── locals ─────────────────────────────────╮ │
+│ │     action = 'move'                                                      │ │
+│ │        app = ToadApp(                                                    │ │
+│ │              │   title='ToadApp',                                        │ │
+│ │              │   classes={                                               │ │
+│ │              │   │   '-theme-ansi-dark',                                 │ │
+│ │              │   │   '-dark-mode',                                       │ │
+│ │              │   │   '-show-sessions-bar'                                │ │
+│ │              │   },                                                      │ │
+│ │              │   pseudo_classes={'focus', 'nocolor', 'ansi', 'dark'}     │ │
+│ │              )                                                           │ │
+│ │   controls = Vertical(id='sidebar-controls')                             │ │
+│ │  direction = 'left'                                                      │ │
+│ │ directions = {'left': 'move', 'right': None}                             │ │
+│ │   geometry = SidebarGeometry(x=117, width=3)                             │ │
+│ │     handle = SidebarResizeHandle(id='sidebar-resize-handle')             │ │
+│ │        key = (                                                           │ │
+│ │              │   SidebarPlacement(                                       │ │
+│ │              │   │   side='right',                                       │ │
+│ │              │   │   order=0,                                            │ │
+│ │              │   │   width_percent=34,                                   │ │
+│ │              │   │   floating=False                                      │ │
+│ │              │   ),                                                      │ │
+│ │              │   SidebarPlacement(                                       │ │
+│ │              │   │   side='left',                                        │ │
+│ │              │   │   order=0,                                            │ │
+│ │              │   │   width_percent=40,                                   │ │
+│ │              │   │   floating=False                                      │ │
+│ │              │   ),                                                      │ │
+│ │              │   SidebarGeometry(x=117, width=3),                        │ │
+│ │              │   48,                                                     │ │
+│ │              │   3,                                                      │ │
+│ │              │   True                                                    │ │
+│ │              )                                                           │ │
+│ │      other = ChannelsSidebar(id='channels-sidebar')                      │ │
+│ │     parent = Center()                                                    │ │
+│ │       peer = SidebarPlacement(                                           │ │
+│ │              │   side='left',                                            │ │
+│ │              │   order=0,                                                │ │
+│ │              │   width_percent=40,                                       │ │
+│ │              │   floating=False                                          │ │
+│ │              )                                                           │ │
+│ │  placement = SidebarPlacement(                                           │ │
+│ │              │   side='right',                                           │ │
+│ │              │   order=0,                                                │ │
+│ │              │   width_percent=34,                                       │ │
+│ │              │   floating=False                                          │ │
+│ │              )                                                           │ │
+│ │   resolved = ResolvedSidebarLayout(                                      │ │
+│ │              │   bars={                                                  │ │
+│ │              │   │   'channels-sidebar': SidebarGeometry(                │ │
+│ │              │   │   │   x=0,                                            │ │
+│ │              │   │   │   width=48                                        │ │
+│ │              │   │   ),                                                  │ │
+│ │              │   │   'thread-sidebar': SidebarGeometry(                  │ │
+│ │              │   │   │   x=117,                                          │ │
+│ │              │   │   │   width=3                                         │ │
+│ │              │   │   )                                                   │ │
+│ │              │   },                                                      │ │
+│ │              │   left_gutter=48,                                         │ │
+│ │              │   right_gutter=3                                          │ │
+│ │              )                                                           │ │
+│ │       self = SideBar(id='thread-sidebar', classes='-right')              │ │
+│ │   siblings = {                                                           │ │
+│ │              │   'channels-sidebar': ChannelsSidebar(                    │ │
+│ │              │   │   id='channels-sidebar'                               │ │
+│ │              │   ),                                                      │ │
+│ │              │   'thread-sidebar': SideBar(                              │ │
+│ │              │   │   id='thread-sidebar',                                │ │
+│ │              │   │   classes='-right'                                    │ │
+│ │              │   )                                                       │ │
+│ │              }                                                           │ │
+│ │     slider = SidebarSlider(id='sidebar-width-slider')                    │ │
+│ │     toggle = SideBarToggle()                                             │ │
+│ │   viewport = 120                                                         │ │
+│ │      width = 3                                                           │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
+╰──────────────────────────────────────────────────────────────────────────────╯
+NoMatches: No nodes match '#sidebar-left' on Vertical(id='sidebar-controls')
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/textual/app.py", line 2210, in run_test
+    yield pilot
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/runtime_fixture.py", line 38, in run_test
+    yield pilot
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/context_resume_pilot.py", line 35, in main
+    while (not getattr(app.screen, "conversation", None)
+               ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/textual/getters.py", line 149, in __get__
+    query_node = obj.query_one(self.selector, self.expect_type)
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/textual/dom.py", line 1595, in query_one
+    raise NoMatches(f"No nodes match {query_selector!r} on {base_node!r}")
+textual.css.query.NoMatches: No nodes match 'Conversation' on MainScreen(id='session-1', classes='-wide')
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/context_resume_pilot.py", line 61, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/context_resume_pilot.py", line 33, in main
+    async with app.run_test(size=(120, 40)) as pilot:
+               ~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 235, in __aexit__
+    await self.gen.athrow(value)
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/runtime_fixture.py", line 37, in run_test
+    async with super().run_test(**kwargs) as pilot:
+               ~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 235, in __aexit__
+    await self.gen.athrow(value)
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/textual/app.py", line 2218, in run_test
+    raise self._exception
+textual.worker.WorkerFailed: Worker raised exception: NoMatches("No nodes match '#sidebar-left' on Vertical(id='sidebar-controls')")
+
+Logs: /home/ts/wt/toad-tr0-test-collection-20260928/.artifacts/pilots-current/popen-gw0/context_resume_pilot0
+___________________________ pilot: goal_retry_pilot ____________________________
+[gw1] linux -- Python 3.14.2 /home/ts/wt/toad-tr0-test-collection-20260928/.venv/bin/python
+Pilot failed: ExitedOutcome(code=1)
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/goal_retry_pilot.py", line 98, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/goal_retry_pilot.py", line 93, in main
+    await owner_retry_route(root)
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/goal_retry_pilot.py", line 62, in owner_retry_route
+    await owner.new_session(str(project))
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/agent_comms/acp.py", line 179, in new_session
+    return await self.sessions.new_session(cwd, mcp_servers, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/agent_comms/session_lifecycle.py", line 160, in new_session
+    self.effects._private_nk_marker()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/agent_comms/acp.py", line 563, in _private_nk_marker
+    raise PublicationActivationBlocked(
+        "private N/K ACP session requires explicit matching root and package"
+    )
+agent_comms.coordination_store.PublicationActivationBlocked: private N/K ACP session requires explicit matching root and package
+
+Logs: /home/ts/wt/toad-tr0-test-collection-20260928/.artifacts/pilots-current/popen-gw1/goal_retry_pilot0
+________________________ pilot: goal_server_poll_pilot _________________________
+[gw1] linux -- Python 3.14.2 /home/ts/wt/toad-tr0-test-collection-20260928/.venv/bin/python
+Pilot failed: ExitedOutcome(code=1)
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/goal_server_poll_pilot.py", line 214, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/goal_server_poll_pilot.py", line 54, in main
+    session = (await owner.new_session(cwd=str(project))).session_id
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/agent_comms/acp.py", line 179, in new_session
+    return await self.sessions.new_session(cwd, mcp_servers, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/agent_comms/session_lifecycle.py", line 160, in new_session
+    self.effects._private_nk_marker()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/agent_comms/acp.py", line 563, in _private_nk_marker
+    raise PublicationActivationBlocked(
+        "private N/K ACP session requires explicit matching root and package"
+    )
+agent_comms.coordination_store.PublicationActivationBlocked: private N/K ACP session requires explicit matching root and package
+
+Logs: /home/ts/wt/toad-tr0-test-collection-20260928/.artifacts/pilots-current/popen-gw1/goal_server_poll_pilot0
+_________________________ pilot: goal_set_owner_pilot __________________________
+[gw1] linux -- Python 3.14.2 /home/ts/wt/toad-tr0-test-collection-20260928/.venv/bin/python
+Pilot failed: ExitedOutcome(code=1)
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/goal_set_owner_pilot.py", line 64, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/goal_set_owner_pilot.py", line 58, in main
+    await owner_set_route(legacy_blocked=False)
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/goal_set_owner_pilot.py", line 31, in owner_set_route
+    session = (await owner.new_session(cwd=str(project))).session_id
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/agent_comms/acp.py", line 179, in new_session
+    return await self.sessions.new_session(cwd, mcp_servers, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/agent_comms/session_lifecycle.py", line 160, in new_session
+    self.effects._private_nk_marker()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/agent_comms/acp.py", line 563, in _private_nk_marker
+    raise PublicationActivationBlocked(
+        "private N/K ACP session requires explicit matching root and package"
+    )
+agent_comms.coordination_store.PublicationActivationBlocked: private N/K ACP session requires explicit matching root and package
+
+Logs: /home/ts/wt/toad-tr0-test-collection-20260928/.artifacts/pilots-current/popen-gw1/goal_set_owner_pilot0
+______________________ pilot: goal_standby_history_pilot _______________________
+[gw1] linux -- Python 3.14.2 /home/ts/wt/toad-tr0-test-collection-20260928/.venv/bin/python
+Pilot failed: ExitedOutcome(code=1)
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/goal_standby_history_pilot.py", line 213, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/goal_standby_history_pilot.py", line 106, in main
+    assert any(
+           ~~~^
+        not isinstance(span.style, str)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        and (span.style.meta or {}).get("@click") == ("open_target", ("peer",))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        for span in rendered.spans
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ), "Goal mentions must use existing thread navigation"
+    ^
+AssertionError: Goal mentions must use existing thread navigation
+
+Logs: /home/ts/wt/toad-tr0-test-collection-20260928/.artifacts/pilots-current/popen-gw1/goal_standby_history_pilot0
+_______________________ pilot: hidden_diff_warmup_pilot ________________________
+[gw1] linux -- Python 3.14.2 /home/ts/wt/toad-tr0-test-collection-20260928/.venv/bin/python
+Pilot failed: ExitedOutcome(code=1)
+Exception in thread Directory observation: /home/ts/wt/toad-tr0-test-collection-20260928/.artifacts/pilots-current/popen-gw1/hidden_diff_warmup_pilot0/hidden-diff-warmup-n4ncr63w:
+Traceback (most recent call last):
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py", line 1082, in _bootstrap_inner
+    self._context.run(self.run)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/toad/directory_watcher.py", line 173, in run
+    self.process.start()
+    ~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/process.py", line 121, in start
+    self._popen = self._Popen(self)
+                  ~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/context.py", line 288, in _Popen
+    return Popen(process_obj)
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/popen_spawn_posix.py", line 32, in __init__
+    super().__init__(process_obj)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/popen_fork.py", line 20, in __init__
+    self._launch(process_obj)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/popen_spawn_posix.py", line 40, in _launch
+    tracker_fd = resource_tracker.getfd()
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/resource_tracker.py", line 140, in getfd
+    self.ensure_running()
+    ~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/resource_tracker.py", line 148, in ensure_running
+    return self._ensure_running_and_write()
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/resource_tracker.py", line 244, in _ensure_running_and_write
+    self._launch()
+    ~~~~~~~~~~~~^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/resource_tracker.py", line 196, in _launch
+    pid = util.spawnv_passfds(exe, args, fds_to_pass)
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/util.py", line 523, in spawnv_passfds
+    return _posixsubprocess.fork_exec(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        args, [path], True, passfds, None, None,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        -1, -1, -1, -1, -1, -1, errpipe_read, errpipe_write,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        False, False, -1, None, None, None, -1, None)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: bad value(s) in fds_to_keep
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/hidden_diff_warmup_pilot.py", line 50, in until
+    await pilot.pause(.01)
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/textual/pilot.py", line 542, in pause
+    await self._wait_for_screen()
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/textual/pilot.py", line 513, in _wait_for_screen
+    _, pending = await asyncio.wait(
+                 ^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py", line 432, in wait
+    return await _wait(fs, timeout, return_when, loop)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py", line 521, in _wait
+    await waiter
+asyncio.exceptions.CancelledError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/hidden_diff_warmup_pilot.py", line 103, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/hidden_diff_warmup_pilot.py", line 77, in main
+    await until(pilot, lambda: len(renderer.requests) == 2)
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/hidden_diff_warmup_pilot.py", line 48, in until
+    async with asyncio.timeout(5):
+               ~~~~~~~~~~~~~~~^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/timeouts.py", line 114, in __aexit__
+    raise TimeoutError from exc_val
+TimeoutError
+
+Logs: /home/ts/wt/toad-tr0-test-collection-20260928/.artifacts/pilots-current/popen-gw1/hidden_diff_warmup_pilot0
+______________________ pilot: navigation_allocation_pilot ______________________
+[gw0] linux -- Python 3.14.2 /home/ts/wt/toad-tr0-test-collection-20260928/.venv/bin/python
+Pilot failed: ExitedOutcome(code=2)
+usage: navigation_allocation_pilot.py [-h] --output OUTPUT
+navigation_allocation_pilot.py: error: the following arguments are required: --output
+
+Logs: /home/ts/wt/toad-tr0-test-collection-20260928/.artifacts/pilots-current/popen-gw0/navigation_allocation_pilot0
+______________________ pilot: history_scroll_frames_pilot ______________________
+[gw1] linux -- Python 3.14.2 /home/ts/wt/toad-tr0-test-collection-20260928/.venv/bin/python
+Pilot failed: ExitedOutcome(code=1)
+Candidate maintenance unavailable (ProjectionUnavailableError)
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/history_scroll_frames_pilot.py", line 134, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/history_scroll_frames_pilot.py", line 94, in main
+    marker = chat._history[0][1]
+             ~~~~~~~~~~~~~^^^
+IndexError: list index out of range
+
+Logs: /home/ts/wt/toad-tr0-test-collection-20260928/.artifacts/pilots-current/popen-gw1/history_scroll_frames_pilot0
+___________________________ pilot: image_paste_pilot ___________________________
+[gw1] linux -- Python 3.14.2 /home/ts/wt/toad-tr0-test-collection-20260928/.venv/bin/python
+Pilot failed: ExitedOutcome(code=1)
+─────────────────────╯                │
+│                                                                              │
+│ /home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-pack │
+│ ages/toad/widgets/side_bar.py:851 in restore_navigation                      │
+│                                                                              │
+│   848 │   │   changed = self._presented_collapsed != self.collapsed          │
+│   849 │   │   if changed:                                                    │
+│   850 │   │   │   self.watch_collapsed(self.collapsed)                       │
+│ ❱ 851 │   │   changed |= self._apply_layout()                                │
+│   852 │   │   navigation = self.navigation                                   │
+│   853 │   │   for panel in self.query(SideBarCollapsible):                   │
+│   854 │   │   │   if str(panel.title) in navigation.panels_collapsed:        │
+│                                                                              │
+│ ╭───────────────────────── locals ─────────────────────────╮                 │
+│ │ changed = False                                          │                 │
+│ │    self = SideBar(id='thread-sidebar', classes='-right') │                 │
+│ ╰──────────────────────────────────────────────────────────╯                 │
+│                                                                              │
+│ /home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-pack │
+│ ages/toad/widgets/side_bar.py:795 in _apply_layout                           │
+│                                                                              │
+│   792 │   │   │   slider.set_range(15, 50, placement.width_percent)          │
+│   793 │   │   │   directions = app.sidebar_layout.directions(self.id)        │
+│   794 │   │   │   for direction, action in directions.items():               │
+│ ❱ 795 │   │   │   │   button = controls.query_one(f"#sidebar-{direction}", S │
+│   796 │   │   │   │   button.display = action is not None                    │
+│   797 │   │   │   │   button.tooltip = (f"Swap with the sidebar to the {dire │
+│   798 │   │   │   │   │   │   │   │     else f"Move sidebar to the {directio │
+│                                                                              │
+│ ╭───────────────────────────────── locals ─────────────────────────────────╮ │
+│ │     action = 'move'                                                      │ │
+│ │        app = ToadApp(                                                    │ │
+│ │              │   title='ToadApp',                                        │ │
+│ │              │   classes={                                               │ │
+│ │              │   │   '-show-sessions-bar',                               │ │
+│ │              │   │   '-dark-mode',                                       │ │
+│ │              │   │   '-theme-ansi-dark'                                  │ │
+│ │              │   },                                                      │ │
+│ │              │   pseudo_classes={'nocolor', 'dark', 'ansi', 'focus'}     │ │
+│ │              )                                                           │ │
+│ │   controls = Vertical(id='sidebar-controls')                             │ │
+│ │  direction = 'left'                                                      │ │
+│ │ directions = {'left': 'move', 'right': None}                             │ │
+│ │   geometry = SidebarGeometry(x=117, width=3)                             │ │
+│ │     handle = SidebarResizeHandle(id='sidebar-resize-handle')             │ │
+│ │        key = (                                                           │ │
+│ │              │   SidebarPlacement(                                       │ │
+│ │              │   │   side='right',                                       │ │
+│ │              │   │   order=0,                                            │ │
+│ │              │   │   width_percent=34,                                   │ │
+│ │              │   │   floating=False                                      │ │
+│ │              │   ),                                                      │ │
+│ │              │   SidebarPlacement(                                       │ │
+│ │              │   │   side='left',                                        │ │
+│ │              │   │   order=0,                                            │ │
+│ │              │   │   width_percent=40,                                   │ │
+│ │              │   │   floating=False                                      │ │
+│ │              │   ),                                                      │ │
+│ │              │   SidebarGeometry(x=117, width=3),                        │ │
+│ │              │   48,                                                     │ │
+│ │              │   3,                                                      │ │
+│ │              │   True                                                    │ │
+│ │              )                                                           │ │
+│ │      other = ChannelsSidebar(id='channels-sidebar')                      │ │
+│ │     parent = Center()                                                    │ │
+│ │       peer = SidebarPlacement(                                           │ │
+│ │              │   side='left',                                            │ │
+│ │              │   order=0,                                                │ │
+│ │              │   width_percent=40,                                       │ │
+│ │              │   floating=False                                          │ │
+│ │              )                                                           │ │
+│ │  placement = SidebarPlacement(                                           │ │
+│ │              │   side='right',                                           │ │
+│ │              │   order=0,                                                │ │
+│ │              │   width_percent=34,                                       │ │
+│ │              │   floating=False                                          │ │
+│ │              )                                                           │ │
+│ │   resolved = ResolvedSidebarLayout(                                      │ │
+│ │              │   bars={                                                  │ │
+│ │              │   │   'channels-sidebar': SidebarGeometry(                │ │
+│ │              │   │   │   x=0,                                            │ │
+│ │              │   │   │   width=48                                        │ │
+│ │              │   │   ),                                                  │ │
+│ │              │   │   'thread-sidebar': SidebarGeometry(                  │ │
+│ │              │   │   │   x=117,                                          │ │
+│ │              │   │   │   width=3                                         │ │
+│ │              │   │   )                                                   │ │
+│ │              │   },                                                      │ │
+│ │              │   left_gutter=48,                                         │ │
+│ │              │   right_gutter=3                                          │ │
+│ │              )                                                           │ │
+│ │       self = SideBar(id='thread-sidebar', classes='-right')              │ │
+│ │   siblings = {                                                           │ │
+│ │              │   'channels-sidebar': ChannelsSidebar(                    │ │
+│ │              │   │   id='channels-sidebar'                               │ │
+│ │              │   ),                                                      │ │
+│ │              │   'thread-sidebar': SideBar(                              │ │
+│ │              │   │   id='thread-sidebar',                                │ │
+│ │              │   │   classes='-right'                                    │ │
+│ │              │   )                                                       │ │
+│ │              }                                                           │ │
+│ │     slider = SidebarSlider(id='sidebar-width-slider')                    │ │
+│ │     toggle = SideBarToggle()                                             │ │
+│ │   viewport = 120                                                         │ │
+│ │      width = 3                                                           │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
+╰──────────────────────────────────────────────────────────────────────────────╯
+NoMatches: No nodes match '#sidebar-left' on Vertical(id='sidebar-controls')
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/textual/app.py", line 2210, in run_test
+    yield pilot
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/runtime_fixture.py", line 38, in run_test
+    yield pilot
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/image_paste_pilot.py", line 55, in main
+    await until(lambda: getattr(app.screen, "conversation", None) is not None
+                and app.screen.conversation.agent_ready)
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/image_paste_pilot.py", line 21, in until
+    while not predicate():
+              ~~~~~~~~~^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/image_paste_pilot.py", line 55, in <lambda>
+    await until(lambda: getattr(app.screen, "conversation", None) is not None
+                        ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/textual/getters.py", line 149, in __get__
+    query_node = obj.query_one(self.selector, self.expect_type)
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/textual/dom.py", line 1595, in query_one
+    raise NoMatches(f"No nodes match {query_selector!r} on {base_node!r}")
+textual.css.query.NoMatches: No nodes match 'Conversation' on MainScreen(id='session-1', classes='-wide')
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/image_paste_pilot.py", line 112, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/image_paste_pilot.py", line 54, in main
+    async with app.run_test(size=(120, 40)) as pilot:
+               ~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 235, in __aexit__
+    await self.gen.athrow(value)
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/runtime_fixture.py", line 37, in run_test
+    async with super().run_test(**kwargs) as pilot:
+               ~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 235, in __aexit__
+    await self.gen.athrow(value)
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/textual/app.py", line 2218, in run_test
+    raise self._exception
+textual.worker.WorkerFailed: Worker raised exception: NoMatches("No nodes match '#sidebar-left' on Vertical(id='sidebar-controls')")
+
+Logs: /home/ts/wt/toad-tr0-test-collection-20260928/.artifacts/pilots-current/popen-gw1/image_paste_pilot0
+_______________________ pilot: in_out_wire_replay_pilot ________________________
+[gw1] linux -- Python 3.14.2 /home/ts/wt/toad-tr0-test-collection-20260928/.venv/bin/python
+Pilot failed: ExitedOutcome(code=1)
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/in_out_wire_replay_pilot.py", line 75, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/in_out_wire_replay_pilot.py", line 48, in main
+    assert inbound, (
+           ^^^^^^^
+AssertionError: Saved wire input lost typed routing before the UI filter: [('user', False), ('tool_end', False), ('sent', True)]
+
+Logs: /home/ts/wt/toad-tr0-test-collection-20260928/.artifacts/pilots-current/popen-gw1/in_out_wire_replay_pilot0
+________________________ pilot: persistent_render_pilot ________________________
+[gw0] linux -- Python 3.14.2 /home/ts/wt/toad-tr0-test-collection-20260928/.venv/bin/python
+Pilot failed: ExitedOutcome(code=1)
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/persistent_render_pilot.py", line 11, in <module>
+    from toad.render_zmq import PersistentRendererPool, RendererEndpoint
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/toad/render_zmq.py", line 21, in <module>
+    from zmqruntime import ZMQClient, ZMQConfig, ZMQServer
+ModuleNotFoundError: No module named 'zmqruntime'
+
+Logs: /home/ts/wt/toad-tr0-test-collection-20260928/.artifacts/pilots-current/popen-gw0/persistent_render_pilot0
+__________________ pilot: persistent_renderer_lifecycle_pilot __________________
+[gw0] linux -- Python 3.14.2 /home/ts/wt/toad-tr0-test-collection-20260928/.venv/bin/python
+Pilot failed: ExitedOutcome(code=1)
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/persistent_renderer_lifecycle_pilot.py", line 17, in <module>
+    from toad.render_zmq import (
+        PersistentRendererPool, RendererConnection, RendererEndpoint, RendererServer, RendererSessionFailed,
+    )
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/toad/render_zmq.py", line 21, in <module>
+    from zmqruntime import ZMQClient, ZMQConfig, ZMQServer
+ModuleNotFoundError: No module named 'zmqruntime'
+
+Logs: /home/ts/wt/toad-tr0-test-collection-20260928/.artifacts/pilots-current/popen-gw0/persistent_renderer_lifecycle_pilot0
+_____________________ pilot: persistent_renderer_ui_pilot ______________________
+[gw0] linux -- Python 3.14.2 /home/ts/wt/toad-tr0-test-collection-20260928/.venv/bin/python
+Pilot failed: ExitedOutcome(code=1)
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/persistent_renderer_ui_pilot.py", line 12, in <module>
+    from toad.render_runtime import PersistentRenderer
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/toad/render_runtime.py", line 10, in <module>
+    from toad.render_zmq import PersistentRendererPool, RendererEndpoint, RendererSessionFailed
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/toad/render_zmq.py", line 21, in <module>
+    from zmqruntime import ZMQClient, ZMQConfig, ZMQServer
+ModuleNotFoundError: No module named 'zmqruntime'
+
+Logs: /home/ts/wt/toad-tr0-test-collection-20260928/.artifacts/pilots-current/popen-gw0/persistent_renderer_ui_pilot0
+______________________ pilot: input_delivery_owner_pilot _______________________
+[gw1] linux -- Python 3.14.2 /home/ts/wt/toad-tr0-test-collection-20260928/.venv/bin/python
+Pilot failed: ExitedOutcome(code=1)
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/input_delivery_owner_pilot.py", line 10, in <module>
+    from agent_comms.input_disposition import AcpDeliveryCursors, InputDocument
+ImportError: cannot import name 'AcpDeliveryCursors' from 'agent_comms.input_disposition' (/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/agent_comms/input_disposition.py)
+
+Logs: /home/ts/wt/toad-tr0-test-collection-20260928/.artifacts/pilots-current/popen-gw1/input_delivery_owner_pilot0
+__________________________ pilot: input_failure_pilot __________________________
+[gw1] linux -- Python 3.14.2 /home/ts/wt/toad-tr0-test-collection-20260928/.venv/bin/python
+Pilot failed: ExitedOutcome(code=1)
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/input_failure_pilot.py", line 108, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/input_failure_pilot.py", line 61, in main
+    await server.new_session(cwd=str(root / "fixture"), mcp_servers=[])
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/agent_comms/acp.py", line 179, in new_session
+    return await self.sessions.new_session(cwd, mcp_servers, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/agent_comms/session_lifecycle.py", line 160, in new_session
+    self.effects._private_nk_marker()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/agent_comms/acp.py", line 563, in _private_nk_marker
+    raise PublicationActivationBlocked(
+        "private N/K ACP session requires explicit matching root and package"
+    )
+agent_comms.coordination_store.PublicationActivationBlocked: private N/K ACP session requires explicit matching root and package
+
+Logs: /home/ts/wt/toad-tr0-test-collection-20260928/.artifacts/pilots-current/popen-gw1/input_failure_pilot0
+______________________ pilot: l0a_native_installed_pilot _______________________
+[gw1] linux -- Python 3.14.2 /home/ts/wt/toad-tr0-test-collection-20260928/.venv/bin/python
+Pilot failed: ExitedOutcome(code=1)
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/l0a_native_installed_pilot.py", line 481, in <module>
+    asyncio.run(main(notification_only=args.notification_only))
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/l0a_native_installed_pilot.py", line 94, in main
+    package = Path(os.environ["AC_NATIVE_COPIED_PACKAGE"])
+                   ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen os>", line 709, in __getitem__
+KeyError: 'AC_NATIVE_COPIED_PACKAGE'
+
+Logs: /home/ts/wt/toad-tr0-test-collection-20260928/.artifacts/pilots-current/popen-gw1/l0a_native_installed_pilot0
+__________________________ pilot: project_path_pilot ___________________________
+[gw0] linux -- Python 3.14.2 /home/ts/wt/toad-tr0-test-collection-20260928/.venv/bin/python
+Pilot failed: ExitedOutcome(code=1)
+f = SideBar(id='thread-sidebar', classes='-right') │                │
+│ ╰───────────────────────────────────────────────────────────╯                │
+│                                                                              │
+│ /home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-pack │
+│ ages/toad/widgets/side_bar.py:851 in restore_navigation                      │
+│                                                                              │
+│   848 │   │   changed = self._presented_collapsed != self.collapsed          │
+│   849 │   │   if changed:                                                    │
+│   850 │   │   │   self.watch_collapsed(self.collapsed)                       │
+│ ❱ 851 │   │   changed |= self._apply_layout()                                │
+│   852 │   │   navigation = self.navigation                                   │
+│   853 │   │   for panel in self.query(SideBarCollapsible):                   │
+│   854 │   │   │   if str(panel.title) in navigation.panels_collapsed:        │
+│                                                                              │
+│ ╭───────────────────────── locals ─────────────────────────╮                 │
+│ │ changed = False                                          │                 │
+│ │    self = SideBar(id='thread-sidebar', classes='-right') │                 │
+│ ╰──────────────────────────────────────────────────────────╯                 │
+│                                                                              │
+│ /home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-pack │
+│ ages/toad/widgets/side_bar.py:795 in _apply_layout                           │
+│                                                                              │
+│   792 │   │   │   slider.set_range(15, 50, placement.width_percent)          │
+│   793 │   │   │   directions = app.sidebar_layout.directions(self.id)        │
+│   794 │   │   │   for direction, action in directions.items():               │
+│ ❱ 795 │   │   │   │   button = controls.query_one(f"#sidebar-{direction}", S │
+│   796 │   │   │   │   button.display = action is not None                    │
+│   797 │   │   │   │   button.tooltip = (f"Swap with the sidebar to the {dire │
+│   798 │   │   │   │   │   │   │   │     else f"Move sidebar to the {directio │
+│                                                                              │
+│ ╭───────────────────────────────── locals ─────────────────────────────────╮ │
+│ │     action = 'move'                                                      │ │
+│ │        app = ToadApp(                                                    │ │
+│ │              │   title='ToadApp',                                        │ │
+│ │              │   classes={                                               │ │
+│ │              │   │   '-show-sessions-bar',                               │ │
+│ │              │   │   '-dark-mode',                                       │ │
+│ │              │   │   '-theme-ansi-dark'                                  │ │
+│ │              │   },                                                      │ │
+│ │              │   pseudo_classes={'nocolor', 'dark', 'focus', 'ansi'}     │ │
+│ │              )                                                           │ │
+│ │   controls = Vertical(id='sidebar-controls')                             │ │
+│ │  direction = 'left'                                                      │ │
+│ │ directions = {'left': 'move', 'right': None}                             │ │
+│ │   geometry = SidebarGeometry(x=117, width=3)                             │ │
+│ │     handle = SidebarResizeHandle(id='sidebar-resize-handle')             │ │
+│ │        key = (                                                           │ │
+│ │              │   SidebarPlacement(                                       │ │
+│ │              │   │   side='right',                                       │ │
+│ │              │   │   order=0,                                            │ │
+│ │              │   │   width_percent=34,                                   │ │
+│ │              │   │   floating=False                                      │ │
+│ │              │   ),                                                      │ │
+│ │              │   SidebarPlacement(                                       │ │
+│ │              │   │   side='left',                                        │ │
+│ │              │   │   order=0,                                            │ │
+│ │              │   │   width_percent=40,                                   │ │
+│ │              │   │   floating=False                                      │ │
+│ │              │   ),                                                      │ │
+│ │              │   SidebarGeometry(x=117, width=3),                        │ │
+│ │              │   48,                                                     │ │
+│ │              │   3,                                                      │ │
+│ │              │   True                                                    │ │
+│ │              )                                                           │ │
+│ │      other = ChannelsSidebar(id='channels-sidebar')                      │ │
+│ │     parent = Center()                                                    │ │
+│ │       peer = SidebarPlacement(                                           │ │
+│ │              │   side='left',                                            │ │
+│ │              │   order=0,                                                │ │
+│ │              │   width_percent=40,                                       │ │
+│ │              │   floating=False                                          │ │
+│ │              )                                                           │ │
+│ │  placement = SidebarPlacement(                                           │ │
+│ │              │   side='right',                                           │ │
+│ │              │   order=0,                                                │ │
+│ │              │   width_percent=34,                                       │ │
+│ │              │   floating=False                                          │ │
+│ │              )                                                           │ │
+│ │   resolved = ResolvedSidebarLayout(                                      │ │
+│ │              │   bars={                                                  │ │
+│ │              │   │   'channels-sidebar': SidebarGeometry(                │ │
+│ │              │   │   │   x=0,                                            │ │
+│ │              │   │   │   width=48                                        │ │
+│ │              │   │   ),                                                  │ │
+│ │              │   │   'thread-sidebar': SidebarGeometry(                  │ │
+│ │              │   │   │   x=117,                                          │ │
+│ │              │   │   │   width=3                                         │ │
+│ │              │   │   )                                                   │ │
+│ │              │   },                                                      │ │
+│ │              │   left_gutter=48,                                         │ │
+│ │              │   right_gutter=3                                          │ │
+│ │              )                                                           │ │
+│ │       self = SideBar(id='thread-sidebar', classes='-right')              │ │
+│ │   siblings = {                                                           │ │
+│ │              │   'channels-sidebar': ChannelsSidebar(                    │ │
+│ │              │   │   id='channels-sidebar'                               │ │
+│ │              │   ),                                                      │ │
+│ │              │   'thread-sidebar': SideBar(                              │ │
+│ │              │   │   id='thread-sidebar',                                │ │
+│ │              │   │   classes='-right'                                    │ │
+│ │              │   )                                                       │ │
+│ │              }                                                           │ │
+│ │     slider = SidebarSlider(id='sidebar-width-slider')                    │ │
+│ │     toggle = SideBarToggle()                                             │ │
+│ │   viewport = 120                                                         │ │
+│ │      width = 3                                                           │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
+╰──────────────────────────────────────────────────────────────────────────────╯
+NoMatches: No nodes match '#sidebar-left' on Vertical(id='sidebar-controls')
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/textual/app.py", line 2210, in run_test
+    yield pilot
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/runtime_fixture.py", line 38, in run_test
+    yield pilot
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/project_path_pilot.py", line 85, in main
+    await until(
+    ...<2 lines>...
+    )
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/project_path_pilot.py", line 22, in until
+    while not predicate():
+              ~~~~~~~~~^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/project_path_pilot.py", line 86, in <lambda>
+    lambda: getattr(app.screen, "conversation", None) is not None
+            ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/textual/getters.py", line 149, in __get__
+    query_node = obj.query_one(self.selector, self.expect_type)
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/textual/dom.py", line 1595, in query_one
+    raise NoMatches(f"No nodes match {query_selector!r} on {base_node!r}")
+textual.css.query.NoMatches: No nodes match 'Conversation' on MainScreen(id='session-1', classes='-wide')
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/project_path_pilot.py", line 165, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/project_path_pilot.py", line 84, in main
+    async with app.run_test(size=(120, 40)) as pilot:
+               ~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 235, in __aexit__
+    await self.gen.athrow(value)
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/runtime_fixture.py", line 37, in run_test
+    async with super().run_test(**kwargs) as pilot:
+               ~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 235, in __aexit__
+    await self.gen.athrow(value)
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/textual/app.py", line 2218, in run_test
+    raise self._exception
+textual.worker.WorkerFailed: Worker raised exception: NoMatches("No nodes match '#sidebar-left' on Vertical(id='sidebar-controls')")
+
+Logs: /home/ts/wt/toad-tr0-test-collection-20260928/.artifacts/pilots-current/popen-gw0/project_path_pilot0
+_________________________ pilot: project_resume_pilot __________________________
+[gw0] linux -- Python 3.14.2 /home/ts/wt/toad-tr0-test-collection-20260928/.venv/bin/python
+Pilot failed: ExitedOutcome(code=1)
+      │
+│                                                                              │
+│ /home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-pack │
+│ ages/toad/widgets/side_bar.py:851 in restore_navigation                      │
+│                                                                              │
+│   848 │   │   changed = self._presented_collapsed != self.collapsed          │
+│   849 │   │   if changed:                                                    │
+│   850 │   │   │   self.watch_collapsed(self.collapsed)                       │
+│ ❱ 851 │   │   changed |= self._apply_layout()                                │
+│   852 │   │   navigation = self.navigation                                   │
+│   853 │   │   for panel in self.query(SideBarCollapsible):                   │
+│   854 │   │   │   if str(panel.title) in navigation.panels_collapsed:        │
+│                                                                              │
+│ ╭───────────────────────── locals ─────────────────────────╮                 │
+│ │ changed = False                                          │                 │
+│ │    self = SideBar(id='thread-sidebar', classes='-right') │                 │
+│ ╰──────────────────────────────────────────────────────────╯                 │
+│                                                                              │
+│ /home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-pack │
+│ ages/toad/widgets/side_bar.py:795 in _apply_layout                           │
+│                                                                              │
+│   792 │   │   │   slider.set_range(15, 50, placement.width_percent)          │
+│   793 │   │   │   directions = app.sidebar_layout.directions(self.id)        │
+│   794 │   │   │   for direction, action in directions.items():               │
+│ ❱ 795 │   │   │   │   button = controls.query_one(f"#sidebar-{direction}", S │
+│   796 │   │   │   │   button.display = action is not None                    │
+│   797 │   │   │   │   button.tooltip = (f"Swap with the sidebar to the {dire │
+│   798 │   │   │   │   │   │   │   │     else f"Move sidebar to the {directio │
+│                                                                              │
+│ ╭───────────────────────────────── locals ─────────────────────────────────╮ │
+│ │     action = 'move'                                                      │ │
+│ │        app = ToadApp(                                                    │ │
+│ │              │   title='ToadApp',                                        │ │
+│ │              │   classes={                                               │ │
+│ │              │   │   '-dark-mode',                                       │ │
+│ │              │   │   '-theme-ansi-dark',                                 │ │
+│ │              │   │   '-show-sessions-bar'                                │ │
+│ │              │   },                                                      │ │
+│ │              │   pseudo_classes={                                        │ │
+│ │              │   │   'dark',                                             │ │
+│ │              │   │   'focus',                                            │ │
+│ │              │   │   'ansi',                                             │ │
+│ │              │   │   'nocolor'                                           │ │
+│ │              │   }                                                       │ │
+│ │              )                                                           │ │
+│ │   controls = Vertical(id='sidebar-controls')                             │ │
+│ │  direction = 'left'                                                      │ │
+│ │ directions = {'left': 'move', 'right': None}                             │ │
+│ │   geometry = SidebarGeometry(x=97, width=3)                              │ │
+│ │     handle = SidebarResizeHandle(id='sidebar-resize-handle')             │ │
+│ │        key = (                                                           │ │
+│ │              │   SidebarPlacement(                                       │ │
+│ │              │   │   side='right',                                       │ │
+│ │              │   │   order=0,                                            │ │
+│ │              │   │   width_percent=34,                                   │ │
+│ │              │   │   floating=False                                      │ │
+│ │              │   ),                                                      │ │
+│ │              │   SidebarPlacement(                                       │ │
+│ │              │   │   side='left',                                        │ │
+│ │              │   │   order=0,                                            │ │
+│ │              │   │   width_percent=40,                                   │ │
+│ │              │   │   floating=False                                      │ │
+│ │              │   ),                                                      │ │
+│ │              │   SidebarGeometry(x=97, width=3),                         │ │
+│ │              │   40,                                                     │ │
+│ │              │   3,                                                      │ │
+│ │              │   True                                                    │ │
+│ │              )                                                           │ │
+│ │      other = ChannelsSidebar(id='channels-sidebar')                      │ │
+│ │     parent = Center()                                                    │ │
+│ │       peer = SidebarPlacement(                                           │ │
+│ │              │   side='left',                                            │ │
+│ │              │   order=0,                                                │ │
+│ │              │   width_percent=40,                                       │ │
+│ │              │   floating=False                                          │ │
+│ │              )                                                           │ │
+│ │  placement = SidebarPlacement(                                           │ │
+│ │              │   side='right',                                           │ │
+│ │              │   order=0,                                                │ │
+│ │              │   width_percent=34,                                       │ │
+│ │              │   floating=False                                          │ │
+│ │              )                                                           │ │
+│ │   resolved = ResolvedSidebarLayout(                                      │ │
+│ │              │   bars={                                                  │ │
+│ │              │   │   'channels-sidebar': SidebarGeometry(                │ │
+│ │              │   │   │   x=0,                                            │ │
+│ │              │   │   │   width=40                                        │ │
+│ │              │   │   ),                                                  │ │
+│ │              │   │   'thread-sidebar': SidebarGeometry(                  │ │
+│ │              │   │   │   x=97,                                           │ │
+│ │              │   │   │   width=3                                         │ │
+│ │              │   │   )                                                   │ │
+│ │              │   },                                                      │ │
+│ │              │   left_gutter=40,                                         │ │
+│ │              │   right_gutter=3                                          │ │
+│ │              )                                                           │ │
+│ │       self = SideBar(id='thread-sidebar', classes='-right')              │ │
+│ │   siblings = {                                                           │ │
+│ │              │   'channels-sidebar': ChannelsSidebar(                    │ │
+│ │              │   │   id='channels-sidebar'                               │ │
+│ │              │   ),                                                      │ │
+│ │              │   'thread-sidebar': SideBar(                              │ │
+│ │              │   │   id='thread-sidebar',                                │ │
+│ │              │   │   classes='-right'                                    │ │
+│ │              │   )                                                       │ │
+│ │              }                                                           │ │
+│ │     slider = SidebarSlider(id='sidebar-width-slider')                    │ │
+│ │     toggle = SideBarToggle()                                             │ │
+│ │   viewport = 100                                                         │ │
+│ │      width = 3                                                           │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
+╰──────────────────────────────────────────────────────────────────────────────╯
+NoMatches: No nodes match '#sidebar-left' on Vertical(id='sidebar-controls')
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/textual/app.py", line 2210, in run_test
+    yield pilot
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/runtime_fixture.py", line 38, in run_test
+    yield pilot
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/project_resume_pilot.py", line 34, in main
+    while not getattr(app.screen, "conversation", None) or not app.screen.conversation.agent_ready:
+              ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/textual/getters.py", line 149, in __get__
+    query_node = obj.query_one(self.selector, self.expect_type)
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/textual/dom.py", line 1595, in query_one
+    raise NoMatches(f"No nodes match {query_selector!r} on {base_node!r}")
+textual.css.query.NoMatches: No nodes match 'Conversation' on MainScreen(id='session-1', classes='-wide')
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/project_resume_pilot.py", line 63, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/project_resume_pilot.py", line 32, in main
+    async with app.run_test(size=(100, 35)) as pilot:
+               ~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 235, in __aexit__
+    await self.gen.athrow(value)
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/runtime_fixture.py", line 37, in run_test
+    async with super().run_test(**kwargs) as pilot:
+               ~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 235, in __aexit__
+    await self.gen.athrow(value)
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/textual/app.py", line 2218, in run_test
+    raise self._exception
+textual.worker.WorkerFailed: Worker raised exception: NoMatches("No nodes match '#sidebar-left' on Vertical(id='sidebar-controls')")
+
+Logs: /home/ts/wt/toad-tr0-test-collection-20260928/.artifacts/pilots-current/popen-gw0/project_resume_pilot0
+_________________ pilot: maintenance_agent_root_binding_pilot __________________
+[gw1] linux -- Python 3.14.2 /home/ts/wt/toad-tr0-test-collection-20260928/.venv/bin/python
+Pilot failed: ExitedOutcome(code=1)
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/maintenance_agent_root_binding_pilot.py", line 11, in <module>
+    from maintenance_control_fixture import FixtureMaintenanceControl  # paired core tests only
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ModuleNotFoundError: No module named 'maintenance_control_fixture'
+
+Logs: /home/ts/wt/toad-tr0-test-collection-20260928/.artifacts/pilots-current/popen-gw1/maintenance_agent_root_binding_pilot0
+_______________________ pilot: maintenance_ingress_pilot _______________________
+[gw1] linux -- Python 3.14.2 /home/ts/wt/toad-tr0-test-collection-20260928/.venv/bin/python
+Pilot failed: ExitedOutcome(code=1)
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/maintenance_ingress_pilot.py", line 16, in <module>
+    from maintenance_control_fixture import FixtureMaintenanceControl  # paired core tests only
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ModuleNotFoundError: No module named 'maintenance_control_fixture'
+
+Logs: /home/ts/wt/toad-tr0-test-collection-20260928/.artifacts/pilots-current/popen-gw1/maintenance_ingress_pilot0
+__________________________ pilot: session_sort_pilot ___________________________
+[gw1] linux -- Python 3.14.2 /home/ts/wt/toad-tr0-test-collection-20260928/.venv/bin/python
+Pilot failed: ExitedOutcome(code=1)
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/session_sort_pilot.py", line 261, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/session_sort_pilot.py", line 72, in main
+    comms.bus.publisher.publish(
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'Publisher' object has no attribute 'publish'
+
+Logs: /home/ts/wt/toad-tr0-test-collection-20260928/.artifacts/pilots-current/popen-gw1/session_sort_pilot0
+____________________ pilot: projected_history_budget_pilot _____________________
+[gw0] linux -- Python 3.14.2 /home/ts/wt/toad-tr0-test-collection-20260928/.venv/bin/python
+Pilot failed: TimedOutOutcome(termination=GracefulStopOutcome(termination=SignaledOutcome(signal_number=15)))
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/resource_tracker.py:396: UserWarning: resource_tracker: There appear to be 5 leaked semaphore objects to clean up at shutdown: {'/mp-n5cdwo_1', '/mp-hvrhq467', '/mp-wjuu5_x1', '/mp-j_i01qhl', '/mp-uo8o_qlz'}
+  warnings.warn(
+
+Logs: /home/ts/wt/toad-tr0-test-collection-20260928/.artifacts/pilots-current/popen-gw0/projected_history_budget_pilot0
+__________________________ pilot: prompt_queue_pilot ___________________________
+[gw0] linux -- Python 3.14.2 /home/ts/wt/toad-tr0-test-collection-20260928/.venv/bin/python
+Pilot failed: ExitedOutcome(code=1)
+f = SideBar(id='thread-sidebar', classes='-right') │                │
+│ ╰───────────────────────────────────────────────────────────╯                │
+│                                                                              │
+│ /home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-pack │
+│ ages/toad/widgets/side_bar.py:851 in restore_navigation                      │
+│                                                                              │
+│   848 │   │   changed = self._presented_collapsed != self.collapsed          │
+│   849 │   │   if changed:                                                    │
+│   850 │   │   │   self.watch_collapsed(self.collapsed)                       │
+│ ❱ 851 │   │   changed |= self._apply_layout()                                │
+│   852 │   │   navigation = self.navigation                                   │
+│   853 │   │   for panel in self.query(SideBarCollapsible):                   │
+│   854 │   │   │   if str(panel.title) in navigation.panels_collapsed:        │
+│                                                                              │
+│ ╭───────────────────────── locals ─────────────────────────╮                 │
+│ │ changed = False                                          │                 │
+│ │    self = SideBar(id='thread-sidebar', classes='-right') │                 │
+│ ╰──────────────────────────────────────────────────────────╯                 │
+│                                                                              │
+│ /home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-pack │
+│ ages/toad/widgets/side_bar.py:795 in _apply_layout                           │
+│                                                                              │
+│   792 │   │   │   slider.set_range(15, 50, placement.width_percent)          │
+│   793 │   │   │   directions = app.sidebar_layout.directions(self.id)        │
+│   794 │   │   │   for direction, action in directions.items():               │
+│ ❱ 795 │   │   │   │   button = controls.query_one(f"#sidebar-{direction}", S │
+│   796 │   │   │   │   button.display = action is not None                    │
+│   797 │   │   │   │   button.tooltip = (f"Swap with the sidebar to the {dire │
+│   798 │   │   │   │   │   │   │   │     else f"Move sidebar to the {directio │
+│                                                                              │
+│ ╭───────────────────────────────── locals ─────────────────────────────────╮ │
+│ │     action = 'move'                                                      │ │
+│ │        app = ToadApp(                                                    │ │
+│ │              │   title='ToadApp',                                        │ │
+│ │              │   classes={                                               │ │
+│ │              │   │   '-dark-mode',                                       │ │
+│ │              │   │   '-theme-ansi-dark',                                 │ │
+│ │              │   │   '-show-sessions-bar'                                │ │
+│ │              │   },                                                      │ │
+│ │              │   pseudo_classes={'dark', 'focus', 'ansi', 'nocolor'}     │ │
+│ │              )                                                           │ │
+│ │   controls = Vertical(id='sidebar-controls')                             │ │
+│ │  direction = 'left'                                                      │ │
+│ │ directions = {'left': 'move', 'right': None}                             │ │
+│ │   geometry = SidebarGeometry(x=117, width=3)                             │ │
+│ │     handle = SidebarResizeHandle(id='sidebar-resize-handle')             │ │
+│ │        key = (                                                           │ │
+│ │              │   SidebarPlacement(                                       │ │
+│ │              │   │   side='right',                                       │ │
+│ │              │   │   order=0,                                            │ │
+│ │              │   │   width_percent=34,                                   │ │
+│ │              │   │   floating=False                                      │ │
+│ │              │   ),                                                      │ │
+│ │              │   SidebarPlacement(                                       │ │
+│ │              │   │   side='left',                                        │ │
+│ │              │   │   order=0,                                            │ │
+│ │              │   │   width_percent=40,                                   │ │
+│ │              │   │   floating=False                                      │ │
+│ │              │   ),                                                      │ │
+│ │              │   SidebarGeometry(x=117, width=3),                        │ │
+│ │              │   48,                                                     │ │
+│ │              │   3,                                                      │ │
+│ │              │   True                                                    │ │
+│ │              )                                                           │ │
+│ │      other = ChannelsSidebar(id='channels-sidebar')                      │ │
+│ │     parent = Center()                                                    │ │
+│ │       peer = SidebarPlacement(                                           │ │
+│ │              │   side='left',                                            │ │
+│ │              │   order=0,                                                │ │
+│ │              │   width_percent=40,                                       │ │
+│ │              │   floating=False                                          │ │
+│ │              )                                                           │ │
+│ │  placement = SidebarPlacement(                                           │ │
+│ │              │   side='right',                                           │ │
+│ │              │   order=0,                                                │ │
+│ │              │   width_percent=34,                                       │ │
+│ │              │   floating=False                                          │ │
+│ │              )                                                           │ │
+│ │   resolved = ResolvedSidebarLayout(                                      │ │
+│ │              │   bars={                                                  │ │
+│ │              │   │   'channels-sidebar': SidebarGeometry(                │ │
+│ │              │   │   │   x=0,                                            │ │
+│ │              │   │   │   width=48                                        │ │
+│ │              │   │   ),                                                  │ │
+│ │              │   │   'thread-sidebar': SidebarGeometry(                  │ │
+│ │              │   │   │   x=117,                                          │ │
+│ │              │   │   │   width=3                                         │ │
+│ │              │   │   )                                                   │ │
+│ │              │   },                                                      │ │
+│ │              │   left_gutter=48,                                         │ │
+│ │              │   right_gutter=3                                          │ │
+│ │              )                                                           │ │
+│ │       self = SideBar(id='thread-sidebar', classes='-right')              │ │
+│ │   siblings = {                                                           │ │
+│ │              │   'channels-sidebar': ChannelsSidebar(                    │ │
+│ │              │   │   id='channels-sidebar'                               │ │
+│ │              │   ),                                                      │ │
+│ │              │   'thread-sidebar': SideBar(                              │ │
+│ │              │   │   id='thread-sidebar',                                │ │
+│ │              │   │   classes='-right'                                    │ │
+│ │              │   )                                                       │ │
+│ │              }                                                           │ │
+│ │     slider = SidebarSlider(id='sidebar-width-slider')                    │ │
+│ │     toggle = SideBarToggle()                                             │ │
+│ │   viewport = 120                                                         │ │
+│ │      width = 3                                                           │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
+╰──────────────────────────────────────────────────────────────────────────────╯
+NoMatches: No nodes match '#sidebar-left' on Vertical(id='sidebar-controls')
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/textual/app.py", line 2210, in run_test
+    yield pilot
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/runtime_fixture.py", line 38, in run_test
+    yield pilot
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/prompt_queue_pilot.py", line 96, in main
+    await until(
+    ...<2 lines>...
+    )
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/prompt_queue_pilot.py", line 18, in until
+    while not predicate():
+              ~~~~~~~~~^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/prompt_queue_pilot.py", line 97, in <lambda>
+    lambda: getattr(app.screen, "conversation", None) is not None
+            ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/textual/getters.py", line 149, in __get__
+    query_node = obj.query_one(self.selector, self.expect_type)
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/textual/dom.py", line 1595, in query_one
+    raise NoMatches(f"No nodes match {query_selector!r} on {base_node!r}")
+textual.css.query.NoMatches: No nodes match 'Conversation' on MainScreen(id='session-1', classes='-wide')
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/prompt_queue_pilot.py", line 232, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/prompt_queue_pilot.py", line 95, in main
+    async with app.run_test(size=(120, 40)) as pilot:
+               ~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 235, in __aexit__
+    await self.gen.athrow(value)
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/runtime_fixture.py", line 37, in run_test
+    async with super().run_test(**kwargs) as pilot:
+               ~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 235, in __aexit__
+    await self.gen.athrow(value)
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/textual/app.py", line 2218, in run_test
+    raise self._exception
+textual.worker.WorkerFailed: Worker raised exception: NoMatches("No nodes match '#sidebar-left' on Vertical(id='sidebar-controls')")
+
+Logs: /home/ts/wt/toad-tr0-test-collection-20260928/.artifacts/pilots-current/popen-gw0/prompt_queue_pilot0
+_________________________ pilot: provider_login_pilot __________________________
+[gw0] linux -- Python 3.14.2 /home/ts/wt/toad-tr0-test-collection-20260928/.venv/bin/python
+Pilot failed: ExitedOutcome(code=1)
+r(id='thread-sidebar', classes='-right') │                │
+│ ╰───────────────────────────────────────────────────────────╯                │
+│                                                                              │
+│ /home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-pack │
+│ ages/toad/widgets/side_bar.py:851 in restore_navigation                      │
+│                                                                              │
+│   848 │   │   changed = self._presented_collapsed != self.collapsed          │
+│   849 │   │   if changed:                                                    │
+│   850 │   │   │   self.watch_collapsed(self.collapsed)                       │
+│ ❱ 851 │   │   changed |= self._apply_layout()                                │
+│   852 │   │   navigation = self.navigation                                   │
+│   853 │   │   for panel in self.query(SideBarCollapsible):                   │
+│   854 │   │   │   if str(panel.title) in navigation.panels_collapsed:        │
+│                                                                              │
+│ ╭───────────────────────── locals ─────────────────────────╮                 │
+│ │ changed = False                                          │                 │
+│ │    self = SideBar(id='thread-sidebar', classes='-right') │                 │
+│ ╰──────────────────────────────────────────────────────────╯                 │
+│                                                                              │
+│ /home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-pack │
+│ ages/toad/widgets/side_bar.py:795 in _apply_layout                           │
+│                                                                              │
+│   792 │   │   │   slider.set_range(15, 50, placement.width_percent)          │
+│   793 │   │   │   directions = app.sidebar_layout.directions(self.id)        │
+│   794 │   │   │   for direction, action in directions.items():               │
+│ ❱ 795 │   │   │   │   button = controls.query_one(f"#sidebar-{direction}", S │
+│   796 │   │   │   │   button.display = action is not None                    │
+│   797 │   │   │   │   button.tooltip = (f"Swap with the sidebar to the {dire │
+│   798 │   │   │   │   │   │   │   │     else f"Move sidebar to the {directio │
+│                                                                              │
+│ ╭───────────────────────────────── locals ─────────────────────────────────╮ │
+│ │     action = 'move'                                                      │ │
+│ │        app = ToadApp(                                                    │ │
+│ │              │   title='ToadApp',                                        │ │
+│ │              │   classes={                                               │ │
+│ │              │   │   '-theme-ansi-dark',                                 │ │
+│ │              │   │   '-show-sessions-bar',                               │ │
+│ │              │   │   '-dark-mode'                                        │ │
+│ │              │   },                                                      │ │
+│ │              │   pseudo_classes={'nocolor', 'focus', 'ansi', 'dark'}     │ │
+│ │              )                                                           │ │
+│ │   controls = Vertical(id='sidebar-controls')                             │ │
+│ │  direction = 'left'                                                      │ │
+│ │ directions = {'left': 'move', 'right': None}                             │ │
+│ │   geometry = SidebarGeometry(x=117, width=3)                             │ │
+│ │     handle = SidebarResizeHandle(id='sidebar-resize-handle')             │ │
+│ │        key = (                                                           │ │
+│ │              │   SidebarPlacement(                                       │ │
+│ │              │   │   side='right',                                       │ │
+│ │              │   │   order=0,                                            │ │
+│ │              │   │   width_percent=34,                                   │ │
+│ │              │   │   floating=False                                      │ │
+│ │              │   ),                                                      │ │
+│ │              │   SidebarPlacement(                                       │ │
+│ │              │   │   side='left',                                        │ │
+│ │              │   │   order=0,                                            │ │
+│ │              │   │   width_percent=40,                                   │ │
+│ │              │   │   floating=False                                      │ │
+│ │              │   ),                                                      │ │
+│ │              │   SidebarGeometry(x=117, width=3),                        │ │
+│ │              │   48,                                                     │ │
+│ │              │   3,                                                      │ │
+│ │              │   True                                                    │ │
+│ │              )                                                           │ │
+│ │      other = ChannelsSidebar(id='channels-sidebar')                      │ │
+│ │     parent = Center()                                                    │ │
+│ │       peer = SidebarPlacement(                                           │ │
+│ │              │   side='left',                                            │ │
+│ │              │   order=0,                                                │ │
+│ │              │   width_percent=40,                                       │ │
+│ │              │   floating=False                                          │ │
+│ │              )                                                           │ │
+│ │  placement = SidebarPlacement(                                           │ │
+│ │              │   side='right',                                           │ │
+│ │              │   order=0,                                                │ │
+│ │              │   width_percent=34,                                       │ │
+│ │              │   floating=False                                          │ │
+│ │              )                                                           │ │
+│ │   resolved = ResolvedSidebarLayout(                                      │ │
+│ │              │   bars={                                                  │ │
+│ │              │   │   'channels-sidebar': SidebarGeometry(                │ │
+│ │              │   │   │   x=0,                                            │ │
+│ │              │   │   │   width=48                                        │ │
+│ │              │   │   ),                                                  │ │
+│ │              │   │   'thread-sidebar': SidebarGeometry(                  │ │
+│ │              │   │   │   x=117,                                          │ │
+│ │              │   │   │   width=3                                         │ │
+│ │              │   │   )                                                   │ │
+│ │              │   },                                                      │ │
+│ │              │   left_gutter=48,                                         │ │
+│ │              │   right_gutter=3                                          │ │
+│ │              )                                                           │ │
+│ │       self = SideBar(id='thread-sidebar', classes='-right')              │ │
+│ │   siblings = {                                                           │ │
+│ │              │   'channels-sidebar': ChannelsSidebar(                    │ │
+│ │              │   │   id='channels-sidebar'                               │ │
+│ │              │   ),                                                      │ │
+│ │              │   'thread-sidebar': SideBar(                              │ │
+│ │              │   │   id='thread-sidebar',                                │ │
+│ │              │   │   classes='-right'                                    │ │
+│ │              │   )                                                       │ │
+│ │              }                                                           │ │
+│ │     slider = SidebarSlider(id='sidebar-width-slider')                    │ │
+│ │     toggle = SideBarToggle()                                             │ │
+│ │   viewport = 120                                                         │ │
+│ │      width = 3                                                           │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
+╰──────────────────────────────────────────────────────────────────────────────╯
+NoMatches: No nodes match '#sidebar-left' on Vertical(id='sidebar-controls')
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/textual/app.py", line 2210, in run_test
+    yield pilot
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/runtime_fixture.py", line 38, in run_test
+    yield pilot
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/provider_login_pilot.py", line 78, in main
+    await until(
+    ...<2 lines>...
+    )
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/provider_login_pilot.py", line 21, in until
+    while not predicate():
+              ~~~~~~~~~^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/provider_login_pilot.py", line 79, in <lambda>
+    lambda: getattr(app.screen, "conversation", None) is not None
+            ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/textual/getters.py", line 149, in __get__
+    query_node = obj.query_one(self.selector, self.expect_type)
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/textual/dom.py", line 1595, in query_one
+    raise NoMatches(f"No nodes match {query_selector!r} on {base_node!r}")
+textual.css.query.NoMatches: No nodes match 'Conversation' on MainScreen(id='session-1', classes='-wide')
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/provider_login_pilot.py", line 151, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/provider_login_pilot.py", line 77, in main
+    async with app.run_test(size=(120, 40)) as pilot:
+               ~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 235, in __aexit__
+    await self.gen.athrow(value)
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/runtime_fixture.py", line 37, in run_test
+    async with super().run_test(**kwargs) as pilot:
+               ~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 235, in __aexit__
+    await self.gen.athrow(value)
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/textual/app.py", line 2218, in run_test
+    raise self._exception
+textual.worker.WorkerFailed: Worker raised exception: NoMatches("No nodes match '#sidebar-left' on Vertical(id='sidebar-controls')")
+
+Logs: /home/ts/wt/toad-tr0-test-collection-20260928/.artifacts/pilots-current/popen-gw0/provider_login_pilot0
+___________________ pilot: real_history_scroll_latency_pilot ___________________
+[gw0] linux -- Python 3.14.2 /home/ts/wt/toad-tr0-test-collection-20260928/.venv/bin/python
+Pilot failed: ExitedOutcome(code=1)
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/agent_comms/wire_log.py", line 684, in read_metadata_unlocked
+    metadata = FieldCodec.decode(WireMetadata, data)
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/agent_comms/field_codec.py", line 129, in decode
+    return cast(T, cls._decode(target, data))
+                   ~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/agent_comms/field_codec.py", line 219, in _decode
+    raise ValueError(f"Missing required fields for {target.__name__}")
+ValueError: Missing required fields for WireMetadata
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/real_history_scroll_latency_pilot.py", line 116, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/real_history_scroll_latency_pilot.py", line 25, in main
+    source = Comms(Path(os.environ.get("TOAD_SOURCE_WIRE", "~/.agent-comms")).expanduser())
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/agent_comms/comms.py", line 29, in __init__
+    self.registry = Registration(self.root / "registry.json")
+                    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/agent_comms/registration.py", line 30, in __init__
+    self.store.read()
+    ~~~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/agent_comms/locked_store.py", line 81, in read
+    with self.reading() as value:
+         ~~~~~~~~~~~~^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 141, in __enter__
+    return next(self.gen)
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/agent_comms/locked_store.py", line 78, in reading
+    yield self._read_unlocked()
+          ~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/agent_comms/registry_store.py", line 52, in _read_unlocked
+    self.private_guard_unlocked()  # before even a cache hit
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/agent_comms/registry_store.py", line 115, in private_guard_unlocked
+    marker = WireLog(self.path.with_name("bus.jsonl")).read_metadata_unlocked(required=True)
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/agent_comms/wire_log.py", line 691, in read_metadata_unlocked
+    raise RelationViolationError(f"Bus protocol marker is invalid: {error}") from error
+agent_comms.errors.RelationViolationError: Bus protocol marker is invalid: Missing required fields for WireMetadata
+
+Logs: /home/ts/wt/toad-tr0-test-collection-20260928/.artifacts/pilots-current/popen-gw0/real_history_scroll_latency_pilot0
+__________________________ pilot: recovery_view_pilot __________________________
+[gw0] linux -- Python 3.14.2 /home/ts/wt/toad-tr0-test-collection-20260928/.venv/bin/python
+Pilot failed: ExitedOutcome(code=1)
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/recovery_view_pilot.py", line 128, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/recovery_view_pilot.py", line 99, in main
+    assert seen[-1][2] == "renamed-fixture"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+
+Logs: /home/ts/wt/toad-tr0-test-collection-20260928/.artifacts/pilots-current/popen-gw0/recovery_view_pilot0
+____________________ pilot: relationship_poll_reflow_pilot _____________________
+[gw0] linux -- Python 3.14.2 /home/ts/wt/toad-tr0-test-collection-20260928/.venv/bin/python
+Pilot failed: ExitedOutcome(code=1)
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/relationship_poll_reflow_pilot.py", line 115, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/relationship_poll_reflow_pilot.py", line 75, in main
+    assert paints == 0, f"Eight unchanged polls caused {paints} redundant paints"
+           ^^^^^^^^^^^
+AssertionError: Eight unchanged polls caused 3 redundant paints
+
+Logs: /home/ts/wt/toad-tr0-test-collection-20260928/.artifacts/pilots-current/popen-gw0/relationship_poll_reflow_pilot0
+_______________________ pilot: sidebar_navigation_pilot ________________________
+[gw1] linux -- Python 3.14.2 /home/ts/wt/toad-tr0-test-collection-20260928/.venv/bin/python
+Pilot failed: ExitedOutcome(code=1)
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/sidebar_navigation_pilot.py", line 183, in <module>
+    asyncio.run(main(finish_before_layout=parser.parse_args().finish_before_layout))
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/sidebar_navigation_pilot.py", line 153, in main
+    assert app.panel_frames and any(mode == worker.mode_name and ready for mode, ready, _ in app.panel_frames)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+
+Logs: /home/ts/wt/toad-tr0-test-collection-20260928/.artifacts/pilots-current/popen-gw1/sidebar_navigation_pilot0
+_________________________ pilot: render_runtime_pilot __________________________
+[gw0] linux -- Python 3.14.2 /home/ts/wt/toad-tr0-test-collection-20260928/.venv/bin/python
+Pilot failed: ExitedOutcome(code=1)
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/render_runtime_pilot.py", line 10, in <module>
+    from toad.render_runtime import PersistentRenderer
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/toad/render_runtime.py", line 10, in <module>
+    from toad.render_zmq import PersistentRendererPool, RendererEndpoint, RendererSessionFailed
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/toad/render_zmq.py", line 21, in <module>
+    from zmqruntime import ZMQClient, ZMQConfig, ZMQServer
+ModuleNotFoundError: No module named 'zmqruntime'
+
+Logs: /home/ts/wt/toad-tr0-test-collection-20260928/.artifacts/pilots-current/popen-gw0/render_runtime_pilot0
+_______________________ pilot: renderer_selection_pilot ________________________
+[gw0] linux -- Python 3.14.2 /home/ts/wt/toad-tr0-test-collection-20260928/.venv/bin/python
+Pilot failed: ExitedOutcome(code=1)
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/renderer_selection_pilot.py", line 13, in <module>
+    from toad.render_runtime import PersistentRenderer
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/toad/render_runtime.py", line 10, in <module>
+    from toad.render_zmq import PersistentRendererPool, RendererEndpoint, RendererSessionFailed
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/toad/render_zmq.py", line 21, in <module>
+    from zmqruntime import ZMQClient, ZMQConfig, ZMQServer
+ModuleNotFoundError: No module named 'zmqruntime'
+
+Logs: /home/ts/wt/toad-tr0-test-collection-20260928/.artifacts/pilots-current/popen-gw0/renderer_selection_pilot0
+______________________ pilot: tab_history_controls_pilot _______________________
+[gw1] linux -- Python 3.14.2 /home/ts/wt/toad-tr0-test-collection-20260928/.venv/bin/python
+Pilot failed: ExitedOutcome(code=1)
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/tab_history_controls_pilot.py", line 177, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/tab_history_controls_pilot.py", line 59, in main
+    assert arrow_style(first_screen, unavailable_back).bgcolor != unavailable_style.bgcolor, (
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: (Style(color=Color('#000000', ColorType.TRUECOLOR, triplet=ColorTriplet(red=0, green=0, blue=0)), bgcolor=Color('#000000', ColorType.TRUECOLOR, triplet=ColorTriplet(red=0, green=0, blue=0)), bold=True, meta={'offset': (0, 0)}), Style(color=Color('#000000', ColorType.TRUECOLOR, triplet=ColorTriplet(red=0, green=0, blue=0)), bgcolor=Color('#000000', ColorType.TRUECOLOR, triplet=ColorTriplet(red=0, green=0, blue=0)), bold=True, meta={'offset': (0, 0)}), Color(0, 0, 0, ansi=0), Color(192, 192, 192, ansi=7), frozenset({'enabled', 'ansi', 'nocolor', 'first-of-type', 'empty', 'even', 'dark', 'hover', 'can-focus', 'blur'}))
+
+Logs: /home/ts/wt/toad-tr0-test-collection-20260928/.artifacts/pilots-current/popen-gw1/tab_history_controls_pilot0
+________________________ pilot: tab_scrollbar_top_pilot ________________________
+[gw1] linux -- Python 3.14.2 /home/ts/wt/toad-tr0-test-collection-20260928/.venv/bin/python
+Pilot failed: ExitedOutcome(code=1)
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/tab_scrollbar_top_pilot.py", line 133, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/tab_scrollbar_top_pilot.py", line 67, in main
+    assert any(segment.style is not None and segment.style.color == highlight_color
+           ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+               and "━" in segment.text for segment in painted), tuple(painted)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: (Segment('━━━━━━━━━━━━━━━━━━━', Style(color=Color('#000000', ColorType.TRUECOLOR, triplet=ColorTriplet(red=0, green=0, blue=0)), bgcolor=Color('#000000', ColorType.TRUECOLOR, triplet=ColorTriplet(red=0, green=0, blue=0)))),)
+
+Logs: /home/ts/wt/toad-tr0-test-collection-20260928/.artifacts/pilots-current/popen-gw1/tab_scrollbar_top_pilot0
+________________________ pilot: thread_activation_pilot ________________________
+[gw1] linux -- Python 3.14.2 /home/ts/wt/toad-tr0-test-collection-20260928/.venv/bin/python
+Pilot failed: ExitedOutcome(code=1)
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/thread_activation_pilot.py", line 132, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/thread_activation_pilot.py", line 64, in main
+    assert all(y == maximum and "LATEST-ACTIVITY" in text for _, y, maximum, text in frames), frames
+           ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: [('session-1', 25, 31, '▌New paragraph 391             \n▌                              \n▌New paragraph 392             \n▌                              \n▌New paragraph 393             \n▌                              \n▌New paragraph 394             \n▌                            ▂▂\n▌New paragraph 395             \n▌                              \n▌New paragraph 396             \n▌                              \n▌New paragraph 397           ▇▇\n▌                              '), ('session-1', 31, 31, '▌New paragraph 394             \n▌                              \n▌New paragraph 395             \n▌                              \n▌New paragraph 396             \n▌                              \n▌New paragraph 397             \n▌                              \n▌New paragraph 398             \n▌                            ▃▃\n▌New paragraph 399             \n▌                              \n▌LATEST-ACTIVITY               \n▌                              '), ('session-1', 31, 31, '▌New paragraph 394                       \n▌                                        \n▌New paragraph 395                       \n▌                                        \n▌New paragraph 396                       \n▌                                        \n▌New paragraph 397                       \n▌                                        \n▌New paragraph 398                       \n▌                                      ▃▃\n▌New paragraph 399                       \n▌                                        \n▌LATEST-ACTIVITY                         \n▌                                        '), ('session-1', 31, 31, '▌New paragraph 394                       \n▌                                        \n▌New paragraph 395                       \n▌                                        \n▌New paragraph 396                       \n▌                                        \n▌New paragraph 397                       \n▌                                        \n▌New paragraph 398                       \n▌                                      ▃▃\n▌New paragraph 399                       \n▌                                        \n▌LATEST-ACTIVITY                         \n▌                                        ')]
+
+Logs: /home/ts/wt/toad-tr0-test-collection-20260928/.artifacts/pilots-current/popen-gw1/thread_activation_pilot0
+_________________________ pilot: thread_controls_pilot _________________________
+[gw1] linux -- Python 3.14.2 /home/ts/wt/toad-tr0-test-collection-20260928/.venv/bin/python
+Pilot failed: ExitedOutcome(code=1)
+read-sidebar', classes='-right') │                │
+│ ╰───────────────────────────────────────────────────────────╯                │
+│                                                                              │
+│ /home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-pack │
+│ ages/toad/widgets/side_bar.py:851 in restore_navigation                      │
+│                                                                              │
+│   848 │   │   changed = self._presented_collapsed != self.collapsed          │
+│   849 │   │   if changed:                                                    │
+│   850 │   │   │   self.watch_collapsed(self.collapsed)                       │
+│ ❱ 851 │   │   changed |= self._apply_layout()                                │
+│   852 │   │   navigation = self.navigation                                   │
+│   853 │   │   for panel in self.query(SideBarCollapsible):                   │
+│   854 │   │   │   if str(panel.title) in navigation.panels_collapsed:        │
+│                                                                              │
+│ ╭───────────────────────── locals ─────────────────────────╮                 │
+│ │ changed = False                                          │                 │
+│ │    self = SideBar(id='thread-sidebar', classes='-right') │                 │
+│ ╰──────────────────────────────────────────────────────────╯                 │
+│                                                                              │
+│ /home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-pack │
+│ ages/toad/widgets/side_bar.py:795 in _apply_layout                           │
+│                                                                              │
+│   792 │   │   │   slider.set_range(15, 50, placement.width_percent)          │
+│   793 │   │   │   directions = app.sidebar_layout.directions(self.id)        │
+│   794 │   │   │   for direction, action in directions.items():               │
+│ ❱ 795 │   │   │   │   button = controls.query_one(f"#sidebar-{direction}", S │
+│   796 │   │   │   │   button.display = action is not None                    │
+│   797 │   │   │   │   button.tooltip = (f"Swap with the sidebar to the {dire │
+│   798 │   │   │   │   │   │   │   │     else f"Move sidebar to the {directio │
+│                                                                              │
+│ ╭───────────────────────────────── locals ─────────────────────────────────╮ │
+│ │     action = 'move'                                                      │ │
+│ │        app = ToadApp(                                                    │ │
+│ │              │   title='ToadApp',                                        │ │
+│ │              │   classes={                                               │ │
+│ │              │   │   '-dark-mode',                                       │ │
+│ │              │   │   '-theme-ansi-dark',                                 │ │
+│ │              │   │   '-show-sessions-bar'                                │ │
+│ │              │   },                                                      │ │
+│ │              │   pseudo_classes={'nocolor', 'focus', 'dark', 'ansi'}     │ │
+│ │              )                                                           │ │
+│ │   controls = Vertical(id='sidebar-controls')                             │ │
+│ │  direction = 'left'                                                      │ │
+│ │ directions = {'left': 'move', 'right': None}                             │ │
+│ │   geometry = SidebarGeometry(x=117, width=3)                             │ │
+│ │     handle = SidebarResizeHandle(id='sidebar-resize-handle')             │ │
+│ │        key = (                                                           │ │
+│ │              │   SidebarPlacement(                                       │ │
+│ │              │   │   side='right',                                       │ │
+│ │              │   │   order=0,                                            │ │
+│ │              │   │   width_percent=34,                                   │ │
+│ │              │   │   floating=False                                      │ │
+│ │              │   ),                                                      │ │
+│ │              │   SidebarPlacement(                                       │ │
+│ │              │   │   side='left',                                        │ │
+│ │              │   │   order=0,                                            │ │
+│ │              │   │   width_percent=40,                                   │ │
+│ │              │   │   floating=False                                      │ │
+│ │              │   ),                                                      │ │
+│ │              │   SidebarGeometry(x=117, width=3),                        │ │
+│ │              │   48,                                                     │ │
+│ │              │   3,                                                      │ │
+│ │              │   True                                                    │ │
+│ │              )                                                           │ │
+│ │      other = ChannelsSidebar(id='channels-sidebar')                      │ │
+│ │     parent = Center()                                                    │ │
+│ │       peer = SidebarPlacement(                                           │ │
+│ │              │   side='left',                                            │ │
+│ │              │   order=0,                                                │ │
+│ │              │   width_percent=40,                                       │ │
+│ │              │   floating=False                                          │ │
+│ │              )                                                           │ │
+│ │  placement = SidebarPlacement(                                           │ │
+│ │              │   side='right',                                           │ │
+│ │              │   order=0,                                                │ │
+│ │              │   width_percent=34,                                       │ │
+│ │              │   floating=False                                          │ │
+│ │              )                                                           │ │
+│ │   resolved = ResolvedSidebarLayout(                                      │ │
+│ │              │   bars={                                                  │ │
+│ │              │   │   'channels-sidebar': SidebarGeometry(                │ │
+│ │              │   │   │   x=0,                                            │ │
+│ │              │   │   │   width=48                                        │ │
+│ │              │   │   ),                                                  │ │
+│ │              │   │   'thread-sidebar': SidebarGeometry(                  │ │
+│ │              │   │   │   x=117,                                          │ │
+│ │              │   │   │   width=3                                         │ │
+│ │              │   │   )                                                   │ │
+│ │              │   },                                                      │ │
+│ │              │   left_gutter=48,                                         │ │
+│ │              │   right_gutter=3                                          │ │
+│ │              )                                                           │ │
+│ │       self = SideBar(id='thread-sidebar', classes='-right')              │ │
+│ │   siblings = {                                                           │ │
+│ │              │   'channels-sidebar': ChannelsSidebar(                    │ │
+│ │              │   │   id='channels-sidebar'                               │ │
+│ │              │   ),                                                      │ │
+│ │              │   'thread-sidebar': SideBar(                              │ │
+│ │              │   │   id='thread-sidebar',                                │ │
+│ │              │   │   classes='-right'                                    │ │
+│ │              │   )                                                       │ │
+│ │              }                                                           │ │
+│ │     slider = SidebarSlider(id='sidebar-width-slider')                    │ │
+│ │     toggle = SideBarToggle()                                             │ │
+│ │   viewport = 120                                                         │ │
+│ │      width = 3                                                           │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
+╰──────────────────────────────────────────────────────────────────────────────╯
+NoMatches: No nodes match '#sidebar-left' on Vertical(id='sidebar-controls')
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/textual/app.py", line 2210, in run_test
+    yield pilot
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/runtime_fixture.py", line 38, in run_test
+    yield pilot
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/thread_controls_pilot.py", line 139, in main
+    await until(
+    ...<2 lines>...
+    )
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/thread_controls_pilot.py", line 24, in until
+    while not predicate():
+              ~~~~~~~~~^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/thread_controls_pilot.py", line 140, in <lambda>
+    lambda: getattr(app.screen, "conversation", None) is not None
+            ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/textual/getters.py", line 149, in __get__
+    query_node = obj.query_one(self.selector, self.expect_type)
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/textual/dom.py", line 1595, in query_one
+    raise NoMatches(f"No nodes match {query_selector!r} on {base_node!r}")
+textual.css.query.NoMatches: No nodes match 'Conversation' on MainScreen(id='session-1', classes='-wide')
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/thread_controls_pilot.py", line 276, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/thread_controls_pilot.py", line 138, in main
+    async with app.run_test(size=(120, 40)) as pilot:
+               ~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 235, in __aexit__
+    await self.gen.athrow(value)
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/runtime_fixture.py", line 37, in run_test
+    async with super().run_test(**kwargs) as pilot:
+               ~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 235, in __aexit__
+    await self.gen.athrow(value)
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/textual/app.py", line 2218, in run_test
+    raise self._exception
+textual.worker.WorkerFailed: Worker raised exception: NoMatches("No nodes match '#sidebar-left' on Vertical(id='sidebar-controls')")
+
+Logs: /home/ts/wt/toad-tr0-test-collection-20260928/.artifacts/pilots-current/popen-gw1/thread_controls_pilot0
+_______________________ pilot: thread_unread_start_pilot _______________________
+[gw1] linux -- Python 3.14.2 /home/ts/wt/toad-tr0-test-collection-20260928/.venv/bin/python
+Pilot failed: ExitedOutcome(code=1)
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/thread_unread_start_pilot.py", line 132, in main
+    await pilot.pause(.05)
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/textual/pilot.py", line 546, in pause
+    await asyncio.sleep(delay)
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py", line 702, in sleep
+    return await future
+           ^^^^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/thread_unread_start_pilot.py", line 142, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/thread_unread_start_pilot.py", line 129, in main
+    async with asyncio.timeout(15):
+               ~~~~~~~~~~~~~~~^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/timeouts.py", line 114, in __aexit__
+    raise TimeoutError from exc_val
+TimeoutError
+
+Logs: /home/ts/wt/toad-tr0-test-collection-20260928/.artifacts/pilots-current/popen-gw1/thread_unread_start_pilot0
+__________________________ pilot: throbber_busy_pilot __________________________
+[gw1] linux -- Python 3.14.2 /home/ts/wt/toad-tr0-test-collection-20260928/.venv/bin/python
+Pilot failed: ExitedOutcome(code=1)
+╭───────────────────── Traceback (most recent call last) ──────────────────────╮
+│ /home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-pack │
+│ ages/toad/widgets/side_bar.py:657 in on_mount                                │
+│                                                                              │
+│   654 │   def on_mount(self) -> None:                                        │
+│   655 │   │   self.trap_focus()                                              │
+│   656 │   │   app = cast("ToadApp", self.app)                                │
+│ ❱ 657 │   │   if self.id in app.sidebar_layout.placements:                   │
+│   658 │   │   │   app.sidebar_layout_changed.subscribe(self, self._layout_ch │
+│   659 │   │   if self._navigation is None:                                   │
+│   660 │   │   │   cast("ToadApp", self.app).settings_changed_signal.subscrib │
+│                                                                              │
+│ ╭──────────────────────── locals ────────────────────────╮                   │
+│ │  app = Probe(                                          │                   │
+│ │        │   title='Probe',                              │                   │
+│ │        │   classes={'-dark-mode'},                     │                   │
+│ │        │   pseudo_classes={                            │                   │
+│ │        │   │   'nocolor',                              │                   │
+│ │        │   │   'focus',                                │                   │
+│ │        │   │   'dark'                                  │                   │
+│ │        │   }                                           │                   │
+│ │        )                                               │                   │
+│ │ self = SideBar()                                       │                   │
+│ ╰────────────────────────────────────────────────────────╯                   │
+╰──────────────────────────────────────────────────────────────────────────────╯
+AttributeError: 'Probe' object has no attribute 'sidebar_layout'
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/textual/app.py", line 2210, in run_test
+    yield pilot
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/throbber_busy_pilot.py", line 98, in main
+    assert geometry() == baseline
+           ^^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/throbber_busy_pilot.py", line 121, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/throbber_busy_pilot.py", line 38, in main
+    async with app.run_test(size=(100, 35)) as pilot:
+               ~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 235, in __aexit__
+    await self.gen.athrow(value)
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/textual/app.py", line 2218, in run_test
+    raise self._exception
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/textual/message_pump.py", line 644, in _pre_process
+    await self._dispatch_message(events.Mount())
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/textual/message_pump.py", line 774, in _dispatch_message
+    await self.on_event(message)
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/textual/message_pump.py", line 855, in on_event
+    await self._on_message(event)
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/textual/message_pump.py", line 876, in _on_message
+    await invoke(method, message)
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/textual/_callback.py", line 96, in invoke
+    return await _invoke(callback, *params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/textual/_callback.py", line 56, in _invoke
+    result = callback(*params[:parameter_count])
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/toad/widgets/side_bar.py", line 657, in on_mount
+    if self.id in app.sidebar_layout.placements:
+                  ^^^^^^^^^^^^^^^^^^
+AttributeError: 'Probe' object has no attribute 'sidebar_layout'
+
+Logs: /home/ts/wt/toad-tr0-test-collection-20260928/.artifacts/pilots-current/popen-gw1/throbber_busy_pilot0
+_________________________ pilot: selection_hover_pilot _________________________
+[gw0] linux -- Python 3.14.2 /home/ts/wt/toad-tr0-test-collection-20260928/.venv/bin/python
+Pilot failed: TimedOutOutcome(termination=GracefulStopOutcome(termination=ExitedOutcome(code=0)))
+
+Logs: /home/ts/wt/toad-tr0-test-collection-20260928/.artifacts/pilots-current/popen-gw0/selection_hover_pilot0
+_______________________ pilot: watcher_archived_ui_pilot _______________________
+[gw0] linux -- Python 3.14.2 /home/ts/wt/toad-tr0-test-collection-20260928/.venv/bin/python
+Pilot failed: ExitedOutcome(code=1)
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/watcher_archived_ui_pilot.py", line 72, in <module>
+    prepare()
+    ~~~~~~~^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/watcher_archived_ui_pilot.py", line 14, in prepare
+    stage = Path(os.environ["WATCHER_ACCEPTANCE_STAGE"])
+                 ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen os>", line 709, in __getitem__
+KeyError: 'WATCHER_ACCEPTANCE_STAGE'
+
+Logs: /home/ts/wt/toad-tr0-test-collection-20260928/.artifacts/pilots-current/popen-gw0/watcher_archived_ui_pilot0
+____________________ pilot: watcher_project_shutdown_pilot _____________________
+[gw0] linux -- Python 3.14.2 /home/ts/wt/toad-tr0-test-collection-20260928/.venv/bin/python
+Pilot failed: ExitedOutcome(code=1)
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/watcher_project_shutdown_pilot.py", line 45, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/watcher_project_shutdown_pilot.py", line 21, in main
+    project = Path(os.environ["WATCHER_ACTUAL_PROJECT"])
+                   ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen os>", line 709, in __getitem__
+KeyError: 'WATCHER_ACTUAL_PROJECT'
+
+Logs: /home/ts/wt/toad-tr0-test-collection-20260928/.artifacts/pilots-current/popen-gw0/watcher_project_shutdown_pilot0
+________________________ pilot: watcher_busy_tabs_pilot ________________________
+[gw1] linux -- Python 3.14.2 /home/ts/wt/toad-tr0-test-collection-20260928/.venv/bin/python
+Pilot failed: ExitedOutcome(code=1)
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/watcher_busy_tabs_pilot.py", line 76, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-tr0-test-collection-20260928/tests/watcher_busy_tabs_pilot.py", line 30, in main
+    dispatcher = _shared_observer_manager._observers[root.resolve()][1]
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+TypeError: '_PathObservation' object is not subscriptable
+
+Logs: /home/ts/wt/toad-tr0-test-collection-20260928/.artifacts/pilots-current/popen-gw1/watcher_busy_tabs_pilot0
+=========================== short test summary info ============================
+FAILED tests/default_route_private_user_pilot.py::default_route_private_user_pilot
+FAILED tests/channel_history_reader_pilot.py::channel_history_reader_pilot - ...
+FAILED tests/channel_marker_notice_pilot.py::channel_marker_notice_pilot - Fa...
+FAILED tests/channel_retirement_pilot.py::channel_retirement_pilot - Failed: ...
+FAILED tests/file_path_preview_pilot.py::file_path_preview_pilot - Failed: Pi...
+FAILED tests/goal_edit_owner_pilot.py::goal_edit_owner_pilot - Failed: Pilot ...
+FAILED tests/goal_objective_edit_pilot.py::goal_objective_edit_pilot - Failed...
+FAILED tests/goal_pause_owner_pilot.py::goal_pause_owner_pilot - Failed: Pilo...
+FAILED tests/comms_pilot.py::comms_pilot - Failed: Pilot failed: ExitedOutcom...
+FAILED tests/context_resume_pilot.py::context_resume_pilot - Failed: Pilot fa...
+FAILED tests/goal_retry_pilot.py::goal_retry_pilot - Failed: Pilot failed: Ex...
+FAILED tests/goal_server_poll_pilot.py::goal_server_poll_pilot - Failed: Pilo...
+FAILED tests/goal_set_owner_pilot.py::goal_set_owner_pilot - Failed: Pilot fa...
+FAILED tests/goal_standby_history_pilot.py::goal_standby_history_pilot - Fail...
+FAILED tests/hidden_diff_warmup_pilot.py::hidden_diff_warmup_pilot - Failed: ...
+FAILED tests/navigation_allocation_pilot.py::navigation_allocation_pilot - Fa...
+FAILED tests/history_scroll_frames_pilot.py::history_scroll_frames_pilot - Fa...
+FAILED tests/image_paste_pilot.py::image_paste_pilot - Failed: Pilot failed: ...
+FAILED tests/in_out_wire_replay_pilot.py::in_out_wire_replay_pilot - Failed: ...
+FAILED tests/persistent_render_pilot.py::persistent_render_pilot - Failed: Pi...
+FAILED tests/persistent_renderer_lifecycle_pilot.py::persistent_renderer_lifecycle_pilot
+FAILED tests/persistent_renderer_ui_pilot.py::persistent_renderer_ui_pilot - ...
+FAILED tests/input_delivery_owner_pilot.py::input_delivery_owner_pilot - Fail...
+FAILED tests/input_failure_pilot.py::input_failure_pilot - Failed: Pilot fail...
+FAILED tests/l0a_native_installed_pilot.py::l0a_native_installed_pilot - Fail...
+FAILED tests/project_path_pilot.py::project_path_pilot - Failed: Pilot failed...
+FAILED tests/project_resume_pilot.py::project_resume_pilot - Failed: Pilot fa...
+FAILED tests/maintenance_agent_root_binding_pilot.py::maintenance_agent_root_binding_pilot
+FAILED tests/maintenance_ingress_pilot.py::maintenance_ingress_pilot - Failed...
+FAILED tests/session_sort_pilot.py::session_sort_pilot - Failed: Pilot failed...
+FAILED tests/projected_history_budget_pilot.py::projected_history_budget_pilot
+FAILED tests/prompt_queue_pilot.py::prompt_queue_pilot - Failed: Pilot failed...
+FAILED tests/provider_login_pilot.py::provider_login_pilot - Failed: Pilot fa...
+FAILED tests/real_history_scroll_latency_pilot.py::real_history_scroll_latency_pilot
+FAILED tests/recovery_view_pilot.py::recovery_view_pilot - Failed: Pilot fail...
+FAILED tests/relationship_poll_reflow_pilot.py::relationship_poll_reflow_pilot
+FAILED tests/sidebar_navigation_pilot.py::sidebar_navigation_pilot - Failed: ...
+FAILED tests/render_runtime_pilot.py::render_runtime_pilot - Failed: Pilot fa...
+FAILED tests/renderer_selection_pilot.py::renderer_selection_pilot - Failed: ...
+FAILED tests/tab_history_controls_pilot.py::tab_history_controls_pilot - Fail...
+FAILED tests/tab_scrollbar_top_pilot.py::tab_scrollbar_top_pilot - Failed: Pi...
+FAILED tests/thread_activation_pilot.py::thread_activation_pilot - Failed: Pi...
+FAILED tests/thread_controls_pilot.py::thread_controls_pilot - Failed: Pilot ...
+FAILED tests/thread_unread_start_pilot.py::thread_unread_start_pilot - Failed...
+FAILED tests/throbber_busy_pilot.py::throbber_busy_pilot - Failed: Pilot fail...
+FAILED tests/selection_hover_pilot.py::selection_hover_pilot - Failed: Pilot ...
+FAILED tests/watcher_archived_ui_pilot.py::watcher_archived_ui_pilot - Failed...
+FAILED tests/watcher_project_shutdown_pilot.py::watcher_project_shutdown_pilot
+FAILED tests/watcher_busy_tabs_pilot.py::watcher_busy_tabs_pilot - Failed: Pi...
+49 failed, 215 passed, 73 subtests passed in 640.58s (0:10:40)

@@ -1,15 +1,11 @@
 """Local request failures restore their text; remote failure evidence cannot inject drafts."""
 
 import asyncio
-import json
 import os
-import sys
 import tempfile
 from pathlib import Path
 from unittest.mock import AsyncMock, patch
 
-from agent_comms.acp import CommsAgent
-from agent_comms.comms import wire
 from runtime_fixture import ToadApp
 from toad import jsonrpc
 from toad.acp.agent import Agent
@@ -42,40 +38,19 @@ async def main():
             receiver = Agent(root, {"name": "Fixture", "run_command": {"*": "true"}}, "fixture")
             receiver._message_target = conversation
             conversation.set_reactive(Conversation.agent, receiver)
-            received = []
-
-            class SerializedClient:
-                async def session_update(self, *, session_id, update):
-                    payload = json.loads(update.model_dump_json(by_alias=True, exclude_none=True))
-                    received.append(payload)
-                    receiver.rpc_session_update(session_id, payload)
-
-            # A real child accepts get_state then exits without attestation.
-            # No synthesized backend error event: this exercises its terminal done path.
-            child = root / "pi-preflight-exit"
-            child.write_text(f"#!{sys.executable}\nimport sys\nsys.stdin.readline()\n")
-            child.chmod(0o700)
-            server = CommsAgent(wire(root / "wire"), agent_bin=str(child), agent_args=[])
-            server.sessions.client = SerializedClient()
-            with patch.dict(os.environ, {"AGENT_COMMS_AGENT_MODELS": "test/model"}):
-                await server.new_session(cwd=str(root / "fixture"), mcp_servers=[])
-            prompt = "the exact prompt\n\nwith another paragraph"
             conversation.prompt.text = "new draft"
-            try:
-                await server.inputs.run_owned_input("fixture", "fixture", prompt)
-                await pilot.pause()
-                failures = [p for p in received if p.get("_meta", {}).get("agentComms", {}).get("inputFailed")]
-                assert len(failures) == 1, received
-                failure = failures[0]["_meta"]["agentComms"]["inputFailed"]
-                assert "preflight ended before attestation" in failure["reason"]
-                assert conversation.prompt.text == "new draft", "Remote failure injected a local draft"
-                receiver.rpc_session_update("fixture", failures[0])
+            # Current public ACP metadata: a remote failure is evidence, never
+            # authority to overwrite a local draft, including repeated delivery.
+            for _ in range(2):
+                receiver.rpc_session_update("fixture", {
+                    "sessionUpdate": "session_info_update",
+                    "_meta": {"agentComms": {"inputFailed": {
+                        "inputId": "remote-input", "reason": "native preflight failed",
+                        "text": "remote prompt",
+                    }}},
+                })
                 await pilot.pause()
                 assert conversation.prompt.text == "new draft"
-                assert not server.inputs.turn_input_text
-                assert not server.inputs.turn_original_input_keys
-            finally:
-                await server.shutdown()
 
             # Exercise the real ACP request error catch, which used to consume
             # exceptions before the conversation could recover the original text.

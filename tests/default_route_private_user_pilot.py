@@ -39,14 +39,7 @@ async def main() -> None:
         sandbox.chmod(0o700)
         home = sandbox / "home"
         home.mkdir(mode=0o700)
-        # This pilot proves USER UI/receipt behavior, not background candidate
-        # scheduling. Suppress its asynchronous observer to keep the disposable
-        # private root quiescent through cleanup.
         with (
-            patch(
-                "agent_comms.messaging.schedule_private_candidate_after_commit",
-                lambda *_: None,
-            ),
             tempfile.TemporaryDirectory(
                 prefix="toad-user-private-", dir="/var/tmp"
             ) as private_dir,
@@ -219,7 +212,7 @@ async def main() -> None:
                     channel_send = channel._wire.messaging.send_user_message
 
                     def fail_bus_open(path, *args, **kwargs):
-                        if Path(path) == root / "bus.jsonl":
+                        if Path(path) == root / "bus.jsonl" and args[0] & os.O_APPEND:
                             raise OSError("simulated reservation-only lost append")
                         return original_open(path, *args, **kwargs)
 

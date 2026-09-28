@@ -6,6 +6,7 @@ import tempfile
 from pathlib import Path
 
 from agent_comms.comms import wire
+from runtime_fixture import private_native_wire
 from agent_comms.acp import CommsAgent
 
 from toad.acp.agent import Agent
@@ -14,11 +15,13 @@ from toad.acp.agent import Agent
 async def main():
     with tempfile.TemporaryDirectory(prefix="toad-goal-pause-owner-", dir="/var/tmp") as directory:
         root = Path(directory)
-        comms = wire(root / "wire")
+        comms = private_native_wire(root / "wire")
         os.environ["AGENT_COMMS_AGENT_MODELS"] = "openrouter/fake"
         owner = CommsAgent(
             comms, agent_bin="pi", agent_args=["--provider", "openrouter", "--model", "fake"],
             runtime_enabled=True, auto_wake=False,
+            private_nk_native_package=Path(os.environ["AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE"]),
+            private_nk_wire_root_id=os.environ["AGENT_COMMS_PRIVATE_NK_WIRE_ROOT_ID"],
         )
         try:
             session = (await owner.new_session(cwd=str(root))).session_id

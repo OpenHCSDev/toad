@@ -100,3 +100,18 @@ async def reveal_session_details(app, pilot, target=None):
         target.scroll_visible(animate=False, immediate=True)
         await pilot.pause()
     return details
+
+
+def private_native_wire(root: Path):
+    """Declare the real current native route on a disposable test-owned wire."""
+    from agent_comms.native_package import verify_native_package
+    package = Path(os.environ["AC_NATIVE_COPIED_PACKAGE"])
+    verify_native_package(package)
+    comms = wire(root)
+    root_id = comms.messaging.initialize_private_initial_protocol()
+    os.environ.update(
+        AGENT_COMMS_ROOT=str(root),
+        AGENT_COMMS_PRIVATE_NK_WIRE_ROOT_ID=root_id,
+        AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE=str(package),
+    )
+    return comms
