@@ -7,7 +7,7 @@ import os
 import tempfile
 from pathlib import Path
 
-from agent_comms.activity import ActivityState
+from agent_comms.activity import ActivityState, UnavailableDrainDiagnostic
 from agent_comms.child_process import ProcessIdentity
 from agent_comms.comms import wire
 from agent_comms.threads import Thread
@@ -18,6 +18,7 @@ from toad import messages
 from toad.acp.agent import Agent
 from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.observed_thread_activity import ObservedThreadActivity
+from toad.widgets.session_details import SessionDetails
 
 
 async def until(predicate):
@@ -61,8 +62,8 @@ async def main():
                 },
                 "fixture",
             )
-            attach_coordination(agent, str(comms.root), "peer")
             agent.attach_surface(native)
+            attach_coordination(agent, str(comms.root), "peer")
             native.set_reactive(type(native).agent, agent)
             owner = app.current_mode
             tracker = app.session_tracker.sessions[owner]
@@ -90,6 +91,20 @@ async def main():
             )
             await pilot.pause()
             assert tracker.state == "idle" and tracker.summary == "Ready"
+            identity = comms.registry.snapshot().owner_identity("peer")
+            failure = UnavailableDrainDiagnostic(identity, "SchemaVersionError", "cohort schema missing")
+            comms.agents.set_drain_diagnostic("peer", identity, failure)
+            await until(lambda: observed.presentation is not None and observed.presentation.attention)
+            native.post_message(messages.SessionUpdate(state="idle", summary="Ready"))
+            await pilot.pause()
+            assert tracker.state == "idle" and "Inbox unavailable" in tracker.summary
+            assert observed.has_class("-unavailable") and not observed.has_class("-working")
+            details = native.query_one(SessionDetails)
+            assert details.has_class("-attention") and "Inbox unavailable" in str(details.title)
+            comms.agents.set_drain_diagnostic("peer", identity, None)
+            await until(lambda: observed.presentation is not None and not observed.presentation.attention)
+            await pilot.pause()
+            assert tracker.summary == "Ready" and not details.has_class("-attention")
             comms.threads.register(Thread("dm-peer", frozenset({"comms"}), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
             await app.open_comms_session(owner_mode=owner, project_path=root, me="peer", target=DirectTarget("dm-peer"))
             dm = app.screen.query_one(CommsChatView)
@@ -113,6 +128,15 @@ async def main():
                 )
             )
             assert str(observed.render()) == "Ready"
+            identity = comms.registry.snapshot().owner_identity("dm-peer")
+            comms.agents.set_drain_diagnostic("dm-peer", identity,
+                UnavailableDrainDiagnostic(identity, "OperationalError", "no such table: cohort_schema_meta"))
+            await until(lambda: observed.presentation is not None and observed.presentation.attention)
+            assert "no such table" in str(observed.render()) and observed.has_class("-unavailable")
+            comms.agents.set_drain_diagnostic("dm-peer", identity, None)
+            await until(lambda: observed.presentation is not None and not observed.presentation.attention)
+            assert str(observed.render()) == "Ready"
+
         print(
             "PASS: actual registry/activity/core ThreadView -> ACP reader/native conversation and DM; Checking/Responding target, Ready override and idle recovery; no provider/process launch"
         )
