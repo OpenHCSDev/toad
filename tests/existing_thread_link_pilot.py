@@ -28,7 +28,7 @@ async def main():
         )
         comms = wire(wire_root)
         for name in ("owner", "peer"):
-            comms.register(Thread(name, frozenset(), str(root), pid=os.getpid()))
+            comms.threads.register(Thread(name, frozenset(), str(root), pid=os.getpid()))
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(100, 36)) as pilot:
             await pilot.pause()

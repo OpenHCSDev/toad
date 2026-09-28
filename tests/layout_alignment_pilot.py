@@ -51,7 +51,7 @@ async def main() -> None:
         XDG_STATE_HOME=str(root / "state"),
         XDG_DATA_HOME=str(root / "data"),
     )
-    wire(root / "wire").register(
+    wire(root / "wire").threads.register(
         Thread(root.name, frozenset(), str(root), pid=os.getpid())
     )
     app = ToadApp(project_dir=str(root))

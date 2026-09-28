@@ -24,8 +24,8 @@ async def main():
                           AGENT_COMMS_AGENT_BIN="/bin/echo", AGENT_COMMS_AGENT_ARGS="",
                           AGENT_COMMS_AGENT_MODELS="test/model")
         comms = wire(root / "wire")
-        comms.register(Thread("saved", frozenset({"acp"}), str(old)))
-        comms.set_project("saved", str(new))
+        comms.threads.register(Thread("saved", frozenset({"acp"}), str(old)))
+        comms.threads.set_project("saved", str(new))
         agent = {"name": "Test", "identity": "project-resume", "short_name": "test",
                  "run_command": {"*": f"{sys.executable} -m agent_comms.acp"}, "protocol": "acp"}
         app = ToadApp(agent_data=agent, project_dir=str(old), agent_session_id="saved")
@@ -49,7 +49,7 @@ async def main():
             await pilot.pause()
             assert conversation.project_path == new
             assert Path(conversation.prompt.current_directory.path) == new
-            comms.set_project("saved", str(old))
+            comms.threads.set_project("saved", str(old))
             async with asyncio.timeout(10):
                 while app.screen.project_path != old:
                     await asyncio.sleep(.05)

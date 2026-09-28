@@ -25,7 +25,7 @@ async def main():
         os.environ["XDG_STATE_HOME"] = str(root / "state")
         comms = wire(root / "wire")
         for index in range(100):
-            comms.register(Thread(f"worker-{index}", frozenset({"shared", "test"}), str(root), pid=os.getpid()))
+            comms.threads.register(Thread(f"worker-{index}", frozenset({"shared", "test"}), str(root), pid=os.getpid()))
         agent = Agent(root, {"name": "fixture", "run_command": {"*": "false"}}, None)
         agent._coordination_root, agent._coordination_thread = str(comms.root), "worker-0"
         ui_thread = threading.get_ident()
@@ -41,7 +41,7 @@ async def main():
             return {"thread": proxy.session_id}
 
         durations, cpu = [], []
-        with patch("agent_comms.wire", construct), patch("agent_comms.operations.wire", construct), \
+        with patch("agent_comms.comms.wire", construct), \
                 patch.object(RuntimeProxy, "request", reply):
             for _ in range(20):
                 begin, before_cpu = time.perf_counter(), time.thread_time()

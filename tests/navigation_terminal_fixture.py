@@ -42,9 +42,9 @@ async def main():
         comms = wire(root / "wire")
         names = ("fixture-owner", *(f"fixture-{index:02}" for index in range(24)))
         for name in names:
-            comms.register(Thread(name, frozenset({"fixture"}), str(root), pid=os.getpid()))
+            comms.threads.register(Thread(name, frozenset({"fixture"}), str(root), pid=os.getpid()))
         for index in range(100):
-            comms.send("fixture-00", "#fixture", f"Wire record {index}: " + "fixed content " * 12)
+            comms.messaging.send("fixture-00", "#fixture", f"Wire record {index}: " + "fixed content " * 12)
         events = tuple(
             TranscriptEvent(kind, f"## {kind} record {index}\n\n" + text)
             for index in range(180)

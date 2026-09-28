@@ -89,8 +89,8 @@ async def main(args):
                 + "\n"
             )
         comms = wire(root / "wire")
-        comms.register(Thread(name="parent", tags=frozenset(), worktree=str(root)))
-        comms.register(
+        comms.threads.register(Thread(name="parent", tags=frozenset(), worktree=str(root)))
+        comms.threads.register(
             Thread(
                 name="fork",
                 parent="parent",
@@ -100,9 +100,9 @@ async def main(args):
             )
         )
         for index in range(args.wire_messages):
-            comms.send("parent", "#all", f"coordination {index}: " + "status " * 100)
+            comms.messaging.send("parent", "#all", f"coordination {index}: " + "status " * 100)
         if args.wire_messages:
-            comms.acknowledge("fork")
+            comms.messaging.acknowledge("fork")
         app = ProfileApp(project_dir=str(root))
         async with app.run_test(size=(120, 40)) as pilot:
             await pilot.pause()

@@ -54,11 +54,11 @@ async def main(*, empty=False, trace=False, observe=False, output=None, peers=0,
                           XDG_STATE_HOME=str(root / "state"), XDG_DATA_HOME=str(root / "data"))
         targets = [f"return-{index}" for index in range(10)]
         for name in targets:
-            wire(root / "wire").register(Thread(name, frozenset(), str(root), pid=os.getpid()))
+            wire(root / "wire").threads.register(Thread(name, frozenset(), str(root), pid=os.getpid()))
         for index in range(peers):
-            wire(root / "wire").register(Thread(f"peer-{index}", frozenset({"fixture"}), str(root), pid=os.getpid()))
+            wire(root / "wire").threads.register(Thread(f"peer-{index}", frozenset({"fixture"}), str(root), pid=os.getpid()))
         for index in range(channels):
-            wire(root / "wire").set_channel(f"#fixture-{index}", frozenset({"fixture"}))
+            wire(root / "wire").channels.set_channel(f"#fixture-{index}", frozenset({"fixture"}))
         body = "## Saved response\n\n" + "Paragraph **with markup** and content.\n\n" * 5
         body += "```python\n" + "def calculate(value): return value + 1\n" * 30 + "```\n"
         events = tuple(TranscriptEvent("assistant", f"Record {i}\n\n" + body) for i in range(20))

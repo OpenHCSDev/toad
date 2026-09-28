@@ -1,7 +1,9 @@
-# Paired C0 Toad migration — in progress
+# Paired C0 Toad migration
 
-Branch refactor/c0-owner-consumers-20260928, base mergedToad88. Parent owns these edits. Declaration and operation import destinations derive from the workers' one-time maps. Moved imports in current source/tests;37production component accesses migrated across9files. No compatibility fallback added.
+Parent branch refactor/c0-owner-consumers-20260928. All current source/test imports now use defining core owners. Production Comms calls use explicit components; fixture calls/patch targets and embedded child imports migrated. Removed the obsolete optional error-class lookup and its fake-old-core compatibility fixture; real HumanInitialUnknownError still disables uncertain send/retry.
 
-All source/test Python files parse and diff whitespace passes. This is NOT functional acceptance. Remaining: migrate test fixture Comms calls and embedded child-code/patch paths; review any inferred Comms receiver misses; integrate both core C0 branches, run relevant current Toad pilots against that combined source, publish complete tested paired change and activate serially. Do not deploy this checkpoint alone.
+Local combined C0 source acceptance:channel_visibility, default_route, right_comms, main_menu_transfer and goal_pause_owner all exited0. Owner-reader initially patched a removed package alias; corrected to its current factory and passed. Transcript reader initially forbade the canonical factory also used for legitimate route validation; changed guard to actual chat/sidebar construction owners, preserving retained-reader equality assertions; passed. Failed receipts retained. All source/test files parse and diff whitespace passes.
 
-Current installed runtime remains checkpoint176 with Toad88. Actual production channel tools and mounted historical sessions passed there. This branch does not change the live runtime.
+Installed candidate with combined core C0 also passed real active-bus mounted historical comms/nra and saved transcript with111identity choices and no newbusrows (parent core evidence/c0-integration/installed-history.json). Native/provider work is not duplicated by these UI checks. Parent owns final core pin and activation after publishing combined core.
+
+C0 maps here are one-time migration tools/evidence, not runtime registries. No fallback old imports/interfaces added. Existing metadata-reader construction outside retained widget readers is unchanged.

@@ -18,7 +18,7 @@ async def main():
         os.environ.update(XDG_CONFIG_HOME=str(root / "config"), XDG_STATE_HOME=str(root / "state"),
                           XDG_DATA_HOME=str(root / "data"), AGENT_COMMS_ROOT=str(root / "wire"))
         comms = wire(root / "wire")
-        comms.register(Thread("worker", frozenset({"team"}), str(root)))
+        comms.threads.register(Thread("worker", frozenset({"team"}), str(root)))
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(120, 40)) as pilot:
             await pilot.pause()
@@ -34,7 +34,7 @@ async def main():
                 for _ in range(100):
                     await screen.on_project_directory_update()
             assert screen._project_panel.directory_tree is None
-            app._sidebar_snapshot = comms.viewer_snapshot(str(root))
+            app._sidebar_snapshot = comms.views.viewer_snapshot(str(root))
             with patch.object(app.coordination_wire, "thread_views", side_effect=AssertionError("UI wire scan")), \
                  patch.object(app.coordination_wire.registry, "_load", side_effect=AssertionError("UI registry read")):
                 for _ in range(100):

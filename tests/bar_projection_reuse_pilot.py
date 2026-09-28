@@ -22,8 +22,8 @@ async def main(observe):
         root = Path(directory)
         comms = wire(root / "wire")
         for index in range(60):
-            comms.register(Thread(f"worker-{index}", frozenset({"shared"}), str(root)))
-        people = comms.viewer_snapshot(str(root), show_stopped=True).threads
+            comms.threads.register(Thread(f"worker-{index}", frozenset({"shared"}), str(root)))
+        people = comms.views.viewer_snapshot(str(root), show_stopped=True).threads
         runtime = PreparationRuntime(Backend())
         durations = []
         sources = []

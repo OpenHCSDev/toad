@@ -27,12 +27,12 @@ async def main() -> None:
             ("carol", frozenset()),
             ("dave", frozenset()),
         ):
-            comms.register(Thread(name, tags, str(root), pid=os.getpid()))
-        viewer = comms.user_identity(str(root)).name
-        comms.send("carol", "dave", "older newly visible DM")
-        comms.send("alice", "#team", "current channel message")
-        comms.set_channel_any_mode("#team", True)
-        assert [m.body for m in comms.channel_display_page("#team", worktree=str(root)).messages] == [
+            comms.threads.register(Thread(name, tags, str(root), pid=os.getpid()))
+        viewer = comms.messaging.user_identity(str(root)).name
+        comms.messaging.send("carol", "dave", "older newly visible DM")
+        comms.messaging.send("alice", "#team", "current channel message")
+        comms.channels.set_channel_any_mode("#team", True)
+        assert [m.body for m in comms.views.channel_display_page("#team", worktree=str(root)).messages] == [
             "current channel message"
         ]
 
@@ -52,8 +52,8 @@ async def main() -> None:
             assert [m.body for m, _ in chat._history] == ["current channel message"]
             assert not chat._has_older
 
-            comms.update_tags("carol", add=frozenset({"team"}))
-            expanded = comms.channel_display_page("#team", worktree=str(root))
+            comms.channels.update_tags("carol", add=frozenset({"team"}))
+            expanded = comms.views.channel_display_page("#team", worktree=str(root))
             assert [m.body for m in expanded.messages][:2] == [
                 "older newly visible DM", "current channel message"
             ]

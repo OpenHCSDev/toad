@@ -78,9 +78,9 @@ async def main():
                 assert not window.follows_tail
 
             comms = wire(root / "wire")
-            comms.register(Thread("sender", frozenset({"scroll"}), str(root), pid=os.getpid()))
+            comms.threads.register(Thread("sender", frozenset({"scroll"}), str(root), pid=os.getpid()))
             for index in range(140):
-                comms.send("sender", "#scroll", f"Message {index}: " + "wrapped body " * 30)
+                comms.messaging.send("sender", "#scroll", f"Message {index}: " + "wrapped body " * 30)
             await app.open_comms_session(owner_mode=app.current_mode, project_path=root,
                                          me="sender", target="#scroll", kind="channel")
             await pilot.pause()

@@ -27,7 +27,7 @@ async def main():
                           XDG_DATA_HOME=str(root / "data"), AGENT_COMMS_ROOT=str(root / "wire"))
         comms = wire(root / "wire")
         for name in ("actor", "victim", "refuses-stop"):
-            comms.register(Thread(name, frozenset(), str(root)))
+            comms.threads.register(Thread(name, frozenset(), str(root)))
         started, release = threading.Event(), threading.Event()
         stopped = []
         notices = []

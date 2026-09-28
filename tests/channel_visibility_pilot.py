@@ -46,10 +46,10 @@ async def main():
         for name in (owner, "stopped", "archived"):
             source = root / f"{name}.jsonl"
             source.touch()
-            comms.register(Thread(name, frozenset({"team"}), str(root), session_file=str(source)))
-        comms.stop("stopped")
-        comms.stop("archived")
-        comms.archive("archived")
+            comms.threads.register(Thread(name, frozenset({"team"}), str(root), session_file=str(source)))
+        comms.owners.stop("stopped")
+        comms.owners.stop("archived")
+        comms.threads.archive("archived")
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(120, 45)) as pilot:
             await pilot.pause()

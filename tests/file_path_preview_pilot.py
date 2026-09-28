@@ -34,7 +34,7 @@ async def main():
         path = project / "plans" / "tag-channel-view-plan.md"
         path.parent.mkdir(parents=True)
         path.write_text("# Previewed plan\n\nResolved from chat.")
-        wire(root / "wire").register(Thread("project", frozenset(), str(project), pid=os.getpid()))
+        wire(root / "wire").threads.register(Thread("project", frozenset(), str(project), pid=os.getpid()))
         app = ToadApp(project_dir=str(project))
         async with app.run_test(size=(110, 35)) as pilot:
             await pilot.pause()

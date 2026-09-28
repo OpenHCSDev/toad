@@ -31,7 +31,7 @@ async def main():
         stub.write_text(f"#!{sys.executable}\n" + """
 import json, os, queue, sys, threading
 from pathlib import Path
-from agent_comms import wire
+from agent_comms.comms import wire
 commands = queue.Queue()
 def reader():
     for line in sys.stdin:
@@ -201,7 +201,7 @@ while True:
                 == 1
             )
             assert not any("line-feed draft" in b.content for b in conversation.query(UserInput))
-            assert wire(root / "wire").full_history() == []
+            assert wire(root / "wire").views.full_history() == []
             gate.touch()
             await submit("another running turn")
             await until(lambda: conversation.turn == "agent")

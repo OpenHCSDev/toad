@@ -46,7 +46,7 @@ async def main():
             AGENT_COMMS_AGENT_MODELS="test/base",
         )
         comms = Comms(root / "wire")
-        comms.register(Thread("alias", frozenset(), str(root), pid=os.getpid()))
+        comms.threads.register(Thread("alias", frozenset(), str(root), pid=os.getpid()))
         comms.registry.rename("alias", "beta")
         producer = CommsAgent(
             comms, agent_bin="pi", agent_args=["--model", "test/base"], auto_wake=False
@@ -79,7 +79,7 @@ async def main():
             producer.on_connect(Client())
 
             async def delivery(*, include_history=False):
-                return comms.input_delivery(
+                return comms.goals.input_delivery(
                     "beta",
                     include_history=include_history,
                     awaiting_keys=producer.inputs.awaiting_input_keys("beta"),

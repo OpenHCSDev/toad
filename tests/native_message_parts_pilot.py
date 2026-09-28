@@ -29,8 +29,8 @@ async def main():
             "role": "assistant", "content": [{"type": "text", "text": part} for part in parts],
         }}) + "\n")
         comms = wire(root / "wire")
-        comms.register(Thread("worker", frozenset(), str(root), session_file=str(session)))
-        saved = comms.thread_transcript_page("worker")
+        comms.threads.register(Thread("worker", frozenset(), str(root), session_file=str(session)))
+        saved = comms.transcripts.thread_transcript_page("worker")
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(110, 38)) as pilot:
             await pilot.pause()

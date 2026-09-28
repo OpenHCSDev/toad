@@ -98,7 +98,7 @@ for line in sys.stdin:
                 )
             )
             comms = wire(root / "wire")
-            comms.attach_session("project", str(transcript))
+            comms.threads.attach_session("project", str(transcript))
             conversation.prompt.text = "Preserve this draft"
 
             async def open_login():

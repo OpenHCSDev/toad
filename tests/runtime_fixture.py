@@ -21,7 +21,7 @@ def stop_test_owners(root: Path) -> None:
                 continue
             if Path(process.environ().get("AGENT_COMMS_ROOT", "")).resolve() != root.resolve():
                 continue
-            comms.stop(thread.name)
+            comms.owners.stop(thread.name)
             process.wait(timeout=10)
         except psutil.NoSuchProcess:
             pass

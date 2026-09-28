@@ -18,7 +18,7 @@ async def main():
             "role": "assistant", "content": f"REPLAY_MARKER_{i}\n\n" + "A paragraph to wrap. " * 100
         }}) + "\n" for i in range(40)))
         comms = wire(root / "wire")
-        comms.register(Thread("resize", frozenset(), str(root), session_file=str(history)))
+        comms.threads.register(Thread("resize", frozenset(), str(root), session_file=str(history)))
         session = ToadSession(PtyLaunch(
             (str(FORK_TOAD), "acp", f"{AGENT_PY} -m agent_comms.acp", "--session", "resize"),
             root,

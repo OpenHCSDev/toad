@@ -37,7 +37,7 @@ async def check_title(title: str | None) -> None:
         thread = "existing-worker"
         expected = title or thread
         comms = wire(root / "wire")
-        comms.register(Thread(thread, frozenset({"acp"}), str(root), title=title))
+        comms.threads.register(Thread(thread, frozenset({"acp"}), str(root), title=title))
         payload = {"sessionId": thread, "_meta": {"agentComms": {
             "thread": thread, "title": title, "wireRoot": str(root / "wire"),
             "worktree": str(root), "autoTitle": True,

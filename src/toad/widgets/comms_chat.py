@@ -840,10 +840,9 @@ class CommsChatView(Conversation):
                 )
                 return
         except Exception as error:
-            from agent_comms import declarations as core_declarations
+            from agent_comms.errors import HumanInitialUnknownError, RelationViolationError
 
-            unknown_type = getattr(core_declarations, "HumanInitialUnknownError", None)
-            if unknown_type is not None and isinstance(error, unknown_type):
+            if isinstance(error, HumanInitialUnknownError):
                 self._unknown_send = (error.wire_root_id, error.wire_seq, error.message_id)
                 # Preserve the user's text for inspection, but never put an
                 # uncertain send back into an actionable compose control.
@@ -853,10 +852,8 @@ class CommsChatView(Conversation):
                 self.prompt.prompt_text_area.tooltip = self.status
                 self.flash(self.status, style="error")
                 return
-            violation_type = getattr(core_declarations, "RelationViolationError", None)
             if (
-                violation_type is not None
-                and isinstance(error, violation_type)
+                isinstance(error, RelationViolationError)
                 and "UNKNOWN outcome" in str(error)
                 and "human send blocked" in str(error)
             ):

@@ -43,9 +43,9 @@ async def main():
         comms = wire(root / "wire")
         for name, parent in (("origin", None), ("owner", "origin"), ("peer", None),
                              ("child-one", "owner"), ("child-two", "owner")):
-            comms.register(Thread(name, frozenset({"team"}), str(root), parent=parent))
-        comms.send("peer", "owner", "Review request")
-        comms.send("owner", "#team", "Published status")
+            comms.threads.register(Thread(name, frozenset({"team"}), str(root), parent=parent))
+        comms.messaging.send("peer", "owner", "Review request")
+        comms.messaging.send("owner", "#team", "Published status")
         comms.relationships.edit("owner", "add", "peer", "Review the sidebar")
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(130, 44)) as pilot:
@@ -113,7 +113,7 @@ async def main():
             assert await pilot.click(activity_item)
             await pilot.pause()
             assert comms.relationships.snapshot("owner").groups[3].order is ThreadSort.LAST_ACTIVITY
-            comms.set_activity("child-one", ActivityState.WORKING, "Building shared components")
+            comms.agents.set_activity("child-one", ActivityState.WORKING, "Building shared components")
             await wait_until(pilot, lambda: tree.groups["children"].model.entries[0].target
                              == "child-one")
 
@@ -144,9 +144,9 @@ async def main():
             await pilot.pause()
             assert isinstance(app.screen, ContextMenu)
             old_peer = comms.registry.require("peer")
-            comms.stop("peer")
-            comms.delete("peer")
-            comms.register(Thread("peer", frozenset(), str(root),
+            comms.owners.stop("peer")
+            comms.threads.delete("peer")
+            comms.threads.register(Thread("peer", frozenset(), str(root),
                                   created_at=old_peer.created_at + 1))
             open_item = next(item for item in app.screen.query(ContextMenuItem)
                              if item.action == "open")
@@ -169,7 +169,7 @@ async def main():
                 copy.assert_called_once_with("peer")
             # Owner rename propagates to native and already-open channel panels.
             with patch.dict(os.environ, {"PI_AGENT_ID": "owner"}):
-                comms.rename_self("renamed-owner")
+                comms.threads.rename_self("renamed-owner")
             await main.on_coordination_update(CoordinationUpdate(
                 thread="renamed-owner", wire_root=str(root / "wire"),
                 persistence="persistent", transport="stdio"))

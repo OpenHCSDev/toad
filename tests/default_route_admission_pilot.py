@@ -41,9 +41,9 @@ async def main() -> None:
         legacy = home / ".agent-comms"
         legacy.mkdir(mode=0o700)
         old = Comms(legacy)
-        old.register(Thread("user", frozenset(), str(sandbox), role=ThreadRole.USER))
-        old.register(Thread("peer", frozenset({"team"}), str(sandbox / "peer")))
-        old.send("peer", "#team", "LEGACY-PAINT")
+        old.threads.register(Thread("user", frozenset(), str(sandbox), role=ThreadRole.USER))
+        old.threads.register(Thread("peer", frozenset({"team"}), str(sandbox / "peer")))
+        old.messaging.send("peer", "#team", "LEGACY-PAINT")
         with tempfile.TemporaryDirectory(
             prefix="toad-route-private-", dir="/var/tmp"
         ) as private_dir:
@@ -75,8 +75,8 @@ async def main() -> None:
                     await view._refresh()
                     await pilot.pause()
                     assert view._wire.root == legacy
-                    old.send("peer", "#team", "UNREAD-OLD")
-                    page = old.channel_display_page(
+                    old.messaging.send("peer", "#team", "UNREAD-OLD")
+                    page = old.views.channel_display_page(
                         "#team", worktree=str(sandbox), limit=8
                     )
                     assert page.newest_seq == 2

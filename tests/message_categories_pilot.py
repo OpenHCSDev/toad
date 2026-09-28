@@ -34,7 +34,7 @@ async def main():
                           XDG_STATE_HOME=str(root / "state"), XDG_DATA_HOME=str(root / "data"))
         comms = wire(root / "wire")
         for name in ("owner", "peer"):
-            comms.register(Thread(name, frozenset(), str(root)))
+            comms.threads.register(Thread(name, frozenset(), str(root)))
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(130, 43)) as pilot:
             await pilot.pause()

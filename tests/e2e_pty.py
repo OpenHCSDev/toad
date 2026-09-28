@@ -295,10 +295,10 @@ printf '%s\n' '{"type":"response","command":"get_session_stats","success":true,"
     from agent_comms.comms import wire
 
     comms = wire(WIRE)
-    comms.register(
+    comms.threads.register(
         Thread(name="seed-peer", tags=frozenset({"seed"}), worktree=str(PROJECT))
     )
-    comms.send("seed-peer", "#all", "channel greeting from seed")
+    comms.messaging.send("seed-peer", "#all", "channel greeting from seed")
 
     session = ToadSession()
     await session.start()
@@ -460,7 +460,7 @@ printf '%s\n' '{"type":"response","command":"get_session_stats","success":true,"
     await session.press_enter()
     await asyncio.sleep(2)
     frame = await session.frame(0.2)
-    history = [m.body for m in comms.channel_history("#all")]
+    history = [m.body for m in comms.views.channel_history("#all")]
     assert (
         "hello from the pty test" in history
     ), f"send failed; wire history: {history[-3:]}\n{frame[-900:]}"
@@ -546,7 +546,7 @@ printf '%s\n' '{"type":"response","command":"get_session_stats","success":true,"
             f"frame:\n{frame[-1200:]}\noutput:\n{output}"
         )
     assert comms.registry.status("renamed-e2e").value == "running"
-    assert comms._process_alive(comms.registry.require("renamed-e2e").pid)
+    assert comms.owners._process_alive(comms.registry.require("renamed-e2e").pid)
     print("[10] final close replaces the view while its detached owner stays alive OK")
 
     assert await session.click_text("test/cursor-ux", last=True)

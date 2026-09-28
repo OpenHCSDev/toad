@@ -51,7 +51,7 @@ async def main():
         comms = wire(root / "wire")
         tags = frozenset(f"team-{index}" for index in range(6))
         for index in range(24):
-            comms.register(Thread(f"worker-{index:02}", tags, str(root)))
+            comms.threads.register(Thread(f"worker-{index:02}", tags, str(root)))
         app = HoverProbe(project_dir=str(root))
         profile_path = os.environ.get("TOAD_HOVER_PROFILE")
         if profile_path:
@@ -81,7 +81,7 @@ async def main():
                 timings.append(await asyncio.wait_for(painted, 5))
                 await move
             started = time.perf_counter()
-            comms.set_activity("worker-01", ActivityState.WORKING, "Changed status")
+            comms.agents.set_activity("worker-01", ActivityState.WORKING, "Changed status")
             await sidebar.sync_sessions()
             update_ms = (time.perf_counter() - started) * 1000
             print({"rendered_rows": len(sidebar._ordered_rows()),

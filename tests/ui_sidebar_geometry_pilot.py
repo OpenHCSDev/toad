@@ -33,7 +33,7 @@ async def main() -> None:
         )
         comms = wire(root / "wire")
         for index in range(35):
-            comms.register(Thread(f"worker-{index:02}-" + "long-name-" * 5,
+            comms.threads.register(Thread(f"worker-{index:02}-" + "long-name-" * 5,
                                   frozenset(), str(root)))
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(120, 40)) as pilot:

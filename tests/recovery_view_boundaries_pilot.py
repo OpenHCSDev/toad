@@ -57,7 +57,7 @@ async def dual_root_projection():
         os.environ.update(XDG_CONFIG_HOME=str(root / "config"), XDG_STATE_HOME=str(root / "state"),
                           XDG_DATA_HOME=str(root / "data"), AGENT_COMMS_ROOT=str(a))
         for target in (a, b):
-            wire(target).register(Thread("fixture", frozenset({"test"}), str(root), pid=os.getpid()))
+            wire(target).threads.register(Thread("fixture", frozenset({"test"}), str(root), pid=os.getpid()))
         app = ToadApp(project_dir=str(root))
         requests = []
         blocked = [False]

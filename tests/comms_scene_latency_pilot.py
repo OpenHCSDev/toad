@@ -41,11 +41,11 @@ async def main():
                           XDG_DATA_HOME=str(root / "data"), XDG_STATE_HOME=str(root / "state"))
         comms = wire(root / "wire")
         me = session_thread_name(root)
-        comms.register(Thread(me, frozenset({"fixture"}), str(root), pid=os.getpid()))
+        comms.threads.register(Thread(me, frozenset({"fixture"}), str(root), pid=os.getpid()))
         targets = [f"#scene-{index}" for index in range(6)]
         for target in targets:
-            comms.set_channel(target, frozenset({"fixture"}))
-            comms.send(me, target, "Scene history marker\n" + "message body " * 20)
+            comms.channels.set_channel(target, frozenset({"fixture"}))
+            comms.messaging.send(me, target, "Scene history marker\n" + "message body " * 20)
         app = SceneProbe(project_dir=str(root))
         samples = []
         sizes = []

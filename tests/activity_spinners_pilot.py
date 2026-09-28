@@ -53,8 +53,8 @@ async def check_busy_labels() -> None:
         me = session_thread_name(root)
         comms = wire(root / "wire")
         for name in (me, "busy-worker"):
-            comms.register(Thread(name, frozenset({"team"}), str(root), pid=os.getpid()))
-            comms.set_activity(name, ActivityState.THINKING, "working")
+            comms.threads.register(Thread(name, frozenset({"team"}), str(root), pid=os.getpid()))
+            comms.agents.set_activity(name, ActivityState.THINKING, "working")
         comms.relationships.edit(me, "add", "busy-worker", "Joint review")
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(100, 34)) as pilot:

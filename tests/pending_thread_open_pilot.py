@@ -39,7 +39,7 @@ async def main():
                           XDG_STATE_HOME=str(root / "state"), XDG_DATA_HOME=str(root / "data"))
         comms = wire(root / "wire")
         for name in ("first-peer", "close-peer"):
-            comms.register(Thread(name, frozenset(), str(root), pid=os.getpid()))
+            comms.threads.register(Thread(name, frozenset(), str(root), pid=os.getpid()))
 
         async def fake_start(agent, target):
             agent._message_target = target

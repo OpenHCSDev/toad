@@ -29,9 +29,9 @@ async def main():
             XDG_DATA_HOME=str(root / "data"),
         )
         comms = wire(root / "wire")
-        comms.register(Thread("peer", frozenset(), str(root), pid=os.getpid()))
-        viewer = comms.user_identity(str(root)).name
-        comms.send("peer", viewer, "old peer painted")
+        comms.threads.register(Thread("peer", frozenset(), str(root), pid=os.getpid()))
+        viewer = comms.messaging.user_identity(str(root)).name
+        comms.messaging.send("peer", viewer, "old peer painted")
         entered, release = Event(), Event()
         original_mark = Comms.mark_dm_view_read
 
@@ -59,18 +59,18 @@ async def main():
                     assert [message.body for message, _ in chat._history] == [
                         "old peer painted"
                     ]
-                    assert comms.pending_count(viewer, "peer") == 1
+                    assert comms.bus.pending_count(viewer, "peer") == 1
 
                     comms.registry.unregister("peer")
-                    comms.delete("peer")
-                    comms.register(
+                    comms.threads.delete("peer")
+                    comms.threads.register(
                         Thread("peer", frozenset(), str(root), pid=os.getpid())
                     )
-                    comms.send("peer", viewer, "new peer never painted")
+                    comms.messaging.send("peer", viewer, "new peer never painted")
                     await app.switch_mode(owner_mode)
                     release.set()
                     await until(pilot, lambda: not chat._ack_inflight)
-                    assert comms.pending_count(viewer, "peer") == 1
+                    assert comms.bus.pending_count(viewer, "peer") == 1
                     assert not any(
                         message.body == "new peer never painted"
                         for message, _ in chat._history

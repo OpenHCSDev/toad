@@ -25,10 +25,10 @@ async def main():
                           XDG_STATE_HOME=str(root / "state"), AGENT_COMMS_ROOT=str(root / "wire"))
         comms = wire(root / "wire")
         transcript = root / "session.jsonl"
-        comms.register(Thread("owner", frozenset(), str(root), session_file=str(transcript)))
-        comms.register(Thread("peer", frozenset(), str(root)))
-        incoming = comms.send_message("peer", "owner", "INBOUND_FROM_REAL_WIRE")
-        outgoing = comms.send_message("owner", "peer", "OUTBOUND_FROM_REAL_RECEIPT")
+        comms.threads.register(Thread("owner", frozenset(), str(root), session_file=str(transcript)))
+        comms.threads.register(Thread("peer", frozenset(), str(root)))
+        incoming = comms.messaging.send_message("peer", "owner", "INBOUND_FROM_REAL_WIRE")
+        outgoing = comms.messaging.send_message("owner", "peer", "OUTBOUND_FROM_REAL_RECEIPT")
         transcript.write_text("\n".join(json.dumps(record) for record in (
             {"type": "message", "id": "wire-user",
              "timestamp": datetime.fromtimestamp(incoming.timestamp + .001, UTC).isoformat(),
@@ -40,8 +40,8 @@ async def main():
                                                                          "message": outgoing.to_wire()})}]}},
         )) + "\n")
         if os.environ.get("TOAD_TEST_ANNOTATED") == "1":
-            comms.transcript_routes.record(str(transcript), ("wire-user",), TurnRouting((incoming,), None))
-        page = comms.thread_transcript_page("owner")
+            comms.transcripts.routes.record(str(transcript), ("wire-user",), TurnRouting((incoming,), None))
+        page = comms.transcripts.thread_transcript_page("owner")
         assert any(event.kind == "sent" and event.routing and event.routing.reply for event in page.events)
         inbound = [event for event in page.events if event.kind == "user" and event.routing
                    and event.routing.requests]

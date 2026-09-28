@@ -69,9 +69,9 @@ async def main(*, finish_before_layout=False):
             XDG_DATA_HOME=str(root / "data"), AGENT_COMMS_ROOT=str(root / "wire"),
         )
         comms = wire(root / "wire")
-        comms.register(Thread("worker", frozenset({"experiment"}), str(root)))
+        comms.threads.register(Thread("worker", frozenset({"experiment"}), str(root)))
         for index in range(30):
-            comms.set_channel(f"channel-{index:02}", frozenset({"experiment"}))
+            comms.channels.set_channel(f"channel-{index:02}", frozenset({"experiment"}))
         app = FrameApp(project_dir=str(root))
         async with app.run_test(size=(100, 30)) as pilot:
             await pilot.pause()

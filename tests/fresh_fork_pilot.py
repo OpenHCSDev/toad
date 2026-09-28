@@ -27,8 +27,8 @@ async def main():
         session.write_text("".join(json.dumps({"type": "message", "message": {
             "role": "assistant", "content": f"Inherited record {i}"}}) + "\n" for i in range(60)))
         comms = wire(root / "wire")
-        comms.register(Thread("parent", frozenset(), str(root), session_file=str(session)))
-        comms.register(Thread("child", frozenset(), str(root), parent="parent", task="FORK-TASK-MARKER"))
+        comms.threads.register(Thread("parent", frozenset(), str(root), session_file=str(session)))
+        comms.threads.register(Thread("child", frozenset(), str(root), parent="parent", task="FORK-TASK-MARKER"))
         started = asyncio.Event()
 
         async def start(agent, target):
@@ -53,7 +53,7 @@ async def main():
             assert row.kind == "dm"
             # Registry reservation becomes a live owner before its session file
             # exists. Refresh must update even an already-created sidebar row.
-            comms.acquire_thread("child", owner_pid=os.getpid())
+            comms.owners.acquire_thread("child", owner_pid=os.getpid())
             await sidebar.sync_sessions()
             with patch.object(Agent, "start", start):
                 await pilot.click(row)
@@ -71,8 +71,8 @@ async def main():
                 own = root / "child.jsonl"
                 own.write_text(json.dumps({"type": "message", "message": {
                     "role": "assistant", "content": "CHILD-OWN-REPLY"}}) + "\n")
-                comms.attach_session("child", str(own), pid=os.getpid())
-                assert comms.thread_transcript_page("child").events[0].text == "CHILD-OWN-REPLY"
+                comms.threads.attach_session("child", str(own), pid=os.getpid())
+                assert comms.transcripts.thread_transcript_page("child").events[0].text == "CHILD-OWN-REPLY"
                 async with asyncio.timeout(10):
                     while history.has_older:
                         view.window.scroll_home(animate=False, immediate=True)

@@ -55,7 +55,7 @@ async def main():
             ("old", 100, 300, 400),
             ("new", 200, 250, 500),
         ):
-            comms.register(
+            comms.threads.register(
                 Thread(
                     name=name,
                     tags=frozenset(),
@@ -65,8 +65,8 @@ async def main():
                     task="An original task must not become the sidebar status. " * 30,
                 )
             )
-            comms.set_agent_info(name, model="provider/a-very-long-model-name")
-            comms.activity.emit(
+            comms.agents.set_agent_info(name, model="provider/a-very-long-model-name")
+            comms.agents.activity.emit(
                 Activity(thread=name, state=ActivityState.WORKING, timestamp=activity)
             )
             comms.bus.send(
@@ -78,12 +78,12 @@ async def main():
                     timestamp=sent,
                 )
             )
-            comms.acknowledge(name)
-        comms.acknowledge("old")
+            comms.messaging.acknowledge(name)
+        comms.messaging.acknowledge("old")
         # Agent inbox acknowledgements do not clear the human's native-history
         # unread badge. This sorting fixture compares rows with an already-read
         # saved reply before and after opening the view.
-        comms.mark_thread_view_read(
+        comms.views.mark_thread_view_read(
             "old", worktree=str(project),
             through=TranscriptCursor(str(history), history.stat().st_size),
         )
@@ -147,7 +147,7 @@ async def main():
             assert opened.region.height == 2
             assert order() == ["project", "new", "old"], order()
             app.screen.conversation.prompt.text = "Unsubmitted manual input"
-            comms.heartbeat("old")
+            comms.threads.heartbeat("old")
             app.screen.query_one(CommsSidebar)._refresh()
             await pilot.pause()
             assert order() == ["project", "new", "old"], order()
@@ -166,7 +166,7 @@ async def main():
                 )
                 assert await pilot.click(item)
                 await pilot.pause()
-                assert comms.channel_catalog.resolve("#any").order.value == criterion
+                assert comms.channels.catalog.resolve("#any").order.value == criterion
                 assert (
                     not sort_control()
                     .query_ancestor(SideBarCollapsible)
@@ -189,7 +189,7 @@ async def main():
             assert order() == ["old", "new", "project"], order()
             await choose("last_activity")
             assert order() == ["old", "new", "project"], order()
-            comms.activity.emit(
+            comms.agents.activity.emit(
                 Activity(thread="new", state=ActivityState.WORKING, timestamp=700)
             )
             app.screen.query_one(CommsSidebar)._refresh()
@@ -206,7 +206,7 @@ async def main():
             # open tab, and UI-only state updates cannot overwrite that status.
             detail = "Checking the workspace and running verification. " * 3
             for name in ("old", "new"):
-                comms.set_activity(name, ActivityState.WORKING, detail)
+                comms.agents.set_activity(name, ActivityState.WORKING, detail)
             sidebar = app.screen.query_one(CommsSidebar)
             sidebar._refresh()
             await pilot.pause()
@@ -236,12 +236,12 @@ async def main():
                 assert "original task" not in unopened.render().plain
                 assert "provider/" not in unopened.render().plain
             for name in ("old", "new"):
-                comms.set_activity(name, ActivityState.IDLE)
+                comms.agents.set_activity(name, ActivityState.IDLE)
             sidebar._refresh()
             await pilot.pause()
             assert opened.render().plain == "✓ old\n  Ready"
             assert unopened.render().plain == "✓ new\n  Ready"
-            comms.stop("new")
+            comms.owners.stop("new")
             sidebar._refresh()
             await pilot.pause()
             assert unopened.render().plain == "○ new\n  Stopped"

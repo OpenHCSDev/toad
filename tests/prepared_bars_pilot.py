@@ -21,8 +21,8 @@ async def main():
         os.environ.update(AGENT_COMMS_ROOT=str(root / "wire"), XDG_CONFIG_HOME=str(root / "config"),
                           XDG_STATE_HOME=str(root / "state"), XDG_DATA_HOME=str(root / "data"))
         comms = wire(root / "wire")
-        comms.register(Thread("worker", frozenset({"shared"}), str(root)))
-        person = comms.viewer_snapshot(str(root), show_stopped=True).threads[0]
+        comms.threads.register(Thread("worker", frozenset({"shared"}), str(root)))
+        person = comms.views.viewer_snapshot(str(root), show_stopped=True).threads[0]
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(130, 43)) as pilot:
             await pilot.pause()

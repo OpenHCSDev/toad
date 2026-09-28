@@ -26,8 +26,8 @@ async def main():
                           XDG_STATE_HOME=str(root / "state"), XDG_DATA_HOME=str(root / "data"))
         comms = wire(root / "wire")
         me = session_thread_name(root)
-        comms.register(Thread(me, frozenset({"warm"}), str(root), pid=os.getpid()))
-        comms.send(me, "#warm", "Initial history")
+        comms.threads.register(Thread(me, frozenset({"warm"}), str(root), pid=os.getpid()))
+        comms.messaging.send(me, "#warm", "Initial history")
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(120, 40)) as pilot:
             await pilot.pause()
@@ -36,9 +36,9 @@ async def main():
                                                me=me, target="#warm", kind="channel")
             chat = app.screen.query_one(CommsChatView)
             await until(pilot, lambda: chat._history_initialized and not chat._refresh_lock.locked())
-            await until(pilot, lambda: comms.viewer_snapshot(str(root)).channel_unread["#warm"] == 0)
+            await until(pilot, lambda: comms.views.viewer_snapshot(str(root)).channel_unread["#warm"] == 0)
             await app.switch_mode(owner)
-            comms.send(me, "#warm", "PREPARED-WHILE-HIDDEN")
+            comms.messaging.send(me, "#warm", "PREPARED-WHILE-HIDDEN")
             reader = chat._wire
             with (patch.object(reader, "mark_channel_view_read", wraps=reader.mark_channel_view_read) as mark,
                   patch.object(reader, "channel_display_page", wraps=reader.channel_display_page) as reads):
@@ -48,7 +48,7 @@ async def main():
                                     for message in chat._prepared_history.page.messages))
                 assert not any(message.body == "PREPARED-WHILE-HIDDEN" for message, _ in chat._history)
                 mark.assert_not_called()
-                assert comms.viewer_snapshot(str(root)).channel_unread["#warm"] == 1
+                assert comms.views.viewer_snapshot(str(root)).channel_unread["#warm"] == 1
                 calls = reads.call_count
                 await pilot.pause(.12)
                 assert reads.call_count == calls, "Unchanged hidden history was reread"
@@ -60,11 +60,11 @@ async def main():
             # Source identity changes invalidate an old prepared page, rather
             # than importing another target's data into this view.
             await app.switch_mode(owner)
-            comms.send(me, "#warm", "OLD-TARGET-PAGE")
+            comms.messaging.send(me, "#warm", "OLD-TARGET-PAGE")
             await until(pilot, lambda: chat._prepared_history is not None and chat._prepared_history.page is not None
                         and any(message.body == "OLD-TARGET-PAGE" for message in chat._prepared_history.page.messages))
             old = chat._prepared_history
-            comms.set_channel("#other", frozenset({"other"}))
+            comms.channels.set_channel("#other", frozenset({"other"}))
             chat.target = "#other"
             assert old.request != chat._history_request()
             chat.target = "#warm"
@@ -85,7 +85,7 @@ async def main():
 
             try:
                 with patch.object(reader, "channel_display_page", side_effect=gated_page):
-                    comms.send(me, "#warm", "BLOCKED-BACKGROUND-READ")
+                    comms.messaging.send(me, "#warm", "BLOCKED-BACKGROUND-READ")
                     assert await asyncio.to_thread(entered.wait, 3)
                     await asyncio.wait_for(app.switch_mode(mode), 2)
                     await until(pilot, lambda: chat.throbber.busy)
@@ -98,7 +98,7 @@ async def main():
                                 and chat._prepared_history.page is not None
                                 and any(message.body == "BLOCKED-BACKGROUND-READ"
                                         for message in chat._prepared_history.page.messages))
-                    assert comms.viewer_snapshot(str(root)).channel_unread["#warm"] >= 1
+                    assert comms.views.viewer_snapshot(str(root)).channel_unread["#warm"] >= 1
                     assert not any(message.body == "BLOCKED-BACKGROUND-READ" for message, _ in chat._history)
             finally:
                 release.set()
