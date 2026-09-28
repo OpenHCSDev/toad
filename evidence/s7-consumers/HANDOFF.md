@@ -1,6 +1,6 @@
 # Paired S7 bus consumers and remaining C0 fixtures
 
-Production channel preparation now reads its watermark from WireLog. Current bus persistence/publication calls use log/publisher directly. No compatibility methods added. All three publication fixtures ignore the old send return value, so they call Publisher.publish directly.
+Production channel preparation now reads its watermark from WireLog. Current bus persistence/publication calls use log/publisher directly. No compatibility methods added. Both publication fixtures ignore the old send return value, so they call Publisher.publish directly.
 
 Migrated remaining C0 fixture hooks to actual messaging/views/owner/RegistryStore classes, and old ThreadStatus value assertions to the current nominal states. Corrected a stale mounted-row pointer after opening a saved thread, preserving the real menu Start assertion. Shutdown fixture intercepts current OwnerLifecycle.stop; its explicit gate now allows45 seconds within the60-second shard, preserving all responsive typing/navigation, deduplication and actual release assertions.
 
