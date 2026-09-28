@@ -87,6 +87,7 @@ class OperationalSessionPresentation(SessionSurfaceLifetime):
     def __init__(self) -> None:
         self.state: SessionViewState | None = None
         self.agent = None
+        self.directory_watcher = None
         self._lock = asyncio.Lock()
 
     def compose_content(self, screen: "MainScreen") -> Widget:
@@ -98,7 +99,12 @@ class OperationalSessionPresentation(SessionSurfaceLifetime):
                 return
             conversation = (screen.make_blank_conversation() if self.state is not None
                             else screen._make_conversation())
+            if self.directory_watcher is not None:
+                conversation._directory_watcher = self.directory_watcher
+                self.directory_watcher.rebind(conversation)
             await screen.query_one("#session-content").mount(conversation)
+            if self.directory_watcher is not None:
+                conversation.call_after_refresh(self.directory_watcher.notify_if_visible)
             if self.state is not None:
                 self.state.restore(conversation)
                 self.state = None
@@ -113,6 +119,11 @@ class OperationalSessionPresentation(SessionSurfaceLifetime):
                 return
             self.state = SessionViewState.capture(conversation)
             self.agent = conversation.agent
+            self.directory_watcher = conversation._directory_watcher
+            conversation._directory_watcher = None
+            if self.directory_watcher is not None:
+                self.directory_watcher.rebind(screen)
+            screen.viewport_presentation.release(conversation.window)
             if self.agent is not None:
                 # Detach before unmount: retiring optional UI must not call stop.
                 self.agent.detach_surface(conversation)
@@ -123,6 +134,10 @@ class OperationalSessionPresentation(SessionSurfaceLifetime):
         if self.agent is not None:
             await self.agent.stop()
             self.agent = None
+        if self.directory_watcher is not None:
+            self.directory_watcher.stop()
+            await asyncio.to_thread(self.directory_watcher.join)
+            self.directory_watcher = None
         self.state = None
 
 
@@ -270,5 +285,6 @@ class BlankSessionSurface:
                 return
             # Only the selected editor is admitted. The actual document and
             # undo objects already belong to the departing session's state.
+            self.widget.screen.viewport_presentation.release(self.widget.window)
             await self.widget.remove()
             self.widget = None

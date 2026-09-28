@@ -1,0 +1,2 @@
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/resource_tracker.py:396: UserWarning: resource_tracker: There appear to be 5 leaked semaphore objects to clean up at shutdown: {'/mp-7ljb7cg5', '/mp-983z6_iu', '/mp-einu8ip9', '/mp-8uosmh95', '/mp-i526w8bv'}
+  warnings.warn(

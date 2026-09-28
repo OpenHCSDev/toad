@@ -398,11 +398,11 @@ class ConversationWindowSettings:
     def rebind_screen(self, previous, destination) -> None:
         """Move explicit screen-owned observers with a retained conversation."""
         previous.screen_layout_refresh_signal.unsubscribe(self)
-        previous.body_windows.discard(self)
+        previous.viewport_presentation.windows.discard(self)
         destination.screen_layout_refresh_signal.subscribe(self, self.on_screen_layout_refresh)
         if viewport := self.__dict__.get("document_viewport"):
             destination.screen_layout_refresh_signal.subscribe(self, viewport.request)
-            destination.body_windows.add(self)
+            destination.viewport_presentation.windows.add(self)
 
     def _settings_changed(self, update: PreferenceChange) -> None:
         if update.field is SidebarSettings.hide:

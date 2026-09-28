@@ -131,8 +131,10 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
             except TimeoutError:
                 print("RETURN_PAINT_FAILURE", json.dumps({
                     "expected": expected,
+                    "page_events": [repr(event) for event in (await agent.get_transcript_page()).events],
                     "turn": repr(original.turns.owner),
                     "categories": sorted(case.__name__ for case in original.visible_categories),
+                    "descendants": [(type(child).__name__, child.display, repr(child.region)) for child in original.contents.walk_children()],
                     "regions": {"conversation": repr(original.region), "window": repr(original.window.region), "contents": repr(original.contents.region)},
                     "children": [(type(child).__name__, child.display, repr(child.region), str(child.styles.display), list(child.classes)) for child in original.contents.children],
                     "paint": "\n".join(strip.text for strip in app.screen._compositor.render_strips()),

@@ -2,8 +2,8 @@
 
 PR12651c901c remains unchanged and ready in its own tree. This separate persistent
 worktree integrates published1161cb7c74/126 with Toadmainc3f7b63 and current core.
-It preserves the original editor-state feature dependency Textual8d9def32f;
-Textualmain16ede lacks TextAreaState, as an actual installed import failure showed.
+Textual8 is merged at main c9743801; its reviewed receipt reports 307 focused
+and 3515 full framework tests. The merged framework owns TextAreaState.
 No compatibility layer or copied editor-state mechanism was introduced.
 
 ## Agreed file ownership
@@ -105,3 +105,29 @@ contract before claiming global installed acceptance. Operational shell/terminal
 custody and already-revealed optional sidebar state/global retirement still need
 closure; current source is not full116 readiness. The new source-bound gate remains
 strict; no mocks, no phase filtering, no default-off path or paid calls.
+
+## Installed selected-view acceptance after source integration
+
+Consumed published Carver6c689ba, preserving actual AgentController ownership.
+Corrected ConversationBlock into a nominal concrete-behavior mixin so native
+widget CSS inheritance remains authoritative; removed obsolete body_windows
+callers and released retired viewport membership/subscriptions before unmount.
+The existing DirectoryWatcher now rebinds across optional views and remains
+operational with the logical session; only logical close stops its source.
+
+Actual installed core280/Textualc974/native5f path completed all four cohorts
+(4/16/32/64), eight loopback model calls, original document/history/undo identity,
+unchanged ACP/native owner/session and painted returned answers. Each cohort
+asserted exactly one globally mounted rich Conversation. Receipt:
+workspace-bound/global-bound-retention.json; log global-bound-watch-fixed.log.
+At64: 162.54 MiB UI RSS, 996 tasks, zero constructed sidebar panels,
+235.69 ms settled headless switch median (189/189 above100 ms). This is one
+operational native owner across64 logical tabs, not64 executing agents.
+The resource bound passes this case; switching cost remains a concrete regression.
+Three installed turn-navigation/guard tests passed after CSS correction.
+Failures before correction are retained, including actual compositor failure,
+obsolete viewport membership and path-observer teardown timeout.
+
+Remaining full116 closure: operational shell/terminal source custody, previously
+revealed sidebar state/retirement, and final paired acceptance rebased onto132
+with core4510. Ready126 remains unchanged. No full116 readiness claim.
