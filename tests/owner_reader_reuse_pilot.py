@@ -7,6 +7,7 @@ import tempfile
 import threading
 from unittest.mock import patch
 
+from agent_comms.child_process import ProcessIdentity
 from agent_comms.threads import Thread
 from agent_comms.comms import wire
 from agent_comms.runtime import RuntimeProxy
@@ -21,7 +22,7 @@ async def main():
                           XDG_DATA_HOME=str(root / "data"), AGENT_COMMS_ROOT=str(root / "first"))
         roots = [root / "first", root / "second"]
         for source in roots:
-            wire(source).threads.register(Thread("owner", frozenset(), str(root), pid=os.getpid()))
+            wire(source).threads.register(Thread("owner", frozenset(), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
         agent = Agent(root, {"name": "fixture", "run_command": {"*": "false"}}, None)
         agent._coordination_root, agent._coordination_thread = str(roots[0]), "owner"
         ui_thread = threading.get_ident()

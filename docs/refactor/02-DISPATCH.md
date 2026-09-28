@@ -20,17 +20,17 @@ The older audit heads in the supplied documents are evidence, not a reset target
 
 ## Complete-surface ownership and order
 
-These are queued assignments, not a claim that implementation PRs already exist.
-Replace `pending` with the code-bearing draft PR when its worker starts. A worker
-finishes its current Comms assignment before claiming the next surface below.
+Rows name published implementation PRs where available; pending rows remain
+assignments only. Native acceptance retains priority while independent Toad work
+continues during package prerequisites. Parent assigned TR0 to Pascal after T8.
 
 | Surface | Owner | PR / dependency | Required deletion and real acceptance |
 | --- | --- | --- | --- |
-| TR0 | Parent | pending paired Comms/Toad; first wave | Move existing ratchet into Comms package and delete script copy; derive pilot collection, remove manual roster and obsolete pilots. Run actual pinned stack locally. |
+| TR0 | Pascal | active; paired draft PRs pending; core ~/wt/comms-tr0-ratchet-20260928 | Move existing ratchet into Comms package and delete script copy; derive pilot collection, remove manual roster and obsolete pilots. Run actual pinned stack locally. |
 | TL0 A, then B | Copernicus | pending; preserve current107/109 work, B after T2 | Retire converters/aliases/unused modules, then dual paths; migrate retained data once and remove tools; mounted real-path acceptance. |
-| T1 settings | Darwin | pending, after243/native acceptance | Typed declaration tree and per-kind/effect behavior; delete schema dictionaries, dotted reads and dispatch; load actual saved settings unchanged. |
-| T7 terminal | Lovelace | pending, after combined243/244 acceptance | Move command/read/mode behavior to owners, delete type/mode dispatch; external escape contracts and real large-stream before/after timing. |
-| T8 small boundaries | Pascal | pending, after244 acceptance | Shared terminal environment, typed session/metadata owner, nominal danger behavior; old duplicated launch/schema/caller paths deleted. |
+| T1 settings | Darwin | active; code-bearing draft pending; native acceptance remains priority | Typed declaration tree and per-kind/effect behavior; delete schema dictionaries, dotted reads and dispatch; load actual saved settings unchanged. |
+| T7 terminal | Lovelace | PR114, refactor/t7-terminal-20260928, ~/wt/toad-t7-terminal-20260928; Copernicus integrates107 | Move command/read/mode behavior to owners, delete type/mode dispatch; external escape contracts and real large-stream before/after timing. |
+| T8 small boundaries | Pascal | PR115, refactor/t8-small-boundaries-20260928, ~/wt/toad-t8-small-boundaries-20260928; Copernicus integrates107 | Shared terminal environment, typed session/metadata owner, nominal danger behavior; old duplicated launch/schema/caller paths deleted. |
 | T2 ACP/Comms boundary | Nietzsche | pending paired PRs, after229 integration and first wave | One declared Comms extension decoded once, all producers and Toad consumers migrated; delete flag/shape probes; real ACP/native/UI route. |
 | T6 rendering | Parent | pending; consume110 audit, after first wave | Declaration-owned renderer commands/status/backend/task/kind; remove rosters and enum switches; introduce shared ConversationKind forT5. |
 | T3 commands | Darwin | pending, afterT2 | One command family/framework boundary registry; delete command-name switches; mounted commands and actual dispatch. |
@@ -41,8 +41,9 @@ finishes its current Comms assignment before claiming the next surface below.
 
 - Toad107: Copernicus owns paired Comms229 current Goal/queue/process callers;
   shared Channels changes and watcher109 are integrated. Complete this first.
-- Toad109: Copernicus owns recursive watcher cancellation; parent requested one
-  concrete concurrent pipe-send fix before merge. No terminal/settings rewrite here.
+- Toad109/113 are merged and installed via Comms252. Recursive watcher cancellation
+  and peer-close behavior passed actual native event tests. Copernicus now combines
+  T7/114 and T8/115 into paired107 before taking TL0A.
 - Toad110: existing frame-pipeline structural investigation. Its ownership map,
   measurements and invariants inform T6/T4; do not create a competing investigation.
 - Toad53: command discovery design is input toT3, not a second command mechanism.
@@ -57,3 +58,10 @@ focused and actual installed-path evidence, and remaining named dependencies.
 A merged source foundation is not a completed surface. Completion includes the
 paired install and deletion of executed one-shot tools. Keep worker artifacts
 bounded and clean owned completed copies once receipts are retained.
+
+## Published first-wave acceptance
+
+- T7/114: 44 tests, mounted terminal stream pilot; median5.29s ->5.17s.
+- T8/115: focused6 plus mounted PTY/ACP; all46 retained sessions preserved.
+- Combined107/current-core installation still pending; individual receipts do not
+  claim the whole stack is installed.

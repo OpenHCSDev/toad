@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-t7-terminal-20260928/tests/large_stream_pilot.py", line 11, in <module>
+    from toad.app import ToadApp
+  File "/home/ts/wt/toad-t7-terminal-20260928/src/toad/app.py", line 39, in <module>
+    from toad.channel_preparation import ChannelHistoryReader, HistoryKind
+  File "/home/ts/wt/toad-t7-terminal-20260928/src/toad/channel_preparation.py", line 10, in <module>
+    from agent_comms.comms import Comms
+ModuleNotFoundError: No module named 'agent_comms'

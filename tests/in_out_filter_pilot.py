@@ -93,7 +93,7 @@ async def main():
                 if category not in IN_OUT_CATEGORIES:
                     assert await pilot.click(checkboxes[category])
             await pilot.pause()
-            assert view.in_out_only
+            assert view.visible_categories == IN_OUT_CATEGORIES
             assert not request.display and not thought.display and not plain.display
             assert incoming.display and outgoing.display and long_output.display
             assert [leaf.display for leaf in leaves] == [True, False, False, True]
@@ -144,17 +144,17 @@ async def main():
 
             await app.new_session_screen(app.get_main_screen)
             await pilot.pause()
-            assert not app.screen.conversation.in_out_only
+            assert not app.screen.conversation.visible_categories == IN_OUT_CATEGORIES
             await app.switch_mode(owner_mode)
             await pilot.pause()
-            assert view.in_out_only and all(checkboxes[category].value == (category in IN_OUT_CATEGORIES)
+            assert view.visible_categories == IN_OUT_CATEGORIES and all(checkboxes[category].value == (category in IN_OUT_CATEGORIES)
                                            for category in MESSAGE_CATEGORIES)
             assert view.prompt.text == "Unsent draft survives filtering"
             for category in MESSAGE_CATEGORIES:
                 if category not in IN_OUT_CATEGORIES:
                     assert await pilot.click(checkboxes[category])
             await pilot.pause()
-            assert not view.in_out_only
+            assert view.visible_categories != IN_OUT_CATEGORIES
             assert all(block.display for block in (request, thought, plain, incoming, outgoing, new_thought))
             assert all(leaf.display for leaf in leaves)
             assert request.is_attached and history.pages[0].page.events == events

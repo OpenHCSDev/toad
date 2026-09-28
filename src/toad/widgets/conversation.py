@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from toad.settings import PreferenceChange
+from toad.preferences import SidebarSettings, ShellSettings
+
 from asyncio import Future
 import asyncio
 
@@ -68,7 +71,7 @@ from toad.queue_view import QueueProjection
 from toad.widgets.input_delivery import InputDeliveryBar, InputDeliveryDetails, empty_delivery
 from toad.widgets.user_input import UserInput
 from toad.widgets.history_anchor import HistoryWindow
-from toad.widgets.message_filter import ALL_CATEGORIES, IN_OUT_CATEGORIES, MessageCategory
+from toad.widgets.message_filter import ALL_CATEGORIES, MessageCategory
 from toad.layout import trim_trailing_margin
 from toad.shell import Shell, CurrentWorkingDirectoryChanged
 from toad.slash_command import SlashCommand
@@ -365,16 +368,16 @@ This is a view of your conversation with the agent.
 
     def on_mount(self) -> None:
         self.app.settings_changed_signal.subscribe(self, self._settings_changed)
-        self._settings_changed(("sidebar.hide", self.app.settings.get("sidebar.hide", bool)))
+        self._settings_changed(PreferenceChange(SidebarSettings.hide, self.app.settings.sidebar.hide))
         self.watch(self, "scroll_y", self.hydrate_visible_tools, init=False)
         self.screen.screen_layout_refresh_signal.subscribe(
             self, lambda _screen: self.hydrate_visible_tools()
         )
 
-    def _settings_changed(self, update: tuple[str, object]) -> None:
-        if update[0] == "sidebar.hide":
+    def _settings_changed(self, update: PreferenceChange) -> None:
+        if update.field is SidebarSettings.hide:
             top, right, bottom, _ = self.styles.padding
-            self.styles.padding = (top, right, bottom, int(bool(update[1])))
+            self.styles.padding = (top, right, bottom, int(self.app.settings.sidebar.hide))
 
 
 class Conversation(containers.Vertical):
@@ -461,15 +464,6 @@ class Conversation(containers.Vertical):
     cursor = getters.query_one(Cursor)
     prompt = getters.query_one(Prompt)
     app = getters.app(ToadApp)
-
-    @property
-    def in_out_only(self) -> bool:
-        """Compatibility for callers selecting the original two routed kinds."""
-        return self.visible_categories == IN_OUT_CATEGORIES
-
-    @in_out_only.setter
-    def in_out_only(self, enabled: bool) -> None:
-        self.visible_categories = IN_OUT_CATEGORIES if enabled else ALL_CATEGORIES
 
     def watch_visible_categories(
         self, previous: frozenset[MessageCategory], selected: frozenset[MessageCategory],
@@ -696,6 +690,7 @@ class Conversation(containers.Vertical):
         self.prompt_history_index = 0
         if self._directory_watcher is not None:
             self._directory_watcher.stop()
+            await asyncio.to_thread(self._directory_watcher.join)
             self._directory_watcher = None
         if self.agent_ready:
             self._directory_watcher = DirectoryWatcher(path, self)
@@ -709,7 +704,7 @@ class Conversation(containers.Vertical):
             if (session_pk := getattr(self.agent, "session_pk", None)) is not None:
                 from toad.db import DB
 
-                await DB().session_update_project(session_pk, str(path))
+                await DB().session_update_project(session_pk, path)
         self.update_title()
 
     async def watch_shell_history_index(self, previous_index: int, index: int) -> None:
@@ -1091,6 +1086,8 @@ class Conversation(containers.Vertical):
     async def on_unmount(self) -> None:
         if self._directory_watcher is not None:
             self._directory_watcher.stop()
+            await asyncio.to_thread(self._directory_watcher.join)
+            self._directory_watcher = None
         if self.agent is not None:
             await self.agent.stop()
 
@@ -1482,7 +1479,7 @@ class Conversation(containers.Vertical):
                     )
                 )
 
-        if self.app.settings.get("notifications.turn_over", bool):
+        if self.app.settings.notifications.turn_over:
             self.app.system_notify(
                 f"{self.agent_title} has finished working",
                 title="Waiting for input",
@@ -1727,11 +1724,6 @@ class Conversation(containers.Vertical):
                 self.sending_queued_prompt = ""
             self.new_block()
             await self.post(UserInput(started.text))
-
-    @on(acp_messages.PromptQueueUpdate)
-    def on_prompt_queue_update(self, message: acp_messages.PromptQueueUpdate):
-        # Retired text-only messages cannot overwrite rows or inject drafts.
-        message.stop()
 
     @on(acp_messages.InputStarted)
     async def on_input_started(self, message: acp_messages.InputStarted):
@@ -2467,7 +2459,7 @@ class Conversation(containers.Vertical):
         self.app.open_tabs_changed.subscribe(self, self._coordination_changed)
 
         self.shell_history.complete.add_words(
-            self.app.settings.get("shell.allow_commands", expect_type=str).split()
+            self.app.settings.shell.allow_commands.split()
         )
         self.shell
         if self._agent_data is not None:
@@ -2764,7 +2756,7 @@ class Conversation(containers.Vertical):
 
     @work
     async def replace_queued(self, prompts: list[str]) -> None:
-        """Never clear-and-resend admitted inputs as a queue-edit fallback.
+        """Never clear-and-resend admitted inputs when editing the queue.
 
         An empty snapshot or control ACK does not prove consumption, and a
         surviving row may be UNKNOWN. Reissuing its text could execute it twice.
@@ -2772,10 +2764,9 @@ class Conversation(containers.Vertical):
         """
         self._queue_edit_unavailable()
 
-    def _settings_changed(self, setting_item: tuple[str, str]) -> None:
-        key, value = setting_item
-        if key == "shell.allow_commands":
-            self.shell_history.complete.add_words(value.split())
+    def _settings_changed(self, change: PreferenceChange) -> None:
+        if change.field is ShellSettings.allow_commands:
+            self.shell_history.complete.add_words(self.app.settings.shell.allow_commands.split())
 
     @work
     async def post_welcome(self) -> None:
@@ -2932,8 +2923,8 @@ class Conversation(containers.Vertical):
         """Check if a prune is required."""
         if self._require_check_prune:
             self._require_check_prune = False
-            low_mark = self.app.settings.get("ui.prune_low_mark", int)
-            high_mark = low_mark + self.app.settings.get("ui.prune_excess", int)
+            low_mark = self.app.settings.ui.prune_low_mark
+            high_mark = low_mark + self.app.settings.ui.prune_excess
             await self.prune_window(low_mark, high_mark)
 
     async def prune_window(self, low_mark: int, high_mark: int) -> None:
@@ -3034,16 +3025,8 @@ class Conversation(containers.Vertical):
         """A Shell instance."""
 
         if self._shell is None or self._shell.is_finished:
-            shell_command = self.app.settings.get(
-                "shell.command",
-                str,
-                expand=False,
-            )
-            shell_start = self.app.settings.get(
-                "shell.command_start",
-                str,
-                expand=False,
-            )
+            shell_command = self.app.settings.shell.command
+            shell_start = self.app.settings.shell.command_start
             shell_directory = self.working_directory
             self._shell = Shell(
                 self, shell_directory, shell=shell_command, start=shell_start

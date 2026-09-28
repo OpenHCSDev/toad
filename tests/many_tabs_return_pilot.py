@@ -17,6 +17,7 @@ from types import FunctionType
 from unittest.mock import patch
 from weakref import ref
 
+from agent_comms.child_process import ProcessIdentity
 from agent_comms.threads import Thread
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from agent_comms.transcript_events import AssistantTranscript
@@ -55,9 +56,9 @@ async def main(*, empty=False, trace=False, observe=False, output=None, peers=0,
                           XDG_STATE_HOME=str(root / "state"), XDG_DATA_HOME=str(root / "data"))
         targets = [f"return-{index}" for index in range(10)]
         for name in targets:
-            wire(root / "wire").threads.register(Thread(name, frozenset(), str(root), pid=os.getpid()))
+            wire(root / "wire").threads.register(Thread(name, frozenset(), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
         for index in range(peers):
-            wire(root / "wire").threads.register(Thread(f"peer-{index}", frozenset({"fixture", *(f"fixture-{i}" for i in range(channels))}), str(root), pid=os.getpid()))
+            wire(root / "wire").threads.register(Thread(f"peer-{index}", frozenset({"fixture", *(f"fixture-{i}" for i in range(channels))}), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
         for index in range(channels):
             wire(root / "wire").channels.create_tag(f"fixture-{index}")
         body = "## Saved response\n\n" + "Paragraph **with markup** and content.\n\n" * 5

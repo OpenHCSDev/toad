@@ -1,0 +1,9 @@
+{
+  "coreSource": "6422dcb6e911a60f642318487a2c052c79894d20",
+  "toadSource": "1a3acbf",
+  "coreInstalled": "/home/ts/wt/toad-refactor2-l0a-20260928/.artifacts/current/agent_comms/__init__.py",
+  "toadInstalled": "/home/ts/wt/toad-refactor2-l0a-20260928/.artifacts/current/toad/__init__.py",
+  "textualInstalled": "/home/ts/.local/share/agent-comms/runtime-watcher-20260928/lib/python3.14/site-packages/textual/__init__.py",
+  "textualPin": "16ede007c34bec893b2dbedb3999223381129678",
+  "nativePackage": "/home/ts/.local/share/agent-comms/native-compaction-policy-b3a9c06/node_modules/@earendil-works/pi-coding-agent"
+}

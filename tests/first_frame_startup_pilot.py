@@ -6,6 +6,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
+from agent_comms.child_process import ProcessIdentity
 from agent_comms.threads import Thread
 from agent_comms.comms import wire
 from runtime_fixture import ToadApp
@@ -29,7 +30,7 @@ async def main():
                           XDG_STATE_HOME=str(root / "state"), XDG_DATA_HOME=str(root / "data"))
         comms = wire(root / "wire")
         for name in ("visible-peer", "closed-peer"):
-            comms.threads.register(Thread(name, frozenset(), str(root), pid=os.getpid()))
+            comms.threads.register(Thread(name, frozenset(), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
         started, written = [], set()
         finish_frame = SessionView._finish_first_frame
 

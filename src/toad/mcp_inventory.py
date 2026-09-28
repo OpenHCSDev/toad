@@ -1,7 +1,7 @@
 """Read-only projection of the installed Pi MCP package's version-2 CLI inventory.
 
-This module never reads MCP config/ledgers or decides approval. A configured
-executable is a user-selected local program, not proof of an active Pi session.
+This module never reads MCP config/ledgers or decides approval. Inventory comes
+from the Comms-owned pinned package and does not imply an active Pi session.
 """
 
 from __future__ import annotations
@@ -9,6 +9,7 @@ from __future__ import annotations
 import asyncio
 import json
 import os
+import shutil
 from dataclasses import dataclass
 from pathlib import Path
 import re
@@ -56,7 +57,6 @@ class Inventory:
     project_config_skipped: bool
     user: tuple[Declaration, ...]
     project: tuple[Declaration, ...]
-    positive_decisions: str | None = None
 
 
 def _object(value: object) -> dict[str, Any]:
@@ -152,23 +152,6 @@ def _rows(value: object, scope: str) -> tuple[Declaration, ...]:
     return tuple(rows)
 
 
-POSITIVE_DECISIONS_CAPABILITY = "locked-project-approval-v1"
-
-
-def _compatibility(value: object) -> str | None:
-    """Exact package-owned capability field; anything else means positive-held."""
-    if value is None:
-        return None
-    if not isinstance(value, dict) or set(value) != {"version", "positiveDecisions"}:
-        return None
-    if type(value["version"]) is not int or value["version"] != 1:
-        return None
-    token = value["positiveDecisions"]
-    if token != POSITIVE_DECISIONS_CAPABILITY or not isinstance(token, str):
-        return None
-    return token
-
-
 def parse_inventory(data: bytes, expected_root: Path) -> Inventory:
     """Accept only a bounded, exact-version, canonical-root static DTO."""
     if len(data) > MAX_INVENTORY_BYTES:
@@ -210,29 +193,30 @@ def parse_inventory(data: bytes, expected_root: Path) -> Inventory:
             skipped,
             user,
             project,
-            _compatibility(doc.get("compatibility")),
         )
     except (UnicodeError, json.JSONDecodeError, TypeError, KeyError, OSError) as error:
         raise UnsupportedInventory("Invalid inventory") from error
 
 
-async def read_inventory(
-    project_root: Path, *, node_path: str, cli_path: str
-) -> Inventory | None:
-    """Call only the explicitly selected local installed package, never PATH or a checkout.
+def installed_mcp_command() -> tuple[str, str]:
+    """Use MCP shipped inside the same verified native package as Comms."""
+    from agent_comms.native_pi import NativePiRpcLaunch
 
-    None denotes missing/unconfigured CLI or an unreadable/unavailable projection.
-    A returned DTO is still only a static declaration snapshot, not live state.
-    """
-    node, cli = Path(node_path), Path(cli_path)
-    if (
-        not node_path
-        or not cli_path
-        or not node.is_absolute()
-        or not cli.is_absolute()
-        or not node.is_file()
-        or not cli.is_file()
-    ):
+    package = NativePiRpcLaunch.package_for_command("pi")
+    node = shutil.which("node")
+    if node is None:
+        raise FileNotFoundError("Node is unavailable")
+    cli = package / "agent-comms-extensions/pi-mcp-client/bin/pi-mcp.mjs"
+    if not cli.is_file():
+        raise FileNotFoundError("The pinned native package has no MCP CLI")
+    return str(Path(node).resolve(strict=True)), str(cli)
+
+
+async def read_inventory(project_root: Path) -> Inventory | None:
+    """Read the pinned package's static inventory without starting servers."""
+    try:
+        node, cli = await asyncio.to_thread(installed_mcp_command)
+    except (OSError, ValueError, RuntimeError):
         return None
     process: asyncio.subprocess.Process | None = None
     try:
@@ -248,7 +232,7 @@ async def read_inventory(
             "--json",
             "--project",
             str(root),
-            cwd=str(cli.parent),
+            cwd=str(Path(cli).parent),
             env=env,
             stdin=asyncio.subprocess.DEVNULL,
             stdout=asyncio.subprocess.PIPE,
@@ -284,7 +268,7 @@ def render_inventory(inventory: Inventory | None) -> str:
     if inventory is None:
         return (
             "MCP package inventory unavailable or unsupported.\n"
-            "Configure absolute Node and installed Pi MCP CLI paths in Toad settings.\n"
+            "The current Comms native package must provide its MCP CLI.\n"
             "No MCP action is available here."
         )
     lines = [
@@ -296,9 +280,6 @@ def render_inventory(inventory: Inventory | None) -> str:
         "Actions launch the installed package CLI in a visible POSIX PTY; it owns",
         "the complete display, exact digest challenge and ledger write. Toad never",
         "auto-answers and cannot undo a decision the package already committed.",
-        "Positive grants additionally require the installed package's",
-        f"compatibility capability {POSITIVE_DECISIONS_CAPABILITY!r}; missing,",
-        "malformed or unsupported capability keeps them held.",
     ]
     for scope, rows in (("User", inventory.user), ("Project", inventory.project)):
         lines.append(f"\n{scope} declarations ({len(rows)}):")

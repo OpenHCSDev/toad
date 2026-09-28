@@ -1,0 +1,26 @@
+{
+  "core": "92b42ba9b5ce7764b4e6600d156bbe745cafba6e",
+  "toadRuntime": "2844f66",
+  "command": "tests/l0a_native_installed_pilot.py --notification-only",
+  "exitCode": 0,
+  "providerRequests": 1,
+  "paidCalls": 0,
+  "checks": [
+    "installed owner attached and navigable",
+    "mounted channel native triage active",
+    "participant returns idle",
+    "visible Checked \u2014 no response (1)",
+    "no UI exception",
+    "normal process exit"
+  ],
+  "entrypoint": "candidate wheel ACP subprocess, detached owner, prepared Pi native RPC, loopback-only model",
+  "notRerun": [
+    "queue",
+    "DM",
+    "cold reattach",
+    "stopped-owner reopen",
+    "idle performance",
+    "full suite"
+  ],
+  "activation": "parent owns; no live changes"
+}

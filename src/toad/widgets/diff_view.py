@@ -37,11 +37,11 @@ def make_diff(
         pass
     else:
         if isinstance(app, ToadApp):
-            diff_view_setting = app.settings.get("diff.view", str)
-            split = diff_view_setting == "split"
-            auto_split = diff_view_setting == "auto"
-            wrap = app.settings.get("diff.wrap") == "wrap"
-            annotations = app.settings.get("diff.annotations", bool)
+            diff_view_setting = app.settings.diff.view
+            split = diff_view_setting.split
+            auto_split = diff_view_setting.auto_split
+            wrap = app.settings.diff.wrap.enabled
+            annotations = app.settings.diff.annotations
 
     diff_view = DiffView(
         path_original,

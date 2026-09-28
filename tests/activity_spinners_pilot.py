@@ -7,6 +7,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from agent_comms.activity import ActivityState
+from agent_comms.child_process import ProcessIdentity
 from agent_comms.threads import Thread
 from agent_comms.comms import wire
 from runtime_fixture import ToadApp
@@ -53,7 +54,7 @@ async def check_busy_labels() -> None:
         me = session_thread_name(root)
         comms = wire(root / "wire")
         for name in (me, "busy-worker"):
-            comms.threads.register(Thread(name, frozenset({"team"}), str(root), pid=os.getpid()))
+            comms.threads.register(Thread(name, frozenset({"team"}), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
             comms.agents.set_activity(name, ActivityState.THINKING, "working")
         comms.relationships.edit(me, "add", "busy-worker", "Joint review")
         app = ToadApp(project_dir=str(root))

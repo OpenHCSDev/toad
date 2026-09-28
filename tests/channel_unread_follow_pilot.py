@@ -5,6 +5,7 @@ import os
 import tempfile
 from pathlib import Path
 
+from agent_comms.child_process import ProcessIdentity
 from agent_comms.threads import Thread
 from agent_comms.comms import wire
 from toad.app import ToadApp
@@ -28,7 +29,7 @@ async def main():
         comms = wire(root / "wire")
         names = [f"worker-{index}-long-display-name" for index in range(8)]
         for name in names:
-            comms.threads.register(Thread(name, frozenset({"talk"}), str(root), pid=os.getpid()))
+            comms.threads.register(Thread(name, frozenset({"talk"}), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
         for index in range(50):
             comms.messaging.send(names[0], "#talk", f"Message {index}: " + "body " * 30)
         app = ToadApp(project_dir=str(root))

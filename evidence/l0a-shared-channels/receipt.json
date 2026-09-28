@@ -1,0 +1,17 @@
+{
+  "mergedToadMain": "43e57c91e9643cfab053630e1d5aaadd12cffad9",
+  "textual": "16ede007c34bec893b2dbedb3999223381129678",
+  "core": "a5809ab169638eff2b0b0570f21261e15d6a7623",
+  "installedWheels": true,
+  "passed": [
+    "shared_channels_pilot",
+    "first_frame_startup_pilot",
+    "session_details_pilot",
+    "l0a_callers_guard"
+  ],
+  "nativeProofRepeated": false,
+  "paidCalls": 0,
+  "liveActivation": false,
+  "data": "test-owned fixture roots; no live copied data or format change",
+  "parentOwns": "PR242 stack pins, production core candidate, quiet install"
+}

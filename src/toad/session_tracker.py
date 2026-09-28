@@ -102,14 +102,6 @@ class SidebarState:
     panel_scroll_y: float = 0
 
 
-@dataclass(frozen=True)
-class SessionPresentation:
-    label: str
-    summary: str
-    busy: bool
-    asking: bool
-
-
 @dataclass
 class SessionDetails:
     """Tracks a concurrent session."""
@@ -134,13 +126,6 @@ class SessionDetails:
     created_at: float = field(default_factory=time)
     """Creation time for local sessions without a wire identity."""
 
-    @property
-    def presentation(self) -> SessionPresentation:
-        """Transport-only fallback for a view with no authoritative wire thread."""
-        marker = {"notready": "○", "busy": "●", "asking": "?", "idle": "✓"}[self.state]
-        activity = (self.summary or self.subtitle or self.path or "Ready").replace("\n", " ")[:44]
-        return SessionPresentation(f"{marker} {self.title or 'New Session'}", activity,
-                                   self.state == "busy", self.state == "asking")
 
 
 class SessionTracker:

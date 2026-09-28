@@ -233,12 +233,12 @@ See on-screen instructions for details.
         """Override shell highlighting with additional danger detection."""
         content = super().highlight_shell(text)
 
-        if not self.app.settings.get("shell.warn_dangerous", bool):
+        if not self.app.settings.shell.warn_dangerous:
             return content
 
         from toad import danger
 
-        spans, _danger_level = danger.detect(
+        spans = danger.detect(
             str(self.project_path), self.working_directory, content.plain
         )
         content = content.add_spans(spans)
@@ -433,10 +433,10 @@ See on-screen instructions for details.
         exclude_node_type: Literal["file"] | Literal["dir"] | None = None
         if (
             command
-            in self.app.settings.get("shell.directory_commands", str).splitlines()
+            in self.app.settings.shell.directory_commands.splitlines()
         ):
             exclude_node_type = "file"
-        elif command in self.app.settings.get("shell.file_commands", str).splitlines():
+        elif command in self.app.settings.shell.file_commands.splitlines():
             exclude_node_type = "dir"
 
         tab_complete, suggestions = await self.path_complete(

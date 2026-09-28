@@ -7,6 +7,7 @@ import tempfile
 import time
 from pathlib import Path
 
+from toad.setting_choices import NeverExpansion
 from toad.app import ToadApp
 from toad.widgets.tool_call import ToolCall, ToolCallHeader, MarkdownContent
 from toad.widgets.agent_response import AgentResponse
@@ -27,7 +28,7 @@ async def main():
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(120, 40)) as pilot:
             await pilot.pause()
-            app.settings.set("tools.expand", "never")
+            app.settings.tools.expand = NeverExpansion
             text = "\n\n".join(f"## Section {i}\n\nOutput paragraph {i}" for i in range(40))
             tools = [
                 ToolCall({

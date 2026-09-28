@@ -6,6 +6,7 @@ import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
+from agent_comms.child_process import ProcessIdentity
 from agent_comms.threads import Thread
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from agent_comms.transcript_events import AssistantTranscript
@@ -78,7 +79,7 @@ async def main():
                 assert not window.follows_tail
 
             comms = wire(root / "wire")
-            comms.threads.register(Thread("sender", frozenset({"scroll"}), str(root), pid=os.getpid()))
+            comms.threads.register(Thread("sender", frozenset({"scroll"}), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
             for index in range(140):
                 comms.messaging.send("sender", "#scroll", f"Message {index}: " + "wrapped body " * 30)
             await app.open_comms_session(owner_mode=app.current_mode, project_path=root,

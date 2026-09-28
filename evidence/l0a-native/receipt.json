@@ -1,0 +1,32 @@
+{
+  "coreSourceRevision": "89e420b14d5e8a7839bb9d119f2fc75a2a6fb8f3",
+  "coreInstalled": "/home/ts/wt/toad-refactor2-l0a-20260928/.artifacts/candidate/agent_comms/__init__.py",
+  "toadInstalled": "/home/ts/wt/toad-refactor2-l0a-20260928/.artifacts/candidate/toad/__init__.py",
+  "provider": "selected-offline/fixture; loopback HTTP only; isolated credentials",
+  "nativePackage": "/var/tmp/agent-comms-pi-native-extensions-20260928/node_modules/@earendil-works/pi-coding-agent",
+  "passed": [
+    "real ACP startup and detached owner",
+    "native initial plus queued input",
+    "durable queued input ID maps to saved Pi native input and started disposition",
+    "cold client attach without model replay",
+    "mounted DM native response",
+    "channel native triage and visible busy/idle participant",
+    "explicit UI Start after stop, saved transcript reattach and fresh native prompt",
+    "idle: zero new model requests",
+    "clean process teardown after watcher reuse fix"
+  ],
+  "remaining": [
+    "core HistoryViews.message_notifications queries removed native_runtime_inputs table; channel Checked/no-response feedback assertion remains failing"
+  ],
+  "idleSample": {
+    "wallSeconds": 2.068739394992008,
+    "ownerCpuSeconds": 0.04999999999999982,
+    "uiCpuSeconds": 0.379999999999999,
+    "modelRequests": 0
+  },
+  "limitations": [
+    "Short isolated idle sample; not whole-machine or scaled-workload performance proof",
+    "Full acceptance script exits 1 for the retained core notification failure",
+    "No live installation or restart"
+  ]
+}
