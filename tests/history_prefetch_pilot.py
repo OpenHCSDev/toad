@@ -9,7 +9,7 @@ from agent_comms.routing import MessageRoute, TurnRouting
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from agent_comms.transcript_events import AssistantTranscript, SentTranscript, ThinkingTranscript
 from runtime_fixture import ToadApp
-from toad.widgets.message_filter import ALL_CATEGORIES, IN_OUT_CATEGORIES
+from toad.widgets.message_filter import all_categories, MessageCategory, RoutedMessage
 from toad.widgets.transcript_history import TranscriptHistory
 
 
@@ -63,7 +63,7 @@ async def main():
             await pilot.pause()
             await history.remove()
 
-            view.visible_categories = ALL_CATEGORIES
+            view.visible_categories = all_categories()
             filtered_calls = []
             route = TurnRouting(reply=MessageRoute("owner", ("#team",)))
             filtered_tail = (
@@ -88,7 +88,7 @@ async def main():
                 filtered.fragment_count, filtered.widget_count,
                 filtered.pages[-1].start, filtered.pages[-1].stop,
                 filtered._filter_before, filtered_calls)
-            view.visible_categories = IN_OUT_CATEGORIES
+            view.visible_categories = frozenset(MessageCategory.members_with(RoutedMessage))
             await pilot.pause()
             assert filtered._filter_overlay is None, "Lookahead published filtered rows at the tail"
             view.window.release_anchor()

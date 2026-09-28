@@ -29,8 +29,12 @@ class HistoryReadRequest:
 
     def page(self, *, after: int | None = None, limit: int) -> MessagePage:
         return self.kind.page(
-            self.comms, self.target, worktree=str(self.project), after=after,
-            limit=limit, max_bytes=self.max_bytes,
+            self.comms,
+            self.target,
+            worktree=str(self.project),
+            after=after,
+            limit=limit,
+            max_bytes=self.max_bytes,
         )
 
     def read(self) -> HistoryReadResult:
@@ -40,7 +44,9 @@ class HistoryReadRequest:
             return HistoryReadResult(self, revision, self.after, None, False)
         high_water = self.comms.bus.log.latest_sequence()
         if not self.initialized:
-            return HistoryReadResult(self, revision, high_water, self.page(limit=self.initial_limit), False)
+            return HistoryReadResult(
+                self, revision, high_water, self.page(limit=self.initial_limit), False
+            )
         if high_water <= self.after:
             if (
                 self.known_display is not None
@@ -50,7 +56,11 @@ class HistoryReadRequest:
                 probe = self.page(limit=1)
                 if self.kind.display_identity(probe) != self.known_display:
                     return HistoryReadResult(
-                        self, revision, high_water, self.page(limit=self.initial_limit), True
+                        self,
+                        revision,
+                        high_water,
+                        self.page(limit=self.initial_limit),
+                        True,
                     )
             return HistoryReadResult(self, revision, high_water, None, False)
         page = self.page(after=self.after, limit=self.page_limit)
@@ -86,7 +96,9 @@ class ChannelHistoryReader:
     async def read(self, request: HistoryReadRequest) -> HistoryReadResult:
         if self._closed:
             raise RuntimeError("Channel history reader is closed")
-        task = asyncio.create_task(asyncio.to_thread(request.read), name="channel-history-read")
+        task = asyncio.create_task(
+            asyncio.to_thread(request.read), name="channel-history-read"
+        )
         self._pending.add(task)
 
         def finished(completed: asyncio.Task[HistoryReadResult]) -> None:

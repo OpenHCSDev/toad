@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from toad.widgets.message_filter import OtherCategory
+
 import asyncio
 from collections import deque
 from dataclasses import replace
@@ -30,7 +32,7 @@ from toad.transcript_preparation import (
     CategoryProjection, PageRequest, PreparedPageSource, PreparedTranscriptPage,
     ProjectedTranscriptSource, TranscriptPageBuffer, incoming_sequences,
 )
-from toad.widgets.agent_response import AgentResponse
+from toad.widgets.agent_response import AgentResponse, ResponseDelivery
 from toad.widgets.agent_thought import AgentThought
 from toad.widgets.tool_call import ToolCall
 from toad.widgets.user_input import UserInput
@@ -39,7 +41,7 @@ from toad.widgets.history_anchor import HistoryAnchor
 from toad.widgets.presentation_window import PresentationBudget, protected_presentations
 from toad.widgets.committed_presentation import CommittedHistory
 from toad.widgets.message_filter import (
-    ALL_CATEGORIES, CategorizedBlock, MessageCategory, apply_block_filter, event_category,
+    all_categories, CategorizedBlock, MessageCategory, apply_block_filter, event_category,
 )
 from toad.widgets.transcript_fragments import (
     TranscriptFragment, prepare_transcript_fragments, transcript_fragments,
@@ -47,6 +49,7 @@ from toad.widgets.transcript_fragments import (
 
 if TYPE_CHECKING:
     from toad.widgets.conversation import Window
+
 
 
 class _PublicationRetired(Exception):
@@ -80,7 +83,7 @@ class TranscriptBlockConsumer(MroDispatch):
     @handles(AgentTextTranscript)
     def agent(self, event: AgentTextTranscript):
         self.blocks.append(AgentResponse(
-            event.text, route=event.routing.reply if event.routing else None,
+            event.text, delivery=ResponseDelivery.from_route(event.routing.reply if event.routing else None),
             category=event_category(event), paginate=not self.fragment,
             show_divider=self.show_divider,
         ))
@@ -154,20 +157,21 @@ class TranscriptFragmentView(CategorizedBlock, VerticalGroup):
     CACHE_HEIGHT_INDEPENDENT_BOX = True
     CACHE_HEIGHT_INDEPENDENT_ARRANGEMENT = True
 
-    def __init__(self, fragment: TranscriptFragment, selected=ALL_CATEGORIES):
+    def __init__(self, fragment: TranscriptFragment, selected=None):
+        selected = all_categories() if selected is None else selected
         super().__init__()
         self.fragment = fragment
         self._message_category = (event_category(fragment.events[0]) if fragment.events
-                                  else MessageCategory.OTHER)
-        self.add_class(f"-message-{self._message_category.value}")
+                                  else OtherCategory)
+        self.add_class(f"-message-{self._message_category.declared_name}")
         self.set_class(not any(event.routed for event in fragment.events), "-unrouted")
         self.set_categories(selected)
 
     @property
-    def message_category(self) -> MessageCategory:
+    def message_category(self) -> type[MessageCategory]:
         return self._message_category
 
-    def set_categories(self, selected: frozenset[MessageCategory]) -> None:
+    def set_categories(self, selected: frozenset[type[MessageCategory]]) -> None:
         self._selected_categories = selected
         apply_block_filter(self, selected)
 
@@ -191,10 +195,10 @@ class TranscriptFragmentView(CategorizedBlock, VerticalGroup):
         previous_fragment = self.fragment
         old_events, new_events = previous_fragment.events, fragment.events
         self.fragment = fragment
-        category = event_category(new_events[0]) if new_events else MessageCategory.OTHER
+        category = event_category(new_events[0]) if new_events else OtherCategory
         if category != self._message_category:
-            self.remove_class(f"-message-{self._message_category.value}")
-            self.add_class(f"-message-{category.value}")
+            self.remove_class(f"-message-{self._message_category.declared_name}")
+            self.add_class(f"-message-{category.declared_name}")
             self._message_category = category
             apply_block_filter(self, self._selected_categories)
         self.set_class(not any(event.routed for event in new_events), "-unrouted")
@@ -229,13 +233,13 @@ class TranscriptPageView(VerticalGroup):
         self.fragments = transcript_fragments(page.events) if fragments is None else fragments
         self.start = max(0, len(self.fragments) - self.batch_size) if newest else 0
         self.stop = min(len(self.fragments), self.start + self.batch_size)
-        self.visible_categories = ALL_CATEGORIES
+        self.visible_categories = all_categories()
 
     def compose(self) -> ComposeResult:
         for fragment in self.fragments[self.start:self.stop]:
             yield TranscriptFragmentView(fragment, self.visible_categories)
 
-    def set_categories(self, selected: frozenset[MessageCategory]) -> None:
+    def set_categories(self, selected: frozenset[type[MessageCategory]]) -> None:
         self.visible_categories = selected
         for child in self.children:
             child.set_categories(selected)
@@ -458,17 +462,17 @@ class TranscriptHistory(CommittedHistory, CategorizedBlock, VerticalGroup):
         self.newer.display = self.has_newer
 
     @property
-    def _selected_categories(self) -> frozenset[MessageCategory]:
+    def _selected_categories(self) -> frozenset[type[MessageCategory]]:
         from toad.widgets.conversation import Contents, Conversation
 
         # A nested pager inherits the outer message's category, not the
         # synthetic role of its Markdown fragments.
         return (self.query_ancestor(Conversation).visible_categories
-                if self.is_attached and isinstance(self.parent, Contents) else ALL_CATEGORIES)
+                if self.is_attached and isinstance(self.parent, Contents) else all_categories())
 
     @property
     def _filtered_source(self) -> bool:
-        return self._selected_categories != ALL_CATEGORIES
+        return self._selected_categories != all_categories()
 
     def filter_changed(self) -> None:
         """Retire only derived filtered rows when a visible-kind set changes."""
@@ -990,9 +994,9 @@ class ProjectedTranscriptHistory(TranscriptHistory):
                 and owner._publication_current and owner._filter_overlay is self)
 
     @property
-    def _selected_categories(self) -> frozenset[MessageCategory]:
+    def _selected_categories(self) -> frozenset[type[MessageCategory]]:
         # Selection was applied by the source; the view never reinterprets it.
-        return ALL_CATEGORIES
+        return all_categories()
 
     @property
     def _follow_source_tail(self) -> bool:

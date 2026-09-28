@@ -1,5 +1,7 @@
 """A late older-page result cannot publish rows from a previous filter."""
 
+from toad.widgets.message_filter import InboundCategory, ThinkingCategory
+
 import asyncio
 import os
 from pathlib import Path
@@ -13,6 +15,7 @@ from agent_comms.routing import TurnRouting
 from runtime_fixture import ToadApp
 from toad.widgets.message_filter import MessageCategory
 from toad.widgets.transcript_history import TranscriptHistory
+
 
 
 async def main():
@@ -43,11 +46,11 @@ async def main():
                                       loader=older)
             try:
                 await view.contents.mount(pager)
-                view.visible_categories = frozenset((MessageCategory.INBOUND,))
+                view.visible_categories = frozenset((InboundCategory,))
                 view.window.release_anchor()
                 view.window.scroll_to(y=0, animate=False, immediate=True)
                 await asyncio.wait_for(entered.wait(), 5)
-                view.visible_categories = frozenset((MessageCategory.THINKING,))
+                view.visible_categories = frozenset((ThinkingCategory,))
                 release.set()
                 async with asyncio.timeout(8):
                     while (pager._filter_overlay is None or

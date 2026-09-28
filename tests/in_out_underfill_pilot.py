@@ -9,7 +9,7 @@ from agent_comms.routing import MessageRoute, TurnRouting
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from agent_comms.transcript_events import SentTranscript, ThinkingTranscript
 from runtime_fixture import ToadApp
-from toad.widgets.message_filter import ALL_CATEGORIES, IN_OUT_CATEGORIES
+from toad.widgets.message_filter import all_categories, MessageCategory, RoutedMessage
 from toad.widgets.transcript_history import TranscriptHistory
 
 
@@ -22,7 +22,7 @@ async def main():
         async with app.run_test(size=(110, 44)) as pilot:
             await pilot.pause()
             conversation = app.screen.conversation
-            conversation.visible_categories = IN_OUT_CATEGORIES
+            conversation.visible_categories = frozenset(MessageCategory.members_with(RoutedMessage))
             file = "read-only-fixture"
             tail = tuple(ThinkingTranscript(f'HIDDEN_TAIL_{index}')
                          for index in range(90))
@@ -56,7 +56,7 @@ async def main():
                                       "scroll": conversation.window.max_scroll_y,
                                       "older": history.has_older}) from None
             assert calls and len(calls) <= 3, "Underfill walked the same page indefinitely"
-            assert conversation.visible_categories == IN_OUT_CATEGORIES and conversation.window.max_scroll_y >= 0
+            assert conversation.visible_categories == frozenset(MessageCategory.members_with(RoutedMessage)) and conversation.window.max_scroll_y >= 0
             assert history.pages[-1].page.events == tail, (
                 [len(page.page.events) for page in history.pages], history.pages[0].page.before,
                 history._filter_before)
@@ -92,12 +92,12 @@ async def main():
             await pilot.pause()
             frame = "\n".join(strip.text for strip in app.screen._compositor.render_strips())
             assert "OLDER_ROUTED_MESSAGE" in frame, "Sparse older result was not painted"
-            conversation.visible_categories = ALL_CATEGORIES
+            conversation.visible_categories = all_categories()
             await pilot.pause()
             assert sparse._filter_overlay is None or not sparse._filter_overlay.display
             assert any(leaf.display for leaf in sparse.pages[-1].children), (
                 "Unchecking did not restore retained native transcript")
-            conversation.visible_categories = IN_OUT_CATEGORIES
+            conversation.visible_categories = frozenset(MessageCategory.members_with(RoutedMessage))
             async with asyncio.timeout(8):
                 while (sparse._filter_overlay is None or not sparse._filter_overlay.display
                        or not any(leaf.fragment.events[0].text == older.text

@@ -1,5 +1,7 @@
 """Agent activity is visibly separated from the preceding user message."""
 
+from toad.widgets.message_filter import ThinkingCategory, ToolCategory
+
 import asyncio
 import os
 import tempfile
@@ -14,10 +16,11 @@ from toad.acp import messages as acp
 from toad.acp.agent import Agent
 from toad.widgets.agent_thought import AgentThought
 from toad.widgets.message_divider import AgentActivityDivider, MessageDivider
-from toad.widgets.message_filter import ALL_CATEGORIES, MessageCategory
+from toad.widgets.message_filter import all_categories, MessageCategory
 from toad.widgets.transcript_fragments import transcript_fragments
 from toad.widgets.transcript_history import TranscriptPageView
 from toad.widgets.user_input import UserInput
+
 
 
 async def main() -> None:
@@ -79,14 +82,14 @@ async def main() -> None:
             await view.on_acp_tool_call_update(acp.ToolCall(tool))
             await pilot.pause()
             headers = list(view.contents.query(AgentActivityDivider))
-            assert len(headers) == 3 and headers[-1].message_category is MessageCategory.TOOL
-            view.visible_categories = ALL_CATEGORIES - {MessageCategory.THINKING}
+            assert len(headers) == 3 and headers[-1].message_category is ToolCategory
+            view.visible_categories = all_categories() - {ThinkingCategory}
             await pilot.pause()
             assert not headers[0].display and not headers[1].display and headers[2].display
-            view.visible_categories = ALL_CATEGORIES - {MessageCategory.TOOL}
+            view.visible_categories = all_categories() - {ToolCategory}
             await pilot.pause()
             assert headers[0].display and not headers[2].display
-            view.visible_categories = ALL_CATEGORIES
+            view.visible_categories = all_categories()
 
             await view.post(UserInput("Answer with text first"))
             await start("text-first")

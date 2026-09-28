@@ -9,7 +9,7 @@ from runtime_fixture import ToadApp
 from tool_diff_fixture import wait_for_tool_diff
 from textual.widgets._markdown import MarkdownFence
 from textual.worker import Worker, WorkerState
-from toad.render_runtime import PersistentRenderer
+from toad.render_runtime import PersistentRenderClient
 from toad.render_service import RenderServiceConfig
 from toad.render_zmq import PersistentRendererPool
 from toad.widgets.agent_response import AgentResponse
@@ -26,7 +26,7 @@ async def main() -> None:
         root = Path(directory)
         config = RenderServiceConfig(max_workers=2, max_pending=4)
         identities = []
-        renderer: PersistentRenderer | None = None
+        renderer: PersistentRenderClient | None = None
         pool: PersistentRendererPool | None = None
         try:
             for index in range(2):
@@ -34,7 +34,7 @@ async def main() -> None:
                 current.mkdir()
                 os.environ.update(AGENT_COMMS_ROOT=str(current / "wire"), XDG_CONFIG_HOME=str(current / "config"),
                                   XDG_STATE_HOME=str(current / "state"), XDG_DATA_HOME=str(current / "data"))
-                renderer = PersistentRenderer(root / "renderer", config)
+                renderer = PersistentRenderClient(root / "renderer", config)
                 assert renderer.resolved_pool is None
                 app = ToadApp(project_dir=str(current), renderer=renderer)
                 warmed = asyncio.Event()

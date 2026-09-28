@@ -6,7 +6,7 @@ import tempfile
 import time
 
 from toad.render_service import RenderServiceConfig
-from toad.render_protocol import RenderReply, RendererCommand, RenderStatus, SubmitRender
+from toad.render_protocol import RenderReply, RenderCommand, AcceptedReply, SubmitRender
 from toad.render_tasks import PatchRenderTask
 from toad.render_zmq import PersistentRendererPool, RendererEndpoint
 
@@ -16,9 +16,9 @@ class ObservedPool(PersistentRendererPool):
         super().__init__(endpoint, config)
         self.accepted = asyncio.Event()
 
-    async def _exchange(self, command: RendererCommand) -> RenderReply:
+    async def _exchange(self, command: RenderCommand) -> RenderReply:
         reply = await super()._exchange(command)
-        if isinstance(command, SubmitRender) and reply.status is RenderStatus.ACCEPTED:
+        if isinstance(command, SubmitRender) and isinstance(reply, AcceptedReply):
             self.accepted.set()
         return reply
 

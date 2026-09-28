@@ -1,5 +1,7 @@
 """Category changes should target message owners, not restyle the whole view."""
 
+from toad.widgets.message_filter import ThinkingCategory
+
 import argparse
 import asyncio
 import json
@@ -13,7 +15,8 @@ from unittest.mock import patch
 from runtime_fixture import ToadApp
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.agent_thought import AgentThought
-from toad.widgets.message_filter import ALL_CATEGORIES, MessageCategory
+from toad.widgets.message_filter import all_categories, MessageCategory
+
 
 
 async def main(baseline):
@@ -33,7 +36,7 @@ async def main(baseline):
             times = []
             with patch.object(app, "update_styles", wraps=app.update_styles) as styles:
                 for _ in range(4):
-                    for selected in (ALL_CATEGORIES - {MessageCategory.THINKING}, ALL_CATEGORIES):
+                    for selected in (all_categories() - {ThinkingCategory}, all_categories()):
                         before = time.thread_time()
                         view.visible_categories = selected
                         times.append((time.thread_time() - before) * 1000)

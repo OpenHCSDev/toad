@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from concurrent.futures import Future, ProcessPoolExecutor
 from dataclasses import dataclass
-from functools import singledispatchmethod
 import multiprocessing
 import math
 import time
@@ -12,10 +11,24 @@ from uuid import UUID
 
 from toad.render_processes import _initialize_worker
 from toad.render_protocol import (
-    AcknowledgeRender, CancelRender, PollRender, ReleaseRenderer, RenderReply,
-    RendererCommand, RenderStatus, ShutdownRenderer, SubmitRender,
+    AcknowledgeRender,
+    CancelRender,
+    PollRender,
+    ReleaseRender,
+    RenderReply,
+    ShutdownRender,
+    SubmitRender,
+    AcceptedReply,
+    UnknownReply,
+    BusyReply,
+    PendingReply,
+    CancelledReply,
+    FailedReply,
+    RejectedReply,
+    CompleteReply,
+    AcknowledgedReply,
+    CapturedResult,
 )
-from toad.render_tasks import RendererResult
 
 
 @dataclass(frozen=True)
@@ -25,13 +38,21 @@ class RenderServiceConfig:
     client_lease_seconds: float = 60.0
 
     def __post_init__(self) -> None:
-        if (any(type(value) is not int or value < 1 for value in (self.max_workers, self.max_pending))
-                or isinstance(self.client_lease_seconds, bool)
-                or not math.isfinite(self.client_lease_seconds) or self.client_lease_seconds <= 0):
+        if (
+            any(
+                type(value) is not int or value < 1
+                for value in (self.max_workers, self.max_pending)
+            )
+            or isinstance(self.client_lease_seconds, bool)
+            or not math.isfinite(self.client_lease_seconds)
+            or self.client_lease_seconds <= 0
+        ):
             raise ValueError("Renderer capacities and client lease must be positive")
 
 
-def _initialize_render_worker(config: RenderServiceConfig, expected_build: str | None) -> None:
+def _initialize_render_worker(
+    config: RenderServiceConfig, expected_build: str | None
+) -> None:
     """Lazy-spawned workers must still match the service's advertised build."""
     _initialize_worker()
     if expected_build is not None:
@@ -44,7 +65,7 @@ def _initialize_render_worker(config: RenderServiceConfig, expected_build: str |
 @dataclass
 class PendingRender:
     client_id: UUID
-    future: Future[RendererResult]
+    future: Future[object]
     cancelled: bool = False
     abandoned: bool = False
 
@@ -57,11 +78,15 @@ class RenderService:
     Expired clients abandon delivery; CPU admission is released only on completion.
     """
 
-    def __init__(self, config: RenderServiceConfig, *, expected_build: str | None = None) -> None:
+    def __init__(
+        self, config: RenderServiceConfig, *, expected_build: str | None = None
+    ) -> None:
         self.config = config
         self._executor = ProcessPoolExecutor(
-            max_workers=config.max_workers, mp_context=multiprocessing.get_context("spawn"),
-            initializer=_initialize_render_worker, initargs=(config, expected_build),
+            max_workers=config.max_workers,
+            mp_context=multiprocessing.get_context("spawn"),
+            initializer=_initialize_render_worker,
+            initargs=(config, expected_build),
         )
         self._jobs: dict[UUID, PendingRender] = {}
         self._clients: dict[UUID, float] = {}
@@ -73,8 +98,11 @@ class RenderService:
 
     def reap(self, now: float | None = None) -> None:
         current = time.monotonic() if now is None else now
-        expired = [client for client, seen in self._clients.items()
-                   if current - seen >= self.config.client_lease_seconds]
+        expired = [
+            client
+            for client, seen in self._clients.items()
+            if current - seen >= self.config.client_lease_seconds
+        ]
         for client in expired:
             self._abandon(client)
         for request_id, job in tuple(self._jobs.items()):
@@ -96,70 +124,62 @@ class RenderService:
         job = self._jobs.get(request_id)
         return job if job is not None and job.client_id == client_id else None
 
-    @singledispatchmethod
-    def dispatch(self, command: RendererCommand) -> RenderReply:
-        raise TypeError(f"Unsupported renderer command class: {type(command).__name__}")
-
-    @dispatch.register
-    def _submit(self, command: SubmitRender) -> RenderReply:
+    def submit(self, command: SubmitRender) -> RenderReply:
         if self._closed:
-            return RenderReply(RenderStatus.FAILED, command.request_id, error="Renderer is closed")
+            return RejectedReply(command.request_id, "Renderer is closed")
         self.reap()
         self._touch(command.client_id)
         existing = self._jobs.get(command.request_id)
         if existing is not None:
-            status = RenderStatus.ACCEPTED if existing.client_id == command.client_id else RenderStatus.UNKNOWN
-            return RenderReply(status, command.request_id)
+            return (
+                AcceptedReply(command.request_id)
+                if existing.client_id == command.client_id
+                else UnknownReply(command.request_id)
+            )
         if len(self._jobs) >= self.config.max_pending:
-            return RenderReply(RenderStatus.BUSY, command.request_id)
-        future: Future[RendererResult] = self._executor.submit(command.task.execute)
+            return BusyReply(command.request_id)
+        future: Future[object] = self._executor.submit(command.task.execute)
         self._jobs[command.request_id] = PendingRender(command.client_id, future)
-        return RenderReply(RenderStatus.ACCEPTED, command.request_id)
+        return AcceptedReply(command.request_id)
 
-    @dispatch.register
-    def _poll(self, command: PollRender) -> RenderReply:
+    def poll(self, command: PollRender) -> RenderReply:
         job = self._owned(command.client_id, command.request_id)
         if job is None:
-            return RenderReply(RenderStatus.UNKNOWN, command.request_id)
+            return UnknownReply(command.request_id)
         if not job.future.done():
-            return RenderReply(RenderStatus.PENDING, command.request_id)
+            return PendingReply(command.request_id)
         if job.cancelled or job.future.cancelled():
-            return RenderReply(RenderStatus.CANCELLED, command.request_id)
+            return CancelledReply(command.request_id)
         try:
             result = job.future.result()
         except Exception as error:
-            return RenderReply(RenderStatus.FAILED, command.request_id,
-                               error=f"{type(error).__name__}: {error}")
-        return RenderReply(RenderStatus.COMPLETE, command.request_id, result=result)
+            return FailedReply(command.request_id, f"{type(error).__name__}: {error}")
+        return CompleteReply(command.request_id, CapturedResult(result))
 
-    @dispatch.register
-    def _cancel(self, command: CancelRender) -> RenderReply:
+    def cancel(self, command: CancelRender) -> RenderReply:
         job = self._owned(command.client_id, command.request_id)
         if job is None:
-            return RenderReply(RenderStatus.UNKNOWN, command.request_id)
+            return UnknownReply(command.request_id)
         job.cancelled = True
         job.future.cancel()
-        return RenderReply(RenderStatus.ACKNOWLEDGED, command.request_id)
+        return AcknowledgedReply(command.request_id)
 
-    @dispatch.register
-    def _acknowledge(self, command: AcknowledgeRender) -> RenderReply:
+    def acknowledge(self, command: AcknowledgeRender) -> RenderReply:
         job = self._owned(command.client_id, command.request_id)
         if job is not None:
             if not job.future.done():
-                return RenderReply(RenderStatus.PENDING, command.request_id)
+                return PendingReply(command.request_id)
             self._jobs.pop(command.request_id)
-        return RenderReply(RenderStatus.ACKNOWLEDGED, command.request_id)
+        return AcknowledgedReply(command.request_id)
 
-    @dispatch.register
-    def _release(self, command: ReleaseRenderer) -> RenderReply:
+    def release(self, command: ReleaseRender) -> RenderReply:
         self._abandon(command.client_id)
         self.reap()
-        return RenderReply(RenderStatus.ACKNOWLEDGED)
+        return AcknowledgedReply()
 
-    @dispatch.register
-    def _shutdown(self, command: ShutdownRenderer) -> RenderReply:
+    def shutdown(self, command: ShutdownRender) -> RenderReply:
         self._closed = True
-        return RenderReply(RenderStatus.ACKNOWLEDGED)
+        return AcknowledgedReply()
 
     def close(self) -> None:
         self._closed = True

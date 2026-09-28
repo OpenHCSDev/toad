@@ -27,7 +27,7 @@ from toad.acp.agent import Agent
 from toad.acp.messages import CoordinationUpdate, TranscriptSnapshot
 from toad.agent import AgentReady
 from toad.app import ToadApp
-from toad.render_backend import RendererBackend, create_renderer
+from toad.render_backend import RendererChoice, LocalRenderer, PersistentRenderer
 from toad.widgets.transcript_history import TranscriptHistory
 from toad.widgets.message_filter import event_category
 
@@ -57,7 +57,7 @@ async def main():
             )
         )
         identity = hashlib.sha256(json.dumps([(event.declared_name, event.text) for event in events]).encode()).hexdigest()
-        all_categories = os.environ.get("TOAD_FIXTURE_ALL_CATEGORIES") == "1"
+        all_categories = os.environ.get("TOAD_FIXTURE_all_categories()") == "1"
         if all_categories:
             mixed = []
             for index in range(90):
@@ -99,7 +99,7 @@ async def main():
 
         data = {"name": "Read-only fixture", "identity": "fixture", "short_name": "fixture",
                 "run_command": {"*": "/bin/false"}, "protocol": "acp"}
-        app = ToadApp(project_dir=str(root), renderer=create_renderer(RendererBackend.PERSISTENT))
+        app = ToadApp(project_dir=str(root), renderer=PersistentRenderer.start())
         with patch.object(Agent, "start", start), patch.object(Agent, "get_transcript_page", page):
             async with app.run_test(headless=False, size=None, tooltips=True, notifications=True) as pilot:
                 await pilot.pause()
@@ -118,7 +118,7 @@ async def main():
                     "source_sha256": identity, "native_events": len(events),
                     "wire_messages": 100, "root": str(root),
                     "fixture_kind": "all-categories" if all_categories else "navigation",
-                    "category_counts": dict(Counter(event_category(event).value for event in events)),
+                    "category_counts": dict(Counter(event_category(event).declared_name for event in events)),
                 }))
                 await app._task
         await asyncio.get_running_loop().shutdown_default_executor()

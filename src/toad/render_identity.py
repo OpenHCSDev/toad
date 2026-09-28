@@ -54,7 +54,7 @@ class RendererBuild:
 
     @property
     def version(self) -> str:
-        digest = sha256(b"toad-render-protocol-1\0")
+        digest = sha256(b"toad-render-protocol\0")
         digest.update(self.interpreter.encode() + b"\0")
         config = self.config
         digest.update(f"{config.max_workers}:{config.max_pending}:{config.client_lease_seconds:g}\0".encode())

@@ -8,7 +8,7 @@ from pathlib import Path
 from agent_comms.routing import MessageRoute
 from runtime_fixture import ToadApp
 from toad.screens.main import MainScreen
-from toad.widgets.agent_response import AgentResponse
+from toad.widgets.agent_response import AgentResponse, ResponseDelivery
 from toad.widgets.agent_thought import AgentThought
 from toad.widgets.incoming_message import IncomingMessage
 from toad.widgets.project_directory_tree import ProjectDirectoryTree
@@ -72,7 +72,7 @@ async def main():
             assert thought.max_scroll_y == 0
             await view.contents.remove_children()
             incoming = await view.post(IncomingMessage("peer", "Identical body", "#comms"))
-            outgoing = await view.post(AgentResponse("Identical body", route=MessageRoute("me", ("#comms",))))
+            outgoing = await view.post(AgentResponse("Identical body", delivery=ResponseDelivery.from_route(MessageRoute("me", ("#comms",)))))
             await pilot.pause()
             first, second = incoming.query_one(RouteHeader), outgoing.query_one(RouteHeader)
             assert first.region.height == second.region.height == 1

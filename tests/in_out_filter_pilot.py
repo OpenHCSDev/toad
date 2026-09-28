@@ -16,12 +16,12 @@ from textual.widgets import Checkbox, Static
 
 from runtime_fixture import ToadApp
 from toad.acp.messages import CoordinationUpdate
-from toad.widgets.agent_response import AgentResponse
+from toad.widgets.agent_response import AgentResponse, ResponseDelivery
 from toad.widgets.agent_thought import AgentThought
 from toad.widgets.incoming_message import IncomingMessage
 from toad.widgets.side_bar import SideBar, SideBarCollapsible
 from toad.widgets.thread_comms import RelationshipSort, ThreadCommsSidebar
-from toad.widgets.message_filter import IN_OUT_CATEGORIES, MESSAGE_CATEGORIES
+from toad.widgets.message_filter import MessageCategory, RoutedMessage
 from toad.widgets.transcript_history import TranscriptHistory
 from toad.widgets.user_input import UserInput
 
@@ -49,8 +49,8 @@ async def main():
             async with asyncio.timeout(5):
                 while tree._snapshot is None:
                     await pilot.pause(.02)
-            checkboxes = {category: tree.query_one(f"#filter-{category.value}", Checkbox)
-                          for category in MESSAGE_CATEGORIES}
+            checkboxes = {category: tree.query_one(f"#filter-{category.declared_name}", Checkbox)
+                          for category in MessageCategory.members_with(MessageCategory)}
             assert all(checkbox.display and checkbox.value for checkbox in checkboxes.values())
             owner_label = tree.query_one(".relationship-context", Static).render()
             assert any("bold" in str(span.style) for span in owner_label.spans)
@@ -61,12 +61,12 @@ async def main():
             view = screen.conversation
             view.prompt.text = "Unsent draft survives filtering"
             incoming = IncomingMessage("peer", "INCOMING_BODY", "owner")
-            outgoing = AgentResponse("OUTGOING_BODY", route=MessageRoute("owner", ("peer",)))
+            outgoing = AgentResponse("OUTGOING_BODY", delivery=ResponseDelivery.from_route(MessageRoute("owner", ("peer",))))
             thought = AgentThought("PRIVATE_THOUGHT")
             plain = AgentResponse("Plain answer containing [FROM] and [TO] is not routed")
             request = UserInput("Ordinary user prompt")
             await view.contents.mount(request, thought, plain, incoming, outgoing)
-            long_output = AgentResponse(route=MessageRoute("owner", ("#team",)))
+            long_output = AgentResponse(delivery=ResponseDelivery.from_route(MessageRoute("owner", ("#team",))))
             await view.contents.mount(long_output)
             await long_output.update("\n\n".join(f"ROUTED_PARAGRAPH_{i}" for i in range(100)))
             await pilot.pause()
@@ -89,11 +89,11 @@ async def main():
             view.window.scroll_to(y=min(7, view.window.max_scroll_y), animate=False, immediate=True)
             await pilot.pause()
             full_scroll = view.window.scroll_y
-            for category in MESSAGE_CATEGORIES:
-                if category not in IN_OUT_CATEGORIES:
+            for category in MessageCategory.members_with(MessageCategory):
+                if category not in frozenset(MessageCategory.members_with(RoutedMessage)):
                     assert await pilot.click(checkboxes[category])
             await pilot.pause()
-            assert view.visible_categories == IN_OUT_CATEGORIES
+            assert view.visible_categories == frozenset(MessageCategory.members_with(RoutedMessage))
             assert not request.display and not thought.display and not plain.display
             assert incoming.display and outgoing.display and long_output.display
             assert [leaf.display for leaf in leaves] == [True, False, False, True]
@@ -144,17 +144,17 @@ async def main():
 
             await app.new_session_screen(app.get_main_screen)
             await pilot.pause()
-            assert not app.screen.conversation.visible_categories == IN_OUT_CATEGORIES
+            assert not app.screen.conversation.visible_categories == frozenset(MessageCategory.members_with(RoutedMessage))
             await app.switch_mode(owner_mode)
             await pilot.pause()
-            assert view.visible_categories == IN_OUT_CATEGORIES and all(checkboxes[category].value == (category in IN_OUT_CATEGORIES)
-                                           for category in MESSAGE_CATEGORIES)
+            assert view.visible_categories == frozenset(MessageCategory.members_with(RoutedMessage)) and all(checkboxes[category].value == (category in frozenset(MessageCategory.members_with(RoutedMessage)))
+                                           for category in MessageCategory.members_with(MessageCategory))
             assert view.prompt.text == "Unsent draft survives filtering"
-            for category in MESSAGE_CATEGORIES:
-                if category not in IN_OUT_CATEGORIES:
+            for category in MessageCategory.members_with(MessageCategory):
+                if category not in frozenset(MessageCategory.members_with(RoutedMessage)):
                     assert await pilot.click(checkboxes[category])
             await pilot.pause()
-            assert view.visible_categories != IN_OUT_CATEGORIES
+            assert view.visible_categories != frozenset(MessageCategory.members_with(RoutedMessage))
             assert all(block.display for block in (request, thought, plain, incoming, outgoing, new_thought))
             assert all(leaf.display for leaf in leaves)
             assert request.is_attached and history.pages[0].page.events == events

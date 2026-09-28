@@ -1,5 +1,7 @@
 """Mounted inbound continuity across bounded saved pages and concurrent live arrivals."""
 
+from toad.widgets.message_filter import ThinkingCategory, ToolCategory
+
 import asyncio
 import json
 import os
@@ -22,8 +24,9 @@ from toad.acp.messages import IncomingMessage as IncomingEvent
 from toad.widgets import transcript_fragments
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.incoming_message import IncomingMessage
-from toad.widgets.message_filter import ALL_CATEGORIES, MessageCategory
+from toad.widgets.message_filter import all_categories, MessageCategory
 from toad.widgets.transcript_history import TranscriptHistory
+
 
 
 class TestAgent(SnapshotAgent):
@@ -232,9 +235,9 @@ async def disk_history(view, pilot, root):
     agent = DiskAgent(None)
     view.set_reactive(type(view).agent, agent)
     view.agent_ready = True
-    view.visible_categories = ALL_CATEGORIES - {
-        MessageCategory.TOOL,
-        MessageCategory.THINKING,
+    view.visible_categories = all_categories() - {
+        ToolCategory,
+        ThinkingCategory,
     }
     history = TranscriptHistory(
         await agent.get_transcript_page(), agent.get_transcript_page
@@ -293,7 +296,7 @@ async def disk_history(view, pilot, root):
     assert (
         history._filter_before is None
     ), "eviction must not leave a cursor across omitted fragments"
-    view.visible_categories = ALL_CATEGORIES
+    view.visible_categories = all_categories()
     history._loading = True
     view.window.release_anchor()
     view.window.scroll_to(y=1, animate=False, immediate=True)
