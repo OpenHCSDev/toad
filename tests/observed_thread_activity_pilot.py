@@ -62,7 +62,7 @@ async def main():
                 "fixture",
             )
             attach_coordination(agent, str(comms.root), "peer")
-            agent._message_target = native
+            agent.attach_surface(native)
             native.set_reactive(type(native).agent, agent)
             owner = app.current_mode
             tracker = app.session_tracker.sessions[owner]

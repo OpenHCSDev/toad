@@ -80,7 +80,7 @@ async def main():
         comms.channels.create_tag("shared")
 
         async def start(agent, target):
-            agent._message_target = target
+            agent.attach_surface(target)
             agent.process.session_task = asyncio.create_task(asyncio.sleep(0))
             target.post_message(AgentReady())
 

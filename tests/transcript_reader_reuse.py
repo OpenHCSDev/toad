@@ -106,7 +106,7 @@ async def main():
                 for _ in range(3)
             ]
             for attachment in attachments:
-                attachment._message_target = app.screen.conversation
+                attachment.attach_surface(app.screen.conversation)
                 attach_coordination(attachment, str(root / "wire"), "fixture")
             with patch("agent_comms.comms.wire", wraps=wire) as create:
                 await asyncio.gather(

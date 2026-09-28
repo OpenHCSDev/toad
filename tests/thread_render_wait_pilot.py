@@ -78,7 +78,7 @@ async def main():
         dispatch = asyncio.Event()
 
         async def start(agent, target):
-            agent._message_target = target
+            agent.attach_surface(target)
 
             async def deliver():
                 await dispatch.wait()

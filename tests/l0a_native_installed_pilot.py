@@ -89,7 +89,7 @@ async def notification_feedback(
     print("CHANNEL_NOTIFICATION", str(notification.title), flush=True)
 
 
-async def main(*, notification_only=False):
+async def main(*, notification_only=False, retire_surface=False):
     evidence = Path(os.environ.get("L0A_EVIDENCE", os.environ["TMPDIR"]))
     evidence.mkdir(parents=True, exist_ok=True)
     package = Path(os.environ["AC_NATIVE_COPIED_PACKAGE"])
@@ -301,9 +301,31 @@ async def main(*, notification_only=False):
                 await pilot.resize_terminal(160, 44)
                 print("NATIVE_SIDEBAR_BUSY_AUTHORITY_CONFIRMED", flush=True)
                 view.prompt.text = "unsent local draft"
+                retired_editor = None
+                if retire_surface:
+                    retired_editor = view.prompt.prompt_text_area.capture_editor_state()
+                    parent = view.parent
+                    process = agent.process.process
+                    original_queue = agent.queue_attachment
+                    agent.detach_surface(view)
+                    await view.remove()
+                    assert agent.process.process is process and process.returncode is None
+                    assert agent.controller.surface.target is None
                 await asyncio.wait_for(
                     agent.send_prompt("QUEUED_NATIVE_INPUT", defer_display=True), 10
                 )
+                if retire_surface:
+                    await until(pilot, lambda: bool(agent.queue_attachment.projection.items))
+                    from toad.widgets.conversation import Conversation
+                    replacement = Conversation(project)
+                    await parent.mount(replacement)
+                    replacement.prompt.prompt_text_area.restore_editor_state(retired_editor)
+                    replacement.agent = agent
+                    view = replacement
+                    await until(pilot, lambda: view.turns.managed_id == agent._active_turn_id)
+                    assert agent.queue_attachment is original_queue
+                    assert agent.process.process is process and process.returncode is None
+                    print("RETIRED_SURFACE_NATIVE_QUEUE_REBOUND", flush=True)
                 await until(pilot, lambda: bool(view.queue_projection.items))
                 queued_ids = [row.input_id for row in view.queue_projection.items]
                 assert len(queued_ids) == 1
@@ -491,5 +513,6 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--notification-only", action="store_true")
+    parser.add_argument("--retire-surface", action="store_true")
     args = parser.parse_args()
-    asyncio.run(main(notification_only=args.notification_only))
+    asyncio.run(main(notification_only=args.notification_only, retire_surface=args.retire_surface))
