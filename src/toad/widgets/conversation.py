@@ -1728,11 +1728,6 @@ class Conversation(containers.Vertical):
             self.new_block()
             await self.post(UserInput(started.text))
 
-    @on(acp_messages.PromptQueueUpdate)
-    def on_prompt_queue_update(self, message: acp_messages.PromptQueueUpdate):
-        # Retired text-only messages cannot overwrite rows or inject drafts.
-        message.stop()
-
     @on(acp_messages.InputStarted)
     async def on_input_started(self, message: acp_messages.InputStarted):
         message.stop()

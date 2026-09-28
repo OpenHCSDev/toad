@@ -1,0 +1,1 @@
+navigation metadata: off-loop reads, typing, latest intent, closed owner, bounded cancellation and drainage OK

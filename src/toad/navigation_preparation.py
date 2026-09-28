@@ -88,7 +88,7 @@ class ThreadNavigationRequest(NavigationRequest[ThreadNavigation]):
         thread = comms.registry.require(self.target)
         active = comms.registry.status(thread.name).active
         persisted = bool(thread.session_file and Path(thread.session_file).is_file())
-        attachable = thread.pid > 0 and comms.owners._process_alive(thread.pid)
+        attachable = thread.process_alive
         project = Path(thread.worktree)
         if not project.is_dir():
             project = self.project

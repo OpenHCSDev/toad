@@ -111,6 +111,11 @@ async def main():
             await load(F["trustedLoad"], new=True)
             painted("Queued (2): same text", "queue-two-distinct-ids")
             initial_echoes = echoes()
+            # Foreign-session callbacks cannot replace owned rows or echo.
+            await callback({"queueState": F["updates"][3]["value"]}, session="foreign")
+            await callback({"inputStarted": F["updates"][0]["value"]}, session="foreign")
+            assert len(view.queue_projection.items) == 2
+            assert echoes() == initial_echoes
             await callback({"inputStarted": F["updates"][0]["value"]})
             assert [row.input_id for row in view.queue_projection.items] == ["b" * 32]
             painted("Queued (1): same text", "exact-start-removes-only-one")
@@ -123,17 +128,15 @@ async def main():
                 "b" * 32
             ]
             painted("Restored (1, read-only): same text", "restored-not-draft")
-            # Duplicate restored snapshots and legacy callbacks never append a
-            # draft, echo, or identify equal-text admitted inputs.
+            # Duplicate restored snapshots never append to the local draft.
             await callback({"queueState": F["updates"][3]["value"]})
-            view.post_message(messages.PromptQueueUpdate([], ["same text"]))
             view.post_message(messages.InputStarted("same text"))
             await pilot.pause()
             assert (
                 view.prompt.text == "local editable draft"
                 and echoes() == initial_echoes + 1
             )
-            await callback({"queueState": None, "queue": [], "restored": ["same text"]})
+            await callback({"queueState": None})
             assert view.queue_projection.status == "unavailable"
             painted("Remote queue unavailable", "null-not-consumed")
             assert view.input_delivery == durable

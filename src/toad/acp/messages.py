@@ -84,12 +84,6 @@ class QueueViewUpdate(AgentMessage):
 
 
 @dataclass
-class PromptQueueUpdate(AgentMessage):
-    queued: list[str]
-    restored: list[str]
-
-
-@dataclass
 class InputStarted(AgentMessage):
     """An unscoped initial user echo, never queue membership authority."""
     text: str | None

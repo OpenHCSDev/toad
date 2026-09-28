@@ -209,12 +209,6 @@ class DB:
 
         return await self._sessions(update, False)
 
-    async def session_delete(self, id: int) -> bool:
-        def delete(db):
-            db.execute(f'DELETE FROM "{Session.declared_name}" WHERE id = ?', (id,))
-            return True
-
-        return await self._sessions(delete, False)
 
     async def session_get(self, id: int) -> Session | None:
         return await self._sessions(lambda db: Session.one(db, id=id), None)

@@ -112,7 +112,10 @@ class _ChangeSignal(FileSystemEventHandler):
 
     def notify(self, event: _ObserverEvent) -> None:
         with self._send_lock:
-            self.connection.send(event)
+            try:
+                self.connection.send(event)
+            except ConnectionError:
+                os._exit(0)  # The parent no longer owns this observer.
 
     def on_any_event(self, event: FileSystemEvent) -> None:
         self.notify(_ObserverChanged())
@@ -122,7 +125,7 @@ def _watch_owner(owner: Connection) -> None:
     """An exited parent must not leave a recursive scan or native handles alive."""
     try:
         owner.recv_bytes()
-    except EOFError:
+    except (EOFError, ConnectionError):
         os._exit(0)
 
 
@@ -173,7 +176,7 @@ class _PathObservation(threading.Thread):
                 if self._parent.poll(0.1):
                     try:
                         event: _ObserverEvent = self._parent.recv()
-                    except EOFError:
+                    except (EOFError, ConnectionError):
                         break
                     event.apply(self)
         finally:

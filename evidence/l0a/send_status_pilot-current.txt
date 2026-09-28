@@ -1,0 +1,1 @@
+PASS: shortcuts paint before transport, scheduling preserves exact rows, restoration preserves local draft

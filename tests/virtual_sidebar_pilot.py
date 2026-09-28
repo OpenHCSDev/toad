@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 import tempfile
 
+from agent_comms.child_process import ProcessIdentity
 from agent_comms.threads import Thread
 from agent_comms.comms import wire
 from rich.style import Style as RichStyle
@@ -24,8 +25,8 @@ async def main():
                           TOAD_BENCH_VIRTUAL_CHANNELS="1")
         name = session_thread_name(root)
         comms = wire(root / "wire")
-        comms.threads.register(Thread(name, frozenset({"alpha"}), str(root), pid=os.getpid()))
-        comms.threads.register(Thread("archived", frozenset({"alpha"}), str(root), pid=0))
+        comms.threads.register(Thread(name, frozenset({"alpha"}), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
+        comms.threads.register(Thread("archived", frozenset({"alpha"}), str(root), process_identity=None))
         comms.owners.stop("archived")
         comms.threads.archive("archived")
         comms.channels.create_tag("beta")

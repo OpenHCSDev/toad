@@ -5,6 +5,7 @@ import os
 import tempfile
 from pathlib import Path
 
+from agent_comms.child_process import ProcessIdentity
 from agent_comms.threads import Thread
 from agent_comms.comms import wire
 from runtime_fixture import ToadApp
@@ -27,7 +28,7 @@ async def main() -> None:
             ("carol", frozenset()),
             ("dave", frozenset()),
         ):
-            comms.threads.register(Thread(name, tags, str(root), pid=os.getpid()))
+            comms.threads.register(Thread(name, tags, str(root), process_identity=ProcessIdentity.capture(os.getpid())))
         viewer = comms.messaging.user_identity(str(root)).name
         comms.messaging.send("carol", "dave", "older newly visible DM")
         comms.messaging.send("alice", "#team", "current channel message")
