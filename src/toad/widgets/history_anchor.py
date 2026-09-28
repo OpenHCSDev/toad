@@ -40,6 +40,8 @@ class HistoryWindow(VerticalScroll):
 
     def on_unmount(self) -> None:
         self.retire_presentation_wait()
+        if "document_viewport" in self.__dict__:
+            self.document_viewport.retire()
 
     @cached_property
     def document_viewport(self):

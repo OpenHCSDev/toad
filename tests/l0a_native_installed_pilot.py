@@ -377,7 +377,6 @@ async def main(*, notification_only=False, retire_surface=False):
                 old_process = comms.registry.require("beta").process_identity
                 original_watcher = view._directory_watcher
                 assert original_watcher is not None
-                await view.contents.remove_children()
                 await agent.reconnect()
                 await until(pilot, agent.session_ready_event.is_set)
                 assert agent._connected_ok
@@ -444,7 +443,6 @@ async def main(*, notification_only=False, retire_surface=False):
                 )
                 before_restart = len(requests)
                 await app.switch_mode(owner_mode)
-                await view.contents.remove_children()
                 await agent.reconnect()
                 await until(pilot, agent.session_ready_event.is_set)
                 assert agent._connected_ok, "Stopped native owner failed to reopen"

@@ -93,9 +93,16 @@ class DocumentViewport:
         self._warm = OrderedDict()
         self._pending = False
         self._running = False
+        self.presentation = window.screen.viewport_presentation
         window.watch(window, "scroll_y", self.request, init=False)
         window.screen.screen_layout_refresh_signal.subscribe(window, self.request)
-        window.screen.viewport_presentation.windows.add(window)
+        self.presentation.windows.add(window)
+
+    def retire(self) -> None:
+        """Release screen membership when the source window is unmounted."""
+        self.presentation.windows.discard(self.window)
+        self.presentation.anchors.discard(self.window)
+        self._pending = False
 
     @property
     def window(self):
