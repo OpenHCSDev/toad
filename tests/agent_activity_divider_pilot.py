@@ -6,7 +6,8 @@ import tempfile
 from dataclasses import replace
 from pathlib import Path
 
-from agent_comms.transcripts import TranscriptCursor, TranscriptEvent, TranscriptPage
+from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcript_events import AssistantTranscript, ThinkingTranscript, ToolEndTranscript, ToolStartTranscript, UserTranscript
 from runtime_fixture import ToadApp
 
 from toad.acp import messages as acp
@@ -95,15 +96,15 @@ async def main() -> None:
 
             long_thought = "\n\n".join(f"Step {index}: " + "reasoning " * 30 for index in range(10))
             events = (
-                TranscriptEvent("user", "Saved request"),
-                TranscriptEvent("thinking", long_thought),
-                TranscriptEvent("tool_start", tool_call_id="saved-1", tool_name="read"),
-                TranscriptEvent("tool_end", "done", tool_call_id="saved-1", tool_name="read"),
-                TranscriptEvent("thinking", "After tool"),
-                TranscriptEvent("assistant", "Saved response"),
-                TranscriptEvent("user", "Saved follow-up"),
-                TranscriptEvent("tool_start", tool_call_id="saved-2", tool_name="read"),
-                TranscriptEvent("tool_end", "done", tool_call_id="saved-2", tool_name="read"),
+                UserTranscript('Saved request'),
+                ThinkingTranscript(long_thought),
+                ToolStartTranscript(tool_call_id='saved-1', tool_name='read'),
+                ToolEndTranscript(tool_call_id='saved-1', tool_name='read', text='done'),
+                ThinkingTranscript('After tool'),
+                AssistantTranscript('Saved response'),
+                UserTranscript('Saved follow-up'),
+                ToolStartTranscript(tool_call_id='saved-2', tool_name='read'),
+                ToolEndTranscript(tool_call_id='saved-2', tool_name='read', text='done'),
             )
             fragments = transcript_fragments(events)
             assert sum(fragment.starts_agent_activity for fragment in fragments) == 2

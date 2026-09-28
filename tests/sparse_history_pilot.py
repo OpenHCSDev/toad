@@ -5,7 +5,8 @@ import os
 import tempfile
 from pathlib import Path
 
-from agent_comms.transcripts import TranscriptCursor, TranscriptEvent, TranscriptPage
+from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcript_events import AssistantTranscript
 from runtime_fixture import ToadApp
 from toad.widgets.transcript_history import TranscriptHistory
 
@@ -19,7 +20,7 @@ async def main():
 
         def page(index):
             return TranscriptPage(
-                (TranscriptEvent("assistant", f"Saved activity {index}"),),
+                (AssistantTranscript(f'Saved activity {index}'),),
                 TranscriptCursor("test", index), TranscriptCursor("test", index + 1),
                 index > 0, index < 29,
             )

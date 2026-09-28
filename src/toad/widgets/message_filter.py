@@ -2,7 +2,11 @@
 
 from enum import StrEnum
 
-from agent_comms.transcripts import TranscriptEvent
+from agent_comms.mro_dispatch import MroDispatch, handles
+from agent_comms.transcript_events import (
+    TranscriptEvent, UserTranscript, AssistantTranscript, NoticeTranscript,
+    SentTranscript, ThinkingTranscript, ToolTranscript,
+)
 
 
 class MessageCategory(StrEnum):
@@ -43,29 +47,39 @@ class CategorizedBlock:
         raise NotImplementedError
 
 
-def is_routed_event(event: TranscriptEvent) -> bool:
-    routing = event.routing
-    if routing is None:
-        return False
-    if event.kind == "user":
-        return bool(routing.requests)
-    return event.kind in {"assistant", "notice", "sent"} and routing.reply is not None
+class TranscriptCategoryConsumer(MroDispatch):
+    def __init__(self):
+        self.category = MessageCategory.OTHER
+
+    @handles(UserTranscript)
+    def user(self, event: UserTranscript):
+        self.category = MessageCategory.INBOUND if event.routed else MessageCategory.USER
+
+    @handles(AssistantTranscript)
+    def assistant(self, event: AssistantTranscript):
+        self.category = MessageCategory.OUTBOUND if event.routed else MessageCategory.AGENT
+
+    @handles(NoticeTranscript)
+    def notice(self, event: NoticeTranscript):
+        self.category = MessageCategory.OUTBOUND if event.routed else MessageCategory.OTHER
+
+    @handles(SentTranscript)
+    def sent(self, event: SentTranscript):
+        self.category = MessageCategory.OUTBOUND
+
+    @handles(ThinkingTranscript)
+    def thinking(self, event: ThinkingTranscript):
+        self.category = MessageCategory.THINKING
+
+    @handles(ToolTranscript)
+    def tool(self, event: ToolTranscript):
+        self.category = MessageCategory.TOOL
 
 
 def event_category(event: TranscriptEvent) -> MessageCategory:
-    if is_routed_event(event):
-        return MessageCategory.INBOUND if event.kind == "user" else MessageCategory.OUTBOUND
-    if event.kind == "user":
-        return MessageCategory.USER
-    if event.kind == "assistant":
-        return MessageCategory.AGENT
-    if event.kind == "sent":
-        return MessageCategory.OUTBOUND
-    if event.kind == "thinking":
-        return MessageCategory.THINKING
-    if event.kind in {"tool_start", "tool_end"}:
-        return MessageCategory.TOOL
-    return MessageCategory.OTHER
+    consumer = TranscriptCategoryConsumer()
+    consumer.dispatch_sync(event)
+    return consumer.category
 
 
 def keep_events(events: tuple[TranscriptEvent, ...], selected: frozenset[MessageCategory]) -> bool:

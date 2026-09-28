@@ -9,7 +9,8 @@ from unittest.mock import patch
 from agent_comms.messages import Message, MessageType
 from agent_comms.routing import MessageRoute, TurnRouting
 from agent_comms.threads import Thread
-from agent_comms.transcripts import TranscriptCursor, TranscriptEvent, TranscriptPage
+from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcript_events import AssistantTranscript, NoticeTranscript, SentTranscript, ThinkingTranscript, ToolEndTranscript, ToolStartTranscript, UserTranscript
 from agent_comms.comms import wire
 from textual.widgets import Checkbox
 
@@ -66,15 +67,14 @@ async def main():
 
             message = Message("peer", "owner", "IN", MessageType.INFO)
             saved = (
-                TranscriptEvent("user", "SAVED_USER"),
-                TranscriptEvent("assistant", "SAVED_AGENT"),
-                TranscriptEvent("user", "SAVED_IN", routing=TurnRouting((message,), None)),
-                TranscriptEvent("sent", "SAVED_OUT", routing=TurnRouting(
-                    (), MessageRoute("owner", ("peer",)))),
-                TranscriptEvent("thinking", "SAVED_THINKING"),
-                TranscriptEvent("tool_start", "SAVED_TOOL", tool_call_id="t", tool_name="read"),
-                TranscriptEvent("tool_end", "SAVED_TOOL_DONE", tool_call_id="t", tool_name="read"),
-                TranscriptEvent("notice", "SAVED_NOTICE"),
+                UserTranscript('SAVED_USER'),
+                AssistantTranscript('SAVED_AGENT'),
+                UserTranscript('SAVED_IN', routing=TurnRouting((message,), None)),
+                SentTranscript('SAVED_OUT', routing=TurnRouting((), MessageRoute('owner', ('peer',)))),
+                ThinkingTranscript('SAVED_THINKING'),
+                ToolStartTranscript(tool_call_id='t', tool_name='read'),
+                ToolEndTranscript(tool_call_id='t', tool_name='read', text='SAVED_TOOL_DONE'),
+                NoticeTranscript('SAVED_NOTICE'),
             )
             cursor = TranscriptCursor("fixture", 0)
             history = TranscriptHistory(TranscriptPage(saved, cursor, cursor, False, False))

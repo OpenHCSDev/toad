@@ -7,7 +7,8 @@ from pathlib import Path
 
 from agent_comms.messages import Message, MessageType
 from agent_comms.routing import MessageRoute, TurnRouting
-from agent_comms.transcripts import TranscriptCursor, TranscriptEvent, TranscriptPage
+from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcript_events import NoticeTranscript, SentTranscript, UserTranscript
 from toad.app import ToadApp
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.incoming_message import IncomingSender
@@ -22,7 +23,7 @@ async def main() -> None:
         f"### Section {index}\n" + "A retained fact. " * 38 for index in range(8)
     )
     cursor = TranscriptCursor("", 0)
-    page = TranscriptPage((TranscriptEvent("notice", text),), cursor, cursor, False, False)
+    page = TranscriptPage((NoticeTranscript(text),), cursor, cursor, False, False)
     fragments = transcript_fragments(page.events)
     assert len(fragments) >= 4
     with tempfile.TemporaryDirectory(prefix="toad-fragment-divider-") as directory:
@@ -43,7 +44,7 @@ async def main() -> None:
             await conversation.contents.remove_children()
             route = MessageRoute("worker", ("#updates",))
             sent_page = TranscriptPage(
-                (TranscriptEvent("sent", text, routing=TurnRouting(reply=route)),),
+                (SentTranscript(text, routing=TurnRouting(reply=route)),),
                 cursor, cursor, False, False,
             )
             sent = TranscriptPageView(
@@ -57,7 +58,7 @@ async def main() -> None:
             await conversation.contents.remove_children()
             incoming = Message("worker", "#updates", text, MessageType.INFO)
             user_page = TranscriptPage(
-                (TranscriptEvent("user", text, routing=TurnRouting(requests=(incoming,))),),
+                (UserTranscript(text, routing=TurnRouting(requests=(incoming,))),),
                 cursor, cursor, False, False,
             )
             user = TranscriptPageView(

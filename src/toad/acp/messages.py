@@ -9,7 +9,8 @@ from textual.message import Message
 import rich.repr
 from agent_comms.goals import Goal
 from agent_comms.goal_presentation import GoalExecution
-from agent_comms.transcripts import TranscriptCursor, TranscriptEvent, TranscriptPage
+from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcript_events import TranscriptEvent
 from agent_comms.routing import MessageRoute
 
 from toad.answer import Answer

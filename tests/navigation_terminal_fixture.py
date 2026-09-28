@@ -17,7 +17,8 @@ from unittest.mock import patch
 from agent_comms.messages import Message, MessageType
 from agent_comms.routing import MessageRoute, TurnRouting
 from agent_comms.threads import Thread
-from agent_comms.transcripts import TranscriptCursor, TranscriptEvent, TranscriptPage
+from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcript_events import AssistantTranscript, NoticeTranscript, SentTranscript, ThinkingTranscript, ToolEndTranscript, ToolStartTranscript, UserTranscript
 from agent_comms.comms import wire
 from setproctitle import setproctitle
 
@@ -46,15 +47,15 @@ async def main():
         for index in range(100):
             comms.messaging.send("fixture-00", "#fixture", f"Wire record {index}: " + "fixed content " * 12)
         events = tuple(
-            TranscriptEvent(kind, f"## {kind} record {index}\n\n" + text)
+            kind(f"## {kind.declared_name} record {index}\n\n" + text)
             for index in range(180)
             for kind, text in (
-                ("user", "A user paragraph with **formatting**. " * 8),
-                ("assistant", "A saved answer with text.\n\n" * 6),
-                ("thinking", "A reasoning paragraph. " * 6),
+                (UserTranscript, "A user paragraph with **formatting**. " * 8),
+                (AssistantTranscript, "A saved answer with text.\n\n" * 6),
+                (ThinkingTranscript, "A reasoning paragraph. " * 6),
             )
         )
-        identity = hashlib.sha256(json.dumps([(event.kind, event.text) for event in events]).encode()).hexdigest()
+        identity = hashlib.sha256(json.dumps([(event.declared_name, event.text) for event in events]).encode()).hexdigest()
         all_categories = os.environ.get("TOAD_FIXTURE_ALL_CATEGORIES") == "1"
         if all_categories:
             mixed = []
@@ -63,15 +64,14 @@ async def main():
                 incoming = Message("fixture-00", "fixture-owner", body, MessageType.INFO, timestamp=0)
                 tool_id = f"fixture-read-{index}"
                 mixed.extend((
-                    TranscriptEvent("user", f"USER_{index}: ordinary user text. " * 4),
-                    TranscriptEvent("assistant", f"AGENT_{index}: ordinary assistant text. " * 4),
-                    TranscriptEvent("user", body, routing=TurnRouting((incoming,), None)),
-                    TranscriptEvent("sent", f"OUTBOUND_{index}: routed answer. " * 4,
-                                    routing=TurnRouting((), MessageRoute("fixture-owner", ("fixture-00",)))),
-                    TranscriptEvent("thinking", f"THINKING_{index}: reasoning text. " * 4),
-                    TranscriptEvent("tool_start", tool_call_id=tool_id, tool_name="Read", raw_input={"path": "fixture.py"}),
-                    TranscriptEvent("tool_end", f"TOOL_{index}: saved tool result", tool_call_id=tool_id, tool_name="Read"),
-                    TranscriptEvent("notice", f"OTHER_{index}: saved notice. " * 4),
+                    UserTranscript(f'USER_{index}: ordinary user text. ' * 4),
+                    AssistantTranscript(f'AGENT_{index}: ordinary assistant text. ' * 4),
+                    UserTranscript(body, routing=TurnRouting((incoming,), None)),
+                    SentTranscript(f'OUTBOUND_{index}: routed answer. ' * 4, routing=TurnRouting((), MessageRoute('fixture-owner', ('fixture-00',)))),
+                    ThinkingTranscript(f'THINKING_{index}: reasoning text. ' * 4),
+                    ToolStartTranscript(tool_call_id=tool_id, tool_name='Read', raw_input={'path': 'fixture.py'}),
+                    ToolEndTranscript(tool_call_id=tool_id, tool_name='Read', text=f'TOOL_{index}: saved tool result'),
+                    NoticeTranscript(f'OTHER_{index}: saved notice. ' * 4),
                 ))
             events = tuple(mixed)
             identity = hashlib.sha256(json.dumps([asdict(event) for event in events], sort_keys=True, default=str).encode()).hexdigest()

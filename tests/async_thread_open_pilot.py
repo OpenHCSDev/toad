@@ -9,7 +9,8 @@ from pathlib import Path
 from unittest.mock import patch
 
 from agent_comms.threads import Thread
-from agent_comms.transcripts import TranscriptCursor, TranscriptEvent, TranscriptPage
+from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcript_events import AssistantTranscript
 from agent_comms.comms import wire
 from runtime_fixture import ToadApp
 from toad.acp.agent import Agent
@@ -48,7 +49,7 @@ async def main():
                 started.set()
                 await release.wait()
                 cursor = TranscriptCursor("test", 0)
-                page = TranscriptPage((TranscriptEvent("assistant", "LOADED-HISTORY-END"),),
+                page = TranscriptPage((AssistantTranscript('LOADED-HISTORY-END'),),
                                       cursor, cursor, False, False)
                 target.post_message(TranscriptSnapshot(page.events, page))
                 target.post_message(AgentReady())

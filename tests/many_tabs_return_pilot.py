@@ -18,7 +18,8 @@ from unittest.mock import patch
 from weakref import ref
 
 from agent_comms.threads import Thread
-from agent_comms.transcripts import TranscriptCursor, TranscriptEvent, TranscriptPage
+from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcript_events import AssistantTranscript
 from agent_comms.comms import wire
 from runtime_fixture import ToadApp
 from textual.widget import Widget
@@ -61,7 +62,7 @@ async def main(*, empty=False, trace=False, observe=False, output=None, peers=0,
             wire(root / "wire").channels.set_channel(f"#fixture-{index}", frozenset({"fixture"}))
         body = "## Saved response\n\n" + "Paragraph **with markup** and content.\n\n" * 5
         body += "```python\n" + "def calculate(value): return value + 1\n" * 30 + "```\n"
-        events = tuple(TranscriptEvent("assistant", f"Record {i}\n\n" + body) for i in range(20))
+        events = tuple(AssistantTranscript(f'Record {i}\n\n' + body) for i in range(20))
         page = TranscriptPage(events, TranscriptCursor("fixture", 0),
                               TranscriptCursor("fixture", len(events)), False, False)
 

@@ -7,7 +7,8 @@ from pathlib import Path
 from unittest.mock import patch
 
 from agent_comms.threads import Thread
-from agent_comms.transcripts import TranscriptCursor, TranscriptEvent, TranscriptPage
+from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcript_events import AssistantTranscript
 from agent_comms.comms import wire
 from runtime_fixture import ToadApp
 from toad.widgets.comms_chat import CommsChatView
@@ -34,8 +35,7 @@ async def main():
         async with app.run_test(size=(110, 38)) as pilot:
             await pilot.pause()
             cursor = TranscriptCursor("fixture", 1)
-            page = TranscriptPage(tuple(TranscriptEvent("assistant", f"Record {i}\n\n" +
-                "\n".join(f"- item {j}" for j in range(20))) for i in range(30)),
+            page = TranscriptPage(tuple(AssistantTranscript(f'Record {i}\n\n' + '\n'.join((f'- item {j}' for j in range(20)))) for i in range(30)),
                 cursor, cursor, False, False)
             conversation = app.screen.conversation
             history = await conversation.post(TranscriptHistory(page))

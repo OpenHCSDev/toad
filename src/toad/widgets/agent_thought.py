@@ -1,4 +1,6 @@
 from __future__ import annotations
+
+from agent_comms.transcript_events import ThinkingTranscript
 from typing import ClassVar
 
 from textual.binding import Binding, BindingType
@@ -9,7 +11,7 @@ from toad.widgets.message_filter import CategorizedBlock, MessageCategory
 class AgentThought(CategorizedBlock, StreamingMarkdown, can_focus=True):
     """The agent's 'thoughts'."""
 
-    TRANSCRIPT_ROLE = "thinking"
+    TRANSCRIPT_EVENT = ThinkingTranscript
 
     @property
     def message_category(self) -> MessageCategory:

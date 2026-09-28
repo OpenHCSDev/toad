@@ -10,7 +10,8 @@ from typing import TYPE_CHECKING
 from markdown_it import MarkdownIt
 from markdown_it.token import Token
 
-from agent_comms.transcripts import TranscriptCursor, TranscriptEvent, TranscriptPage
+from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcript_events import AssistantTranscript
 from textual.await_complete import AwaitComplete
 from textual.widgets.markdown import MarkdownStream
 from textual.widget import Widget
@@ -27,7 +28,7 @@ if TYPE_CHECKING:
 
 class StreamingMarkdown(SnapshotPresentation, PreparedConversationMarkdown):
     RICH_TEXT_LIMIT = 1200
-    TRANSCRIPT_ROLE = "assistant"
+    TRANSCRIPT_EVENT = AssistantTranscript
 
     def __init__(self, markdown: str | None = None, *, paginate: bool = True,
                  prefix: tuple[Widget, ...] = (), **kwargs) -> None:
@@ -130,7 +131,7 @@ class StreamingMarkdown(SnapshotPresentation, PreparedConversationMarkdown):
                 return
             cursor = TranscriptCursor("", 0)
             page = TranscriptPage(
-                (TranscriptEvent(self.TRANSCRIPT_ROLE, source),),
+                (self.TRANSCRIPT_EVENT(source),),
                 cursor, cursor, False, False,
             )
             fragments = await prepare_transcript_fragments(

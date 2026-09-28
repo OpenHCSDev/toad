@@ -6,7 +6,8 @@ from pathlib import Path
 import tempfile
 
 from agent_comms.routing import MessageRoute, TurnRouting
-from agent_comms.transcripts import TranscriptCursor, TranscriptEvent, TranscriptPage
+from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcript_events import SentTranscript, ThinkingTranscript
 from runtime_fixture import ToadApp
 from toad.widgets.transcript_history import TranscriptHistory
 
@@ -22,10 +23,9 @@ async def main():
             conversation = app.screen.conversation
             conversation.in_out_only = True
             file = "read-only-fixture"
-            tail = tuple(TranscriptEvent("thinking", f"HIDDEN_TAIL_{index}")
+            tail = tuple(ThinkingTranscript(f'HIDDEN_TAIL_{index}')
                          for index in range(90))
-            older = TranscriptEvent("sent", "OLDER_ROUTED_MESSAGE",
-                                    routing=TurnRouting(reply=MessageRoute("owner", ("#team",))))
+            older = SentTranscript('OLDER_ROUTED_MESSAGE', routing=TurnRouting(reply=MessageRoute('owner', ('#team',))))
             calls = []
 
             async def load_page(**kwargs):
@@ -67,7 +67,7 @@ async def main():
 
             # More hidden fragments than the raw widget budget must not make
             # a still-empty filtered viewport permanently unscrollable.
-            longer_tail = tuple(TranscriptEvent("thinking", f"HIDDEN_OLDER_{index}")
+            longer_tail = tuple(ThinkingTranscript(f'HIDDEN_OLDER_{index}')
                                 for index in range(340))
             calls.clear()
             sparse = TranscriptHistory(TranscriptPage(
@@ -111,7 +111,7 @@ async def main():
             async def only_hidden(**kwargs):
                 empty_reads.append(kwargs["before"].offset)
                 offset = 50 if kwargs["before"].offset == 100 else 0
-                return TranscriptPage((TranscriptEvent("thinking", "NO_ROUTE"),),
+                return TranscriptPage((ThinkingTranscript('NO_ROUTE'),),
                                       TranscriptCursor(file, offset),
                                       TranscriptCursor(file, kwargs["before"].offset),
                                       bool(offset), True)
