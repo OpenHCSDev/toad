@@ -10,7 +10,7 @@ from toad.acp.messages import CommsUpdated
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.conversation import TurnActivity
 from agent_comms.acp_extension import CompactionChangedUpdate, TurnStartedUpdate, encode_updates
-from agent_comms.agent_events import CompactionStart, CompactionEnd
+from agent_comms.agent_events import CompactionStart, CompactionEnd, ManualCompactionEnd
 
 def compaction_packet(event):
     return {"sessionUpdate": "agent_message_chunk", "content": {
@@ -49,7 +49,7 @@ async def main():
             assert view.busy_count == 1 and 'Context estimate unavailable' in str(view.status)
             agent.rpc_session_update('fixture', compaction_packet(CompactionStart('threshold')))
             failure = 'Compaction provider returned HTTP 400.'
-            agent.rpc_session_update('fixture', compaction_packet(CompactionEnd('threshold', aborted=True, summary=failure)))
+            agent.rpc_session_update('fixture', compaction_packet(ManualCompactionEnd(aborted=True, summary=failure)))
             await pilot.pause()
             aborted = [item for item in view.contents.children if isinstance(item, AgentResponse) and 'Compaction aborted' in item.source]
             assert len(aborted) == 1 and view.busy_count == 1
