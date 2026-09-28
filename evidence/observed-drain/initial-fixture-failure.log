@@ -1,0 +1,42 @@
+F.                                                                       [100%]
+=================================== FAILURES ===================================
+____________________ pilot: observed_thread_activity_pilot _____________________
+Pilot failed: ExitedOutcome(code=1)
+Traceback (most recent call last):
+  File [35m"/home/ts/wt/toad-observed-drain-attention-20260928/tests/observed_thread_activity_pilot.py"[0m, line [35m27[0m, in [35muntil[0m
+    await asyncio.sleep(0.02)
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py"[0m, line [35m702[0m, in [35msleep[0m
+    return [1;31mawait future[0m
+           [1;31m^^^^^^^^^^^^[0m
+[1;35masyncio.exceptions.CancelledError[0m
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File [35m"/home/ts/wt/toad-observed-drain-attention-20260928/tests/observed_thread_activity_pilot.py"[0m, line [35m146[0m, in [35m<module>[0m
+    [31masyncio.run[0m[1;31m(main())[0m
+    [31m~~~~~~~~~~~[0m[1;31m^^^^^^^^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py"[0m, line [35m204[0m, in [35mrun[0m
+    return [31mrunner.run[0m[1;31m(main)[0m
+           [31m~~~~~~~~~~[0m[1;31m^^^^^^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py"[0m, line [35m127[0m, in [35mrun[0m
+    return [31mself._loop.run_until_complete[0m[1;31m(task)[0m
+           [31m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m[1;31m^^^^^^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py"[0m, line [35m719[0m, in [35mrun_until_complete[0m
+    return [31mfuture.result[0m[1;31m()[0m
+           [31m~~~~~~~~~~~~~[0m[1;31m^^[0m
+  File [35m"/home/ts/wt/toad-observed-drain-attention-20260928/tests/observed_thread_activity_pilot.py"[0m, line [35m72[0m, in [35mmain[0m
+    await until(
+    ...<4 lines>...
+    )
+  File [35m"/home/ts/wt/toad-observed-drain-attention-20260928/tests/observed_thread_activity_pilot.py"[0m, line [35m25[0m, in [35muntil[0m
+    async with [31masyncio.timeout[0m[1;31m(10)[0m:
+               [31m~~~~~~~~~~~~~~~[0m[1;31m^^^^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/timeouts.py"[0m, line [35m114[0m, in [35m__aexit__[0m
+    raise TimeoutError from exc_val
+[1;35mTimeoutError[0m
+
+Logs: /home/ts/wt/toad-observed-drain-attention-20260928/.artifacts/pilots/observed_thread_activity_pilot0
+=========================== short test summary info ============================
+FAILED tests/observed_thread_activity_pilot.py::observed_thread_activity_pilot
+1 failed, 1 passed in 25.74s
