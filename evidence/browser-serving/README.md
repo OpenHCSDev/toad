@@ -51,7 +51,8 @@ was replaced, with its superseded code retained only in Git history.
   frame-ancestors none and DENY.
 - Focused settings/T6/L0A/terminal deletion guards: **4 passed, 43 deselected**.
 - Shared per-class debt ratchet against current main: exit 0, **no positive
-  comparable deltas**. Full output is `debt-ratchet.txt`.
+  comparable deltas**. Its bounded summary is `debt-ratchet.txt`; this is not
+  a claim of a global NRA scan or preexisting baselines for newly added classes.
 - Ruff and `git diff --check` pass. CI is deferred; no full-suite claim is made.
 
 The earlier failing evidence is retained, including the actual unauthorized
