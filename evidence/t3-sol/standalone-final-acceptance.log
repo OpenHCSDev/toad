@@ -1,0 +1,112 @@
+....FF                                                                   [100%]
+=================================== FAILURES ===================================
+_________________________ pilot: command_family_pilot __________________________
+Pilot failed: ExitedOutcome(code=1)
+Traceback (most recent call last):
+  File [35m"/home/ts/wt/toad-t3-commands-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/child_process.py"[0m, line [35m804[0m, in [35m_stop[0m
+    return stage([1;31mawait self.wait()[0m)
+                 [1;31m^^^^^^^^^^^^^^^^^[0m
+  File [35m"/home/ts/wt/toad-t3-commands-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/child_process.py"[0m, line [35m1157[0m, in [35mwait[0m
+    await asyncio.sleep(0.02)
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py"[0m, line [35m702[0m, in [35msleep[0m
+    return [1;31mawait future[0m
+           [1;31m^^^^^^^^^^^^[0m
+[1;35masyncio.exceptions.CancelledError[0m
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File [35m"/home/ts/wt/toad-t3-commands-sol-20260928/tests/command_family_pilot.py"[0m, line [35m324[0m, in [35m<module>[0m
+    [31masyncio.run[0m[1;31m(main())[0m
+    [31m~~~~~~~~~~~[0m[1;31m^^^^^^^^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py"[0m, line [35m204[0m, in [35mrun[0m
+    return [31mrunner.run[0m[1;31m(main)[0m
+           [31m~~~~~~~~~~[0m[1;31m^^^^^^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py"[0m, line [35m127[0m, in [35mrun[0m
+    return [31mself._loop.run_until_complete[0m[1;31m(task)[0m
+           [31m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m[1;31m^^^^^^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py"[0m, line [35m719[0m, in [35mrun_until_complete[0m
+    return [31mfuture.result[0m[1;31m()[0m
+           [31m~~~~~~~~~~~~~[0m[1;31m^^[0m
+  File [35m"/home/ts/wt/toad-t3-commands-sol-20260928/tests/command_family_pilot.py"[0m, line [35m106[0m, in [35mmain[0m
+    async with [31mapp.run_test[0m[1;31m(size=(110, 38))[0m as pilot:
+               [31m~~~~~~~~~~~~[0m[1;31m^^^^^^^^^^^^^^^^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py"[0m, line [35m221[0m, in [35m__aexit__[0m
+    await anext(self.gen)
+  File [35m"/home/ts/wt/toad-t3-commands-sol-20260928/tests/runtime_fixture.py"[0m, line [35m54[0m, in [35mrun_test[0m
+    await stop_test_children(os.environ.get("TOAD_TEST_ATTEMPT"))
+  File [35m"/home/ts/wt/toad-t3-commands-sol-20260928/tests/runtime_fixture.py"[0m, line [35m38[0m, in [35mstop_test_children[0m
+    await DetachedProcess.attach(ProcessIdentity.capture(process.pid)).stop()
+  File [35m"/home/ts/wt/toad-t3-commands-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/child_process.py"[0m, line [35m1131[0m, in [35mstop[0m
+    return [1;31mawait super().stop()[0m
+           [1;31m^^^^^^^^^^^^^^^^^^^^[0m
+  File [35m"/home/ts/wt/toad-t3-commands-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/child_process.py"[0m, line [35m809[0m, in [35mstop[0m
+    return [1;31mawait _join_retirement(self._stop_task)[0m
+           [1;31m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  File [35m"/home/ts/wt/toad-t3-commands-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/child_process.py"[0m, line [35m749[0m, in [35m_join_retirement[0m
+    await asyncio.shield(task)
+  File [35m"/home/ts/wt/toad-t3-commands-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/child_process.py"[0m, line [35m803[0m, in [35m_stop[0m
+    async with [31masyncio.timeout[0m[1;31m(STOP_GRACE_SECONDS)[0m:
+               [31m~~~~~~~~~~~~~~~[0m[1;31m^^^^^^^^^^^^^^^^^^^^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/timeouts.py"[0m, line [35m114[0m, in [35m__aexit__[0m
+    raise TimeoutError from exc_val
+[1;35mTimeoutError[0m
+
+Logs: /home/ts/wt/toad-t3-commands-sol-20260928/.artifacts/standalone-final-acceptance/command_family_pilot0
+_______________________ pilot: typed_comms_command_pilot _______________________
+Pilot failed: ExitedOutcome(code=1)
+Traceback (most recent call last):
+  File [35m"/home/ts/wt/toad-t3-commands-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/child_process.py"[0m, line [35m804[0m, in [35m_stop[0m
+    return stage([1;31mawait self.wait()[0m)
+                 [1;31m^^^^^^^^^^^^^^^^^[0m
+  File [35m"/home/ts/wt/toad-t3-commands-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/child_process.py"[0m, line [35m1157[0m, in [35mwait[0m
+    await asyncio.sleep(0.02)
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py"[0m, line [35m702[0m, in [35msleep[0m
+    return [1;31mawait future[0m
+           [1;31m^^^^^^^^^^^^[0m
+[1;35masyncio.exceptions.CancelledError[0m
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File [35m"/home/ts/wt/toad-t3-commands-sol-20260928/tests/typed_comms_command_pilot.py"[0m, line [35m81[0m, in [35m<module>[0m
+    [31masyncio.run[0m[1;31m(main())[0m
+    [31m~~~~~~~~~~~[0m[1;31m^^^^^^^^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py"[0m, line [35m204[0m, in [35mrun[0m
+    return [31mrunner.run[0m[1;31m(main)[0m
+           [31m~~~~~~~~~~[0m[1;31m^^^^^^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py"[0m, line [35m127[0m, in [35mrun[0m
+    return [31mself._loop.run_until_complete[0m[1;31m(task)[0m
+           [31m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m[1;31m^^^^^^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py"[0m, line [35m719[0m, in [35mrun_until_complete[0m
+    return [31mfuture.result[0m[1;31m()[0m
+           [31m~~~~~~~~~~~~~[0m[1;31m^^[0m
+  File [35m"/home/ts/wt/toad-t3-commands-sol-20260928/tests/typed_comms_command_pilot.py"[0m, line [35m46[0m, in [35mmain[0m
+    async with [31mapp.run_test[0m[1;31m(size=(90,30))[0m as pilot:
+               [31m~~~~~~~~~~~~[0m[1;31m^^^^^^^^^^^^^^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py"[0m, line [35m221[0m, in [35m__aexit__[0m
+    await anext(self.gen)
+  File [35m"/home/ts/wt/toad-t3-commands-sol-20260928/tests/runtime_fixture.py"[0m, line [35m54[0m, in [35mrun_test[0m
+    await stop_test_children(os.environ.get("TOAD_TEST_ATTEMPT"))
+  File [35m"/home/ts/wt/toad-t3-commands-sol-20260928/tests/runtime_fixture.py"[0m, line [35m38[0m, in [35mstop_test_children[0m
+    await DetachedProcess.attach(ProcessIdentity.capture(process.pid)).stop()
+  File [35m"/home/ts/wt/toad-t3-commands-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/child_process.py"[0m, line [35m1131[0m, in [35mstop[0m
+    return [1;31mawait super().stop()[0m
+           [1;31m^^^^^^^^^^^^^^^^^^^^[0m
+  File [35m"/home/ts/wt/toad-t3-commands-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/child_process.py"[0m, line [35m809[0m, in [35mstop[0m
+    return [1;31mawait _join_retirement(self._stop_task)[0m
+           [1;31m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  File [35m"/home/ts/wt/toad-t3-commands-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/child_process.py"[0m, line [35m749[0m, in [35m_join_retirement[0m
+    await asyncio.shield(task)
+  File [35m"/home/ts/wt/toad-t3-commands-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/child_process.py"[0m, line [35m803[0m, in [35m_stop[0m
+    async with [31masyncio.timeout[0m[1;31m(STOP_GRACE_SECONDS)[0m:
+               [31m~~~~~~~~~~~~~~~[0m[1;31m^^^^^^^^^^^^^^^^^^^^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/timeouts.py"[0m, line [35m114[0m, in [35m__aexit__[0m
+    raise TimeoutError from exc_val
+[1;35mTimeoutError[0m
+
+Logs: /home/ts/wt/toad-t3-commands-sol-20260928/.artifacts/standalone-final-acceptance/typed_comms_command_pilot0
+=========================== short test summary info ============================
+FAILED tests/command_family_pilot.py::command_family_pilot - Failed: Pilot fa...
+FAILED tests/typed_comms_command_pilot.py::typed_comms_command_pilot - Failed...
+2 failed, 4 passed in 22.04s

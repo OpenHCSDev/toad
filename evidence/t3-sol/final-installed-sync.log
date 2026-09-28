@@ -1,0 +1,7 @@
+Resolved 95 packages in 0.77ms
+   Building batrachian-toad @ file:///home/ts/wt/toad-t3-commands-sol-20260928
+      Built batrachian-toad @ file:///home/ts/wt/toad-t3-commands-sol-20260928
+Prepared 1 package in 447ms
+Uninstalled 1 package in 9ms
+Installed 1 package in 4ms
+ ~ batrachian-toad==0.6.20 (from file:///home/ts/wt/toad-t3-commands-sol-20260928)
