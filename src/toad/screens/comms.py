@@ -5,24 +5,28 @@ from textual import containers, getters, on
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.events import ScreenResume
-from textual.widgets import Static, Button
 from textual.widget import Widget
-from toad.widgets.footer import Footer
+from textual.widgets import Button, Static
 
 from toad import messages
-from toad.constants import ALL_COMMS_TARGET
 from toad.app import ToadApp
 from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.irc_message import SelectHistoricalIdentity
 from toad.widgets.comms_sidebar import CoordinationStatus, CommsSidebar, SelectTarget
 from toad.widgets.channels_sidebar import ChannelsSlot, ChannelsSidebar
 from toad.session_tracker import SidebarState
+from toad.widgets.channels_sidebar import ChannelsSlot
+from toad.widgets.comms_chat import CommsChatView
+from toad.widgets.comms_fork_dialog import ForkDialog
+from toad.widgets.comms_sidebar import CommsSidebar, CoordinationStatus, SelectTarget
+from toad.widgets.footer import Footer
+from toad.widgets.irc_message import SelectHistoricalIdentity
+from toad.widgets.recovery_view import RecoveryView
 from toad.widgets.session_tabs import SessionsTabs
 from toad.widgets.side_bar import SideBar, ThreadSidebar, TabHistoryControls
 from toad.navigation_target import FeedTarget, DirectTarget, NavigationContext, NavigationOwner
 from toad.widgets.recovery_view import RecoveryView
 from toad.widgets.thread_comms import RelationshipSort, ThreadCommsSidebar
-from toad.screens.session_view import SessionView
 
 
 class CommsScreen(SessionView, NavigationOwner, can_focus=False):
@@ -80,6 +84,10 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
 
     app = getters.app(ToadApp)
 
+    @property
+    def coordination_root(self) -> str | None:
+        return self.wire_root
+
     def channels_context(self) -> tuple[str, str]:
         return self.me, self.target
 
@@ -120,23 +128,30 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
     async def select_historical_identity(self, event: SelectHistoricalIdentity) -> None:
         event.stop()
         from toad.screens.historical_sessions import HistoricalSessions
+
         comms = self.app.coordination_wire
         threads = await asyncio.to_thread(comms.views.historical_threads, event.name)
         if not threads:
             self.notify("This sender has no preserved identity declaration.")
             return
-        self.app.push_screen(HistoricalSessions(comms, threads, name=event.name, source=event.source))
+        self.app.push_screen(
+            HistoricalSessions(comms, threads, name=event.name, source=event.source)
+        )
 
     @on(Button.Pressed, "#historical-sessions")
     async def action_historical_sessions(self) -> None:
         from toad.screens.historical_sessions import HistoricalSessions
+
         comms = self.app.coordination_wire
         threads = await asyncio.to_thread(comms.views.historical_threads)
         if not threads:
             self.notify("No preserved history sources are attached yet.")
             return
-        self.app.push_screen(HistoricalSessions(comms, threads,
-            name=self.target if self.kind == "dm" else None))
+        self.app.push_screen(
+            HistoricalSessions(
+                comms, threads, name=self.target if self.kind == "dm" else None
+            )
+        )
 
     def on_mount(self) -> None:
         if not self._content_loaded:
@@ -179,9 +194,14 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
             with self.app.batch_update():
                 content = self.query_one("#comms-content", containers.Vertical)
                 await content.remove_children()
-                await content.mount(CommsChatView(
-                    self.project_path, me=self.me, target=self.target, kind=self.kind,
-                ))
+                await content.mount(
+                    CommsChatView(
+                        self.project_path,
+                        me=self.me,
+                        target=self.target,
+                        kind=self.kind,
+                    )
+                )
                 if self.is_attached:
                     self._prepare_content()
                     if self.is_current:

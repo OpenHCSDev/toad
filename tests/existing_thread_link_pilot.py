@@ -9,8 +9,8 @@ from pathlib import Path
 from unittest.mock import patch
 
 from agent_comms.child_process import ProcessIdentity
-from agent_comms.threads import Thread
 from agent_comms.comms import wire
+from agent_comms.threads import Thread
 from runtime_fixture import ToadApp
 
 from toad.widgets.comms_chat import CommsChatView
@@ -31,20 +31,27 @@ async def main():
         )
         comms = wire(wire_root)
         for name in ("owner", "peer"):
-            comms.threads.register(Thread(name, frozenset(), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
+            comms.threads.register(
+                Thread(
+                    name,
+                    frozenset(),
+                    str(root),
+                    process_identity=ProcessIdentity.capture(os.getpid()),
+                )
+            )
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(100, 36)) as pilot:
             await pilot.pause()
             owner = app.current_mode
             source = app.screen
-            source._coordination_root = str(wire_root)
+            source.initial_coordination_root = str(wire_root)
             source._comms_thread = "owner"
             foreign = (await app.new_session_screen(app.get_main_screen)).mode_name
-            app.screen._coordination_root = str(root / "foreign-wire")
+            app.screen.initial_coordination_root = str(root / "foreign-wire")
             app.screen._comms_thread = "peer"
             existing = (await app.new_session_screen(app.get_main_screen)).mode_name
             destination = app.screen
-            destination._coordination_root = str(wire_root)
+            destination.initial_coordination_root = str(wire_root)
             destination._comms_thread = "peer"
             destination.conversation.prompt.text = "Keep this draft"
             await app.switch_mode(owner)
@@ -55,25 +62,34 @@ async def main():
             pending_index = app._pending_thread_index
             with (
                 patch.object(app, "add_mode", wraps=app.add_mode) as added,
-                patch.object(app.navigation_reader, "read", wraps=app.navigation_reader.read) as reads,
+                patch.object(
+                    app.navigation_reader, "read", wraps=app.navigation_reader.read
+                ) as reads,
             ):
                 assert await pilot.click(link)
                 await pilot.pause()
                 async with asyncio.timeout(3):
                     while app.current_mode != existing:
-                        await pilot.pause(.05)
+                        await pilot.pause(0.05)
                 assert app.screen is destination and app.current_mode != foreign
                 assert added.call_count == 0, "Existing link created a transient tab"
-                assert reads.call_count == 0, "Existing mounted identity needed route discovery"
+                assert reads.call_count == 0, (
+                    "Existing mounted identity needed route discovery"
+                )
                 assert app._pending_thread_index == pending_index
                 assert tuple(app._open_tab_order) == order
                 assert destination.conversation.prompt.text == "Keep this draft"
                 assert not app._pending_thread_modes
                 # Repeated/self links reuse the very same mounted screen too.
                 for _ in range(2):
-                    assert await app.open_thread_session(
-                        owner_mode=existing, project_path=root, target="peer",
-                    ) == existing
+                    assert (
+                        await app.open_thread_session(
+                            owner_mode=existing,
+                            project_path=root,
+                            target="peer",
+                        )
+                        == existing
+                    )
                 assert added.call_count == 0 and reads.call_count == 0
 
             # Comms views inherit Conversation's mouse handlers but deliberately
@@ -102,14 +118,16 @@ async def main():
                 await pilot.pause()
                 async with asyncio.timeout(3):
                     while app.current_mode != existing:
-                        await pilot.pause(.05)
+                        await pilot.pause(0.05)
                 assert app.screen is destination
                 assert added.call_count == 0
                 assert tuple(app._open_tab_order) == order
                 assert destination.conversation.prompt.text == "Keep this draft"
             assert app._exception is None
         await asyncio.get_running_loop().shutdown_default_executor()
-    print("existing thread link: direct focus, no transient tab/IO, root isolation and draft preserved")
+    print(
+        "existing thread link: direct focus, no transient tab/IO, root isolation and draft preserved"
+    )
 
 
 if __name__ == "__main__":

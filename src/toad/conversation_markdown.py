@@ -1,6 +1,6 @@
 import asyncio
-import re
 import os
+import re
 from collections import OrderedDict
 from pathlib import Path
 from threading import local
@@ -10,18 +10,16 @@ from urllib.parse import quote, unquote, urlsplit
 from markdown_it import MarkdownIt
 from markdown_it.rules_core import StateCore
 from markdown_it.token import Token
-from textual.widgets import Markdown
 from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
+from textual.layout import WidgetPlacement
+from textual.widgets import Markdown
 from textual.widgets._markdown import MarkdownBlock
 
-
-from toad.menus import MenuItem
 from toad.layout import trim_trailing_margin
-from textual.layout import WidgetPlacement
+from toad.menus import MenuItem
 
 
 class ConversationCodeFence(Markdown.BLOCKS["fence"]):
-
     def get_block_menu(self) -> Iterable[MenuItem]:
         yield from ()
 
@@ -48,7 +46,7 @@ def _resolve_path(root: Path, value: str) -> Path | None:
     try:
         candidate = candidate.resolve()
         return candidate if candidate.is_file() else None
-    except (OSError, RuntimeError):
+    except OSError, RuntimeError:
         return None
 
 
@@ -70,8 +68,14 @@ def _searchable_basename(href: str) -> str | None:
     if parsed.scheme or parsed.netloc or parsed.fragment or parsed.query:
         return None
     name = unquote(parsed.path)
-    return (name if name and Path(name).name == name and Path(name).suffix
-            and not name.startswith(".") else None)
+    return (
+        name
+        if name
+        and Path(name).name == name
+        and Path(name).suffix
+        and not name.startswith(".")
+        else None
+    )
 
 
 def _unique_project_file(root: Path, name: str) -> tuple[Path | None, str]:
@@ -91,8 +95,11 @@ def _unique_project_file(root: Path, name: str) -> tuple[Path | None, str]:
             files_seen += len(files)
             if directories > 800 or files_seen > 8000:
                 return None, "limit"
-            directories_here[:] = [directory for directory in directories_here
-                                   if not directory.startswith(".") and directory not in ignored]
+            directories_here[:] = [
+                directory
+                for directory in directories_here
+                if not directory.startswith(".") and directory not in ignored
+            ]
             if name not in files:
                 continue
             path = _resolve_path(root, str(Path(current) / name))
@@ -158,7 +165,14 @@ def _path_parser(root: Path) -> MarkdownIt:
                     else:
                         href = f"toad-file:{quote(str(path))}"
                     if match.start() > position:
-                        children.append(Token("text", "", 0, content=child.content[position:match.start()]))
+                        children.append(
+                            Token(
+                                "text",
+                                "",
+                                0,
+                                content=child.content[position : match.start()],
+                            )
+                        )
                     children.append(
                         Token(
                             "link_open",
@@ -175,7 +189,9 @@ def _path_parser(root: Path) -> MarkdownIt:
                     position = match.end()
                 if position:
                     if position < len(child.content):
-                        children.append(Token("text", "", 0, content=child.content[position:]))
+                        children.append(
+                            Token("text", "", 0, content=child.content[position:])
+                        )
                 else:
                     children.append(child)
             block.children = children
@@ -224,27 +240,35 @@ class ConversationMarkdown(Markdown):
         super().__init__(*args, **kwargs)
 
     def _make_parser(self) -> _ThreadLocalPathParser:
-        project = Path(getattr(self.screen, "project_path", Path.cwd()))
+        project = Path(self.screen.project_path)
         return _ThreadLocalPathParser(project.resolve())
 
     async def on_markdown_link_clicked(self, event: Markdown.LinkClicked) -> None:
         screen = self.screen
-        root = Path(getattr(screen, "project_path", Path.cwd())).resolve()
+        root = Path(screen.project_path).resolve()
         if event.href.startswith("toad-file:"):
             path = Path(unquote(event.href.removeprefix("toad-file:")))
         elif event.href.startswith("toad-file-search:"):
             name = unquote(event.href.removeprefix("toad-file-search:"))
             path, status = await asyncio.to_thread(_unique_project_file, root, name)
             if path is None:
-                self.notify(_file_lookup_notice(name, root, status),
-                            title="File preview", severity="warning")
+                self.notify(
+                    _file_lookup_notice(name, root, status),
+                    title="File preview",
+                    severity="warning",
+                )
                 return
         elif path := _linked_file(root, event.href):
             pass
-        elif (urlsplit(event.href).scheme in {"", "file"}
-              and Path(urlsplit(event.href).path).suffix):
-            self.notify(f"File not found: {event.href} (project: {root})",
-                        title="File preview", severity="warning")
+        elif (
+            urlsplit(event.href).scheme in {"", "file"}
+            and Path(urlsplit(event.href).path).suffix
+        ):
+            self.notify(
+                f"File not found: {event.href} (project: {root})",
+                title="File preview",
+                severity="warning",
+            )
             return
         else:
             self.app.open_url(event.href)
@@ -256,7 +280,9 @@ class ConversationMarkdown(Markdown):
         await open_preview(path)
 
     @height_dependency(INDEPENDENT_HEIGHT)
-    def process_layout(self, placements: list[WidgetPlacement]) -> list[WidgetPlacement]:
+    def process_layout(
+        self, placements: list[WidgetPlacement]
+    ) -> list[WidgetPlacement]:
         return trim_trailing_margin(placements)
 
     def get_block_class(self, block_name: str) -> type[MarkdownBlock]:

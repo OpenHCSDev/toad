@@ -1,23 +1,23 @@
 """Shared activation policy for already-mounted conversation views."""
 
+import asyncio
+from collections.abc import Callable
 from dataclasses import dataclass, replace
 from functools import cached_property
-from collections.abc import Callable
 from typing import TYPE_CHECKING, cast
-import asyncio
 
-from textual.events import Resize, ScreenResume
 from textual.css.model import RuleSet, SelectorType
 from textual.css.stylesheet import CssSource
 from textual.dom import DOMNode
+from textual.events import Resize, ScreenResume
 from textual.geometry import Size
 from textual.screen import Screen
 from textual.widget import Widget
+
 from toad.widgets.side_bar import SidebarFocusOwner
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
-    from toad.widgets.history_anchor import HistoryWindow
 
 
 @dataclass(frozen=True)
@@ -44,9 +44,14 @@ class SessionView(SidebarFocusOwner, Screen):
     _presentation_revision = 0
     _navigation_frame_pending = False
 
+    @property
+    def coordination_root(self) -> str | None:
+        return None
+
     @cached_property
     def viewport_presentation(self):
         from toad.widgets.viewport_body import ViewportPresentation
+
         return ViewportPresentation(self)
 
     def on_screen_suspend(self) -> None:
@@ -62,21 +67,30 @@ class SessionView(SidebarFocusOwner, Screen):
 
     async def wait_presented(self) -> bool:
         await self._presented_event.wait()
-        return self.is_attached and self.is_current and not self._navigation_frame_pending
+        return (
+            self.is_attached and self.is_current and not self._navigation_frame_pending
+        )
 
     @cached_property
-    def _initial_frame_callbacks(self) -> dict[tuple[Widget, Callable[[], object]], None]:
+    def _initial_frame_callbacks(
+        self,
+    ) -> dict[tuple[Widget, Callable[[], object]], None]:
         return {}
 
-    def call_after_first_frame(self, owner: Widget, callback: Callable[[], object]) -> None:
+    def call_after_first_frame(
+        self, owner: Widget, callback: Callable[[], object]
+    ) -> None:
         """Defer initial source work until this view's first presented frame.
 
         A normal after-refresh callback can run inside a paint-suppressed
         navigation batch. The owning widget still receives and executes the
         callback through its ordinary message pump once presentation completes.
         """
-        if (self._first_frame_presented and not self._navigation_frame_pending
-                and not cast("ToadApp", self.app)._atomic_mode_switch):
+        if (
+            self._first_frame_presented
+            and not self._navigation_frame_pending
+            and not cast("ToadApp", self.app)._atomic_mode_switch
+        ):
             owner.call_after_refresh(callback)
         elif not self._closing and not self._closed:
             self._initial_frame_callbacks[owner, callback] = None
@@ -127,8 +141,12 @@ class SessionView(SidebarFocusOwner, Screen):
 
     def _style_revision(self) -> ViewStyleRevision:
         return ViewStyleRevision(
-            self.app.theme, self.app.classes, self.classes, self.app.size,
-            tuple(self.app.stylesheet.source.items()), self.app._css_update_count,
+            self.app.theme,
+            self.app.classes,
+            self.classes,
+            self.app.size,
+            tuple(self.app.stylesheet.source.items()),
+            self.app._css_update_count,
         )
 
     def update_node_styles(self, animate: bool = True) -> None:
@@ -140,8 +158,11 @@ class SessionView(SidebarFocusOwner, Screen):
 
     def _on_timer_update(self) -> None:
         app = cast("ToadApp", self.app)
-        if app._atomic_mode_switch or (self.is_current and app._pending_mode_switch is not None
-                and app._pending_mode_switch != self.id):
+        if app._atomic_mode_switch or (
+            self.is_current
+            and app._pending_mode_switch is not None
+            and app._pending_mode_switch != self.id
+        ):
             # Keep invalidation flags while the selected tree is reconciled,
             # and on busy screens the reader is leaving. layout_navigation owns
             # the transaction's geometry; ordinary timers resume afterward.
@@ -160,7 +181,9 @@ class SessionView(SidebarFocusOwner, Screen):
             # screen after ending the transaction, including error paths.
             self._repaint_required = True
             return
-        if not self.viewport_presentation.prepare(self._navigation_frame_pending and self._first_frame_presented):
+        if not self.viewport_presentation.prepare(
+            self._navigation_frame_pending and self._first_frame_presented
+        ):
             return
         super()._compositor_refresh()
 
@@ -179,9 +202,12 @@ class SessionView(SidebarFocusOwner, Screen):
         return self.is_current
 
     def _layout_geometry_targets(self) -> tuple[Widget, ...]:
-        return tuple(target for window in self.viewport_presentation.anchors
-                     if window.history_anchor is not None
-                     for target in window.history_anchor.geometry_targets)
+        return tuple(
+            target
+            for window in self.viewport_presentation.anchors
+            if window.history_anchor is not None
+            for target in window.history_anchor.geometry_targets
+        )
 
     def _refresh_layout(self, size: Size | None = None, scroll: bool = False) -> None:
         from toad.widgets.history_anchor import HistoryAnchor
@@ -193,7 +219,8 @@ class SessionView(SidebarFocusOwner, Screen):
         anchors = [
             (window, window.history_anchor.before_layout(window))
             for window in tracked
-            if window.history_anchor is not None and window.history_anchor.widget.is_attached
+            if window.history_anchor is not None
+            and window.history_anchor.widget.is_attached
         ]
         if not anchors:
             super()._refresh_layout(size, scroll)
@@ -226,10 +253,15 @@ class SessionView(SidebarFocusOwner, Screen):
             # measures their completed tree; retain real resize invalidation.
             self._layout_required |= self._size != size
             return
-        if (self.stack_updates and self.is_attached
-                and self._navigation_applied and not self._resume_styles_changed
-                and self._size == size and not self._layout_required
-                and not self._layout_widgets):
+        if (
+            self.stack_updates
+            and self.is_attached
+            and self._navigation_applied
+            and not self._resume_styles_changed
+            and self._size == size
+            and not self._layout_required
+            and not self._layout_widgets
+        ):
             # A resumed mounted tab has already been measured at this width.
             # Textual's full reflow walks all descendants even when only the
             # viewport/visibility needs reconciliation. Keep the full path
@@ -237,8 +269,12 @@ class SessionView(SidebarFocusOwner, Screen):
             self._refresh_layout(size, scroll=True)
         else:
             super()._screen_resized(size)
-            if (self.stack_updates and self.is_attached and self._size == size
-                    and not self._layout_widgets):
+            if (
+                self.stack_updates
+                and self.is_attached
+                and self._size == size
+                and not self._layout_widgets
+            ):
                 # Mode activation just performed and painted a full reflow.
                 # Textual leaves the earlier _layout_required bit set for its
                 # later timer, so layout_navigation otherwise reflows the
@@ -253,7 +289,8 @@ class SessionView(SidebarFocusOwner, Screen):
         # the compositor commits its next map. A stale hit is not a valid new
         # selection endpoint (Textual otherwise asserts that it has a parent).
         if widget is not None and (
-            not widget.is_attached or (offset is not None and not isinstance(widget.parent, Widget))
+            not widget.is_attached
+            or (offset is not None and not isinstance(widget.parent, Widget))
         ):
             return None, None
         return widget, offset
@@ -282,7 +319,9 @@ class SessionView(SidebarFocusOwner, Screen):
             panels = tuple(side_bar.query(SideBarCollapsible))
             before = tuple(panel.collapsed for panel in panels)
             self._navigation_changed |= side_bar.restore_navigation()
-            self._navigation_changed |= before != tuple(panel.collapsed for panel in panels)
+            self._navigation_changed |= before != tuple(
+                panel.collapsed for panel in panels
+            )
             side_bar.schedule_hydration()
         if sidebar := self.query_one_optional(CommsSidebar):
             sidebar.prepare_navigation()
@@ -296,9 +335,14 @@ class SessionView(SidebarFocusOwner, Screen):
         from toad.widgets.comms_sidebar import CommsSidebar
 
         sidebar = self.query_one_optional(CommsSidebar)
-        if (self._navigation_applied and not self._navigation_changed
-                and self._size == self.app.size and not self._layout_required
-                and not self._scroll_required and not self._layout_widgets):
+        if (
+            self._navigation_applied
+            and not self._navigation_changed
+            and self._size == self.app.size
+            and not self._layout_required
+            and not self._scroll_required
+            and not self._layout_widgets
+        ):
             # Textual's ScreenResume already reflowed this mounted screen.
             # Repeating its full compositor pass on every tab activation is
             # unnecessary when navigation/geometry did not change.
@@ -332,7 +376,11 @@ class SessionView(SidebarFocusOwner, Screen):
         previous = self._resume_style
         changed = event.refresh_styles and previous is not None and revision != previous
         partially_refreshed = False
-        if changed and previous is not None and replace(previous, sources=sources) == revision:
+        if (
+            changed
+            and previous is not None
+            and replace(previous, sources=sources) == revision
+        ):
             targets = self._changed_source_targets(previous.sources, sources)
             if targets is not None:
                 self.app.stylesheet.update_nodes(targets, animate=False)
@@ -355,16 +403,30 @@ class SessionView(SidebarFocusOwner, Screen):
         means source reordering requires the ordinary complete refresh.
         """
         old, new = dict(previous), dict(current)
-        if [location for location in old if location in new] != [location for location in new if location in old]:
+        if [location for location in old if location in new] != [
+            location for location in new if location in old
+        ]:
             return None
-        changed = [(location, source) for location, source in previous if new.get(location) != source]
-        changed.extend((location, source) for location, source in current if old.get(location) != source)
+        changed = [
+            (location, source)
+            for location, source in previous
+            if new.get(location) != source
+        ]
+        changed.extend(
+            (location, source)
+            for location, source in current
+            if old.get(location) != source
+        )
         if not changed:
             return []
 
         nodes = list(self.walk_children(with_self=True))
-        virtual_nodes = [virtual for node in nodes if isinstance(node, Widget)
-                         for virtual in node._get_virtual_dom()]
+        virtual_nodes = [
+            virtual
+            for node in nodes
+            if isinstance(node, Widget)
+            for virtual in node._get_virtual_dom()
+        ]
         nodes.extend(virtual_nodes)
         css_types: set[str] = set()
         for node in [*nodes, *self.ancestors]:
@@ -377,22 +439,34 @@ class SessionView(SidebarFocusOwner, Screen):
         possible_rules: list[RuleSet] = []
         for location, source in changed:
             rules = stylesheet._parse_rules(
-                source.content, location, is_default_rules=source.is_defaults,
-                tie_breaker=source.tie_breaker, scope=source.scope,
+                source.content,
+                location,
+                is_default_rules=source.is_defaults,
+                tie_breaker=source.tie_breaker,
+                scope=source.scope,
             )
-            possible_rules.extend(rule for rule in rules if any(
-                all(selector.type is not SelectorType.TYPE or selector.name in css_types
-                    for selector in group.selectors) for group in rule.selector_set
-            ))
+            possible_rules.extend(
+                rule
+                for rule in rules
+                if any(
+                    all(
+                        selector.type is not SelectorType.TYPE
+                        or selector.name in css_types
+                        for selector in group.selectors
+                    )
+                    for group in rule.selector_set
+                )
+            )
         targets: set[DOMNode] = set()
         for node in nodes:
             component_names = {f".{name}" for name in node._get_component_classes()}
             for rule in possible_rules:
                 # Virtual component matching happens inside update_nodes. Keep its
                 # owner whenever a changed rule could address a component class.
-                if (rule.selector_names & component_names or
-                        (rule.selector_names & node._selector_names
-                         and any(stylesheet._check_rule(rule, node.css_path_nodes)))):
+                if rule.selector_names & component_names or (
+                    rule.selector_names & node._selector_names
+                    and any(stylesheet._check_rule(rule, node.css_path_nodes))
+                ):
                     targets.update(node.walk_children(with_self=True))
                     break
         # Preserve ancestor-before-descendant application, as a full CSS update

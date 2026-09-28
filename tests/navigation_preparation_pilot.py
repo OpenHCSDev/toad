@@ -4,18 +4,21 @@ from toad.navigation_target import channel_target, ThreadTarget
 
 import asyncio
 import os
-from pathlib import Path
 import tempfile
 import threading
+from pathlib import Path
 from unittest.mock import patch
 
 from agent_comms.child_process import ProcessIdentity
-from agent_comms.threads import Thread
 from agent_comms.comms import wire
-
+from agent_comms.threads import Thread
 from runtime_fixture import ToadApp
+
 from toad.navigation_preparation import (
-    CommsNavigationRequest, NavigationReader, NavigationRequest, ThreadNavigationRequest,
+    CommsNavigationRequest,
+    NavigationReader,
+    NavigationRequest,
+    ThreadNavigationRequest,
 )
 
 
@@ -75,17 +78,31 @@ async def admission() -> None:
 async def mounted() -> None:
     with tempfile.TemporaryDirectory(prefix="toad-route-read-") as directory:
         root = Path(directory)
-        os.environ.update(AGENT_COMMS_ROOT=str(root / "wire"), XDG_CONFIG_HOME=str(root / "config"),
-                          XDG_STATE_HOME=str(root / "state"), XDG_DATA_HOME=str(root / "data"))
+        os.environ.update(
+            AGENT_COMMS_ROOT=str(root / "wire"),
+            XDG_CONFIG_HOME=str(root / "config"),
+            XDG_STATE_HOME=str(root / "state"),
+            XDG_DATA_HOME=str(root / "data"),
+        )
         comms = wire(root / "wire")
-        comms.threads.register(Thread("metadata-peer", frozenset(), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
+        comms.threads.register(
+            Thread(
+                "metadata-peer",
+                frozenset(),
+                str(root),
+                process_identity=ProcessIdentity.capture(os.getpid()),
+            )
+        )
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(100, 32)) as pilot:
             await pilot.pause()
             owner = app.current_mode
             source = app.screen
             other = (await app.new_session_screen(app.get_main_screen)).mode_name
-            for request_type, kind in ((ThreadNavigationRequest, "thread"), (CommsNavigationRequest, "channel")):
+            for request_type, kind in (
+                (ThreadNavigationRequest, "thread"),
+                (CommsNavigationRequest, "channel"),
+            ):
                 await app.switch_mode(owner)
                 await pilot.pause()
                 entered, release = threading.Event(), threading.Event()
@@ -107,10 +124,16 @@ async def mounted() -> None:
                             target=ThreadTarget("metadata-peer") if kind == "thread" else channel_target("#all"),
                         ))
                         assert await asyncio.to_thread(entered.wait, 2)
-                        assert thread_ids == [thread_ids[0]] and thread_ids[0] != threading.get_ident()
+                        assert (
+                            thread_ids == [thread_ids[0]]
+                            and thread_ids[0] != threading.get_ident()
+                        )
                         if kind == "thread":
                             assert app.current_mode.startswith("pending-thread-")
-                            assert any(tab.title == "⌛ @metadata-peer" for tab in app.open_tabs)
+                            assert any(
+                                tab.title == "⌛ @metadata-peer"
+                                for tab in app.open_tabs
+                            )
                             await asyncio.wait_for(app.switch_mode(owner), 2)
                         source.conversation.prompt.focus()
                         await pilot.press("k", "e", "e", "p")
@@ -119,8 +142,12 @@ async def mounted() -> None:
                         assert not release.is_set() and not opening.done()
                         release.set()
                         assert await asyncio.wait_for(opening, 2) == other
-                        assert app.current_mode == other, "Old route metadata stole focus"
-                        assert not app._comms_modes, "Superseded route created an unused tab"
+                        assert app.current_mode == other, (
+                            "Old route metadata stole focus"
+                        )
+                        assert not app._comms_modes, (
+                            "Superseded route created an unused tab"
+                        )
                         assert not app._pending_thread_modes
                 finally:
                     release.set()
@@ -130,11 +157,13 @@ async def mounted() -> None:
             # Canonical aliases must reuse open threads even before their UI
             # receives the asynchronous coordination rename notification.
             existing = app._main_session_screen(other)
-            existing._coordination_root = str(root / "wire")
+            existing.initial_coordination_root = str(root / "wire")
             existing._comms_thread = "metadata-peer"
             comms.registry.rename("metadata-peer", "metadata-renamed")
             reused = await app.open_thread_session(
-                owner_mode=owner, project_path=root, target="metadata-peer",
+                owner_mode=owner,
+                project_path=root,
+                target="metadata-peer",
             )
             assert reused == other and app.session_tracker.session_count == 2
 
@@ -169,10 +198,13 @@ async def mounted() -> None:
         # them before removing the temporary wire, also under parallel pilots.
         await asyncio.get_running_loop().shutdown_default_executor()
 
+
 async def main():
     await admission()
     await mounted()
-    print("navigation metadata: off-loop reads, typing, latest intent, closed owner, bounded cancellation and drainage OK")
+    print(
+        "navigation metadata: off-loop reads, typing, latest intent, closed owner, bounded cancellation and drainage OK"
+    )
 
 
 if __name__ == "__main__":

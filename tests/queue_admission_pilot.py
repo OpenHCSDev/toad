@@ -12,11 +12,24 @@ from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
 from agent_comms.acp import CommsAgent
+from agent_comms.acp_extension import (
+    InputDeliveryChangedUpdate,
+    InputStartedUpdate,
+    QueuePromptRequest,
+    decode_updates,
+    encode_request,
+)
 from agent_comms.child_process import ProcessIdentity
 from agent_comms.comms import Comms
 from agent_comms.threads import Thread
 from runtime_fixture import ToadApp
-from queue_view_pilot import AGENT
+
+AGENT = {
+    "name": "Queue",
+    "identity": "queue",
+    "run_command": {"*": "true"},
+    "protocol": "acp",
+}
 from toad.acp.agent import Agent
 from toad.widgets.prompt import QueueSummary
 from toad.widgets.user_input import UserInput
@@ -32,6 +45,7 @@ async def main():
             XDG_STATE_HOME=str(root / "state"),
         )
         comms = Comms(root / "wire")
+        comms.messaging.initialize_private_initial_protocol()
         comms.threads.register(
             Thread(
                 "beta",
@@ -91,16 +105,14 @@ async def main():
                     response = await producer.prompt(
                         "beta",
                         [{"type": "text", "text": "local queued task"}],
-                        agentComms={
-                            "delivery": "queue",
-                            "deferDisplay": True,
-                            "userText": text,
-                        },
+                        field_meta=encode_request(QueuePromptRequest(text, True)),
                     )
                     await pilot.pause()
-                    return response.field_meta["agentComms"]["inputDisposition"][
-                        "inputId"
-                    ]
+                    return next(
+                        f.input_id
+                        for f in decode_updates(response.field_meta)
+                        if isinstance(f, InputDeliveryChangedUpdate)
+                    )
 
                 await load()
                 view.prompt.text = "local editable draft"
@@ -122,7 +134,10 @@ async def main():
                 started = next(
                     packet
                     for packet in callbacks
-                    if "inputStarted" in packet["_meta"]["agentComms"]
+                    if any(
+                        isinstance(f, InputStartedUpdate)
+                        for f in decode_updates(packet["_meta"])
+                    )
                 )
                 consumer.rpc_session_update("beta", started)
                 await pilot.pause()
@@ -137,9 +152,7 @@ async def main():
                 assert (
                     producer.inputs.dispositions.read().rows["acp:" + ids[1]].unresolved
                 )
-                for packet in callbacks:
-                    metadata = packet["_meta"]["agentComms"]
-                    assert "queue" not in metadata and "restored" not in metadata
+                assert all(decode_updates(packet["_meta"]) for packet in callbacks)
                 producer.inputs.backend_inboxes["beta"] = asyncio.Queue()
                 invalid = await enqueue("\ud800")
                 assert view.queue_projection.status == "unavailable"

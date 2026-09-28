@@ -8,7 +8,9 @@ from pathlib import Path
 
 from agent_comms.acp import CommsAgent
 from agent_comms.goal_attempts import GoalAttemptStore
+from comms_boundary_fixture import attach_coordination
 from runtime_fixture import private_native_wire
+
 from toad.acp.agent import Agent
 
 
@@ -27,7 +29,9 @@ async def owner_set_route() -> None:
             agent_args=["--provider", "openrouter", "--model", "fake"],
             runtime_enabled=True,
             auto_wake=False,
-            private_nk_native_package=Path(os.environ["AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE"]),
+            private_nk_native_package=Path(
+                os.environ["AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE"]
+            ),
             private_nk_wire_root_id=os.environ["AGENT_COMMS_PRIVATE_NK_WIRE_ROOT_ID"],
         )
         session = (await owner.new_session(cwd=str(project))).session_id

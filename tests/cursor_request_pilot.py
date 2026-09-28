@@ -3,13 +3,20 @@
 from __future__ import annotations
 
 import asyncio
-import json
 import os
-from copy import deepcopy
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
+from agent_comms.acp_extension import (
+    CursorAdvancedUpdate,
+    CursorEnvelope,
+    CursorScope,
+    VerifiedCursorObservation,
+    encode_updates,
+)
+from agent_comms.native_runtime_input import CurrentNativeCursor
+from agent_comms.thread_identity import OwnerIdentity, ThreadIncarnation
 from runtime_fixture import ToadApp, reveal_session_details
 
 from toad.acp.agent import Agent
@@ -22,18 +29,32 @@ DATA = {
     "run_command": {"*": "true"},
     "protocol": "acp",
 }
-FIXTURE = json.loads(
-    (Path(__file__).parent / "fixtures/private_native_cursor_v1.json").read_text()
-)
 
 
 def response(session):
-    cursor = deepcopy(FIXTURE["trustedLoad"]["cursor"])
-    cursor["scope"]["sessionId"] = session
-    return {
-        "sessionId": session,
-        "_meta": {"agentComms": {"privateNativeCursor": cursor}},
-    }
+    owner = OwnerIdentity(ThreadIncarnation("owner", 1000.0), 1)
+    cursor = CurrentNativeCursor(
+        "a" * 32,
+        "recipient",
+        "owner",
+        1,
+        1,
+        2,
+        2,
+        "b" * 32,
+        "assignment",
+        "full",
+        "native-session",
+        1,
+    )
+    fact = CursorAdvancedUpdate(
+        CursorEnvelope(
+            CursorScope(session, "a" * 32, owner, 1234),
+            1,
+            VerifiedCursorObservation(cursor),
+        )
+    )
+    return {"sessionId": session, "_meta": encode_updates(fact)}
 
 
 class Response:

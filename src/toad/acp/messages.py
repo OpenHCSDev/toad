@@ -1,27 +1,26 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
-
 from asyncio import Future
-from typing import Literal, Mapping, TYPE_CHECKING
-from textual.message import Message
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Mapping
 
 import rich.repr
-from agent_comms.goals import Goal
-from agent_comms.goal_presentation import GoalExecution
-from agent_comms.transcripts import TranscriptCursor, TranscriptPage
-from agent_comms.transcript_events import TranscriptEvent
+from agent_comms.acp_extension import (
+    AgentCommsUpdate,
+    QueueScope,
+)
 from agent_comms.routing import MessageRoute
+from textual.message import Message
 
-from toad.answer import Answer
-from toad.private_native_cursor import CursorStatus
-from agent_comms.acp_extension import AgentCommsUpdate
-from agent_comms.acp_extension import QueueItem, QueueProjection
 from toad.acp import protocol
 from toad.acp.encode_tool_call_id import encode_tool_call_id
+from toad.answer import Answer
+
+from .attachment_presentation import CursorPresentation, QueuePresentation
 
 if TYPE_CHECKING:
     from textual.content import Content
+
     from toad.acp.agent import Mode, Model
     from toad.widgets.terminal_tool import ToolState
 
@@ -39,54 +38,10 @@ class RejectedSessionUpdate(AgentMessage):
 
 
 @dataclass
-class PrivateNativeCursorUpdate(AgentMessage):
-    """Immutable-in-flight presentation receipt; contains no private proof data."""
-
-    status: CursorStatus | None
-    agent: object
-    session_id: str | None
-    sequence: int
-
-
-@dataclass
 class McpClientStopped(AgentMessage):
     """The owning connection stopped; its live projection is no longer valid."""
 
     agent: object
-
-
-@dataclass
-class QueueViewUpdate(AgentMessage):
-    """Exact-ID projection and once-only accepted starts, fenced at ingress."""
-
-    projection: QueueProjection
-    starts: tuple[QueueItem, ...]
-    agent: object
-    session_id: str | None
-    sequence: int
-
-
-@dataclass
-class InputStarted(AgentMessage):
-    """An unscoped initial user echo, never queue membership authority."""
-    text: str | None
-    agent: object | None = None
-    session_id: str | None = None
-
-
-@dataclass
-class InputFailed(AgentMessage):
-    text: str
-    reason: str
-    recover_draft: bool = True
-    agent: object | None = None
-    session_id: str | None = None
-    queue_scope: object | None = None
-
-
-@dataclass
-class TranscriptChanged(AgentMessage):
-    cursor: TranscriptCursor | None = None
 
 
 @dataclass
@@ -241,14 +196,12 @@ class SessionInfoUpdate(AgentMessage):
 class CommsUpdated(AgentMessage):
     """The exact shared record plus local attachment context."""
 
-    update: AgentCommsUpdate
+    update: AgentCommsUpdate | QueuePresentation | CursorPresentation
     agent: object | None = None
     session_id: str | None = None
     sequence: int | None = None
-
-
-
-
+    recover_draft: bool = False
+    queue_scope: QueueScope | None = None
 
 
 @dataclass

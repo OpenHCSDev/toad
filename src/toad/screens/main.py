@@ -1,36 +1,37 @@
-from agent_comms.acp_extension import CoordinationChangedUpdate
-from agent_comms.mro_dispatch import MroDispatch, handles
+import asyncio
 from functools import partial
 from pathlib import Path
-import asyncio
-from agent_comms.comms import Comms
 
-from textual import on
+from agent_comms.acp_extension import CoordinationChangedUpdate
+from agent_comms.comms import Comms
+from agent_comms.mro_dispatch import MroDispatch, handles
+from textual import containers, getters, on
 from textual.app import ComposeResult
-from textual import getters
 from textual.binding import Binding
-from textual.command import Hit, Hits, Provider, DiscoveryHit
+from textual.command import DiscoveryHit, Hit, Hits, Provider
 from textual.content import Content
 from textual.events import ScreenResume
-from toad.screens.session_view import SessionView
-from textual.reactive import var, reactive
+from textual.reactive import reactive, var
+from textual.widget import Widget
 from textual.widgets import (
     DirectoryTree,
     OptionList,
     Tree,
 )
-from textual import containers
-from textual.widget import Widget
 
-
-from toad.app import ToadApp
 from toad import messages
-from toad.agent_schema import Agent
 from toad.acp import messages as acp_messages
-
-from toad.widgets.plan import Plan
-from toad.widgets.throbber import Throbber
+from toad.agent_schema import Agent
+from toad.app import ToadApp
+from toad.navigation_target import NavigationContext, NavigationOwner
+from toad.screens.session_view import SessionView
+from toad.session_tracker import SidebarState
+from toad.widgets.comms_chat import resolve_session_thread, session_thread_name
+from toad.widgets.comms_fork_dialog import ForkDialog
+from toad.widgets.comms_sidebar import CommsSidebar, CoordinationStatus, SelectTarget
 from toad.widgets.conversation import Conversation, ThreadLoading
+from toad.widgets.footer import Footer
+from toad.widgets.plan import Plan
 from toad.widgets.project_directory_tree import ProjectDirectoryTree
 from toad.widgets.project_panel import ProjectPanel, ProjectSearchButton
 from toad.widgets.recovery_view import RecoveryView
@@ -41,8 +42,9 @@ from toad.widgets.channels_sidebar import ChannelsSidebar
 from toad.widgets.side_bar import SideBar, ThreadSidebar, SideBarCollapsible, TabHistoryControls
 from toad.navigation_target import FeedTarget, DirectTarget, NavigationContext, NavigationOwner
 from toad.widgets.session_tabs import SessionsTabs
-from toad.widgets.footer import Footer
-from toad.session_tracker import SidebarState
+from toad.widgets.side_bar import SideBar, SideBarCollapsible, TabHistoryControls
+from toad.widgets.thread_comms import RelationshipSort, ThreadCommsSidebar
+from toad.widgets.throbber import Throbber
 
 
 class ModeProvider(Provider):
@@ -89,14 +91,21 @@ class MCPInventoryProvider(Provider):
         screen = self.screen
         assert isinstance(screen, MainScreen)
         if score > 0:
-            yield Hit(score, matcher.highlight("Pi MCP inventory"),
-                      screen.action_mcp_inventory, help="Read-only package snapshot")
+            yield Hit(
+                score,
+                matcher.highlight("Pi MCP inventory"),
+                screen.action_mcp_inventory,
+                help="Read-only package snapshot",
+            )
 
     async def discover(self) -> Hits:
         screen = self.screen
         assert isinstance(screen, MainScreen)
-        yield DiscoveryHit("Pi MCP inventory", screen.action_mcp_inventory,
-                           help="Read-only package snapshot")
+        yield DiscoveryHit(
+            "Pi MCP inventory",
+            screen.action_mcp_inventory,
+            help="Read-only package snapshot",
+        )
 
 
 class MainScreen(SessionView, NavigationOwner, can_focus=False):
@@ -155,7 +164,7 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
         self._agent = agent
         self._agent_session_id = agent_session_id
         self._agent_session_title = agent_session_title
-        self._coordination_root: str | None = None
+        self.initial_coordination_root: str | None = None
         self._identity_wire: Comms | None = None
         self._comms_thread = (
             ""
@@ -229,8 +238,11 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
     def _make_conversation(self) -> Conversation:
         with self._context():
             return Conversation(
-                self.project_path, self._agent, self._agent_session_id,
-                self._session_pk, self._agent_session_title,
+                self.project_path,
+                self._agent,
+                self._agent_session_id,
+                self._session_pk,
+                self._agent_session_title,
                 initial_prompt=self._initial_prompt,
             ).data_bind(project_path=MainScreen.project_path, column=MainScreen.column)
 
@@ -302,21 +314,24 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
         except Exception:
             pass
         if recovery := self.query_one_optional(RecoveryView):
-            recovery.set_identity(thread_name, self._coordination_root)
+            recovery.set_identity(thread_name, self.coordination_root)
         if comms_tree := self.query_one_optional(ThreadCommsSidebar):
-            comms_tree.set_identity(thread_name, self._coordination_root)
+            comms_tree.set_identity(thread_name, self.coordination_root)
         if self.id is not None:
-            self.app.sync_recovery_root(self.id, self._coordination_root)
+            self.app.sync_recovery_root(self.id, self.coordination_root)
+
+    @property
+    def coordination_root(self) -> str | None:
+        fact = self.app.coordination_facts.get(self)
+        return fact.wire_root if fact is not None else self.initial_coordination_root
 
     @on(acp_messages.CommsUpdated)
     async def on_comms_updated(self, event: acp_messages.CommsUpdated) -> None:
         await ScreenCommsConsumer(self).dispatch(event.update)
 
     @handles(CoordinationChangedUpdate)
-    async def on_coordination_update(
-        self, event: CoordinationChangedUpdate
-    ) -> None:
-        self._coordination_root = event.wire_root
+    async def on_coordination_update(self, event: CoordinationChangedUpdate) -> None:
+        self.app.coordination_facts[self] = event
         self.conversation.queue_supported = True
         if event.worktree is not None:
             project = Path(event.worktree)
@@ -343,14 +358,23 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
 
             from toad.comms_root import current_root, root_is_current
 
-            if self._coordination_root is not None and not root_is_current(self._coordination_root):
-                raise ValueError("Comms route changed; this session retains its former wire")
-            root_path = (Path(self._coordination_root).expanduser()
-                         if self._coordination_root is not None else current_root())
+            if self.coordination_root is not None and not root_is_current(
+                self.coordination_root
+            ):
+                raise ValueError(
+                    "Comms route changed; this session retains its former wire"
+                )
+            root_path = (
+                Path(self.coordination_root).expanduser()
+                if self.coordination_root is not None
+                else current_root()
+            )
             if self._identity_wire is None or self._identity_wire.root != root_path:
                 shared = self.app.coordination_wire
-                self._identity_wire = shared if shared.root == root_path else wire(root_path)
-            if self._coordination_root is not None:
+                self._identity_wire = (
+                    shared if shared.root == root_path else wire(root_path)
+                )
+            if self.coordination_root is not None:
                 resolved = self._identity_wire.registry.require(self._comms_thread).name
             else:
                 resolved = resolve_session_thread(
@@ -365,7 +389,9 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
     @property
     def navigation_context(self) -> NavigationContext:
         assert self.id is not None
-        return NavigationContext(self.app, self.id, self.project_path, self._comms_thread)
+        return NavigationContext(
+            self.app, self.id, self.project_path, self._comms_thread
+        )
 
     def remember_direct_target(self, target: str) -> None:
         self._last_dm_target = target
@@ -481,7 +507,8 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
         # Route discovery already resolved new wire-thread identities off-loop.
         if sidebar := self.query_one_optional(CommsSidebar):
             sidebar.session_thread = (
-                self._comms_thread if self._coordination_root is not None
+                self._comms_thread
+                if self.coordination_root is not None
                 else self._resolve_comms_thread()
             )
         if self._content_loaded:
@@ -520,7 +547,9 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
 
     def action_show_sidebar(self) -> None:
         self.side_bar.reveal()
-        if title := self.side_bar.query_one_optional("SideBarCollapsible CollapsibleTitle"):
+        if title := self.side_bar.query_one_optional(
+            "SideBarCollapsible CollapsibleTitle"
+        ):
             title.focus()
 
     def action_focus_prompt(self) -> None:
@@ -545,7 +574,9 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
 
     def watch_column(self, column: bool) -> None:
         if conversation := self.query_one_optional(Conversation):
-            conversation.styles.max_width = max(10, self.column_width) if column else None
+            conversation.styles.max_width = (
+                max(10, self.column_width) if column else None
+            )
 
     def watch_column_width(self, column_width: int) -> None:
         self.watch_column(self.column)

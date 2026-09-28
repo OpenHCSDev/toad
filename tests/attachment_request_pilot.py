@@ -3,13 +3,20 @@
 from __future__ import annotations
 
 import asyncio
-import json
 import os
-from copy import deepcopy
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
+from agent_comms.acp_extension import (
+    AvailableQueueProjection,
+    QueueChangedUpdate,
+    QueueItem,
+    QueueScope,
+    UnavailableQueueProjection,
+    encode_updates,
+)
+from agent_comms.thread_identity import OwnerIdentity, ThreadIncarnation
 from runtime_fixture import ToadApp
 
 from toad.acp.agent import Agent
@@ -22,17 +29,20 @@ DATA = {
     "run_command": {"*": "true"},
     "protocol": "acp",
 }
-F = json.loads(
-    (Path(__file__).parent / "fixtures/acp_exact_id_queue_v1.json").read_text()
-)
 
 
 def response(session, next_owner=False):
-    state = deepcopy(F["nextTrustedLoad" if next_owner else "trustedLoad"])
-    state["queueBinding"]["sessionId"] = state["queueState"]["scope"]["sessionId"] = (
-        session
+    generation = 2 if next_owner else 1
+    scope = QueueScope(
+        session, OwnerIdentity(ThreadIncarnation(session, 1000.0), generation), 1234
     )
-    return {"sessionId": session, "_meta": {"agentComms": state}}
+    items = (QueueItem("a" * 32, "same text"), QueueItem("b" * 32, "same text"))
+    return {
+        "sessionId": session,
+        "_meta": encode_updates(
+            QueueChangedUpdate(scope, generation, AvailableQueueProjection(items))
+        ),
+    }
 
 
 class Response:
@@ -58,6 +68,7 @@ async def main():
         async with app.run_test(size=(115, 38)) as pilot:
             await pilot.pause()
             view = app.screen.conversation
+            view.queue_supported = True
             for first_kind in ("new", "load"):
                 for successor in ("new", "stop"):
                     agent = Agent(
@@ -154,7 +165,11 @@ async def main():
                             "beta",
                             {
                                 "sessionUpdate": "session_info_update",
-                                "_meta": {"agentComms": {"queueState": None}},
+                                "_meta": encode_updates(
+                                    QueueChangedUpdate(
+                                        None, 10, UnavailableQueueProjection()
+                                    )
+                                ),
                             },
                         )
                     await pilot.pause()
