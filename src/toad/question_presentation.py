@@ -85,3 +85,9 @@ class QuestionPresentation:
 
     def reopen(self):
         self.mount = DetachedQuestionMount()
+
+    def start(self, question, container):
+        def toggle_blink():
+            question.blink = not question.blink if question.has_focus else False
+
+        self.attach(container, question.set_interval(0.5, toggle_blink))

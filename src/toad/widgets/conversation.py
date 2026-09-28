@@ -79,7 +79,7 @@ from toad.widgets.observed_thread_activity import ObservedThreadActivity
 from toad.widgets.session_details import SessionDetails
 from toad.private_native_cursor import CursorStatus
 from toad.protocol import ExpandProtocol, MenuProtocol
-from toad.block_navigation import ConversationBlock, ContentNavigation, UpCursor, DownCursor
+from toad.block_navigation import admitted_blocks, ConversationBlock, ContentNavigation, UpCursor, DownCursor
 from functools import cached_property
 from toad.agent_presentation import AgentAttachmentView
 from toad.conversation_turn import TurnOwner, ConversationTurn, AgentTurn, ClientTurn
@@ -345,10 +345,8 @@ class CategorizedMount:
     def mount(self, *widgets, **kwargs):
         from toad.widgets.message_filter import apply_block_filter, block_category, keep_live_block
 
-        if any(not isinstance(widget, ConversationBlock) for widget in widgets):
-            raise TypeError("Conversation contents require nominal blocks")
         selected = self.query_ancestor(Conversation).visible_categories if self.is_attached else all_categories()
-        for widget in widgets:
+        for widget in admitted_blocks(widgets):
             widget.set_class(not keep_live_block(widget), "-unrouted")
             if category := block_category(widget):
                 widget.add_class(f"-message-{category.declared_name}")

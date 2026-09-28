@@ -143,3 +143,11 @@ class ContentNavigation:
                     block.block_cursor.select(direct)
                 return True
         return False
+
+
+def admitted_blocks(widgets):
+    """Decode the Textual mount boundary once before category consumers."""
+    for widget in widgets:
+        if not isinstance(widget, ConversationBlock):
+            raise TypeError("Conversation contents require nominal blocks")
+    return widgets

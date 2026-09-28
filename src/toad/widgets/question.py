@@ -233,16 +233,7 @@ class Question(containers.VerticalGroup, can_focus=True):
 
     def on_mount(self) -> None:
         self.presentation.reopen()
-        self._start_blink()
-
-    def _start_blink(self) -> None:
-        def toggle_blink() -> None:
-            if self.has_focus:
-                self.blink = not self.blink
-            else:
-                self.blink = False
-
-        self.presentation.attach(self._option_view, self.set_interval(0.5, toggle_blink))
+        self.presentation.start(self, self._option_view)
 
     def on_unmount(self) -> None:
         self.presentation.retire()
@@ -294,7 +285,7 @@ class Question(containers.VerticalGroup, can_focus=True):
     async def recompose(self) -> None:
         self.presentation.detach()
         await super().recompose()
-        self._start_blink()
+        self.presentation.start(self, self._option_view)
 
     def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
         if self.selected and action in ("selection_up", "selection_down"):
