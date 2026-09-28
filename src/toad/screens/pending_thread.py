@@ -15,7 +15,7 @@ from toad import messages
 from toad.app import ToadApp
 from toad.screens.session_view import SessionView
 from toad.session_tracker import SidebarState
-from toad.widgets.channels_sidebar import ChannelsSidebar
+from toad.widgets.channels_sidebar import ChannelsSlot
 from toad.widgets.comms_sidebar import CommsSidebar, SelectTarget
 from toad.widgets.conversation import ThreadLoading
 from toad.widgets.session_tabs import SessionsTabs
@@ -35,7 +35,7 @@ class PendingThreadScreen(SessionView, NavigationOwner, can_focus=False):
         self.project_path = project_path
         self.me = me
         self._thread_sidebar_state = SidebarState()
-        self._channels = ChannelsSidebar(self.me, observe=False, defer_mount=True)
+        self._channels = ChannelsSlot()
 
     def bind_navigation(self, context: NavigationContext) -> None:
         """Bind a prepared, never-presented shell to its one requested route."""
@@ -44,7 +44,9 @@ class PendingThreadScreen(SessionView, NavigationOwner, can_focus=False):
         self.owner_mode = context.owner_mode
         self.project_path = context.project_path
         self.me = context.actor
-        self._channels.set_session_thread(context.actor)
+
+    def channels_context(self) -> tuple[str, str]:
+        return self.me, ""
 
     def compose(self) -> ComposeResult:
         with containers.Horizontal(id="tab-navigation-header"):

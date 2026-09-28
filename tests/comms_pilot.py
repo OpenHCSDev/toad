@@ -63,7 +63,7 @@ def row(screen, target: str) -> CommsRow:
 
 
 def open_rows(screen):
-    return screen.query_one(CommsSidebar).session_rows
+    return screen.app.shared_channels.bar.roster.session_rows
 
 
 async def main() -> None:
@@ -258,7 +258,7 @@ for line in sys.stdin:
             coordination = app.screen.query_one(CoordinationStatus)
             assert "persistent" in coordination.render().plain
             assert str(wire_root) in str(coordination.tooltip)
-            shell_sidebar = app.screen.query_one(SideBar)
+            shell_sidebar = app.screen.query_one("#channels-sidebar", SideBar)
             panels = list(shell_sidebar.query(SideBarCollapsible))
             assert (
                 panels[0].query_one("CollapsibleTitle").region.y == panels[0].region.y
@@ -458,21 +458,21 @@ for line in sys.stdin:
                 app.session_tracker.get_session(created_mode).title
                 == "Name this from my first prompt"
             )
-            created_sidebar = app.screen.query_one(SideBar)
+            created_sidebar = app.screen.query_one("#channels-sidebar", SideBar)
             created_sidebar.toggle()
             await pilot.pause()
             assert created_sidebar.collapsed
             assert app.settings.get("sidebar.hide", bool)
             await app.switch_mode(owner_mode)
             await pilot.pause()
-            assert app.screen.query_one(SideBar).collapsed
+            assert app.screen.query_one("#channels-sidebar", SideBar).collapsed
             assert [item.mode_name for item in app.screen.query(ThreadRow)
                     if item.target_name == renamed_thread] == [created_mode]
             assert len(open_rows(app.screen)) == 2
             await app.switch_mode(created_mode)
             await pilot.pause()
-            assert app.screen.query_one(SideBar).collapsed
-            app.screen.query_one(SideBar).reveal()
+            assert app.screen.query_one("#channels-sidebar", SideBar).collapsed
+            app.screen.query_one("#channels-sidebar", SideBar).reveal()
             await pilot.pause()
             assert not app.settings.get("sidebar.hide", bool)
             stopped_agents = 0
@@ -1365,7 +1365,7 @@ for line in sys.stdin:
                         await pilot.pause(.01)
                 assert await pilot.click(channel_row, offset=click_offset), (
                     "Channel revisit click missed its native row", channel_row.region,
-                    app.screen.query_one(SideBar).collapsed,
+                    app.screen.query_one("#channels-sidebar", SideBar).collapsed,
                     click_offset, app.current_mode,
                     app.screen.get_widget_at(x, y)[0],
                 )

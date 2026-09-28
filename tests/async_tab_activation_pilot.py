@@ -56,7 +56,7 @@ async def main():
                 await until(lambda: len(app.pending_tab_shells._available) == app.PREPARED_TAB_SHELLS)
                 prepared_shell = app.pending_tab_shells._available[0]
                 assert not prepared_shell._first_frame_presented and not prepared_shell.is_current
-                assert not prepared_shell._channels.roster.is_mounted, "Lookahead started source presentation"
+                assert not prepared_shell.query(CommsSidebar), "Lookahead duplicated the shared roster"
                 for invalid in (-1, True, 1.5):
                     try:
                         PendingTabShells(app, invalid)
@@ -69,7 +69,7 @@ async def main():
                 assert not cold_shells._preparing
                 cold_shell = await cold_shells.acquire(NavigationContext(app, owner, root, "actor"))
                 assert cold_shell.is_mounted and not cold_shell._first_frame_presented
-                assert not cold_shell._channels.roster.is_mounted
+                assert not cold_shell.query(CommsSidebar)
                 await app.remove_mode(cold_shell.id)
                 cold_shells.close()
                 original._agent = {"name": "Fixture", "identity": "fixture", "short_name": "fixture",
@@ -79,7 +79,7 @@ async def main():
                 await app.switch_mode(owner)
                 await pilot.pause()
                 view = app.get_screen_stack(destination)[0]
-                sidebar = view.query_one(CommsSidebar)
+                sidebar = app.shared_channels.bar.roster
                 entered, release = asyncio.Event(), asyncio.Event()
                 present = sidebar.present_cached_sessions
 
@@ -154,7 +154,9 @@ async def main():
                     finally:
                         release.set()
                     await asyncio.wait_for(publication, 3)
-                assert not sidebar._ordered_rows(), "Retired row references remained navigable"
+                assert sidebar.is_attached and sidebar._ordered_rows(), "Closing a tab retired shared navigation"
+                assert all(row.mode_name != destination for row in sidebar.session_rows), (
+                    "A stale publication restored the closed tab's route")
                 assert app._exception is None
         await asyncio.get_running_loop().shutdown_default_executor()
     print("async activation: frame before blocked rows, input/switch preserved, typed target dispatch")
