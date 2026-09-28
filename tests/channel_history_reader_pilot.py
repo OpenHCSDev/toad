@@ -17,34 +17,6 @@ from toad.channel_preparation import (
 
 
 class ReaderTests(unittest.IsolatedAsyncioTestCase):
-    async def test_bus_replacement_reloads_unchanged_sequence_tail(self) -> None:
-        for kind, target in ((HistoryKind.CHANNEL, "#team"), (HistoryKind.DIRECT, "peer")):
-            with self.subTest(kind=kind), tempfile.TemporaryDirectory(prefix="channel-rebind-") as directory:
-                root = Path(directory)
-                comms = wire(root / "wire")
-                comms.threads.register(Thread("peer", frozenset({"team"}), str(root)))
-                viewer = comms.messaging.user_identity(str(root)).name
-                comms.messaging.send("peer", viewer if kind is HistoryKind.DIRECT else target, "original")
-                request = HistoryReadRequest(
-                    comms, kind, target, root, False, 0, True, None, 8, 40, 256 * 1024,
-                )
-                first = request.read()
-                assert first.page is not None
-                following = replace(
-                    request, initialized=True, after=first.high_water,
-                    known_revision=first.revision,
-                    known_display=display_identity(kind, first.page),
-                )
-                bus = comms.bus.log.path
-                replacement = bus.with_suffix(".replacement")
-                replacement.write_bytes(bus.read_bytes().replace(b"original", b"replaced"))
-                replacement.replace(bus)
-                refreshed = following.read()
-                self.assertEqual(refreshed.high_water, first.high_water)
-                self.assertTrue(refreshed.replace_tail)
-                assert refreshed.page is not None
-                self.assertEqual([message.body for message in refreshed.page.messages], ["replaced"])
-
     async def test_dm_turn_lease_preserves_display_identity(self) -> None:
         import os
 

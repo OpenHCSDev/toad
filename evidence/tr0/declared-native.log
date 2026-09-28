@@ -1,0 +1,197 @@
+bringing up nodes...
+bringing up nodes...
+
+FFFFF....F.                                                              [100%]
+=================================== FAILURES ===================================
+________________________ pilot: goal_pause_owner_pilot _________________________
+[gw1] linux -- Python 3.14.2 /home/ts/wt/toad-tr0-test-collection-20260928/.venv/bin/python
+Pilot failed: ExitedOutcome(code=1)
+Traceback (most recent call last):
+  File [35m"/home/ts/wt/toad-tr0-test-collection-20260928/tests/goal_pause_owner_pilot.py"[0m, line [35m42[0m, in [35m<module>[0m
+    [31masyncio.run[0m[1;31m(main())[0m
+    [31m~~~~~~~~~~~[0m[1;31m^^^^^^^^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py"[0m, line [35m204[0m, in [35mrun[0m
+    return [31mrunner.run[0m[1;31m(main)[0m
+           [31m~~~~~~~~~~[0m[1;31m^^^^^^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py"[0m, line [35m127[0m, in [35mrun[0m
+    return [31mself._loop.run_until_complete[0m[1;31m(task)[0m
+           [31m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m[1;31m^^^^^^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py"[0m, line [35m719[0m, in [35mrun_until_complete[0m
+    return [31mfuture.result[0m[1;31m()[0m
+           [31m~~~~~~~~~~~~~[0m[1;31m^^[0m
+  File [35m"/home/ts/wt/toad-tr0-test-collection-20260928/tests/goal_pause_owner_pilot.py"[0m, line [35m24[0m, in [35mmain[0m
+    session = ([1;31mawait owner.new_session(cwd=str(root))[0m).session_id
+               [1;31m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  File [35m"/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/agent_comms/acp.py"[0m, line [35m179[0m, in [35mnew_session[0m
+    return [1;31mawait self.sessions.new_session(cwd, mcp_servers, **kwargs)[0m
+           [1;31m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  File [35m"/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/agent_comms/session_lifecycle.py"[0m, line [35m160[0m, in [35mnew_session[0m
+    [31mself.effects._private_nk_marker[0m[1;31m()[0m
+    [31m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m[1;31m^^[0m
+  File [35m"/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/agent_comms/acp.py"[0m, line [35m563[0m, in [35m_private_nk_marker[0m
+    raise PublicationActivationBlocked(
+        "private N/K ACP session requires explicit matching root and package"
+    )
+[1;35magent_comms.coordination_store.PublicationActivationBlocked[0m: [35mprivate N/K ACP session requires explicit matching root and package[0m
+
+Logs: /home/ts/wt/toad-tr0-test-collection-20260928/.artifacts/pilots-declared-native/popen-gw1/goal_pause_owner_pilot0
+_________________________ pilot: goal_edit_owner_pilot _________________________
+[gw0] linux -- Python 3.14.2 /home/ts/wt/toad-tr0-test-collection-20260928/.venv/bin/python
+Pilot failed: ExitedOutcome(code=1)
+Traceback (most recent call last):
+  File [35m"/home/ts/wt/toad-tr0-test-collection-20260928/tests/goal_edit_owner_pilot.py"[0m, line [35m112[0m, in [35m<module>[0m
+    [31masyncio.run[0m[1;31m(main())[0m
+    [31m~~~~~~~~~~~[0m[1;31m^^^^^^^^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py"[0m, line [35m204[0m, in [35mrun[0m
+    return [31mrunner.run[0m[1;31m(main)[0m
+           [31m~~~~~~~~~~[0m[1;31m^^^^^^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py"[0m, line [35m127[0m, in [35mrun[0m
+    return [31mself._loop.run_until_complete[0m[1;31m(task)[0m
+           [31m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m[1;31m^^^^^^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py"[0m, line [35m719[0m, in [35mrun_until_complete[0m
+    return [31mfuture.result[0m[1;31m()[0m
+           [31m~~~~~~~~~~~~~[0m[1;31m^^[0m
+  File [35m"/home/ts/wt/toad-tr0-test-collection-20260928/tests/goal_edit_owner_pilot.py"[0m, line [35m35[0m, in [35mmain[0m
+    session = ([1;31mawait owner.new_session(cwd=str(project))[0m).session_id
+               [1;31m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  File [35m"/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/agent_comms/acp.py"[0m, line [35m179[0m, in [35mnew_session[0m
+    return [1;31mawait self.sessions.new_session(cwd, mcp_servers, **kwargs)[0m
+           [1;31m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  File [35m"/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/agent_comms/session_lifecycle.py"[0m, line [35m160[0m, in [35mnew_session[0m
+    [31mself.effects._private_nk_marker[0m[1;31m()[0m
+    [31m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m[1;31m^^[0m
+  File [35m"/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/agent_comms/acp.py"[0m, line [35m563[0m, in [35m_private_nk_marker[0m
+    raise PublicationActivationBlocked(
+        "private N/K ACP session requires explicit matching root and package"
+    )
+[1;35magent_comms.coordination_store.PublicationActivationBlocked[0m: [35mprivate N/K ACP session requires explicit matching root and package[0m
+
+Logs: /home/ts/wt/toad-tr0-test-collection-20260928/.artifacts/pilots-declared-native/popen-gw0/goal_edit_owner_pilot0
+_______________________ pilot: goal_objective_edit_pilot _______________________
+[gw0] linux -- Python 3.14.2 /home/ts/wt/toad-tr0-test-collection-20260928/.venv/bin/python
+Pilot failed: ExitedOutcome(code=1)
+Traceback (most recent call last):
+  File [35m"/home/ts/wt/toad-tr0-test-collection-20260928/tests/goal_objective_edit_pilot.py"[0m, line [35m163[0m, in [35m<module>[0m
+    [31masyncio.run[0m[1;31m(main())[0m
+    [31m~~~~~~~~~~~[0m[1;31m^^^^^^^^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py"[0m, line [35m204[0m, in [35mrun[0m
+    return [31mrunner.run[0m[1;31m(main)[0m
+           [31m~~~~~~~~~~[0m[1;31m^^^^^^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py"[0m, line [35m127[0m, in [35mrun[0m
+    return [31mself._loop.run_until_complete[0m[1;31m(task)[0m
+           [31m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m[1;31m^^^^^^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py"[0m, line [35m719[0m, in [35mrun_until_complete[0m
+    return [31mfuture.result[0m[1;31m()[0m
+           [31m~~~~~~~~~~~~~[0m[1;31m^^[0m
+  File [35m"/home/ts/wt/toad-tr0-test-collection-20260928/tests/goal_objective_edit_pilot.py"[0m, line [35m41[0m, in [35mmain[0m
+    session = ([1;31mawait owner.new_session(cwd=str(project))[0m).session_id
+               [1;31m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  File [35m"/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/agent_comms/acp.py"[0m, line [35m179[0m, in [35mnew_session[0m
+    return [1;31mawait self.sessions.new_session(cwd, mcp_servers, **kwargs)[0m
+           [1;31m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  File [35m"/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/agent_comms/session_lifecycle.py"[0m, line [35m160[0m, in [35mnew_session[0m
+    [31mself.effects._private_nk_marker[0m[1;31m()[0m
+    [31m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m[1;31m^^[0m
+  File [35m"/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/agent_comms/acp.py"[0m, line [35m563[0m, in [35m_private_nk_marker[0m
+    raise PublicationActivationBlocked(
+        "private N/K ACP session requires explicit matching root and package"
+    )
+[1;35magent_comms.coordination_store.PublicationActivationBlocked[0m: [35mprivate N/K ACP session requires explicit matching root and package[0m
+
+Logs: /home/ts/wt/toad-tr0-test-collection-20260928/.artifacts/pilots-declared-native/popen-gw0/goal_objective_edit_pilot0
+________________________ pilot: goal_server_poll_pilot _________________________
+[gw1] linux -- Python 3.14.2 /home/ts/wt/toad-tr0-test-collection-20260928/.venv/bin/python
+Pilot failed: ExitedOutcome(code=1)
+Traceback (most recent call last):
+  File [35m"/home/ts/wt/toad-tr0-test-collection-20260928/tests/goal_server_poll_pilot.py"[0m, line [35m214[0m, in [35m<module>[0m
+    [31masyncio.run[0m[1;31m(main())[0m
+    [31m~~~~~~~~~~~[0m[1;31m^^^^^^^^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py"[0m, line [35m204[0m, in [35mrun[0m
+    return [31mrunner.run[0m[1;31m(main)[0m
+           [31m~~~~~~~~~~[0m[1;31m^^^^^^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py"[0m, line [35m127[0m, in [35mrun[0m
+    return [31mself._loop.run_until_complete[0m[1;31m(task)[0m
+           [31m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m[1;31m^^^^^^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py"[0m, line [35m719[0m, in [35mrun_until_complete[0m
+    return [31mfuture.result[0m[1;31m()[0m
+           [31m~~~~~~~~~~~~~[0m[1;31m^^[0m
+  File [35m"/home/ts/wt/toad-tr0-test-collection-20260928/tests/goal_server_poll_pilot.py"[0m, line [35m54[0m, in [35mmain[0m
+    session = ([1;31mawait owner.new_session(cwd=str(project))[0m).session_id
+               [1;31m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  File [35m"/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/agent_comms/acp.py"[0m, line [35m179[0m, in [35mnew_session[0m
+    return [1;31mawait self.sessions.new_session(cwd, mcp_servers, **kwargs)[0m
+           [1;31m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  File [35m"/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/agent_comms/session_lifecycle.py"[0m, line [35m160[0m, in [35mnew_session[0m
+    [31mself.effects._private_nk_marker[0m[1;31m()[0m
+    [31m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m[1;31m^^[0m
+  File [35m"/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/agent_comms/acp.py"[0m, line [35m563[0m, in [35m_private_nk_marker[0m
+    raise PublicationActivationBlocked(
+        "private N/K ACP session requires explicit matching root and package"
+    )
+[1;35magent_comms.coordination_store.PublicationActivationBlocked[0m: [35mprivate N/K ACP session requires explicit matching root and package[0m
+
+Logs: /home/ts/wt/toad-tr0-test-collection-20260928/.artifacts/pilots-declared-native/popen-gw1/goal_server_poll_pilot0
+_________________________ pilot: goal_set_owner_pilot __________________________
+[gw1] linux -- Python 3.14.2 /home/ts/wt/toad-tr0-test-collection-20260928/.venv/bin/python
+Pilot failed: ExitedOutcome(code=1)
+Traceback (most recent call last):
+  File [35m"/home/ts/wt/toad-tr0-test-collection-20260928/tests/goal_set_owner_pilot.py"[0m, line [35m53[0m, in [35m<module>[0m
+    [31masyncio.run[0m[1;31m(main())[0m
+    [31m~~~~~~~~~~~[0m[1;31m^^^^^^^^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py"[0m, line [35m204[0m, in [35mrun[0m
+    return [31mrunner.run[0m[1;31m(main)[0m
+           [31m~~~~~~~~~~[0m[1;31m^^^^^^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py"[0m, line [35m127[0m, in [35mrun[0m
+    return [31mself._loop.run_until_complete[0m[1;31m(task)[0m
+           [31m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m[1;31m^^^^^^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py"[0m, line [35m719[0m, in [35mrun_until_complete[0m
+    return [31mfuture.result[0m[1;31m()[0m
+           [31m~~~~~~~~~~~~~[0m[1;31m^^[0m
+  File [35m"/home/ts/wt/toad-tr0-test-collection-20260928/tests/goal_set_owner_pilot.py"[0m, line [35m48[0m, in [35mmain[0m
+    await owner_set_route()
+  File [35m"/home/ts/wt/toad-tr0-test-collection-20260928/tests/goal_set_owner_pilot.py"[0m, line [35m31[0m, in [35mowner_set_route[0m
+    session = ([1;31mawait owner.new_session(cwd=str(project))[0m).session_id
+               [1;31m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  File [35m"/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/agent_comms/acp.py"[0m, line [35m179[0m, in [35mnew_session[0m
+    return [1;31mawait self.sessions.new_session(cwd, mcp_servers, **kwargs)[0m
+           [1;31m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  File [35m"/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/agent_comms/session_lifecycle.py"[0m, line [35m160[0m, in [35mnew_session[0m
+    [31mself.effects._private_nk_marker[0m[1;31m()[0m
+    [31m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m[1;31m^^[0m
+  File [35m"/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/agent_comms/acp.py"[0m, line [35m563[0m, in [35m_private_nk_marker[0m
+    raise PublicationActivationBlocked(
+        "private N/K ACP session requires explicit matching root and package"
+    )
+[1;35magent_comms.coordination_store.PublicationActivationBlocked[0m: [35mprivate N/K ACP session requires explicit matching root and package[0m
+
+Logs: /home/ts/wt/toad-tr0-test-collection-20260928/.artifacts/pilots-declared-native/popen-gw1/goal_set_owner_pilot0
+_________________________ pilot: project_resume_pilot __________________________
+[gw0] linux -- Python 3.14.2 /home/ts/wt/toad-tr0-test-collection-20260928/.venv/bin/python
+Pilot failed: ExitedOutcome(code=1)
+Traceback (most recent call last):
+  File [35m"/home/ts/wt/toad-tr0-test-collection-20260928/tests/project_resume_pilot.py"[0m, line [35m64[0m, in [35m<module>[0m
+    [31masyncio.run[0m[1;31m(main())[0m
+    [31m~~~~~~~~~~~[0m[1;31m^^^^^^^^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py"[0m, line [35m204[0m, in [35mrun[0m
+    return [31mrunner.run[0m[1;31m(main)[0m
+           [31m~~~~~~~~~~[0m[1;31m^^^^^^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py"[0m, line [35m127[0m, in [35mrun[0m
+    return [31mself._loop.run_until_complete[0m[1;31m(task)[0m
+           [31m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m[1;31m^^^^^^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py"[0m, line [35m719[0m, in [35mrun_until_complete[0m
+    return [31mfuture.result[0m[1;31m()[0m
+           [31m~~~~~~~~~~~~~[0m[1;31m^^[0m
+  File [35m"/home/ts/wt/toad-tr0-test-collection-20260928/tests/project_resume_pilot.py"[0m, line [35m41[0m, in [35mmain[0m
+    assert [1;31mapp.screen.project_path == new[0m
+           [1;31m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+[1;35mAssertionError[0m
+
+Logs: /home/ts/wt/toad-tr0-test-collection-20260928/.artifacts/pilots-declared-native/popen-gw0/project_resume_pilot0
+=========================== short test summary info ============================
+FAILED tests/goal_pause_owner_pilot.py::goal_pause_owner_pilot - Failed: Pilo...
+FAILED tests/goal_edit_owner_pilot.py::goal_edit_owner_pilot - Failed: Pilot ...
+FAILED tests/goal_objective_edit_pilot.py::goal_objective_edit_pilot - Failed...
+FAILED tests/goal_server_poll_pilot.py::goal_server_poll_pilot - Failed: Pilo...
+FAILED tests/goal_set_owner_pilot.py::goal_set_owner_pilot - Failed: Pilot fa...
+FAILED tests/project_resume_pilot.py::project_resume_pilot - Failed: Pilot fa...
+6 failed, 5 passed in 51.94s

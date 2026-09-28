@@ -35,7 +35,6 @@ from toad.widgets.agent_thought import AgentThought
 from toad.widgets.tool_call import ToolCall
 from toad.widgets.user_input import UserInput
 from toad.widgets.message_divider import AgentActivityDivider
-from toad.widgets.history_anchor import HistoryAnchor
 from toad.widgets.presentation_window import PresentationBudget, protected_presentations
 from toad.widgets.committed_presentation import CommittedHistory
 from toad.widgets.message_filter import (
@@ -826,7 +825,6 @@ class TranscriptHistory(CommittedHistory, CategorizedBlock, VerticalGroup):
                             if fragment in visible and visible[fragment][0].overlaps(viewport)]
                 anchor = (retained[0 if older else -1] if retained else
                           edge.children[0 if older else -1] if edge.children else edge)
-                position = HistoryAnchor.capture(anchor, self.window)
                 # Visibility is already known by the compositor. Looking up
                 # each off-screen fragment's region rebuilds the full map on
                 # the scroll path immediately before mounting another page.
@@ -841,10 +839,10 @@ class TranscriptHistory(CommittedHistory, CategorizedBlock, VerticalGroup):
                 # active through layout, including a concurrent tab activation;
                 # otherwise the first frame paints the old position and live
                 # updates mistake the temporary release for scroll-up intent.
-                if not position.follow_tail:
-                    self.window.suspend_follow()
+                if not self.window.follows_tail:
+                    self.window.release_anchor()
                 async with self.window.preserve_history(anchor):
-                    await self._extend_and_trim(edge, older, local, page, position, protected, fragments)
+                    await self._extend_and_trim(edge, older, local, page, protected, fragments)
                     self._require_publication()
         except _PublicationRetired:
             return
@@ -858,7 +856,7 @@ class TranscriptHistory(CommittedHistory, CategorizedBlock, VerticalGroup):
 
     async def _extend_and_trim(
         self, edge: TranscriptPageView, older: bool, local: bool,
-        page: TranscriptPage | None, position: HistoryAnchor, protected: set[Widget],
+        page: TranscriptPage | None, protected: set[Widget],
         fragments: tuple[TranscriptFragment, ...] | None,
     ) -> None:
         # Serialize this native presentation, not every screen's paint. The

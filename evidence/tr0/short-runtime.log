@@ -1,0 +1,86 @@
+bringing up nodes...
+bringing up nodes...
+
+..F                                                                      [100%]
+=================================== FAILURES ===================================
+_____________________ pilot: persistent_renderer_ui_pilot ______________________
+[gw1] linux -- Python 3.14.2 /home/ts/wt/toad-tr0-test-collection-20260928/.venv/bin/python
+Pilot failed: ExitedOutcome(code=1)
+Exception in thread Directory observation: /var/tmp/toad-pilot-3d4ueg9v/toad-persistent-ui-anl7np5q/client-0:
+Traceback (most recent call last):
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py"[0m, line [35m1082[0m, in [35m_bootstrap_inner[0m
+    [31mself._context.run[0m[1;31m(self.run)[0m
+    [31m~~~~~~~~~~~~~~~~~[0m[1;31m^^^^^^^^^^[0m
+  File [35m"/home/ts/wt/toad-tr0-test-collection-20260928/.venv/lib/python3.14/site-packages/toad/directory_watcher.py"[0m, line [35m173[0m, in [35mrun[0m
+    [31mself.process.start[0m[1;31m()[0m
+    [31m~~~~~~~~~~~~~~~~~~[0m[1;31m^^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/process.py"[0m, line [35m121[0m, in [35mstart[0m
+    self._popen = [31mself._Popen[0m[1;31m(self)[0m
+                  [31m~~~~~~~~~~~[0m[1;31m^^^^^^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/context.py"[0m, line [35m288[0m, in [35m_Popen[0m
+    return Popen(process_obj)
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/popen_spawn_posix.py"[0m, line [35m32[0m, in [35m__init__[0m
+    [31msuper().__init__[0m[1;31m(process_obj)[0m
+    [31m~~~~~~~~~~~~~~~~[0m[1;31m^^^^^^^^^^^^^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/popen_fork.py"[0m, line [35m20[0m, in [35m__init__[0m
+    [31mself._launch[0m[1;31m(process_obj)[0m
+    [31m~~~~~~~~~~~~[0m[1;31m^^^^^^^^^^^^^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/popen_spawn_posix.py"[0m, line [35m40[0m, in [35m_launch[0m
+    tracker_fd = resource_tracker.getfd()
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/resource_tracker.py"[0m, line [35m140[0m, in [35mgetfd[0m
+    [31mself.ensure_running[0m[1;31m()[0m
+    [31m~~~~~~~~~~~~~~~~~~~[0m[1;31m^^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/resource_tracker.py"[0m, line [35m148[0m, in [35mensure_running[0m
+    return [31mself._ensure_running_and_write[0m[1;31m()[0m
+           [31m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m[1;31m^^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/resource_tracker.py"[0m, line [35m244[0m, in [35m_ensure_running_and_write[0m
+    [31mself._launch[0m[1;31m()[0m
+    [31m~~~~~~~~~~~~[0m[1;31m^^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/resource_tracker.py"[0m, line [35m196[0m, in [35m_launch[0m
+    pid = util.spawnv_passfds(exe, args, fds_to_pass)
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/util.py"[0m, line [35m523[0m, in [35mspawnv_passfds[0m
+    return [31m_posixsubprocess.fork_exec[0m[1;31m([0m
+           [31m~~~~~~~~~~~~~~~~~~~~~~~~~~[0m[1;31m^[0m
+        [1;31margs, [path], True, passfds, None, None,[0m
+        [1;31m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+        [1;31m-1, -1, -1, -1, -1, -1, errpipe_read, errpipe_write,[0m
+        [1;31m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+        [1;31mFalse, False, -1, None, None, None, -1, None)[0m
+        [1;31m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+[1;35mValueError[0m: [35mbad value(s) in fds_to_keep[0m
+Traceback (most recent call last):
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py"[0m, line [35m488[0m, in [35mwait_for[0m
+    return [1;31mawait fut[0m
+           [1;31m^^^^^^^^^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py"[0m, line [35m213[0m, in [35mwait[0m
+    await fut
+[1;35masyncio.exceptions.CancelledError[0m
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File [35m"/home/ts/wt/toad-tr0-test-collection-20260928/tests/persistent_renderer_ui_pilot.py"[0m, line [35m108[0m, in [35m<module>[0m
+    [31masyncio.run[0m[1;31m(main())[0m
+    [31m~~~~~~~~~~~[0m[1;31m^^^^^^^^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py"[0m, line [35m204[0m, in [35mrun[0m
+    return [31mrunner.run[0m[1;31m(main)[0m
+           [31m~~~~~~~~~~[0m[1;31m^^^^^^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py"[0m, line [35m127[0m, in [35mrun[0m
+    return [31mself._loop.run_until_complete[0m[1;31m(task)[0m
+           [31m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m[1;31m^^^^^^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py"[0m, line [35m719[0m, in [35mrun_until_complete[0m
+    return [31mfuture.result[0m[1;31m()[0m
+           [31m~~~~~~~~~~~~~[0m[1;31m^^[0m
+  File [35m"/home/ts/wt/toad-tr0-test-collection-20260928/tests/persistent_renderer_ui_pilot.py"[0m, line [35m50[0m, in [35mmain[0m
+    await asyncio.wait_for(warmed.wait(), 10)
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py"[0m, line [35m487[0m, in [35mwait_for[0m
+    async with [31mtimeouts.timeout[0m[1;31m(timeout)[0m:
+               [31m~~~~~~~~~~~~~~~~[0m[1;31m^^^^^^^^^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/timeouts.py"[0m, line [35m114[0m, in [35m__aexit__[0m
+    raise TimeoutError from exc_val
+[1;35mTimeoutError[0m
+
+Logs: /home/ts/wt/toad-tr0-test-collection-20260928/.artifacts/pilots-short/popen-gw1/persistent_renderer_ui_pilot0
+=========================== short test summary info ============================
+FAILED tests/persistent_renderer_ui_pilot.py::persistent_renderer_ui_pilot - ...
+1 failed, 2 passed in 23.05s
