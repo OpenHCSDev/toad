@@ -21,10 +21,15 @@ class MessageNotifications(Collapsible):
     """
 
     def __init__(self) -> None:
+        self._notifications: tuple[MessageNotification, ...] | None = None
+        self._error: str | None = None
         self.details = Static("Not checked yet", markup=False)
         super().__init__(self.details, title="Notification status not checked", collapsed=True)
 
     def show_result(self, notifications: tuple[MessageNotification, ...]) -> None:
+        if self._error is None and self._notifications == notifications:
+            return
+        self._notifications, self._error = notifications, None
         ordered = sorted(notifications, key=lambda item: (item.priority, item.recipient.casefold()))
         counts = Counter(item.state for item in ordered)
         states = list(counts)
@@ -41,7 +46,11 @@ class MessageNotifications(Collapsible):
         self.remove_class("-unavailable")
 
     def show_error(self, error: Exception) -> None:
+        detail = str(error)
+        if self._error == detail:
+            return
+        self._notifications, self._error = None, detail
         self.title = Content("Notification status unavailable")
-        self.details.update(f"Could not check notification status: {error}")
+        self.details.update(f"Could not check notification status: {detail}")
         self.remove_class("-working")
         self.add_class("-unavailable")
