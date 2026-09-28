@@ -1,21 +1,26 @@
 from runtime_fixture import wait_channel_roster
-"""Mounted goal projections, stable editing, mentions, and backend revision history."""
 
+"Mounted goal projections, stable editing, mentions, and backend revision history."
 import asyncio
 import os
 from dataclasses import replace
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
+from agent_comms.acp_extension import GoalChangedUpdate
+from agent_comms.comms import wire
+from agent_comms.goal_presentation import (
+    GoalExecution,
+    GoalExecutionState,
+    GoalWaitTarget,
+)
 from agent_comms.goal_states import PausedGoal
 from agent_comms.goals import Goal
-from agent_comms.goal_presentation import GoalExecution, GoalExecutionState, GoalWaitTarget
 from agent_comms.threads import Thread
-from agent_comms.comms import wire
 from textual.content import Content
 from textual.widgets import Button, Static
 
-from toad.acp.messages import GoalSnapshotUpdate
+from toad.acp.messages import CommsUpdated
 from toad.app import ToadApp
 from toad.screens.goal_details import GoalDetails
 from toad.screens.goal_edit import GoalEdit
@@ -35,7 +40,7 @@ class GoalOwner:
         self.reject = True
 
     async def get_goal_snapshot(self):
-        return self.goal, self.execution
+        return (self.goal, self.execution)
 
     async def get_goal(self):
         return self.goal
@@ -58,7 +63,9 @@ class GoalOwner:
                 "kind": "baseline",
                 "observed_at": 1000.0,
                 "before": None,
-                "after": replace(self.goal, text="HISTORICAL_OBJECTIVE", revision=4).to_wire(),
+                "after": replace(
+                    self.goal, text="HISTORICAL_OBJECTIVE", revision=4
+                ).to_wire(),
             },
             {
                 "sequence": 2,
@@ -105,9 +112,12 @@ async def main():
             assert status.display
             rendered = bar.query_one(".goal-summary", Static).render()
             assert any(
-                not isinstance(span.style, str)
-                and (span.style.meta or {}).get("@click") == ("open_target", ("peer",))
-                for span in rendered.spans
+                (
+                    not isinstance(span.style, str)
+                    and (span.style.meta or {}).get("@click")
+                    == ("open_target", ("peer",))
+                    for span in rendered.spans
+                )
             ), "Goal mentions must use existing thread navigation"
             assert "Standby" in str(status.render()) and "@peer" in str(status.render())
             throbber = conversation.query_one(Throbber)
@@ -155,7 +165,7 @@ async def main():
             ), (
                 owner.requests,
                 "\n".join(
-                    strip.text for strip in app.screen._compositor.render_strips()
+                    (strip.text for strip in app.screen._compositor.render_strips())
                 ),
             )
             assert conversation.goal.text == "Coordinate with @peer"
@@ -168,7 +178,7 @@ async def main():
             assert not isinstance(app.screen, GoalEdit), (
                 owner.requests,
                 "\n".join(
-                    strip.text for strip in app.screen._compositor.render_strips()
+                    (strip.text for strip in app.screen._compositor.render_strips())
                 ),
             )
             assert (
@@ -181,12 +191,12 @@ async def main():
             await pilot.pause()
             assert isinstance(app.screen, GoalDetails)
             frame = "\n".join(
-                strip.text for strip in app.screen._compositor.render_strips()
+                (strip.text for strip in app.screen._compositor.render_strips())
             )
             assert (
                 "HISTORICAL_OBJECTIVE" in frame
                 and "baseline" in frame
-                and "observed" in frame
+                and ("observed" in frame)
             )
             await pilot.press("escape")
             assert conversation.prompt.text == "Composer draft stays"
@@ -194,14 +204,16 @@ async def main():
                 owner.goal, text="Backend edited the same goal", revision=6
             )
             owner.goal = pushed
-            conversation.post_message(GoalSnapshotUpdate(pushed, owner.execution))
+            conversation.post_message(
+                CommsUpdated(GoalChangedUpdate(pushed, owner.execution))
+            )
             await pilot.pause()
             assert conversation.goal == pushed
             assert "Backend edited the same goal" in str(
                 bar.query_one(".goal-summary", Static).render()
             ), str(bar.query_one(".goal-summary", Static).render())
-            owner.goal, owner.execution = None, None
-            conversation.post_message(GoalSnapshotUpdate(None, None))
+            owner.goal, owner.execution = (None, None)
+            conversation.post_message(CommsUpdated(GoalChangedUpdate(None, None)))
             await pilot.pause()
             assert conversation.goal is None and conversation.goal_execution is None
             assert not bar.display

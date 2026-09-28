@@ -1,3 +1,10 @@
+from agent_comms.acp_extension import (
+    InputFailedUpdate,
+    QueuePromptRequest,
+    encode_updates,
+)
+from agent_comms.acp_failure import BackendDeliveryFailure
+
 """Local request failures restore their text; remote failure evidence cannot inject drafts."""
 
 import asyncio
@@ -7,14 +14,13 @@ from pathlib import Path
 from unittest.mock import AsyncMock, patch
 
 from runtime_fixture import ToadApp
+
 from toad import jsonrpc
 from toad.acp.agent import Agent
 from toad.widgets.conversation import Conversation
 
 
-class FailingAgent:
-    uses_turn_events = False
-
+class FailingAgent(Agent):
     async def send_prompt(self, prompt, **kwargs):
         raise FileNotFoundError(2, "agent socket disappeared")
 
@@ -35,27 +41,36 @@ async def main():
         async with app.run_test(size=(110, 32)) as pilot:
             await pilot.pause()
             conversation = app.screen.conversation
-            receiver = Agent(root, {"name": "Fixture", "run_command": {"*": "true"}}, "fixture")
+            receiver = Agent(
+                root, {"name": "Fixture", "run_command": {"*": "true"}}, "fixture"
+            )
             receiver._message_target = conversation
             conversation.set_reactive(Conversation.agent, receiver)
             conversation.prompt.text = "new draft"
             # Current public ACP metadata: a remote failure is evidence, never
             # authority to overwrite a local draft, including repeated delivery.
             for _ in range(2):
-                receiver.rpc_session_update("fixture", {
-                    "sessionUpdate": "session_info_update",
-                    "_meta": {"agentComms": {"inputFailed": {
-                        "inputId": "remote-input", "reason": "native preflight failed",
-                        "text": "remote prompt",
-                    }}},
-                })
+                receiver.rpc_session_update(
+                    "fixture",
+                    {
+                        "sessionUpdate": "session_info_update",
+                        "_meta": encode_updates(
+                            InputFailedUpdate(
+                                "remote prompt",
+                                BackendDeliveryFailure("native preflight failed"),
+                            )
+                        ),
+                    },
+                )
                 await pilot.pause()
                 assert conversation.prompt.text == "new draft"
 
             # Exercise the real ACP request error catch, which used to consume
             # exceptions before the conversation could recover the original text.
             for error in (
-                jsonrpc.APIError(-32602, "Invalid params", {"reason": "owner unavailable"}),
+                jsonrpc.APIError(
+                    -32602, "Invalid params", {"reason": "owner unavailable"}
+                ),
                 jsonrpc.JSONRPCError("socket disconnected"),
             ):
                 conversation.prompt.text = ""
@@ -64,11 +79,18 @@ async def main():
                 with patch("toad.acp.agent.api.session_prompt", return_value=response):
                     await receiver.acp_session_prompt(
                         [{"type": "text", "text": "rpc prompt"}],
-                        {"agentComms": {"userText": "rpc prompt"}},
+                        QueuePromptRequest("rpc prompt"),
                     )
                 await pilot.pause()
                 assert conversation.prompt.text == "rpc prompt"
-            conversation.set_reactive(Conversation.agent, FailingAgent())
+            conversation.set_reactive(
+                Conversation.agent,
+                FailingAgent(
+                    root,
+                    {"name": "Failing fixture", "run_command": {"*": "true"}},
+                    "fixture",
+                ),
+            )
             conversation.prompt.text = ""
             await conversation.send_prompt_to_agent(
                 "the local failure prompt", immediate=True
@@ -76,7 +98,9 @@ async def main():
             await pilot.pause()
             assert conversation.prompt.text == "the local failure prompt"
             await receiver.stop()
-    print("input failure: remote evidence is read-only; exact locally failed prompts are restored")
+    print(
+        "input failure: remote evidence is read-only; exact locally failed prompts are restored"
+    )
 
 
 if __name__ == "__main__":

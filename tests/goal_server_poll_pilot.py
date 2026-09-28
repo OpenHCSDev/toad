@@ -5,10 +5,16 @@ import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from agent_comms.child_process import ProcessIdentity
-from agent_comms.threads import Thread
-from agent_comms.goal_actions import EditGoalAction, GoalPrecondition, OwnerInvocable, StandbyGoalAction
 from agent_comms.acp import CommsAgent
+from agent_comms.child_process import ProcessIdentity
+from agent_comms.goal_actions import (
+    EditGoalAction,
+    GoalPrecondition,
+    OwnerInvocable,
+    StandbyGoalAction,
+)
+from agent_comms.threads import Thread
+from comms_boundary_fixture import attach_coordination
 from runtime_fixture import private_native_wire
 from textual.containers import VerticalScroll
 from textual.widgets import Static
@@ -48,37 +54,48 @@ async def main():
             agent_args=["--provider", "openrouter", "--model", "fake"],
             runtime_enabled=True,
             auto_wake=False,
-            private_nk_native_package=Path(os.environ["AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE"]),
+            private_nk_native_package=Path(
+                os.environ["AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE"]
+            ),
             private_nk_wire_root_id=os.environ["AGENT_COMMS_PRIVATE_NK_WIRE_ROOT_ID"],
         )
         peer_turn = None
         try:
             session = (await owner.new_session(cwd=str(project))).session_id
-            comms.threads.register(Thread("peer", frozenset(), str(project), process_identity=ProcessIdentity.capture(os.getpid())))
-            # Standby requires an actually active declared dependency, not only
-            # a registered name. This is a fixture turn, with no provider call.
+            comms.threads.register(
+                Thread(
+                    "peer",
+                    frozenset(),
+                    str(project),
+                    process_identity=ProcessIdentity.capture(os.getpid()),
+                )
+            )
             peer_turn = comms.agents.begin_turn("peer", "fixture-dependent-turn")
             agent = Agent(
                 project, {"name": "agent-comms", "run_command": {"*": "true"}}, None
             )
-            agent._coordination_root = str(comms.root)
-            agent._coordination_thread = session
+            attach_coordination(agent, str(comms.root), session)
             goal = await agent.update_goal(
                 "set",
                 "OBJECTIVE_BEGIN "
                 + "Fully wrapped acceptance criteria. " * 40
                 + " OBJECTIVE_END",
             )
-            comms.goals.update_goal(session, StandbyGoalAction(wait_for=["peer"], progress="Progress details. " * 40 + " PROGRESS_END", expect=GoalPrecondition(goal_id=goal.id)))
+            comms.goals.update_goal(
+                session,
+                StandbyGoalAction(
+                    wait_for=["peer"],
+                    progress="Progress details. " * 40 + " PROGRESS_END",
+                    expect=GoalPrecondition(goal_id=goal.id),
+                ),
+            )
             app = ToadApp(project_dir=str(project))
             async with app.run_test(size=(90, 35)) as pilot:
-                # A headless driver cannot answer terminal color probes.
                 app.theme = "textual-dark"
                 await pilot.pause()
                 conversation = app.screen.conversation
                 conversation.set_reactive(type(conversation).agent, agent)
                 conversation.agent_ready = True
-                # No ACP subscriber/push is connected: only the visible timer can load this.
                 await until(lambda: conversation.goal_execution is not None)
                 await pilot.pause()
                 bar = conversation.query_one(GoalBar)
@@ -100,7 +117,7 @@ async def main():
                 document.scroll_end(animate=False)
                 await pilot.pause()
                 frame = "\n".join(
-                    strip.text for strip in app.screen._compositor.render_strips()
+                    (strip.text for strip in app.screen._compositor.render_strips())
                 )
                 assert "PROGRESS_END" in frame, (
                     frame,
@@ -113,7 +130,7 @@ async def main():
                 document.scroll_home(animate=False)
                 await pilot.pause()
                 assert "OBJECTIVE_BEGIN" in "\n".join(
-                    strip.text for strip in app.screen._compositor.render_strips()
+                    (strip.text for strip in app.screen._compositor.render_strips())
                 )
                 for width, height in ((86, 28), (120, 40), (65, 22)):
                     await pilot.resize_terminal(width, height)
@@ -121,7 +138,7 @@ async def main():
                     document.scroll_end(animate=False)
                     await pilot.pause()
                     frame = "\n".join(
-                        strip.text for strip in app.screen._compositor.render_strips()
+                        (strip.text for strip in app.screen._compositor.render_strips())
                     )
                     assert "PROGRESS_END" in frame, frame
                     assert (
@@ -129,8 +146,10 @@ async def main():
                         and bar.region.bottom <= conversation.prompt.region.y
                     )
                     assert all(
-                        control.region.y >= 0 and control.region.bottom <= height
-                        for control in bar.query(GoalControl)
+                        (
+                            control.region.y >= 0 and control.region.bottom <= height
+                            for control in bar.query(GoalControl)
+                        )
                     )
                     document.scroll_home(animate=False)
                     await pilot.pause()
@@ -140,13 +159,21 @@ async def main():
                     )
                 await pilot.resize_terminal(90, 35)
                 await pilot.pause()
-                # Current details remain the same server projection while the modal is open.
                 await pilot.click("#goal-history")
                 await pilot.pause()
                 details = app.screen
                 assert isinstance(details, GoalDetails)
                 current = comms.registry.require(session).goal
-                comms.goals.update_goal(session, EditGoalAction(text="Changed through owner backend", expect=GoalPrecondition(goal_id=current.id, expected_goal=current)), actor=OwnerInvocable)
+                comms.goals.update_goal(
+                    session,
+                    EditGoalAction(
+                        text="Changed through owner backend",
+                        expect=GoalPrecondition(
+                            goal_id=current.id, expected_goal=current
+                        ),
+                    ),
+                    actor=OwnerInvocable,
+                )
                 await until(
                     lambda: details.goal.text == "Changed through owner backend"
                 )
@@ -160,16 +187,25 @@ async def main():
                 assert isinstance(editor, GoalEdit)
                 editor.editor.text = "UNSAVED DRAFT"
                 current = comms.registry.require(session).goal
-                comms.goals.update_goal(session, EditGoalAction(text="Concurrent owner edit", expect=GoalPrecondition(goal_id=current.id, expected_goal=current)), actor=OwnerInvocable)
+                comms.goals.update_goal(
+                    session,
+                    EditGoalAction(
+                        text="Concurrent owner edit",
+                        expect=GoalPrecondition(
+                            goal_id=current.id, expected_goal=current
+                        ),
+                    ),
+                    actor=OwnerInvocable,
+                )
                 await until(lambda: conversation.goal.text == "Concurrent owner edit")
                 assert editor.editor.text == "UNSAVED DRAFT"
                 await pilot.press("escape")
-                # Every mutation goes through owner RPC, then a canonical read.
                 await conversation.change_goal("paused")
-                assert conversation.goal.state.declared_name == "paused" and not pulse.active
+                assert conversation.goal.state.declared_name == "paused" and (
+                    not pulse.active
+                )
                 await conversation.change_goal("active")
                 assert conversation.goal.state.declared_name == "active"
-                # Actual server error marks the retained snapshot unavailable, never standby.
                 read = comms.goals.goal_snapshot
 
                 def unavailable(_name):
@@ -181,14 +217,18 @@ async def main():
                     bar.query_one(".goal-header", Static).render()
                 )
                 assert not pulse.active
-                assert all(control.disabled for control in bar.query(GoalControl)
-                           if control.id != "goal-collapse")
+                assert all(
+                    (
+                        control.disabled
+                        for control in bar.query(GoalControl)
+                        if control.id != "goal-collapse"
+                    )
+                )
                 assert not bar.query_one("#goal-collapse", GoalControl).disabled
                 comms.goals.goal_snapshot = read
                 await until(lambda: not conversation.goal_unavailable)
                 await conversation.change_goal("clear")
-                assert conversation.goal is None and not bar.display
-                # A stalled read is bounded; mutations have no automatic timeout/replay.
+                assert conversation.goal is None and (not bar.display)
                 request = agent._owner_request
 
                 async def stalled(method, **params):

@@ -1,53 +1,57 @@
-from dataclasses import replace
 import asyncio
-
-from collections.abc import Mapping
-from contextlib import suppress
-from datetime import datetime
 import json
 import os
-from pathlib import Path
-from urllib.parse import quote
-from typing import Any, cast, NamedTuple
+from collections.abc import Mapping
+from contextlib import suppress
 from copy import deepcopy
+from dataclasses import replace
+from datetime import datetime
 from math import floor
+from pathlib import Path
+from typing import Any, NamedTuple, cast
+from urllib.parse import quote
+
 import rich.repr
-from agent_comms.goal_actions import RetryGoalAction
+from agent_comms.acp_extension import (
+    ClearQueueRequest,
+    CommsRequest,
+    CompactionCommittedUpdate,
+    CompactRequest,
+    CoordinationChangedUpdate,
+    InputFailedUpdate,
+    PromptRequest,
+    QueueItem,
+    SendNowRequest,
+    decode_updates,
+    encode_request,
+)
+from agent_comms.acp_failure import ACPFailure, BackendDeliveryFailure
 from agent_comms.comms import Comms
 from agent_comms.field_codec import FieldCodec
-from agent_comms.goals import Goal
+from agent_comms.goal_actions import RetryGoalAction
 from agent_comms.goal_presentation import GoalExecution
-from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.goals import Goal
 from agent_comms.routing import MessageRoute
-
+from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from textual.content import Content
 from textual.message import Message
 from textual.message_pump import MessagePump
 
-
-from toad import jsonrpc
 import toad
-from toad.agent_schema import Agent as AgentData
-from toad.agent import AgentBase, AgentReady, AgentFail
-from toad.acp import protocol
-from toad.acp import api
+from toad import constants, jsonrpc, paths
+from toad.acp import api, messages, protocol
 from toad.acp.api import API
-from toad.acp import messages
-from toad.acp.sdk_boundary import validate_session_update
-from toad.acp.prompt import build as build_prompt
-from toad.db import DB, SessionMeta
-from toad.acp.projection_attachment import ProjectionAttachment
-from agent_comms.acp_extension import QueueItem
-from toad.acp.queue_attachment import QueueAttachment
+from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
 from toad.acp.comms_updates import CommsUpdateConsumer
-from agent_comms.acp_extension import (
-    decode_updates,
-    CoordinationChangedUpdate,
-    CompactionCommittedUpdate,
-)
-from toad import paths
-from toad import constants
+from toad.acp.projection_attachment import ProjectionAttachment
+from toad.acp.prompt import build as build_prompt
+from toad.acp.queue_attachment import QueueAttachment
+from toad.acp.sdk_boundary import validate_session_update
+from toad.acp.wire_message import IncomingWireMessage
+from toad.agent import AgentBase, AgentFail, AgentReady
+from toad.agent_schema import Agent as AgentData
 from toad.answer import Answer
+from toad.db import DB, SessionMeta
 
 PROTOCOL_VERSION = 1
 PERMISSION_TIMEOUT_SECONDS: float = 120.0
@@ -79,9 +83,8 @@ class ContextUsage(NamedTuple):
     @property
     def percentage_used(self) -> float:
         try:
-            return (self.used / self.size) * 100.0
+            return self.used / self.size * 100.0
         except ZeroDivisionError:
-            # Sanity check. If size is 0, then 100% is always used?
             return 100.0
 
     @property
@@ -135,7 +138,6 @@ def generate_datetime_filename(
         dt = datetime.now().isoformat()
     else:
         dt = datetime.now().strftime(datetime_format)
-
     file_name_stem = f"{prefix} {dt}"
     for reserved in ' <>:"/\\|?*.':
         file_name_stem = file_name_stem.replace(reserved, "_")
@@ -144,6 +146,8 @@ def generate_datetime_filename(
 
 @rich.repr.auto
 class Agent(AgentBase):
+    comms_consumer_class = CommsUpdateConsumer
+
     """An agent that speaks the APC (https://agentclientprotocol.com/overview/introduction) protocol."""
 
     def __init__(
@@ -160,14 +164,11 @@ class Agent(AgentBase):
             command: Command to launch agent.
         """
         super().__init__(project_root)
-
         self._agent_data = agent
         self.session_id = session_id
-
         self.server = jsonrpc.Server()
         self._session_update_lock = asyncio.Lock()
         self.server.expose_instance(self)
-
         self._agent_task: asyncio.Task | None = None
         self._task: asyncio.Task | None = None
         self._process: asyncio.subprocess.Process | None = None
@@ -177,20 +178,15 @@ class Agent(AgentBase):
         self._connected_ok = False
         self.prompt_in_flight = 0
         self._deferred_submissions: set[asyncio.Task] = set()
-        self.uses_turn_events = False
         self._pending_session_name: str | None = None
-        self.coordination: CoordinationChangedUpdate | None = None
         self._maintenance_env: dict[str, str] | None = None
         self._maintenance_cwd: str | None = None
         self._maintenance_root: Path | None = None
         self._transcript_reader: Comms | None = None
         self._transcript_reader_root: str | None = None
         self._transcript_reader_lock = asyncio.Lock()
-        self.server_titles = False
-        self.supports_prompt_queue = False
         self.session_ready_event = asyncio.Event()
         self.done_event = asyncio.Event()
-
         self.agent_capabilities: protocol.AgentCapabilities = {
             "loadSession": False,
             "promptCapabilities": {
@@ -210,9 +206,7 @@ class Agent(AgentBase):
         self._private_cursor_sequence = 0
         self.queue_attachment = QueueAttachment()
         self._queue_sequence = 0
-
         self._terminal_count: int = 0
-
         log_filename: str = generate_datetime_filename(f"{agent['name']}", ".txt")
         if log_path := os.environ.get("TOAD_LOG"):
             self._log_file_path = Path(log_path).resolve().absolute()
@@ -220,7 +214,6 @@ class Agent(AgentBase):
                 self._log_file_path.unlink(missing_ok=True)
         else:
             self._log_file_path = paths.get_log() / log_filename
-
         self._token_usage: TokenUsage | None = None
         self._context_usage: ContextUsage | None = None
         self._context_usage_saved = False
@@ -262,7 +255,6 @@ class Agent(AgentBase):
         Args:
             line: Text to be logged.
         """
-
         if self._message_target is None:
             return
 
@@ -283,9 +275,6 @@ class Agent(AgentBase):
     async def start(self, message_target: MessagePump | None = None) -> None:
         """Start the agent."""
         self._message_target = message_target
-        # Freeze exactly the environment and working directory passed to the
-        # child. A relative wire root is relative to the child cwd, not Toad's.
-        # Preflight is early denial; the actual spawn takes the core wire lock.
         from .maintenance_ingress import configured_root, preflight
 
         self._maintenance_env = os.environ.copy()
@@ -296,13 +285,11 @@ class Agent(AgentBase):
         self._maintenance_root = configured_root(
             self._maintenance_env, self._maintenance_cwd
         )
-        # The later _run_agent task must not re-resolve an alias after the
-        # preflight snapshot while prompt admission still uses this root.
         self._maintenance_env["AGENT_COMMS_ROOT"] = str(self._maintenance_root)
         try:
             await asyncio.to_thread(
                 preflight,
-                (self.coordination.wire_root if self.coordination else None),
+                self.coordination.wire_root if self.coordination else None,
                 ingress_root=self._maintenance_root,
                 cwd=self._maintenance_cwd,
             )
@@ -331,19 +318,20 @@ class Agent(AgentBase):
         if self._process is None:
             self.log("[error] Agent process isnt running")
             return
-
         body = request.body
         self.log(f"[client] {body}")
         if (stdin := self._process.stdin) is not None:
             calls = body if isinstance(body, list) else [body]
             if any(
-                isinstance(call, dict) and call.get("method") == "session/prompt"
-                for call in calls
+                (
+                    isinstance(call, dict) and call.get("method") == "session/prompt"
+                    for call in calls
+                )
             ):
                 from .maintenance_ingress import admitted_prompt
 
                 with admitted_prompt(
-                    (self.coordination.wire_root if self.coordination else None),
+                    self.coordination.wire_root if self.coordination else None,
                     ingress_root=self._maintenance_root,
                     cwd=self._maintenance_cwd,
                     implicit=getattr(self, "_maintenance_implicit_root", None),
@@ -371,10 +359,7 @@ class Agent(AgentBase):
 
     @jsonrpc.expose("session/update", ordered=True)
     async def _rpc_session_update(
-        self,
-        sessionId: str,
-        update: Any,
-        _meta: dict[str, Any] | None = None,
+        self, sessionId: str, update: Any, _meta: dict[str, Any] | None = None
     ) -> None:
         """Validate wire notifications off-process, then publish to the same owner."""
         from toad.render_tasks import ValidateSessionUpdateTask
@@ -405,10 +390,7 @@ class Agent(AgentBase):
             self._apply_session_update(sessionId, cast(protocol.SessionUpdate, update))
 
     def rpc_session_update(
-        self,
-        sessionId: str,
-        update: Any,
-        _meta: dict[str, Any] | None = None,
+        self, sessionId: str, update: Any, _meta: dict[str, Any] | None = None
     ):
         """Synchronous in-process SDK boundary for direct protocol consumers.
 
@@ -425,16 +407,17 @@ class Agent(AgentBase):
 
     def _reject_session_update(self, session_id, update, metadata, error) -> None:
         self.log(
-            f"[ACP rejected session/update] raw={{'sessionId': {session_id!r}, "
-            f"'update': {update!r}, '_meta': {metadata!r}}}; validation={error}"
+            f"[ACP rejected session/update] raw={{'sessionId': {session_id!r}, 'update': {update!r}, '_meta': {metadata!r}}}; validation={error}"
         )
         self.post_message(messages.RejectedSessionUpdate())
 
     def _apply_session_update(
         self, sessionId: str, update: protocol.SessionUpdate
     ) -> None:
+        if self.session_id is not None and sessionId != self.session_id:
+            return
         metadata = update.get("_meta")
-        consumer = CommsUpdateConsumer(self, sessionId)
+        consumer = self.comms_consumer_class(self, sessionId)
         try:
             facts = decode_updates(metadata)
         except (TypeError, ValueError) as error:
@@ -450,7 +433,6 @@ class Agent(AgentBase):
             }:
                 if text:
                     self.post_message(messages.UserMessage(type, text))
-
             case {
                 "sessionUpdate": "agent_message_chunk",
                 "content": {"type": type, "text": text},
@@ -459,38 +441,26 @@ class Agent(AgentBase):
                     if type == "text" and text.startswith("[agent error]"):
                         text += f"\n\n[Open ACP log]({quote(str(self._log_file_path))})"
                     self.post_message(messages.Update(type, text, route))
-
             case {
                 "sessionUpdate": "agent_thought_chunk",
                 "content": {"type": type, "text": text},
             }:
                 self.post_message(messages.Thinking(type, text))
-
-            case {
-                "sessionUpdate": "tool_call",
-                "toolCallId": tool_call_id,
-            }:
+            case {"sessionUpdate": "tool_call", "toolCallId": tool_call_id}:
                 self.tool_calls[tool_call_id] = update
                 self.post_message(messages.ToolCall(update))
-
             case {"sessionUpdate": "plan", "entries": entries}:
                 self.post_message(messages.Plan(entries))
-
-            case {
-                "sessionUpdate": "tool_call_update",
-                "toolCallId": tool_call_id,
-            }:
+            case {"sessionUpdate": "tool_call_update", "toolCallId": tool_call_id}:
                 if tool_call_id in self.tool_calls:
                     current_tool_call = self.tool_calls[tool_call_id]
                     for key, value in update.items():
                         if value is not None:
                             current_tool_call[key] = value
-
                     self.post_message(
                         messages.ToolCallUpdate(deepcopy(current_tool_call), update)
                     )
                 else:
-                    # The agent can send a tool call update, without previously sending the tool call *rolls eyes*
                     current_tool_call: protocol.ToolCall = {
                         "sessionUpdate": "tool_call",
                         "toolCallId": tool_call_id,
@@ -499,36 +469,25 @@ class Agent(AgentBase):
                     for key, value in update.items():
                         if value is not None:
                             current_tool_call[key] = value
-
                     self.tool_calls[tool_call_id] = current_tool_call
                     self.post_message(messages.ToolCall(current_tool_call))
-
             case {
                 "sessionUpdate": "available_commands_update",
                 "availableCommands": available_commands,
             }:
                 self.post_message(messages.AvailableCommandsUpdate(available_commands))
-
             case {"sessionUpdate": "current_mode_update", "currentModeId": mode_id}:
                 self.post_message(messages.ModeUpdate(mode_id))
-
             case {
                 "sessionUpdate": "config_option_update",
                 "configOptions": config_options,
             }:
                 self._publish_models({"configOptions": config_options})
-
             case {"sessionUpdate": "session_info_update"} if "title" in update:
                 title = update.get("title")
                 self.post_message(messages.SessionInfoUpdate(title))
-
             case {"sessionUpdate": "usage_update", "used": used, "size": size}:
                 self._context_usage_saved = False
-                # Pi can report zero immediately after compaction or while a
-                # turn has not yet returned authoritative usage. A saved
-                # conversation still has context; presenting 0.0K (0.0%)
-                # falsely implies it is empty. Do not reuse a pre-compaction
-                # number either: wait for a new positive measurement.
                 if used <= 0 or size <= 0:
                     self._context_usage = None
                     self.post_message(
@@ -548,7 +507,6 @@ class Agent(AgentBase):
 
     def update_status_line(self) -> None:
         """Update the current status line."""
-
         if (usage := self._context_usage) is not None:
             status: list[Content] = []
             status.append(
@@ -563,7 +521,6 @@ class Agent(AgentBase):
                 status.append(Content("last response"))
             if (cost := usage.cost) is not None:
                 status.append(Content.assemble((f"{cost}", "bold")))
-
             status_line = Content(" • ").join(status)
             self.post_message(messages.UpdateStatusLine(status_line))
 
@@ -595,7 +552,6 @@ class Agent(AgentBase):
             asyncio.get_running_loop().create_future()
         )
         tool_call_id = toolCall["toolCallId"]
-
         permission_tool_call = cast(dict[str, Any], toolCall.copy())
         permission_tool_call.pop("sessionUpdate", None)
         visible_tool_call: dict[str, Any] = (
@@ -610,7 +566,7 @@ class Agent(AgentBase):
             result_future,
         )
         if not self.post_message(message):
-            return cancelled  # No mounted controller can answer this request.
+            return cancelled
         self.tool_calls[tool_call_id] = cast(
             protocol.ToolCall, deepcopy(visible_tool_call)
         )
@@ -626,7 +582,7 @@ class Agent(AgentBase):
             self._pending_permission_answers.discard(result_future)
         if ask_result is None or self._stopping or sessionId != self.session_id:
             return cancelled
-        if not any(option["optionId"] == ask_result.id for option in options):
+        if not any((option["optionId"] == ask_result.id for option in options)):
             return cancelled
         return {"outcome": {"optionId": ask_result.id, "outcome": "selected"}}
 
@@ -639,8 +595,6 @@ class Agent(AgentBase):
         limit: int | None = None,
     ) -> dict[str, str]:
         """Read a file in the project."""
-        # TODO: what if the read is outside of the project path?
-        # https://agentclientprotocol.com/protocol/file-system#reading-files
         read_path = self.project_root_path / path
         try:
             text = read_path.read_text(encoding="utf-8", errors="ignore")
@@ -656,13 +610,9 @@ class Agent(AgentBase):
 
     @jsonrpc.expose("fs/write_text_file")
     def rpc_write_text_file(self, sessionId: str, path: str, content: str) -> None:
-        # TODO: What if the agent wants to write outside of the project path?
-        # https://agentclientprotocol.com/protocol/file-system#writing-files
-
         write_path = self.project_root_path / path
         write_path.write_text(content, encoding="utf-8", errors="ignore")
 
-    # https://agentclientprotocol.com/protocol/schema#createterminalrequest
     @jsonrpc.expose("terminal/create")
     async def rpc_terminal_create(
         self,
@@ -674,10 +624,8 @@ class Agent(AgentBase):
         outputByteLimit: int | None = None,
         sessionId: str | None = None,
     ) -> protocol.CreateTerminalResponse:
-        # Assign a terminal id
         self._terminal_count = self._terminal_count + 1
         terminal_id = f"terminal-{self._terminal_count}"
-
         terminal_env = (
             {variable["name"]: variable["value"] for variable in env} if env else {}
         )
@@ -698,7 +646,6 @@ class Agent(AgentBase):
             raise jsonrpc.JSONRPCError("Failed to create a terminal.")
         return {"terminalId": terminal_id}
 
-    # https://agentclientprotocol.com/protocol/schema#killterminalcommandrequest
     @jsonrpc.expose("terminal/kill")
     def rpc_terminal_kill(
         self, sessionID: str, terminalId: str, _meta: dict | None = None
@@ -706,7 +653,6 @@ class Agent(AgentBase):
         self.post_message(messages.KillTerminal(terminalId))
         return {}
 
-    # https://agentclientprotocol.com/protocol/schema#terminal%2Foutput
     @jsonrpc.expose("terminal/output")
     async def rpc_terminal_output(
         self, sessionId: str, terminalId: str, _meta: dict | None = None
@@ -714,13 +660,10 @@ class Agent(AgentBase):
         from toad.widgets.terminal_tool import ToolState
 
         result_future: asyncio.Future[ToolState] = asyncio.Future()
-
         if not self.post_message(messages.GetTerminalState(terminalId, result_future)):
             raise RuntimeError("Unable to get terminal output")
-
         await result_future
         terminal_state = result_future.result()
-
         result: protocol.TerminalOutputResponse = {
             "output": terminal_state.output,
             "truncated": terminal_state.truncated,
@@ -729,7 +672,6 @@ class Agent(AgentBase):
             result["exitStatus"] = {"exitCode": return_code}
         return result
 
-    # https://agentclientprotocol.com/protocol/schema#terminal%2Frelease
     @jsonrpc.expose("terminal/release")
     def rpc_terminal_release(
         self, sessionId: str, terminalId: str, _meta: dict | None = None
@@ -737,7 +679,6 @@ class Agent(AgentBase):
         self.post_message(messages.ReleaseTerminal(terminalId))
         return {}
 
-    # https://agentclientprotocol.com/protocol/schema#terminal%2Fwait-for-exit
     @jsonrpc.expose("terminal/wait_for_exit")
     async def rpc_terminal_wait_for_exit(
         self, sessionId: str, terminalId: str, _meta: dict | None = None
@@ -747,18 +688,15 @@ class Agent(AgentBase):
             messages.WaitForTerminalExit(terminalId, result_future)
         ):
             raise RuntimeError("Unable to wait for terminal exit; no terminal found")
-
         await result_future
         return_code, signal = result_future.result()
         return {"exitCode": return_code, "signal": signal}
 
     async def _run_agent(self) -> None:
         """Task to communicate with the agent subprocess."""
-
         PIPE = asyncio.subprocess.PIPE
         env = (self._maintenance_env or os.environ).copy()
         env["TOAD_CWD"] = str(Path("./").absolute())
-
         if (command := self.command) is None:
             self.post_message(
                 AgentFail("Failed to start agent; no run command for this OS")
@@ -769,7 +707,7 @@ class Agent(AgentBase):
 
             process = self._process = await admitted_spawn(
                 command,
-                root=(self.coordination.wire_root if self.coordination else None),
+                root=self.coordination.wire_root if self.coordination else None,
                 stdin=PIPE,
                 stdout=PIPE,
                 stderr=PIPE,
@@ -785,17 +723,14 @@ class Agent(AgentBase):
             self.session_ready_event.set()
             self.post_message(AgentFail("Failed to start agent", details=str(error)))
             return
-
         self._task = asyncio.create_task(self.run())
-
         assert process.stdout is not None
         assert process.stdin is not None
-
         tasks: set[asyncio.Task] = set()
 
         async def call_jsonrpc(request: jsonrpc.JSONObject | jsonrpc.JSONList) -> None:
             try:
-                if (result := await self.server.call(request)) is not None:
+                if (result := (await self.server.call(request))) is not None:
                     result_json = json.dumps(result).encode("utf-8")
                     if process.stdin is not None:
                         process.stdin.write(b"%s\n" % result_json)
@@ -803,70 +738,34 @@ class Agent(AgentBase):
                 if (task := asyncio.current_task()) is not None:
                     tasks.discard(task)
 
-        while line := await process.stdout.readline():
-            # This line should contain JSON, which may be:
-            #   A) a JSONRPC request
-            #   B) a JSONRPC response to a previous request
+        while line := (await process.stdout.readline()):
             if not line.strip():
                 continue
-
             try:
                 line_str = line.decode("utf-8")
             except Exception as error:
                 self.log(f"[error] Unable to decode utf-8 from agent: {error}")
                 continue
-
             self.log(f"[agent] {line_str}")
             try:
                 agent_data: jsonrpc.JSONType = json.loads(line_str)
             except Exception as error:
                 self.log(f"[error] failed to decode JSON from agent: {error}")
                 continue
-
-            if isinstance(agent_data, dict):
-                if "result" in agent_data or "error" in agent_data:
-                    API.process_response(agent_data)
-                    continue
-
-            elif isinstance(agent_data, list):
-                if not all(isinstance(datum, dict) for datum in agent_data):
-                    self.log(f"[error] Agent sent invalid data: {agent_data!r}")
-                    continue
-                if all(
-                    isinstance(datum, dict) and ("result" in datum or "error" in datum)
-                    for datum in agent_data
-                ):
-                    API.process_response(agent_data)
-                    continue
-
-            if not isinstance(agent_data, dict):
-                self.log("[error] Invalid JSON from agent {agent_data!r}")
+            try:
+                incoming = IncomingWireMessage.decode(agent_data)
+            except ValueError as error:
+                self.log(f"[error] {error}")
                 continue
-
-            # By this point we know it is a JSON RPC call
-            assert isinstance(agent_data, dict)
-            if self.server.requires_ordered_dispatch(agent_data):
-                # A session/load or prompt response may not overtake updates
-                # whose validation is still in flight in the process worker.
-                await call_jsonrpc(agent_data)
-                continue
-            tasks.add(asyncio.create_task(call_jsonrpc(agent_data)))
-            await asyncio.sleep(0)
-
-        # EOF invalidates projections; it never resolves input disposition.
+            await incoming.receive(self, call_jsonrpc, tasks)
         self._invalidate_attachment_views()
         self._active_turn_id = None
         self.post_message(messages.McpClientStopped(self))
-
-        # Cancel all remaining tasks and wait for them to finish
         for task in tasks:
             task.cancel()
-
-        # Wait for all tasks to complete cancellation
         if tasks:
             await asyncio.gather(*tasks, return_exceptions=True)
-
-        if process.returncode and not self._stopping:
+        if process.returncode and (not self._stopping):
             assert process.stderr is not None
             fail_details = (await process.stderr.read()).decode("utf-8", "replace")
             self.post_message(
@@ -875,7 +774,6 @@ class Agent(AgentBase):
                     details=fail_details,
                 )
             )
-
         if (
             not self._stopping
             and self._process_group_id is not None
@@ -902,13 +800,12 @@ class Agent(AgentBase):
         if self.session_pk is not None:
             db = DB()
             await db.session_update_last_used(self.session_pk)
-
         process = self._process
         process_group = self._process_group_id
         if (
             process is not None
             and process.returncode is None
-            and process.stdin is not None
+            and (process.stdin is not None)
         ):
             process.stdin.close()
             with suppress(BrokenPipeError, ConnectionResetError):
@@ -947,10 +844,9 @@ class Agent(AgentBase):
                     pass
                 with suppress(TimeoutError):
                     await asyncio.wait_for(process.wait(), timeout=1)
-
         current = asyncio.current_task()
         for task in (self._task, self._agent_task):
-            if task is not None and task is not current and not task.done():
+            if task is not None and task is not current and (not task.done()):
                 task.cancel()
         pending = [
             task
@@ -977,14 +873,10 @@ class Agent(AgentBase):
         if constants.ACP_INITIALIZE:
             self._connected_ok = False
             try:
-                # Boilerplate to initialize comms
                 await self.acp_initialize()
-
                 if self.session_id is None:
-                    # Create a new session
                     await self.acp_new_session()
                 else:
-                    # Load existing session
                     if not self.agent_capabilities.get("loadSession", False):
                         self.post_message(
                             AgentFail(
@@ -1001,18 +893,8 @@ class Agent(AgentBase):
                         await db.session_update_last_used(self.session_pk)
                 self._connected_ok = True
             except jsonrpc.APIError as error:
-                if isinstance(error.data, dict):
-                    reason = str(
-                        error.data.get("reason") or "Failed to initialize agent"
-                    )
-                    details = str(
-                        error.data.get("details") or error.data.get("error") or ""
-                    )
-                else:
-                    reason = "Failed to initialize agent"
-                    details = ""
-                self.post_message(AgentFail(reason, details))
-
+                failure = ACPFailure.from_error(error.code, error.message, error.data)
+                self.post_message(AgentFail(failure.title, failure.feedback))
         self.session_ready_event.set()
         self.post_message(AgentReady(reconnected=self._reconnecting))
 
@@ -1035,9 +917,9 @@ class Agent(AgentBase):
             prompt_content_blocks = await asyncio.to_thread(
                 build_prompt, self.project_root_path, prompt
             )
-            if any(block.get("type") == "image" for block in prompt_content_blocks):
+            if any((block.get("type") == "image" for block in prompt_content_blocks)):
                 supported = (
-                    getattr(self, "supports_prompt_images", False)
+                    True
                     if (self.coordination.wire_root if self.coordination else None)
                     is not None
                     else (self.agent_capabilities.get("promptCapabilities") or {}).get(
@@ -1048,15 +930,9 @@ class Agent(AgentBase):
                     raise ValueError(
                         "This agent owner does not support images yet; refresh it while idle."
                     )
+            request_type = PromptRequest.decode(delivery + "_prompt")
             return await self.acp_session_prompt(
-                prompt_content_blocks,
-                {
-                    "agentComms": {
-                        "delivery": delivery,
-                        "deferDisplay": defer_display,
-                        "userText": prompt,
-                    }
-                },
+                prompt_content_blocks, request_type(prompt, defer_display)
             )
         finally:
             self.prompt_in_flight -= 1
@@ -1066,32 +942,36 @@ class Agent(AgentBase):
     async def clear_queue(self) -> None:
         """Drop prompts still awaiting delivery, leaving the turn running."""
         await self.acp_session_prompt(
-            [{"type": "text", "text": " "}], {"agentComms": {"clearQueue": True}}
+            [{"type": "text", "text": " "}], ClearQueueRequest()
         )
 
     async def send_now(self) -> bool:
         """Interrupt the response for already queued input, without resending text."""
-        # Resource/image preparation can still be running when the user clicks.
-        # Wait for those exact submissions to reach the owner before interrupting.
         if pending := tuple(self._deferred_submissions):
             await asyncio.gather(*(asyncio.shield(task) for task in pending))
         result = await self.acp_session_prompt(
-            [{"type": "text", "text": " "}], {"agentComms": {"sendNow": True}}
+            [{"type": "text", "text": " "}], SendNowRequest()
         )
         return result is not None
 
     async def compact_context(
         self, instructions: str | None = None
     ) -> CompactionCommittedUpdate:
-        metadata = {"agentComms": {"compact": instructions}}
+        metadata = encode_request(CompactRequest(instructions))
         with self.request():
             request = api.session_prompt(
                 [{"type": "text", "text": " "}], self.session_id, metadata
             )
-        response = await request.wait()
+        try:
+            response = await request.wait()
+        except jsonrpc.APIError as error:
+            failure = ACPFailure.from_error(error.code, error.message, error.data)
+            raise ValueError(
+                f"{failure.title}: {failure.detail}\n{failure.input_disposition}\n{failure.action}"
+            ) from error
         if response is None:
             raise ValueError("Compaction returned no result")
-        consumer = CommsUpdateConsumer(self, self.session_id)
+        consumer = self.comms_consumer_class(self, self.session_id)
         for fact in decode_updates(response.get("_meta")):
             consumer.dispatch_sync(fact)
         if consumer.compaction_receipt is None:
@@ -1103,7 +983,7 @@ class Agent(AgentBase):
 
     async def reconnect(self) -> None:
         """Reattach the existing view after login or an explicit owner start."""
-        if self.session_id is not None and not self.supports_load_session:
+        if self.session_id is not None and (not self.supports_load_session):
             raise ValueError("This agent cannot resume its session.")
         from .maintenance_ingress import configured_root, preflight
 
@@ -1113,7 +993,7 @@ class Agent(AgentBase):
         try:
             await asyncio.to_thread(
                 preflight,
-                (self.coordination.wire_root if self.coordination else None),
+                self.coordination.wire_root if self.coordination else None,
                 ingress_root=requested_root,
                 cwd=requested_cwd,
             )
@@ -1146,24 +1026,14 @@ class Agent(AgentBase):
             initialize_response = api.initialize(
                 PROTOCOL_VERSION,
                 {
-                    "fs": {
-                        "readTextFile": True,
-                        "writeTextFile": True,
-                    },
+                    "fs": {"readTextFile": True, "writeTextFile": True},
                     "terminal": True,
                     "auth": {"terminal": os.name != "nt"},
                 },
-                {
-                    "name": toad.NAME,
-                    "title": toad.TITLE,
-                    "version": toad.get_version(),
-                },
+                {"name": toad.NAME, "title": toad.TITLE, "version": toad.get_version()},
             )
-
         response = await initialize_response.wait()
         assert response is not None
-
-        # Store agents capabilities
         if agent_capabilities := response.get("agentCapabilities"):
             self.agent_capabilities = agent_capabilities
         self.auth_methods = response.get("authMethods") or []
@@ -1175,23 +1045,21 @@ class Agent(AgentBase):
         self._post_private_cursor()
         self._post_queue_view()
         with self.request():
-            session_new_response = api.session_new(
-                str(self.project_root_path),
-                [],
-            )
+            session_new_response = api.session_new(str(self.project_root_path), [])
         response = await session_new_response.wait()
         if not self._private_cursor.is_current_request(cursor_token):
             return
         assert response is not None
         self.session_id = response["sessionId"]
         self._receive_comms_response(response, cursor_token, queue_token)
-
         if self.supports_load_session:
             db = DB()
             session_name = (
                 self._pending_session_name
                 if self._pending_session_name is not None
-                else (self.coordination.title if self.coordination else "New Session")
+                else self.coordination.title
+                if self.coordination
+                else "New Session"
             )
             session_pk = await db.session_new(
                 session_name,
@@ -1210,7 +1078,6 @@ class Agent(AgentBase):
                 await db.session_update_title(
                     self.session_pk, self._pending_session_name
                 )
-
         if not self._private_cursor.is_current_request(cursor_token):
             return
         if (modes := response.get("modes", None)) is not None:
@@ -1243,7 +1110,6 @@ class Agent(AgentBase):
                     cwd = str(session_cwd)
                 if agent_data := session.meta_json.agent_data:
                     self._agent_data = agent_data
-
         with self.request():
             session_load_response = api.session_load(cwd, [], request_session_id)
         response = await session_load_response.wait()
@@ -1254,7 +1120,6 @@ class Agent(AgentBase):
             return
         assert response is not None
         self._receive_comms_response(response, cursor_token, queue_token)
-
         if (modes := response.get("modes", None)) is not None:
             current_mode = modes["currentModeId"]
             available_modes = modes["availableModes"]
@@ -1287,7 +1152,7 @@ class Agent(AgentBase):
                     grouped = option.get("options")
                     if isinstance(grouped, list):
                         options.extend(
-                            item for item in grouped if isinstance(item, dict)
+                            (item for item in grouped if isinstance(item, dict))
                         )
                     else:
                         options.append(option)
@@ -1296,11 +1161,9 @@ class Agent(AgentBase):
                         str(option["value"]): Model(
                             str(option["value"]),
                             str(option.get("name") or option["value"]),
-                            (
-                                str(option["description"])
-                                if option.get("description") is not None
-                                else None
-                            ),
+                            str(option["description"])
+                            if option.get("description") is not None
+                            else None,
                         )
                         for option in options
                         if isinstance(option.get("value"), str)
@@ -1324,10 +1187,29 @@ class Agent(AgentBase):
                 self.post_message(messages.SetModels("", {}))
             return
 
+    @property
+    def coordination(self) -> CoordinationChangedUpdate | None:
+        target = self._message_target
+        return (
+            target.app.coordination_facts.get(target.screen)
+            if target is not None
+            else None
+        )
+
+    @coordination.setter
+    def coordination(self, value: CoordinationChangedUpdate | None) -> None:
+        target = self._message_target
+        if target is None:
+            raise RuntimeError("Coordination facts require their attached app owner")
+        if value is None:
+            target.app.coordination_facts.pop(target.screen, None)
+        else:
+            target.app.coordination_facts[target.screen] = value
+
     def _receive_comms_response(
         self, response, cursor_token: int, queue_token: int
     ) -> None:
-        consumer = CommsUpdateConsumer(
+        consumer = self.comms_consumer_class(
             self, self.session_id, cursor_token=cursor_token, queue_token=queue_token
         )
         for fact in decode_updates(response.get("_meta")):
@@ -1336,9 +1218,8 @@ class Agent(AgentBase):
     def _post_queue_view(self, starts: tuple[QueueItem, ...] = ()) -> None:
         self._queue_sequence += 1
         self.post_message(
-            messages.QueueViewUpdate(
-                self.queue_attachment.projection,
-                starts,
+            messages.CommsUpdated(
+                QueuePresentation(self.queue_attachment.projection, starts),
                 self,
                 self.session_id,
                 self._queue_sequence,
@@ -1348,8 +1229,8 @@ class Agent(AgentBase):
     def _post_private_cursor(self) -> None:
         self._private_cursor_sequence += 1
         self.post_message(
-            messages.PrivateNativeCursorUpdate(
-                self._private_cursor.status,
+            messages.CommsUpdated(
+                CursorPresentation(self._private_cursor.status),
                 self,
                 self.session_id,
                 self._private_cursor_sequence,
@@ -1368,13 +1249,10 @@ class Agent(AgentBase):
         process = self._process
         if thread is None or wire_root is None or process is None:
             return
-
         from agent_comms.comms import wire
 
         result = wire(wire_root).threads.rename_managed_thread(
-            thread,
-            display_name,
-            owner_pid=self.coordination.owner_pid,
+            thread, display_name, owner_pid=self.coordination.owner_pid
         )
         self.coordination = replace(
             self.coordination,
@@ -1386,7 +1264,7 @@ class Agent(AgentBase):
         )
 
     async def acp_session_prompt(
-        self, prompt: list[protocol.ContentBlock], metadata: dict | None = None
+        self, prompt: list[protocol.ContentBlock], command: CommsRequest | None = None
     ) -> str | None:
         """Send the prompt to the agent.
 
@@ -1398,48 +1276,45 @@ class Agent(AgentBase):
         request_queue_scope = self.queue_attachment.scope
         with self.request():
             session_prompt = api.session_prompt(
-                prompt, request_session_id, metadata or {}
+                prompt,
+                request_session_id,
+                encode_request(command) if command is not None else {},
             )
         try:
             result = await session_prompt.wait()
         except jsonrpc.APIError as error:
-            data = error.data if isinstance(error.data, dict) else {}
-            details = next(
-                (
-                    value
-                    for key in ("details", "reason", "error")
-                    if isinstance((value := data.get(key)), str) and value.strip()
-                ),
-                error.message or f"{self._agent_data['name']} returned an error",
-            )
-
-            user_text = (metadata or {}).get("agentComms", {}).get("userText")
+            failure = ACPFailure.from_error(error.code, error.message, error.data)
+            user_text = command.draft_text if command is not None else None
             if isinstance(user_text, str) and user_text:
                 self.post_message(
-                    messages.InputFailed(
-                        user_text,
-                        details,
+                    messages.CommsUpdated(
+                        InputFailedUpdate(user_text, failure),
+                        recover_draft=True,
                         agent=self,
                         session_id=request_session_id,
                         queue_scope=request_queue_scope,
                     )
                 )
-
             self.post_message(
                 AgentFail(
-                    "Failed to send prompt",
-                    details,
+                    failure.title,
+                    f"{failure.detail}\n{failure.input_disposition}\n{failure.action}",
                     help="prompt",
                 )
             )
             return None
         except jsonrpc.JSONRPCError as error:
-            user_text = (metadata or {}).get("agentComms", {}).get("userText")
+            user_text = command.draft_text if command is not None else None
             if isinstance(user_text, str) and user_text:
                 self.post_message(
-                    messages.InputFailed(
-                        user_text,
-                        error.message or "Connection failed",
+                    messages.CommsUpdated(
+                        InputFailedUpdate(
+                            user_text,
+                            BackendDeliveryFailure(
+                                error.message or "Connection failed"
+                            ),
+                        ),
+                        recover_draft=True,
                         agent=self,
                         session_id=request_session_id,
                         queue_scope=request_queue_scope,
@@ -1448,12 +1323,11 @@ class Agent(AgentBase):
             self.post_message(
                 AgentFail(
                     "Failed to send prompt",
-                    (error.message or f"{self._agent_data['name']} returned an error"),
+                    error.message or f"{self._agent_data['name']} returned an error",
                     help="prompt",
                 )
             )
             return None
-
         assert result is not None
         return result.get("stopReason")
 
@@ -1464,10 +1338,7 @@ class Agent(AgentBase):
         try:
             await response.wait()
         except jsonrpc.APIError as error:
-            match error.data:
-                case {"details": details}:
-                    return details if isinstance(details, str) else "Failed to set mode"
-            return "Failed to set mode"
+            return ACPFailure.from_error(error.code, error.message, error.data).feedback
         else:
             return None
 
@@ -1484,12 +1355,10 @@ class Agent(AgentBase):
             )
         try:
             result = await response.wait()
-        except (jsonrpc.APIError, jsonrpc.JSONRPCError) as error:
-            if isinstance(getattr(error, "data", None), dict):
-                details = error.data.get("details") or error.data.get("reason")
-                if isinstance(details, str):
-                    return details
-            return "Failed to set model"
+        except jsonrpc.APIError as error:
+            return ACPFailure.from_error(error.code, error.message, error.data).feedback
+        except jsonrpc.JSONRPCError as error:
+            return ACPFailure.from_error(error.code, error.message).feedback
         if result is not None:
             self._publish_models(result)
         return None
@@ -1504,12 +1373,10 @@ class Agent(AgentBase):
             )
         try:
             result = await response.wait()
-        except (jsonrpc.APIError, jsonrpc.JSONRPCError) as error:
-            if isinstance(getattr(error, "data", None), dict):
-                details = error.data.get("details") or error.data.get("reason")
-                if isinstance(details, str):
-                    return details
-            return "Failed to set thinking level"
+        except jsonrpc.APIError as error:
+            return ACPFailure.from_error(error.code, error.message, error.data).feedback
+        except jsonrpc.JSONRPCError as error:
+            return ACPFailure.from_error(error.code, error.message).feedback
         if result is not None:
             self._publish_models(result)
         return None
@@ -1521,10 +1388,10 @@ class Agent(AgentBase):
         if (self.coordination.wire_root if self.coordination else None) is None or (
             self.coordination.thread.name if self.coordination else None
         ) is None:
-            return None, None
+            return (None, None)
         async with asyncio.timeout(3):
             result = await self._owner_request("goal_snapshot")
-        raw_goal, raw_execution = result["goal"], result["goalExecution"]
+        raw_goal, raw_execution = (result["goal"], result["goalExecution"])
         goal = FieldCodec.decode(Goal, raw_goal) if raw_goal is not None else None
         execution = (
             GoalExecution.from_wire(raw_execution)
@@ -1535,7 +1402,7 @@ class Agent(AgentBase):
             raise ValueError(
                 "Goal execution identity does not match the owner snapshot."
             )
-        return goal, execution
+        return (goal, execution)
 
     async def get_goal_execution(self) -> GoalExecution | None:
         return (await self.get_goal_snapshot())[1]
@@ -1548,8 +1415,8 @@ class Agent(AgentBase):
         from agent_comms.runtime import RuntimeProxy, socket_path
 
         root, thread = (
-            (self.coordination.wire_root if self.coordination else None),
-            (self.coordination.thread.name if self.coordination else None),
+            self.coordination.wire_root if self.coordination else None,
+            self.coordination.thread.name if self.coordination else None,
         )
         async with self._transcript_reader_lock:
             comms = await self._get_coordination_reader(root)
@@ -1558,9 +1425,6 @@ class Agent(AgentBase):
                 from toad.owner_preparation import OwnerRequestContext
 
                 owner = comms.registry.require(thread)
-                # RuntimeProxy normally creates another wire when its caller
-                # has no service. Capture the existing service instead of
-                # reparsing the entire registry for each status poll.
                 return RuntimeProxy(
                     OwnerRequestContext(comms),
                     owner.name,
@@ -1570,8 +1434,8 @@ class Agent(AgentBase):
             proxy = await asyncio.to_thread(resolve)
         try:
             if (root, thread) != (
-                (self.coordination.wire_root if self.coordination else None),
-                (self.coordination.thread.name if self.coordination else None),
+                self.coordination.wire_root if self.coordination else None,
+                self.coordination.thread.name if self.coordination else None,
             ):
                 raise ValueError(
                     "The owner identity changed while preparing the request."
@@ -1623,18 +1487,12 @@ class Agent(AgentBase):
     async def _get_coordination_reader(self, root: str) -> Comms:
         """Use under the reader lock; initialization and registry I/O stay off-loop."""
         from agent_comms.comms import wire
+
         from toad.app import ToadApp
 
         if self._transcript_reader is None or self._transcript_reader_root != root:
             app = self._message_target.app if self._message_target is not None else None
-            # Reuse the service held by the route-validating app property,
-            # without invoking its synchronous route resolver on this loop.
-            # Only an exact match to this attachment's trusted root may share.
-            shared = (
-                app.__dict__.get("_coordination_wire")
-                if isinstance(app, ToadApp)
-                else None
-            )
+            shared = app._coordination_wire if isinstance(app, ToadApp) else None
             if shared is not None and shared.root == Path(root).expanduser():
                 self._transcript_reader = shared
             else:
@@ -1646,8 +1504,8 @@ class Agent(AgentBase):
         from toad.owner_preparation import read_thread_presentation
 
         root, thread = (
-            (self.coordination.wire_root if self.coordination else None),
-            (self.coordination.thread.name if self.coordination else None),
+            self.coordination.wire_root if self.coordination else None,
+            self.coordination.thread.name if self.coordination else None,
         )
         if root is None or thread is None:
             return None
@@ -1657,8 +1515,8 @@ class Agent(AgentBase):
                 read_thread_presentation, reader, thread
             )
         if (root, thread) != (
-            (self.coordination.wire_root if self.coordination else None),
-            (self.coordination.thread.name if self.coordination else None),
+            self.coordination.wire_root if self.coordination else None,
+            self.coordination.thread.name if self.coordination else None,
         ):
             raise ValueError("Thread attachment changed while reading status")
         return presentation
@@ -1675,8 +1533,8 @@ class Agent(AgentBase):
         ) is None:
             raise ValueError("Transcript paging requires an agent-comms thread.")
         root, thread = (
-            (self.coordination.wire_root if self.coordination else None),
-            (self.coordination.thread.name if self.coordination else None),
+            self.coordination.wire_root if self.coordination else None,
+            self.coordination.thread.name if self.coordination else None,
         )
         async with self._transcript_reader_lock:
             reader = await self._get_coordination_reader(root)
@@ -1697,9 +1555,9 @@ class Agent(AgentBase):
 
         result = await asyncio.to_thread(
             wire(
-                (self.coordination.wire_root if self.coordination else None)
+                self.coordination.wire_root if self.coordination else None
             ).threads.set_project,
-            (self.coordination.thread.name if self.coordination else None),
+            self.coordination.thread.name if self.coordination else None,
             path,
         )
         self.coordination = replace(self.coordination, worktree=result.current)
@@ -1751,7 +1609,6 @@ class Agent(AgentBase):
         try:
             await response.wait()
         except jsonrpc.APIError:
-            # No-op if there is nothing to cancel
             return False
         return True
 

@@ -7,7 +7,8 @@ import tempfile
 from pathlib import Path
 
 from agent_comms.transcripts import TranscriptPage, TranscriptCursor
-from agent_comms.transcript_events import ContextTranscript, UserTranscript, TranscriptCodec
+from agent_comms.acp_extension import TranscriptSnapshotUpdate, encode_updates
+from agent_comms.transcript_events import ContextTranscript, UserTranscript
 from runtime_fixture import ToadApp
 from textual.widgets import Collapsible
 from textual.widgets._markdown import (
@@ -59,10 +60,10 @@ async def main():
             agent.rpc_session_update("fixture", {
                 "sessionUpdate": "agent_message_chunk",
                 "content": {"type": "text", "text": ""},
-                "_meta": {"agentComms": {"transcript": [
-                    TranscriptCodec.encode(ContextTranscript(CONTEXT)),
-                    TranscriptCodec.encode(UserTranscript(CONTEXT)),
-                ], "transcriptPage": TranscriptPage((), TranscriptCursor("", 0), TranscriptCursor("", 0), False, False).metadata()}},
+                "_meta": encode_updates(TranscriptSnapshotUpdate(TranscriptPage(
+                    (ContextTranscript(CONTEXT), UserTranscript(CONTEXT)),
+                    TranscriptCursor("", 0), TranscriptCursor("", 0), False, False,
+                ))),
             })
             await pilot.pause()
             disclosure = view.contents.query_one(Collapsible)

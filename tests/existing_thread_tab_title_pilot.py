@@ -7,12 +7,12 @@ from pathlib import Path
 from unittest.mock import patch
 
 from agent_comms.child_process import ProcessIdentity
-from agent_comms.threads import Thread
 from agent_comms.comms import wire
+from agent_comms.threads import Thread
+from comms_boundary_fixture import coordination_fact
 from runtime_fixture import ToadApp
 
 from toad.acp.agent import Agent
-from toad.acp.messages import CoordinationUpdate
 from toad.agent import AgentReady
 from toad.widgets.comms_sidebar import CommsRow, CommsSidebar
 from toad.widgets.session_tabs import SessionLabel, SessionsTabs
@@ -30,10 +30,26 @@ async def main(title: str | None = None, *, cold_metadata: bool = False) -> None
         comms = wire(root / "wire")
         project = root / "other-project"
         project.mkdir()
-        comms.threads.register(Thread("owner", frozenset({"acp"}), str(root), process_identity=ProcessIdentity.capture(os.getpid()), title="Owner"))
-        comms.threads.register(Thread("existing-thread", frozenset({"acp"}), str(project), process_identity=ProcessIdentity.capture(os.getpid()), title=title))
+        comms.threads.register(
+            Thread(
+                "owner",
+                frozenset({"acp"}),
+                str(root),
+                process_identity=ProcessIdentity.capture(os.getpid()),
+                title="Owner",
+            )
+        )
+        comms.threads.register(
+            Thread(
+                "existing-thread",
+                frozenset({"acp"}),
+                str(project),
+                process_identity=ProcessIdentity.capture(os.getpid()),
+                title=title,
+            )
+        )
         expected_title = title or "existing-thread"
-        started, release = asyncio.Event(), asyncio.Event()
+        started, release = (asyncio.Event(), asyncio.Event())
         observations = []
 
         async def start(agent: Agent, target) -> None:
@@ -42,10 +58,14 @@ async def main(title: str | None = None, *, cold_metadata: bool = False) -> None
             async def attach() -> None:
                 started.set()
                 await release.wait()
-                agent._publish_coordination_metadata({"_meta": {"agentComms": {
-                    "thread": "existing-thread", "title": expected_title,
-                    "wireRoot": str(root / "wire"), "worktree": str(project),
-                }}}, initial=True)
+                agent.comms_consumer_class(agent, agent.session_id).dispatch_sync(
+                    coordination_fact(
+                        "existing-thread",
+                        str(root / "wire"),
+                        title=expected_title,
+                        worktree=str(project),
+                    )
+                )
                 target.post_message(AgentReady())
 
             agent._task = asyncio.create_task(attach())
@@ -54,9 +74,6 @@ async def main(title: str | None = None, *, cold_metadata: bool = False) -> None
         original_compose = SessionsTabs.compose
 
         def compose_before_metadata(tabs: SessionsTabs):
-            # Control the cold metadata boundary: labels are constructed before
-            # the roster snapshot is available, but it arrives before Mount.
-            # This reproduces a cache/DOM disagreement, not a server title change.
             snapshot = app._sidebar_snapshot
             if cold_metadata:
                 app._sidebar_snapshot = None
@@ -68,18 +85,31 @@ async def main(title: str | None = None, *, cold_metadata: bool = False) -> None
         async with app.run_test(size=(120, 40)) as pilot:
             await pilot.pause()
             owner = app.current_mode
-            app.screen._agent = {"name": "Fixture", "identity": "agent-comms.openhcs.dev",
-                                 "short_name": "fixture", "run_command": {"*": "false"},
-                                 "protocol": "acp"}
-            await app.screen.on_coordination_update(CoordinationUpdate(
-                thread="owner", wire_root=str(root / "wire"), persistence="persistent", transport="stdio",
-            ))
+            app.screen._agent = {
+                "name": "Fixture",
+                "identity": "agent-comms.openhcs.dev",
+                "short_name": "fixture",
+                "run_command": {"*": "false"},
+                "protocol": "acp",
+            }
+            await app.screen.on_coordination_update(
+                coordination_fact(thread="owner", wire_root=str(root / "wire"))
+            )
             sidebar = app.screen.query_one(CommsSidebar)
             await sidebar.sync_sessions()
-            row = next(row for row in sidebar.query(CommsRow) if row.target_name == "existing-thread")
+            row = next(
+                (
+                    row
+                    for row in sidebar.query(CommsRow)
+                    if row.target_name == "existing-thread"
+                )
+            )
             row.scroll_visible(animate=False, immediate=True)
             await pilot.pause()
-            with patch.object(Agent, "start", start), patch.object(SessionsTabs, "compose", compose_before_metadata):
+            with (
+                patch.object(Agent, "start", start),
+                patch.object(SessionsTabs, "compose", compose_before_metadata),
+            ):
                 assert await pilot.click(row)
                 await asyncio.wait_for(started.wait(), 5)
                 await pilot.pause()
@@ -87,15 +117,27 @@ async def main(title: str | None = None, *, cold_metadata: bool = False) -> None
                 assert opened != owner
 
                 def observe(phase: str) -> None:
-                    expected = next(tab.title for tab in app.open_tabs if tab.mode_name == opened)
-                    label = app.screen.query_one(f"SessionLabel#{opened}", SessionLabel).render().plain
+                    expected = next(
+                        (tab.title for tab in app.open_tabs if tab.mode_name == opened)
+                    )
+                    label = (
+                        app.screen.query_one(f"SessionLabel#{opened}", SessionLabel)
+                        .render()
+                        .plain
+                    )
                     cache = app.screen.query_one(SessionsTabs)._last_tabs
-                    cached = next(tab.title for tab in cache if tab.mode_name == opened)
-                    rendered = app.screen.query_one(f"SessionLabel#{opened}", SessionLabel)
+                    cached = next(
+                        (tab.title for tab in cache if tab.mode_name == opened)
+                    )
+                    rendered = app.screen.query_one(
+                        f"SessionLabel#{opened}", SessionLabel
+                    )
                     frame = app.screen._compositor.render_strips()
-                    painted = frame[rendered.region.y].crop(
-                        rendered.region.x, rendered.region.right
-                    ).text.strip()
+                    painted = (
+                        frame[rendered.region.y]
+                        .crop(rendered.region.x, rendered.region.right)
+                        .text.strip()
+                    )
                     observations.append((phase, label, expected, cached, painted))
 
                 observe("new active view, before ACP attachment")
@@ -108,14 +150,21 @@ async def main(title: str | None = None, *, cold_metadata: bool = False) -> None
                 release.set()
                 async with asyncio.timeout(5):
                     while not app.screen.conversation.agent_ready:
-                        await pilot.pause(.02)
+                        await pilot.pause(0.02)
                 await pilot.pause()
                 observe("attached active tab")
-                assert all(label == expected == cached == painted and expected_title in label
-                           for _, label, expected, cached, painted in observations), observations
+                assert all(
+                    (
+                        label == expected == cached == painted
+                        and expected_title in label
+                        for _, label, expected, cached, painted in observations
+                    )
+                ), observations
                 assert app._exception is None
         await asyncio.get_running_loop().shutdown_default_executor()
-    print("existing-thread sidebar click: initial, inactive, reactivated and attached labels match")
+    print(
+        "existing-thread sidebar click: initial, inactive, reactivated and attached labels match"
+    )
 
 
 if __name__ == "__main__":

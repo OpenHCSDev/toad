@@ -5,29 +5,38 @@ import os
 import tempfile
 from pathlib import Path
 
-from agent_comms.comms import wire
-from runtime_fixture import private_native_wire
 from agent_comms.acp import CommsAgent
+from agent_comms.comms import wire
+from comms_boundary_fixture import attach_coordination
+from runtime_fixture import private_native_wire
 
 from toad.acp.agent import Agent
 
 
 async def main():
-    with tempfile.TemporaryDirectory(prefix="toad-goal-pause-owner-", dir="/var/tmp") as directory:
+    with tempfile.TemporaryDirectory(
+        prefix="toad-goal-pause-owner-", dir="/var/tmp"
+    ) as directory:
         root = Path(directory)
         comms = private_native_wire(root / "wire")
         os.environ["AGENT_COMMS_AGENT_MODELS"] = "openrouter/fake"
         owner = CommsAgent(
-            comms, agent_bin="pi", agent_args=["--provider", "openrouter", "--model", "fake"],
-            runtime_enabled=True, auto_wake=False,
-            private_nk_native_package=Path(os.environ["AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE"]),
+            comms,
+            agent_bin="pi",
+            agent_args=["--provider", "openrouter", "--model", "fake"],
+            runtime_enabled=True,
+            auto_wake=False,
+            private_nk_native_package=Path(
+                os.environ["AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE"]
+            ),
             private_nk_wire_root_id=os.environ["AGENT_COMMS_PRIVATE_NK_WIRE_ROOT_ID"],
         )
         try:
             session = (await owner.new_session(cwd=str(root))).session_id
-            client = Agent(root, {"name": "agent-comms", "run_command": {"*": "true"}}, None)
-            client._coordination_root = str(comms.root)
-            client._coordination_thread = session
+            client = Agent(
+                root, {"name": "agent-comms", "run_command": {"*": "true"}}, None
+            )
+            attach_coordination(client, str(comms.root), session)
             goal = await client.update_goal("set", "Keep investigating until stopped")
             paused = await client.update_goal("paused")
             assert paused.id == goal.id and paused.state.declared_name == "paused"

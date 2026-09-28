@@ -5,13 +5,15 @@ import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from agent_comms.goal_actions import ActiveGoalAction, GoalPrecondition
 from agent_comms.acp import CommsAgent
+from agent_comms.acp_extension import GoalChangedUpdate
+from agent_comms.goal_actions import ActiveGoalAction, GoalPrecondition
+from comms_boundary_fixture import attach_coordination
 from runtime_fixture import private_native_wire
 from textual.widgets import Static
 
 from toad.acp.agent import Agent
-from toad.acp.messages import GoalSnapshotUpdate
+from toad.acp.messages import CommsUpdated
 from toad.app import ToadApp
 from toad.screens.goal_edit import GoalEdit
 from toad.widgets.goal_text import GoalText
@@ -36,7 +38,9 @@ async def main():
             agent_args=["--provider", "openrouter", "--model", "fake"],
             runtime_enabled=True,
             auto_wake=False,
-            private_nk_native_package=Path(os.environ["AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE"]),
+            private_nk_native_package=Path(
+                os.environ["AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE"]
+            ),
             private_nk_wire_root_id=os.environ["AGENT_COMMS_PRIVATE_NK_WIRE_ROOT_ID"],
         )
         try:
@@ -44,14 +48,19 @@ async def main():
             agent = Agent(
                 project, {"name": "agent-comms", "run_command": {"*": "true"}}, None
             )
-            agent._coordination_root = str(comms.root)
-            agent._coordination_thread = session
+            attach_coordination(agent, str(comms.root), session)
             original = await agent.update_goal(
                 "set",
                 "Work on draft PR #17 and report remaining gaps. "
                 + "Detailed acceptance criteria. " * 30,
             )
-            comms.goals.update_goal(session, ActiveGoalAction(progress="Renamed parent thread to pr17 and forked implementation.", expect=GoalPrecondition(goal_id=original.id)))
+            comms.goals.update_goal(
+                session,
+                ActiveGoalAction(
+                    progress="Renamed parent thread to pr17 and forked implementation.",
+                    expect=GoalPrecondition(goal_id=original.id),
+                ),
+            )
             app = ToadApp(project_dir=str(project))
             async with app.run_test(size=(110, 35)) as pilot:
                 await pilot.pause()
@@ -87,7 +96,9 @@ async def main():
                     current = comms.registry.require(session).goal
                     assert current.id == original.id and current.text == objective
                     assert conversation.goal == current
-                    conversation.post_message(GoalSnapshotUpdate(original, None))
+                    conversation.post_message(
+                        CommsUpdated(GoalChangedUpdate(original, None))
+                    )
                     await pilot.pause()
                     assert conversation.goal == current, (
                         "Old notification must not overwrite the canonical snapshot"
@@ -95,7 +106,7 @@ async def main():
                     summary = conversation.query_one(".goal-summary", GoalText)
                     assert objective in str(summary.render()), str(summary.render())
                     frame = "\n".join(
-                        strip.text for strip in app.screen._compositor.render_strips()
+                        (strip.text for strip in app.screen._compositor.render_strips())
                     )
                     assert " ".join(objective.split()[:3]) in frame, frame
                     assert objective.split()[-1] in frame, frame
@@ -110,17 +121,18 @@ async def main():
                 await conversation.refresh_goal()
                 await pilot.pause()
                 frame = "\n".join(
-                    strip.text for strip in app.screen._compositor.render_strips()
+                    (strip.text for strip in app.screen._compositor.render_strips())
                 )
                 assert f"rev {current.revision}" in frame
                 assert (
-                    "Scroll for full text" not in frame and "TAIL_COORDINATOR" not in frame
+                    "Scroll for full text" not in frame
+                    and "TAIL_COORDINATOR" not in frame
                 )
                 await pilot.click("#goal-history")
                 await pilot.pause()
                 assert "TAIL_COORDINATOR" in app.screen.goal.text
                 await pilot.press("escape")
-                started, release = asyncio.Event(), asyncio.Event()
+                started, release = (asyncio.Event(), asyncio.Event())
                 read_snapshot = agent.get_goal_snapshot
                 reads = 0
 
@@ -138,20 +150,23 @@ async def main():
                 await asyncio.wait_for(started.wait(), 2)
                 pause = asyncio.create_task(conversation.change_goal("paused"))
                 async with asyncio.timeout(2):
-                    while comms.registry.require(session).goal.state.declared_name != "paused":
+                    while (
+                        comms.registry.require(session).goal.state.declared_name
+                        != "paused"
+                    ):
                         await asyncio.sleep(0.01)
                 clear = asyncio.create_task(conversation.change_goal("clear"))
                 async with asyncio.timeout(2):
                     while comms.registry.require(session).goal is not None:
                         await asyncio.sleep(0.01)
-                # Let both mutation callers invalidate the in-flight read.
                 await asyncio.sleep(0.02)
                 release.set()
                 await asyncio.gather(first, pause, clear)
-                # Mutation preflights now also read the canonical owner snapshot.
                 assert reads >= 2, reads
                 assert conversation.goal is None and conversation.goal_execution is None
-                conversation.post_message(GoalSnapshotUpdate(original, None))
+                conversation.post_message(
+                    CommsUpdated(GoalChangedUpdate(original, None))
+                )
                 await pilot.pause()
                 assert conversation.goal is None
         finally:

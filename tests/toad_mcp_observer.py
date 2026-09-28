@@ -12,8 +12,9 @@ import os
 from pathlib import Path
 from typing import Any, AsyncIterator
 
-from mcp_live_status_pilot import AGENT_DATA, exercise_boundaries, notes
+from mcp_observation_fixture import AGENT_DATA, exercise_boundaries, notes
 from toad.acp.agent import Agent
+from agent_comms.acp_extension import McpClientReceiptUpdate, TurnSettledUpdate, decode_updates
 from toad.screens.main import MainScreen
 from toad.widgets.question import Question
 
@@ -40,17 +41,17 @@ class Observer:
                                  "view": self.view._managed_turn_id,
                                  "live": self.view._mcp_live_turn,
                                  "notes": notes(self.view)}) + "\n")
-        state = update.get("_meta", {}).get("agentComms", {})
         assert self.agent.session_id == SESSION_ID
-        if "mcpClient" in state:
-            rendered = notes(self.view)
-            assert len(rendered) == 1 and "fixture[project] ready calls=confirm tools=1" in rendered[0]
-            assert self.agent._active_turn_id == self.view._managed_turn_id == state["turnId"]
-            self.receipts.append(rendered)
-            self.app.save_screenshot(str(self.root / "toad-live.svg"))
-        if state.get("turnSettled"):
-            assert self.agent._active_turn_id is self.view._managed_turn_id is None
-            assert self.view._mcp_live_turn is None and not notes(self.view)
+        for fact in decode_updates(update.get("_meta")):
+            if isinstance(fact, McpClientReceiptUpdate):
+                rendered = notes(self.view)
+                assert len(rendered) == 1 and "fixture[project] ready calls=confirm tools=1" in rendered[0]
+                assert self.agent._active_turn_id == self.view._managed_turn_id == fact.turn_id
+                self.receipts.append(rendered)
+                self.app.save_screenshot(str(self.root / "toad-live.svg"))
+            if isinstance(fact, TurnSettledUpdate):
+                assert self.agent._active_turn_id is self.view._managed_turn_id is None
+                assert self.view._mcp_live_turn is None and not notes(self.view)
 
     async def request_permission(self, *, session_id, tool_call, options, **kwargs):
         self.permissions += 1

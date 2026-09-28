@@ -2,21 +2,25 @@
 
 from __future__ import annotations
 
+import os
+
 from agent_comms.acp_extension import (
-    TranscriptSnapshotUpdate,
-    InputDeliveryChangedUpdate,
-    CompactionPublishedUpdate,
-    McpClientReceiptUpdate,
     CompactionChangedUpdate,
     CompactionCommittedUpdate,
+    CompactionPublishedUpdate,
     CoordinationChangedUpdate,
-    GoalChangedUpdate,
     CursorAdvancedUpdate,
+    GoalChangedUpdate,
+    InputDeliveryChangedUpdate,
     InputFailedUpdate,
     InputStartedUpdate,
+    McpClientReceiptUpdate,
     QueueChangedUpdate,
+    RequestFailedUpdate,
+    SelectedWriteAcceptedUpdate,
     TextRouteUpdate,
     TranscriptChangedUpdate,
+    TranscriptSnapshotUpdate,
     TurnSettledUpdate,
     TurnStartedUpdate,
 )
@@ -48,9 +52,8 @@ class CommsUpdateConsumer(MroDispatch):
     @handles(InputFailedUpdate)
     def input_failed(self, update: InputFailedUpdate) -> None:
         self.agent.post_message(
-            messages.InputFailed(
-                update.text,
-                update.failure.description,
+            messages.CommsUpdated(
+                update,
                 recover_draft=False,
                 agent=self.agent,
                 session_id=self.session_id,
@@ -59,14 +62,15 @@ class CommsUpdateConsumer(MroDispatch):
 
     @handles(TranscriptChangedUpdate)
     def transcript_changed(self, update: TranscriptChangedUpdate) -> None:
-        self.agent.post_message(messages.TranscriptChanged(update.cursor))
+        self.agent.post_message(
+            messages.CommsUpdated(update, self.agent, self.session_id)
+        )
 
     @handles(TurnStartedUpdate)
     def turn_started(self, update: TurnStartedUpdate) -> None:
         agent = self.agent
         if self.session_id != agent.session_id or agent._stopping:
             return
-        agent.uses_turn_events = True
         agent._active_turn_id = update.turn_id
         agent._turn_lifecycle_sequence += 1
         agent.post_message(
@@ -88,8 +92,6 @@ class CommsUpdateConsumer(MroDispatch):
             and update.turn_id != agent._active_turn_id
         ):
             return
-        if update.turn_id is not None:
-            agent.uses_turn_events = True
         agent._active_turn_id = None
         agent._turn_lifecycle_sequence += 1
         agent.post_message(
@@ -127,8 +129,8 @@ class CommsUpdateConsumer(MroDispatch):
         if update.scope is None:
             if update.input_id is None and self.session_id == self.agent.session_id:
                 self.agent.post_message(
-                    messages.InputStarted(
-                        update.text, agent=self.agent, session_id=self.session_id
+                    messages.CommsUpdated(
+                        update, agent=self.agent, session_id=self.session_id
                     )
                 )
             return
@@ -139,22 +141,20 @@ class CommsUpdateConsumer(MroDispatch):
     def coordination_changed(self, update: CoordinationChangedUpdate) -> None:
         from dataclasses import replace
         from pathlib import Path
-        from .maintenance_ingress import configured_root
-        from .agent import ContextUsage
+
         from textual.content import Content
 
+        from .agent import ContextUsage
+        from .maintenance_ingress import configured_root
+
         agent = self.agent
-        attached_env = (agent._maintenance_env or __import__("os").environ).copy()
+        attached_env = (agent._maintenance_env or os.environ).copy()
         attached_env["AGENT_COMMS_ROOT"] = update.wire_root
         root = configured_root(
             attached_env, agent._maintenance_cwd or agent.project_root_path.resolve()
         )
         agent.coordination = replace(update, wire_root=str(root))
         agent.project_root_path = Path(update.worktree)
-        agent.uses_turn_events = agent.server_titles = agent.supports_prompt_queue = (
-            True
-        )
-        agent.supports_prompt_images = True
         if update.context_usage is None:
             agent._context_usage = None
             agent._context_usage_saved = False
@@ -222,4 +222,17 @@ class CommsUpdateConsumer(MroDispatch):
             return
         self.agent.post_message(
             messages.CommsUpdated(update, self.agent, self.session_id)
+        )
+
+    @handles(SelectedWriteAcceptedUpdate)
+    def selected_write_accepted(self, update):
+        pass
+
+    @handles(RequestFailedUpdate)
+    def request_failed(self, update):
+        from toad.agent import AgentFail
+
+        failure = update.failure
+        self.agent.post_message(
+            AgentFail(failure.title, failure.feedback, help="prompt")
         )
