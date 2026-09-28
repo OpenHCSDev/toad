@@ -14,6 +14,8 @@ def summarize(path: Path, *, detail: bool = False) -> dict:
         phases[row["phase"]].append(row)
     report = {
         "capture": path.name,
+        "completed": data.get("completed"),
+        "phase_completed": data.get("phase_completed"),
         "fixture": {key: data.get(key) for key in
                     ("empty", "tabs", "source_threads", "history_records", "peers", "channels")},
         "instrumentation": data.get("instrumentation"),
