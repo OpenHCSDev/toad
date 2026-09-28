@@ -1,3 +1,4 @@
+from toad.widgets.conversation import Conversation
 """A resumed thread's project overrides the directory used to launch Toad."""
 
 import asyncio
@@ -31,7 +32,7 @@ async def main():
         app = ToadApp(agent_data=agent, project_dir=str(old), agent_session_id="saved")
         async with app.run_test(size=(100, 35)) as pilot:
             async with asyncio.timeout(20):
-                while not getattr(app.screen, "conversation", None) or not app.screen.conversation.agent_ready:
+                while not app.screen.query_one_optional(Conversation) or not app.screen.conversation.agent_ready:
                     await asyncio.sleep(.05)
             await pilot.pause()
             conversation = app.screen.conversation

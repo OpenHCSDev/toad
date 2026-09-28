@@ -1,3 +1,4 @@
+from runtime_fixture import wait_channel_roster
 """Mounted goal projections, stable editing, mentions, and backend revision history."""
 
 import asyncio
@@ -90,7 +91,7 @@ async def main():
         )
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(100, 35)) as pilot:
-            await pilot.pause()
+            await wait_channel_roster(app, pilot, "#all")
             conversation = app.screen.conversation
             owner = GoalOwner()
             conversation.set_reactive(type(conversation).agent, owner)
@@ -204,6 +205,7 @@ async def main():
             await pilot.pause()
             assert conversation.goal is None and conversation.goal_execution is None
             assert not bar.display
+        await asyncio.get_running_loop().shutdown_default_executor()
     print(
         "goal UI: authoritative standby through turn settlement, mention completion, same-ID edit, rejection draft, revision history"
     )

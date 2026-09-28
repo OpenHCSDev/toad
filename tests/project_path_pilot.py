@@ -1,3 +1,4 @@
+from toad.widgets.conversation import Conversation
 """Real ACP project change, automatic continuation, and synchronized Toad views."""
 
 import asyncio
@@ -83,7 +84,7 @@ for line in sys.stdin:
         app = ToadApp(agent_data=agent, project_dir=str(old))
         async with app.run_test(size=(120, 40)) as pilot:
             await until(
-                lambda: getattr(app.screen, "conversation", None) is not None
+                lambda: app.screen.query_one_optional(Conversation) is not None
                 and app.screen.conversation.agent_ready
             )
             mode = app.current_mode

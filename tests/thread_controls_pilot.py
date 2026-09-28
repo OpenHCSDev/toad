@@ -1,3 +1,4 @@
+from toad.widgets.conversation import Conversation
 """Real ACP integration for models, goal lifecycle, and routed IRC tabs."""
 
 import asyncio
@@ -137,7 +138,7 @@ for line in sys.stdin:
         app = ToadApp(agent_data=agent, project_dir=str(project))
         async with app.run_test(size=(120, 40)) as pilot:
             await until(
-                lambda: getattr(app.screen, "conversation", None) is not None
+                lambda: app.screen.query_one_optional(Conversation) is not None
                 and app.screen.conversation.agent_ready
             )
             parent_mode = app.current_mode

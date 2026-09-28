@@ -1,3 +1,4 @@
+from toad.widgets.conversation import Conversation
 """Ctrl+V captures a PNG without blocking and forwards it through real ACP/Pi RPC."""
 
 import asyncio
@@ -52,7 +53,7 @@ for line in sys.stdin:
                  "run_command": {"*": f"{sys.executable} -m agent_comms.acp"}, "protocol": "acp"}
         app = ToadApp(project_dir=str(root), agent_data=agent)
         async with app.run_test(size=(120, 40)) as pilot:
-            await until(lambda: getattr(app.screen, "conversation", None) is not None
+            await until(lambda: app.screen.query_one_optional(Conversation) is not None
                         and app.screen.conversation.agent_ready)
             view = app.screen.conversation
             started, release = asyncio.Event(), asyncio.Event()

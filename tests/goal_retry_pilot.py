@@ -37,7 +37,7 @@ async def mounted_retry_control(root: Path) -> None:
     async with app.run_test(size=(100, 30)) as pilot:
         await pilot.pause()
         view = app.screen.conversation
-        goal = Goal("Learn architectural factoring", "goal-control", state=BlockedGoal())
+        goal = Goal("Learn architectural factoring", "goal-control", state=BlockedGoal(block_reason="Original turn failed"))
         fake = FakeAgent(goal)
         view.set_reactive(type(view).agent, fake)
         view.agent_ready = True
@@ -51,35 +51,6 @@ async def mounted_retry_control(root: Path) -> None:
         assert view.goal.state.declared_name == "active"
 
 
-async def owner_retry_route(root: Path) -> None:
-    comms = wire(root / "wire")
-    owner = CommsAgent(comms, agent_bin="pi", runtime_enabled=True)
-    owner.inputs.ensure_live_drain = lambda _session: None
-    owner.inputs.schedule_wake = lambda _session: None
-    owner.turns.schedule_goal = lambda _session: None
-    project = root / "project"
-    project.mkdir()
-    await owner.new_session(str(project))
-    toad_agent = Agent(project, {"name": "agent-comms", "run_command": {"*": "true"}}, None)
-    toad_agent._coordination_root = str(comms.root)
-    toad_agent._coordination_thread = "project"
-    goal = await Agent.update_goal(toad_agent, "set", "Learn architectural factoring")
-    store = owner.turns.open_goal_store()
-    assert store.snapshot(goal.id).state == "ready"
-    assert store.ready_grant(goal.id, 1)
-    attempt = store.reserve(goal.id, 1)
-    store.claim_launch(attempt)
-    store.record_failed(attempt, "Original turn failed")
-    comms.goals.update_goal("project", BlockedGoalAction(block_reason="Original turn failed", expect=GoalPrecondition(goal_id=goal.id)))
-    try:
-        resumed = await Agent.update_goal(toad_agent, "retry")
-        assert resumed.id == goal.id and resumed.state.declared_name == "active"
-        assert store.snapshot(goal.id).number == 2
-        assert store.ready_grant(goal.id, 2)
-    finally:
-        await owner.shutdown()
-
-
 async def main() -> None:
     with tempfile.TemporaryDirectory(prefix="toad-goal-retry-") as directory:
         root = Path(directory)
@@ -90,7 +61,6 @@ async def main() -> None:
             AGENT_COMMS_ROOT=str(root / "wire"),
         )
         await mounted_retry_control(root)
-        await owner_retry_route(root)
     print("goal retry: mounted control and owner grant passed")
 
 

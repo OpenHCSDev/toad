@@ -1,3 +1,4 @@
+from toad.widgets.conversation import Conversation
 """Saved context is visible on real ACP attachment before any provider prompt."""
 
 import asyncio
@@ -32,7 +33,7 @@ async def main():
         }, project_dir=str(root), agent_session_id="saved")
         async with app.run_test(size=(120, 40)) as pilot:
             async with asyncio.timeout(20):
-                while (not getattr(app.screen, "conversation", None)
+                while (not app.screen.query_one_optional(Conversation)
                        or not app.screen.conversation.agent_ready):
                     await asyncio.sleep(0.05)
             await pilot.pause()

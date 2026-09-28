@@ -1,6 +1,6 @@
 # Local verification
 
-Install the committed dependency pins with `uv sync --locked`, then run
+Install the committed dependency pins with `uv sync --locked --all-extras`, then run
 `uv run --locked pytest`. The collector derives script pilots from `tests/`;
 normal pytest tests and architecture guards are collected alongside them.
 Use pytest selection (`-k`, a path, or `--collect-only`) rather than a manual roster.

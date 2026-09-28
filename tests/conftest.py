@@ -1,13 +1,14 @@
 """Collect script pilots once, using the installed pinned stack and bounded children."""
 
+import ast
 import asyncio
 import os
 from pathlib import Path
 import sys
-import time
 
 import pytest
-from agent_comms.child_process import NamespacedChild
+import psutil
+from agent_comms.child_process import BoundedRun, DetachedProcess, ProcessIdentity
 
 
 def pytest_addoption(parser):
@@ -17,7 +18,12 @@ def pytest_addoption(parser):
 
 class PilotFile(pytest.File):
     def collect(self):
-        yield Pilot.from_parent(self, name=self.path.stem)
+        if self.path.stem.endswith(("_fixture", "_app", "_probe")):
+            return
+        tree = ast.parse(self.path.read_text())
+        if any(isinstance(node, ast.If) and ast.unparse(node.test) == "__name__ == '__main__'"
+               for node in tree.body):
+            yield Pilot.from_parent(self, name=self.path.stem)
 
 
 class Pilot(pytest.Item):
@@ -26,9 +32,10 @@ class Pilot(pytest.Item):
         root = factory.mktemp(self.path.stem)
         env = {key: value for key, value in os.environ.items() if not key.startswith("AGENT_COMMS_")}
         # Every script receives private roots, even before it enters its own
-        # fixture. Detached children are contained by the existing kernel owner.
+        # fixture. Detached children are retired through the existing child owner.
         env.update(
             AGENT_COMMS_ROOT=str(root/'wire'),
+            TOAD_TEST_ATTEMPT=str(root),
             XDG_CONFIG_HOME=str(root/'config'),
             XDG_DATA_HOME=str(root/'data'),
             XDG_STATE_HOME=str(root/'state'),
@@ -40,34 +47,38 @@ class Pilot(pytest.Item):
         # No editable package/source overrides: children import the installed
         # wheel. The script directory is Python's normal local fixture boundary.
         env.pop('PYTHONPATH', None)
+        env.pop('NO_COLOR', None)
+        env.update(TERM="xterm-256color", COLORTERM="truecolor", FORCE_COLOR="1")
         timeout = self.config.getoption('--pilot-timeout')
         stdout, stderr = root/'stdout.log', root/'stderr.log'
 
         async def run():
-            child = await NamespacedChild.start(
-                ("unshare", "--net", sys.executable, str(Path(__file__).with_name("pilot_entrypoint.py")), str(self.path)), deadline=time.monotonic()+timeout,
-                cwd=self.config.rootpath, env=env,
-            )
-            async def capture(stream, path):
-                with path.open('wb') as output:
-                    while chunk := await stream.read(65536):
-                        output.write(chunk)
             try:
-                async with asyncio.timeout(timeout):
-                    async with asyncio.TaskGroup() as readers:
-                        readers.create_task(capture(child.stdout, stdout))
-                        readers.create_task(capture(child.stderr, stderr))
-                        result = await child.wait()
-                if not result.successful:
-                    pytest.fail(f'Pilot failed: {result!r}\n{stderr.read_text(errors="replace")[-12000:]}\nLogs: {root}', pytrace=False)
+                result = await BoundedRun.run(
+                    (sys.executable, str(self.path)), timeout=timeout,
+                    cwd=self.config.rootpath, env=env,
+                )
+                stdout.write_bytes(result.stdout)
+                stderr.write_bytes(result.stderr)
+                if not result.outcome.successful:
+                    pytest.fail(f'Pilot failed: {result.outcome!r}\n{result.stderr.decode(errors="replace")[-12000:]}\nLogs: {root}', pytrace=False)
             finally:
-                await child.stop()
+                # UI shutdown deliberately leaves owners alive. Retire only
+                # processes whose private fixture root attests this attempt.
+                for process in psutil.process_iter():
+                    try:
+                        identity = ProcessIdentity.capture(process.pid)
+                        environment = process.environ()
+                        if environment.get("TOAD_TEST_ATTEMPT") == str(root):
+                            await DetachedProcess.attach(identity).stop()
+                    except (psutil.NoSuchProcess, psutil.AccessDenied, ProcessLookupError):
+                        continue
         asyncio.run(run())
 
     def reportinfo(self):
         return self.path, 0, f'pilot: {self.name}'
 
 
-def pytest_collect_file(file_path, parent):
-    if file_path.name.endswith('_pilot.py'):
-        return PilotFile.from_parent(parent, path=file_path)
+def pytest_pycollect_makemodule(module_path, parent):
+    if not module_path.name.startswith("test_"):
+        return PilotFile.from_parent(parent, path=module_path)

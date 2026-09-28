@@ -1,3 +1,4 @@
+from toad.widgets.conversation import Conversation
 """Real ACP/Pi-RPC queue controls: Enter waits, Ctrl+Enter steers, no duplicate input."""
 
 import asyncio
@@ -94,7 +95,7 @@ while True:
         app = ToadApp(agent_data=agent, project_dir=str(project))
         async with app.run_test(size=(120, 40)) as pilot:
             await until(
-                lambda: getattr(app.screen, "conversation", None) is not None
+                lambda: app.screen.query_one_optional(Conversation) is not None
                 and app.screen.conversation.agent_ready
             )
             conversation = app.screen.conversation
