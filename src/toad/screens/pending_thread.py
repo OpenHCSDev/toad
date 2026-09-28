@@ -15,8 +15,8 @@ from toad import messages
 from toad.app import ToadApp
 from toad.screens.session_view import SessionView
 from toad.session_tracker import SidebarState
-from toad.widgets.channels_sidebar import ChannelsSlot, ChannelsSidebar
-from toad.widgets.comms_sidebar import CommsSidebar, SelectTarget
+from toad.widgets.channels_sidebar import ChannelsSlot
+from toad.widgets.comms_sidebar import SelectTarget
 from toad.widgets.conversation import ThreadLoading
 from toad.widgets.session_tabs import SessionsTabs
 from toad.widgets.side_bar import SideBar, ThreadSidebar, TabHistoryControls
@@ -78,13 +78,6 @@ class PendingThreadScreen(SessionView, NavigationOwner, can_focus=False):
     def on_session_create(self, event: messages.SessionCreate) -> None:
         event.stop()
         self.app.post_message(messages.SessionCreate(self.owner_mode))
-
-    @on(CommsSidebar.ThreadAction)
-    def on_thread_action(self, event: CommsSidebar.ThreadAction) -> None:
-        if event.action == "comms_fork":
-            event.stop()
-            if owner := cast(ToadApp, self.app)._main_session_screen(self.owner_mode):
-                owner.post_message(CommsSidebar.ThreadAction(event.name, event.action))
 
     async def action_close_pending(self) -> None:
         if self.id is not None:

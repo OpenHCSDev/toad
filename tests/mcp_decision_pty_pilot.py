@@ -29,7 +29,9 @@ async def main():
         project, agent_dir = stage / "project", stage / "pi"
         project.mkdir()
         agent_dir.mkdir()
-        comms = Comms(Path(wire_dir) / "wire")
+        root = Path(wire_dir) / "wire"
+        root.mkdir(mode=0o700)
+        comms = Comms(root)
         root_id = comms.messaging.initialize_private_initial_protocol()
         os.environ.update(AGENT_COMMS_ROOT=str(comms.root),
                           AGENT_COMMS_PRIVATE_NK_WIRE_ROOT_ID=root_id,
@@ -52,7 +54,7 @@ await writeNativeServer({ agentDir, projectRoot, configDirName: '.pi', scope: 'p
         subprocess.run(["node", "--input-type=module", "-e", setup, str(package), str(project), str(agent_dir)], check=True, timeout=10)
         inventory = await read_inventory(project)
         assert inventory is not None and inventory.project_trusted_saved
-        assert inventory.project[0].status == "trust_required"
+        assert inventory.project[0].status.declared_name == "trust_required"
         app = ToadApp(project_dir=str(project))
         async with app.run_test(size=(110, 42)) as pilot:
             app.screen.action_mcp_inventory()
@@ -103,7 +105,7 @@ await writeNativeServer({ agentDir, projectRoot, configDirName: '.pi', scope: 'p
 
         await decide(inventory, "trust", "approve")
         approved = await read_inventory(project)
-        assert approved.project[0].status == "approved"
+        assert approved.project[0].status.declared_name == "approved"
         await decide(approved, "calls", "allow")
         allowed = await read_inventory(project)
         assert allowed.project[0].call_policy == "allow"
@@ -112,7 +114,7 @@ await writeNativeServer({ agentDir, projectRoot, configDirName: '.pi', scope: 'p
         assert ask.project[0].call_policy == "ask"
         await decide(ask, "trust", "deny")
         denied = await read_inventory(project)
-        assert denied.project[0].status == "denied"
+        assert denied.project[0].status.declared_name == "denied"
 
         async def unused_show(text):
             raise AssertionError("Stale action launched a child")
@@ -120,7 +122,7 @@ await writeNativeServer({ agentDir, projectRoot, configDirName: '.pi', scope: 'p
         assert await pty.run(inventory=approved, row=approved.project[0], action="calls",
             decision="allow", show=unused_show, controller_visible=lambda: True) == "stale_snapshot"
         await decide(denied, "trust", "approve", cancel=True)
-        assert (await read_inventory(project)).project[0].status == "denied"
+        assert (await read_inventory(project)).project[0].status.declared_name == "denied"
         print("PASS: actual package approve/allow/ask/deny receipts, stale refusal and controller cancellation; children reaped", flush=True)
 
 

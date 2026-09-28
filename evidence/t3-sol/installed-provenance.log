@@ -1,0 +1,6 @@
+Toad: /home/ts/wt/toad-t3-commands-sol-20260928/.artifacts/t3-installed/toad/__init__.py
+Core: /home/ts/.local/share/agent-comms/runtime-round2-final-20260928/lib/python3.14/site-packages/agent_comms/__init__.py
+Textual: /home/ts/.local/share/agent-comms/runtime-round2-final-20260928/lib/python3.14/site-packages/textual/__init__.py
+Pinned core:1853503b432144e9a3becf358bb870b6b71c8119
+Pinned Textual:16ede007c34bec893b2dbedb3999223381129678
+Native package:native-current-689ce4b5d0592b9a

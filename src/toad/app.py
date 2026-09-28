@@ -1,5 +1,6 @@
 
 from toad.navigation_target import DirectTarget, NavigationTarget
+from toad.thread_actions import ThreadAction, ThreadActionContext
 import asyncio
 import ast
 from dataclasses import replace
@@ -1513,7 +1514,7 @@ class ToadApp(App, inherit_bindings=False):
             return
 
     def invoke_thread_action(
-        self, action: str, subject: str, actor: str, session_modes: tuple[str, ...] = ()
+        self, action: ThreadAction, subject: str, actor: str, session_modes: tuple[str, ...] = ()
     ) -> None:
         """Track one UI request per thread while the core operation runs off-loop."""
         screen = self.screen
@@ -1535,53 +1536,26 @@ class ToadApp(App, inherit_bindings=False):
         if subject in self.pending_thread_actions:
             self.notify(f"An action for @{subject} is already in progress", title="Session action")
             return
-        label = {
-            "comms_start": "Starting…",
-            "comms_stop": "Stopping…", "comms_archive": "Archiving…",
-            "comms_ack": "Acknowledging…",
-        }.get(action, "Updating…")
-        self.pending_thread_actions[subject] = label
+        self.pending_thread_actions[subject] = action.pending
         self.thread_actions_changed.publish(None)
         self._run_thread_action(action, subject, actor, session_modes, selected_root)
 
     @work(group="thread-actions")
     async def _run_thread_action(
-        self, action: str, subject: str, actor: str, session_modes: tuple[str, ...],
+        self, action: ThreadAction, subject: str, actor: str, session_modes: tuple[str, ...],
         selected_root: str,
     ) -> None:
-        from agent_comms import invoke_context_tool
-
         try:
             if not root_is_current(selected_root):
                 raise ValueError("Comms route changed before the thread action")
             comms = self.coordination_wire
             if comms.root.resolve() != Path(selected_root):
                 raise ValueError("Comms route changed before the thread action")
-            if action == "comms_ack":
-                result = await asyncio.to_thread(
-                    run_selected_write, comms.root, comms.views.mark_user_view_read,
-                    subject, worktree=str(self.project_dir), implicit=implicit_root(),
-                )
-                self.notify(f"Marked {subject} read", title="Session action")
-            else:
-                result = await asyncio.to_thread(
-                    run_selected_write, comms.root, invoke_context_tool,
-                    comms, action, subject=subject, actor=actor, implicit=implicit_root(),
-                )
-            if action == "comms_start":
-                self.notify(
-                    f"{'Starting' if result['launched'] else 'Already running'} @{subject}",
-                    title="Session action",
-                )
-                if result["launched"]:
-                    for mode_name in session_modes:
-                        screen = self._main_session_screen(mode_name)
-                        if screen is not None and screen.conversation.agent is not None:
-                            await screen.conversation.agent.reconnect()
-                            from toad.acp.messages import TranscriptChanged
-                            screen.conversation.post_message(TranscriptChanged())
-            if action == "comms_stop":
-                self.notify(f"Stopped @{subject}", title="Session action")
+            ctx = ThreadActionContext(comms, subject, actor, self.project_dir, session_modes)
+            result = await asyncio.to_thread(
+                run_selected_write, comms.root, action.apply, ctx, implicit=implicit_root(),
+            )
+            await action.completed(self, ctx, result)
         except Exception as error:
             self.notify(str(error), title=f"Session action: {subject}", severity="error")
         finally:
