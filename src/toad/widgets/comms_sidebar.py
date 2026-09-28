@@ -476,7 +476,6 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
         self._snapshot_pending = False
         self._snapshot_lock = asyncio.Lock()
         self._presentation_lock = asyncio.Lock()
-        self._retirement_pending = False
         self._last_revision: WireRevision | None = None
         self._last_route_stamp: tuple[tuple[int, int, int, int] | None, ...] | None = None
         self._last_actor = ""
@@ -521,6 +520,16 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
     def prepare_navigation(self) -> None:
         self._navigation_revision += 1
         self.navigation_ready.clear()
+        # Retained rows belong to their validated route. Hide a changed route
+        # before its first frame; ordinary same-route tab switches keep the
+        # already-rendered roster while the canonical refresh runs afterward.
+        if self._observe and self._last_snapshot is not None:
+            try:
+                if (self._last_route_stamp is None
+                        or self._route_stamp()[0] != self._last_route_stamp[0]):
+                    self.display = False
+            except (OSError, ValueError):
+                self.display = False
 
     def start_navigation_hydration(self) -> None:
         """Rebuild native rows only after the selected shell has been painted."""
@@ -750,14 +759,11 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
         if not self.is_attached:
             return
         if self.screen is not self.app.screen:
-            if not self._retirement_pending:
-                from toad.screens.session_view import SessionView
-
-                destination = self.app.screen
-                if isinstance(destination, SessionView):
-                    destination.call_after_first_frame(self, self._start_retirement)
-                else:
-                    self.call_later(self._start_retirement)
+            # A tab switch changes presentation, not the channel roster's
+            # lifetime. Keep keyed rows and reconcile real source changes on
+            # activation; closing the screen still performs normal teardown.
+            if self._spinner_timer is not None:
+                self._spinner_timer.pause()
             return
         target = self.screen.target if isinstance(self.screen, CommsScreen) and self.screen.is_active else None
         if not force and self._rendered_mode == (mode_name, target):
@@ -772,40 +778,6 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
         for row in self._row_map.values():
             row.current = row.target_name == target
         self._rendered_mode = (mode_name, target)
-
-    def _start_retirement(self) -> None:
-        if (self.is_attached and self.screen is not self.app.screen
-                and not self._retirement_pending and self._last_snapshot is not None):
-            self._retirement_pending = True
-            self.run_worker(self._retire_presentation(), group="sidebar-presentation-lifetime")
-
-    async def _retire_presentation(self) -> None:
-        """Inactive tabs retain the shared source, not duplicate channel trees."""
-        try:
-            async with self._presentation_lock:
-                if not self.is_attached or self.screen is self.app.screen:
-                    return
-                if self._virtual:
-                    listing = self.query_one_optional(VirtualChannelList)
-                    if listing is not None:
-                        listing.clear_options()
-                    self._virtual_targets.clear()
-                    self._busy_virtual_rows.clear()
-                else:
-                    await self.remove_children()
-                self._row_map.clear()
-                self._selected_row = None
-                self._last_snapshot = None
-                self._last_revision = None
-                self._rendered_mode = None
-                self._rendered_selection = None
-                self._rendered_expansion.clear()
-                self._rendered_actions.clear()
-                self._selection_applied = False
-                if self._spinner_timer is not None:
-                    self._spinner_timer.pause()
-        finally:
-            self._retirement_pending = False
 
     def _run_test_hook(self) -> None:
         """Opt-in test seam: TOAD_COMMS_TEST_TARGET drives the same code
@@ -907,7 +879,7 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
                 self.screen.call_after_first_frame(self, self._refresh)
                 return
             revision = self._wire.views.revision()
-            if (revision == self._last_revision and route_stamp == self._last_route_stamp
+            if (self.display and revision == self._last_revision and route_stamp == self._last_route_stamp
                     and self.session_thread == self._last_actor
                     and self.visible_filters == self._last_filters):
                 return

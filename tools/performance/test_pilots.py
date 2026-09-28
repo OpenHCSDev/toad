@@ -22,6 +22,7 @@ PYTHON = os.environ.get("TOAD_TEST_PYTHON", sys.executable)
     "in_out_filter", "message_filter_supersession", "transcript_teardown",
     "work_preparation_delivery", "serialized_preparation",
     "bar_projection_reuse", "activity_spinners", "session_sort", "sidebar_projection",
+    "channel_roster_retention",
     "sidebar_drag_resize", "ui_sidebar_geometry", "tab_scrollbar_top",
     "owner_reader_reuse", "goal_server_poll", "goal_edit_owner",
     "history_mounted_budget", "history_prefetch", "transcript_history",
@@ -41,6 +42,13 @@ PYTHON = os.environ.get("TOAD_TEST_PYTHON", sys.executable)
     "mcp_permission_boundary", "mcp_permission_ui", "private_native_cursor",
     "private_native_cursor_request", "queue_manage", "queue_view", "queue_view_backend",
     "queue_view_bounds", "queue_view_request",
+    # Preserve current-main nominal transcript, goal, read-proof and historical
+    # view contracts when integrating the framework performance checkpoint.
+    "historical_views", "channel_partial_paint", "channel_display_basis",
+    "channel_views", "native_message_parts", "tool_diff", "transcript_process",
+    "right_comms_integration", "thread_unread_start", "goal_set_owner",
+    "goal_pause_owner", "recovery_view_boundaries", "channel_any_mode_ui",
+    "dm_rebind_paint",
 ])
 def test_pilot(name):
     # Test-owned persistent services may inherit stdout/stderr. Waiting for
