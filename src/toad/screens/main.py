@@ -376,8 +376,6 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
         self.app.push_screen(
             MCPInventoryScreen(
                 self.project_path,
-                node_path=self.app.settings.mcp.node_path,
-                cli_path=self.app.settings.mcp.cli_path,
             )
         )
 

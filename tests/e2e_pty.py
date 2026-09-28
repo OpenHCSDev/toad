@@ -253,7 +253,6 @@ class ToadSession:
 
 
 async def main() -> None:
-    os.environ.pop("TOAD_COMMS_TEST_TARGET", None)
     os.makedirs(PROJECT, exist_ok=True)
     (PROJECT / "preview.md").write_text("# PTY file preview\n\nOpened as a native session tab.\n")
     PROGRESS_STUB.write_text(

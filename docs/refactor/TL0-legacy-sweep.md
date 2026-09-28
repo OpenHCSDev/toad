@@ -69,3 +69,20 @@ Every target above is gone or explicitly handed to its surface, the dead modules
 ## Dispatch
 
 > **`toad-tl0`:** Complete TL0 per `docs/refactor/TL0-legacy-sweep.md`. Read `00-RULES.md` first. Wait for TD3 before touching `acp/agent.py`'s legacy fallback and `session_tracker.py`. Delete, do not preserve; check each dead module is not launched by name before deleting it.
+
+## TL0A closure receipt (2026-09-28)
+
+PR118 integrates T1/119's published handoff and paired107/current Comms9e3dc3c.
+All Part A target mechanisms and their current callers are removed. MCP now
+uses Comms' verified pinned native package; arbitrary executable preferences
+and capability negotiation are gone. Product test hook removed. Retained
+filters use `visible_categories` directly. Dead modules deleted except actual
+`python -m toad.render_server` worker entry point. The old queue/restored and
+text-only branch was already deleted by107; current queueState remains.
+
+Part B remains ordered after T2. Existing T4/T6 marker cleanup is recorded in
+those surface files; T2 retains ownership of the full nominal ACP boundary.
+Global marker/dead-module coverage lands after those owners close their files.
+TL0A guards have no skip/exception mechanism. Runtime Rich/terminal names are
+external contracts. Installed main-screen MCP decisions and Channels/settings/
+filter tests are recorded in `evidence/tl0a/HANDOFF.md`.

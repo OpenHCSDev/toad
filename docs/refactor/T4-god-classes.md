@@ -58,3 +58,12 @@ The known responsibilities are owned by components, the classes' remaining size 
 ## Dispatch
 
 > **`toad-t4`:** Complete T4 per `docs/refactor/T4-god-classes.md`, after T2, T3, T5 and T6 merge. Read `00-RULES.md` first. Re-measure the classes at your head and rewrite this file's findings against it before extracting anything. Components that own state, never mixin carves; every extraction states the new-case edit count it reduces.
+
+## TL0 ownership handoff (Copernicus, 2026-09-28)
+
+Parent's existing T4 ownership includes `app.py` previous-tab/local-thread
+selection names and OSC52 comment, plus `widgets/transcript_history.py` cursor
+direction wording. Remove the remaining TL0 marker vocabulary while closing
+these files; preserve clipboard and pending-thread behavior. The `getattr`
+shape probes remain assigned to T4 by TL0's original plan. TL0A has removed
+Conversation's `in_out_only` and migrated all retained filtering callers.

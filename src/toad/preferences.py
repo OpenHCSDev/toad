@@ -30,21 +30,6 @@ from toad.settings import (
 )
 
 
-class McpSettings(SettingsGroup):
-    node_path = StringSetting(
-        title="Absolute Node executable path",
-        default="",
-        help="Explicit local Node executable used only for the package-owned inventory CLI. No PATH lookup.",
-        wire_name="node_path",
-    )
-    cli_path = StringSetting(
-        title="Absolute installed Pi MCP CLI script path",
-        default="",
-        help="Explicit path to the installed package's bin/pi-mcp.mjs; never a project config or source checkout fallback.",
-        wire_name="cli_path",
-    )
-
-
 class UiSettings(SettingsGroup):
     theme = ChoiceSetting(
         ThemeChoice,
@@ -281,11 +266,6 @@ class ToadSettings(SettingsGroup):
         default="",
         editable=False,
         wire_name="anon_id",
-    )
-    mcp = Group(
-        McpSettings,
-        title="Pi MCP package inventory (optional)",
-        help="Toad only renders the installed package's static, redacted inventory. It does not manage MCP config or approvals.",
     )
     ui = Group(
         UiSettings,

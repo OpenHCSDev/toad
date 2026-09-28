@@ -1,0 +1,2 @@
+{"project": "/home/ts/wt/toad-tl0a-legacy-deletion-20260928", "native_ready_at_close": false, "watcher_reused": true, "watcher_and_child_joined": true}
+PASS: actual project UI and interpreter shutdown completed

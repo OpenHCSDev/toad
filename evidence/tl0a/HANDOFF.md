@@ -1,53 +1,56 @@
-# TL0A — active code-bearing deletion surface
+# TL0A current caller and package closure
 
-Owner Copernicus; own persistent ~/wt/toad-tl0a-legacy-deletion-20260928,
-branch refactor/tl0a-legacy-deletion, stacked on paired1071824fb7. Existing114/115
-implementations are inherited, not duplicated. This is an active draft: the
-whole TL0A surface remains open until the remaining package/caller closure below.
+Owner Copernicus. PR118 is stacked on paired107/540a602, Comms
+9e3dc3cb78ce036823d5603d27a99d6cdd8c464f, Textual16ede007. Published T1/119
+762601d is merged intact; Darwin explicitly handed off its retirement sites.
 
-## Coherent deletion published
+## Removed mechanisms
 
-- Delete unimported SessionSidebar/SessionRow and their transport-only
-  SessionPresentation. Shared Comms wire-thread rows are the real mounted path.
-- Delete ThreadStatusRow.update_thread forwarding API; sole direct test caller
-  uses existing prepare_thread_row and apply_thread_preparation.
-- Delete dead code_analyze, gist, option_content, os, widgets/version and
-  widgets/welcome modules. T8 already deleted danger_warning. Keep render_server:
-  render_zmq actually launches it with python -m; PR50 browser work is independent.
-- Apply TD3's documented default (this fork is the Comms client): delete old
-  models/currentModelId/availableModels parsing; retain current configOptions.
-  T2 owns the later full nominal ACP boundary; no alternate decoder is added.
+- Unused SessionSidebar/SessionRow, SessionPresentation and update_thread adapter.
+- Dead code_analyze, gist, option_content, os, widgets/version and widgets/welcome.
+  T8 already deleted danger_warning. render_server remains a real subprocess entrypoint.
+- Old models/currentModelId/availableModels path under TD3. Current configOptions remains.
+- Product channel test hook and its caller; in_out_only and every retained caller.
+- Arbitrary MCP node/CLI preferences, capability negotiation and positive-held paths.
+  MCP resolves through Comms NativePiRpcLaunch's verified package owner, off-loop.
+- Obsolete raw-text routing reconstruction pilot; current typed live/saved attribution
+  pilot retains FROM/TO, human quotation, unread and filter assertions.
 
-No durable data/schema or external ACP/Pi format changed. Removed runtime
-presentation had no production consumer outside its unused sidebar. Source
-+3/-338; new guards and migrated row test protect deleted APIs/current rendering.
+Conversation now awaits watcher teardown on project replacement/unmount; the
+initial installed run found a real child-startup race against fixture removal.
+Runtime state is temporary; MCP trust/config/ledger remain package-owned durable
+formats and are unchanged. Actual saved settings have no removed mcp group and
+load unchanged. No conversion, live reset, paid call or live restart was performed.
 
-## Acceptance
+## Local and installed acceptance
 
-Wheel built and installed only into owned target, paired with core58bfad3 and
-Textual16ede. Shared Channels pilot passes actual new/loading/warm frames, one
-retained tree, rows/tasks and independent right panel. Row-caller pilot passes
-shared rows/navigation/sort/collapse. Model picker passes filtering/focus/history,
-failed selection and resize. New AST/module guards pass. No provider/live calls.
+Wheel built/installed only in owned .artifacts/candidate with current core9e3.
+Prepared native package: Darwin0d7ebb4f4b5aa1ec. MainScreen opens inventory through
+its real action. Actual pinned CLI approve/allow/ask/deny changes disposable ledger;
+stale snapshot refuses and controller cancellation reaps children. No server or
+provider launched. Tests drive user input through the public PTY input interface.
 
-## Remaining full TL0A closure / ownership boundaries
+- MCP current strict DTO and real installed main-screen/PTY: exit0.
+- Installed shared Channels and real saved settings save/reopen: exit0.
+- Retained filter, underfill, prefetch, current/historical attribution: exit0.
+- Actual project watcher startup/shutdown and interpreter: exit0, child joined.
+- Four TL0/T1 guards pass; Ruff E9/F and git diff --check pass.
+- Prior row/model pilots remain recorded; unchanged native proof is in107.
 
-- MCP package binding and negotiation deletion: TL0 owns mcp_inventory,
-  mcp_decision and their screens. Core already packages MCP inside the verified
-  native Pi tree (prepare-native-import-boundary.py). Bind inventory/decisions
-  to that pinned owner before deleting positive-decision capability negotiation;
-  do not simply remove checks while accepting arbitrary configured CLI programs.
-- Darwin T1 currently edits screens/main.py, settings schema/tree,
-  widgets/comms_sidebar.py and widgets/conversation.py. TL0 does not edit these
-  files concurrently. Requested narrow handoff: remove production test hook,
-  remove in_out_only accessor and let its retained tests use visible_categories,
-  and coordinate retirement of mcp.node_path/cli_path settings/caller args when
-  TL0's pinned package API is available. Handoff is requested, not claimed accepted.
-- Parent T6/T4 owns rendering/app marker cleanup during its existing surfaces;
-  no duplicate renderer or command implementation. TL0B/T5 remain queued after
-  T2/T6 as dispatch requires. Broad final marker/dead-module guards land when all
-  owners finish; this draft's guard covers the mechanism already deleted.
+Failures retained: first MCP fixture assumed pretty JSON (fixed to parse receipt),
+raw-text replay pilot asserted retired reconstruction (deleted), first attribution
+run exposed incomplete watcher teardown (fixed). Final attribution emitted one
+unawaited connect_tcp coroutine warning during renderer cleanup, but both cases,
+watcher join and process exit passed. T6 owns renderer transport lifetime; this
+warning is reported rather than presenting the whole suite as clean.
 
-Latest dispatch ledgera32652a is integrated in107. Parent owns combined merging,
-D22 conversion and activation. CI deferred; do not equate this active draft with
-whole-surface completion.
+TL0-only source +44/-486, tests +190/-530, excluding inherited107/T1 changes.
+T4/T6 marker cleanup is recorded in their surface plans. TL0B remains afterT2.
+
+## Remaining package-side retirement
+
+Toad's complete caller closure is ready. The prepared package still emits the
+now-unused inventory compatibility claim. Its emitter, historical reconstruction
+test/fixtures and README are being deleted in a small paired core branch; package
+rebuild/pin activation belongs to parent. This receipt does not call the entire
+package-side retirement complete before that source and candidate are published.

@@ -8,17 +8,12 @@ import subprocess
 from tempfile import TemporaryDirectory
 
 from agent_comms.comms import Comms
-from textual.app import App, ComposeResult
-from textual.widgets import Static, OptionList, Button
+from textual.widgets import OptionList, Button
+from runtime_fixture import ToadApp
 
 from toad.mcp_inventory import read_inventory
 from toad.mcp_decision import LocalDecisionPTY
 from toad.screens.mcp_inventory import MCPInventoryScreen
-
-
-class InventoryApp(App):
-    def compose(self) -> ComposeResult:
-        yield Static("Pinned MCP test")
 
 
 async def until(predicate):
@@ -58,10 +53,11 @@ await writeNativeServer({ agentDir, projectRoot, configDirName: '.pi', scope: 'p
         inventory = await read_inventory(project)
         assert inventory is not None and inventory.project_trusted_saved
         assert inventory.project[0].status == "trust_required"
-        app = InventoryApp()
+        app = ToadApp(project_dir=str(project))
         async with app.run_test(size=(110, 42)) as pilot:
-            screen = MCPInventoryScreen(project)
-            await app.push_screen(screen)
+            app.screen.action_mcp_inventory()
+            await until(lambda: isinstance(app.screen, MCPInventoryScreen))
+            screen = app.screen
             await until(lambda: screen._inventory is not None)
             listing = screen.query_one(OptionList)
             listing.highlighted = 0

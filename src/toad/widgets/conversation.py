@@ -71,7 +71,7 @@ from toad.queue_view import QueueProjection
 from toad.widgets.input_delivery import InputDeliveryBar, InputDeliveryDetails, empty_delivery
 from toad.widgets.user_input import UserInput
 from toad.widgets.history_anchor import HistoryWindow
-from toad.widgets.message_filter import ALL_CATEGORIES, IN_OUT_CATEGORIES, MessageCategory
+from toad.widgets.message_filter import ALL_CATEGORIES, MessageCategory
 from toad.layout import trim_trailing_margin
 from toad.shell import Shell, CurrentWorkingDirectoryChanged
 from toad.slash_command import SlashCommand
@@ -465,15 +465,6 @@ class Conversation(containers.Vertical):
     prompt = getters.query_one(Prompt)
     app = getters.app(ToadApp)
 
-    @property
-    def in_out_only(self) -> bool:
-        """Compatibility for callers selecting the original two routed kinds."""
-        return self.visible_categories == IN_OUT_CATEGORIES
-
-    @in_out_only.setter
-    def in_out_only(self, enabled: bool) -> None:
-        self.visible_categories = IN_OUT_CATEGORIES if enabled else ALL_CATEGORIES
-
     def watch_visible_categories(
         self, previous: frozenset[MessageCategory], selected: frozenset[MessageCategory],
     ) -> None:
@@ -699,6 +690,7 @@ class Conversation(containers.Vertical):
         self.prompt_history_index = 0
         if self._directory_watcher is not None:
             self._directory_watcher.stop()
+            await asyncio.to_thread(self._directory_watcher.join)
             self._directory_watcher = None
         if self.agent_ready:
             self._directory_watcher = DirectoryWatcher(path, self)
@@ -1094,6 +1086,8 @@ class Conversation(containers.Vertical):
     async def on_unmount(self) -> None:
         if self._directory_watcher is not None:
             self._directory_watcher.stop()
+            await asyncio.to_thread(self._directory_watcher.join)
+            self._directory_watcher = None
         if self.agent is not None:
             await self.agent.stop()
 
@@ -2762,7 +2756,7 @@ class Conversation(containers.Vertical):
 
     @work
     async def replace_queued(self, prompts: list[str]) -> None:
-        """Never clear-and-resend admitted inputs as a queue-edit fallback.
+        """Never clear-and-resend admitted inputs when editing the queue.
 
         An empty snapshot or control ACK does not prove consumption, and a
         surviving row may be UNKNOWN. Reissuing its text could execute it twice.

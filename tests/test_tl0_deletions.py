@@ -12,11 +12,13 @@ def test_retired_local_sidebar_and_modules():
         "widgets/version.py", "widgets/welcome.py", "widgets/danger_warning.py",
     )
     assert not [name for name in removed_modules if (SOURCE / name).exists()]
-    removed_symbols = {"SessionPresentation", "SessionRow", "SessionSidebar"}
+    removed_symbols = {"SessionPresentation", "SessionRow", "SessionSidebar", "McpSettings",
+                       "in_out_only", "_run_test_hook", "_compatibility",
+                       "POSITIVE_DECISIONS_CAPABILITY", "positive_decisions"}
     for path in SOURCE.rglob("*.py"):
         for node in ast.walk(ast.parse(path.read_text())):
-            if isinstance(node, (ast.ClassDef, ast.Name, ast.Attribute)):
-                name = node.name if isinstance(node, ast.ClassDef) else node.id if isinstance(node, ast.Name) else node.attr
+            if isinstance(node, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef, ast.Name, ast.Attribute)):
+                name = node.name if isinstance(node, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)) else node.id if isinstance(node, ast.Name) else node.attr
                 assert name not in removed_symbols, (path, node.lineno, name)
     row_tree = ast.parse((SOURCE / "widgets/session_sidebar.py").read_text())
     assert not any(isinstance(node, ast.FunctionDef) and node.name == "update_thread"
@@ -33,3 +35,16 @@ def test_current_model_configuration_only():
     assert not any(isinstance(node, ast.Constant) and node.value in
                    {"models", "currentModelId", "availableModels"}
                    for node in ast.walk(publish))
+
+
+def test_no_product_test_environment_switch():
+    for path in SOURCE.rglob("*.py"):
+        for node in ast.walk(ast.parse(path.read_text())):
+            if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute):
+                environment = ast.unparse(node.func.value)
+                if environment == "os.environ" or (environment == "os" and node.func.attr == "getenv"):
+                    if node.args and isinstance(node.args[0], ast.Constant):
+                        assert "TEST" not in str(node.args[0].value), (path, node.lineno)
+            if isinstance(node, ast.Subscript) and ast.unparse(node.value) == "os.environ":
+                if isinstance(node.slice, ast.Constant):
+                    assert "TEST" not in str(node.slice.value), (path, node.lineno)
