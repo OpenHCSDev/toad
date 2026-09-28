@@ -38,6 +38,9 @@ extraction exists in this viewer.
   Textual fork16ede007. No source package override, mocked ACP backend, provider
   request or live write. The existing test fixture only tears down test-owned
   daemons and loads the installed app stylesheets.
+- `shared-ratchet.json`: installed shared per-class ratchet against current
+  remote main df0a758 exited0, with zero positive deltas. New declarations have
+  no prior main baseline; existing classes are independently measured.
 - First incorrect test attribute and real narrow-grid resize failure receipts
   are retained. Responsive ItemGrid and fixed button rows resolved the real
   resize failure. Tests wait for Textual's real button active effect before a
