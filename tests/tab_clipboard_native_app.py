@@ -1,13 +1,14 @@
 """Installed Toad/LinuxDriver copy path driven by an actual terminal key."""
 
 import json
+import os
 from pathlib import Path
 from typing import ClassVar
 
+from textual import events
 from textual.screen import Screen
 
 import toad
-from textual import events
 from toad.app import ToadApp
 from toad.widgets.prompt import PromptTextArea
 
@@ -26,6 +27,8 @@ class CopyApp(ToadApp):
         await self.screen.mount(self.paste_target)
         self.screen.set_focus(self.paste_target)
         assert self.focused is self.paste_target
+        if os.environ.get("TOAD_TEST_REMOVE_CLIPBOARD_TOOL"):
+            os.environ["PATH"] = str(self.project_dir / "no-tools")
         self._bindings.bind("ctrl+y", "copy_payload", show=False, priority=True)
         self.set_interval(0.05, self.record_paste)
         (self.project_dir / "ready.json").write_text(
@@ -53,12 +56,16 @@ class CopyApp(ToadApp):
         self.paste_target.focus()
 
     def record_paste(self) -> None:
-        (self.project_dir / "paste-state.json").write_text(json.dumps({
-            "focused": type(self.focused).__name__,
-            "length": len(self.paste_target.text),
-            "read_only": self.paste_target.read_only,
-            "workers": [str(worker) for worker in self.paste_target.workers],
-        }))
+        (self.project_dir / "paste-state.json").write_text(
+            json.dumps(
+                {
+                    "focused": type(self.focused).__name__,
+                    "length": len(self.paste_target.text),
+                    "read_only": self.paste_target.read_only,
+                    "workers": [str(worker) for worker in self.paste_target.workers],
+                }
+            )
+        )
         if self.paste_target.text:
             (self.project_dir / "pasted.json").write_text(
                 json.dumps(

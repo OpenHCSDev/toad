@@ -22,7 +22,7 @@ from tab_clipboard_native_app import PAYLOAD
 from toad.clipboard import SystemClipboard, TerminalClipboard
 
 
-def copy_in_terminal(root, display):
+def copy_in_terminal(root, display, *, missing_native=False):
     root.mkdir()
     env = {
         **os.environ,
@@ -43,6 +43,8 @@ def copy_in_terminal(root, display):
         env.pop(name, None)
     if display is not None:
         env["DISPLAY"] = display
+    if missing_native:
+        env["TOAD_TEST_REMOVE_CLIPBOARD_TOOL"] = "1"
     master, slave = pty.openpty()
     fcntl.ioctl(slave, termios.TIOCSWINSZ, struct.pack("HHHH", 32, 110, 0, 0))
     process = subprocess.Popen(
@@ -90,8 +92,12 @@ def copy_in_terminal(root, display):
             if (root / "copied.json").exists()
             else None,
             "paste_sent": paste_sent,
-            "state": (root / "paste-state.json").read_text() if (root / "paste-state.json").exists() else None,
-            "keys": (root / "keys.txt").read_text() if (root / "keys.txt").exists() else None,
+            "state": (root / "paste-state.json").read_text()
+            if (root / "paste-state.json").exists()
+            else None,
+            "keys": (root / "keys.txt").read_text()
+            if (root / "keys.txt").exists()
+            else None,
         }
         assert process.wait(timeout=3) == 0, output[-3000:]
         copied = json.loads((root / "copied.json").read_text())
@@ -101,7 +107,7 @@ def copy_in_terminal(root, display):
         ready = json.loads((root / "ready.json").read_text())
         assert "site-packages" in ready["installed"], ready
         sequences = re.findall(rb"\x1b\]52;c;([^\x07]*)\x07", output)
-        if display is not None:
+        if display is not None and not missing_native:
             assert ready["transport"] == SystemClipboard.declared_name
             assert not sequences, (
                 "Native success also emitted a truncatable terminal copy"
@@ -115,13 +121,16 @@ def copy_in_terminal(root, display):
             )
             assert read.stdout.decode() == PAYLOAD
         else:
-            assert ready["transport"] == TerminalClipboard.declared_name
+            assert copied["transport"] == TerminalClipboard.declared_name
+            if missing_native:
+                assert ready["transport"] == SystemClipboard.declared_name
             assert (
                 len(sequences) == 1
                 and base64.b64decode(sequences[0]).decode() == PAYLOAD
             )
         return {
-            "transport": ready["transport"],
+            "initial_transport": ready["transport"],
+            "transport": copied["transport"],
             "length": copied["length"],
             "physical_input": True,
             "prompt_paste": pasted["complete_prompt_value"],
@@ -139,6 +148,35 @@ def copy_in_terminal(root, display):
                     child.wait(timeout=3)
             except psutil.NoSuchProcess, psutil.AccessDenied:
                 pass
+
+
+def capture_png(display):
+    png = base64.b64decode(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a11sAAAAASUVORK5CYII="
+    )
+    env = {**os.environ, "DISPLAY": display}
+    env.pop("WAYLAND_DISPLAY", None)
+    copy = subprocess.Popen(
+        ["xclip", "-selection", "clipboard", "-t", "image/png"],
+        env=env,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    copy.communicate(png, timeout=3)
+    capture = subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            "import asyncio,sys; from toad.clipboard_image import read_clipboard_png; sys.stdout.buffer.write(asyncio.run(read_clipboard_png()))",
+        ],
+        env=env,
+        capture_output=True,
+        timeout=5,
+        check=True,
+    )
+    assert capture.stdout == png
+    return {"native_png_capture": True, "bytes": len(png)}
 
 
 def main():
@@ -167,6 +205,8 @@ def main():
             proof = [
                 copy_in_terminal(root / "system", display),
                 copy_in_terminal(root / "terminal", None),
+                copy_in_terminal(root / "native-failure", display, missing_native=True),
+                capture_png(display),
             ]
             print(
                 json.dumps(
