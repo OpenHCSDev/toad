@@ -3,47 +3,139 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Self
 
 from agent_comms.comms import Comms
+from agent_comms.declared_family import DeclaredFamily
 from toad import messages
 from toad.comms_root import implicit_root, root_is_current, run_selected_write
 from toad.slash_command import LocalCommand, SlashCommand
-from toad.thread_actions import AcknowledgeAction, ThreadAction
+from toad.thread_actions import ChannelAction, ThreadAction
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
     from toad.widgets.conversation import Conversation
 
 
+class PinTarget(ABC):
+    """Pin behavior is a target capability, not an action's type switch."""
+
+    @abstractmethod
+    def pin_target(self, member: str | None): ...
+
+    @abstractmethod
+    def can_pin(self) -> bool: ...
+
+    @abstractmethod
+    def pin_label(self) -> str: ...
+
+    @abstractmethod
+    def toggle_pin(self) -> None: ...
+
+
 @dataclass(frozen=True)
-class TargetContext:
+class TargetContext(PinTarget, DeclaredFamily, affix="Context"):
     app: ToadApp
     comms: Comms
     subject: str
     actor: str
     project: Path
     mode: str | None = None
-    channel: str | None = None
-    is_thread: bool = True
-
-    def candidates(self):
-        return [ThreadCommand(action) for action in ThreadAction.menu()] + [
-            member() for member in SlashCommand.members_with(TargetLocal)
-        ]
 
     def current(self) -> TargetContext:
         if not root_is_current(self.comms.root):
             raise ValueError("Comms route changed; reopen this view")
         return self
 
+    @abstractmethod
+    def can_run(self, action: type[ThreadAction]) -> bool: ...
+
+    def activity_available(self) -> bool:
+        return False
+
+
+@dataclass(frozen=True)
+class ThreadContext(TargetContext, declared_name="dm"):
+    channel: str | None = None
+
     def thread(self):
         return self.comms.registry.require(self.subject)
 
+    def can_run(self, action: type[ThreadAction]) -> bool:
+        return action.available(self.comms.registry.status(self.subject), self.thread().pid)
+
+    def pin_target(self, member: str | None) -> ThreadContext:
+        if member is not None:
+            raise ValueError("Select a channel before specifying a member to pin")
+        return self
+
+    def can_pin(self) -> bool:
+        return self.channel is not None and self.comms.channels.catalog.read().resolve(
+            self.channel).matches(self.thread().tags)
+
+    def pin_label(self) -> str:
+        pinned = self.subject in self.comms.channels.catalog.read().pinned_threads(self.channel)
+        return "Unpin from this channel" if pinned else "Pin in this channel"
+
+    def toggle_pin(self) -> None:
+        run_selected_write(self.comms.root, self.comms.channels.set_thread_pinned,
+            self.channel, self.subject,
+            self.subject not in self.comms.channels.catalog.read().pinned_threads(self.channel),
+            implicit=implicit_root())
+
+
+class ChannelContext(TargetContext, declared_name="channel"):
     def channel_view(self):
-        return self.comms.channels.catalog.read().resolve(self.channel or self.subject)
+        return self.comms.channels.catalog.read().resolve(self.subject)
+
+    def can_run(self, action: type[ThreadAction]) -> bool:
+        return issubclass(action, ChannelAction)
+
+    def pin_target(self, member: str | None) -> TargetContext:
+        if member is None:
+            return self
+        return ThreadContext(self.app, self.comms, member, self.actor, self.project,
+                             channel=self.subject)
+
+    def can_pin(self) -> bool:
+        return self.channel_view().exact
+
+    def pin_label(self) -> str:
+        return "Unpin channel" if self.channel_view().pinned else "Pin channel"
+
+    def toggle_pin(self) -> None:
+        run_selected_write(self.comms.root, self.comms.channels.set_channel_pinned,
+            self.subject, not self.channel_view().pinned, implicit=implicit_root())
+
+    def activity_available(self) -> bool:
+        return self.channel_view().exact
+
+
+class FeedContext(ChannelContext, declared_name="irc"):
+    """Aggregate history has no exact-channel pin or activity mutation."""
+
+
+class ViewContext(TargetContext):
+    """Saved view identity grants closing/copying, never thread/channel mutation."""
+
+    def can_run(self, action: type[ThreadAction]) -> bool:
+        return False
+
+    def pin_target(self, member: str | None) -> ViewContext:
+        if member is not None:
+            raise ValueError("Saved views cannot select channel members")
+        return self
+
+    def can_pin(self) -> bool:
+        return False
+
+    def pin_label(self) -> str:
+        raise ValueError("Saved views cannot be pinned as channels")
+
+    def toggle_pin(self) -> None:
+        raise ValueError("Saved views cannot be pinned as channels")
 
 
 class ContextualCommand(ABC):
@@ -89,10 +181,7 @@ class ThreadCommand(ContextualCommand):
         return f"/{self.action.declared_name}"
 
     def available(self, ctx: TargetContext) -> bool:
-        if not ctx.is_thread:
-            return self.action is AcknowledgeAction
-        thread = ctx.thread()
-        return self.action.available(ctx.comms.registry.status(ctx.subject), thread.pid)
+        return ctx.can_run(self.action)
 
     def label(self, ctx: TargetContext) -> str:
         return self.action.menu_label()
@@ -160,55 +249,23 @@ class PinCommand(ViewCommand, declared_name="pin"):
         return type(self).parse(arguments)
 
     def target_context(self, ctx: TargetContext) -> TargetContext:
-        if self.member is None:
-            return ctx
-        if ctx.is_thread:
-            raise ValueError("Select a channel before specifying a member to pin")
-        return replace(
-            ctx, subject=self.member, channel=ctx.subject, mode=None, is_thread=True
-        )
+        return ctx.pin_target(self.member)
 
     def available(self, ctx: TargetContext) -> bool:
-        return not ctx.is_thread or (
-            ctx.channel is not None and ctx.channel_view().matches(ctx.thread().tags)
-        )
+        return ctx.can_pin()
 
     def label(self, ctx: TargetContext) -> str:
-        view = ctx.channel_view()
-        if ctx.is_thread:
-            pinned = ctx.subject in ctx.comms.channels.catalog.read().pinned_threads(
-                ctx.channel
-            )
-            return "Unpin from this channel" if pinned else "Pin in this channel"
-        return "Unpin channel" if view.pinned else "Pin channel"
+        return ctx.pin_label()
 
     def execute(self, ctx: TargetContext) -> None:
-        view = ctx.channel_view()
-        if ctx.is_thread:
-            run_selected_write(
-                ctx.comms.root,
-                ctx.comms.channels.set_thread_pinned,
-                ctx.channel,
-                ctx.subject,
-                ctx.subject
-                not in ctx.comms.channels.catalog.read().pinned_threads(ctx.channel),
-                implicit=implicit_root(),
-            )
-        else:
-            run_selected_write(
-                ctx.comms.root,
-                ctx.comms.channels.set_channel_pinned,
-                ctx.subject,
-                not view.pinned,
-                implicit=implicit_root(),
-            )
+        ctx.toggle_pin()
 
 
 class AnyModeCommand(ViewCommand, declared_name="any_mode"):
     help = "Toggle member activity"
 
     def available(self, ctx: TargetContext) -> bool:
-        return not ctx.is_thread and ctx.channel_view().exact
+        return ctx.activity_available()
 
     def label(self, ctx: TargetContext) -> str:
         return (
@@ -229,7 +286,10 @@ class AnyModeCommand(ViewCommand, declared_name="any_mode"):
 
 def target_commands(ctx: TargetContext) -> tuple[ContextualCommand, ...]:
     ctx.current()
-    return tuple(command for command in ctx.candidates() if command.available(ctx))
+    candidates = [ThreadCommand(action) for action in ThreadAction.menu()] + [
+        member() for member in SlashCommand.members_with(TargetLocal)
+    ]
+    return tuple(command for command in candidates if command.available(ctx))
 
 
 @dataclass(frozen=True)
@@ -258,10 +318,3 @@ def target_completion(ctx: TargetContext) -> list[SlashCommand]:
         TargetSuggestion(command, command.label(ctx))
         for command in target_commands(ctx)
     ]
-
-
-class ViewContext(TargetContext):
-    """A saved view has only view-local actions, never a guessed thread target."""
-
-    def candidates(self):
-        return [CloseViewCommand()]

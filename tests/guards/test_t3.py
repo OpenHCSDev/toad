@@ -10,7 +10,7 @@ def test_command_owners_have_no_parallel_dispatch():
             if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
                 if node.func.id == "SlashCommand":
                     raise AssertionError(f"Maintained slash roster: {path}:{node.lineno}")
-                if node.func.id == "hasattr" and node.args and ast.unparse(node.args[0]) == "self.agent":
+                if node.func.id == "hasattr" and node.args and ast.unparse(node.args[0]) in {"self.agent", "agent"}:
                     raise AssertionError(f"Agent capability probe: {path}:{node.lineno}")
             if isinstance(node, ast.Compare):
                 operands = (node.left, *node.comparators)
@@ -28,3 +28,8 @@ def test_command_owners_have_no_parallel_dispatch():
         for node in ast.walk(ast.parse(path.read_text())):
             if isinstance(node, ast.Constant) and node.value in ("copy", "pin", "any_mode", "close_view"):
                 raise AssertionError(f"Duplicated UI action roster: {path}:{node.lineno}")
+
+    targets = ROOT / "target_commands.py"
+    for node in ast.walk(ast.parse(targets.read_text())):
+        assert not isinstance(node, ast.Attribute) or node.attr != "is_thread", node.lineno
+        assert not isinstance(node, ast.AnnAssign) or not isinstance(node.target, ast.Name) or node.target.id != "is_thread", node.lineno

@@ -791,9 +791,8 @@ class CommsChatView(Conversation):
         from toad.target_commands import TargetContext
         if self._wire is None:
             return None
-        return TargetContext(self.app, self._wire, self.target, self._me, self.project_path,
-                             self.app.current_mode,
-                             is_thread=self.kind == "dm")
+        return TargetContext.decode(self.kind)(self.app, self._wire, self.target, self._me, self.project_path,
+                             self.app.current_mode)
 
     async def submit_input(self, event: messages.UserInputSubmitted) -> None:
         if event.body.strip().startswith("/") and await self.slash_command(event.body.strip()):

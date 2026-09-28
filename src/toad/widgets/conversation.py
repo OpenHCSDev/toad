@@ -2377,7 +2377,7 @@ class Conversation(containers.Vertical):
 
     def command_target_context(self):
         from toad.navigation_target import NavigationOwner
-        from toad.target_commands import TargetContext
+        from toad.target_commands import ThreadContext
         if not isinstance(self.screen, NavigationOwner):
             return None
         nav = self.screen.navigation_context
@@ -2387,7 +2387,7 @@ class Conversation(containers.Vertical):
             comms.registry.require(nav.actor)
         except UnregisteredThreadError:
             return None
-        return TargetContext(self.app, comms, nav.actor, nav.actor, nav.project_path, nav.owner_mode)
+        return ThreadContext(self.app, comms, nav.actor, nav.actor, nav.project_path, nav.owner_mode)
 
     def update_slash_commands(self) -> None:
         """Update slash commands, which may have changed since mounting."""
@@ -2468,7 +2468,7 @@ class Conversation(containers.Vertical):
     async def _read_input_dispositions(self) -> None:
         while self.is_attached:
             revision, agent = self._delivery_refresh_revision, self.agent
-            if agent is None or not hasattr(agent, "get_input_delivery"):
+            if agent is None:
                 return
             try:
                 delivery = await agent.get_input_delivery()
@@ -2585,7 +2585,7 @@ class Conversation(containers.Vertical):
         # A read overtaken by another invalidation is discarded before painting.
         while self.is_attached:
             revision, agent = self._goal_refresh_revision, self.agent
-            if agent is None or not hasattr(agent, "get_goal_snapshot"):
+            if agent is None:
                 return
             try:
                 goal, execution = await agent.get_goal_snapshot()
