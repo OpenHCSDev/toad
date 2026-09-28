@@ -6,6 +6,8 @@ reviewed private USER ingress. This pilot never launches ACP or a provider.
 
 from __future__ import annotations
 
+from toad.navigation_target import DirectTarget, channel_target
+
 import asyncio
 import os
 import sqlite3
@@ -37,14 +39,7 @@ async def main() -> None:
         sandbox.chmod(0o700)
         home = sandbox / "home"
         home.mkdir(mode=0o700)
-        # This pilot proves USER UI/receipt behavior, not background candidate
-        # scheduling. Suppress its asynchronous observer to keep the disposable
-        # private root quiescent through cleanup.
         with (
-            patch(
-                "agent_comms.messaging.schedule_private_candidate_after_commit",
-                lambda *_: None,
-            ),
             tempfile.TemporaryDirectory(
                 prefix="toad-user-private-", dir="/var/tmp"
             ) as private_dir,
@@ -98,8 +93,8 @@ async def main() -> None:
                         owner_mode=owner_mode,
                         project_path=sandbox,
                         me="user",
-                        target="#team",
-                        kind="channel",
+                        target=channel_target("#team"),
+
                     )
                     channel = app.screen.query_one(CommsChatView)
                     await channel._refresh()
@@ -130,8 +125,8 @@ async def main() -> None:
                         owner_mode=owner_mode,
                         project_path=sandbox,
                         me="user",
-                        target="peer",
-                        kind="dm",
+                        target=DirectTarget("peer"),
+
                     )
                     dm = app.screen.query_one(CommsChatView)
                     await dm._refresh()
@@ -206,8 +201,8 @@ async def main() -> None:
                         owner_mode=owner_mode,
                         project_path=sandbox,
                         me="user",
-                        target="#team",
-                        kind="channel",
+                        target=channel_target("#team"),
+
                     )
                     channel = app.screen.query_one(CommsChatView)
                     before = len(wire(root).bus.log.full_history())
@@ -217,7 +212,7 @@ async def main() -> None:
                     channel_send = channel._wire.messaging.send_user_message
 
                     def fail_bus_open(path, *args, **kwargs):
-                        if Path(path) == root / "bus.jsonl":
+                        if Path(path) == root / "bus.jsonl" and args[0] & os.O_APPEND:
                             raise OSError("simulated reservation-only lost append")
                         return original_open(path, *args, **kwargs)
 
@@ -256,8 +251,8 @@ async def main() -> None:
                         owner_mode=owner_mode,
                         project_path=sandbox,
                         me="user",
-                        target="owner",
-                        kind="dm",
+                        target=DirectTarget("owner"),
+
                     )
                     blocked = app.screen.query_one(CommsChatView)
                     blocked_send = blocked._wire.messaging.send_user_message

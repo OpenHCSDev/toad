@@ -1,0 +1,1 @@
+IRC wrapping: full-width body, newlines, clickable spans and keyboard navigation passed

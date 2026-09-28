@@ -1,3 +1,5 @@
+
+from toad.widgets.message_filter import UserCategory
 from typing import Iterable
 from textual.app import ComposeResult
 from textual import containers
@@ -10,10 +12,11 @@ from toad.widgets.message_filter import CategorizedBlock, MessageCategory
 from toad.widgets.committed_presentation import SnapshotPresentation
 
 
+
 class UserInput(SnapshotPresentation, CategorizedBlock, containers.VerticalGroup):
     @property
-    def message_category(self) -> MessageCategory:
-        return MessageCategory.USER
+    def message_category(self) -> type[MessageCategory]:
+        return UserCategory
 
     def __init__(self, content: str, *, show_divider: bool = True) -> None:
         super().__init__()

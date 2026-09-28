@@ -1,0 +1,11 @@
+test_cancelled_caller_and_close_waiter_do_not_abandon_owned_teardown (__main__.LifecycleTests.test_cancelled_caller_and_close_waiter_do_not_abandon_owned_teardown) ... ok
+test_failed_rpc_wakes_admission_waiters_and_stops_lease_renewal (__main__.LifecycleTests.test_failed_rpc_wakes_admission_waiters_and_stops_lease_renewal) ... ok
+test_ipc_directory_is_private_and_existing_public_directory_rejected (__main__.LifecycleTests.test_ipc_directory_is_private_and_existing_public_directory_rejected) ... ok
+test_lazy_worker_rechecks_service_build_before_accepting_work (__main__.LifecycleTests.test_lazy_worker_rechecks_service_build_before_accepting_work) ... ok
+test_nonfinite_poll_intervals_rejected (__main__.LifecycleTests.test_nonfinite_poll_intervals_rejected) ... ok
+test_startup_rejects_stale_build_before_constructing_service (__main__.LifecycleTests.test_startup_rejects_stale_build_before_constructing_service) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.205s
+
+OK

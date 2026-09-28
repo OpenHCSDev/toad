@@ -10,13 +10,16 @@ os.environ.setdefault("TEXTUAL_FPS", "120")
 import click
 from toad.app import ToadApp
 from toad.agent_schema import Agent
-from toad.render_backend import Renderer, RendererBackend, create_renderer
+from toad.render_backend import Renderer
+from toad.render_choices import RendererChoice
 
 
-def renderer_from_cli(backend: RendererBackend) -> Renderer:
+def renderer_from_cli(backend: str | None) -> Renderer | None:
+    if backend is None:
+        return None
     try:
-        return create_renderer(backend)
-    except RuntimeError as error:
+        return RendererChoice.decode(backend).start()
+    except (RuntimeError, ValueError) as error:
         raise click.ClickException(str(error)) from error
 
 
@@ -127,8 +130,8 @@ def main(ctx, version):
     help="Public URL to use in conjunction with --serve",
 )
 @click.option("-s", "--serve", is_flag=True, help="Serve Toad as a web application")
-@click.option("--renderer", type=click.Choice(RendererBackend, case_sensitive=False),
-              default=RendererBackend.LOCAL, envvar="TOAD_RENDERER",
+@click.option("--renderer", type=click.Choice(RendererChoice.names(), case_sensitive=False),
+              default=None, envvar="TOAD_RENDERER",
               help="CPU rendering backend (persistent requires the optional extra).")
 def run(
     port: int,
@@ -137,7 +140,7 @@ def run(
     project_dir: str = ".",
     agent: str = "1",
     public_url: str | None = None,
-    renderer: RendererBackend = RendererBackend.LOCAL,
+    renderer: str | None = None,
 ):
     """Run an installed agent (same as `toad PATH`)."""
 
@@ -150,17 +153,12 @@ def run(
     else:
         agent_data = None
 
-    app = ToadApp(
-        mode=None if agent_data else "store",
-        agent_data=agent_data,
-        project_dir=project_dir,
-        renderer=renderer_from_cli(renderer),
-    )
     if serve:
         import shlex
-        from textual_serve.server import Server
 
-        command_args = sys.argv
+        from toad.web_server import ToadWebServer
+
+        command_args = list(sys.argv)
         # Remove serve flag from args (could be either --serve or -s)
         for flag in ["--serve", "-s"]:
             try:
@@ -169,7 +167,7 @@ def run(
             except ValueError:
                 pass
         serve_command = shlex.join(command_args)
-        server = Server(
+        server = ToadWebServer(
             serve_command,
             host=host,
             port=port,
@@ -179,8 +177,14 @@ def run(
         set_process_title("toad --serve")
         server.serve()
     else:
+        app = ToadApp(
+            mode=None if agent_data else "store",
+            agent_data=agent_data,
+            project_dir=project_dir,
+            renderer=renderer_from_cli(renderer),
+        )
         app.run()
-    app.run_on_exit()
+        app.run_on_exit()
 
 
 @main.command("acp")
@@ -216,8 +220,8 @@ def run(
     help="Host to use in conjunction with --serve",
 )
 @click.option("-s", "--serve", is_flag=True, help="Serve Toad as a web application")
-@click.option("--renderer", type=click.Choice(RendererBackend, case_sensitive=False),
-              default=RendererBackend.LOCAL, envvar="TOAD_RENDERER",
+@click.option("--renderer", type=click.Choice(RendererChoice.names(), case_sensitive=False),
+              default=None, envvar="TOAD_RENDERER",
               help="CPU rendering backend (persistent requires the optional extra).")
 def acp(
     command: str,
@@ -227,7 +231,7 @@ def acp(
     project_dir: str | None,
     serve: bool = False,
     session_id: str | None = None,
-    renderer: RendererBackend = RendererBackend.LOCAL,
+    renderer: str | None = None,
 ) -> None:
     """Run an ACP agent from a command."""
 
@@ -257,16 +261,19 @@ def acp(
     }
     if serve:
         import shlex
-        from textual_serve.server import Server
 
-        command_components = [sys.argv[0], "acp", command, "--renderer", renderer.value]
+        from toad.web_server import ToadWebServer
+
+        command_components = [sys.argv[0], "acp", command]
+        if renderer is not None:
+            command_components.extend(["--renderer", renderer])
         if session_id:
             command_components.extend(["--session", session_id])
         if project_dir:
             command_components.append(f"--project-dir={project_dir}")
         serve_command = shlex.join(command_components)
 
-        server = Server(
+        server = ToadWebServer(
             serve_command,
             host=host,
             port=port,
@@ -333,9 +340,9 @@ def replay(path: str) -> None:
 )
 def serve(port: int, host: str, public_url: str | None = None) -> None:
     """Serve Toad as a web application."""
-    from textual_serve.server import Server
+    from toad.web_server import ToadWebServer
 
-    server = Server(
+    server = ToadWebServer(
         sys.argv[0], host=host, port=port, title="Toad", public_url=public_url
     )
     set_process_title("toad serve")

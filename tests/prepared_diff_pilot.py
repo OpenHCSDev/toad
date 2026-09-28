@@ -88,7 +88,7 @@ async def main():
                                         assert code.get_selection(selection) == original.get_selection(selection)
                 assert app._exception is None
         fallback = await pool.run(prepare_patch, "not a valid unified patch\n", False, True)
-        assert fallback.patch is None and fallback.fallback.plain == "not a valid unified patch\n"
+        assert fallback.patch is None and fallback.plain_text.plain == "not a valid unified patch\n"
     finally:
         await pool.aclose()
     print("prepared diff: process-only highlighting; native spans/segments/copy across themes, wrapping, Unicode and sparse hunks")

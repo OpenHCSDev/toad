@@ -21,17 +21,28 @@ from uuid import UUID, uuid4
 from zmqruntime import ZMQClient, ZMQConfig, ZMQServer
 from zmqruntime.config import TransportMode
 from zmqruntime.execution.client import ExecutionClient
-from zmqruntime.messages import EndpointApplication, EndpointControlCapability, PongResponse, ResponseType
+from zmqruntime.messages import (
+    EndpointApplication,
+    EndpointControlCapability,
+    PongResponse,
+    ResponseType,
+)
 from zmqruntime.shutdown import EndpointShutdownMode
 
 from toad.render_backend import Renderer
 from toad.render_identity import RendererBuild
 from toad.render_protocol import (
-    AcknowledgeRender, CancelRender, PollRender, ReleaseRenderer, RenderReply, RendererCommand,
-    RenderStatus, RequestCommand, ShutdownRenderer, SubmitRender, decode_command, decode_reply, encode_command,
+    AcknowledgeRender,
+    ReleaseRender,
+    RenderReply,
+    RenderCommand,
+    RequestCommand,
+    ShutdownRender,
+    SubmitRender,
+    RenderCodec,
 )
 from toad.render_service import RenderService, RenderServiceConfig
-from toad.render_tasks import RENDER_TASK_TYPES, RendererTask, RenderTask
+from toad.render_tasks import RenderTask
 
 ResultT = TypeVar("ResultT")
 
@@ -56,7 +67,7 @@ class RendererEndpoint:
 
     @classmethod
     def for_runtime(cls, directory: Path, config: RenderServiceConfig) -> "RendererEndpoint":
-        """Resolve off-loop; incompatible builds occupy distinct IPC directories."""
+        """Resolve off-loop; different builds occupy distinct IPC directories."""
         version = RendererBuild.current(config).version
         return cls(directory / version[:24], version)
 
@@ -90,20 +101,31 @@ class RendererServer(ZMQServer):
         self.service.reap()
         super().process_messages()
 
-    def handle_control_message(self, message: Mapping[str, object]) -> RenderReply | dict[str, str]:
-        command = decode_command(message)
-        if isinstance(command, ShutdownRenderer):
-            self.service.dispatch(command)
+    def handle_control_message(self, message: Mapping[str, object]) -> dict[str, object]:
+        command = RenderCodec.decode(RenderCommand, message)
+        if isinstance(command, ShutdownRender):
+            command.execute(self.service)
             self.request_shutdown()
             # ZMQRuntime owns this lifecycle acknowledgement's wire identity.
             return {"type": ResponseType.SHUTDOWN_ACK.value}
-        return replace(self.service.dispatch(command), renderer_pid=os.getpid())
+        return RenderCodec.encode(replace(command.execute(self.service), renderer_pid=os.getpid()))
 
     def handle_data_message(self, message: object) -> None:
         raise TypeError("Renderer requests use the declared control boundary")
 
 
-class RendererClient(ExecutionClient[RendererCommand, None]):
+class RendererTransport(ExecutionClient[RenderCommand, None]):
+    def serialize_task(self, task: RenderCommand, config: None = None) -> dict[str, object]:
+        return RenderCodec.encode(task)
+
+    def send_data(self, data: RenderCommand) -> RenderReply:
+        return RenderCodec.decode(
+            RenderReply,
+            self._send_control_request(self.serialize_task(data), timeout_ms=5000),
+        )
+
+
+class RendererClient(RendererTransport):
     def __init__(self, endpoint: RendererEndpoint, service_config: RenderServiceConfig) -> None:
         self.renderer_endpoint = endpoint
         self.service_config = service_config
@@ -124,12 +146,6 @@ class RendererClient(ExecutionClient[RendererCommand, None]):
             stderr=subprocess.DEVNULL, start_new_session=True,
         )
 
-    def serialize_task(self, task: RendererCommand, config: None = None) -> dict[str, object]:
-        return dict(encode_command(task))
-
-    def send_data(self, data: RendererCommand) -> RenderReply:
-        return decode_reply(self._send_control_request(self.serialize_task(data), timeout_ms=5000))
-
     def require_identity(self) -> None:
         observed = self.connected_endpoint
         if observed is None:
@@ -144,7 +160,7 @@ class RendererConnection:
         self.endpoint, self.config = endpoint, config
         self.client: RendererClient | None = None
 
-    def exchange(self, command: RendererCommand) -> RenderReply:
+    def exchange(self, command: RenderCommand) -> RenderReply:
         if self.client is None:
             self.endpoint.prepare_directory()
             client = RendererClient(self.endpoint, self.config)
@@ -157,7 +173,7 @@ class RendererConnection:
                 raise
             self.client = client
         reply = self.client.send_data(command)
-        if isinstance(command, RequestCommand) and reply.request_id != command.request_id:
+        if isinstance(command, RequestCommand) and reply.request_identity() != command.request_id:
             raise RuntimeError("Renderer reply belongs to a different request")
         return reply
 
@@ -165,7 +181,7 @@ class RendererConnection:
         """Best-effort teardown on the I/O thread; never spawn during cleanup."""
         if self.client is not None:
             try:
-                self.client.send_data(ReleaseRenderer(client_id))
+                self.client.send_data(ReleaseRender(client_id))
             except Exception:
                 # Once all client traffic stops, the service lease reclaims work.
                 pass
@@ -176,19 +192,24 @@ class RendererConnection:
             self.client = None
 
 
+@dataclass(kw_only=True)
+class RenderCancellation:
+    cancel_requested: bool = False
+    cancellation_sent: bool = False
+
+
 @dataclass
-class RenderSubmission(Generic[ResultT]):
+class RenderSubmission(RenderCancellation, Generic[ResultT]):
     request_id: UUID
     task: RenderTask[ResultT]
-    cancel_requested: bool = False
-
+    result: asyncio.Future[ResultT]
 
 class RendererSessionFailed(RuntimeError):
     """An uncertain transport outcome ends this client lease; use a new client."""
 
 
 class PersistentRendererPool(Renderer):
-    """Bounded async client; closing it leaves compatible CPU workers warm."""
+    """Bounded async client; closing it leaves matching CPU workers warm."""
 
     def __init__(
         self, endpoint: RendererEndpoint, config: RenderServiceConfig = RenderServiceConfig(),
@@ -216,7 +237,7 @@ class PersistentRendererPool(Renderer):
             raise RuntimeError("Renderer client must use its owning event loop")
         return loop
 
-    async def _exchange(self, command: RendererCommand) -> RenderReply:
+    async def _exchange(self, command: RenderCommand) -> RenderReply:
         if self._failure is not None:
             raise RendererSessionFailed("Renderer client session failed") from self._failure
         try:
@@ -237,7 +258,7 @@ class PersistentRendererPool(Renderer):
 
     async def submit(self, task: RenderTask[ResultT]) -> ResultT:
         self._bind_loop()
-        if type(task) not in RENDER_TASK_TYPES:
+        if type(task) not in RenderTask.members_with(RenderTask):
             raise TypeError("Unsupported persistent rendering task class")
         while not self._closed and self._failure is None and len(self._pending) >= self.config.max_pending:
             self._changed.clear()
@@ -246,7 +267,7 @@ class PersistentRendererPool(Renderer):
             raise RuntimeError("Renderer client is closed")
         if self._failure is not None:
             raise RendererSessionFailed("Renderer client session failed") from self._failure
-        submission = RenderSubmission(uuid4(), task)
+        submission = RenderSubmission(uuid4(), task, self._bind_loop().create_future())
         running = asyncio.create_task(self._run(submission), name="persistent-render-request")
         tracked = cast(asyncio.Task[object], running)
         self._pending.add(tracked)
@@ -259,36 +280,16 @@ class PersistentRendererPool(Renderer):
         return running.result()
 
     async def _run(self, submission: RenderSubmission[ResultT]) -> ResultT:
-        request_id = submission.request_id
-        task = cast(RendererTask, submission.task)
-        while True:
-            if self._closed or submission.cancel_requested:
-                raise asyncio.CancelledError
-            reply = await self._exchange(SubmitRender(self._client_id, request_id, task))
-            if reply.status is RenderStatus.ACCEPTED:
-                break
-            if reply.status is not RenderStatus.BUSY:
-                raise RuntimeError(reply.error or "Renderer rejected submission")
-            await asyncio.sleep(self._poll_interval)
-        cancellation_sent = False
-        while True:
-            if (submission.cancel_requested or self._closed) and not cancellation_sent:
-                await self._exchange(CancelRender(self._client_id, request_id))
-                cancellation_sent = True
-            reply = await self._exchange(PollRender(self._client_id, request_id))
-            if reply.status is RenderStatus.PENDING:
-                await asyncio.sleep(self._poll_interval)
-                continue
-            if reply.status is RenderStatus.UNKNOWN:
-                raise RuntimeError("Renderer no longer owns the submitted request")
-            await self._exchange(AcknowledgeRender(self._client_id, request_id))
-            if reply.status is RenderStatus.CANCELLED or submission.cancel_requested or self._closed:
-                raise asyncio.CancelledError
-            if reply.status is RenderStatus.FAILED:
-                raise RuntimeError(reply.error or "Renderer preparation failed")
-            if reply.status is not RenderStatus.COMPLETE:
-                raise RuntimeError("Unexpected renderer lifecycle result")
-            return submission.task.accept_result(reply.result)
+        command: RenderCommand | None = SubmitRender(self._client_id, submission.request_id, submission.task)
+        while command is not None:
+            reply = await command.exchange(self, submission)
+            command = await reply.advance(submission, self)
+        return submission.result.result()
+
+    async def acknowledge(self, submission: RenderSubmission) -> None:
+        await self._exchange(AcknowledgeRender(self._client_id, submission.request_id))
+        if submission.cancel_requested or self._closed:
+            raise asyncio.CancelledError
 
     async def aclose(self) -> None:
         self._bind_loop()

@@ -1,5 +1,7 @@
 """Persistent comms tabs and lazy model-owned multi-tag memberships."""
 
+from toad.navigation_target import FeedTarget, channel_target
+
 import asyncio
 import os
 import tempfile
@@ -124,7 +126,7 @@ async def main():
             await pilot.pause()
             assert app.screen.query_one(f"SessionLabel#{engineering}")
             any_mode = await app.open_comms_session(owner_mode=owner, project_path=root,
-                                                   me=root.name, target="#any", kind="irc")
+                                                   me=root.name, target=FeedTarget())
             await pilot.pause()
             assert {label.id for label in app.screen.query(SessionLabel)} == {owner, engineering, any_mode}
             any_chat = app.screen.query_one("CommsChatView")
@@ -147,7 +149,7 @@ async def main():
             # Two owner tabs cannot share a channel's sender or Back target.
             duplicate = await app.open_comms_session(
                 owner_mode=second.mode_name, project_path=root,
-                me="api-agent", target="#engineering", kind="channel",
+                me="api-agent", target=channel_target("#engineering"),
             )
             await pilot.pause()
             assert duplicate != engineering
@@ -159,7 +161,7 @@ async def main():
             # Within one owner, the original view and its draft are reusable.
             original = await app.open_comms_session(
                 owner_mode=owner, project_path=root,
-                me=root.name, target="#engineering", kind="channel",
+                me=root.name, target=channel_target("#engineering"),
             )
             assert original == engineering
             assert app.screen.query_one("Prompt").text == "draft stays here"

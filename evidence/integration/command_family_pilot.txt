@@ -1,0 +1,81 @@
+PASS: fresh ACP SDK -> real JSON-RPC validation -> mounted advertised command completion; local collision and forwarding preserved
+PASS: mounted agent command insertion, local execution before agent readiness, collision ownership and invalid-argument consumption
+╭───────────────────── Traceback (most recent call last) ──────────────────────╮
+│ /home/ts/wt/toad-integration-20260928/.venv/lib/python3.14/site-packages/toa │
+│ d/widgets/comms_chat.py:495 in _mark_visible_after_layout                    │
+│                                                                              │
+│   492 │   │   │   self._ack_inflight = True                                  │
+│   493 │   │   │   self.run_worker(self._mark_historical_paint(historical, se │
+│   494 │   │   │   return                                                     │
+│ ❱ 495 │   │   painted = set(self._painted_message_sequences())               │
+│   496 │   │   selected = self.conversation_kind.painted_page(self, painted)  │
+│   497 │   │   if selected is None:                                           │
+│   498 │   │   │   return                                                     │
+│                                                                              │
+│ ╭──────────── locals ────────────╮                                           │
+│ │   historical = None            │                                           │
+│ │ mounted_keys = set()           │                                           │
+│ │         self = CommsChatView() │                                           │
+│ │      visible = set()           │                                           │
+│ ╰────────────────────────────────╯                                           │
+╰──────────────────────────────────────────────────────────────────────────────╯
+AttributeError: 'CommsChatView' object has no attribute 
+'_painted_message_sequences'
+Traceback (most recent call last):
+  File "/home/ts/.local/share/agent-comms/runtime-watcher-20260928/lib/python3.14/site-packages/textual/app.py", line 2210, in run_test
+    yield pilot
+  File "/home/ts/wt/toad-integration-20260928/tests/runtime_fixture.py", line 62, in run_test
+    yield pilot
+  File "/home/ts/wt/toad-integration-20260928/tests/command_family_pilot.py", line 203, in main
+    assert menu == expected, (menu, expected)
+           ^^^^^^^^^^^^^^^^
+AssertionError: ({}, {'fork': 'Fork from this thread', 'stop': 'Stop process', 'start': 'Start thread', 'archive': 'Archive stopped thread', 'acknowledge': 'Mark inbox read', 'copy': 'Copy name'})
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-integration-20260928/tests/command_family_pilot.py", line 313, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-integration-20260928/tests/command_family_pilot.py", line 107, in main
+    async with app.run_test(size=(110, 38)) as pilot:
+               ~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 235, in __aexit__
+    await self.gen.athrow(value)
+  File "/home/ts/wt/toad-integration-20260928/tests/runtime_fixture.py", line 61, in run_test
+    async with super().run_test(**kwargs) as pilot:
+               ~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 235, in __aexit__
+    await self.gen.athrow(value)
+  File "/home/ts/.local/share/agent-comms/runtime-watcher-20260928/lib/python3.14/site-packages/textual/app.py", line 2218, in run_test
+    raise self._exception
+  File "/home/ts/.local/share/agent-comms/runtime-watcher-20260928/lib/python3.14/site-packages/textual/message_pump.py", line 736, in _process_messages_loop
+    await invoke(method, event)
+  File "/home/ts/.local/share/agent-comms/runtime-watcher-20260928/lib/python3.14/site-packages/textual/_callback.py", line 96, in invoke
+    return await _invoke(callback, *params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-watcher-20260928/lib/python3.14/site-packages/textual/_callback.py", line 58, in _invoke
+    result = await result
+             ^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-watcher-20260928/lib/python3.14/site-packages/textual/screen.py", line 1196, in _on_idle
+    await self._invoke_and_clear_callbacks()
+  File "/home/ts/.local/share/agent-comms/runtime-watcher-20260928/lib/python3.14/site-packages/textual/screen.py", line 1285, in _invoke_and_clear_callbacks
+    await invoke(callback)
+  File "/home/ts/.local/share/agent-comms/runtime-watcher-20260928/lib/python3.14/site-packages/textual/_callback.py", line 96, in invoke
+    return await _invoke(callback, *params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-watcher-20260928/lib/python3.14/site-packages/textual/_callback.py", line 56, in _invoke
+    result = callback(*params[:parameter_count])
+  File "/home/ts/wt/toad-integration-20260928/.venv/lib/python3.14/site-packages/toad/widgets/comms_chat.py", line 495, in _mark_visible_after_layout
+    painted = set(self._painted_message_sequences())
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'CommsChatView' object has no attribute '_painted_message_sequences'

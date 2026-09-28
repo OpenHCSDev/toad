@@ -1,15 +1,16 @@
 """Native Toad conversation view for an agent-comms channel or DM."""
 
 from __future__ import annotations
+from toad.delivery_failure_view import DeliveryFailureView
 
 import asyncio
 import re
 from collections.abc import Callable
-from dataclasses import replace
 from pathlib import Path
 
 from agent_comms.comms import Comms
 from agent_comms.message_page import MessagePage
+from toad.message_viewport import AcknowledgementViewport, NotificationViewport
 from toad.constants import COMMS_REFRESH_INTERVAL
 from agent_comms.thread_identity import ThreadRole
 from agent_comms.presentation import WireRevision
@@ -21,10 +22,10 @@ from textual.content import Content
 from textual.widgets import Static
 from textual.widget import Widget
 
+from toad.conversation_kind import ConversationKind
 from toad import messages
-from toad.constants import ALL_COMMS_TARGET
 from toad.channel_preparation import (
-    HistoryKind, HistoryReadRequest, HistoryReadResult, display_identity,
+    HistoryReadRequest, HistoryReadResult,
 )
 from toad.widgets.conversation import (
     Contents,
@@ -38,10 +39,7 @@ from toad.widgets.flash import Flash
 from toad.widgets.prompt import Prompt
 from toad.widgets.throbber import Throbber
 from toad.widgets.irc_message import IRCMessage, MembershipNotice, WireMarkdownMessage
-from toad.widgets.channel_participants import ChannelParticipants
-from toad.widgets.channel_prompt import ChannelPrompt
 from toad.widgets.message_notifications import MessageNotifications
-from toad.widgets.session_details import SessionDetails
 from toad.owner_preparation import read_thread_presentation
 
 HISTORY_PAGE_SIZE = 40
@@ -89,7 +87,7 @@ def resolve_session_thread(
     return None
 
 
-class CommsChatView(Conversation):
+class CommsChatView(DeliveryFailureView, Conversation):
     """A wire-backed conversation using Toad's normal transcript primitives."""
 
     BINDINGS = Conversation.BINDINGS[:5]
@@ -105,7 +103,7 @@ class CommsChatView(Conversation):
     ) -> None:
         super().__init__(project_path)
         self.target = target
-        self.kind = kind
+        self.conversation_kind = ConversationKind.decode(kind)
         self._me = me
         self._unknown_send: tuple[str, int, str] | None = None
         self._human_admission_blocked = False
@@ -132,6 +130,10 @@ class CommsChatView(Conversation):
         self._ack_inflight = False
         self.irc_style = True
 
+    @property
+    def kind(self) -> str:
+        return self.conversation_kind.declared_name
+
     def compose(self) -> ComposeResult:
         with Window():
             with ContentsGrid():
@@ -142,20 +144,9 @@ class CommsChatView(Conversation):
                     yield containers.VerticalGroup(id="comms-activity")
         yield Flash()
         with containers.Vertical(id="prompt-stack"):
-            if self.kind != "dm":
-                yield ChannelParticipants()
-            else:
-                yield SessionDetails(self._read_thread_activity)
+            yield self.conversation_kind.activity_widget(self)
             yield Throbber(id="throbber")
-            prompt_type = ChannelPrompt if self.kind != "dm" else Prompt
-            yield prompt_type(
-                simple_input=True,
-                placeholder=(
-                    "Message #all (broadcast)"
-                    if self.kind == "irc"
-                    else f"Message {self.target}"
-                ),
-            ).data_bind(
+            yield self.conversation_kind.prompt(self.target).data_bind(
                 project_path=Conversation.project_path,
                 working_directory=Conversation.working_directory,
                 agent_info=Conversation.agent_info,
@@ -202,6 +193,7 @@ class CommsChatView(Conversation):
             if self.is_attached:
                 self.call_after_refresh(self.prepare_prompt)
             return
+        self.update_slash_commands()
         prompt.agent_info = self.agent_info
         prompt.agent_ready = True
         prompt.shell_mode = False
@@ -217,11 +209,7 @@ class CommsChatView(Conversation):
         """Comms readiness has no shell process to await."""
 
     def _target_label(self) -> str:
-        if self.kind == "irc":
-            return f"{ALL_COMMS_TARGET} · all comms"
-        if self.kind == "dm":
-            return f"@{self.target}"
-        return self.target
+        return self.conversation_kind.label(self.target)
 
     def _message_page(
         self,
@@ -231,22 +219,9 @@ class CommsChatView(Conversation):
         after: int | None = None,
         limit: int = HISTORY_PAGE_SIZE,
     ) -> MessagePage:
-        if self.kind == "dm":
-            return comms.views.dm_display_page(
-                self.target,
-                worktree=str(self.project_path),
-                before=before,
-                after=after,
-                limit=limit,
-                max_bytes=HISTORY_PAGE_BYTES,
-            )
-        return comms.views.channel_display_page(
-            self.target,
-            worktree=str(self.project_path),
-            before=before,
-            after=after,
-            limit=limit,
-            max_bytes=HISTORY_PAGE_BYTES,
+        return self.conversation_kind.page(
+            comms, self.target, worktree=str(self.project_path),
+            before=before, after=after, limit=limit, max_bytes=HISTORY_PAGE_BYTES,
         )
 
     def _message_block(self, message: WireMessage) -> Widget:
@@ -258,37 +233,20 @@ class CommsChatView(Conversation):
             return IRCMessage(message, direction=direction)
         return WireMarkdownMessage(message, direction=direction)
 
-    def _painted_message_sequences(self) -> tuple[int, ...]:
-        return tuple(seq for source, seq in self._painted_message_keys() if not source)
-
     def _painted_message_keys(self) -> tuple[tuple[str, int], ...]:
-        """Rows in the committed viewport, adapted from the sidebar worktree."""
         if not self.is_attached or not self.screen.is_active:
             return ()
-        geometry = self.screen._compositor.visible_widgets
-        viewport = self.window.content_region
-        visible: list[tuple[str, int]] = []
-        for message, widget in self._history:
-            painted = (
-                widget.read_ack_widget()
-                if isinstance(widget, (IRCMessage, WireMarkdownMessage)) else widget
-            )
-            placement = geometry.get(painted)
-            if placement is None:
-                continue
-            region, clip = placement
-            if (
-                region.overlaps(viewport)
-                and region.overlaps(clip)
-                and clip.overlaps(viewport)
-            ):
-                visible.append(message.view_key)
-        return tuple(visible)
+        return tuple(message.view_key for message, _ in self._message_viewport(
+            AcknowledgementViewport).visible_rows())
+
+    def _message_viewport(self, projection):
+        return projection(self._history, self.screen._compositor.visible_widgets,
+                          self.window.content_region)
 
     def _history_request(self) -> HistoryReadRequest:
         assert self._wire is not None
         return HistoryReadRequest(
-            self._wire, HistoryKind(self.kind), self.target, Path(self.project_path),
+            self._wire, self.conversation_kind, self.target, Path(self.project_path),
             self._history_initialized, self._poll_cursor,
             not self._has_newer and self.window.follows_tail, self._revision,
             INITIAL_HISTORY_PAGE_SIZE, HISTORY_PAGE_SIZE, HISTORY_PAGE_BYTES,
@@ -322,15 +280,14 @@ class CommsChatView(Conversation):
         if self._wire is None or not root_is_current(self._wire.root):
             self.display = False
             return
-        if self.kind == "dm" and not older and page.messages and page.historical_display is None:
-            self._ack_page = page
+        self.conversation_kind.remember_tail(self, page, older)
         mounted = {message.view_key for message, _ in self._history}
         records = [message for message in page.messages if message.view_key not in mounted]
         if not records:
             if page.historical_display is not None:
                 self._historical_ack_pages.update((message.view_key, page) for message in page.messages)
-            elif self.kind != "dm":
-                self._channel_ack_pages.update((message.seq, page) for message in page.messages)
+            else:
+                self.conversation_kind.remember_mounted(self, page)
             if older:
                 self._has_older = page.has_older
             else:
@@ -351,10 +308,8 @@ class CommsChatView(Conversation):
                     await self._insert_page(page, pairs, older=older)
         if page.historical_display is not None:
             self._historical_ack_pages.update((message.view_key, page) for message in page.messages)
-        elif self.kind != "dm":
-            # Publish proof only after mounting; a paint callback may run while
-            # the history lock is awaited and prune rows not yet in the window.
-            self._channel_ack_pages.update((message.seq, page) for message in page.messages)
+        else:
+            self.conversation_kind.remember_mounted(self, page)
         self.window.check_follow()
 
     async def _insert_page(
@@ -481,7 +436,7 @@ class CommsChatView(Conversation):
             if loading := self.query_one_optional("#history-loading"):
                 await loading.remove()
             self._has_older = page.has_older
-            self._display_identity = display_identity(HistoryKind(self.kind), page)
+            self._display_identity = self.conversation_kind.display_identity(page)
             self._history_initialized = True
             self._poll_cursor = high_water
             self.call_after_refresh(self._on_window_scroll)
@@ -497,20 +452,18 @@ class CommsChatView(Conversation):
             self._has_older = page.has_older
             self._has_newer = False
             await self._mount_page(page, older=False)
-            self._display_identity = display_identity(HistoryKind(self.kind), page)
+            self._display_identity = self.conversation_kind.display_identity(page)
             self._poll_cursor = (page.newest_seq if page.has_newer else high_water) or high_water
             return True
         if high_water <= self._poll_cursor:
             return follow
         if page is None:
             return follow
-        self._display_identity = display_identity(HistoryKind(self.kind), page)
+        self._display_identity = self.conversation_kind.display_identity(page)
         follow = not self._has_newer and self.window.follows_tail
         if page.messages and follow:
             await self._mount_page(page, older=False)
-            self._poll_cursor = (
-                page.newest_seq if page.has_newer else high_water
-            ) or high_water
+            self._poll_cursor = (page.newest_seq if page.has_newer else high_water) or high_water
         else:
             if page.messages:
                 self._has_newer = True
@@ -537,51 +490,11 @@ class CommsChatView(Conversation):
             self._ack_inflight = True
             self.run_worker(self._mark_historical_paint(historical, selected), group="comms-painted-read")
             return
-        painted = set(self._painted_message_sequences())
-        original_page = None
-        if self.kind == "dm":
-            page = self._ack_page
-            if page is None or page.newest_seq not in painted:
-                return
-            basis = page.display_basis
-            if basis is None or basis.older_unread:
-                return
-            inbound = (
-                message.seq for message in page.messages
-                if message.sender in basis.peer_names and message.target in basis.viewer_names
-            )
-            if any(sequence not in painted for sequence in inbound):
-                return
-            original_page = page
-            page = replace(
-                page,
-                messages=tuple(message for message in page.messages if message.seq in painted),
-                display_basis=replace(basis, displayed=basis.displayed.select(painted)),
-            )
-        else:
-            mounted = {message.seq for message, _ in self._history if not message.view_key[0]}
-            self._channel_ack_pages = {
-                seq: source for seq, source in self._channel_ack_pages.items() if seq in mounted
-            }
-            original_page = next(
-                (source for seq, source in self._channel_ack_pages.items() if seq in painted), None
-            )
-            if original_page is None:
-                return
-            page = original_page
-            scope = page.display_scope
-            if scope is None or scope.displayed is None:
-                return
-            selected = {
-                seq for seq, source in self._channel_ack_pages.items()
-                if source is page and seq in painted
-            }
-            # Subset the captured proof, never a reconstructed watermark. Keep
-            # unpainted rows pending so scrolling can acknowledge them later.
-            page = replace(
-                page, messages=tuple(message for message in page.messages if message.seq in selected),
-                display_scope=replace(scope, displayed=scope.displayed.select(selected)),
-            )
+        painted = {sequence for source, sequence in visible if not source}
+        selected = self.conversation_kind.painted_page(self, painted)
+        if selected is None:
+            return
+        page, original_page = selected
         self._ack_inflight = True
         self.run_worker(self._mark_painted_page(page, original_page), group="comms-painted-read")
 
@@ -604,7 +517,7 @@ class CommsChatView(Conversation):
     async def _mark_painted_page(self, page: MessagePage, original_page: MessagePage | None = None) -> None:
         try:
             comms = self._wire
-            from toad.comms_root import implicit_root, root_is_current, run_selected_write
+            from toad.comms_root import root_is_current
 
             if comms is None or not self.is_attached or not self.screen.is_active:
                 return
@@ -613,20 +526,7 @@ class CommsChatView(Conversation):
                 return
             project = str(self.project_path)
             target = self.target
-            if self.kind == "dm":
-                assert page.display_basis is not None and page.newest_seq is not None
-                await asyncio.to_thread(
-                    run_selected_write, comms.root, comms.views.mark_dm_view_read, target,
-                    worktree=project, through=page.newest_seq,
-                    expected_display_basis=page.display_basis, implicit=implicit_root(),
-                )
-            else:
-                assert page.display_scope is not None and page.newest_seq is not None
-                await asyncio.to_thread(
-                    run_selected_write, comms.root, comms.views.mark_channel_view_read, target,
-                    worktree=project, through=page.newest_seq,
-                    expected_scope=page.display_scope, implicit=implicit_root(),
-                )
+            await self.conversation_kind.mark_painted(comms, target, project, page)
             if self._ack_page is page or self._ack_page is original_page:
                 self._ack_page = None
             if original_page is not None:
@@ -664,20 +564,7 @@ class CommsChatView(Conversation):
             self._notification_task = asyncio.create_task(self._read_notifications(rows))
 
     def _visible_notification_rows(self) -> tuple[tuple[WireMessage, Widget], ...]:
-        """The whole message includes expanded details; this is not read-ack proof."""
-        geometry = self.screen._compositor.visible_widgets
-        viewport = self.window.content_region
-        rows = []
-        for message, widget in self._history:
-            if not isinstance(widget, (IRCMessage, WireMarkdownMessage)) or not widget.is_attached:
-                continue
-            placement = geometry.get(widget)
-            if placement is None:
-                continue
-            region, clip = placement
-            if region.overlaps(viewport) and region.overlaps(clip) and clip.overlaps(viewport):
-                rows.append((message, widget))
-        return tuple(rows)
+        return self._message_viewport(NotificationViewport).visible_rows()
 
     async def _read_thread_activity(self):
         from toad.comms_root import root_is_current
@@ -737,7 +624,7 @@ class CommsChatView(Conversation):
             try:
                 comms = self._wire
                 catalog = await asyncio.to_thread(comms.channels.catalog.read)
-                read_only = self.kind != "dm" and catalog.is_view_target(self.target)
+                read_only = self.conversation_kind.read_only(catalog, self.target)
                 if read_only:
                     self.prompt.prompt_text_area.disabled = True
                     self.prompt.prompt_text_area.tooltip = "Saved view: read-only history; open an exact channel to send"
@@ -757,6 +644,7 @@ class CommsChatView(Conversation):
                     return
                 if not self.screen.is_active:
                     return
+                self.update_slash_commands()
                 revision = read.revision
                 if revision == self._revision:
                     self.call_after_refresh(self._mark_visible_after_layout)
@@ -766,14 +654,7 @@ class CommsChatView(Conversation):
                 # Show the bounded tail before computing roster/sort metadata,
                 # which can scan a much larger coordination history.
                 follow = await self._refresh_history(read)
-                if self.kind != "dm":
-                    snapshot = await asyncio.to_thread(comms.views.coordination_snapshot)
-                    self.query_one(ChannelParticipants).update_participants(
-                        snapshot.participants(self.target)
-                    )
-                    self.query_one(ChannelPrompt).set_mention_candidates(
-                        snapshot.mention_candidates(self.target)
-                    )
+                await self.conversation_kind.update_roster(self, comms)
                 if not self.is_attached or not self.screen.is_active:
                     return
                 if not root_is_current(comms.root):
@@ -790,7 +671,7 @@ class CommsChatView(Conversation):
             self._revision = revision
 
             target = self.target
-            info = await asyncio.to_thread(comms.agents.agent_info_of, target) if self.kind == "dm" else None
+            info = await self.conversation_kind.agent_info(comms, target)
             if not self.is_attached or self.target != target:
                 return
             if self._unknown_send is not None:
@@ -814,7 +695,16 @@ class CommsChatView(Conversation):
         if self._has_newer or (self._has_older and self.window.max_scroll_y == 0):
             self.call_after_refresh(self._on_window_scroll)
 
+    def command_target_context(self):
+        from toad.target_commands import TargetContext
+        if self._wire is None:
+            return None
+        return TargetContext.decode(self.kind)(self.app, self._wire, self.target, self._me, self.project_path,
+                             self.app.current_mode)
+
     async def submit_input(self, event: messages.UserInputSubmitted) -> None:
+        if event.body.strip().startswith("/") and await self.slash_command(event.body.strip()):
+            return
         if not event.body.strip():
             return
         if self._unknown_send is not None or self._human_admission_blocked:
@@ -827,7 +717,7 @@ class CommsChatView(Conversation):
                 raise ValueError("Comms route changed; reopen this view before sending")
             comms = self._wire
             catalog = await asyncio.to_thread(comms.channels.catalog.read)
-            if self.kind != "dm" and catalog.is_view_target(self.target):
+            if self.conversation_kind.read_only(catalog, self.target):
                 self.prompt.text = event.body
                 self.prompt.prompt_text_area.disabled = True
                 self.status = "Read-only saved view; open an exact channel to send"
@@ -843,7 +733,7 @@ class CommsChatView(Conversation):
             send_task = asyncio.create_task(
                 asyncio.to_thread(
                     run_selected_write, comms.root, comms.messaging.send_user_message,
-                    "#all" if self.kind == "irc" else self.target, event.body,
+                    self.conversation_kind.send_target(self.target), event.body,
                     worktree=str(self.project_path), implicit=implicit_root(),
                 )
             )
@@ -868,39 +758,9 @@ class CommsChatView(Conversation):
                 )
                 return
         except Exception as error:
-            from agent_comms.errors import HumanInitialUnknownError, RelationViolationError
+            from agent_comms.delivery_failure import delivery_failure
 
-            if isinstance(error, HumanInitialUnknownError):
-                self._unknown_send = (error.wire_root_id, error.wire_seq, error.message_id)
-                # Preserve the user's text for inspection, but never put an
-                # uncertain send back into an actionable compose control.
-                self.prompt.text = event.body
-                self.prompt.prompt_text_area.disabled = True
-                self.status = f"Send UNKNOWN: {error}; do not retry"
-                self.prompt.prompt_text_area.tooltip = self.status
-                self.flash(self.status, style="error")
-                return
-            if (
-                isinstance(error, RelationViolationError)
-                and "UNKNOWN outcome" in str(error)
-                and "human send blocked" in str(error)
-            ):
-                # Core's fail-closed reservation/sequence-gap admission is
-                # non-actionable until manual reconciliation, not a fresh
-                # pre-append rejection that can safely be resubmitted.
-                self._human_admission_blocked = True
-                self.prompt.text = event.body
-                self.prompt.prompt_text_area.disabled = True
-                self._send_block_reason = f"Private human admission blocked: {error}"
-                self.status = self._send_block_reason
-                self.prompt.prompt_text_area.tooltip = self.status
-                self.flash(self.status, style="error")
-                return
-            self._human_admission_blocked = False
-            self._send_block_reason = ""
-            self.prompt.text = event.body
-            self.prompt.prompt_text_area.disabled = False
-            self.flash(f"Send failed: {error}", style="error")
+            delivery_failure(error).present(self, event.body)
             return
         self._send_block_reason = (
             f"Send receipt {comms.root}/{receipt.seq}/{receipt.message_id}; "

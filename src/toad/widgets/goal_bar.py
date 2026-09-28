@@ -2,8 +2,7 @@
 
 from typing import ClassVar
 
-from agent_comms.goals import Goal
-from agent_comms.goal_presentation import GoalExecution, GoalExecutionState
+from agent_comms.goal_presentation import GoalExecution
 from rich.cells import cell_len
 from textual import events
 from textual.app import ComposeResult, ScreenStackError, UnknownModeError
@@ -13,6 +12,7 @@ from textual.message import Message
 from textual.reactive import var
 from textual.widgets import Static
 
+from toad.goal_display import GoalDisplay, NoGoal
 from toad.widgets.goal_text import GoalText
 
 
@@ -77,9 +77,8 @@ class GoalBar(VerticalGroup):
     GoalBar.-collapsed GoalControl { margin-right: 1; }
     GoalBar.-resize-hover, GoalBar.-resizing { border-top: solid white; pointer: ns-resize; }
     """
-    goal: var[Goal | None] = var(None)
+    goal_display: var[GoalDisplay] = var(NoGoal())
     execution: var[GoalExecution | None] = var(None)
-    unavailable: var[bool] = var(False)
     collapsed: var[bool] = var(False)
     _separator_update_pending = False
     _throbber = None
@@ -166,25 +165,20 @@ class GoalBar(VerticalGroup):
             )
             self._update_goal_text()
 
-    def watch_goal(self, goal: Goal | None):
+    def watch_goal_display(self) -> None:
+        goal = self.goal_display.snapshot
         if goal is None:
             self._end_resize()
-        self.display = goal is not None or self.unavailable
+        self.display = self.goal_display.visible
         self._update_goal_text()
-        if goal is not None:
+        if goal is not None and self.is_attached:
             progress = self.query_one(".goal-progress", GoalText)
-            progress.update_goal_text(
-                f"Progress: {goal.progress}" if goal.progress else ""
-            )
+            progress.update_goal_text(f"Progress: {goal.progress}" if goal.progress else "")
             progress.display = bool(goal.progress)
             toggle = self.query_one("#goal-toggle", Static)
             toggle.update(goal.state.toggle_label)
             toggle.display = not goal.state.terminal
             self._update_control_layout()
-
-    def watch_unavailable(self) -> None:
-        self.display = self.goal is not None or self.unavailable
-        self._update_goal_text()
 
     def watch_execution(self) -> None:
         self._update_goal_text()
@@ -193,32 +187,16 @@ class GoalBar(VerticalGroup):
         if not self.is_attached:
             return
         header = self.query_one(".goal-header", Static)
-        if self.unavailable:
-            header.update(
-                "Goal state unavailable · last confirmed goal below"
-                if self.goal
-                else "Goal state unavailable · reconnecting to owner"
-            )
-        elif self.goal is not None:
-            header.update(f"Goal · {self.goal.state.declared_name} · rev {self.goal.revision}")
-        for control in self.query(GoalControl):
-            control.disabled = self.unavailable and control.id != "goal-collapse"
-        self.query_one(".goal-document").display = self.goal is not None and not self.collapsed
-        if self.goal is not None:
-            self.query_one(".goal-summary", GoalText).update_goal_text(
-                f"Objective: {self.goal.text}"
-            )
+        state = self.goal_display
+        goal = state.snapshot
         execution = self.execution
-        standby = (
-            not self.unavailable
-            and self.goal is not None
-            and self.goal.state.active
-            and execution is not None
-            and execution.goal_id == self.goal.id
-            and execution.state is GoalExecutionState.STANDBY
-        )
-        if standby:
-            header.update(f"Goal · Standby · rev {self.goal.revision}")
+        header.update(state.heading(execution))
+        for control in self.query(GoalControl):
+            control.disabled = not state.can_control and control.id != "goal-collapse"
+        self.query_one(".goal-document").display = goal is not None and not self.collapsed
+        if goal is not None:
+            self.query_one(".goal-summary", GoalText).update_goal_text(f"Objective: {goal.text}")
+        standby = state.standby(execution)
         self.query_one(".goal-execution-row").display = standby and not self.collapsed
         self.query_one(StandbyPulse).active = standby and not self.collapsed
         status = self.query_one(".goal-execution", GoalText)
@@ -233,7 +211,7 @@ class GoalBar(VerticalGroup):
         self.call_after_refresh(self.update_document_height)
 
     def begin_separator_resize(self, event: events.MouseDown) -> None:
-        if event.button != 1 or self.collapsed or self.goal is None or not self.display:
+        if event.button != 1 or self.collapsed or self.goal_display.snapshot is None or not self.display:
             return
         throbber = self._throbber
         own_edge = bool(self.styles.border_top[0]) and event.screen_y == self.region.y
@@ -261,7 +239,7 @@ class GoalBar(VerticalGroup):
             self._drag_resize(event.screen_y)
         else:
             self.set_class(
-                not self.collapsed and self.goal is not None
+                not self.collapsed and self.goal_display.snapshot is not None
                 and bool(self.styles.border_top[0]) and event.screen_y == self.region.y,
                 "-resize-hover",
             )
@@ -316,7 +294,7 @@ class GoalBar(VerticalGroup):
         # Conversation resize also reaches an absent goal or an outage header
         # without a document. Querying that hidden document's geometry forces
         # a full compositor map after the visible viewport was already laid out.
-        if self.is_attached and self.display and self.goal is not None and not self.collapsed:
+        if self.is_attached and self.display and self.goal_display.snapshot is not None and not self.collapsed:
             document = self.query_one(".goal-document", VerticalScroll)
             width = document.content_size.width
             height = (

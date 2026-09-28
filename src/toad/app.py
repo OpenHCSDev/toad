@@ -1,56 +1,66 @@
+from toad.comms_root import current_root, implicit_root, root_is_current, run_selected_write
+
+from toad.navigation_target import DirectTarget, NavigationTarget
+from toad.thread_actions import ThreadAction, ThreadActionContext
 import asyncio
 import ast
+import json
+import os
+import platform
 from dataclasses import replace
-from importlib.resources import files
 from datetime import datetime, timezone
 from functools import cached_property, partial
-import os
+from importlib.resources import files
 from pathlib import Path
-import platform
-import json
 from time import monotonic
-from typing import Any, Callable, ClassVar, TYPE_CHECKING, TypeVar, cast
+from typing import TYPE_CHECKING, Any, Callable, ClassVar, TypeVar, cast
+from weakref import WeakKeyDictionary
 
+from agent_comms.acp_extension import CoordinationChangedUpdate, TranscriptChangedUpdate
 from rich import terminal_theme
-
-from textual import on, work
-from textual.binding import Binding, BindingType
-from textual.content import Content
-from textual.command import DiscoveryHit, Hit, Hits, Provider
-from textual.reactive import var, reactive
+from textual import events, on, work
 from textual.app import App
-from textual import events
+from textual.await_complete import AwaitComplete
+from textual.binding import Binding, BindingType
+from textual.command import DiscoveryHit, Hit, Hits, Provider
+from textual.content import Content
+from textual.notifications import Notify
+from textual.reactive import reactive, var
+from textual.screen import Screen
 from textual.signal import Signal
 from textual.timer import Timer
-from textual.notifications import Notify
-from textual.screen import Screen
-from textual.await_complete import AwaitComplete
 
 import toad
-from toad.session_tracker import UnreadPresentation, ExactUnread
-from toad.db import DB
-from toad.settings import PreferenceChange
-from toad.preferences import ToadSettings
+from toad import atomic, messages, paths
 from toad.agent_schema import Agent as AgentData
-from toad import messages
 from toad.version import VersionMeta
-from toad import paths
-from toad import atomic
-from toad.render_backend import Renderer, create_renderer
-from toad.channel_preparation import ChannelHistoryReader, HistoryKind
+from toad.render_backend import Renderer
+from toad.channel_preparation import ChannelHistoryReader
+from toad.conversation_kind import ConversationKind
 from toad.navigation_preparation import (
     CommsNavigationRequest, NavigationReader, OpenThread, ThreadNavigationRequest,
 )
-from toad.session_tracker import SessionTracker, SessionDetails, OpenTab, PendingThreadTab, CommsViewKey, SidebarState
+from toad.db import DB
+from toad.preferences import ToadSettings
+from toad.session_tracker import (
+    CommsViewKey,
+    ExactUnread,
+    OpenTab,
+    PendingThreadTab,
+    SessionDetails,
+    SessionTracker,
+    SidebarState,
+    UnreadPresentation,
+)
+from toad.settings import PreferenceChange
 from toad.sidebar_layout import SidebarLayout
-from toad.comms_root import current_root, implicit_root, root_is_current, run_selected_write
 
 if TYPE_CHECKING:
+    from toad.db import DB
     from toad.render_tasks import RenderTask
     from toad.screens.main import MainScreen
     from toad.screens.settings import SettingsScreen
     from toad.screens.store import StoreScreen
-    from toad.db import DB
 
 RenderResultT = TypeVar("RenderResultT")
 
@@ -335,7 +345,11 @@ class ToadApp(App, inherit_bindings=False):
         """
         from toad.work_preparation import PreparationRuntime, PreparedRenderer
 
-        self.preparation = PreparationRuntime(create_renderer() if renderer is None else renderer)
+        Renderer.prepare_spawn()
+        settings_path = self.settings_path
+        raw_settings = json.loads(settings_path.read_text("utf-8")) if settings_path.exists() else {}
+        self.settings = ToadSettings(raw_settings, notify=self._apply_preference)
+        self.preparation = PreparationRuntime(self.settings.ui.renderer.start() if renderer is None else renderer)
         self.render_processes: Renderer = PreparedRenderer(self.preparation)
         self._renderer_warmup_started = False
         self.background_render_slots = asyncio.Semaphore(1)
@@ -377,6 +391,9 @@ class ToadApp(App, inherit_bindings=False):
         self._pending_mode_switch: str | None = None
         self.open_tabs_changed: Signal[None] = Signal(self, "open-tabs-changed")
         self.tab_history_changed: Signal[None] = Signal(self, "tab-history-changed")
+        self.coordination_facts: WeakKeyDictionary[object, CoordinationChangedUpdate] = WeakKeyDictionary()
+        self._coordination_wire = None
+        self._coordination_route = None
         self.coordination_observed: Signal[None] = Signal(self, "coordination-observed")
         self._comms_mode_index = 0
         self.temporary_background_screen: Screen | None = None
@@ -693,16 +710,10 @@ class ToadApp(App, inherit_bindings=False):
         db = await self.get_db()
         await db.create()
         settings_path = self.settings_path
-        if settings_path.exists():
-            settings = json.loads(settings_path.read_text("utf-8"))
-        else:
-            settings = {}
-            settings_path.write_text(
-                json.dumps(settings, indent=4, separators=(", ", ": ")), "utf-8"
-            )
+        if not settings_path.exists():
+            settings_path.write_text(self.settings.json, "utf-8")
             self.notify(f"Wrote default settings to {settings_path}", title="Settings")
         self.ansi_theme_dark = DRACULA_TERMINAL_THEME
-        self.settings = ToadSettings(settings, notify=self._apply_preference)
         self.settings.apply_all()
 
     def _prewarm_conversation_css(self) -> None:
@@ -714,10 +725,10 @@ class ToadApp(App, inherit_bindings=False):
         eventually mount, avoiding a full CSS rebuild of already-open tabs.
         """
         from textual.widget import Widget
-        from textual.widgets.markdown import Markdown
         from textual.widgets._footer import KeyGroup
+        from textual.widgets.markdown import Markdown
 
-        from toad.screens import main, comms  # noqa: F401 - register widget classes
+        from toad.screens import comms, main  # noqa: F401 - register widget classes
         from toad.widgets import irc_message, tool_call  # noqa: F401 - register widget classes
 
         started = monotonic()
@@ -934,19 +945,18 @@ class ToadApp(App, inherit_bindings=False):
         owner_mode: str,
         project_path: Path,
         me: str,
-        target: str,
-        kind: str,
+        target: NavigationTarget,
     ) -> str:
         """Open or reuse one view of a wire destination for this owner tab."""
         from toad.navigation_target import NavigationContext, NavigationTarget
 
-        return await NavigationTarget.decode(target, kind).open(
+        return await target.open(
             NavigationContext(self, owner_mode, project_path, me)
         )
 
     async def _open_comms_history(
         self, *, owner_mode: str, project_path: Path, me: str,
-        target: str, kind: HistoryKind,
+        target: str, kind: type[ConversationKind],
     ) -> str:
         """Execute a declared history route after its target selected behavior."""
 
@@ -957,7 +967,7 @@ class ToadApp(App, inherit_bindings=False):
             self.notify("The owning agent tab was closed", title="Comms target unavailable", severity="error")
             return self.current_mode
         owner_identity = owner_screen._comms_thread
-        owner_root = owner_screen._coordination_root
+        owner_root = owner_screen.coordination_root
         try:
             requested_root = str(current_root())
             prepared = await self.navigation_reader.read(
@@ -967,11 +977,14 @@ class ToadApp(App, inherit_bindings=False):
             self.notify(str(error), title="Comms target unavailable", severity="error")
             return self.current_mode
 
-        if (prepared is None or self._main_session_screen(owner_mode) is not owner_screen
-                or self.session_tracker.get_session(owner_mode) is None
-                or owner_screen._comms_thread != owner_identity
-                or owner_screen._coordination_root != owner_root
-                or not root_is_current(requested_root)):
+        if (
+            prepared is None
+            or self._main_session_screen(owner_mode) is not owner_screen
+            or self.session_tracker.get_session(owner_mode) is None
+            or owner_screen._comms_thread != owner_identity
+            or owner_screen.coordination_root != owner_root
+            or not root_is_current(requested_root)
+        ):
             # Metadata may finish after a route flip, rename, or owner close.
             # A delayed result cannot resurrect a tab or steal current focus.
             return self.current_mode
@@ -986,7 +999,7 @@ class ToadApp(App, inherit_bindings=False):
                 screen = self.get_screen_stack(mode_name)[0]
                 if not isinstance(screen, CommsScreen) or (
                     screen.owner_mode, screen.me, screen.kind, screen.target, screen.wire_root
-                ) != (owner_mode, me, kind.value, target, key.root):
+                ) != (owner_mode, me, kind.declared_name, target, key.root):
                     # A stale mapping is not authority to navigate through an
                     # obsolete sending identity or return to the wrong owner.
                     self.notify(
@@ -1005,7 +1018,7 @@ class ToadApp(App, inherit_bindings=False):
                 owner_mode=owner_mode,
                 me=me,
                 target=target,
-                kind=kind.value,
+                kind=kind.declared_name,
                 recovery_root=recovery_root,
                 wire_root=key.root,
             )
@@ -1124,9 +1137,9 @@ class ToadApp(App, inherit_bindings=False):
         # after publication changes the default root.
         selected = resolve_comms_route()
         selected_root = selected.observe_root()
-        cached = self.__dict__.get("_coordination_wire")
+        cached = self._coordination_wire
         if (cached is None or cached.root.resolve() != selected_root
-                or self.__dict__.get("_coordination_route") != selected):
+                or self._coordination_route != selected):
             service = wire()
             # Never associate a service from a concurrent route flip with the
             # earlier observation. The next access resolves the route afresh.
@@ -1223,7 +1236,7 @@ class ToadApp(App, inherit_bindings=False):
         if source is None:
             return self.current_mode
         source_identity = source._comms_thread
-        source_root = source._coordination_root
+        source_root = source.coordination_root
         try:
             requested_root = str(current_root())
         except (OSError, ValueError, RuntimeError) as error:
@@ -1235,8 +1248,11 @@ class ToadApp(App, inherit_bindings=False):
         mounted_root = str(Path(requested_root).expanduser())
         for details in self.session_tracker.ordered_sessions:
             screen = self._main_session_screen(details.mode_name)
-            if (screen is not None and screen._coordination_root == mounted_root
-                    and screen._comms_thread == target):
+            if (
+                screen is not None
+                and screen.coordination_root == mounted_root
+                and screen._comms_thread == target
+            ):
                 await self.switch_mode(details.mode_name)
                 return details.mode_name
         for mode, pending in self._pending_thread_modes.items():
@@ -1299,8 +1315,14 @@ class ToadApp(App, inherit_bindings=False):
         return mode
 
     async def _finish_open_thread_session(
-        self, pending_mode: str, owner_mode: str, project_path: Path, target: str,
-        source: "MainScreen", source_identity: str, source_root: str | None,
+        self,
+        pending_mode: str,
+        owner_mode: str,
+        project_path: Path,
+        target: str,
+        source: "MainScreen",
+        source_identity: str,
+        source_root: str | None,
         requested_root: str,
     ) -> str:
         from toad.screens.main import MainScreen
@@ -1308,10 +1330,12 @@ class ToadApp(App, inherit_bindings=False):
         if pending_mode not in self._pending_thread_modes or self.current_mode != pending_mode:
             return self._pending_thread_fallback(pending_mode)
         open_threads = tuple(
-            OpenThread(details.mode_name, screen._coordination_root, screen._comms_thread)
+            OpenThread(
+                details.mode_name, screen.coordination_root, screen._comms_thread
+            )
             for details in self.session_tracker.ordered_sessions
             if (screen := self._main_session_screen(details.mode_name)) is not None
-            and screen._coordination_root is not None
+            and screen.coordination_root is not None
         )
         try:
             prepared = await self.navigation_reader.read(
@@ -1320,12 +1344,15 @@ class ToadApp(App, inherit_bindings=False):
         except Exception as error:
             self.notify(str(error), title="Thread unavailable", severity="error")
             return self._pending_thread_fallback(pending_mode)
-        if (prepared is None or pending_mode not in self._pending_thread_modes
-                or not source.is_attached
-                or owner_mode not in self._screen_stacks
-                or source._comms_thread != source_identity
-                or source._coordination_root != source_root
-                or not root_is_current(requested_root)):
+        if (
+            prepared is None
+            or pending_mode not in self._pending_thread_modes
+            or not source.is_attached
+            or owner_mode not in self._screen_stacks
+            or source._comms_thread != source_identity
+            or source.coordination_root != source_root
+            or not root_is_current(requested_root)
+        ):
             return self._pending_thread_fallback(pending_mode)
         coordination_root, thread = prepared.root, prepared.thread
         if not prepared.active:
@@ -1335,12 +1362,15 @@ class ToadApp(App, inherit_bindings=False):
             )
             return await self.open_comms_session(
                 owner_mode=owner_mode, project_path=project_path,
-                me=source._comms_thread, target=thread.name, kind="dm",
+                me=source._comms_thread, target=DirectTarget(thread.name),
             )
         if existing := prepared.existing:
             screen = self._main_session_screen(existing.mode)
-            if (screen is not None and screen._coordination_root == existing.root
-                    and screen._comms_thread == existing.name):
+            if (
+                screen is not None
+                and screen.coordination_root == existing.root
+                and screen._comms_thread == existing.name
+            ):
                 await self.switch_mode(existing.mode)
                 return existing.mode
             # A view changed identity during discovery; don't create a duplicate
@@ -1359,8 +1389,8 @@ class ToadApp(App, inherit_bindings=False):
                 owner_mode=owner_mode,
                 project_path=project_path,
                 me=me,
-                target=thread.name,
-                kind="dm",
+                target=DirectTarget(thread.name),
+
             )
 
         if source._agent is None:
@@ -1378,7 +1408,7 @@ class ToadApp(App, inherit_bindings=False):
                 agent_session_id=thread.name,
                 agent_session_title=thread.name,
             )
-            screen._coordination_root = coordination_root
+            screen.initial_coordination_root = coordination_root
             screen._comms_thread = thread.name
             screen.set_reactive(MainScreen.column, self.column)
             screen.set_reactive(MainScreen.column_width, self.column_width)
@@ -1412,11 +1442,12 @@ class ToadApp(App, inherit_bindings=False):
         self, owner_mode: str, previous: str, current: str
     ) -> None:
         """Move open communication views to a renamed canonical thread."""
+        from agent_comms.comms import wire
+
         from toad.screens.comms import CommsScreen
         from toad.widgets.comms_chat import CommsChatView
-        from toad.widgets.comms_sidebar import CoordinationStatus, CommsSidebar
+        from toad.widgets.comms_sidebar import CommsSidebar, CoordinationStatus
         from toad.widgets.recovery_view import RecoveryView
-        from agent_comms.comms import wire
 
         for key, mode_name in list(self._comms_modes.items()):
             if key.owner_mode != owner_mode:
@@ -1469,7 +1500,7 @@ class ToadApp(App, inherit_bindings=False):
         threads: set[str] = set()
         for details in self.session_tracker.ordered_sessions:
             screen = self._main_session_screen(details.mode_name)
-            if screen is not None and screen._coordination_root is not None:
+            if screen is not None and screen.coordination_root is not None:
                 threads.add(screen._session_thread)
         return threads
 
@@ -1484,16 +1515,19 @@ class ToadApp(App, inherit_bindings=False):
         from toad.widgets.comms_sidebar import CommsSidebar
 
         sidebar = screen.query_one_optional(CommsSidebar)
-        observed_root = (screen._coordination_root or
-                         (sidebar._wire.root if sidebar is not None and sidebar._wire is not None else None))
+        observed_root = screen.coordination_root or (
+            sidebar._wire.root
+            if sidebar is not None and sidebar._wire is not None
+            else None
+        )
         if observed_root is not None and not root_is_current(observed_root):
             return
         conversation = screen.query_one_optional(Conversation)
         if conversation is None or not conversation.is_mounted:
             return
-        from toad.widgets.message_filter import ALL_CATEGORIES
+        from toad.widgets.message_filter import all_categories
 
-        if conversation.visible_categories != ALL_CATEGORIES:
+        if conversation.visible_categories != all_categories():
             # Filtered-out assistant replies were not displayed. Do not
             # acknowledge an unfiltered transcript cursor on their behalf.
             return
@@ -1519,11 +1553,11 @@ class ToadApp(App, inherit_bindings=False):
             return
 
     def invoke_thread_action(
-        self, action: str, subject: str, actor: str, session_modes: tuple[str, ...] = ()
+        self, action: ThreadAction, subject: str, actor: str, session_modes: tuple[str, ...] = ()
     ) -> None:
         """Track one UI request per thread while the core operation runs off-loop."""
         screen = self.screen
-        source_root = getattr(screen, "wire_root", None) or getattr(screen, "_coordination_root", None)
+        source_root = screen.coordination_root
         if source_root is None:
             from toad.widgets.comms_sidebar import CommsSidebar
 
@@ -1541,53 +1575,26 @@ class ToadApp(App, inherit_bindings=False):
         if subject in self.pending_thread_actions:
             self.notify(f"An action for @{subject} is already in progress", title="Session action")
             return
-        label = {
-            "comms_start": "Starting…",
-            "comms_stop": "Stopping…", "comms_archive": "Archiving…",
-            "comms_ack": "Acknowledging…",
-        }.get(action, "Updating…")
-        self.pending_thread_actions[subject] = label
+        self.pending_thread_actions[subject] = action.pending
         self.thread_actions_changed.publish(None)
         self._run_thread_action(action, subject, actor, session_modes, selected_root)
 
     @work(group="thread-actions")
     async def _run_thread_action(
-        self, action: str, subject: str, actor: str, session_modes: tuple[str, ...],
+        self, action: ThreadAction, subject: str, actor: str, session_modes: tuple[str, ...],
         selected_root: str,
     ) -> None:
-        from agent_comms import invoke_context_tool
-
         try:
             if not root_is_current(selected_root):
                 raise ValueError("Comms route changed before the thread action")
             comms = self.coordination_wire
             if comms.root.resolve() != Path(selected_root):
                 raise ValueError("Comms route changed before the thread action")
-            if action == "comms_ack":
-                result = await asyncio.to_thread(
-                    run_selected_write, comms.root, comms.views.mark_user_view_read,
-                    subject, worktree=str(self.project_dir), implicit=implicit_root(),
-                )
-                self.notify(f"Marked {subject} read", title="Session action")
-            else:
-                result = await asyncio.to_thread(
-                    run_selected_write, comms.root, invoke_context_tool,
-                    comms, action, subject=subject, actor=actor, implicit=implicit_root(),
-                )
-            if action == "comms_start":
-                self.notify(
-                    f"{'Starting' if result['launched'] else 'Already running'} @{subject}",
-                    title="Session action",
-                )
-                if result["launched"]:
-                    for mode_name in session_modes:
-                        screen = self._main_session_screen(mode_name)
-                        if screen is not None and screen.conversation.agent is not None:
-                            await screen.conversation.agent.reconnect()
-                            from toad.acp.messages import TranscriptChanged
-                            screen.conversation.post_message(TranscriptChanged())
-            if action == "comms_stop":
-                self.notify(f"Stopped @{subject}", title="Session action")
+            ctx = ThreadActionContext(comms, subject, actor, self.project_dir, session_modes)
+            result = await asyncio.to_thread(
+                run_selected_write, comms.root, action.apply, ctx, implicit=implicit_root(),
+            )
+            await action.completed(self, ctx, result)
         except Exception as error:
             self.notify(str(error), title=f"Session action: {subject}", severity="error")
         finally:
@@ -1769,17 +1776,18 @@ class ToadApp(App, inherit_bindings=False):
             if isinstance(action, str) and action.startswith("link(") and action.endswith(")"):
                 try:
                     href = ast.literal_eval(action[5:-1])
-                except (SyntaxError, ValueError):
+                except SyntaxError, ValueError:
                     href = None
                 path = None
                 if isinstance(href, str) and href.startswith("toad-file:"):
                     path = Path(href.removeprefix("toad-file:")).expanduser().resolve()
                 elif isinstance(href, str) and href.startswith("toad-file-search:"):
                     from urllib.parse import unquote
+
                     from toad.conversation_markdown import _file_lookup_notice, _unique_project_file
 
                     name = unquote(href.removeprefix("toad-file-search:"))
-                    root = Path(getattr(default_namespace.screen, "project_path", self.project_dir))
+                    root = Path(default_namespace.screen.project_path)
                     path, status = await asyncio.to_thread(_unique_project_file, root, name)
                     if path is None:
                         event.stop()
@@ -1831,7 +1839,7 @@ class ToadApp(App, inherit_bindings=False):
     @work(exit_on_error=False)
     async def run_version_check(self) -> None:
         """Check remote version."""
-        from toad.version import check_version, VersionCheckFailed
+        from toad.version import VersionCheckFailed, check_version
 
         try:
             update_required, version_meta = await check_version()
@@ -2016,9 +2024,9 @@ class ToadApp(App, inherit_bindings=False):
         project_path: Path | None = None,
         initial_prompt: str | None = None,
     ) -> None:
-        from toad.screens.main import MainScreen
         from toad.agent_schema import Agent
         from toad.agents import read_agents
+        from toad.screens.main import MainScreen
 
         agent: Agent | None = None
         session_title: str | None = None
@@ -2050,13 +2058,13 @@ class ToadApp(App, inherit_bindings=False):
                 live_agent = existing.conversation.agent
                 session_ids = {
                     existing._agent_session_id,
-                    getattr(live_agent, "session_id", None),
+                    live_agent.session_id if live_agent is not None else None,
                 }
                 matches = agent_session_id in session_ids
-                if existing._coordination_root is not None:
+                if existing.coordination_root is not None:
                     from agent_comms.comms import wire
 
-                    comms = wire(existing._coordination_root)
+                    comms = wire(existing.coordination_root)
                     matches = matches or (
                         comms.registry.canonical_name(agent_session_id)
                         == existing._session_thread

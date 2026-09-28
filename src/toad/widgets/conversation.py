@@ -1,60 +1,70 @@
 from __future__ import annotations
 
+from toad.widgets.message_filter import OtherCategory
+
 from toad.settings import PreferenceChange
 from toad.preferences import SidebarSettings, ShellSettings
 
 from asyncio import Future
 import asyncio
-
+import hashlib
 from contextlib import suppress
 from functools import partial
-import hashlib
 from itertools import filterfalse
 from math import atan2, pi
 from operator import attrgetter
-from typing import TYPE_CHECKING, Literal
 from pathlib import Path
 from time import monotonic, time
+from typing import TYPE_CHECKING, Any, Callable, Literal
 from urllib.parse import quote
-from agent_comms.goals import Goal
+
+from agent_comms import agent_events as comms_events
+from agent_comms.acp_extension import (
+    CompactionChangedUpdate,
+    CompactionPublishedUpdate,
+    GoalChangedUpdate,
+    InputFailedUpdate,
+    InputStartedUpdate,
+    McpClientReceiptUpdate,
+    PendingQueueProjection,
+    QueueProjection,
+    TranscriptChangedUpdate,
+    TranscriptSnapshotUpdate,
+    TurnSettledUpdate,
+    TurnStartedUpdate,
+)
+from agent_comms.backend import compaction_summary
 from agent_comms.goal_presentation import GoalExecution
+from agent_comms.goals import Goal
+from agent_comms.mro_dispatch import MroDispatch, handles
 from agent_comms.routing import MessageRoute
-
-from typing import Callable, Any
-
 from rich.segment import Segment
-
-from textual import log, on, work
-from textual.app import ComposeResult, ScreenStackError, UnknownModeError
-from textual import containers
-from textual import getters
-from textual import events
+from textual import containers, events, getters, log, on, work
 from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
 from textual.actions import SkipAction
+from textual.app import ComposeResult, ScreenStackError, UnknownModeError
 from textual.binding import Binding
 from textual.content import Content
-from textual.geometry import clamp
 from textual.css.query import NoMatches
+from textual.geometry import Offset, Region, clamp
+from textual.layout import WidgetPlacement
+from textual.layouts.grid import GridLayout
+from textual.reactive import var
+from textual.strip import Strip
 from textual.widget import Widget
 from textual.widgets import Static
 from textual.widgets.markdown import MarkdownBlock, MarkdownFence
-from textual.geometry import Offset, Region
-from textual.reactive import var
-from textual.layouts.grid import GridLayout
-from textual.layout import WidgetPlacement
-from textual.strip import Strip
 
-
-from toad import jsonrpc, messages
-from toad import paths
-from toad.agent_schema import Agent as AgentData
+from toad import jsonrpc, messages, paths
 from toad.acp import messages as acp_messages
-from toad.app import ToadApp
 from toad.acp import protocol as acp_protocol
+from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
+from toad.agent import AgentBase, AgentFail, AgentReady
+from toad.agent_schema import Agent as AgentData
 from toad.answer import Answer
-from toad.agent import AgentBase, AgentReady, AgentFail
+from toad.app import ToadApp
+from toad.directory_watcher import DirectoryChanged, DirectoryWatcher
 from toad.format_path import format_path
-from toad.directory_watcher import DirectoryWatcher, DirectoryChanged
 from toad.history import History
 from toad.widgets.flash import Flash
 from toad.widgets.menu import Menu
@@ -62,24 +72,32 @@ from toad.widgets.note import Note
 from toad.widgets.prompt import Prompt
 from toad.widgets.terminal import Terminal
 from toad.widgets.throbber import Throbber
+from toad.goal_display import GoalDisplay, GoalUnavailable, NoGoal
 from toad.widgets.goal_bar import GoalBar, GoalControl
 from toad.widgets.native_history import NativeHistory
 from toad.widgets.observed_thread_activity import ObservedThreadActivity
 from toad.widgets.session_details import SessionDetails
 from toad.private_native_cursor import CursorStatus
-from toad.queue_view import QueueProjection
-from toad.widgets.input_delivery import InputDeliveryBar, InputDeliveryDetails, empty_delivery
-from toad.widgets.user_input import UserInput
-from toad.widgets.history_anchor import HistoryWindow
-from toad.widgets.message_filter import ALL_CATEGORIES, MessageCategory
-from toad.layout import trim_trailing_margin
-from toad.shell import Shell, CurrentWorkingDirectoryChanged
+from toad.protocol import BlockProtocol, ExpandProtocol, MenuProtocol
+from toad.shell import CurrentWorkingDirectoryChanged, Shell
 from toad.slash_command import SlashCommand
-from toad.protocol import BlockProtocol, MenuProtocol, ExpandProtocol
+from toad.widgets.history_anchor import HistoryWindow
+from toad.widgets.input_delivery import (
+    InputDeliveryBar,
+    InputDeliveryDetails,
+    empty_delivery,
+)
+from toad.widgets.user_input import UserInput
+from toad.widgets.agent_response import ResponseDelivery, UnroutedResponse
+from toad.widgets.message_filter import all_categories, MessageCategory
+from toad.layout import trim_trailing_margin
+from toad.command_catalog import CommandCatalog
+from toad.slash_command import AgentAdvertisedCommand, LocalCommand
 from toad.menus import MenuItem
 from toad.widgets.shell_terminal import ShellTerminal
 
 AUTO_SESSION_TITLE_MAX_LENGTH = 50
+
 
 
 def make_session_title(prompt: str) -> str:
@@ -92,10 +110,10 @@ def make_session_title(prompt: str) -> str:
 
 if TYPE_CHECKING:
     from toad.acp.agent import Mode, Model
-    from toad.widgets.question import Ask
-    from toad.widgets.terminal import Terminal
     from toad.widgets.agent_response import AgentResponse
     from toad.widgets.agent_thought import AgentThought
+    from toad.widgets.question import Ask
+    from toad.widgets.terminal import Terminal
     from toad.widgets.terminal_tool import TerminalTool
 
 
@@ -194,7 +212,19 @@ class Loading(Static):
     """
 
 
-class ThreadLoading(Static):
+class PaintOnlyRefresh:
+    """Refresh progress only while its native widget is visible and current."""
+
+    def on_mount(self) -> None:
+        self.auto_refresh = 1 / 12
+
+    def automatic_refresh(self) -> None:
+        if self.is_attached and not self._closing and self.screen.is_current:
+            if self in self.screen._compositor.visible_widgets:
+                self.refresh(layout=False)
+
+
+class ThreadLoading(PaintOnlyRefresh, Static):
     """Paint-only, viewport-scaled progress while a thread attaches."""
 
     DEFAULT_CSS = """
@@ -208,13 +238,7 @@ class ThreadLoading(Static):
     }
     """
 
-    def on_mount(self) -> None:
-        self.auto_refresh = 1 / 12
 
-    def automatic_refresh(self) -> None:
-        if self.is_attached and not self._closing and self.screen.is_current:
-            if self in self.screen._compositor.visible_widgets:
-                self.refresh(layout=False)
 
     def render(self) -> Content:
         width, height = self.size
@@ -311,20 +335,25 @@ class Cursor(Static):
             self.update_follow()
 
 
-class Contents(containers.VerticalGroup, can_focus=False):
-    BLANK = True
-    CACHE_HEIGHT_INDEPENDENT_ARRANGEMENT = True
+class CategorizedMount:
+    """Apply the owning conversation category selection at widget admission."""
 
     def mount(self, *widgets, **kwargs):
         from toad.widgets.message_filter import apply_block_filter, block_category, keep_live_block
 
-        selected = self.query_ancestor(Conversation).visible_categories if self.is_attached else ALL_CATEGORIES
+        selected = self.query_ancestor(Conversation).visible_categories if self.is_attached else all_categories()
         for widget in widgets:
             widget.set_class(not keep_live_block(widget), "-unrouted")
             if category := block_category(widget):
-                widget.add_class(f"-message-{category.value}")
+                widget.add_class(f"-message-{category.declared_name}")
             apply_block_filter(widget, selected)
         return super().mount(*widgets, **kwargs)
+
+
+class Contents(CategorizedMount, containers.VerticalGroup, can_focus=False):
+    BLANK = True
+    CACHE_HEIGHT_INDEPENDENT_ARRANGEMENT = True
+
 
     @height_dependency(INDEPENDENT_HEIGHT)
     def process_layout(
@@ -353,18 +382,8 @@ class CursorContainer(containers.Vertical):
         return strips
 
 
-class Window(HistoryWindow):
-    HELP = """\
-## Conversation
-
-This is a view of your conversation with the agent.
-
-- **cursor keys** Scroll
-- **alt+up / alt+down** Navigate content
-- **start typing** Focus the prompt
-"""
-    BINDING_GROUP_TITLE = "View"
-    BINDINGS = [Binding("end", "screen.focus_prompt", "Latest / prompt")]
+class ConversationWindowSettings:
+    """Apply conversation preferences and subscribe tool hydration to layout."""
 
     def on_mount(self) -> None:
         self.app.settings_changed_signal.subscribe(self, self._settings_changed)
@@ -388,6 +407,22 @@ This is a view of your conversation with the agent.
         if update.field is SidebarSettings.hide:
             top, right, bottom, _ = self.styles.padding
             self.styles.padding = (top, right, bottom, int(self.app.settings.sidebar.hide))
+
+
+class Window(ConversationWindowSettings, HistoryWindow):
+    HELP = """\
+## Conversation
+
+This is a view of your conversation with the agent.
+
+- **cursor keys** Scroll
+- **alt+up / alt+down** Navigate content
+- **start typing** Focus the prompt
+"""
+    BINDING_GROUP_TITLE = "View"
+    BINDINGS = [Binding("end", "screen.focus_prompt", "Latest / prompt")]
+
+
 
 
 class Conversation(containers.Vertical):
@@ -462,7 +497,7 @@ class Conversation(containers.Vertical):
     ]
 
     busy_count = var(0)
-    visible_categories: var[frozenset[MessageCategory]] = var(lambda: ALL_CATEGORIES, init=False)
+    visible_categories: var[frozenset[type[MessageCategory]]] = var(lambda: all_categories(), init=False)
     cursor_offset = var(-1, init=False)
     project_path = var("")
     working_directory: var[str] = var("")
@@ -476,7 +511,7 @@ class Conversation(containers.Vertical):
     app = getters.app(ToadApp)
 
     def watch_visible_categories(
-        self, previous: frozenset[MessageCategory], selected: frozenset[MessageCategory],
+        self, previous: frozenset[type[MessageCategory]], selected: frozenset[type[MessageCategory]],
     ) -> None:
         from toad.widgets.message_filter import apply_block_filter
 
@@ -484,18 +519,23 @@ class Conversation(containers.Vertical):
         if not hasattr(self, "_filter_scroll_positions"):
             self._filter_scroll_positions = {}
         self._filter_scroll_positions[previous] = (window.scroll_y, window.follows_tail)
-        position = self._filter_scroll_positions.get(selected, (window.scroll_y, window.follows_tail))
+        position = self._filter_scroll_positions.get(
+            selected, (window.scroll_y, window.follows_tail)
+        )
         self.cursor_offset = -1
         self.screen.clear_selection()
         for block in self.contents.children:
             apply_block_filter(block, selected)
         for history in tuple(window.histories):
-            history.filter_changed()
+            history.filter.changed()
         revision = window.scroll_revision
 
         def restore_position():
-            if (not self.is_attached or self.visible_categories != selected
-                    or window.scroll_revision != revision):
+            if (
+                not self.is_attached
+                or self.visible_categories != selected
+                or window.scroll_revision != revision
+            ):
                 return
             scroll_y, following = position
             if following:
@@ -519,7 +559,7 @@ class Conversation(containers.Vertical):
     model_history_scope = var("")
     queue_supported = var(False)
     queued_prompts: var[list[str]] = var(list)
-    queue_projection: var[QueueProjection] = var(QueueProjection())
+    queue_projection: var[QueueProjection] = var(PendingQueueProjection())
     delivering_prompt = var("")
     activity = var("")
     activity_started_at: var[float | None] = var(None)
@@ -529,8 +569,7 @@ class Conversation(containers.Vertical):
     input_delivery: var[dict] = var(empty_delivery)
     input_delivery_error: var[str] = var("")
     native_history_status: var[CursorStatus | None] = var(None)
-    goal_unavailable = var(False)
-    goal: var[Goal | None] = var(None)
+    goal_display: var[GoalDisplay] = var(NoGoal())
     goal_execution: var[GoalExecution | None] = var(None)
     turn: var[Literal["agent", "client"] | None] = var(None, bindings=True)
     status: var[str | Content] = var("")
@@ -553,7 +592,7 @@ class Conversation(containers.Vertical):
 
         self.set_reactive(Conversation.project_path, project_path)
         self.set_reactive(Conversation.working_directory, str(project_path))
-        self.agent_slash_commands: list[SlashCommand] = []
+        self.agent_slash_commands: list[AgentAdvertisedCommand] = []
         self.terminals: dict[str, TerminalTool] = {}
         self._loading: Loading | None = None
         self._agent_response: AgentResponse | None = None
@@ -587,8 +626,8 @@ class Conversation(containers.Vertical):
         self._focusable_terminals: list[Terminal] = []
 
         self.project_data_path = paths.get_project_data(project_path)
-        self._prompt_history_scope = (
-            agent_session_id or (f"session-{session_pk}" if session_pk is not None else "")
+        self._prompt_history_scope = agent_session_id or (
+            f"session-{session_pk}" if session_pk is not None else ""
         )
         self.shell_history = History(self.project_data_path / "shell_history.jsonl")
         self.prompt_history = History(self._prompt_history_path())
@@ -653,10 +692,6 @@ class Conversation(containers.Vertical):
     def validate_prompt_history_index(self, index: int) -> int:
         return clamp(index, -self.prompt_history.size, 0)
 
-    def shell_complete(self, prefix: str) -> list[str]:
-        completes = self.shell_history.complete(prefix)
-        return completes
-
     def _prompt_history_path(self) -> Path:
         if not self._prompt_history_scope:
             return self.project_data_path / "prompt_history.jsonl"
@@ -711,7 +746,7 @@ class Conversation(containers.Vertical):
                     await self._shell.change_directory(str(path))
         if self.agent is not None:
             self.agent.project_root_path = path
-            if (session_pk := getattr(self.agent, "session_pk", None)) is not None:
+            if (session_pk := self.agent.session_pk) is not None:
                 from toad.db import DB
 
                 await DB().session_update_project(session_pk, path)
@@ -765,18 +800,23 @@ class Conversation(containers.Vertical):
                         yield ThreadLoading()
         yield Flash()
         with containers.Vertical(id="prompt-stack"):
-            yield TurnActivity().data_bind(activity=Conversation.activity,
-                                           started_at=Conversation.activity_started_at)
+            yield TurnActivity().data_bind(
+                activity=Conversation.activity,
+                started_at=Conversation.activity_started_at,
+            )
             yield SessionDetails(
                 self._read_thread_activity,
-                history=NativeHistory().data_bind(status=Conversation.native_history_status),
+                history=NativeHistory().data_bind(
+                    status=Conversation.native_history_status
+                ),
                 delivery=InputDeliveryBar().data_bind(
-                    delivery=Conversation.input_delivery, error=Conversation.input_delivery_error,
+                    delivery=Conversation.input_delivery,
+                    error=Conversation.input_delivery_error,
                 ),
             )
             yield Throbber(id="throbber")
-            yield GoalBar().data_bind(goal=Conversation.goal, execution=Conversation.goal_execution, unavailable=Conversation.goal_unavailable)
-            yield Prompt(complete_callback=self.shell_complete).data_bind(
+            yield GoalBar().data_bind(goal_display=Conversation.goal_display, execution=Conversation.goal_execution)
+            yield Prompt().data_bind(
                 project_path=Conversation.project_path,
                 working_directory=Conversation.working_directory,
                 agent_info=Conversation.agent_info,
@@ -937,16 +977,16 @@ class Conversation(containers.Vertical):
                 self.refresh_bindings()
                 self.call_after_refresh(self.cursor.follow, cursor_block)
 
-    async def post_agent_response(self, fragment: str = "", route: MessageRoute | None = None) -> AgentResponse | None:
+    async def post_agent_response(self, fragment: str = "", delivery: ResponseDelivery = UnroutedResponse()) -> AgentResponse | None:
         """Get or create an agent response widget."""
         from toad.widgets.agent_response import AgentResponse
 
         async with self._post_lock:
-            if self._agent_response is not None and self._agent_response.route != route:
+            if self._agent_response is not None and self._agent_response.delivery != delivery:
                 await self._agent_response.finish_stream()
                 self._agent_response = None
             if self._agent_response is None:
-                self._agent_response = agent_response = AgentResponse(fragment, route=route)
+                self._agent_response = agent_response = AgentResponse(fragment, delivery=delivery)
                 await self.post(agent_response, new_block=False)
             else:
                 await self._agent_response.append_fragment(fragment)
@@ -1010,17 +1050,23 @@ class Conversation(containers.Vertical):
         return presentation
 
     @on(ObservedThreadActivity.Changed)
-    def on_observed_thread_activity(self, event: ObservedThreadActivity.Changed) -> None:
+    def on_observed_thread_activity(
+        self, event: ObservedThreadActivity.Changed
+    ) -> None:
         event.stop()
         if self._managed_turn_id is not None or self.turn == "agent":
             return
         if event.unavailable:
-            self.post_message(messages.SessionUpdate(state="idle", summary="Agent status unavailable"))
+            self.post_message(
+                messages.SessionUpdate(state="idle", summary="Agent status unavailable")
+            )
         elif event.presentation is not None:
-            self.post_message(messages.SessionUpdate(
-                state="busy" if event.presentation.busy else "idle",
-                summary=event.presentation.summary,
-            ))
+            self.post_message(
+                messages.SessionUpdate(
+                    state="busy" if event.presentation.busy else "idle",
+                    summary=event.presentation.summary,
+                )
+            )
 
     @on(messages.SessionUpdate)
     def preserve_observed_activity(self, event: messages.SessionUpdate) -> None:
@@ -1073,7 +1119,7 @@ class Conversation(containers.Vertical):
         if not self._auto_title_eligible:
             return
         self._auto_title_eligible = False
-        if getattr(self.agent, "server_titles", False):
+        if self.agent is not None and self.agent.coordination is not None:
             return
         await self._apply_session_name(make_session_title(prompt))
 
@@ -1082,12 +1128,16 @@ class Conversation(containers.Vertical):
         self, message: acp_messages.SessionInfoUpdate
     ) -> None:
         message.stop()
-        if getattr(self.agent, "_coordination_root", None) is not None:
+        if (
+            self.agent.coordination.wire_root
+            if self.agent and self.agent.coordination
+            else None
+        ) is not None:
             from toad.db import DB
 
             self._auto_title_eligible = False
             title = message.title or ""
-            if (pk := getattr(self.agent, "session_pk", None)) is not None:
+            if (pk := self.agent.session_pk) is not None:
                 await DB().session_update_title(pk, title)
             self.post_message(messages.SessionUpdate(name=title))
         else:
@@ -1148,7 +1198,7 @@ class Conversation(containers.Vertical):
 
                 link = AgentResponse(
                     f"[Open ACP log]({quote(str(log_path))})", show_divider=False,
-                    category=MessageCategory.OTHER,
+                    category=OtherCategory,
                 )
                 link.add_class("-error-log-link")
                 await self.post(link)
@@ -1235,7 +1285,11 @@ class Conversation(containers.Vertical):
                 ):
                     await asyncio.sleep(0.1)
                 self.prompt.disabled = True
-                if getattr(agent, "_coordination_root", None) is None:
+                if (
+                    agent.coordination.wire_root
+                    if agent and agent.coordination
+                    else None
+                ) is None:
                     await self.prune_window(0, 0)
                     self.new_block()
                 await agent.reconnect_after_auth()
@@ -1259,8 +1313,9 @@ class Conversation(containers.Vertical):
         if (error := await self.agent.set_model(event.model_id)) is not None:
             self.notify(error, title="Set Model", severity="error")
         elif (model := self.models.get(event.model_id)) is not None:
-            from toad.db import DB
             from textual.geometry import Offset
+
+            from toad.db import DB
             from toad.widgets.comms_menu import ContextMenu
 
             await DB().record_model_usage(self.model_history_scope, event.model_id)
@@ -1307,10 +1362,18 @@ class Conversation(containers.Vertical):
     async def submit_input(self, event: messages.UserInputSubmitted) -> None:
         """Agent conversation submission; wire views override this single hook."""
         if not event.body.strip():
-            if event.immediate and not event.shell and self.queue_supported and self.queued_prompts:
+            if (
+                event.immediate
+                and not event.shell
+                and self.queue_supported
+                and self.queued_prompts
+            ):
                 # This requests scheduling, not membership mutation. Retain
                 # every remote row until authoritative exact-ID evidence.
-                if self.queue_projection.status == "available" and self.queue_projection.items:
+                if (
+                    self.queue_projection.status == "available"
+                    and self.queue_projection.items
+                ):
                     first = self.queue_projection.items[0]
                     self._sending_queue_input_id = first.input_id
                     self.sending_queued_prompt = first.text
@@ -1332,7 +1395,9 @@ class Conversation(containers.Vertical):
             if text.startswith("/") and await self.slash_command(text):
                 # Toad has processed the slash command.
                 return
-            queued = self.turn == "agent" and self.queue_supported and not event.immediate
+            queued = (
+                self.turn == "agent" and self.queue_supported and not event.immediate
+            )
             if event.immediate and self.queue_supported:
                 self.delivering_prompt = text
             if not queued:
@@ -1373,25 +1438,33 @@ class Conversation(containers.Vertical):
         self, prompt: str, *, queued: bool = False, immediate: bool = False
     ) -> None:
         sending_agent = self.agent
-        sending_session = getattr(sending_agent, "session_id", None)
-        queue = getattr(sending_agent, "_queue_view", None)
+        sending_session = sending_agent.session_id
+        queue = sending_agent.queue_attachment if sending_agent is not None else None
         sending_scope = queue.scope if queue is not None else None
 
         def current_request_owner() -> bool:
-            return (self.agent is sending_agent
-                    and getattr(sending_agent, "session_id", None) == sending_session
-                    and (queue is None or (
+            return (
+                self.agent is sending_agent
+                and sending_agent.session_id == sending_session
+                and (
+                    queue is None
+                    or (
                         queue.scope == sending_scope
-                        and (sending_scope is None or queue.projection.status == "available")
-                    )))
+                        and (
+                            sending_scope is None
+                            or queue.projection.status == "available"
+                        )
+                    )
+                )
+            )
 
         if sending_agent is not None:
             stop_reason: str | None = None
-            uses_turn_events = getattr(sending_agent, "uses_turn_events", False)
-            if not uses_turn_events:
+            server_owned_turn = sending_agent.coordination is not None
+            if not server_owned_turn:
                 self.busy_count += 1
             try:
-                if not uses_turn_events:
+                if not server_owned_turn:
                     self.turn = "agent"
                 if self.queue_supported:
                     stop_reason = await sending_agent.send_prompt(
@@ -1401,14 +1474,21 @@ class Conversation(containers.Vertical):
                     )
                 else:
                     stop_reason = await sending_agent.send_prompt(prompt)
-            except (jsonrpc.APIError, jsonrpc.JSONRPCError, OSError, ValueError) as error:
+            except (
+                jsonrpc.APIError,
+                jsonrpc.JSONRPCError,
+                OSError,
+                ValueError,
+            ) as error:
                 from toad.widgets.markdown_note import MarkdownNote
 
                 if not current_request_owner():
                     return
                 self.turn = "client"
 
-                message = getattr(error, "message", str(error)) or "no details were provided"
+                message = (
+                    getattr(error, "message", str(error)) or "no details were provided"
+                )
                 self.activity = ""
                 self.activity_started_at = None
                 # A send failure cannot identify/remove a remote row by text.
@@ -1421,11 +1501,15 @@ class Conversation(containers.Vertical):
                     )
                 )
             finally:
-                if current_request_owner() and immediate and self.delivering_prompt == prompt:
+                if (
+                    current_request_owner()
+                    and immediate
+                    and self.delivering_prompt == prompt
+                ):
                     self.delivering_prompt = ""
-                if not uses_turn_events:
+                if not server_owned_turn:
                     self.busy_count -= 1
-            if current_request_owner() and not uses_turn_events:
+            if current_request_owner() and not server_owned_turn:
                 self.call_later(self.agent_turn_over, stop_reason)
 
     async def agent_turn_over(self, stop_reason: str | None) -> None:
@@ -1547,34 +1631,39 @@ class Conversation(containers.Vertical):
             await self._mcp_live_note.remove()
             self._mcp_live_note = None
 
-    @on(acp_messages.PrivateNativeCursorUpdate)
-    def on_private_native_cursor_update(self, message: acp_messages.PrivateNativeCursorUpdate) -> None:
+    def on_private_native_cursor_update(
+        self, message: acp_messages.CommsUpdated
+    ) -> None:
         message.stop()
-        if (message.agent is not self.agent or self.agent is None
-                or message.session_id != self.agent.session_id
-                or message.sequence <= self._private_cursor_sequence):
+        if (
+            message.agent is not self.agent
+            or self.agent is None
+            or message.session_id != self.agent.session_id
+            or message.sequence <= self._private_cursor_sequence
+        ):
             return
         self._private_cursor_sequence = message.sequence
-        self.native_history_status = message.status
+        self.native_history_status = message.update.status
 
     @on(acp_messages.McpClientStopped)
-    async def on_mcp_client_stopped(self, message: acp_messages.McpClientStopped) -> None:
+    async def on_mcp_client_stopped(
+        self, message: acp_messages.McpClientStopped
+    ) -> None:
         message.stop()
         if message.agent is self.agent:
             await self._clear_mcp_live()
 
-    @on(acp_messages.McpClientStatus)
-    async def on_mcp_client_status(self, message: acp_messages.McpClientStatus) -> None:
+    async def on_mcp_client_status(self, message: acp_messages.CommsUpdated) -> None:
         """Render the turn-bound receipt only inside an active server-owned turn."""
-        message.stop()
         # The message carries the validated turn identity; a delayed or queued
         # message from an older agent cannot attach to a successor turn here.
-        agent_session = getattr(self.agent, "session_id", None)
+        agent_session = self.agent.session_id if self.agent else None
         if (
             message.agent is not self.agent
-            or getattr(self.agent, "_active_turn_id", None) != message.turn_id
+            or (self.agent._active_turn_id if self.agent else None)
+            != message.update.turn_id
             or self._managed_turn_id is None
-            or message.turn_id != self._managed_turn_id
+            or message.update.turn_id != self._managed_turn_id
             or (agent_session is not None and message.session_id != agent_session)
         ):
             # Late or forged: the projection dies with its turn and is never
@@ -1583,12 +1672,15 @@ class Conversation(containers.Vertical):
         if self._mcp_live_turn == self._managed_turn_id:
             return  # The package emits at most one receipt per turn.
         self._mcp_live_turn = self._managed_turn_id
-        rows = message.receipt.get("servers") or []
-        summary = "; ".join(
-            f"{row['id']}[{row['scope']}] {row['state']} calls={row['calls']}"
-            f" tools={row['tools']} resources={row['resources']} prompts={row['prompts']}"
-            for row in rows
-        ) or "no approved servers"
+        rows = message.update.receipt.servers
+        summary = (
+            "; ".join(
+                f"{row.id}[{row.scope}] {row.state.declared_name} calls={row.calls.declared_name}"
+                f" tools={row.tools} resources={row.resources} prompts={row.prompts}"
+                for row in rows
+            )
+            or "no approved servers"
+        )
         self.new_block()
         self._mcp_live_note = Note(
             Content.styled(
@@ -1605,7 +1697,7 @@ class Conversation(containers.Vertical):
         if self.turn != "agent":
             # Owner notices (including manual compaction) are complete messages,
             # not a live response waiting for a future turn-settled event.
-            await self.post(AgentResponse(message.text, route=message.route))
+            await self.post(AgentResponse(message.text, delivery=ResponseDelivery.from_route(message.route)))
             return
         if self._agent_thought is not None:
             await self._agent_thought.finish_stream()
@@ -1615,18 +1707,16 @@ class Conversation(containers.Vertical):
             self.post_message(
                 messages.SessionUpdate(state="busy", summary="Writing response")
             )
-        await self.post_agent_response(message.text, message.route)
+        await self.post_agent_response(message.text, ResponseDelivery.from_route(message.route))
 
-    def _accept_turn_lifecycle(
-        self, message: acp_messages.TurnStarted | acp_messages.TurnSettled
-    ) -> bool:
+    def _accept_turn_lifecycle(self, message: acp_messages.CommsUpdated) -> bool:
         from toad.acp.agent import Agent
 
         if not isinstance(self.agent, Agent) and message.agent is None:
             return True  # Local non-ACP agents retain their direct event path.
         if (
             message.agent is not self.agent
-            or message.session_id != getattr(self.agent, "session_id", None)
+            or message.session_id != self.agent.session_id
             or type(message.sequence) is not int
             or message.sequence <= 0
         ):
@@ -1641,21 +1731,18 @@ class Conversation(containers.Vertical):
         self._turn_lifecycle_sequence = message.sequence
         return True
 
-    @on(acp_messages.TurnStarted)
-    async def on_turn_started(self, message: acp_messages.TurnStarted) -> None:
-        message.stop()
-        if not isinstance(message.turn_id, str) or not message.turn_id:
-            return
+    async def on_turn_started(self, message: acp_messages.CommsUpdated) -> None:
+        update = message.update
         if not self._accept_turn_lifecycle(message):
             return
-        self.activity_started_at = message.started_at
-        self.activity = message.activity_detail or "Thinking…"
-        if message.turn_id == self._managed_turn_id:
+        self.activity_started_at = update.started_at
+        self.activity = update.activity_detail or "Thinking…"
+        if update.turn_id == self._managed_turn_id:
             return
         self._transcript_generation += 1
         if self._managed_turn_id is None:
             self.busy_count += 1
-        self._managed_turn_id = message.turn_id
+        self._managed_turn_id = update.turn_id
         await self._clear_mcp_live()
         self._agent_activity_boundary.reset()
         self.app.open_tabs_changed.publish(None)
@@ -1663,15 +1750,14 @@ class Conversation(containers.Vertical):
         self.turn = "agent"
         self.post_message(messages.SessionUpdate(state="busy", summary=self.activity))
 
-    @on(acp_messages.TurnSettled)
-    async def on_turn_settled(self, message: acp_messages.TurnSettled) -> None:
-        message.stop()
+    async def on_turn_settled(self, message: acp_messages.CommsUpdated) -> None:
+        update = message.update
         if not self._accept_turn_lifecycle(message):
             return
         # Empty/missing IDs are initial idle snapshots, never authority to
         # settle a nonempty live turn. Keep the same guard for local messages.
-        if message.turn_id != self._managed_turn_id and (
-            self._managed_turn_id is not None or message.turn_id
+        if update.turn_id != self._managed_turn_id and (
+            self._managed_turn_id is not None or update.turn_id
         ):
             return
         await self._clear_mcp_live()
@@ -1680,7 +1766,7 @@ class Conversation(containers.Vertical):
         self.activity = ""
         self.activity_started_at = None
         self.app.open_tabs_changed.publish(None)
-        if message.turn_id is not None:
+        if update.turn_id is not None:
             if self._managed_turn_id is not None:
                 self._managed_turn_id = None
                 self.busy_count -= 1
@@ -1692,42 +1778,22 @@ class Conversation(containers.Vertical):
             messages.SessionUpdate(state="idle", summary="Ready for review")
         )
 
-    @on(acp_messages.IncomingMessage)
-    async def on_incoming_message(self, message: acp_messages.IncomingMessage) -> None:
-        from toad.widgets.incoming_message import IncomingMessage
-
-        message.stop()
-        if message.sequence <= getattr(self, "_last_incoming_sequence", 0):
-            return
-        self._last_incoming_sequence = message.sequence
-        from toad.widgets.committed_presentation import CommittedHistory
-
-        if any(isinstance(child, CommittedHistory) and child.covers_incoming(message.sequence)
-               for child in self.contents.children):
-            return
-        self.new_block()
-        await self.post(IncomingMessage(
-            message.sender, message.text, message.target, sequence=message.sequence,
-        ))
-
-    @on(acp_messages.UserMessage)
-    async def on_acp_user_message(self, message: acp_messages.UserMessage):
-        self.new_block()
-        message.stop()
-        await self.post(UserInput(message.text))
-
-    @on(acp_messages.QueueViewUpdate)
-    async def on_queue_view_update(self, message: acp_messages.QueueViewUpdate) -> None:
-        message.stop()
-        if (self.agent is None or message.agent is not self.agent
-                or message.session_id != self.agent.session_id
-                or message.sequence <= self._queue_sequence):
+    async def on_queue_view_update(self, message: acp_messages.CommsUpdated) -> None:
+        if (
+            self.agent is None
+            or message.agent is not self.agent
+            or message.session_id != self.agent.session_id
+            or message.sequence <= self._queue_sequence
+        ):
             return
         self._queue_sequence = message.sequence
-        self.queue_projection = message.projection
-        self.queued_prompts = [row.text for row in message.projection.items]
-        for started in message.starts:
-            if message.agent is not self.agent or message.session_id != self.agent.session_id:
+        self.queue_projection = message.update.projection
+        self.queued_prompts = [row.text for row in message.update.projection.items]
+        for started in message.update.starts:
+            if (
+                message.agent is not self.agent
+                or message.session_id != self.agent.session_id
+            ):
                 return
             if started.input_id == self._sending_queue_input_id:
                 self._sending_queue_input_id = None
@@ -1735,66 +1801,83 @@ class Conversation(containers.Vertical):
             self.new_block()
             await self.post(UserInput(started.text))
 
-    @on(acp_messages.InputStarted)
-    async def on_input_started(self, message: acp_messages.InputStarted):
-        message.stop()
-        if (self.agent is None or message.agent is not self.agent
-                or message.session_id != self.agent.session_id):
+    async def on_input_started(self, message: acp_messages.CommsUpdated):
+        if (
+            self.agent is None
+            or message.agent is not self.agent
+            or message.session_id != self.agent.session_id
+        ):
             return
-        if isinstance(message.text, str):
+        if message.update.text is not None:
             self.new_block()
-            await self.post(UserInput(message.text))
+            await self.post(UserInput(message.update.text))
 
-    @on(acp_messages.InputFailed)
-    def on_input_failed(self, message: acp_messages.InputFailed) -> None:
+    def on_input_failed(self, message: acp_messages.CommsUpdated) -> None:
         """Only a locally failed request may recover its own draft text."""
-        message.stop()
-        if (self.agent is None or message.agent is not self.agent
-                or message.session_id != self.agent.session_id):
+        if (
+            self.agent is None
+            or message.agent is not self.agent
+            or message.session_id != self.agent.session_id
+        ):
             return
-        queue = getattr(self.agent, "_queue_view", None)
+        queue = self.agent.queue_attachment
         if message.recover_draft and (
-            message.queue_scope != getattr(queue, "scope", None)
-            or (message.queue_scope is not None and queue.projection.status != "available")
+            message.queue_scope != (queue.scope if queue is not None else None)
+            or (
+                message.queue_scope is not None
+                and queue.projection.status != "available"
+            )
         ):
             return
         if not message.recover_draft:
             # Server notices (including unstarted queued/restored inputs) are
             # read-only evidence, not permission to change the local composer.
-            self.flash(f"Delivery unconfirmed: {message.reason}", style="error")
+            self.flash(
+                f"{message.update.failure.title}: {message.update.failure.description}\n{message.update.failure.input_disposition}\n{message.update.failure.action}",
+                style="error",
+            )
             return
-        if message.text and not (
-            self.prompt.text == message.text
-            or self.prompt.text.endswith("\n\n" + message.text)
+        if message.update.text and not (
+            self.prompt.text == message.update.text
+            or self.prompt.text.endswith("\n\n" + message.update.text)
         ):
-            self.prompt.text = "\n\n".join(filter(None, [self.prompt.text, message.text]))
+            self.prompt.text = "\n\n".join(
+                filter(None, [self.prompt.text, message.update.text])
+            )
         self.delivering_prompt = ""
-        self.flash(f"Delivery unconfirmed; text restored: {message.reason}", style="error")
+        self.flash(
+            f"{message.update.failure.title}; draft restored: {message.update.failure.description}\n{message.update.failure.input_disposition}\n{message.update.failure.action}",
+            style="error",
+        )
 
-    @on(acp_messages.TranscriptSnapshot)
-    async def on_transcript_snapshot(self, message: acp_messages.TranscriptSnapshot):
+    async def on_transcript_snapshot(self, message: TranscriptSnapshotUpdate):
         """Mount saved history once; never feed it through live Markdown streams."""
-        from toad.widgets.transcript_history import TranscriptHistory, transcript_blocks
         from toad.widgets.transcript_fragments import prepare_transcript_fragments
+        from toad.widgets.transcript_history import TranscriptHistory
 
-        message.stop()
         self._transcript_generation += 1
         generation, agent = self._transcript_generation, self.agent
         window, contents = self.window, self.contents
         scroll_revision = window.scroll_revision
         fragments = await prepare_transcript_fragments(
-            message.page.events if message.page is not None else message.events,
-            getattr(self.app, "render_processes", None),
+            message.page.events,
+            self.app.render_processes,
         )
-        if (not self.is_attached or generation != self._transcript_generation
-                or self.agent is not agent or self.window is not window or self.contents is not contents):
+        if (
+            not self.is_attached
+            or generation != self._transcript_generation
+            or self.agent is not agent
+            or self.window is not window
+            or self.contents is not contents
+        ):
             return
-        blocks = ([TranscriptHistory(message.page, agent.get_transcript_page, fragments=fragments)]
-                  if message.page is not None and agent is not None else
-                  [block for fragment in fragments for block in transcript_blocks(
-                      fragment.events, fragment=True,
-                      show_divider=not fragment.continuation,
-                  )])
+        if agent is None:
+            return
+        blocks = [
+            TranscriptHistory(
+                message.page, agent.get_transcript_page, fragments=fragments
+            )
+        ]
         self.new_block()
         if blocks:
             # The first replay frame is a latest view, not a remembered scroll
@@ -1804,85 +1887,55 @@ class Conversation(containers.Vertical):
                 window.anchor()
             with self.app.batch_update():
                 await self.contents.mount(*blocks)
-        if message.page is not None:
-            self.call_after_refresh(self._record_displayed_transcript, message.page.after)
+        self.call_after_refresh(self._record_displayed_transcript, message.page.after)
 
     def _record_displayed_transcript(self, cursor) -> None:
         self.displayed_transcript_cursor = cursor
 
-    @on(acp_messages.TranscriptChanged)
-    def on_transcript_changed(self, message: acp_messages.TranscriptChanged) -> None:
-        message.stop()
+    def on_transcript_changed(self, message: acp_messages.CommsUpdated) -> None:
         self._transcript_dirty = True
-        if message.cursor is not None:
-            self.call_after_refresh(self._record_displayed_transcript, message.cursor)
+        if message.update.cursor is not None:
+            self.call_after_refresh(
+                self._record_displayed_transcript, message.update.cursor
+            )
         else:
-            # Older owners announce commits without a cursor. Display a bounded
+            # Local commits without a cursor require a bounded
             # canonical snapshot before acknowledging their new saved replies.
             self._needs_transcript_checkpoint = True
         self._compact_committed_history()
 
-    @on(acp_messages.CompactionUpdate)
-    async def on_acp_compaction_update(self, message: acp_messages.CompactionUpdate) -> None:
-        """Display one typed mid-turn notice without settling the current turn."""
-        from toad.widgets.agent_response import AgentResponse
-
-        message.stop()
-        if message.phase == "progress":
-            if message.source_bytes_done is not None and message.source_bytes_total:
-                percent = message.source_bytes_done * 100 // message.source_bytes_total
-                summaries = "summary" if message.chunk_index == 1 else "summaries"
-                self.activity = (
-                    f"Compacting context… {percent}% of input processed · "
-                    f"{message.chunk_index} {summaries} completed"
-                )
-                if message.summary_phase == "shrink":
-                    self.activity += " (last step: summary shrink)"
-            else:
-                self.activity = f"Compacting context… summary step {message.chunk_index} completed"
-            if message.summary_phase == "synthesis":
-                self.activity += " · combining summaries"
-            self.post_message(messages.SessionUpdate(state="busy", summary=self.activity))
-            return
-        if message.phase == "start":
-            self.activity = "Compacting context…"
-            self.post_message(messages.SessionUpdate(state="busy", summary="Compacting context"))
-            return
-        active = self.turn == "agent"
-        self.activity = "Thinking…" if active else ""
-        title = "Context compacted" if message.phase == "end" else "Compaction aborted"
-        self.post_message(messages.SessionUpdate(
-            state="busy" if active else "idle", summary=title,
-        ))
-        detail = (
-            message.summary or "Context estimate unavailable until a new measurement arrives."
-            if message.phase == "end"
-            else message.summary
-            or "Compaction did not complete. Context usage will update after the next measurement."
-        )
-        await self.post(AgentResponse(f"## {title}\n\n{detail}", category=MessageCategory.OTHER))
-
     @work(exclusive=True, group="transcript-window")
     async def _compact_committed_history(self) -> None:
         from agent_comms.errors import UnregisteredThreadError
+
         from toad.acp.agent import Agent
-        from toad.widgets.transcript_history import TranscriptHistory
         from toad.widgets.committed_presentation import (
-            CheckpointBarrier, CommitEvidence, CommitParticipant, CommittedHistory,
-            checkpoint_plan, retirement_candidates,
+            CheckpointBarrier,
+            CommitEvidence,
+            CommitParticipant,
+            CommittedHistory,
+            checkpoint_plan,
+            retirement_candidates,
         )
+        from toad.widgets.transcript_history import TranscriptHistory
 
         window = self.query_one_optional(Window)
         contents = self.query_one_optional(Contents)
         if (
-            window is None or contents is None
+            window is None
+            or contents is None
             or not self._transcript_dirty
             or not isinstance(self.agent, Agent)
             or not self.agent_ready
             or not self.agent.transcript_ready
             or self._managed_turn_id is not None
-            or any(isinstance(node, CheckpointBarrier) for node in contents.walk_children())
-            or (not self._needs_transcript_checkpoint and len(contents.children) < self.MAX_LIVE_BLOCKS)
+            or any(
+                isinstance(node, CheckpointBarrier) for node in contents.walk_children()
+            )
+            or (
+                not self._needs_transcript_checkpoint
+                and len(contents.children) < self.MAX_LIVE_BLOCKS
+            )
         ):
             return
         generation = self._transcript_generation
@@ -1891,19 +1944,30 @@ class Conversation(containers.Vertical):
         # A page cannot replace live blocks posted while its read or fragment
         # preparation is in flight unless it explicitly contains their identity.
         before_read = tuple(contents.children)
-        history = next((child for child in before_read if isinstance(child, CommittedHistory)), None)
-        potential = tuple(child for child in before_read
-                          if child is not history and isinstance(child, CommitParticipant))
+        history = next(
+            (child for child in before_read if isinstance(child, CommittedHistory)),
+            None,
+        )
+        potential = tuple(
+            child
+            for child in before_read
+            if child is not history and isinstance(child, CommitParticipant)
+        )
         if not plan.ready(history) or not plan.permits(self, potential):
             return
 
         def is_current() -> bool:
-            return (generation == self._transcript_generation
-                    and self.is_attached and not self._closing and not self._pruning
-                    and self.agent is agent
-                    and self.query_one_optional(Window) is window
-                    and self.query_one_optional(Contents) is contents
-                    and self._managed_turn_id is None and plan.current(window))
+            return (
+                generation == self._transcript_generation
+                and self.is_attached
+                and not self._closing
+                and not self._pruning
+                and self.agent is agent
+                and self.query_one_optional(Window) is window
+                and self.query_one_optional(Contents) is contents
+                and self._managed_turn_id is None
+                and plan.current(window)
+            )
 
         try:
             page = await agent.get_transcript_page()
@@ -1920,11 +1984,16 @@ class Conversation(containers.Vertical):
             return
         if prepared is None or not is_current():
             return
-        evidence = CommitEvidence(frozenset(before_read), prepared.sequences, prepared.history)
+        evidence = CommitEvidence(
+            frozenset(before_read), prepared.sequences, prepared.history
+        )
         async with window.history_lock:
             retired = retirement_candidates(contents.children, evidence)
-            if (not is_current() or not plan.ready(prepared.history)
-                    or not plan.permits(self, retired)):
+            if (
+                not is_current()
+                or not plan.ready(prepared.history)
+                or not plan.permits(self, retired)
+            ):
                 return
             self.new_block()
             if self.cursor_block in retired:
@@ -1935,7 +2004,9 @@ class Conversation(containers.Vertical):
                 try:
                     if prepared.history is None:
                         replacement = TranscriptHistory(
-                            page, agent.get_transcript_page, fragments=prepared.fragments,
+                            page,
+                            agent.get_transcript_page,
+                            fragments=prepared.fragments,
                             committed=False,
                         )
                         await contents.mount(replacement, before=0)
@@ -1954,7 +2025,11 @@ class Conversation(containers.Vertical):
                     accepted = True
                     await contents.remove_children(retired)
                 finally:
-                    if not accepted and replacement is not None and replacement.is_attached:
+                    if (
+                        not accepted
+                        and replacement is not None
+                        and replacement.is_attached
+                    ):
                         await replacement.remove()
         if not window.is_attached or not contents.is_attached:
             return
@@ -1963,17 +2038,32 @@ class Conversation(containers.Vertical):
         plan.finish(self, page.after)
 
     async def on_transcript_history_covered(self, message) -> None:
-        from toad.widgets.committed_presentation import CommitEvidence, protected_blocks, retirement_candidates
+        from toad.widgets.committed_presentation import (
+            CommitEvidence,
+            protected_blocks,
+            retirement_candidates,
+        )
 
         message.stop()
         contents = self.query_one_optional(Contents)
-        if (contents is not None and message.history is not None
-                and message.history.is_attached and message.history.parent is contents):
-            candidates = retirement_candidates(contents.children, CommitEvidence(
-                frozenset(), frozenset(message.sequences), message.history,
-            ))
+        if (
+            contents is not None
+            and message.history is not None
+            and message.history.is_attached
+            and message.history.parent is contents
+        ):
+            candidates = retirement_candidates(
+                contents.children,
+                CommitEvidence(
+                    frozenset(),
+                    frozenset(message.sequences),
+                    message.history,
+                ),
+            )
             protected = protected_blocks(self, candidates)
-            await contents.remove_children([child for child in candidates if child not in protected])
+            await contents.remove_children(
+                [child for child in candidates if child not in protected]
+            )
 
     @on(acp_messages.Thinking)
     async def on_acp_agent_thinking(self, message: acp_messages.Thinking):
@@ -2049,16 +2139,9 @@ class Conversation(containers.Vertical):
     async def on_acp_available_commands_update(
         self, message: acp_messages.AvailableCommandsUpdate
     ):
-        slash_commands: list[SlashCommand] = []
-        for available_command in message.commands:
-            input = available_command.get("input", {}) or {}
-            slash_command = SlashCommand(
-                f"/{available_command['name']}",
-                available_command["description"],
-                hint=input.get("hint"),
-            )
-            slash_commands.append(slash_command)
-        self.agent_slash_commands = slash_commands
+        self.agent_slash_commands = [
+            AgentAdvertisedCommand.from_acp(record) for record in message.commands
+        ]
         self.update_slash_commands()
 
     def get_terminal(self, terminal_id: str) -> TerminalTool | None:
@@ -2096,7 +2179,7 @@ class Conversation(containers.Vertical):
     @work
     @on(acp_messages.CreateTerminal)
     async def on_acp_create_terminal(self, message: acp_messages.CreateTerminal):
-        from toad.widgets.terminal_tool import TerminalTool, Command
+        from toad.widgets.terminal_tool import Command, TerminalTool
 
         command = Command(
             message.command,
@@ -2395,64 +2478,25 @@ class Conversation(containers.Vertical):
         self.prompt.ask(ask)
         return ask
 
-    def _build_slash_commands(self) -> list[SlashCommand]:
-        slash_commands = [
-            SlashCommand(
-                "/login", "Connect a provider using the agent's native login UI"
-            ),
-            SlashCommand(
-                "/project", "Change this thread's project directory", "<directory>"
-            ),
-            SlashCommand(
-                "/goal",
-                "Set or manage a persistent thread goal",
-                "<objective | pause | resume | clear>",
-            ),
-            SlashCommand(
-                "/compact",
-                "Compact this thread's model context",
-                "<optional summary instructions>",
-            ),
-            SlashCommand("/model", "Choose this thread's model"),
-            SlashCommand("/toad:about", "About Toad"),
-            SlashCommand(
-                "/toad:clear",
-                "Clear conversation window",
-                "<optional number of lines to preserve>",
-            ),
-            SlashCommand(
-                "/toad:rename",
-                "Give the current session a friendly name",
-                "<session name>",
-            ),
-            SlashCommand(
-                "/toad:session-close",
-                "Close the current session",
-            ),
-            SlashCommand(
-                "/toad:session-new",
-                "Open a new session in the current working directory",
-                "<initial prompt or command>",
-            ),
-            SlashCommand(
-                "/toad:testimonial",
-                "Tweet a testimonial regarding Toad",
-                "<what you think of toad>",
-            ),
-        ]
-
-        slash_commands.extend(self.agent_slash_commands)
-        deduplicated_slash_commands = {
-            slash_command.command: slash_command for slash_command in slash_commands
-        }
-        slash_commands = sorted(
-            deduplicated_slash_commands.values(), key=attrgetter("command")
-        )
-        return slash_commands
+    def command_target_context(self):
+        from toad.navigation_target import NavigationOwner
+        from toad.target_commands import ThreadContext
+        if not isinstance(self.screen, NavigationOwner):
+            return None
+        nav = self.screen.navigation_context
+        comms = self.app.coordination_wire
+        from agent_comms.errors import UnregisteredThreadError
+        try:
+            comms.registry.require(nav.actor)
+        except UnregisteredThreadError:
+            return None
+        return ThreadContext(self.app, comms, nav.actor, nav.actor, nav.project_path, nav.owner_mode)
 
     def update_slash_commands(self) -> None:
         """Update slash commands, which may have changed since mounting."""
-        self.prompt.slash_commands = self._build_slash_commands()
+        self.prompt.slash_commands = CommandCatalog(
+            self.agent_slash_commands, self.command_target_context()
+        ).commands
 
     async def on_mount(self) -> None:
         self.set_interval(1, self._poll_goal)
@@ -2463,7 +2507,9 @@ class Conversation(containers.Vertical):
         self.trap_focus()
         self.watch(self.window, "scroll_y", self._history_scroll_changed, init=False)
         self.prompt.focus()
-        self.prompt.slash_commands = self._build_slash_commands()
+        self.prompt.slash_commands = CommandCatalog(
+            self.agent_slash_commands, self.command_target_context()
+        ).commands
         self.call_after_refresh(self.post_welcome)
         self.app.settings_changed_signal.subscribe(self, self._settings_changed)
         self.app.open_tabs_changed.subscribe(self, self._coordination_changed)
@@ -2510,11 +2556,13 @@ class Conversation(containers.Vertical):
             self.call_after_refresh(self._compact_committed_history)
 
     def _invalidate_input_dispositions(self) -> None:
-        if not self.is_attached or self.agent is None or not hasattr(self.agent, "get_input_delivery"):
+        if not self.is_attached or self.agent is None:
             return
         self._delivery_refresh_revision += 1
         if self._delivery_refresh_task is None or self._delivery_refresh_task.done():
-            self._delivery_refresh_task = asyncio.create_task(self._read_input_dispositions())
+            self._delivery_refresh_task = asyncio.create_task(
+                self._read_input_dispositions()
+            )
 
     async def refresh_input_dispositions(self) -> None:
         self._invalidate_input_dispositions()
@@ -2524,7 +2572,7 @@ class Conversation(containers.Vertical):
     async def _read_input_dispositions(self) -> None:
         while self.is_attached:
             revision, agent = self._delivery_refresh_revision, self.agent
-            if agent is None or not hasattr(agent, "get_input_delivery"):
+            if agent is None:
                 return
             try:
                 delivery = await agent.get_input_delivery()
@@ -2583,7 +2631,9 @@ class Conversation(containers.Vertical):
         if self.input_delivery_error:
             raise ValueError(self.input_delivery_error)
 
-    def on_input_dispositions_changed(self, event: acp_messages.InputDispositionsChanged) -> None:
+    def on_input_dispositions_changed(
+        self, event: acp_messages.InputDispositionsChanged
+    ) -> None:
         event.stop()
         self._invalidate_input_dispositions()
 
@@ -2603,10 +2653,18 @@ class Conversation(containers.Vertical):
         if session_details is not None:
             details.overview_text = session_details.overview_text
         self.app.push_screen(details)
-        details.watch(self, "input_delivery", lambda state: setattr(details, "delivery", state))
-        details.watch(self, "input_delivery_error", lambda error: setattr(details, "error", error))
+        details.watch(
+            self, "input_delivery", lambda state: setattr(details, "delivery", state)
+        )
+        details.watch(
+            self, "input_delivery_error", lambda error: setattr(details, "error", error)
+        )
         if session_details is not None:
-            details.watch(session_details, "overview_text", lambda value: setattr(details, "overview_text", value))
+            details.watch(
+                session_details,
+                "overview_text",
+                lambda value: setattr(details, "overview_text", value),
+            )
 
     def _poll_goal(self) -> None:
         if not self.is_attached:
@@ -2619,13 +2677,15 @@ class Conversation(containers.Vertical):
                 current is self.screen
                 and self in self.screen._compositor.visible_widgets
             ) or current is self._goal_modal
-        except (ScreenStackError, UnknownModeError):
+        except ScreenStackError, UnknownModeError:
             return
-        if visible and (self._goal_refresh_task is None or self._goal_refresh_task.done()):
+        if visible and (
+            self._goal_refresh_task is None or self._goal_refresh_task.done()
+        ):
             self._invalidate_goal_snapshot()
 
     def _invalidate_goal_snapshot(self) -> None:
-        if not self.is_attached or self.agent is None or not hasattr(self.agent, "get_goal_snapshot"):
+        if not self.is_attached or self.agent is None:
             return
         self._goal_refresh_revision += 1
         if self._goal_refresh_task is None or self._goal_refresh_task.done():
@@ -2641,40 +2701,47 @@ class Conversation(containers.Vertical):
         # A read overtaken by another invalidation is discarded before painting.
         while self.is_attached:
             revision, agent = self._goal_refresh_revision, self.agent
-            if agent is None or not hasattr(agent, "get_goal_snapshot"):
+            if agent is None:
                 return
             try:
                 goal, execution = await agent.get_goal_snapshot()
-            except (OSError, ValueError):
+            except OSError, ValueError:
                 if revision != self._goal_refresh_revision:
                     continue
-                self.goal_unavailable = True
+                self.goal_display = GoalUnavailable(self.goal_display.snapshot)
                 return
             if revision != self._goal_refresh_revision or agent is not self.agent:
                 continue
             if self.is_attached:
-                self.goal, self.goal_execution = goal, execution
-                self.goal_unavailable = False
+                self.goal_display = GoalDisplay.current(goal)
+                self.goal_execution = execution
             return
 
-    def on_goal_snapshot_update(self, event: acp_messages.GoalSnapshotUpdate) -> None:
-        self._invalidate_goal_snapshot()
+    @on(acp_messages.CommsUpdated)
+    async def on_comms_updated(self, event: acp_messages.CommsUpdated) -> None:
+        if event.agent is not None and (
+            event.agent is not self.agent or event.session_id != self.agent.session_id
+        ):
+            event.stop()
+            return
+        await ConversationCommsConsumer(self, event).dispatch(event.update)
 
     async def _coordination_changed(self, _update: None) -> None:
+        self.update_slash_commands()
         await self.refresh_goal()
 
     @on(GoalControl.Activated)
     async def on_goal_control(self, event: GoalControl.Activated):
         event.stop()
-        if self.goal_unavailable:
+        if not self.goal_display.can_control:
             self.flash("Goal state unavailable; waiting for the owner", style="error")
             return
-        if event.action == "goal-history" and self.goal is not None:
+        if event.action == "goal-history" and self.goal_display.snapshot is not None:
             from toad.screens.goal_details import GoalDetails
 
-            goal = self.goal
+            goal = self.goal_display.snapshot
             history = ()
-            if self.agent is not None and hasattr(self.agent, "get_goal_history"):
+            if self.agent is not None:
                 try:
                     history = await self.agent.get_goal_history(goal.id)
                 except (OSError, ValueError) as error:
@@ -2683,15 +2750,14 @@ class Conversation(containers.Vertical):
             details = GoalDetails(goal, history=history)
             self._goal_modal = details
             self.app.push_screen(details)
-            details.watch(self, "goal", lambda value: setattr(details, "goal", value))
-            details.watch(self, "goal_unavailable", lambda value: setattr(details, "unavailable", value))
+            details.watch(self, "goal_display", lambda value: setattr(details, "goal_display", value))
             details.watch(self, "goal_execution", lambda value: setattr(details, "execution", value))
         elif event.action == "goal-edit":
             from toad.screens.goal_edit import GoalEdit
             from toad.widgets.goal_text import goal_mention_candidates
 
-            goal = self.goal
-            if goal is None or self.agent is None or not hasattr(self.agent, "edit_goal"):
+            goal = self.goal_display.snapshot
+            if goal is None or self.agent is None:
                 self.flash("Editing requires an agent-comms goal", style="error")
                 return
 
@@ -2705,14 +2771,14 @@ class Conversation(containers.Vertical):
         elif event.action == "goal-clear":
             await self.change_goal("clear")
         elif event.action == "goal-toggle":
-            action = self.goal.state.toggle if self.goal else None
+            action = self.goal_display.snapshot.state.toggle if self.goal_display.snapshot else None
             if action is not None:
                 await self.change_goal(action.declared_name)
             else:
                 self.flash("This goal is completed; set a new goal to continue.")
 
     async def change_goal(self, action: str, text: str = "") -> None:
-        if self.agent is None or not hasattr(self.agent, "update_goal"):
+        if self.agent is None:
             self.flash("Persistent goals require an agent-comms session", style="error")
             return
         try:
@@ -2733,16 +2799,14 @@ class Conversation(containers.Vertical):
         try:
             self.window.anchor()
             self.flash("Compaction requested")
-            result = await self.agent.compact_context(instructions)
-            if not result.get("ok"):
-                await self.post(AgentResponse(
-                    "## Compaction failed\n\n" + str(result.get("error") or "No result returned"),
-                    category=MessageCategory.OTHER,
-                ))
-            else:
-                self.flash("Context compacted", style="success")
+            await self.agent.compact_context(instructions)
+            self.flash("Context compacted", style="success")
         except (OSError, ValueError, jsonrpc.JSONRPCError) as error:
-            await self.post(AgentResponse(f"## Compaction failed\n\n{error}", category=MessageCategory.OTHER))
+            await self.post(
+                AgentResponse(
+                    f"## Compaction failed\n\n{error}", category=OtherCategory
+                )
+            )
         finally:
             self._compacting = False
 
@@ -2775,7 +2839,9 @@ class Conversation(containers.Vertical):
 
     def _settings_changed(self, change: PreferenceChange) -> None:
         if change.field is ShellSettings.allow_commands:
-            self.shell_history.complete.add_words(self.app.settings.shell.allow_commands.split())
+            self.shell_history.complete.add_words(
+                self.app.settings.shell.allow_commands.split()
+            )
 
     @work
     async def post_welcome(self) -> None:
@@ -2788,8 +2854,10 @@ class Conversation(containers.Vertical):
         cursor = getattr(agent, "_private_cursor", None)
         self.native_history_status = cursor.status if cursor is not None else None
         self._private_cursor_sequence = getattr(agent, "_private_cursor_sequence", 0)
-        queue = getattr(agent, "_queue_view", None)
-        self.queue_projection = queue.projection if queue is not None else QueueProjection()
+        queue = agent.queue_attachment if agent is not None else None
+        self.queue_projection = (
+            queue.projection if queue is not None else PendingQueueProjection()
+        )
         self.queued_prompts = [row.text for row in self.queue_projection.items]
         self._queue_sequence = getattr(agent, "_queue_sequence", 0)
         self._sending_queue_input_id = None
@@ -3228,9 +3296,10 @@ class Conversation(containers.Vertical):
         compositor.reflow(block, block.outer_size)
         render = compositor.render_full_update()
 
-        from rich.console import Console
         import io
         import os.path
+
+        from rich.console import Console
 
         console = Console(
             width=width,
@@ -3270,148 +3339,137 @@ class Conversation(containers.Vertical):
         self.refresh_bindings()
 
     async def slash_command(self, text: str) -> bool:
-        """Give Toad the opertunity to process slash commands.
-
-        Args:
-            text: The prompt, including the slash in the first position.
-
-        Returns:
-            `True` if Toad has processed the slash command, `False` if it should
-                be forwarded to the agent.
-        """
-        command, _, parameters = text[1:].partition(" ")
-        if command == "login":
-            self.action_provider_login()
-            return True
-        elif command == "project":
-            if not parameters.strip():
-                self.flash(Content(f"Project: {self.project_path}"))
-            elif self.agent is None or not hasattr(self.agent, "update_project"):
-                self.flash(
-                    "Project changes require an agent-comms session", style="error"
-                )
-            else:
-                try:
-                    path = parameters.strip()
-                    if path.startswith(("'", '"')):
-                        import shlex
-
-                        values = shlex.split(path)
-                        if len(values) != 1:
-                            raise ValueError("Expected one project directory")
-                        path = values[0]
-                    project = await self.agent.update_project(path)
-                    self.flash(
-                        Content(f"Project changed to {project}"), style="success"
-                    )
-                except (OSError, ValueError) as error:
-                    self.flash(str(error), style="error")
-            return True
-        elif command == "goal":
-            parameter = parameters.strip()
-            actions = {
-                "pause": "paused", "resume": "active", "retry": "retry", "clear": "clear"
-            }
-            if parameter in actions:
-                await self.change_goal(actions[parameter])
-            elif parameter:
-                await self.change_goal("set", parameter)
-            else:
-                await self.refresh_goal()
-                self.flash(
-                    "Use /goal <objective> to set or edit; pause, resume, retry, or clear to manage it."
-                )
-            return True
-        elif command == "compact":
-            if self._compacting:
-                self.flash("Context compaction is already running")
-            elif self.turn == "agent":
-                self.flash("Wait for the current response before compacting", style="error")
-            elif self.agent is None or not hasattr(self.agent, "compact_context"):
-                self.flash("This agent does not support context compaction", style="error")
-            else:
-                self._compacting = True
-                self.compact_context(parameters.strip() or None)
-            return True
-        elif command == "model":
-            if self.models:
-                self.prompt.model_switcher.focus()
-            else:
-                self.flash("This agent has no model selector", style="error")
-            return True
-        elif command == "toad:about":
-            from toad import about
-            from toad.widgets.markdown_note import MarkdownNote
-
-            app = self.app
-            about_md = about.render(app)
-            await self.post(MarkdownNote(about_md, classes="about"))
-            self.app.copy_to_clipboard(about_md)
-            self.notify(
-                "A copy of /about:toad has been placed in your clipboard",
-                title="/toad:about",
-            )
-            return True
-        elif command == "toad:clear":
+        """Resolve local declarations before forwarding advertised commands."""
+        name, _, arguments = text.partition(" ")
+        commands = {command.command: command for command in CommandCatalog(self.agent_slash_commands, self.command_target_context()).commands}
+        command = commands.get(name)
+        if command is None:
+            from toad.thread_actions import ThreadAction
             try:
-                line_count = max(0, int(parameters) if parameters.strip() else 0)
+                member = SlashCommand.decode(name.removeprefix("/"))
             except ValueError:
-                self.notify(
-                    "Unable to clear—a number was expected",
-                    title="/toad:clear",
-                    severity="error",
-                )
-                return True
-            await self.prune_window(line_count, line_count)
-            return True
-        elif command == "toad:rename":
-            name = parameters.strip()
-            if not name:
-                self.notify(
-                    "Expected a name for the session.\n"
-                    'For example: "add comments to blog"',
-                    title="/toad:rename",
-                    severity="error",
-                )
-                return True
-            await self.rename_session(name)
-            self.flash(f"Renamed session to [b]'{name}'", style="success")
-            return True
-        elif command == "toad:session-close":
-            if self.turn == "agent" and self.agent is not None:
-                await self.agent.cancel()
-            if self.screen.id is not None:
-                self.post_message(messages.SessionClose(self.screen.id))
-                return True
-        elif command == "toad:session-new":
-            if self._agent_data is not None:
-                self.post_message(
-                    messages.SessionNew(
-                        self.working_directory,
-                        self._agent_data["identity"],
-                        parameters.strip(),
-                    )
-                )
-                return True
-        elif command == "toad:testimonial":
-            if self.agent_title is not None:
-                default_testimonial = (
-                    f"I'm running {self.agent_title} in the terminal with Toad."
-                )
+                try:
+                    ThreadAction.decode(name.removeprefix("/"))
+                except ValueError:
+                    return False
             else:
-                default_testimonial = (
-                    "Try Toad, the universal interface for AI in your terminal"
-                )
-
-            testimonial = parameters or default_testimonial
-            from toad.twitter import open_tweet_intent
-
-            open_tweet_intent(
-                testimonial,
-                url="https://github.com/textualize/toad",
-                via="willmcgugan",
-                hashtags=["ai"],
-            )
+                if not issubclass(member, LocalCommand):
+                    return False
+            self.flash("Action is not available for the current target", style="error")
+            return True
+        if isinstance(command, AgentAdvertisedCommand):
+            return False
+        try:
+            return await command.parse_arguments(arguments).apply(self)
+        except (OSError, ValueError) as error:
+            self.flash(str(error), style="error")
             return True
 
-        return False
+
+class ConversationCommsConsumer(MroDispatch):
+    def __init__(self, conversation, message):
+        self.conversation = conversation
+        self.message = message
+
+    @handles(CursorPresentation)
+    async def cursor_presentation(self, update):
+        self.conversation.on_private_native_cursor_update(self.message)
+
+    @handles(QueuePresentation)
+    async def queue_presentation(self, update):
+        await self.conversation.on_queue_view_update(self.message)
+
+    @handles(InputStartedUpdate)
+    async def input_started(self, update):
+        await self.conversation.on_input_started(self.message)
+
+    @handles(InputFailedUpdate)
+    async def input_failed(self, update):
+        self.conversation.on_input_failed(self.message)
+
+    @handles(TranscriptChangedUpdate)
+    async def transcript_changed(self, update):
+        self.conversation.on_transcript_changed(self.message)
+
+    @handles(TurnStartedUpdate)
+    async def turn_started(self, update: TurnStartedUpdate):
+        await self.conversation.on_turn_started(self.message)
+
+    @handles(TurnSettledUpdate)
+    async def turn_settled(self, update: TurnSettledUpdate):
+        await self.conversation.on_turn_settled(self.message)
+
+    @handles(GoalChangedUpdate)
+    async def goal_changed(self, update: GoalChangedUpdate):
+        self.conversation._invalidate_goal_snapshot()
+
+    @handles(CompactionChangedUpdate)
+    async def compaction_changed(self, update: CompactionChangedUpdate):
+        await CompactionRenderer(self.conversation).dispatch(update.event)
+
+    @handles(TranscriptSnapshotUpdate)
+    async def transcript_snapshot(self, update: TranscriptSnapshotUpdate):
+        await self.conversation.on_transcript_snapshot(update)
+
+    @handles(McpClientReceiptUpdate)
+    async def mcp_receipt(self, update: McpClientReceiptUpdate):
+        await self.conversation.on_mcp_client_status(self.message)
+
+    @handles(CompactionPublishedUpdate)
+    async def compaction_published(self, update: CompactionPublishedUpdate):
+        self.conversation._transcript_dirty = True
+        self.conversation._needs_transcript_checkpoint = True
+        self.conversation._compact_committed_history()
+
+
+
+class CompactionRenderer(MroDispatch):
+    def __init__(self, conversation):
+        self.conversation = conversation
+
+    @handles(comms_events.CompactionStart)
+    async def start(self, event):
+        view = self.conversation
+        view.activity = "Compacting context…"
+        view.post_message(
+            messages.SessionUpdate(state="busy", summary="Compacting context")
+        )
+
+    @handles(comms_events.CompactionProgress)
+    async def progress(self, event):
+        view = self.conversation
+        done, total = event.source_bytes_done, event.source_bytes_total
+        if done is not None and total is not None and 0 <= done <= total and total > 0:
+            summaries = "summary" if event.chunk_index == 1 else "summaries"
+            view.activity = f"Compacting context… {done * 100 // total}% of input processed · {event.chunk_index} {summaries} completed"
+            if event.summary_phase == "shrink":
+                view.activity += " (last step: summary shrink)"
+        else:
+            view.activity = (
+                f"Compacting context… summary step {event.chunk_index} completed"
+            )
+        if event.summary_phase == "synthesis":
+            view.activity += " · combining summaries"
+        view.post_message(messages.SessionUpdate(state="busy", summary=view.activity))
+
+    @handles(comms_events.CompactionEnd)
+    async def end(self, event):
+        from toad.widgets.agent_response import AgentResponse
+
+        view = self.conversation
+        active = view.turn == "agent"
+        view.activity = "Thinking…" if active else ""
+        title = "Compaction aborted" if event.aborted else "Context compacted"
+        view.post_message(
+            messages.SessionUpdate(state="busy" if active else "idle", summary=title)
+        )
+        summary = compaction_summary(event.publication_summary)
+        detail = summary or (
+            "Compaction did not complete. Context usage will update after the next measurement."
+            if event.aborted
+            else "Context estimate unavailable until a new measurement arrives."
+        )
+        await view.post(
+            AgentResponse(f"## {title}\n\n{detail}", category=OtherCategory)
+        )
+

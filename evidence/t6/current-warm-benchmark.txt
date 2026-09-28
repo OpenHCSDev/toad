@@ -1,0 +1,1 @@
+{"cold_ms": 1680.67, "warm_median_ms": 34.0, "warm_p95_ms": 46.63, "heartbeat_max_ms": 19.76, "samples": 21, "boundary": "actual installed persistent RPC and worker result parity"}

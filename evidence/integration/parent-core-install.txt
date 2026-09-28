@@ -1,0 +1,9 @@
+Resolved 2 packages in 9ms
+   Building agent-comms @ git+https://github.com/OpenHCSDev/agent-comms.git@aa4138702c54ba4fd32065e2c34e3b4d50400e37
+      Built agent-comms @ git+https://github.com/OpenHCSDev/agent-comms.git@aa4138702c54ba4fd32065e2c34e3b4d50400e37
+Prepared 1 package in 398ms
+Uninstalled 1 package in 4ms
+Installed 2 packages in 9ms
+ - agent-comms==0.1.0 (from file:///home/ts/wt/comms-toad-integration-20260928)
+ + agent-comms==0.1.0 (from git+https://github.com/OpenHCSDev/agent-comms.git@aa4138702c54ba4fd32065e2c34e3b4d50400e37)
+ + pytest==9.1.1

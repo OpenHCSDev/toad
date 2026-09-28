@@ -1,5 +1,8 @@
 """Installed Toad/ACP/owner/Pi path with a loopback-only model fixture."""
 
+from toad.navigation_target import DirectTarget, channel_target
+
+from toad.thread_actions import StartAction
 import asyncio
 import json
 import os
@@ -28,6 +31,7 @@ from toad.widgets.prompt import QueueSummary
 from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.channel_participants import ChannelParticipants
 from toad.widgets.message_notifications import MessageNotifications
+from toad.widgets.comms_sidebar import CommsRow, CommsSidebar
 from toad import messages
 from toad.navigation_preparation import ThreadNavigationRequest
 
@@ -46,8 +50,8 @@ async def notification_feedback(
         owner_mode=owner_mode,
         project_path=project,
         me=user,
-        target="#team",
-        kind="channel",
+        target=channel_target("#team"),
+
     )
     channel = app.screen.query_one(CommsChatView)
     entered.clear()
@@ -65,7 +69,7 @@ async def notification_feedback(
     release.set()
     await until(pilot, lambda: not comms.registry.require("beta").executing)
     await channel._refresh()
-    await pilot.pause()
+    await until(pilot, lambda: "No active turns" in roster.names.render().plain)
     assert "No active turns" in roster.names.render().plain, roster.names.render()
     print("CHANNEL_IDLE_STATUS_CONFIRMED", flush=True)
     notification = channel.query_one(MessageNotifications)
@@ -91,6 +95,8 @@ async def notification_feedback(
 
 
 async def main(*, notification_only=False, app_type=ToadApp, acceptance=None):
+    evidence = Path(os.environ.get("L0A_EVIDENCE", os.environ["TMPDIR"]))
+    evidence.mkdir(parents=True, exist_ok=True)
     package = Path(os.environ["AC_NATIVE_COPIED_PACKAGE"])
     verify_native_package(package)
     requests, failures = [], []
@@ -291,6 +297,25 @@ async def main(*, notification_only=False, app_type=ToadApp, acceptance=None):
                 turn = asyncio.create_task(agent.send_prompt("FIRST_NATIVE_INPUT"))
                 await until(pilot, entered.is_set)
                 print("PROVIDER_FIRST", flush=True)
+                # An actual detached owner's turn is the status authority.
+                # UI-only state changes cannot clear its busy witness; geometry
+                # remains compact at both widths while the loopback holds it.
+                sidebar = app.screen.query_one(CommsSidebar)
+                sidebar._refresh()
+                await until(pilot, lambda: any(row.target_name == "beta" and row.has_class("-busy")
+                                              for row in sidebar.query(CommsRow)))
+                app.session_tracker.update_session(owner_mode, state="idle", summary="Ready from the view")
+                for width in (96, 120):
+                    await pilot.resize_terminal(width, 44)
+                    await pilot.pause()
+                    sidebar._refresh()
+                    await pilot.pause()
+                    row = next(row for row in sidebar.query(CommsRow) if row.target_name == "beta")
+                    assert row.has_class("-busy") and row.region.height == 2, (row.render(), row.region)
+                    assert "Ready from the view" not in row.render().plain
+                    assert "provider/" not in row.render().plain
+                await pilot.resize_terminal(160, 44)
+                print("NATIVE_SIDEBAR_BUSY_AUTHORITY_CONFIRMED", flush=True)
                 view.prompt.text = "unsent local draft"
                 await asyncio.wait_for(
                     agent.send_prompt("QUEUED_NATIVE_INPUT", defer_display=True), 10
@@ -325,7 +350,7 @@ async def main(*, notification_only=False, app_type=ToadApp, acceptance=None):
                     .read()
                     .rows["acp:" + queued_ids[0]]
                 )
-                (Path(os.environ["L0A_EVIDENCE"]) / "native-session.jsonl").write_text(
+                (evidence / "native-session.jsonl").write_text(
                     native_file.read_text()
                 )
                 print(
@@ -371,8 +396,8 @@ async def main(*, notification_only=False, app_type=ToadApp, acceptance=None):
                     owner_mode=owner_mode,
                     project_path=project,
                     me=user,
-                    target="beta",
-                    kind="dm",
+                    target=DirectTarget("beta"),
+
                 )
                 dm = app.screen.query_one(CommsChatView)
                 entered.clear()
@@ -403,7 +428,7 @@ async def main(*, notification_only=False, app_type=ToadApp, acceptance=None):
                 await agent.stop()
                 await asyncio.to_thread(comms.owners.stop, "beta")
                 assert not comms.registry.require("beta").process_alive
-                app.invoke_thread_action("comms_start", "beta", user)
+                app.invoke_thread_action(StartAction(), "beta", user)
                 await until(pilot, lambda: "beta" not in app.pending_thread_actions)
                 assert comms.registry.require("beta").process_alive, (
                     "Explicit Start did not launch owner"
@@ -465,11 +490,11 @@ async def main(*, notification_only=False, app_type=ToadApp, acceptance=None):
             if agent:
                 await agent.stop()
                 if agent._log_file_path.exists():
-                    (Path(os.environ["L0A_EVIDENCE"]) / "toad-acp.log").write_bytes(
+                    (evidence / "toad-acp.log").write_bytes(
                         agent._log_file_path.read_bytes()
                     )
             for path in stage.glob("acp-debug*"):
-                destination = Path(os.environ["L0A_EVIDENCE"]) / path.name
+                destination = evidence / path.name
                 destination.write_bytes(path.read_bytes())
             await asyncio.to_thread(comms.owners.stop, "beta")
             server.shutdown()

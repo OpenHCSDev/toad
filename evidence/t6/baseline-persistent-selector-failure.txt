@@ -1,0 +1,1 @@
+.artifacts/baseline-env/bin/python: can't open file '/home/ts/wt/toad-t6-rendering-20260928/.artifacts/baseline-source/tests/persistent_render_pilot.py': [Errno 2] No such file or directory

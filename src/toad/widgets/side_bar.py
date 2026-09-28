@@ -559,7 +559,17 @@ class SidebarResizeHandle(widgets.Static, can_focus=True):
         self._dragging = False
 
 
-class SideBar(containers.Vertical):
+class SidebarDecorations:
+    """Optional decorations are unavailable unless a panel declares them."""
+
+    def _compose_resize(self) -> ComposeResult:
+        return iter(())
+
+    def _compose_layout_controls(self) -> ComposeResult:
+        return iter(())
+
+
+class SideBar(SidebarDecorations, containers.Vertical):
     BINDING_GROUP_TITLE = "Sidebar"
     BINDINGS: ClassVar[list[BindingType]] = [("escape", "dismiss", "Dismiss sidebar")]
     DEFAULT_CSS = """
@@ -716,15 +726,11 @@ class SideBar(containers.Vertical):
 
     def compose(self) -> ComposeResult:
         yield SideBarToggle(self.collapsed, right=self.right)
-        if self.id in {"channels-sidebar", "thread-sidebar"}:
-            yield SidebarResizeHandle()
+        yield from self._compose_resize()
         with SidebarViewport(id="sidebar-panels"):
             if self._panels_loaded:
                 yield from self._compose_panels()
-        if self.id in {"channels-sidebar", "thread-sidebar"}:
-            with containers.Vertical(id="sidebar-controls"):
-                if self._panels_loaded:
-                    yield from self._compose_controls()
+        yield from self._compose_layout_controls()
 
     def _compose_panels(self) -> ComposeResult:
         navigation = self.navigation
@@ -1009,3 +1015,20 @@ if __name__ == "__main__":
             )
 
     SApp().run()
+
+
+class CommsSideBar(SideBar):
+    """Resizable comms panels share their native layout controls."""
+
+    def _compose_resize(self) -> ComposeResult:
+        yield SidebarResizeHandle()
+
+    def _compose_layout_controls(self) -> ComposeResult:
+        with containers.Vertical(id="sidebar-controls"):
+            if self._panels_loaded:
+                yield from self._compose_controls()
+
+
+class ThreadSidebar(CommsSideBar):
+    def __init__(self, *panels, **kwargs):
+        super().__init__(*panels, id="thread-sidebar", **kwargs)

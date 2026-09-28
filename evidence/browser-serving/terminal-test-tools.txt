@@ -1,0 +1,4 @@
+Resolved 2 packages in 76ms
+Installed 2 packages in 10ms
+ + pyte==0.8.2
+ + wcwidth==0.9.1

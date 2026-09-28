@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from toad.navigation_target import NavigationTarget, person_target, linked_target
+
 import asyncio
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -12,15 +14,15 @@ from textual.binding import Binding
 from textual.content import Content
 from textual.widgets import Checkbox, Static
 
-from toad.session_tracker import UnreadPresentation, ExactUnread
-from toad.widgets.comms_sidebar import CommsRow, CommsSidebar, SelectTarget
+from toad.session_tracker import ExactUnread, UnreadPresentation
+from toad.sidebar_preparation import ThreadRowInput, ThreadRowsWork
 from toad.widgets.activity_spinner import FRAMES
-from toad.widgets.message_filter import MESSAGE_CATEGORIES, MESSAGE_LABELS, MessageCategory
+from toad.widgets.comms_sidebar import CommsRow, CommsSidebar, SelectTarget
+from toad.widgets.message_filter import MessageCategory
 from toad.widgets.session_sort import SortControl
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarVisibilityObserver
 from toad.widgets.sidebar_tree import SidebarGroup, TargetTree
 from toad.widgets.thread_comms_model import RelationshipGroup, RelationshipSource, ThreadCommsSnapshot
-from toad.sidebar_preparation import ThreadRowInput, ThreadRowsWork
 
 
 def _update_content(widget: Static, content: Content) -> None:
@@ -136,7 +138,7 @@ class RelationshipRows(SidebarGroup):
             row_keys = tuple(key for key, entry in entries.items() if entry.available and entry.person is not None)
             inputs = tuple(ThreadRowInput(
                 entries[key].person,
-                unread=tree.unread(entries[key].target, CommsSidebar._person_kind(entries[key].person)),
+                unread=tree.unread(person_target(entries[key].person)),
                 action_status=tree.app.pending_thread_actions.get(entries[key].target),
             ) for key in row_keys)
             prepared = await tree.app.preparation.submit(ThreadRowsWork(inputs)) if inputs else ()
@@ -158,14 +160,14 @@ class RelationshipRows(SidebarGroup):
 
             def create(key):
                 entry = entries[key]
-                kind = (CommsSidebar._person_kind(entry.person) if entry.person else entry.kind)
-                return RelationshipRow(kind, entry.target, entry.target)
+                target = person_target(entry.person) if entry.person else linked_target(entry.target)
+                return RelationshipRow(target, entry.target)
 
             def update(key, row):
                 entry = entries[key]
                 row.entry = entry
                 row.available = entry.available
-                row.kind = CommsSidebar._person_kind(entry.person) if entry.person else entry.kind
+                row.target = person_target(entry.person) if entry.person else linked_target(entry.target)
                 if not entry.available:
                     row.remove_class("-busy", "-unread", "-current")
                     row.add_class("-wire-thread")
@@ -213,7 +215,7 @@ class ThreadCommsSidebar(SidebarVisibilityObserver, TargetTree):
         self._source = source
         self._live = live
         self._filter_view = None
-        self._filter_controls: dict[Checkbox, MessageCategory] = {}
+        self._filter_controls: dict[Checkbox, type[MessageCategory]] = {}
         self._snapshot: ThreadCommsSnapshot | None = None
         self._states: dict[tuple[str | None, str], RelationshipTreeState] = {}
         self.groups: dict[str, RelationshipRows] = {}
@@ -234,8 +236,8 @@ class ThreadCommsSidebar(SidebarVisibilityObserver, TargetTree):
     def compose(self):
         yield Static("Connecting…", classes="relationship-context", markup=False)
         self._filter_controls.clear()
-        for category in MESSAGE_CATEGORIES:
-            checkbox = Checkbox(MESSAGE_LABELS[category], id=f"filter-{category.value}",
+        for category in MessageCategory.members_with(MessageCategory):
+            checkbox = Checkbox(category.label, id=f"filter-{category.declared_name}",
                                 classes="message-filter", compact=True)
             self._filter_controls[checkbox] = category
             yield checkbox
@@ -351,11 +353,11 @@ class ThreadCommsSidebar(SidebarVisibilityObserver, TargetTree):
                 )
 
     def _bind_screen_identity(self):
-        from toad.screens.main import MainScreen
         from toad.screens.comms import CommsScreen
+        from toad.screens.main import MainScreen
 
         if isinstance(self.screen, MainScreen):
-            self.set_identity(self.screen._comms_thread, self.screen._coordination_root)
+            self.set_identity(self.screen._comms_thread, self.screen.coordination_root)
         elif isinstance(self.screen, CommsScreen):
             self.set_identity(self.screen.me, self.screen.recovery_root)
 
@@ -463,20 +465,19 @@ class ThreadCommsSidebar(SidebarVisibilityObserver, TargetTree):
         for visible in self._ordered_rows():
             visible.set_class(visible is row, "-selected")
 
-    def unread(self, name, kind):
+    def unread(self, target: NavigationTarget):
         snapshot = self.app._sidebar_snapshot
         if (snapshot is None or self.wire_root is None
                 or Path(self.wire_root).resolve() != self.app.coordination_wire.root.resolve()):
             return ExactUnread()
-        return (UnreadPresentation.for_thread(snapshot, name) if kind == "thread"
-                else ExactUnread(snapshot.unread.get(name, 0)))
+        return target.unread(snapshot)
 
-    def open_target(self, target: str, kind: str):
+    def open_target(self, target: NavigationTarget):
         if self.wire_root is None or Path(self.wire_root).resolve() != self.app.coordination_wire.root.resolve():
             self.notify("This view uses a different wire; open its matching connection to navigate.",
                         title="Comms", severity="warning")
             return
-        self.post_message(SelectTarget(target, kind))
+        self.post_message(SelectTarget(target))
 
     def request_navigation(self, row, *, entry=None, generation=None):
         if not row.is_attached:
@@ -507,8 +508,8 @@ class ThreadCommsSidebar(SidebarVisibilityObserver, TargetTree):
                 self.notify("This relationship changed; refresh the list before opening it.", title="Comms")
                 self.refresh_relationships(force=True)
                 return
-            kind = CommsSidebar._person_kind(current.person) if current.person else current.kind
-            self.open_target(current.target, kind)
+            target = person_target(current.person) if current.person else linked_target(current.target)
+            self.open_target(target)
         except (OSError, ValueError) as error:
             self.notify(str(error), title="Comms target unavailable", severity="error")
 

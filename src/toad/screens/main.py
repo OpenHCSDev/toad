@@ -1,34 +1,37 @@
+import asyncio
 from functools import partial
 from pathlib import Path
-import asyncio
-from agent_comms.comms import Comms
 
-from textual import on
+from agent_comms.acp_extension import CoordinationChangedUpdate
+from agent_comms.comms import Comms
+from agent_comms.mro_dispatch import MroDispatch, handles
+from textual import containers, getters, on
 from textual.app import ComposeResult
-from textual import getters
 from textual.binding import Binding
-from textual.command import Hit, Hits, Provider, DiscoveryHit
+from textual.command import DiscoveryHit, Hit, Hits, Provider
 from textual.content import Content
 from textual.events import ScreenResume
-from toad.screens.session_view import SessionView
-from textual.reactive import var, reactive
+from textual.reactive import reactive, var
+from textual.widget import Widget
 from textual.widgets import (
     DirectoryTree,
     OptionList,
     Tree,
 )
-from textual import containers
-from textual.widget import Widget
 
-
-from toad.app import ToadApp
 from toad import messages
-from toad.agent_schema import Agent
 from toad.acp import messages as acp_messages
-
-from toad.widgets.plan import Plan
-from toad.widgets.throbber import Throbber
+from toad.agent_schema import Agent
+from toad.app import ToadApp
+from toad.navigation_target import NavigationContext, NavigationOwner
+from toad.screens.session_view import SessionView
+from toad.session_tracker import SidebarState
+from toad.widgets.comms_chat import resolve_session_thread, session_thread_name
+from toad.widgets.comms_fork_dialog import ForkDialog
+from toad.widgets.comms_sidebar import CommsSidebar, CoordinationStatus, SelectTarget
 from toad.widgets.conversation import Conversation, ThreadLoading
+from toad.widgets.footer import Footer
+from toad.widgets.plan import Plan
 from toad.widgets.project_directory_tree import ProjectDirectoryTree
 from toad.widgets.project_panel import ProjectPanel, ProjectSearchButton
 from toad.widgets.recovery_view import RecoveryView
@@ -40,6 +43,7 @@ from toad.widgets.side_bar import SideBar, SideBarCollapsible
 from toad.navigation_target import NavigationContext, NavigationOwner
 from toad.workspace_chrome import FooterSlot, NavigationSlot
 from toad.session_tracker import SidebarState
+from toad.navigation_target import FeedTarget, DirectTarget
 
 
 class ModeProvider(Provider):
@@ -128,7 +132,7 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
     busy_count = var(0)
     throbber: getters.query_one[Throbber] = getters.query_one("#throbber")
     conversation = getters.query_one(Conversation)
-    side_bar = getters.query_one("#channels-sidebar", SideBar)
+    side_bar = getters.query_one(ChannelsSidebar)
     project_directory_tree = getters.query_one("#project_directory_tree")
 
     column = reactive(False)
@@ -152,7 +156,7 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
         self._agent = agent
         self._agent_session_id = agent_session_id
         self._agent_session_title = agent_session_title
-        self._coordination_root: str | None = None
+        self.initial_coordination_root: str | None = None
         self._identity_wire: Comms | None = None
         self._comms_thread = (
             ""
@@ -300,23 +304,30 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
                 self.app.session_tracker.update_session(self.id, title=thread_name)
         self._sync_thread_sidebar()
         if self.id is not None:
-            self.app.sync_recovery_root(self.id, self._coordination_root)
+            self.app.sync_recovery_root(self.id, self.coordination_root)
 
     def _sync_thread_sidebar(self) -> None:
         """Bind a newly mounted right panel to the current session identity."""
         if status := self.query_one_optional(CoordinationStatus):
             status.set_thread(self._comms_thread)
         if recovery := self.query_one_optional(RecoveryView):
-            recovery.set_identity(self._comms_thread, self._coordination_root)
+            recovery.set_identity(self._comms_thread, self.coordination_root)
         if comms_tree := self.query_one_optional(ThreadCommsSidebar):
-            comms_tree.set_identity(self._comms_thread, self._coordination_root)
+            comms_tree.set_identity(self._comms_thread, self.coordination_root)
 
-    @on(acp_messages.CoordinationUpdate)
-    async def on_coordination_update(
-        self, event: acp_messages.CoordinationUpdate
-    ) -> None:
-        self._coordination_root = event.wire_root
-        self.conversation.queue_supported = event.prompt_queue
+    @property
+    def coordination_root(self) -> str | None:
+        fact = self.app.coordination_facts.get(self)
+        return fact.wire_root if fact is not None else self.initial_coordination_root
+
+    @on(acp_messages.CommsUpdated)
+    async def on_comms_updated(self, event: acp_messages.CommsUpdated) -> None:
+        await ScreenCommsConsumer(self).dispatch(event.update)
+
+    @handles(CoordinationChangedUpdate)
+    async def on_coordination_update(self, event: CoordinationChangedUpdate) -> None:
+        self.app.coordination_facts[self] = event
+        self.conversation.queue_supported = True
         if event.worktree is not None:
             project = Path(event.worktree)
             if project != self.project_path:
@@ -326,8 +337,8 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
                 await self.conversation.sync_project_path(project)
                 if self.id is not None:
                     self.app.sync_coordination_project(self.id, project)
-        self.on_comms_session_named(event.thread)
-        self.conversation.set_prompt_history_scope(f"thread:{event.thread}")
+        self.on_comms_session_named(event.thread.name)
+        self.conversation.set_prompt_history_scope(f"thread:{event.thread.name}")
 
     _last_dm_target: str | None = None
 
@@ -342,14 +353,19 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
 
             from toad.comms_root import current_root, root_is_current
 
-            if self._coordination_root is not None and not root_is_current(self._coordination_root):
+            if self.coordination_root is not None and not root_is_current(
+                self.coordination_root
+            ):
                 raise ValueError("Comms route changed; this session retains its former wire")
-            root_path = (Path(self._coordination_root).expanduser()
-                         if self._coordination_root is not None else current_root())
+            root_path = (
+                Path(self.coordination_root).expanduser()
+                if self.coordination_root is not None
+                else current_root()
+            )
             if self._identity_wire is None or self._identity_wire.root != root_path:
                 shared = self.app.coordination_wire
                 self._identity_wire = shared if shared.root == root_path else wire(root_path)
-            if self._coordination_root is not None:
+            if self.coordination_root is not None:
                 resolved = self._identity_wire.registry.require(self._comms_thread).name
             else:
                 resolved = resolve_session_thread(
@@ -360,11 +376,6 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
         if resolved is not None:
             self._comms_thread = resolved
         return self._comms_thread
-
-    async def _open_comms(self, target: str, kind: str) -> None:
-        if self.id is None:
-            return
-        await self.open_sidebar_target(target, kind)
 
     @property
     def navigation_context(self) -> NavigationContext:
@@ -386,9 +397,8 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
 
     async def action_toggle_irc(self) -> None:
         """Open the IRC feed as a native Toad session."""
-        from toad.constants import ALL_COMMS_TARGET
-
-        await self._open_comms(ALL_COMMS_TARGET, "irc")
+        if self.id is not None:
+            await self.open_sidebar_target(FeedTarget())
 
     async def action_toggle_dm(self) -> None:
         """Open the last-selected DM as a native Toad session."""
@@ -404,42 +414,13 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
                 if name != self._session_thread
             ]
             target = peers[0] if peers else ""
-        if target:
-            await self._open_comms(target, "dm")
+        if target and self.id is not None:
+            await self.open_sidebar_target(DirectTarget(target))
 
     @on(SelectTarget)
     async def on_comms_select_target(self, event: SelectTarget) -> None:
         """Open channels and DMs through Toad's native session modes."""
-        await self.open_sidebar_target(event.target, event.kind)
-
-    @on(CommsSidebar.ThreadAction)
-    async def on_comms_thread_action(self, event: CommsSidebar.ThreadAction) -> None:
-        if event.action != "comms_fork":
-            return
-        parent = event.name
-
-        def do_fork(spec: tuple[str, str] | None) -> None:
-            if not spec:
-                return
-            from agent_comms import invoke_context_tool
-            from agent_comms.comms import wire as _wire
-
-            from toad.comms_root import implicit_root, root_is_current, run_selected_write
-
-            try:
-                if self._coordination_root is not None and not root_is_current(self._coordination_root):
-                    raise ValueError("Comms route changed; reopen the thread before forking")
-                comms = _wire()
-                run_selected_write(
-                    comms.root, invoke_context_tool, comms, event.action,
-                    subject=parent, arguments={"name": spec[0], "task": spec[1]},
-                    implicit=implicit_root(),
-                )
-                self.notify(f"forked {spec[0]} from {parent}", title="Comms")
-            except Exception as error:
-                self.notify(str(error), title="Comms fork failed", severity="error")
-
-        self.app.push_screen(ForkDialog(parent), do_fork)
+        await self.open_sidebar_target(event.target)
 
     def action_session_previous(self) -> None:
         if self.screen.id is not None:
@@ -515,7 +496,8 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
         # Route discovery already resolved new wire-thread identities off-loop.
         if sidebar := self.query_one_optional(CommsSidebar):
             sidebar.session_thread = (
-                self._comms_thread if self._coordination_root is not None
+                self._comms_thread
+                if self.coordination_root is not None
                 else self._resolve_comms_thread()
             )
         if self._content_loaded:
@@ -547,7 +529,7 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
 
     def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
         if action == "show_sidebar":
-            sidebar = self.query_one_optional("#channels-sidebar", SideBar)
+            sidebar = self.query_one_optional(ChannelsSidebar)
             if sidebar is None or sidebar.has_focus_within:
                 return False
         return True
@@ -592,3 +574,12 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
             conversation.remove_class(f"-scrollbar-{old_scrollbar}")
         if scrollbar:
             conversation.add_class(f"-scrollbar-{scrollbar}")
+
+
+class ScreenCommsConsumer(MroDispatch):
+    def __init__(self, screen):
+        self.screen = screen
+
+    @handles(CoordinationChangedUpdate)
+    async def coordination_changed(self, update: CoordinationChangedUpdate):
+        await self.screen.on_coordination_update(update)

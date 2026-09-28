@@ -1,0 +1,4 @@
+PASS: fresh ACP SDK -> real JSON-RPC validation -> mounted advertised command completion; local collision and forwarding preserved
+PASS: mounted agent command insertion, local execution before agent readiness, collision ownership and invalid-argument consumption
+PASS: mounted DM menu/slash label parity, exact open target, archive and stale availability; durable history unchanged
+PASS: mounted channel pointer/slash pin, any-mode and copy share declaration behavior; no prompt published

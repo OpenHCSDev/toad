@@ -1,0 +1,8 @@
+Resolved 1 package in 8ms
+   Building agent-comms @ git+https://github.com/OpenHCSDev/agent-comms.git@7acdb80f0c17f4f7597576807033229b85334f76
+      Built agent-comms @ git+https://github.com/OpenHCSDev/agent-comms.git@7acdb80f0c17f4f7597576807033229b85334f76
+Prepared 1 package in 383ms
+Uninstalled 1 package in 17ms
+Installed 1 package in 4ms
+ - agent-comms==0.1.0 (from git+https://github.com/OpenHCSDev/agent-comms.git@ff5d5a733f2c73116c877739f17c90b4c9142872)
+ + agent-comms==0.1.0 (from git+https://github.com/OpenHCSDev/agent-comms.git@7acdb80f0c17f4f7597576807033229b85334f76)

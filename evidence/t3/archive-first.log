@@ -1,0 +1,16 @@
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-t3-commands-20260928/evidence/t1/run_consumer.py", line 17, in <module>
+    main()
+    ~~~~^^
+  File "/home/ts/wt/toad-t3-commands-20260928/evidence/t1/run_consumer.py", line 8, in main
+    from toad.app import ToadApp
+  File "/home/ts/wt/toad-t3-commands-20260928/src/toad/app.py", line 31, in <module>
+    from toad.db import DB
+  File "/home/ts/wt/toad-t3-commands-20260928/src/toad/db.py", line 74, in <module>
+    class Session(TypedTable, declared_name="sessions"):
+    ...<21 lines>...
+        )
+  File "/home/ts/wt/toad-t3-commands-20260928/src/toad/db.py", line 76, in Session
+    default=None, metadata={"sql": Column(primary_key=True, auto_increment=True)}
+                                   ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: Column.__init__() got an unexpected keyword argument 'auto_increment'

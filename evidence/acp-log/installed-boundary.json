@@ -1,0 +1,16 @@
+{
+  "toad_module": "/home/ts/wt/toad-acp-log-records-20260928/.venv/lib/python3.14/site-packages/toad/acp/log_records.py",
+  "failure_module": "/home/ts/wt/toad-acp-log-records-20260928/.venv/lib/python3.14/site-packages/agent_comms/acp_failure.py",
+  "shared_failure_commit": "bb8a66089f3a5a72c4554ba1f29dc884cbf23896",
+  "textual_module": "/home/ts/.local/share/agent-comms/runtime-round2-final-20260928/lib/python3.14/site-packages/textual/__init__.py",
+  "textual_install": {
+    "url": "https://github.com/OpenHCSDev/textual.git",
+    "vcs_info": {
+      "vcs": "git",
+      "commit_id": "16ede007c34bec893b2dbedb3999223381129678",
+      "requested_revision": "16ede007c34bec893b2dbedb3999223381129678"
+    }
+  },
+  "source_override": false,
+  "live_install_changed": false
+}

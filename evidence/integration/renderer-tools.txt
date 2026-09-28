@@ -1,0 +1,10 @@
+Resolved 8 packages in 3ms
+Installed 8 packages in 44ms
+ + annotated-types==0.8.0
+ + metaclass-registry==0.2.1
+ + numpy==2.5.3
+ + portalocker==4.4.0
+ + psutil==7.2.2
+ + python-introspect==0.1.14
+ + pyzmq==27.2.0
+ + zmqruntime==0.2.24

@@ -1,0 +1,15 @@
+{
+  "root": "src/toad/",
+  "base_revision": "67ddc9e606ff7a9ce59a63df5227f1d1fb8f536b",
+  "head_revision": "014c2dbae9d0fa183c852255d5bdc0f8276beedf",
+  "paths": [
+    "src/toad/cli.py",
+    "src/toad/web_server.py"
+  ],
+  "tool": "python -m agent_comms.debt_ratchet",
+  "exit_code": 0,
+  "comparable_metrics": 937,
+  "positive_deltas": {},
+  "nonzero_comparable_deltas": {},
+  "new_class_baseline_note": "New classes have no prior baseline; this receipt does not claim a global NRA scan."
+}

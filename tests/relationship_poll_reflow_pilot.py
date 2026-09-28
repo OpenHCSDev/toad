@@ -62,6 +62,10 @@ async def main():
             sort = right.query_one(RelationshipSort)
             row = tree.groups["collaborating"].rows["thread", "peer"]
             original_row = row
+            # Busy-row animation is an intentional repaint, independent of
+            # polling. Keep the same busy layout and stop only this fixture
+            # timer while measuring source-driven invalidation.
+            tree._spinner_timer.stop()
             with (patch.object(screen, "_refresh_layout", wraps=screen._refresh_layout) as layout,
                   patch.object(app, "_display", wraps=app._display) as display):
                 for _ in range(8):

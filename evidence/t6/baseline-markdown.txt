@@ -1,0 +1,2 @@
+{"code_rows": 10000, "boundary": "height measurement CPU, not frame latency", "native_median_ms": 4.512, "prepared_median_ms": 0.015}
+Markdown rows: exact native strips/metadata/copy, padding, Unicode, wrapping fallback and 10K-line addressing

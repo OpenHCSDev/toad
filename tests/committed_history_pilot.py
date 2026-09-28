@@ -5,22 +5,31 @@ import os
 import tempfile
 from pathlib import Path
 
-from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.acp_extension import TranscriptChangedUpdate, TurnSettledUpdate
 from agent_comms.transcript_events import AssistantTranscript
+from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from textual.content import Content
 from thread_activation_pilot import FrameApp
+
 from toad.acp.agent import Agent
-from toad.acp.messages import TranscriptChanged, TurnSettled
+from toad.acp.messages import CommsUpdated
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.transcript_history import TranscriptHistory
 
 
 class SnapshotAgent(Agent):
     def __init__(self, page):
-        super().__init__(Path.cwd(), {
-            "name": "Snapshot fixture", "identity": "snapshot-fixture", "short_name": "fixture",
-            "run_command": {"*": "/bin/false"}, "protocol": "acp",
-        }, None)
+        super().__init__(
+            Path.cwd(),
+            {
+                "name": "Snapshot fixture",
+                "identity": "snapshot-fixture",
+                "short_name": "fixture",
+                "run_command": {"*": "/bin/false"},
+                "protocol": "acp",
+            },
+            None,
+        )
         self.page = page
         self.ready = False
 
@@ -35,11 +44,15 @@ class SnapshotAgent(Agent):
         return None
 
     async def get_goal_snapshot(self):
-        return None, None
+        return (None, None)
 
     async def get_input_delivery(self, **kwargs):
-        return {"inputs": [], "historicalCount": 0, "dismissedHistoricalCount": 0,
-                "historicalInputs": []}
+        return {
+            "inputs": [],
+            "historicalCount": 0,
+            "dismissedHistoricalCount": 0,
+            "historicalInputs": [],
+        }
 
     async def get_transcript_page(self, **kwargs):
         assert self.ready, "Compaction must wait for session metadata"
@@ -52,47 +65,75 @@ class SnapshotAgent(Agent):
 async def main():
     with tempfile.TemporaryDirectory(prefix="toad-committed-window-") as directory:
         root = Path(directory)
-        os.environ.update(XDG_CONFIG_HOME=str(root / "config"), XDG_STATE_HOME=str(root / "state"),
-                          XDG_DATA_HOME=str(root / "data"), AGENT_COMMS_ROOT=str(root / "wire"))
+        os.environ.update(
+            XDG_CONFIG_HOME=str(root / "config"),
+            XDG_STATE_HOME=str(root / "state"),
+            XDG_DATA_HOME=str(root / "data"),
+            AGENT_COMMS_ROOT=str(root / "wire"),
+        )
         app = FrameApp(project_dir=str(root))
         async with app.run_test(size=(120, 40)) as pilot:
             await pilot.pause()
             conversation = app.screen.conversation
-            await conversation.contents.mount(*[AgentResponse(f"Old block {i}\n\nAnother paragraph") for i in range(100)])
+            await conversation.contents.mount(
+                *[
+                    AgentResponse(f"Old block {i}\n\nAnother paragraph")
+                    for i in range(100)
+                ]
+            )
             await pilot.pause()
-            assert sum(isinstance(child, AgentResponse) for child in conversation.contents.children) == 100
+            assert (
+                sum(
+                    (
+                        isinstance(child, AgentResponse)
+                        for child in conversation.contents.children
+                    )
+                )
+                == 100
+            )
             assert len(conversation.contents.children) > conversation.MAX_LIVE_BLOCKS
             cursor = TranscriptCursor("", 0)
             page = TranscriptPage(
-                tuple(AssistantTranscript(f'Saved paragraph {i}') for i in range(40))
-                + (AssistantTranscript('Canonical final reply'),),
-                cursor, cursor, False, False,
+                tuple((AssistantTranscript(f"Saved paragraph {i}") for i in range(40)))
+                + (AssistantTranscript("Canonical final reply"),),
+                cursor,
+                cursor,
+                False,
+                False,
             )
             agent = SnapshotAgent(page)
             conversation.set_reactive(type(conversation).agent, agent)
             conversation.prompt.text = "Keep my draft"
             conversation.window.anchor()
-            conversation.post_message(TranscriptChanged())
+            conversation.post_message(CommsUpdated(TranscriptChangedUpdate(None)))
             await pilot.pause()
             assert not conversation.contents.query(TranscriptHistory)
             agent.ready = True
-            # Cancellation settles the active turn, then replaces accumulated
-            # live widgets with the committed transcript. That replacement must
-            # preserve follow intent on every painted frame, not reanchor later.
             conversation._managed_turn_id = "cancelled-turn"
             conversation.busy_count = 1
             conversation.turn = "agent"
             app.frames = []
-            conversation.post_message(TurnSettled("cancelled-turn", agent=agent, sequence=1))
-            conversation.post_message(TranscriptChanged())
+            conversation.post_message(
+                CommsUpdated(
+                    TurnSettledUpdate("cancelled-turn"), agent=agent, sequence=1
+                )
+            )
+            conversation.post_message(CommsUpdated(TranscriptChangedUpdate(None)))
             async with asyncio.timeout(5):
                 while not conversation.contents.query(TranscriptHistory):
-                    await asyncio.sleep(.02)
+                    await asyncio.sleep(0.02)
             await pilot.pause()
-            painted = [frame for frame in app.frames if "Saved paragraph" in frame[3]
-                       or "Canonical final reply" in frame[3]]
-            assert painted and all(y == maximum and "Canonical final reply" in text
-                                   for _, y, maximum, text in painted), painted
+            painted = [
+                frame
+                for frame in app.frames
+                if "Saved paragraph" in frame[3] or "Canonical final reply" in frame[3]
+            ]
+            assert painted and all(
+                (
+                    y == maximum and "Canonical final reply" in text
+                    for _, y, maximum, text in painted
+                )
+            ), painted
             assert conversation.turn == "client" and conversation.busy_count == 0
             assert conversation.window.follows_tail
             assert len(list(conversation.contents.query("*"))) < 100
