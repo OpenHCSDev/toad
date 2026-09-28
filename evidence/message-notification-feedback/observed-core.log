@@ -1,0 +1,18 @@
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-message-notification-feedback-20260928/tests/observed_thread_activity_pilot.py", line 70, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-message-notification-feedback-20260928/tests/observed_thread_activity_pilot.py", line 57, in main
+    dm = app.screen.query_one(CommsChatView)
+  File "/home/ts/.local/share/agent-comms/runtime-acp-extensions-20260928/lib/python3.14/site-packages/textual/dom.py", line 1582, in query_one
+    raise NoMatches(f"No nodes match {query_selector!r} on {base_node!r}")
+textual.css.query.NoMatches: No nodes match 'CommsChatView' on MainScreen(id='session-1', classes='-wide')

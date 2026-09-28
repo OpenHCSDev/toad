@@ -53,14 +53,15 @@ async def main():
             await until(lambda: observed.presentation is not None and not observed.presentation.busy)
             await pilot.pause()
             assert tracker.state == "idle" and tracker.summary == "Ready"
-            await app.open_comms_session(owner_mode=owner, project_path=root, me="observer", target="peer", kind="dm")
+            comms.threads.register(Thread("dm-peer", frozenset({"comms"}), str(root), pid=os.getpid()))
+            await app.open_comms_session(owner_mode=owner, project_path=root, me="peer", target="dm-peer", kind="dm")
             dm = app.screen.query_one(CommsChatView)
             observed = dm.query_one(ObservedThreadActivity)
             for detail in ("Checking #comms message", "Responding in #comms"):
-                comms.agents.set_activity("peer", ActivityState.THINKING, detail)
+                comms.agents.set_activity("dm-peer", ActivityState.THINKING, detail)
                 await until(lambda: observed.presentation is not None and detail in observed.presentation.summary)
                 assert detail in str(observed.render()) and observed.has_class("-working")
-            comms.agents.set_activity("peer", ActivityState.IDLE)
+            comms.agents.set_activity("dm-peer", ActivityState.IDLE)
             await until(lambda: observed.presentation is not None and not observed.presentation.busy)
             assert str(observed.render()) == "Ready"
         print("PASS: actual registry/activity/core ThreadView -> ACP reader/native conversation and DM; Checking/Responding target, Ready override and idle recovery; no provider/process launch")
