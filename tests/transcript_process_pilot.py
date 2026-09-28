@@ -11,7 +11,8 @@ import time
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from agent_comms.transcripts import TranscriptCursor, TranscriptEvent, TranscriptPage
+from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcript_events import AssistantTranscript, NoticeTranscript, SentTranscript, ThinkingTranscript, ToolEndTranscript, ToolStartTranscript, UserTranscript
 from agent_comms.messages import Message, MessageType
 from agent_comms.routing import MessageRoute, TurnRouting
 from agent_comms.tool_results import ToolDiff
@@ -64,7 +65,7 @@ class ObservedPool(RenderProcessPool):
 
 def page(text, *, older=False, cursor=None):
     cursor = cursor or TranscriptCursor("process-fixture", 1)
-    return TranscriptPage((TranscriptEvent("assistant", text),), cursor, cursor, older, False)
+    return TranscriptPage((AssistantTranscript(text),), cursor, cursor, older, False)
 
 
 async def until(predicate):
@@ -92,16 +93,13 @@ async def main():
         MessageRoute("worker", ("#channel", "peer")),
     )
     events = (
-        TranscriptEvent("user", "Incoming message", routing=routing),
-        TranscriptEvent("assistant", text, routing=routing),
-        TranscriptEvent("thinking", "A thought\n\n" + table),
-        TranscriptEvent("notice", "Notice"), TranscriptEvent("sent", "Sent"),
-        TranscriptEvent("tool_start", tool_call_id="edit/1", tool_name="edit",
-                        raw_input={"path": "file.py", "edits": [{"old": "a", "new": "b"}]}),
-        TranscriptEvent("tool_end", "edited", tool_call_id="edit/1", tool_name="edit",
-                        diff=ToolDiff("--- a/file.py\n+++ b/file.py\n@@ -1 +1 @@\n-a\n+b\n")),
-        TranscriptEvent("assistant", "```text\n" + "fenced line\n" * 100 + "```\n\n" +
-                        "\n".join(f"- item {i}" for i in range(100))),
+        UserTranscript('Incoming message', routing=routing),
+        AssistantTranscript(text, routing=routing),
+        ThinkingTranscript('A thought\n\n' + table),
+        NoticeTranscript('Notice'), SentTranscript('Sent'),
+        ToolStartTranscript(tool_call_id='edit/1', tool_name='edit', raw_input={'path': 'file.py', 'edits': [{'old': 'a', 'new': 'b'}]}),
+        ToolEndTranscript(tool_call_id='edit/1', tool_name='edit', diff=ToolDiff('--- a/file.py\n+++ b/file.py\n@@ -1 +1 @@\n-a\n+b\n'), text='edited'),
+        AssistantTranscript('```text\n' + 'fenced line\n' * 100 + '```\n\n' + '\n'.join((f'- item {i}' for i in range(100)))),
     )
     assert pickle.loads(pickle.dumps(events)) == events
     expected = transcript_fragments(events)
@@ -123,8 +121,8 @@ async def main():
     # helper's request-owned fallback must close its children before returning.
     baseline_children = {child.pid for child in multiprocessing.active_children()}
     async with App().run_test():
-        fallback = await prepare_transcript_fragments((TranscriptEvent("assistant", table * 8),))
-    assert fallback == transcript_fragments((TranscriptEvent("assistant", table * 8),))
+        fallback = await prepare_transcript_fragments((AssistantTranscript(table * 8),))
+    assert fallback == transcript_fragments((AssistantTranscript(table * 8),))
     assert {child.pid for child in multiprocessing.active_children()} == baseline_children
 
     with tempfile.TemporaryDirectory(prefix="toad-transcript-process-") as directory:

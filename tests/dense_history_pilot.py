@@ -5,7 +5,8 @@ import os
 import tempfile
 from pathlib import Path
 
-from agent_comms.transcripts import TranscriptCursor, TranscriptEvent, TranscriptPage
+from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcript_events import AssistantTranscript
 from runtime_fixture import ToadApp
 from toad.widgets.transcript_history import TranscriptHistory
 
@@ -16,8 +17,7 @@ async def main():
         os.environ.update(XDG_CONFIG_HOME=str(root / "config"), XDG_STATE_HOME=str(root / "state"),
                           XDG_DATA_HOME=str(root / "data"), AGENT_COMMS_ROOT=str(root / "wire"))
         cursor = TranscriptCursor("fixture", 1)
-        page = TranscriptPage(tuple(TranscriptEvent("assistant",
-            f"Record {i}\n\n" + "\n".join(f"- item {j}" for j in range(20))) for i in range(30)),
+        page = TranscriptPage(tuple(AssistantTranscript(f'Record {i}\n\n' + '\n'.join((f'- item {j}' for j in range(20)))) for i in range(30)),
             cursor, cursor, False, False)
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(110, 38)) as pilot:

@@ -6,7 +6,8 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
-from agent_comms.transcripts import TranscriptCursor, TranscriptEvent, TranscriptPage
+from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcript_events import AssistantTranscript
 from textual.screen import Screen
 from textual.selection import SELECT_ALL
 from textual.widgets import Static
@@ -27,8 +28,7 @@ class PagedAgent(SnapshotAgent):
         super().__init__(None)
         self.ready = True
         self.identity = "off-tail-fixture"
-        self.events = [TranscriptEvent("assistant", f"Saved {index}\n\n" + "\n".join(
-            f"- line {line}" for line in range(16))) for index in range(60)]
+        self.events = [AssistantTranscript(f'Saved {index}\n\n' + '\n'.join((f'- line {line}' for line in range(16)))) for index in range(60)]
         self.requests = []
         self.entered = asyncio.Event()
         self.release = asyncio.Event()
@@ -92,7 +92,7 @@ async def exercise(app, pilot):
         peak = 0
         for cycle in range(12):
             texts = [f"Committed cycle {cycle} row {index}" for index in range(36)]
-            agent.events.extend(TranscriptEvent("assistant", text) for text in texts)
+            agent.events.extend(AssistantTranscript(text) for text in texts)
             blocks = [AgentResponse(text) for text in texts]
             await view.contents.mount(*blocks)
             await checkpoint(view)
@@ -118,7 +118,7 @@ async def exercise(app, pilot):
         await view.contents.mount(saved, missing)
         start = history.through
         agent.events.append(routed(41, "saved identity"))
-        agent.events.extend(TranscriptEvent("assistant", f"Evidence gap {i}") for i in range(24))
+        agent.events.extend(AssistantTranscript(f'Evidence gap {i}') for i in range(24))
         agent.requests.clear()
         await checkpoint(view)
         assert not saved.is_attached and missing.is_attached
@@ -128,7 +128,7 @@ async def exercise(app, pilot):
         # Native selection and a local interactive barrier protect live content.
         protected = Static("Protected source block")
         block = AgentResponse("Selected committed block")
-        agent.events.append(TranscriptEvent("assistant", "Selected committed block"))
+        agent.events.append(AssistantTranscript('Selected committed block'))
         await view.contents.mount(block)
         await block.mount(protected)
         app.screen.selections = {protected: SELECT_ALL}
@@ -152,7 +152,7 @@ async def exercise(app, pilot):
 
         # Reader input during source I/O supersedes the retirement transaction.
         late = AgentResponse("Commit whose reader moves")
-        agent.events.append(TranscriptEvent("assistant", "Commit whose reader moves"))
+        agent.events.append(AssistantTranscript('Commit whose reader moves'))
         await view.contents.mount(late)
         agent.entered.clear()
         agent.release.clear()
@@ -171,7 +171,7 @@ async def exercise(app, pilot):
 
         # An ordinary arrival after the source capture has no coverage claim.
         old = AgentResponse("Committed before delayed read")
-        agent.events.append(TranscriptEvent("assistant", "Committed before delayed read"))
+        agent.events.append(AssistantTranscript('Committed before delayed read'))
         await view.contents.mount(old)
         agent.entered.clear()
         agent.release.clear()
@@ -187,7 +187,7 @@ async def exercise(app, pilot):
         # A saved block currently being read must remain visible in place.
         text = "Visible committed block\n\n" + "\n".join(f"- reading {i}" for i in range(24))
         visible = AgentResponse(text)
-        agent.events.append(TranscriptEvent("assistant", text))
+        agent.events.append(AssistantTranscript(text))
         await view.contents.mount(visible)
         await pilot.pause()
         window.scroll_to(y=window.max_scroll_y - 5, animate=False, immediate=True)
@@ -205,8 +205,8 @@ async def exercise(app, pilot):
         # Invalid coverage progress is rejected without losing the live cohort
         # or turning a source replacement race into a fatal worker exception.
         invalid = AgentResponse("Pending during invalid coverage")
-        agent.events.append(TranscriptEvent("assistant", "Pending during invalid coverage"))
-        agent.events.extend(TranscriptEvent("assistant", f"Invalid scan {i}") for i in range(12))
+        agent.events.append(AssistantTranscript('Pending during invalid coverage'))
+        agent.events.extend(AssistantTranscript(f'Invalid scan {i}') for i in range(12))
         await view.contents.mount(invalid)
         through = history.through
         load = agent.get_transcript_page
@@ -245,7 +245,7 @@ async def exercise(app, pilot):
         view._transcript_dirty = False
         await app.switch_mode("checkpoint-parked")
         hidden = AgentResponse("Committed while inactive")
-        agent.events.append(TranscriptEvent("assistant", "Committed while inactive"))
+        agent.events.append(AssistantTranscript('Committed while inactive'))
         await view.contents.mount(hidden)
         await checkpoint(view)
         assert not hidden.is_attached and history.through == agent.cursor

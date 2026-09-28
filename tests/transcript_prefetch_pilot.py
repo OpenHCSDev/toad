@@ -7,7 +7,8 @@ import tempfile
 import threading
 from unittest.mock import patch
 
-from agent_comms.transcripts import TranscriptCursor, TranscriptEvent, TranscriptPage
+from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcript_events import AssistantTranscript, ToolStartTranscript
 
 from runtime_fixture import ToadApp
 from toad.transcript_preparation import PageRequest, TranscriptPageBuffer
@@ -20,7 +21,7 @@ def cursor(offset):
 
 
 def page(before, after, *, text=None):
-    return TranscriptPage((TranscriptEvent("assistant", text or f"Page {before}\n\n" + "- row\n" * 25),),
+    return TranscriptPage((AssistantTranscript(text or f'Page {before}\n\n' + '- row\n' * 25),),
                           cursor(before), cursor(after), before > 0, after < 1000)
 
 
@@ -106,8 +107,7 @@ async def model_checks():
 
     # Oversized nested tool inputs also count toward the cache's memory budget.
     async def huge(**kwargs):
-        event = TranscriptEvent("tool_start", "", tool_call_id="large", tool_name="read",
-                                raw_input={"payload": "x" * 10000})
+        event = ToolStartTranscript(tool_call_id='large', tool_name='read', raw_input={'payload': 'x' * 10000})
         return TranscriptPage((event,), cursor(100), cursor(110), True, True)
 
     small_runtime = PreparationRuntime(renderer, max_bytes=1024)

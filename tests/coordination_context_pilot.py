@@ -6,7 +6,7 @@ import os
 import tempfile
 from pathlib import Path
 
-from agent_comms.transcripts import TranscriptEvent
+from agent_comms.transcript_events import ContextTranscript, UserTranscript, TranscriptCodec
 from runtime_fixture import ToadApp
 from textual.widgets import Collapsible
 from textual.widgets._markdown import (
@@ -45,7 +45,7 @@ async def main():
                           XDG_STATE_HOME=str(root / "state"),
                           AGENT_COMMS_ROOT=str(root / "wire"))
         # One collapsed disclosure even when its source is larger than the page budget.
-        large = transcript_fragments((TranscriptEvent("context", CONTEXT * 20),))
+        large = transcript_fragments((ContextTranscript(CONTEXT * 20),))
         assert len(large) == 1 and large[0].events[0].text == CONTEXT * 20
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(110, 38)) as pilot:
@@ -59,8 +59,8 @@ async def main():
                 "sessionUpdate": "agent_message_chunk",
                 "content": {"type": "text", "text": ""},
                 "_meta": {"agentComms": {"transcript": [
-                    TranscriptEvent("context", CONTEXT).to_wire(),
-                    TranscriptEvent("user", CONTEXT).to_wire(),
+                    TranscriptCodec.encode(ContextTranscript(CONTEXT)),
+                    TranscriptCodec.encode(UserTranscript(CONTEXT)),
                 ]}},
             })
             await pilot.pause()

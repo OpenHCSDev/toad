@@ -523,9 +523,10 @@ class Agent(AgentBase):
                 self._post_coordination_update()
             if isinstance(state.get("transcript"), list):
                 if not self._reconnecting:
-                    from agent_comms.transcripts import TranscriptEvent, TranscriptPage, TranscriptCursor
+                    from agent_comms.transcripts import TranscriptPage, TranscriptCursor
+                    from agent_comms.transcript_events import TranscriptEvent, TranscriptCodec
 
-                    events = tuple(TranscriptEvent.from_wire(event) for event in state["transcript"])
+                    events = tuple(TranscriptCodec.decode(TranscriptEvent, event) for event in state["transcript"])
                     page_data = state.get("transcriptPage")
                     page = TranscriptPage(
                         events, TranscriptCursor(**page_data["before"]),
@@ -1352,7 +1353,7 @@ class Agent(AgentBase):
                     },
                     "terminal": True,
                     "auth": {"terminal": os.name != "nt"},
-                    "_meta": {"agentComms": {"transcriptSnapshots": True, "transcriptDiffs": True}},
+                    "_meta": {"agentComms": {"transcriptSnapshots": True}},
                 },
                 {
                     "name": toad.NAME,

@@ -7,7 +7,8 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
-from agent_comms.transcripts import TranscriptCursor, TranscriptEvent, TranscriptPage
+from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcript_events import AssistantTranscript, ThinkingTranscript
 from textual.selection import SELECT_ALL
 from textual.widgets._markdown import MarkdownParagraph
 
@@ -21,7 +22,7 @@ async def exercise(app, pilot, count, *, matches=True):
     view = app.screen.conversation
     view.visible_categories = ALL_CATEGORIES
     events = tuple(
-        TranscriptEvent("thinking" if matches and index % 31 == 0 else "assistant", f"record-{index}")
+        (ThinkingTranscript if matches and index % 31 == 0 else AssistantTranscript)( f"record-{index}")
         for index in range(count)
     )
     identity = f"projection-{count}-{matches}"
@@ -47,7 +48,7 @@ async def exercise(app, pilot, count, *, matches=True):
         await pilot.pause()
         start = history.pages[0].start
         boundary = canonical.before.offset + start
-        expected = {event.text for event in events[:boundary] if event.kind == "thinking"}
+        expected = {event.text for event in events[:boundary] if event.declared_name == "thinking"}
         view.visible_categories = frozenset({MessageCategory.THINKING})
         view.window.release_anchor()
         while history._filter_has_older:

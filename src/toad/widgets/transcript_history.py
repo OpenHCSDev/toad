@@ -9,7 +9,12 @@ from collections.abc import Awaitable, Callable, Iterator
 from typing import TYPE_CHECKING
 from weakref import ref
 
-from agent_comms.transcripts import TranscriptCursor, TranscriptEvent, TranscriptPage
+from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.mro_dispatch import MroDispatch, handles
+from agent_comms.transcript_events import (
+    TranscriptEvent, ContextTranscript, UserTranscript, AgentTextTranscript,
+    ThinkingTranscript, LiveTextTranscript, ToolTranscript, ToolStartTranscript, ToolEndTranscript,
+)
 from agent_comms.tool_results import tool_result_content
 from agent_comms.backend import tool_kind
 from textual import events, on
@@ -34,7 +39,7 @@ from toad.widgets.history_anchor import HistoryAnchor
 from toad.widgets.presentation_window import PresentationBudget, protected_presentations
 from toad.widgets.committed_presentation import CommittedHistory
 from toad.widgets.message_filter import (
-    ALL_CATEGORIES, CategorizedBlock, MessageCategory, apply_block_filter, event_category, is_routed_event,
+    ALL_CATEGORIES, CategorizedBlock, MessageCategory, apply_block_filter, event_category,
 )
 from toad.widgets.transcript_fragments import (
     TranscriptFragment, prepare_transcript_fragments, transcript_fragments,
@@ -48,49 +53,70 @@ class _PublicationRetired(Exception):
     """Unwind an anchor transaction whose source owner no longer publishes."""
 
 
+class TranscriptBlockConsumer(MroDispatch):
+    def __init__(self, *, fragment: bool, show_divider: bool):
+        self.blocks: list[Widget] = []
+        self.tools: dict[str, protocol.ToolCall] = {}
+        self.fragment = fragment
+        self.show_divider = show_divider
+
+    @handles(ContextTranscript)
+    def context(self, event: ContextTranscript):
+        from toad.widgets.coordination_context import CoordinationContext
+        self.blocks.append(CoordinationContext(event.text))
+
+    @handles(UserTranscript)
+    def user(self, event: UserTranscript):
+        if event.routed:
+            from toad.widgets.incoming_message import IncomingMessage
+            message = event.routing.requests[0]
+            self.blocks.append(IncomingMessage(
+                message.sender, event.text, message.target, show_header=self.show_divider,
+                sequence=message.seq,
+            ))
+        else:
+            self.blocks.append(UserInput(event.text, show_divider=self.show_divider))
+
+    @handles(AgentTextTranscript)
+    def agent(self, event: AgentTextTranscript):
+        self.blocks.append(AgentResponse(
+            event.text, route=event.routing.reply if event.routing else None,
+            category=event_category(event), paginate=not self.fragment,
+            show_divider=self.show_divider,
+        ))
+
+    @handles(ThinkingTranscript)
+    def thinking(self, event: ThinkingTranscript):
+        self.blocks.append(AgentThought(event.text, paginate=not self.fragment))
+
+    def tool(self, event: ToolTranscript) -> protocol.ToolCall:
+        tool_id = event.tool_call_id
+        if tool_id not in self.tools:
+            self.tools[tool_id] = {
+                "sessionUpdate": "tool_call", "toolCallId": tool_id,
+                "title": event.tool_name or "Tool", "status": "completed",
+                "kind": tool_kind(event.tool_name),
+            }
+            self.blocks.append(ToolCall(self.tools[tool_id], id=encode_tool_call_id(tool_id)))
+        return self.tools[tool_id]
+
+    @handles(ToolStartTranscript)
+    def tool_start(self, event: ToolStartTranscript):
+        self.tool(event)["rawInput"] = event.raw_input
+
+    @handles(ToolEndTranscript)
+    def tool_end(self, event: ToolEndTranscript):
+        tool = self.tool(event)
+        tool["status"] = "completed" if event.ok else "failed"
+        tool["content"] = tool_result_content(event.tool_call_id, event.text, event.diff)
+
+
 def transcript_blocks(events: tuple[TranscriptEvent, ...], *, fragment: bool = False,
                       show_divider: bool = True) -> list[Widget]:
-    blocks: list[Widget] = []
-    tools: dict[str, protocol.ToolCall] = {}
+    consumer = TranscriptBlockConsumer(fragment=fragment, show_divider=show_divider)
     for event in events:
-        kind, text = event.kind, event.text
-        if kind == "context":
-            from toad.widgets.coordination_context import CoordinationContext
-
-            blocks.append(CoordinationContext(text))
-        elif kind == "user":
-            if event.routing is not None and event.routing.requests:
-                from toad.widgets.incoming_message import IncomingMessage
-                message = event.routing.requests[0]
-                blocks.append(IncomingMessage(
-                    message.sender, text, message.target, show_header=show_divider,
-                    sequence=message.seq,
-                ))
-            else:
-                blocks.append(UserInput(text, show_divider=show_divider))
-        elif kind in {"assistant", "notice", "sent"}:
-            blocks.append(AgentResponse(
-                text, route=event.routing.reply if event.routing else None,
-                category=event_category(event), paginate=not fragment,
-                show_divider=show_divider,
-            ))
-        elif kind == "thinking":
-            blocks.append(AgentThought(text, paginate=not fragment))
-        elif kind in {"tool_start", "tool_end"}:
-            tool_id = event.tool_call_id
-            if tool_id not in tools:
-                tools[tool_id] = {
-                    "sessionUpdate": "tool_call", "toolCallId": tool_id,
-                    "title": event.tool_name or "Tool", "status": "completed",
-                    "kind": tool_kind(event.tool_name),
-                }
-                blocks.append(ToolCall(tools[tool_id], id=encode_tool_call_id(tool_id)))
-            if kind == "tool_start":
-                tools[tool_id]["rawInput"] = event.raw_input
-            else:
-                tools[tool_id]["status"] = "completed" if event.ok else "failed"
-                tools[tool_id]["content"] = tool_result_content(tool_id, text, event.diff)
-    return blocks
+        consumer.dispatch_sync(event)
+    return consumer.blocks
 
 
 class HistoryEdge(Static, can_focus=True):
@@ -131,7 +157,7 @@ class TranscriptFragmentView(CategorizedBlock, VerticalGroup):
         self._message_category = (event_category(fragment.events[0]) if fragment.events
                                   else MessageCategory.OTHER)
         self.add_class(f"-message-{self._message_category.value}")
-        self.set_class(not any(is_routed_event(event) for event in fragment.events), "-unrouted")
+        self.set_class(not any(event.routed for event in fragment.events), "-unrouted")
         self.set_categories(selected)
 
     @property
@@ -168,9 +194,10 @@ class TranscriptFragmentView(CategorizedBlock, VerticalGroup):
             self.add_class(f"-message-{category.value}")
             self._message_category = category
             apply_block_filter(self, self._selected_categories)
-        self.set_class(not any(is_routed_event(event) for event in new_events), "-unrouted")
+        self.set_class(not any(event.routed for event in new_events), "-unrouted")
         if (len(old_events) == len(new_events) == 1
-                and old_events[0].kind in {"assistant", "thinking", "notice", "sent"}
+                and isinstance(old_events[0], LiveTextTranscript)
+                and type(new_events[0]) is type(old_events[0])
                 and replace(old_events[0], text=new_events[0].text) == new_events[0]
                 and previous_fragment.starts_agent_activity == fragment.starts_agent_activity
                 and previous_fragment.continuation == fragment.continuation

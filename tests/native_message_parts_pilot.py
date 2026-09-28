@@ -8,6 +8,7 @@ import tempfile
 
 from agent_comms.threads import Thread
 from agent_comms.comms import wire
+from agent_comms.transcript_events import TranscriptCodec
 from runtime_fixture import ToadApp
 from textual.widgets._markdown import MarkdownBulletList, MarkdownFence
 from toad.acp.agent import Agent
@@ -41,7 +42,7 @@ async def main():
             agent.rpc_session_update("fixture", {
                 "sessionUpdate": "agent_message_chunk",
                 "content": {"type": "text", "text": ""},
-                "_meta": {"agentComms": {"transcript": [event.to_wire() for event in saved.events]}},
+                "_meta": {"agentComms": {"transcript": [TranscriptCodec.encode(event) for event in saved.events]}},
             })
             await pilot.pause()
             assert len(view.contents.query(MessageDivider)) == 1, "one native row gained extra timestamps"

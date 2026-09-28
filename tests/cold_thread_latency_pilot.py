@@ -13,7 +13,8 @@ from contextlib import ExitStack
 from unittest.mock import patch
 
 from agent_comms.threads import Thread
-from agent_comms.transcripts import TranscriptCursor, TranscriptEvent, TranscriptPage
+from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcript_events import AssistantTranscript
 from agent_comms.comms import wire
 from runtime_fixture import ToadApp
 from toad.acp.agent import Agent
@@ -40,8 +41,8 @@ async def main(profile_path=None, trace=False):
         released = asyncio.Event()
         body = "## Saved response\n\n" + "Paragraph **with markup** and content.\n\n" * 10
         body += "```python\n" + "def calculate(value): return value + 1\n" * 60 + "```\n"
-        events = tuple(TranscriptEvent("assistant", f"Record {i}\n\n" + body) for i in range(30))
-        events += (TranscriptEvent("assistant", "LATEST_REPLAY_MARKER"),)
+        events = tuple(AssistantTranscript(f'Record {i}\n\n' + body) for i in range(30))
+        events += (AssistantTranscript('LATEST_REPLAY_MARKER'),)
         page = TranscriptPage(events, TranscriptCursor("fixture", 0), TranscriptCursor("fixture", len(events)), False, False)
 
         async def start(agent, target):
