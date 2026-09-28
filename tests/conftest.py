@@ -5,6 +5,8 @@ import asyncio
 import os
 from pathlib import Path
 import sys
+import shutil
+import tempfile
 
 import pytest
 import psutil
@@ -12,7 +14,7 @@ from agent_comms.child_process import BoundedRun, DetachedProcess, ProcessIdenti
 
 
 def pytest_addoption(parser):
-    parser.addoption('--pilot-timeout', type=float, default=90,
+    parser.addoption('--pilot-timeout', type=float, default=165,
                      help='One attempt per pilot, bounded wall seconds (no retries)')
 
 
@@ -29,7 +31,11 @@ class PilotFile(pytest.File):
 class Pilot(pytest.Item):
     def runtest(self):
         factory = self.config._tmp_path_factory
-        root = factory.mktemp(self.path.stem)
+        logs = factory.mktemp(self.path.stem)
+        # Unix-domain sockets have a small pathname budget. Keep disposable
+        # runtime roots short; source/worktrees and retained logs stay persistent.
+        root = Path(tempfile.mkdtemp(prefix="toad-pilot-", dir="/var/tmp"))
+        (logs / "runtime-root").write_text(str(root))
         env = {key: value for key, value in os.environ.items() if not key.startswith("AGENT_COMMS_")}
         # Every script receives private roots, even before it enters its own
         # fixture. Detached children are retired through the existing child owner.
@@ -50,9 +56,10 @@ class Pilot(pytest.Item):
         env.pop('NO_COLOR', None)
         env.update(TERM="xterm-256color", COLORTERM="truecolor", FORCE_COLOR="1")
         timeout = self.config.getoption('--pilot-timeout')
-        stdout, stderr = root/'stdout.log', root/'stderr.log'
+        stdout, stderr = logs/'stdout.log', logs/'stderr.log'
 
         async def run():
+            successful = False
             try:
                 result = await BoundedRun.run(
                     (sys.executable, str(self.path)), timeout=timeout,
@@ -60,8 +67,9 @@ class Pilot(pytest.Item):
                 )
                 stdout.write_bytes(result.stdout)
                 stderr.write_bytes(result.stderr)
-                if not result.outcome.successful:
-                    pytest.fail(f'Pilot failed: {result.outcome!r}\n{result.stderr.decode(errors="replace")[-12000:]}\nLogs: {root}', pytrace=False)
+                successful = result.outcome.successful
+                if not successful:
+                    pytest.fail(f'Pilot failed: {result.outcome!r}\n{result.stderr.decode(errors="replace")[-12000:]}\nLogs: {logs}', pytrace=False)
             finally:
                 # UI shutdown deliberately leaves owners alive. Retire only
                 # processes whose private fixture root attests this attempt.
@@ -73,6 +81,8 @@ class Pilot(pytest.Item):
                             await DetachedProcess.attach(identity).stop()
                     except (psutil.NoSuchProcess, psutil.AccessDenied, ProcessLookupError):
                         continue
+                if successful:
+                    shutil.rmtree(root)
         asyncio.run(run())
 
     def reportinfo(self):

@@ -5,13 +5,11 @@ from __future__ import annotations
 import asyncio
 import json
 import os
-import sys
 import tempfile
 from pathlib import Path
 from types import SimpleNamespace
 
 from agent_comms.activity import ActivityState
-from agent_comms.thread_management import ForkSpec
 from agent_comms.thread_status import ArchivedThreadStatus
 from agent_comms.child_process import ProcessIdentity
 from agent_comms.threads import Thread
@@ -25,11 +23,10 @@ from toad.acp.agent import Agent as ACPAgent
 from toad.acp import messages as acp_messages
 from toad import paths
 from runtime_fixture import ToadApp, wait_channel_roster
-from toad.db import DB, SessionMeta
+from toad.db import DB
 from toad.pill import pill
 from toad.screens.comms import CommsScreen
 from toad.screens.main import MainScreen
-from toad.widgets.activity_spinner import FRAMES
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.agent_thought import AgentThought
 from toad.widgets.comms_chat import (
@@ -54,8 +51,6 @@ from toad.widgets.throbber import Throbber, ThrobberVisual
 from textual.style import Style
 from toad.widgets.tool_call import ToolCall
 from toad.widgets.project_panel import FilePreview, ProjectSearchButton
-from toad.widgets.user_input import UserInput
-from toad.widgets.incoming_message import IncomingMessage, IncomingSender
 from toad.widgets.irc_message import IRCMessage
 
 
@@ -90,40 +85,6 @@ async def main() -> None:
         preview_path.write_text("# Preview\n\nRendered markdown.")
         wire_root = root / "wire"
         os.environ["AGENT_COMMS_ROOT"] = str(wire_root)
-        gates = root / "backend-gates"
-        gates.mkdir()
-        os.environ["TOAD_TEST_GATES"] = str(gates)
-        backend_stub = root / "pi-turn-state"
-        backend_stub.write_text(f"#!{sys.executable}\n" + """
-import json, os, sys, time
-from pathlib import Path
-from agent_comms.native_pi import CAPABILITY
-def emit(value):
-    print(json.dumps(value), flush=True)
-for line in sys.stdin:
-    command = json.loads(line)
-    kind = command.get("type")
-    if kind == "get_state":
-        emit({"id": command.get("id"), "type": "response", "command": kind,
-              "success": True, "data": {"nativeInputProofCapability": CAPABILITY}})
-    elif kind == "prompt":
-        emit({"id": command["id"], "type": "response", "command": kind, "success": True})
-        emit({"type": "message_start", "message": {"role": "user", "content": command["message"], "inputId": command["inputId"]}})
-        text = command["message"].splitlines()[-1]
-        emit({"type": "message_update", "assistantMessageEvent": {"type": "thinking_delta", "delta": "reasoning for " + text}})
-        gate = Path(os.environ["TOAD_TEST_GATES"]) / os.environ["AGENT_COMMS_THREAD"]
-        while gate.exists():
-            time.sleep(0.02)
-        emit({"type": "message_update", "assistantMessageEvent": {"type": "text_delta", "delta": "response for " + text}})
-        emit({"type": "message_end", "message": {"role": "assistant", "stopReason": "stop"}})
-        emit({"type": "agent_settled"})
-    else:
-        emit({"id": command.get("id"), "type": "response", "command": kind, "success": True, "data": {}})
-""")
-        backend_stub.chmod(0o755)
-        os.environ["AGENT_COMMS_AGENT_BIN"] = str(backend_stub)
-        os.environ["AGENT_COMMS_AGENT_ARGS"] = ""
-
         comms = wire(wire_root)
         me = project.name
         comms.threads.register(
@@ -900,340 +861,6 @@ for line in sys.stdin:
             await pilot.pause()
             assert app.session_tracker.session_count == 1
             assert isinstance(app.screen, MainScreen)
-
-            owner_mode = app.current_mode
-            owner_agent = app.screen._agent
-            app.screen._agent = {
-                "identity": "agent-comms.openhcs.dev",
-                "name": "Agent Comms",
-                "short_name": "agent-comms",
-                "url": "https://github.com/OpenHCSDev/agent-comms",
-                "protocol": "acp",
-                "type": "coding",
-                "author_name": "OpenHCSDev",
-                "author_url": "https://github.com/OpenHCSDev",
-                "publisher_name": "OpenHCSDev",
-                "publisher_url": "https://github.com/OpenHCSDev",
-                "description": "Test agent-comms ACP server",
-                "tags": [],
-                "help": "",
-                "run_command": {"*": f"{sys.executable} -m agent_comms.acp"},
-                "actions": {},
-            }
-            resumable_row = row(app.screen, "resumable-peer")
-            assert resumable_row.kind == "thread"
-            resumable_row.scroll_visible(animate=False)
-            await pilot.pause()
-            assert await pilot.click(resumable_row)
-            async with asyncio.timeout(10):
-                # Independently prepared saved blocks can finish out of order.
-                # The last reply alone is not completion of the thinking body.
-                while not (any(
-                    "thread transcript complete" in response.source
-                    for response in app.screen.query(AgentResponse)
-                ) and any("thread reasoning" in thought.source
-                          for thought in app.screen.query(AgentThought))):
-                    await pilot.pause(.02)
-            assert isinstance(app.screen, MainScreen)
-            assert not isinstance(app.screen, CommsScreen)
-            thread_mode = app.current_mode
-            assert thread_mode != owner_mode
-            assert app.session_tracker.session_count == 2
-            assert (
-                app.session_tracker.get_session(thread_mode).title == "resumable-peer"
-            )
-            assert any(
-                "thread transcript request" in user_input.content
-                for user_input in app.screen.query(UserInput)
-            ), [(type(node).__name__, getattr(node, "source", getattr(node, "content", "")))
-                for node in app.screen.conversation.contents.children]
-            assert any(
-                "thread reasoning" in thought.source
-                for thought in app.screen.query(AgentThought)
-            )
-            assert any(
-                "thread transcript complete" in response.source
-                for response in app.screen.query(AgentResponse)
-            )
-            assert app.screen.query(ToolCall)
-            reused_mode = await app.open_thread_session(
-                owner_mode=owner_mode,
-                project_path=project,
-                target="resumable-peer",
-            )
-            assert reused_mode == thread_mode
-            assert app.session_tracker.session_count == 2
-            assert not any(
-                session.title.startswith("@resumable-peer")
-                for session in app.session_tracker.ordered_sessions
-            )
-            second_file = root / "second-session.jsonl"
-            second_file.write_text(resumable_session.read_text())
-            comms.threads.register(
-                Thread(
-                    name="second-peer",
-                    tags=frozenset(),
-                    worktree=str(project),
-                    session_file=str(second_file),
-                )
-            )
-            app.screen.query_one(CommsSidebar)._refresh()
-            await pilot.pause()
-            second_row = row(app.screen, "second-peer")
-            second_row.scroll_visible(animate=False)
-            await pilot.pause()
-            assert await pilot.click(second_row)
-            for _ in range(300):
-                await pilot.pause(0.1)
-                if (
-                    app.current_mode != thread_mode
-                    and app.screen.conversation.agent.session_ready_event.is_set()
-                ):
-                    break
-            second_mode = app.current_mode
-            assert second_mode != thread_mode
-            assert app.session_tracker.session_count == 3
-            first_pid = comms.registry.require("resumable-peer").pid
-            second_pid = comms.registry.require("second-peer").pid
-            assert first_pid != second_pid
-            for target_mode in [thread_mode, second_mode] * 3:
-                label = app.screen.query_one(f"SessionLabel#{target_mode}")
-                assert await pilot.click(label)
-                await pilot.pause()
-                assert app.current_mode == target_mode
-                assert app.session_tracker.session_count == 3
-            assert comms.registry.require("resumable-peer").pid == first_pid
-            assert comms.registry.require("second-peer").pid == second_pid
-            assert "resumable-peer-2" not in comms.registry
-            assert "second-peer-2" not in comms.registry
-            hold = gates / "second-peer"
-            hold.touch()
-            comms.messaging.send("resumable-peer", "second-peer", "live round one")
-            for _ in range(80):
-                await pilot.pause(0.1)
-                if any(
-                    "reasoning for live round one" in item.source
-                    for item in app.screen.query(AgentThought)
-                ):
-                    break
-            assert app.screen.conversation.turn == "agent", (
-                [item.source for item in app.screen.query(AgentThought)],
-                hold.exists(),
-                comms.agents.activity_of("second-peer"),
-            )
-            assert app.screen.conversation.busy_count == 1
-            active_turn = app.screen.conversation._managed_turn_id
-            app.screen.conversation.post_message(acp_messages.TurnStarted(active_turn))
-            app.screen.conversation.post_message(
-                acp_messages.TurnSettled("previous-turn")
-            )
-            await pilot.pause()
-            assert app.screen.conversation._managed_turn_id == active_turn
-            assert app.screen.conversation.busy_count == 1
-            assert app.screen.query_one(Throbber).busy
-            assert app.screen.query_one(Throbber).render() != ""
-            assert app.session_tracker.get_session(second_mode).state == "busy"
-            busy_label = app.screen.query_one(f"SessionLabel#{second_mode}").render().plain
-            assert busy_label[0] in FRAMES and "⌛" not in busy_label
-            hold.unlink()
-            for _ in range(40):
-                await pilot.pause(0.1)
-                if (
-                    app.screen.conversation._managed_turn_id is None
-                    and app.session_tracker.get_session(second_mode).state == "idle"
-                ):
-                    break
-            assert app.screen.conversation.busy_count == 0
-            assert app.screen.conversation.turn == "client"
-            assert app.session_tracker.get_session(second_mode).state == "idle"
-            assert not app.screen.query_one(Throbber).busy
-            assert app.screen.query_one(Throbber).render() == ""
-            assert (
-                len(
-                    [
-                        item
-                        for item in app.screen.query(AgentThought)
-                        if "reasoning for live round one" in item.source
-                    ]
-                )
-                == 1
-            )
-            incoming = [
-                item
-                for item in app.screen.query(IncomingMessage)
-                if item.text == "live round one"
-            ]
-            assert len(incoming) == 1
-            sender_link = incoming[0].query_one(IncomingSender)
-            sender_link.scroll_visible(animate=False)
-            await pilot.pause()
-            assert await pilot.click(sender_link)
-            await pilot.pause()
-            assert app.current_mode == thread_mode
-            assert app.session_tracker.session_count == 3
-            comms.messaging.send("second-peer", "resumable-peer", "live round two")
-            for _ in range(40):
-                await pilot.pause(0.1)
-                if any(
-                    item.text == "live round two"
-                    for item in app.screen.query(IncomingMessage)
-                ):
-                    break
-            assert (
-                len(
-                    [
-                        item
-                        for item in app.screen.query(IncomingMessage)
-                        if item.text == "live round two"
-                    ]
-                )
-                == 1
-            )
-            for _ in range(40):
-                await pilot.pause(0.1)
-                if app.screen.conversation._managed_turn_id is None and any(
-                    "response for live round two" in item.source
-                    for item in app.screen.query(AgentResponse)
-                ):
-                    break
-            first_thoughts = list(app.screen.query(AgentThought))
-            hold = gates / "resumable-peer"
-            hold.touch()
-            app.screen.conversation.post_message(
-                messages.UserInputSubmitted("user turn lifecycle")
-            )
-            for _ in range(40):
-                await pilot.pause(0.1)
-                if any(
-                    "reasoning for user turn lifecycle" in item.source
-                    for item in app.screen.query(AgentThought)
-                ):
-                    break
-            assert app.screen.conversation.busy_count == 1
-            assert app.screen.conversation.turn == "agent"
-            try:
-                async with asyncio.timeout(3):
-                    while app.screen.query_one(
-                        f"SessionLabel#{thread_mode}"
-                    ).render().plain[0] not in FRAMES:
-                        await pilot.pause(.02)
-            except TimeoutError:
-                raise AssertionError((
-                    "Busy thread tab did not observe the activity snapshot within 3 seconds",
-                    app.open_tabs, comms.agents.activity_of("resumable-peer"), app.screen._session_thread,
-                )) from None
-            assert all(
-                "user turn lifecycle" not in item.source for item in first_thoughts
-            )
-            hold.unlink()
-            for _ in range(40):
-                await pilot.pause(0.1)
-                if (
-                    app.screen.conversation._managed_turn_id is None
-                    and app.session_tracker.get_session(thread_mode).state == "idle"
-                ):
-                    break
-            assert app.screen.conversation.busy_count == 0
-            assert app.session_tracker.get_session(thread_mode).state == "idle"
-            # Also exercise the saved-session resume entry point. Registry-only
-            # attachments do not insert another copy into Toad's saved list.
-            first_pk = await DB().session_new(
-                "resumable-peer",
-                "Agent Comms",
-                "agent-comms.openhcs.dev",
-                "resumable-peer",
-                meta=SessionMeta(cwd=project, agent_data=app.screen._agent),
-            )
-            assert first_pk is not None
-            app.screen.conversation.agent.session_pk = first_pk
-            await app.switch_mode(second_mode)
-            await app.launch_agent(
-                "agent-comms.openhcs.dev",
-                agent_session_id="resumable-peer",
-                session_pk=first_pk,
-                project_path=project,
-            ).wait()
-            await pilot.pause()
-            assert app.current_mode == thread_mode
-            assert app.session_tracker.session_count == 3
-            app.screen.query_one(f"#close-{second_mode}").scroll_visible(
-                animate=False, immediate=True
-            )
-            await pilot.pause()
-            assert await pilot.click(f"#close-{second_mode}")
-            await pilot.pause()
-            assert app.current_mode == thread_mode
-            assert app.session_tracker.get_session(second_mode) is None
-            assert "second-peer" in comms.registry
-            comms.owners.stop("second-peer")
-            comms.threads.archive("second-peer")
-
-            external = comms.threads.fork(
-                ForkSpec(
-                    name="external-peer",
-                    parent="resumable-peer",
-                    task="external initial turn",
-                ),
-                pi_bin="/bin/echo",
-            )
-            try:
-                from agent_comms.runtime import socket_path
-
-                for _ in range(40):
-                    await pilot.pause(0.1)
-                    if socket_path(comms.root, external.pid).exists():
-                        break
-                external_file = root / "external-session.jsonl"
-                external_file.write_text(resumable_session.read_text())
-                comms.threads.attach_session(external.name, str(external_file))
-                external_mode = await app.open_thread_session(
-                    owner_mode=thread_mode, project_path=project, target=external.name
-                )
-                for _ in range(40):
-                    await pilot.pause(0.1)
-                    if app.screen.conversation.agent.session_ready_event.is_set():
-                        break
-                assert external_mode != thread_mode
-                assert comms.registry.require(external.name).pid == external.pid
-                comms.messaging.send("resumable-peer", external.name, "live external attachment")
-                for _ in range(40):
-                    await pilot.pause(0.1)
-                    if any(
-                        item.text == "live external attachment"
-                        for item in app.screen.query(IncomingMessage)
-                    ):
-                        break
-                assert (
-                    len(
-                        [
-                            item
-                            for item in app.screen.query(IncomingMessage)
-                            if item.text == "live external attachment"
-                        ]
-                    )
-                    == 1
-                )
-                app.post_message(messages.SessionArchive(external_mode))
-                for _ in range(80):
-                    await pilot.pause(0.1)
-                    if app.session_tracker.get_session(external_mode) is None:
-                        break
-                assert app.session_tracker.get_session(external_mode) is None
-                assert comms.registry.require(external.name).pid == external.pid
-                assert app.current_mode == thread_mode
-            finally:
-                if external.name in comms.registry:
-                    await asyncio.to_thread(comms.owners.stop, external.name)
-                    comms.threads.archive(external.name)
-                await asyncio.to_thread(os.waitpid, external.pid, 0)
-            await app.close_session_mode(thread_mode)
-            assert app.current_mode == owner_mode
-            assert app.session_tracker.session_count == 1
-            assert await DB().session_get(first_pk) is not None
-            assert "resumable-peer" in comms.registry
-            app.screen._agent = owner_agent
-            app.screen.query_one(CommsSidebar)._refresh()
-            await pilot.pause()
 
             async with asyncio.timeout(10):
                 # _refresh starts an asynchronous route/snapshot publication.

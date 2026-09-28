@@ -39,8 +39,7 @@ async def main():
                 "content": [{"type": "text", "text": json.dumps({"id": outgoing.message_id,
                                                                          "message": outgoing.to_wire()})}]}},
         )) + "\n")
-        if os.environ.get("TOAD_TEST_ANNOTATED") == "1":
-            comms.transcripts.routes.record(str(transcript), ("wire-user",), TurnRouting((incoming,), None))
+        comms.transcripts.routes.record(str(transcript), ("wire-user",), TurnRouting((incoming,), None))
         page = comms.transcripts.thread_transcript_page("owner")
         assert any(event.declared_name == "sent" and event.routing and event.routing.reply for event in page.events)
         inbound = [event for event in page.events if event.declared_name == "user" and event.routing

@@ -36,3 +36,32 @@
 - Moved navigation_allocation and real_history_scroll_latency to tools/performance:
   workload/profile reports with output arguments/latency measurements; the
   underlying correctness/many-tab workload pilots stay collected.
+- Integrated current107 T7/T8 and parent229. Prepared package from native-entry-store
+  now verifies. Full real Toad→ACP→owner→Pi loopback test passed (5 passing cases
+  in declared-native batch); no paid provider request. Private goal fixtures now
+  declare the real root/package through current APIs instead of nonprivate ACP.
+- Short owned /var/tmp runtime roots fix Unix socket pathname overflow caused by
+  nested pytest basetemp paths. Worktrees/logs remain persistent; success fixtures
+  are removed after exact attempt processes exit. No native package copy.
+- Deleted maintenance_ingress/agent_root_binding plus namespace/stuck-spawn probes
+  and their cleanup-only test: these imported a core-test-only synthetic operator
+  and internal phase writer absent from installed package. Replaced with one real
+  open/refused-child boundary pilot; existing actual cancellation pilot retained.
+- Deleted watcher_busy_tabs' tuple-indexed dispatcher/event-injection internals;
+  real watcher startup/burst/visibility/peer-close cases remain.
+- Deleted raw-Pi executor parts of comms_pilot and project_path/prompt_queue/
+  provider_login/thread_controls pilots. Their fabricated argv/stdout executor
+  was removed in L0B; no alias or synthetic Pi admission restored. Actual installed
+  native test covers ACP attachment/queue/reopen/stopped-owner Start/live channel;
+  current goal socket, project resume, UI goal/model/routing and terminal contract
+  pilots remain. This does not claim real OAuth provider login was tested.
+- Image paste retains responsive mounted capture/private image/text behavior;
+  image_attachment_inputs covers ACP image encoding. Removed only fake raw Pi
+  send roundtrips, not asserted current clipboard behavior.
+- Throbber retains actual paint/geometry/timer behavior; removed borrowed
+  Conversation watcher and incomplete fake Sidebar ownership setup.
+- In/out replay fixture now records routing through the real route owner; removed
+  opt-in annotation switch that relied on deleted prompt-text attribution.
+- Recovery rename/sidebar navigation wait for requested identity/destination,
+  not a read count or an old screen's idle queue. Hidden diff uses distinct content
+  for cancellation so a valid cache hit does not falsely count as a missing render.

@@ -11,7 +11,7 @@ from agent_comms.activity import Activity, ActivityState
 from agent_comms.messages import Message, MessageType
 from agent_comms.threads import Thread
 from agent_comms.transcripts import TranscriptCursor
-from agent_comms.comms import wire
+from runtime_fixture import private_native_wire
 from runtime_fixture import ToadApp
 from toad.widgets.comms_menu import ContextMenu, ContextMenuItem
 from toad.widgets.comms_sidebar import CommsRow, CommsSidebar, ChannelGroup, ThreadRow
@@ -36,11 +36,11 @@ async def main():
             XDG_STATE_HOME=str(root / "state"),
             XDG_DATA_HOME=str(root / "data"),
             AGENT_COMMS_ROOT=str(root / "wire"),
-            AGENT_COMMS_AGENT_BIN="/bin/echo",
+            AGENT_COMMS_AGENT_BIN="pi",
             AGENT_COMMS_AGENT_ARGS="--model test/model",
             AGENT_COMMS_AGENT_MODELS="test/model",
         )
-        comms = wire(root / "wire")
+        comms = private_native_wire(root / "wire")
         history = root / "history.jsonl"
         history.write_text(
             json.dumps(
@@ -69,7 +69,7 @@ async def main():
             comms.agents.activity.emit(
                 Activity(thread=name, state=ActivityState.WORKING, timestamp=activity)
             )
-            comms.bus.publisher.publish(
+            comms.bus.publisher.publish_ordinary(
                 Message(
                     sender=name,
                     target="#all",
@@ -118,6 +118,7 @@ async def main():
             sidebar = app.screen.query_one(CommsSidebar)
             sidebar._refresh()
             await pilot.pause()
+            await until(lambda: order() == ["project", "new", "old"])
             assert order() == ["project", "new", "old"], order()
             remote = next(
                 row for row in sidebar.query(CommsRow) if row.target_name == "old"
@@ -145,11 +146,13 @@ async def main():
             )
             assert opened.render().plain == closed_status
             assert opened.region.height == 2
+            await until(lambda: order() == ["project", "new", "old"])
             assert order() == ["project", "new", "old"], order()
             app.screen.conversation.prompt.text = "Unsubmitted manual input"
             comms.threads.heartbeat("old")
             app.screen.query_one(CommsSidebar)._refresh()
             await pilot.pause()
+            await until(lambda: order() == ["project", "new", "old"])
             assert order() == ["project", "new", "old"], order()
 
             async def choose(criterion):
@@ -174,8 +177,9 @@ async def main():
                 )
 
             await choose("last_message_sent")
+            await until(lambda: order() == ["new", "old", "project"])
             assert order() == ["new", "old", "project"], order()
-            comms.bus.publisher.publish(
+            comms.bus.publisher.publish_ordinary(
                 Message(
                     sender="old",
                     target="#all",
@@ -186,25 +190,33 @@ async def main():
             )
             app.screen.query_one(CommsSidebar)._refresh()
             await pilot.pause()
+            await until(lambda: order() == ["old", "new", "project"])
             assert order() == ["old", "new", "project"], order()
             await choose("last_activity")
+            await until(lambda: order() == ["old", "new", "project"])
             assert order() == ["old", "new", "project"], order()
             comms.agents.activity.emit(
                 Activity(thread="new", state=ActivityState.WORKING, timestamp=700)
             )
             app.screen.query_one(CommsSidebar)._refresh()
             await pilot.pause()
+            await until(lambda: order() == ["new", "old", "project"])
             assert order() == ["new", "old", "project"], order()
             await app.switch_mode(parent_mode)
             await pilot.pause()
+            await until(lambda: order() == ["new", "old", "project"])
             assert order() == ["new", "old", "project"], order()
             assert "Last activity" in sort_control().render().plain
             await app.switch_mode(old_mode)
             await pilot.pause()
+            await until(lambda: order() == ["new", "old", "project"])
             assert order() == ["new", "old", "project"], order()
             # Backend status has the same compact rendering regardless of an
             # open tab, and UI-only state updates cannot overwrite that status.
             detail = "Checking the workspace and running verification. " * 3
+            await asyncio.to_thread(comms.owners.start, "new")
+            await until(lambda: comms.registry.require("new").process_alive)
+            turns = [comms.agents.begin_turn(name, "sorting-fixture") for name in ("old", "new")]
             for name in ("old", "new"):
                 comms.agents.set_activity(name, ActivityState.WORKING, detail)
             sidebar = app.screen.query_one(CommsSidebar)
@@ -235,8 +247,8 @@ async def main():
                 )
                 assert "original task" not in unopened.render().plain
                 assert "provider/" not in unopened.render().plain
-            for name in ("old", "new"):
-                comms.agents.set_activity(name, ActivityState.IDLE)
+            for turn in turns:
+                comms.agents.finish_turn(turn)
             sidebar._refresh()
             await pilot.pause()
             assert opened.render().plain == "✓ old\n  Ready"

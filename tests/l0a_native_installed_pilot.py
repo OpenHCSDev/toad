@@ -91,6 +91,8 @@ async def notification_feedback(
 
 
 async def main(*, notification_only=False):
+    evidence = Path(os.environ.get("L0A_EVIDENCE", os.environ["TMPDIR"]))
+    evidence.mkdir(parents=True, exist_ok=True)
     package = Path(os.environ["AC_NATIVE_COPIED_PACKAGE"])
     verify_native_package(package)
     requests, failures = [], []
@@ -319,7 +321,7 @@ async def main(*, notification_only=False):
                     .read()
                     .rows["acp:" + queued_ids[0]]
                 )
-                (Path(os.environ["L0A_EVIDENCE"]) / "native-session.jsonl").write_text(
+                (evidence / "native-session.jsonl").write_text(
                     native_file.read_text()
                 )
                 print(
@@ -459,11 +461,11 @@ async def main(*, notification_only=False):
             if agent:
                 await agent.stop()
                 if agent._log_file_path.exists():
-                    (Path(os.environ["L0A_EVIDENCE"]) / "toad-acp.log").write_bytes(
+                    (evidence / "toad-acp.log").write_bytes(
                         agent._log_file_path.read_bytes()
                     )
             for path in stage.glob("acp-debug*"):
-                destination = Path(os.environ["L0A_EVIDENCE"]) / path.name
+                destination = evidence / path.name
                 destination.write_bytes(path.read_bytes())
             await asyncio.to_thread(comms.owners.stop, "beta")
             server.shutdown()

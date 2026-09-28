@@ -94,7 +94,7 @@ async def main():
                 available[0] = True
                 view.set_identity("renamed-fixture", root / "wire")
                 async with asyncio.timeout(5):
-                    while len(seen) < 3:
+                    while not seen or seen[-1][2] != "renamed-fixture":
                         await pilot.pause(.02)
                 assert seen[-1][2] == "renamed-fixture"
                 assert "Recovery: recovered" in view.render().plain

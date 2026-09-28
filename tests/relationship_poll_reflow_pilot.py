@@ -8,6 +8,7 @@ import tempfile
 from unittest.mock import patch
 
 from agent_comms.display_order import ThreadSort
+from agent_comms.activity import ActivityState
 from textual.widgets import TextArea
 from right_comms_pilot import FixtureSource
 from runtime_fixture import ToadApp
@@ -22,6 +23,10 @@ async def main():
         os.environ.update(AGENT_COMMS_ROOT=str(root / "wire"), XDG_CONFIG_HOME=str(root / "config"),
                           XDG_STATE_HOME=str(root / "state"), XDG_DATA_HOME=str(root / "data"))
         source = FixtureSource(root / "wire")
+        # A busy row intentionally animates. Measure unchanged idle data so
+        # spinner ticks are not misreported as polling-induced repaints.
+        source.people = {name: replace(person, activity=replace(person.activity, state=ActivityState.IDLE, detail=""))
+                         for name, person in source.people.items()}
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(130, 44)) as pilot:
             await pilot.pause()
@@ -78,7 +83,7 @@ async def main():
             # New same-width activity metadata still updates the retained row
             # and tooltip, without turning it into a geometry change.
             person = source.people["peer"]
-            source.people["peer"] = replace(person, activity=replace(person.activity, detail="Updated task status"))
+            source.people["peer"] = replace(person, activity=replace(person.activity, state=ActivityState.THINKING, detail="Updated task status"))
             source.version += 1
             with patch.object(screen, "_refresh_layout", wraps=screen._refresh_layout) as layout:
                 await tree._refresh(tree._generation)

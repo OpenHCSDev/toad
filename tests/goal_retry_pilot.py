@@ -5,13 +5,9 @@ import os
 import tempfile
 from pathlib import Path
 
-from agent_comms.goal_actions import BlockedGoalAction, GoalPrecondition
 from agent_comms.goal_states import ActiveGoal, BlockedGoal
 from agent_comms.goals import Goal
-from agent_comms.acp import CommsAgent
-from agent_comms.comms import wire
 from runtime_fixture import ToadApp
-from toad.acp.agent import Agent
 from toad.widgets.goal_bar import GoalBar
 
 
@@ -61,7 +57,7 @@ async def main() -> None:
             AGENT_COMMS_ROOT=str(root / "wire"),
         )
         await mounted_retry_control(root)
-    print("goal retry: mounted control and owner grant passed")
+    print("goal retry: mounted explicit Retry control passed")
 
 
 if __name__ == "__main__":
