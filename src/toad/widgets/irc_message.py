@@ -1,3 +1,4 @@
+from toad.block_navigation import ConversationBlock
 """Compact wire messages with keyboard- and pointer-accessible routing names."""
 
 from toad.navigation_target import linked_target
@@ -51,7 +52,7 @@ class ThreadLink(Static, can_focus=True):
             self.action_open_target()
 
 
-class MembershipNotice(Static):
+class MembershipNotice(ConversationBlock, Static):
     DEFAULT_CLASSES = "block"
     DEFAULT_CSS = "MembershipNotice { height: auto; color: $text-muted; margin: 0; }"
 
@@ -73,7 +74,7 @@ class IRCMessageText(Static):
         self.app.open_url(url)
 
 
-class IRCMessage(VerticalGroup, can_focus=True):
+class IRCMessage(ConversationBlock, VerticalGroup, can_focus=True):
     BINDINGS = [
         ("enter", "open_sender", "Open sender"),
         ("shift+enter", "open_destination", "Open destination"),
@@ -142,7 +143,7 @@ class IRCMessage(VerticalGroup, can_focus=True):
         return f"{self.message.sender} → {self.message.target}: {self.message.body}"
 
 
-class WireMarkdownMessage(VerticalGroup):
+class WireMarkdownMessage(ConversationBlock, VerticalGroup):
     DEFAULT_CLASSES = "block"
 
     def __init__(self, message: Message, *, direction: str = "Inbound"):

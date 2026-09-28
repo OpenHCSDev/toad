@@ -69,7 +69,7 @@ class CommsUpdateConsumer(MroDispatch):
     @handles(TurnStartedUpdate)
     def turn_started(self, update: TurnStartedUpdate) -> None:
         agent = self.agent
-        if self.session_id != agent.session_id or agent._stopping:
+        if self.session_id != agent.session_id or agent.process.stopping:
             return
         agent._active_turn_id = update.turn_id
         agent._turn_lifecycle_sequence += 1
@@ -85,7 +85,7 @@ class CommsUpdateConsumer(MroDispatch):
     @handles(TurnSettledUpdate)
     def turn_settled(self, update: TurnSettledUpdate) -> None:
         agent = self.agent
-        if self.session_id != agent.session_id or agent._stopping:
+        if self.session_id != agent.session_id or agent.process.stopping:
             return
         if (
             agent._active_turn_id is not None

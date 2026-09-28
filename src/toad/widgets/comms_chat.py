@@ -87,6 +87,17 @@ def resolve_session_thread(
     return None
 
 
+from toad.block_navigation import ConversationBlock
+
+
+class HistoryLoading(ConversationBlock, Static):
+    """Channel history loading is an atomic conversation block."""
+
+
+class ChannelActivityTray(ConversationBlock, containers.VerticalGroup):
+    """Channel activity has one declared navigation boundary."""
+
+
 class CommsChatView(DeliveryFailureView, Conversation):
     """A wire-backed conversation using Toad's normal transcript primitives."""
 
@@ -140,8 +151,8 @@ class CommsChatView(DeliveryFailureView, Conversation):
                 with CursorContainer(id="cursor-container"):
                     yield Cursor()
                 with Contents(id="contents"):
-                    yield Static("Loading messages…", id="history-loading")
-                    yield containers.VerticalGroup(id="comms-activity")
+                    yield HistoryLoading("Loading messages…", id="history-loading")
+                    yield ChannelActivityTray(id="comms-activity")
         yield Flash()
         with containers.Vertical(id="prompt-stack"):
             yield self.conversation_kind.activity_widget(self)

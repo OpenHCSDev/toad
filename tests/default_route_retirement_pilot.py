@@ -98,8 +98,8 @@ async def main() -> None:
                         sandbox, {"name": "fixture", "run_command": {"*": "true"}}, None
                     )
                     agent.post_message = lambda _event: None
-                    agent._process = process
-                    agent._process_group_id = group
+                    agent.process.process = process
+                    agent.process.control.group_id = group
                     try:
                         from toad.acp.group_retirement import capture_accepted_group
                     except ImportError:
@@ -107,15 +107,15 @@ async def main() -> None:
                     else:
                         accepted = capture_accepted_group(group)
                         agent._accepted_group = accepted
-                    agent._task = None
-                    agent._agent_task = None
+                    agent.process.session_task = None
+                    agent.process.runner = None
                     evidence = await agent.stop()
                     assert process.returncode is not None
                     assert not live_members(group), "old ACP descendant survived stop"
                     if accepted is not None:
                         assert evidence is not None and evidence.accepted == accepted
                         assert agent.verify_retirement().accepted == accepted
-                    assert agent._process_group_id is None
+                    assert agent.process.control.group_id is None
                     with patch.object(
                         cohort_foreground, "_trusted_package", lambda _: None
                     ):

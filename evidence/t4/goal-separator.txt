@@ -1,0 +1,1 @@
+goal separators: idle top, loading replaces top, queue-only bottom, hidden goal, draft preserved

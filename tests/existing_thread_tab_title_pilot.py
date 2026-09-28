@@ -69,7 +69,7 @@ async def main(title: str | None = None, *, cold_metadata: bool = False) -> None
                 )
                 target.post_message(AgentReady())
 
-            agent._task = asyncio.create_task(attach())
+            agent.process.session_task = asyncio.create_task(attach())
 
         app = ToadApp(project_dir=str(root))
         original_compose = SessionsTabs.compose
