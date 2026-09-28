@@ -34,7 +34,7 @@ from textual.widget import Widget
 
 from agent_comms import (
     context_tool_catalog,
-    ChannelView, CoordinationSnapshot, ThreadStatus, ThreadView,
+    ChannelView, CoordinationSnapshot, ThreadView,
     OBSERVATION_INTERVAL, WireRevision,
 )
 from agent_comms.operations import wire
@@ -862,7 +862,7 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
 
     @staticmethod
     def _person_kind(person: ThreadView) -> str:
-        if person.status in {ThreadStatus.ARCHIVED, ThreadStatus.STOPPED}:
+        if not person.status.active:
             # A stopped/archived executor has no runnable native owner. Its
             # wire DM stays viewable without implicitly starting it on click.
             return "dm"
@@ -1348,11 +1348,11 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
 
         declared_actions = context_tool_catalog("thread")
         person = (self._last_snapshot or self._snapshot()).all_people.get(name)
-        if person is not None and person.status is ThreadStatus.ARCHIVED:
-            declared_actions = [item for item in declared_actions
-                                if item["name"] not in {"comms_start", "comms_stop", "comms_archive"}]
-        elif person is not None and person.status.active and person.thread.pid > 0:
-            declared_actions = [item for item in declared_actions if item["name"] != "comms_start"]
+        if person is not None:
+            declared_actions = [
+                item for item in declared_actions
+                if person.status.allows_control(item["name"], owner_pid=person.thread.pid)
+            ]
         actions: dict[str, Callable[[], None]] = {
             str(declaration["name"]): partial(post, str(declaration["name"]))
             for declaration in declared_actions

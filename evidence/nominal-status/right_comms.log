@@ -1,0 +1,73 @@
+╭───────────────────── Traceback (most recent call last) ──────────────────────╮
+│ /home/ts/wt/toad-export-caller-migration-20260928/src/toad/widgets/side_bar. │
+│ py:646 in on_mount                                                           │
+│                                                                              │
+│   643 │   def on_mount(self) -> None:                                        │
+│   644 │   │   self.trap_focus()                                              │
+│   645 │   │   app = cast("ToadApp", self.app)                                │
+│ ❱ 646 │   │   if self.id in app.sidebar_layout.placements:                   │
+│   647 │   │   │   app.sidebar_layout_changed.subscribe(self, self._layout_ch │
+│   648 │   │   if self._navigation is None:                                   │
+│   649 │   │   │   cast("ToadApp", self.app).settings_changed_signal.subscrib │
+│                                                                              │
+│ ╭──────────────────────── locals ────────────────────────╮                   │
+│ │  app = FixtureApp(                                     │                   │
+│ │        │   title='FixtureApp',                         │                   │
+│ │        │   classes={'-dark-mode'},                     │                   │
+│ │        │   pseudo_classes={                            │                   │
+│ │        │   │   'dark',                                 │                   │
+│ │        │   │   'focus',                                │                   │
+│ │        │   │   'nocolor'                               │                   │
+│ │        │   }                                           │                   │
+│ │        )                                               │                   │
+│ │ self = SideBar(classes='-right')                       │                   │
+│ ╰────────────────────────────────────────────────────────╯                   │
+╰──────────────────────────────────────────────────────────────────────────────╯
+AttributeError: 'FixtureApp' object has no attribute 'sidebar_layout'
+Traceback (most recent call last):
+  File "/home/ts/.local/share/agent-comms/runtime-relationship-cleanup-20260928/lib/python3.14/site-packages/textual/app.py", line 2210, in run_test
+    yield pilot
+  File "/home/ts/wt/toad-export-caller-migration-20260928/tests/right_comms_pilot.py", line 156, in main
+    peer = tree.groups["inbound"].rows["thread", "peer"]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+KeyError: ('thread', 'peer')
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-export-caller-migration-20260928/tests/right_comms_pilot.py", line 259, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-export-caller-migration-20260928/tests/right_comms_pilot.py", line 143, in main
+    async with app.run_test(size=(120, 42)) as pilot:
+               ~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 235, in __aexit__
+    await self.gen.athrow(value)
+  File "/home/ts/.local/share/agent-comms/runtime-relationship-cleanup-20260928/lib/python3.14/site-packages/textual/app.py", line 2218, in run_test
+    raise self._exception
+  File "/home/ts/.local/share/agent-comms/runtime-relationship-cleanup-20260928/lib/python3.14/site-packages/textual/message_pump.py", line 642, in _pre_process
+    await self._dispatch_message(events.Mount())
+  File "/home/ts/.local/share/agent-comms/runtime-relationship-cleanup-20260928/lib/python3.14/site-packages/textual/message_pump.py", line 772, in _dispatch_message
+    await self.on_event(message)
+  File "/home/ts/.local/share/agent-comms/runtime-relationship-cleanup-20260928/lib/python3.14/site-packages/textual/message_pump.py", line 853, in on_event
+    await self._on_message(event)
+  File "/home/ts/.local/share/agent-comms/runtime-relationship-cleanup-20260928/lib/python3.14/site-packages/textual/message_pump.py", line 874, in _on_message
+    await invoke(method, message)
+  File "/home/ts/.local/share/agent-comms/runtime-relationship-cleanup-20260928/lib/python3.14/site-packages/textual/_callback.py", line 96, in invoke
+    return await _invoke(callback, *params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-relationship-cleanup-20260928/lib/python3.14/site-packages/textual/_callback.py", line 56, in _invoke
+    result = callback(*params[:parameter_count])
+  File "/home/ts/wt/toad-export-caller-migration-20260928/src/toad/widgets/side_bar.py", line 646, in on_mount
+    if self.id in app.sidebar_layout.placements:
+                  ^^^^^^^^^^^^^^^^^^
+AttributeError: 'FixtureApp' object has no attribute 'sidebar_layout'
