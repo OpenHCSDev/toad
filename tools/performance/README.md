@@ -226,6 +226,34 @@ synchronous filter-setter CPU/wall time and closed-subscriber counts.
 
 ## Analysis and checks
 
+### Structural scalability probes
+
+The [structural investigation](../../docs/audits/frame_pipeline_structure_20260928.md)
+uses the ordinary many-tab pilot with a fixed source inventory:
+
+```sh
+python tests/many_tabs_return_pilot.py --empty --tabs 16 --source-threads 64 \
+  --peers 8 --channels 2 --gc-observe --ownership-census \
+  --output "$CAPTURES/structure-16.json"
+python tools/performance/analyze_frame_structure.py "$CAPTURES/structure-16.json"
+```
+
+Use the selected Toad/Textual source checkouts and exact core environment, and run
+cases serially under resource caps. The probe records module origins, Git heads,
+probe hash, interpreter and GC policy. It requires at least four exercised tabs
+for its existing close/revisit checks; the original owner/prepared shell are
+additional. Omit `--empty` to populate source-backed history; `--records` varies
+the synthetic initial snapshot size. `--source-threads` keeps the source cohort
+constant while tab count varies.
+
+`--ownership-census` samples outside measured navigation without forcing GC.
+`--gc-observe` records ordinary collection durations without stack capture or
+policy changes. Use `--trace` separately for nested call/rule-map attribution; its
+overhead is higher. `--observe` continues past stale-layout/discarded-render
+optimization assertions while preserving their diagnostic counts: those runs are
+not passing acceptance evidence for the disabled assertions. Headless timing is
+not terminal-presented latency, and nested call durations are not additive.
+
 All analysis commands take full capture prefixes or files, not machine-specific
 cache names:
 
