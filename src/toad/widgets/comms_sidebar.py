@@ -37,6 +37,7 @@ from agent_comms.presentation import ChannelView, CoordinationSnapshot, ThreadVi
 from toad.constants import COMMS_REFRESH_INTERVAL
 from agent_comms.comms import Comms, wire
 
+from toad.session_tracker import UnreadPresentation, ExactUnread
 from toad import messages
 from toad.constants import ALL_COMMS_TARGET
 from toad.session_tracker import SessionDetails, SidebarSelection, SidebarState
@@ -143,9 +144,9 @@ class ChannelGroup(SidebarGroup):
             view, snapshot = self._view, self._snapshot
             inputs = tuple(ThreadRowInput(
                 snapshot.all_people[name],
-                unread=(snapshot.wire.thread_unread.get(name, 0)
+                unread=(UnreadPresentation.for_thread(snapshot.wire, name)
                         if CommsSidebar._person_kind(snapshot.all_people[name]) == "thread"
-                        else snapshot.wire.unread.get(name, 0)),
+                        else ExactUnread(snapshot.wire.unread.get(name, 0))),
                 pinned=name in view.pinned_members,
                 action_status=app.pending_thread_actions.get(name),
             ) for name in wanted)
@@ -1132,7 +1133,7 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
             channel = view.channel.name
             kind = "irc" if view.channel.aggregate else "channel"
             key = f"channel:{channel}"
-            choice = choices[key] = VirtualChoice(kind, channel, channel)
+            choices[key] = VirtualChoice(kind, channel, channel)
             unread = snapshot.wire.channel_unread.get(channel, 0)
             prefix = "▾" if self.navigation.expanded.get(channel, kind == "irc") else "▸"
             name = f"{'* ' if view.channel.pinned else ''}{channel}"
@@ -1157,21 +1158,22 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
                 member_kind = "session" if mode else self._person_kind(person)
                 choice_id = f"member:{channel}:{member}"
                 choices[choice_id] = VirtualChoice(member_kind, member, channel, mode)
-                badge = (snapshot.wire.thread_unread.get(member, 0) if member_kind == "session"
-                         else snapshot.wire.unread.get(member, 0))
+                badge = (UnreadPresentation.for_thread(snapshot.wire, member)
+                         if self._person_kind(person) == "thread"
+                         else ExactUnread(snapshot.wire.unread.get(member, 0)))
                 label = person.presentation.label
                 action_status = app.pending_thread_actions.get(member)
                 summary = " ".join((action_status or person.presentation.summary).splitlines())
                 pin = "* " if member in view.pinned_members else ""
-                text = f"  {f'({badge}) ' if badge else ''}{pin}{label}\n    {summary}"
+                text = f"  {badge.label + ' ' if badge.label else ''}{pin}{label}\n    {summary}"
                 longest = max(longest, *(Content(line).cell_length for line in text.splitlines()))
                 row_selected = selected == SidebarSelection(channel, member)
                 if person.presentation.busy:
-                    busy_rows[len(options)] = (text, row_selected, bool(badge), ansi)
+                    busy_rows[len(options)] = (text, row_selected, badge.highlighted, ansi)
                 shown = text.replace("⌛ ", f"{FRAMES[self._spinner_phase]} ", 1) if person.presentation.busy else text
                 options.append(Option(styled_row(shown, selected=row_selected, ansi=ansi,
                                                  busy=bool(action_status or person.presentation.busy),
-                                                 muted=True, unread=bool(badge)), id=choice_id))
+                                                 muted=True, unread=badge.highlighted), id=choice_id))
         self.query_ancestor(SideBarCollapsible).styles.min_width = min(longest, 4096)
         old_scroll = listing.scroll_y
         old_ids = [option.id for option in listing.options]

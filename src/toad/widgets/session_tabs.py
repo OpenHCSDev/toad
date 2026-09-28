@@ -237,8 +237,8 @@ class SessionsTabs(Widget):
             busy=session.title.startswith(("⌛ ", "● ")),
             phase=self._spinner_phase,
         )
-        if session.unread:
-            return Content.assemble(title, (f" ({session.unread})", "bold $accent"))
+        if session.unread.label:
+            return Content.assemble(title, (f" {session.unread.label}", "bold $accent"))
         return Content(title)
 
     def compose(self) -> ComposeResult:
@@ -311,8 +311,8 @@ class SessionsTabs(Widget):
                     previous = previous_tabs.get(tab.mode_name)
                     same_width_count = (
                         previous is not None and previous.title == tab.title
-                        and bool(previous.unread) == bool(tab.unread)
-                        and len(str(previous.unread)) == len(str(tab.unread))
+                        and previous.unread.highlighted == tab.unread.highlighted
+                        and len(previous.unread.label) == len(tab.unread.label)
                     )
                     label.update(content, layout=not same_width_count)
                     geometry_changed |= not same_width_count

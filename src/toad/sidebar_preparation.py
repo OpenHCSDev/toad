@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from agent_comms.presentation import ThreadView
 from textual.content import Content
 
-from toad.session_tracker import OpenTab
+from toad.session_tracker import OpenTab, UnreadPresentation, ExactUnread
 from toad.widgets.activity_spinner import FRAMES, animated_label
 from toad.work_preparation import ContentAddressedWork, SerializedWork, ThreadWork
 
@@ -13,7 +13,7 @@ from toad.work_preparation import ContentAddressedWork, SerializedWork, ThreadWo
 @dataclass(frozen=True, slots=True)
 class ThreadRowInput:
     person: ThreadView
-    unread: int = 0
+    unread: UnreadPresentation = ExactUnread()
     pinned: bool = False
     action_status: str | None = None
 
@@ -36,7 +36,7 @@ class ThreadRowPresentation:
     summary: str
     busy: bool
     model: str | None
-    unread: int
+    unread: UnreadPresentation
     pinned: bool
     action_status: str | None
 
@@ -60,7 +60,7 @@ def prepare_thread_row(source: ThreadRowInput) -> PreparedThreadRow:
 def prepare_thread_presentation(source: ThreadRowPresentation) -> PreparedThreadRow:
     summary = source.action_status if source.action_status is not None else source.summary
     busy = source.action_status is not None or source.busy
-    badge = f"({source.unread}) " if source.unread else ""
+    badge = f"{source.unread.label} " if source.unread.label else ""
     frames = tuple(Content.assemble(
         (badge, "bold $accent"),
         f"{'* ' if source.pinned else ''}"
@@ -68,7 +68,7 @@ def prepare_thread_presentation(source: ThreadRowPresentation) -> PreparedThread
         f"\n  {summary}",
     ) for phase in range(len(FRAMES) if source.busy else 1))
     tooltip = "\n".join(str(value) for value in (
-        source.name, summary, "Pinned in this channel" if source.pinned else None, source.model,
+        source.name, summary, source.unread.detail, "Pinned in this channel" if source.pinned else None, source.model,
     ) if value)
     return PreparedThreadRow(source, frames, Content(tooltip), busy,
                              (frames[0].plain, tooltip, busy))
@@ -104,8 +104,8 @@ def prepare_tab(tab: OpenTab) -> PreparedTab:
     frames = []
     for phase in range(len(FRAMES) if busy else 1):
         title = animated_label(tab.title, busy=busy, phase=phase)
-        frames.append(Content.assemble(title, (f" ({tab.unread})", "bold $accent"))
-                      if tab.unread else Content(title))
+        frames.append(Content.assemble(title, (f" {tab.unread.label}", "bold $accent"))
+                      if tab.unread.label else Content(title))
     return PreparedTab(tab, tuple(frames))
 
 

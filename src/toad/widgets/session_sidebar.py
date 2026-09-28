@@ -7,7 +7,7 @@ from textual.containers import VerticalScroll
 from textual.binding import Binding
 from textual.reactive import reactive
 
-from toad.session_tracker import SessionDetails
+from toad.session_tracker import SessionDetails, UnreadPresentation, ExactUnread
 from toad.widgets.activity_spinner import animated_label
 from toad.widgets.selection import HoverSelection
 from toad.sidebar_preparation import PreparedThreadRow, ThreadRowInput, prepare_thread_row
@@ -64,7 +64,7 @@ class ThreadStatusRow(HoverSelection):
             self.apply_thread_preparation(self._thread_presentation)
 
     def update_thread(
-        self, person: ThreadView, *, unread: int = 0, pinned: bool = False,
+        self, person: ThreadView, *, unread: UnreadPresentation = ExactUnread(), pinned: bool = False,
         action_status: str | None = None,
     ) -> None:
         # Compatibility for direct callers; mounted bar reconciliation supplies
@@ -81,7 +81,7 @@ class ThreadStatusRow(HoverSelection):
         self._thread_signature = signature
         self.add_class("-wire-thread")
         self.set_class(prepared.busy, "-busy")
-        self.set_class(bool(source.unread), "-unread")
+        self.set_class(source.unread.highlighted, "-unread")
         self.remove_class("-asking")
         self.tooltip = prepared.tooltip
         self.update(prepared.content(self._spinner_phase), layout=False)

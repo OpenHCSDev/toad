@@ -9,6 +9,7 @@ from agent_comms.threads import Thread
 from agent_comms.comms import wire
 from runtime_fixture import ToadApp
 
+from toad.session_tracker import ExactUnread
 from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.session_tabs import SessionLabel
 
@@ -21,7 +22,7 @@ async def wait_for(pilot, predicate) -> None:
 
 async def badge_cleared(app, pilot, mode: str) -> None:
     await wait_for(pilot, lambda: (
-        next(tab for tab in app.open_tabs if tab.mode_name == mode).unread == 0
+        next(tab for tab in app.open_tabs if tab.mode_name == mode).unread == ExactUnread()
         and "(1)" not in app.screen.query_one(f"SessionLabel#{mode}", SessionLabel).render().plain
     ))
 

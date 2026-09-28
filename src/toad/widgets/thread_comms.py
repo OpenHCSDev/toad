@@ -12,6 +12,7 @@ from textual.binding import Binding
 from textual.content import Content
 from textual.widgets import Checkbox, Static
 
+from toad.session_tracker import UnreadPresentation, ExactUnread
 from toad.widgets.comms_sidebar import CommsRow, CommsSidebar, SelectTarget
 from toad.widgets.activity_spinner import FRAMES
 from toad.widgets.message_filter import MESSAGE_CATEGORIES, MESSAGE_LABELS, MessageCategory
@@ -466,8 +467,9 @@ class ThreadCommsSidebar(SidebarVisibilityObserver, TargetTree):
         snapshot = self.app._sidebar_snapshot
         if (snapshot is None or self.wire_root is None
                 or Path(self.wire_root).resolve() != self.app.coordination_wire.root.resolve()):
-            return 0
-        return (snapshot.thread_unread if kind == "thread" else snapshot.unread).get(name, 0)
+            return ExactUnread()
+        return (UnreadPresentation.for_thread(snapshot, name) if kind == "thread"
+                else ExactUnread(snapshot.unread.get(name, 0)))
 
     def open_target(self, target: str, kind: str):
         if self.wire_root is None or Path(self.wire_root).resolve() != self.app.coordination_wire.root.resolve():
