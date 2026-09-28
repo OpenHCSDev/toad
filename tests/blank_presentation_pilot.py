@@ -11,6 +11,7 @@ from textual.widgets.text_area import Selection
 from toad.widgets.conversation import Conversation
 from toad.widgets.prompt import PromptTextArea
 from toad.widgets.side_bar import SideBar
+from toad.screens.main import MainScreen
 
 
 async def main():
@@ -87,6 +88,17 @@ async def main():
             async with asyncio.timeout(5):
                 await sidebar.wait_content_ready()
             assert sidebar._panels_loaded and sidebar.query_one("#plan-panel")
+            other_project = root / "other-project"
+            other_project.mkdir()
+            await app.new_session_screen(lambda: MainScreen(other_project))
+            async with asyncio.timeout(5):
+                while app.screen.conversation._directory_watcher is None:
+                    await pilot.pause(.02)
+            assert app.screen.conversation.project_path == other_project
+            assert app.screen.conversation._directory_watcher._path == other_project
+            await app.switch_mode(third)
+            assert app.screen.conversation.project_path == root
+            assert app.screen.conversation._directory_watcher._path == root
             assert app._exception is None
         await asyncio.get_running_loop().shutdown_default_executor()
     print("blank presentation: one shared editor, original undo/selection/drafts, executing shell promoted")

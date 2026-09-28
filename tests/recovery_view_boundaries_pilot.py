@@ -77,15 +77,18 @@ async def dual_root_projection():
                 await pilot.pause()
                 owner_mode = app.current_mode
                 owner_screen = app.screen
-                view = owner_screen.query_one(RecoveryView)
-                assert view._wire_root is None and not requests
+                assert not owner_screen.query(RecoveryView) and not requests
                 # Same name exists in A and B. Trusted ACP says B; the env A
                 # must never be used as an implicit recovery identity.
                 await owner_screen.on_coordination_update(CoordinationUpdate(
                     thread="fixture", wire_root=str(b), persistence="persistent", transport="stdio"))
-                assert view._wire_root == b
+                assert owner_screen._coordination_root == str(b)
                 app.settings.ui.recovery_view = True
-                owner_screen.query_one("#thread-sidebar", SideBar).reveal()
+                right = owner_screen.query_one("#thread-sidebar", SideBar)
+                right.reveal()
+                await right.wait_content_ready()
+                view = owner_screen.query_one(RecoveryView)
+                assert view._wire_root == b
                 view.query_ancestor(SideBarCollapsible).collapsed = False
                 async with asyncio.timeout(5):
                     while not requests or "failed" not in view.render().plain:

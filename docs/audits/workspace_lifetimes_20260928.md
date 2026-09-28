@@ -103,6 +103,11 @@ are rebound on reparent and old-screen paths are explicitly released. The
 cross-view lifecycle pilot verifies one widget/task, the real editor document
 and undo, selection, separate drafts, file/store parking, and that first shell
 use promotes its real execution view rather than moving it to another session.
+It also checks crossing two different project roots: the same widget's source
+path, real DirectoryWatcher root and prompt-history scope follow the selected
+session through `Conversation.sync_project_path`, then return to the first root.
+Updating just the reactive path left the previous watcher subscribed and was
+rejected as an incomplete presentation swap.
 One normal long focused run passed25 cases then failed a now-invalid assertion
 that a blank inactive tab still contained a Conversation; its corrected semantic
 check and later12 targeted cases passed. Tests of current MainScreen source
@@ -124,5 +129,73 @@ caller guard cases on the isolated new-core environment (five pilot cases;
 24.39s/316.1MiB peak/zero swap). Complete-suite and native rendering acceptance
 on that merged combination remain outstanding. The measurements above remain
 labeled with their actual earlier source/core.
+
+## Exact current-main/core results after #107
+
+- `toad-workspace-l0a-scale64.json`: strict empty64-tab headless run completes
+  three phases, resize, same-mode request, route reconciliation and closes in
+  **45.43s**, peak185.5MiB, zero swap. Exactly one header, one Footer, one
+  Channels tree,65 labels/close controls, two Conversations and1,208 registered
+  widgets. First/warm switch medians77.94/78.24/80.48ms. One of189 switches
+  exceeded100ms (first revisit102.94ms); maximum loop gap106.20ms, maximum GC
+  3.92ms. No stale tab frames or replaced channel rows. Still above the desired
+  stable30–40ms and not proof for loaded/agent-backed 64-tab sessions.
+- `toad-workspace-l0a-native-nav`: **83 actual terminal actions / 10 tabs / 8
+  sidebar resizes**, four channel identities each singleton across all modes;
+  scope peak538.9MiB, zero swap. Native loop gap max131.56ms, GC max101.62ms,
+  layout max86.17ms. These tails remain adverse despite the blank-session GC
+  improvement. Owned capture scope stopped after the memory receipt.
+- `toad-workspace-l0a-native-filters`: **72 native actions, seven categories,
+  four restored masks/drafts,52/52 input markers**. Input median/p95/max
+  38.34/58.96/70.80ms; loop max106.25ms, GC max86.88ms (UI-thread max74.84ms).
+  Scope peak493.9MiB, zero swap; stopped. Strict native feature coverage passes;
+  the worst-case and input targets do not.
+- Source/host readiness separated at `CommsSidebar._finish_navigation`: after
+  source reconciliation, a whole-screen native reflow occurs only if geometry
+  was actually invalidated. Matched current-core strict16-tab blank probes pass
+  with **two** reflows instead of three, switch medians64.10/66.68/67.23ms;
+  strict64-tab source on the same core keeps1,208widgets and passes all close/
+  resize checks in44.96s, with2reflows/switch and switch medians78.30/77.70/
+  78.79ms. Only2/189 switches exceed100ms; largest loop gap114.05ms, GC3.61ms.
+  Native recheck `toad-source-ready-native-nav` completes83actions/singleton
+  channel IDs; loop max133.73ms, GC87.48ms. This is a correctness-preserving
+  elimination of duplicate work, not a claim the full frame pipeline is fixed.
+- Full current-core Pytest run `toad-workspace-l0a-full`: **166 passed +82
+  subtests,23 failed in598.55s**, peak421.9MiB, zero swap. Do not label it green.
+  The fixed earlier subset of5 smoke cases is not a full-suite substitute.
+  After the run, right-panel-on-reveal fixtures were corrected without relaxing
+  visible assertions (message categories, in/out filters, busy relationship
+  spinner, recovery dual-root and channel-source update); targeted6passed and
+  channel-views passed separately. The permanent TL0 guard now passes using the
+  distinct nominal `SessionSurfaceLifetime` name instead of reintroducing the
+  deleted `SessionPresentation` class. The blank-shell guard now checks the
+  actual `self.shell` access, not the new typed `app.settings.shell` declaration.
+  A complete suite repeat is still pending after those changes.
+- Matched baseline worktree `/tmp/opencode/toad-l0a-baseline-df0a` is detached at
+  unmodified main #107 `df0a758` with the **same core2bfbdb2 and Textual source**.
+  Its pilots independently reproduce failures in `comms` (unchanged10s saved
+  transcript condition), `session_sort` (removed core Publisher.publish),
+  `default_route_private_user` (removed scheduler), `goal_objective_edit`,
+  `channel_history_reader` (new private-bus file ownership),
+  `current_delivery_owner`, `channel_retirement` and `thread_unread_start`.
+  `channel_views` passes on that baseline, so its initial one-pause publication
+  assumption was our integration-specific failure; a bounded wait for the same
+  canonical update now passes. Baseline source files and other agents' worktrees
+  were not edited. Findings reported to the owning merged #107 PR.
+- The current full-suite non-green state is **not** attributed wholesale to #107:
+  this PR's lazy right panel initially made hidden widget queries fail; they now
+  reveal the panel and await its real mount before testing paint and filters.
+  Focused visual/category/filter/spinner/recovery contracts pass. Other core-
+  related failures are retained with exact baseline reproduction; their tests
+  are neither skipped nor assigned a longer deadline.
+- Two app-env pilots initially failed at import-time because the new isolated
+  core-only environment lacked the pytest test dependency. The isolated env now
+  has pytest9.1.1 with its ordinary package requirements; this does not alter
+  the pinned production dependencies or change a test assertion. Their
+  subsequent failures are included in the matched baseline classification.
+
+This revision remains draft: native data-layout/GC tails, exact stable-switch
+budget, full suite failures and unbounded agent-backed presentations are still
+real acceptance gaps. Do not merge on the strength of the blank fixture alone.
 
 No installed runtime, live data, user preview or other agent worktree was changed.

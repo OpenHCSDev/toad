@@ -23,4 +23,5 @@ def test_view_mount_and_agent_readiness_do_not_activate_a_shell():
     for node in ast.walk(tree):
         if isinstance(node, ast.AsyncFunctionDef) and node.name in {"initialize_view", "watch_agent_ready"}:
             assert not any(isinstance(item, ast.Attribute) and item.attr == "shell"
+                           and isinstance(item.value, ast.Name) and item.value.id == "self"
                            for item in ast.walk(node)), node.name

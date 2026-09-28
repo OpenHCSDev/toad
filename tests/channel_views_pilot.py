@@ -68,7 +68,9 @@ async def main():
             other = wire(root / "wire")
             other.channels.update_tags("other", add=frozenset({"engineering"}))
             sidebar._refresh()
-            await pilot.pause()
+            async with asyncio.timeout(5):
+                while set(group._members) != {"api-agent", "ui-agent", "other"}:
+                    await pilot.pause(.02)
             assert set(group._members) == {"api-agent", "ui-agent", "other"}
             group.toggle_members()
             await pilot.pause()

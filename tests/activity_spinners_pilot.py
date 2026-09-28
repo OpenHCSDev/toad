@@ -90,7 +90,9 @@ async def check_busy_labels() -> None:
                 thread=me, wire_root=str(root / "wire"),
                 persistence="persistent", transport="stdio",
             ))
-            app.screen.query_one("#thread-sidebar", SideBar).reveal()
+            right = app.screen.query_one("#thread-sidebar", SideBar)
+            right.reveal()
+            await right.wait_content_ready()
             tree = app.screen.query_one(ThreadCommsSidebar)
             async with asyncio.timeout(5):
                 while tree._snapshot is None:

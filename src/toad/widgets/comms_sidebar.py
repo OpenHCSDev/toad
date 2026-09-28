@@ -571,7 +571,11 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
                 for ancestor in self.ancestors:
                     if isinstance(ancestor, Widget):
                         ancestor._check_refresh()
-                self.screen._refresh_layout(self.app.size)
+                # Host activation already committed a complete native layout.
+                # Reflow only if source reconciliation mounted/changed geometry
+                # afterward; source readiness is not another host reflow request.
+                if self.screen._layout_required or self.screen._layout_widgets:
+                    self.screen._refresh_layout(self.app.size)
                 if self.restore_scroll():
                     self.screen._refresh_layout(self.app.size, scroll=True)
                 self.navigation_ready.set()
