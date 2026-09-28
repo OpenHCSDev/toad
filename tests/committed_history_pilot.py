@@ -5,7 +5,8 @@ import os
 import tempfile
 from pathlib import Path
 
-from agent_comms import TranscriptCursor, TranscriptEvent, TranscriptPage
+from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcript_events import AssistantTranscript
 from textual.content import Content
 from thread_activation_pilot import FrameApp
 from toad.acp.agent import Agent
@@ -59,8 +60,8 @@ async def main():
             assert len(conversation.contents.children) > conversation.MAX_LIVE_BLOCKS
             cursor = TranscriptCursor("", 0)
             page = TranscriptPage(
-                tuple(TranscriptEvent("assistant", f"Saved paragraph {i}") for i in range(40))
-                + (TranscriptEvent("assistant", "Canonical final reply"),),
+                tuple(AssistantTranscript(f'Saved paragraph {i}') for i in range(40))
+                + (AssistantTranscript('Canonical final reply'),),
                 cursor, cursor, False, False,
             )
             agent = SnapshotAgent(page)

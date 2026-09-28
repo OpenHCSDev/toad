@@ -1,0 +1,33 @@
+Traceback (most recent call last):
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/unittest/mock.py", line 1617, in __enter__
+    setattr(self.target, self.attribute, new_attr)
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 17, in __setattr__
+TypeError: super(type, obj): obj (instance of RegistryStore) is not an instance or subtype of type (RegistryStore).
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-export-caller-migration-20260928/tests/hot_path_invalidation_pilot.py", line 73, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-export-caller-migration-20260928/tests/hot_path_invalidation_pilot.py", line 39, in main
+    patch.object(app.coordination_wire.registry.store, "read", side_effect=AssertionError("UI registry read")):
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/unittest/mock.py", line 1630, in __enter__
+    if not self.__exit__(*sys.exc_info()):
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/unittest/mock.py", line 1641, in __exit__
+    delattr(self.target, self.attribute)
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 21, in __delattr__
+TypeError: super(type, obj): obj (instance of RegistryStore) is not an instance or subtype of type (RegistryStore).

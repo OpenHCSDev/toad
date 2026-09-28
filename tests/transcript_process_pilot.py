@@ -11,8 +11,10 @@ import time
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from agent_comms import TranscriptCursor, TranscriptEvent, TranscriptPage
-from agent_comms.declarations import Message, MessageRoute, MessageType, TurnRouting
+from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcript_events import AssistantTranscript, NoticeTranscript, SentTranscript, ThinkingTranscript, ToolEndTranscript, ToolStartTranscript, UserTranscript
+from agent_comms.messages import Message, MessageType
+from agent_comms.routing import MessageRoute, TurnRouting
 from agent_comms.tool_results import ToolDiff
 from textual.app import App
 
@@ -61,9 +63,9 @@ class ObservedPool(RenderProcessPool):
         return result
 
 
-def page(text, *, older=False):
-    cursor = TranscriptCursor("process-fixture", 1)
-    return TranscriptPage((TranscriptEvent("assistant", text),), cursor, cursor, older, False)
+def page(text, *, older=False, cursor=None):
+    cursor = cursor or TranscriptCursor("process-fixture", 1)
+    return TranscriptPage((AssistantTranscript(text),), cursor, cursor, older, False)
 
 
 async def until(predicate):
@@ -91,16 +93,13 @@ async def main():
         MessageRoute("worker", ("#channel", "peer")),
     )
     events = (
-        TranscriptEvent("user", "Incoming message", routing=routing),
-        TranscriptEvent("assistant", text, routing=routing),
-        TranscriptEvent("thinking", "A thought\n\n" + table),
-        TranscriptEvent("notice", "Notice"), TranscriptEvent("sent", "Sent"),
-        TranscriptEvent("tool_start", tool_call_id="edit/1", tool_name="edit",
-                        raw_input={"path": "file.py", "edits": [{"old": "a", "new": "b"}]}),
-        TranscriptEvent("tool_end", "edited", tool_call_id="edit/1", tool_name="edit",
-                        diff=ToolDiff("--- a/file.py\n+++ b/file.py\n@@ -1 +1 @@\n-a\n+b\n")),
-        TranscriptEvent("assistant", "```text\n" + "fenced line\n" * 100 + "```\n\n" +
-                        "\n".join(f"- item {i}" for i in range(100))),
+        UserTranscript('Incoming message', routing=routing),
+        AssistantTranscript(text, routing=routing),
+        ThinkingTranscript('A thought\n\n' + table),
+        NoticeTranscript('Notice'), SentTranscript('Sent'),
+        ToolStartTranscript(tool_call_id='edit/1', tool_name='edit', raw_input={'path': 'file.py', 'edits': [{'old': 'a', 'new': 'b'}]}),
+        ToolEndTranscript(tool_call_id='edit/1', tool_name='edit', diff=ToolDiff('--- a/file.py\n+++ b/file.py\n@@ -1 +1 @@\n-a\n+b\n'), text='edited'),
+        AssistantTranscript('```text\n' + 'fenced line\n' * 100 + '```\n\n' + '\n'.join((f'- item {i}' for i in range(100)))),
     )
     assert pickle.loads(pickle.dumps(events)) == events
     expected = transcript_fragments(events)
@@ -122,20 +121,19 @@ async def main():
     # helper's request-owned fallback must close its children before returning.
     baseline_children = {child.pid for child in multiprocessing.active_children()}
     async with App().run_test():
-        fallback = await prepare_transcript_fragments((TranscriptEvent("assistant", table * 8),))
-    assert fallback == transcript_fragments((TranscriptEvent("assistant", table * 8),))
+        fallback = await prepare_transcript_fragments((AssistantTranscript(table * 8),))
+    assert fallback == transcript_fragments((AssistantTranscript(table * 8),))
     assert {child.pid for child in multiprocessing.active_children()} == baseline_children
 
     with tempfile.TemporaryDirectory(prefix="toad-transcript-process-") as directory:
         root = Path(directory)
         os.environ.update(XDG_CONFIG_HOME=str(root / "config"), XDG_STATE_HOME=str(root / "state"),
                           XDG_DATA_HOME=str(root / "data"), AGENT_COMMS_ROOT=str(root / "wire"))
-        app = ToadApp(project_dir=str(root))
+        app = ToadApp(project_dir=str(root), renderer=pool)
         pool.app = app
         # Keep edge requests deterministic here; real scrolling is exercised by
         # transcript_history/history_scroll_frames/long_message pilots.
-        with patch.object(ToadApp, "render_processes", property(lambda self: pool), create=True), \
-                patch.object(TranscriptHistory, "_check_edges", lambda self: None):
+        with patch.object(TranscriptHistory, "_check_edges", lambda self: None):
             async with app.run_test(size=(90, 35)) as pilot:
                 await pilot.pause()
                 conversation = app.screen.conversation
@@ -166,7 +164,8 @@ async def main():
                 await pilot.pause()
 
                 pool.hold()
-                obsolete = asyncio.create_task(response._update_content(live_text, append=False))
+                # Each race needs uncached work on the real preparation runtime.
+                obsolete = asyncio.create_task(response._update_content(live_text + "\n\nOBSOLETE", append=False))
                 await until(pool.entered.is_set)
                 latest = asyncio.create_task(response._update_content("latest", append=False))
                 await asyncio.sleep(0)
@@ -175,7 +174,7 @@ async def main():
                 assert response.source == "latest" and response._paged is None
 
                 pool.hold()
-                cancelled = asyncio.create_task(response._update_content(live_text, append=False))
+                cancelled = asyncio.create_task(response._update_content(live_text + "\n\nCANCELLED", append=False))
                 await until(pool.entered.is_set)
                 cancelled.cancel()
                 with suppress(asyncio.CancelledError):
@@ -203,15 +202,17 @@ async def main():
                     TranscriptPageView(page(text), fragments=history.pages[0].fragments)
 
                 pool.hold()
-                stale_live = asyncio.create_task(history.update_live(page(live_text + "\n\nOLD")))
+                stale_live = asyncio.create_task(history.update_live(
+                    page(live_text + "\n\nOLD", cursor=history.through),
+                ))
                 await until(pool.entered.is_set)
-                await history.update_live(page("NEW"))
+                await history.update_live(page("NEW", cursor=history.through))
                 pool.release.set()
                 await stale_live
                 assert history.pages[0].page.events[0].text == "NEW"
 
                 async def load(**kwargs):
-                    return page(live_text)
+                    return page(live_text + "\n\nEDGE", cursor=kwargs["through"])
 
                 history.loader = load
                 before = tuple(history.pages)
@@ -223,6 +224,11 @@ async def main():
                 await edge
                 assert tuple(history.pages) == before
 
+                async def load_latest(**kwargs):
+                    return page(live_text + "\n\nLATEST", cursor=kwargs["through"])
+
+                # A distinct source prevents reusing the previous edge request.
+                history.loader = load_latest
                 pool.hold()
                 jump = asyncio.create_task(history._jump_latest())
                 await until(pool.entered.is_set)

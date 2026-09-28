@@ -5,7 +5,8 @@ import os
 from pathlib import Path
 import tempfile
 
-from agent_comms import TranscriptCursor, TranscriptEvent, TranscriptPage
+from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcript_events import AssistantTranscript
 from committed_history_pilot import SnapshotAgent
 from runtime_fixture import ToadApp
 
@@ -35,7 +36,7 @@ async def main():
             await pilot.pause()
             view = app.screen.conversation
             cursor = TranscriptCursor("", 0)
-            page = TranscriptPage((TranscriptEvent("assistant", "Saved answer"),),
+            page = TranscriptPage((AssistantTranscript('Saved answer'),),
                                   cursor, cursor, False, False)
             agent = DelayedSnapshotAgent(page)
             view.set_reactive(type(view).agent, agent)

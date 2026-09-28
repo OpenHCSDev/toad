@@ -1,0 +1,26 @@
+[
+  {
+    "script": "async_thread_open_pilot",
+    "exit": 0
+  },
+  {
+    "script": "hot_path_invalidation_pilot",
+    "exit": 1
+  },
+  {
+    "script": "in_out_filter_pilot",
+    "exit": 0
+  },
+  {
+    "script": "message_categories_pilot",
+    "exit": 0
+  },
+  {
+    "script": "off_tail_checkpoint_pilot",
+    "exit": 0
+  },
+  {
+    "script": "thread_unread_start_pilot",
+    "exit": 1
+  }
+]

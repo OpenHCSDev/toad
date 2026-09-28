@@ -6,11 +6,20 @@ from textual.containers import HorizontalGroup, VerticalGroup
 from textual.content import Content
 from textual.style import Style
 from textual.widget import Widget
+from textual.message import Message as UIMessage
 from textual.widgets import Static
-from agent_comms import Message
+from agent_comms.messages import Message
+from agent_comms import HistoricalMessage
 from toad.widgets.comms_sidebar import SelectTarget
 from toad.widgets.inline_message import inline_message
 from toad.widgets.message_divider import MessageDivider
+
+
+class SelectHistoricalIdentity(UIMessage):
+    def __init__(self, name: str, source: str):
+        super().__init__()
+        self.name = name
+        self.source = source
 
 
 class ThreadLink(Static, can_focus=True):
@@ -20,11 +29,15 @@ class ThreadLink(Static, can_focus=True):
     ThreadLink:hover, ThreadLink:focus { text-style: underline; background: $accent 20%; }
     """
 
-    def __init__(self, target: str):
+    def __init__(self, target: str, history_source: str | None = None):
         self.target = target
+        self.history_source = history_source
         super().__init__(target, markup=False)
 
     def action_open_target(self):
+        if self.history_source and not self.target.startswith("#"):
+            self.post_message(SelectHistoricalIdentity(self.target, self.history_source))
+            return
         self.post_message(
             SelectTarget(
                 self.target, "channel" if self.target.startswith("#") else "thread"
@@ -75,7 +88,10 @@ class IRCMessage(VerticalGroup, can_focus=True):
     def __init__(self, message: Message, *, direction: str = "Inbound"):
         super().__init__()
         self.message = message
-        self.direction = direction
+        self.direction = (
+            f"History · {message.source.original_root} · @{message.sender} incarnation {message.sender_created_at}"
+            if isinstance(message, HistoricalMessage) else direction
+        )
         self.source = message.body
 
     def compose(self) -> ComposeResult:
@@ -107,6 +123,9 @@ class IRCMessage(VerticalGroup, can_focus=True):
         return self.query_one(IRCMessageText)
 
     def action_open_target(self, target: str):
+        if isinstance(self.message, HistoricalMessage) and not target.startswith("#"):
+            self.post_message(SelectHistoricalIdentity(target, self.message.source.key))
+            return
         self.post_message(
             SelectTarget(target, "channel" if target.startswith("#") else "thread")
         )
@@ -127,23 +146,27 @@ class WireMarkdownMessage(VerticalGroup):
     def __init__(self, message: Message, *, direction: str = "Inbound"):
         super().__init__()
         self.message = message
-        self.direction = direction
+        self.direction = (
+            f"History · {message.source.original_root} · @{message.sender} incarnation {message.sender_created_at}"
+            if isinstance(message, HistoricalMessage) else direction
+        )
         self.source = message.body
 
     def compose(self) -> ComposeResult:
         from toad.widgets.agent_response import AgentResponse
 
         yield MessageDivider(self.direction, timestamp=self.message.timestamp)
+        source = self.message.source.key if isinstance(self.message, HistoricalMessage) else None
         with HorizontalGroup():
-            yield ThreadLink(self.message.sender)
+            yield ThreadLink(self.message.sender, source)
             yield Static(" → ", markup=False, expand=False)
-            yield ThreadLink(self.message.target)
+            yield ThreadLink(self.message.target, source)
         yield AgentResponse(self.message.body, show_divider=False)
         if self.message.mentions:
             with HorizontalGroup():
                 yield Static("Mentioned: ", expand=False)
                 for target in dict.fromkeys(mention.thread for mention in self.message.mentions):
-                    yield ThreadLink(target)
+                    yield ThreadLink(target, source)
 
     def read_ack_widget(self) -> Widget:
         """Only the rendered message body can authorize a read."""

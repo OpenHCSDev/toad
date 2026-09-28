@@ -6,7 +6,9 @@ import os
 from pathlib import Path
 import tempfile
 
-from agent_comms import Thread, wire
+from agent_comms.threads import Thread
+from agent_comms.comms import wire
+from agent_comms.transcript_events import TranscriptCodec
 from runtime_fixture import ToadApp
 from textual.widgets._markdown import MarkdownBulletList, MarkdownFence
 from toad.acp.agent import Agent
@@ -28,8 +30,8 @@ async def main():
             "role": "assistant", "content": [{"type": "text", "text": part} for part in parts],
         }}) + "\n")
         comms = wire(root / "wire")
-        comms.register(Thread("worker", frozenset(), str(root), session_file=str(session)))
-        saved = comms.thread_transcript_page("worker")
+        comms.threads.register(Thread("worker", frozenset(), str(root), session_file=str(session)))
+        saved = comms.transcripts.thread_transcript_page("worker")
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(110, 38)) as pilot:
             await pilot.pause()
@@ -40,7 +42,7 @@ async def main():
             agent.rpc_session_update("fixture", {
                 "sessionUpdate": "agent_message_chunk",
                 "content": {"type": "text", "text": ""},
-                "_meta": {"agentComms": {"transcript": [event.to_wire() for event in saved.events]}},
+                "_meta": {"agentComms": {"transcript": [TranscriptCodec.encode(event) for event in saved.events], "transcriptPage": saved.metadata()}},
             })
             await pilot.pause()
             assert len(view.contents.query(MessageDivider)) == 1, "one native row gained extra timestamps"

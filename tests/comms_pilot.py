@@ -10,8 +10,11 @@ import tempfile
 from pathlib import Path
 from types import SimpleNamespace
 
-from agent_comms import ActivityState, ForkSpec, Thread
-from agent_comms.operations import wire
+from agent_comms.activity import ActivityState
+from agent_comms.thread_management import ForkSpec
+from agent_comms.thread_status import ArchivedThreadStatus
+from agent_comms.threads import Thread
+from agent_comms.comms import wire
 from textual.content import Content
 from textual.widgets import Footer, Markdown
 from textual.widgets._footer import FooterKey
@@ -122,16 +125,16 @@ for line in sys.stdin:
 
         comms = wire(wire_root)
         me = project.name
-        comms.register(
+        comms.threads.register(
             Thread(name=me, tags=frozenset({"session"}), worktree=str(project))
         )
-        comms.register(
+        comms.threads.register(
             Thread(name="peer", tags=frozenset({"test"}), worktree=str(project))
         )
-        comms.register(
+        comms.threads.register(
             Thread(name="other-peer", tags=frozenset(), worktree=str(project))
         )
-        comms.register(
+        comms.threads.register(
             Thread(name="delete-peer", tags=frozenset(), worktree=str(project))
         )
         resumable_session = root / "resumable-session.jsonl"
@@ -185,7 +188,7 @@ for line in sys.stdin:
                 ]
             )
         )
-        comms.register(
+        comms.threads.register(
             Thread(
                 name="resumable-peer",
                 tags=frozenset({"test"}),
@@ -193,16 +196,16 @@ for line in sys.stdin:
                 session_file=str(resumable_session),
             )
         )
-        comms.send("peer", "#all", "hello from peer")
-        comms.send("peer", me, "private from peer")
-        comms.send("other-peer", me, "unrelated private message")
+        comms.messaging.send("peer", "#all", "hello from peer")
+        comms.messaging.send("peer", me, "private from peer")
+        comms.messaging.send("other-peer", me, "unrelated private message")
         for index in range(HISTORY_WINDOW_SIZE * 2):
-            comms.send("peer", "#test", f"long history {index:03}")
-        comms.acknowledge(me, "#test")
-        comms.set_agent_info(
+            comms.messaging.send("peer", "#test", f"long history {index:03}")
+        comms.messaging.acknowledge(me, "#test")
+        comms.agents.set_agent_info(
             "peer", model="openrouter/test-model", context_used=250, context_size=1000
         )
-        comms.set_activity("peer", ActivityState.THINKING, "reviewing the change")
+        comms.agents.set_activity("peer", ActivityState.THINKING, "reviewing the change")
 
         app = ToadApp(project_dir=str(project))
         async with app.run_test(size=(120, 40)) as pilot:
@@ -376,7 +379,7 @@ for line in sys.stdin:
             created_conversation = app.screen.conversation
             assert app.session_tracker.get_session(created_mode).title == "New Session"
             managed_thread = "managed-test-thread"
-            comms.register(
+            comms.threads.register(
                 Thread(
                     name=managed_thread,
                     tags=frozenset({"acp"}),
@@ -690,15 +693,15 @@ for line in sys.stdin:
             await pilot.click(thread_sidebar.query_one(SideBarToggle))
             await pilot.pause()
 
-            viewer = comms.user_identity(str(project)).name
-            comms.send("peer", viewer, "Unread message for human view")
-            comms.send("peer", "#all", "Unread channel message for human view")
+            viewer = comms.messaging.user_identity(str(project)).name
+            comms.messaging.send("peer", viewer, "Unread message for human view")
+            comms.messaging.send("peer", "#all", "Unread channel message for human view")
             pending_before_mark = {
-                target: comms.pending_count(me, target)
+                target: comms.bus.pending_count(me, target)
                 for target in ("peer", "other-peer", "#all")
             }
-            assert comms.viewer_snapshot(str(project)).unread["peer"] == 1
-            assert comms.viewer_snapshot(str(project)).channel_unread["#all"] >= 1
+            assert comms.views.viewer_snapshot(str(project)).unread["peer"] == 1
+            assert comms.views.viewer_snapshot(str(project)).channel_unread["#all"] >= 1
             await pilot.click(row(app.screen, "peer"), button=3)
             await pilot.pause()
             assert isinstance(app.screen, ContextMenu)
@@ -715,8 +718,8 @@ for line in sys.stdin:
             await pilot.press("down", "down", "down", "down", "down", "down", "enter")
             await pilot.pause()
             assert isinstance(app.screen, MainScreen)
-            assert comms.viewer_snapshot(str(project)).unread.get("peer", 0) == 0
-            assert {target: comms.pending_count(me, target)
+            assert comms.views.viewer_snapshot(str(project)).unread.get("peer", 0) == 0
+            assert {target: comms.bus.pending_count(me, target)
                     for target in pending_before_mark} == pending_before_mark
             await pilot.click(row(app.screen, "#all"), button=3)
             await pilot.pause()
@@ -729,8 +732,8 @@ for line in sys.stdin:
             await pilot.press("down", "enter")
             await pilot.pause()
             assert isinstance(app.screen, MainScreen)
-            assert comms.viewer_snapshot(str(project)).channel_unread["#all"] == 0
-            assert {target: comms.pending_count(me, target)
+            assert comms.views.viewer_snapshot(str(project)).channel_unread["#all"] == 0
+            assert {target: comms.bus.pending_count(me, target)
                     for target in pending_before_mark} == pending_before_mark
 
             await pilot.click(row(app.screen, "other-peer"), button=3)
@@ -742,7 +745,7 @@ for line in sys.stdin:
             )
             await pilot.click(stop_item)
             await pilot.pause()
-            assert comms.thread_detail("other-peer")["status"] == "stopped"
+            assert comms.views.thread_detail("other-peer")["status"] == "stopped"
             await pilot.click(row(app.screen, "other-peer"), button=3)
             await pilot.pause()
             archive_item = next(
@@ -752,7 +755,7 @@ for line in sys.stdin:
             )
             await pilot.click(archive_item)
             await pilot.pause()
-            assert comms.registry.status("other-peer").value == "archived"
+            assert comms.registry.status("other-peer") == ArchivedThreadStatus()
             assert not any(
                 item.target_name == "other-peer" for item in app.screen.query(CommsRow)
             )
@@ -770,7 +773,7 @@ for line in sys.stdin:
             # Stop to release this subject before requesting its next action.
             async with asyncio.timeout(10):
                 while ("delete-peer" in app.pending_thread_actions
-                       or comms.registry.status("delete-peer").value != "stopped"):
+                       or not comms.registry.status("delete-peer").stopped):
                     await pilot.pause(.01)
             await pilot.click(row(app.screen, "delete-peer"), button=3)
             await pilot.pause()
@@ -818,7 +821,7 @@ for line in sys.stdin:
             await pilot.press("enter")
             await pilot.pause()
             assert "message from pilot" in [
-                message.body for message in comms.channel_history("#all")
+                message.body for message in comms.views.channel_history("#all")
             ]
 
             owner_row = next(
@@ -997,7 +1000,7 @@ for line in sys.stdin:
             )
             second_file = root / "second-session.jsonl"
             second_file.write_text(resumable_session.read_text())
-            comms.register(
+            comms.threads.register(
                 Thread(
                     name="second-peer",
                     tags=frozenset(),
@@ -1036,7 +1039,7 @@ for line in sys.stdin:
             assert "second-peer-2" not in comms.registry
             hold = gates / "second-peer"
             hold.touch()
-            comms.send("resumable-peer", "second-peer", "live round one")
+            comms.messaging.send("resumable-peer", "second-peer", "live round one")
             for _ in range(80):
                 await pilot.pause(0.1)
                 if any(
@@ -1047,7 +1050,7 @@ for line in sys.stdin:
             assert app.screen.conversation.turn == "agent", (
                 [item.source for item in app.screen.query(AgentThought)],
                 hold.exists(),
-                comms.activity_of("second-peer"),
+                comms.agents.activity_of("second-peer"),
             )
             assert app.screen.conversation.busy_count == 1
             active_turn = app.screen.conversation._managed_turn_id
@@ -1099,7 +1102,7 @@ for line in sys.stdin:
             await pilot.pause()
             assert app.current_mode == thread_mode
             assert app.session_tracker.session_count == 3
-            comms.send("second-peer", "resumable-peer", "live round two")
+            comms.messaging.send("second-peer", "resumable-peer", "live round two")
             for _ in range(40):
                 await pilot.pause(0.1)
                 if any(
@@ -1148,7 +1151,7 @@ for line in sys.stdin:
             except TimeoutError:
                 raise AssertionError((
                     "Busy thread tab did not observe the activity snapshot within 3 seconds",
-                    app.open_tabs, comms.activity_of("resumable-peer"), app.screen._session_thread,
+                    app.open_tabs, comms.agents.activity_of("resumable-peer"), app.screen._session_thread,
                 )) from None
             assert all(
                 "user turn lifecycle" not in item.source for item in first_thoughts
@@ -1193,10 +1196,10 @@ for line in sys.stdin:
             assert app.current_mode == thread_mode
             assert app.session_tracker.get_session(second_mode) is None
             assert "second-peer" in comms.registry
-            comms.stop("second-peer")
-            comms.delete("second-peer")
+            comms.owners.stop("second-peer")
+            comms.threads.delete("second-peer")
 
-            external = comms.fork(
+            external = comms.threads.fork(
                 ForkSpec(
                     name="external-peer",
                     parent="resumable-peer",
@@ -1213,7 +1216,7 @@ for line in sys.stdin:
                         break
                 external_file = root / "external-session.jsonl"
                 external_file.write_text(resumable_session.read_text())
-                comms.attach_session(external.name, str(external_file))
+                comms.threads.attach_session(external.name, str(external_file))
                 external_mode = await app.open_thread_session(
                     owner_mode=thread_mode, project_path=project, target=external.name
                 )
@@ -1223,7 +1226,7 @@ for line in sys.stdin:
                         break
                 assert external_mode != thread_mode
                 assert comms.registry.require(external.name).pid == external.pid
-                comms.send("resumable-peer", external.name, "live external attachment")
+                comms.messaging.send("resumable-peer", external.name, "live external attachment")
                 for _ in range(40):
                     await pilot.pause(0.1)
                     if any(
@@ -1251,14 +1254,14 @@ for line in sys.stdin:
                 assert app.current_mode == thread_mode
             finally:
                 if external.name in comms.registry:
-                    await asyncio.to_thread(comms.stop, external.name)
-                    comms.delete(external.name)
+                    await asyncio.to_thread(comms.owners.stop, external.name)
+                    comms.threads.delete(external.name)
                 await asyncio.to_thread(os.waitpid, external.pid, 0)
             await app.screen.conversation.rename_session("delete once")
             await pilot.pause()
             deleted_name = app.screen._comms_thread
             assert deleted_name == "delete-once"
-            comms.register(
+            comms.threads.register(
                 Thread(
                     name="surviving-child",
                     parent=deleted_name,
@@ -1271,7 +1274,7 @@ for line in sys.stdin:
             await pilot.pause()
             deleted_pid = comms.registry.require(deleted_name).pid
             deleted_pk = app.screen.conversation.agent.session_pk
-            await asyncio.to_thread(comms.stop, deleted_name)
+            await asyncio.to_thread(comms.owners.stop, deleted_name)
             thread_row = next(
                 item
                 for item in open_rows(app.screen)
@@ -1299,13 +1302,13 @@ for line in sys.stdin:
                     for item in app.session_tracker.ordered_sessions
                 ],
                 (
-                    comms.thread_detail(deleted_name)
+                    comms.views.thread_detail(deleted_name)
                     if deleted_name in comms.registry
                     else "deleted"
                 ),
             )
             assert app.session_tracker.session_count == 1
-            assert not comms._process_alive(deleted_pid)
+            assert not comms.owners._process_alive(deleted_pid)
             assert deleted_name not in comms.registry
             assert "resumable-peer" not in comms.registry
             assert comms.registry.require("surviving-child").parent is None
@@ -1317,14 +1320,14 @@ for line in sys.stdin:
             assert not {deleted_name, "resumable-peer"} & {
                 item.target_name for item in app.screen.query(CommsRow)
             }
-            replacement = comms.claim_thread(
+            replacement = comms.threads.claim_thread(
                 deleted_name, tags=frozenset(), worktree=str(project)
             )
             assert replacement.name == deleted_name
-            comms.stop(replacement.name)
-            comms.delete(replacement.name)
-            comms.stop("surviving-child")
-            comms.delete("surviving-child")
+            comms.owners.stop(replacement.name)
+            comms.threads.delete(replacement.name)
+            comms.owners.stop("surviving-child")
+            comms.threads.delete("surviving-child")
             app.screen._agent = owner_agent
             app.screen.query_one(CommsSidebar)._refresh()
             await pilot.pause()

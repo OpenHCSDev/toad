@@ -13,7 +13,9 @@ from typing import TYPE_CHECKING, Literal
 from pathlib import Path
 from time import monotonic, time
 from urllib.parse import quote
-from agent_comms import Goal, GoalExecution, MessageRoute
+from agent_comms.goals import Goal
+from agent_comms.goal_presentation import GoalExecution
+from agent_comms.routing import MessageRoute
 
 from typing import Callable, Any
 
@@ -1820,7 +1822,7 @@ class Conversation(containers.Vertical):
 
     @work(exclusive=True, group="transcript-window")
     async def _compact_committed_history(self) -> None:
-        from agent_comms import UnregisteredThreadError
+        from agent_comms.errors import UnregisteredThreadError
         from toad.acp.agent import Agent
         from toad.widgets.transcript_history import TranscriptHistory
         from toad.widgets.committed_presentation import (
@@ -2657,9 +2659,9 @@ class Conversation(containers.Vertical):
         elif event.action == "goal-clear":
             await self.change_goal("clear")
         elif event.action == "goal-toggle":
-            action = self.goal.toggle_action if self.goal else ""
-            if action:
-                await self.change_goal(action)
+            action = self.goal.state.toggle if self.goal else None
+            if action is not None:
+                await self.change_goal(action.declared_name)
             else:
                 self.flash("This goal is completed; set a new goal to continue.")
 

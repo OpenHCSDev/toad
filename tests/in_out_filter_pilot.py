@@ -6,10 +6,12 @@ from pathlib import Path
 import tempfile
 from unittest.mock import patch
 
-from agent_comms import (
-    Message, MessageRoute, MessageType, Thread, TranscriptCursor, TranscriptEvent,
-    TranscriptPage, TurnRouting, wire,
-)
+from agent_comms.messages import Message, MessageType
+from agent_comms.routing import MessageRoute, TurnRouting
+from agent_comms.threads import Thread
+from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcript_events import AssistantTranscript, SentTranscript, ThinkingTranscript, UserTranscript
+from agent_comms.comms import wire
 from textual.widgets import Checkbox, Static
 
 from runtime_fixture import ToadApp
@@ -31,7 +33,7 @@ async def main():
                           XDG_STATE_HOME=str(root / "state"), AGENT_COMMS_ROOT=str(root / "wire"))
         comms = wire(root / "wire")
         for name in ("owner", "peer"):
-            comms.register(Thread(name, frozenset({"team"}), str(root)))
+            comms.threads.register(Thread(name, frozenset({"team"}), str(root)))
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(130, 44)) as pilot:
             await pilot.pause()
@@ -72,11 +74,10 @@ async def main():
 
             message = Message("peer", "owner", "SAVED_INCOMING", MessageType.INFO)
             events = (
-                TranscriptEvent("user", message.body, routing=TurnRouting((message,), None)),
-                TranscriptEvent("thinking", "SAVED_THOUGHT"),
-                TranscriptEvent("assistant", "SAVED_UNROUTED"),
-                TranscriptEvent("sent", "SAVED_OUTGOING", routing=TurnRouting(
-                    (), MessageRoute("owner", ("peer",)))),
+                UserTranscript(message.body, routing=TurnRouting((message,), None)),
+                ThinkingTranscript('SAVED_THOUGHT'),
+                AssistantTranscript('SAVED_UNROUTED'),
+                SentTranscript('SAVED_OUTGOING', routing=TurnRouting((), MessageRoute('owner', ('peer',)))),
             )
             cursor = TranscriptCursor("fixture", 0)
             history = TranscriptHistory(TranscriptPage(events, cursor, cursor, False, False))
@@ -106,8 +107,7 @@ async def main():
             assert not new_thought.display and new_incoming.display
             # A bounded tail can contain no routed events. The earlier-history
             # control must still let the reader reach routed messages beyond it.
-            older_event = TranscriptEvent("sent", "EARLIER_ROUTED_OUTPUT", routing=TurnRouting(
-                (), MessageRoute("owner", ("peer",))))
+            older_event = SentTranscript('EARLIER_ROUTED_OUTPUT', routing=TurnRouting((), MessageRoute('owner', ('peer',))))
             page_cursor = TranscriptCursor("earlier-fixture", 4)
             tail_cursor = TranscriptCursor("earlier-fixture", 8)
             calls = []
@@ -118,7 +118,7 @@ async def main():
                                       page_cursor, False, True)
 
             tail = TranscriptHistory(TranscriptPage(
-                (TranscriptEvent("thinking", "NONROUTED_TAIL"),),
+                (ThinkingTranscript('NONROUTED_TAIL'),),
                 page_cursor, tail_cursor, True, False), loader=load_earlier)
             tail._loading = True  # Isolate the explicit earlier-history action.
             await view.contents.mount(tail)
@@ -138,7 +138,7 @@ async def main():
             assert any(leaf.display and leaf.fragment.events[0].text == "EARLIER_ROUTED_OUTPUT"
                        for leaf in tail._filter_overlay.fragment_views)
             view.displayed_transcript_cursor = cursor
-            with patch.object(app.coordination_wire, "mark_thread_view_read") as mark:
+            with patch.object(app.coordination_wire.views, 'mark_thread_view_read') as mark:
                 await app.mark_visible_thread_read()
                 assert not mark.called, "Hidden replies were acknowledged as displayed"
 

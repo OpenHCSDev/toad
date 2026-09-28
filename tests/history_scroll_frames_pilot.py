@@ -6,7 +6,10 @@ import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
-from agent_comms import Thread, TranscriptCursor, TranscriptEvent, TranscriptPage, wire
+from agent_comms.threads import Thread
+from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcript_events import AssistantTranscript
+from agent_comms.comms import wire
 from runtime_fixture import ToadApp
 from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.transcript_history import TranscriptHistory, TranscriptPageView
@@ -32,8 +35,7 @@ async def main():
         async with app.run_test(size=(110, 38)) as pilot:
             await pilot.pause()
             cursor = TranscriptCursor("fixture", 1)
-            page = TranscriptPage(tuple(TranscriptEvent("assistant", f"Record {i}\n\n" +
-                "\n".join(f"- item {j}" for j in range(20))) for i in range(30)),
+            page = TranscriptPage(tuple(AssistantTranscript(f'Record {i}\n\n' + '\n'.join((f'- item {j}' for j in range(20)))) for i in range(30)),
                 cursor, cursor, False, False)
             conversation = app.screen.conversation
             history = await conversation.post(TranscriptHistory(page))
@@ -76,9 +78,9 @@ async def main():
                 assert not window.follows_tail
 
             comms = wire(root / "wire")
-            comms.register(Thread("sender", frozenset({"scroll"}), str(root), pid=os.getpid()))
+            comms.threads.register(Thread("sender", frozenset({"scroll"}), str(root), pid=os.getpid()))
             for index in range(140):
-                comms.send("sender", "#scroll", f"Message {index}: " + "wrapped body " * 30)
+                comms.messaging.send("sender", "#scroll", f"Message {index}: " + "wrapped body " * 30)
             await app.open_comms_session(owner_mode=app.current_mode, project_path=root,
                                          me="sender", target="#scroll", kind="channel")
             await pilot.pause()

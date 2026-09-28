@@ -7,8 +7,10 @@ import tempfile
 from dataclasses import asdict
 from pathlib import Path
 
-from agent_comms import MessageRoute, Thread, TurnRouting, wire
-from agent_comms.declarations import ScheduledTurn
+from agent_comms.routing import MessageRoute, TurnRouting
+from agent_comms.threads import Thread
+from agent_comms.comms import wire
+from agent_comms.routing import ScheduledTurn
 from agent_comms.input_disposition import InputDispositions
 from runtime_fixture import ToadApp
 
@@ -30,25 +32,25 @@ async def main(*, historical: bool) -> None:
         comms = wire(root / "wire")
         session = root / "native.jsonl"
         for name in ("owner", "peer"):
-            comms.register(Thread(name, frozenset(), str(root)))
-        comms.attach_session("owner", str(session))
-        incoming = comms.send_message("peer", "owner", "Incoming peer body")
-        outgoing = comms.send_message("owner", "peer", "Outgoing peer body")
+            comms.threads.register(Thread(name, frozenset(), str(root)))
+        comms.threads.attach_session("owner", str(session))
+        incoming = comms.messaging.send_message("peer", "owner", "Incoming peer body")
+        outgoing = comms.messaging.send_message("owner", "peer", "Outgoing peer body")
         prompt = ScheduledTurn.incoming(incoming).prompt
         human = "[agent-comms from example to owner]\nA human quoting a header"
-        comms.record_input_display("a" * 32, human, sent_text=human)
+        comms.transcripts.record_input_display("a" * 32, human, sent_text=human)
         if historical:
-            comms.record_input_display("b" * 32, prompt)
-            ledger = InputDispositions(comms.root)
+            comms.transcripts.record_input_display("b" * 32, prompt)
+            ledger = InputDispositions(comms.root / InputDispositions.filename)
             key = f"bus:{incoming.seq}"
             ledger.record(key, seq=incoming.seq, owner="owner", admission=1,
                           target="owner", text=prompt)
             ledger.bind(key, admission=1, turn_id="old-turn", native_id="b" * 32, text=prompt)
-            assert comms.repair_input_routing()["eligible"] == 1
-            assert comms.repair_input_routing(dry_run=False)["repaired"] == 1
-            assert ledger.status(key) == "unknown", "Display repair is not an input ACK"
+            assert comms.transcripts.repair_input_routing()["eligible"] == 1
+            assert comms.transcripts.repair_input_routing(dry_run=False)["repaired"] == 1
+            assert ledger.read().rows[key].unresolved, "Display repair is not an input ACK"
         else:
-            comms.record_input_display("b" * 32, prompt, sent_text=prompt,
+            comms.transcripts.record_input_display("b" * 32, prompt, sent_text=prompt,
                                        routing=TurnRouting((incoming,), None))
         records = [
             {"type": "message", "id": "human", "message": {
@@ -61,8 +63,8 @@ async def main(*, historical: bool) -> None:
                     "id": outgoing.message_id, "message": outgoing.to_wire()})}]}},
         ]
         session.write_text("".join(json.dumps(record) + "\n" for record in records))
-        page = wire(comms.root).thread_transcript_page("owner")
-        pending = comms.pending_count("owner")
+        page = wire(comms.root).transcripts.thread_transcript_page("owner")
+        pending = comms.bus.pending_count("owner")
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(120, 44)) as pilot:
             await pilot.pause()
@@ -100,7 +102,7 @@ async def main(*, historical: bool) -> None:
             copied = received.get_block_content("clipboard")
             assert "peer" in copied and incoming.body in copied
             assert "[agent-comms from" not in copied
-            assert comms.pending_count("owner") == pending
+            assert comms.bus.pending_count("owner") == pending
             view.in_out_only = True
             await pilot.pause()
             frame = "\n".join(strip.text for strip in app.screen._compositor.render_strips())

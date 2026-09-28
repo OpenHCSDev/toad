@@ -8,16 +8,19 @@ import time
 from pathlib import Path
 from statistics import median
 
-from agent_comms import Activity, ActivityState, Thread, wire
-from agent_comms.declarations import ActivityLog
+from agent_comms.activity import Activity, ActivityState
+from agent_comms.field_codec import FieldCodec
+from agent_comms.threads import Thread
+from agent_comms.comms import wire
+from agent_comms.activity import ActivityLog
 from runtime_fixture import ToadApp
 from toad.widgets.agent_response import AgentResponse
 
 
 def activity_file(path, count=10000):
     now = time.time()
-    path.write_text("".join(json.dumps(Activity(f"worker-{i % 24}", ActivityState.WORKING,
-                                               f"Step {i}", now).to_wire()) + "\n"
+    path.write_text("".join(json.dumps(FieldCodec.encode(Activity(f"worker-{i % 24}", ActivityState.WORKING,
+                                               f"Step {i}", now))) + "\n"
                             for i in range(count)))
 
 
@@ -38,8 +41,8 @@ async def main():
             activity_ms.append((time.perf_counter() - start) * 1000)
         comms = wire(root / "wire")
         for index in range(24):
-            comms.register(Thread(f"worker-{index}", frozenset({"team"}), str(root)))
-        activity_file(comms.activity._path)
+            comms.threads.register(Thread(f"worker-{index}", frozenset({"team"}), str(root)))
+        activity_file(comms.agents.activity._path)
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(120, 40)) as pilot:
             await pilot.pause()
@@ -54,10 +57,10 @@ async def main():
             for _ in range(200):
                 await app.screen.on_project_directory_update()
             directory_ms = (time.perf_counter() - start) * 1000
-            app._sidebar_snapshot = comms.viewer_snapshot(str(root))
+            app._sidebar_snapshot = comms.views.viewer_snapshot(str(root))
             tabs_ms = []
             for index in range(20):
-                comms.set_activity("worker-0", ActivityState.THINKING, f"Change {index}")
+                comms.agents.set_activity("worker-0", ActivityState.THINKING, f"Change {index}")
                 start = time.perf_counter()
                 assert app.open_tabs
                 tabs_ms.append((time.perf_counter() - start) * 1000)

@@ -9,7 +9,7 @@ from pathlib import Path
 from unittest.mock import AsyncMock, patch
 
 from agent_comms.acp import CommsAgent
-from agent_comms.operations import wire
+from agent_comms.comms import wire
 from runtime_fixture import ToadApp
 from toad import jsonrpc
 from toad.acp.agent import Agent
@@ -56,13 +56,13 @@ async def main():
             child.write_text(f"#!{sys.executable}\nimport sys\nsys.stdin.readline()\n")
             child.chmod(0o700)
             server = CommsAgent(wire(root / "wire"), agent_bin=str(child), agent_args=[])
-            server._client = SerializedClient()
+            server.sessions.client = SerializedClient()
             with patch.dict(os.environ, {"AGENT_COMMS_AGENT_MODELS": "test/model"}):
                 await server.new_session(cwd=str(root / "fixture"), mcp_servers=[])
             prompt = "the exact prompt\n\nwith another paragraph"
             conversation.prompt.text = "new draft"
             try:
-                await server._run_owned_input("fixture", "fixture", prompt)
+                await server.inputs.run_owned_input("fixture", "fixture", prompt)
                 await pilot.pause()
                 failures = [p for p in received if p.get("_meta", {}).get("agentComms", {}).get("inputFailed")]
                 assert len(failures) == 1, received
@@ -72,8 +72,8 @@ async def main():
                 receiver.rpc_session_update("fixture", failures[0])
                 await pilot.pause()
                 assert conversation.prompt.text == "new draft"
-                assert not server._turn_input_text
-                assert not server._turn_original_input_keys
+                assert not server.inputs.turn_input_text
+                assert not server.inputs.turn_original_input_keys
             finally:
                 await server.shutdown()
 

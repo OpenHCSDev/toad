@@ -4,11 +4,12 @@ import asyncio
 import os
 import tempfile
 from pathlib import Path
-from types import SimpleNamespace
 
-from agent_comms import Goal
+from agent_comms.goal_actions import BlockedGoalAction, GoalPrecondition
+from agent_comms.goal_states import ActiveGoal, BlockedGoal
+from agent_comms.goals import Goal
 from agent_comms.acp import CommsAgent
-from agent_comms.operations import wire
+from agent_comms.comms import wire
 from runtime_fixture import ToadApp
 from toad.acp.agent import Agent
 from toad.widgets.goal_bar import GoalBar
@@ -21,8 +22,11 @@ class FakeAgent:
 
     async def update_goal(self, action: str, text: str = "") -> Goal:
         self.actions.append(action)
-        self.goal = Goal(self.goal.text, self.goal.id, status="active")
+        self.goal = Goal(self.goal.text, self.goal.id, state=ActiveGoal())
         return self.goal
+
+    async def get_goal_snapshot(self):
+        return self.goal, None
 
     async def stop(self) -> None:
         pass
@@ -33,7 +37,7 @@ async def mounted_retry_control(root: Path) -> None:
     async with app.run_test(size=(100, 30)) as pilot:
         await pilot.pause()
         view = app.screen.conversation
-        goal = Goal("Learn architectural factoring", "goal-control", status="blocked")
+        goal = Goal("Learn architectural factoring", "goal-control", state=BlockedGoal())
         fake = FakeAgent(goal)
         view.set_reactive(type(view).agent, fake)
         view.agent_ready = True
@@ -44,30 +48,32 @@ async def mounted_retry_control(root: Path) -> None:
         await pilot.click("#goal-toggle")
         await pilot.pause()
         assert fake.actions == ["retry"]
-        assert view.goal.status == "active"
+        assert view.goal.state.declared_name == "active"
 
 
 async def owner_retry_route(root: Path) -> None:
     comms = wire(root / "wire")
     owner = CommsAgent(comms, agent_bin="pi", runtime_enabled=True)
-    owner._ensure_live_drain = lambda _session: None
-    owner._schedule_wake = lambda _session: None
-    owner._schedule_goal = lambda _session: None
+    owner.inputs.ensure_live_drain = lambda _session: None
+    owner.inputs.schedule_wake = lambda _session: None
+    owner.turns.schedule_goal = lambda _session: None
     project = root / "project"
     project.mkdir()
     await owner.new_session(str(project))
-    toad_agent = SimpleNamespace(_coordination_root=comms.root, _coordination_thread="project")
+    toad_agent = Agent(project, {"name": "agent-comms", "run_command": {"*": "true"}}, None)
+    toad_agent._coordination_root = str(comms.root)
+    toad_agent._coordination_thread = "project"
     goal = await Agent.update_goal(toad_agent, "set", "Learn architectural factoring")
-    store = owner._open_goal_store()
+    store = owner.turns.open_goal_store()
     assert store.snapshot(goal.id).state == "ready"
     assert store.ready_grant(goal.id, 1)
     attempt = store.reserve(goal.id, 1)
     store.claim_launch(attempt)
     store.record_failed(attempt, "Original turn failed")
-    comms.update_goal("project", "blocked", goal_id=goal.id)
+    comms.goals.update_goal("project", BlockedGoalAction(block_reason="Original turn failed", expect=GoalPrecondition(goal_id=goal.id)))
     try:
         resumed = await Agent.update_goal(toad_agent, "retry")
-        assert resumed.id == goal.id and resumed.status == "active"
+        assert resumed.id == goal.id and resumed.state.declared_name == "active"
         assert store.snapshot(goal.id).number == 2
         assert store.ready_grant(goal.id, 2)
     finally:

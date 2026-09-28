@@ -7,8 +7,8 @@ import sys
 import tempfile
 from pathlib import Path
 
-from agent_comms import Thread
-from agent_comms.operations import wire
+from agent_comms.threads import Thread
+from agent_comms.comms import wire
 from runtime_fixture import ToadApp
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.comms_chat import CommsChatView
@@ -56,7 +56,7 @@ async def main():
         stub.write_text(f"#!{sys.executable}\n" + """
 import json, os, re, sys, time
 from pathlib import Path
-from agent_comms.operations import wire
+from agent_comms.comms import wire
 def emit(data):
     print(json.dumps(data), flush=True)
 model = sys.argv[sys.argv.index("--model") + 1]
@@ -82,9 +82,11 @@ for line in sys.stdin:
                 time.sleep(0.05)
             emit({"type": "tool_execution_start", "toolCallId": "goal-report",
                   "toolName": "comms_goal", "args": {"goal_id": goal[1], "status": "completed"}})
-            wire().update_goal(os.environ["AGENT_COMMS_THREAD"], "completed",
-                               goal_id=goal[1], progress="Verified the objective",
-                               model_report=True)
+            from agent_comms.goal_actions import CompletedGoalAction, GoalPrecondition, ModelInvocable
+            wire().update_goal(os.environ["AGENT_COMMS_THREAD"],
+                               CompletedGoalAction(expect=GoalPrecondition(goal_id=goal[1]),
+                                                   progress="Verified the objective"),
+                               actor=ModelInvocable)
             emit({"type": "tool_execution_end", "toolCallId": "goal-report",
                   "toolName": "comms_goal", "result": {"content": []}, "isError": False})
         emit({"type": "message_end", "message": {"role": "assistant", "stopReason": "stop"}})
@@ -115,7 +117,7 @@ for line in sys.stdin:
             + "\n"
         )
         for name in ("alice", "bob"):
-            comms.register(
+            comms.threads.register(
                 Thread(
                     name=name,
                     tags=frozenset(),
@@ -123,8 +125,8 @@ for line in sys.stdin:
                     session_file=str(transcript),
                 )
             )
-        comms.send("alice", "bob", "explicit private coordination")
-        comms.send("bob", "#all", "explicit channel coordination")
+        comms.messaging.send("alice", "bob", "explicit private coordination")
+        comms.messaging.send("bob", "#all", "explicit channel coordination")
         agent = {
             "name": "Agent Comms",
             "identity": "test-comms",
@@ -175,7 +177,7 @@ for line in sys.stdin:
                 )
             )
             assert all(
-                "ordinary assistant reply" not in m.body for m in comms.full_history()
+                "ordinary assistant reply" not in m.body for m in comms.views.full_history()
             )
             await until(lambda: conversation.turn != "agent")
             gate.touch()
@@ -184,11 +186,11 @@ for line in sys.stdin:
             await conversation.refresh_goal()
             assert conversation.query_one(GoalBar).display
             await conversation.slash_command("/goal pause")
-            assert comms.registry.require("project").goal.status == "paused"
+            assert comms.registry.require("project").goal.state.declared_name == "paused"
             gate.unlink()
             await conversation.slash_command("/goal resume")
             await until(
-                lambda: comms.registry.require("project").goal.status == "completed"
+                lambda: comms.registry.require("project").goal.state.declared_name == "completed"
             )
             await conversation.refresh_goal()
             assert conversation.goal.progress == "Verified the objective"
@@ -248,7 +250,7 @@ for line in sys.stdin:
             ]
             await pilot.press("ctrl+g")
             await until(lambda: app.current_mode == irc_mode)
-            comms.send("bob", "alice", "live direct coordination")
+            comms.messaging.send("bob", "alice", "live direct coordination")
             await until(
                 lambda: any(
                     row.source == "live direct coordination"
@@ -262,7 +264,7 @@ for line in sys.stdin:
             )
             await app.switch_mode(parent_mode)
             await conversation.refresh_goal()
-            assert conversation.goal.status == "completed"
+            assert conversation.goal.state.declared_name == "completed"
             await conversation.slash_command("/goal clear")
             assert comms.registry.require("project").goal is None
     print(

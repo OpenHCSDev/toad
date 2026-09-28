@@ -5,7 +5,8 @@ import os
 import tempfile
 from pathlib import Path
 
-from agent_comms import TranscriptCursor, TranscriptEvent, TranscriptPage
+from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcript_events import AssistantTranscript
 from toad.app import ToadApp
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.agent_thought import AgentThought
@@ -19,7 +20,7 @@ async def main():
                           XDG_DATA_HOME=str(root / "data"), AGENT_COMMS_ROOT=str(root / "wire"))
         text = "\n\n".join(f"Paragraph {i}: " + "read this automatically " * 12 for i in range(100))
         cursor = TranscriptCursor("", 0)
-        page = TranscriptPage((TranscriptEvent("assistant", text),), cursor, cursor, False, False)
+        page = TranscriptPage((AssistantTranscript(text),), cursor, cursor, False, False)
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(90, 35)) as pilot:
             await pilot.pause()

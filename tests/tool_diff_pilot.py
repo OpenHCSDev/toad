@@ -8,7 +8,7 @@ from rich.syntax import Syntax
 from textual.content import Content
 from textual.selection import SELECT_ALL
 
-from agent_comms import TranscriptEvent
+from agent_comms.transcript_events import ToolEndTranscript
 from agent_comms.tool_results import ToolDiff, tool_result_content
 from runtime_fixture import ToadApp
 from tool_diff_fixture import wait_for_tool_diff
@@ -48,8 +48,7 @@ async def main():
             await pilot.pause()
             assert len(rich_diff.query("DiffCode")) == 2
             await live.remove()
-            replay = transcript_blocks((TranscriptEvent("tool_end", "Successfully replaced 1 block.",
-                tool_call_id="edit-1", tool_name="edit", diff=ToolDiff(PATCH)),))[0]
+            replay = transcript_blocks((ToolEndTranscript(tool_call_id='edit-1', tool_name='edit', diff=ToolDiff(PATCH), text='Successfully replaced 1 block.'),))[0]
             await conversation.post(replay)
             await pilot.pause()
             replay.scroll_visible(animate=False)

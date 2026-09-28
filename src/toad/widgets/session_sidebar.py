@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from agent_comms import ThreadView
+from agent_comms.presentation import ThreadView
 from textual.containers import VerticalScroll
 from textual.binding import Binding
 from textual.reactive import reactive

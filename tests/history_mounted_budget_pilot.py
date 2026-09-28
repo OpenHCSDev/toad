@@ -9,7 +9,8 @@ import tempfile
 import time
 from unittest.mock import patch
 
-from agent_comms import TranscriptCursor, TranscriptEvent, TranscriptPage
+from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcript_events import AssistantTranscript
 from textual.selection import SELECT_ALL
 from textual.widgets._markdown import MarkdownParagraph
 
@@ -25,7 +26,7 @@ async def main(observe):
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(150, 80)) as pilot:
             await pilot.pause()
-            events = tuple(TranscriptEvent("assistant", f"Record {index}\n\n" + "long paragraph words " * 28)
+            events = tuple(AssistantTranscript(f'Record {index}\n\n' + 'long paragraph words ' * 28)
                            for index in range(120))
             cursor = TranscriptCursor("fixture", 0)
             page = TranscriptPage(events, cursor, cursor, False, False)

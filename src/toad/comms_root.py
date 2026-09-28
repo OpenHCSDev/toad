@@ -17,7 +17,7 @@ T = TypeVar("T")
 
 def current_root() -> Path:
     """Resolve the explicit override or the validated default Comms route."""
-    from agent_comms.operations import wire
+    from agent_comms.comms import wire
 
     return wire().root.resolve()
 

@@ -1,0 +1,152 @@
+╭───────────────────── Traceback (most recent call last) ──────────────────────╮
+│ /home/ts/wt/toad-export-caller-migration-20260928/src/toad/widgets/comms_sid │
+│ ebar.py:1333 in on_click                                                     │
+│                                                                              │
+│   1330 │   │   │   │   channel=row.query_ancestor(ChannelGroup).row.target_n │
+│   1331 │   │   │   )                                                         │
+│   1332 │   │   elif row.kind in {"channel", "irc"}:                          │
+│ ❱ 1333 │   │   │   self._show_channel_menu(row.target_name, event.screen_off │
+│   1334 │                                                                     │
+│   1335 │   def _select(self, row: CommsRow) -> None:                         │
+│   1336 │   │   row.focus()                                                   │
+│                                                                              │
+│ ╭─────────────────────────────── locals ───────────────────────────────╮     │
+│ │      _ = Region(x=2, y=13, width=15, height=1)                       │     │
+│ │  event = Click(                                                      │     │
+│ │          │   CommsRow(                                               │     │
+│ │          │   │   classes='-unread group-title channel-header'        │     │
+│ │          │   ),                                                      │     │
+│ │          │   x=0,                                                    │     │
+│ │          │   y=0,                                                    │     │
+│ │          │   pointer_x=0,                                            │     │
+│ │          │   pointer_y=0,                                            │     │
+│ │          │   screen_x=2,                                             │     │
+│ │          │   screen_y=13,                                            │     │
+│ │          │   button=3,                                               │     │
+│ │          │   style=Style(                                            │     │
+│ │          │   │   color=Color(                                        │     │
+│ │          │   │   │   '#000000',                                      │     │
+│ │          │   │   │   ColorType.TRUECOLOR,                            │     │
+│ │          │   │   │   triplet=ColorTriplet(red=0, green=0, blue=0)    │     │
+│ │          │   │   ),                                                  │     │
+│ │          │   │   bgcolor=Color(                                      │     │
+│ │          │   │   │   '#000000',                                      │     │
+│ │          │   │   │   ColorType.TRUECOLOR,                            │     │
+│ │          │   │   │   triplet=ColorTriplet(red=0, green=0, blue=0)    │     │
+│ │          │   │   ),                                                  │     │
+│ │          │   │   bold=True,                                          │     │
+│ │          │   │   meta={'offset': (0, 0)}                             │     │
+│ │          │   ),                                                      │     │
+│ │          │   chain=1                                                 │     │
+│ │          )                                                           │     │
+│ │   node = CommsRow(classes='-unread group-title channel-header')      │     │
+│ │    row = CommsRow(classes='-unread group-title channel-header')      │     │
+│ │   self = CommsSidebar()                                              │     │
+│ │ widget = CommsRow(classes='-unread group-title channel-header')      │     │
+│ ╰──────────────────────────────────────────────────────────────────────╯     │
+│                                                                              │
+│ /home/ts/wt/toad-export-caller-migration-20260928/src/toad/widgets/comms_sid │
+│ ebar.py:1396 in _show_channel_menu                                           │
+│                                                                              │
+│   1393 │   │   │   for declaration in context_tool_catalog("thread")         │
+│   1394 │   │   │   if declaration["name"] == "comms_ack"                     │
+│   1395 │   │   )                                                             │
+│ ❱ 1396 │   │   channel = self._wire.channels.catalog.resolve(name)           │
+│   1397 │   │   actions = {                                                   │
+│   1398 │   │   │   "pin": partial(self._set_pin, name, not channel.pinned),  │
+│   1399 │   │   │   "comms_ack": lambda: post("comms_ack"),                   │
+│                                                                              │
+│ ╭───────────────────────────────── locals ─────────────────────────────────╮ │
+│ │ acknowledge = {                                                          │ │
+│ │               │   'name': 'comms_ack',                                   │ │
+│ │               │   'label': 'Acknowledge Comms Messages',                 │ │
+│ │               │   'description': 'Mark a thread inbox or one of its      │ │
+│ │               conversations delivered.',                                 │ │
+│ │               │   'parameters': {                                        │ │
+│ │               │   │   'type': 'object',                                  │ │
+│ │               │   │   'properties': {                                    │ │
+│ │               │   │   │   'thread': {                                    │ │
+│ │               │   │   │   │   'type': 'string',                          │ │
+│ │               │   │   │   │   'description': 'Thread whose delivery      │ │
+│ │               cursor advances'                                           │ │
+│ │               │   │   │   },                                             │ │
+│ │               │   │   │   'target': {                                    │ │
+│ │               │   │   │   │   'type': 'string',                          │ │
+│ │               │   │   │   │   'description': 'Optional conversation      │ │
+│ │               target'                                                    │ │
+│ │               │   │   │   }                                              │ │
+│ │               │   │   },                                                 │ │
+│ │               │   │   'required': ['thread'],                            │ │
+│ │               │   │   'additionalProperties': False                      │ │
+│ │               │   },                                                     │ │
+│ │               │   'context': 'thread',                                   │ │
+│ │               │   'action_label': 'Mark inbox read',                     │ │
+│ │               │   'action_order': 50,                                    │ │
+│ │               │   'context_bindings': {                                  │ │
+│ │               │   │   'thread': 'actor',                                 │ │
+│ │               │   │   'target': 'subject'                                │ │
+│ │               │   }                                                      │ │
+│ │               }                                                          │ │
+│ │ menu_offset = Offset(x=2, y=13)                                          │ │
+│ │        name = '#team'                                                    │ │
+│ │        self = CommsSidebar()                                             │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
+╰──────────────────────────────────────────────────────────────────────────────╯
+AttributeError: 'ChannelCatalog' object has no attribute 'resolve'
+Traceback (most recent call last):
+  File "/home/ts/.local/share/agent-comms/runtime-r4-goal-attempts-20260928/lib/python3.14/site-packages/textual/app.py", line 2210, in run_test
+    yield pilot
+  File "/home/ts/wt/toad-export-caller-migration-20260928/tests/runtime_fixture.py", line 38, in run_test
+    yield pilot
+  File "/home/ts/wt/toad-export-caller-migration-20260928/tests/channel_any_mode_ui_pilot.py", line 43, in main
+    item = next(item for item in app.screen.query(ContextMenuItem)
+                if item.action == "any_mode")
+StopIteration
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-export-caller-migration-20260928/tests/channel_any_mode_ui_pilot.py", line 89, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-export-caller-migration-20260928/tests/channel_any_mode_ui_pilot.py", line 37, in main
+    async with app.run_test(size=(100, 30)) as pilot:
+               ~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 235, in __aexit__
+    await self.gen.athrow(value)
+  File "/home/ts/wt/toad-export-caller-migration-20260928/tests/runtime_fixture.py", line 37, in run_test
+    async with super().run_test(**kwargs) as pilot:
+               ~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 235, in __aexit__
+    await self.gen.athrow(value)
+  File "/home/ts/.local/share/agent-comms/runtime-r4-goal-attempts-20260928/lib/python3.14/site-packages/textual/app.py", line 2218, in run_test
+    raise self._exception
+  File "/home/ts/.local/share/agent-comms/runtime-r4-goal-attempts-20260928/lib/python3.14/site-packages/textual/message_pump.py", line 701, in _process_messages_loop
+    await self._dispatch_message(message)
+  File "/home/ts/.local/share/agent-comms/runtime-r4-goal-attempts-20260928/lib/python3.14/site-packages/textual/message_pump.py", line 772, in _dispatch_message
+    await self.on_event(message)
+  File "/home/ts/.local/share/agent-comms/runtime-r4-goal-attempts-20260928/lib/python3.14/site-packages/textual/message_pump.py", line 853, in on_event
+    await self._on_message(event)
+  File "/home/ts/.local/share/agent-comms/runtime-r4-goal-attempts-20260928/lib/python3.14/site-packages/textual/message_pump.py", line 874, in _on_message
+    await invoke(method, message)
+  File "/home/ts/.local/share/agent-comms/runtime-r4-goal-attempts-20260928/lib/python3.14/site-packages/textual/_callback.py", line 96, in invoke
+    return await _invoke(callback, *params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-r4-goal-attempts-20260928/lib/python3.14/site-packages/textual/_callback.py", line 56, in _invoke
+    result = callback(*params[:parameter_count])
+  File "/home/ts/wt/toad-export-caller-migration-20260928/src/toad/widgets/comms_sidebar.py", line 1333, in on_click
+    self._show_channel_menu(row.target_name, event.screen_offset)
+    ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-export-caller-migration-20260928/src/toad/widgets/comms_sidebar.py", line 1396, in _show_channel_menu
+    channel = self._wire.channels.catalog.resolve(name)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'ChannelCatalog' object has no attribute 'resolve'

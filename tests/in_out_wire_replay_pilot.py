@@ -7,8 +7,10 @@ import os
 from pathlib import Path
 import tempfile
 
-from agent_comms import Thread, TurnRouting, wire
-from agent_comms.declarations import ScheduledTurn
+from agent_comms.threads import Thread
+from agent_comms.routing import TurnRouting
+from agent_comms.comms import wire
+from agent_comms.routing import ScheduledTurn
 from runtime_fixture import ToadApp
 from toad.acp.messages import TranscriptSnapshot
 from toad.widgets.agent_response import AgentResponse
@@ -23,10 +25,10 @@ async def main():
                           XDG_STATE_HOME=str(root / "state"), AGENT_COMMS_ROOT=str(root / "wire"))
         comms = wire(root / "wire")
         transcript = root / "session.jsonl"
-        comms.register(Thread("owner", frozenset(), str(root), session_file=str(transcript)))
-        comms.register(Thread("peer", frozenset(), str(root)))
-        incoming = comms.send_message("peer", "owner", "INBOUND_FROM_REAL_WIRE")
-        outgoing = comms.send_message("owner", "peer", "OUTBOUND_FROM_REAL_RECEIPT")
+        comms.threads.register(Thread("owner", frozenset(), str(root), session_file=str(transcript)))
+        comms.threads.register(Thread("peer", frozenset(), str(root)))
+        incoming = comms.messaging.send_message("peer", "owner", "INBOUND_FROM_REAL_WIRE")
+        outgoing = comms.messaging.send_message("owner", "peer", "OUTBOUND_FROM_REAL_RECEIPT")
         transcript.write_text("\n".join(json.dumps(record) for record in (
             {"type": "message", "id": "wire-user",
              "timestamp": datetime.fromtimestamp(incoming.timestamp + .001, UTC).isoformat(),
@@ -38,14 +40,14 @@ async def main():
                                                                          "message": outgoing.to_wire()})}]}},
         )) + "\n")
         if os.environ.get("TOAD_TEST_ANNOTATED") == "1":
-            comms.transcript_routes.record(str(transcript), ("wire-user",), TurnRouting((incoming,), None))
-        page = comms.thread_transcript_page("owner")
-        assert any(event.kind == "sent" and event.routing and event.routing.reply for event in page.events)
-        inbound = [event for event in page.events if event.kind == "user" and event.routing
+            comms.transcripts.routes.record(str(transcript), ("wire-user",), TurnRouting((incoming,), None))
+        page = comms.transcripts.thread_transcript_page("owner")
+        assert any(event.declared_name == "sent" and event.routing and event.routing.reply for event in page.events)
+        inbound = [event for event in page.events if event.declared_name == "user" and event.routing
                    and event.routing.requests]
         assert inbound, (
             "Saved wire input lost typed routing before the UI filter: "
-            + repr([(event.kind, event.routing is not None) for event in page.events]))
+            + repr([(event.declared_name, event.routing is not None) for event in page.events]))
         assert inbound[0].routing.requests[0].message_id == incoming.message_id
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(120, 40)) as pilot:

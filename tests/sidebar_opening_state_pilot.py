@@ -7,7 +7,8 @@ import tempfile
 from threading import Event
 from unittest.mock import patch
 
-from agent_comms import Thread, wire
+from agent_comms.threads import Thread
+from agent_comms.comms import wire
 from runtime_fixture import ToadApp
 from toad import __file__ as toad_file
 from toad.acp.agent import Agent
@@ -51,9 +52,9 @@ async def main():
                           XDG_STATE_HOME=str(root / "state"), XDG_DATA_HOME=str(root / "data"))
         comms = wire(root / "wire")
         me = session_thread_name(root)
-        comms.register(Thread(me, frozenset({"fixture"}), str(root), pid=os.getpid()))
+        comms.threads.register(Thread(me, frozenset({"fixture"}), str(root), pid=os.getpid()))
         for name in ("open-peer", "closed-peer"):
-            comms.register(Thread(name, frozenset(), str(root), pid=os.getpid()))
+            comms.threads.register(Thread(name, frozenset(), str(root), pid=os.getpid()))
 
         async def start(agent, target):
             agent._message_target = target
@@ -127,8 +128,8 @@ async def main():
                     bar = app.screen.query_one("#channels-sidebar", SideBar)
                     x, width = bar.region.x, bar.size.width
                     target = f"#opening-{int(collapsed)}"
-                    comms.set_channel(target, frozenset({"fixture"}))
-                    comms.send(me, target, "Displayed only after hydration")
+                    comms.channels.set_channel(target, frozenset({"fixture"}))
+                    comms.messaging.send(me, target, "Displayed only after hydration")
                     blocked = asyncio.Event()
                     original_start = CommsScreen._start_hydration
 
@@ -146,7 +147,7 @@ async def main():
                             check_frames(app, collapsed, x, width)
                             retained = app.screen.query_one("#channels-sidebar", SideBar)
                             assert not app.screen._content_loaded
-                            assert comms.viewer_snapshot(str(root)).channel_unread[target] == 1
+                            assert comms.views.viewer_snapshot(str(root)).channel_unread[target] == 1
                             # Controls remain usable while history is gated;
                             # hydration must keep the latest intent too.
                             app.frames = None

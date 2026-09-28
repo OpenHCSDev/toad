@@ -7,16 +7,12 @@ import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
-from agent_comms import (
-    Message,
-    MessageType,
-    Thread,
-    TranscriptCursor,
-    TranscriptEvent,
-    TranscriptPage,
-    TurnRouting,
-    wire,
-)
+from agent_comms.messages import Message, MessageType
+from agent_comms.threads import Thread
+from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcript_events import AssistantTranscript, UserTranscript
+from agent_comms.routing import TurnRouting
+from agent_comms.comms import wire
 from committed_history_pilot import SnapshotAgent
 from runtime_fixture import ToadApp
 from textual.selection import SELECT_ALL
@@ -57,7 +53,7 @@ class TestAgent(SnapshotAgent):
 
 def routed(sequence, text):
     message = Message("peer", "owner", text, MessageType.INFO, seq=sequence)
-    return TranscriptEvent("user", text, routing=TurnRouting((message,), None))
+    return UserTranscript(text, routing=TurnRouting((message,), None))
 
 
 def inbound(view):
@@ -75,7 +71,7 @@ async def arrivals(view, pilot):
     cursor = TranscriptCursor("", 0)
     agent = TestAgent(
         TranscriptPage(
-            (TranscriptEvent("assistant", "saved reply"),), cursor, cursor, False, False
+            (AssistantTranscript('saved reply'),), cursor, cursor, False, False
         )
     )
     view.set_reactive(type(view).agent, agent)
@@ -147,7 +143,7 @@ async def provisional_history(view, pilot):
     """Rejected replacement mounts never acquire ownership of live notices."""
     cursor = TranscriptCursor("provisional", 1)
     agent = TestAgent(TranscriptPage(
-        (routed(41, "saved notice"), TranscriptEvent("assistant", "saved reply")),
+        (routed(41, "saved notice"), AssistantTranscript('saved reply')),
         cursor, cursor, False, False,
     ))
     view.set_reactive(type(view).agent, agent)
@@ -205,10 +201,10 @@ async def provisional_history(view, pilot):
 async def disk_history(view, pilot, root):
     """A real saved range and filtered older overlay survive a newer bounded tail."""
     comms = wire(root / "wire")
-    comms.register(Thread("owner", frozenset(), str(root)))
+    comms.threads.register(Thread("owner", frozenset(), str(root)))
     session = root / "session.jsonl"
     session.touch()
-    comms.attach_session("owner", str(session))
+    comms.threads.attach_session("owner", str(session))
 
     def append(entry, role, text, sequence=None):
         row = {
@@ -221,7 +217,7 @@ async def disk_history(view, pilot, root):
         with session.open("a") as stream:
             stream.write(json.dumps(row) + "\n")
         if sequence is not None:
-            comms.transcript_routes.record(
+            comms.transcripts.routes.record(
                 str(session), (entry,), routed(sequence, text).routing
             )
 
@@ -231,7 +227,7 @@ async def disk_history(view, pilot, root):
 
     class DiskAgent(TestAgent):
         async def get_transcript_page(self, **kwargs):
-            return comms.thread_transcript_page("owner", **kwargs)
+            return comms.transcripts.thread_transcript_page("owner", **kwargs)
 
     agent = DiskAgent(None)
     view.set_reactive(type(view).agent, agent)

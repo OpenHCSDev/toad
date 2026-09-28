@@ -14,9 +14,11 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from agent_comms import Thread, ThreadRole, cohort_foreground
+from agent_comms.threads import Thread
+from agent_comms.thread_identity import ThreadRole
+from agent_comms import cohort_foreground
 from agent_comms.active_route import ActiveRoute, publish_active_route
-from agent_comms.operations import Comms
+from agent_comms.comms import Comms
 from agent_comms.private_nk_entrypoint import PACKAGE_ENV, ROOT_ID_ENV
 from default_route_pilot import private_root
 
@@ -39,9 +41,9 @@ async def main() -> None:
         legacy = home / ".agent-comms"
         legacy.mkdir(mode=0o700)
         old = Comms(legacy)
-        old.register(Thread("user", frozenset(), str(sandbox), role=ThreadRole.USER))
-        old.register(Thread("peer", frozenset({"team"}), str(sandbox / "peer")))
-        old.send("peer", "#team", "LEGACY-PAINT")
+        old.threads.register(Thread("user", frozenset(), str(sandbox), role=ThreadRole.USER))
+        old.threads.register(Thread("peer", frozenset({"team"}), str(sandbox / "peer")))
+        old.messaging.send("peer", "#team", "LEGACY-PAINT")
         with tempfile.TemporaryDirectory(
             prefix="toad-route-private-", dir="/var/tmp"
         ) as private_dir:
@@ -73,8 +75,8 @@ async def main() -> None:
                     await view._refresh()
                     await pilot.pause()
                     assert view._wire.root == legacy
-                    old.send("peer", "#team", "UNREAD-OLD")
-                    page = old.channel_display_page(
+                    old.messaging.send("peer", "#team", "UNREAD-OLD")
+                    page = old.views.channel_display_page(
                         "#team", worktree=str(sandbox), limit=8
                     )
                     assert page.newest_seq == 2

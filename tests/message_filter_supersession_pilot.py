@@ -5,7 +5,10 @@ import os
 from pathlib import Path
 import tempfile
 
-from agent_comms import Message, MessageType, TranscriptCursor, TranscriptEvent, TranscriptPage, TurnRouting
+from agent_comms.messages import Message, MessageType
+from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcript_events import AssistantTranscript, ThinkingTranscript, UserTranscript
+from agent_comms.routing import TurnRouting
 
 from runtime_fixture import ToadApp
 from toad.widgets.message_filter import MessageCategory
@@ -24,9 +27,8 @@ async def main():
             file = "fixture"
             cursor = TranscriptCursor(file, 100)
             entered, release = asyncio.Event(), asyncio.Event()
-            incoming = TranscriptEvent("user", "OLD_INBOUND", routing=TurnRouting(
-                (Message("peer", "owner", "OLD_INBOUND", MessageType.INFO),), None))
-            thinking = TranscriptEvent("thinking", "OLDER_THINKING")
+            incoming = UserTranscript('OLD_INBOUND', routing=TurnRouting((Message('peer', 'owner', 'OLD_INBOUND', MessageType.INFO),), None))
+            thinking = ThinkingTranscript('OLDER_THINKING')
             calls = []
 
             async def older(**kwargs):
@@ -35,7 +37,7 @@ async def main():
                 await release.wait()
                 return TranscriptPage((incoming, thinking), TranscriptCursor(file, 0), cursor, False, True)
 
-            tail = tuple(TranscriptEvent("assistant", f"unselected {i}\n" + "long text " * 20)
+            tail = tuple(AssistantTranscript(f'unselected {i}\n' + 'long text ' * 20)
                          for i in range(24))
             pager = TranscriptHistory(TranscriptPage(tail, cursor, TranscriptCursor(file, 200), True, False),
                                       loader=older)

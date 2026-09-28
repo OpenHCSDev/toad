@@ -1,0 +1,18 @@
+[
+  {
+    "test": "channel_visibility",
+    "exit_code": 0
+  },
+  {
+    "test": "main_menu_transfer",
+    "exit_code": 0
+  },
+  {
+    "test": "right_comms",
+    "exit_code": 1
+  },
+  {
+    "test": "right_comms current app services and non-nested layout",
+    "exit_code": 0
+  }
+]

@@ -8,7 +8,10 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from unittest.mock import patch
 
-from agent_comms import Thread, TranscriptCursor, TranscriptEvent, TranscriptPage, wire
+from agent_comms.threads import Thread
+from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcript_events import AssistantTranscript
+from agent_comms.comms import wire
 from runtime_fixture import ToadApp
 from toad.acp.agent import Agent
 from toad.acp.messages import TranscriptSnapshot
@@ -32,7 +35,7 @@ async def main():
         os.environ.update(XDG_CONFIG_HOME=str(root / "config"), XDG_STATE_HOME=str(root / "state"),
                           XDG_DATA_HOME=str(root / "data"), AGENT_COMMS_ROOT=str(root / "wire"))
         comms = wire(root / "wire")
-        comms.register(Thread("slow-thread", frozenset(), str(root), pid=os.getpid()))
+        comms.threads.register(Thread("slow-thread", frozenset(), str(root), pid=os.getpid()))
         release = asyncio.Event()
         started = asyncio.Event()
         disk_release = threading.Event()
@@ -46,7 +49,7 @@ async def main():
                 started.set()
                 await release.wait()
                 cursor = TranscriptCursor("test", 0)
-                page = TranscriptPage((TranscriptEvent("assistant", "LOADED-HISTORY-END"),),
+                page = TranscriptPage((AssistantTranscript('LOADED-HISTORY-END'),),
                                       cursor, cursor, False, False)
                 target.post_message(TranscriptSnapshot(page.events, page))
                 target.post_message(AgentReady())
@@ -61,14 +64,14 @@ async def main():
                 app.screen._agent = agent_data
                 sidebar = app.screen.query_one(CommsSidebar)
                 await sidebar.sync_sessions()
-                original_read = type(comms).viewer_snapshot
+                original_read = type(comms.views).viewer_snapshot
 
                 def slow_read(self, *args, **kwargs):
                     if not disk_release.wait(8):
                         raise TimeoutError("Test disk gate was not released")
                     return original_read(self, *args, **kwargs)
 
-                with patch.object(Agent, "start", start), patch.object(type(comms), "viewer_snapshot", slow_read):
+                with patch.object(Agent, "start", start), patch.object(type(comms.views), 'viewer_snapshot', slow_read):
                     mode = await asyncio.wait_for(app.open_thread_session(
                         owner_mode=source, project_path=root, target="slow-thread"), 2)
                     await asyncio.wait_for(started.wait(), 2)

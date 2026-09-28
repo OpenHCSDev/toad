@@ -11,7 +11,12 @@ from typing import Any, cast, NamedTuple
 from copy import deepcopy
 from math import floor
 import rich.repr
-from agent_comms import Comms, Goal, GoalExecution, TranscriptCursor, TranscriptPage, MessageRoute
+from agent_comms.goal_actions import RetryGoalAction
+from agent_comms.comms import Comms
+from agent_comms.goals import Goal
+from agent_comms.goal_presentation import GoalExecution
+from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.routing import MessageRoute
 
 from textual.content import Content
 from textual.message import Message
@@ -485,7 +490,7 @@ class Agent(AgentBase):
                 ))
                 return
             if state.get("transcriptChanged") is True:
-                from agent_comms import TranscriptCursor
+                from agent_comms.transcripts import TranscriptCursor
 
                 checkpoint = state.get("transcriptCursor")
                 self.post_message(messages.TranscriptChanged(
@@ -518,16 +523,13 @@ class Agent(AgentBase):
                 self._post_coordination_update()
             if isinstance(state.get("transcript"), list):
                 if not self._reconnecting:
-                    from agent_comms import TranscriptEvent, TranscriptPage, TranscriptCursor
+                    from agent_comms.transcripts import TranscriptPage
+                    from agent_comms.transcript_events import TranscriptCodec
 
-                    events = tuple(TranscriptEvent.from_wire(event) for event in state["transcript"])
-                    page_data = state.get("transcriptPage")
-                    page = TranscriptPage(
-                        events, TranscriptCursor(**page_data["before"]),
-                        TranscriptCursor(**page_data["after"]),
-                        page_data["has_older"], page_data["has_newer"],
-                    ) if isinstance(page_data, dict) else None
-                    self.post_message(messages.TranscriptSnapshot(events, page))
+                    page = TranscriptCodec.decode(TranscriptPage, {
+                        **state["transcriptPage"], "events": state["transcript"],
+                    })
+                    self.post_message(messages.TranscriptSnapshot(page.events, page))
                 return
             turn_id = state.get("turnId")
             if state.get("turnStarted") is True:
@@ -1347,7 +1349,7 @@ class Agent(AgentBase):
                     },
                     "terminal": True,
                     "auth": {"terminal": os.name != "nt"},
-                    "_meta": {"agentComms": {"transcriptSnapshots": True, "transcriptDiffs": True}},
+                    "_meta": {"agentComms": {"transcriptSnapshots": True}},
                 },
                 {
                     "name": toad.NAME,
@@ -1567,7 +1569,7 @@ class Agent(AgentBase):
             return
         try:
             raw_goal, raw_execution = state["goal"], state["goalExecution"]
-            goal = Goal(**raw_goal) if isinstance(raw_goal, dict) else None
+            goal = Goal.from_wire(raw_goal) if isinstance(raw_goal, dict) else None
             execution = GoalExecution.from_wire(raw_execution) if isinstance(raw_execution, dict) else None
             if raw_goal is not None and goal is None or raw_execution is not None and execution is None:
                 raise ValueError("Invalid goal snapshot")
@@ -1715,9 +1717,9 @@ class Agent(AgentBase):
         if thread is None or wire_root is None or process is None:
             return
 
-        from agent_comms.operations import wire
+        from agent_comms.comms import wire
 
-        result = wire(wire_root).rename_managed_thread(
+        result = wire(wire_root).threads.rename_managed_thread(
             thread,
             display_name,
             owner_pid=getattr(self, "_coordination_owner_pid", None) or process.pid,
@@ -1852,7 +1854,7 @@ class Agent(AgentBase):
         async with asyncio.timeout(3):
             result = await self._owner_request("goal_snapshot")
         raw_goal, raw_execution = result["goal"], result["goalExecution"]
-        goal = Goal(**raw_goal) if raw_goal is not None else None
+        goal = Goal.from_wire(raw_goal) if raw_goal is not None else None
         execution = GoalExecution.from_wire(raw_execution) if raw_execution is not None else None
         if execution is not None and (goal is None or execution.goal_id != goal.id):
             raise ValueError("Goal execution identity does not match the owner snapshot.")
@@ -1911,7 +1913,7 @@ class Agent(AgentBase):
         result = await self._owner_request(
             "edit_goal", goal_id=goal.id, expected_revision=goal.revision, text=text
         )
-        return Goal(**result["goal"])
+        return Goal.from_wire(result["goal"])
 
     @property
     def transcript_ready(self) -> bool:
@@ -1919,7 +1921,7 @@ class Agent(AgentBase):
 
     async def _get_coordination_reader(self, root: str) -> Comms:
         """Use under the reader lock; initialization and registry I/O stay off-loop."""
-        from agent_comms import wire
+        from agent_comms.comms import wire
         from toad.app import ToadApp
 
         if self._transcript_reader is None or self._transcript_reader_root != root:
@@ -1946,17 +1948,17 @@ class Agent(AgentBase):
         async with self._transcript_reader_lock:
             reader = await self._get_coordination_reader(root)
             return await asyncio.to_thread(
-                reader.thread_transcript_page,
+                reader.transcripts.thread_transcript_page,
                 thread, before=before, after=after, through=through,
             )
 
     async def update_project(self, path: str) -> str:
         if self._coordination_root is None or self._coordination_thread is None:
             raise ValueError("Project changes require an agent-comms thread.")
-        from agent_comms.operations import wire
+        from agent_comms.comms import wire
 
         result = await asyncio.to_thread(
-            wire(self._coordination_root).set_project, self._coordination_thread, path
+            wire(self._coordination_root).threads.set_project, self._coordination_thread, path
         )
         self._coordination_worktree = result.current
         self.project_root_path = Path(result.current)
@@ -1971,7 +1973,7 @@ class Agent(AgentBase):
             if goal is None:
                 raise ValueError("The goal changed; refresh its state.")
             if action == "retry":
-                if goal.status != "blocked":
+                if goal.state.toggle is not RetryGoalAction:
                     raise ValueError("The blocked goal changed; refresh its state.")
                 result = await self._owner_request(
                     "retry_goal", goal_id=goal.id, expected_revision=goal.revision
@@ -1981,7 +1983,7 @@ class Agent(AgentBase):
                     "update_goal", status=action, goal_id=goal.id,
                     expected_revision=goal.revision,
                 )
-        return Goal(**result["goal"]) if result["goal"] is not None else None
+        return Goal.from_wire(result["goal"]) if result["goal"] is not None else None
 
     async def set_session_name(self, name: str) -> None:
         self._pending_session_name = name

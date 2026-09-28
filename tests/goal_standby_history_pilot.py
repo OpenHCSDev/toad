@@ -2,18 +2,15 @@
 
 import asyncio
 import os
-from dataclasses import asdict, replace
+from dataclasses import replace
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from agent_comms import (
-    Goal,
-    GoalExecution,
-    GoalExecutionState,
-    GoalWaitTarget,
-    Thread,
-    wire,
-)
+from agent_comms.goal_states import PausedGoal
+from agent_comms.goals import Goal
+from agent_comms.goal_presentation import GoalExecution, GoalExecutionState, GoalWaitTarget
+from agent_comms.threads import Thread
+from agent_comms.comms import wire
 from textual.content import Content
 from textual.widgets import Button, Static
 
@@ -60,16 +57,14 @@ class GoalOwner:
                 "kind": "baseline",
                 "observed_at": 1000.0,
                 "before": None,
-                "after": asdict(
-                    replace(self.goal, text="HISTORICAL_OBJECTIVE", revision=4)
-                ),
+                "after": replace(self.goal, text="HISTORICAL_OBJECTIVE", revision=4).to_wire(),
             },
             {
                 "sequence": 2,
                 "kind": "transition",
                 "observed_at": 1001.0,
-                "before": asdict(replace(self.goal, revision=4)),
-                "after": asdict(self.goal),
+                "before": replace(self.goal, revision=4).to_wire(),
+                "after": self.goal.to_wire(),
             },
         ]
 
@@ -130,7 +125,7 @@ async def main():
             assert not status.display, "Goal prose must never infer standby"
             owner.execution = standby_execution
             active_goal = owner.goal
-            owner.goal = replace(owner.goal, status="paused")
+            owner.goal = replace(owner.goal, state=PausedGoal())
             await conversation.refresh_goal()
             await pilot.pause()
             assert not status.display, (

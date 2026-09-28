@@ -7,7 +7,8 @@ import tempfile
 import time
 from unittest.mock import patch
 
-from agent_comms import Thread, wire
+from agent_comms.threads import Thread
+from agent_comms.comms import wire
 from runtime_fixture import ToadApp
 from toad.acp.messages import CoordinationUpdate
 from toad.widgets.recovery_view import RecoveryView
@@ -34,7 +35,7 @@ async def main():
         os.environ.update(XDG_CONFIG_HOME=str(root / "config"), XDG_STATE_HOME=str(root / "state"),
                           XDG_DATA_HOME=str(root / "data"), AGENT_COMMS_ROOT=str(root / "wire"))
         comms = wire(root / "wire")
-        comms.register(Thread("fixture", frozenset({"test"}), str(root), pid=os.getpid()))
+        comms.threads.register(Thread("fixture", frozenset({"test"}), str(root), pid=os.getpid()))
         app = PaintProbe(project_dir=str(root))
         seen = []
         available = [True]

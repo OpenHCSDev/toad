@@ -5,7 +5,7 @@ from dataclasses import dataclass
 import threading
 from typing import ClassVar
 
-from agent_comms import TranscriptEvent
+from agent_comms.transcript_events import AssistantTranscript
 from toad.render_backend import Renderer
 from toad.render_tasks import MarkdownRenderTask, TranscriptRenderTask
 from toad.work_preparation import (
@@ -58,7 +58,7 @@ async def main():
 
     # The ordinary renderer API uses the same runtime, across unrelated callers.
     renderer = PreparedRenderer(runtime)
-    task = TranscriptRenderTask((TranscriptEvent("assistant", "worker text"),))
+    task = TranscriptRenderTask((AssistantTranscript('worker text'),))
     await asyncio.gather(renderer.submit(task), renderer.submit(task))
     await renderer.submit(task)
     assert backend.calls == 1
@@ -92,7 +92,7 @@ async def main():
     await asyncio.sleep(.05)
     assert not queued.is_set(), "Cancelled waiter released still-running work's admission"
     # Model admission does not block the rendering lane.
-    await renderer.submit(TranscriptRenderTask((TranscriptEvent("assistant", "other text"),)))
+    await renderer.submit(TranscriptRenderTask((AssistantTranscript('other text'),)))
     release.set()
     assert await following == {"rows": ["queued"]}
     await asyncio.gather(runtime.aclose(), renderer.aclose())
