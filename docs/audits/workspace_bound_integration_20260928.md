@@ -131,3 +131,17 @@ obsolete viewport membership and path-observer teardown timeout.
 Remaining full116 closure: operational shell/terminal source custody, previously
 revealed sidebar state/retirement, and final paired acceptance rebased onto132
 with core4510. Ready126 remains unchanged. No full116 readiness claim.
+
+## Final PR132 paired acceptance
+
+Current main132 b4bdae1 is integrated preserving116/126/source ancestry; pins
+core4510dddf737da3d445ba20d90c79f3dcb3f08b27 and Textualc9743801.
+Noneditable installed source files were compared with the branch; current merged
+source is installed. The actual ACP/native retention run exited0, all4/16/32/64
+cohorts completed,8calls, rendered answers and actual document/history/undo
+preserved,1globally admitted Conversation throughout. At64:167.11MiB UI RSS,
+996tasks,229.08ms settled switch median; no revealed sidebar panels in this case.
+Focused installed turn-navigation/guard tests:3passed2.94s. Receipts:
+main132-retention.json/main132-native.log/main132-navigation.log.
+Shell/terminal and revealed-sidebar closure remain explicitly assigned to Sol129;
+current result is not a claim that those operational paths are accepted.
