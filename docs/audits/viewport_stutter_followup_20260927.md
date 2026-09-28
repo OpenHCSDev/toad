@@ -7,11 +7,116 @@ current-main core pin `b1e5bfd5c39ea69c507833e8ed5efc96a7fb038b`.
 Status: **draft; tail-frame regression and comms test-timeout resolved;
 remaining native latency targets and current-main reconciliation are open**.
 
+## Version-specific GC and paint-owner retention
+
+The acceptance environment uses GIL-enabled CPython3.14.2, not the currently
+documented3.14patch. Online research was checked against versioned sources:
+
+- [3.14.2 collector source](https://github.com/python/cpython/blob/v3.14.2/Python/gc.c#L1455-L1659):
+  `mark_at_start` walks the objects reachable from global roots and thread stacks,
+  with the explicit comment "TO DO -- Make this incremental". Later increments
+  also expand through unvisited reachable objects. The nominal scan fraction is
+  not a hard object-count or pause-time bound. A collection that frees no objects
+  can still traverse a large live graph. A `strip.crop` trigger stack does not
+  identify the owner of that entire graph. Callbacks also include marking-only
+  increments and early returns while scan-work debt is negative; their count and
+  tiny median are not equivalent to full young-generation scans after the revert.
+- [3.14.2 GC design](https://github.com/python/cpython/blob/v3.14.2/InternalDocs/garbage_collector.md):
+  reference counting handles ordinary acyclic release; cyclic GC scans tracked
+  containers. Reducing live graph size and breaking accidental owner retention
+  help independently of the location that triggers collection.
+- [3.14.5 GC API](https://docs.python.org/release/3.14.5/library/gc.html) and
+  [the core-team revert discussion](https://discuss.python.org/t/reverting-the-incremental-gc-in-python-3-14-and-3-15/107014):
+  3.14.5restored the three-generation collector. Generation1again means the middle
+  generation, and threshold2is active. The previous3.14incremental collector and
+  the free-threaded collector have different mechanics; neither label is a latency
+  guarantee. Both interpreters tested here report the GIL enabled.
+
+### Isolated runtime-package comparison
+
+Unchanged Toad96e088f/Textual39b15d12; identical dependency directories and the same
+720-event fixture. The installed system3.14.6interpreter was used through a fresh
+isolated venv, reusing the exact cp314dependency files. Its GCC16.1.1build differs
+from the standalone3.14.2Clang21.1.4tail-call/BOLT build, so this is a comparison
+of runtime packages, not an experiment isolating only the GC implementation.
+No shared environment was replaced. Each serial4GiB/no-swap capture completed
+72actions/52markers and preserved every filter mask and draft.
+
+| Capture | Input median / p95 / maximum ms | Loop max ms | GC max ms |
+| --- | --- | --- | --- |
+| `toad-gc-system-3146-1` |34.45 /62.97 /216.10|204.90|163.91|
+| `toad-gc-standalone-3142-1` |32.11 /50.31 /69.93|110.25|69.17|
+| `toad-gc-system-3146-2` |34.21 /69.80 /87.82|126.76|124.69|
+| `toad-gc-standalone-3142-2` |36.20 /53.89 /104.85|105.36|70.56|
+
+System3.14.6had a163.91ms generation2pause inside the216.10ms input delay;
+another138.79ms generation2pause collected zero objects. Its second run still
+had a124.69ms pause. The repeat3.14.2input outlier overlapped41.06ms GC collecting
+16,670objects. Keep all tails: upgrading the runtime is not an established
+responsiveness fix for this fixture. Scope peaks were below477MiB, zero swap.
+Thresholds remained native:3.14.2`(2000,10,0)`,3.14.6`(2000,10,10)`.
+
+The runner now records the selected interpreter's exact version, executable,
+GIL/build configuration and **separate probe** thresholds in its manifest. Live
+UI thresholds/stats remain in the state snapshot. Census measurement entries now
+compare against the owner's published generation (including structure/proof
+epochs), rather than misclassifying current entries with the obsolete two-field
+suffix. These labels describe stored generations, not whether a new measurement
+would retire them. The census also records color-cache occupancy/hits/misses.
+
+### Paint color memo ownership correction
+
+`StylesCache.get_inner_outer` was an instance method decorated by a process-wide
+1024-entryLRU. Its computation used only two colors, but its key also retained
+each per-widget paint owner. That kept retired caches and their lines reachable
+until eviction, and recomputed identical color pairs for different owners.
+
+The companion change declares this pure operation static. The same bounded cache
+now owns only color inputs and immutable style results. `StylesCache.clear` also
+releases its reusable padding strip; previously a direct clear/re-render could
+retain the old background. Three deterministic regressions failed before the fix:
+owner release without forced GC/eviction, cross-owner reuse, and changed padding
+paint after clear. The focused52-test paint/lifetime/strip suite passes afterward.
+Full framework verification passed3,473tests (1skip,4xfail) in196.56s, with a
+245.8MiB peak. All60border/padding/opacity/tint/theme/scrollbar/Markdown snapshots
+passed in14.31s. The first full Toad run passed79pilots; comms exceeded its unchanged
+100s deadline (536.46s total,485.8MiB peak). A read-only diagnostic then completed
+all comms interactions in71.03s. The second full run passed **all80pilots in525.03s**,
+including comms in88.08s under the same100s deadline, at542.1MiB peak and zero swap.
+The initial timeout remains evidence rather than being attributed to the paint fix
+without proof; no assertion, scenario or deadline was weakened.
+
+Same3.14.2runtime/dependencies, same observer, framework control39b15d12and the
+paint-owner correction; each72actions/52markers with all masks/drafts preserved:
+
+| Capture | Input median / p95 / maximum ms | Loop max ms | GC max ms |
+| --- | --- | --- | --- |
+| `toad-paint-owner-control-1` |32.60 /57.29 /111.20|96.62|66.79|
+| `toad-paint-owner-candidate-1` |29.63 /59.76 /66.56|153.84|67.04|
+| `toad-paint-owner-candidate-2` |29.60 /54.93 /70.91|158.03|68.12|
+
+The closing census shows color-memo entries1,024in control versus6/7in candidates;
+misses2,665versus6/7. Tracked `StylesCache` counts were1,890versus1,429/1,461,
+and `textual.style.Style` counts3,335versus1,281/1,288. Total tracked objects were
+390,357versus380,879/384,082. Census endpoints depend on collection timing; the
+deterministic weak-reference regression proves the ownership correction itself.
+Native scope peaks were below475MiB, zero swap, with owned children retired.
+
+Both candidate worst loop gaps overlap a54.84/57.26ms zero-collected GC pause
+during sidebar paint, on top of45.24/56.38ms arrangement. These overlapping spans
+are not additive. GC maxima did not improve and loop maxima worsened, despite
+lower input maxima. Preserve those failures: this is a verified lifetime/cache
+correction, not a robust worst-stutter or universal sub50ms win. GC on another
+Python thread can also block the GIL-enabled UI; the control's66.79ms collection
+was not on the UI thread. `analyze_trace.py --gc` separates callback generations
+and threads and reports first/last censuses. Generation labels must be interpreted
+with the recorded runtime version.
+
 ## Structural measurement correction
 
 Dependency: [Textual PR6](https://github.com/OpenHCSDev/textual/pull/6), pinned at
-`39b15d1297b7f1b5b342d444629f4e67a18297bb` (structural fix, owner-clock idle
-measurement and opt-in declaration-proved box reuse). The merged framework baseline alone
+`ec244df727c586bd45edaf34a1f9a0c09d145918` (structural fix, owner-clock idle
+measurement, opt-in declaration-proved box reuse and paint memo ownership). The merged framework baseline alone
 does not contain this correction.
 
 The clipped frame was reproduced with committed geometry evidence: the history

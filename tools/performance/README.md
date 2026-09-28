@@ -14,7 +14,7 @@ It creates its own X display, verifies the target process/window, and refuses an
 already-used display. Input automation is confined to that display.
 
 The current implementation also needs the companion Textual performance branch.
-See [Textual PR #5](https://github.com/OpenHCSDev/textual/pull/5); the draft's
+See [Textual PR #6](https://github.com/OpenHCSDev/textual/pull/6); the draft's
 `pyproject.toml` pins its commit.
 Use `PYTHONPATH` to select both source trees, or install their exact commits.
 `--dependency-path` can add dependencies from a separate diagnostic environment;
@@ -60,6 +60,11 @@ Xvfb startup). Application/input processes remain unprivileged.
 Each capture uses a fresh name and writes manifest, trace, action, state and
 screenshot artifacts; optional censuses add JSONL. Manifests include source-file
 hashes, observer hash, selected environments and diagnostic policy overrides.
+The runtime receipt includes the selected interpreter's exact version, build/GIL
+configuration and GC thresholds from a separate pre-launch probe. Live UI GC state
+is reported by the state snapshot. Python 3.14.5 changed the collector substantially;
+compare exact patch versions/builds rather than assuming all 3.14 runtimes behave
+alike. See the [GC comparison and paint ownership audit](../../docs/audits/viewport_stutter_followup_20260927.md#version-specific-gc-and-paint-owner-retention).
 
 For native input queue attribution, add `--key-route` to the isolated filter
 workload. This diagnostic records app/widget enqueue and dispatch timestamps for
@@ -69,6 +74,12 @@ the fixture's typed markers. Inspect the worst acknowledgments with:
 python tools/performance/analyze_trace.py "$CAPTURES/filter-route-1" \
   --slowest 3 --slowest-inputs 3
 ```
+
+Add `--gc` to report GC callbacks by generation and collecting thread, plus the
+runtime receipt and first/last tracked-object censuses. It does not trigger GC.
+Census color-memo occupancy helps distinguish data reuse from retired paint-owner
+retention. Measurement-entry labels compare the cache's stored owner generation;
+they do not predict whether a subsequent measurement would invalidate that owner.
 
 The report includes overlapping layout/paint/GC spans and frames submitted before
 the key was handled. Inclusive durations overlap and must not be summed. Repeat

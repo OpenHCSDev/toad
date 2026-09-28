@@ -60,8 +60,24 @@ base = args.output_dir / args.name
 assert not Path(str(base) + "-manifest.json").exists(), "Choose a fresh capture name"
 launcher = str(TOOLS / "launch_fixture.sh") if args.fixture else str(args.launcher.resolve()) if args.launcher else None
 assert launcher is not None, "Non-fixture runs require --launcher"
-site_packages = subprocess.check_output([str(args.environment / "bin/python"), "-c",
-    "import os,site; print(os.pathsep.join(site.getsitepackages()))"], text=True).strip()
+environment_probe = json.loads(subprocess.check_output([
+    str(args.environment / "bin/python"), "-c", """
+import gc, json, os, site, sys, sysconfig
+print(json.dumps({
+    "site_packages": os.pathsep.join(site.getsitepackages()),
+    "runtime": {
+        "executable": sys.executable,
+        "version": sys.version,
+        "implementation": sys.implementation.name,
+        "gil_enabled": sys._is_gil_enabled(),
+        "probe_gc_thresholds": gc.get_threshold(),
+        "build": {name: sysconfig.get_config_var(name) for name in (
+            "CONFIG_ARGS", "CC", "CFLAGS", "Py_GIL_DISABLED", "SOABI"
+        )},
+    },
+}))
+"""], text=True))
+site_packages = environment_probe["site_packages"]
 extra_paths = [str(path.expanduser().resolve()) for path in args.dependency_path]
 if os.environ.get("TOAD_VALIDATION_EXTRA_PYTHONPATH"):
     extra_paths.append(os.environ["TOAD_VALIDATION_EXTRA_PYTHONPATH"])
@@ -151,7 +167,7 @@ try:
         "ungated_startup": env.get("TOAD_VALIDATION_UNGATED_STARTUP") == "1",
         "open_stages": env.get("TOAD_VALIDATION_OPEN_STAGES") == "1",
         "observer_sha256": sha256((TOOLS / "sidebar_validation_driver.py").read_bytes()).hexdigest(),
-        "dependency_paths": extra_paths}
+        "dependency_paths": extra_paths, "runtime": environment_probe["runtime"]}
     Path(str(base) + "-manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
     profile_args = (["--profile", str(base) + ".speedscope.json", "--profile-seconds", str(args.profile_seconds)] if args.profile else [])
     if args.profile_gil:

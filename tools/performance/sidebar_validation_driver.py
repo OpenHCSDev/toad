@@ -408,6 +408,7 @@ class ValidationDriver(LinuxDriver):
         begin = time.monotonic_ns()
         objects = gc.get_objects()
         counts = Counter((type(value).__module__, type(value).__qualname__) for value in objects)
+        from textual._styles_cache import StylesCache
         from textual.widget import Widget
         from textual.dom import DOMNode
         widget_counts = Counter((type(value).__name__, value.is_mounted, value._closing, value._closed)
@@ -423,15 +424,21 @@ class ValidationDriver(LinuxDriver):
                         if subscriber._closed:
                             closed_watch_paths[(type(value).__name__, attribute, type(subscriber).__name__)] += 1
             if isinstance(value, Widget):
+                revision = value._box_model_revision
                 for key in value._box_model_cache.keys():
-                    current = (value._layout_updates, value.styles._cache_key)
-                    measurement_entries["current" if key[-2:] == current else "obsolete"] += 1
+                    # The owner-published suffix includes structure and optional proof
+                    # epochs; comparing a historical two-field suffix mislabels it.
+                    measurement_entries[
+                        "owner_generation" if revision is not None and key[-len(revision):] == revision
+                        else "other_generation"
+                    ] += 1
         total = len(objects)
         del objects
         data = {"ns": time.monotonic_ns(), "pid": os.getpid(), "tracked": total,
                 "counts": counts.most_common(60), "widgets": widget_counts.most_common(50),
                 "closed_widgets": {name: count for (name, _mounted, _closing, closed), count in widget_counts.items() if closed},
                  "measurement_entries": dict(measurement_entries),
+                 "paint_color_cache": StylesCache.get_inner_outer.cache_info()._asdict(),
                  "reactive_subscriptions": dict(reactive_subscriptions),
                  "closed_reactive_watch_paths": closed_watch_paths.most_common(20),
                 "gc": gc.get_stats(),
