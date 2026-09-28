@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
 
-from toad.channel_preparation import HistoryKind
+from toad.conversation_kind import ConversationKind, ChannelConversation, DmConversation, IrcConversation
 from toad.constants import ALL_COMMS_TARGET
 
 if TYPE_CHECKING:
@@ -79,7 +79,7 @@ class ThreadTarget(NavigationTarget):
 
 
 class HistoryTarget(NavigationTarget):
-    history_kind: ClassVar[HistoryKind]
+    history_kind: ClassVar[type[ConversationKind]]
 
     async def open(self, context: NavigationContext) -> str:
         return await context.app._open_comms_history(
@@ -89,7 +89,7 @@ class HistoryTarget(NavigationTarget):
 
 
 class FeedTarget(HistoryTarget):
-    history_kind = HistoryKind.ALL
+    history_kind = IrcConversation
 
     @classmethod
     def from_name(cls, name: str) -> FeedTarget:
@@ -97,7 +97,7 @@ class FeedTarget(HistoryTarget):
 
 
 class ChannelTarget(HistoryTarget):
-    history_kind = HistoryKind.CHANNEL
+    history_kind = ChannelConversation
 
     @classmethod
     def from_name(cls, name: str) -> NavigationTarget:
@@ -107,7 +107,7 @@ class ChannelTarget(HistoryTarget):
 
 
 class DirectTarget(HistoryTarget):
-    history_kind = HistoryKind.DIRECT
+    history_kind = DmConversation
 
     def selected(self, owner: NavigationOwner) -> None:
         owner.remember_direct_target(self.name)
@@ -117,7 +117,7 @@ _CHANNEL_TARGET_TYPES = {ALL_COMMS_TARGET: FeedTarget}
 _TARGET_TYPES = {
     "session": SessionTarget,
     "thread": ThreadTarget,
-    HistoryKind.CHANNEL.value: ChannelTarget,
-    HistoryKind.ALL.value: FeedTarget,
-    HistoryKind.DIRECT.value: DirectTarget,
+    ChannelConversation.declared_name: ChannelTarget,
+    IrcConversation.declared_name: FeedTarget,
+    DmConversation.declared_name: DirectTarget,
 }

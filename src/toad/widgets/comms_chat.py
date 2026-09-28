@@ -21,10 +21,11 @@ from textual.content import Content
 from textual.widgets import Static
 from textual.widget import Widget
 
+from toad.conversation_kind import ConversationKind
 from toad import messages
 from toad.constants import ALL_COMMS_TARGET
 from toad.channel_preparation import (
-    HistoryKind, HistoryReadRequest, HistoryReadResult, display_identity,
+    HistoryReadRequest, HistoryReadResult,
 )
 from toad.widgets.conversation import (
     Contents,
@@ -105,7 +106,7 @@ class CommsChatView(Conversation):
     ) -> None:
         super().__init__(project_path)
         self.target = target
-        self.kind = kind
+        self.conversation_kind = ConversationKind.decode(kind)
         self._me = me
         self._unknown_send: tuple[str, int, str] | None = None
         self._human_admission_blocked = False
@@ -131,6 +132,10 @@ class CommsChatView(Conversation):
         self._historical_ack_pages: dict[tuple[str, int], MessagePage] = {}
         self._ack_inflight = False
         self.irc_style = True
+
+    @property
+    def kind(self) -> str:
+        return self.conversation_kind.declared_name
 
     def compose(self) -> ComposeResult:
         with Window():
@@ -217,11 +222,7 @@ class CommsChatView(Conversation):
         """Comms readiness has no shell process to await."""
 
     def _target_label(self) -> str:
-        if self.kind == "irc":
-            return f"{ALL_COMMS_TARGET} · all comms"
-        if self.kind == "dm":
-            return f"@{self.target}"
-        return self.target
+        return self.conversation_kind.label(self.target)
 
     def _message_page(
         self,
@@ -231,22 +232,9 @@ class CommsChatView(Conversation):
         after: int | None = None,
         limit: int = HISTORY_PAGE_SIZE,
     ) -> MessagePage:
-        if self.kind == "dm":
-            return comms.views.dm_display_page(
-                self.target,
-                worktree=str(self.project_path),
-                before=before,
-                after=after,
-                limit=limit,
-                max_bytes=HISTORY_PAGE_BYTES,
-            )
-        return comms.views.channel_display_page(
-            self.target,
-            worktree=str(self.project_path),
-            before=before,
-            after=after,
-            limit=limit,
-            max_bytes=HISTORY_PAGE_BYTES,
+        return self.conversation_kind.page(
+            comms, self.target, worktree=str(self.project_path),
+            before=before, after=after, limit=limit, max_bytes=HISTORY_PAGE_BYTES,
         )
 
     def _message_block(self, message: WireMessage) -> Widget:
@@ -288,7 +276,7 @@ class CommsChatView(Conversation):
     def _history_request(self) -> HistoryReadRequest:
         assert self._wire is not None
         return HistoryReadRequest(
-            self._wire, HistoryKind(self.kind), self.target, Path(self.project_path),
+            self._wire, self.conversation_kind, self.target, Path(self.project_path),
             self._history_initialized, self._poll_cursor,
             not self._has_newer and self.window.follows_tail, self._revision,
             INITIAL_HISTORY_PAGE_SIZE, HISTORY_PAGE_SIZE, HISTORY_PAGE_BYTES,
@@ -481,7 +469,7 @@ class CommsChatView(Conversation):
             if loading := self.query_one_optional("#history-loading"):
                 await loading.remove()
             self._has_older = page.has_older
-            self._display_identity = display_identity(HistoryKind(self.kind), page)
+            self._display_identity = self.conversation_kind.display_identity(page)
             self._history_initialized = True
             self._poll_cursor = high_water
             self.call_after_refresh(self._on_window_scroll)
@@ -497,14 +485,14 @@ class CommsChatView(Conversation):
             self._has_older = page.has_older
             self._has_newer = False
             await self._mount_page(page, older=False)
-            self._display_identity = display_identity(HistoryKind(self.kind), page)
+            self._display_identity = self.conversation_kind.display_identity(page)
             self._poll_cursor = (page.newest_seq if page.has_newer else high_water) or high_water
             return True
         if high_water <= self._poll_cursor:
             return follow
         if page is None:
             return follow
-        self._display_identity = display_identity(HistoryKind(self.kind), page)
+        self._display_identity = self.conversation_kind.display_identity(page)
         follow = not self._has_newer and self.window.follows_tail
         if page.messages and follow:
             await self._mount_page(page, older=False)

@@ -12,7 +12,7 @@ from agent_comms.threads import Thread
 from agent_comms.comms import wire
 
 from toad.session_tracker import CommsViewKey
-from toad.channel_preparation import HistoryKind
+from toad.conversation_kind import ConversationKind
 
 ResultT = TypeVar("ResultT")
 
@@ -35,26 +35,18 @@ class CommsNavigationRequest(NavigationRequest[CommsNavigation]):
     owner_mode: str
     me: str
     target: str
-    kind: HistoryKind
+    kind: type[ConversationKind]
     recovery_root: str | None
 
     def read(self) -> CommsNavigation:
         root = Path(self.root).expanduser().resolve()
         comms = wire(root)
-        me = self.me
-        if self.kind is HistoryKind.DIRECT:
-            me = comms.registry.require(me).name
-            target = comms.registry.require(self.target).name
-        else:
-            # Local sessions can browse channels before an executor registers.
-            if me in comms.registry:
-                me = comms.registry.require(me).name
-            target = comms.channels.catalog.read().resolve(self.target).name
+        me, target = self.kind.resolve(comms, self.me, self.target)
         recovery_root = self.recovery_root
         if recovery_root is not None and Path(recovery_root).expanduser().resolve() != root:
             recovery_root = None
         return CommsNavigation(
-            CommsViewKey(str(root), self.owner_mode, me, self.kind.value, target), recovery_root,
+            CommsViewKey(str(root), self.owner_mode, me, self.kind.declared_name, target), recovery_root,
         )
 
 

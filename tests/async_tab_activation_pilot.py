@@ -12,7 +12,7 @@ from agent_comms.comms import wire
 from runtime_fixture import ToadApp
 from toad.acp.agent import Agent
 from toad.agent import AgentReady
-from toad.channel_preparation import HistoryKind
+from toad.conversation_kind import ConversationKind, ChannelConversation, DmConversation, IrcConversation
 from toad.constants import ALL_COMMS_TARGET
 from toad.navigation_target import NavigationContext, NavigationTarget
 from toad.screens.pending_thread import PendingTabShells
@@ -122,10 +122,10 @@ async def main():
                     await NavigationTarget.decode("peer", "thread").open(context)
                     thread.assert_awaited_once_with(owner_mode=owner, project_path=root, target="peer")
                     for serialized, name, expected_kind, expected_name in (
-                        ("channel", "#room", HistoryKind.CHANNEL, "#room"),
-                        ("channel", ALL_COMMS_TARGET, HistoryKind.ALL, ALL_COMMS_TARGET),
-                        ("irc", "ignored", HistoryKind.ALL, ALL_COMMS_TARGET),
-                        ("dm", "peer", HistoryKind.DIRECT, "peer"),
+                        ("channel", "#room", ChannelConversation, "#room"),
+                        ("channel", ALL_COMMS_TARGET, IrcConversation, ALL_COMMS_TARGET),
+                        ("irc", "ignored", IrcConversation, ALL_COMMS_TARGET),
+                        ("dm", "peer", DmConversation, "peer"),
                     ):
                         await NavigationTarget.decode(name, serialized).open(context)
                         history.assert_awaited_with(owner_mode=owner, project_path=root, me="actor",
