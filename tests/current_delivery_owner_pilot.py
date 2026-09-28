@@ -1,6 +1,7 @@
 """Mounted delivery controls use a real owner's queued-input and notice projection."""
 
 import asyncio
+from dataclasses import replace
 import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -25,7 +26,7 @@ async def main():
             incoming,
         ):
             snapshot = await proxy.request("input_dispositions")
-            before = owner._dispositions._read()
+            before = owner.inputs.dispositions.read().rows
 
             class DeliveryApp(App):
                 def compose(self) -> ComposeResult:
@@ -72,10 +73,10 @@ async def main():
                 assert isinstance(details, InputDeliveryDetails)
                 # A new input is queued while the inspector is open. Clear must
                 # use the owner's current queue, not the screen's earlier snapshot.
-                second = owner._comms.send_message(
+                second = owner._comms.messaging.send_message(
                     "peer", session, "Queued after opening inspector"
                 )
-                await owner._drain_inbox(session)
+                await owner.inputs.drain_inbox(session)
                 details.query_one("#delivery-clear-history").scroll_visible(
                     immediate=True
                 )
@@ -93,7 +94,7 @@ async def main():
                     and state["dismissedHistoricalCount"] == 2
                 )
                 assert all(
-                    not owner._dispositions.get(f"bus:{seq}").get("notice_dismissed")
+                    not owner.inputs.dispositions.read().rows[f"bus:{seq}"].notice_dismissed
                     for seq in (incoming.seq, second.seq)
                 )
                 details.query_one("#delivery-load-history").scroll_visible(
@@ -109,11 +110,9 @@ async def main():
                     details.query_one("#delivery-historical-records", Static).render()
                 )
                 for key, row in before.items():
-                    assert all(
-                        owner._dispositions.get(key)[field] == value
-                        for field, value in row.items()
-                    )
-                assert not owner._backend_inboxes
+                    after = owner.inputs.dispositions.read().rows[key]
+                    assert replace(after, notice_dismissed=row.notice_dismissed) == row
+                assert not owner.inputs.backend_inboxes
                 # The bar retains an inspector entry even when only cleared
                 # notices remain, so clearing never makes evidence inaccessible.
                 await pilot.press("escape")

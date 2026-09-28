@@ -172,8 +172,7 @@ async def main():
                         == ids
                     )
                     assert all(
-                        producer.inputs.dispositions.get("acp:" + exact)["status"]
-                        == "unknown"
+                        producer.inputs.dispositions.read().rows["acp:" + exact].unresolved
                         for exact in ids
                     )
                     assert len(view.input_delivery["inputs"]) >= 2
@@ -205,8 +204,7 @@ async def main():
                         row.input_id for row in view.queue_projection.restored
                     ) == (ids[1],)
                     assert (
-                        producer.inputs.dispositions.get("acp:" + ids[1])["status"]
-                        == "unknown"
+                        producer.inputs.dispositions.read().rows["acp:" + ids[1]].unresolved
                     )
                     assert view.prompt.text == "local editable draft"
                     painted("Restored (1, read-only): same text", "backend-restored")
@@ -242,8 +240,7 @@ async def main():
                     assert view.queue_projection.status == "unavailable"
                     assert invalid_id in producer.inputs.queued_inputs["beta"]
                     assert (
-                        producer.inputs.dispositions.get("acp:" + invalid_id)["status"]
-                        == "unknown"
+                        producer.inputs.dispositions.read().rows["acp:" + invalid_id].unresolved
                     )
                     assert view.prompt.text == "local editable draft"
                     painted("Remote queue unavailable", "backend-surrogate-null")
@@ -269,12 +266,10 @@ async def main():
                     assert invalid_id in producer.inputs.queued_inputs["beta"]
                     assert ids[1] in producer.inputs.restored_inputs["beta"]
                     assert (
-                        producer.inputs.dispositions.get("acp:" + invalid_id)["status"]
-                        == "unknown"
+                        producer.inputs.dispositions.read().rows["acp:" + invalid_id].unresolved
                     )
                     assert (
-                        producer.inputs.dispositions.get("acp:" + ids[1])["status"]
-                        == "unknown"
+                        producer.inputs.dispositions.read().rows["acp:" + ids[1]].unresolved
                     )
                     assert view.prompt.text == "local editable draft"
                 finally:
