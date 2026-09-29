@@ -625,8 +625,6 @@ class ToadApp(WorkspaceSessionShutdown, App, inherit_bindings=False):
             # event-loop turn. Do not let the departing screen's older queued
             # full-layout timer outrun that explicit navigation request.
             self._pending_mode_switch = mode
-        if self.is_running and (selected := self.selected_session) is not None:
-            selected.capture_navigation()
         return AwaitComplete(self._switch_mode_ready(mode, history_index=history_index))
 
     def delay_update(self, delay: float = 0.05) -> None:
