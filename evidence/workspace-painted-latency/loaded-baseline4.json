@@ -1,0 +1,90 @@
+[
+  {
+    "global_rich_views": 1,
+    "tabs": 4,
+    "rss_bytes": 159473664,
+    "tasks": 226,
+    "tracked_objects": 358414,
+    "constructed_panels": 0,
+    "switch_median_ms": 163.5885059949942,
+    "switch_max_ms": 185.77512202318758,
+    "switches_over_100ms": 5,
+    "switch_count": 9,
+    "fixed_native_owners": 2,
+    "fixed_acp_attachments": 2,
+    "measurement": "physical Pilot tab click: production selection to first actual compositor output with destination draft; no fixed settle added, headless not terminal writer latency",
+    "painted_switches": [
+      {
+        "mode": "session-3",
+        "source": "blank",
+        "first_paint_ms": 35.001693991944194,
+        "last_observed_paint_ms": 62.4027650046628,
+        "painted_frames": 3
+      },
+      {
+        "mode": "session-2",
+        "source": "loaded-native",
+        "first_paint_ms": 166.09604499535635,
+        "last_observed_paint_ms": 186.01065801340155,
+        "painted_frames": 2
+      },
+      {
+        "mode": "session-1",
+        "source": "loaded-native",
+        "first_paint_ms": 172.92136000469327,
+        "last_observed_paint_ms": 190.8072810037993,
+        "painted_frames": 2
+      },
+      {
+        "mode": "session-2",
+        "source": "loaded-native",
+        "first_paint_ms": 163.5885059949942,
+        "last_observed_paint_ms": 169.79369800537825,
+        "painted_frames": 2
+      },
+      {
+        "mode": "session-3",
+        "source": "blank",
+        "first_paint_ms": 68.96561401663348,
+        "last_observed_paint_ms": 103.07980800280347,
+        "painted_frames": 3
+      },
+      {
+        "mode": "session-4",
+        "source": "blank",
+        "first_paint_ms": 50.87126698344946,
+        "last_observed_paint_ms": 78.15183998900466,
+        "painted_frames": 3
+      },
+      {
+        "mode": "session-3",
+        "source": "blank",
+        "first_paint_ms": 49.014400981832296,
+        "last_observed_paint_ms": 76.63805299671367,
+        "painted_frames": 3
+      },
+      {
+        "mode": "session-2",
+        "source": "loaded-native",
+        "first_paint_ms": 170.1968510169536,
+        "last_observed_paint_ms": 180.3918869991321,
+        "painted_frames": 2
+      },
+      {
+        "mode": "session-1",
+        "source": "loaded-native",
+        "first_paint_ms": 185.77512202318758,
+        "last_observed_paint_ms": 213.43343102489598,
+        "painted_frames": 3
+      }
+    ],
+    "blank_median_ms": 49.94283398264088,
+    "loaded_median_ms": 170.1968510169536,
+    "scope_rss_bytes": 1163816960,
+    "scope_processes": 11,
+    "native_owner_rss_bytes": 85090304,
+    "acp_rss_bytes": 74727424,
+    "native_calls": 2,
+    "native_answer_painted": true
+  }
+]
