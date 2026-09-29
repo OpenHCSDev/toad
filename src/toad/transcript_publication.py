@@ -65,6 +65,7 @@ class SnapshotPublication(TranscriptPublication):
                 self.window.anchor()
         with view.app.batch_update():
             await self.contents.mount(history)
+            await history.admit_retained_pages()
         if not self.current():
             if history.is_attached:
                 await history.remove()
