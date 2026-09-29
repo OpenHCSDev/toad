@@ -78,7 +78,6 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
         self.viewport_presentation.suspend()
 
     def on_screen_resume(self) -> None:
-        self.frame_presentation.resume()
         self.viewport_presentation.request()
 
     async def _message_loop_exit(self) -> None:
@@ -272,6 +271,7 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
         self._navigation_applied = True
 
     def _on_screen_resume(self, event: ScreenResume) -> None:
+        self.frame_presentation.resume()
         # rules_map is a disposable cache. Re-parsing identical stylesheet
         # sources replaces that dictionary and used to force a full-tree
         # restyle of every aged tab when it was next selected. Detect actual

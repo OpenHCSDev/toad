@@ -4,6 +4,7 @@ from __future__ import annotations
 import asyncio
 import sys
 from abc import abstractmethod
+from collections.abc import Callable
 from functools import partial
 from weakref import ref
 
@@ -17,22 +18,22 @@ from toad.screens.workspace import WorkspaceScreen
 class FrameFlush(DeclaredFamily, affix="Flush"):
     driver_type: type[Driver]
 
-    def __init__(self, driver):
+    def __init__(self, driver: Driver):
         self.driver = driver
 
     @classmethod
-    def for_driver(cls, driver):
+    def for_driver(cls, driver: Driver) -> FrameFlush:
         declarations = {kind.driver_type: kind for kind in cls.members_with(cls)}
         return next(declarations[ancestor](driver) for ancestor in type(driver).__mro__ if ancestor in declarations)
 
     @abstractmethod
-    def submit(self, callback): ...
+    def submit(self, callback: Callable[[], None]) -> None: ...
 
 
 class SynchronousFrameFlush(FrameFlush):
     driver_type = Driver
 
-    def submit(self, callback):
+    def submit(self, callback: Callable[[], None]) -> None:
         callback()
 
 
@@ -44,7 +45,7 @@ if sys.platform != "win32":
     class TerminalFrameFlush(FrameFlush):
         driver_type = LinuxDriver
 
-        def submit(self, callback):
+        def submit(self, callback: Callable[[], None]) -> None:
             loop = asyncio.get_running_loop()
 
             def written():
@@ -70,10 +71,14 @@ class FrameState(DeclaredFamily, affix="Frame"):
         frame.presented.clear()
 
     def suspend(self, frame):
-        frame.state = SuspendedFrame()
+        frame.state = SuspendedFrame(self)
 
     def resume(self, frame):
         pass
+
+    def restore(self, frame):
+        self.begin(frame)
+        frame.screen.refresh()
 
 
 class PendingFrame(FrameState):
@@ -88,12 +93,22 @@ class WritingFrame(FrameState):
 
 
 class SuspendedFrame(FrameState):
+    def __init__(self, previous: FrameState):
+        self.previous = previous
+
     def resume(self, frame):
-        self.begin(frame)
+        self.previous.restore(frame)
+
+    def suspend(self, frame):
+        pass
 
 
 class PresentedFrame(FrameState):
     ready = True
+
+    def restore(self, frame):
+        frame.state = self
+        frame.presented.set()
 
     def defer(self, frame, owner, callback):
         if frame.screen.app._atomic_mode_switch:
@@ -114,33 +129,33 @@ class ClosedFrame(FrameState):
 
 
 class FramePresentation:
-    def __init__(self, screen):
+    def __init__(self, screen: WorkspaceScreen):
         self._screen = ref(screen)
         self.state: FrameState = PendingFrame()
-        self.callbacks: dict[tuple[Widget, object], None] = {}
+        self.callbacks: dict[tuple[Widget, Callable[[], object]], None] = {}
         self.presented = asyncio.Event()
 
     @property
-    def screen(self):
+    def screen(self) -> WorkspaceScreen:
         screen = self._screen()
         if screen is None:
             raise ReferenceError("Frame screen has retired")
         return screen
 
     @property
-    def ready(self):
+    def ready(self) -> bool:
         return self.state.ready
 
     def begin(self):
         self.state.begin(self)
 
-    def defer(self, owner, callback):
+    def defer(self, owner: Widget, callback: Callable[[], object]) -> None:
         self.state.defer(self, owner, callback)
 
     def displayed(self):
         self.state.displayed(self)
 
-    def written(self, receipt: WritingFrame):
+    def written(self, receipt: WritingFrame) -> None:
         if receipt is not self.state:
             return
         self.state = PresentedFrame()
@@ -164,7 +179,7 @@ class FramePresentation:
         self.callbacks.clear()
         self.presented.set()
 
-    async def wait(self):
+    async def wait(self) -> bool:
         await self.presented.wait()
         screen = self.screen
         return self.ready and screen.is_attached and screen.is_current
