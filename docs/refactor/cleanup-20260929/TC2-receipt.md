@@ -1,5 +1,7 @@
 # TC2 execution receipt
 
+**Status: ready for integration review; all assigned TC2 consumer/deletion work and the actual paired installed journeys passed.**
+
 **1,163 production lines deleted; 738 added, net 425 removed** against integrated Toad main `533c7f6c` (#207), across 45 production files. This includes the 504-line `acp/protocol.py` deletion. Initial base was `7e1133a2`; the normal main integration preserves #207's separate receipt/history work. No compatibility readers or alternate codecs remain for TC2.
 
 Owner: TC2 worker. Draft [Toad #208](https://github.com/OpenHCSDev/toad/pull/208). Persistent worktree: `/home/ts/wt/toad-cleanup-tc2-sdk-20260929`. Working code checkpoint `348080fe` was pushed before current-main integration.
@@ -40,11 +42,12 @@ Tests execute a noneditable installed wheel from this WT's `.venv`, not source i
 | Native model/thinking picker, high selection, ACP reconnect, retained saved answer/draft/document/undo | `agent_configuration_native_installed_pilot.py`: exit 0; `native-config-settled.log` |
 | Production fork, physical immediate opening before worker socket, inherited history, first input and exactly one answer in same logical tab | `first_fork_native_installed_pilot.py`: exit 0; `native-fork2.log` |
 | SDK file read/write, physical diff permission, terminal env/output/wait/kill/release, signal status, tool progression and painted answer | `acp_specification_installed_pilot.py`: exit 0 on current accounting pair, including original SDK mode identity and mode changes; `sdk-rpc-modes.log` |
+| Complete current-pair native entrypoint: input, queue, native history, saved checkpoint, reconnect, DM, channel receipt feedback, stopped-owner reopening | `l0a_native_installed_pilot.py`: exit 0; `continuous-accounting-selected.txt` |
 | Focused family/deletion/format/session/configuration contracts | 5 passed, 0.92s on the new accounting pair |
 
 Earlier failing attempts are retained honestly: the SDK A/B/A journey exposed the missing presentation capability; the native tool fixture addressed the obsolete screen conversation owner; the fork fixture used the obsolete combined name/task field; the final configuration click preceded painted menu layout. Their fixes use current owners and actual layout admission; no receipt/retention/input assertion was weakened.
 
-Initial accepted installed pair: Core `d6a2ac55`, Textual `412b5a2b`, native `776dc368`. Current own-WT installed wheel and stdio fixtures pass on Core `ab3397a6` (#416/#423), integrated Toad #207, Textual `412b5a2b`, SDK 0.12.1; native fixture target `7817b54e`. Combined new-pair native saved-history/queue/DM/channel/restart acceptance is pending Einstein’s directly coordinated serial test slot. No native fixture is active in this WT; #417 currently owns that slot. Resume the existing `l0a_native_installed_pilot.py` continuous journey when the slot is released. No default/global installation has been changed by this worker; parent owns paired activation.
+Initial accepted installed pair: Core `d6a2ac55`, Textual `412b5a2b`, native `776dc368`. Current own-WT installed wheel and stdio fixtures pass on Core `ab3397a6` (#416/#423), integrated Toad #207, Textual `412b5a2b`, SDK 0.12.1; native fixture target `7817b54e`. Combined new-pair native saved-history/queue/DM/channel/restart acceptance passed: `l0a_native_installed_pilot.py` exited 0 on Core ab3397a6/native7817, with queue input mapping, saved checkpoint/paint, cold ACP attachment without replay, direct reply, channel busy/idle and Checked — no response, stopped-owner reopening and zero additional requests during idle. The first run selected the old DM with a workspace-wide query; the corrected driver waits for the selected logical session and scopes both DM/channel queries to it, retaining target/kind and notification assertions. Both runs are preserved under `evidence/tc2-sdk/logs/continuous-accounting*.txt`. All fixture owners were retired; the serial slot was handed directly to #202, then the compaction speed worker. No default/global installation has been changed by this worker; parent owns paired activation.
 
 ## Guards and measurement
 
@@ -108,4 +111,4 @@ Other changed source inputs: `pyproject.toml`/`uv.lock` pin the SDK and accepted
 
 ## Artifacts and resource ownership
 
-TC2 owns `.venv` (~97 MiB), `evidence/tc2-sdk` (~1.1 MiB), and `/home/ts/.cache/agent-scratch/toad-tc2-sdk-20260929` (~1.7 MiB). Disposable fixture directories retire with TemporaryDirectory; test-owned processes are bounded and retired by the existing runner. Persistent small failure/pass receipts remain for review. Remove the env/scratch after review and activation when no process references them. No volatile worktree, global reset/clean, or edits in another worker's WT.
+TC2 owns `.venv` (~97 MiB), `evidence/tc2-sdk` (~1.1 MiB), and `/home/ts/.cache/agent-scratch/toad-tc2-sdk-20260929` (~1.7 MiB). Disposable fixture directories retire with TemporaryDirectory; test-owned processes are bounded and retired by the existing runner. Persistent small failure/pass receipts remain for review. Default/global activation still belongs to the parent; this worker has not modified it. This receipt does not claim #202 warm-tab or #211 canonical-turn issues are finished. Remove the env/scratch after review and activation when no process references them. No volatile worktree, global reset/clean, or edits in another worker's WT.

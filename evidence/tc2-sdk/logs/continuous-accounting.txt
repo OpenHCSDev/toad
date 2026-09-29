@@ -1,0 +1,84 @@
+INSTALLED_APP_RUN_TEST_ENTER
+INSTALLED_APP_RUN_TEST_YIELDED
+ATTACHED_AND_NAVIGABLE
+PROVIDER_FIRST
+NATIVE_SIDEBAR_BUSY_AUTHORITY_CONFIRMED
+QUEUED ['f41c114c4f3c49109ce25347b3313ac8']
+ACTUAL_LIVE_AND_SAVED_RESPONSE_PAINT_CONFIRMED
+ACTUAL_NATIVE_CHECKPOINT_SOURCE_AND_PAINT_CONFIRMED
+NATIVE_QUEUE_DONE 2
+QUEUE_PROJECTION AvailableQueueProjection(items=(), restored=())
+INPUT_DELIVERY {"inputs": [], "historicalCount": 0, "dismissedHistoricalCount": 0, "historicalInputs": [], "currentScope": "owner_queue"}
+NATIVE_MAPPING f41c114c4f3c49109ce25347b3313ac8 0984808a7bc6544857e9d4f5cd891303
+NATIVE_CONSUMPTION_CONFIRMED
+COLD_REATTACH_CONFIRMED
+DM_NATIVE_REPLY_CONFIRMED
+LOOPBACK_PROVIDER_FAILURE BrokenPipeError(32, 'Broken pipe')
+----------------------------------------
+Exception occurred during processing of request from ('127.0.0.1', 33352)
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/tests/l0a_native_installed_pilot.py", line 182, in do_POST
+    self.wfile.write(body)
+    ~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/socketserver.py", line 845, in write
+    self._sock.sendall(b)
+    ~~~~~~~~~~~~~~~~~~^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/socketserver.py", line 697, in process_request_thread
+    self.finish_request(request, client_address)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/socketserver.py", line 362, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/socketserver.py", line 766, in __init__
+    self.handle()
+    ~~~~~~~~~~~^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/http/server.py", line 496, in handle
+    self.handle_one_request()
+    ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/http/server.py", line 484, in handle_one_request
+    method()
+    ~~~~~~^^
+  File "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/tests/l0a_native_installed_pilot.py", line 195, in do_POST
+    self.send_error(400, "Offline fixture failed")
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/http/server.py", line 548, in send_error
+    self.end_headers()
+    ~~~~~~~~~~~~~~~~^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/http/server.py", line 598, in end_headers
+    self.flush_headers()
+    ~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/http/server.py", line 602, in flush_headers
+    self.wfile.write(b"".join(self._headers_buffer))
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/socketserver.py", line 845, in write
+    self._sock.sendall(b)
+    ~~~~~~~~~~~~~~~~~~^^^
+BrokenPipeError: [Errno 32] Broken pipe
+----------------------------------------
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/tests/l0a_native_installed_pilot.py", line 596, in <module>
+    asyncio.run(main(notification_only=args.notification_only, retire_surface=args.retire_surface))
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/tests/l0a_native_installed_pilot.py", line 494, in main
+    await notification_feedback(
+        pilot, app, comms, owner_mode, project, entered, release, hold_next
+    )
+  File "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/tests/l0a_native_installed_pilot.py", line 68, in notification_feedback
+    roster = channel.query_one(ChannelParticipants)
+  File "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/.venv/lib/python3.14/site-packages/textual/dom.py", line 1595, in query_one
+    raise NoMatches(f"No nodes match {query_selector!r} on {base_node!r}")
+textual.css.query.NoMatches: No nodes match 'ChannelParticipants' on CommsChatView()
