@@ -35,7 +35,6 @@ from toad.widgets.conversation import (
 )
 from toad.widgets.flash import Flash
 from toad.widgets.prompt import Prompt
-from toad.widgets.throbber import Throbber
 from toad.widgets.message_notifications import MessageNotifications
 from toad.owner_preparation import read_thread_presentation
 from toad.screens.session_view import SessionView
@@ -131,7 +130,7 @@ class CommsChatView(DeliveryFailureView, Conversation):
         yield Flash()
         with containers.Vertical(id="prompt-stack"):
             yield self.conversation_kind.activity_widget(self)
-            yield Throbber(id="throbber")
+            yield self.make_throbber()
             yield self.conversation_kind.prompt(self.target).data_bind(
                 project_path=Conversation.project_path,
                 working_directory=Conversation.working_directory,
