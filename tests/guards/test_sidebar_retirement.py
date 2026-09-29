@@ -35,3 +35,11 @@ def test_panel_roster_and_old_retained_plan_authority_are_deleted():
             assert not (isinstance(node.func, ast.Attribute) and node.func.attr == "create_task")
     assert not (ROOT.parents[2] / "tests/session_thread_panels_pilot.py").exists()
     assert not (ROOT.parents[2] / "tests/many_tabs_sidebar_observation_pilot.py").exists()
+
+
+def test_project_admission_does_not_depend_on_a_stale_painted_frame():
+    tree = ast.parse((ROOT / "project_panel.py").read_text())
+    method = next(node for node in ast.walk(tree)
+                  if isinstance(node, ast.FunctionDef) and node.name == "_ensure_tree")
+    assert not any(isinstance(node, ast.Attribute) and node.attr == "is_on_screen"
+                   for node in ast.walk(method))

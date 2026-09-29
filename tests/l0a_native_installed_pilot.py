@@ -472,13 +472,25 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
                 )
                 before_restart = len(requests)
                 await app.select_session(owner_mode)
+                view = app.selected_session.conversation
+                assert view.agent is agent, "Returning to a session replaced its operational owner"
                 await agent.reconnect()
                 await until(pilot, agent.session_ready_event.is_set)
                 assert agent._connected_ok, "Stopped native owner failed to reopen"
-                await until(
-                    pilot,
-                    lambda: response_painted(app, view, "NATIVE_RESPONSE_2"),
-                )
+                try:
+                    await until(pilot, lambda: response_painted(app, view, "NATIVE_RESPONSE_2"))
+                except TimeoutError:
+                    region = view.window.region
+                    print("REOPEN_PAINT_FAILURE", json.dumps({
+                        "ready": view.agent_ready,
+                        "surface_matches": agent.controller.surface.target is view,
+                        "view_region": repr(view.region), "window_region": repr(region),
+                        "blocks": [(type(block).__name__, repr(block.region), block.display)
+                                   for block in view.contents.walk_children()],
+                        "paint": "\n".join(strip.crop(region.x, region.right).text for strip in
+                            app.screen._compositor.render_strips()[region.y:region.bottom]),
+                    }), flush=True)
+                    raise
                 assert len(requests) == before_restart, "Restart replayed a model input"
                 restarted = comms.registry.require("beta").process_identity
                 assert restarted is not None and restarted != old_process

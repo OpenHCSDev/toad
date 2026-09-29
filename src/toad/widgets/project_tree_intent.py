@@ -1,4 +1,5 @@
 """Filesystem identities survive a disposable DirectoryTree's nodes."""
+import asyncio
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -32,6 +33,10 @@ class ProjectTreeIntent:
     async def restore(self, tree: "ProjectDirectoryTree") -> None:
         if Path(tree.path) != self.path:
             return
+        # Mount completion precedes the first native viewport layout.
+        laid_out = asyncio.Event()
+        tree.call_after_refresh(laid_out.set)
+        await laid_out.wait()
         await tree._add_to_load_queue(tree.root)
         pending = [tree.root]
         selection = tree.root
@@ -46,7 +51,9 @@ class ProjectTreeIntent:
                 node.expand()
                 await tree._add_to_load_queue(node)
                 pending.extend(node.children)
-        tree.move_cursor(selection, animate=False)
+        # Selection and saved viewport are separate intent. move_cursor also
+        # schedules an ensure-visible scroll that can overwrite the saved one.
+        tree.cursor_line = selection.line
         # Mount/expansion produces native resize messages on the first frame.
         # Scroll on the following refresh, after their viewport limits settle.
         tree.call_after_refresh(tree.scroll_to, self.scroll.x, self.scroll.y,
