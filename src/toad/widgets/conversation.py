@@ -1109,10 +1109,12 @@ class Conversation(ConversationSessionBinding):
         return presentation
 
     @on(ObservedThreadActivity.Changed)
-    def on_observed_thread_activity(
+    async def on_observed_thread_activity(
         self, event: ObservedThreadActivity.Changed
     ) -> None:
         event.stop()
+        if event.presentation is not None:
+            await self._show_assigned_inbound(event.presentation.notifications)
         if not self.agent_ready or self.turns.managed_id is not None or self.turns.owner.busy:
             return
         if event.unavailable:
@@ -1126,6 +1128,29 @@ class Conversation(ConversationSessionBinding):
                     summary=event.presentation.summary,
                 )
             )
+
+    async def _show_assigned_inbound(self, notifications) -> None:
+        """Project assigned wire inputs into the chat that owns this agent."""
+        if not self.contents.is_attached:
+            return
+        from toad.widgets.incoming_message import AssignedIncomingMessage, IncomingMessage
+        from toad.widgets.message_divider import MessageClock
+
+        shown = {block.sequence: block for block in self.contents.query(IncomingMessage)
+                 if block.sequence is not None}
+        for receipt in reversed(notifications):
+            message = receipt.message
+            if message is None or message.seq <= 0:
+                continue
+            block = shown.get(message.seq)
+            if block is None:
+                block = AssignedIncomingMessage(
+                    message.sender, message.body, message.target,
+                    sequence=message.seq, clock=MessageClock.recorded(message.timestamp),
+                )
+                await self.post(block)
+                shown[message.seq] = block
+            await block.show_handling(receipt.state, receipt.detail)
 
     @on(messages.SessionUpdate)
     def preserve_observed_activity(self, event: messages.SessionUpdate) -> None:

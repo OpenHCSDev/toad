@@ -10,6 +10,7 @@ from toad.widgets.message_divider import MessageDivider, MessageClock, LiveMessa
 from agent_comms.routing import MessageRoute
 from toad.widgets.message_filter import CategorizedBlock, MessageCategory
 from toad.widgets.committed_presentation import CommitParticipant, SequenceClaim
+from textual.widgets import Static
 
 
 
@@ -27,6 +28,11 @@ class IncomingSender(RouteHeader):
 
 class IncomingMessage(ConversationBlock, CommitParticipant, CategorizedBlock, VerticalGroup):
     DEFAULT_CLASSES = "block"
+    DEFAULT_CSS = """
+    IncomingMessage .assignment-handling {
+        height: 1; color: $text-muted; text-overflow: ellipsis;
+    }
+    """
 
     @property
     def message_category(self) -> type[MessageCategory]:
@@ -57,3 +63,16 @@ class IncomingMessage(ConversationBlock, CommitParticipant, CategorizedBlock, Ve
     def get_clipboard_text(self) -> str:
         route = MessageRoute(self.sender, (self.target,) if self.target else ())
         return f"{route.incoming_label}\n{self.text}"
+
+    async def show_handling(self, state: str, detail: str) -> None:
+        """Attach the bus decision to the original inbound chat block."""
+        status = self.query_one_optional(".assignment-handling", Static)
+        if status is None:
+            status = Static(markup=False, classes="assignment-handling")
+            await self.mount(status)
+        status.update(f"Handling: {state}")
+        status.tooltip = detail or None
+
+
+class AssignedIncomingMessage(IncomingMessage):
+    """A bus assignment visible before or without a matching native input."""
