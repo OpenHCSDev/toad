@@ -24,3 +24,22 @@ Mechanical exactarchive ratchet: chain terms+0,foreign absence+0,weighted debt0 
 ## Final ownership closure after caller audit
 
 CommsSidebar is the ONE shared Channels roster, not one per tab. Retain its hydration/readiness/scroll restoration in WorkspaceChrome (actual chrome owner), capture immediately before changing shared binding. Delete SessionView.capture_navigation and BOTH App.select_session / WorkspaceSessions.select callers. SessionView reconciles only its own SideBar children; no global query across all inactive sources. WorkspaceScreen invokes both declared owners and owns geometry only. Actual final full saved-state journey running after correction; earlier matrix explicitly precedes this final shared-roster correction and is provisional, not exact-final performance proof.
+
+## Final shared/source custody product and matrix
+
+Productdaee0b73 finalscope installed native full continuous gate EXIT0: all13/17/13 actual visible MarkdownBlock/render-cache identities retained, raw0/0/0, idle64->64misses/3->3providerrequests/work[]/pending0 over1.2s, preparedbytes77983, actualvelocity/physicalEnd/reverse/recent-reader/draft/undo/forkfirstsend/channelreciprocalauthor pathPASS. No shared root or live route changes.
+
+Same finalsource product provisional4/16/32/64 matrix EXIT0, fixedtwo genuinely loaded native histories and allotherblank tabs. This corrects the prior source-only matrix above by retaining sharedroster lifecycle underchrome:
+
+|Tabs|Blank median ms|Loaded median ms|Worst ms|UI RSS bytes|
+|---|---:|---:|---:|---:|
+|4|56.05|162.89|189.99|157626368|
+|16|51.05|189.67|199.13|165048320|
+|32|60.11|213.85|247.25|170881024|
+|64|74.83|239.59|276.82|180494336|
+
+Native queue/reply2percohortPASS, originalsourceAgent/process/editor/Document/EditHistory/undo retained, globalrichConversation1; noGCdisable/forcedcollect/timingdeadlineinflation or fixed20ms addition. Frame tails recorded perclick in final-matrix.json. Target<50ms remains unmet. This is mixed-source/headless compositor provisional evidence, NOT64 independently loaded histories or terminalwriter latency. No established causal speedup versusbaseline4; selected-source/sharedowner closure is useful independently.
+
+Continuation2e4c561e pins NEWmerged corebeaa8c94/Textual609b74bf/native d396. Full finalcontinuous native affectedpath running on those exported noneditable wheels. The matrix above used corec2aebdb3/Textual73909c04; bothcorecanonicalread/stylesheet products are merged, latercorechanges toprivate selected-input admission notclaimedtestedbythatmatrix. No unchangedmatrixrerun forunrelatedcorechanges; current pairednativejourney proves new input contract. ParentcurrentLIVEefcdf493/c449/609b alreadyshipped preceding174checkpoint.
+
+Exact finalguards: touchedfiles chainterms+0, foreignabsence+0, weighteddebt0, product code net0 lines; Appgodexcess269->267, otherchangedowners below500. Source/localbar behavior is derived from widgets ownedbySessionView; sharedChannels isexactlyWorkspaceChrome.channels declaration. Deleted genericSessionView.capture_navigation andALL2actualcallers, globalsidebarwalk onactivation, generic queryfirstCommsSidebar fromframe/source. Mechanicalguard artifacts ratchet-final.json/god-excess-final.json. All3owncompletedfeaturelocalrefs deleted onlyafterverifiedmergedmain ancestry; archivedpredecessor/shared trees andpublishedproofkept.
