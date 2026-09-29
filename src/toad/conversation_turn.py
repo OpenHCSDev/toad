@@ -31,6 +31,10 @@ class TurnOwner(DeclaredFamily, affix="Turn"):
     def with_activity(self, activity: str) -> "TurnOwner":
         return ActivityTurn(activity) if activity else self
 
+    def response_stream(self, delivery):
+        from toad.live_output import CompleteResponseStream
+        return CompleteResponseStream(delivery)
+
 
 @dataclass(frozen=True)
 class NoTurn(TurnOwner):
@@ -68,6 +72,10 @@ class AgentTurn(TurnOwner):
 
     def with_activity(self, activity: str) -> "AgentTurn":
         return replace(self, activity=activity or "Thinking…")
+
+    def response_stream(self, delivery):
+        from toad.live_output import ResponseStream
+        return ResponseStream(delivery, turn_id=self.managed_id)
 
 
 class TurnBinding(DeclaredFamily, affix="TurnBinding"):
