@@ -1,0 +1,28 @@
+F...                                                                     [100%]
+=================================== FAILURES ===================================
+_______________________ pilot: sidebar_retirement_pilot ________________________
+Pilot failed: ExitedOutcome(code=1)
+Traceback (most recent call last):
+  File [35m"/home/ts/wt/toad-workspace-sidebar-retirement-sol-20260928/tests/sidebar_retirement_pilot.py"[0m, line [35m196[0m, in [35m<module>[0m
+    [31masyncio.run[0m[1;31m(main())[0m
+    [31m~~~~~~~~~~~[0m[1;31m^^^^^^^^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py"[0m, line [35m204[0m, in [35mrun[0m
+    return [31mrunner.run[0m[1;31m(main)[0m
+           [31m~~~~~~~~~~[0m[1;31m^^^^^^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py"[0m, line [35m127[0m, in [35mrun[0m
+    return [31mself._loop.run_until_complete[0m[1;31m(task)[0m
+           [31m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m[1;31m^^^^^^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py"[0m, line [35m719[0m, in [35mrun_until_complete[0m
+    return [31mfuture.result[0m[1;31m()[0m
+           [31m~~~~~~~~~~~~~[0m[1;31m^^[0m
+  File [35m"/home/ts/wt/toad-workspace-sidebar-retirement-sol-20260928/tests/sidebar_retirement_pilot.py"[0m, line [35m151[0m, in [35mmain[0m
+    await exercise(screen, pilot, project)
+  File [35m"/home/ts/wt/toad-workspace-sidebar-retirement-sol-20260928/tests/sidebar_retirement_pilot.py"[0m, line [35m120[0m, in [35mexercise[0m
+    assert [1;31mtree.scroll_y == tree_scroll[0m, (tree.scroll_y, tree_scroll, tree.size, tree.virtual_size)
+           [1;31m^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+[1;35mAssertionError[0m: [35m(0.0, 11, Size(width=39, height=40), Size(width=26, height=51))[0m
+
+Logs: /home/ts/wt/toad-workspace-sidebar-retirement-sol-20260928/evidence/sidebar-retirement/pytest-project-final/sidebar_retirement_pilot0
+=========================== short test summary info ============================
+FAILED tests/sidebar_retirement_pilot.py::sidebar_retirement_pilot - Failed: ...
+1 failed, 3 passed in 6.99s

@@ -1,0 +1,4 @@
+{"restored_selection": "/var/tmp/toad-pilot-hkj84ohl/sidebar-retirement-hhe72gpr/project/folder/deep/item-38.txt", "tree_scroll": 2.0, "panel_scroll": 3, "retired_widgets_collected": 6}
+{"restored_selection": "/var/tmp/toad-pilot-hkj84ohl/sidebar-retirement-hhe72gpr/project/folder/deep/item-38.txt", "tree_scroll": 11, "panel_scroll": 3, "retired_widgets_collected": 6}
+{"restored_selection": "/var/tmp/toad-pilot-hkj84ohl/sidebar-retirement-hhe72gpr/project/folder/deep/item-38.txt", "tree_scroll": 11, "panel_scroll": 3, "retired_widgets_collected": 6}
+PASS: installed sidebar public lifetime, repeated real state restoration and rich graph collection
