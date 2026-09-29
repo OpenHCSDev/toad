@@ -7,6 +7,7 @@ import sys
 from agent_comms.comms import Comms
 from agent_comms.threads import Thread
 from l0a_native_installed_pilot import main, until
+from toad.widgets.incoming_message import AssignedIncomingMessage, IncomingMessage
 from toad.widgets.session_details import SessionDetails
 
 
@@ -37,9 +38,27 @@ async def acceptance(app, pilot, agent, comms: Comms, entered, release, hold_nex
     await until(pilot, lambda: "Latest inbound #team from @sender" in str(details.title))
     await until(pilot, lambda: "Latest inbound #team from @sender" in paint(app))
     assert "RECEIVER_NATIVE_INBOUND_PROOF" in str(details.activity.render())
+    await until(pilot, lambda: any(
+        block.sequence == message.seq
+        for block in app.selected_session.query(AssignedIncomingMessage)
+    ))
+    block = next(block for block in app.selected_session.query(AssignedIncomingMessage)
+                 if block.sequence == message.seq)
+    assert "RECEIVER_NATIVE_INBOUND_PROOF" in block.text
+    assert "Handling:" in str(block.query_one(".assignment-handling").render())
+    await until(pilot, lambda: "RECEIVER_NATIVE_INBOUND_PROOF" in paint(app))
+    assert "Handling:" in paint(app)
     print("AGENT_TO_CHANNEL_TO_RECEIVER_NATIVE_TAB_ACTUAL_PAINT", flush=True)
     release.set()
     await until(pilot, lambda: not comms.registry.require("beta").executing)
+    expected = next(notice.state for notice in comms.views.recent_notifications("beta")
+                    if notice.message is not None and notice.message.seq == message.seq)
+    await until(pilot, lambda: f"Handling: {expected}" ==
+                str(block.query_one(".assignment-handling").render()))
+    assert sum(item.sequence == message.seq for item in
+               app.selected_session.query(AssignedIncomingMessage)) == 1
+    assert sum(item.sequence == message.seq for item in
+               app.selected_session.query(IncomingMessage)) == 1
     assert len(requests) == 1, requests
     assert app._exception is None, app._exception
 
