@@ -1,0 +1,40 @@
+{
+  "src/toad/acp/agent_controller.py": {
+    "before": {
+      "SessionBinding": 0,
+      "SurfaceBinding": 0,
+      "DetachedSurfaceBinding": 0,
+      "AttachedSurfaceBinding": 0,
+      "ValidationOwner": 0,
+      "HeadlessValidationOwner": 0,
+      "ApplicationValidationOwner": 0,
+      "AgentController": 0
+    },
+    "after": {
+      "SessionBinding": 0,
+      "SurfaceBinding": 0,
+      "DetachedSurfaceBinding": 0,
+      "AttachedSurfaceBinding": 0,
+      "ValidationOwner": 0,
+      "HeadlessValidationOwner": 0,
+      "ApplicationValidationOwner": 0,
+      "AgentController": 0
+    }
+  },
+  "src/toad/acp/transcript_reader.py": {
+    "before": {
+      "NativeTranscriptReadWork": 0,
+      "TranscriptReadDelivery": 0,
+      "DirectTranscriptReadDelivery": 0,
+      "PreparedTranscriptReadDelivery": 0,
+      "CoordinationTranscriptReader": 0
+    },
+    "after": {
+      "NativeTranscriptReadWork": 0,
+      "TranscriptReadDelivery": 0,
+      "DirectTranscriptReadDelivery": 0,
+      "PreparedTranscriptReadDelivery": 0,
+      "CoordinationTranscriptReader": 0
+    }
+  }
+}
