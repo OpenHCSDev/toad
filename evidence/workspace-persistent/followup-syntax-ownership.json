@@ -1,0 +1,161 @@
+{
+  "base": "040607c23031450a6c53bb25fdea72256b2ca2ad",
+  "measures": [
+    {
+      "path": "src/toad/acp/agent.py",
+      "ForeignAbsenceProbe": [
+        3,
+        3
+      ],
+      "BooleanChainTerms": [
+        0,
+        0
+      ],
+      "god_excess_growth": []
+    },
+    {
+      "path": "src/toad/acp/agent_controller.py",
+      "ForeignAbsenceProbe": [
+        2,
+        2
+      ],
+      "BooleanChainTerms": [
+        0,
+        0
+      ],
+      "god_excess_growth": []
+    },
+    {
+      "path": "src/toad/conversation_markdown.py",
+      "ForeignAbsenceProbe": [
+        1,
+        1
+      ],
+      "BooleanChainTerms": [
+        8,
+        8
+      ],
+      "god_excess_growth": []
+    },
+    {
+      "path": "src/toad/markdown_preparation.py",
+      "ForeignAbsenceProbe": [
+        0,
+        0
+      ],
+      "BooleanChainTerms": [
+        0,
+        0
+      ],
+      "god_excess_growth": []
+    },
+    {
+      "path": "src/toad/render_runtime.py",
+      "ForeignAbsenceProbe": [
+        0,
+        0
+      ],
+      "BooleanChainTerms": [
+        4,
+        4
+      ],
+      "god_excess_growth": []
+    },
+    {
+      "path": "src/toad/render_tasks.py",
+      "ForeignAbsenceProbe": [
+        0,
+        0
+      ],
+      "BooleanChainTerms": [
+        0,
+        0
+      ],
+      "god_excess_growth": []
+    },
+    {
+      "path": "src/toad/screens/workspace.py",
+      "ForeignAbsenceProbe": [
+        11,
+        5
+      ],
+      "BooleanChainTerms": [
+        21,
+        21
+      ],
+      "god_excess_growth": []
+    },
+    {
+      "path": "src/toad/session_tracker.py",
+      "ForeignAbsenceProbe": [
+        0,
+        0
+      ],
+      "BooleanChainTerms": [
+        0,
+        0
+      ],
+      "god_excess_growth": []
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "ForeignAbsenceProbe": [
+        18,
+        16
+      ],
+      "BooleanChainTerms": [
+        21,
+        21
+      ],
+      "god_excess_growth": []
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "ForeignAbsenceProbe": [
+        11,
+        11
+      ],
+      "BooleanChainTerms": [
+        39,
+        39
+      ],
+      "god_excess_growth": []
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "ForeignAbsenceProbe": [
+        31,
+        31
+      ],
+      "BooleanChainTerms": [
+        25,
+        25
+      ],
+      "god_excess_growth": []
+    },
+    {
+      "path": "src/toad/widgets/history_anchor.py",
+      "ForeignAbsenceProbe": [
+        3,
+        3
+      ],
+      "BooleanChainTerms": [
+        4,
+        4
+      ],
+      "god_excess_growth": []
+    },
+    {
+      "path": "src/toad/widgets/prepared_markdown.py",
+      "ForeignAbsenceProbe": [
+        1,
+        1
+      ],
+      "BooleanChainTerms": [
+        13,
+        13
+      ],
+      "god_excess_growth": []
+    }
+  ]
+}

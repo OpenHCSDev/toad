@@ -1,0 +1,46 @@
+{
+  "src/toad/app.py": {
+    "ForeignAbsenceProbe": [
+      20,
+      20
+    ],
+    "BooleanChainTerms": [
+      23,
+      23
+    ],
+    "god_excess_growth": []
+  },
+  "src/toad/screens/main.py": {
+    "ForeignAbsenceProbe": [
+      4,
+      4
+    ],
+    "BooleanChainTerms": [
+      0,
+      0
+    ],
+    "god_excess_growth": []
+  },
+  "src/toad/screens/session_view.py": {
+    "ForeignAbsenceProbe": [
+      0,
+      0
+    ],
+    "BooleanChainTerms": [
+      0,
+      0
+    ],
+    "god_excess_growth": []
+  },
+  "src/toad/workspace_sessions.py": {
+    "ForeignAbsenceProbe": [
+      0,
+      0
+    ],
+    "BooleanChainTerms": [
+      0,
+      0
+    ],
+    "god_excess_growth": []
+  }
+}

@@ -27,6 +27,14 @@ class InstalledApp(ToadApp):
         self.painted_tabs = []
         super().__init__(**kwargs)
 
+    async def _close_all(self):
+        print("BEFORE_DOMAIN_CLOSE", [(identity, str(view.presentation.sources.directory_watcher))
+              for identity, view in self.workspace_sessions.views.items()
+              if hasattr(view, "presentation")], flush=True)
+        await super()._close_all()
+        print("AFTER_DOMAIN_CLOSE", [(str(thread), str(thread._widget))
+              for thread in threads() if isinstance(thread, DirectoryWatcher)], flush=True)
+
     def _display(self, screen, renderable):
         super()._display(screen, renderable)
         if renderable is not None and not self._batch_count:
