@@ -1,7 +1,6 @@
 """The one native workspace frame; session surfaces never own compositors."""
 
 import asyncio
-from collections.abc import Callable
 from dataclasses import dataclass, replace
 from functools import cached_property
 from typing import TYPE_CHECKING, cast
@@ -64,10 +63,10 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
     _navigation_applied = False
     _navigation_changed = False
     _resume_styles_changed = False
-    _first_frame_presented = False
-    _first_frame_flush_queued = False
-    _presentation_revision = 0
-    _navigation_frame_pending = False
+    @cached_property
+    def frame_presentation(self):
+        from toad.frame_presentation import FramePresentation
+        return FramePresentation(self)
 
     @cached_property
     def viewport_presentation(self):
@@ -75,60 +74,14 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
         return ViewportPresentation(self)
 
     def on_screen_suspend(self) -> None:
-        self._presented_event.set()
+        self.frame_presentation.suspend()
         self.viewport_presentation.suspend()
 
     def on_screen_resume(self) -> None:
         self.viewport_presentation.request()
 
-    @cached_property
-    def _presented_event(self) -> asyncio.Event:
-        return asyncio.Event()
-
-    async def wait_presented(self) -> bool:
-        await self._presented_event.wait()
-        return self.is_attached and self.is_current and not self._navigation_frame_pending
-
-    @cached_property
-    def _initial_frame_callbacks(self) -> dict[tuple[Widget, Callable[[], object]], None]:
-        return {}
-
-    def call_after_first_frame(self, owner: Widget, callback: Callable[[], object]) -> None:
-        """Defer initial source work until this view's first presented frame.
-
-        A normal after-refresh callback can run inside a paint-suppressed
-        navigation batch. The owning widget still receives and executes the
-        callback through its ordinary message pump once presentation completes.
-        """
-        if (self._first_frame_presented and not self._navigation_frame_pending
-                and not cast("ToadApp", self.app)._atomic_mode_switch):
-            owner.call_after_refresh(callback)
-        elif not self._closing and not self._closed:
-            self._initial_frame_callbacks[owner, callback] = None
-
-    def _finish_first_frame(self) -> None:
-        self._first_frame_flush_queued = False
-        if self._closing or self._closed or not self.is_attached or not self.is_current:
-            return
-        self._first_frame_presented = True
-        if selected := self.app.workspace_sessions.selected:
-            selected._first_frame_presented = True
-        self._navigation_frame_pending = False
-        self._presented_event.set()
-        callbacks = tuple(self._initial_frame_callbacks)
-        self._initial_frame_callbacks.clear()
-        for owner, callback in callbacks:
-            if owner.is_attached and not owner._closing and not owner._closed:
-                owner.call_later(callback)
-
-    def _frame_presented(self, revision: int) -> None:
-        """A writer receipt belongs to the activation that submitted its frame."""
-        if revision == self._presentation_revision:
-            self._finish_first_frame()
-
     async def _message_loop_exit(self) -> None:
-        self._presented_event.set()
-        self._initial_frame_callbacks.clear()
+        self.frame_presentation.close()
         await super()._message_loop_exit()
 
     def on_resize(self, _event: Resize) -> None:
@@ -276,10 +229,7 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
         from toad.widgets.session_tabs import SessionsTabs
         from toad.widgets.side_bar import SideBar, SideBarCollapsible
 
-        self._presentation_revision += 1
-        self._navigation_frame_pending = True
-        self._presented_event.clear()
-        self._first_frame_flush_queued = False
+        self.frame_presentation.begin()
         self._navigation_changed = False
         for side_bar in self.query(SideBar):
             panels = tuple(side_bar.query(SideBarCollapsible))
@@ -289,7 +239,7 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
             side_bar.schedule_hydration()
         if sidebar := self.query_one_optional(CommsSidebar):
             sidebar.prepare_navigation()
-            self.call_after_first_frame(sidebar, sidebar.start_navigation_hydration)
+            self.frame_presentation.defer(sidebar, sidebar.start_navigation_hydration)
 
         if tabs := self.query_one_optional(SessionsTabs):
             await tabs._sync_tabs()

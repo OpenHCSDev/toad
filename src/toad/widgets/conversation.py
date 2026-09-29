@@ -1909,7 +1909,7 @@ class Conversation(ConversationSessionBinding):
 
             screen = self.screen
             if isinstance(screen, WorkspaceScreen):
-                screen.call_after_first_frame(self, start_agent)
+                screen.frame_presentation.defer(self, start_agent)
             else:
                 self.call_after_refresh(start_agent)
 

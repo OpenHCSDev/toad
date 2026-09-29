@@ -35,6 +35,7 @@ from toad.widgets.prompt_popup import PromptPopup, CompletionPopup, InfoPopup
 from toad.messages import UserInputSubmitted
 from toad.slash_command import SlashCommand
 from toad.path_complete import PathComplete
+from toad.prompt_cursor import CommandText, PromptCursor, PreviousHistoryCursor, NextHistoryCursor
 from agent_comms.acp_extension import QueueProjection, PendingQueueProjection
 from toad.widgets.selection import SelectionOptionList
 
@@ -53,10 +54,6 @@ class ModeSwitcher(SelectionOptionList):
 
     def action_dismiss(self):
         self.blur()
-
-
-class InvokeSlashComplete(Message):
-    pass
 
 
 class AgentInfo(Label):
@@ -191,9 +188,9 @@ See on-screen instructions for details.
     working_directory = var("")
 
     slash_commands: var[list[SlashCommand]] = var([])
-    slash_command_prefixes: var[tuple[str, ...]] = var(())
 
     def __init__(self, *, simple_input: bool = False) -> None:
+        self.input_cursor = PromptCursor(self)
         super().__init__()
         self.simple_input = simple_input
         self._submit_pending = False
@@ -211,31 +208,11 @@ See on-screen instructions for details.
         pass
 
     def watch_slash_commands(self, slash_commands: list[SlashCommand]) -> None:
-        """A tuple of slash commands for performance reasons (used with `str.startswith`)."""
-        self.slash_command_prefixes = tuple(
-            [slash_command.command for slash_command in slash_commands]
-        )
+        self._clear_caches()
+        self.refresh()
 
     def highlight_slash_command(self, text: str) -> Content:
-        """Override slash command highlighting."""
-
-        if text.startswith(self.slash_command_prefixes):
-            content = Content(text)
-            for slash_command in self.slash_commands:
-                if text.startswith(slash_command.command + " "):
-                    content = content.stylize(
-                        "$text-success", 0, len(slash_command.command)
-                    )
-                    if (
-                        slash_command.hint
-                        and len(text) - (len(slash_command.command) + 1) == 0
-                    ):
-                        content += Content.styled(
-                            slash_command.hint, "$text-secondary 70%"
-                        )
-                    break
-            return content
-        return Content(text)
+        return CommandText.decode_input(text, self.slash_commands).highlight()
 
     def highlight_shell(self, text: str) -> Content:
         """Override shell highlighting with additional danger detection."""
@@ -326,10 +303,8 @@ See on-screen instructions for details.
         immediate, self._submit_immediate = self._submit_immediate, False
         if not self.has_focus:
             return
-        local_command = any(
-            command.command == self.text.partition(" ")[0] and not command.requires_agent
-            for command in self.slash_commands
-        )
+        input_text = CommandText.decode_input(self.text, self.slash_commands)
+        local_command = not input_text.requires_agent
         if not self.agent_ready and not self.shell_mode and not local_command:
             self.app.bell()
             self.post_message(
@@ -359,20 +334,10 @@ See on-screen instructions for details.
             self.post_message(self.CancelShell())
 
     def action_cursor_up(self, select: bool = False):
-        if self.selection.is_empty and not select:
-            row, _column = self.selection[0]
-            if row == 0:
-                self.post_message(messages.HistoryMove.for_mode(-1, self.shell_mode, self.text))
-                return
-        super().action_cursor_up(select)
+        PreviousHistoryCursor.move(self, select, super().action_cursor_up)
 
     def action_cursor_down(self, select: bool = False):
-        if self.selection.is_empty and not select:
-            row, _column = self.selection[0]
-            if row == (self.wrapped_document.height - 1):
-                self.post_message(messages.HistoryMove.for_mode(+1, self.shell_mode, self.text))
-                return
-        super().action_cursor_down(select)
+        NextHistoryCursor.move(self, select, super().action_cursor_down)
 
     def action_delete_left(self) -> None:
         selection = self.selection
@@ -458,35 +423,8 @@ See on-screen instructions for details.
                 )
                 self.suggestion = self.suggestions[self.suggestions_index]
 
-    async def watch_selection(
-        self, previous_selection: Selection, selection: Selection
-    ) -> None:
-        if previous_selection == selection:
-            return
-        if selection.start == selection.end:
-            previous_y, previous_x = previous_selection.end
-            y, x = selection.end
-            if y == previous_y:
-                direction = -1 if x < previous_x else +1
-            else:
-                direction = 0
-            line = self.document.get_line(y)
-
-            if (
-                not self.shell_mode
-                and y == 0
-                and x == 1
-                and direction == +1
-                and line
-                and line[0] == "/"
-            ):
-                self.post_message(InvokeSlashComplete())
-                return
-
-            if y == 0 and line and line[0] == "/" and direction == -1:
-                if line in self.slash_command_prefixes:
-                    self.selection = Selection((0, 0), (0, len(line)))
-                    return
+    def watch_selection(self, previous_selection: Selection, selection: Selection) -> None:
+        self.input_cursor.changed(previous_selection, selection)
 
 
 class Prompt(containers.VerticalGroup):
@@ -817,10 +755,6 @@ class Prompt(containers.VerticalGroup):
         )
 
 
-    @on(InvokeSlashComplete)
-    def on_invoke_slash_complete(self, event: InvokeSlashComplete) -> None:
-        event.stop()
-        self.slash_complete.focus()
 
     def project_directory_updated(self) -> None:
         """Called when there is may be new files"""

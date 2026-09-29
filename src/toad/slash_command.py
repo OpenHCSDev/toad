@@ -43,6 +43,14 @@ class CommandPresentation:
     def parse_arguments(self, arguments: str) -> SlashCommand:
         return type(self).parse(arguments)
 
+    def highlight_input(self, text: str, arguments_started: bool) -> Content:
+        content = Content(text)
+        if arguments_started:
+            content = content.stylize("$text-success", 0, len(self.command))
+            if text == self.command + " " and self.hint:
+                content += Content.styled(self.hint, "$text-secondary 70%")
+        return content
+
 
 
 class SlashCommand(CommandPresentation, Command, DeclaredFamily, affix="Command"):
