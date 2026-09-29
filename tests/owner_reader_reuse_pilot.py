@@ -57,11 +57,11 @@ async def main():
             patch("toad.acp.transcript_reader.wire", construct),
             patch.object(RuntimeProxy, "request", request),
         ):
-            await asyncio.gather(*(agent._owner_request("fixture") for _ in range(6)))
+            await asyncio.gather(*(agent.controller.request_owner("fixture") for _ in range(6)))
             assert len(constructors) == 1 and len(requests) == 6
             assert all((row[0] is requests[0][0] for row in requests))
             attach_coordination(agent, str(roots[1]), agent.coordination.thread.name)
-            await agent._owner_request("fixture", revision=2)
+            await agent.controller.request_owner("fixture", revision=2)
             assert len(constructors) == 2
             assert requests[-1][0].root == roots[1] and requests[-1][3] == {
                 "revision": 2
@@ -80,7 +80,7 @@ async def main():
                 patch("toad.acp.transcript_reader.wire", blocked),
                 patch.object(RuntimeProxy, "request", request),
             ):
-                pending = asyncio.create_task(agent._owner_request("must-not-send"))
+                pending = asyncio.create_task(agent.controller.request_owner("must-not-send"))
                 assert await asyncio.to_thread(entered.wait, 2)
                 attach_coordination(
                     agent, str(roots[1]), agent.coordination.thread.name

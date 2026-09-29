@@ -222,12 +222,12 @@ async def main():
                 await conversation.goal_controls.change(ClearGoalAction)
                 assert conversation.goal_display.snapshot is None and not bar.display
                 # A stalled read is bounded; mutations have no automatic timeout/replay.
-                request = agent._owner_request
+                request = agent.controller.request_owner
 
                 async def stalled(method, **params):
                     await asyncio.Event().wait()
 
-                agent._owner_request = stalled
+                agent.controller.request_owner = stalled
                 try:
                     await asyncio.wait_for(agent.get_goal_snapshot(), 3.5)
                 except TimeoutError:
@@ -235,7 +235,7 @@ async def main():
                 else:
                     raise AssertionError("Snapshot read did not time out")
                 finally:
-                    agent._owner_request = request
+                    agent.controller.request_owner = request
         finally:
             await owner.shutdown()
             if peer_turn is not None and "peer" in comms.registry:

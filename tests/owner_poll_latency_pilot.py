@@ -54,7 +54,7 @@ async def main():
         ):
             for _ in range(20):
                 begin, before_cpu = (time.perf_counter(), time.thread_time())
-                assert await agent._owner_request("goal_snapshot") == {
+                assert await agent.controller.request_owner("goal_snapshot") == {
                     "thread": "worker-0"
                 }
                 durations.append((time.perf_counter() - begin) * 1000)

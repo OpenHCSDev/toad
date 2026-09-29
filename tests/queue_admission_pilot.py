@@ -83,7 +83,7 @@ async def main():
                         awaiting_keys=producer.inputs.awaiting_input_keys("beta"),
                     )
 
-                consumer.get_input_delivery = delivery
+                consumer.controller.input_delivery = delivery
 
                 class Response:
                     async def wait(self):
