@@ -64,7 +64,7 @@ async def verify_dispatch_and_visible_rejection(root: Path) -> None:
         agent.post_message = intercepted.append
         agent.updates.accept("fixture", raw)
         assert len(intercepted) == 1 and isinstance(intercepted[0], ToolCall)
-        assert intercepted[0].tool_call.tool_call_id == "t1"
+        assert intercepted[0].tool_call.call.tool_call_id == "t1"
         assert raw["customToolField"] == {"nested": [1, 2]}
 
         agent.post_message = view.post_message

@@ -462,8 +462,8 @@ class StoreScreen(Screen):
                     )
 
         from toad.agent_schema import AgentKind
-        for kind in AgentKind.members_with(AgentKind):
-            yield from kind.compose([agent for agent in ordered_agents if agent.kind is kind])
+        for section in dict.fromkeys(kind.section() for kind in AgentKind.members_with(AgentKind)):
+            yield from section.compose([agent for agent in ordered_agents if agent.kind.section() is section])
 
     def move_focus(self, direction: Literal[-1] | Literal[+1]) -> None:
         if isinstance(self.focused, GridSelect):

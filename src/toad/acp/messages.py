@@ -12,6 +12,7 @@ from agent_comms.acp_extension import (
 from textual.message import Message
 
 from acp import schema
+from toad.acp.status import ToolCallStatus
 from toad.plan import PlanItem
 from toad.acp.encode_tool_call_id import encode_tool_call_id
 
@@ -82,23 +83,23 @@ class Plan(AgentMessage):
 
 @dataclass
 class ToolCall(AgentMessage):
-    tool_call: schema.ToolCall
+    tool_call: ToolCallStatus
 
     @property
     def tool_id(self) -> str:
         """An id suitable for use as a TCSS ID."""
-        return encode_tool_call_id(self.tool_call.tool_call_id)
+        return encode_tool_call_id(self.tool_call.call.tool_call_id)
 
 
 @dataclass
 class ToolCallUpdate(AgentMessage):
-    tool_call: schema.ToolCall
+    tool_call: ToolCallStatus
     update: schema.ToolCallUpdate
 
     @property
     def tool_id(self) -> str:
         """An id suitable for use as a TCSS ID."""
-        return encode_tool_call_id(self.tool_call.tool_call_id)
+        return encode_tool_call_id(self.tool_call.call.tool_call_id)
 
 
 @dataclass

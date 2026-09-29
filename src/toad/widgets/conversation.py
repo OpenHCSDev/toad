@@ -60,7 +60,6 @@ from toad import jsonrpc, messages, paths
 from toad.acp import messages as acp_messages
 from acp import schema as acp_protocol
 from toad.acp.status import StopReason, EndTurnStopReason
-from toad.acp.tool_calls import tool_status
 from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
 from toad.agent import AgentBase, AgentFail, AgentReady
 from toad.agent_schema import AgentDefinition as AgentData
@@ -1702,7 +1701,7 @@ class Conversation(ConversationSessionBinding):
         from toad.widgets.tool_call import ToolCall
 
         tool_call = message.tool_call
-        tool_status(tool_call).activity(self, tool_call.title or 'Using tool')
+        tool_call.activity(self, tool_call.call.title or 'Using tool')
 
         tool_id = message.tool_id
         try:
@@ -1795,36 +1794,6 @@ class Conversation(ConversationSessionBinding):
     @work
     async def request_permissions(self, request) -> None:
         await request.presentation.present(self, request)
-
-    async def post_tool_call(
-        self, tool_call_update: acp_protocol.ToolCallUpdate
-    ) -> None:
-        if (contents := tool_call_update.get("content")) is None:
-            return
-
-        for content in contents:
-            match content:
-                case {
-                    "type": "diff",
-                    "oldText": old_text,
-                    "newText": new_text,
-                    "path": path,
-                }:
-                    await self.post_diff(path, old_text, new_text)
-
-    async def post_diff(self, path: str, before: str | None, after: str) -> None:
-        """Post a diff view.
-
-        Args:
-            path: Path to the file.
-            before: Content of file before edit.
-            after: Content of file after edit.
-        """
-
-        from toad.widgets.diff_view import make_diff
-
-        diff_view = make_diff(path, path, before, after, classes="block")
-        await self.post(diff_view)
 
     def ask(
         self,

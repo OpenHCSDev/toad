@@ -222,7 +222,7 @@ class AgentController(OperationalTerminalOwner):
             content = await asyncio.to_thread(build_prompt, project, prompt)
             if any(block.type == 'image' for block in content):
                 coordinated = self.coordination is not None
-                supported = coordinated or self.agent.session.capabilities.prompt_capabilities.image
+                supported = coordinated or self.agent.session.supports_images
                 if not supported:
                     raise ValueError('This agent owner does not support images yet; refresh it while idle.')
             return await self._prompt(content, command, authority, queue_scope)

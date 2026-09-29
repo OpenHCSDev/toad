@@ -4,9 +4,6 @@ from toad.acp import messages
 from toad.acp.status import ToolCallStatus, PendingToolCallStatus
 
 
-def tool_status(value: ToolCall) -> type[ToolCallStatus]:
-    """The specification permits omitted status, which means pending."""
-    return ToolCallStatus.decode(value.status) if value.status is not None else PendingToolCallStatus
 
 
 class SessionToolCalls:
@@ -20,7 +17,7 @@ class SessionToolCalls:
     def begin(self, value):
         current = ToolCall(**{name: getattr(value, name) for name in ToolCall.model_fields})
         self.calls[value.tool_call_id] = current
-        self.agent.post_message(messages.ToolCall(current))
+        self.agent.post_message(messages.ToolCall(ToolCallStatus.from_acp(current)))
 
     def merge(self, value):
         tool_id = value.tool_call_id
@@ -34,7 +31,7 @@ class SessionToolCalls:
     def update(self, value):
         known = value.tool_call_id in self.calls
         current = self.merge(value)
-        self.agent.post_message(messages.ToolCallUpdate(current, value) if known else messages.ToolCall(current))
+        self.agent.post_message(messages.ToolCallUpdate(ToolCallStatus.from_acp(current), value) if known else messages.ToolCall(ToolCallStatus.from_acp(current)))
 
     def permission(self, value):
         return self.merge(value)

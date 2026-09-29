@@ -14,6 +14,10 @@ class AgentKind(DeclaredFamily, affix='AgentKind'):
     description: str
 
     @classmethod
+    def section(cls):
+        return cls
+
+    @classmethod
     def compose(cls, agents):
         from textual import containers, widgets
         from toad.screens.store import AgentGridSelect, AgentItem
@@ -27,6 +31,10 @@ class AgentKind(DeclaredFamily, affix='AgentKind'):
 
 
 class ChatAgentKind(AgentKind):
+    @classmethod
+    def section(cls):
+        return ChatAgentKind
+
     heading = 'Chat & Assistants'
     description = 'Biddi-biddi-biddi'
 

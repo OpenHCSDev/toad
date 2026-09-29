@@ -126,7 +126,7 @@ class AgentModal(ModalScreen):
         if commands is None:
             self.notify(
                 "Action is not available on this platform",
-                title="AgentDefinition action",
+                title="Agent action",
                 severity="error",
             )
             return

@@ -1,5 +1,7 @@
 """Specification-spelled reasons and statuses own their presentation behavior."""
 from agent_comms.declared_family import DeclaredFamily
+from dataclasses import dataclass
+from acp.schema import ToolCall
 from textual.content import Content
 from toad.pill import pill
 
@@ -35,7 +37,15 @@ class CancelledStopReason(StopReason):
     pass
 
 
+@dataclass(frozen=True)
 class ToolCallStatus(DeclaredFamily, affix='ToolCallStatus'):
+    call: ToolCall
+
+    @classmethod
+    def from_acp(cls, call: ToolCall):
+        kind = cls.decode(call.status) if call.status is not None else PendingToolCallStatus
+        return kind(call)
+
     busy = False
     boundary = False
     completed = False

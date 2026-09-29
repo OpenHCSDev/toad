@@ -123,10 +123,7 @@ class SessionNotificationOwner(ClientRequestOwner):
             validation = await self.agent.controller.validate(sessionId, update, _meta)
             if authority.retired:
                 return
-            if validation.rejected:
-                self.reject(sessionId, update, _meta, validation.error)
-                return
-            self.publish(sessionId, validation.notification)
+            validation.publish(self, sessionId, update, _meta)
 
     def accept(self, session_id, update, metadata=None):
         """Official SDK boundary for synchronous in-process protocol consumers."""

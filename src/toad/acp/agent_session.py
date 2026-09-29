@@ -38,6 +38,11 @@ class AgentSession:
         self.capabilities = schema.AgentCapabilities()
 
     @property
+    def supports_images(self):
+        prompt = self.capabilities.prompt_capabilities
+        return prompt is not None and prompt.image
+
+    @property
     def ready(self):
         return self.connected and self.settled.is_set()
 

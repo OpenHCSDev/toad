@@ -46,14 +46,25 @@ class ReusableRenderTask(RenderTask[ResultT]):
         return self
 
 
-@dataclass(frozen=True, slots=True)
-class SessionUpdateValidation:
-    notification: object | None = None
-    error: str | None = None
+class SessionUpdateValidation(DeclaredFamily, affix='SessionUpdateValidation'):
+    @abstractmethod
+    def publish(self, owner, session_id, raw, metadata): ...
 
-    @property
-    def rejected(self) -> bool:
-        return self.error is not None
+
+@dataclass(frozen=True)
+class AcceptedSessionUpdateValidation(SessionUpdateValidation):
+    notification: object
+
+    def publish(self, owner, session_id, raw, metadata):
+        owner.publish(session_id, self.notification)
+
+
+@dataclass(frozen=True)
+class RejectedSessionUpdateValidation(SessionUpdateValidation):
+    error: str
+
+    def publish(self, owner, session_id, raw, metadata):
+        owner.reject(session_id, raw, metadata, self.error)
 
 
 @dataclass(frozen=True)
@@ -71,8 +82,8 @@ class ValidateSessionUpdateTask(RenderTask[SessionUpdateValidation]):
         try:
             notification = decode_session_update(self.session_id, self.update, self.metadata)
         except (ValueError, TypeError) as error:
-            return SessionUpdateValidation(error=str(error))
-        return SessionUpdateValidation(notification=notification)
+            return RejectedSessionUpdateValidation(str(error))
+        return AcceptedSessionUpdateValidation(notification)
 
     def accept_result(self, result: object) -> SessionUpdateValidation:
         if not isinstance(result, SessionUpdateValidation):
