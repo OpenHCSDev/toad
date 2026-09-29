@@ -1,4 +1,5 @@
 from toad.setting_choices import DiffMode, AutoDiff
+from weakref import ref
 import os
 from textual import work, on
 from textual.app import ComposeResult
@@ -17,80 +18,6 @@ from toad.answer import Answer
 from toad.widgets.question import Question
 
 from toad.app import ToadApp
-
-SOURCE1 = '''\
-def loop_first(values: Iterable[T]) -> Iterable[tuple[bool, T]]:
-    """Iterate and generate a tuple with a flag for first value."""
-    iter_values = iter(values)
-    try:
-        value = next(iter_values)
-    except StopIteration:
-        return
-    yield True, value
-    for value in iter_values:
-        yield False, value
-
-
-def loop_first_last(values: Iterable[T]) -> Iterable[tuple[bool, T]]:
-    """Iterate and generate a tuple with a flag for first and last value."""
-    iter_values = iter(values)
-    try:
-        previous_value = next(iter_values)
-    except StopIteration:
-        return
-    first = True
-    for value in iter_values:
-        yield first, False, previous_value
-        first = False
-        previous_value = value
-    yield first, True, previous_value
-
-'''
-
-SOURCE2 = '''\
-def loop_first(values: Iterable[T]) -> Iterable[tuple[bool, T]]:
-    """Iterate and generate a tuple with a flag for first value.
-    
-    Args:
-        values: iterables of values.
-
-    Returns:
-        Iterable of a boolean to indicate first value, and a value from the iterable.
-    """
-    iter_values = iter(values)
-    try:
-        value = next(iter_values)
-    except StopIteration:
-        return
-    yield True, value
-    for value in iter_values:
-        yield False, value
-
-
-def loop_last(values: Iterable[T]) -> Iterable[tuple[bool, bool, T]]:
-    """Iterate and generate a tuple with a flag for last value."""
-    iter_values = iter(values)
-    try:
-        previous_value = next(iter_values)
-    except StopIteration:
-        return
-    for value in iter_values:
-        yield False, previous_value
-        previous_value = value
-    yield True, previous_value
-
-
-def loop_first_last(values: Iterable[ValueType]) -> Iterable[tuple[bool, bool, ValueType]]:
-    """Iterate and generate a tuple with a flag for first and last value."""
-    iter_values = iter(values)
-    try:
-        previous_value = next(iter_values)  # Get previous value
-    except StopIteration:
-        return
-    first = True
-
-'''
-
 
 class PermissionsQuestion(Question):
     BINDING_GROUP_TITLE = "Permissions Options"
@@ -321,100 +248,22 @@ class PermissionsScreen(Screen[Answer]):
         self.navigator.action_cursor_up()
 
 
-if __name__ == "__main__":
-    SOURCE1 = '''\
-def loop_first(values: Iterable[T]) -> Iterable[tuple[bool, T]]:
-    """Iterate and generate a tuple with a flag for first value."""
-    iter_values = iter(values)
-    try:
-        value = next(iter_values)
-    except StopIteration:
-        return
-    yield True, value
-    for value in iter_values:
-        yield False, value
+class PermissionReview(PermissionsScreen):
+    """Admission at mount uses the same pending request and source binding."""
+    def __init__(self, request, view, diffs):
+        super().__init__(request.options, diffs, agent_name=view.agent_title or "The Agent")
+        self.request = request
+        self._view = ref(view)
 
+    def retire(self):
+        if self.is_active:
+            self.dismiss(None)
 
-def loop_first_last(values: Iterable[T]) -> Iterable[tuple[bool, T]]:
-    """Iterate and generate a tuple with a flag for first and last value."""
-    iter_values = iter(values)
-    try:
-        previous_value = next(iter_values)
-    except StopIteration:
-        return
-    first = True
-    for value in iter_values:
-        yield first, False, previous_value
-        first = False
-        previous_value = value
-    yield first, True, previous_value
+    def on_screen_resume(self, event):
+        self.on_mount(event)
 
-'''
-
-    SOURCE2 = '''\
-def loop_first(values: Iterable[T]) -> Iterable[tuple[bool, T]]:
-    """Iterate and generate a tuple with a flag for first value.
-    
-    Args:
-        values: iterables of values.
-
-    Returns:
-        Iterable of a boolean to indicate first value, and a value from the iterable.
-    """
-    iter_values = iter(values)
-    try:
-        value = next(iter_values)
-    except StopIteration:
-        return
-    yield True, value
-    for value in iter_values:
-        yield False, value
-
-
-def loop_last(values: Iterable[T]) -> Iterable[tuple[bool, bool, T]]:
-    """Iterate and generate a tuple with a flag for last value."""
-    iter_values = iter(values)
-    try:
-        previous_value = next(iter_values)
-    except StopIteration:
-        return
-    for value in iter_values:
-        yield False, previous_value
-        previous_value = value
-    yield True, previous_value
-
-
-def loop_first_last(values: Iterable[ValueType]) -> Iterable[tuple[bool, bool, ValueType]]:
-    """Iterate and generate a tuple with a flag for first and last value."""
-    iter_values = iter(values)
-    try:
-        previous_value = next(iter_values)  # Get previous value
-    except StopIteration:
-        return
-    first = True
-
-'''
-    from textual import work
-    from textual.app import App
-
-    class PermissionTestApp(App):
-        @work
-        async def on_mount(self) -> None:
-            screen = PermissionsScreen(
-                [
-                    Answer(
-                        "Foo, with some long text that should wrap at some point",
-                        "allow_once",
-                        kind="allow_once",
-                    ),
-                    Answer("Bar", "bar"),
-                ],
-                [("foo.py", "foo2.py", SOURCE1, SOURCE2)],
-            )
-            result = await self.push_screen_wait(screen)
-            self.notify(str(result))
-            # for repeat in range(5):
-            #     await screen.add_diff("foo.py", "foo.py", SOURCE1, SOURCE2)
-
-    app = PermissionTestApp()
-    app.run()
+    def on_mount(self, event):
+        view = self._view()
+        if view is None or not self.request.pending or not self.request.controller.agent.controller.surface.owns(view):
+            event.prevent_default()
+            self.retire()

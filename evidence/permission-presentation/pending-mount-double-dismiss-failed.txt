@@ -1,0 +1,23 @@
+Exception in callback PermissionRequest._completed()
+handle: <Handle PermissionRequest._completed()>
+Traceback (most recent call last):
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-permission-presentation-sol-20260928/.venv/lib/python3.14/site-packages/toad/acp/permission_controller.py", line 49, in _completed
+    self.detach(surface)
+    ~~~~~~~~~~~^^^^^^^^^
+  File "/home/ts/wt/toad-permission-presentation-sol-20260928/.venv/lib/python3.14/site-packages/toad/acp/permission_controller.py", line 44, in detach
+    retire()
+    ~~~~~~^^
+  File "/home/ts/wt/toad-permission-presentation-sol-20260928/.venv/lib/python3.14/site-packages/toad/screens/permissions.py", line 433, in retire
+    self.dismiss(None)
+    ~~~~~~~~~~~~^^^^^^
+  File "/home/ts/wt/toad-agent-controller-sol-20260928/.venv/lib/python3.14/site-packages/textual/screen.py", line 2192, in dismiss
+    await_pop = self.app.pop_screen()
+  File "/home/ts/wt/toad-agent-controller-sol-20260928/.venv/lib/python3.14/site-packages/textual/app.py", line 3105, in pop_screen
+    raise ScreenStackError(
+        "Can't pop screen; there must be at least one screen on the stack"
+    )
+textual.app.ScreenStackError: Can't pop screen; there must be at least one screen on the stack
+PASS installed Textual pending modal mount: cancelled and replaced sources retire pending screen/worker; replacement request paints and grants
