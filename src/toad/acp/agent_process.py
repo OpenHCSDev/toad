@@ -105,6 +105,10 @@ class AgentProcess:
     def accepts_updates(self):
         return self.disposition.accepts_updates
 
+    def accepts_session(self, session_id: str) -> bool:
+        """Only the active process may consume work for its current binding."""
+        return self.accepts_updates and self.agent.session_id == session_id
+
     def start_operation(self, operation):
         task = asyncio.create_task(operation)
         if not self.accepts_updates:
