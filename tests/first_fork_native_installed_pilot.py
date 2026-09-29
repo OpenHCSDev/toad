@@ -72,6 +72,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
         await until(pilot, lambda: "immediate-fork" in comms.registry.all_threads())
         navigation = ThreadNavigationRequest(str(comms.root), 'immediate-fork', project, ()).read()
         child = navigation.thread
+        startup_identity = child.process_identity
         endpoint = socket_path(comms.root, child.pid)
         cold_before_click = not endpoint.exists()
         print("ACTUAL_NEW_WORKER_BEFORE_SOCKET", cold_before_click, flush=True)
@@ -101,6 +102,14 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
                         and "session/load" in view.agent.presentation.log_path.read_text(), 10)
             print("PHYSICAL_OPEN_LOAD_SENT_BEFORE_SOCKET", not endpoint.exists(), flush=True)
             assert not endpoint.exists()
+            # Exercise the historical five-second unsent-connect expiry with
+            # the same actual owner held alive, rather than a quick warm attach.
+            await asyncio.sleep(5.4)
+            assert ProcessIdentity.capture(process.pid) == startup_identity
+            assert comms.registry.require(child.name).process_identity == startup_identity
+            assert not endpoint.exists()
+            assert not view.agent.session_ready_event.is_set()
+            print("ACTUAL_ATTACHMENT_PENDING_AFTER_OLD_FIVE_SECOND_EXPIRY", flush=True)
         finally:
             process.resume()
         await until(pilot, lambda: view.agent.session_ready_event.is_set(), 30)
@@ -121,7 +130,9 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
         (evidence / 'immediate-open.svg').write_text(app.export_screenshot())
         print('FIRST_FORK_INHERITED_HISTORY_PAINTED', flush=True)
         await until(pilot, lambda: not comms.registry.require(child.name).executing, 30)
-        await view.submit_input(messages.UserInputSubmitted('FIRST_FORK_NEW_INPUT'))
+        view.prompt.text = 'FIRST_FORK_NEW_INPUT'
+        view.prompt.prompt_text_area.focus()
+        await pilot.press('enter')
         await until(pilot, lambda: len(requests) >= 3, 30)
         await until(pilot, lambda: response_painted(app, view, 'NATIVE_RESPONSE_3'), 30)
         from agent_comms.transcript_events import UserTranscript
@@ -131,10 +142,15 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
         assert app.selected_mode == mode
         assert app.session_tracker.get_session(mode) is details and view.agent is attached_agent
         assert tuple(app.tab_order.names) == (*previous_modes, mode)
+        assert comms.registry.require(child.name).process_identity == startup_identity
+        assert ProcessIdentity.capture(process.pid) == startup_identity
         print('FIRST_FORK_PROMPT_AND_ANSWER_PAINTED_ONCE_SAME_LOGICAL_TAB', flush=True)
         (evidence / "fresh-fork.json").write_text(json.dumps({
             "source_head": os.environ.get("TOAD_TEST_SOURCE_HEAD"),
             "actual_canonical_fork": True, "physical_open_before_rpc_socket": cold_before_click,
+            "pending_after_old_five_second_expiry": True,
+            "same_owner_process_through_first_reply": True,
+            "first_new_message_physical_enter": True,
             "new_child_response_painted_once": True, "one_logical_tab": True,
             "title_without_at_placeholder": details.title, "provider_inputs": len(requests),
         }, indent=2)+"\n")
