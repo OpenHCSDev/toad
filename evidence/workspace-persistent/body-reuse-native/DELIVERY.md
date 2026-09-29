@@ -11,8 +11,8 @@ Native Window vertical layout owns its one auto-sized ContentsGrid, replacing th
 ## Actual accepted paths
 
 - native-visible-identity.log/visible-results.json: four real controlled inputs; five loaded A/B/A returns; ONLY actually composited, reader-overlapping response widgets counted. One of one original visible response retained on every return. Exact full cropped paint, reader21->21, original editor Document/EditHistory/undo, Agent/process/runner, no input replay. One preparation hit/zero misses per return;72479 retained prepared bytes. EXIT0.
-- continuous163-owned-candidate.log: exact unmodified Dalton163 continuous journey on installed candidate. Saved startup, physical channel bar, unopened participant, active participant return, physical A/B/A preserve all originally visible MarkdownBlock leaves (13/17/13), reader/drafts/document/undo. Slow ahead1; fast ahead up to3; reverse travel negative; actual End paints saved NATIVE_RESPONSE_2; idle preparation0 with no additional misses/inputs and retained57694bytes. Physical fork/first input/answer/saved return, working/responded/author observation pass. EXIT0.
-- rapid-derived-budget.log: physical48-rich-body PageDown/End/reverse/cold tail painted readiness. End admission5->4; idle pending0;140398592 UI RSS; shared warm budget24. Original editor/undo retained. EXIT0.
+- continuous163-owned-candidate.txt: exact unmodified Dalton163 continuous journey on installed candidate. Saved startup, physical channel bar, unopened participant, active participant return, physical A/B/A preserve all originally visible MarkdownBlock leaves (13/17/13), reader/drafts/document/undo. Slow ahead1; fast ahead up to3; reverse travel negative; actual End paints saved NATIVE_RESPONSE_2; idle preparation0 with no additional misses/inputs and retained57694bytes. Physical fork/first input/answer/saved return, working/responded/author observation pass. EXIT0.
+- rapid-derived-budget.txt: physical48-rich-body PageDown/End/reverse/cold tail painted readiness. End admission5->4; idle pending0;140398592 UI RSS; shared warm budget24. Original editor/undo retained. EXIT0.
 
 ## Remaining assigned continuation
 

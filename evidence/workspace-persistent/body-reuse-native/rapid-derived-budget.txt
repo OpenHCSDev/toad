@@ -1,0 +1,9 @@
+RAPID_WORKSPACE_READY
+RAPID_SOURCE_READY 605
+RAPID_NAVIGATION_ROUND 0
+RAPID_NAVIGATION_ROUND 1
+RAPID_NAVIGATION_ROUND 2
+RAPID_COLD_TAIL_READY
+END_PREPARATION_ADMISSION [5, 4, 4, 4]
+RAPID_IDLE_RESOURCES {'cpu_seconds': 0.040000000000000036, 'rss_bytes': 140398592, 'prepared_bytes': 64547, 'pending_work': 0, 'warm_bodies': 24}
+rapid viewport: PageDown/End and cold-tail return pass native visible-body paint
