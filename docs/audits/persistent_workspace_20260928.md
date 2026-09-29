@@ -261,3 +261,15 @@ Production commit5eb99066 owns MessageDivider's one-line intrinsic height throug
 Actual installed recent test remains RED solely at full cropped-paint comparison: User and Agent timestamp strings change by one second. The canonical event-time contract request5882920918 remains open; do not erase or normalize those differences in the assertion. Receipt `recent-native-divider-height.log` records the complete actual geometry and text diff. Rapid PageDown/End/cold-tail cropped visible-body acceptance on the same installed wheel passed (`rapid-divider-height.log`, exit0). Chain terms message_divider0→0/recent pilot0→0.
 
 Carver owns authentic live Textual chops[y] IndexError and native layout reentrancy. Neither this fix nor parent150 is claimed to resolve that crash without its own evidence. Full116 prepared-source lifetime/recent reuse/performance30–40ms/final canonical suite remain open.
+
+## Recovered OpenCode intent and149/150 integration
+
+Read `/home/ts/.local/state/agent-comms/opencode-textual-followup.md`, session ses_f313e4945ffeDPKKenjqdrDnPD, plus the predecessor recent-source pilot read-only. It confirms the remaining invariant: recently viewed non-tail source preparation should not repeat, bounded globally; blank median and8/24/three-window historical numbers do not establish full loaded acceptance. Old draft-only hold and old Screen/window pool are superseded. No predecessor files changed or old mechanisms reintroduced.
+
+Main149/150c253 is integrated at091d9c62. Preserve own unconditional visible-body gate and150 native UpdateScroll ownership. Migrate150 pilot to selected logical owner/native frame and zero-argument current prepare contract, retaining reentry, resize, tail, cropped paint and return assertions. Installed `reentry-main150.log` passes. No IndexError resolution claim; Carver owns that distinct current framework failure.
+
+### Existing preparation reuse closes the small-snapshot bypass
+
+Delete the inline fragment-preparation branch and its8192-character/64-event caps. Delete the background switch and migrate its actual TranscriptPageWork caller. Snapshot preparation now uses the existing TranscriptRenderTask declaration and app PreparedRenderer/PreparationRuntime, including small snapshots. No second cache, source controller, codec or protocol added. IMPL-4/5: one execution/reuse path through the declared operation; AGENT-2: actual small caller closure.
+
+Installed four-call Pi/ACP native reader test proves the same exact canonical prepared result stays in the existing bounded cache through first source return:32674 retained bytes of67108864 limit (`recent-native-cache-proof.log`, RECENT_PREPARATION_REUSED). Original Agent/process and19→19/fragment geometry remain. Full cropped paint stays RED only at recreated User/Agent timestamps; do not normalize or drop that assertion. This is prepared-fragment reuse, not a claim that every rich body stays allocated or that30–40ms performance is complete. Final multi-return/multi-page/native inputs/performance/canonical suite remain required.

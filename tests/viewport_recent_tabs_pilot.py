@@ -17,6 +17,8 @@ from textual.widget import Widget
 from toad.widgets.transcript_history import TranscriptFragmentView
 from agent_comms.transcript_events import TextTranscript
 from toad.widgets.agent_response import AgentResponse
+from toad.render_tasks import TranscriptRenderTask
+from toad.work_preparation import RenderPreparation
 
 
 READER_TEXT = "READER_POSITION_3"
@@ -91,6 +93,10 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     print("RECENT_INITIAL_GEOMETRY", [(type(node).__name__, node.region, node.virtual_size,
           node.show_vertical_scrollbar) for node in (window, *window.ancestors) if isinstance(node, Widget)], flush=True)
     source_paint = conversation_paint(frame)
+    canonical_page = next(iter(window.histories)).pages[-1].page
+    prepared_key = await RenderPreparation(TranscriptRenderTask(canonical_page.events)).identity(app.preparation)
+    assert prepared_key in app.preparation._ready, "Canonical snapshot bypassed bounded reusable preparation"
+    prepared_value = app.preparation._ready[prepared_key][0]
     source_responses = response_geometry(conversation)
     source_geometry = [
         (page.start, page.stop, page.region, tuple(
@@ -113,6 +119,9 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
         assert agent.process.process is process and agent.process.runner is runner
         assert process.returncode is None and not runner.done()
         assert not restored.window.follows_tail
+        assert app.preparation._ready[prepared_key][0] is prepared_value, "Recent return rebuilt canonical fragment preparation"
+        print("RECENT_PREPARATION_REUSED", app.preparation.retained_bytes,
+              app.preparation.max_bytes, flush=True)
         if restored.window.scroll_y != before_y:
             print("RECENT_RETURN_GEOMETRY", [(type(node).__name__, node.region, node.virtual_size,
                   node.show_vertical_scrollbar) for node in (restored.window, *restored.window.ancestors) if isinstance(node, Widget)], flush=True)
