@@ -97,13 +97,13 @@ async def mounted() -> None:
         async with app.run_test(size=(100, 32)) as pilot:
             await pilot.pause()
             owner = app.selected_mode
-            source = app.screen
+            source = app.selected_session
             other = (await app.new_session_screen(app.get_main_screen)).mode_name
             for request_type, kind in (
                 (ThreadNavigationRequest, "thread"),
                 (CommsNavigationRequest, "channel"),
             ):
-                await app.switch_mode(owner)
+                await app.select_session(owner)
                 await pilot.pause()
                 entered, release = threading.Event(), threading.Event()
                 original = request_type.read
@@ -128,17 +128,11 @@ async def mounted() -> None:
                             thread_ids == [thread_ids[0]]
                             and thread_ids[0] != threading.get_ident()
                         )
-                        if kind == "thread":
-                            assert app.selected_mode.startswith("pending-thread-")
-                            assert any(
-                                tab.title == "⌛ @metadata-peer"
-                                for tab in app.open_tabs
-                            )
-                            await asyncio.wait_for(app.switch_mode(owner), 2)
+                        assert app.selected_mode == owner
                         source.conversation.prompt.focus()
                         await pilot.press("k", "e", "e", "p")
                         assert source.conversation.prompt.text.endswith("keep")
-                        await asyncio.wait_for(app.switch_mode(other), 2)
+                        await asyncio.wait_for(app.select_session(other), 2)
                         assert not release.is_set() and not opening.done()
                         release.set()
                         assert await asyncio.wait_for(opening, 2) == other
@@ -148,7 +142,7 @@ async def mounted() -> None:
                         assert not app._comms_modes, (
                             "Superseded route created an unused tab"
                         )
-                        assert not app._pending_thread_modes
+                        assert not app._thread_openings
                 finally:
                     release.set()
                     if opening is not None:

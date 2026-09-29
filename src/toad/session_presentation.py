@@ -130,13 +130,12 @@ class OperationalSessionSources:
             self.agent.detach_surface(conversation)
 
     async def close(self, screen: "MainScreen") -> None:
+        if self.directory_watcher is not None:
+            await self.directory_watcher.aclose()
+            self.directory_watcher = None
         if self.agent is not None:
             await self.agent.stop()
             self.agent = None
-        if self.directory_watcher is not None:
-            self.directory_watcher.stop()
-            await asyncio.to_thread(self.directory_watcher.join)
-            self.directory_watcher = None
         conversation = screen.query_one_optional(Conversation)
         shell = conversation._shell if conversation is not None else self.shell
         if shell is not None:
@@ -207,7 +206,7 @@ class NativeSessionSurface:
             else:
                 assert self.owner is None, "Departing source must retire before admitting the next source"
                 self.widget.reparent(content, before=slot)
-                self.widget.bind_native_session(screen)
+                await self.widget.bind_native_session(screen)
             conversation = self.widget
             await owner.attach_binding(conversation)
             if owner.state is not None:

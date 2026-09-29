@@ -6,6 +6,7 @@ The window owns admission; documents implement their own retirement/restoration.
 """
 
 from collections import OrderedDict
+from functools import partial
 from weakref import WeakSet, ref
 
 from textual.widget import Widget
@@ -143,7 +144,7 @@ class DocumentViewport:
         self._pending = True
         if not self._running:
             self._running = True
-            self._worker = self.window.run_worker(self._reconcile(), group="viewport-bodies")
+            self._worker = self.window.run_worker(partial(self._reconcile), group="viewport-bodies")
 
     async def suspend_source(self) -> None:
         """Finish the departing source's layout transactions before rebinding."""

@@ -76,6 +76,7 @@ from toad.goal_display import GoalDisplay, NoGoal
 from toad.session_observation import GoalObservation, InputDeliveryObservation
 from toad.widgets.goal_bar import GoalBar, GoalControl
 from toad.widgets.native_history import NativeHistory
+from toad.widgets.transcript_history import TranscriptHistory
 from toad.widgets.observed_thread_activity import ObservedThreadActivity
 from toad.widgets.session_details import SessionDetails
 from toad.private_native_cursor import CursorStatus
@@ -229,10 +230,15 @@ class PaintOnlyRefresh:
 class ThreadLoading(ConversationBlock, PaintOnlyRefresh, Static):
     """Paint-only, viewport-scaled progress while a thread attaches."""
 
+    @classmethod
+    def initial_contents(cls, agent):
+        """The loading declaration serves first composition and source rebinding."""
+        return (cls(),) if agent is not None else ()
+
     DEFAULT_CSS = """
     ThreadLoading {
         width: 1fr;
-        height: 1fr;
+        height: auto;
         margin: 0;
         content-align: center middle;
         color: $text-muted;
@@ -731,8 +737,7 @@ class Conversation(containers.Vertical):
         self.shell_history_index = 0
         self.prompt_history_index = 0
         if self._directory_watcher is not None:
-            self._directory_watcher.stop()
-            await asyncio.to_thread(self._directory_watcher.join)
+            await self._directory_watcher.aclose()
             self._directory_watcher = None
         if self.agent_ready:
             self._directory_watcher = DirectoryWatcher(path, self)
@@ -774,7 +779,7 @@ class Conversation(containers.Vertical):
         if self.is_mounted:
             self.prompt.turn_owner = owner
         self.refresh_bindings()
-        if owner.session_state is not None:
+        if self.is_mounted and self.agent_ready and owner.session_state is not None:
             self.post_message(messages.SessionUpdate(state=owner.session_state))
 
     @on(events.Key)
@@ -789,14 +794,12 @@ class Conversation(containers.Vertical):
             self.prompt.prompt_text_area.post_message(event)
 
     def compose(self) -> ComposeResult:
-        from toad.widgets.transcript_history import TranscriptHistory
         with Window():
             with ContentsGrid():
                 with CursorContainer(id="cursor-container"):
                     yield Cursor()
                 with Contents(id="contents"):
-                    if self._agent_data is not None:
-                        yield ThreadLoading()
+                    yield from ThreadLoading.initial_contents(self._agent_data)
         yield Flash()
         with containers.Vertical(id="prompt-stack"):
             yield TurnActivity().data_bind(
@@ -995,7 +998,7 @@ class Conversation(containers.Vertical):
         self, event: ObservedThreadActivity.Changed
     ) -> None:
         event.stop()
-        if self.turns.managed_id is not None or self.turns.owner.busy:
+        if not self.agent_ready or self.turns.managed_id is not None or self.turns.owner.busy:
             return
         if event.unavailable:
             self.post_message(
@@ -1027,8 +1030,6 @@ class Conversation(containers.Vertical):
 
     @on(AgentReady)
     async def on_agent_ready(self, message: AgentReady) -> None:
-        self.remove_class("-initial-loading")
-        await self.query(ThreadLoading).remove()
         if not message.reconnected:
             self.session_start_time = monotonic()
             if self.agent is not None:
@@ -1091,8 +1092,7 @@ class Conversation(containers.Vertical):
         self.output.retire()
         await asyncio.gather(self.goal_observation.close(), self.delivery_observation.close())
         if self._directory_watcher is not None:
-            self._directory_watcher.stop()
-            await asyncio.to_thread(self._directory_watcher.join)
+            await self._directory_watcher.aclose()
             self._directory_watcher = None
         if self.agent is not None:
             await self.agent.retire_surface(self)
@@ -2055,6 +2055,9 @@ class Conversation(containers.Vertical):
         """Invalidate all old publications before this rich surface changes source."""
         self.goal_controls.close()
         self.output.retire()
+        if self._directory_watcher is not None:
+            await self._directory_watcher.aclose()
+            self._directory_watcher = None
         await self.window.document_viewport.suspend_source()
         await asyncio.gather(self.transcript.close(), self.goal_observation.close(),
                              self.delivery_observation.close())
@@ -2066,7 +2069,7 @@ class Conversation(containers.Vertical):
         self.prompt.ask_queue.clear()
         self._focusable_terminals.clear()
 
-    def bind_native_session(self, screen) -> None:
+    async def bind_native_session(self, screen) -> None:
         """Reset values from their declarations, then bind the existing source config."""
         for name, declaration in Conversation._reactives.items():
             if name in Conversation.__dict__:
@@ -2074,6 +2077,7 @@ class Conversation(containers.Vertical):
         self._initialize_session(screen.project_path, screen._agent,
                                  screen._agent_session_id, screen._session_pk,
                                  screen._agent_session_title, screen._initial_prompt)
+        await self.contents.mount(*ThreadLoading.initial_contents(self._agent_data))
         # Refresh cwd-bound editor projections, without replaying semantic
         # history-navigation watchers against the restored document.
         self.mutate_reactive(Conversation.project_path)
@@ -2230,6 +2234,9 @@ class Conversation(containers.Vertical):
 
     @work
     async def watch_agent_ready(self, ready: bool) -> None:
+        if ready:
+            self.remove_class("-initial-loading")
+            await self.query(ThreadLoading).remove()
         if ready and self._directory_watcher is None:
             self._directory_watcher = DirectoryWatcher(self.project_path, self)
             self._directory_watcher.start()
@@ -2494,7 +2501,6 @@ class Conversation(containers.Vertical):
         self.prompt.focus()
 
     def jump_to_latest(self) -> None:
-        from toad.widgets.transcript_history import TranscriptHistory
 
         for history in self.query(TranscriptHistory):
             if history.has_newer:

@@ -187,8 +187,8 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
                 if self.is_attached:
                     self._prepare_content()
                     if self.is_current:
-                        await self.prepare_navigation()
-                        await self.layout_navigation()
+                        await self.screen.prepare_navigation()
+                        await self.screen.layout_navigation()
         except BaseException as error:
             self._content_error = error
             raise

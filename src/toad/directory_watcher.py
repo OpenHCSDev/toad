@@ -1,3 +1,4 @@
+import asyncio
 from pathlib import Path
 import os
 from multiprocessing import get_context
@@ -306,6 +307,11 @@ class DirectoryWatcher(threading.Thread):
         """Move notification custody without restarting the path observation."""
         with self._delivery_lock:
             self._widget = widget
+
+    async def aclose(self) -> None:
+        """End path observation and join its delivery thread before releasing custody."""
+        self.stop()
+        await asyncio.to_thread(self.join)
 
     def stop(self) -> None:
         """Stop the watcher."""

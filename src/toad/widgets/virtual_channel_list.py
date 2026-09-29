@@ -61,9 +61,9 @@ class TargetChoice(VirtualChoice):
         sidebar.selected = self.target.name
         sidebar.apply_selection(force=True)
         if self.mode is not None:
-            sidebar.app.select_session(self.mode)
-        elif isinstance(sidebar.screen, NavigationOwner):
-            await sidebar.screen.open_sidebar_target(self.target)
+            await sidebar.app.select_session(self.mode)
+        elif isinstance(sidebar.app.selected_session, NavigationOwner):
+            await sidebar.app.selected_session.open_sidebar_target(self.target)
         else:
             sidebar.post_message(SelectTarget(self.target))
 

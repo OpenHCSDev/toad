@@ -142,6 +142,6 @@ def linked_target(name: str) -> NavigationTarget:
 def person_target(person) -> NavigationTarget:
     """A runnable native owner opens a session; stopped peers open retained DMs."""
     name = person.thread.name
-    if person.status.active and (person.thread.session_file or person.thread.pid > 0):
+    if person.status.active:
         return ThreadTarget(name)
     return DirectTarget(name)

@@ -4,7 +4,7 @@ import asyncio
 import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from unittest.mock import patch
+from unittest.mock import patch, AsyncMock
 
 from agent_comms.child_process import ProcessIdentity
 from agent_comms.threads import Thread
@@ -15,7 +15,6 @@ from toad.agent import AgentReady
 from toad.conversation_kind import ConversationKind, ChannelConversation, DmConversation, IrcConversation
 from toad.constants import ALL_COMMS_TARGET
 from toad.navigation_target import NavigationContext, ThreadTarget, ChannelTarget, DirectTarget, FeedTarget
-from toad.screens.pending_thread import PendingTabShells
 from toad.widgets.comms_sidebar import CommsSidebar
 
 
@@ -53,33 +52,14 @@ async def main():
         with patch.object(Agent, "start", start):
             async with app.run_test(size=(110, 36)) as pilot:
                 await pilot.pause()
-                owner, original = app.selected_mode, app.screen
-                await until(lambda: len(app.pending_tab_shells._available) == app.PREPARED_TAB_SHELLS)
-                prepared_shell = app.pending_tab_shells._available[0]
-                assert not prepared_shell._first_frame_presented and not prepared_shell.is_current
-                assert not prepared_shell.query(CommsSidebar), "Lookahead duplicated the shared roster"
-                for invalid in (-1, True, 1.5):
-                    try:
-                        PendingTabShells(app, invalid)
-                    except ValueError:
-                        pass
-                    else:
-                        raise AssertionError("Invalid shell budget accepted")
-                cold_shells = PendingTabShells(app, 0)
-                cold_shells.prepare()
-                assert not cold_shells._preparing
-                cold_shell = await cold_shells.acquire(NavigationContext(app, owner, root, "actor"))
-                assert cold_shell.is_mounted and not cold_shell._first_frame_presented
-                assert not cold_shell.query(CommsSidebar)
-                await app.remove_mode(cold_shell.id)
-                cold_shells.close()
+                owner, original = app.selected_mode, app.selected_session
                 original._agent = {"name": "Fixture", "identity": "fixture", "short_name": "fixture",
                                    "run_command": {"*": "/bin/false"}, "protocol": "acp"}
                 destination = await app.open_thread_session(owner_mode=owner, project_path=root, target="peer")
                 await pilot.pause()
-                await app.switch_mode(owner)
+                await app.select_session(owner)
                 await pilot.pause()
-                view = app.get_screen_stack(destination)[0]
+                view = app.workspace_sessions.require(destination)
                 sidebar = app.workspace_chrome.channels.widget.roster
                 entered, release = asyncio.Event(), asyncio.Event()
                 present = sidebar.present_cached_sessions
@@ -92,23 +72,23 @@ async def main():
                 app.presented.clear()
                 with patch.object(sidebar, "present_cached_sessions", blocked):
                     try:
-                        await asyncio.wait_for(app.switch_mode(destination), 3)
+                        await asyncio.wait_for(app.select_session(destination), 3)
                         await asyncio.wait_for(entered.wait(), 3)
-                        assert view in app.presented, "Sidebar rebuilt before activation was painted"
+                        assert app.workspace_screen in app.presented, "Sidebar rebuilt before activation was painted"
                         assert not sidebar.navigation_ready.is_set()
                         await pilot.pause()
                         assert app._batch_count == 0, "Blocked hydration owns a global paint mask"
                         view.conversation.prompt.focus()
                         await pilot.press("s", "a", "f", "e")
                         assert view.conversation.prompt.text.endswith("safe")
-                        await asyncio.wait_for(app.switch_mode(owner), 3)
+                        await asyncio.wait_for(app.select_session(owner), 3)
                         original.conversation.prompt.focus()
                         await pilot.press("o", "k")
                         assert original.conversation.prompt.text.endswith("ok")
                     finally:
                         release.set()
                     await pilot.pause()
-                await app.switch_mode(destination)
+                await app.select_session(destination)
                 await until(sidebar.navigation_ready.is_set)
                 assert view.conversation.prompt.text.endswith("safe")
 
