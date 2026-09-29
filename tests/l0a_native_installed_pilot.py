@@ -99,7 +99,7 @@ async def notification_feedback(
     print("CHANNEL_NOTIFICATION", str(notification.title), flush=True)
 
 
-async def main(*, notification_only=False, retire_surface=False, app_type=ToadApp, acceptance=None, provider_reply=None, provider_usage=None):
+async def main(*, notification_only=False, retire_surface=False, app_type=ToadApp, acceptance=None, provider_reply=None, provider_usage=None, native_settings=None):
     evidence = Path(os.environ.get("L0A_EVIDENCE", os.environ["TMPDIR"]))
     evidence.mkdir(parents=True, exist_ok=True)
     package = Path(os.environ["AC_NATIVE_COPIED_PACKAGE"])
@@ -213,6 +213,8 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
                 }
             )
         )
+        if native_settings is not None:
+            (config / "settings.json").write_text(json.dumps(native_settings))
         (config / "auth.json").write_text(
             json.dumps(
                 {"selected-offline": {"type": "api_key", "key": "offline-only-fixture"}}

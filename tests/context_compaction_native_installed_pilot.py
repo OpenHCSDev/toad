@@ -21,13 +21,10 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     view = app.selected_session.conversation
     release.set()
     hold_next.clear()
-    config = Path(os.environ["PI_CODING_AGENT_DIR"]) / "settings.json"
-    config.write_text(json.dumps({"compaction": {"enabled": True, "reserveTokens": 4096,
-                                               "keepRecentTokens": 8000}}))
     await until(pilot, lambda: view.agent_ready)
     for index in (1, 2):
         await view.submit_input(messages.UserInputSubmitted(
-            f"SAVED_CONTEXT_{index} " + "retained sample " * 4000))
+            f"SAVED_CONTEXT_{index} " + "retained sample " * 400))
         await until(pilot, lambda: response_painted(app, view, f"NATIVE_RESPONSE_{index}"), 30)
         await until(pilot, lambda: not comms.registry.require("beta").executing)
     assert agent.context_measurement.available and agent.context_measurement.used >= 31000
@@ -46,10 +43,10 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
         assert original_details.state == "busy"
         Path("evidence/context-measurement/compacting-native.svg").write_text(app.export_screenshot())
         release.set()
-        await until(pilot, lambda: len(requests) == 4, 30)
-        await until(pilot, lambda: response_painted(app, view, "NATIVE_RESPONSE_4"), 30)
+        await until(pilot, lambda: response_painted(app, view, "COMPACTION_FINAL_ANSWER"), 30)
         assert app.session_tracker.get_session(app.selected_mode) is original_details
-        assert len(requests) == 4
+        assert sum("COMPACT_AND_REPLY_ONCE" in json.dumps(request["messages"])
+                   for request in requests) == 1
         from agent_comms.transcript_events import UserTranscript
         assert sum(isinstance(e, UserTranscript) and e.text == "COMPACT_AND_REPLY_ONCE"
                    for e in comms.transcripts.thread_transcript("beta")) == 1
@@ -58,5 +55,13 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
         release.set()
 
 
+def reply(request, count):
+    text = ("COMPACTION_FINAL_ANSWER" if "COMPACT_AND_REPLY_ONCE" in json.dumps(request["messages"])
+            else f"NATIVE_RESPONSE_{count}")
+    return {"role": "assistant", "content": text}, "stop"
+
+
 if __name__ == "__main__":
-    asyncio.run(main(app_type=InstalledApp, acceptance=acceptance, provider_usage=usage))
+    asyncio.run(main(app_type=InstalledApp, acceptance=acceptance, provider_usage=usage,
+                    provider_reply=reply, native_settings={"compaction": {
+                        "enabled": True, "reserveTokens": 4096, "keepRecentTokens": 1024}}))

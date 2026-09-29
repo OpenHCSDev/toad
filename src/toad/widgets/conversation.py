@@ -2750,7 +2750,7 @@ class CompactionRenderer(MroDispatch):
         view = self.conversation
         active = view.turns.owner.busy
         view.activity = "Thinking…" if active else ""
-        title = "Compaction aborted" if event.aborted else "Context compacted"
+        title = event.result_label
         view.post_message(
             messages.SessionUpdate(state="busy" if active else "idle", summary=title)
         )

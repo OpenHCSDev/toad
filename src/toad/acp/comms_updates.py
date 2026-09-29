@@ -173,7 +173,7 @@ class CommsUpdateConsumer(MroDispatch):
     @handles(CompactionChangedUpdate)
     def compaction_changed(self, update: CompactionChangedUpdate) -> None:
         from .context_measurement import ContextUnavailable
-        self.agent.context_measurement = ContextUnavailable("Context measurement invalidated by compaction")
+        self.agent.context_measurement = ContextUnavailable("Native context measurement is pending")
         self.agent.update_status_line()
         self.agent.post_message(
             messages.CommsUpdated(update, self.agent, self.session_id)

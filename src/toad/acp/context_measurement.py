@@ -40,7 +40,7 @@ class ContextMeasurement(ABC):
         # The ACP adapter uses zero usage after compaction as unmeasured.
         # Decode that boundary sentinel once; never paint it as known 0%.
         if used <= 0 or size <= 0:
-            return ContextUnavailable("Native owner reported an invalid context budget")
+            return ContextUnavailable("Native owner has not supplied a usable context measurement")
         match cost:
             case {"amount": amount, "currency": currency}:
                 return LiveContextMeasurement(used, size, Cost(amount, currency))
