@@ -141,3 +141,20 @@ class AgentController:
 
     async def operate(self, operation):
         return await asyncio.shield(self.start_operation(operation))
+
+class SessionInitialization:
+    """Own the initialization task's completion and error publication."""
+    def __init__(self, agent):
+        self.agent = agent
+
+    async def run(self):
+        """Report an unexpected initialization failure through the existing UI path."""
+        from toad.agent import AgentFail
+        try:
+            await self.agent.run()
+        except Exception as error:
+            self.agent._connected_ok = False
+            self.agent.session_ready_event.set()
+            details = f"{type(error).__name__}: {error}"
+            self.agent.log(f"[error] Agent initialization failed: {details}")
+            self.agent.post_message(AgentFail("Agent initialization failed", details))
