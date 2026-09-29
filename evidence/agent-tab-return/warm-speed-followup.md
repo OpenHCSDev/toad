@@ -56,6 +56,10 @@ in use. One serial source-tree native run entered `ToadApp.run_test` but used a
 CPU core for two minutes before a Pi child or A/B/A receipt; the owned process
 was stopped. A bounded traceback retry located the pre-native loop in
 `GoalBar._update_separators → _update_goal_text → GoalInteraction.members_with`.
+The existing provider-free `retained_body_transfer_pilot.py` also spun before
+its first paint and was stopped; it supplied no cache acceptance. Logs for
+these owned failed attempts are in
+`/home/ts/.cache/agent-scratch/toad-warm-return-followup-20260929/`.
 That goal path belongs to the parent. The indexed-cache change has a passing
 direct canonical-identity lookup and syntax/diff checks, but **no native
 acceptance or speedup claim** yet. The global installation is owned by the
