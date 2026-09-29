@@ -1,6 +1,6 @@
 """The pager's source-owned read, lookahead and retirement lifetime."""
 from textual.worker import WorkerCancelled
-from toad.transcript_state import TranscriptState, RetiredSourceTranscript
+from toad.transcript_state import TranscriptState, RetiredSourceTranscript, WorkingTranscript
 from toad.transcript_preparation import PreparedPageSource, TranscriptPageBuffer
 
 
@@ -21,6 +21,22 @@ class TranscriptSourcePreparation:
     @property
     def state(self) -> TranscriptState:
         return self._source_state.observed(self)
+
+    def reserve_source_work(self) -> WorkingTranscript:
+        if not self._source_state.accepts_source_work:
+            raise RuntimeError("The transcript source cannot admit another operation")
+        operation = WorkingTranscript(self._source_state)
+        self._source_state = operation
+        return operation
+
+    def finish_source_work(self, operation: WorkingTranscript) -> None:
+        # Retirement or replacement revokes this exact admission. A cancelled
+        # old operation cannot publish again or settle a newer source's work.
+        if self._source_state is operation:
+            self._source_state = operation.source
+            if self.state.accepts_publication:
+                self.window.check_follow()
+                self._scroll_changed()
 
     async def retire_source(self) -> None:
         """End pager mutations before any of its bodies transfer to the shelf."""
@@ -86,4 +102,3 @@ class TranscriptSourcePreparation:
         """Start background reads before the earlier edge enters the viewport."""
         rows = self.window.size.height
         return max(4, rows // 2) + self.window.document_viewport.lookahead.ahead_rows(rows)
-

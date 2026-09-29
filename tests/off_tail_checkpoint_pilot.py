@@ -268,8 +268,7 @@ async def exercise(app, pilot):
         assert history.through == agent.cursor, (history.through, agent.cursor)
         window.scroll_end(animate=False, immediate=True)
         await pilot.pause()
-        history._loading = True
-        await history._jump_latest()
+        await history.reserve_source_work().execute(history, history._jump_latest)
         await pilot.pause()
         assert history.pages[-1].page.after == agent.cursor, (history.pages[-1].page.after, agent.cursor)
         assert any("Committed while inactive" in event.text

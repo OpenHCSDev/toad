@@ -12,6 +12,10 @@ from textual.widget import Widget
 class TranscriptState(DeclaredFamily, LifecycleState, affix="Transcript"):
     accepts_publication: ClassVar[bool] = False
     reports_coverage: ClassVar[bool] = False
+    accepts_source_work: ClassVar[bool] = False
+
+    async def execute(self, owner, work):
+        raise RuntimeError("The transcript source has no admitted operation")
 
     def observed(self, widget: Widget) -> "TranscriptState":
         # Textual sets these before dispatching Prune/Unmount, including when
@@ -48,6 +52,7 @@ class ProvisionalTranscript(TranscriptState):
 class LiveTranscript(TranscriptState):
     accepts_publication = True
     reports_coverage = True
+    accepts_source_work = True
 
     @classmethod
     def successors(cls):
@@ -71,6 +76,28 @@ class SuspendedTranscript(TranscriptState):
     @classmethod
     @abstractmethod
     def successors(cls): ...
+
+
+class WorkingTranscript(SuspendedTranscript):
+    """One admitted source mutation; its identity owns completion custody."""
+
+    @property
+    def accepts_publication(self) -> bool:
+        return self.source.accepts_publication
+
+    @classmethod
+    def successors(cls):
+        return (LiveTranscript, ProvisionalTranscript, RetiredSourceTranscript,
+                PruningTranscript, ClosingTranscript, DetachedTranscript)
+
+    async def execute(self, owner, work):
+        try:
+            return await work()
+        finally:
+            owner.finish_source_work(self)
+
+    def schedule(self, owner, work):
+        return owner.run_worker(self.execute(owner, work))
 
 
 class DetachedTranscript(SuspendedTranscript):
