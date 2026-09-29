@@ -23,7 +23,7 @@ if TYPE_CHECKING:
     from toad.live_output import OutputStream
     from textual.content import Content
     from toad.acp.agent import Model
-    from toad.acp.agent_session import Mode
+    from acp.schema import SessionMode
 
 
 class AgentMessage(Message):
@@ -115,7 +115,7 @@ class SetModes(AgentMessage):
     """Set modes from agent."""
 
     current_mode: str
-    modes: dict[str, Mode]
+    modes: dict[str, SessionMode]
 
 
 @dataclass

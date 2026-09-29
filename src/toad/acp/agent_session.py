@@ -2,7 +2,6 @@
 from __future__ import annotations
 import asyncio
 import os
-from typing import NamedTuple
 from dataclasses import replace
 import toad
 from toad import constants, jsonrpc
@@ -15,15 +14,6 @@ from agent_comms.acp_failure import ACPFailure
 from agent_comms.input_attempt import NotSentInput
 
 PROTOCOL_VERSION = 1
-
-
-class Mode(NamedTuple):
-    """An agent mode."""
-
-    id: str
-    name: str
-    description: str | None
-
 
 
 class AgentSession:
@@ -316,6 +306,6 @@ class AgentSession:
     def publish_configuration(self, response):
         if (modes := response.modes) is not None:
             self.agent.controller.publish_modes(modes.current_mode_id, {
-                mode.id: Mode(mode.id, mode.name, mode.description)
+                mode.id: mode
                 for mode in modes.available_modes})
         self.agent.configuration.receive(response.config_options)

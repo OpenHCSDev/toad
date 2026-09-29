@@ -117,7 +117,7 @@ def make_session_title(prompt: str) -> str:
 
 if TYPE_CHECKING:
     from toad.acp.agent import Model
-    from toad.acp.agent_session import Mode
+    from acp.schema import SessionMode
     from toad.widgets.agent_response import AgentResponse
     from toad.widgets.question import Ask
     from toad.widgets.terminal import Terminal
@@ -422,10 +422,10 @@ class ConversationSessionBinding(containers.Vertical):
     agent_ready: var[bool] = var(False)
 
 
-    modes: var[dict[str, Mode]] = var({}, bindings=True)
+    modes: var[dict[str, SessionMode]] = var({}, bindings=True)
 
 
-    current_mode: var[Mode | None] = var(None)
+    current_mode: var[SessionMode | None] = var(None)
 
 
     models: var[dict[str, Model]] = var({}, bindings=True)

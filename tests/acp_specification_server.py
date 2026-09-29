@@ -6,11 +6,24 @@ import sys
 from acp import run_agent
 from acp.schema import (AgentMessageChunk, EnvVariable, FileEditToolCallContent,
                         PermissionOption, TextContentBlock, ToolCallProgress,
-                        ToolCallStart, ToolCallUpdate, PromptResponse)
+                        ToolCallStart, ToolCallUpdate, PromptResponse, NewSessionResponse,
+                        SessionMode, SessionModeState, SetSessionModeResponse, CurrentModeUpdate)
 from acp_plan_server import PlanPeer
 
 
 class SpecificationPeer(PlanPeer):
+    async def new_session(self, cwd, **kwargs):
+        response = await super().new_session(cwd, **kwargs)
+        return NewSessionResponse(session_id=response.session_id, modes=SessionModeState(
+            current_mode_id='read', available_modes=[SessionMode(id='read', name='SDK Read'),
+                SessionMode(id='write', name='SDK Write')]))
+
+    async def set_session_mode(self, session_id, mode_id, **kwargs):
+        assert mode_id == 'write'
+        await self.connection.session_update(session_id=session_id,
+            update=CurrentModeUpdate(sessionUpdate='current_mode_update', current_mode_id=mode_id))
+        return SetSessionModeResponse()
+
     async def prompt(self, session_id, prompt, **kwargs):
         assert prompt[0].text == 'SDK_SPECIFICATION_JOURNEY'
         path = str(self.project / 'sdk-file.txt')
