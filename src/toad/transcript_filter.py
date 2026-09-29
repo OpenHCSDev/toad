@@ -90,7 +90,7 @@ class NoFilter(FilterState):
 
     def scan_needed(self, owner):
         # Once mounted, the projection's ordinary pager owns edge admission.
-        return owner.window.scroll_y <= owner._prefetch_distance
+        return owner.window.scroll_y <= owner.prefetch_distance
 
     async def advance(self, filtering, snapshot):
         from toad.widgets.transcript_history import ProjectedTranscriptHistory, _PublicationRetired
@@ -182,7 +182,7 @@ class Filtered(FilterState):
         # Eviction must expose the newly omitted interval, not skip it with
         # the projection's previously accepted backward cursor.
         await filtering.remove()
-        owner._generation += 1
+        owner.invalidate_projection()
 
     async def advance(self, filtering, snapshot):
         previous = set(self.view.fragment_views)
@@ -244,7 +244,7 @@ class TranscriptFilter:
                 and not self.worker.is_finished)
 
     @property
-    def active(self): return self.owner._selected_categories != all_categories()
+    def active(self): return self.owner.selected_categories != all_categories()
 
     @property
     def checkpoint_available(self):
@@ -275,9 +275,9 @@ class TranscriptFilter:
 
     def changed(self) -> None:
         owner = self.owner
-        owner._generation += 1
+        owner.invalidate_projection()
         for page in owner.pages:
-            page.set_categories(owner._selected_categories)
+            page.set_categories(owner.selected_categories)
         retired = self.state
         retired.retire(self)
         self.clear()
@@ -288,7 +288,7 @@ class TranscriptFilter:
         owner._scroll_changed()
 
     def scan_needed(self) -> bool:
-        if not self.active or not self.owner._selected_categories:
+        if not self.active or not self.owner.selected_categories:
             return False
         return self.has_older and self.state.scan_needed(self.owner)
 
@@ -301,9 +301,9 @@ class TranscriptFilter:
         self.start_scan()
 
     def start_scan(self) -> Worker | None:
-        if self.scanning or not self.owner.filter_scan_available:
+        if self.scanning or not self.owner.checkpoint_available:
             return None
-        if not self.active or not self.owner._selected_categories:
+        if not self.active or not self.owner.selected_categories:
             return None
         if not self.state.scan_available(self.owner):
             return None

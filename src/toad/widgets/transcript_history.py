@@ -174,7 +174,7 @@ class TranscriptFragmentView(CategorizedBlock, VerticalGroup):
         return self._message_category
 
     def set_categories(self, selected: frozenset[type[MessageCategory]]) -> None:
-        self._selected_categories = selected
+        self.selected_categories = selected
         apply_block_filter(self, selected)
 
     def compose(self) -> ComposeResult:
@@ -202,7 +202,7 @@ class TranscriptFragmentView(CategorizedBlock, VerticalGroup):
             self.remove_class(f"-message-{self._message_category.declared_name}")
             self.add_class(f"-message-{category.declared_name}")
             self._message_category = category
-            apply_block_filter(self, self._selected_categories)
+            apply_block_filter(self, self.selected_categories)
         self.set_class(not any(event.routed for event in new_events), "-unrouted")
         if (len(old_events) == len(new_events) == 1
                 and old_events[0].merge(new_events[0]) is not None
@@ -355,12 +355,11 @@ class TranscriptHistory(ConversationBlock, CommittedHistory, CategorizedBlock, V
             return False
         return self.screen.is_current
 
-    @property
-    def filter_scan_available(self) -> bool:
-        return self.filter_publication_available and not self._loading and not self._advancing
+    def invalidate_projection(self) -> None:
+        self._generation += 1
 
     def filter_snapshot(self) -> FilterSnapshot:
-        return FilterSnapshot(self._generation, self._selected_categories,
+        return FilterSnapshot(self._generation, self.selected_categories,
                               self.window, self.loader, self.screen)
 
     def projected_source(self, selected) -> ProjectedTranscriptSource:
@@ -429,7 +428,7 @@ class TranscriptHistory(ConversationBlock, CommittedHistory, CategorizedBlock, V
     def compose(self) -> ComposeResult:
         yield self.older
         for page in self.pages:
-            page.visible_categories = self._selected_categories
+            page.visible_categories = self.selected_categories
             yield page
         yield self.newer
 
@@ -464,7 +463,7 @@ class TranscriptHistory(ConversationBlock, CommittedHistory, CategorizedBlock, V
 
     def _warm_pages(self) -> None:
         if (self.loader is None or not self.is_mounted or not self.state.accepts_publication or not self.screen.is_current
-                or not self._selected_categories):
+                or not self.selected_categories):
             return
         reader = self._reader()
         edges = (self.pages[0].page.before if self.pages[0].page.has_older else None,
@@ -476,7 +475,7 @@ class TranscriptHistory(ConversationBlock, CommittedHistory, CategorizedBlock, V
         async def prepare() -> None:
             current = lambda: (self.is_attached and self.screen.is_current
                                and self._page_buffer is reader and not reader.closed
-                               and bool(self._selected_categories))
+                               and bool(self.selected_categories))
             if await reader.prefetch(*edges, current) and current():
                 self._prefetched_edges = edges
 
@@ -490,14 +489,14 @@ class TranscriptHistory(ConversationBlock, CommittedHistory, CategorizedBlock, V
         self._warm_pages()
 
     def _update_edges(self) -> None:
-        if not self._selected_categories:
+        if not self.selected_categories:
             self.older.display = self.newer.display = False
             return
         self.older.display = self.filter.older_visible
         self.newer.display = self.has_newer
 
     @property
-    def _selected_categories(self) -> frozenset[type[MessageCategory]]:
+    def selected_categories(self) -> frozenset[type[MessageCategory]]:
         from toad.widgets.conversation import Contents, Conversation
 
         # A nested pager inherits the outer message's category, not the
@@ -509,7 +508,7 @@ class TranscriptHistory(ConversationBlock, CommittedHistory, CategorizedBlock, V
 
 
     @property
-    def _prefetch_distance(self) -> int:
+    def prefetch_distance(self) -> int:
         """Start background reads before the earlier edge enters the viewport."""
         return max(4, min(32, self.window.size.height // 2))
 
@@ -621,7 +620,7 @@ class TranscriptHistory(ConversationBlock, CommittedHistory, CategorizedBlock, V
     def _check_edges(self) -> None:
         self._check_pending = False
         if (self._loading or self._advancing or not self.state.accepts_publication
-                or not self.screen.is_active or not self._selected_categories):
+                or not self.screen.is_active or not self.selected_categories):
             return
         # Off-screen pagers must not ask for their region: after a scroll that
         # falls back to rebuilding geometry for the *whole* mounted transcript.
@@ -644,7 +643,7 @@ class TranscriptHistory(ConversationBlock, CommittedHistory, CategorizedBlock, V
         if self.filter.active:
             self.filter.check_edges()
             return
-        if (self.has_older and region.y >= viewport.y - self._prefetch_distance
+        if (self.has_older and region.y >= viewport.y - self.prefetch_distance
                and not (self._follow_source_tail and (
                     self.fragment_count >= self.fragment_limit or len(self.pages) >= self.fragment_limit
                    or self.widget_count >= self.widget_limit
@@ -690,7 +689,7 @@ class TranscriptHistory(ConversationBlock, CommittedHistory, CategorizedBlock, V
                 self._saturated_widget_limit = 0
                 await self.remove_children(list(self.pages))
                 view = TranscriptPageView(page, fragments=fragments, batch_size=self.budget.admission_items)
-                view.visible_categories = self._selected_categories
+                view.visible_categories = self.selected_categories
                 self.pages = deque([view])
                 await self.mount(view, before=self.newer)
                 self._update_edges()
@@ -791,7 +790,7 @@ class TranscriptHistory(ConversationBlock, CommittedHistory, CategorizedBlock, V
                 view = TranscriptPageView(
                     page, newest=older, fragments=fragments, batch_size=self.budget.admission_items,
                 )
-                view.visible_categories = self._selected_categories
+                view.visible_categories = self.selected_categories
                 await self.mount(view, before=edge if older else self.newer)
                 self._require_publication()
                 protected.update(view.children)
@@ -876,7 +875,7 @@ class ProjectedTranscriptHistory(TranscriptHistory):
 
     @property
     def older_page_available(self) -> bool:
-        return self.filter_scan_available and self.has_older
+        return self.checkpoint_available and self.has_older
 
     def request_older(self) -> None:
         if self.older_page_available:
@@ -903,7 +902,7 @@ class ProjectedTranscriptHistory(TranscriptHistory):
         return super().state.for_projection(self, self._projection_owner())
 
     @property
-    def _selected_categories(self) -> frozenset[type[MessageCategory]]:
+    def selected_categories(self) -> frozenset[type[MessageCategory]]:
         # Selection was applied by the source; the view never reinterprets it.
         return all_categories()
 

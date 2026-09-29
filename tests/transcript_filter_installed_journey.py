@@ -102,7 +102,20 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     await choose(app, pilot, frozenset({AgentCategory}))
     view.window.release_anchor()
     view.window.scroll_to(y=0, animate=False, immediate=True)
-    await until(pilot, lambda: 'SAVED_ANSWER_2_099' in conversation_paint(app.screen), seconds=20)
+    try:
+        await until(pilot, lambda: 'SAVED_ANSWER_2_099' in conversation_paint(app.screen), seconds=20)
+    except TimeoutError:
+        print('FILTER_RETURN_CROPPED_PAINT', repr(conversation_paint(app.screen)), flush=True)
+        print('FILTER_RETURN_STATE', type(canonical.filter.state).__name__,
+            canonical.filter.scanning, canonical.has_older, canonical._loading,
+            canonical._check_pending, canonical.state.declared_name,
+            canonical.selected_categories, canonical.region, view.window.scroll_y,
+            view.window.max_scroll_y, flush=True)
+        if canonical.filter.overlay is not None:
+            print('FILTER_RETURN_PROJECTION', canonical.filter.overlay.state.declared_name,
+                canonical.filter.overlay.fragment_count, canonical.filter.overlay.has_older,
+                canonical.filter.overlay.region, flush=True)
+        raise
     assert 'SAVED_THOUGHT_' not in conversation_paint(app.screen)
     projection = canonical.filter.overlay
     assert projection is not None
@@ -140,7 +153,20 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
 
     await choose(app, pilot, frozenset({AgentCategory}))
     view.window.scroll_to(y=0, animate=False, immediate=True)
-    await until(pilot, lambda: 'SAVED_ANSWER_2_099' in conversation_paint(app.screen), seconds=20)
+    try:
+        await until(pilot, lambda: 'SAVED_ANSWER_2_099' in conversation_paint(app.screen), seconds=20)
+    except TimeoutError:
+        print('FILTER_RETURN_CROPPED_PAINT', repr(conversation_paint(app.screen)), flush=True)
+        print('FILTER_RETURN_STATE', type(canonical.filter.state).__name__,
+            canonical.filter.scanning, canonical.has_older, canonical._loading,
+            canonical._check_pending, canonical.state.declared_name,
+            canonical.selected_categories, canonical.region, view.window.scroll_y,
+            view.window.max_scroll_y, flush=True)
+        if canonical.filter.overlay is not None:
+            print('FILTER_RETURN_PROJECTION', canonical.filter.overlay.state.declared_name,
+                canonical.filter.overlay.fragment_count, canonical.filter.overlay.has_older,
+                canonical.filter.overlay.region, flush=True)
+        raise
     await pilot.resize_terminal(112, 34)
     await pilot.press('pagedown', 'pageup')
     other = await app.new_session_screen(app.get_main_screen)

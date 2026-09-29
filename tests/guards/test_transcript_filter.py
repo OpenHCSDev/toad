@@ -20,7 +20,7 @@ def test_deleted_scan_flags_and_external_projection_probes():
                 if path.name != 'transcript_filter.py':
                     assert ast.unparse(node) != 'self.filter.overlay'
                     assert ast.unparse(node) != 'owner.filter.overlay'
-                elif node.attr in {'_loading', '_advancing'}:
+                elif node.attr in {'_loading', '_advancing', '_generation', '_selected_categories', '_prefetch_distance'}:
                     raise AssertionError('Filter must ask history admission owner')
 
 
