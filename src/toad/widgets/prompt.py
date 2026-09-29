@@ -564,6 +564,11 @@ class Prompt(containers.VerticalGroup):
     def text(self) -> str:
         return self.prompt_text_area.text
 
+    @property
+    def supports_completion(self) -> bool:
+        """This composer owns whether its current input mode admits completion."""
+        return not self.simple_input and not self.shell_mode
+
     @text.setter
     def text(self, text: str) -> None:
         self.prompt_text_area.text = text

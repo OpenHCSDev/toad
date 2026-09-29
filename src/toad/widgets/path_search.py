@@ -173,7 +173,7 @@ class PathSearch(CompletionPopup):
         return None if prompt.simple_input else cls(prompt.project_path).data_bind(root=Prompt.project_path)
 
     def admitted(self) -> bool:
-        return not self.prompt.shell_mode
+        return self.prompt.supports_completion
 
     def watch_root(self) -> None:
         self.invalidate_paths()

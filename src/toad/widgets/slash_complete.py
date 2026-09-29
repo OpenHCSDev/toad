@@ -93,7 +93,7 @@ class SlashComplete(CompletionPopup):
         return cls().data_bind(slash_commands=Prompt.slash_commands)
 
     def admitted(self) -> bool:
-        return not self.prompt.simple_input and not self.prompt.shell_mode
+        return self.prompt.supports_completion
 
     @on(Completed)
     def insert_command(self, event: Completed) -> None:

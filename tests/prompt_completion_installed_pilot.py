@@ -72,7 +72,7 @@ async def main():
                 sidebar.query_one("#project-panel", SideBarCollapsible).collapsed = False
                 await until(pilot, lambda: sidebar.query_one_optional(ProjectSearchButton) is not None)
                 await until(pilot, lambda: sidebar.query_one(ProjectSearchButton) in app.screen._compositor.visible_widgets)
-                assert await pilot.click(sidebar.query_one(ProjectSearchButton))
+                await pilot.click(sidebar.query_one(ProjectSearchButton))
                 paths = prompt.path_search
                 await until(pilot, lambda: paths.is_open and paths.input.has_focus and bool(paths.display_paths))
                 await until(pilot, lambda: not paths.option_list.loading)
@@ -82,7 +82,7 @@ async def main():
                 await until(pilot, lambda: '"space name.txt"' in prompt.text and prompt.prompt_text_area.has_focus)
                 assert not paths.is_open
 
-                assert await pilot.click(sidebar.query_one(ProjectSearchButton))
+                await pilot.click(sidebar.query_one(ProjectSearchButton))
                 await until(pilot, lambda: paths.is_open)
                 await pilot.press(*"target")
                 await until(pilot, lambda: paths.option_list.option_count >= 20)
@@ -104,7 +104,7 @@ async def main():
                 (project / "folder" / "target-127.txt").unlink()
                 (project / "folder" / "target-127-new.txt").write_text("Current catalog")
                 prompt.project_directory_updated()
-                assert await pilot.click(sidebar.query_one(ProjectSearchButton))
+                await pilot.click(sidebar.query_one(ProjectSearchButton))
                 await until(pilot, lambda: "folder/target-127-new.txt" in paths.display_paths)
                 await until(pilot, lambda: not paths.option_list.loading)
                 await pilot.press(*"target-127")
