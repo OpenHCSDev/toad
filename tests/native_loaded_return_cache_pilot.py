@@ -18,6 +18,8 @@ from viewport_recent_tabs_pilot import settled
 from toad.screens.main import MainScreen
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.conversation import Conversation
+from toad.widgets.conversation import TurnActivity
+from toad.widgets.throbber import Throbber
 from toad.widgets.transcript_history import TranscriptFragmentView
 from textual.widget import Widget
 from textual.content import Content
@@ -299,6 +301,10 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
         held = asyncio.create_task(agents[1].send_prompt("ACTIVE_GAMMA_RETURN"))
         await until(pilot, entered.is_set)
         await until(pilot, lambda: agents[1].current_turn.busy)
+        beta_view = sources[0].conversation
+        assert not beta_view.turns.owner.busy
+        assert not beta_view.query_one(TurnActivity).display
+        assert not beta_view.query_one(Throbber).busy
         active_started = perf_counter()
         active_frames = await click_session(app, pilot, sources[1])
         active_return_ms = (perf_counter() - active_started) * 1000
@@ -323,6 +329,14 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
         release.set()
         await asyncio.wait_for(held, 25)
         await until(pilot, lambda: not agents[1].current_turn.busy)
+        await until(pilot, lambda: not sources[1].conversation.turns.owner.busy)
+        settled_view = sources[1].conversation
+        assert not settled_view.query_one(TurnActivity).display
+        assert not settled_view.query_one(Throbber).busy
+        await click_session(app, pilot, sources[0])
+        await click_session(app, pilot, sources[1])
+        assert not sources[1].conversation.query_one(TurnActivity).display
+        assert not sources[1].conversation.query_one(Throbber).busy
         assert len(requests) == native_calls + 1
         assert app.screen is frame and app._exception is None
         Path(os.environ["NATIVE_RETURN_RECEIPT"]).write_text(json.dumps(records,indent=2))

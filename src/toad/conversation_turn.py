@@ -1,11 +1,13 @@
 """Turn permissions and ordered ownership, independent of widget presentation."""
 from abc import abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from agent_comms.declared_family import DeclaredFamily
 
 
 class TurnOwner(DeclaredFamily, affix="Turn"):
     managed_id = None
+    activity = ""
+    started_at = None
 
     @property
     @abstractmethod
@@ -26,6 +28,9 @@ class TurnOwner(DeclaredFamily, affix="Turn"):
     def matches_settlement(self, turn_id) -> bool:
         return not turn_id
 
+    def with_activity(self, activity: str) -> "TurnOwner":
+        return ActivityTurn(activity) if activity else self
+
 
 class NoTurn(TurnOwner):
     busy = False
@@ -38,13 +43,29 @@ class ClientTurn(TurnOwner):
 
 
 @dataclass(frozen=True)
+class ActivityTurn(TurnOwner):
+    """A local operation owns its visible activity until it finishes."""
+    activity: str
+    busy = True
+    session_state = "busy"
+
+    def with_activity(self, activity: str) -> TurnOwner:
+        return replace(self, activity=activity) if activity else ClientTurn()
+
+
+@dataclass(frozen=True)
 class AgentTurn(TurnOwner):
     managed_id: str | None = None
+    activity: str = "Thinking…"
+    started_at: float | None = None
     busy = True
     session_state = "busy"
 
     def matches_settlement(self, turn_id) -> bool:
         return self.managed_id == turn_id
+
+    def with_activity(self, activity: str) -> "AgentTurn":
+        return replace(self, activity=activity or "Thinking…")
 
 
 class ConversationTurn:
@@ -82,10 +103,16 @@ class ConversationTurn:
         return True
 
     def start(self, message, agent) -> TurnOwner | None:
-        if not self.accept(message, agent) or message.update.turn_id == self.managed_id:
+        if not self.accept(message, agent):
+            return None
+        owner = (agent.current_turn if agent is not None and agent.presentation.uses_managed_turns
+                 else AgentTurn(message.update.turn_id,
+                                message.update.activity_detail or "Thinking…",
+                                message.update.started_at))
+        if owner.managed_id != message.update.turn_id or owner == self.owner:
             return None
         previous = self.owner
-        self.owner = AgentTurn(message.update.turn_id)
+        self.owner = owner
         return previous
 
     def settle(self, message, agent) -> TurnOwner | None:
@@ -94,3 +121,10 @@ class ConversationTurn:
         previous = self.owner
         self.owner = ClientTurn()
         return previous
+
+    def describe(self, activity: str, agent) -> None:
+        if (agent is not None and agent.presentation.uses_managed_turns
+                and agent.current_turn.managed_id is not None):
+            self.owner = agent.describe_turn(activity)
+        else:
+            self.owner = self.owner.with_activity(activity)

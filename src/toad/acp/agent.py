@@ -115,7 +115,7 @@ class Agent(AgentBase):
             self.server.expose_instance(owner.resolve(self))
         self.session = AgentSession(self, session_pk)
         self.done_event = asyncio.Event()
-        self._active_turn_id: str | None = None
+        self._active_turn: AgentTurn | None = None
         self._turn_lifecycle_sequence = 0
         self._private_cursor = ProjectionAttachment()
         self._private_cursor_sequence = 0
@@ -247,7 +247,13 @@ class Agent(AgentBase):
 
     @property
     def current_turn(self):
-        return AgentTurn(self._active_turn_id) if self._active_turn_id else ClientTurn()
+        return self._active_turn or ClientTurn()
+
+    def describe_turn(self, activity: str) -> AgentTurn:
+        if self._active_turn is None:
+            raise ValueError("No active managed turn owns activity")
+        self._active_turn = self._active_turn.with_activity(activity)
+        return self._active_turn
 
     async def retire_surface(self, surface):
         if self.controller.surface.owns(surface):

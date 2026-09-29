@@ -99,7 +99,7 @@ class AgentInputSubmission(InputSubmission):
             return
         waiting = 'Waiting for replies…' if self.text.startswith(('@', '#', '!relay ')) else 'Thinking…'
         view.post_message(messages.SessionUpdate(state='busy', summary=waiting.rstrip('…')))
-        view.activity = waiting
+        view.turns.describe(waiting, view.agent)
         await asyncio.sleep(0)
 
     async def execute(self, owner):
@@ -190,7 +190,6 @@ class SubmissionExecution:
         local = not managed
         reason = None
         if local:
-            view.busy_count += 1
             view.turns.owner = AgentTurn()
         try:
             if view.queue_supported:
@@ -202,15 +201,11 @@ class SubmissionExecution:
                 from toad.widgets.conversation import INTERNAL_EROR
                 from toad.widgets.markdown_note import MarkdownNote
                 view.turns.owner = ClientTurn()
-                view.activity = ''
-                view.activity_started_at = None
                 self.owner.restore_draft(self.submission.text)
                 await view.post(MarkdownNote(INTERNAL_EROR.replace('$ERROR', str(error) or 'no details were provided'),
                                              classes='-stop-reason'))
         finally:
             self.owner.finish(self)
-            if local and self.current:
-                view.busy_count -= 1
         if self.current and local:
             view.call_later(self.complete, reason)
 
