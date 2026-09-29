@@ -54,6 +54,8 @@ from toad.session_tracker import (
 )
 from toad.settings import PreferenceChange
 from toad.sidebar_layout import SidebarLayout
+from toad.clipboard import Clipboard
+from toad.tab_order import TabOrder
 
 if TYPE_CHECKING:
     from toad.db import DB
@@ -364,7 +366,7 @@ class ToadApp(App, inherit_bindings=False):
         self._initial_mode = mode
         self._initial_agent_session_id = agent_session_id
         self.version_meta: VersionMeta | None = None
-        self._supports_pyperclip: bool | None = None
+        self.clipboard_transport = Clipboard.for_platform()
         self._terminal_title_flash_timer: Timer | None = None
 
         self.session_update_signal: Signal[tuple[str, SessionDetails | None]] = Signal(
@@ -377,9 +379,6 @@ class ToadApp(App, inherit_bindings=False):
         self._file_preview_modes: dict[Path, str] = {}
         self._file_preview_return: dict[str, str] = {}
         self._file_preview_index = 0
-        self._open_tab_order: list[str] = []
-        self._tab_history: list[str] = []
-        self._tab_history_index = -1
         self._sidebar_snapshot = None
         self.pending_thread_actions: dict[str, str] = {}
         self.thread_actions_changed: Signal[None] = Signal(self, "thread-actions-changed")
@@ -390,7 +389,9 @@ class ToadApp(App, inherit_bindings=False):
         self._atomic_mode_switch = False
         self._pending_mode_switch: str | None = None
         self.open_tabs_changed: Signal[None] = Signal(self, "open-tabs-changed")
-        self.tab_history_changed: Signal[None] = Signal(self, "tab-history-changed")
+        self.tab_order = TabOrder(
+            self, lambda mode, index: self.switch_mode(mode, history_index=index)
+        )
         self.coordination_facts: WeakKeyDictionary[object, CoordinationChangedUpdate] = WeakKeyDictionary()
         self._coordination_wire = None
         self._coordination_route = None
@@ -485,33 +486,7 @@ class ToadApp(App, inherit_bindings=False):
         return self._session_tracker
 
     def copy_to_clipboard(self, text: str) -> None:
-        """Override copy to clipboard to use pyperclip first, then OSC 52.
-
-        Args:
-            text: Text to copy.
-        """
-        if self._supports_pyperclip is None:
-            try:
-                import pyperclip
-            except ImportError:
-                self._supports_pyperclip = False
-            else:
-                self._supports_pyperclip = True
-
-        if self._supports_pyperclip:
-            import pyperclip
-
-            try:
-                pyperclip.copy(text)
-            except Exception:
-                pass
-            else:
-                # OSC 52 is a fallback, not a second copy operation. Some
-                # terminals truncate long escape strings and would overwrite
-                # the complete native clipboard with only a short prefix.
-                self._clipboard = text
-                return
-        super().copy_to_clipboard(text)
+        self.clipboard_transport = self.clipboard_transport.copy(self, text)
 
     def update_terminal_title(self) -> None:
         """Update the terminal title."""
@@ -763,7 +738,7 @@ class ToadApp(App, inherit_bindings=False):
         self, get_screen: Callable[[], Screen]
     ) -> SessionDetails:
         session_details = self._session_tracker.new_session()
-        self._open_tab_order.append(session_details.mode_name)
+        self.tab_order.open(session_details.mode_name)
         self.update_show_sessions()
         self.session_update_signal.publish((session_details.mode_name, session_details))
 
@@ -797,51 +772,6 @@ class ToadApp(App, inherit_bindings=False):
                     screen.capture_navigation()
                     break
         return AwaitComplete(self._switch_mode_ready(mode, history_index=history_index))
-
-    def _tab_history_target(self, direction: int) -> tuple[int, str] | None:
-        """The next still-open view in the user's visited-tab history."""
-        valid = set(self._open_tab_order)
-        index = self._tab_history_index + direction
-        while 0 <= index < len(self._tab_history):
-            mode = self._tab_history[index]
-            if mode in valid and mode in self._screen_stacks:
-                return index, mode
-            index += direction
-        return None
-
-    def can_navigate_tab_history(self, direction: int) -> bool:
-        return self._tab_history_target(direction) is not None
-
-    def navigate_tab_history(self, direction: int) -> None:
-        if target := self._tab_history_target(direction):
-            index, mode = target
-            self.switch_mode(mode, history_index=index)
-
-    def _record_tab_visit(self, mode: str, history_index: int | None) -> None:
-        if mode not in self._open_tab_order:
-            return
-        if (history_index is not None and 0 <= history_index < len(self._tab_history)
-                and self._tab_history[history_index] == mode):
-            self._tab_history_index = history_index
-        else:
-            del self._tab_history[self._tab_history_index + 1:]
-            self._tab_history.append(mode)
-            self._tab_history_index = len(self._tab_history) - 1
-        self.tab_history_changed.publish(None)
-
-    def _prune_tab_history(self) -> None:
-        """Closing a tab removes every visit to it without changing live tabs."""
-        valid = set(self._open_tab_order)
-        retained = []
-        cursor = -1
-        for index, mode in enumerate(self._tab_history):
-            if mode in valid:
-                retained.append(mode)
-                if index <= self._tab_history_index:
-                    cursor = len(retained) - 1
-        if retained != self._tab_history:
-            self._tab_history, self._tab_history_index = retained, cursor
-            self.tab_history_changed.publish(None)
 
     def delay_update(self, delay: float = 0.05) -> None:
         # Textual's switch_mode uses a timed repaint mask. This application
@@ -924,7 +854,7 @@ class ToadApp(App, inherit_bindings=False):
                 if isinstance(screen, SessionView) and screen.is_current:
                     screen.present_navigation()
                 if mode != previous_mode:
-                    self._record_tab_visit(mode, history_index)
+                    self.tab_order.record_visit(mode, history_index)
         finally:
             if self._pending_mode_switch == mode:
                 self._pending_mode_switch = None
@@ -1025,7 +955,7 @@ class ToadApp(App, inherit_bindings=False):
 
         self.add_mode(mode_name, make_screen)
         self._comms_modes[key] = mode_name
-        self._open_tab_order.append(mode_name)
+        self.tab_order.open(mode_name)
         self.open_tabs_changed.publish(None)
         self.update_show_sessions()
         await self.switch_mode(mode_name)
@@ -1058,10 +988,7 @@ class ToadApp(App, inherit_bindings=False):
         self._file_preview_modes[path] = mode_name
         # A new preview belongs beside the tab that opened it. Reusing a file
         # changes focus only, and never shuffles an existing tab unexpectedly.
-        selected = self.current_mode
-        insertion = (self._open_tab_order.index(selected) + 1
-                     if selected in self._open_tab_order else len(self._open_tab_order))
-        self._open_tab_order.insert(insertion, mode_name)
+        self.tab_order.open(mode_name, after=self.current_mode)
         self.open_tabs_changed.publish(None)
         self.update_show_sessions()
         await self.switch_mode(mode_name)
@@ -1069,11 +996,9 @@ class ToadApp(App, inherit_bindings=False):
 
     async def return_from_preview(self, mode_name: str) -> None:
         """Return to the last originating tab, or another still-open view."""
-        fallback = next((mode for mode in reversed(self._open_tab_order)
-                         if mode != mode_name and mode in self._screen_stacks), "store")
         target = self._file_preview_return.get(mode_name)
         if target is None or target == mode_name or target not in self._screen_stacks:
-            target = fallback
+            target = self.tab_order.previous(mode_name)
         await self.switch_mode(target)
 
     @property
@@ -1103,7 +1028,7 @@ class ToadApp(App, inherit_bindings=False):
         tabs.extend(OpenTab(mode, f"⌛ @{pending.target}")
                     for mode, pending in self._pending_thread_modes.items())
         by_mode = {tab.mode_name: tab for tab in tabs}
-        return tuple(by_mode[mode] for mode in self._open_tab_order if mode in by_mode)
+        return self.tab_order.project(by_mode)
 
     @cached_property
     def shared_channels(self):
@@ -1297,7 +1222,7 @@ class ToadApp(App, inherit_bindings=False):
         pending = PendingThreadTab(owner_mode, root, target, return_mode,
                                    asyncio.get_running_loop().create_future())
         self._pending_thread_modes[mode] = pending
-        self._open_tab_order.append(mode)
+        self.tab_order.open(mode)
         self.open_tabs_changed.publish(None)
         self.update_show_sessions()
         screen.call_after_first_frame(screen, self.pending_tab_shells.prepare)
@@ -1623,9 +1548,8 @@ class ToadApp(App, inherit_bindings=False):
                 )
                 await self.switch_mode(destination)
             del self._pending_thread_modes[mode_name]
-            self._open_tab_order.remove(mode_name)
+            self.tab_order.close({mode_name})
             await self.remove_mode(mode_name)
-            self._prune_tab_history()
             self.open_tabs_changed.publish(None)
             self.update_show_sessions()
             if not pending.completion.done():
@@ -1637,8 +1561,7 @@ class ToadApp(App, inherit_bindings=False):
                 await self.return_from_preview(mode_name)
             del self._file_preview_modes[path]
             self._file_preview_return.pop(mode_name, None)
-            self._open_tab_order.remove(mode_name)
-            self._prune_tab_history()
+            self.tab_order.close({mode_name})
             self.open_tabs_changed.publish(None)
             self.update_show_sessions()
             await self.remove_mode(mode_name)
@@ -1661,8 +1584,7 @@ class ToadApp(App, inherit_bindings=False):
                     else:
                         await self.switch_mode("store")
                 del self._comms_modes[comms_key]
-                self._open_tab_order.remove(mode_name)
-                self._prune_tab_history()
+                self.tab_order.close({mode_name})
                 self.open_tabs_changed.publish(None)
                 self.update_show_sessions()
                 await self.remove_mode(mode_name)
@@ -1699,18 +1621,8 @@ class ToadApp(App, inherit_bindings=False):
             else:
                 await self.switch_mode("store")
         else:
-            ordered_modes = [
-                details.mode_name for details in session_tracker.ordered_sessions
-            ]
-            current_index = ordered_modes.index(mode_name)
-            previous_modes = ordered_modes[:current_index]
-            next_mode = next(
-                (
-                    candidate
-                    for candidate in reversed(previous_modes)
-                    if candidate not in closing_modes
-                ),
-                remaining_modes[0],
+            next_mode = self.tab_order.previous(
+                mode_name, eligible=remaining_modes, excluded=closing_modes
             )
             await self.switch_mode(next_mode)
 
@@ -1719,8 +1631,7 @@ class ToadApp(App, inherit_bindings=False):
         for key, comms_mode in list(self._comms_modes.items()):
             if comms_mode in closing_modes:
                 del self._comms_modes[key]
-        self._open_tab_order[:] = [mode for mode in self._open_tab_order if mode not in closing_modes]
-        self._prune_tab_history()
+        self.tab_order.close(closing_modes)
         self.open_tabs_changed.publish(None)
         self.update_show_sessions()
         # Teardown of a large hidden transcript can await many widget exits.

@@ -148,9 +148,7 @@ async def main():
             await wait_for(pilot, lambda: app.current_mode == preview)
             await app.close_session_mode(preview)
             assert app.current_mode == first
-            assert preview not in app._tab_history
             await app.close_session_mode(channel)
-            assert channel not in app._tab_history
             assert {tab.mode_name for tab in app.open_tabs} == {first, second}
             assert first_screen.conversation.prompt.text == "Preserve first draft"
 
@@ -170,6 +168,23 @@ async def main():
             assert tabs.scroll_x == tabs.max_scroll_x
             tabs.horizontal_scrollbar.action_scroll_up()
             await wait_for(pilot, lambda: tabs.scroll_x < tabs.max_scroll_x)
+
+            # Closing an intervening preview leaves two visits to the same
+            # retained mode. Back must advance its cursor even with no switch.
+            await app.switch_mode(first)
+            transient_path = root / "transient.txt"
+            transient_path.write_text("A removable history visit\n")
+            transient = await app.open_file_preview(transient_path)
+            await app.switch_mode(first)
+            await app.close_session_mode(transient)
+            target = app.tab_order.history_target(-1)
+            assert target is not None and target[1] == first
+            await pilot.pause()
+            assert await pilot.click("#tab-back")
+            await wait_for(pilot, lambda: app.tab_order.history_target(+1) == (target[0] + 1, first))
+            assert app.current_mode == first
+            assert await pilot.click("#tab-back")
+            await wait_for(pilot, lambda: app.current_mode != first)
             assert app._exception is None
         await asyncio.get_running_loop().shutdown_default_executor()
     print("tab history: Back/Forward, branches, closed tabs, drafts, and horizontal scroll passed")

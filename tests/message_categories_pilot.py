@@ -146,7 +146,7 @@ async def main():
             assert all((block.display for block in live.values()))
             assert all((leaf.display for leaf in fragments.values()))
             assert (
-                view.prompt.text == "keep draft" and other_mode in app._open_tab_order
+                view.prompt.text == "keep draft" and other_mode in app.tab_order.names
             )
             assert app._exception is None
         await asyncio.get_running_loop().shutdown_default_executor()
