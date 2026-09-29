@@ -1,0 +1,70 @@
+{
+  "product": {
+    "deleted": 445,
+    "added": 294
+  },
+  "tests": {
+    "deleted": 3,
+    "added": 319
+  },
+  "docs": {
+    "deleted": 0,
+    "added": 54
+  },
+  "owners": [
+    {
+      "path": "src/toad/app.py",
+      "name": "ToadApp",
+      "before": 1725,
+      "after": 1725
+    },
+    {
+      "path": "src/toad/path_search_ranking.py",
+      "name": "PathSearchRanking",
+      "before": null,
+      "after": 22
+    },
+    {
+      "path": "src/toad/screens/main.py",
+      "name": "MainScreen",
+      "before": 475,
+      "after": 475
+    },
+    {
+      "path": "src/toad/slash_command_results.py",
+      "name": "SlashCommandResults",
+      "before": null,
+      "after": 23
+    },
+    {
+      "path": "src/toad/widgets/model_switcher.py",
+      "name": "ModelSwitcher",
+      "before": 202,
+      "after": 193
+    },
+    {
+      "path": "src/toad/widgets/path_search.py",
+      "name": "PathSearch",
+      "before": 379,
+      "after": 328
+    },
+    {
+      "path": "src/toad/widgets/prompt.py",
+      "name": "Prompt",
+      "before": 468,
+      "after": 421
+    },
+    {
+      "path": "src/toad/widgets/prompt_popup.py",
+      "name": "PromptPopup",
+      "before": null,
+      "after": 57
+    },
+    {
+      "path": "src/toad/widgets/slash_complete.py",
+      "name": "SlashComplete",
+      "before": 171,
+      "after": 114
+    }
+  ]
+}
