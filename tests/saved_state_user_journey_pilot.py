@@ -24,6 +24,7 @@ from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.comms_fork_dialog import ForkDialog
 from toad.widgets.comms_menu import ContextMenuItem
 from toad.widgets.comms_sidebar import ChannelGroup, CommsRow
+from toad.widgets.message_notifications import MessageNotifications
 from toad.widgets.session_tabs import SessionLabel
 
 
@@ -121,10 +122,10 @@ async def submit_editor(pilot, editor, text):
     await pilot.press("enter")
 
 
-async def click_thread(app, pilot, name):
-    sidebar = await wait_channel_roster(app, pilot, "#team")
+async def click_thread(app, pilot, name, channel_name="#team"):
+    sidebar = await wait_channel_roster(app, pilot, channel_name)
     group = next(group for group in sidebar.query(ChannelGroup)
-                 if group.row.target_name == "#team")
+                 if group.row.target_name == channel_name)
     if group.expanded is False:
         assert await pilot.click(group.disclosure)
         await pilot.pause()
@@ -269,6 +270,12 @@ async def fork_and_first_input(app, pilot, comms, first, requests):
     assert sum(row["type"] == "compaction" for row in rows) == 0
     assert len(requests) == before + 1, "Fork input replayed"
     print("PHYSICAL_FORK_DIALOG_NORMAL_NATIVE_FIRST_ANSWER_PARENT_PRESERVED", flush=True)
+    await click_thread(app, pilot, "journey-child", "#any")
+    await until(pilot, lambda: f"NATIVE_RESPONSE_{before + 1}" in conversation_paint(app.screen))
+    assert len(requests) == before + 1, "Opening the fork replayed its first input"
+    assert parent_path.read_bytes() == original
+    print("FORK_FIRST_OPEN_SAVED_NATIVE_ANSWER_ACTUAL_PAINT_NO_REPLAY", flush=True)
+    await click_tab(app, pilot, first.id)
 
 
 async def channel_reply_feedback(app, pilot, comms, channel, first, entered, release,
@@ -284,9 +291,20 @@ async def channel_reply_feedback(app, pilot, comms, channel, first, entered, rel
     participants = chat.query_one(ChannelParticipants)
     await until(pilot, lambda: "gamma" in participants.names.render().plain)
     assert comms.registry.require("gamma").executing
+    await until(pilot, lambda: "Responding" in screen_paint(app))
     print("CHANNEL_NOTIFICATION_ACTUAL_NATIVE_WORKING_STATUS", flush=True)
     release.set()
     await until(pilot, lambda: f"NATIVE_RESPONSE_{before + 1}" in screen_paint(app))
+    await until(pilot, lambda: any("Responded" in str(feedback.title)
+                                 for feedback in chat.query(MessageNotifications)))
+    feedback = next(feedback for feedback in chat.query(MessageNotifications)
+                    if "Responded" in str(feedback.title))
+    title = feedback.query_one("CollapsibleTitle")
+    title.scroll_visible(animate=False, immediate=True)
+    await pilot.pause()
+    assert await pilot.click(title), "Notification disclosure was not physically clickable"
+    await until(pilot, lambda: "gamma: Responded" in screen_paint(app))
+    print("CHANNEL_RESPONDED_NOTIFICATION_DISCLOSURE_ACTUAL_PAINT", flush=True)
     await until(pilot, lambda: len(requests) == before + 2)
     await until(pilot, lambda: comms.registry.require("beta").executing is False)
     await until(pilot, lambda: comms.registry.require("gamma").executing is False)

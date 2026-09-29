@@ -118,3 +118,32 @@ real journey using existing fixture. Remaining explicit strengthening: child
 first-open paint and notification detail assertions in this same journey.
 Parent latest15603ed adds post-welcome fence and owns actual live gate. This
 passing d511 receipt does not attest different product bytes or final latency.
+
+## Final assigned journey closure
+
+continuous-fork-open-notification.log PASS exit0 on the same installed
+d511/core77c2/native d396/Textual1738 pair. All previous continuous predicates
+remain, plus physical #any child-row click -> actual saved native answer paint
+without another model call or parent mutation; actual Responding channel
+feedback while the real native reply is held -> Responded -> physical
+notification disclosure -> gamma: Responded compositor paint. Original author
+Beta automatically observes Gamma reply in its real next native request; no
+manual inbox/prompt and no further requests after settling. Six bounded local
+provider requests total (two saved Beta, one Gamma direct, one child first input,
+one Gamma channel reply, one Beta automatic decision); fixture enforces each
+phase count and no replay/ping-pong. No live-user thread/provider used.
+
+Complete changed tests/helpers: saved_state_user_journey_pilot.py,
+l0a_native_installed_pilot.py (pre-App prepare callback + all ACP logs),
+native_session_retention_pilot.py (selected logical-reader crop). Latest archive
+refactor-audit ownership/ratchet applied. closure-ratchet.json measures exact
+touched source using canonical skill measures: BooleanChainTerms 0->0 each;
+ForeignAbsenceProbe new pilot1->0, shared crop3->3, l0a23->23. No new class
+crosses500; ReaderCheckpoint remains a small correct owner. No new product
+state/codec/registry/compatibility path. Deleted the stale crop lookup in place.
+
+Retained all three final actual ACP logs with 01_59 timestamps, including child
+first-open. Owned generated runtime scratch cleaned by fixture after receipt
+copy; tiny PR body removed after publication. Parent owns03ed post-welcome fence
+and live gate; this staged d511 receipt does not certify other bytes, every
+UI/error surface, final latency, or a whole-product zero-debt claim.
