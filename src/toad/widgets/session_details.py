@@ -69,7 +69,15 @@ class SessionDetails(Collapsible):
         elif presentation is not None:
             parts.append(presentation.summary.partition("\n")[0] or "Ready")
             if presentation.notifications:
-                parts.append(f"{len(presentation.notifications)} recent")
+                latest = next(
+                    (notice for notice in presentation.notifications if notice.message is not None),
+                    None,
+                )
+                if latest is not None:
+                    source = latest.message
+                    parts.append(f"Latest inbound {source.target} from @{source.sender}: {latest.state}")
+                if len(presentation.notifications) > 1:
+                    parts.append(f"{len(presentation.notifications)} recent")
         parts.extend(self.history_details.summary)
         attention |= self.history_details.attention
         if self.delivery is not None:
