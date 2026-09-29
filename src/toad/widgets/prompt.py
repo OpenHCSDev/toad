@@ -362,7 +362,7 @@ See on-screen instructions for details.
         if self.selection.is_empty and not select:
             row, _column = self.selection[0]
             if row == 0:
-                self.post_message(messages.HistoryMove(-1, self.shell_mode, self.text))
+                self.post_message(messages.HistoryMove.for_mode(-1, self.shell_mode, self.text))
                 return
         super().action_cursor_up(select)
 
@@ -370,7 +370,7 @@ See on-screen instructions for details.
         if self.selection.is_empty and not select:
             row, _column = self.selection[0]
             if row == (self.wrapped_document.height - 1):
-                self.post_message(messages.HistoryMove(+1, self.shell_mode, self.text))
+                self.post_message(messages.HistoryMove.for_mode(+1, self.shell_mode, self.text))
                 return
         super().action_cursor_down(select)
 

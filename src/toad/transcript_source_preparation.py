@@ -53,7 +53,7 @@ class TranscriptSourcePreparation:
 
     def _warm_pages(self) -> None:
         if (self.loader is None or not self.is_mounted or not self.state.accepts_publication or not self.screen.is_current
-                or not self._selected_categories):
+                or not self.selected_categories):
             return
         reader = self._reader()
         edges = (self.pages[0].page.before if self.pages[0].page.has_older else None,
@@ -64,7 +64,7 @@ class TranscriptSourcePreparation:
         elif travel > 0:
             edges = (None, edges[1])
         rounds = 1 + self.window.document_viewport.lookahead.ahead_rows(self.window.size.height) // max(1, self.window.size.height // self.budget.admission_items)
-        intent = edges, rounds, self._selected_categories
+        intent = edges, rounds, self.selected_categories
         if intent == self._prefetch_intent:
             return
         self._prefetch_intent = intent
@@ -82,7 +82,7 @@ class TranscriptSourcePreparation:
 
 
     @property
-    def _prefetch_distance(self) -> int:
+    def prefetch_distance(self) -> int:
         """Start background reads before the earlier edge enters the viewport."""
         rows = self.window.size.height
         return max(4, rows // 2) + self.window.document_viewport.lookahead.ahead_rows(rows)

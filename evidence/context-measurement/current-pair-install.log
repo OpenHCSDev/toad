@@ -1,0 +1,13 @@
+Using Python 3.14.2 environment at: .artifacts/installed
+Resolved 2 packages in 326ms
+   Building agent-comms @ file:///home/ts/wt/comms-compaction-observation-sol-20260929
+   Building batrachian-toad @ file:///home/ts/wt/toad-context-measurement-sol-20260929
+      Built agent-comms @ file:///home/ts/wt/comms-compaction-observation-sol-20260929
+      Built batrachian-toad @ file:///home/ts/wt/toad-context-measurement-sol-20260929
+Prepared 2 packages in 477ms
+Uninstalled 2 packages in 28ms
+Installed 2 packages in 8ms
+ - agent-comms==0.1.0 (from file:///home/ts/wt/comms-owner-startup-sol-20260929)
+ + agent-comms==0.1.0 (from file:///home/ts/wt/comms-compaction-observation-sol-20260929)
+ - batrachian-toad==0.6.20 (from file:///home/ts/wt/toad-immediate-fork-open-sol-20260929)
+ + batrachian-toad==0.6.20 (from file:///home/ts/wt/toad-context-measurement-sol-20260929)

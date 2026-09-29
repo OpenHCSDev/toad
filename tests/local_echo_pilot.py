@@ -26,7 +26,7 @@ async def main():
                 await gate.wait()
                 return True
 
-            conversation.prompt_history.append = slow_append
+            conversation.input_histories.prompt.append = slow_append
             conversation.prompt.text = "Show this before persistence finishes"
             conversation.prompt.focus()
             sending = asyncio.create_task(pilot.press("enter"))
