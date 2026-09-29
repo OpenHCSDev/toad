@@ -96,6 +96,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     await until(pilot, lambda: "NATIVE_RESPONSE_2" in conversation_paint(app.screen))
     assert "SAVED_READER_1" in conversation_paint(app.screen)
     print("SAVED_HISTORY_STARTUP_ACTUAL_PAINT", flush=True)
+    await independent_source_publication(agent, comms)
     sidebar = await wait_channel_roster(app, pilot, "#team")
     channel_row = next(row for row in sidebar.query(CommsRow) if row.target_name == "#team")
     channel_row.scroll_visible(animate=False, immediate=True)
@@ -120,6 +121,25 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     await fork_and_first_input(app, pilot, comms, first, entered, release, hold_next, requests)
     await channel_reply_feedback(app, pilot, comms, channel, first, entered, release,
                                  hold_next, requests)
+
+
+async def independent_source_publication(agent, comms):
+    """A real status-store writer cannot monopolize the native read binding."""
+    from agent_comms.goal_waits import GoalWaits
+
+    observation = None
+    try:
+        with GoalWaits(comms.root / GoalWaits.filename).locked():
+            observation = asyncio.create_task(agent.get_thread_presentation())
+            await asyncio.sleep(.2)
+            assert not observation.done(), "Actual held status read did not wait for its store"
+            page = await asyncio.wait_for(agent.get_transcript_page(), 3)
+            assert page.events and page.after.session_file
+            assert not observation.done(), "Status-store lock was released prematurely"
+            print("ACTUAL_NATIVE_PAGE_DELIVERED_WHILE_STATUS_STORE_HELD", flush=True)
+    finally:
+        if observation is not None:
+            await observation
 
 
 async def submit_editor(pilot, editor, text):
