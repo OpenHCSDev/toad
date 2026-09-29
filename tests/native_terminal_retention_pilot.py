@@ -33,7 +33,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
         "-c", "sleep 1; printf 'ACTIVE_THEN_DETACHED\\n'"]))["terminalId"]
     execution = agent.controller.terminals.require(first)
     original_state = execution.state
-    await app.new_session_screen(app.get_main_screen)
+    await app.session_navigation.new(app.get_main_screen)
     assert agent.controller.surface.target is None
     assert not app.get_screen_stack(mode)[0].query(Conversation)
     second = (await rpc("terminal/create", command="sh", args=[

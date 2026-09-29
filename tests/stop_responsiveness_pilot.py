@@ -1,4 +1,5 @@
 """Stop waits off the UI loop, survives view closure, and reports failures."""
+from toad.navigation_target import NavigationContext
 
 from toad.navigation_target import DirectTarget, channel_target
 
@@ -52,11 +53,9 @@ async def main():
             async with app.run_test(size=(125, 40)) as pilot:
                 await pilot.pause()
                 source = app.selected_mode
-                other = (await app.new_session_screen(app.get_main_screen)).mode_name
-                dm = await app.open_comms_session(owner_mode=other, project_path=root,
-                    me="actor", target=DirectTarget("victim"))
-                channel = await app.open_comms_session(owner_mode=other, project_path=root,
-                    me="actor", target=channel_target("#all"))
+                other = (await app.session_navigation.new(app.get_main_screen)).mode_name
+                dm = await DirectTarget("victim").open(NavigationContext(app, other, root, "actor"))
+                channel = await channel_target("#all").open(NavigationContext(app, other, root, "actor"))
                 await pilot.pause()
                 await app.switch_mode(source)
                 sidebar = app.screen.query_one(CommsSidebar)
@@ -75,7 +74,7 @@ async def main():
                     await pilot.click(stop)
                     await until(started.is_set)
                     await pilot.pause()
-                    assert app.pending_thread_actions["victim"] == "Stopping…"
+                    assert app.thread_actions.pending["victim"] == "Stopping…"
                     assert "Stopping…" in row.render().plain
                     # UI callbacks and keystrokes must complete before shutdown.
                     app.selected_session.conversation.prompt.focus()
@@ -85,18 +84,18 @@ async def main():
                     await pilot.pause()
                     await asyncio.wait_for(app.switch_mode(channel), 2)
                     await pilot.pause()
-                    app.invoke_thread_action(StopAction(), "victim", "actor")
+                    app.thread_actions.invoke(StopAction(), "victim", "actor")
                     await pilot.pause()
                     assert stopped == ["victim"]
                     assert not release.is_set()
-                    await asyncio.wait_for(app.close_session_mode(source), 2)
-                    assert "victim" in app.pending_thread_actions
+                    await asyncio.wait_for(app.session_navigation.close(source), 2)
+                    assert "victim" in app.thread_actions.pending
                     release.set()
-                    await until(lambda: not app.pending_thread_actions)
+                    await until(lambda: not app.thread_actions.pending)
                     assert comms.registry.status("victim").stopped
                     assert any("Stopped @victim" in message for message, _ in notices)
-                    app.invoke_thread_action(StopAction(), "refuses-stop", "actor")
-                    await until(lambda: not app.pending_thread_actions)
+                    app.thread_actions.invoke(StopAction(), "refuses-stop", "actor")
+                    await until(lambda: not app.thread_actions.pending)
                     assert comms.registry.status("refuses-stop").active
                     assert any(message == "Refused test stop" and severity == "error"
                                for message, severity in notices)

@@ -89,7 +89,7 @@ async def main() -> None:
         await pilot.pause()
         aligned(first, 3)
 
-        second_mode = (await app.new_session_screen(lambda: MainScreen(root))).mode_name
+        second_mode = (await app.session_navigation.new(lambda: MainScreen(root))).mode_name
         assert second_mode != first_mode
         second = app.screen
         assert isinstance(second, MainScreen)

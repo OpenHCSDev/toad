@@ -177,7 +177,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
         raise
     await pilot.resize_terminal(112, 34)
     await pilot.press('pagedown', 'pageup')
-    other = await app.new_session_screen(app.get_main_screen)
+    other = await app.session_navigation.new(app.get_main_screen)
     await pilot.pause()
     other_view = app.selected_session.conversation
     other_view.prompt.focus()
@@ -187,7 +187,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     await pilot.pause()
     returned = app.selected_session.conversation
     assert returned.visible_categories == frozenset({AgentCategory})
-    await app.close_session_mode(other.mode_name)
+    await app.session_navigation.close(other.mode_name)
     await choose(app, pilot, all_categories())
     returned.window.anchor()
     await until(pilot, lambda: 'SAVED_THOUGHT_2_059' in conversation_paint(app.screen), seconds=20)

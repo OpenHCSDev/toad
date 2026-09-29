@@ -249,7 +249,7 @@ class ConversationMarkdown(Markdown):
         event.stop()
         # Navigation may retire this widget. Its message pump must return before
         # the application waits for the departing conversation to be removed.
-        self.app.run_worker(partial(self.app.open_file_preview, path))
+        self.app.run_worker(partial(self.app.session_navigation.preview, path))
 
     @height_dependency(INDEPENDENT_HEIGHT)
     def process_layout(self, placements: list[WidgetPlacement]) -> list[WidgetPlacement]:

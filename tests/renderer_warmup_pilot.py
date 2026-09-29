@@ -66,7 +66,7 @@ async def main():
             prompt.focus()
             await pilot.press("h", "i")
             assert prompt.text == "hi"
-            other = await asyncio.wait_for(app.new_session_screen(app.get_main_screen), 3)
+            other = await asyncio.wait_for(app.session_navigation.new(app.get_main_screen), 3)
             await asyncio.wait_for(app.switch_mode(first), 3)
             await pilot.pause()
             assert other.mode_name != first and prompt.text == "hi"

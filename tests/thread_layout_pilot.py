@@ -46,7 +46,7 @@ async def main():
                 while not screen.query(ProjectDirectoryTree):
                     await pilot.pause(0.05)
             assert screen.query_one(ProjectDirectoryTree).path == root
-            other = await app.new_session_screen(lambda: MainScreen(root / 'other'))
+            other = await app.session_navigation.new(lambda: MainScreen(root / 'other'))
             await pilot.pause()
             assert app.screen.query_one('#thread-sidebar', SideBar).collapsed
             assert not app.screen.query(ProjectDirectoryTree)

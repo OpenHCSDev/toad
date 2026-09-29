@@ -66,13 +66,13 @@ async def main() -> None:
                     assert diff.patch == PATCH
                     path = current / "persistent-preview.py"
                     path.write_text(f"PERSISTENT_PREVIEW_{index} = 42\n")
-                    await app.open_file_preview(path)
+                    await app.session_navigation.preview(path)
                     preview = app.screen.query_one(FilePreview)
                     await asyncio.wait_for(preview.wait_ready(), 20)
                     content = preview.query_one(WorkerStatic)
                     assert content._prepared is not None
                     assert f"PERSISTENT_PREVIEW_{index}" in "\n".join(line.text for line in content._prepared.lines)
-                    await app.close_session_mode(app.selected_mode)
+                    await app.session_navigation.close(app.selected_mode)
                     read_source = f"def persistent_read_{index}():\n    return 42\n\n"
                     read_tool = await app.selected_session.conversation.post(ToolCall({
                         "toolCallId": f"persistent-read-{index}", "kind": "read", "title": "Read module.py",

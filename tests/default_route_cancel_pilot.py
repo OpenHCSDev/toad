@@ -1,6 +1,7 @@
 """An interrupted mounted USER send is not replayable while its worker survives."""
 
 from __future__ import annotations
+from toad.navigation_target import NavigationContext
 
 from toad.navigation_target import DirectTarget, channel_target
 
@@ -45,13 +46,7 @@ async def main() -> None:
             async with app.run_test(size=(105, 32)) as pilot:
                 await pilot.pause()
                 owner_mode = app.selected_mode
-                await app.open_comms_session(
-                    owner_mode=owner_mode,
-                    project_path=sandbox,
-                    me="user",
-                    target=DirectTarget("peer"),
-
-                )
+                await DirectTarget("peer").open(NavigationContext(app, owner_mode, sandbox, "user"))
                 view = app.screen.query_one(CommsChatView)
                 original_send = view._wire.messaging.send_user_message
                 started = threading.Event()
@@ -93,13 +88,7 @@ async def main() -> None:
                 # A durable receipt may arrive before mounting finishes. UI
                 # cancellation at that edge must preserve its identity and
                 # disable compose, rather than offering a second send.
-                await app.open_comms_session(
-                    owner_mode=owner_mode,
-                    project_path=sandbox,
-                    me="user",
-                    target=channel_target("#team"),
-
-                )
+                await channel_target("#team").open(NavigationContext(app, owner_mode, sandbox, "user"))
                 channel = app.screen.query_one(CommsChatView)
                 await channel._refresh()
                 entered_paint, release_paint = asyncio.Event(), asyncio.Event()

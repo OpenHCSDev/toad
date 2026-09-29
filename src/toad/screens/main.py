@@ -293,7 +293,7 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
         except Exception:
             pass
         if self.id is not None:
-            self.app.sync_coordination_identity(self.id, previous, thread_name)
+            self.app.session_navigation.sync_identity(self.id, previous, thread_name)
             details = self.app.session_tracker.get_session(self.id)
             if (
                 details is not None
@@ -304,7 +304,7 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
                 self.app.session_tracker.update_session(self.id, title=thread_name)
         self._sync_thread_sidebar()
         if self.id is not None:
-            self.app.sync_recovery_root(self.id, self.coordination_root)
+            self.app.session_navigation.sync_recovery(self.id, self.coordination_root)
 
     def _sync_thread_sidebar(self) -> None:
         """Bind a newly mounted right panel to the current session identity."""
@@ -319,6 +319,19 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
     def coordination_root(self) -> str | None:
         fact = self.app.coordination_facts.get(self)
         return fact.wire_root if fact is not None else self.initial_coordination_root
+
+    def has_agent(self) -> bool:
+        return self._agent is not None
+
+    def spawn(self, *, project: Path | None = None, session_id: str | None = None,
+              title: str | None = None, root: str | None = None) -> "MainScreen":
+        """Create a peer of this native source through its actual declaration."""
+        app = self.app
+        peer = MainScreen(project or self.project_path, self._agent, agent_session_id=session_id,
+                          agent_session_title=title).data_bind(column=type(app).column,
+                          column_width=type(app).column_width, scrollbar=type(app).scrollbar)
+        peer.initial_coordination_root = root
+        return peer
 
     @on(acp_messages.CommsUpdated)
     async def on_comms_updated(self, event: acp_messages.CommsUpdated) -> None:
@@ -336,7 +349,7 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
                     self._project_panel.path = project
                 await self.conversation.sync_project_path(project)
                 if self.id is not None:
-                    self.app.sync_coordination_project(self.id, project)
+                    self.app.session_navigation.sync_project(self.id, project)
         self.on_comms_session_named(event.thread.name)
         self.conversation.input_histories.bind_scope(f"thread:{event.thread.name}")
 
@@ -363,7 +376,7 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
                 else current_root()
             )
             if self._identity_wire is None or self._identity_wire.root != root_path:
-                shared = self.app.coordination_wire
+                shared = self.app.coordination_access.service
                 self._identity_wire = shared if shared.root == root_path else wire(root_path)
             if self.coordination_root is not None:
                 resolved = self._identity_wire.registry.require(self._comms_thread).name
@@ -454,7 +467,7 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
         self.conversation.prompt.path_search.focus()
 
     async def open_file_preview(self, path: Path) -> None:
-        await self.app.open_file_preview(path)
+        await self.app.session_navigation.preview(path)
 
     @on(acp_messages.Plan)
     async def on_acp_plan(self, message: acp_messages.Plan):
@@ -483,7 +496,7 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
     async def on_session_close(self, event: messages.SessionClose) -> None:
         if self.id is None:
             return
-        await self.app.close_session_mode(self.id)
+        await self.app.session_navigation.close(self.id)
 
     def on_mount(self) -> None:
         # Route discovery already resolved new wire-thread identities off-loop.

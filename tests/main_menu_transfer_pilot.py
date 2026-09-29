@@ -11,7 +11,7 @@ from runtime_fixture import ToadApp
 from textual.widgets import Input, Select, Static
 
 from toad.widgets.comms_menu import ContextMenu, ContextMenuItem
-from toad.widgets.comms_transfer import ThreadImportDialog, WireExportDialog
+from toad.widgets.comms_transfer import ThreadImportDialog, ThreadImportRequest, WireExportDialog
 from toad.widgets.side_bar import MainMenuButton, TabHistoryButton, TabHistoryControls
 
 
@@ -31,7 +31,7 @@ async def main() -> None:
             AGENT_COMMS_ROOT=str(root / "wire"),
         )
         app = ToadApp(project_dir=str(root))
-        comms = app.coordination_wire
+        comms = app.coordination_access.service
         comms.threads.register(Thread("sender", frozenset(), str(root)))
         comms.messaging.send("sender", "#all", "exported message")
 
@@ -76,7 +76,7 @@ async def main() -> None:
             assert isinstance(menu, ContextMenu)
             list(menu.query(ContextMenuItem))[1].focus()
             await pilot.pause()
-            assert isinstance(menu.focused, ContextMenuItem) and menu.focused.action == "import", (
+            assert isinstance(menu.focused, ContextMenuItem) and menu.focused.action == ThreadImportRequest.declared_name, (
                 "Import must be the second main-menu choice",
                 getattr(menu.focused, "action", None),
             )

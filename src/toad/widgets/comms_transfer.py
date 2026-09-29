@@ -6,6 +6,11 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import ClassVar
+import asyncio
+from functools import partial
+from abc import abstractmethod
+from agent_comms.declared_family import DeclaredFamily
+from toad.comms_root import RouteSelection
 
 from agent_comms.exporting import (
     ChannelScope,
@@ -25,21 +30,95 @@ from textual.screen import ModalScreen
 from textual.widgets import Button, Input, Select, Static
 
 
+class TransferRequest(DeclaredFamily, affix="Request"):
+    failure_title: ClassVar[str]
+    menu_label: ClassVar[str]
+    menu_order: ClassVar[int]
+
+    @classmethod
+    def menu(cls):
+        return tuple(sorted(cls.members_with(cls), key=lambda request: request.menu_order))
+
+    @classmethod
+    @abstractmethod
+    def dialog(cls, selected: RouteSelection): ...
+
+    @abstractmethod
+    def apply(self, comms): ...
+
+    @abstractmethod
+    def completed(self, app, receipt) -> None: ...
+
+
 @dataclass(frozen=True)
-class WireExportRequest:
+class WireExportRequest(TransferRequest):
     destination: Path
     format: WireExportFormat
     scope: WireExportScope
     limit: WireExportLimit
 
+    failure_title = "Wire export failed"
+    menu_label = "Export wire history…"
+    menu_order = 0
+
+    @classmethod
+    def dialog(cls, selected):
+        return WireExportDialog(selected.root)
+
+    def apply(self, comms):
+        return comms.views.export_wire(self.destination, format=self.format, scope=self.scope, limit=self.limit)
+
+    def completed(self, app, receipt) -> None:
+        app.notify(f"Exported {receipt.exported_messages} messages to {receipt.destination}", title="Wire export")
+
 
 @dataclass(frozen=True)
-class ThreadImportRequest:
+class ThreadImportRequest(TransferRequest):
     source: Path
     format: ImportFormat
     name: str
     session_id: str | None
     worktree: str | None
+
+    failure_title = "Thread import failed"
+    menu_label = "Thread Import…"
+    menu_order = 1
+
+    @classmethod
+    def dialog(cls, selected):
+        return ThreadImportDialog()
+
+    def apply(self, comms):
+        return comms.threads.import_thread(self.source, self.format, name=self.name,
+                                          session_id=self.session_id, worktree=self.worktree)
+
+    def completed(self, app, receipt) -> None:
+        app.thread_actions_changed.publish(None)
+        app.notify(f"Imported @{receipt.thread} ({receipt.imported_messages} messages) as a stopped thread",
+                   title="Thread Import")
+
+
+class Transfers:
+    def __init__(self, app) -> None:
+        self.app = app
+
+    def open(self, kind: type[TransferRequest]) -> None:
+        selected = RouteSelection.capture(self.app.coordination_access.service.root)
+        self.app.push_screen(kind.dialog(selected), callback=partial(self.submitted, selected))
+
+    def submitted(self, selected: RouteSelection, request: TransferRequest | None) -> None:
+        if request is not None:
+            self.app.run_worker(partial(self.execute, selected, request),
+                                group=request.declared_name, exclusive=True, exit_on_error=False)
+
+    async def execute(self, selected: RouteSelection, request: TransferRequest) -> None:
+        try:
+            comms = self.app.coordination_access.require(selected)
+            receipt = await asyncio.to_thread(self.app.coordination_access.write, selected, request.apply, comms)
+        except Exception as error:
+            self.app.notify(str(error), title=request.failure_title, severity="error")
+        else:
+            request.completed(self.app, receipt)
 
 
 class TransferDialog(ModalScreen):

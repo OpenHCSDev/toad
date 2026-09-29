@@ -1,4 +1,5 @@
 """Hidden thread/channel sidebars retain geometry until atomic activation."""
+from toad.navigation_target import NavigationContext
 
 from toad.navigation_target import channel_target
 
@@ -45,9 +46,8 @@ async def main():
         async with app.run_test(size=(120, 40)) as pilot:
             await pilot.pause()
             first = app.selected_mode
-            second = (await app.new_session_screen(app.get_main_screen)).mode_name
-            channel = await app.open_comms_session(owner_mode=first, project_path=root,
-                                                   me=me, target=channel_target("#projection"))
+            second = (await app.session_navigation.new(app.get_main_screen)).mode_name
+            channel = await channel_target("#projection").open(NavigationContext(app, first, root, me))
             modes = [first, second, channel]
             for mode in modes:
                 await app.switch_mode(mode)

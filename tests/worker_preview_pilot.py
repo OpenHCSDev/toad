@@ -75,13 +75,13 @@ async def main():
 
             try:
                 with patch.object(FilePreview, "_read_prefix", staticmethod(blocked_read)):
-                    mode = await asyncio.wait_for(app.open_file_preview(path), 2)
+                    mode = await asyncio.wait_for(app.session_navigation.preview(path), 2)
                     assert await asyncio.to_thread(entered.wait, 2)
                     await asyncio.wait_for(app.switch_mode(owner), 2)
                     prompt.focus()
                     await pilot.press("i", "o")
                     assert prompt.text == "io"
-                    await app.close_session_mode(mode)
+                    await app.session_navigation.close(mode)
             finally:
                 release.set()
 
@@ -89,7 +89,7 @@ async def main():
             # is allowed to run in this UI process, including lexer discovery.
             with (patch.object(Syntax, "guess_lexer", side_effect=AssertionError("UI lexer discovery")),
                   patch.object(Syntax, "highlight", side_effect=AssertionError("UI highlighting"))):
-                mode = await asyncio.wait_for(app.open_file_preview(path), 2)
+                mode = await asyncio.wait_for(app.session_navigation.preview(path), 2)
                 preview = app.screen.query_one(FilePreview)
                 await asyncio.wait_for(renderer.entered.wait(), 4)
                 widget = preview.query_one(WorkerStatic)
@@ -116,20 +116,20 @@ async def main():
                 await app.switch_mode(mode)
                 await pilot.pause()
                 assert len(renderer.requests) == calls, "Unchanged tab return rerendered the document"
-                await app.close_session_mode(mode)
+                await app.session_navigation.close(mode)
 
             for name, data, expected in (("binary.bin", b"\x00binary", "binary file"),
                                          ("missing.py", None, "Unable to open")):
                 file = root / name
                 if data is not None:
                     file.write_bytes(data)
-                mode = await app.open_file_preview(file)
+                mode = await app.session_navigation.preview(file)
                 preview = app.screen.query_one(FilePreview)
                 await asyncio.wait_for(preview.wait_ready(), 3)
                 await pilot.pause()
                 frame = "\n".join(strip.text for strip in app.screen._compositor.render_strips())
                 assert expected in frame
-                await app.close_session_mode(mode)
+                await app.session_navigation.close(mode)
 
             # Any data-only Rich renderable can use the same component/task.
             table = Table("Name", "Value", box=None)
@@ -219,7 +219,7 @@ async def main():
             prompt.focus()
             await pilot.press("r", "e", "a", "d")
             assert prompt.text == "ioworkread"
-            other = (await app.new_session_screen(app.get_main_screen)).mode_name
+            other = (await app.session_navigation.new(app.get_main_screen)).mode_name
             assert other != owner and not renderer.release.is_set()
             renderer.release.set()
             await app.switch_mode(owner)

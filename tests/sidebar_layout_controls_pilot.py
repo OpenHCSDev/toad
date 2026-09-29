@@ -1,4 +1,5 @@
 """Mounted sidebar move/swap/size/float controls and real untruncated row scroll."""
+from toad.navigation_target import NavigationContext
 
 from toad.navigation_target import channel_target
 
@@ -84,8 +85,7 @@ async def main() -> None:
             assert panels.scroll_x > 0 and app._exception is None
 
             owner = app.selected_mode
-            await app.open_comms_session(owner_mode=owner, project_path=root,
-                                         me=name, target=channel_target("#alpha"))
+            await channel_target("#alpha").open(NavigationContext(app, owner, root, name))
             comms_bar = app.screen.query_one("#channels-sidebar", SideBar)
             comms_tabs = app.screen.query_one(SessionsTabs)
             chat = app.screen.query_one("#comms-content")

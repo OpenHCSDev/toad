@@ -24,7 +24,7 @@ async def main():
             tree = await reveal_project_tree(app, pilot)
             watcher = old_screen.conversation._directory_watcher
             assert watcher is not None
-            await app.new_session_screen(lambda: MainScreen(root))
+            await app.session_navigation.new(lambda: MainScreen(root))
             await pilot.pause()
             for index in range(100):
                 watcher.on_any_event(FileCreatedEvent(str(root / f"result-{index}.txt")))

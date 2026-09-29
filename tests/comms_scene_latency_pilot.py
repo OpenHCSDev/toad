@@ -1,4 +1,5 @@
 """Measure a useful cold channel frame, not just its route/loading frame."""
+from toad.navigation_target import NavigationContext
 
 from toad.navigation_target import channel_target
 
@@ -59,8 +60,7 @@ async def main():
                 app.target = target
                 app.pending = asyncio.get_running_loop().create_future()
                 started = time.perf_counter()
-                await app.open_comms_session(owner_mode=owner, project_path=root,
-                                             me=me, target=channel_target(target))
+                await channel_target(target).open(NavigationContext(app, owner, root, me))
                 samples.append((await asyncio.wait_for(app.pending, 8) - started) * 1000)
                 sizes.append(len(list(app.screen.query_one(Prompt).walk_children())))
                 assert app.screen.query_one(CommsChatView)._history[0][0].body.startswith("Scene history marker")

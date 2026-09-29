@@ -6,6 +6,7 @@ When /var/tmp lacks space, this non-durability UI pilot uses /dev/shm.
 """
 
 from __future__ import annotations
+from toad.navigation_target import NavigationContext
 
 from toad.navigation_target import channel_target
 
@@ -127,15 +128,9 @@ async def main() -> None:
             app = ToadApp(project_dir=str(sandbox))
             async with app.run_test(size=(115, 38)) as pilot:
                 await pilot.pause()
-                assert app.coordination_wire.root == first
+                assert app.coordination_access.service.root == first
                 owner_mode = app.selected_mode
-                mode = await app.open_comms_session(
-                    owner_mode=owner_mode,
-                    project_path=sandbox,
-                    me="user",
-                    target=channel_target("#team"),
-
-                )
+                mode = await channel_target("#team").open(NavigationContext(app, owner_mode, sandbox, "user"))
                 assert mode == app.selected_mode
                 view = app.screen.query_one(CommsChatView)
                 await view._refresh()
@@ -165,7 +160,7 @@ async def main() -> None:
                     release.set()
                     await pending
                 assert current_root() == second
-                assert app.coordination_wire.root == second  # app cache invalidated
+                assert app.coordination_access.service.root == second  # app cache invalidated
                 view._has_newer = True
                 await view._load_history_edge()
                 assert all(
@@ -184,14 +179,8 @@ async def main() -> None:
             new_app = ToadApp(project_dir=str(sandbox))
             async with new_app.run_test(size=(115, 38)) as pilot:
                 await pilot.pause()
-                assert new_app.coordination_wire.root == second
-                await new_app.open_comms_session(
-                    owner_mode=new_app.selected_mode,
-                    project_path=sandbox,
-                    me="user",
-                    target=channel_target("#team"),
-
-                )
+                assert new_app.coordination_access.service.root == second
+                await channel_target("#team").open(NavigationContext(new_app, new_app.selected_mode, sandbox, "user"))
                 new_view = new_app.screen.query_one(CommsChatView)
                 await new_view._refresh()
                 await pilot.pause()

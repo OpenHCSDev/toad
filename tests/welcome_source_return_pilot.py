@@ -39,7 +39,7 @@ async def main():
                 async with asyncio.timeout(12):
                     await entered.wait()
                     assert view.query(MarkdownNote)
-                    await app.new_session_screen(lambda: MainScreen(root))
+                    await app.session_navigation.new(lambda: MainScreen(root))
                     await app.selected_session.wait_content_ready()
                     await pilot.pause()
                     assert app.selected_session.conversation is view

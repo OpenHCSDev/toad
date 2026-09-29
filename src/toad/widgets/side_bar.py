@@ -318,6 +318,8 @@ class TabHistoryControls(containers.HorizontalGroup):
     @on(MainMenuButton.Pressed)
     def on_main_menu_pressed(self, event: MainMenuButton.Pressed) -> None:
         from toad.widgets.comms_menu import show_target_menu
+        from toad.widgets.comms_transfer import TransferRequest
+        from functools import partial
 
         event.stop()
         button = self.query_one(MainMenuButton)
@@ -325,11 +327,9 @@ class TabHistoryControls(containers.HorizontalGroup):
             self.screen,
             Offset(button.region.x, button.region.y + button.size.height),
             "Toad",
-            [("export", "Export wire history…"), ("import", "Thread Import…")],
-            {
-                "export": cast("ToadApp", self.app).open_wire_export_dialog,
-                "import": cast("ToadApp", self.app).open_thread_import_dialog,
-            },
+            [(kind.declared_name, kind.menu_label) for kind in TransferRequest.menu()],
+            {kind.declared_name: partial(cast("ToadApp", self.app).transfers.open, kind)
+             for kind in TransferRequest.menu()},
         )
 
     def on_mount(self) -> None:

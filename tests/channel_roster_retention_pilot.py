@@ -1,4 +1,5 @@
 """Warm tab switches retain native channel rows and never paint an empty roster."""
+from toad.navigation_target import NavigationContext
 
 from toad.navigation_target import channel_target
 
@@ -62,10 +63,9 @@ async def main():
         async with app.run_test(size=(130, 45)) as pilot:
             first = app.selected_mode
             await settled(app, pilot)
-            second = (await app.new_session_screen(app.get_main_screen)).mode_name
+            second = (await app.session_navigation.new(app.get_main_screen)).mode_name
             await settled(app, pilot)
-            channel = await app.open_comms_session(owner_mode=first, project_path=root,
-                                                   me=me, target=channel_target("#kept"))
+            channel = await channel_target("#kept").open(NavigationContext(app, first, root, me))
             await settled(app, pilot)
             modes = (first, second, channel)
             sidebars, original_rows = {}, {}
@@ -126,7 +126,7 @@ async def main():
             await app.switch_mode(first)
             await settled(app, pilot)
             closed_rows = tuple(sidebars[second]._row_map.values())
-            await app.close_session_mode(second)
+            await app.session_navigation.close(second)
             await pilot.pause()
             assert closed_rows and all(not item._closed and item.is_attached for item in closed_rows)
             assert app._exception is None

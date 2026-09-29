@@ -1,6 +1,7 @@
 """Mounted command discovery/submission using real isolated core stores."""
 
 from __future__ import annotations
+from toad.navigation_target import NavigationContext
 from toad.navigation_target import DirectTarget, channel_target
 
 import asyncio
@@ -105,7 +106,7 @@ async def main():
         original_history = comms.views.full_history()
         app = CommandPilotApp(project_dir=str(root))
         async with app.run_test(size=(110, 38)) as pilot:
-            mode = (await app.new_session_screen(lambda: MainScreen(root))).mode_name
+            mode = (await app.session_navigation.new(lambda: MainScreen(root))).mode_name
             conversation = app.selected_session.conversation
             actor = app.selected_session.navigation_context.actor
             if actor not in comms.registry.all_threads():
@@ -174,7 +175,7 @@ print(json.dumps({'jsonrpc':'2.0','method':'session/update','params':{
                 flush=True,
             )
 
-            dm = await app.open_comms_session(owner_mode=mode, project_path=root, me='actor', target=DirectTarget('slash'))
+            dm = await DirectTarget('slash').open(NavigationContext(app, mode, root, 'actor'))
             await pilot.pause()
             await until(
                 pilot, lambda: app.screen.query_one_optional(CommsChatView) is not None
@@ -230,7 +231,7 @@ print(json.dumps({'jsonrpc':'2.0','method':'session/update','params':{
                 pilot,
                 lambda: comms.registry.status("slash").declared_name == "archived",
             )
-            await until(pilot, lambda: not app.pending_thread_actions)
+            await until(pilot, lambda: not app.thread_actions.pending)
             conversation.update_slash_commands()
             assert f"/{ArchiveAction.declared_name}" not in {
                 c.command for c in conversation.prompt.slash_commands
@@ -244,7 +245,7 @@ print(json.dumps({'jsonrpc':'2.0','method':'session/update','params':{
                 flush=True,
             )
 
-            channel = await app.open_comms_session(owner_mode=mode, project_path=root, me='actor', target=channel_target('#team'))
+            channel = await channel_target('#team').open(NavigationContext(app, mode, root, 'actor'))
             await pilot.pause()
             await until(
                 pilot, lambda: app.screen.query_one_optional(CommsChatView) is not None

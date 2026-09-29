@@ -29,7 +29,7 @@ async def main():
             first = app.selected_mode
             screen = app.screen
             screen.on_comms_session_named("fixture")
-            await app.new_session_screen(app.get_main_screen)
+            await app.session_navigation.new(app.get_main_screen)
             await app.switch_mode(first)
             await screen.conversation.contents.mount(*[
                 AgentResponse(f"Reply {index}\n\n" + "Paragraph under unread updates.\n\n" * 12,

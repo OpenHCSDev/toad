@@ -1,4 +1,5 @@
 """Visited-tab Back/Forward controls and the native tab-strip scrollbar."""
+from toad.navigation_target import NavigationContext
 
 from toad.navigation_target import channel_target
 
@@ -75,8 +76,7 @@ async def main():
             await pilot.pause()
             assert controls.display
 
-            channel = await app.open_comms_session(
-                owner_mode=first, project_path=root, me="owner", target=channel_target("#all"))
+            channel = await channel_target("#all").open(NavigationContext(app, first, root, "owner"))
             await pilot.pause()
             assert app.selected_mode == channel
             assert app.screen.query_one(SessionsTabs).display
@@ -106,7 +106,7 @@ async def main():
             await wait_for(pilot, lambda: app.selected_mode == first)
             assert await pilot.click("#tab-forward")
             await wait_for(pilot, lambda: app.selected_mode == channel)
-            second = (await app.new_session_screen(app.get_main_screen)).mode_name
+            second = (await app.session_navigation.new(app.get_main_screen)).mode_name
             second_screen = app.screen
             second_screen.conversation.prompt.text = "Preserve second draft"
 
@@ -133,7 +133,7 @@ async def main():
 
             preview_path = root / "readme.md"
             preview_path.write_text("# Preview stays navigable\n")
-            preview = await app.open_file_preview(preview_path)
+            preview = await app.session_navigation.preview(preview_path)
             await pilot.pause()
             assert (app.screen.query_one(TabHistoryControls).region.y
                     == app.screen.query_one(SessionsTabs).region.y == 0)
@@ -146,16 +146,16 @@ async def main():
             await wait_for(pilot, lambda: app.selected_mode == first)
             assert await pilot.click("#tab-forward")
             await wait_for(pilot, lambda: app.selected_mode == preview)
-            await app.close_session_mode(preview)
+            await app.session_navigation.close(preview)
             assert app.selected_mode == first
-            await app.close_session_mode(channel)
+            await app.session_navigation.close(channel)
             assert {tab.mode_name for tab in app.open_tabs} == {first, second}
             assert first_screen.conversation.prompt.text == "Preserve first draft"
 
             # Long labels and many open tabs expose a 1-cell horizontal
             # scrollbar below the native underline without changing tab order.
             for _ in range(7):
-                await app.new_session_screen(app.get_main_screen)
+                await app.session_navigation.new(app.get_main_screen)
             await pilot.pause()
             tabs = app.screen.query_one(SessionsTabs)
             assert tabs.region.y == 0
@@ -174,9 +174,9 @@ async def main():
             await app.switch_mode(first)
             transient_path = root / "transient.txt"
             transient_path.write_text("A removable history visit\n")
-            transient = await app.open_file_preview(transient_path)
+            transient = await app.session_navigation.preview(transient_path)
             await app.switch_mode(first)
-            await app.close_session_mode(transient)
+            await app.session_navigation.close(transient)
             target = app.tab_order.history_target(-1)
             assert target is not None and target[1] == first
             await pilot.pause()

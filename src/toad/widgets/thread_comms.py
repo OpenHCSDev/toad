@@ -139,7 +139,7 @@ class RelationshipRows(SidebarGroup):
             inputs = tuple(ThreadRowInput(
                 entries[key].person,
                 unread=tree.unread(person_target(entries[key].person)),
-                action_status=tree.app.pending_thread_actions.get(entries[key].target),
+                action_status=tree.app.thread_actions.pending.get(entries[key].target),
             ) for key in row_keys)
             prepared = await tree.app.preparation.submit(ThreadRowsWork(inputs)) if inputs else ()
             if not self.is_attached or self.model is not model or tree.owner != owner:
@@ -302,7 +302,7 @@ class ThreadCommsSidebar(SidebarVisibilityObserver, TargetTree):
             if wire_root is not None:
                 from toad.widgets.thread_comms_source import WireRelationshipSource
 
-                source = WireRelationshipSource(wire_root, self.app.coordination_wire)
+                source = WireRelationshipSource(wire_root, self.app.coordination_access.service)
         if (owner, wire_root) == (self.owner, self.wire_root) and source is self._source:
             return
         for group in self.groups.values():
@@ -463,12 +463,12 @@ class ThreadCommsSidebar(SidebarVisibilityObserver, TargetTree):
     def unread(self, target: NavigationTarget):
         snapshot = self.app._sidebar_snapshot
         if (snapshot is None or self.wire_root is None
-                or Path(self.wire_root).resolve() != self.app.coordination_wire.root.resolve()):
+                or Path(self.wire_root).resolve() != self.app.coordination_access.service.root.resolve()):
             return ExactUnread()
         return target.unread(snapshot)
 
     def open_target(self, target: NavigationTarget):
-        if self.wire_root is None or Path(self.wire_root).resolve() != self.app.coordination_wire.root.resolve():
+        if self.wire_root is None or Path(self.wire_root).resolve() != self.app.coordination_access.service.root.resolve():
             self.notify("This view uses a different wire; open its matching connection to navigate.",
                         title="Comms", severity="warning")
             return

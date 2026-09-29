@@ -30,7 +30,7 @@ async def main():
             owner = app.selected_mode
             peers = []
             for index in range(5):
-                details = await app.new_session_screen(app.get_main_screen)
+                details = await app.session_navigation.new(app.get_main_screen)
                 if index == 0:
                     await pilot.pause()
                     initial_tabs = app.screen.query_one(SessionsTabs)

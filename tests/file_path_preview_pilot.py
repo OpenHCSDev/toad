@@ -1,4 +1,5 @@
 """Existing chat file references resolve to highlighted in-terminal previews."""
+from toad.navigation_target import NavigationContext
 
 from toad.navigation_target import channel_target
 
@@ -94,7 +95,7 @@ async def main():
             response.post_message(Markdown.LinkClicked(response, path.as_uri()))
             await pilot.pause()
             assert app.screen.query_one(FilePreview).path == path
-            await app.close_session_mode(app.selected_mode)
+            await app.session_navigation.close(app.selected_mode)
             assert app.selected_mode == owner_mode
 
             response.post_message(Markdown.LinkClicked(response, links[0]))
@@ -111,7 +112,7 @@ async def main():
             assert app.screen.query_one(f"#close-{first_mode}", SessionTabClose)
             assert app.session_tracker.session_count == 1
             assert owner.conversation.prompt.text == "Keep this draft"
-            assert await app.open_file_preview(path) == first_mode
+            assert await app.session_navigation.preview(path) == first_mode
             assert app.screen.query_one(FilePreview) is preview, "Opening a file twice duplicated its view"
             assert [tab.mode_name for tab in app.open_tabs].count(first_mode) == 1
 
@@ -119,7 +120,7 @@ async def main():
             # intact; closing the selected preview returns to the last valid tab.
             other = project / "other.py"
             other.write_text("answer = 42\n")
-            second_mode = await app.open_file_preview(other)
+            second_mode = await app.session_navigation.preview(other)
             await preview_ready(app, pilot)
             assert second_mode != first_mode and app.selected_mode == second_mode
             assert [tab.mode_name for tab in app.open_tabs][:3] == [
@@ -138,9 +139,9 @@ async def main():
 
             # Multiple open file tabs retain their own scroll/content. Back is
             # navigation; Close removes only the selected preview mode.
-            first_mode = await app.open_file_preview(path)
+            first_mode = await app.session_navigation.preview(path)
             first_preview = app.screen.query_one(FilePreview)
-            second_mode = await app.open_file_preview(other)
+            second_mode = await app.session_navigation.preview(other)
             assert [tab.mode_name for tab in app.open_tabs][:3] == [
                 owner_mode, first_mode, second_mode]
             await app.screen.action_back()
@@ -148,40 +149,40 @@ async def main():
             assert app.screen.query_one(FilePreview) is first_preview
             assert second_mode in {tab.mode_name for tab in app.open_tabs}
             await app.switch_mode(second_mode)
-            await app.close_session_mode(second_mode)
+            await app.session_navigation.close(second_mode)
             assert app.selected_mode == first_mode
-            await app.close_session_mode(first_mode)
+            await app.session_navigation.close(first_mode)
             assert app.selected_mode == owner_mode
             assert owner.conversation.prompt.text == "Keep this draft"
 
             large_python = project / "preview.py"
             large_python.write_text("# UTF-8: café\n\n" + "def check(value: int) -> int:\n    return value + 1\n\n" * 2400)
-            large_mode = await app.open_file_preview(large_python)
+            large_mode = await app.session_navigation.preview(large_python)
             await preview_ready(app, pilot)
             large_frame = "\n".join(strip.text for strip in app.screen._compositor.render_strips())
             assert "def check(value: int) -> int:" in large_frame, "Large .py preview failed"
             assert app.selected_mode == large_mode and app._exception is None
-            await app.close_session_mode(large_mode)
+            await app.session_navigation.close(large_mode)
             assert app.selected_mode == owner_mode
 
             oversized = project / "oversized-preview.py"
             oversized.write_text("# FIRST-LINE-MARKER\nanswer = 42\n" + "pass\n" * 230_000)
-            oversized_mode = await app.open_file_preview(oversized)
+            oversized_mode = await app.session_navigation.preview(oversized)
             await preview_ready(app, pilot)
             oversized_frame = "\n".join(strip.text for strip in app.screen._compositor.render_strips())
             assert "exceeds 1 MiB; showing only the first 64 KiB" in oversized_frame, oversized_frame
             assert "FIRST-LINE-MARKER" in oversized_frame
             assert app.selected_mode == oversized_mode and app._exception is None
-            await app.close_session_mode(oversized_mode)
+            await app.session_navigation.close(oversized_mode)
             assert app.selected_mode == owner_mode
 
             log_path = project / "session.log"
             log_path.write_text("LOG-PREVIEW-WORKS\n")
-            log_mode = await app.open_file_preview(log_path)
+            log_mode = await app.session_navigation.preview(log_path)
             await preview_ready(app, pilot)
             log_frame = "\n".join(strip.text for strip in app.screen._compositor.render_strips())
             assert "LOG-PREVIEW-WORKS" in log_frame and app._exception is None
-            await app.close_session_mode(log_mode)
+            await app.session_navigation.close(log_mode)
             assert app.selected_mode == owner_mode
 
             # A bare filename in an agent response need not pretend to live
@@ -223,7 +224,7 @@ async def main():
             nested_response.post_message(Markdown.LinkClicked(nested_response, basename_links[0]))
             await pilot.pause()
             assert app.screen.query_one(FilePreview).path == nested
-            await app.close_session_mode(app.selected_mode)
+            await app.session_navigation.close(app.selected_mode)
             assert app.selected_mode == owner_mode
             duplicate = project / "other" / "declarations.py"
             duplicate.parent.mkdir()
@@ -236,10 +237,7 @@ async def main():
 
             # A file link inside a channel should open directly above that
             # channel; closing it returns there, not through its owning agent.
-            channel = await app.open_comms_session(
-                owner_mode=owner_mode, project_path=project,
-                me="project", target=channel_target("#all"),
-            )
+            channel = await channel_target("#all").open(NavigationContext(app, owner_mode, project, "project"))
             chat = app.screen.query_one(CommsChatView)
             channel_response = AgentResponse("See plans/tag-channel-view-plan.md")
             await chat.contents.mount(channel_response)
@@ -250,7 +248,7 @@ async def main():
             assert app.screen.query_one(FilePreview).path == path
             assert [tab.mode_name for tab in app.open_tabs] == [
                 owner_mode, channel, app.selected_mode]
-            await app.close_session_mode(app.selected_mode)
+            await app.session_navigation.close(app.selected_mode)
             assert app.selected_mode == channel
             assert owner.conversation.prompt.text == "Keep this draft"
     print("file paths: relative resolution, highlighting, exact source, and terminal preview passed")

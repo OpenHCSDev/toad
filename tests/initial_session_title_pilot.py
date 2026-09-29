@@ -95,7 +95,7 @@ async def check_title(title: str | None) -> None:
             assert comms.registry.require(thread).title == title, (
                 "Presenting a title must not rename the thread"
             )
-            loaded = await app.new_session_screen(lambda: MainScreen(root))
+            loaded = await app.session_navigation.new(lambda: MainScreen(root))
             screen = app.screen
             resumed = Agent(root, agent_data, thread, agent.session_pk)
             screen.conversation.agent = resumed

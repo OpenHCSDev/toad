@@ -129,8 +129,8 @@ class FixtureApp(App):
         self.source = source
         self.sidebar_layout = SidebarLayout()
         self.preparation = PreparationRuntime(LocalRenderer.start())
-        self.pending_thread_actions = {}
-        self.coordination_wire = SimpleNamespace(root=Path(source.root))
+        self.thread_actions = SimpleNamespace(pending={})
+        self.coordination_access = SimpleNamespace(service=SimpleNamespace(root=Path(source.root)))
         self._sidebar_snapshot = SimpleNamespace(thread_unread={"peer": 22}, thread_unread_pending=frozenset(), unread={})
         self.coordination_observed = Signal(self, "fixture-observed")
         self.open_tabs_changed = Signal(self, "fixture-tabs")

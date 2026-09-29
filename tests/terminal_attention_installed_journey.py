@@ -246,7 +246,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     assert len(notices) == before
 
     original_mode = app.selected_mode
-    other = await app.new_session_screen(lambda: MainScreen(view.project_path), title="Attention second tab")
+    other = await app.session_navigation.new(lambda: MainScreen(view.project_path), title="Attention second tab")
     await pilot.pause()
     await click_tab(app, pilot, original_mode)
     returned = app.selected_session.conversation

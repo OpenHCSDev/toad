@@ -67,7 +67,7 @@ async def main():
             main = app.screen
             draft = "Keep the native thread draft"
             main.conversation.prompt.text = draft
-            service = app.coordination_wire.relationships
+            service = app.coordination_access.service.relationships
             with patch.object(service, "snapshot", wraps=service.snapshot) as read:
                 await pilot.pause()
                 assert read.call_count == 0, "Collapsed right panel fetched source data"

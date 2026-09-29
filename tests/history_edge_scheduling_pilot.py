@@ -1,4 +1,5 @@
 """History paging must wait for refresh completion without callback churn."""
+from toad.navigation_target import NavigationContext
 
 from toad.navigation_target import channel_target
 
@@ -39,8 +40,7 @@ async def main():
         async with app.run_test(size=(100, 32)) as pilot:
             await pilot.pause()
             owner = app.selected_mode
-            mode = await app.open_comms_session(owner_mode=owner, project_path=root,
-                                                me="edge-reader", target=channel_target("#edge"))
+            mode = await channel_target("#edge").open(NavigationContext(app, owner, root, "edge-reader"))
             chat = app.screen.query_one(CommsChatView)
             await until(lambda: chat._history_initialized and not chat._refresh_lock.locked()
                         and not chat._edge_load_scheduled)
@@ -204,7 +204,7 @@ async def main():
                 chat.window.scroll_to(y=0, animate=False, immediate=True)
                 chat._on_window_scroll()
                 await asyncio.sleep(.04)
-                await asyncio.wait_for(app.close_session_mode(mode), 2)
+                await asyncio.wait_for(app.session_navigation.close(mode), 2)
                 await until(lambda: not chat._edge_load_scheduled)
             finally:
                 chat._refresh_lock.release()
@@ -213,8 +213,7 @@ async def main():
             comms.channels.create_tag("short")
             for index in range(12):
                 comms.messaging.send("edge-reader", "#short", f"Small {index}")
-            await app.open_comms_session(owner_mode=owner, project_path=root,
-                                         me="edge-reader", target=channel_target("#short"))
+            await channel_target("#short").open(NavigationContext(app, owner, root, "edge-reader"))
             short = app.screen.query_one(CommsChatView)
             await until(lambda: len(short._history) == 12 and not short._edge_load_scheduled)
             assert not short._has_older and app._exception is None

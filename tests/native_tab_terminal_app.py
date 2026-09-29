@@ -31,7 +31,7 @@ class NativeTabApp(ToadApp):
     async def prepare_tabs(self):
         self.preview_modes = [self.current_mode]
         self.session_tracker.update_session(self.current_mode, title="pr17-implementation", state="idle")
-        details = await self.new_session_screen(self.get_main_screen)
+        details = await self.session_navigation.new(self.get_main_screen)
         self.preview_modes.append(details.mode_name)
         self.session_tracker.update_session(details.mode_name, title="agent-comms-ux", state="idle")
         self.clear_notifications()
@@ -63,7 +63,7 @@ class NativeTabApp(ToadApp):
             for name in ("mcp-pr77-trust-review", "pr48 adaptive compaction owner",
                          "mcp-goal-scope-consultant", "pr17-standby-liveness-owner",
                          "long-context-reviewer"):
-                details = await self.new_session_screen(self.get_main_screen)
+                details = await self.session_navigation.new(self.get_main_screen)
                 self.preview_modes.append(details.mode_name)
                 self.session_tracker.update_session(details.mode_name, title=name, state="idle")
         elif action == "select":

@@ -76,7 +76,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
         for count in (4, 16, 32, 64):
             while len(modes) < count:
                 index = len(modes)
-                details = await app.new_session_screen(lambda: MainScreen(
+                details = await app.session_navigation.new(lambda: MainScreen(
                     original.project_path, agent_session_id=f"cohort-{index}"))
                 modes.append(details.mode_name)
                 await pilot.pause(.02)

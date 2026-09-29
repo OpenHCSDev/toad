@@ -67,7 +67,7 @@ async def main():
             window = conversation.window
             window.anchor()
             await pilot.pause()
-            other = await app.new_session_screen(lambda: MainScreen(root))
+            other = await app.session_navigation.new(lambda: MainScreen(root))
             await response.append(
                 "\n\n"
                 + "\n\n".join((f"New paragraph {i}" for i in range(400)))

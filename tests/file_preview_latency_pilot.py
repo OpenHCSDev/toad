@@ -68,7 +68,7 @@ async def main():
                 cpu = time.thread_time()
                 try:
                     with patch.object(file_preview, "FilePreview", widget_type):
-                        mode = await app.open_file_preview(path)
+                        mode = await app.session_navigation.preview(path)
                         opened = time.perf_counter() - started
                         await asyncio.wait_for(app.screen.query_one(widget_type).wait_ready(), 30)
                         await pilot.pause()
@@ -84,7 +84,7 @@ async def main():
                                 "ready_ms": round(ready * 1000, 2),
                                 "ui_thread_cpu_ms": round(main_cpu * 1000, 2),
                                 "max_event_loop_gap_ms": round(max(gaps) * 1000, 2)})
-                await app.close_session_mode(mode)
+                await app.session_navigation.close(mode)
                 await pilot.pause()
             print(json.dumps({"boundary": "headless ready content + event-loop heartbeat; not terminal pixels",
                               "samples": reports}, indent=2))

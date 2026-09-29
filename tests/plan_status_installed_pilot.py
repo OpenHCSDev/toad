@@ -135,7 +135,7 @@ async def main():
                 editor = view.prompt.prompt_text_area
                 editor.insert("Detached plan draft")
                 original_document, original_history = editor.document, editor.history
-                await app.new_session_screen(lambda: MainScreen(root, agent_session_id="plan-blank"))
+                await app.session_navigation.new(lambda: MainScreen(root, agent_session_id="plan-blank"))
                 assert agent.controller.surface.target is None
                 detached_plan = [{"entries": [{"content": "DETACHED_PLAN_ITEM", "priority": "high", "status": "pending"}]}]
                 await asyncio.wait_for(agent.send_prompt(json.dumps(detached_plan)), 10)

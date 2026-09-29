@@ -92,7 +92,7 @@ async def main():
                 for line in range(tool_lines)
             )
             for _ in range(tab_count - 1):
-                await app.new_session_screen(app.get_main_screen)
+                await app.session_navigation.new(app.get_main_screen)
                 modes.append(app.selected_mode)
             for mode in modes:
                 await app.switch_mode(mode)

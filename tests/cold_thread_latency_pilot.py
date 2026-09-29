@@ -95,7 +95,7 @@ async def main(profile_path=None, trace=False):
                         "run_command": {"*": "/bin/false"},
                         "protocol": "acp",
                     }
-                    mode = await app.open_thread_session(
+                    mode = await app.thread_navigation.open(
                         owner_mode=owner, project_path=root, target="cold-replay"
                     )
                     screen = app.screen

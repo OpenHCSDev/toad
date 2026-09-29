@@ -6,6 +6,7 @@ HOME, legacy wire and UI state remain disposable /dev/shm data.
 """
 
 from __future__ import annotations
+from toad.navigation_target import NavigationContext
 
 from toad.navigation_target import channel_target
 
@@ -77,13 +78,7 @@ async def main() -> None:
                 app = ToadApp(project_dir=str(sandbox))
                 async with settled_test_executor(), app.run_test(size=(115, 38)) as pilot:
                     await pilot.pause()
-                    await app.open_comms_session(
-                        owner_mode=app.selected_mode,
-                        project_path=sandbox,
-                        me="user",
-                        target=channel_target("#team"),
-
-                    )
+                    await channel_target("#team").open(NavigationContext(app, app.selected_mode, sandbox, "user"))
                     view = app.screen.query_one(CommsChatView)
                     await view._refresh()
                     await pilot.pause()
@@ -127,7 +122,7 @@ async def main() -> None:
                         ),
                     ):
                         ack = asyncio.create_task(view._mark_painted_page(page))
-                        app.invoke_thread_action(StartAction(), "peer", "user")
+                        app.thread_actions.invoke(StartAction(), "peer", "user")
                         async with asyncio.timeout(8):
                             await entered_ack.wait()
                             await entered_action.wait()

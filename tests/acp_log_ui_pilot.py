@@ -165,7 +165,7 @@ async def main():
                 if reopen == 1:
                     plain = root / "ordinary.txt"
                     plain.write_text("Project file: 界 café\n")
-                    await app.open_file_preview(plain)
+                    await app.session_navigation.preview(plain)
                     preview = app.screen.query_one(FilePreview)
                     await asyncio.wait_for(preview.wait_ready(), 10)
                     await pilot.pause()

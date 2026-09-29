@@ -1,5 +1,6 @@
 from agent_comms.acp_extension import QueuePromptRequest
 """Installed Toad/ACP/owner/Pi path with a loopback-only model fixture."""
+from toad.navigation_target import NavigationContext
 
 from toad.navigation_target import DirectTarget, channel_target
 
@@ -52,13 +53,7 @@ async def notification_feedback(
     pilot, app, comms, owner_mode, project, entered, release, hold_next
 ):
     user = comms.messaging.user_identity(str(project)).name
-    await app.open_comms_session(
-        owner_mode=owner_mode,
-        project_path=project,
-        me=user,
-        target=channel_target("#team"),
-
-    )
+    await channel_target("#team").open(NavigationContext(app, owner_mode, project, user))
     channel = app.screen.query_one(CommsChatView)
     entered.clear()
     release.clear()
@@ -281,7 +276,7 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
                 navigation = await asyncio.to_thread(
                     ThreadNavigationRequest(str(comms.root), "beta", project, ()).read
                 )
-                assert navigation.resumable and navigation.thread.process_alive
+                assert navigation.attachable and navigation.thread.process_alive
                 print("ATTACHED_AND_NAVIGABLE", flush=True)
                 if acceptance is not None:
                     await acceptance(app, pilot, agent, comms, entered, release,
@@ -441,13 +436,7 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
                 print("COLD_REATTACH_CONFIRMED", flush=True)
 
                 user = comms.messaging.user_identity(str(project)).name
-                await app.open_comms_session(
-                    owner_mode=owner_mode,
-                    project_path=project,
-                    me=user,
-                    target=DirectTarget("beta"),
-
-                )
+                await DirectTarget("beta").open(NavigationContext(app, owner_mode, project, user))
                 dm = app.screen.query_one(CommsChatView)
                 entered.clear()
                 release.clear()
@@ -481,8 +470,8 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
                 print("ACTUAL_ACP_PROCESS_CLEANUP_CONFIRMED", flush=True)
                 await asyncio.to_thread(comms.owners.stop, "beta")
                 assert not comms.registry.require("beta").process_alive
-                app.invoke_thread_action(StartAction(), "beta", user)
-                await until(pilot, lambda: "beta" not in app.pending_thread_actions)
+                app.thread_actions.invoke(StartAction(), "beta", user)
+                await until(pilot, lambda: "beta" not in app.thread_actions.pending)
                 assert comms.registry.require("beta").process_alive, (
                     "Explicit Start did not launch owner"
                 )

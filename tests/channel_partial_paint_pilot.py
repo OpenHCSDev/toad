@@ -1,4 +1,5 @@
 """Partial viewport ACKs retain pending evidence for rows reached by scrolling."""
+from toad.navigation_target import NavigationContext
 
 from toad.navigation_target import channel_target
 
@@ -43,10 +44,7 @@ async def main():
         with patch.object(CommsChatView, "_mark_painted_page", checked_mark):
             async with app.run_test(size=(90, 24)) as pilot:
                 await pilot.pause()
-                await app.open_comms_session(
-                    owner_mode=app.selected_mode, project_path=root, me=viewer,
-                    target=channel_target("#team"),
-                )
+                await channel_target("#team").open(NavigationContext(app, app.selected_mode, root, viewer))
                 chat = app.screen.query_one(CommsChatView)
                 async with asyncio.timeout(5):
                     while not acknowledged or chat._ack_inflight:

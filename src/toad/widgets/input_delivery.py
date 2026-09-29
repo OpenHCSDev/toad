@@ -274,4 +274,4 @@ class InputDeliveryDetails(ModalScreen[None]):
     @on(Button.Pressed, "#delivery-log")
     async def open_log(self) -> None:
         if self.log_path is not None:
-            await self.app.open_file_preview(self.log_path)
+            await self.app.session_navigation.preview(self.log_path)

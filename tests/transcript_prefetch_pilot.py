@@ -183,7 +183,7 @@ async def mounted_checks():
                 await entered.wait()
                 late._request_page(True)
                 await asyncio.sleep(0)
-                await app.new_session_screen(app.get_main_screen)
+                await app.session_navigation.new(app.get_main_screen)
                 release.set()
                 await until(lambda: not late._loading)
                 assert len(late.pages) == 1, "Late foreground result mounted into a hidden tab"

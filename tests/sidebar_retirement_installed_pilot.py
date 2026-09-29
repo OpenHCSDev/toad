@@ -86,7 +86,7 @@ async def main():
                     screen._comms_thread = f"owner-{index}"
                     screen.initial_coordination_root = str(root / "wire")
                     return screen
-                await app.new_session_screen(make_screen)
+                await app.session_navigation.new(make_screen)
                 screen = app.selected_session
                 screens.append(screen)
                 await pilot.pause(.02)
