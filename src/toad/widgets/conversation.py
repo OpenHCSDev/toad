@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from toad.live_output import LiveOutput, ResponseStream, ThoughtStream
+from toad.transcript_publication import TranscriptPresentation
 from toad.widgets.message_filter import OtherCategory
 
 from toad.settings import PreferenceChange
@@ -116,7 +117,6 @@ if TYPE_CHECKING:
     from toad.widgets.agent_response import AgentResponse
     from toad.widgets.question import Ask
     from toad.widgets.terminal import Terminal
-    from toad.widgets.terminal_tool import TerminalTool
 
 
 AGENT_FAIL_HELP = {
@@ -391,9 +391,19 @@ class ConversationWindowSettings:
         self.app.settings_changed_signal.subscribe(self, self._settings_changed)
         self._settings_changed(PreferenceChange(SidebarSettings.hide, self.app.settings.sidebar.hide))
         self.watch(self, "scroll_y", self.hydrate_visible_tools, init=False)
-        self.screen.screen_layout_refresh_signal.subscribe(
-            self, lambda _screen: self.hydrate_visible_tools()
-        )
+        self.screen.screen_layout_refresh_signal.subscribe(self, self.on_screen_layout_refresh)
+
+    def on_screen_layout_refresh(self, _screen) -> None:
+        self.hydrate_visible_tools()
+
+    def rebind_screen(self, previous, destination) -> None:
+        """Move explicit screen-owned observers with a retained conversation."""
+        previous.screen_layout_refresh_signal.unsubscribe(self)
+        previous.viewport_presentation.windows.discard(self)
+        destination.screen_layout_refresh_signal.subscribe(self, self.on_screen_layout_refresh)
+        if viewport := self.__dict__.get("document_viewport"):
+            destination.screen_layout_refresh_signal.subscribe(self, viewport.request)
+            destination.viewport_presentation.windows.add(self)
 
     def _settings_changed(self, update: PreferenceChange) -> None:
         if update.field is SidebarSettings.hide:
@@ -581,7 +591,6 @@ class Conversation(containers.Vertical):
         self.set_reactive(Conversation.project_path, project_path)
         self.set_reactive(Conversation.working_directory, str(project_path))
         self.agent_slash_commands: list[AgentAdvertisedCommand] = []
-        self.terminals: dict[str, TerminalTool] = {}
         self.output = LiveOutput(self)
         self._loading: Loading | None = None
         self.turns = ConversationTurn(self._turn_changed)
@@ -633,10 +642,7 @@ class Conversation(containers.Vertical):
         self.goal_observation = GoalObservation(self)
         self._goal_modal = None
         self.delivery_observation = InputDeliveryObservation(self)
-        self._transcript_generation = 0
-        self._transcript_dirty = False
-        self.displayed_transcript_cursor = None
-        self._needs_transcript_checkpoint = False
+        self.transcript = TranscriptPresentation(self)
         self.tool_expansions: dict[str, bool] = {}
         self._compacting = False
 
@@ -1038,22 +1044,21 @@ class Conversation(containers.Vertical):
     async def on_agent_ready(self, message: AgentReady) -> None:
         self.remove_class("-initial-loading")
         await self.query(ThreadLoading).remove()
-        if message.reconnected:
-            return
-        self.session_start_time = monotonic()
-        if self.agent is not None:
-            content = Content.assemble(self.agent.get_info(), " connected")
-            self.flash(content, style="success")
-            if self._agent_data is not None:
-                self.app.capture_event(
-                    "agent-session-begin",
-                    agent=self._agent_data["identity"],
-                )
+        if not message.reconnected:
+            self.session_start_time = monotonic()
+            if self.agent is not None:
+                content = Content.assemble(self.agent.get_info(), " connected")
+                self.flash(content, style="success")
+                if self._agent_data is not None:
+                    self.app.capture_event(
+                        "agent-session-begin",
+                        agent=self._agent_data["identity"],
+                    )
 
         self.agent_ready = True
         self.call_later(self.goal_observation.refresh)
         self.call_later(self.delivery_observation.refresh)
-        self._compact_committed_history()
+        self.transcript.request()
         if self.turns.managed_id is None:
             self.post_message(messages.SessionUpdate(state="idle", summary="Ready"))
 
@@ -1096,6 +1101,7 @@ class Conversation(containers.Vertical):
             await self.rename_session(message.title or "")
 
     async def on_unmount(self) -> None:
+        await self.transcript.close()
         self.output.retire()
         await asyncio.gather(self.goal_observation.close(), self.delivery_observation.close())
         if self._directory_watcher is not None:
@@ -1333,11 +1339,11 @@ class Conversation(containers.Vertical):
                     self.sending_queued_prompt = first.text
                     self.send_queued_now()
             return
-        self._transcript_generation += 1
+        self.transcript.invalidate()
         if event.shell:
             if await self.shell.is_busy():
-                if self.shell.terminal is not None:
-                    self.shell.terminal.focus(scroll_visible=False)
+                if (output := self.shell.output) is not None:
+                    output.focus()
                 await self.shell.send_input(event.body, paste=True)
             else:
                 self.shell_history.current = None
@@ -1666,7 +1672,7 @@ class Conversation(containers.Vertical):
         update = message.update
         self.activity_started_at = update.started_at
         self.activity = update.activity_detail or "Thinking…"
-        self._transcript_generation += 1
+        self.transcript.invalidate()
         if previous.managed_id is None:
             self.busy_count += 1
         await self._clear_mcp_live()
@@ -1765,218 +1771,9 @@ class Conversation(containers.Vertical):
             style="error",
         )
 
-    async def on_transcript_snapshot(self, message: TranscriptSnapshotUpdate):
-        """Mount saved history once; never feed it through live Markdown streams."""
-        from toad.widgets.transcript_fragments import prepare_transcript_fragments
-        from toad.widgets.transcript_history import TranscriptHistory
-
-        self._transcript_generation += 1
-        generation, agent = self._transcript_generation, self.agent
-        window, contents = self.window, self.contents
-        scroll_revision = window.scroll_revision
-        fragments = await prepare_transcript_fragments(
-            message.page.events,
-            self.app.render_processes,
-        )
-        if (
-            not self.is_attached
-            or generation != self._transcript_generation
-            or self.agent is not agent
-            or self.window is not window
-            or self.contents is not contents
-        ):
-            return
-        if agent is None:
-            return
-        blocks = [
-            TranscriptHistory(
-                message.page, agent.get_transcript_page, fragments=fragments
-            )
-        ]
-        self.output.boundary()
-        # Anchor the first replay frame before mounting the saved page.
-        if window.scroll_revision == scroll_revision:
-            window.anchor()
-        with self.app.batch_update():
-            await self.contents.mount(*blocks)
-        self.query_one(SessionDetails)._refresh_summary()
-        self.call_after_refresh(self._record_displayed_transcript, message.page.after)
-
-    def _record_displayed_transcript(self, cursor) -> None:
-        self.displayed_transcript_cursor = cursor
-
-    def on_transcript_changed(self, message: acp_messages.CommsUpdated) -> None:
-        self._transcript_dirty = True
-        if message.update.cursor is not None:
-            self.call_after_refresh(
-                self._record_displayed_transcript, message.update.cursor
-            )
-        else:
-            # Local commits without a cursor require a bounded
-            # canonical snapshot before acknowledging their new saved replies.
-            self._needs_transcript_checkpoint = True
-        self._compact_committed_history()
-
-    @work(exclusive=True, group="transcript-window")
-    async def _compact_committed_history(self) -> None:
-        from agent_comms.errors import UnregisteredThreadError
-
-        from toad.acp.agent import Agent
-        from toad.widgets.committed_presentation import (
-            CheckpointBarrier,
-            CommitEvidence,
-            CommitParticipant,
-            CommittedHistory,
-            checkpoint_plan,
-            retirement_candidates,
-        )
-        from toad.widgets.transcript_history import TranscriptHistory
-
-        window = self.query_one_optional(Window)
-        contents = self.query_one_optional(Contents)
-        if (
-            window is None
-            or contents is None
-            or not self._transcript_dirty
-            or not isinstance(self.agent, Agent)
-            or not self.agent_ready
-            or not self.agent.transcript_ready
-            or self.turns.managed_id is not None
-            or any(
-                isinstance(node, CheckpointBarrier) for node in contents.walk_children()
-            )
-            or (
-                not self._needs_transcript_checkpoint
-                and len(contents.children) < self.MAX_LIVE_BLOCKS
-            )
-        ):
-            return
-        generation = self._transcript_generation
-        agent = self.agent
-        plan = checkpoint_plan(window)
-        # A page cannot replace live blocks posted while its read or fragment
-        # preparation is in flight unless it explicitly contains their identity.
-        before_read = tuple(contents.children)
-        history = next(
-            (child for child in before_read if isinstance(child, CommittedHistory)),
-            None,
-        )
-        potential = tuple(
-            child
-            for child in before_read
-            if child is not history and isinstance(child, CommitParticipant)
-        )
-        if not plan.ready(history) or not plan.permits(self, potential):
-            return
-
-        def is_current() -> bool:
-            return (
-                generation == self._transcript_generation
-                and self.is_attached
-                and not self._closing
-                and not self._pruning
-                and self.agent is agent
-                and self.query_one_optional(Window) is window
-                and self.query_one_optional(Contents) is contents
-                and self.turns.managed_id is None
-                and plan.current(window)
-            )
-
-        try:
-            page = await agent.get_transcript_page()
-            if not page.events or not is_current():
-                return
-            prepared = await plan.prepare(self, history, page, before_read, is_current)
-        except UnregisteredThreadError:
-            # Deletion can retire the model before the attachment's final
-            # transcript notification has drained. Its view is closing too.
-            return
-        except (OSError, ValueError) as error:
-            if is_current():
-                self.notify(str(error), title="Committed history", severity="error")
-            return
-        if prepared is None or not is_current():
-            return
-        evidence = CommitEvidence(
-            frozenset(before_read), prepared.sequences, prepared.history
-        )
-        async with window.history_lock:
-            retired = retirement_candidates(contents.children, evidence)
-            if (
-                not is_current()
-                or not plan.ready(prepared.history)
-                or not plan.permits(self, retired)
-            ):
-                return
-            self.output.boundary()
-            if self.cursor_block in retired:
-                self.cursor.follow(None)
-            async with plan.publication(self, prepared):
-                replacement = None
-                accepted = False
-                try:
-                    if prepared.history is None:
-                        replacement = TranscriptHistory(
-                            page,
-                            agent.get_transcript_page,
-                            fragments=prepared.fragments,
-                            committed=False,
-                        )
-                        await contents.mount(replacement, before=0)
-                    if not is_current():
-                        return
-                    # Identity-backed arrivals during a mount may now be covered;
-                    # ordinary late arrivals remain outside the captured cohort.
-                    retired = retirement_candidates(contents.children, evidence)
-                    if not plan.permits(self, retired):
-                        return
-                    plan.commit(prepared, page.after)
-                    if replacement is not None:
-                        replacement.publish_committed()
-                    # Once retiring live widgets begins, the accepted source must
-                    # survive cancellation so their saved content stays reachable.
-                    accepted = True
-                    await contents.remove_children(retired)
-                finally:
-                    if (
-                        not accepted
-                        and replacement is not None
-                        and replacement.is_attached
-                    ):
-                        await replacement.remove()
-        if not window.is_attached or not contents.is_attached:
-            return
-        self._transcript_dirty = False
-        self._needs_transcript_checkpoint = False
-        plan.finish(self, page.after)
-
     async def on_transcript_history_covered(self, message) -> None:
-        from toad.widgets.committed_presentation import (
-            CommitEvidence,
-            protected_blocks,
-            retirement_candidates,
-        )
-
         message.stop()
-        contents = self.query_one_optional(Contents)
-        if (
-            contents is not None
-            and message.history is not None
-            and message.history.is_attached
-            and message.history.parent is contents
-        ):
-            candidates = retirement_candidates(
-                contents.children,
-                CommitEvidence(
-                    frozenset(),
-                    frozenset(message.sequences),
-                    message.history,
-                ),
-            )
-            protected = protected_blocks(self, candidates)
-            await contents.remove_children(
-                [child for child in candidates if child not in protected]
-            )
+        await self.transcript.covered(message)
 
     @on(acp_messages.Thinking)
     async def on_acp_agent_thinking(self, message: acp_messages.Thinking):
@@ -2049,25 +1846,6 @@ class Conversation(containers.Vertical):
         ]
         self.update_slash_commands()
 
-    def get_terminal(self, terminal_id: str) -> TerminalTool | None:
-        """Get a terminal from its id.
-
-        Args:
-            terminal_id: ID of the terminal.
-
-        Returns:
-            Terminal instance, or `None` if no terminal was found.
-        """
-        from toad.widgets.terminal_tool import TerminalTool
-
-        try:
-            terminal = self.contents.query_one(f"#{terminal_id}", TerminalTool)
-        except NoMatches:
-            return None
-        if terminal.released:
-            return None
-        return terminal
-
     async def action_interrupt(self) -> None:
         terminal = self._terminal
         if terminal is not None and not terminal.is_finalized:
@@ -2080,76 +1858,6 @@ class Conversation(containers.Vertical):
     def action_focus_block(self, block_id: str) -> None:
         with suppress(NoMatches):
             self.query_one(f"#{block_id}").focus()
-
-    @work
-    @on(acp_messages.CreateTerminal)
-    async def on_acp_create_terminal(self, message: acp_messages.CreateTerminal):
-        from toad.widgets.terminal_tool import Command, TerminalTool
-
-        command = Command(
-            message.command,
-            message.args or [],
-            message.env or {},
-            message.cwd or str(self.project_path),
-        )
-        width = self.window.size.width - 5 - self.window.styles.scrollbar_size_vertical
-        height = self.window.scrollable_content_region.height - 2
-
-        terminal = TerminalTool(
-            command,
-            output_byte_limit=message.output_byte_limit,
-            id=message.terminal_id,
-            minimum_terminal_width=width,
-        )
-        self.terminals[message.terminal_id] = terminal
-        terminal.display = False
-
-        try:
-            await terminal.start(width, height)
-        except Exception as error:
-            log(str(error))
-            message.result_future.set_result(False)
-            return
-
-        try:
-            await self.post(terminal)
-        except Exception:
-            message.result_future.set_result(False)
-        else:
-            message.result_future.set_result(True)
-
-    @on(acp_messages.KillTerminal)
-    async def on_acp_kill_terminal(self, message: acp_messages.KillTerminal):
-        if (terminal := self.get_terminal(message.terminal_id)) is not None:
-            terminal.kill()
-
-    @on(acp_messages.GetTerminalState)
-    def on_acp_get_terminal_state(self, message: acp_messages.GetTerminalState):
-        if (terminal := self.get_terminal(message.terminal_id)) is None:
-            message.result_future.set_exception(
-                KeyError(f"No terminal with id {message.terminal_id!r}")
-            )
-        else:
-            message.result_future.set_result(terminal.tool_state)
-
-    @on(acp_messages.ReleaseTerminal)
-    def on_acp_terminal_release(self, message: acp_messages.ReleaseTerminal):
-        if (terminal := self.get_terminal(message.terminal_id)) is not None:
-            terminal.kill()
-            terminal.release()
-
-    @work
-    @on(acp_messages.WaitForTerminalExit)
-    async def on_acp_wait_for_terminal_exit(
-        self, message: acp_messages.WaitForTerminalExit
-    ):
-        if (terminal := self.get_terminal(message.terminal_id)) is None:
-            message.result_future.set_exception(
-                KeyError(f"No terminal with id {message.terminal_id!r}")
-            )
-        else:
-            return_code, signal = await terminal.wait_for_exit()
-            message.result_future.set_result((return_code or 0, signal))
 
     async def set_mode(self, mode_id: str | None) -> None:
         """Set the mode give its id (if it exists).
@@ -2412,7 +2120,6 @@ class Conversation(containers.Vertical):
         self.shell_history.complete.add_words(
             self.app.settings.shell.allow_commands.split()
         )
-        self.shell
         if self._agent_data is not None:
 
             async def start_agent() -> None:
@@ -2448,8 +2155,7 @@ class Conversation(containers.Vertical):
         self.window.anchor()
 
     def _history_scroll_changed(self, _position: float) -> None:
-        if self._transcript_dirty:
-            self.call_after_refresh(self._compact_committed_history)
+        self.call_after_refresh(self.transcript.retry)
 
     @property
     def unresolved_inputs(self) -> list[dict]:
@@ -2637,6 +2343,7 @@ class Conversation(containers.Vertical):
         """Post any welcome content."""
 
     def watch_agent(self, agent: AgentBase | None) -> None:
+        self.transcript.source_changed()
         # A presentation remount is not a fresh attachment. Start at the
         # Agent's current projection/floor so previously queued receipts cannot
         # revive proof after its reducer entered quarantine or evidence loss.
@@ -2665,9 +2372,6 @@ class Conversation(containers.Vertical):
 
     @work
     async def watch_agent_ready(self, ready: bool) -> None:
-        with suppress(asyncio.TimeoutError):
-            async with asyncio.timeout(2.0):
-                await self.shell.wait_for_ready()
         if ready and self._directory_watcher is None:
             self._directory_watcher = DirectoryWatcher(self.project_path, self)
             self._directory_watcher.start()
@@ -2882,11 +2586,8 @@ class Conversation(containers.Vertical):
         Args:
             command: Command to execute.
         """
-        from toad.widgets.shell_result import ShellResult
-
         if command.strip():
             self._shell_count += 1
-            await self.post(ShellResult(command))
             width, height = self.get_terminal_dimensions()
             await self.shell.send(command, width, height)
 
@@ -2941,7 +2642,7 @@ class Conversation(containers.Vertical):
             if history.has_newer:
                 history.request_latest()
         self.window.anchor()
-        self._compact_committed_history()
+        self.transcript.request()
 
     async def action_select_block(self) -> None:
         if (block := self.get_cursor_block(Widget)) is None:
@@ -3109,7 +2810,7 @@ class ConversationCommsConsumer(MroDispatch):
 
     @handles(TranscriptChangedUpdate)
     async def transcript_changed(self, update):
-        self.conversation.on_transcript_changed(self.message)
+        self.conversation.transcript.changed(update.cursor)
 
     @handles(TurnStartedUpdate)
     async def turn_started(self, update: TurnStartedUpdate):
@@ -3129,7 +2830,7 @@ class ConversationCommsConsumer(MroDispatch):
 
     @handles(TranscriptSnapshotUpdate)
     async def transcript_snapshot(self, update: TranscriptSnapshotUpdate):
-        await self.conversation.on_transcript_snapshot(update)
+        await self.conversation.transcript.snapshot(update.page)
 
     @handles(McpClientReceiptUpdate)
     async def mcp_receipt(self, update: McpClientReceiptUpdate):
@@ -3137,9 +2838,7 @@ class ConversationCommsConsumer(MroDispatch):
 
     @handles(CompactionPublishedUpdate)
     async def compaction_published(self, update: CompactionPublishedUpdate):
-        self.conversation._transcript_dirty = True
-        self.conversation._needs_transcript_checkpoint = True
-        self.conversation._compact_committed_history()
+        self.conversation.transcript.require_checkpoint()
 
 
 

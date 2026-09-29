@@ -2,7 +2,7 @@ from toad.settings import PreferenceChange
 from toad.preferences import SidebarSettings
 from dataclasses import dataclass
 import asyncio
-from typing import TYPE_CHECKING, ClassVar, cast
+from typing import TYPE_CHECKING, Callable, ClassVar, cast
 
 from textual import containers, events, on, widgets
 from textual.app import ComposeResult
@@ -643,6 +643,7 @@ class SideBar(SidebarDecorations, containers.Vertical):
         right: bool = False,
         navigation: SidebarState | None = None,
         defer_mount: bool = False,
+        on_hydrated: Callable[[], None] | None = None,
     ) -> None:
         super().__init__(name=name, id=id, classes=classes, disabled=disabled)
         self.panels: list[SideBar.Panel] = [*panels]
@@ -650,6 +651,7 @@ class SideBar(SidebarDecorations, containers.Vertical):
         self.right = right
         self._navigation = navigation
         self._panels_loaded = not defer_mount
+        self._on_hydrated = on_hydrated
         self._panels_loading = False
         self._panels_ready = asyncio.Event()
         self._presented_collapsed: bool | None = None
@@ -710,6 +712,8 @@ class SideBar(SidebarDecorations, containers.Vertical):
             if self.is_attached and not self._closing:
                 self._panels_loaded = True
                 self._presented_layout = None
+                if self._on_hydrated is not None:
+                    self._on_hydrated()
                 self.restore_navigation()
         finally:
             self._panels_ready.set()
@@ -795,22 +799,31 @@ class SideBar(SidebarDecorations, containers.Vertical):
             handle.display = not self.collapsed
         if self._panels_loaded and (controls := self.query_one_optional("#sidebar-controls")):
             controls.display = not self.collapsed
-            slider = controls.query_one("#sidebar-width-slider", SidebarSlider)
-            slider.reversed = self.right
-            slider.set_range(15, 50, placement.width_percent)
             directions = app.sidebar_layout.directions(self.id)
-            for direction, action in directions.items():
-                button = controls.query_one(f"#sidebar-{direction}", SidebarAction)
-                button.display = action is not None
-                button.tooltip = (f"Swap with the sidebar to the {direction}" if action == "swap"
-                                  else f"Move sidebar to the {direction}" if action == "move" else None)
-            toggle_mode = controls.query_one("#sidebar-float", SidebarAction)
-            toggle_mode.update("Push" if placement.floating else "Float", layout=False)
-            toggle_mode.tooltip = "Push conversation text" if placement.floating else "Float over conversation text"
-            actions = controls.query_one("#sidebar-layout-actions")
-            compact = all(action is not None for action in directions.values()) and width - 4 < 21
-            actions.set_class(compact, "-compact")
-            controls.styles.height = 3 if compact else 2
+            slider = controls.query_one_optional("#sidebar-width-slider", SidebarSlider)
+            actions = controls.query_one_optional("#sidebar-layout-actions")
+            buttons = {direction: controls.query_one_optional(f"#sidebar-{direction}", SidebarAction)
+                       for direction in (*directions, "float")}
+            if slider is None or actions is None or any(button is None for button in buttons.values()):
+                # Parent mounting can complete before its composed action rows.
+                # Reconcile at the committed child frame, not against an
+                # incomplete control tree during a resize/activation callback.
+                self._presented_layout = None
+                self.call_after_refresh(self._apply_layout)
+            else:
+                slider.reversed = self.right
+                slider.set_range(15, 50, placement.width_percent)
+                for direction, action in directions.items():
+                    button = buttons[direction]
+                    button.display = action is not None
+                    button.tooltip = (f"Swap with the sidebar to the {direction}" if action == "swap"
+                                      else f"Move sidebar to the {direction}" if action == "move" else None)
+                toggle_mode = buttons["float"]
+                toggle_mode.update("Push" if placement.floating else "Float", layout=False)
+                toggle_mode.tooltip = "Push conversation text" if placement.floating else "Float over conversation text"
+                compact = all(action is not None for action in directions.values()) and width - 4 < 21
+                actions.set_class(compact, "-compact")
+                controls.styles.height = 3 if compact else 2
         content = next((child for child in parent.children
                         if child.display and not isinstance(child, SideBar)), None)
         if content is not None:
@@ -869,6 +882,8 @@ class SideBar(SidebarDecorations, containers.Vertical):
             # Activation applies the latest value inside its render transaction;
             # an open/close round trip can therefore keep unchanged geometry.
             return
+        if not collapsed and self.is_mounted:
+            self.schedule_hydration()
         self._presented_collapsed = collapsed
         # The old -collapsed ancestor selector restyled every descendant row
         # (hundreds of expensive stylesheet.apply calls per toggle). Inline

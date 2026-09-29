@@ -48,6 +48,13 @@ class ViewportPresentation:
             raise ReferenceError("The viewport presentation has been retired")
         return screen
 
+    def release(self, window) -> None:
+        """Retire native observers before their optional window leaves the DOM."""
+        self.windows.discard(window)
+        self.anchors.discard(window)
+        self.screen.screen_layout_refresh_signal.unsubscribe(window)
+        window.retire_presentation_wait()
+
     def request(self) -> None:
         for window in self.windows:
             window.document_viewport.request()

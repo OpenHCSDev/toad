@@ -61,6 +61,7 @@ async def main():
             await screen.on_coordination_update(coordination_update(str(root / 'wire'), 'owner'))
             sidebar = screen.query_one("#thread-sidebar", SideBar)
             sidebar.reveal()
+            await sidebar.wait_content_ready()
             filters = screen.query_one(ThreadCommsSidebar)
             filters.query_ancestor(SideBarCollapsible).collapsed = False
             await pilot.pause()
@@ -126,7 +127,7 @@ async def main():
                 with patch.object(
                     app.coordination_wire.views, "mark_thread_view_read"
                 ) as mark:
-                    view.displayed_transcript_cursor = cursor
+                    view.transcript.displayed_cursor = cursor
                     await app.mark_visible_thread_read()
                     mark.assert_not_called()
 

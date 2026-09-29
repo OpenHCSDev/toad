@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from asyncio import Future
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Mapping
+from typing import TYPE_CHECKING
 
 import rich.repr
 from agent_comms.acp_extension import (
@@ -21,7 +21,6 @@ from .permission_controller import PermissionRequest
 if TYPE_CHECKING:
     from textual.content import Content
     from toad.acp.agent import Mode, Model
-    from toad.widgets.terminal_tool import ToolState
 
 
 class AgentMessage(Message):
@@ -104,49 +103,6 @@ class AvailableCommandsUpdate(AgentMessage):
     """The agent is reporting its slash commands."""
 
     commands: list[protocol.AvailableCommand]
-
-
-@dataclass
-class CreateTerminal(AgentMessage):
-    """Request a terminal in the conversation."""
-
-    terminal_id: str
-    command: str
-    result_future: Future[bool]
-    args: list[str] | None = None
-    cwd: str | None = None
-    env: Mapping[str, str] | None = None
-    output_byte_limit: int | None = None
-
-
-@dataclass
-class KillTerminal(AgentMessage):
-    """Kill a terminal process."""
-
-    terminal_id: str
-
-
-@dataclass
-class GetTerminalState(AgentMessage):
-    """Get the state of the terminal."""
-
-    terminal_id: str
-    result_future: Future[ToolState]
-
-
-@dataclass
-class ReleaseTerminal(AgentMessage):
-    """Release the terminal."""
-
-    terminal_id: str
-
-
-@dataclass
-class WaitForTerminalExit(AgentMessage):
-    """Wait for the terminal to exit."""
-
-    terminal_id: str
-    result_future: Future[tuple[int, str | None]]
 
 
 @rich.repr.auto

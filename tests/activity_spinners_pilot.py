@@ -109,8 +109,13 @@ async def check_busy_labels() -> None:
                 assert rows[0].prompt.plain[0] == " "
                 assert layout.call_count == 0, "Spinner repaint triggered full layout"
 
-            await app.screen.on_coordination_update(coordination_update(str(root / 'wire'), me))
-            app.screen.query_one("#thread-sidebar", SideBar).reveal()
+            await app.screen.on_coordination_update(CoordinationUpdate(
+                thread=me, wire_root=str(root / "wire"),
+                persistence="persistent", transport="stdio",
+            ))
+            right = app.screen.query_one("#thread-sidebar", SideBar)
+            right.reveal()
+            await right.wait_content_ready()
             tree = app.screen.query_one(ThreadCommsSidebar)
             async with asyncio.timeout(5):
                 while tree._snapshot is None:

@@ -160,7 +160,7 @@ async def mounted_checks():
                 await pilot.pause()
                 assert len(reads) == 8 and len(pager.pages) == 1
                 assert len(pager.pages[0].children) == len(pager.pages[0].fragments), "Warm pages mounted hidden widgets"
-                assert view.displayed_transcript_cursor is None, "Lookahead advanced painted history"
+                assert view.transcript.displayed_cursor is None, "Lookahead advanced painted history"
                 calls = len(reads)
                 view.window.release_anchor()
                 pager._request_page(True)

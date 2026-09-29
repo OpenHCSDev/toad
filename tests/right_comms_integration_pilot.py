@@ -28,6 +28,7 @@ async def wait_until(pilot, condition):
 async def reveal(screen, pilot):
     sidebar = screen.query_one("#thread-sidebar", SideBar)
     sidebar.reveal()
+    await sidebar.wait_content_ready()
     tree = sidebar.query_one(ThreadCommsSidebar)
     tree.query_ancestor(SideBarCollapsible).collapsed = False
     await pilot.pause()
@@ -70,10 +71,9 @@ async def main():
             with patch.object(service, "snapshot", wraps=service.snapshot) as read:
                 await pilot.pause()
                 assert read.call_count == 0, "Collapsed right panel fetched source data"
-                assert not main.query_one(
-                    "#thread-comms-panel", SideBarCollapsible
-                ).collapsed
+                assert not main.query_one("#thread-sidebar", SideBar)._panels_loaded
                 tree = await reveal(main, pilot)
+                assert not main.query_one("#thread-comms-panel", SideBarCollapsible).collapsed
                 assert read.call_count >= 1
             assert tree._snapshot.owner == "owner"
             assert tree.groups["parent"].model.entries[0].target == "origin"

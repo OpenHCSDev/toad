@@ -35,12 +35,17 @@ from toad.widgets.plan import Plan
 from toad.widgets.project_directory_tree import ProjectDirectoryTree
 from toad.widgets.project_panel import ProjectPanel, ProjectSearchButton
 from toad.widgets.recovery_view import RecoveryView
-from toad.widgets.thread_comms import RelationshipSort, ThreadCommsSidebar
-from toad.widgets.channels_sidebar import ChannelsSidebar
-from toad.widgets.side_bar import SideBar, ThreadSidebar, SideBarCollapsible, TabHistoryControls
-from toad.navigation_target import FeedTarget, DirectTarget
-from toad.widgets.session_tabs import SessionsTabs
+from toad.widgets.thread_comms import ThreadCommsSidebar
+from toad.widgets.comms_chat import resolve_session_thread, session_thread_name
+from toad.widgets.comms_fork_dialog import ForkDialog
+from toad.widgets.comms_sidebar import CoordinationStatus, CommsSidebar, SelectTarget
+from toad.widgets.side_bar import SideBar, SideBarCollapsible
+from toad.navigation_target import NavigationContext, NavigationOwner
+from toad.workspace_chrome import FooterSlot, NavigationSlot
+from toad.session_tracker import SidebarState
 from toad.widgets.throbber import Throbber
+from toad.widgets.channels_sidebar import ChannelsSidebar
+from toad.navigation_target import FeedTarget, DirectTarget
 
 
 class ModeProvider(Provider):
@@ -168,6 +173,26 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
         self._content_loading = False
         self._content_ready = asyncio.Event()
         self._content_error: BaseException | None = None
+        from toad.session_presentation import BlankSessionPresentation, OperationalSessionPresentation
+
+        self.presentation = (BlankSessionPresentation() if agent is None
+                             and agent_session_id is None and session_pk is None
+                             and initial_prompt is None
+                             else OperationalSessionPresentation())
+
+    async def prepare_presentation(self) -> None:
+        from toad.widgets.session_thread_sidebar import SessionThreadSidebar
+
+        await self.presentation.prepare(self)
+        if sidebar := self.query_one_optional(SessionThreadSidebar):
+            await sidebar.prepare_presentation()
+
+    async def retire_presentation(self) -> None:
+        from toad.widgets.session_thread_sidebar import SessionThreadSidebar
+
+        if sidebar := self.query_one_optional(SessionThreadSidebar):
+            await sidebar.retire_presentation()
+        await self.presentation.retire(self)
 
     def watch_title(self, title: str) -> None:
         self.app.update_terminal_title()
@@ -198,31 +223,18 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
     def compose(self) -> ComposeResult:
         from toad.widgets.channels_sidebar import ChannelsSlot
 
-        self._project_panel = ProjectPanel(self.project_path)
-        with containers.Horizontal(id="tab-navigation-header"):
-            yield TabHistoryControls()
-            yield SessionsTabs()
+        from toad.widgets.session_thread_sidebar import SessionThreadSidebar
+
+        yield NavigationSlot()
         with containers.Center():
             yield ChannelsSlot()
-            yield ThreadSidebar(
-                SideBar.Panel("Thread", CoordinationStatus(self._comms_thread), id="coordination-panel"),
-                SideBar.Panel("Comms", ThreadCommsSidebar(
-                    self._comms_thread, wire_root=self.coordination_root, live=True),
-                    id="thread-comms-panel", header_control=RelationshipSort()),
-                SideBar.Panel("Plan", Plan([]), collapsed=True, id="plan-panel"),
-                SideBar.Panel("Project", self._project_panel, flex=True, collapsed=True),
-                SideBar.Panel("Recovery", RecoveryView(self._comms_thread,
-                                                       wire_root=self.coordination_root), collapsed=True,
-                              id="recovery-panel"),
-                right=True, hide=True, navigation=self._thread_sidebar_state,
-                defer_mount=not self._content_loaded,
-            )
+            yield SessionThreadSidebar(self)
             with containers.Vertical(id="session-content"):
                 if self._content_loaded:
-                    yield self._make_conversation()
+                    yield self.presentation.compose_content(self)
                 else:
                     yield ThreadLoading(id="session-opening")
-        yield Footer(compact=True)
+        yield FooterSlot(compact=True)
 
     def _make_conversation(self) -> Conversation:
         with self._context():
@@ -231,6 +243,11 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
                 self._session_pk, self._agent_session_title,
                 initial_prompt=self._initial_prompt,
             ).data_bind(project_path=MainScreen.project_path, column=MainScreen.column)
+
+    def make_blank_conversation(self) -> Conversation:
+        """Construct the shared blank editor without binding it to one host."""
+        with self._context():
+            return Conversation(self.project_path)
 
     def _start_content_hydration(self) -> None:
         if not self._content_loaded and not self._content_loading and self.is_attached:
@@ -244,11 +261,10 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
             if not self.is_attached or self._closing:
                 return
             content = self.query_one("#session-content", containers.Vertical)
-            conversation = self._make_conversation()
-            conversation.display = False
-            # Mount asynchronously behind the loading row. No app-wide paint
-            # mask: other tabs, cancellation and input remain available.
-            await content.mount(conversation)
+            # The lifetime owner serializes initial activation and return.
+            # Hydration must not construct a second rich view beside it.
+            await self.presentation.prepare(self)
+            conversation = self.query_one(Conversation)
             if not self.is_attached or self._closing:
                 return
             self._content_loaded = True
@@ -269,8 +285,9 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
         if self._content_error is not None and not self._closing and not self._closed:
             raise self._content_error
 
-    def on_unmount(self) -> None:
+    async def on_unmount(self) -> None:
         self._content_ready.set()
+        await self.presentation.close(self)
 
     def run_prompt(self, prompt: str) -> None:
         self.conversation
@@ -295,16 +312,18 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
             ):
                 self._agent_session_title = thread_name
                 self.app.session_tracker.update_session(self.id, title=thread_name)
-        try:
-            self.query_one(CoordinationStatus).set_thread(thread_name)
-        except Exception:
-            pass
-        if recovery := self.query_one_optional(RecoveryView):
-            recovery.set_identity(thread_name, self.coordination_root)
-        if comms_tree := self.query_one_optional(ThreadCommsSidebar):
-            comms_tree.set_identity(thread_name, self.coordination_root)
+        self._sync_thread_sidebar()
         if self.id is not None:
             self.app.sync_recovery_root(self.id, self.coordination_root)
+
+    def _sync_thread_sidebar(self) -> None:
+        """Bind a newly mounted right panel to the current session identity."""
+        if status := self.query_one_optional(CoordinationStatus):
+            status.set_thread(self._comms_thread)
+        if recovery := self.query_one_optional(RecoveryView):
+            recovery.set_identity(self._comms_thread, self.coordination_root)
+        if comms_tree := self.query_one_optional(ThreadCommsSidebar):
+            comms_tree.set_identity(self._comms_thread, self.coordination_root)
 
     @property
     def coordination_root(self) -> str | None:
@@ -458,9 +477,9 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
             )
             for entry in message.entries
         ]
-        self.query_one("SideBar Plan", Plan).entries = entries
-        if entries:
-            self.query_one("#plan-panel", SideBarCollapsible).collapsed = False
+        from toad.widgets.session_thread_sidebar import SessionThreadSidebar
+
+        self.query_one(SessionThreadSidebar).update_plan(entries)
 
     @on(messages.SessionUpdate)
     async def on_session_update(self, event: messages.SessionUpdate) -> None:

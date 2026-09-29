@@ -181,3 +181,25 @@ Conversation AST span2709 →2667. Installed new-case/paint guard, actual native
 ACP/UI live and saved cropped paint, retained NRA26-event source paint and
 zero-positive class/debt ratchet pass. PR140 receipts record exact boundaries;
 parent owns paired merge/live installation. No own-scope blocker remains.
+
+## Current remaining dispatch: saved transcript publication (Carver, after140)
+
+Remeasured ready140f4ec98b: Conversation AST span2667. Root still owns generation,
+dirty/required-checkpoint flags, painted cursor and an exclusive worker while
+mounting saved snapshots and retiring committed live cohorts. Move actual state
+and mutations into TranscriptPresentation; TranscriptPublication public ABC owns
+a read's captured source/resources/generation. SnapshotPublication owns the
+initial render transaction; CheckpointPublication owns read/prepare/evidence/
+publication/retirement using existing CheckpointPlan/CommitEvidence declarations.
+No second history engine. A new publication case inherits source/resource fencing
+and shared lifetime, requires zero root/scheduler/retirement case branches; root
+raw-state hooks and methods are deleted. Source replacement resets the owned
+frontier and cancels old work. Late mount invalidation removes the rejected page.
+
+Tesla owns App's single read receipt call; migrate its cursor read directly to
+conversation.transcript.displayed_cursor in the same integration, no alias.
+Noether panel and Tesla persistent WorkspaceScreen/shell changes are disjoint.
+All current source/event/viewport/FollowTailCheckpoint and retained pilot callers
+migrate here. New-case/invalidation/retirement, actual native committed-page read
+plus cropped paint and retained NRA source paint are acceptance gates. PR141
+is the existing scoped draft; no live changes or CI wait.

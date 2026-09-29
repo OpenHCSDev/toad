@@ -26,6 +26,11 @@ class FooterState:
 class Footer(TextualFooter):
     _binding_state: FooterState | None = None
 
+    def rebind_host(self, previous: Screen, destination: Screen) -> None:
+        """Move Textual's explicit binding observer to the destination screen."""
+        previous.bindings_updated_signal.unsubscribe(self)
+        destination.bindings_updated_signal.subscribe(self, self.bindings_changed)
+
     def _current_binding_state(self, screen: Screen) -> FooterState:
         return FooterState(
             tuple(
