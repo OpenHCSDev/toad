@@ -17,8 +17,7 @@ from toad.widgets.session_tabs import SessionLabel
 from viewport_recent_tabs_pilot import settled
 from toad.screens.main import MainScreen
 from toad.widgets.agent_response import AgentResponse
-from toad.widgets.conversation import Conversation
-from toad.widgets.conversation import TurnActivity
+from toad.widgets.conversation import Conversation, TurnActivity, Window
 from toad.widgets.prompt import Prompt
 from toad.widgets.throbber import Throbber
 from toad.widgets.transcript_history import TranscriptFragmentView, TranscriptHistory, TranscriptPageView
@@ -60,14 +59,21 @@ class PaintedReturnApp(InstalledApp):
             if self.selected_mode == self.expected_source_id and self.first_paint_at is None:
                 self.first_paint_at = displayed
             view = self.selected_session.query_one_optional(Conversation)
+            window = view.query_one_optional(Window) if view is not None else None
             agent = view.agent if view is not None else None
+            strips = screen._compositor.render_strips()
+            reader = ""
+            if window is not None:
+                region = window.scrollable_content_region
+                reader = "\n".join(strip.crop(region.x, region.right).text
+                                   for strip in strips[region.y:region.bottom])
             self.observed_frames.append((
-                self.selected_mode, conversation_paint(screen),
-                "\n".join(strip.text for strip in screen._compositor.render_strips()),
+                self.selected_mode, reader,
+                "\n".join(strip.text for strip in strips),
                 agent is None or view.status == agent.context_measurement.status(),
                 agent is None or view.turns.owner.busy == agent.current_turn.busy,
-                view.window.scroll_y if view is not None else None,
-                view.window.max_scroll_y if view is not None else None,
+                window.scroll_y if window is not None else None,
+                window.max_scroll_y if window is not None else None,
                 (label.has_class("-current") if (label := screen.query_one_optional(
                     f"#{self.expected_source_id}", SessionLabel)) is not None else False),
             ))
@@ -108,8 +114,6 @@ async def click_session(app, pilot, source):
         (TranscriptPageView, "admit_retained", "page_admit_retained"),
         (TranscriptHistory, "admit_retained_pages", "history_admit_retained_pages"),
         (app.preparation, "submit", "preparation_submit"),
-        (app.workspace_screen, "prepare_navigation", "prepare_navigation"),
-        (app.workspace_screen, "layout_navigation", "layout_navigation"),
     ]
     for owner, method, label in targets:
         if owner is None:
