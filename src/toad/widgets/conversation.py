@@ -422,7 +422,10 @@ This is a view of your conversation with the agent.
 - **start typing** Focus the prompt
 """
     BINDING_GROUP_TITLE = "View"
-    BINDINGS = [Binding("end", "screen.focus_prompt", "Latest / prompt")]
+    BINDINGS = [Binding("end", "focus_prompt", "Latest / prompt")]
+
+    def action_focus_prompt(self) -> None:
+        self.query_ancestor(Conversation).focus_prompt()
 
 
 

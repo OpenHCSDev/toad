@@ -85,7 +85,7 @@ async def main():
             assert window.follows_tail and window.scroll_y == window.max_scroll_y, (window.follows_tail, window.scroll_y, window.max_scroll_y)
             assert end.body_ready and end in app.screen._compositor.visible_widgets
         await asyncio.get_running_loop().shutdown_default_executor()
-    print("rapid viewport: Page Down/End show source tail without repeated body rebuilds")
+    print("rapid viewport: PageDown/End and cold-tail return pass native visible-body paint")
 
 
 if __name__ == "__main__":

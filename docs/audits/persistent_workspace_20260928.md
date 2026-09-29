@@ -69,3 +69,13 @@ Earlier native4/16/32/64 topology receipt passed all actual source/editor/paint
 gates but median258.69ms at64 was not the30–40ms target. New reused-surface full
 native matrix, sidebar return, source-close custody, recent-source behavior and
 latency/tail closure remain unfinished. CI deferred; no live changes.
+
+### Rapid-scroll caller closure
+
+The cold-tail failure was the remaining `screen.focus_prompt` End binding on the
+conversation window. The fixed native WorkspaceScreen no longer owns that logical
+action. Window now invokes its actual Conversation owner directly. Installed
+rapid-visible-body-local-action.log exits0: repeated real PageDown/End, cropped
+tail text, cold dormant tail restored, no submitted visible unready-body frame,
+and exact final anchor/max scroll. No mocked restore method. This passes paint
+behavior, not repeated-body allocation counts or recent-source switching.
