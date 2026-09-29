@@ -3,24 +3,18 @@
 from datetime import datetime
 
 from agent_comms.field_codec import FieldCodec
-from agent_comms.goals import Goal
-from agent_comms.goal_presentation import GoalExecution
 from textual import on
 from textual.app import ComposeResult
 from textual.containers import Vertical, VerticalScroll
 from textual.screen import ModalScreen
-from textual.reactive import var
 from textual.widgets import Button, Static
 
 from toad.widgets.comms_sidebar import SelectTarget
-from toad.goal_display import GoalDisplay, NoGoal, ShowingGoal
+from toad.goal_interaction import GoalSession
 from toad.widgets.goal_text import GoalText
 
 
 class GoalDetails(ModalScreen[None]):
-    goal_display: var[GoalDisplay] = var(NoGoal())
-    execution: var[GoalExecution | None] = var(None)
-
     BINDINGS = [("escape", "close", "Close")]
     AUTO_FOCUS = "#goal-document"
     DEFAULT_CSS = """
@@ -34,10 +28,18 @@ class GoalDetails(ModalScreen[None]):
     GoalDetails Button { dock: bottom; margin-top: 1; }
     """
 
-    def __init__(self, goal: Goal, *, history=()):
+    def __init__(self, source: GoalSession, *, history=()):
         super().__init__()
-        self.goal_display = ShowingGoal(goal)
+        self.source = source
         self.history = history
+
+    @property
+    def goal_display(self):
+        return self.source.display
+
+    @property
+    def execution(self):
+        return self.source.execution
 
     def compose(self) -> ComposeResult:
         with Vertical():
@@ -66,13 +68,8 @@ class GoalDetails(ModalScreen[None]):
             yield Button("Close (Esc)", id="goal-details-close")
 
     def on_mount(self) -> None:
-        self._update_current()
-
-    def watch_goal_display(self) -> None:
-        self._update_current()
-
-    def watch_execution(self) -> None:
-        self._update_current()
+        self.watch(self.source.view, "goal_display", self._update_current)
+        self.watch(self.source.view, "goal_execution", self._update_current)
 
     def _update_current(self) -> None:
         if not self.is_attached:

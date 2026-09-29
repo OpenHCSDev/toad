@@ -11,7 +11,7 @@ from textual.widgets import Static
 
 from l0a_native_installed_pilot import main as native_fixture, until
 from native_session_retention_pilot import InstalledApp
-from saved_state_user_journey_pilot import prepare_saved_state, screen_paint
+from saved_state_user_journey_pilot import click_tab, click_thread, prepare_saved_state, screen_paint
 from toad.screens.goal_edit import GoalEdit
 from toad.widgets.goal_bar import GoalBar
 
@@ -34,6 +34,11 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     await until(pilot, lambda: view.goal_display.snapshot is not None)
     await until(pilot, lambda: "INITIAL_SAVED_GOAL" in screen_paint(app))
     print("SAVED_GOAL_ACTUAL_PAINT", flush=True)
+    first = app.selected_session
+    await click_thread(app, pilot, "gamma")
+    await click_tab(app, pilot, first.id)
+    await until(pilot, lambda: "INITIAL_SAVED_GOAL" in screen_paint(app))
+    print("GOAL_RETURN_ACTUAL_AGENT_TAB_CLICK", flush=True)
 
     # A backend clear must remove the controls in the already open tab.
     comms.goals.update_goal("beta", ClearGoalAction(), actor=OwnerInvocable)
