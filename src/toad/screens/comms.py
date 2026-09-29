@@ -16,8 +16,9 @@ from toad.widgets.irc_message import SelectHistoricalIdentity
 from toad.widgets.comms_sidebar import CoordinationStatus, CommsSidebar, SelectTarget
 from toad.widgets.channels_sidebar import ChannelsSlot, ChannelsSidebar
 from toad.session_tracker import SidebarState
-from toad.widgets.comms_fork_dialog import ForkDialog
-from toad.widgets.footer import Footer
+from toad.workspace_chrome import FooterSlot, NavigationSlot
+from toad.widgets.side_bar import SideBar
+from toad.navigation_target import NavigationContext, NavigationOwner
 from toad.widgets.recovery_view import RecoveryView
 from toad.widgets.session_tabs import SessionsTabs
 from toad.widgets.side_bar import SideBar, ThreadSidebar, TabHistoryControls
@@ -88,9 +89,7 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
         return self.me, self.target
 
     def compose(self) -> ComposeResult:
-        with containers.Horizontal(id="tab-navigation-header"):
-            yield TabHistoryControls()
-            yield SessionsTabs()
+        yield NavigationSlot()
         with containers.Center():
             yield ChannelsSlot()
             yield ThreadSidebar(
@@ -118,7 +117,7 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
                         kind=self.kind,
                         wire_root=self.wire_root,
                     )
-        yield Footer()
+        yield FooterSlot()
 
     @on(SelectHistoricalIdentity)
     async def select_historical_identity(self, event: SelectHistoricalIdentity) -> None:

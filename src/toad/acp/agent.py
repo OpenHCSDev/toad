@@ -205,7 +205,6 @@ class Agent(AgentBase):
         self._private_cursor_sequence = 0
         self.queue_attachment = QueueAttachment()
         self._queue_sequence = 0
-        self._terminal_count: int = 0
         log_filename: str = generate_datetime_filename(f"{agent['name']}", ".txt")
         if log_path := os.environ.get("TOAD_LOG"):
             self.presentation.log_path = Path(log_path).resolve().absolute()
@@ -604,50 +603,27 @@ class Agent(AgentBase):
         outputByteLimit: int | None = None,
         sessionId: str | None = None,
     ) -> protocol.CreateTerminalResponse:
-        # Assign a terminal id
-        self._terminal_count = self._terminal_count + 1
-        terminal_id = f"terminal-{self._terminal_count}"
+        from toad.terminal_execution import Command
 
-        terminal_env = (
-            {variable["name"]: variable["value"] for variable in env} if env else {}
+        terminal_env = {variable["name"]: variable["value"] for variable in env} if env else {}
+        terminal_id = await self.controller.terminals.create(
+            Command(command, args or [], terminal_env, cwd or str(self.project_root_path)),
+            outputByteLimit,
         )
-        result_future: asyncio.Future[bool] = asyncio.Future()
-        self.post_message(
-            messages.CreateTerminal(
-                terminal_id,
-                command=command,
-                args=args,
-                cwd=cwd,
-                env=terminal_env,
-                output_byte_limit=outputByteLimit,
-                result_future=result_future,
-            )
-        )
-        await result_future
-        if not result_future.result():
-            raise jsonrpc.JSONRPCError("Failed to create a terminal.")
         return {"terminalId": terminal_id}
 
     @jsonrpc.expose("terminal/kill")
     def rpc_terminal_kill(
         self, sessionID: str, terminalId: str, _meta: dict | None = None
     ) -> protocol.KillTerminalCommandResponse:
-        self.post_message(messages.KillTerminal(terminalId))
+        self.controller.terminals.kill(terminalId)
         return {}
 
     @jsonrpc.expose("terminal/output")
     async def rpc_terminal_output(
         self, sessionId: str, terminalId: str, _meta: dict | None = None
     ) -> protocol.TerminalOutputResponse:
-        from toad.widgets.terminal_tool import ToolState
-
-        result_future: asyncio.Future[ToolState] = asyncio.Future()
-
-        if not self.post_message(messages.GetTerminalState(terminalId, result_future)):
-            raise RuntimeError("Unable to get terminal output")
-
-        await result_future
-        terminal_state = result_future.result()
+        terminal_state = self.controller.terminals.output(terminalId)
 
         result: protocol.TerminalOutputResponse = {
             "output": terminal_state.output,
@@ -661,26 +637,20 @@ class Agent(AgentBase):
     def rpc_terminal_release(
         self, sessionId: str, terminalId: str, _meta: dict | None = None
     ) -> protocol.ReleaseTerminalResponse:
-        self.post_message(messages.ReleaseTerminal(terminalId))
+        self.controller.terminals.release(terminalId)
         return {}
 
     @jsonrpc.expose("terminal/wait_for_exit")
     async def rpc_terminal_wait_for_exit(
         self, sessionId: str, terminalId: str, _meta: dict | None = None
     ) -> protocol.WaitForTerminalExitResponse:
-        result_future: asyncio.Future[tuple[int, str | None]] = asyncio.Future()
-        if not self.post_message(
-            messages.WaitForTerminalExit(terminalId, result_future)
-        ):
-            raise RuntimeError("Unable to wait for terminal exit; no terminal found")
-
-        await result_future
-        return_code, signal = result_future.result()
+        return_code, signal = await self.controller.terminals.wait(terminalId)
         return {"exitCode": return_code, "signal": signal}
 
 
     async def stop(self) -> None:
         """Gracefully stop the process."""
+        await self.controller.terminals.close()
         self.process.stopping = True
         self.controller.connection_closed()
         if self.session_pk is not None:
@@ -1040,6 +1010,7 @@ class Agent(AgentBase):
     @session_id.setter
     def session_id(self, value):
         if value != self.controller.session_id:
+            self.controller.replace_terminal_session()
             self.permissions.cancel()
             self._active_turn_id = None
             self.controller.session_id = value

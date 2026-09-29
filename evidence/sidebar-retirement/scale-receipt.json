@@ -1,0 +1,33 @@
+{
+  "cohorts": [
+    {
+      "tabs": 4,
+      "rich_panels": 5,
+      "rss_bytes": 122298368,
+      "tasks": 317
+    },
+    {
+      "tabs": 16,
+      "rich_panels": 5,
+      "rss_bytes": 126382080,
+      "tasks": 477
+    },
+    {
+      "tabs": 32,
+      "rich_panels": 5,
+      "rss_bytes": 134103040,
+      "tasks": 708
+    },
+    {
+      "tabs": 64,
+      "rich_panels": 5,
+      "rss_bytes": 145702912,
+      "tasks": 1167
+    }
+  ],
+  "returns": 64,
+  "settled_return_median_ms": 247.57562799641164,
+  "settled_return_max_ms": 314.91569300123956,
+  "collected_retired_widgets": 321,
+  "boundary": "actual installed MainScreen/App selection hooks, filesystem and relationship service; no ACP provider claimed"
+}

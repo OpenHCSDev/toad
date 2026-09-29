@@ -61,6 +61,7 @@ async def main():
             await screen.on_coordination_update(coordination_update(str(root / 'wire'), 'owner'))
             sidebar = screen.query_one("#thread-sidebar", SideBar)
             sidebar.reveal()
+            await sidebar.wait_content_ready()
             filters = screen.query_one(ThreadCommsSidebar)
             filters.query_ancestor(SideBarCollapsible).collapsed = False
             await pilot.pause()

@@ -834,6 +834,7 @@ class ToadApp(App, inherit_bindings=False):
         try:
             async with self._mode_switch_lock:
                 previous_mode = self.current_mode
+                previous_screen = self.screen
                 with self.batch_update():
                     self._atomic_mode_switch = True
                     try:
@@ -841,14 +842,26 @@ class ToadApp(App, inherit_bindings=False):
                         # Channels before selection and the first painted frame;
                         # mounting/early hooks must tolerate the unfilled slot.
                         await self._init_mode(mode)
-                        if not await self.shared_channels.attach(self.get_screen_stack(mode)[0], mode=mode):
+                        destination = self.get_screen_stack(mode)[0]
+                        if not await self.workspace_chrome.attach(destination, mode=mode):
                             return  # The destination closed during route binding.
                         mounted = super().switch_mode(mode)
                         await mounted
                         screen = self.screen
+                        # Retire the departing optional surface inside the same
+                        # admission lock, before preparing the selected surface.
+                        # A detached retirement worker can race a subsequent
+                        # return to its mode and retain arbitrary rich trees.
+                        if (mode != previous_mode
+                                and isinstance(previous_screen, SessionView)
+                                and previous_screen.is_attached):
+                            await previous_screen.retire_presentation()
+                        self.workspace_chrome.footer.selected(screen)
                         if isinstance(screen, SessionView):
+                            await screen.prepare_presentation()
                             await screen.prepare_navigation()
                             await screen.layout_navigation()
+                        await self.workspace_chrome.blank.park_away_from(screen)
                     finally:
                         self._atomic_mode_switch = False
                 if isinstance(screen, SessionView) and screen.is_current:
@@ -1031,10 +1044,10 @@ class ToadApp(App, inherit_bindings=False):
         return self.tab_order.project(by_mode)
 
     @cached_property
-    def shared_channels(self):
-        from toad.widgets.channels_sidebar import SharedChannels
+    def workspace_chrome(self):
+        from toad.workspace_chrome import WorkspaceChrome
 
-        return SharedChannels()
+        return WorkspaceChrome(self)
 
     PREPARED_TAB_SHELLS = 1
     """Tunable UI-only lookahead count; zero disables preparation."""

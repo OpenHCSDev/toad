@@ -118,7 +118,6 @@ if TYPE_CHECKING:
     from toad.widgets.agent_response import AgentResponse
     from toad.widgets.question import Ask
     from toad.widgets.terminal import Terminal
-    from toad.widgets.terminal_tool import TerminalTool
 
 
 AGENT_FAIL_HELP = {
@@ -393,9 +392,19 @@ class ConversationWindowSettings:
         self.app.settings_changed_signal.subscribe(self, self._settings_changed)
         self._settings_changed(PreferenceChange(SidebarSettings.hide, self.app.settings.sidebar.hide))
         self.watch(self, "scroll_y", self.hydrate_visible_tools, init=False)
-        self.screen.screen_layout_refresh_signal.subscribe(
-            self, lambda _screen: self.hydrate_visible_tools()
-        )
+        self.screen.screen_layout_refresh_signal.subscribe(self, self.on_screen_layout_refresh)
+
+    def on_screen_layout_refresh(self, _screen) -> None:
+        self.hydrate_visible_tools()
+
+    def rebind_screen(self, previous, destination) -> None:
+        """Move explicit screen-owned observers with a retained conversation."""
+        previous.screen_layout_refresh_signal.unsubscribe(self)
+        previous.viewport_presentation.windows.discard(self)
+        destination.screen_layout_refresh_signal.subscribe(self, self.on_screen_layout_refresh)
+        if viewport := self.__dict__.get("document_viewport"):
+            destination.screen_layout_refresh_signal.subscribe(self, viewport.request)
+            destination.viewport_presentation.windows.add(self)
 
     def _settings_changed(self, update: PreferenceChange) -> None:
         if update.field is SidebarSettings.hide:
@@ -583,7 +592,6 @@ class Conversation(containers.Vertical):
         self.set_reactive(Conversation.project_path, project_path)
         self.set_reactive(Conversation.working_directory, str(project_path))
         self.agent_slash_commands: list[AgentAdvertisedCommand] = []
-        self.terminals: dict[str, TerminalTool] = {}
         self.output = LiveOutput(self)
         self._loading: Loading | None = None
         self.turns = ConversationTurn(self._turn_changed)
@@ -1336,8 +1344,8 @@ class Conversation(containers.Vertical):
         self.transcript.invalidate()
         if event.shell:
             if await self.shell.is_busy():
-                if self.shell.terminal is not None:
-                    self.shell.terminal.focus(scroll_visible=False)
+                if (output := self.shell.output) is not None:
+                    output.focus()
                 await self.shell.send_input(event.body, paste=True)
             else:
                 self.shell_history.current = None
@@ -1840,25 +1848,6 @@ class Conversation(containers.Vertical):
         ]
         self.update_slash_commands()
 
-    def get_terminal(self, terminal_id: str) -> TerminalTool | None:
-        """Get a terminal from its id.
-
-        Args:
-            terminal_id: ID of the terminal.
-
-        Returns:
-            Terminal instance, or `None` if no terminal was found.
-        """
-        from toad.widgets.terminal_tool import TerminalTool
-
-        try:
-            terminal = self.contents.query_one(f"#{terminal_id}", TerminalTool)
-        except NoMatches:
-            return None
-        if terminal.released:
-            return None
-        return terminal
-
     async def action_interrupt(self) -> None:
         terminal = self._terminal
         if terminal is not None and not terminal.is_finalized:
@@ -1871,76 +1860,6 @@ class Conversation(containers.Vertical):
     def action_focus_block(self, block_id: str) -> None:
         with suppress(NoMatches):
             self.query_one(f"#{block_id}").focus()
-
-    @work
-    @on(acp_messages.CreateTerminal)
-    async def on_acp_create_terminal(self, message: acp_messages.CreateTerminal):
-        from toad.widgets.terminal_tool import Command, TerminalTool
-
-        command = Command(
-            message.command,
-            message.args or [],
-            message.env or {},
-            message.cwd or str(self.project_path),
-        )
-        width = self.window.size.width - 5 - self.window.styles.scrollbar_size_vertical
-        height = self.window.scrollable_content_region.height - 2
-
-        terminal = TerminalTool(
-            command,
-            output_byte_limit=message.output_byte_limit,
-            id=message.terminal_id,
-            minimum_terminal_width=width,
-        )
-        self.terminals[message.terminal_id] = terminal
-        terminal.display = False
-
-        try:
-            await terminal.start(width, height)
-        except Exception as error:
-            log(str(error))
-            message.result_future.set_result(False)
-            return
-
-        try:
-            await self.post(terminal)
-        except Exception:
-            message.result_future.set_result(False)
-        else:
-            message.result_future.set_result(True)
-
-    @on(acp_messages.KillTerminal)
-    async def on_acp_kill_terminal(self, message: acp_messages.KillTerminal):
-        if (terminal := self.get_terminal(message.terminal_id)) is not None:
-            terminal.kill()
-
-    @on(acp_messages.GetTerminalState)
-    def on_acp_get_terminal_state(self, message: acp_messages.GetTerminalState):
-        if (terminal := self.get_terminal(message.terminal_id)) is None:
-            message.result_future.set_exception(
-                KeyError(f"No terminal with id {message.terminal_id!r}")
-            )
-        else:
-            message.result_future.set_result(terminal.tool_state)
-
-    @on(acp_messages.ReleaseTerminal)
-    def on_acp_terminal_release(self, message: acp_messages.ReleaseTerminal):
-        if (terminal := self.get_terminal(message.terminal_id)) is not None:
-            terminal.kill()
-            terminal.release()
-
-    @work
-    @on(acp_messages.WaitForTerminalExit)
-    async def on_acp_wait_for_terminal_exit(
-        self, message: acp_messages.WaitForTerminalExit
-    ):
-        if (terminal := self.get_terminal(message.terminal_id)) is None:
-            message.result_future.set_exception(
-                KeyError(f"No terminal with id {message.terminal_id!r}")
-            )
-        else:
-            return_code, signal = await terminal.wait_for_exit()
-            message.result_future.set_result((return_code or 0, signal))
 
     async def set_mode(self, mode_id: str | None) -> None:
         """Set the mode give its id (if it exists).
@@ -2203,7 +2122,6 @@ class Conversation(containers.Vertical):
         self.shell_history.complete.add_words(
             self.app.settings.shell.allow_commands.split()
         )
-        self.shell
         if self._agent_data is not None:
 
             async def start_agent() -> None:
@@ -2384,9 +2302,6 @@ class Conversation(containers.Vertical):
 
     @work
     async def watch_agent_ready(self, ready: bool) -> None:
-        with suppress(asyncio.TimeoutError):
-            async with asyncio.timeout(2.0):
-                await self.shell.wait_for_ready()
         if ready and self._directory_watcher is None:
             self._directory_watcher = DirectoryWatcher(self.project_path, self)
             self._directory_watcher.start()
@@ -2601,11 +2516,8 @@ class Conversation(containers.Vertical):
         Args:
             command: Command to execute.
         """
-        from toad.widgets.shell_result import ShellResult
-
         if command.strip():
             self._shell_count += 1
-            await self.post(ShellResult(command))
             width, height = self.get_terminal_dimensions()
             await self.shell.send(command, width, height)
 

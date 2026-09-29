@@ -1,0 +1,22 @@
+{
+  "batrachian-toad": {
+    "url": "file:///home/ts/wt/toad-session-panels-sol-20260928",
+    "dir_info": {}
+  },
+  "textual": {
+    "url": "https://github.com/OpenHCSDev/textual.git",
+    "vcs_info": {
+      "vcs": "git",
+      "commit_id": "d9def32ff25b56304b3e03ad4bf59d750b4d238b",
+      "requested_revision": "d9def32ff25b56304b3e03ad4bf59d750b4d238b"
+    }
+  },
+  "agent-comms": {
+    "url": "https://github.com/OpenHCSDev/agent-comms.git",
+    "vcs_info": {
+      "vcs": "git",
+      "commit_id": "2bfbdb23ed1eaf39238d84e18c386a707e9a6f6e",
+      "requested_revision": "2bfbdb23ed1eaf39238d84e18c386a707e9a6f6e"
+    }
+  }
+}

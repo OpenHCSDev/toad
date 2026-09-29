@@ -1,0 +1,48 @@
+ATTACHED_AND_NAVIGABLE
+PROVIDER_FIRST
+NATIVE_SIDEBAR_BUSY_AUTHORITY_CONFIRMED
+RETIRED_SURFACE_NATIVE_QUEUE_REBOUND
+QUEUED ['3bfc1e79a4d84390ad6118cac33a0704']
+ACTUAL_LIVE_AND_SAVED_RESPONSE_PAINT_CONFIRMED
+NATIVE_QUEUE_DONE 2
+QUEUE_PROJECTION AvailableQueueProjection(items=(), restored=())
+INPUT_DELIVERY {"inputs": [], "historicalCount": 0, "dismissedHistoricalCount": 0, "historicalInputs": [], "currentScope": "owner_queue"}
+NATIVE_MAPPING 3bfc1e79a4d84390ad6118cac33a0704 6654567ddaf18c482e941878af09828b
+NATIVE_CONSUMPTION_CONFIRMED
+COLD_REATTACH_CONFIRMED
+DM_NATIVE_REPLY_CONFIRMED
+CHANNEL_ACTIVE_STATUS Active: ⌛ beta
+CHANNEL_IDLE_STATUS_CONFIRMED
+CHANNEL_NOTIFICATION Checked — no response (1)
+ACTUAL_ACP_PROCESS_CLEANUP_CONFIRMED
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-workspace-shipping-20260928/tests/l0a_native_installed_pilot.py", line 528, in <module>
+    asyncio.run(main(notification_only=args.notification_only, retire_surface=args.retire_surface))
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-workspace-shipping-20260928/tests/l0a_native_installed_pilot.py", line 466, in main
+    await until(
+    ...<2 lines>...
+    )
+  File "/home/ts/wt/toad-workspace-shipping-20260928/tests/l0a_native_installed_pilot.py", line 46, in until
+    while not predicate():
+              ~~~~~~~~~^^
+  File "/home/ts/wt/toad-workspace-shipping-20260928/tests/l0a_native_installed_pilot.py", line 468, in <lambda>
+    lambda: response_painted(app, view, "NATIVE_RESPONSE_2"),
+            ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-workspace-shipping-20260928/tests/l0a_native_installed_pilot.py", line 35, in response_painted
+    window = view.window.region
+             ^^^^^^^^^^^
+  File "/home/ts/wt/toad-workspace-shipping-20260928/.venv/lib/python3.14/site-packages/textual/getters.py", line 149, in __get__
+    query_node = obj.query_one(self.selector, self.expect_type)
+  File "/home/ts/wt/toad-workspace-shipping-20260928/.venv/lib/python3.14/site-packages/textual/dom.py", line 1595, in query_one
+    raise NoMatches(f"No nodes match {query_selector!r} on {base_node!r}")
+textual.css.query.NoMatches: No nodes match 'Window' on Conversation()

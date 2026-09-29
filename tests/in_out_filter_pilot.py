@@ -51,8 +51,11 @@ async def main():
             await pilot.pause()
             owner_mode = app.current_mode
             screen = app.screen
-            await screen.on_coordination_update(coordination_update(str(root / 'wire'), 'owner'))
-            screen.query_one("#thread-sidebar", SideBar).reveal()
+            await screen.on_coordination_update(CoordinationUpdate(
+                thread="owner", wire_root=str(root / "wire"), persistence="persistent", transport="stdio"))
+            right = screen.query_one("#thread-sidebar", SideBar)
+            right.reveal()
+            await right.wait_content_ready()
             tree = screen.query_one(ThreadCommsSidebar)
             panel = tree.query_ancestor(SideBarCollapsible)
             panel.collapsed = False

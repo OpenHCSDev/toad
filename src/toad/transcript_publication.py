@@ -341,4 +341,3 @@ class TranscriptPresentation:
             await contents.remove_children(
                 [child for child in candidates if child not in protected]
             )
-

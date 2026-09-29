@@ -1,0 +1,72 @@
+Process 2244151: toad
+Python v3.14.2 (/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14)
+
+Thread 2244151 (idle): "MainThread"
+    select (selectors.py:452)
+    _run_once (asyncio/base_events.py:2008)
+    run_forever (asyncio/base_events.py:677)
+    run_until_complete (asyncio/base_events.py:706)
+    run (asyncio/runners.py:127)
+    run (asyncio/runners.py:204)
+    <module> (native_session_retention_pilot.py:161)
+Thread 2244422 (idle): "Thread-1 (serve_forever)"
+    select (selectors.py:398)
+    serve_forever (socketserver.py:235)
+    run (threading.py:1024)
+    _bootstrap_inner (threading.py:1082)
+    _bootstrap (threading.py:1044)
+Thread 2244431 (idle): "asyncio_0"
+    _worker (concurrent/futures/thread.py:116)
+    run (threading.py:1024)
+    _bootstrap_inner (threading.py:1082)
+    _bootstrap (threading.py:1044)
+Thread 2244524 (idle): "asyncio_1"
+    _worker (concurrent/futures/thread.py:116)
+    run (threading.py:1024)
+    _bootstrap_inner (threading.py:1082)
+    _bootstrap (threading.py:1044)
+Thread 2244562 (idle): "asyncio_2"
+    join (threading.py:1133)
+    run (concurrent/futures/thread.py:73)
+    run (concurrent/futures/thread.py:86)
+    _worker (concurrent/futures/thread.py:119)
+    run (threading.py:1024)
+    _bootstrap_inner (threading.py:1082)
+    _bootstrap (threading.py:1044)
+Thread 2244581 (idle): "asyncio-waitpid-0"
+    _do_waitpid (asyncio/unix_events.py:931)
+    run (threading.py:1024)
+    _bootstrap_inner (threading.py:1082)
+    _bootstrap (threading.py:1044)
+Thread 2244742 (idle): "Thread-2"
+    select (selectors.py:398)
+    wait (multiprocessing/connection.py:1165)
+    wait_result_broken_or_wakeup (concurrent/futures/process.py:416)
+    run (concurrent/futures/process.py:343)
+    _bootstrap_inner (threading.py:1082)
+    _bootstrap (threading.py:1044)
+Thread 2244743 (idle): "QueueFeederThread"
+    wait (threading.py:369)
+    _feed (multiprocessing/queues.py:249)
+    run (threading.py:1024)
+    _bootstrap_inner (threading.py:1082)
+    _bootstrap (threading.py:1044)
+Thread 2244821 (idle): "asyncio_3"
+    _worker (concurrent/futures/thread.py:116)
+    run (threading.py:1024)
+    _bootstrap_inner (threading.py:1082)
+    _bootstrap (threading.py:1044)
+Thread 2254608 (idle): "DirectoryWatcher(PosixPath('/home/ts/wt/toad-workspace-bound-sol-20260928/.artifacts/native-current/l0a-native-963cp50j/project'), Conversation())"
+    join (threading.py:1133)
+    unregister (toad/directory_watcher.py:228)
+    run (toad/directory_watcher.py:303)
+    _bootstrap_inner (threading.py:1082)
+    _bootstrap (threading.py:1044)
+Thread 2254609 (idle): "Directory observation: /home/ts/wt/toad-workspace-bound-sol-20260928/.artifacts/native-current/l0a-native-963cp50j/project"
+    select (selectors.py:398)
+    wait (multiprocessing/connection.py:1165)
+    wait (multiprocessing/popen_fork.py:41)
+    join (multiprocessing/process.py:156)
+    run (toad/directory_watcher.py:187)
+    _bootstrap_inner (threading.py:1082)
+    _bootstrap (threading.py:1044)

@@ -99,7 +99,7 @@ async def notification_feedback(
     print("CHANNEL_NOTIFICATION", str(notification.title), flush=True)
 
 
-async def main(*, notification_only=False, retire_surface=False):
+async def main(*, notification_only=False, retire_surface=False, app_type=ToadApp, acceptance=None):
     evidence = Path(os.environ.get("L0A_EVIDENCE", os.environ["TMPDIR"]))
     evidence.mkdir(parents=True, exist_ok=True)
     package = Path(os.environ["AC_NATIVE_COPIED_PACKAGE"])
@@ -249,7 +249,7 @@ async def main(*, notification_only=False, retire_surface=False):
             "protocol": "acp",
             "run_command": {"*": shlex.join([sys.executable, "-m", "agent_comms.acp"])},
         }
-        app = ToadApp(agent_data=data, project_dir=str(project), agent_session_id="beta")
+        app = app_type(agent_data=data, project_dir=str(project), agent_session_id="beta")
         agent = None
         try:
             async with app.run_test(size=(160, 44)) as pilot:
@@ -267,6 +267,12 @@ async def main(*, notification_only=False, retire_surface=False):
                 )
                 assert navigation.resumable and navigation.thread.process_alive
                 print("ATTACHED_AND_NAVIGABLE", flush=True)
+                if acceptance is not None:
+                    await acceptance(app, pilot, agent, comms, entered, release,
+                                     hold_next, requests)
+                    assert not failures, failures
+                    assert app._exception is None
+                    return
                 if notification_only:
                     await notification_feedback(
                         pilot,
@@ -466,13 +472,25 @@ async def main(*, notification_only=False, retire_surface=False):
                 )
                 before_restart = len(requests)
                 await app.switch_mode(owner_mode)
+                view = app.screen.conversation
+                assert view.agent is agent, "Returning to a session replaced its operational owner"
                 await agent.reconnect()
                 await until(pilot, agent.session_ready_event.is_set)
                 assert agent._connected_ok, "Stopped native owner failed to reopen"
-                await until(
-                    pilot,
-                    lambda: response_painted(app, view, "NATIVE_RESPONSE_2"),
-                )
+                try:
+                    await until(pilot, lambda: response_painted(app, view, "NATIVE_RESPONSE_2"))
+                except TimeoutError:
+                    region = view.window.region
+                    print("REOPEN_PAINT_FAILURE", json.dumps({
+                        "ready": view.agent_ready,
+                        "surface_matches": agent.controller.surface.target is view,
+                        "view_region": repr(view.region), "window_region": repr(region),
+                        "blocks": [(type(block).__name__, repr(block.region), block.display)
+                                   for block in view.contents.walk_children()],
+                        "paint": "\n".join(strip.crop(region.x, region.right).text for strip in
+                            app.screen._compositor.render_strips()[region.y:region.bottom]),
+                    }), flush=True)
+                    raise
                 assert len(requests) == before_restart, "Restart replayed a model input"
                 restarted = comms.registry.require("beta").process_identity
                 assert restarted is not None and restarted != old_process

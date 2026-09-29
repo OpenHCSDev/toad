@@ -7,6 +7,7 @@ from weakref import ref
 
 from agent_comms.declared_family import DeclaredFamily
 from toad.render_tasks import ValidateSessionUpdateTask
+from .terminal_owner import OperationalTerminalOwner
 
 
 class SurfaceBinding(DeclaredFamily, affix="SurfaceBinding"):
@@ -55,9 +56,10 @@ class ApplicationValidationOwner(ValidationOwner):
         return await self.processes.submit(task)
 
 
-class AgentController:
+class AgentController(OperationalTerminalOwner):
     """One operational source; the surface is an optional weak projection."""
     def __init__(self, agent):
+        super().__init__()
         self.agent = agent
         self.surface: SurfaceBinding = DetachedSurfaceBinding()
         self.validation: ValidationOwner = HeadlessValidationOwner()
@@ -81,11 +83,14 @@ class AgentController:
         self.agent.permissions.present(target)
         if self.agent.ready:
             self.start_operation(self.restore(self.surface))
+        else:
+            self.start_operation(self.terminals.attach(target))
 
     def detach(self, target):
         if self.surface.owns(target):
             self.surface = DetachedSurfaceBinding()
             self.agent.permissions.detach(target)
+            self.terminals.detach()
 
     async def validate(self, session_id, update, metadata):
         return await self.validation.validate(ValidateSessionUpdateTask(session_id, update, metadata))
@@ -108,6 +113,11 @@ class AgentController:
             agent.post_message(AvailableCommandsUpdate(self.commands))
             agent._post_queue_view()
             agent._post_private_cursor()
+            target = binding.target
+            if target is not None:
+                target.call_later(self.start_terminal_presentation, target)
+
+
 
     def connection_closed(self):
         from .messages import McpClientStopped

@@ -1,0 +1,7 @@
+Resolved 1 package in 1ms
+   Building batrachian-toad @ file:///home/ts/wt/toad-workspace-bound-sol-20260928
+      Built batrachian-toad @ file:///home/ts/wt/toad-workspace-bound-sol-20260928
+Prepared 1 package in 475ms
+Uninstalled 1 package in 9ms
+Installed 1 package in 6ms
+ ~ batrachian-toad==0.6.20 (from file:///home/ts/wt/toad-workspace-bound-sol-20260928)
