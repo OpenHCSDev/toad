@@ -168,11 +168,12 @@ def install_observer():
                           (Conversation, "on_agent_ready")]
     if os.environ.get("TOAD_VALIDATION_OPEN_STAGES"):
         from textual.widget import Widget
-        from toad.widgets.comms_sidebar import CommsSidebar
+        from toad.sidebar_observation import SidebarObservation
+        from toad.sidebar_projection import SidebarProjection
         from toad.widgets.session_tabs import SessionsTabs
         from toad.navigation_preparation import NavigationReader
         navigation_methods.extend(((ToadApp, "new_session_screen"), (Conversation, "initialize_view"),
-                                   (CommsSidebar, "present_cached_sessions"), (CommsSidebar, "_rebuild"),
+                                   (SidebarObservation, "present_cached"), (SidebarProjection, "rebuild"),
                                    (SessionsTabs, "_sync_tabs"), (NavigationReader, "read")))
         constructor = Widget.__init__
         preprocess = Widget._pre_process
@@ -520,7 +521,6 @@ class ValidationDriver(LinuxDriver):
         from agent_comms.transcript_events import TranscriptCodec
         from toad.widgets.comms_sidebar import CommsRow, ThreadRow
         from toad.widgets.comms_sidebar import CommsSidebar
-        from toad.widgets.virtual_channel_list import VirtualChannelList
         from toad.widgets.comms_chat import CommsChatView
         from toad.widgets.conversation import Conversation, ThreadLoading
         from toad.widgets.history_anchor import HistoryWindow
@@ -543,26 +543,6 @@ class ValidationDriver(LinuxDriver):
             app.log(screen.tree)
         rows = []
         for widget, (region, clip) in screen._compositor.visible_widgets.items():
-            if isinstance(widget, VirtualChannelList):
-                sidebar = widget.query_ancestor(CommsSidebar)
-                snapshot = sidebar._last_snapshot
-                for index, option in enumerate(widget.options):
-                    choice = sidebar._virtual_targets.get(option.id)
-                    y = widget._line_cache.index_to_line.get(index)
-                    if choice is None or y is None:
-                        continue
-                    row_region = Region(region.x, region.y + y, region.width, widget._line_cache.heights[index])
-                    visible = row_region.intersection(clip).intersection(app.size.region)
-                    if not visible:
-                        continue
-                    if choice.kind in {"channel", "irc"}:
-                        rows.append({"kind": "CommsRow", "id": None, "target": choice.target,
-                                     "rect": list(visible), "row_kind": choice.kind})
-                    elif choice.kind in {"thread", "session", "dm"}:
-                        person = snapshot.all_people.get(choice.target) if snapshot is not None else None
-                        kind = sidebar._person_kind(person) if person is not None else choice.kind
-                        rows.append({"kind": "ThreadRow", "id": None, "target": choice.target,
-                                     "rect": list(visible), "row_kind": kind, "mode": choice.mode})
             if isinstance(widget, (SideBar, SideBarToggle, SidebarResizeHandle, SessionLabel, SessionsTabs, CommsRow, HistoryWindow, HistoryEdge, MarkdownParagraph, Checkbox, PromptTextArea, TranscriptFragmentView)):
                 visible = region.intersection(clip).intersection(app.size.region)
                 if not visible:

@@ -240,11 +240,11 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
         if (self._navigation_applied and not self._navigation_changed
                 and self._size == self.app.size and not self._layout_required
                 and not self._scroll_required and not self._layout_widgets):
-            if roster.restore_scroll():
+            if roster.navigation.restore_scroll():
                 self._refresh_layout(self.app.size, scroll=True)
             return
         self._refresh_layout(self.app.size)
-        if roster.restore_scroll():
+        if roster.navigation.restore_scroll():
             self._refresh_layout(self.app.size, scroll=True)
         self._layout_required = False
         self._scroll_required = False

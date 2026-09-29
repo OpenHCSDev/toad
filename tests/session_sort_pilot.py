@@ -116,7 +116,7 @@ async def main():
             await pilot.pause()
             parent_mode = app.selected_mode
             sidebar = app.screen.query_one(CommsSidebar)
-            sidebar._refresh()
+            sidebar.observation.refresh()
             await pilot.pause()
             await until(lambda: order() == ["project", "new", "old"])
             assert order() == ["project", "new", "old"], order()
@@ -202,12 +202,12 @@ async def main():
             await pilot.pause()
             await until(lambda: order() == ["new", "old", "project"])
             assert order() == ["new", "old", "project"], order()
-            await app.switch_mode(parent_mode)
+            await app.select_session(parent_mode)
             await pilot.pause()
             await until(lambda: order() == ["new", "old", "project"])
             assert order() == ["new", "old", "project"], order()
             assert "Last activity" in sort_control().render().plain
-            await app.switch_mode(old_mode)
+            await app.select_session(old_mode)
             await pilot.pause()
             await until(lambda: order() == ["new", "old", "project"])
             assert order() == ["new", "old", "project"], order()
@@ -219,7 +219,7 @@ async def main():
             await asyncio.to_thread(comms.owners.start, "new")
             await until(lambda: comms.registry.require("new").process_alive)
             await asyncio.to_thread(comms.owners.stop, "new")
-            sidebar._refresh()
+            sidebar.observation.refresh()
             await pilot.pause()
             await until(lambda: unopened.render().plain == "○ new\n  Stopped")
             assert unopened.render().plain == "○ new\n  Stopped"

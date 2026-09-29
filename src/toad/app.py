@@ -564,8 +564,8 @@ class ToadApp(WorkspaceSessionShutdown, App, inherit_bindings=False):
 
         sidebar = screen.query_one_optional(CommsSidebar)
         observed_root = screen.coordination_root or (
-            sidebar._wire.root
-            if sidebar is not None and sidebar._wire is not None
+            sidebar.observation.service.root
+            if sidebar is not None and sidebar.observation.service is not None
             else None
         )
         if observed_root is not None and not root_is_current(observed_root):
@@ -680,4 +680,3 @@ class ToadApp(WorkspaceSessionShutdown, App, inherit_bindings=False):
 
     def update_show_sessions(self) -> None:
         self.show_sessions = self.settings.ui.sessions_bar.shown(len(self.open_tabs))
-

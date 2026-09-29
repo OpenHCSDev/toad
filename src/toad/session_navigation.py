@@ -91,7 +91,7 @@ class SessionAdmissions(MroDispatch):
         if sidebar is not None:
             sidebar.query_ancestor(SideBar).reveal()
             sidebar.query_ancestor(SideBarCollapsible).collapsed = False
-            await sidebar.focus_current_session()
+            await sidebar.navigation.focus_current()
 
     @property
     def members(self) -> tuple[SessionAdmission, ...]:

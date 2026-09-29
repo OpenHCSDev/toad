@@ -36,7 +36,7 @@ async def main() -> None:
         async with app.run_test(size=(120, 40)) as pilot:
             await pilot.pause()
             await app.screen.on_coordination_update(coordination_update(str(root / 'wire'), 'owner'))
-            await app.screen.query_one(CommsSidebar).sync_sessions()
+            await app.screen.query_one(CommsSidebar).observation.sync()
             right = app.screen.query_one("#thread-sidebar", SideBar)
             right.reveal()
             tree = right.query_one(ThreadCommsSidebar)

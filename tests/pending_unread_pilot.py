@@ -13,16 +13,14 @@ from runtime_fixture import ToadApp
 from toad.session_tracker import ExactUnread, IndexingUnread
 from toad.widgets.comms_sidebar import CommsSidebar, ThreadRow
 from toad.widgets.session_tabs import SessionLabel
-from toad.widgets.virtual_channel_list import VirtualChannelList
 
 
-async def check(virtual):
+async def check():
     with TemporaryDirectory(prefix="pending-unread-") as directory:
         root = Path(directory)
         os.environ.update(AGENT_COMMS_ROOT=str(root / "wire"),
                           XDG_CONFIG_HOME=str(root / "config"),
-                          XDG_DATA_HOME=str(root / "data"), XDG_STATE_HOME=str(root / "state"),
-                          TOAD_BENCH_VIRTUAL_CHANNELS="1" if virtual else "0")
+                          XDG_DATA_HOME=str(root / "data"), XDG_STATE_HOME=str(root / "state"))
         session = root / "native.jsonl"
         records = 8192
         session.write_text((json.dumps({"type": "message", "message": {
@@ -41,16 +39,13 @@ async def check(virtual):
             screen = app.screen
             screen.on_comms_session_named("worker")
             sidebar = screen.query_one(CommsSidebar)
-            sidebar.navigation.expanded["#all"] = True
+            sidebar.navigation.state.expanded["#all"] = True
 
             def row_text():
-                if virtual:
-                    listing = sidebar.query_one(VirtualChannelList)
-                    return str(listing.get_option("member:#all:worker").prompt)
                 return next(row for row in sidebar.query(ThreadRow)
                             if row.target_name == "worker").render().plain
 
-            await sidebar.sync_sessions()
+            await sidebar.observation.sync()
             await pilot.pause()
             assert "Indexing" in row_text(), row_text()
             assert isinstance(next(tab for tab in app.open_tabs if tab.mode_name == mode).unread, IndexingUnread)
@@ -59,9 +54,9 @@ async def check(virtual):
             assert "(0)" not in row_text() and "(0)" not in tab.render().plain
             async with asyncio.timeout(45):
                 while "worker" in app._sidebar_snapshot.thread_unread_pending:
-                    await sidebar.sync_sessions()
+                    await sidebar.observation.sync()
                     await pilot.pause(.02)
-            await sidebar.sync_sessions()
+            await sidebar.observation.sync()
             await pilot.pause()
             assert app._sidebar_snapshot.thread_unread["worker"] == records
             assert f"({records})" in row_text(), row_text()
@@ -69,17 +64,17 @@ async def check(virtual):
             assert "Indexing" not in row_text() and "Indexing" not in tab.render().plain
             comms.views.mark_thread_view_read("worker", worktree=str(root),
                 through=comms.transcripts.transcript_checkpoint("worker"))
-            await sidebar.sync_sessions()
+            await sidebar.observation.sync()
             await pilot.pause()
             assert next(tab for tab in app.open_tabs if tab.mode_name == mode).unread == ExactUnread()
             assert "Indexing" not in row_text() and f"({records})" not in row_text()
             assert app._exception is None
         await asyncio.get_running_loop().shutdown_default_executor()
-    print(f"PASS {'virtual' if virtual else 'native'}: actual pending index → exact {records} → read zero, rows and tabs")
+    print(f"PASS native: actual pending index → exact {records} → read zero, rows and tabs")
 
 
 async def main():
-    await check("--virtual" in sys.argv)
+    await check()
 
 
 if __name__ == "__main__":

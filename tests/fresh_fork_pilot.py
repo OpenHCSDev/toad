@@ -83,12 +83,12 @@ async def main():
             app.screen._comms_thread = "parent"
             app.screen.initial_coordination_root = str(root / "wire")
             sidebar = app.screen.query_one(CommsSidebar)
-            await sidebar.sync_sessions()
+            await sidebar.observation.sync()
             row = next(row for row in sidebar.query(CommsRow) if row.target_name == "child")
             # Registry reservation becomes a live owner before its session file
             # exists. Refresh must update even an already-created sidebar row.
             comms.owners.acquire_thread("child", owner_pid=os.getpid())
-            await sidebar.sync_sessions()
+            await sidebar.observation.sync()
             with patch.object(Agent, "start", start):
                 await pilot.click(row)
                 await asyncio.wait_for(started.wait(), 4)

@@ -12,7 +12,6 @@ from textual.containers import VerticalScroll
 
 from toad.widgets.comms_sidebar import CommsSidebar
 from toad.widgets.session_tabs import SessionsTabs
-from toad.widgets.virtual_channel_list import VirtualChannelList
 from toad.widgets.side_bar import SideBar, SidebarAction, SidebarResizeHandle, SideBarToggle, TabHistoryControls
 
 
@@ -38,7 +37,7 @@ async def main() -> None:
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(120, 40)) as pilot:
             await pilot.pause()
-            await app.screen.query_one(CommsSidebar).sync_sessions()
+            await app.screen.query_one(CommsSidebar).observation.sync()
             await pilot.pause()
             left = app.screen.query_one("#channels-sidebar", SideBar)
             right = app.screen.query_one("#thread-sidebar", SideBar)
@@ -63,11 +62,11 @@ async def main() -> None:
                           "vertical scrollbar must remain on the viewport's right edge")
             panels = left.query_one("#sidebar-panels", VerticalScroll)
             check(panels.show_horizontal_scrollbar, "long rows need native horizontal scrolling")
-            listing = left.query_one_optional(VirtualChannelList)
-            if listing is not None:
-                listing.action_last()
-                await pilot.pause()
-                check(panels.scroll_y > 0, "virtual keyboard navigation must scroll the sidebar")
+            rows = app.screen.query_one(CommsSidebar).projection.rows
+            rows[-1].focus()
+            rows[-1].scroll_visible(animate=False, immediate=True)
+            await pilot.pause()
+            check(panels.scroll_y > 0, "keyboard row navigation must scroll the sidebar")
             for selector in ("#sidebar-right", "#sidebar-float"):
                 button = left.query_one(selector, SidebarAction)
                 app.selected_session.conversation.prompt.focus()

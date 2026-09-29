@@ -36,7 +36,7 @@ def reply(path, text):
 
 async def refresh(app, pilot):
     sidebar = app.screen.query_one(CommsSidebar)
-    await sidebar._read_snapshot(app.coordination_access.service.views.revision())
+    await sidebar.observation.read(app.coordination_access.service.views.revision())
     await pilot.pause()
     return sidebar
 

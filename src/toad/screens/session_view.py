@@ -23,6 +23,12 @@ class SessionView(SidebarFocusOwner, Vertical):
     def coordination_root(self) -> str | None:
         return None
 
+    def belongs_to_wire(self, root) -> bool:
+        """Unbound views may project the selected wire; bound views stay on it."""
+        from pathlib import Path
+        source = self.coordination_root
+        return source is None or Path(source).expanduser().resolve() == root
+
     def sidebar_focus_target(self) -> Widget | None:
         return None
 
