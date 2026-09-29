@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-first-fork-startup-sol-20260929/tests/first_fork_native_installed_pilot.py", line 5, in <module>
+    from agent_comms.views import agent_profile_target
+ModuleNotFoundError: No module named 'agent_comms.views'

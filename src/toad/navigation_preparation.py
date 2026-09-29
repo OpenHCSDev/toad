@@ -81,7 +81,10 @@ class ThreadNavigationRequest(NavigationRequest[ThreadNavigation]):
         thread = comms.registry.require(self.target)
         active = comms.registry.status(thread.name).active
         persisted = bool(thread.session_file and Path(thread.session_file).is_file())
-        attachable = thread.process_alive
+        # An active registration authorizes native attachment while its first
+        # owner is still launching. ACP admission serializes with that launch;
+        # a missing PID/session at this instant is not a direct-message route.
+        attachable = active
         project = Path(thread.worktree)
         if not project.is_dir():
             project = self.project
@@ -89,6 +92,19 @@ class ThreadNavigationRequest(NavigationRequest[ThreadNavigation]):
                          if view.root == str(root)
                          and comms.registry.canonical_name(view.name) == thread.name), None)
         return ThreadNavigation(str(root), thread, active, persisted or attachable, project, existing)
+
+
+@dataclass(frozen=True)
+class ThreadOpening:
+    """One unfinished navigation request, not another displayed session."""
+
+    owner_mode: str
+    request: ThreadNavigationRequest
+    completion: asyncio.Future[str]
+
+    @property
+    def key(self) -> tuple[str, str, str]:
+        return self.owner_mode, self.request.root, self.request.target
 
 
 class NavigationReader:
