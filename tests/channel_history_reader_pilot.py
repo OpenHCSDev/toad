@@ -86,7 +86,7 @@ class ReaderTests(unittest.IsolatedAsyncioTestCase):
             # Detaching changes the same inclusion basis without a new live sequence.
             detached_request = replace(request, known_revision=refreshed.revision,
                 known_display=request.kind.display_identity(refreshed.page))
-            comms.bus.history_manifest.unlink()
+            comms.bus.history.path.unlink()
             detached = detached_request.read()
             self.assertTrue(detached.replace_tail)
             self.assertFalse(detached.page.has_older)

@@ -269,8 +269,8 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
                 view = app.selected_session.conversation
                 await until(pilot, lambda: view.agent is not None)
                 agent = view.agent
-                await until(pilot, agent.session_ready_event.is_set)
-                assert agent._connected_ok, "Actual ACP attach failed"
+                await until(pilot, agent.session.settled.is_set)
+                assert agent.session.connected, "Actual ACP attach failed"
                 owner = comms.registry.require("beta")
                 assert owner.process_identity is not None and owner.process_alive
                 navigation = await asyncio.to_thread(
@@ -420,9 +420,9 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
                 old_process = comms.registry.require("beta").process_identity
                 original_watcher = view._directory_watcher
                 assert original_watcher is not None
-                await agent.reconnect()
-                await until(pilot, agent.session_ready_event.is_set)
-                assert agent._connected_ok
+                await agent.session.reconnect()
+                await until(pilot, agent.session.settled.is_set)
+                assert agent.session.connected
                 await until(
                     pilot,
                     lambda: response_painted(app, view, "NATIVE_RESPONSE_2"),
@@ -479,9 +479,9 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
                 await app.select_session(owner_mode)
                 view = app.selected_session.conversation
                 assert view.agent is agent, "Returning to a session replaced its operational owner"
-                await agent.reconnect()
-                await until(pilot, agent.session_ready_event.is_set)
-                assert agent._connected_ok, "Stopped native owner failed to reopen"
+                await agent.session.reconnect()
+                await until(pilot, agent.session.settled.is_set)
+                assert agent.session.connected, "Stopped native owner failed to reopen"
                 try:
                     await until(pilot, lambda: response_painted(app, view, "NATIVE_RESPONSE_2"))
                 except TimeoutError:

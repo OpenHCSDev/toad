@@ -393,9 +393,9 @@ async def main() -> None:
                 managed_thread,
             )
             startup_agent.attach_surface(created_conversation)
-            startup_agent._pending_session_name = None
+            startup_agent.session.pending_name = None
             startup_agent.process.process = SimpleNamespace(pid=os.getpid())
-            startup_agent.session_pk = None
+            startup_agent.session.pk = None
             startup_agent.comms_consumer_class(
                 startup_agent, startup_agent.session_id
             ).dispatch_sync(coordination_fact(managed_thread, str(wire_root)))
