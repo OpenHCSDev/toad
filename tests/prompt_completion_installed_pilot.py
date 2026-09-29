@@ -71,8 +71,8 @@ async def main():
                 print("DECLARATION_ONLY_LOCAL_COMMAND_HINT_AND_PHYSICAL_SUBMISSION_BEFORE_ACTUAL_ACP_READY_PASS", flush=True)
             finally:
                 hold.unlink()
-            await until(pilot, agent.session_ready_event.is_set)
-            assert agent._connected_ok
+            await until(pilot, agent.session.settled.is_set)
+            assert agent.session.connected
             try:
                 await agent.send_prompt("publish")
                 prompt = view.prompt

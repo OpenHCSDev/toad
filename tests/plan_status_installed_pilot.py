@@ -53,8 +53,8 @@ async def main():
             view = app.selected_session.conversation
             await until(pilot, lambda: view.agent is not None)
             agent = view.agent
-            await until(pilot, agent.session_ready_event.is_set)
-            assert agent._connected_ok, "Real ACP startup/initialize/newSession failed"
+            await until(pilot, agent.session.settled.is_set)
+            assert agent.session.connected, "Real ACP startup/initialize/newSession failed"
             assert agent.process.process.returncode is None
             sidebar = await reveal(app.screen, pilot)
             sending = asyncio.create_task(agent.send_prompt(json.dumps(stages)))

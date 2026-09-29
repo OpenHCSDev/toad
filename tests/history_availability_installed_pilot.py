@@ -47,7 +47,7 @@ async def main():
             from toad.acp.comms_updates import CommsUpdateConsumer
             from toad.agent import AgentReady
             agent.session_id = "retained-reconnect-proof"
-            agent._reconnecting = True
+            agent.session.reconnecting = True
             consumer = CommsUpdateConsumer(agent, agent.session_id)
             consumer.transcript_snapshot(TranscriptSnapshotUpdate(page))
             await pilot.pause()

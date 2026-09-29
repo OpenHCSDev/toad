@@ -32,8 +32,8 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     await until(pilot, lambda: view.thinking_level == 'high')
     assert comms.registry.require('beta').thinking_level == 'high'
     assert agent.configuration.thinking.current == 'high'
-    await agent.reconnect()
-    await until(pilot, agent.session_ready_event.is_set)
+    await agent.session.reconnect()
+    await until(pilot, agent.session.settled.is_set)
     await until(pilot, lambda: view.thinking_level == 'high' and view.agent_ready)
     assert view.prompt.text == 'CONFIGURATION_UNSENT_DRAFT'
     assert view.prompt.prompt_text_area.document is document
