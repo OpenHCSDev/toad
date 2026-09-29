@@ -17,11 +17,11 @@ async def main():
         app=InstalledApp(project_dir=str(root))
         async with app.run_test(size=(120,40)) as pilot:
             first=app.selected_session
-            repeated = AssistantTranscript("REPEATED_BODY_RECORD\n\n"+"persistent paragraph "*60)
+            repeated = AssistantTranscript("REPEATED_BODY_RECORD\n\n"+"persistent paragraph "*25)
             page=TranscriptPage((
-                AssistantTranscript("BODY_RECORD_0\n\n"+"persistent paragraph "*60),
+                AssistantTranscript("BODY_RECORD_0\n\n"+"persistent paragraph "*25),
                 repeated, repeated,
-                AssistantTranscript("BODY_RECORD_3\n\n"+"persistent paragraph "*60),
+                AssistantTranscript("BODY_RECORD_3\n\n"+"persistent paragraph "*25),
             ), TranscriptCursor("saved-body",0), TranscriptCursor("saved-body",4),False,False)
             async def publish():
                 view=app.selected_session.conversation

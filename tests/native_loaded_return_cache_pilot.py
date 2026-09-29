@@ -25,7 +25,10 @@ from toad.widgets.transcript_history import TranscriptFragmentView
 from textual.widget import Widget
 from textual.content import Content
 from toad.acp.messages import UpdateStatusLine
+from toad.acp.agent import Agent
 from toad.render_tasks import TranscriptRenderTask
+from toad.session_observation import GoalObservation
+from toad.transcript_publication import SnapshotPublication, TranscriptPresentation
 
 
 class PaintedReturnApp(InstalledApp):
@@ -85,6 +88,11 @@ async def click_session(app, pilot, source):
         (conversation, "release_native_session", "conversation_release"),
         (conversation, "bind_native_session", "conversation_bind"),
         (conversation, "present_retained_native_session", "conversation_present_retained"),
+        (Agent, "get_transcript_page", "native_page_read"),
+        (GoalObservation, "read", "goal_read"),
+        (TranscriptPresentation, "snapshot", "transcript_snapshot"),
+        (SnapshotPublication, "publish", "snapshot_publish"),
+        (app.preparation, "submit", "preparation_submit"),
         (app.workspace_screen, "prepare_navigation", "prepare_navigation"),
         (app.workspace_screen, "layout_navigation", "layout_navigation"),
     ]
