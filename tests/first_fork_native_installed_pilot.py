@@ -110,11 +110,11 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
             assert ProcessIdentity.capture(process.pid) == startup_identity
             assert comms.registry.require(child.name).process_identity == startup_identity
             assert not endpoint.exists()
-            assert not view.agent.session_ready_event.is_set()
+            assert not view.agent.session.settled.is_set()
             print("ACTUAL_ATTACHMENT_PENDING_AFTER_OLD_FIVE_SECOND_EXPIRY", flush=True)
         finally:
             process.resume()
-        await until(pilot, lambda: view.agent.session_ready_event.is_set(), 30)
+        await until(pilot, lambda: view.agent.session.settled.is_set(), 30)
         print('FIRST_OPEN_PHASE', view.agent.ready, view.agent_ready,
               repr(view.agent_title), len(view.contents.children), flush=True)
         await until(pilot, lambda: view.agent_ready, 30)

@@ -82,21 +82,21 @@ async def main():
                     first, second = Response(), Response()
                     with (
                         patch(
-                            "toad.acp.agent.api.session_new",
+                            "toad.acp.agent_session.api.session_new",
                             side_effect=(
                                 [first, second] if first_kind == "new" else [second]
                             ),
                         ),
-                        patch("toad.acp.agent.api.session_load", return_value=first),
+                        patch("toad.acp.agent_session.api.session_load", return_value=first),
                     ):
                         pending = asyncio.create_task(
-                            agent.acp_new_session()
+                            agent.session.new()
                             if first_kind == "new"
-                            else agent.acp_load_session()
+                            else agent.session.load()
                         )
                         await first.started.wait()
                         if successor == "new":
-                            replacing = asyncio.create_task(agent.acp_new_session())
+                            replacing = asyncio.create_task(agent.session.new())
                             await second.started.wait()
                             second.result.set_result(response("new-session"))
                             await replacing
@@ -135,8 +135,8 @@ async def main():
                 view.agent = agent
                 loaded = Response()
                 loaded.result.set_result(response("beta"))
-                with patch("toad.acp.agent.api.session_load", return_value=loaded):
-                    await agent.acp_load_session()
+                with patch("toad.acp.agent_session.api.session_load", return_value=loaded):
+                    await agent.session.load()
                 await pilot.pause()
                 entered, release = asyncio.Event(), asyncio.Event()
 
@@ -158,9 +158,9 @@ async def main():
                         loaded = Response()
                         loaded.result.set_result(response("beta", next_owner=True))
                         with patch(
-                            "toad.acp.agent.api.session_load", return_value=loaded
+                            "toad.acp.agent_session.api.session_load", return_value=loaded
                         ):
-                            await agent.acp_load_session()
+                            await agent.session.load()
                     else:
                         agent.updates.accept(
                             "beta",

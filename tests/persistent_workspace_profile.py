@@ -21,7 +21,7 @@ async def profile(app,pilot,agent,comms,*unused):
     profiler.disable()
     with Path(os.environ['WORKSPACE_PROFILE_RECEIPT']).open('w') as output:
         pstats.Stats(profiler,stream=output).sort_stats('cumulative').print_stats(60)
-    assert agent._connected_ok and agent.process.process.returncode is None
+    assert agent.session.connected and agent.process.process.returncode is None
     print('Actual four-tab diagnostic completed; profiler timings are not acceptance')
 
 asyncio.run(native_fixture(app_type=InstalledApp,acceptance=profile))
