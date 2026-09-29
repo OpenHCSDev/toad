@@ -44,9 +44,25 @@ async def main():
             await pilot.pause()
             assert 'Bus input verification unavailable' in details.title
             assert 'Saved history not loaded' in details.title
-            await view.transcript.snapshot(page)
+            from toad.acp.comms_updates import CommsUpdateConsumer
+            from toad.agent import AgentReady
+            agent.session_id = "retained-reconnect-proof"
+            agent._reconnecting = True
+            consumer = CommsUpdateConsumer(agent, agent.session_id)
+            consumer.transcript_snapshot(TranscriptSnapshotUpdate(page))
             await pilot.pause()
             source = view.query_one(TranscriptHistory)
+            await view.on_agent_ready(AgentReady(reconnected=True))
+            assert view.agent_ready, "Fresh reconnect view must become ready"
+            before = tuple(view.contents.children)
+            # Same source page before/after the painted cursor callback must use
+            # mounted read-owner coverage, not a parallel initialized flag.
+            view.transcript.displayed_cursor = None
+            consumer.transcript_snapshot(TranscriptSnapshotUpdate(page))
+            await pilot.pause()
+            assert tuple(view.contents.children) == before
+            assert len(view.window.histories) == 1
+            print("RECONNECT_FRESH_READY_AND_RETAINED_NO_DUPLICATE_CONFIRMED")
             await pilot.pause(1)
             from toad.widgets.agent_response import AgentResponse
             frame = "\n".join(strip.text for strip in app.screen._compositor.render_strips())

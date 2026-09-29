@@ -229,8 +229,17 @@ class TranscriptPresentation:
             await publication.publish()
 
     async def snapshot(self, page: TranscriptPage) -> None:
-        frontier = self.displayed_cursor
-        if frontier is not None and frontier.session_file == page.after.session_file:
+        from toad.widgets.conversation import Window
+        view = self.view
+        window = view.query_one_optional(Window) if view is not None else None
+        frontiers = [history.committed_cursor for history in window.histories
+                     if history.is_attached and history.state.reports_coverage] if window is not None else []
+        if self.displayed_cursor is not None:
+            frontiers.append(self.displayed_cursor)
+        frontier = max((cursor for cursor in frontiers
+                        if cursor.session_file == page.after.session_file),
+                       key=lambda cursor: cursor.offset, default=None)
+        if frontier is not None:
             if frontier.offset < page.after.offset:
                 # The existing evidence/viewport policy advances retained content;
                 # a load response is not a reason to append its whole page twice.
