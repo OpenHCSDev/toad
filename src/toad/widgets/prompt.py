@@ -885,13 +885,13 @@ class Prompt(containers.VerticalGroup):
                     slash_commands=Prompt.slash_commands,
                 )
         if not self.simple_input:
+            for kind in InfoPopup.members_with(InfoPopup):
+                if (popup := kind.for_prompt(self)) is not None:
+                    yield popup
             with containers.HorizontalGroup(id="info-container"):
                 yield AgentInfo()
                 yield CondensedPath().data_bind(path=Prompt.display_directory)
                 yield StatusLine(markup=False).data_bind(status=Prompt.status)
-                for kind in InfoPopup.members_with(InfoPopup):
-                    if (popup := kind.for_prompt(self)) is not None:
-                        yield popup
                 yield ModeSwitcher()
                 yield ModeInfo("mode")
 

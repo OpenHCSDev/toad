@@ -30,3 +30,20 @@ def test_completion_members_trust_composer_admission():
             match node:
                 case ast.UnaryOp(op=ast.Not(), operand=ast.Attribute(value=ast.Attribute(value=ast.Name(id="self"), attr="prompt"))):
                     raise AssertionError((filename, node.lineno, "Composer state belongs to Prompt"))
+
+
+def test_leaves_cannot_restore_retired_lifetime_or_path_helpers():
+    for filename in ("path_search.py", "slash_complete.py", "model_switcher.py"):
+        tree = ast.parse((ROOT / "widgets" / filename).read_text())
+        for declaration in tree.body:
+            if isinstance(declaration, ast.ClassDef) and declaration.name in {
+                "PathSearch", "SlashComplete", "ModelSwitcher"
+            }:
+                assert not {node.name for node in declaration.body if isinstance(node, ast.FunctionDef)} & {
+                    "focus", "action_dismiss", "on_descendant_blur", "close_if_unfocused"
+                }, filename
+        if filename == "path_search.py":
+            for node in ast.walk(tree):
+                match node:
+                    case ast.Call(func=ast.Attribute(value=ast.Name(id="self"), attr=helper)):
+                        assert helper not in {"reset", "get_path_filter", "fuzzy_match_paths"}, (filename, node.lineno)

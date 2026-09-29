@@ -478,8 +478,14 @@ discovery, submitted completion and model selection; actual filesystem scan,
 Project Search click, fuzzy/tree keyboard focus, quoted insertion, changed
 catalog, resize, focus return and cropped compositor text protect presentation.
 The new-case guard must mount a fresh declared popup through normal installed
-App composition without changing a consumer. Local verification is ongoing;
-no readiness/whole-T4/live installation claim is made.
+App composition without changing a consumer. The installed physical ACP and
+declaration-only new-case gates pass at the current branch: commands/models,
+Project Search click, real files/tree focus/resize/changed catalog and cropped
+text are all exercised. InfoPopup mounts against Prompt rather than following
+the info row's horizontal text, so its model choices remain visible beside both
+sidebars. The owner width limits it to the composer. Early actual failures and
+final evidence are retained in evidence/prompt-completion. No whole-T4/live
+installation claim is made.
 
 Tesla142 acknowledged detached typed Plan retention in comment5883513100,
 explicitly retained in the operational source continuation. 151 does not claim
