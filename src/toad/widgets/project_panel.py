@@ -12,6 +12,7 @@ from textual.message import Message
 from textual.widgets import Static
 
 from toad.widgets.project_directory_tree import ProjectDirectoryTree
+from toad.widgets.project_tree_intent import ProjectTreeIntent
 from toad.widgets.prepared_markdown import PreparedConversationMarkdown
 from toad.widgets.worker_static import WorkerStatic
 
@@ -95,6 +96,21 @@ class ProjectPanel(Vertical):
     def refresh_if_visible(self) -> None:
         if self.directory_tree is not None:
             self.directory_tree.refresh_if_visible()
+
+
+class RestorableProjectPanel(ProjectPanel):
+    """A disposable tree restores filesystem intent using the original loader."""
+
+    def __init__(self, path: Path, *, intent: ProjectTreeIntent | None = None) -> None:
+        super().__init__(path)
+        self._intent = intent
+
+    @work(group="project-tree")
+    async def _mount_tree(self) -> None:
+        await super()._mount_tree().wait()
+        if self._intent is not None:
+            await self._intent.restore(self.directory_tree)
+            self._intent = None
 
 
 class FilePreview(VerticalScroll):
