@@ -64,6 +64,18 @@ class IncomingMessage(ConversationBlock, CommitParticipant, CategorizedBlock, Ve
         route = MessageRoute(self.sender, (self.target,) if self.target else ())
         return f"{route.incoming_label}\n{self.text}"
 
+    async def on_mount(self) -> None:
+        """Lazy saved bodies derive handling from the existing observation source."""
+        from toad.widgets.conversation import Conversation
+        from toad.widgets.observed_thread_activity import ObservedThreadActivity
+
+        view = self.query_ancestor(Conversation)
+        observed = view.query_one_optional(ObservedThreadActivity)
+        if observed is not None and observed.presentation is not None:
+            for receipt in observed.presentation.notifications:
+                if receipt.message is not None and receipt.message.seq == self.sequence:
+                    await self.show_handling(receipt.state, receipt.detail)
+
     async def show_handling(self, state: str, detail: str) -> None:
         """Attach the bus decision to the original inbound chat block."""
         status = self.query_one_optional(".assignment-handling", Static)
