@@ -62,7 +62,7 @@ async def main():
                 view = app.workspace_sessions.require(destination)
                 sidebar = app.workspace_chrome.channels.widget.roster
                 entered, release = asyncio.Event(), asyncio.Event()
-                present = sidebar.present_cached_sessions
+                present = sidebar.observation.present_cached
 
                 async def blocked():
                     entered.set()
@@ -70,12 +70,12 @@ async def main():
                     await present()
 
                 app.presented.clear()
-                with patch.object(sidebar, "present_cached_sessions", blocked):
+                with patch.object(sidebar.observation, "present_cached", blocked):
                     try:
                         await asyncio.wait_for(app.select_session(destination), 3)
                         await asyncio.wait_for(entered.wait(), 3)
                         assert app.workspace_screen in app.presented, "Sidebar rebuilt before activation was painted"
-                        assert not sidebar.navigation_ready.is_set()
+                        assert not sidebar.navigation.ready.is_set()
                         await pilot.pause()
                         assert app._batch_count == 0, "Blocked hydration owns a global paint mask"
                         view.conversation.prompt.focus()
@@ -89,21 +89,22 @@ async def main():
                         release.set()
                     await pilot.pause()
                 await app.select_session(destination)
-                await until(sidebar.navigation_ready.is_set)
+                await until(sidebar.navigation.ready.is_set)
                 assert view.conversation.prompt.text.endswith("safe")
 
                 entered, release = asyncio.Event(), asyncio.Event()
-                update_group = sidebar._update_channel_group
+                from toad.widgets.comms_sidebar import ChannelGroup
+                update_group = ChannelGroup.present
 
                 async def blocked_group(*args):
                     entered.set()
                     await release.wait()
                     await update_group(*args)
 
-                snapshot = sidebar._last_snapshot
-                sidebar._last_snapshot = None
-                with patch.object(sidebar, "_update_channel_group", blocked_group):
-                    publication = asyncio.create_task(sidebar._present_snapshot(snapshot))
+                snapshot = sidebar.projection.snapshot
+                sidebar.projection.snapshot = None
+                with patch.object(ChannelGroup, "present", blocked_group):
+                    publication = asyncio.create_task(sidebar.projection.publish(snapshot))
                     try:
                         await asyncio.wait_for(entered.wait(), 3)
                         await asyncio.wait_for(app.session_navigation.close(destination), 4)
@@ -111,7 +112,7 @@ async def main():
                         release.set()
                     await asyncio.wait_for(publication, 3)
                 assert sidebar.is_attached and sidebar._ordered_rows(), "Closing a tab retired shared navigation"
-                assert all(row.mode_name != destination for row in sidebar.session_rows), (
+                assert all(row.mode_name != destination for row in sidebar.projection.session_rows), (
                     "A stale publication restored the closed tab's route")
                 assert app._exception is None
         await asyncio.get_running_loop().shutdown_default_executor()

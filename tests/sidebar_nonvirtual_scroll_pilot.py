@@ -25,7 +25,6 @@ async def check_left() -> None:
             XDG_DATA_HOME=str(root / "data"),
             XDG_STATE_HOME=str(root / "state"),
             AGENT_COMMS_ROOT=str(root / "wire"),
-            TOAD_BENCH_VIRTUAL_CHANNELS="",
         )
         name = "long-thread-name-" * 5
         wire(root / "wire").registry.declare(
@@ -34,7 +33,7 @@ async def check_left() -> None:
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(100, 34)) as pilot:
             await pilot.pause()
-            await app.screen.query_one(CommsSidebar).sync_sessions()
+            await app.screen.query_one(CommsSidebar).observation.sync()
             bar = app.screen.query_one("#channels-sidebar", SideBar)
             panels = bar.query_one("#sidebar-panels", VerticalScroll)
             assert panels.max_scroll_x > 0

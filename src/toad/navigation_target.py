@@ -44,11 +44,13 @@ class NavigationTarget(DeclaredFamily, affix="Target"):
 
     expanded_by_default: ClassVar[bool] = False
 
-    def show_menu(self, sidebar, offset, *, mode_name=None, channel=None) -> None:
-        sidebar._show_thread_menu(self.name, offset, mode_name=mode_name, channel=channel)
+    def menu_context(self, sidebar, *, mode_name=None, channel=None):
+        from toad.target_commands import ThreadContext
+        return ThreadContext(sidebar.app, sidebar.observation.service, self.name,
+                             sidebar.session_thread, sidebar.app.project_dir, mode_name, channel)
 
-    def toggle_members(self, sidebar, channel: str) -> bool:
-        return False
+    def show_menu(self, sidebar, offset, **kwargs) -> None:
+        self.menu_context(sidebar, **kwargs).show_menu(sidebar, offset)
 
     def unread(self, snapshot):
         from toad.session_tracker import ExactUnread
@@ -103,12 +105,10 @@ class HistoryTarget(HistoryRoute, NavigationTarget):
 class ChannelLike:
     """Shared channel-row capability; consumers never enumerate row kinds."""
 
-    def show_menu(self, sidebar, offset, **kwargs) -> None:
-        sidebar._show_channel_menu(self.name, offset)
-
-    def toggle_members(self, sidebar, channel: str) -> bool:
-        sidebar._virtual_toggle(channel)
-        return True
+    def menu_context(self, sidebar, **kwargs):
+        from toad.target_commands import ChannelContext
+        return ChannelContext(sidebar.app, sidebar.observation.service, self.name,
+                              sidebar.session_thread, sidebar.app.project_dir)
 
 
 @dataclass(frozen=True)

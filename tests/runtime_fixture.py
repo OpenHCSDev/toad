@@ -107,10 +107,10 @@ async def wait_channel_roster(app, pilot, *targets):
     async with asyncio.timeout(8):
         while True:
             sidebar = app.screen.query_one(CommsSidebar)
-            if (sidebar.navigation_ready.is_set() and sidebar.display
-                    and not sidebar._snapshot_pending
-                    and not sidebar._snapshot_lock.locked() and not sidebar._presentation_lock.locked()
-                    and set(targets) <= {row.target_name for row in sidebar._row_map.values()}):
+            if (sidebar.navigation.ready.is_set() and sidebar.display
+                    and not sidebar.observation.pending
+                    and not sidebar.observation.lock.locked() and not sidebar.projection.lock.locked()
+                    and set(targets) <= {row.target_name for row in sidebar.projection.channels.values()}):
                 return sidebar
             await pilot.pause(.02)
 

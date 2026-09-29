@@ -50,7 +50,7 @@ async def main():
         async with app.run_test(size=(120, 45)) as pilot:
             await pilot.pause()
             sidebar = app.screen.query_one(CommsSidebar)
-            await sidebar.sync_sessions()
+            await sidebar.observation.sync()
             group = next(group for group in sidebar.query(ChannelGroup) if group.row.target_name == "#ci")
             if not group.expanded:
                 group.toggle_members()
@@ -63,7 +63,7 @@ async def main():
             assert comms.views.viewer_snapshot(str(root)).unread.get("sender", 0) == 0
             assert comms.bus.pending_count(owner, "sender") == 1
             assert comms.bus.pending_count(owner, "#ci") == 1
-            await sidebar.sync_sessions()
+            await sidebar.observation.sync()
             await pilot.pause()
             assert "(1)" not in group._members["sender"].render().plain
             await click_ack(app, pilot, group.row)
