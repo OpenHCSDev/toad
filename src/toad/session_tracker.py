@@ -1,4 +1,3 @@
-import asyncio
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from time import time
@@ -6,6 +5,7 @@ from operator import attrgetter
 from typing import Iterable, Literal, Sequence
 
 from textual.signal import Signal
+from textual.widget import Widget
 from agent_comms.presentation import CoordinationSnapshot
 
 type SessionState = Literal["notready", "busy", "asking", "idle"]
@@ -62,17 +62,6 @@ class OpenTab:
 
 
 @dataclass(frozen=True)
-class PendingThreadTab:
-    """Presentation-only route request awaiting canonical thread discovery."""
-
-    owner_mode: str
-    root: str
-    target: str
-    return_mode: str
-    completion: asyncio.Future[str]
-
-
-@dataclass(frozen=True)
 class CommsViewKey:
     """A wire destination belongs to one owner session and sending identity."""
 
@@ -100,6 +89,12 @@ class SidebarState:
     selected: SidebarSelection | None = None
     channel_scroll_y: float = 0
     panel_scroll_y: float = 0
+
+    def restore_scroll(self, channel: Widget, panels: Widget) -> bool:
+        before = channel.scroll_y, panels.scroll_y
+        channel.scroll_to(y=self.channel_scroll_y, animate=False, immediate=True)
+        panels.scroll_to(y=self.panel_scroll_y, animate=False, immediate=True)
+        return before != (channel.scroll_y, panels.scroll_y)
 
 
 @dataclass
@@ -140,11 +135,11 @@ class SessionTracker:
     def session_count(self) -> int:
         return len(self.sessions)
 
-    def new_session(self) -> SessionDetails:
+    def new_session(self, *, title: str = "New Session") -> SessionDetails:
         self._session_index += 1
         mode_name = f"session-{self._session_index}"
         session_meta = SessionDetails(
-            index=self._session_index, mode_name=mode_name, title="New Session"
+            index=self._session_index, mode_name=mode_name, title=title
         )
         self.sessions[mode_name] = session_meta
         return session_meta

@@ -59,3 +59,18 @@ class WorkspaceSessions:
             if self.selected is view:
                 self.selected = None
             await view.remove()
+
+    async def aclose(self) -> None:
+        """Finalize owned sources while their frame and operational bindings exist."""
+        await self.app.workspace_chrome.native.close()
+        for view in tuple(self.views.values()):
+            await view.close_presentation()
+        self.selected = None
+
+
+class WorkspaceSessionShutdown:
+    """Finalize domain custody before Textual prunes its native message pumps."""
+
+    async def _close_all(self) -> None:
+        await self.workspace_sessions.aclose()
+        await super()._close_all()

@@ -19,7 +19,7 @@ from agent_comms.transcript_events import (
     ThinkingTranscript, ToolTranscript, ToolStartTranscript, ToolEndTranscript,
 )
 from agent_comms.tool_results import tool_result_content
-from agent_comms.backend import tool_kind
+from agent_comms.native_tools import NativeTool
 from textual import events, on
 from textual.app import ComposeResult
 from textual.containers import VerticalGroup
@@ -100,7 +100,7 @@ class TranscriptBlockConsumer(MroDispatch):
             self.tools[tool_id] = {
                 "sessionUpdate": "tool_call", "toolCallId": tool_id,
                 "title": event.tool_name or "Tool", "status": "completed",
-                "kind": tool_kind(event.tool_name),
+                "kind": NativeTool.start(tool_id, event.tool_name, {}).kind,
             }
             self.blocks.append(ToolCall(self.tools[tool_id], id=encode_tool_call_id(tool_id)))
         return self.tools[tool_id]
