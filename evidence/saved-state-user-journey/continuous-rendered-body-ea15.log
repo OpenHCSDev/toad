@@ -1,0 +1,63 @@
+PREPARED_REAL_NATIVE_SAVED_HISTORY_AND_CHANNEL 2
+INSTALLED_APP_RUN_TEST_ENTER
+INSTALLED_APP_RUN_TEST_YIELDED
+ATTACHED_AND_NAVIGABLE
+SAVED_HISTORY_STARTUP_ACTUAL_PAINT
+CHANNEL_BAR_CLICK_COMMS_SCREEN_SAVED_HISTORY_PAINT
+SAVED_CHANNEL_AGENT_RETURN_NO_REPLAY
+UNOPENED_THREAD_PHYSICAL_CLICK_ACTUAL_ATTACHMENT
+CHANNEL_ACTIVE_PARTICIPANT_CLICK_SAME_NATIVE_TAB
+BODY_RETURN_GEOMETRY_FAILURE {'source': 'session-1', 'native_session': 'beta', 'reader_region': 'Region(x=64, y=3, width=93, height=33)', 'reader_virtual_size': 'Size(width=92, height=33)', 'scroll_y': 0, 'max_scroll_y': 0, 'markdown': [{'region': 'Region(x=68, y=39, width=88, height=11)', 'virtual_size': 'Size(width=0, height=0)', 'display': True, 'ready': True, 'children': 6, 'parent': 'HorizontalGroup'}, {'region': 'Region(x=68, y=51, width=88, height=11)', 'virtual_size': 'Size(width=84, height=11)', 'display': True, 'ready': True, 'children': 6, 'parent': 'HorizontalGroup'}, {'region': 'Region(x=68, y=63, width=88, height=1)', 'virtual_size': 'Size(width=0, height=0)', 'display': True, 'ready': True, 'children': 1, 'parent': 'HorizontalGroup'}, {'region': 'Region(x=65, y=65, width=90, height=3)', 'virtual_size': 'Size(width=0, height=0)', 'display': True, 'ready': True, 'children': 2, 'parent': 'TranscriptFragmentView'}, {'region': 'Region(x=0, y=0, width=0, height=0)', 'virtual_size': 'Size(width=84, height=11)', 'display': True, 'ready': True, 'children': 6, 'parent': 'HorizontalGroup'}, {'region': 'Region(x=0, y=0, width=0, height=0)', 'virtual_size': 'Size(width=84, height=11)', 'display': True, 'ready': True, 'children': 6, 'parent': 'HorizontalGroup'}, {'region': 'Region(x=0, y=0, width=0, height=0)', 'virtual_size': 'Size(width=84, height=1)', 'display': True, 'ready': True, 'children': 1, 'parent': 'HorizontalGroup'}, {'region': 'Region(x=0, y=0, width=0, height=0)', 'virtual_size': 'Size(width=84, height=11)', 'display': True, 'ready': True, 'children': 6, 'parent': 'HorizontalGroup'}]}
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-saved-state-user-journey-20260929/tests/l0a_native_installed_pilot.py", line 47, in until
+    await pilot.pause(0.05)
+  File "/home/ts/.local/share/agent-comms/runtime-context-observation-20260929/lib/python3.14/site-packages/textual/pilot.py", line 542, in pause
+    await self._wait_for_screen()
+  File "/home/ts/.local/share/agent-comms/runtime-context-observation-20260929/lib/python3.14/site-packages/textual/pilot.py", line 513, in _wait_for_screen
+    _, pending = await asyncio.wait(
+                 ^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py", line 432, in wait
+    return await _wait(fs, timeout, return_when, loop)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py", line 521, in _wait
+    await waiter
+asyncio.exceptions.CancelledError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-saved-state-user-journey-20260929/tests/saved_state_user_journey_pilot.py", line 438, in <module>
+    asyncio.run(native_fixture(
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^
+        app_type=InstalledApp, prepare_state=prepare_saved_state, acceptance=acceptance,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ))
+    ^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-saved-state-user-journey-20260929/tests/l0a_native_installed_pilot.py", line 281, in main
+    await acceptance(app, pilot, agent, comms, entered, release,
+                     hold_next, requests)
+  File "/home/ts/wt/toad-saved-state-user-journey-20260929/tests/saved_state_user_journey_pilot.py", line 118, in acceptance
+    await clicked_reader_editor_return(app, pilot, first)
+  File "/home/ts/wt/toad-saved-state-user-journey-20260929/tests/saved_state_user_journey_pilot.py", line 278, in clicked_reader_editor_return
+    checkpoints.append(await ReaderCheckpoint.capture(source, app, pilot))
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-saved-state-user-journey-20260929/tests/saved_state_user_journey_pilot.py", line 231, in capture
+    await until(pilot, lambda: view.window.max_scroll_y > 0)
+  File "/home/ts/wt/toad-saved-state-user-journey-20260929/tests/l0a_native_installed_pilot.py", line 45, in until
+    async with asyncio.timeout(seconds):
+               ~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/timeouts.py", line 114, in __aexit__
+    raise TimeoutError from exc_val
+TimeoutError

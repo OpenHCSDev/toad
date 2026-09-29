@@ -69,3 +69,26 @@ Parent clarified literal /open is absent and physical UI opening is intended;
 merged159 already covers held real first-answer physical opening. No invented
 slash-command dependency remains. Parent NEXT startup concern also resolved;
 no investigation/retest of that completed checkpoint.
+
+## Corrected ea15 actual native acceptance
+
+Exactly one new candidate run, no unchanged475d rerun. Synced current main83
+into test branch; installed own wheel from Tesla ea15ac1f with readonly current
+corea019/Textual1738/native d396 dependency pair. body-ea15-installed.json and
+install log record owned package, parent/live slots untouched.
+
+continuous-rendered-body-ea15.log RED: saved native startup/channel paint,
+physical Beta return, unopened Gamma/native input/active participant return
+all pass. Subsequent Beta reader collapses before checkpoint/body identity:
+reader y3,h33; virtualheight33; scroll0,max0; ready populated Markdown bodies
+y39..68 outside viewport, other populated bodies region0. Exact ea15 geometry,
+cropped blank reader/fullSVG and both actual agent ACP logs retained.
+
+Producer resource/custody corrections tested, but visible warm-body/velocity/
+End/idle full acceptance remains unproved. Strong leaf identity and all later
+assertions unchanged; no source/workaround/frame forcing. Tesla notified,
+parent/Carver already own framework invalidation diagnosis. Need corrected
+integrated producer/framework checkpoint for next meaningful actual run; no
+unchanged ea15 retries or unrelated configured-fork intermittency investigation.
+Owned candidate archive/install and generated test scratch cleaned after receipt
+copy. No parent/live route edits, user input replay or extra agents/matrices.
