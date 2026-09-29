@@ -31,7 +31,10 @@ class PaintedReturnApp(InstalledApp):
 
     def _display(self, screen, renderable):
         super()._display(screen, renderable)
-        if self.observed_frames is not None and renderable is not None and screen is self.screen:
+        # Textual calls _display inside batch_update but discards that frame.
+        # Only a completed display is an observable first paint.
+        if (self.observed_frames is not None and renderable is not None
+                and not self._batch_count and screen is self.screen):
             view = self.selected_session.query_one_optional(Conversation)
             agent = view.agent if view is not None else None
             self.observed_frames.append((
@@ -235,8 +238,11 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
         held = asyncio.create_task(agents[1].send_prompt("ACTIVE_GAMMA_RETURN"))
         await until(pilot, entered.is_set)
         await until(pilot, lambda: agents[1].current_turn.busy)
+        active_started = perf_counter()
         active_frames = await click_session(app, pilot, sources[1])
+        active_return_ms = (perf_counter() - active_started) * 1000
         selected_active = [frame for frame in active_frames if frame[0] == sources[1].id]
+        print("ACTIVE_RETURN_MS", round(active_return_ms, 1), flush=True)
         print("ACTIVE_FIRST_FRAME", selected_active[0][1][:700] if selected_active else "none",
               selected_active[0][2][-700:] if selected_active else "none", flush=True)
         assert selected_active and selected_active[0][3] and selected_active[0][4]
