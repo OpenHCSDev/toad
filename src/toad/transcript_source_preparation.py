@@ -50,7 +50,7 @@ class TranscriptSourcePreparation:
         if self._source_state.reports_coverage:
             self.post_message(self.Covered(tuple(self.coverage_events), self))
         self._finish_page_request()
-        self._warm_pages()
+        self.prepare_scroll()
 
 
     def _reader(self) -> PreparedPageSource:
@@ -67,30 +67,34 @@ class TranscriptSourcePreparation:
         return reader
 
 
-    def _warm_pages(self) -> None:
+    def prepare_scroll(self) -> None:
         if (self.loader is None or not self.is_mounted or not self.state.accepts_publication or not self.screen.is_current
                 or not self.selected_categories):
             return
         reader = self._reader()
         edges = (self.pages[0].page.before if self.pages[0].page.has_older else None,
                  self.pages[-1].page.after if self.pages[-1].page.has_newer else None)
-        travel = self.window.document_viewport.lookahead.travel_rows
-        if travel < 0:
-            edges = (edges[0], None)
-        elif travel > 0:
-            edges = (None, edges[1])
-        rounds = 1 + self.window.document_viewport.lookahead.ahead_rows(self.window.size.height) // max(1, self.window.size.height // self.budget.admission_items)
-        intent = edges, rounds, self.selected_categories
+        lookahead = self.window.document_viewport.lookahead
+        demand = lookahead.demand
+        edges = demand.edges(*edges)
+        rows = max(1, self.window.size.height)
+        rounds = min(self.budget.reserve_batches,
+                     1 + lookahead.ahead_rows(rows) // rows)
+        intent = edges, rounds, self.selected_categories, demand
         if intent == self._prefetch_intent:
             return
         self._prefetch_intent = intent
         if self._prefetch_worker is not None and not self._prefetch_worker.is_finished:
             self._prefetch_worker.cancel()
 
+        if not any(edges) or not rounds:
+            return
+
         async def prepare() -> None:
             # Reader replacement and source retirement both revoke this exact
             # intent. One owned snapshot identity is the publication fence.
-            current = lambda: self._prefetch_intent is intent
+            current = lambda: (self._prefetch_intent is intent
+                               and demand is lookahead.demand)
             if await reader.prefetch(*edges, current, rounds=rounds) and current():
                 self._prefetched_edges = edges
 

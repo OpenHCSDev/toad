@@ -97,6 +97,11 @@ class PreparedConversationMarkdown(MeasuredViewportBody, ConversationMarkdown):
             finally:
                 self._body_restoring = False
 
+    async def prepare_body(self) -> None:
+        # Results live only in PreparationRuntime's bounded cache. Fresh file
+        # links and widget construction remain at the foreground delivery.
+        await self.app.render_processes.submit(MarkdownSyntaxRenderTask(self.source))
+
     def _cancel_preparation(self) -> None:
         self._preparation_closed = True
         self.workers.cancel_node(self)

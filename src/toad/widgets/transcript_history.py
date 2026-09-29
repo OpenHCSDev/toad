@@ -434,7 +434,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         self._source_state = self._source_state.publish()
         self.post_message(self.Covered(tuple(self.coverage_events), self))
         self._scroll_changed()
-        self._warm_pages()
+        self.prepare_scroll()
 
     @property
     def coverage_events(self) -> Iterator[TranscriptEvent]:
@@ -498,7 +498,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         self.watch(self.window, "scroll_y", self._scroll_changed, init=False)
         self.screen.screen_layout_refresh_signal.subscribe(self, self._layout_changed)
         self._scroll_changed()
-        self._warm_pages()
+        self.prepare_scroll()
 
     def on_unmount(self) -> None:
         self._generation += 1
@@ -515,7 +515,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         # positions. Recheck against the committed layout too, even if neither
         # the scroll value nor this history's size changes again.
         self._scroll_changed()
-        self._warm_pages()
+        self.prepare_scroll()
 
     def _update_edges(self) -> None:
         if not self.selected_categories:
