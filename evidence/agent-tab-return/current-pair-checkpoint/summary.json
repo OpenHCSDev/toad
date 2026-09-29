@@ -1,0 +1,19 @@
+{
+  "exit_code": 0,
+  "tested_source": "993db40298dfbfba6f610cc9bf65b00ca230234a",
+  "wheel_sha256": "7087437aa445da7610ad06826046e3d993482918eadf6301f2fff680dd7983a9",
+  "selection_to_paint_ms": [
+    91.48020399152301,
+    107.95391901046969,
+    108.37485699448735,
+    78.03467899793759,
+    76.8955799867399
+  ],
+  "median_selection_to_paint_ms": 91.48020399152301,
+  "completed_destination_frames": 16,
+  "returns": 5,
+  "prepared_misses": 0,
+  "all_retained_history": true,
+  "all_retained_page": true,
+  "all_retained_body": true
+}
