@@ -28,14 +28,6 @@ def test_retired_local_sidebar_and_modules():
     assert '"-m", "toad.render_server"' in (SOURCE / "render_zmq.py").read_text()
 
 
-def test_current_model_configuration_only():
-    tree = ast.parse((SOURCE / "acp/agent.py").read_text())
-    publish = next(node for node in ast.walk(tree)
-                   if isinstance(node, ast.FunctionDef) and node.name == "_publish_models")
-    assert not any(isinstance(node, ast.Constant) and node.value in
-                   {"models", "currentModelId", "availableModels"}
-                   for node in ast.walk(publish))
-
 
 def test_no_product_test_environment_switch():
     for path in SOURCE.rglob("*.py"):

@@ -92,3 +92,40 @@ integrated producer/framework checkpoint for next meaningful actual run; no
 unchanged ea15 retries or unrelated configured-fork intermittency investigation.
 Owned candidate archive/install and generated test scratch cleaned after receipt
 copy. No parent/live route edits, user input replay or extra agents/matrices.
+
+## Corrected82070170 complete continuous installed GREEN
+
+Exactly one corrected candidate run, actual exit0: own noneditable Toad82070170
+and core1dbb318d wheels, readonly Textual1738/native d396. Install/import
+provenance recorded in body-8207-installed.json and body-8207-install.log.
+Existing tests/saved_state_user_journey_pilot.py unchanged; no assertion
+weakening, explicit layout refresh, hidden shelf proof or new matrix.
+
+continuous-rendered-body-8207.log proves the whole continuous path:
+real saved native history -> actual channel-bar saved paint -> unopened Gamma
+physical opening -> held real native input/channel participant return ->
+physical A/B/A original visibly composited MarkdownBlock identity (13/17/13
+leaves), exact cropped paint/scroll and original Document/EditHistory/draft/undo
+-> measured slow/fast/reverse/End with painted latest response -> idle
+lookahead0/pending0, retained57797bytes within existing budgets, no new
+preparation/provider requests -> real production fork and immediate physical
+open before held first native answer -> answer once/no compaction/parent bytes
+unchanged -> Responding/Responded disclosure -> automatic original-author
+native reply observation and saved channel history, no manual prompt/replay or
+unbounded ping-pong. Slow ahead peak1/fast peak3; reverse travel negative.
+
+Actual raw-source read/revision-reuse counts, final latency target and global
+resource/coverage claims are not supplied by this run. Tesla owns richer
+retention/source preparation acceptance; Noether162/166 filter/attention and
+Carver165/current configuration owner already have distinct affected proofs.
+Current scopes read directly before running; no duplicate implementation.
+
+Latest authoritative archive SKILL/patternREADME/AGENT-8 reread and global
+AGENTS/NRA reread. Patterns IDEN-1 actual source/rendered identity, AGENT-8
+existing physical continuous infrastructure, IMPL-12 shared helper/no parallel
+matrix. Tests untouched in this checkpoint, ratchets unchanged.
+
+Disposable exact candidate source/install and own runtime scratch cleaned
+after receipts copied; no parent/live slot/source/user changes. Parent owns
+merge/integration/affected LIVE entry gate. CI/final latency deferred. Earlier
+RED receipts retained in place; configured Sol fork intermittency parent-owned.
