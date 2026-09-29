@@ -69,7 +69,7 @@ async def main():
                 conversation = app.screen.conversation
                 conversation.set_reactive(type(conversation).agent, agent)
                 conversation.agent_ready = True
-                await conversation.refresh_goal()
+                await conversation.goal_observation.refresh()
                 await pilot.pause()
                 for objective in ("Short updated goal", "Second short goal"):
                     await pilot.click("#goal-edit")
@@ -118,7 +118,7 @@ async def main():
                     + "TAIL_COORDINATOR"
                 )
                 current = await agent.edit_goal(current, long_objective)
-                await conversation.refresh_goal()
+                await conversation.goal_observation.refresh()
                 await pilot.pause()
                 frame = "\n".join(
                     (strip.text for strip in app.screen._compositor.render_strips())
@@ -146,7 +146,7 @@ async def main():
                     return snapshot
 
                 agent.get_goal_snapshot = delayed_snapshot
-                first = asyncio.create_task(conversation.refresh_goal())
+                first = asyncio.create_task(conversation.goal_observation.refresh())
                 await asyncio.wait_for(started.wait(), 2)
                 pause = asyncio.create_task(conversation.change_goal("paused"))
                 async with asyncio.timeout(2):
