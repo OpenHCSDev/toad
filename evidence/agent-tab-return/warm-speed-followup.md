@@ -21,8 +21,25 @@ driver/click work and is not the same measure.
 The existing `tests/native_loaded_return_cache_pilot.py` now measures the
 retirement and activation subcalls on the same real UI/ACP/Pi path. Its original
 first-frame source, reader, goal, turn, scroll, body identity, editor, process,
-no-input-replay, and bounded preparation assertions remain. The subcall receipt
-will locate the cost within the current owners before changing their behavior.
+no-input-replay, and bounded preparation assertions remain.
+
+The first source change replaces the viewport's full warm-body scan on each
+fragment return with a direct lookup in its existing bounded ordered cache.
+`FragmentPresentationIdentity` includes native-page position to distinguish
+identical repeated fragments and hashes without assuming wire events are
+hashable. Its full equality still rejects changed content, watcher and source
+identity. Active bodies retain weak-reference keys; only parked fragments use
+their native identity. The viewport still owns one cache and one eviction
+budget. The duplicate fragment comparison after identity equality was removed.
+
+The parent's actual large-history profile is read-only at
+`/home/ts/.cache/agent-scratch/toad-pr194-turn-20260929/live-large-return.prof`.
+It includes startup as well as A/B/A selection: 19.9 million calls/14.46 s,
+with 73 workspace layout refreshes totaling 1.01 s and 2,085 stylesheet
+applications totaling 0.86 s. Fragment construction totaled 0.016 s over 20
+calls. These totals are **not selection-only** and do not show that indexing
+alone resolves the live delay; the new phase receipt and actual large-history
+selection remain necessary.
 
 ## Remaining decision
 
@@ -35,5 +52,11 @@ latency checkpoint can ship before the final speed target. The independent
 resource acceptance boundary; the two-history return journey does not prove it.
 
 The headroom guard currently returns warning status because 11.5 GiB of swap is
-in use, so this checkpoint records no new native timing or installed activation
-claim. The global installation is owned by the parent.
+in use. One serial source-tree native run entered `ToadApp.run_test` but used a
+CPU core for two minutes before a Pi child or A/B/A receipt; the owned process
+was stopped. A bounded traceback retry located the pre-native loop in
+`GoalBar._update_separators → _update_goal_text → GoalInteraction.members_with`.
+That goal path belongs to the parent. The indexed-cache change has a passing
+direct canonical-identity lookup and syntax/diff checks, but **no native
+acceptance or speedup claim** yet. The global installation is owned by the
+parent.

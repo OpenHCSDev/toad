@@ -205,7 +205,7 @@ class TranscriptFragmentView(MeasuredViewportBody, CategorizedBlock, VerticalGro
             self._body_viewport.discard(self)
 
     def matches_retained(self, identity: FragmentPresentationIdentity) -> bool:
-        return self.identity == identity and self.fragment == identity.fragment and self.body_ready
+        return self.identity == identity and self.body_ready
 
     @property
     def retained_key(self) -> FragmentPresentationIdentity:
