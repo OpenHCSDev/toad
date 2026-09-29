@@ -12,7 +12,8 @@ from tool_diff_fixture import wait_for_tool_diff
 from toad.widgets.patch_diff import PatchDiffView
 from toad.render_tasks import execute_render_task
 from toad.render_backend import Renderer
-from toad.widgets.tool_call import ToolCall, ToolCallDiff
+from toad.widgets.tool_call import ToolCall
+from toad.widgets.tool_content import ToolCallDiff
 
 PATCH = "--- x.py\n+++ x.py\n@@ -1,2 +1,2 @@\n context\n-old = 1\n+new = 2\n"
 

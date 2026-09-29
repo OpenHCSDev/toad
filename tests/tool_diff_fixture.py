@@ -2,7 +2,7 @@
 
 import asyncio
 
-from toad.widgets.tool_call import ToolCallDiff
+from toad.widgets.tool_content import ToolCallDiff
 
 
 async def wait_for_tool_diff(tool, pilot):

@@ -203,3 +203,22 @@ All current source/event/viewport/FollowTailCheckpoint and retained pilot caller
 migrate here. New-case/invalidation/retirement, actual native committed-page read
 plus cropped paint and retained NRA source paint are acceptance gates. PR141
 is the existing scoped draft; no live changes or CI wait.
+
+## Remaining large class: tool output (main129 e46f8cb, Noether)
+
+Remeasured ToolCall AST span469. It repeats raw ACP content classification in
+composition, retained text, auto-preview and hidden diff warmup; root fields own
+content snapshots, lock, worker, cache and hydration. ToolOutput owns mounted
+content and preparation custody; ToolOutputPart cases own composition, retention,
+preview and cancellation, with declaration-derived Text presentation membership.
+ACP decode happens once per update, retaining Read filename/kind identity and
+captured source values when adapters mutate dictionaries. New text presentation:
+one declared SpecificTextToolOutputPart subclass, zero root, registry, scheduler
+or lifetime edits (formerly composition plus retained classification).
+
+Scope widgets/tool_call.py, tool_output.py, widgets/tool_content.py and direct
+pilot callers/guards. Conversation/Agent, workspace, shell and read ACK stay with
+Carver/Tesla/Dalton. Existing hidden cache-shape pilot is deleted; actual installed
+hidden/visible/theme/retirement acceptance replaces its private renderer goldens.
+Existing ToolCallDiff behavior moves intact with unique class baseline retained.
+Root keeps header/expansion and viewport participation. No aliases or live writes.

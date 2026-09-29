@@ -10,7 +10,8 @@ from runtime_fixture import ToadApp
 from textual.content import Content
 from textual.geometry import Offset
 from textual.selection import SELECT_ALL, Selection
-from toad.widgets.tool_call import MarkdownContent, TextContent, ToolCall
+from toad.widgets.tool_call import ToolCall
+from toad.widgets.tool_content import MarkdownContent, TextContent
 from toad.widgets.worker_static import WorkerStatic
 
 
