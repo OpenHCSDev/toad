@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from toad.live_output import LiveOutput, ResponseStream, ThoughtStream
 from toad.widgets.message_filter import OtherCategory
 
 from toad.settings import PreferenceChange
@@ -90,7 +91,7 @@ from toad.widgets.input_delivery import (
     empty_delivery,
 )
 from toad.widgets.user_input import UserInput
-from toad.widgets.agent_response import ResponseDelivery, UnroutedResponse
+from toad.widgets.agent_response import ResponseDelivery
 from toad.widgets.message_filter import all_categories, MessageCategory
 from toad.layout import trim_trailing_margin
 from toad.command_catalog import CommandCatalog
@@ -113,7 +114,6 @@ def make_session_title(prompt: str) -> str:
 if TYPE_CHECKING:
     from toad.acp.agent import Mode, Model
     from toad.widgets.agent_response import AgentResponse
-    from toad.widgets.agent_thought import AgentThought
     from toad.widgets.question import Ask
     from toad.widgets.terminal import Terminal
     from toad.widgets.terminal_tool import TerminalTool
@@ -582,8 +582,8 @@ class Conversation(containers.Vertical):
         self.set_reactive(Conversation.working_directory, str(project_path))
         self.agent_slash_commands: list[AgentAdvertisedCommand] = []
         self.terminals: dict[str, TerminalTool] = {}
+        self.output = LiveOutput(self)
         self._loading: Loading | None = None
-        self._agent_response: AgentResponse | None = None
         self.turns = ConversationTurn(self._turn_changed)
         self._filter_scroll_positions = {}
         self._mcp_live_turn: str | None = None
@@ -591,7 +591,6 @@ class Conversation(containers.Vertical):
         self._private_cursor_sequence = 0
         self._queue_sequence = 0
         self._sending_queue_input_id: str | None = None
-        self._agent_thought: AgentThought | None = None
         from toad.widgets.agent_activity import AgentActivityBoundary
 
         self._agent_activity_boundary = AgentActivityBoundary()
@@ -631,7 +630,6 @@ class Conversation(containers.Vertical):
 
         self._initial_prompt = initial_prompt
 
-        self._post_lock = asyncio.Lock()
         self.goal_observation = GoalObservation(self)
         self._goal_modal = None
         self.delivery_observation = InputDeliveryObservation(self)
@@ -964,35 +962,6 @@ class Conversation(containers.Vertical):
                 self.refresh_bindings()
                 self.call_after_refresh(self.cursor.follow, cursor_block)
 
-    async def post_agent_response(self, fragment: str = "", delivery: ResponseDelivery = UnroutedResponse()) -> AgentResponse | None:
-        """Get or create an agent response widget."""
-        from toad.widgets.agent_response import AgentResponse
-
-        async with self._post_lock:
-            if self._agent_response is not None and self._agent_response.delivery != delivery:
-                await self._agent_response.finish_stream()
-                self._agent_response = None
-            if self._agent_response is None:
-                self._agent_response = agent_response = AgentResponse(fragment, delivery=delivery)
-                await self.post(agent_response, new_block=False)
-            else:
-                await self._agent_response.append_fragment(fragment)
-            return self._agent_response
-
-    async def post_agent_thought(self, thought_fragment: str) -> AgentThought | None:
-        """Get or create an agent thought widget."""
-        from toad.widgets.agent_thought import AgentThought
-
-        async with self._post_lock:
-            if self._agent_thought is None:
-                if thought_fragment.strip():
-                    self._agent_thought = AgentThought(thought_fragment)
-                    await self.post(self._agent_thought, new_block=False)
-                    self._agent_thought.loading = False
-            else:
-                await self._agent_thought.append_fragment(thought_fragment)
-            return self._agent_thought
-
     @cached_property
     def navigation(self) -> ContentNavigation:
         return ContentNavigation(self.contents)
@@ -1127,6 +1096,7 @@ class Conversation(containers.Vertical):
             await self.rename_session(message.title or "")
 
     async def on_unmount(self) -> None:
+        self.output.retire()
         await asyncio.gather(self.goal_observation.close(), self.delivery_observation.close())
         if self._directory_watcher is not None:
             self._directory_watcher.stop()
@@ -1275,7 +1245,7 @@ class Conversation(containers.Vertical):
                     else None
                 ) is None:
                     await self.prune_window(0, 0)
-                    self.new_block()
+                    self.output.boundary()
                 await agent.reconnect_after_auth()
             else:
                 await agent.authenticate(method_id)
@@ -1512,12 +1482,11 @@ class Conversation(containers.Vertical):
             await DB().record_model_usage(
                 self.model_history_scope, self.current_model.id
             )
-        if self._agent_thought is not None and self._agent_thought.loading:
-            await self._agent_thought.remove()
+        await self.output.settle()
         pending_loading, self._loading = self._loading, None
         if pending_loading is not None and pending_loading.is_attached:
             await pending_loading.remove()
-        self.new_block()
+        self.output.boundary()
 
         if self._directory_changed or not self.is_watching_directory:
             self._directory_changed = False
@@ -1601,7 +1570,7 @@ class Conversation(containers.Vertical):
         self, message: acp_messages.RejectedSessionUpdate
     ) -> None:
         message.stop()
-        self.new_block()
+        self.output.boundary()
         await self.post(
             Note(
                 Content.styled("Invalid ACP update rejected", "$text-error"),
@@ -1665,7 +1634,7 @@ class Conversation(containers.Vertical):
             )
             or "no approved servers"
         )
-        self.new_block()
+        self.output.boundary()
         self._mcp_live_note = Note(
             Content.styled(
                 f"MCP live (this turn, not a grant): {summary}", "$text-muted"
@@ -1683,15 +1652,12 @@ class Conversation(containers.Vertical):
             # not a live response waiting for a future turn-settled event.
             await self.post(AgentResponse(message.text, delivery=ResponseDelivery.from_route(message.route)))
             return
-        if self._agent_thought is not None:
-            await self._agent_thought.finish_stream()
-        self._agent_thought = None
         if self.turns.owner.busy:
             self.activity = "Writing response…"
             self.post_message(
                 messages.SessionUpdate(state="busy", summary="Writing response")
             )
-        await self.post_agent_response(message.text, ResponseDelivery.from_route(message.route))
+        await self.output.append(ResponseStream(ResponseDelivery.from_route(message.route)), message.text)
 
     async def on_turn_started(self, message: acp_messages.CommsUpdated) -> None:
         previous = self.turns.start(message, self.agent)
@@ -1706,7 +1672,7 @@ class Conversation(containers.Vertical):
         await self._clear_mcp_live()
         self._agent_activity_boundary.reset()
         self.app.open_tabs_changed.publish(None)
-        self.new_block()
+        self.output.boundary()
         self.post_message(messages.SessionUpdate(state="busy", summary=self.activity))
 
     async def on_turn_settled(self, message: acp_messages.CommsUpdated) -> None:
@@ -1724,7 +1690,7 @@ class Conversation(containers.Vertical):
                 self.busy_count -= 1
                 await self.agent_turn_over("end_turn")
                 return
-            self.new_block()
+            self.output.boundary()
         self.post_message(messages.SessionUpdate(state="idle", summary="Ready for review"))
 
     async def on_queue_view_update(self, message: acp_messages.CommsUpdated) -> None:
@@ -1747,7 +1713,7 @@ class Conversation(containers.Vertical):
             if started.input_id == self._sending_queue_input_id:
                 self._sending_queue_input_id = None
                 self.sending_queued_prompt = ""
-            self.new_block()
+            self.output.boundary()
             await self.post(UserInput(started.text))
 
     async def on_input_started(self, message: acp_messages.CommsUpdated):
@@ -1758,7 +1724,7 @@ class Conversation(containers.Vertical):
         ):
             return
         if message.update.text is not None:
-            self.new_block()
+            self.output.boundary()
             await self.post(UserInput(message.update.text))
 
     def on_input_failed(self, message: acp_messages.CommsUpdated) -> None:
@@ -1827,7 +1793,7 @@ class Conversation(containers.Vertical):
                 message.page, agent.get_transcript_page, fragments=fragments
             )
         ]
-        self.new_block()
+        self.output.boundary()
         # Anchor the first replay frame before mounting the saved page.
         if window.scroll_revision == scroll_revision:
             window.anchor()
@@ -1942,7 +1908,7 @@ class Conversation(containers.Vertical):
                 or not plan.permits(self, retired)
             ):
                 return
-            self.new_block()
+            self.output.boundary()
             if self.cursor_block in retired:
                 self.cursor.follow(None)
             async with plan.publication(self, prepared):
@@ -2018,13 +1984,13 @@ class Conversation(containers.Vertical):
         self.activity = "Thinking…"
         activity = " ".join(message.text.splitlines()).strip() or "Thinking"
         self.post_message(messages.SessionUpdate(state="busy", summary=activity))
-        await self.post_agent_thought(message.text)
+        await self.output.append(ThoughtStream(), message.text)
 
     @on(acp_messages.RequestPermission)
     async def on_acp_request_permission(self, message: acp_messages.RequestPermission):
         message.stop()
         self.request_permissions(message.request)
-        self.new_block()
+        self.output.boundary()
 
     @on(acp_messages.Plan)
     async def on_acp_plan(self, message: acp_messages.Plan):
@@ -2061,7 +2027,7 @@ class Conversation(containers.Vertical):
             self.post_message(messages.SessionUpdate(state="busy", summary=title))
 
         if status in (None, "completed"):
-            self.new_block()
+            self.output.boundary()
 
         tool_id = message.tool_id
         try:
@@ -2756,14 +2722,6 @@ class Conversation(containers.Vertical):
         if self.navigation.select(widget):
             self.refresh_block_cursor()
 
-    def new_block(self) -> None:
-        """Start a new block for agent response."""
-        for block in (self._agent_thought, self._agent_response):
-            if block is not None:
-                self.call_later(block.finish_stream)
-        self._agent_thought = None
-        self._agent_response = None
-
     async def post[WidgetType: Widget](
         self,
         widget: WidgetType,
@@ -2785,7 +2743,7 @@ class Conversation(containers.Vertical):
         if pending_loading is not None and pending_loading.is_attached:
             await pending_loading.remove()
         if new_block and not loading:
-            self.new_block()
+            self.output.boundary()
         if not self.contents.is_attached:
             return widget
         from toad.widgets.message_divider import AgentActivityDivider

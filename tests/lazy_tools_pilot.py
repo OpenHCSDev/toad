@@ -1,3 +1,4 @@
+from toad.live_output import ResponseStream, ThoughtStream
 """Long tool-heavy histories must not construct collapsed output trees."""
 
 import asyncio
@@ -82,17 +83,12 @@ async def main():
                 await pilot.pause()
                 assert "New result" in tools[-1].query_one(MarkdownContent).source
                 conversation = app.screen.conversation
-                for kind in (AgentResponse, AgentThought):
-                    block = kind("First")
-                    await conversation.post(block)
+                for channel in (ResponseStream(), ThoughtStream()):
+                    block = await conversation.output.append(channel, "First")
                     await block.append_fragment(" last fragment")
                     stream = block._stream
                     task = stream._task
-                    if kind is AgentResponse:
-                        conversation._agent_response = block
-                    else:
-                        conversation._agent_thought = block
-                    conversation.new_block()
+                    conversation.output.boundary()
                     await pilot.pause()
                     assert block.source == "First last fragment"
                     assert task.done() and block._stream is None
