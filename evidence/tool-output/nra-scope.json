@@ -1,0 +1,447 @@
+{
+  "context_files": {
+    "toad": 234,
+    "core": 226,
+    "textual": 249
+  },
+  "total_files": 709,
+  "timing": {
+    "parse_seconds": 2.672,
+    "analysis_seconds": 47.29,
+    "planning_seconds": 0.0,
+    "source_index_seconds": 0.302,
+    "analysis_cache_status": "disabled",
+    "total_seconds": 50.264
+  },
+  "raw_count": 30,
+  "r1_count": 30,
+  "owned_raw": [
+    {
+      "pattern_id": 1,
+      "title": "`ToolCall.check_expand:if` mirrors `DeclaredFamily`",
+      "why": "The branch literal at /home/ts/wt/toad-tool-content-owner-sol-20260928/src/toad/widgets/tool_call.py:204 repeats CompletedGoal, NativeOutcome, NativePreparationResult from the `DeclaredFamily` semantic authority. A later class, enum member, or schema field can diverge from this hand-maintained view.",
+      "capability_gap": "derived class-family registry or polymorphic dispatch",
+      "relation_context": "branch_literal has semantic overlap ('completed', 'status') with class_family `DeclaredFamily`; branch literal `ToolCall.check_expand:if` repeats members from class_family `DeclaredFamily`; derive it by iterating the authority registry or subclass family instead of maintaining a parallel presentation surface",
+      "confidence": "high",
+      "certification": "certified",
+      "capability_tags": [
+        "nominal_identity",
+        "provenance",
+        "enumeration",
+        "authoritative_mapping"
+      ],
+      "observation_tags": [
+        "class_family",
+        "manual_synchronization",
+        "projection_dict"
+      ],
+      "detector_id": "semantic_mirror_without_descent",
+      "summary": "`ToolCall.check_expand:if` mirrors 3 member(s) of `DeclaredFamily` without a descent path",
+      "evidence": [
+        {
+          "file_path": "/home/ts/wt/toad-tool-content-owner-sol-20260928/src/toad/widgets/tool_call.py",
+          "line": 204,
+          "symbol": "ToolCall.check_expand:if"
+        },
+        {
+          "file_path": "/home/ts/wt/toad-tool-content-owner-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/declared_family.py",
+          "line": 86,
+          "symbol": "DeclaredFamily"
+        },
+        {
+          "file_path": "/home/ts/wt/toad-tool-content-owner-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/goal_states.py",
+          "line": 222,
+          "symbol": "CompletedGoal"
+        },
+        {
+          "file_path": "/home/ts/wt/toad-tool-content-owner-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/compaction_states.py",
+          "line": 303,
+          "symbol": "NativeOutcome"
+        },
+        {
+          "file_path": "/home/ts/wt/toad-tool-content-owner-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/owner_compaction_prepare.py",
+          "line": 49,
+          "symbol": "NativePreparationResult"
+        }
+      ],
+      "projection_evidence": {
+        "file_path": "/home/ts/wt/toad-tool-content-owner-sol-20260928/src/toad/widgets/tool_call.py",
+        "line": 204,
+        "symbol": "ToolCall.check_expand:if"
+      },
+      "authority_evidence": {
+        "file_path": "/home/ts/wt/toad-tool-content-owner-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/declared_family.py",
+        "line": 86,
+        "symbol": "DeclaredFamily"
+      },
+      "compression_certificate": null,
+      "metrics": {
+        "registration_site_count": 3,
+        "registry_name": "ToolCall.check_expand:if",
+        "class_names": [
+          "CompletedGoal",
+          "NativeOutcome",
+          "NativePreparationResult"
+        ],
+        "class_key_pairs": [
+          "CompletedGoal='Completed'",
+          "NativeOutcome='status'",
+          "NativePreparationResult='status'"
+        ]
+      },
+      "stable_id": "2497b429ea",
+      "evidence_ids": [
+        "8781631437",
+        "e12d6eb518",
+        "08effc268a",
+        "240a7978b3",
+        "9774ea86a1"
+      ]
+    },
+    {
+      "pattern_id": 1,
+      "title": "`ToolCall.tool_call_header_content:if` mirrors `DeclaredFamily`",
+      "why": "The branch literal at /home/ts/wt/toad-tool-content-owner-sol-20260928/src/toad/widgets/tool_call.py:233 repeats AssignmentState, FullPendingAssignment, NativeOutcome, NativePreparationResult, TriagePendingAssignment from the `DeclaredFamily` semantic authority. A later class, enum member, or schema field can diverge from this hand-maintained view.",
+      "capability_gap": "derived class-family registry or polymorphic dispatch",
+      "relation_context": "branch_literal has semantic overlap ('pending', 'status') with class_family `DeclaredFamily`; branch literal `ToolCall.tool_call_header_content:if` repeats members from class_family `DeclaredFamily`; derive it by iterating the authority registry or subclass family instead of maintaining a parallel presentation surface",
+      "confidence": "high",
+      "certification": "certified",
+      "capability_tags": [
+        "nominal_identity",
+        "provenance",
+        "enumeration",
+        "authoritative_mapping"
+      ],
+      "observation_tags": [
+        "class_family",
+        "manual_synchronization",
+        "projection_dict"
+      ],
+      "detector_id": "semantic_mirror_without_descent",
+      "summary": "`ToolCall.tool_call_header_content:if` mirrors 5 member(s) of `DeclaredFamily` without a descent path",
+      "evidence": [
+        {
+          "file_path": "/home/ts/wt/toad-tool-content-owner-sol-20260928/src/toad/widgets/tool_call.py",
+          "line": 233,
+          "symbol": "ToolCall.tool_call_header_content:if"
+        },
+        {
+          "file_path": "/home/ts/wt/toad-tool-content-owner-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/declared_family.py",
+          "line": 86,
+          "symbol": "DeclaredFamily"
+        },
+        {
+          "file_path": "/home/ts/wt/toad-tool-content-owner-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/assignment_states.py",
+          "line": 38,
+          "symbol": "AssignmentState"
+        },
+        {
+          "file_path": "/home/ts/wt/toad-tool-content-owner-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/assignment_states.py",
+          "line": 177,
+          "symbol": "FullPendingAssignment"
+        },
+        {
+          "file_path": "/home/ts/wt/toad-tool-content-owner-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/compaction_states.py",
+          "line": 303,
+          "symbol": "NativeOutcome"
+        },
+        {
+          "file_path": "/home/ts/wt/toad-tool-content-owner-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/owner_compaction_prepare.py",
+          "line": 49,
+          "symbol": "NativePreparationResult"
+        },
+        {
+          "file_path": "/home/ts/wt/toad-tool-content-owner-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/assignment_states.py",
+          "line": 160,
+          "symbol": "TriagePendingAssignment"
+        }
+      ],
+      "projection_evidence": {
+        "file_path": "/home/ts/wt/toad-tool-content-owner-sol-20260928/src/toad/widgets/tool_call.py",
+        "line": 233,
+        "symbol": "ToolCall.tool_call_header_content:if"
+      },
+      "authority_evidence": {
+        "file_path": "/home/ts/wt/toad-tool-content-owner-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/declared_family.py",
+        "line": 86,
+        "symbol": "DeclaredFamily"
+      },
+      "compression_certificate": null,
+      "metrics": {
+        "registration_site_count": 5,
+        "registry_name": "ToolCall.tool_call_header_content:if",
+        "class_names": [
+          "AssignmentState",
+          "FullPendingAssignment",
+          "NativeOutcome",
+          "NativePreparationResult",
+          "TriagePendingAssignment"
+        ],
+        "class_key_pairs": [
+          "AssignmentState='Pending'",
+          "FullPendingAssignment='Pending'",
+          "NativeOutcome='status'",
+          "NativePreparationResult='status'",
+          "TriagePendingAssignment='Pending'"
+        ]
+      },
+      "stable_id": "54846cbf0d",
+      "evidence_ids": [
+        "52b2604541",
+        "e12d6eb518",
+        "59b6dfb5e6",
+        "391cf9c858",
+        "240a7978b3",
+        "9774ea86a1",
+        "dd47e74104"
+      ]
+    },
+    {
+      "pattern_id": 1,
+      "title": "`ToolCall.tool_call_header_content:if` mirrors `DeclaredFamily`",
+      "why": "The branch literal at /home/ts/wt/toad-tool-content-owner-sol-20260928/src/toad/widgets/tool_call.py:235 repeats GoalState, NativeOutcome, NativePreparationResult from the `DeclaredFamily` semantic authority. A later class, enum member, or schema field can diverge from this hand-maintained view.",
+      "capability_gap": "derived class-family registry or polymorphic dispatch",
+      "relation_context": "branch_literal has semantic overlap ('in_progress', 'status') with class_family `DeclaredFamily`; branch literal `ToolCall.tool_call_header_content:if` repeats members from class_family `DeclaredFamily`; derive it by iterating the authority registry or subclass family instead of maintaining a parallel presentation surface",
+      "confidence": "high",
+      "certification": "certified",
+      "capability_tags": [
+        "nominal_identity",
+        "provenance",
+        "enumeration",
+        "authoritative_mapping"
+      ],
+      "observation_tags": [
+        "class_family",
+        "manual_synchronization",
+        "projection_dict"
+      ],
+      "detector_id": "semantic_mirror_without_descent",
+      "summary": "`ToolCall.tool_call_header_content:if` mirrors 3 member(s) of `DeclaredFamily` without a descent path",
+      "evidence": [
+        {
+          "file_path": "/home/ts/wt/toad-tool-content-owner-sol-20260928/src/toad/widgets/tool_call.py",
+          "line": 235,
+          "symbol": "ToolCall.tool_call_header_content:if"
+        },
+        {
+          "file_path": "/home/ts/wt/toad-tool-content-owner-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/declared_family.py",
+          "line": 86,
+          "symbol": "DeclaredFamily"
+        },
+        {
+          "file_path": "/home/ts/wt/toad-tool-content-owner-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/goal_states.py",
+          "line": 50,
+          "symbol": "GoalState"
+        },
+        {
+          "file_path": "/home/ts/wt/toad-tool-content-owner-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/compaction_states.py",
+          "line": 303,
+          "symbol": "NativeOutcome"
+        },
+        {
+          "file_path": "/home/ts/wt/toad-tool-content-owner-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/owner_compaction_prepare.py",
+          "line": 49,
+          "symbol": "NativePreparationResult"
+        }
+      ],
+      "projection_evidence": {
+        "file_path": "/home/ts/wt/toad-tool-content-owner-sol-20260928/src/toad/widgets/tool_call.py",
+        "line": 235,
+        "symbol": "ToolCall.tool_call_header_content:if"
+      },
+      "authority_evidence": {
+        "file_path": "/home/ts/wt/toad-tool-content-owner-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/declared_family.py",
+        "line": 86,
+        "symbol": "DeclaredFamily"
+      },
+      "compression_certificate": null,
+      "metrics": {
+        "registration_site_count": 3,
+        "registry_name": "ToolCall.tool_call_header_content:if",
+        "class_names": [
+          "GoalState",
+          "NativeOutcome",
+          "NativePreparationResult"
+        ],
+        "class_key_pairs": [
+          "GoalState='in_progress'",
+          "NativeOutcome='status'",
+          "NativePreparationResult='status'"
+        ]
+      },
+      "stable_id": "be5e939256",
+      "evidence_ids": [
+        "7cfe6ba2d2",
+        "e12d6eb518",
+        "de5cd4ae2c",
+        "240a7978b3",
+        "9774ea86a1"
+      ]
+    },
+    {
+      "pattern_id": 1,
+      "title": "`ToolCall.tool_call_header_content:if` mirrors `DeclaredFamily`",
+      "why": "The branch literal at /home/ts/wt/toad-tool-content-owner-sol-20260928/src/toad/widgets/tool_call.py:245 repeats FailedAssignment, NativeOutcome, NativePreparationResult from the `DeclaredFamily` semantic authority. A later class, enum member, or schema field can diverge from this hand-maintained view.",
+      "capability_gap": "derived class-family registry or polymorphic dispatch",
+      "relation_context": "branch_literal has semantic overlap ('failed', 'status') with class_family `DeclaredFamily`; branch literal `ToolCall.tool_call_header_content:if` repeats members from class_family `DeclaredFamily`; derive it by iterating the authority registry or subclass family instead of maintaining a parallel presentation surface",
+      "confidence": "high",
+      "certification": "certified",
+      "capability_tags": [
+        "nominal_identity",
+        "provenance",
+        "enumeration",
+        "authoritative_mapping"
+      ],
+      "observation_tags": [
+        "class_family",
+        "manual_synchronization",
+        "projection_dict"
+      ],
+      "detector_id": "semantic_mirror_without_descent",
+      "summary": "`ToolCall.tool_call_header_content:if` mirrors 3 member(s) of `DeclaredFamily` without a descent path",
+      "evidence": [
+        {
+          "file_path": "/home/ts/wt/toad-tool-content-owner-sol-20260928/src/toad/widgets/tool_call.py",
+          "line": 245,
+          "symbol": "ToolCall.tool_call_header_content:if"
+        },
+        {
+          "file_path": "/home/ts/wt/toad-tool-content-owner-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/declared_family.py",
+          "line": 86,
+          "symbol": "DeclaredFamily"
+        },
+        {
+          "file_path": "/home/ts/wt/toad-tool-content-owner-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/assignment_states.py",
+          "line": 378,
+          "symbol": "FailedAssignment"
+        },
+        {
+          "file_path": "/home/ts/wt/toad-tool-content-owner-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/compaction_states.py",
+          "line": 303,
+          "symbol": "NativeOutcome"
+        },
+        {
+          "file_path": "/home/ts/wt/toad-tool-content-owner-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/owner_compaction_prepare.py",
+          "line": 49,
+          "symbol": "NativePreparationResult"
+        }
+      ],
+      "projection_evidence": {
+        "file_path": "/home/ts/wt/toad-tool-content-owner-sol-20260928/src/toad/widgets/tool_call.py",
+        "line": 245,
+        "symbol": "ToolCall.tool_call_header_content:if"
+      },
+      "authority_evidence": {
+        "file_path": "/home/ts/wt/toad-tool-content-owner-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/declared_family.py",
+        "line": 86,
+        "symbol": "DeclaredFamily"
+      },
+      "compression_certificate": null,
+      "metrics": {
+        "registration_site_count": 3,
+        "registry_name": "ToolCall.tool_call_header_content:if",
+        "class_names": [
+          "FailedAssignment",
+          "NativeOutcome",
+          "NativePreparationResult"
+        ],
+        "class_key_pairs": [
+          "FailedAssignment='Failed'",
+          "NativeOutcome='status'",
+          "NativePreparationResult='status'"
+        ]
+      },
+      "stable_id": "6a4851194b",
+      "evidence_ids": [
+        "f277eb93ae",
+        "e12d6eb518",
+        "00fce0aeef",
+        "240a7978b3",
+        "9774ea86a1"
+      ]
+    },
+    {
+      "pattern_id": 1,
+      "title": "`ToolCall.tool_call_header_content:if` mirrors `DeclaredFamily`",
+      "why": "The branch literal at /home/ts/wt/toad-tool-content-owner-sol-20260928/src/toad/widgets/tool_call.py:255 repeats CompletedGoal, NativeOutcome, NativePreparationResult from the `DeclaredFamily` semantic authority. A later class, enum member, or schema field can diverge from this hand-maintained view.",
+      "capability_gap": "derived class-family registry or polymorphic dispatch",
+      "relation_context": "branch_literal has semantic overlap ('completed', 'status') with class_family `DeclaredFamily`; branch literal `ToolCall.tool_call_header_content:if` repeats members from class_family `DeclaredFamily`; derive it by iterating the authority registry or subclass family instead of maintaining a parallel presentation surface",
+      "confidence": "high",
+      "certification": "certified",
+      "capability_tags": [
+        "nominal_identity",
+        "provenance",
+        "enumeration",
+        "authoritative_mapping"
+      ],
+      "observation_tags": [
+        "class_family",
+        "manual_synchronization",
+        "projection_dict"
+      ],
+      "detector_id": "semantic_mirror_without_descent",
+      "summary": "`ToolCall.tool_call_header_content:if` mirrors 3 member(s) of `DeclaredFamily` without a descent path",
+      "evidence": [
+        {
+          "file_path": "/home/ts/wt/toad-tool-content-owner-sol-20260928/src/toad/widgets/tool_call.py",
+          "line": 255,
+          "symbol": "ToolCall.tool_call_header_content:if"
+        },
+        {
+          "file_path": "/home/ts/wt/toad-tool-content-owner-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/declared_family.py",
+          "line": 86,
+          "symbol": "DeclaredFamily"
+        },
+        {
+          "file_path": "/home/ts/wt/toad-tool-content-owner-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/goal_states.py",
+          "line": 222,
+          "symbol": "CompletedGoal"
+        },
+        {
+          "file_path": "/home/ts/wt/toad-tool-content-owner-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/compaction_states.py",
+          "line": 303,
+          "symbol": "NativeOutcome"
+        },
+        {
+          "file_path": "/home/ts/wt/toad-tool-content-owner-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/owner_compaction_prepare.py",
+          "line": 49,
+          "symbol": "NativePreparationResult"
+        }
+      ],
+      "projection_evidence": {
+        "file_path": "/home/ts/wt/toad-tool-content-owner-sol-20260928/src/toad/widgets/tool_call.py",
+        "line": 255,
+        "symbol": "ToolCall.tool_call_header_content:if"
+      },
+      "authority_evidence": {
+        "file_path": "/home/ts/wt/toad-tool-content-owner-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/declared_family.py",
+        "line": 86,
+        "symbol": "DeclaredFamily"
+      },
+      "compression_certificate": null,
+      "metrics": {
+        "registration_site_count": 3,
+        "registry_name": "ToolCall.tool_call_header_content:if",
+        "class_names": [
+          "CompletedGoal",
+          "NativeOutcome",
+          "NativePreparationResult"
+        ],
+        "class_key_pairs": [
+          "CompletedGoal='Completed'",
+          "NativeOutcome='status'",
+          "NativePreparationResult='status'"
+        ]
+      },
+      "stable_id": "276a7a970a",
+      "evidence_ids": [
+        "2c0beb79a6",
+        "e12d6eb518",
+        "08effc268a",
+        "240a7978b3",
+        "9774ea86a1"
+      ]
+    }
+  ],
+  "limitations": "CLI emits no scan_status or analyzed/omitted detector counts; no proof of behavioral or native equivalence. Baseline excludes Textual; final includes all production Textual/core/Toad files."
+}

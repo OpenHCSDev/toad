@@ -1,0 +1,31 @@
+F...                                                                     [100%]
+=================================== FAILURES ===================================
+_______________________ pilot: native_tool_output_pilot ________________________
+Pilot failed: ExitedOutcome(code=1)
+Traceback (most recent call last):
+  File [35m"/home/ts/wt/toad-tool-content-owner-sol-20260928/tests/native_tool_output_pilot.py"[0m, line [35m113[0m, in [35m<module>[0m
+    [31masyncio.run[0m[1;31m(native_fixture(app_type=InstalledApp, acceptance=acceptance,[0m
+    [31m~~~~~~~~~~~[0m[1;31m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+                              [1;31mprovider_reply=provider_reply))[0m
+                              [1;31m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py"[0m, line [35m204[0m, in [35mrun[0m
+    return [31mrunner.run[0m[1;31m(main)[0m
+           [31m~~~~~~~~~~[0m[1;31m^^^^^^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py"[0m, line [35m127[0m, in [35mrun[0m
+    return [31mself._loop.run_until_complete[0m[1;31m(task)[0m
+           [31m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m[1;31m^^^^^^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py"[0m, line [35m719[0m, in [35mrun_until_complete[0m
+    return [31mfuture.result[0m[1;31m()[0m
+           [31m~~~~~~~~~~~~~[0m[1;31m^^[0m
+  File [35m"/home/ts/wt/toad-tool-content-owner-sol-20260928/tests/l0a_native_installed_pilot.py"[0m, line [35m273[0m, in [35mmain[0m
+    await acceptance(app, pilot, agent, comms, entered, release,
+                     hold_next, requests)
+  File [35m"/home/ts/wt/toad-tool-content-owner-sol-20260928/tests/native_tool_output_pilot.py"[0m, line [35m66[0m, in [35macceptance[0m
+    assert [1;31mtool.tool_call["status"] == "completed"[0m, tool.tool_call
+           [1;31m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+[1;35mAssertionError[0m: [35m{'toolCallId': 'native-tool-3', 'title': "Run printf '\\033[31mNATIVE_TOOL_TEXT\\033[0m\\n'", 'kind': 'execute', 'status': 'completed', 'rawInput': {'command': "printf '\\033[31mNATIVE_TOOL_TEXT\\033[0m\\n'"}, '_meta': {'agentComms': {'updates': []}}, 'sessionUpdate': 'tool_call_update', 'content': [{'content': {'text': '\x1b[31mNATIVE_TOOL_TEXT\x1b[0m\n', 'type': 'text'}, 'type': 'content'}]}[0m
+
+Logs: /home/ts/wt/toad-tool-content-owner-sol-20260928/evidence/tool-output/current-main/native_tool_output_pilot0
+=========================== short test summary info ============================
+FAILED tests/native_tool_output_pilot.py::native_tool_output_pilot - Failed: ...
+1 failed, 3 passed in 26.14s

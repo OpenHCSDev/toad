@@ -9,6 +9,25 @@ from runtime_fixture import ToadApp
 from toad.acp.agent import Agent
 from toad.widgets.conversation import Conversation
 from toad.widgets.question import Question
+from toad.widgets.acp_content import ACPToolCallContent
+from toad.widgets.diff_view import DiffView
+from toad.widgets.tool_content import MarkdownContent
+
+
+async def assert_inline_paint(app, view, pilot):
+    async with asyncio.timeout(10):
+        while True:
+            await pilot.pause(.05)
+            frame = "\n".join(strip.text for strip in app.screen._compositor.render_strips())
+            if "PERMISSION_MARKDOWN" in frame and "inline new value" in frame:
+                break
+    preview = view.prompt.query_one(ACPToolCallContent)
+    markdown = preview.query_one(MarkdownContent)
+    assert markdown.source == "**PERMISSION_MARKDOWN**"
+    assert "**PERMISSION_MARKDOWN**" not in frame
+    diff = preview.query_one(DiffView)
+    assert diff.region.overlaps(app.screen.region)
+    assert app._exception is None
 
 
 async def main():
@@ -33,6 +52,15 @@ async def main():
                     {"optionId": "allow", "name": "Allow", "kind": "allow_once"},
                     {"optionId": "reject", "name": "Reject", "kind": "reject_once"}],
                     "toolCall": {"toolCallId": lifecycle, "title": lifecycle, "kind": "read"}}
+                if lifecycle == "grant":
+                    params["toolCall"]["content"] = [
+                        {"type": "content", "content": {"type": "text", "text": "**PERMISSION_MARKDOWN**"}},
+                        {"type": "diff", "path": str(project / "inline.txt"),
+                         "oldText": "inline old value", "newText": "inline new value"},
+                        {"type": "content", "content": {"type": "resource", "resource": {
+                            "uri": "file:///ignored.patch", "mimeType": "text/x-diff",
+                            "text": "not admitted to the permission preview"}}},
+                    ]
                 task = asyncio.create_task(agent.server.call({"jsonrpc": "2.0", "id": 1,
                     "method": "session/request_permission", "params": params}))
                 await pilot.pause()
@@ -40,6 +68,10 @@ async def main():
                 assert view.prompt._ask is not None
                 frame="\n".join(strip.text for strip in app.screen._compositor.render_strips())
                 assert lifecycle in frame and "Allow" in frame and "Reject" in frame
+                if lifecycle == "grant":
+                    await assert_inline_paint(app, view, pilot)
+                    params["toolCall"]["content"][0]["content"]["text"] = "MUTATED_AFTER_ADMISSION"
+                    params["toolCall"]["content"][1]["newText"] = "MUTATED_AFTER_ADMISSION"
                 parent = view.parent
                 agent.detach_surface(view)
                 await view.remove()
@@ -51,6 +83,8 @@ async def main():
                 await pilot.pause()
                 ask = view.prompt._ask
                 assert ask is not None and request.pending
+                if lifecycle == "grant":
+                    await assert_inline_paint(app, view, pilot)
                 if lifecycle == "replace":
                     agent.session_id = "replacement"
                 elif lifecycle == "stop":

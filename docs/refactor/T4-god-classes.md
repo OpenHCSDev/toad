@@ -237,6 +237,44 @@ separate native backend, controlled UI and parent ACP shipping proofs. No
 own-scope blocker. Tesla consumes source-bound GoalSession in reusable view
 initialization; parent retains merge/deployment and completed141/143 gates.
 
+## Remaining large class: tool output (main129 e46f8cb, Noether)
+
+Remeasured ToolCall AST span469. It repeats raw ACP content classification in
+composition, retained text, auto-preview and hidden diff warmup; root fields own
+content snapshots, lock, worker, cache and hydration. ToolOutput owns mounted
+content and preparation custody; ToolOutputPart cases own composition, retention,
+preview and cancellation, with declaration-derived Text presentation membership.
+ACP decode happens once per update, retaining Read filename/kind identity and
+captured source values when adapters mutate dictionaries. New text presentation:
+one declared SpecificTextToolOutputPart subclass, zero root, registry, scheduler
+or lifetime edits (formerly composition plus retained classification).
+
+Scope widgets/tool_call.py, tool_output.py, widgets/tool_content.py and direct
+pilot callers/guards. Conversation/Agent, workspace, shell and read ACK stay with
+Carver/Tesla/Dalton. Existing hidden cache-shape pilot is deleted; actual installed
+hidden/visible/theme/retirement acceptance replaces its private renderer goldens.
+Existing ToolCallDiff behavior moves intact with unique class baseline retained.
+Root keeps header/expansion and viewport participation. No aliases or live writes.
+
+### Tool output completion (current main144 integration, PR145)
+
+00d016e completes the scoped owner/caller/deletion batch: ToolCall469 →235,
+ToolCallDiff136 →135; no independent class/debt increase. LiteralTextToolOutputPart
+is the declared ordinary-text capability; no compatibility path/alias. Installed
+actual native Read/Edit/Bash execution + ACP/cropped paint/copy/collapse/reopen
+and real renderer hidden/reveal/replacement/theme/remount/retirement pass. The
+existing hidden lifecycle also proves worker cancellation before entry without
+unawaited coroutines: async partial/callables only. Old private cache goldens and
+historical foreground-reader substitutions are deleted. New declaration adopts
+installed composition without root/catalog/worker edits. Final raw audit covers
+all709 Python files across Toad/core/Textual; runtime evidence is separate.
+
+Root retains header/expansion/viewport handlers. Noether145 owns the agreed
+permission-only ACPToolCallContent shared decoding/presentation caller closure;
+Carver146 owns permission lifetime. Tesla142/Carver Conversation/Dalton read ACK
+stay separately owned. Parent owns
+merge/live activation; no unchanged143 or64 matrix is repeated. Receipts under
+evidence/tool-output state exact installed pins and earlier diagnostic failures.
 ## Current remaining dispatch: permission presentation (Carver, after144)
 
 Ready144 remeasure Conversation2287 AST span. Root still decodes external tool
@@ -265,3 +303,29 @@ Actual installed controlled callback flush cancellation/source replacement,
 painted replacement grant and zero async callback errors pass; no additional
 flags/futures or fake mounted screen. Existing145 ToolOutput owns shared ACP
 content renderer integration; exact contract coordination recorded on145.
+
+## Tool output permission caller closure (Noether145, merged146/147)
+
+The prior145 receipt wrongly excluded the caller assigned in146 coordination.
+InlinePermissionPresentation now decodes ACP once at request admission; the
+existing declared output cases own permission admission (all text is Markdown,
+file diff uses existing settings, other content is not shown). ACPToolCallContent
+retains typed parts only and composes via ToolOutputPart.compose(Widget); raw
+match/make_diff and its raw mirror are deleted. No renderer fork or ToolCall
+adapter. Actual installed mixed inline content/diff paint survives removal and
+rebind after raw producer mutation, grant/reject/replacement/stop. Current147
+corec338/Textualc974 wheel, nativepermission replay and shared ratchet receipts
+are under evidence/tool-output. Carver146 lifetime/parent147 crash fix preserved.
+
+### Updated22:16 pattern acceptance
+
+Source2ba9a27 fully closes145 shared caller on main147. Final AST spans:
+ToolCall469→249, ToolCallDiff136→118, ACPToolCallContent32→15.
+IMPL-4/5 and TIME-9 caller deletion above is complete. IMPL-10 replaces
+output hydration and patch publication flag combinations with declared states;
+IDEN-1 uses a captured renderer ticket, IDEN-3 puts future readiness on the
+existing PatchPreparation lifetime. No unrelated-predicate rule atomization.
+Per-touched-file chain terms do not increase: both new modules0, root -43.
+Shared ratchet has no positive delta. Actual affected installed/native8cases
+pass46.60s; native permission shared Markdown paint/rebind/grant passes
+separately. Receipt explicitly confirms the latest skill source and limits.

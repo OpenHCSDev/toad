@@ -13,7 +13,8 @@ from textual import events
 from textual.selection import SELECT_ALL, SelectState
 
 from toad.widgets.agent_response import AgentResponse
-from toad.widgets.tool_call import ToolCall, ToolCallDiff
+from toad.widgets.tool_call import ToolCall
+from toad.widgets.tool_content import ToolCallDiff
 
 
 async def main():
