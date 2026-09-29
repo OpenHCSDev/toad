@@ -25,3 +25,7 @@ The maintained actual installed log UI pilot protects the visible diagnostics,
 encoded-path click, file reading and navigation lifetime without mocking preview.
 This is UI/log acceptance, not proof of a live provider send or the separately
 reported user RecursionError. That crash remains under investigation.
+
+Combined with merged14613dd52b: actual installed pending-mount cancellation/source
+replacement passes, actual installed inline/diff grant/reject/stop passes, and two
+family/deletion guards pass. Core0931c47d and Textualc974 unchanged.
