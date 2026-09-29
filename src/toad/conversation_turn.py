@@ -32,11 +32,13 @@ class TurnOwner(DeclaredFamily, affix="Turn"):
         return ActivityTurn(activity) if activity else self
 
 
+@dataclass(frozen=True)
 class NoTurn(TurnOwner):
     busy = False
     session_state = None
 
 
+@dataclass(frozen=True)
 class ClientTurn(TurnOwner):
     busy = False
     session_state = "idle"

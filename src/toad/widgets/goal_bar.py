@@ -1,8 +1,8 @@
 """Visible controls for the server-owned persistent thread goal."""
 
 from typing import ClassVar
+from weakref import ref
 
-from agent_comms.goal_presentation import GoalExecution
 from rich.cells import cell_len
 from textual import events
 from textual.app import ComposeResult, ScreenStackError, UnknownModeError
@@ -12,7 +12,6 @@ from textual.message import Message
 from textual.reactive import var
 from textual.widgets import Static
 
-from toad.goal_display import GoalDisplay, NoGoal
 from toad.goal_interaction import GoalInteraction
 from toad.widgets.goal_text import GoalText
 
@@ -78,14 +77,24 @@ class GoalBar(VerticalGroup):
     GoalBar.-collapsed GoalControl { margin-right: 1; }
     GoalBar.-resize-hover, GoalBar.-resizing { border-top: solid white; pointer: ns-resize; }
     """
-    goal_display: var[GoalDisplay] = var(NoGoal())
-    execution: var[GoalExecution | None] = var(None)
     collapsed: var[bool] = var(False)
     _separator_update_pending = False
     _throbber = None
     _prompt = None
     _document_height: int | None = None
     _resize_origin: tuple[int, int] | None = None
+
+    def __init__(self, source):
+        super().__init__()
+        self._source = ref(source)
+
+    @property
+    def goal_display(self):
+        return self._source().goal_display
+
+    @property
+    def execution(self):
+        return self._source().goal_execution
 
     def on_mount(self) -> None:
         from toad.widgets.prompt import Prompt
@@ -95,6 +104,8 @@ class GoalBar(VerticalGroup):
         # second definition of "running" or "queue mode" on Conversation.
         self._throbber = self.parent.query_one_optional(Throbber)
         self._prompt = self.parent.query_one_optional(Prompt)
+        self.watch(self._source(), "goal_display", self.watch_goal_display)
+        self.watch(self._source(), "goal_execution", self.watch_execution)
         if self._throbber is not None:
             self.watch(self._throbber, "busy", self._queue_separator_update)
         if self._prompt is not None:

@@ -29,6 +29,9 @@ class GoalDisplay(DeclaredFamily):
     def standby(self, execution: GoalExecution | None) -> bool:
         return False
 
+    def action_failure(self, error: Exception) -> str:
+        return str(error)
+
     @staticmethod
     def current(goal: Goal | None) -> "GoalDisplay":
         return NoGoal() if goal is None else ShowingGoal(goal)
@@ -36,12 +39,16 @@ class GoalDisplay(DeclaredFamily):
 
 @dataclass(frozen=True)
 class NoGoal(GoalDisplay):
+    can_control: ClassVar[bool] = False
     @property
     def snapshot(self) -> None:
         return None
 
     def heading(self, execution: GoalExecution | None) -> str:
         return "No current goal"
+
+    def action_failure(self, error: Exception) -> str:
+        return "This goal has been cleared."
 
 
 @dataclass(frozen=True)
