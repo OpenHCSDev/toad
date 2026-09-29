@@ -215,7 +215,7 @@ class NativeSessionSurface:
             if not first and conversation.agent is not None and conversation.agent.ready:
                 # The switch holds the workspace paint transaction. Reuse its
                 # parked rendered bodies before the destination's first frame.
-                await conversation.present_retained_native_session()
+                await conversation.agent.presentation.restore_saved_history(conversation)
             self.owner, self.view = owner, screen
             conversation.display = True
             conversation.window.document_viewport.resume_source()
