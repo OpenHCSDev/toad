@@ -14,6 +14,7 @@ from acp.schema import PlanEntryStatus
 from runtime_fixture import ToadApp
 from sidebar_retirement_pilot import reveal, until, viewport_text
 from toad.plan import PlanStatus
+from toad.screens.main import MainScreen
 from toad.widgets.plan import Plan
 from toad.widgets.strike_text import StrikeText
 from toad.widgets.note import Note
@@ -129,6 +130,33 @@ async def main():
                 assert app._exception is None
                 print("ACP_EMPTY_RESET_INACTIVE_PANEL_REVEAL_AND_ALREADY_COMPLETED_REAPPEARANCE_PAINTED", flush=True)
                 print("PHYSICAL_MALFORMED_STATUS_MISSING_FIELD_WRONG_TYPE_REJECTED_WITH_VISIBLE_NOTES", flush=True)
+                source = app.selected_session
+                original_process = agent.process.process
+                editor = view.prompt.prompt_text_area
+                editor.insert("Detached plan draft")
+                original_document, original_history = editor.document, editor.history
+                await app.new_session_screen(lambda: MainScreen(root, agent_session_id="plan-blank"))
+                assert agent.controller.surface.target is None
+                detached_plan = [{"entries": [{"content": "DETACHED_PLAN_ITEM", "priority": "high", "status": "pending"}]}]
+                await asyncio.wait_for(agent.send_prompt(json.dumps(detached_plan)), 10)
+                await until(pilot, lambda: agent.controller.plan_entries is not None and
+                            agent.controller.plan_entries[0].content.plain == "DETACHED_PLAN_ITEM")
+                await app.select_session(source.id)
+                view = source.conversation
+                await until(pilot, lambda: bool(view.query(Plan)))
+                restored_plan = view.query_one(Plan)
+                restored_plan.scroll_visible(animate=False, immediate=True)
+                await until(pilot, lambda: painted(restored_plan, "DETACHED_PLAN_ITEM"))
+                sidebar = await reveal(source, pilot)
+                await until(pilot, lambda: painted(sidebar.query_one(Plan), "DETACHED_PLAN_ITEM"))
+                assert restored_plan.entries is agent.controller.plan_entries
+                assert sidebar.query_one(Plan).entries is restored_plan.entries
+                assert view.agent is agent and agent.process.process is original_process
+                assert view.prompt.prompt_text_area.document is original_document
+                assert view.prompt.prompt_text_area.history is original_history
+                assert view.prompt.text == "Detached plan draft"
+                assert app._exception is None
+                print("DETACHED_OPERATIONAL_TYPED_PLAN_RETURN_PAINTED_SAME_AGENT_PROCESS_EDITOR", flush=True)
             finally:
                 for index in range(len(stages)):
                     (root / f"plan-advance-{index}").touch()
