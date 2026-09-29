@@ -243,3 +243,9 @@ IDEN-1: the native CommittedInterval is reused as the immutable identity for a p
 Installed native acceptance now passes the exact19→19 scroll offset on the first return and original operational-source identity checks. It still fails full cropped conversation paint: a blank row appears above coordination context, shifting the bottom divider outside the crop, although virtual90x55/viewport90x33 and vertical scrollbar agree. Receipt `recent-native-admission.log` remains RED. This is a checkpoint, not recent-source/full116 completion. Older multi-page returns and changed native intervals still require complete prepared-source custody integration; this snapshot does not claim those gates.
 
 Carver owns urgent ViewportPresentation.prepare/native layout reentrancy;142 has no changes to viewport_body.py, session_view.py or WorkspaceScreen layout. No recursion-limit increase or exception masking. Chain-term counts unchanged: transcript_publication21→21/history_anchor4→4/transcript_history47→47/recent pilot0→0.
+
+###148 integration and remaining actual paint facts
+
+Main148b5a40ce is integrated at677563a9. It is terminal crash capture only, not a claim that the reported live RecursionError is fixed. Carver owns its native layout reentrancy sites.
+
+An explicit native after-refresh fence in the recent pilot did not remove the remaining cropped paint mismatch (`recent-native-painted.log`). The same run also exposes an independent canonical-history defect: User divider time changes23:12:33→23:12:34 on source return. Core322 TranscriptEvent has no original native timestamp, while MessageDivider substitutes current time. Core boundary owner requested via142 comment5882920918 to provide canonical event time through existing decode/projections;142 owns the affected Toad caller migration. No second timestamp cache or decoder introduced. Exact full cropped-paint assertion remains unchanged and red.

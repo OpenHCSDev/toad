@@ -29,6 +29,11 @@ async def settled(pilot, view):
         and all(not history._loading
                 for history in window.histories)
     ))
+    # Body readiness describes preparation, not completion of the native frame
+    # that consumes it. Sample the reader only after that actual paint boundary.
+    painted = asyncio.Event()
+    window.call_after_refresh(painted.set)
+    await until(pilot, painted.is_set)
 
 
 async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):
