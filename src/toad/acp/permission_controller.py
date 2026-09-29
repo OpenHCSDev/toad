@@ -10,6 +10,8 @@ from .client_session import ClientRequestOwner, ClientSessionRequest
 from toad.answer import Answer
 from toad.permission_presentation import PermissionPresentation
 
+PERMISSION_TIMEOUT_SECONDS = 120.0
+
 
 class PermissionRequest(DeclaredFamily, affix="PermissionRequest"):
     def __init__(self, controller):
@@ -30,8 +32,8 @@ class PermissionRequest(DeclaredFamily, affix="PermissionRequest"):
     @abstractmethod
     def presentation(self): ...
 
-    def answer(self, surface, answer):
-        if self.pending and self.controller.agent.controller.surface.owns(surface):
+    def answer(self, binding, answer):
+        if self.pending and self.controller.agent.controller.surface is binding:
             if answer is None or any(option.id == answer.id for option in self.options):
                 self.future.set_result(answer)
 
@@ -117,7 +119,7 @@ class PermissionController(ClientRequestOwner):
             return cancelled
         visible = self.agent.tools.permission(toolCall)
         request = self.request(options, visible)
-        answer = await request.wait(120.0)
+        answer = await request.wait(PERMISSION_TIMEOUT_SECONDS)
         if answer is None or authority.retired:
             return cancelled
         return {"outcome": {"optionId": answer.id, "outcome": "selected"}}

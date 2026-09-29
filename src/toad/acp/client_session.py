@@ -1,14 +1,19 @@
 """One captured session authority for ACP client-side effects."""
 from dataclasses import dataclass, field
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .agent import Agent
+    from .agent_process import ProcessDisposition
 from agent_comms.declared_family import DeclaredFamily
 from toad.jsonrpc import InvalidParams
 
 
 @dataclass(frozen=True)
 class ClientSessionRequest:
-    agent: object
+    agent: "Agent"
     session_id: str
-    disposition: object = field(init=False)
+    disposition: "ProcessDisposition" = field(init=False)
 
     def __post_init__(self):
         object.__setattr__(self, 'disposition', self.agent.process.disposition)

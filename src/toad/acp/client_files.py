@@ -1,4 +1,4 @@
-"""The attached ACP session owns project file effects."""
+"""The active ACP session owns project file effects."""
 from toad import jsonrpc
 from .client_session import ClientRequestOwner
 

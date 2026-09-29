@@ -13,7 +13,7 @@ from types import TracebackType
 import weakref
 
 import rich.repr
-from typing import Callable, ParamSpec, TypeVar
+from typing import Callable, ParamSpec, TypeVar, get_type_hints
 from typeguard import check_type, CollectionCheckStrategy, TypeCheckError
 
 
@@ -318,13 +318,10 @@ class Server:
                 name = callable.__name__
             name = f"{prefix}{name}"
 
+            parameter_types = get_type_hints(callable, include_extras=True)
             parameters = {
                 name: Parameter(
-                    (
-                        eval(parameter.annotation)
-                        if isinstance(parameter.annotation, str)
-                        else parameter.annotation
-                    ),
+                    parameter_types.get(name, parameter.annotation),
                     (
                         NO_DEFAULT
                         if parameter.default is inspect._empty

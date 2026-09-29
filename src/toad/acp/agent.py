@@ -379,8 +379,8 @@ class Agent(AgentBase):
 
     async def stop(self) -> None:
         """Gracefully stop the process."""
-        await self.controller.terminals.close()
         self.process.close()
+        await self.controller.terminals.close()
         if self.session_pk is not None:
             db = DB()
             await db.session_update_last_used(self.session_pk)
