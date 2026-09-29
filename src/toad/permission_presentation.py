@@ -4,6 +4,7 @@ from __future__ import annotations
 from abc import abstractmethod
 from acp.schema import Diff
 from functools import partial
+from toad.screens.permissions import PermissionReview
 from agent_comms.declared_family import DeclaredFamily
 from toad import messages
 from toad.widgets.acp_content import ACPToolCallContent
@@ -53,19 +54,13 @@ class DiffPermissionPresentation(PermissionPresentation):
         return cls(title, diffs) if diffs else None
 
     async def show(self, view, request):
-        from toad.screens.permissions import PermissionsScreen
-        screen = PermissionsScreen(request.options, self.diffs,
-                                   agent_name=view.agent_title or "The Agent")
+        screen = PermissionReview(request, view, self.diffs)
         app = view.app
         app.terminal_alert()
         app.system_notify(f"{view.agent_title} would like to write files",
                           title="Permissions request", sound="question")
 
-        def retire():
-            if screen.is_attached:
-                screen.dismiss(None)
-
-        request.watch(view, retire)
+        request.watch(view, screen.retire)
         try:
             result = await app.push_screen_wait(screen, mode=view.screen.id)
             request.answer(view, result)

@@ -1,4 +1,5 @@
 from toad.setting_choices import DiffMode, AutoDiff
+from weakref import ref
 import os
 from textual import work, on
 from textual.app import ComposeResult
@@ -418,3 +419,24 @@ def loop_first_last(values: Iterable[ValueType]) -> Iterable[tuple[bool, bool, V
 
     app = PermissionTestApp()
     app.run()
+
+
+class PermissionReview(PermissionsScreen):
+    """Admission at mount uses the same pending request and source binding."""
+    def __init__(self, request, view, diffs):
+        super().__init__(request.options, diffs, agent_name=view.agent_title or "The Agent")
+        self.request = request
+        self._view = ref(view)
+
+    def retire(self):
+        if self.is_active:
+            self.dismiss(None)
+
+    def on_screen_resume(self, event):
+        self.on_mount(event)
+
+    def on_mount(self, event):
+        view = self._view()
+        if view is None or not self.request.pending or not self.request.controller.agent.controller.surface.owns(view):
+            event.prevent_default()
+            self.retire()
