@@ -48,8 +48,10 @@ class ThreadActions:
         if source_root is None:
             from toad.widgets.comms_sidebar import CommsSidebar
             sidebar = app.screen.query_one_optional(CommsSidebar)
-            if sidebar is not None and sidebar._wire is not None:
-                source_root = sidebar._wire.root
+            if sidebar is not None:
+                observed = sidebar._wire
+                if observed is not None:
+                    source_root = observed.root
         try:
             selected = RouteSelection.capture(source_root)
         except (OSError, ValueError, RuntimeError) as error:
