@@ -92,5 +92,4 @@ class ApplicationLifetime:
         app.call_later(self.save_and_exit)
 
     async def save_and_exit(self) -> None:
-        await self.app.settings.save()
-        self.app.exit()
+        await self.app.settings.save_before_exit(self.app.exit)

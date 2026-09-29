@@ -134,7 +134,19 @@ async def main():
             width=next(w for w in app.screen.query(InputEditor) if w.bound.kind is UiSettings.column_width)
             width.scroll_visible(animate=False,immediate=True);await pilot.pause()
             assert await pilot.click(width)
+            # Quit must keep the real app open when persistence rejects it.
+            original=settings_path.read_bytes();settings_path.unlink();settings_path.mkdir()
+            errors=sum(n.title=='Settings' and n.severity=='error' for n in app._notifications)
             await pilot.press('home','shift+end','1','3','7','ctrl+q')
+            await until(pilot,lambda:sum(n.title=='Settings' and n.severity=='error'
+                                        for n in app._notifications)>errors)
+            assert app.is_running and not app._exit
+            assert app.settings.changed and app.settings.ui.column_width==137
+            assert settings_path.is_dir() and not list(config.glob('.toad.json_tmp_*'))
+            assert 'Failed to write' in '\n'.join(strip.text for strip in app.screen._compositor.render_strips())
+            print('PHYSICAL_CTRL_Q_REAL_SAVE_FAILURE_STAYS_OPEN_WITH_VISIBLE_FEEDBACK',flush=True)
+            settings_path.rmdir();settings_path.write_bytes(original)
+            await pilot.press('ctrl+q')
             await until(pilot,lambda:app._exit)
         saved=json.loads(settings_path.read_text())
         assert saved['ui']['column-width']==137,saved

@@ -338,6 +338,12 @@ class ToadSettings(SettingsGroup):
         async with self.save_lock:
             await asyncio.to_thread(self.save_sync, force)
 
+    async def save_before_exit(self, exit: Callable[[], None]) -> None:
+        """Only the current persisted preference tree permits closing the app."""
+        await self.save()
+        if not self.changed:
+            exit()
+
     def save_sync(self, force: bool = False) -> None:
         if force or self.changed:
             snapshot = self.json
