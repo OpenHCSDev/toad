@@ -76,7 +76,7 @@ class ProjectPanel(Vertical):
 
         if self.query_ancestor(SideBar).collapsed or self.query_ancestor(SideBarCollapsible).collapsed:
             return
-        if self.is_on_screen and not self._tree_requested:
+        if self.is_attached and self.screen.is_current and not self._tree_requested:
             self._tree_requested = True
             self._mount_tree()
 
