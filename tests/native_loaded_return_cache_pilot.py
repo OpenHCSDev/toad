@@ -30,7 +30,13 @@ class PaintedReturnApp(InstalledApp):
     observed_frames = None
     expected_source_id = None
     first_paint_at = None
+    selection_requested_at = None
     last_click_metrics = None
+
+    def select_session(self, mode, *, history_index=None):
+        if mode == self.expected_source_id and self.selection_requested_at is None:
+            self.selection_requested_at = perf_counter()
+        return super().select_session(mode, history_index=history_index)
 
     def _display(self, screen, renderable):
         super()._display(screen, renderable)
@@ -57,14 +63,49 @@ async def click_session(app, pilot, source):
     app.observed_frames = []
     app.expected_source_id = source.id
     app.first_paint_at = None
+    app.selection_requested_at = None
+    phases = {}
+    wrapped = []
+    previous = app.workspace_sessions.selected
+    native = app.workspace_chrome.native
+    targets = [
+        (previous, "retire_presentation", "retire_presentation"),
+        (app.workspace_chrome, "select", "chrome_select"),
+        (source, "prepare_presentation", "prepare_presentation"),
+        (native, "retire", "native_retire"),
+        (native, "activate", "native_activate"),
+        (app.workspace_screen, "prepare_navigation", "prepare_navigation"),
+        (app.workspace_screen, "layout_navigation", "layout_navigation"),
+    ]
+    for owner, method, label in targets:
+        if owner is None:
+            continue
+        original = getattr(owner, method)
+
+        async def timed(*args, _original=original, _label=label, **kwargs):
+            started = perf_counter()
+            try:
+                return await _original(*args, **kwargs)
+            finally:
+                phases[_label] = phases.get(_label, 0.0) + (perf_counter() - started) * 1000
+
+        setattr(owner, method, timed)
+        wrapped.append((owner, method, original))
     click_started = perf_counter()
-    assert await pilot.click(tab), f"Session tab {source.id} was not clickable"
+    try:
+        assert await pilot.click(tab), f"Session tab {source.id} was not clickable"
+    finally:
+        for owner, method, original in reversed(wrapped):
+            setattr(owner, method, original)
     click_completed = perf_counter()
     assert app.first_paint_at is not None, f"Session tab {source.id} never painted"
+    assert app.selection_requested_at is not None, f"Session tab {source.id} was not selected"
     app.last_click_metrics = (
         (app.first_paint_at - click_started) * 1000,
         (click_completed - click_started) * 1000,
+        (app.first_paint_at - app.selection_requested_at) * 1000,
     )
+    app.last_phase_times = phases
     frames, app.observed_frames = app.observed_frames, None
     app.expected_source_id = None
     return frames
@@ -234,6 +275,8 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
             records.append({"source":source.id,
                             "return_painted_ms":app.last_click_metrics[0],
                             "click_completed_ms":app.last_click_metrics[1],
+                            "selection_to_paint_ms":app.last_click_metrics[2],
+                            "phases_ms":app.last_phase_times,
                             "fixture_total_ms":(perf_counter()-started)*1000,
                             "reader_y":y,"cache_hits":app.preparation.hits-before_hits,
                             "cache_misses":app.preparation.misses-before_misses,
