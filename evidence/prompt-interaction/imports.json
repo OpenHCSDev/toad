@@ -1,0 +1,21 @@
+{
+  "core": "/home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/agent_comms/__init__.py",
+  "textual": "/home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/__init__.py",
+  "toad": "/home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/toad/__init__.py",
+  "textual-direct": {
+    "url": "https://github.com/OpenHCSDev/textual.git",
+    "vcs_info": {
+      "vcs": "git",
+      "commit_id": "73909c044e245a99bf66d49d01e2c071e8c8597d",
+      "requested_revision": "73909c044e245a99bf66d49d01e2c071e8c8597d"
+    }
+  },
+  "agent-comms-direct": {
+    "url": "file:///home/ts/wt/core372-noether-gate-20260929",
+    "dir_info": {}
+  },
+  "batrachian-toad-direct": {
+    "url": "file:///home/ts/wt/toad-thread-opening-sol-20260929",
+    "dir_info": {}
+  }
+}

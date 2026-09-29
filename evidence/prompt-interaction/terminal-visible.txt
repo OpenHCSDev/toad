@@ -1,0 +1,40 @@
+                                                                                                                        
+  ☰     <──    ──>   PTY_FIRST_FRAME_INPUT ×                                                                           
+                      ━━━━━━━━━━━━━━━━━━━━━                                                                             
+▼ Channels                           Name ▾    │                                                                        
++ New Session                                  │                                                                        
+▾ #any                       Date created ▾    │                                                                        
+▸ #none                      Date created ▾    │                                                                        
+▸ #all                       Date created ▾    │                                                                        
+                                               │                                                                        
+                                               │                                                                        
+                                               │                                                                        
+                                               │                                                                        
+                                               │                                                                        
+                                               │                                                                        
+                                               │                                                                        
+                                               │                                                                        
+                                               │                                                                        
+                                               │                                                                        
+                                               │▌─────────────────────── User · 05:50:49 ────────────────────────       
+                                               │▌▊❯ PTY_FIRST_FRAME_INPUT                                               
+                                             < │▌                                                                     < 
+                                               │▌                                                                       
+                                               │▌─────────────────────── Agent · 05:50:50 ───────────────────────       
+                                               │▌COMPLETION_PEER_EXECUTED PTY_FIRST_FRAME_INPUT                         
+                                               │▌                                                                       
+                                               │▌                                                                       
+                                               │▌─────────────────────── User · 05:50:50 ────────────────────────       
+                                               │▌▊❯ /proofcmd                                                           
+                                               │▌                                                                       
+                                               │▌                                                                       
+                                               │▌─────────────────────── Agent · 05:50:50 ───────────────────────       
+                                               │▌COMPLETION_PEER_EXECUTED /proofcmd                                     
+                                               │                                                                        
+                                               │ Thinking…                                                              
+                                               │                                                                        
+                                               │▊▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▎▔▎ 
+                                               │▊ ❯ Reader draft after terminal resizeu                             ▎   
+40% ────────────────────────────●───────────   │▊▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▎   
+  ──>   Float                                  │  Local first  ~/wt/…/q7/tmp/frame-terminal-vqob9qp0                    
+^s Channels                                                                                                 ▏^p palette 

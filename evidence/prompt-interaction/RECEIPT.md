@@ -1,0 +1,41 @@
+# Q7 Prompt cursor/slash and first-frame closure — PR176
+
+**187 replaced production lines and the obsolete 93-line mocked first-frame pilot deleted.** Production adds376 lines for the actual nominal owners/cases and their migrated callers; this is a semantic ownership/caller closure, not a net line-count shrink. App AST769→750, WorkspaceScreen371→323, PromptTextArea363→305 against merged main174 `c4492593`. Other App/Conversation/T4 plan requirements remain separately assigned.
+
+## Source and ownership
+
+Production `9bf2cb15`, on merged main174 `c4492593`; normal merge preserves174's filesystem/source startup custody. Carver173's Agent/session RPC and Tesla's source/body/viewport/preparation ownership are unchanged. The only Conversation edit is the actual first-frame call in its now-authoritative session binding. Parent owns final pair pins, merge, installation and the affected default LIVE check; no live writes/restarts occurred here.
+
+- Removed `slash_command_prefixes`, unused `CursorMove` and `InvokeSlashCompleteMessage`, repeated cursor/command classification, four workspace frame flags/revision, private frame event/callback helpers, SessionView's forwarding facade and App's frame flag/capability probes. All real source callers use the new owners directly; the deletion guard covers the complete source tree.
+- `CursorMovement` owns the captured selection relation. Existing mounted completion declarations own cursor entry. Previous/NextHistoryCursor cases consume the framework navigator's real visual row boundaries: wrapped-row Up/Down no longer request history midway through a logical row, while Shift-selection preserves ordinary editor behavior.
+- `CommandText` decodes editor text once against the actual existing CommandCatalog declarations. CommandPresentation owns highlights/hints, and actual command declarations own agent requirement. No second prefix roster, parser, protocol shape or dispatch list. Catalog changes invalidate both owned highlights and Textual's existing render cache through its public hook; actual ACP hint refresh paints immediately.
+- `FramePresentation` owns pending/writing/presented/suspended/closed lifetime and deferred callbacks. Writer receipt **object identity** prevents earlier navigation writes from authorizing the current activation. Suspension retains the prior nominal state; resume restores an already presented frame or schedules a new real repaint for an interrupted write. Closed/suspended cases cannot deliver an old receipt. Driver declarations derive selection by actual framework MRO; Linux uses the actual writer flush hook. POSIX declaration loading follows the external platform boundary, without importing termios on Windows. Linux and actual headless paths were exercised; other external drivers were not exercised.
+- The real resume entry is WorkspaceScreen._on_screen_resume: Textual chooses its private method ahead of a same-class public method. The first affected native gate exposed a stuck SuspendedFrame after the actual fork modal (retained RED log); the corrected entry restores PresentedFrame and the complete fork gate passes. Existing viewport/layout/style code was not moved or activated.
+
+## Actual installed acceptance
+
+Noneditable Toad wheel in this WT, installed merged core372 `8cae0ae8` from our detached persistent core WT, **installed merged Textual11 `73909c04`**, physical Pi `native-current-d3967e8b6ee0cf28`. Import/dependency provenance is in [imports.json](imports.json). Controlled localhost provider/official SDK peers only; actual widgets, compositor, terminal, ACP/native workers, stores and journals. No UI/transport/render/Agent mock, provider spend or original input replay.
+
+1. **PASS EXIT0:** normal installed App continuous physical keyboard journey, new local declared command/hint/submission while the real ACP peer has not completed startup; physical slash focus/selection/submission and ACP response paint; real wrapped visual rows/history edge and durable draft return; Shift-selection; backward whole-command selection; real ACP hint change paint; actual ChannelPrompt mention Tab without slash focus theft; real file/tree/picker/catalog-change/resize; pointer model selection and draft retention. [continuous-cursor.log](continuous-cursor.log).
+2. **PASS EXIT0:** installed normal LinuxDriver PTY, real writer flush receipt before actual SDK session/new, physical first input/reply, actual slash popup focus/query/selection/submission/reply, resize, retained draft and orderly physical Ctrl+Q. Two actual inputs, no synthetic screen. The subclass records owner/DOM telemetry and always delegates the real display; it replaces no implementation. [terminal.log](terminal.log), [terminal-wire.jsonl](terminal-wire.jsonl), [terminal-frames.jsonl](terminal-frames.jsonl), [terminal-visible.txt](terminal-visible.txt), [terminal-output.txt](terminal-output.txt).
+3. **PASS EXIT0:** canonical new native fork → physical sidebar open before socket → actual ACP load before socket → owner held5.4s through old connect expiry → same process attaches → inherited history paints → physical Enter first new input → distinct first reply paints once in the same logical tab/Agent/SessionDetails, correct child title. Three controlled provider inputs. [native-fork.log](native-fork.log), [fresh-fork.json](fresh-fork.json). That JSON preserves the runner's original HEAD field4ca: the final installed frame correction was built from the WT before commit9bf was recorded during this run; production tested is9bf. No unchanged native matrix was repeated for a hash.
+4. **PASS:**10 focused existing/new full caller-deletion guards. [guards.log](guards.log).
+5. **PASS:** per touched-file production ratchet, no increases in chain terms/foreign absence/codec/god-class excess; chain terms App−6/Workspace−4/Prompt−10, App excess−19. No class crosses500 and no existing god class grows. [ratchet.json](ratchet.json). This is affected-source evidence, not a whole-repository NRA-clean claim.
+
+## Commands / resources / limits
+
+```sh
+uv pip install --python .venv/bin/python --no-deps .
+uv pip install --python .venv/bin/python --no-deps 'textual @ git+https://github.com/OpenHCSDev/textual.git@73909c044e245a99bf66d49d01e2c071e8c8597d'
+TMPDIR=$PWD/.artifacts/q7/tmp timeout 90 .venv/bin/python -u tests/prompt_completion_installed_pilot.py
+TMPDIR=$PWD/.artifacts/q7/tmp Q7_EVIDENCE=$PWD/evidence/prompt-interaction timeout 70 .venv/bin/python -u tests/first_frame_installed_terminal_journey.py
+TOAD_TEST_SOURCE_HEAD=$(git rev-parse HEAD) TMPDIR=$PWD/.artifacts/q7/tmp \
+AC_NATIVE_COPIED_PACKAGE=/home/ts/.local/share/agent-comms/native-current-d3967e8b6ee0cf28/node_modules/@earendil-works/pi-coding-agent \
+L0A_EVIDENCE=$PWD/.artifacts/q7/native-fork-final timeout 120 .venv/bin/python -u tests/first_fork_native_installed_pilot.py
+.venv/bin/python -m pytest -q tests/guards/test_prompt_popup.py tests/guards/test_prompt_frame.py tests/guards/test_t4.py tests/guards/test_session_admission.py
+.venv/bin/python -m agent_comms.debt_ratchet --root src/toad --base c4492593 --head 9bf2cb15
+```
+
+Tests run serially with persistent disposable state under ~/wt. Host resource monitor warns on root/swap; available RAM14.4GiB, root6.4GiB/home12.3GiB at the check. Owned test processes are retired and disposable source/log copies removed after evidence is saved. No volatile worktrees. Core/Textual/live pins belong to parent; CI and final global performance target are deferred.
+
+Latest NRA/refactor-audit authoritative archive/linked skill, pattern README and relevant complete catalogs were reread. Applied IMPL-4/5 caller/family closure, IMPL-10/11 declared lifetime, IDEN-1 selection/receipt identity, IDEN-3 owned state/admission, MEMB-1/2 derived declaration membership, BOUND-1 external driver/input boundary, TIME-9 no facade/second shape and AGENT-3 deletion of obsolete mocked structure. Boolean chains were classified by dominant meaning; no anonymous rule split or codec subclasses. No remaining assigned Q7 implementation blocker after the gates above; no default-live activation or whole T4 completion claim.
