@@ -38,8 +38,30 @@ class SessionView(SidebarFocusOwner, Vertical):
 
     def capture_navigation(self) -> None:
         from toad.widgets.comms_sidebar import CommsSidebar
-        if sidebar := self.screen.query_one_optional(CommsSidebar):
+        if sidebar := self.query_one_optional(CommsSidebar):
             sidebar.capture_navigation()
+
+    async def prepare_navigation(self) -> bool:
+        """Reconcile only this logical source's sidebar navigation and observers."""
+        from toad.widgets.comms_sidebar import CommsSidebar
+        from toad.widgets.side_bar import SideBar, SideBarCollapsible
+
+        changed = False
+        for sidebar in self.query(SideBar):
+            panels = tuple(sidebar.query(SideBarCollapsible))
+            before = tuple(panel.collapsed for panel in panels)
+            changed |= sidebar.restore_navigation()
+            changed |= before != tuple(panel.collapsed for panel in panels)
+            sidebar.schedule_hydration()
+        if sidebar := self.query_one_optional(CommsSidebar):
+            sidebar.prepare_navigation()
+            self.call_after_first_frame(sidebar, sidebar.start_navigation_hydration)
+        return changed
+
+    def restore_navigation_scroll(self) -> bool:
+        from toad.widgets.comms_sidebar import CommsSidebar
+        sidebar = self.query_one_optional(CommsSidebar)
+        return sidebar.restore_scroll() if sidebar is not None else False
 
     async def prepare_presentation(self) -> None:
         """Restore source-bound rich presentation for the selected logical view."""
