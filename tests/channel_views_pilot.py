@@ -50,7 +50,7 @@ async def main():
             await app.action_set_footer(False)
             assert app.settings.ui.footer is False
             assert app.has_class("-hide-footer")
-            owner = app.current_mode
+            owner = app.selected_mode
             sidebar = await wait_channel_roster(app, pilot, "#any", "#none", "#engineering")
             assert all(isinstance(child, (NewSessionButton, ChannelGroup)) for child in sidebar.children)
             assert {group.row.target_name for group in sidebar.query(ChannelGroup)} >= {"#any", "#none", "#engineering"}
@@ -80,7 +80,7 @@ async def main():
             await pilot.click(group.row)
             await pilot.pause()
             assert isinstance(app.screen, CommsScreen)
-            engineering = app.current_mode
+            engineering = app.selected_mode
             chat = app.screen.query_one("CommsChatView")
             assert chat.agent is None and chat._shell is None
             assert chat._directory_watcher is None
@@ -117,10 +117,10 @@ async def main():
             chat.prompt.focus()
             await pilot.press("ctrl+w")
             await pilot.pause()
-            assert chat.prompt.text == "first " and app.current_mode == engineering
+            assert chat.prompt.text == "first " and app.selected_mode == engineering
             await pilot.press("ctrl+j")
             await pilot.pause()
-            assert chat.prompt.text == "first \n" and app.current_mode == engineering
+            assert chat.prompt.text == "first \n" and app.selected_mode == engineering
             app.screen.query_one("Prompt").text = "draft stays here"
             await pilot.click(f"SessionLabel#{owner}")
             await pilot.pause()
@@ -139,7 +139,7 @@ async def main():
             assert app.screen.query_one("Prompt").text == "draft stays here"
             await pilot.click(f"#close-{any_mode}")
             await pilot.pause()
-            assert app.current_mode == engineering
+            assert app.selected_mode == engineering
             assert not app.screen.query(f"SessionLabel#{any_mode}")
             await app.switch_mode(owner)
             await pilot.pause()
@@ -157,7 +157,7 @@ async def main():
             assert (app.screen.owner_mode, app.screen.me) == (second.mode_name, "api-agent")
             assert sum(tab.title == "#engineering" for tab in app.open_tabs) == 2
             await app.screen.action_back_to_agent()
-            assert app.current_mode == second.mode_name
+            assert app.selected_mode == second.mode_name
             # Within one owner, the original view and its draft are reusable.
             original = await app.open_comms_session(
                 owner_mode=owner, project_path=root,
@@ -198,7 +198,7 @@ async def main():
                          if group.row.target_name == "#engineering")
             await pilot.click(group.row)
             await pilot.pause()
-            assert app.current_mode == engineering
+            assert app.selected_mode == engineering
             assert sum(tab.title == "#engineering" for tab in app.open_tabs) == 2
             # The channel header must glow while any member is mid-turn or busy.
             comms.agents.set_activity("ui-agent", ActivityState.WORKING, "Rendering")

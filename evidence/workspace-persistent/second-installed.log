@@ -1,0 +1,115 @@
+╭───────────────────── Traceback (most recent call last) ──────────────────────╮
+│ /home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site │
+│ -packages/textual/widget.py:4949 in _compose                                 │
+│                                                                              │
+│   4946 │                                                                     │
+│   4947 │   async def _compose(self) -> None:                                 │
+│   4948 │   │   try:                                                          │
+│ ❱ 4949 │   │   │   widgets = [*self._pending_children, *compose(self)]       │
+│   4950 │   │   │   self._pending_children.clear()                            │
+│   4951 │   │   except TypeError as error:                                    │
+│   4952 │   │   │   raise TypeError(                                          │
+│                                                                              │
+│ ╭───────────────────────────────── locals ─────────────────────────────────╮ │
+│ │ error = AttributeError("type object 'Conversation' has no attribute      │ │
+│ │         'selected_mode'")                                                │ │
+│ │  self = Conversation()                                                   │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
+│                                                                              │
+│ /home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site │
+│ -packages/toad/widgets/conversation.py:818 in compose                        │
+│                                                                              │
+│    815 │   │   │   │   working_directory=Conversation.working_directory,     │
+│    816 │   │   │   │   agent_info=Conversation.agent_info,                   │
+│    817 │   │   │   │   agent_ready=Conversation.agent_ready,                 │
+│ ❱  818 │   │   │   │   current_mode=Conversation.selected_mode,              │
+│    819 │   │   │   │   modes=Conversation.modes,                             │
+│    820 │   │   │   │   current_model=Conversation.selected_model,            │
+│    821 │   │   │   │   models=Conversation.models,                           │
+│                                                                              │
+│ ╭─────── locals ────────╮                                                    │
+│ │ self = Conversation() │                                                    │
+│ ╰───────────────────────╯                                                    │
+╰──────────────────────────────────────────────────────────────────────────────╯
+AttributeError: type object 'Conversation' has no attribute 'selected_mode'
+
+NOTE: 1 of 3 errors shown. Run with textual run --dev to see all errors.
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/textual/app.py", line 2210, in run_test
+    yield pilot
+  File "/home/ts/wt/toad-workspace-persistent-sol-20260928/tests/runtime_fixture.py", line 62, in run_test
+    yield pilot
+  File "/home/ts/wt/toad-workspace-persistent-sol-20260928/tests/persistent_workspace_installed_pilot.py", line 22, in main
+    editor=first.conversation.prompt.prompt_text_area
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/textual/getters.py", line 149, in __get__
+    query_node = obj.query_one(self.selector, self.expect_type)
+  File "/home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/textual/dom.py", line 1595, in query_one
+    raise NoMatches(f"No nodes match {query_selector!r} on {base_node!r}")
+textual.css.query.NoMatches: No nodes match 'Prompt' on Conversation()
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-workspace-persistent-sol-20260928/tests/persistent_workspace_installed_pilot.py", line 16, in main
+    async with app.run_test(size=(130,44)) as pilot:
+               ~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 235, in __aexit__
+    await self.gen.athrow(value)
+  File "/home/ts/wt/toad-workspace-persistent-sol-20260928/tests/runtime_fixture.py", line 61, in run_test
+    async with super().run_test(**kwargs) as pilot:
+               ~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 235, in __aexit__
+    await self.gen.athrow(value)
+  File "/home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/textual/app.py", line 2218, in run_test
+    raise self._exception
+  File "/home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/textual/widget.py", line 4949, in _compose
+    widgets = [*self._pending_children, *compose(self)]
+                                         ~~~~~~~^^^^^^
+  File "/home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/textual/compose.py", line 54, in compose
+    child = next(iter_compose)
+  File "/home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/toad/widgets/conversation.py", line 818, in compose
+    current_mode=Conversation.selected_mode,
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: type object 'Conversation' has no attribute 'selected_mode'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-workspace-persistent-sol-20260928/tests/persistent_workspace_installed_pilot.py", line 44, in <module>
+    if __name__=='__main__':asyncio.run(main())
+                            ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-workspace-persistent-sol-20260928/tests/persistent_workspace_installed_pilot.py", line 11, in main
+    with TemporaryDirectory(dir=os.environ['TMPDIR'], prefix='persistent-workspace-') as directory:
+         ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/tempfile.py", line 971, in __exit__
+    self.cleanup()
+    ~~~~~~~~~~~~^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/tempfile.py", line 975, in cleanup
+    self._rmtree(self.name, ignore_errors=self._ignore_cleanup_errors)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/tempfile.py", line 955, in _rmtree
+    _shutil.rmtree(name, onexc=onexc)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/shutil.py", line 852, in rmtree
+    _rmtree_impl(path, dir_fd, onexc)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/shutil.py", line 721, in _rmtree_safe_fd
+    _rmtree_safe_fd_step(stack, onexc)
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/shutil.py", line 802, in _rmtree_safe_fd_step
+    onexc(func, path, err)
+    ~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/shutil.py", line 753, in _rmtree_safe_fd_step
+    os.rmdir(name, dir_fd=dirfd)
+    ~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+OSError: [Errno 39] Directory not empty: '/home/ts/wt/toad-workspace-persistent-sol-20260928/.artifacts/runtime/persistent-workspace-2xj79mol/wire'

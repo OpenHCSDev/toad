@@ -14,9 +14,11 @@ def validate_session_update(
     the existing consumers need the untouched dictionary, including nested _meta.
     """
     from acp.schema import SessionNotification
+    from toad.acp.notification_items import NotificationItems
 
-    SessionNotification.model_validate(
+    notification = SessionNotification.model_validate(
         {"sessionId": session_id, "update": update, "_meta": metadata},
         strict=True,
     )
+    NotificationItems(update).dispatch_sync(notification.update)
     return cast(protocol.SessionUpdate, update)

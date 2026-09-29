@@ -136,7 +136,7 @@ async def open_observer(case: str, artifact_dir: Path) -> AsyncIterator[Observer
             await app.screen.wait_content_ready()
             await pilot.pause()
             assert isinstance(app.screen, MainScreen)
-            view = app.screen.conversation
+            view = app.selected_session.conversation
             agent = Agent(root / "project", AGENT_DATA, SESSION_ID)
             agent.attach_surface(view)
             view.agent = agent

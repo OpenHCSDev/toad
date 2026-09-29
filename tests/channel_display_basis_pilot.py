@@ -38,7 +38,7 @@ async def main():
         ):
             async with app.run_test(size=(120, 40)) as pilot:
                 await pilot.pause()
-                owner = app.current_mode
+                owner = app.selected_mode
                 await app.open_comms_session(
                     owner_mode=owner, project_path=root, me=viewer,
                     target=channel_target("#team"),

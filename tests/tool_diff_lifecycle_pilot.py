@@ -40,7 +40,7 @@ async def main():
         app = InstalledApp(project_dir=directory)
         async with app.run_test(size=(110, 35)) as pilot:
             await pilot.pause()
-            body = app.screen.conversation.contents
+            body = app.selected_session.conversation.contents
             await app.push_screen(Screen())
             tool = ToolCall(data())
             await body.mount(tool)

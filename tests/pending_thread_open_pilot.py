@@ -51,7 +51,7 @@ async def main():
         with patch.object(Agent, "start", fake_start):
             async with app.run_test(size=(100, 32)) as pilot:
                 await pilot.pause()
-                owner = app.current_mode
+                owner = app.selected_mode
                 owner_screen = app.screen
                 owner_screen._agent = {"name": "Fixture", "identity": "fixture", "short_name": "fixture",
                                        "run_command": {"*": "/bin/false"}, "protocol": "acp"}
@@ -72,7 +72,7 @@ async def main():
                         owner_mode=owner, project_path=root, target=target))
                     assert await asyncio.to_thread(entered.wait, 2)
                     assert isinstance(app.screen, PendingThreadScreen)
-                    pending = app.current_mode
+                    pending = app.selected_mode
                     await pilot.pause()
                     assert app.loading_frames > 0, "Route IO began before the tab drew a loading frame"
                     frame = "\n".join(strip.text for strip in app.screen._compositor.render_strips())
@@ -94,7 +94,7 @@ async def main():
                     release.set()
                     first = await asyncio.wait_for(opening, 8)
                     assert await asyncio.wait_for(duplicate, 8) == first
-                    assert first != pending and app.current_mode == first
+                    assert first != pending and app.selected_mode == first
                     assert isinstance(app.screen, MainScreen)
                     assert not app._pending_thread_modes
                     assert all(tab.mode_name != pending for tab in app.open_tabs)
@@ -107,7 +107,7 @@ async def main():
                 opening, pending, release, mocked = await blocked_open("close-peer")
                 try:
                     await asyncio.wait_for(app.close_session_mode(pending), 3)
-                    assert app.current_mode == owner
+                    assert app.selected_mode == owner
                     owner_screen.conversation.prompt.focus()
                     await pilot.press("k", "e", "e", "p")
                     assert owner_screen.conversation.prompt.text.endswith("keep")
@@ -119,7 +119,7 @@ async def main():
                     release.set()
                     mocked.stop()
                 invalid = await app.open_thread_session(owner_mode=owner, project_path=root, target="missing")
-                assert invalid == owner and app.current_mode == owner
+                assert invalid == owner and app.selected_mode == owner
                 assert not app._pending_thread_modes
 
                 # A closing owner must not strand a provisional destination or
@@ -130,7 +130,7 @@ async def main():
                     assert app.session_tracker.get_session(owner) is None
                     release.set()
                     result = await asyncio.wait_for(opening, 4)
-                    assert result == app.current_mode and result != owner
+                    assert result == app.selected_mode and result != owner
                     assert not app._pending_thread_modes
                 finally:
                     release.set()

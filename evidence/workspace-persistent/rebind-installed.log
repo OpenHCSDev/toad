@@ -1,0 +1,33 @@
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-workspace-persistent-sol-20260928/tests/persistent_workspace_installed_pilot.py", line 44, in <module>
+    if __name__=='__main__':asyncio.run(main())
+                            ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-workspace-persistent-sol-20260928/tests/persistent_workspace_installed_pilot.py", line 28, in main
+    second=await app.new_session_screen(app.get_main_screen)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/toad/app.py", line 757, in new_session_screen
+    await self.select_session(session_details.mode_name)
+  File "/home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/toad/app.py", line 845, in _switch_mode_ready
+    view = await self.workspace_sessions.select(mode)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/toad/workspace_sessions.py", line 45, in select
+    await previous.retire_presentation()
+  File "/home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/toad/screens/main.py", line 198, in retire_presentation
+    await self.presentation.retire(self)
+  File "/home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/toad/session_presentation.py", line 198, in retire
+    await screen.app.workspace_chrome.native.retire(screen, self)
+  File "/home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/toad/session_presentation.py", line 242, in retire
+    await self.widget.release_native_session()
+  File "/home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/toad/widgets/conversation.py", line 2179, in release_native_session
+    self._terminal = None
+    ^^^^^^^^^^^^^^
+AttributeError: property '_terminal' of 'Conversation' object has no setter

@@ -21,7 +21,7 @@ async def main():
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(110, 44)) as pilot:
             await pilot.pause()
-            conversation = app.screen.conversation
+            conversation = app.selected_session.conversation
             conversation.visible_categories = frozenset(MessageCategory.members_with(RoutedMessage))
             file = "read-only-fixture"
             tail = tuple(ThinkingTranscript(f'HIDDEN_TAIL_{index}')

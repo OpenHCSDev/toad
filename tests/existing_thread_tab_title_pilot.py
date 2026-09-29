@@ -85,7 +85,7 @@ async def main(title: str | None = None, *, cold_metadata: bool = False) -> None
 
         async with app.run_test(size=(120, 40)) as pilot:
             await pilot.pause()
-            owner = app.current_mode
+            owner = app.selected_mode
             app.screen._agent = {"name": "Fixture", "identity": "agent-comms.openhcs.dev",
                                  "short_name": "fixture", "run_command": {"*": "false"},
                                  "protocol": "acp"}
@@ -108,7 +108,7 @@ async def main(title: str | None = None, *, cold_metadata: bool = False) -> None
                 assert await pilot.click(row)
                 await asyncio.wait_for(started.wait(), 5)
                 await pilot.pause()
-                opened = app.current_mode
+                opened = app.selected_mode
                 assert opened != owner
 
                 def observe(phase: str) -> None:
@@ -144,7 +144,7 @@ async def main(title: str | None = None, *, cold_metadata: bool = False) -> None
                 observe("reactivated tab")
                 release.set()
                 async with asyncio.timeout(5):
-                    while not app.screen.conversation.agent_ready:
+                    while not app.selected_session.conversation.agent_ready:
                         await pilot.pause(0.02)
                 await pilot.pause()
                 observe("attached active tab")

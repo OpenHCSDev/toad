@@ -31,7 +31,6 @@ from toad.widgets.comms_fork_dialog import ForkDialog
 from toad.widgets.comms_sidebar import CommsSidebar, CoordinationStatus, SelectTarget
 from toad.widgets.conversation import Conversation, ThreadLoading
 from toad.widgets.footer import Footer
-from toad.widgets.plan import Plan
 from toad.widgets.project_directory_tree import ProjectDirectoryTree
 from toad.widgets.project_panel import ProjectPanel, ProjectSearchButton
 from toad.widgets.recovery_view import RecoveryView
@@ -41,7 +40,6 @@ from toad.widgets.comms_fork_dialog import ForkDialog
 from toad.widgets.comms_sidebar import CoordinationStatus, CommsSidebar, SelectTarget
 from toad.widgets.side_bar import SideBar, SideBarCollapsible
 from toad.navigation_target import NavigationContext, NavigationOwner
-from toad.workspace_chrome import FooterSlot, NavigationSlot
 from toad.session_tracker import SidebarState
 from toad.widgets.throbber import Throbber
 from toad.widgets.channels_sidebar import ChannelsSidebar
@@ -53,7 +51,7 @@ class ModeProvider(Provider):
         """Search for Python files."""
         matcher = self.matcher(query)
 
-        screen = self.screen
+        screen = self.screen.app.selected_session
         assert isinstance(screen, MainScreen)
 
         for mode in sorted(
@@ -70,7 +68,7 @@ class ModeProvider(Provider):
                 )
 
     async def discover(self) -> Hits:
-        screen = self.screen
+        screen = self.screen.app.selected_session
         assert isinstance(screen, MainScreen)
 
         for mode in sorted(
@@ -89,20 +87,22 @@ class MCPInventoryProvider(Provider):
     async def search(self, query: str) -> Hits:
         matcher = self.matcher(query)
         score = matcher.match("Pi MCP inventory")
-        screen = self.screen
+        screen = self.screen.app.selected_session
         assert isinstance(screen, MainScreen)
         if score > 0:
             yield Hit(score, matcher.highlight("Pi MCP inventory"),
                       screen.action_mcp_inventory, help="Read-only package snapshot")
 
     async def discover(self) -> Hits:
-        screen = self.screen
+        screen = self.screen.app.selected_session
         assert isinstance(screen, MainScreen)
         yield DiscoveryHit("Pi MCP inventory", screen.action_mcp_inventory,
                            help="Read-only package snapshot")
 
 
 class MainScreen(SessionView, NavigationOwner, can_focus=False):
+    footer_compact = True
+
     AUTO_FOCUS = "Conversation Prompt TextArea"
 
     CSS_PATH = "main.tcss"
@@ -134,7 +134,9 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
     busy_count = var(0)
     throbber: getters.query_one[Throbber] = getters.query_one("#throbber")
     conversation = getters.query_one(Conversation)
-    side_bar = getters.query_one(ChannelsSidebar)
+    @property
+    def side_bar(self):
+        return self.screen.query_one(ChannelsSidebar)
     project_directory_tree = getters.query_one("#project_directory_tree")
 
     column = reactive(False)
@@ -173,12 +175,9 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
         self._content_loading = False
         self._content_ready = asyncio.Event()
         self._content_error: BaseException | None = None
-        from toad.session_presentation import BlankSessionPresentation, OperationalSessionPresentation
+        from toad.session_presentation import OperationalSessionPresentation
 
-        self.presentation = (BlankSessionPresentation() if agent is None
-                             and agent_session_id is None and session_pk is None
-                             and initial_prompt is None
-                             else OperationalSessionPresentation())
+        self.presentation = OperationalSessionPresentation()
 
     async def prepare_presentation(self) -> None:
         from toad.widgets.session_thread_sidebar import SessionThreadSidebar
@@ -200,7 +199,7 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
     def get_loading_widget(self) -> Widget:
         return self.app.settings.ui.throbber.widget(self)
 
-    def _on_screen_resume(self, event: ScreenResume) -> None:
+    def activate_session(self) -> None:
         from toad.widgets.comms_sidebar import CommsSidebar
 
         try:
@@ -225,16 +224,12 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
 
         from toad.widgets.session_thread_sidebar import SessionThreadSidebar
 
-        yield NavigationSlot()
         with containers.Center():
-            yield ChannelsSlot()
             yield SessionThreadSidebar(self)
             with containers.Vertical(id="session-content"):
-                if self._content_loaded:
-                    yield self.presentation.compose_content(self)
-                else:
+                yield self.presentation.compose_content(self)
+                if not self._content_loaded:
                     yield ThreadLoading(id="session-opening")
-        yield FooterSlot(compact=True)
 
     def _make_conversation(self) -> Conversation:
         with self._context():
@@ -242,12 +237,7 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
                 self.project_path, self._agent, self._agent_session_id,
                 self._session_pk, self._agent_session_title,
                 initial_prompt=self._initial_prompt,
-            ).data_bind(project_path=MainScreen.project_path, column=MainScreen.column)
-
-    def make_blank_conversation(self) -> Conversation:
-        """Construct the shared blank editor without binding it to one host."""
-        with self._context():
-            return Conversation(self.project_path)
+            )
 
     def _start_content_hydration(self) -> None:
         if not self._content_loaded and not self._content_loading and self.is_attached:
@@ -272,7 +262,7 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
             self.watch_scrollbar("", self.scrollbar)
             conversation.display = True
             await content.query("#session-opening").remove()
-            if self.is_current and self.focused is None:
+            if self.is_current and self.screen.focused is None:
                 conversation.focus_prompt()
         except BaseException as error:
             self._content_error = error
@@ -433,12 +423,12 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
         await self.open_sidebar_target(event.target)
 
     def action_session_previous(self) -> None:
-        if self.screen.id is not None:
-            self.post_message(messages.SessionNavigate(self.screen.id, -1))
+        if self.id is not None:
+            self.post_message(messages.SessionNavigate(self.id, -1))
 
     def action_session_next(self) -> None:
-        if self.screen.id is not None:
-            self.post_message(messages.SessionNavigate(self.screen.id, +1))
+        if self.id is not None:
+            self.post_message(messages.SessionNavigate(self.id, +1))
 
     @on(messages.ProjectDirectoryUpdated)
     async def on_project_directory_update(self) -> None:
@@ -469,17 +459,10 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
     @on(acp_messages.Plan)
     async def on_acp_plan(self, message: acp_messages.Plan):
         message.stop()
-        entries = [
-            Plan.Entry(
-                Content(entry["content"]),
-                entry.get("priority", "medium"),
-                entry.get("status", "pending"),
-            )
-            for entry in message.entries
-        ]
+
         from toad.widgets.session_thread_sidebar import SessionThreadSidebar
 
-        self.query_one(SessionThreadSidebar).update_plan(entries)
+        self.query_one(SessionThreadSidebar).update_plan(message.entries)
 
     @on(messages.SessionUpdate)
     async def on_session_update(self, event: messages.SessionUpdate) -> None:
@@ -525,7 +508,7 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
             tree.guide_depth = 3
 
     def _align_tabs_with_sidebar(self, _collapsed: bool) -> None:
-        self.align_tabs_to_sidebars()
+        self.screen.align_tabs_to_sidebars()
 
     def channels_context(self) -> tuple[str, str]:
         return self._comms_thread, ""
@@ -561,7 +544,7 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
         return target if target.focusable else None
 
     async def action_go_home(self) -> None:
-        await self.app.switch_mode("store")
+        await self.app.select_session("store")
 
     @on(SideBar.Dismiss)
     def on_side_bar_dismiss(self, message: SideBar.Dismiss):

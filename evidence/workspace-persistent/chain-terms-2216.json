@@ -1,0 +1,867 @@
+{
+  "skill_root": "/home/ts/.local/share/agent-comms/skills/refactor-audit-20260928-2216/refactor-audit",
+  "baseline": "a2d35fa",
+  "file_count": 172,
+  "files": [
+    {
+      "path": "src/toad/screens/main.py",
+      "before": 4,
+      "after": 0
+    },
+    {
+      "path": "src/toad/session_presentation.py",
+      "before": 19,
+      "after": 0
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "before": 21,
+      "after": 21
+    },
+    {
+      "path": "src/toad/widgets/history_anchor.py",
+      "before": 4,
+      "after": 4
+    },
+    {
+      "path": "tests/acp_log_ui_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/acp_sdk_boundary_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/activity_spinners_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/agent_activity_divider_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/app_focus_latency_pilot.py",
+      "before": 5,
+      "after": 5
+    },
+    {
+      "path": "tests/async_tab_activation_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/async_thread_open_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/attachment_request_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/blank_presentation_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/channel_any_mode_ui_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/channel_display_basis_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/channel_mentions_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/channel_partial_paint_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/channel_roster_retention_pilot.py",
+      "before": 11,
+      "after": 11
+    },
+    {
+      "path": "tests/channel_scope_expansion_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/channel_unread_follow_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/channel_views_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/channel_visibility_observation_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/close_session_latency_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/cold_thread_latency_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/command_family_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/committed_history_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/comms_boundary_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/comms_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/comms_scene_latency_pilot.py",
+      "before": 12,
+      "after": 12
+    },
+    {
+      "path": "tests/compaction_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/context_resume_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/context_usage_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/coordination_context_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/cursor_request_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/cursor_resize_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/default_route_admission_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/default_route_cancel_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/default_route_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/dense_history_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/directory_watcher_visibility_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/divider_unread_paint_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/dm_rebind_paint_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/existing_thread_link_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/existing_thread_tab_title_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/file_path_preview_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/filter_mount_supersession_pilot.py",
+      "before": 4,
+      "after": 4
+    },
+    {
+      "path": "tests/first_frame_startup_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/follow_stream_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/fragment_divider_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/fresh_fork_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/goal_collapse_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/goal_details_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/goal_geometry_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/goal_objective_edit_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/goal_pause_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/goal_resize_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/goal_retry_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/goal_separator_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/goal_server_poll_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/goal_standby_history_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/guards/test_live_output.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/guards/test_session_observation.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/guards/test_transcript_publication.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/hidden_diff_warmup_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/historical_views_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/history_availability_installed_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/history_edge_scheduling_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/history_mounted_budget_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/history_prefetch_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/history_scroll_frames_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/image_paste_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/in_out_filter_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/in_out_underfill_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/initial_session_title_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/input_failure_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/input_latency_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/large_stream_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/layout_alignment_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/lazy_tools_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/local_echo_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/long_message_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/many_tabs_return_pilot.py",
+      "before": 5,
+      "after": 5
+    },
+    {
+      "path": "tests/markdown_process_lifecycle_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/markdown_process_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/message_categories_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/message_dividers_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/message_filter_latency_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/message_filter_supersession_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/message_notifications_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/midturn_compaction_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/model_picker_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/native_input_attribution_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/native_message_parts_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/native_permission_ui.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/native_terminal_retention_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/navigation_preparation_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/navigation_source_timer_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/observed_thread_activity_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/off_tail_checkpoint_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/offscreen_tool_hydration_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/owner_navigation_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/owner_reader_reuse_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/path_filter_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/pending_thread_open_pilot.py",
+      "before": 4,
+      "after": 4
+    },
+    {
+      "path": "tests/pending_unread_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/permission_lifetime_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/permission_pending_mount_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/persistent_renderer_ui_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/prepared_bars_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/profile_hot_paths_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/project_resume_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/projected_history_budget_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/prompt_routing_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/queue_admission_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/queue_manage_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/recovery_view_boundaries_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/recovery_view_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/renderer_warmup_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/resize_render_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/resume_style_revision_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/retained_tool_text_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/right_comms_integration_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/scroll_select_latency_pilot.py",
+      "before": 13,
+      "after": 13
+    },
+    {
+      "path": "tests/selection_disclosure_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/selection_hover_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/send_now_failure_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/send_status_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/session_details_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/session_sort_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/shared_channels_pilot.py",
+      "before": 4,
+      "after": 4
+    },
+    {
+      "path": "tests/sidebar_collapse_latency_pilot.py",
+      "before": 5,
+      "after": 5
+    },
+    {
+      "path": "tests/sidebar_drag_resize_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/sidebar_layout_controls_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/sidebar_metadata_reflow_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/sidebar_navigation_pilot.py",
+      "before": 5,
+      "after": 5
+    },
+    {
+      "path": "tests/sidebar_opening_state_pilot.py",
+      "before": 4,
+      "after": 4
+    },
+    {
+      "path": "tests/sidebar_pointer_focus_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/sidebar_projection_pilot.py",
+      "before": 4,
+      "after": 4
+    },
+    {
+      "path": "tests/sparse_history_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/stale_selection_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/stop_responsiveness_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/stream_style_work_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/tab_history_controls_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/tab_order_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/tab_scrollbar_top_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/tail_anchor_policy_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/test_t4_turn_navigation.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/thread_activation_pilot.py",
+      "before": 4,
+      "after": 4
+    },
+    {
+      "path": "tests/thread_layout_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/thread_render_wait_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/thread_unread_start_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/tool_diff_lifecycle_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/tool_diff_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/tool_read_latency_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/transcript_history_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/transcript_lifecycle_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/transcript_prefetch_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/transcript_process_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/transcript_reader_reuse.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/transcript_teardown_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/typed_comms_command_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/ui_sidebar_geometry_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/unread_navigation_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/unread_paint_only_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/user_input_worker_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/view_switch_latency.py",
+      "before": 5,
+      "after": 5
+    },
+    {
+      "path": "tests/viewport_body_lifetime_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/viewport_rapid_scroll_pilot.py",
+      "before": 4,
+      "after": 4
+    },
+    {
+      "path": "tests/viewport_selection_diff_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/virtual_sidebar_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/worker_preview_pilot.py",
+      "before": 0,
+      "after": 0
+    },
+    {
+      "path": "tests/viewport_recent_tabs_pilot.py",
+      "before": 0,
+      "after": 0
+    }
+  ]
+}

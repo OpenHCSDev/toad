@@ -7,7 +7,7 @@ from toad.widgets.message_filter import OtherCategory
 
 import asyncio
 from collections import deque
-from dataclasses import replace
+from dataclasses import dataclass, replace
 from collections.abc import Awaitable, Callable, Iterator
 from typing import TYPE_CHECKING
 from weakref import ref
@@ -32,14 +32,14 @@ from toad.transcript_state import TranscriptState, LiveTranscript, ProvisionalTr
 from toad.acp import protocol
 from toad.acp.encode_tool_call_id import encode_tool_call_id
 from toad.transcript_preparation import (
-    CategoryProjection, PageRequest, PreparedPageSource, PreparedTranscriptPage,
+    CategoryProjection, CommittedInterval, PageRequest, PreparedPageSource, PreparedTranscriptPage,
     ProjectedTranscriptSource, TranscriptPageBuffer, incoming_sequences,
 )
 from toad.widgets.agent_response import AgentResponse, ResponseDelivery
 from toad.widgets.agent_thought import AgentThought
 from toad.widgets.tool_call import ToolCall
 from toad.widgets.user_input import UserInput
-from toad.widgets.message_divider import AgentActivityDivider
+from toad.widgets.message_divider import AgentActivityDivider, MessageClock
 from toad.widgets.presentation_window import PresentationBudget, protected_presentations
 from toad.widgets.committed_presentation import CommittedHistory
 from toad.widgets.message_filter import (
@@ -77,17 +77,17 @@ class TranscriptBlockConsumer(MroDispatch):
             message = event.routing.requests[0]
             self.blocks.append(IncomingMessage(
                 message.sender, event.text, message.target, show_header=self.show_divider,
-                sequence=message.seq,
+                sequence=message.seq, clock=MessageClock.recorded(event.timestamp),
             ))
         else:
-            self.blocks.append(UserInput(event.text, show_divider=self.show_divider))
+            self.blocks.append(UserInput(event.text, show_divider=self.show_divider, clock=MessageClock.recorded(event.timestamp)))
 
     @handles(AgentTextTranscript)
     def agent(self, event: AgentTextTranscript):
         self.blocks.append(AgentResponse(
             event.text, delivery=ResponseDelivery.from_route(event.routing.reply if event.routing else None),
             category=event_category(event), paginate=not self.fragment,
-            show_divider=self.show_divider,
+            show_divider=self.show_divider, clock=MessageClock.recorded(event.timestamp),
         ))
 
     @handles(ThinkingTranscript)
@@ -181,7 +181,7 @@ class TranscriptFragmentView(CategorizedBlock, VerticalGroup):
         # It is already a page leaf: re-paging it would recursively remount the
         # same indivisible block forever without producing visible Markdown.
         if self.fragment.starts_agent_activity and not self.fragment.continuation:
-            yield AgentActivityDivider(self._message_category)
+            yield AgentActivityDivider(self._message_category, clock=MessageClock.recorded(self.fragment.events[0].timestamp))
         yield from transcript_blocks(
             self.fragment.events, fragment=True, show_divider=not self.fragment.continuation,
         )
@@ -216,6 +216,15 @@ class TranscriptFragmentView(CategorizedBlock, VerticalGroup):
         await self.recompose()
 
 
+@dataclass(frozen=True)
+class TranscriptPageAdmission:
+    """A measured page's admitted range, without retaining its rich widgets."""
+
+    interval: CommittedInterval
+    start: int
+    stop: int
+
+
 class TranscriptPageView(VerticalGroup):
     CACHE_HEIGHT_INDEPENDENT_BOX = True
     CACHE_HEIGHT_INDEPENDENT_ARRANGEMENT = True
@@ -237,6 +246,18 @@ class TranscriptPageView(VerticalGroup):
     def compose(self) -> ComposeResult:
         for fragment in self.fragments[self.start:self.stop]:
             yield TranscriptFragmentView(fragment, self.visible_categories)
+
+    def capture_admission(self) -> TranscriptPageAdmission:
+        return TranscriptPageAdmission(
+            CommittedInterval(self.page.before, self.page.after), self.start, self.stop,
+        )
+
+    def restore_admission(self, admission: TranscriptPageAdmission) -> None:
+        # Positions refer to this immutable native interval, not to whatever
+        # newer snapshot happened to be published during an inactive turn.
+        if admission.interval != CommittedInterval(self.page.before, self.page.after):
+            return
+        self.start, self.stop = admission.start, admission.stop
 
     def set_categories(self, selected: frozenset[type[MessageCategory]]) -> None:
         self.visible_categories = selected

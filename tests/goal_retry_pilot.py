@@ -34,7 +34,7 @@ async def mounted_retry_control(root: Path) -> None:
     app = ToadApp(project_dir=str(root))
     async with app.run_test(size=(100, 30)) as pilot:
         await pilot.pause()
-        view = app.screen.conversation
+        view = app.selected_session.conversation
         goal = Goal("Learn architectural factoring", "goal-control", state=BlockedGoal(block_reason="Original turn failed"))
         fake = FakeAgent(goal)
         view.set_reactive(type(view).agent, fake)
