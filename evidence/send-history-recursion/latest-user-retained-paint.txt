@@ -1,0 +1,9 @@
+RECONNECT_FRESH_READY_AND_RETAINED_NO_DUPLICATE_CONFIRMED
+GEOMETRY Region(x=56, y=3, width=81, height=38) Region(x=56, y=3, width=81, height=31) Region(x=57, y=-20, width=77, height=54) Region(x=57, y=-20, width=77, height=54) scroll 23 23
+STYLES [('Window', '1fr', 'None', 'None', '<stream>', True, False, Size(width=78, height=54)), ('Contents', 'auto', 'None', 'None', '<vertical>', True, True, Size(width=77, height=54)), ('TranscriptHistory', 'auto', 'None', 'None', '<vertical>', True, False, Size(width=77, height=54)), ('TranscriptPageView', 'auto', 'None', 'None', '<vertical>', True, False, Size(width=77, height=53))]
+PAGES [(19, 7, 19, Region(x=57, y=-19, width=77, height=53), True)]
+RESPONSES [(626, Region(x=57, y=-14, width=76, height=12), True, False, True, False), (267, Region(x=57, y=1, width=76, height=7), True, True, True, False), (353, Region(x=57, y=23, width=76, height=10), True, True, True, False)]
+FRAME_NONSPACE 5775 WINDOW_TEXT 1527
+ACTUAL_SAVED_WORDS_PAINTED 10
+PASS: installed captured ACP snapshot 26 events; saved history available independently of all typed cursor statuses
+No prompt, native-owner restart, live installation/history write, or live provider call

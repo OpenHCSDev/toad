@@ -1,0 +1,6 @@
+terminal process exit: 1 bytes: 13157 traceback: True recursion: False
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-send-history-recursion-sol-20260928/.artifacts/run_terminal_probe.py", line 18, in <module>
+    assert p.returncode==0 and 'RecursionError' not in text and 'Traceback' not in text
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError
