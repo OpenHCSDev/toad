@@ -15,7 +15,7 @@ from l0a_native_installed_pilot import main as native_fixture, until
 from native_session_retention_pilot import InstalledApp, conversation_paint
 from saved_state_user_journey_pilot import SavedStateSubscriber
 from textual.widgets import Checkbox
-from toad.widgets.message_filter import MessageCategory, ThinkingCategory, all_categories
+from toad.widgets.message_filter import AgentCategory, MessageCategory, all_categories
 from toad.widgets.side_bar import SideBar, SideBarCollapsible
 from toad.widgets.thread_comms import ThreadCommsSidebar
 
@@ -76,7 +76,15 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     from toad.widgets.transcript_history import TranscriptHistory
 
     view = app.selected_session.conversation
-    await until(pilot, lambda: 'SAVED_ANSWER_2_099' in conversation_paint(app.screen))
+    try:
+        await until(pilot, lambda: 'SAVED_THOUGHT_2_059' in conversation_paint(app.screen))
+    except TimeoutError:
+        print('STARTUP_CROPPED_PAINT', repr(conversation_paint(app.screen)), flush=True)
+        print('STARTUP_FRAME', repr('\n'.join(strip.text for strip in app.screen._compositor.render_strips())), flush=True)
+        print('STARTUP_HISTORY', [(h.state.declared_name, h.fragment_count, h.pages[-1].stop,
+              len(h.pages[-1].fragments)) for h in view.contents.query(TranscriptHistory)],
+              view.window.scroll_y, view.window.max_scroll_y, flush=True)
+        raise
     canonical = next(history for history in view.contents.query(TranscriptHistory)
                      if history.parent is view.contents)
     assert isinstance(canonical, TranscriptHistory)
@@ -91,17 +99,17 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     original_mode = app.selected_mode
     print('INSTALLED_SAVED_TAIL_PAINT_AND_EDITOR_CAPTURED', flush=True)
 
-    await choose(app, pilot, frozenset({ThinkingCategory}))
+    await choose(app, pilot, frozenset({AgentCategory}))
     view.window.release_anchor()
     view.window.scroll_to(y=0, animate=False, immediate=True)
-    await until(pilot, lambda: 'SAVED_THOUGHT_' in conversation_paint(app.screen), timeout=20)
-    assert 'SAVED_ANSWER_' not in conversation_paint(app.screen)
+    await until(pilot, lambda: 'SAVED_ANSWER_2_099' in conversation_paint(app.screen), seconds=20)
+    assert 'SAVED_THOUGHT_' not in conversation_paint(app.screen)
     projection = canonical.filter.overlay
     assert projection is not None
     source = projection._reader()
     assert canonical.pages[-1].page is original_page
     assert projection.fragment_count <= projection.fragment_limit
-    print('REAL_CHECKBOX_FILTER_REVEALS_SAVED_OLDER_THOUGHT_PAINT', flush=True)
+    print('REAL_CHECKBOX_FILTER_REVEALS_SAVED_OLDER_ANSWER_PAINT', flush=True)
 
     # A declared request case inherits admission/worker/pager/retirement. This
     # extension needs no consumer switch or additional member roster.
@@ -109,30 +117,32 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
         pass
 
     canonical.filter.demand = ReaderEarlierDemand()
-    if canonical.filter.has_older:
-        worker = canonical.filter.start_scan()
-        if worker is not None:
-            await worker.wait()
+    await until(pilot, lambda: not canonical.filter.scanning and projection.older_page_available)
+    worker = canonical.filter.start_scan()
+    assert worker is not None, 'Declared demand failed to admit real earlier page'
+    await worker.wait()
     print('DECLARATION_ONLY_SCAN_DEMAND_USES_ACTUAL_INSTALLED_PAGER', flush=True)
 
     # Exercise cancellation before worker entry on the actual mounted history.
+    await until(pilot, lambda: not canonical.filter.scanning)
+    canonical.filter.changed()
     worker = canonical.filter.start_scan()
-    if worker is not None:
-        worker.cancel()
-        await pilot.pause()
-        assert not canonical.filter.scanning
+    assert worker is not None, 'No real queued worker to test pre-entry cancellation'
+    worker.cancel()
+    assert worker.is_cancelled
+    assert not canonical.filter.scanning, 'Cancelled worker stranded scan admission'
+    await pilot.pause()
     await choose(app, pilot, frozenset())
     await until(pilot, lambda: canonical.filter.overlay is None and source.closed)
     assert not canonical.older.display and not canonical.newer.display
     assert not canonical.filter.scanning
     print('EMPTY_SELECTION_RETIRES_READER_AND_CANCELLED_WORKER', flush=True)
 
-    await choose(app, pilot, frozenset({ThinkingCategory}))
+    await choose(app, pilot, frozenset({AgentCategory}))
     view.window.scroll_to(y=0, animate=False, immediate=True)
-    await until(pilot, lambda: 'SAVED_THOUGHT_' in conversation_paint(app.screen), timeout=20)
+    await until(pilot, lambda: 'SAVED_ANSWER_2_099' in conversation_paint(app.screen), seconds=20)
     await pilot.resize_terminal(112, 34)
     await pilot.press('pagedown', 'pageup')
-    assert not canonical.filter.scanning or canonical.filter.worker is not None
     other = await app.new_session_screen(app.get_main_screen)
     await pilot.pause()
     other_view = app.selected_session.conversation
@@ -141,11 +151,11 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     assert other_view.prompt.text == 'x'
     await app.switch_mode(original_mode)
     await pilot.pause()
-    assert view.visible_categories == frozenset({ThinkingCategory})
+    assert view.visible_categories == frozenset({AgentCategory})
     await app.close_session_mode(other.mode_name)
     await choose(app, pilot, all_categories())
     view.window.anchor()
-    await until(pilot, lambda: 'SAVED_ANSWER_2_099' in conversation_paint(app.screen), timeout=20)
+    await until(pilot, lambda: 'SAVED_THOUGHT_2_059' in conversation_paint(app.screen), seconds=20)
     assert canonical.filter.overlay is None
     assert editor.document is document and editor.history is undo and editor.text == draft
     assert native_file.read_bytes() == native_bytes

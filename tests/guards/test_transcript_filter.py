@@ -33,3 +33,14 @@ def test_filter_workers_receive_callables():
         argument = worker.args[0]
         if isinstance(argument, ast.Call):
             assert ast.unparse(argument.func) == 'partial', 'Precreated coroutine can leak on cancellation'
+
+
+def test_projected_pager_worker_receives_callable():
+    tree = ast.parse((ROOT/'widgets/transcript_history.py').read_text())
+    request = next(n for n in ast.walk(tree) if isinstance(n, ast.FunctionDef)
+                   and n.name == '_request_page')
+    workers = [n for n in ast.walk(request) if isinstance(n, ast.Call)
+               and isinstance(n.func, ast.Attribute) and n.func.attr == 'run_worker']
+    assert len(workers) == 1
+    assert isinstance(workers[0].args[0], ast.Call)
+    assert ast.unparse(workers[0].args[0].func) == 'partial'

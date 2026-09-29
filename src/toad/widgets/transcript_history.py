@@ -8,6 +8,7 @@ from toad.widgets.message_filter import OtherCategory
 import asyncio
 from collections import deque
 from dataclasses import dataclass, replace
+from functools import partial
 from collections.abc import Awaitable, Callable, Iterator
 from typing import TYPE_CHECKING
 from weakref import ref
@@ -707,7 +708,7 @@ class TranscriptHistory(ConversationBlock, CommittedHistory, CategorizedBlock, V
     def _request_page(self, older: bool) -> None:
         if not self._loading:
             self._loading = True
-            self.run_worker(self._load_page(older))
+            self.run_worker(partial(self._load_page, older))
 
     async def _load_page(self, older: bool) -> None:
         window, loader = self.window, self.loader

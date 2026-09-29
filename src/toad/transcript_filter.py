@@ -238,7 +238,10 @@ class TranscriptFilter:
 
     @property
     def scanning(self):
-        return self.worker is not None and not self.worker.is_finished
+        # Cancellation before _run enters sets the framework cancellation flag
+        # without transitioning its PENDING enum. It has no admission authority.
+        return (self.worker is not None and not self.worker.is_cancelled
+                and not self.worker.is_finished)
 
     @property
     def active(self): return self.owner._selected_categories != all_categories()
