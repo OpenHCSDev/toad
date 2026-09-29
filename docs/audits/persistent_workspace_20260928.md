@@ -138,3 +138,20 @@ Next ordered obligations: recent non-tail reuse/real rebuild count/bounded memor
 final loaded+blank/native input/scroll/frame tails/ordinary GC, then canonical
 installed suite classifying49 predecessor failures without skips/deadline growth.
 116 stays draft until unique recent behavior/tests are represented.
+
+## Source-message navigation invariant / parent-owned fix
+
+Parent actual main4147 ACP-log UI trace shows ConversationMarkdown link handler
+awaiting navigation, while source retirement waits the initiating response pump.
+Parent owns narrow production ConversationMarkdown App-worker fix.142 must merge
+that fix while preserving logical SessionView path/parser context, without an
+alternative workspace navigation mechanism.
+
+New installed tests/persistent_workspace_source_navigation_pilot.py exercises
+actual rendered link click -> file read/paint -> physical resize -> return to
+original actual editor/Document/EditHistory/undo -> app teardown. It uses a real
+owned file and native compositor, no transport mocks; no ACP transport claim.
+The pre-parent-fix run hangs (external45sec termination), receipt
+source-navigation-before-parent-fix.log; not a passed acceptance. Re-run after
+parent fix lands, using the same assertions/deadlines. Actual runner-specific
+child-process attestation added. No parent production/worktree edits.
