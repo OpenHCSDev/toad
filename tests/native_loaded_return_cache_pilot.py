@@ -12,11 +12,33 @@ from weakref import ref
 from agent_comms.threads import Thread
 from l0a_native_installed_pilot import main as native_fixture, until
 from native_session_retention_pilot import InstalledApp, conversation_paint
+from toad.widgets.session_tabs import SessionLabel
 from viewport_recent_tabs_pilot import settled
 from toad.screens.main import MainScreen
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.transcript_history import TranscriptFragmentView
 from textual.widget import Widget
+
+
+class PaintedReturnApp(InstalledApp):
+    """Capture every actual compositor frame during native tab selection."""
+
+    observed_frames = None
+
+    def _display(self, screen, renderable):
+        super()._display(screen, renderable)
+        if self.observed_frames is not None and renderable is not None and screen is self.screen:
+            self.observed_frames.append((self.selected_mode, conversation_paint(screen)))
+
+
+async def click_session(app, pilot, source):
+    tab = next(label for label in app.screen.query(SessionLabel) if label.id == source.id)
+    tab.scroll_visible(animate=False, immediate=True)
+    await pilot.pause()
+    app.observed_frames = []
+    assert await pilot.click(tab), f"Session tab {source.id} was not clickable"
+    frames, app.observed_frames = app.observed_frames, None
+    return frames
 
 
 async def acceptance(app, pilot, beta, comms, entered, release, hold_next, requests):
@@ -55,7 +77,7 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
                     1+sum(1 for _ in k().walk_children()))
                    for k in app.selected_session.conversation.window.document_viewport._warm
                    if k() is not None and isinstance(k(),TranscriptFragmentView)],flush=True)
-            await app.select_session(source.id)
+            frames = await click_session(app, pilot, source)
             view = source.conversation
             await until(pilot, lambda: bool(view.window.histories) and view.transcript.displayed_cursor is not None)
             print("SOURCE_READY_PAINT", source.id, agent.ready, view.agent_ready, view.classes,
@@ -116,10 +138,17 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
                     1+sum(1 for _ in k().walk_children()))
                    for k in app.selected_session.conversation.window.document_viewport._warm
                    if k() is not None and isinstance(k(),TranscriptFragmentView)],flush=True)
-            await app.select_session(source.id)
+            frames = await click_session(app, pilot, source)
             view = source.conversation
             await until(pilot, lambda: bool(view.window.histories))
             y, painted, document, history, process, runner, old_bodies = states[source.id]
+            print("FIRST_FRAMES", source.id,
+                  [(mode, len(reader.strip()), "NATIVE_RESPONSE" in reader,
+                    "Earlier history" in reader) for mode, reader in frames[:8]], flush=True)
+            assert frames and painted == frames[0][1], (
+                "First painted return frame did not retain the destination reader",
+                source.id, [(mode, reader[:200]) for mode, reader in frames[:3]],
+            )
             try:
                 await until(pilot, lambda: conversation_paint(frame) == painted)
             except TimeoutError:
@@ -184,4 +213,4 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
 
 
 if __name__ == "__main__":
-    asyncio.run(native_fixture(app_type=InstalledApp, acceptance=acceptance))
+    asyncio.run(native_fixture(app_type=PaintedReturnApp, acceptance=acceptance))
