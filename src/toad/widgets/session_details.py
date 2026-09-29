@@ -10,6 +10,7 @@ from textual.widgets import Collapsible
 from toad.widgets.input_delivery import InputDeliveryBar
 from toad.widgets.native_history import NativeHistory
 from toad.widgets.observed_thread_activity import ObservedThreadActivity
+from toad.widgets.session_history_details import SessionHistoryDetails
 
 
 class SessionDetails(Collapsible):
@@ -34,9 +35,11 @@ class SessionDetails(Collapsible):
     def __init__(
         self, read: Callable[[], Awaitable[ThreadPresentation | None]], *,
         history: NativeHistory | None = None, delivery: InputDeliveryBar | None = None,
+        read_history=None,
     ) -> None:
         self.activity = ObservedThreadActivity(read)
         self.history = history
+        self.history_details = SessionHistoryDetails(read_history, history)
         self.delivery = delivery
         super().__init__(self.activity, *(item for item in (history, delivery) if item is not None),
                          title="Session details", collapsed=True, id="session-details")
@@ -67,9 +70,8 @@ class SessionDetails(Collapsible):
             parts.append(presentation.summary.partition("\n")[0] or "Ready")
             if presentation.notifications:
                 parts.append(f"{len(presentation.notifications)} recent")
-        if self.history is not None and self.history.status == "unavailable":
-            parts.append("History unavailable")
-            attention = True
+        parts.extend(self.history_details.summary)
+        attention |= self.history_details.attention
         if self.delivery is not None:
             delivery = self.delivery.delivery
             current = len(delivery["inputs"])
@@ -89,10 +91,7 @@ class SessionDetails(Collapsible):
         if self.title != title:
             self.title = title
         self.set_class(attention, "-attention")
-        self.overview_text = "\n\n".join(
-            str(item.render()) for item in (self.activity, self.history)
-            if item is not None and item.display
-        )
+        self.overview_text = self.history_details.overview(self.activity)
         self.display = bool(presentation is not None or activity.unavailable
                             or self.history is not None and self.history.status is not None
                             or self.delivery is not None and self.delivery.display)

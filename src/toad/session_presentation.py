@@ -81,6 +81,19 @@ class SessionSurfaceLifetime(ABC):
     async def close(self, screen: "MainScreen") -> None: ...
 
 
+class EditorSessionSurfaceLifetime(SessionSurfaceLifetime):
+    """Shared actual editor-state custody and active shell close semantics."""
+
+    def __init__(self) -> None:
+        self.state: SessionViewState | None = None
+
+    async def close(self, screen: "MainScreen") -> None:
+        conversation = screen.query_one_optional(Conversation)
+        if conversation is not None and conversation._shell is not None:
+            await conversation._shell.close()
+        self.state = None
+
+
 class OperationalSessionSources:
     """Logical session custody of existing operational owners, without a view."""
 
@@ -132,11 +145,11 @@ class OperationalSessionSources:
         self.shell = None
 
 
-class OperationalSessionPresentation(SessionSurfaceLifetime):
+class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
     """The operational Agent survives; only the selected rich view is mounted."""
 
     def __init__(self) -> None:
-        self.state: SessionViewState | None = None
+        super().__init__()
         self.sources = OperationalSessionSources()
         self._lock = asyncio.Lock()
 
@@ -171,11 +184,8 @@ class OperationalSessionPresentation(SessionSurfaceLifetime):
         self.state = None
 
 
-class BlankSessionPresentation(SessionSurfaceLifetime):
+class BlankSessionPresentation(EditorSessionSurfaceLifetime):
     """One logical blank session, independent of any mounted editor widget."""
-
-    def __init__(self) -> None:
-        self.state: SessionViewState | None = None
 
     @property
     def editor_state(self) -> TextAreaState | None:
@@ -193,13 +203,6 @@ class BlankSessionPresentation(SessionSurfaceLifetime):
         # WorkspaceChrome has moved or parked the surface, capturing this
         # session's editor before changing custody. No duplicate state owner.
         return
-
-    async def close(self, screen: "MainScreen") -> None:
-        conversation = screen.query_one_optional(Conversation)
-        if conversation is not None and conversation._shell is not None:
-            await conversation._shell.close()
-        self.state = None
-
 
 class BlankSessionSurface:
     """One native blank editor tree; session controllers own document identity."""

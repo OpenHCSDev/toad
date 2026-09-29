@@ -3,6 +3,7 @@ import asyncio
 from importlib.resources import files
 
 from l0a_native_installed_pilot import main as native_fixture, until
+from native_session_retention_pilot import conversation_paint
 from runtime_fixture import ToadApp
 from toad.widgets.conversation import Conversation
 from toad.widgets.terminal_tool import TerminalTool
@@ -50,8 +51,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     await until(pilot, lambda: len(app.screen.query(TerminalTool)) == 2)
     assert app.screen.conversation._shell is None, "ACP terminal resize spawned an unrelated shell"
     assert app.screen.query_one(f"#{first}", TerminalTool).state is original_state
-    await until(pilot, lambda: "CREATED_WHILE_DETACHED" in "\n".join(
-        strip.text for strip in app.screen._compositor.render_strips()))
+    await until(pilot, lambda: "CREATED_WHILE_DETACHED" in conversation_paint(app.screen))
 
     doomed = (await rpc("terminal/create", command="sh", args=["-c", "sleep 30"]))["terminalId"]
     await rpc("terminal/kill", terminalId=doomed)

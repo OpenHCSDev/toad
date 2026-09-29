@@ -28,6 +28,14 @@ class InstalledApp(ToadApp):
     CSS_PATH = files("toad").joinpath("toad.tcss")
 
 
+def conversation_paint(screen):
+    """Only actually composited strips inside the message reader viewport."""
+    region = screen.conversation.window.scrollable_content_region
+    strips = screen._compositor.render_strips()
+    return "\n".join(strip.crop(region.x, region.right).text
+                     for strip in strips[region.y:region.bottom])
+
+
 def resource_snapshot(owner, acp_process):
     """Sample this UI's descendants and its explicitly registered native owner."""
     ui = psutil.Process()
@@ -138,8 +146,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
             assert editor.text == "untouched native draft with undo"
             expected = f"NATIVE_RESPONSE_{len(requests)}"
             try:
-                await until(pilot, lambda: expected in "\n".join(
-                    strip.text for strip in app.screen._compositor.render_strips()))
+                await until(pilot, lambda: expected in conversation_paint(app.screen))
             except TimeoutError:
                 print("RETURN_PAINT_FAILURE", json.dumps({
                     "expected": expected,
@@ -149,7 +156,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
                     "descendants": [(type(child).__name__, child.display, repr(child.region)) for child in original.contents.walk_children()],
                     "regions": {"conversation": repr(original.region), "window": repr(original.window.region), "contents": repr(original.contents.region)},
                     "children": [(type(child).__name__, child.display, repr(child.region), str(child.styles.display), list(child.classes)) for child in original.contents.children],
-                    "paint": "\n".join(strip.text for strip in app.screen._compositor.render_strips()),
+                    "paint": conversation_paint(app.screen),
                 }), flush=True)
                 raise
             record["native_calls"] = len(requests) - before_requests
