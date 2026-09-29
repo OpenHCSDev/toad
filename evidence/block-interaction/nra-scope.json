@@ -1,0 +1,21 @@
+{
+  "source_snapshot": "49305ab5 before unrelated CLI148 integration",
+  "counts": {
+    "Toad": 235,
+    "Comms": 239,
+    "Textual": 249
+  },
+  "total_files": 723,
+  "raw": 137,
+  "aggregate": 90,
+  "timing": {
+    "parse_seconds": 1.983,
+    "analysis_seconds": 42.174,
+    "planning_seconds": 0.0,
+    "source_index_seconds": 0.281,
+    "analysis_cache_status": "disabled",
+    "total_seconds": 44.438
+  },
+  "own_scope_raw_projections": [],
+  "limitations": "CLI supplies no scan_status or analyzed/omitted detector counts. Raw structural evidence is not behavioral or native equivalence. Current-main integration changes only unrelated CLI crash capture, with no affected source delta."
+}

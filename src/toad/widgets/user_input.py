@@ -1,12 +1,10 @@
 from toad.block_navigation import ConversationBlock
 
 from toad.widgets.message_filter import UserCategory
-from typing import Iterable
 from textual.app import ComposeResult
 from textual import containers
 from toad.widgets.prepared_markdown import PreparedConversationMarkdown
 
-from toad.menus import MenuItem
 from toad.widgets.non_selectable_label import NonSelectableLabel
 from toad.widgets.message_divider import MessageDivider
 from toad.widgets.message_filter import CategorizedBlock, MessageCategory
@@ -31,8 +29,5 @@ class UserInput(ConversationBlock, SnapshotPresentation, CategorizedBlock, conta
             yield NonSelectableLabel("❯" if self.show_divider else " ", id="prompt")
             yield PreparedConversationMarkdown(self.content, id="content")
 
-    def get_block_menu(self) -> Iterable[MenuItem]:
-        yield from ()
-
-    def get_block_content(self, destination: str) -> str | None:
+    def get_clipboard_text(self) -> str | None:
         return self.content

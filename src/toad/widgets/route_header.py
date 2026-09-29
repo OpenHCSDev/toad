@@ -1,6 +1,7 @@
 """One compact, linked header for incoming and outgoing routed messages."""
 
 from toad.navigation_target import linked_target
+from toad.block_content import BlockContent
 
 from agent_comms.routing import MessageRoute
 from textual.content import Content
@@ -12,7 +13,7 @@ from toad.widgets.comms_sidebar import SelectTarget
 from toad.pill import pill
 
 
-class RouteHeader(Static, can_focus=True):
+class RouteHeader(BlockContent, Static, can_focus=True):
     DEFAULT_CSS = """
     RouteHeader {
         width: 1fr; height: auto; margin: 0; padding: 0 1;

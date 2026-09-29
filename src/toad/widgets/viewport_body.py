@@ -82,7 +82,7 @@ class ViewportPresentation:
         for window in self.windows:
             changed |= window.check_follow()
         if changed:
-            screen._refresh_layout(scroll=True)
+            # Native UpdateScroll owns reflow; do not reenter layout or paint stale geometry.
             return False
         return True
 
