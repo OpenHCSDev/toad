@@ -169,6 +169,7 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
                 self.wfile.write(body)
             except Exception as error:
                 failures.append(str(error))
+                print("LOOPBACK_PROVIDER_FAILURE", repr(error), flush=True)
                 self.send_error(400, "Offline fixture failed")
 
         def log_message(self, *_args):

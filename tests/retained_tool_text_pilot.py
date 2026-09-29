@@ -74,6 +74,23 @@ async def main():
             await asyncio.wait_for(read.wait_ready(), 15)
             assert read._prepared is not None and any(line.text for line in read._prepared.lines)
             assert read.get_selection(SELECT_ALL)[0] == SELECT_ALL.extract(code)
+            # A filename change is an output change even when the raw text
+            # dictionary is reused. ACP mutable input ends at the update boundary.
+            same = payload(code, kind="read", raw_input={"path": "example.py"})
+            await tool.update_tool_call(same)
+            previous = tool.query_one(WorkerStatic)
+            same["rawInput"]["path"] = "unrecognized.unknown"
+            await tool.update_tool_call(same)
+            changed = tool.query_one(WorkerStatic)
+            assert changed is not previous and not previous.is_attached
+            await asyncio.wait_for(changed.wait_ready(), 10)
+            assert changed.get_selection(SELECT_ALL)[0] == SELECT_ALL.extract(code)
+            same["kind"] = "execute"
+            await tool.update_tool_call(same)
+            await pilot.pause()
+            assert not tool.query(WorkerStatic)
+            assert tool.query_one(TextContent).render().plain == code
+            assert tool.query_one(TextContent).get_selection(SELECT_ALL)[0] == SELECT_ALL.extract(code)
             await tool.update_tool_call(payload("literal [red]markup[/]", kind="read",
                                                 raw_input={"path": "unrecognized.unknown"}))
             unknown = tool.query_one(WorkerStatic)

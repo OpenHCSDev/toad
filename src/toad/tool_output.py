@@ -9,6 +9,7 @@ import asyncio
 from abc import abstractmethod
 from copy import deepcopy
 from dataclasses import dataclass, field
+from functools import partial
 import re
 from typing import TYPE_CHECKING
 from weakref import ref
@@ -241,7 +242,17 @@ class UnrenderedToolOutputPart(ToolOutputPart):
     """ACP media without an implemented viewer retains its expand affordance."""
 
     source: object
-    available: bool = True
+
+    def compose(self, view: ToolCall) -> tuple[Widget, ...]:
+        return ()
+
+
+@dataclass(frozen=True)
+class TerminalToolOutputPart(ToolOutputPart):
+    """ACP terminal output is projected by its existing terminal owner."""
+
+    terminal_id: str
+    available = False
 
     def compose(self, view: ToolCall) -> tuple[Widget, ...]:
         return ()
@@ -258,10 +269,12 @@ def decode_content(item: protocol.ToolCallContent, read_path: str | None) -> Too
             return PatchToolOutputPart(source)
         case {"type": "diff", "path": path, "oldText": old, "newText": new}:
             return FileDiffToolOutputPart(path, old, new)
+        case {"type": "terminal", "terminalId": terminal_id}:
+            return TerminalToolOutputPart(terminal_id)
+        case {"type": "content", "content": content}:
+            return UnrenderedToolOutputPart(deepcopy(content))
         case _:
-            # Image/audio/resources and terminal output remain under their
-            # existing ACP contracts; terminal projection has a separate owner.
-            return UnrenderedToolOutputPart(deepcopy(item), item["type"] == "content")
+            raise ValueError("Unsupported ACP tool output")
 
 
 class ToolOutput:
@@ -350,7 +363,7 @@ class ToolOutput:
         self._warming, self._theme = self.parts, theme
         pending = tuple(part for part in self.parts if part.begin_preparation(theme))
         if pending:
-            self._worker = view.run_worker(self.prepare(self._generation, pending),
+            self._worker = view.run_worker(partial(self.prepare, self._generation, pending),
                                           group="hidden-patch-warmup", exclusive=True,
                                           exit_on_error=False)
 
@@ -360,9 +373,10 @@ class ToolOutput:
             for part in parts:
                 if generation != self._generation or not view.is_attached:
                     return
-                await part.prepare(view)
-        except Exception as error:
-            view.log.warning("Background tool preparation failed", error)
+                try:
+                    await part.prepare(view)
+                except Exception as error:
+                    view.log.warning("Background tool preparation failed", error)
         finally:
             if generation == self._generation:
                 self._worker = None
@@ -384,7 +398,7 @@ class ToolOutput:
         if (self._awaiting_visible and self.view.expanded and not self._hydration_scheduled
                 and self.view._visible_in_window()):
             self._hydration_scheduled = True
-            self.view.run_worker(self.hydrate(), group="visible-content")
+            self.view.run_worker(self.hydrate, group="visible-content")
 
     async def hydrate(self) -> None:
         try:

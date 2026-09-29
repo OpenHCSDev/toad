@@ -2,6 +2,7 @@
 
 import asyncio
 from dataclasses import dataclass
+from functools import partial
 from typing import TYPE_CHECKING
 
 from textual import containers
@@ -19,7 +20,7 @@ if TYPE_CHECKING:
 
 class TextContent(Static):
     DEFAULT_CSS = """
-    TextContent 
+    TextContent
     {
         height: auto;
     }
@@ -111,7 +112,7 @@ class ToolCallDiff(containers.VerticalGroup):
         self._preparation_generation += 1
         self.prepared.clear()
         self._preparation_worker = self.run_worker(
-            self._prepare(self._preparation_generation, self.patch, theme),
+            partial(self._prepare, self._preparation_generation, self.patch, theme),
             group="patch-preparation", exclusive=True,
         )
 
@@ -172,5 +173,3 @@ class ToolCallDiff(containers.VerticalGroup):
         if self._visibility_signal is not None:
             self._visibility_signal.unsubscribe(self)
             self._visibility_signal = None
-
-
