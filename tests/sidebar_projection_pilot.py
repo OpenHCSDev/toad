@@ -46,7 +46,7 @@ async def main():
         async with app.run_test(size=(120, 40)) as pilot:
             await pilot.pause()
             first = app.selected_mode
-            second = (await app.session_navigation.new(app.get_main_screen)).mode_name
+            second = (await app.session_navigation.new(app.session_navigation.default_source)).mode_name
             channel = await channel_target("#projection").open(NavigationContext(app, first, root, me))
             modes = [first, second, channel]
             for mode in modes:

@@ -69,7 +69,7 @@ async def main():
             frame='\n'.join(s.crop(region.x,region.right).text for s in screen._compositor.render_strips()[region.y:region.bottom])
             assert 'Additional output while reading' in frame, frame
             assert nested_layouts==0 and peak==1
-            await app.session_navigation.new(app.get_main_screen)
+            await app.session_navigation.new(app.session_navigation.default_source)
             await app.selected_session.wait_content_ready()
             await pilot.pause()
             await app.select_session(first_mode)

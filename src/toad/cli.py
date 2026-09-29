@@ -41,7 +41,7 @@ def run_terminal(app: ToadApp) -> None:
     if app._exception is not None:
         persist_terminal_failure(app._exception)
         raise SystemExit(app.return_code or 1)
-    app.run_on_exit()
+    app.application.version.status.print_notice()
 
 
 def renderer_from_cli(backend: str | None) -> Renderer | None:
@@ -328,7 +328,7 @@ def acp(
 def settings() -> None:
     """Settings information."""
     app = ToadApp()
-    print(f"{app.settings_path}")
+    print(f"{app.settings.file_path()}")
 
 
 @main.command("replay")

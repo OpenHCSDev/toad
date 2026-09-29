@@ -177,7 +177,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
         raise
     await pilot.resize_terminal(112, 34)
     await pilot.press('pagedown', 'pageup')
-    other = await app.session_navigation.new(app.get_main_screen)
+    other = await app.session_navigation.new(app.session_navigation.default_source)
     await pilot.pause()
     other_view = app.selected_session.conversation
     other_view.prompt.focus()

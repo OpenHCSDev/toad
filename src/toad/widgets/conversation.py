@@ -1150,7 +1150,7 @@ class Conversation(ConversationSessionBinding):
                 content = Content.assemble(self.agent.get_info(), " connected")
                 self.flash(content, style="success")
                 if self._agent_data is not None:
-                    self.app.capture_event(
+                    self.app.application.usage.publish(
                         "agent-session-begin",
                         agent=self._agent_data["identity"],
                     )
@@ -1213,7 +1213,7 @@ class Conversation(ConversationSessionBinding):
 
         if self._agent_data is not None and self.session_start_time is not None:
             session_time = monotonic() - self.session_start_time
-            await self.app.capture_event(
+            await self.app.application.usage.publish(
                 "agent-session-end",
                 agent=self._agent_data["identity"],
                 duration=session_time,
@@ -1234,7 +1234,7 @@ class Conversation(ConversationSessionBinding):
         self.notify(message.message, title="Agent failure", severity="error", timeout=5)
 
         if self._agent_data is not None:
-            self.app.capture_event(
+            self.app.application.usage.publish(
                 "agent-session-error",
                 agent=self._agent_data["identity"],
                 message=message.message,

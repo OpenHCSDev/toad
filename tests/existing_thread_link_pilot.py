@@ -47,10 +47,10 @@ async def main():
             source = app.selected_session
             source.initial_coordination_root = str(wire_root)
             source._comms_thread = "owner"
-            foreign = (await app.session_navigation.new(app.get_main_screen)).mode_name
+            foreign = (await app.session_navigation.new(app.session_navigation.default_source)).mode_name
             app.selected_session.initial_coordination_root = str(root / "foreign-wire")
             app.selected_session._comms_thread = "peer"
-            existing = (await app.session_navigation.new(app.get_main_screen)).mode_name
+            existing = (await app.session_navigation.new(app.session_navigation.default_source)).mode_name
             destination = app.selected_session
             destination.initial_coordination_root = str(wire_root)
             destination._comms_thread = "peer"
@@ -93,7 +93,7 @@ async def main():
 
             # Comms views inherit Conversation's mouse handlers but deliberately
             # omit goal controls. A real link click must still reuse the tab.
-            await app.session_navigation.new(app.get_main_screen)
+            await app.session_navigation.new(app.session_navigation.default_source)
             await DirectTarget("peer").open(NavigationContext(app, owner, root, "owner"))
             await pilot.pause()
             chat = app.screen.query_one(CommsChatView)

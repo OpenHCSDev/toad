@@ -106,7 +106,7 @@ async def main():
             await wait_for(pilot, lambda: app.selected_mode == first)
             assert await pilot.click("#tab-forward")
             await wait_for(pilot, lambda: app.selected_mode == channel)
-            second = (await app.session_navigation.new(app.get_main_screen)).mode_name
+            second = (await app.session_navigation.new(app.session_navigation.default_source)).mode_name
             second_screen = app.screen
             second_screen.conversation.prompt.text = "Preserve second draft"
 
@@ -155,7 +155,7 @@ async def main():
             # Long labels and many open tabs expose a 1-cell horizontal
             # scrollbar below the native underline without changing tab order.
             for _ in range(7):
-                await app.session_navigation.new(app.get_main_screen)
+                await app.session_navigation.new(app.session_navigation.default_source)
             await pilot.pause()
             tabs = app.screen.query_one(SessionsTabs)
             assert tabs.region.y == 0

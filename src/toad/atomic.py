@@ -34,4 +34,5 @@ def write(path: str, content: str) -> None:
     try:
         os.replace(temp_name, path)  # Atomic on POSIX and Windows
     except Exception as error:
+        os.unlink(temp_name)
         raise AtomicWriteError(f"Failed to write {path!r}; {error}")

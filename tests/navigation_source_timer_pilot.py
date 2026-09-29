@@ -21,7 +21,7 @@ async def main():
             first_mode = app.selected_mode
             first = app.screen
             await first.conversation.contents.mount(AgentResponse("Saved text that stays visible"))
-            second = await app.session_navigation.new(app.get_main_screen)
+            second = await app.session_navigation.new(app.session_navigation.default_source)
             second_mode = second.mode_name
             await app.switch_mode(first_mode)
             await pilot.pause()

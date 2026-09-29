@@ -63,7 +63,7 @@ async def main():
         async with app.run_test(size=(130, 45)) as pilot:
             first = app.selected_mode
             await settled(app, pilot)
-            second = (await app.session_navigation.new(app.get_main_screen)).mode_name
+            second = (await app.session_navigation.new(app.session_navigation.default_source)).mode_name
             await settled(app, pilot)
             channel = await channel_target("#kept").open(NavigationContext(app, first, root, me))
             await settled(app, pilot)

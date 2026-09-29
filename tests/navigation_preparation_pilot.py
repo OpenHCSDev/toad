@@ -99,7 +99,7 @@ async def mounted() -> None:
             await pilot.pause()
             owner = app.selected_mode
             source = app.selected_session
-            other = (await app.session_navigation.new(app.get_main_screen)).mode_name
+            other = (await app.session_navigation.new(app.session_navigation.default_source)).mode_name
             for request_type, kind in (
                 (ThreadNavigationRequest, "thread"),
                 (CommsNavigationRequest, "channel"),

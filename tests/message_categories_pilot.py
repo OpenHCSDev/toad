@@ -136,7 +136,7 @@ async def main():
             assert await pilot.click(choices[UserCategory])
             await pilot.pause()
             assert view.visible_categories == frozenset((OtherCategory, UserCategory))
-            other_mode = (await app.session_navigation.new(app.get_main_screen)).mode_name
+            other_mode = (await app.session_navigation.new(app.session_navigation.default_source)).mode_name
             assert app.selected_session.conversation.visible_categories == all_categories()
             await app.switch_mode(screen.id)
             await pilot.pause()
