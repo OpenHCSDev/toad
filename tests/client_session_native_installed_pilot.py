@@ -35,7 +35,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     tool = {'toolCallId': 'client-edit', 'title': 'CLIENT_BOUND_PERMISSION', 'kind': 'edit',
         'content': [{'type': 'diff', 'path': str(agent.project_root_path/'client.txt'),
                     'oldText': 'old client value', 'newText': 'CLIENT_NEW_VALUE'}]}
-    agent.rpc_session_update(agent.session_id, {'sessionUpdate': 'tool_call', **tool, 'status': 'in_progress'})
+    agent.updates.accept(agent.session_id, {'sessionUpdate': 'tool_call', **tool, 'status': 'in_progress'})
     permission = asyncio.create_task(rpc('session/request_permission',
         options=[{'optionId': 'allow', 'name': 'Allow once', 'kind': 'allow_once'},
                  {'optionId': 'reject', 'name': 'Reject', 'kind': 'reject_once'}],

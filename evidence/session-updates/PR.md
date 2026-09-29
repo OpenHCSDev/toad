@@ -1,0 +1,5 @@
+## T4 ordered session-update custody and complete effect cases
+
+Deletes Agent's ordered RPC/validation lock, synchronous notification facade, error handler and all eleven central update arms. SessionNotificationOwner uses official SDK validation and existing ClientRequestOwner registration. SessionUpdateEffect declarations own effects; shared text handling is inherited; original external dictionaries/extension facts preserved. Actual SessionBinding replaces primitive controller session storage and owns reset behavior, so returning A→B→A cannot authorize pending effects from a retired binding. ClientSessionRequest captures this binding plus existing ProcessDisposition. No epoch, parallel state/store/codec or compatibility RPC facade. All direct test/SDK callers migrate to the owner.
+
+Scope claimed to Noether176/Tesla175 before edits; no App/Prompt/preparation/history/db/render changes. Based on173 with its terminal wait review correction carried; parent merges173 first. Focused registered-RPC actual SDK/process/session checks and installed continuous native/Pilot affected journey underway. Draft is not live. CI deferred; no paid calls/live mutations/replay.

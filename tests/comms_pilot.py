@@ -426,7 +426,7 @@ async def main() -> None:
                 app.session_tracker.get_session(created_mode).title
                 == "Name this from my first prompt"
             )
-            startup_agent.rpc_session_update(
+            startup_agent.updates.accept(
                 sessionId=managed_thread,
                 update={
                     "sessionUpdate": "session_info_update",
@@ -586,7 +586,7 @@ async def main() -> None:
             protocol_agent.attach_surface(conversation)
             previous_agent = conversation.agent
             conversation.set_reactive(type(conversation).agent, protocol_agent)
-            protocol_agent.rpc_session_update(
+            protocol_agent.updates.accept(
                 "pilot-session",
                 {
                     "sessionUpdate": "agent_message_chunk",
@@ -596,7 +596,7 @@ async def main() -> None:
                     ),
                 },
             )
-            protocol_agent.rpc_session_update(
+            protocol_agent.updates.accept(
                 "pilot-session",
                 {
                     "sessionUpdate": "agent_message_chunk",
