@@ -134,26 +134,32 @@ class AgentController(OperationalTerminalOwner):
     async def restore(self, binding):
         from agent_comms.acp_extension import TranscriptSnapshotUpdate
         from .messages import CommsUpdated, SetModes, AvailableCommandsUpdate
+        if self.surface is not binding:
+            return
+        session = self.session
         agent = self.agent
+        # Retained operational facts are available now. A source read must not
+        # hold modes, commands, plan, queue and cursor behind filesystem I/O.
+        agent.configuration.publish()
+        if self.current_mode is not None:
+            binding.post(SetModes(self.current_mode, self.modes))
+        binding.post(AvailableCommandsUpdate(self.commands))
+        if self.plan_entries is not None:
+            from .messages import Plan
+            binding.post(Plan(self.plan_entries))
+        agent._post_queue_view()
+        agent._post_private_cursor()
         if agent.coordination is not None:
+            binding.post(CommsUpdated(agent.coordination, agent, agent.session_id))
             page = await agent.get_transcript_page()
             if self.surface is not binding:
                 return
-            agent.post_message(CommsUpdated(agent.coordination, agent, agent.session_id))
-            agent.post_message(CommsUpdated(TranscriptSnapshotUpdate(page), agent, agent.session_id))
-        if self.surface is binding:
-            agent.configuration.publish()
-            if self.current_mode is not None:
-                agent.post_message(SetModes(self.current_mode, self.modes))
-            agent.post_message(AvailableCommandsUpdate(self.commands))
-            if self.plan_entries is not None:
-                from .messages import Plan
-                agent.post_message(Plan(self.plan_entries))
-            agent._post_queue_view()
-            agent._post_private_cursor()
-            target = binding.target
-            if target is not None:
-                target.call_later(self.start_terminal_presentation, target)
+            if self.session is not session:
+                return
+            binding.post(CommsUpdated(TranscriptSnapshotUpdate(page), agent, agent.session_id))
+        target = binding.target
+        if target is not None:
+            target.call_later(self.start_terminal_presentation, target)
 
 
 
