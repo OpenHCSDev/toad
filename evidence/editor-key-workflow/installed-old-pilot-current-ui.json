@@ -1,0 +1,175 @@
+{
+  "source": "session-1",
+  "driver": "HeadlessDriver",
+  "focused": "PromptTextArea",
+  "editor_focused": true,
+  "loading": false,
+  "disabled": false,
+  "text": "",
+  "cursor": [
+    0,
+    0
+  ],
+  "document": 139882501285008,
+  "history": 139882501360000,
+  "editor_region": [
+    52,
+    36,
+    64,
+    1
+  ],
+  "tabs": [
+    {
+      "source": "session-1",
+      "region": [
+        21,
+        1,
+        13,
+        1
+      ]
+    },
+    {
+      "source": "session-2",
+      "region": [
+        36,
+        1,
+        13,
+        1
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "namespace": "PromptTextArea",
+      "keys": [
+        "alt+backspace",
+        "alt+delete",
+        "backspace",
+        "ctrl+a",
+        "ctrl+backspace",
+        "ctrl+c",
+        "ctrl+d",
+        "ctrl+e",
+        "ctrl+enter",
+        "ctrl+j",
+        "ctrl+k",
+        "ctrl+left",
+        "ctrl+pagedown",
+        "ctrl+pageup",
+        "ctrl+right",
+        "ctrl+shift+k",
+        "ctrl+shift+left",
+        "ctrl+shift+right",
+        "ctrl+u",
+        "ctrl+v",
+        "ctrl+w",
+        "ctrl+x",
+        "ctrl+y",
+        "ctrl+z",
+        "delete",
+        "down",
+        "end",
+        "enter",
+        "f6",
+        "f7",
+        "home",
+        "left",
+        "pagedown",
+        "pageup",
+        "right",
+        "shift+down",
+        "shift+end",
+        "shift+enter",
+        "shift+home",
+        "shift+left",
+        "shift+right",
+        "shift+up",
+        "super+backspace",
+        "super+c",
+        "super+x",
+        "super+y",
+        "super+z",
+        "tab",
+        "up"
+      ]
+    },
+    {
+      "namespace": "HorizontalGroup",
+      "keys": []
+    },
+    {
+      "namespace": "PromptContainer",
+      "keys": []
+    },
+    {
+      "namespace": "Prompt",
+      "keys": [
+        "escape"
+      ]
+    },
+    {
+      "namespace": "Vertical",
+      "keys": []
+    },
+    {
+      "namespace": "Conversation",
+      "keys": [
+        "alt+down",
+        "alt+up",
+        "ctrl+c",
+        "ctrl+f",
+        "ctrl+o",
+        "enter",
+        "escape"
+      ]
+    },
+    {
+      "namespace": "Vertical",
+      "keys": []
+    },
+    {
+      "namespace": "Center",
+      "keys": []
+    },
+    {
+      "namespace": "MainScreen",
+      "keys": [
+        "ctrl+b",
+        "ctrl+g",
+        "ctrl+h",
+        "ctrl+left_square_bracket",
+        "ctrl+right_square_bracket",
+        "f20"
+      ]
+    },
+    {
+      "namespace": "Container",
+      "keys": []
+    },
+    {
+      "namespace": "Horizontal",
+      "keys": []
+    },
+    {
+      "namespace": "WorkspaceScreen",
+      "keys": [
+        "ctrl+c",
+        "shift+tab",
+        "super+c",
+        "tab"
+      ]
+    },
+    {
+      "namespace": "KeyWorkflowApp",
+      "keys": [
+        "ctrl+c",
+        "ctrl+comma",
+        "ctrl+p",
+        "ctrl+q",
+        "ctrl+s",
+        "f1",
+        "f2"
+      ]
+    }
+  ]
+}
