@@ -9,8 +9,8 @@ import shutil
 import tempfile
 
 import pytest
-import psutil
-from agent_comms.child_process import BoundedRun, DetachedProcess, ProcessIdentity
+from agent_comms.child_process import BoundedRun
+from runtime_fixture import stop_test_children
 
 
 def pytest_addoption(parser):
@@ -73,14 +73,7 @@ class Pilot(pytest.Item):
             finally:
                 # UI shutdown deliberately leaves owners alive. Retire only
                 # processes whose private fixture root attests this attempt.
-                for process in psutil.process_iter():
-                    try:
-                        identity = ProcessIdentity.capture(process.pid)
-                        environment = process.environ()
-                        if environment.get("TOAD_TEST_ATTEMPT") == str(root):
-                            await DetachedProcess.attach(identity).stop()
-                    except (psutil.NoSuchProcess, psutil.AccessDenied, ProcessLookupError):
-                        continue
+                await stop_test_children(str(root))
                 if successful:
                     shutil.rmtree(root)
         asyncio.run(run())

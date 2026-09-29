@@ -638,15 +638,13 @@ class Prompt(containers.VerticalGroup):
         projection = self.queue_projection
         queued = [row.text for row in projection.items]
         restored = [row.text for row in projection.restored]
-        unavailable = projection.status == "unavailable" or (
-            self.queue_supported and projection.status is None
-        )
+        feedback = projection.feedback(self.queue_supported)
         delivering = self.delivering_prompt
-        self.set_class(bool(queued or restored or delivering or unavailable
+        self.set_class(bool(queued or restored or delivering or feedback
                             or self.sending_queued_prompt), "-has-queue")
         parts: list[str] = []
-        if unavailable:
-            parts.append("Remote queue unavailable (input status unchanged)")
+        if feedback:
+            parts.append(feedback)
         if self.sending_queued_prompt:
             parts.append("Send requested: " + " ".join(self.sending_queued_prompt.split())[:100])
         if delivering:

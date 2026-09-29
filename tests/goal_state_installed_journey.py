@@ -12,7 +12,7 @@ from textual.widgets import Input
 
 from l0a_native_installed_pilot import main as native_fixture, until
 from native_session_retention_pilot import InstalledApp
-from saved_state_user_journey_pilot import click_tab, click_thread, prepare_saved_state, screen_paint
+from saved_state_user_journey_pilot import click_tab, click_thread, prepare_saved_state, screen_paint, submit_editor
 from toad.screens.goal_edit import GoalEdit
 from toad.screens.goal_details import GoalDetails
 from toad.widgets.goal_bar import GoalBar
@@ -103,11 +103,12 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     assert dialog.query_one("#fork-tags", Input).value == "team"
     assert await pilot.click("#fork-create")
     await until(pilot, lambda: "goal-child" in comms.registry.all_threads())
+    child_screen = await click_thread(app, pilot, "goal-child")
+    await until(pilot, lambda: comms.registry.require("goal-child").process_alive)
     child = comms.registry.require("goal-child")
     assert child.tags == comms.registry.require("beta").tags
     from psutil import Process
     assert "AGENT_COMMS_STARTUP_INPUT_KEY" not in Process(child.pid).environ()
-    child_screen = await click_thread(app, pilot, "goal-child")
     assert not child.executing
     assert len(requests) == 2, "A fork without a task admitted a native input"
     goal = seed_goal(comms, "CHILD_ONLY_GOAL", "goal-child")
@@ -131,6 +132,16 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     assert not first.conversation.query_one(GoalBar).display
     assert len(requests) == 2
     print("PHYSICAL_IDLE_FORK_INHERITED_TAGS_CHILD_PARENT_UNRELATED_GOAL_ISOLATION", flush=True)
+    await click_tab(app, pilot, child_screen.id)
+    child_view = child_screen.conversation
+    await submit_editor(pilot, child_view.prompt.prompt_text_area, "AFTER_COMPLETED_GOAL_INPUT")
+    await until(pilot, lambda: len(requests) == 3)
+    await until(pilot, lambda: comms.registry.require("goal-child").executing is False)
+    await until(pilot, lambda: "NATIVE_RESPONSE_3" in screen_paint(app))
+    assert comms.registry.require("goal-child").goal == goal
+    assert child_view.queue_projection.status == "available"
+    require_current_activity(child_screen)
+    print("COMPLETED_GOAL_IDLE_FORK_ACCEPTS_REAL_EDITOR_MESSAGE_AND_SETTLES", flush=True)
 
 
 if __name__ == "__main__":

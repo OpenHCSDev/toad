@@ -49,7 +49,9 @@ class AgentMessageEffect(MessageChunkEffect, declared_name='agent_message_chunk'
         if text:
             if kind == 'text' and text.startswith('[agent error]'):
                 text += f'\n\n[Open ACP log]({quote(str(agent.presentation.log_path))})'
-            agent.post_message(messages.Update(kind, text, route))
+            from toad.widgets.agent_response import ResponseDelivery
+            stream = agent.presentation.turns.owner.response_stream(ResponseDelivery.from_route(route))
+            agent.post_message(messages.Update(kind, text, stream, agent))
 
 
 class AgentThoughtEffect(MessageChunkEffect, declared_name='agent_thought_chunk'):

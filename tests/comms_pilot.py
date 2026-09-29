@@ -1,6 +1,5 @@
 from __future__ import annotations
 from toad.navigation_target import NavigationContext
-from toad.conversation_turn import AgentTurn, ClientTurn
 
 from agent_comms.acp_extension import (
     TurnSettledUpdate,
@@ -553,14 +552,21 @@ async def main() -> None:
             assert app.session_tracker.session_count == 1
             conversation._loading = await conversation.post(Loading("Thinking…"))
             current_summary = app.session_tracker.get_session(owner_mode).summary
-            conversation.turns.owner = ClientTurn()
-            conversation.post_message(acp_messages.Update("text", "Background message"))
+            from toad.widgets.agent_response import UnroutedResponse
+            conversation.turns.finish_client()
+            conversation.post_message(acp_messages.Update(
+                "text", "Background message",
+                conversation.turns.owner.response_stream(UnroutedResponse()), conversation.agent,
+            ))
             await pilot.pause()
             assert (
                 app.session_tracker.get_session(owner_mode).summary == current_summary
             )
-            conversation.turns.owner = AgentTurn()
-            conversation.post_message(acp_messages.Update("text", "Finished answer"))
+            conversation.turns.start_client()
+            conversation.post_message(acp_messages.Update(
+                "text", "Finished answer",
+                conversation.turns.owner.response_stream(UnroutedResponse()), conversation.agent,
+            ))
             await pilot.pause()
             assert (
                 app.session_tracker.get_session(owner_mode).summary
@@ -629,7 +635,7 @@ async def main() -> None:
             original_agent = conversation.agent
             cancel_agent = SlowCancelAgent()
             conversation.agent = cancel_agent
-            conversation.turns.owner = AgentTurn()
+            conversation.turns.start_client()
             conversation._last_escape_time = 0.0
             conversation._loading = await conversation.post(Loading("Thinking…"))
             conversation.action_cancel()
@@ -649,7 +655,7 @@ async def main() -> None:
                 await conversation._loading.remove()
             conversation._loading = None
             conversation.agent = original_agent
-            conversation.turns.owner = ClientTurn()
+            conversation.turns.finish_client()
             prompt_input = conversation.prompt.prompt_text_area
             prompt_input.text = "clear this entire draft"
             prompt_input.focus()

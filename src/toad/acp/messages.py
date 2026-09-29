@@ -9,7 +9,6 @@ from agent_comms.acp_extension import (
     AgentCommsUpdate,
     QueueScope,
 )
-from agent_comms.routing import MessageRoute
 from textual.message import Message
 
 from toad.acp import protocol
@@ -20,6 +19,7 @@ from .attachment_presentation import CursorPresentation, QueuePresentation
 from .permission_controller import PermissionRequest
 
 if TYPE_CHECKING:
+    from toad.live_output import OutputStream
     from textual.content import Content
     from toad.acp.agent import Model
     from toad.acp.agent_session import Mode
@@ -59,7 +59,8 @@ class UpdateStatusLine(AgentMessage):
 class Update(AgentMessage):
     type: str
     text: str
-    route: MessageRoute | None = None
+    stream: OutputStream
+    agent: object
 
 
 @dataclass

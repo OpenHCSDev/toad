@@ -51,18 +51,27 @@ class OutputStream(ABC):
 
 
 class ResponseStream(OutputStream):
-    def __init__(self, delivery: ResponseDelivery = UnroutedResponse()) -> None:
+    def __init__(self, delivery: ResponseDelivery = UnroutedResponse(), *, turn_id: str | None = None) -> None:
         super().__init__()
         self.delivery = delivery
+        self.turn_id = turn_id
 
     async def before_append(self, output: LiveOutput) -> None:
         await output.finish(ThoughtStream)
 
     def matches(self, incoming: ResponseStream) -> bool:
-        return self.delivery == incoming.delivery
+        return self.delivery == incoming.delivery and self.turn_id == incoming.turn_id
 
     def create(self, fragment: str) -> AgentResponse:
         return AgentResponse(fragment, delivery=self.delivery)
+
+
+class CompleteResponseStream(ResponseStream):
+    """An owner notice is complete at ingress rather than awaiting a turn end."""
+    async def append(self, view, fragment):
+        block = await super().append(view, fragment)
+        await self.finish()
+        return block
 
 
 class ThoughtStream(OutputStream):

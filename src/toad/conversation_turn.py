@@ -8,6 +8,7 @@ class TurnOwner(DeclaredFamily, affix="Turn"):
     managed_id = None
     activity = ""
     started_at = None
+    accepts_snapshot = True
 
     @property
     @abstractmethod
@@ -30,6 +31,10 @@ class TurnOwner(DeclaredFamily, affix="Turn"):
 
     def with_activity(self, activity: str) -> "TurnOwner":
         return ActivityTurn(activity) if activity else self
+
+    def response_stream(self, delivery):
+        from toad.live_output import CompleteResponseStream
+        return CompleteResponseStream(delivery)
 
 
 @dataclass(frozen=True)
@@ -62,12 +67,22 @@ class AgentTurn(TurnOwner):
     started_at: float | None = None
     busy = True
     session_state = "busy"
+    accepts_snapshot = False
 
     def matches_settlement(self, turn_id) -> bool:
         return self.managed_id == turn_id
 
     def with_activity(self, activity: str) -> "AgentTurn":
         return replace(self, activity=activity or "Thinking…")
+
+    def response_stream(self, delivery):
+        from toad.live_output import ResponseStream
+        return ResponseStream(delivery, turn_id=self.managed_id)
+
+
+class ObservedAgentTurn(AgentTurn):
+    """An owner snapshot observes a turn outside the ordered ACP stream."""
+    accepts_snapshot = True
 
 
 class TurnBinding(DeclaredFamily, affix="TurnBinding"):
