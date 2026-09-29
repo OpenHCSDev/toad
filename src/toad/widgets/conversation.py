@@ -1146,6 +1146,8 @@ class Conversation(ConversationSessionBinding):
         event.stop()
         if not event.current:
             return
+        if agent := self.agent:
+            await agent.observe_thread_presentation(event.presentation)
         if event.presentation is not None:
             await self._show_assigned_inbound(event.presentation.notifications)
         if not self.agent_ready or self.turns.managed_id is not None or self.turns.owner.busy:

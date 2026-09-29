@@ -390,8 +390,10 @@ class Agent(AgentBase):
             (self.coordination.thread.name if self.coordination else None),
         ):
             raise ValueError("Thread attachment changed while reading status")
-        await self.session.observe_owner(presentation)
         return presentation
+
+    async def observe_thread_presentation(self, presentation) -> None:
+        await self.session.observe_owner(presentation)
 
     async def get_transcript_page(
         self,

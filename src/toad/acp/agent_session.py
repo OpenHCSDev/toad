@@ -117,8 +117,6 @@ class AgentSession:
         binding = presentation.binding
         if not binding.replaces(coordination.thread, coordination.owner_pid):
             return
-        if self.load_admission.already_requested(binding):
-            return
         await self.reconnect(ExistingSessionLoadAdmission(binding))
 
     async def reconnect(self, admission: SessionLoadAdmission | None = None) -> None:
@@ -274,9 +272,10 @@ class AgentSession:
                 if agent_data := session.meta_json.agent_data:
                     self.agent._agent_data = agent_data
 
+        admission, self.load_admission = self.load_admission, EnsuringSessionLoadAdmission()
         with self.agent.request():
             session_load_response = api.session_load(cwd, [], request_session_id,
-                                                     self.load_admission.metadata())
+                                                     admission.metadata())
         response = await session_load_response.wait()
         authority.require()
         if (
