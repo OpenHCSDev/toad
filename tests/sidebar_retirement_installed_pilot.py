@@ -16,7 +16,7 @@ from weakref import ref
 import psutil
 from agent_comms.comms import wire
 from agent_comms.threads import Thread
-from sidebar_retirement_pilot import InstalledApp, until, reveal, prepare_project
+from sidebar_retirement_pilot import InstalledApp, until, reveal, prepare_project, viewport_text
 from toad.screens.main import MainScreen
 from toad.widgets.plan import Plan
 from toad.widgets.project_directory_tree import ProjectDirectoryTree
@@ -121,9 +121,22 @@ async def main():
                     assert relationships.view_state is state
                     assert state.selected == ("collaborating", "peer")
                     assert not relationships.groups["collaborating"].expanded
+                    assert "Source" in viewport_text(bar) and "inactive" in viewport_text(bar)
+                    tree.scroll_visible(animate=False, immediate=True)
+                    tree.scroll_to_node(tree.cursor_node, animate=False)
+                    await pilot.pause(.02)
+                    assert "item-38.txt" in viewport_text(tree), "Restored selected filename not painted"
+                    relationships.groups["collaborating"].toggle_members()
+                    await until(pilot, lambda: bool(relationships.groups["collaborating"].rows))
+                    relationships.scroll_visible(animate=False, immediate=True)
+                    await pilot.pause(.02)
+                    assert "peer" in viewport_text(relationships), "Restored relationship not painted"
+                    assert next(iter(relationships.groups["collaborating"].rows.values())).has_class("-selected")
+                    app.save_screenshot("sidebar-return.svg", path="evidence/sidebar-retirement")
                     del tree, relationships
                 else:
                     assert bar.query_one(Plan).entries[0].content.plain == f"Plan {screens.index(screen)}"
+                    assert f"Plan {screens.index(screen)}" in viewport_text(bar), "Plan text not painted on return"
                 if screen is screens[tabs // 2]:
                     await pilot.resize_terminal(106, 37)
                     await pilot.pause(.02)

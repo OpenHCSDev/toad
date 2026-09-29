@@ -52,6 +52,13 @@ async def prepare_project(sidebar, pilot):
     return tree
 
 
+def viewport_text(widget):
+    """Crop actual compositor strips to the visible native widget viewport."""
+    region = widget.region.intersection(widget.screen.region)
+    return "\n".join(strip.crop(region.x, region.right).text
+                     for strip in widget.screen._compositor.render_strips()[region.y:region.bottom])
+
+
 async def exercise(screen, pilot, root):
     sidebar = await reveal(screen, pilot)
     relationships = sidebar.query_one(ThreadCommsSidebar)
@@ -108,10 +115,13 @@ async def exercise(screen, pilot, root):
     tree = await prepare_project(sidebar, pilot)
     await until(pilot, lambda: tree.cursor_node is not None and tree.cursor_node.data.path == root / "folder/deep/item-38.txt")
     await pilot.pause(.05)
-    assert tree.scroll_y == tree_scroll, (tree.scroll_y, tree_scroll, tree.size, tree.virtual_size,
-                                         tree.max_scroll_y, [owner.intent for owner in sidebar._panel_owners
-                                                            if hasattr(owner, "intent")])
+    assert tree.scroll_y == tree_scroll, (tree.scroll_y, tree_scroll, tree.size, tree.virtual_size)
     assert viewport.scroll_y == panel_scroll, (viewport.scroll_y, panel_scroll)
+    assert all(word in viewport_text(sidebar) for word in ("Latest", "while", "absent"))
+    tree.scroll_visible(animate=False, immediate=True)
+    tree.scroll_to_node(tree.cursor_node, animate=False)
+    await pilot.pause(.02)
+    assert "item-38.txt" in viewport_text(tree), ("Restored filename was not actually painted", viewport_text(tree))
     print(json.dumps({"restored_selection": str(tree.cursor_node.data.path), "tree_scroll": tree_scroll,
                       "panel_scroll": panel_scroll, "retired_widgets_collected": len(saved)+1}), flush=True)
 
