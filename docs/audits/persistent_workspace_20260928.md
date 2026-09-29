@@ -273,3 +273,17 @@ Main149/150c253 is integrated at091d9c62. Preserve own unconditional visible-bod
 Delete the inline fragment-preparation branch and its8192-character/64-event caps. Delete the background switch and migrate its actual TranscriptPageWork caller. Snapshot preparation now uses the existing TranscriptRenderTask declaration and app PreparedRenderer/PreparationRuntime, including small snapshots. No second cache, source controller, codec or protocol added. IMPL-4/5: one execution/reuse path through the declared operation; AGENT-2: actual small caller closure.
 
 Installed four-call Pi/ACP native reader test proves the same exact canonical prepared result stays in the existing bounded cache through first source return:32674 retained bytes of67108864 limit (`recent-native-cache-proof.log`, RECENT_PREPARATION_REUSED). Original Agent/process and19→19/fragment geometry remain. Full cropped paint stays RED only at recreated User/Agent timestamps; do not normalize or drop that assertion. This is prepared-fragment reuse, not a claim that every rich body stays allocated or that30–40ms performance is complete. Final multi-return/multi-page/native inputs/performance/canonical suite remain required.
+
+
+## Latest framework/live-core matched fixed-source receipt
+
+Current installed paired native result core6bd8c423/Textual1738abd8/native5fde, own PR142 source a054ed18 plus pin alignment. Exit0; all4/16/32/64 cohorts passed original Agent/process/runner, queue retention (eight actual Pi/ACP loopback calls), one global rich view, editor/Document/EditHistory/undo and cropped answer paint.
+
+|Tabs|Median ms|Max ms|Over100ms|
+|---|---|---|---|
+|4|88.26|177.83|3/9|
+|16|92.50|168.07|7/45|
+|32|106.15|204.29|90/93|
+|64|133.38|229.53|189/189|
+
+This measures one loaded native source among blank logical tabs, includes20ms Pilot settle, ordinaryGC. It is not fully loaded cohort or physical-terminal performance.30–40ms UNMET. Evidence: evidence/workspace-persistent/native-reused-core6bd-textual1738.json. Recent offset19→19 remains proven; unchanged full paint fails on reconstructed clock, Wegener core contract requested5883298325. No core implementation, live edits or CI wait. Full loaded/blank, multi-page/changed interval, final installed suite remain assigned and unfinished. Correct22:16 NRA/refactor-audit skills and dominant-kind chain classification reread; pin-only changes add no source chain terms.
