@@ -12,7 +12,6 @@ import platform
 from dataclasses import replace
 from datetime import datetime, timezone
 from functools import cached_property, partial
-from importlib.resources import files
 from pathlib import Path
 from time import monotonic
 from typing import TYPE_CHECKING, Any, Callable, ClassVar, TypeVar, cast
@@ -30,7 +29,6 @@ from textual.notifications import Notify
 from textual.reactive import reactive, var
 from textual.screen import Screen
 from textual.signal import Signal
-from textual.timer import Timer
 
 import toad
 from toad import atomic, messages, paths
@@ -58,6 +56,7 @@ from toad.settings import PreferenceChange
 from toad.sidebar_layout import SidebarLayout
 from toad.clipboard import Clipboard
 from toad.tab_order import TabOrder
+from toad.terminal_attention import TerminalAttention
 
 if TYPE_CHECKING:
     from toad.db import DB
@@ -324,10 +323,6 @@ class ToadApp(WorkspaceSessionShutdown, App, inherit_bindings=False):
     scrollbar: reactive[str] = reactive("normal")
     last_ctrl_c_time = reactive(0.0)
     update_required: reactive[bool] = reactive(False)
-    terminal_title: var[str] = var("Toad")
-    terminal_title_icon: var[str] = var("🐸")
-    terminal_title_flash = var(0)
-    terminal_title_blink = var(False)
     project_dir = var(Path)
     show_sessions = var(False, toggle_class="-show-sessions-bar")
 
@@ -374,7 +369,7 @@ class ToadApp(WorkspaceSessionShutdown, App, inherit_bindings=False):
         self._initial_agent_session_id = agent_session_id
         self.version_meta: VersionMeta | None = None
         self.clipboard_transport = Clipboard.for_platform()
-        self._terminal_title_flash_timer: Timer | None = None
+        self.terminal_attention = TerminalAttention(self)
 
         self.session_update_signal: Signal[tuple[str, SessionDetails | None]] = Signal(
             self, "session_update"
@@ -416,6 +411,7 @@ class ToadApp(WorkspaceSessionShutdown, App, inherit_bindings=False):
         return paths.get_config()
 
     async def on_unmount(self) -> None:
+        self.terminal_attention.close()
         await self.navigation_reader.aclose()
         await self.render_processes.aclose()
         if self._background_render_tasks:
@@ -493,89 +489,6 @@ class ToadApp(WorkspaceSessionShutdown, App, inherit_bindings=False):
     def copy_to_clipboard(self, text: str) -> None:
         self.clipboard_transport = self.clipboard_transport.copy(self, text)
 
-    def update_terminal_title(self) -> None:
-        """Update the terminal title."""
-        selected = self.selected_session
-        screen_title = selected.title if self.current_mode == "workspace" and selected is not None else self.screen.title
-
-        title = (
-            f"{self.terminal_title} — {screen_title}"
-            if screen_title
-            else self.terminal_title
-        )
-        icon = self.terminal_title_icon
-        blink = self.terminal_title_blink
-
-        if self.terminal_title_flash:
-            if blink:
-                terminal_title = f"{icon} {title}"
-            else:
-                terminal_title = f"👉 {title}" if title else icon
-        else:
-            terminal_title = f"{icon} {title}"
-
-        if driver := self._driver:
-            driver.write(f"\033]0;{terminal_title}\007")
-
-    def watch_terminal_title_blink(self) -> None:
-        self.update_terminal_title()
-
-    def watch_terminal_title_flash(self, terminal_title_flash: int) -> None:
-
-        if not self.settings.notifications.blink_title:
-            # Ignore if blink title is disabled
-            return
-
-        def toggle_blink() -> None:
-            self.terminal_title_blink = not self.terminal_title_blink
-
-        if terminal_title_flash:
-            if self._terminal_title_flash_timer is None:
-                self._terminal_title_flash_timer = self.set_interval(0.5, toggle_blink)
-        else:
-            if self._terminal_title_flash_timer is not None:
-                self._terminal_title_flash_timer.stop()
-                self.terminal_title_blink = False
-                self._terminal_title_flash_timer = None
-        self.update_terminal_title()
-
-    def watch_terminal_title(self, title: str) -> None:
-        self.update_terminal_title()
-
-    def terminal_alert(self, flash: bool = True) -> None:
-        if flash:
-            self.terminal_title_flash += 1
-        else:
-            self.terminal_title_flash -= 1
-
-    @cached_property
-    def term_program(self) -> str:
-        """An identifier for the terminal software."""
-        if term_program := os.environ.get("TERM_PROGRAM"):
-            return term_program
-
-        # Windows Terminal
-        if "WT_SESSION" in os.environ:
-            return "Windows Terminal"
-
-        # Kitty
-        if "KITTY_WINDOW_ID" in os.environ:
-            return "Kitty"
-
-        # Alacritty
-        if "ALACRITTY_SOCKET" in os.environ or "ALACRITTY_LOG" in os.environ:
-            return "Alacritty"
-
-        # VTE-based terminals (GNOME Terminal, Tilix, etc.)
-        if "VTE_VERSION" in os.environ:
-            return "VTE-based (GNOME Terminal/Tilix/etc.)"
-
-        # Konsole
-        if "KONSOLE_VERSION" in os.environ:
-            return "Konsole"
-
-        return "Unknown"
-
     @work(exit_on_error=False)
     async def capture_event(self, event_name: str, **properties: Any) -> None:
         """Capture an event.
@@ -593,7 +506,7 @@ class ToadApp(WorkspaceSessionShutdown, App, inherit_bindings=False):
 
         event_properties = {
             "toad_version": self.version,
-            "term_program": self.term_program,
+            "term_program": self.terminal_attention.program,
             "term_width": width,
             "term_height": height,
         } | properties
@@ -617,50 +530,8 @@ class ToadApp(WorkspaceSessionShutdown, App, inherit_bindings=False):
         except Exception:
             pass
 
-    @work(thread=True, exit_on_error=False)
-    def system_notify(
-        self, message: str, *, title: str = "", sound: str | None = None
-    ) -> None:
-        """Use OS level notifications.
-
-        Args:
-            message: Message to display.
-            title: Title of the notificaiton.
-            sound: filename (minus .wav) of a sound effect in the sounds/ directory.
-        """
-        system_notifications = self.settings.notifications.system
-        if not system_notifications.enabled(self.app_focus):
-            return
-
-        from notifypy import Notify
-
-        notification = Notify()
-        notification.message = message
-        notification.title = title
-        notification.application_name = "🐸 Toad" if toad.os == "macos" else "Toad"
-        if sound and self.settings.notifications.enable_sounds:
-            sound_path = str(files("toad.data").joinpath(f"sounds/{sound}.wav"))
-            notification.audio = sound_path
-
-        icon_path = str(files("toad.data").joinpath("images/frog.png"))
-        notification.icon = icon_path
-
-        notification.send()
-
     def on_notify(self, event: Notify) -> None:
-        """Handle notification message."""
-        system_notifications = self.settings.notifications.system
-        if system_notifications.enabled(self.app_focus):
-            hide_low_severity = self.settings.notifications.hide_low_severity
-            if event.notification.markup:
-                # Strip content markup
-                message = Content.from_markup(event.notification.message).plain
-            else:
-                message = event.notification.message
-            if not (hide_low_severity and event.notification.severity == "information"):
-                self.system_notify(message, title=event.notification.title)
-        self._notifications.add(event.notification)
-        self._refresh_notifications()
+        self.terminal_attention.notification(event.notification)
 
     async def save_settings(self, force: bool = False) -> None:
         """Save settings in a thread.
@@ -1584,7 +1455,7 @@ class ToadApp(WorkspaceSessionShutdown, App, inherit_bindings=False):
         else:
             await self.new_session_screen(self.get_main_screen)
 
-        self.update_terminal_title()
+        self.terminal_attention.update()
         self.set_timer(1, self.run_version_check)
         self.set_process_title()
         self.update_show_sessions()

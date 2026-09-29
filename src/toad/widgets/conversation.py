@@ -1563,7 +1563,7 @@ class Conversation(ConversationSessionBinding):
                 )
 
         if self.app.settings.notifications.turn_over:
-            self.app.system_notify(
+            self.app.terminal_attention.notify(
                 f"{self.agent_title} has finished working",
                 title="Waiting for input",
                 sound="turn-over",
@@ -1992,7 +1992,7 @@ class Conversation(ConversationSessionBinding):
         else:
             notify_title = title
         notify_message = "\n".join(f" • {option.text}" for option in options)
-        self.app.system_notify(notify_message, title=notify_title, sound="question")
+        self.app.terminal_attention.notify(notify_message, title=notify_title, sound="question")
 
         ask = Ask(title, options, get_content, callback)
         self.prompt.ask(ask)

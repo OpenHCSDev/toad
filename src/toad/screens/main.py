@@ -194,7 +194,7 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
         await self.presentation.retire(self)
 
     def watch_title(self, title: str) -> None:
-        self.app.update_terminal_title()
+        self.app.terminal_attention.update()
 
     def get_loading_widget(self) -> Widget:
         return self.app.settings.ui.throbber.widget(self)
