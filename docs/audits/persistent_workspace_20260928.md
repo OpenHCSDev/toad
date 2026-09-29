@@ -79,3 +79,15 @@ rapid-visible-body-local-action.log exits0: repeated real PageDown/End, cropped
 tail text, cold dormant tail restored, no submitted visible unready-body frame,
 and exact final anchor/max scroll. No mocked restore method. This passes paint
 behavior, not repeated-body allocation counts or recent-source switching.
+
+### Shared operational acceptance still red
+
+Fresh actual native4/16/32/64 acceptance exposed operational initial hydration
+missing the declared surface slot; compose now always declares it alongside the
+loading marker, and the reusable view is no longer data-bound to its first host.
+Second native run attaches/navigates successfully, then fails first source swap
+with detached Conversation/NoScreen and missing Prompt. Receipts
+native-reused-main306.log and native-reused-main306-v2.log are failures, not green
+native acceptance. This is own142 integration work; merged livee46 is unchanged.
+Inactive editor checks now inspect the actual retained logical owner's typed
+Document/EditHistory, and return additionally requires the original editor widget.

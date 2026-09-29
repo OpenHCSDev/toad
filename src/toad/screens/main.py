@@ -231,9 +231,8 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
         with containers.Center():
             yield SessionThreadSidebar(self)
             with containers.Vertical(id="session-content"):
-                if self._content_loaded:
-                    yield self.presentation.compose_content(self)
-                else:
+                yield self.presentation.compose_content(self)
+                if not self._content_loaded:
                     yield ThreadLoading(id="session-opening")
 
     def _make_conversation(self) -> Conversation:
@@ -242,7 +241,7 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
                 self.project_path, self._agent, self._agent_session_id,
                 self._session_pk, self._agent_session_title,
                 initial_prompt=self._initial_prompt,
-            ).data_bind(project_path=MainScreen.project_path, column=MainScreen.column)
+            )
 
     def make_blank_conversation(self) -> Conversation:
         """Construct the shared blank editor without binding it to one host."""

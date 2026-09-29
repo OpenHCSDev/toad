@@ -57,8 +57,10 @@ def resource_snapshot(owner, acp_process):
 async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):
     workspace = app.screen
     owner_mode = app.selected_mode
+    owner_view = app.selected_session
     original = app.selected_session.conversation
     editor = original.prompt.prompt_text_area
+    original_editor = editor
     editor.insert("untouched native draft")
     editor.history.checkpoint()
     editor.insert(" with undo")
@@ -115,8 +117,10 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
             assert comms.registry.require("beta").executing
             await asyncio.wait_for(agent.send_prompt(f"QUEUED_AT_{count}", defer_display=True), 10)
             await until(pilot, lambda: bool(agent.queue_attachment.projection.items))
-            assert editor.document is document and editor.history is history
-            assert editor.text == "untouched native draft with undo"
+            state = owner_view.presentation.state
+            assert state is not None
+            assert state.editor.document is document and state.editor.history is history
+            assert state.editor.document.text == "untouched native draft with undo"
             rich_views = {id(view) for screen in app.workspace_sessions.views.values()
                           for view in screen.query("Conversation")}
             assert len(rich_views) == 1, "Inactive rich presentation escaped global admission"
@@ -144,6 +148,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
             await pilot.pause()
             original = app.selected_session.conversation
             editor = original.prompt.prompt_text_area
+            assert editor is original_editor, "Source return rebuilt the native editor"
             assert original.agent is agent
             assert editor.document is document and editor.history is history
             assert editor.text == "untouched native draft with undo"
