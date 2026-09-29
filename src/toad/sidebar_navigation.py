@@ -51,17 +51,16 @@ class SidebarNavigation:
         # Retained rows belong to their validated route. Hide a changed route
         # before its first frame; ordinary same-route tab switches keep the
         # already-rendered roster while the canonical refresh runs afterward.
-        if self.sidebar.observation.enabled and self.sidebar.projection.snapshot is not None:
+        if self.sidebar.observation.enabled and self.sidebar.projection.has_snapshot():
             try:
-                if (self.sidebar.observation.route_stamp is None
-                        or self.sidebar.observation.current_route_stamp()[0] != self.sidebar.observation.route_stamp[0]):
+                if self.sidebar.observation.route_changed():
                     self.sidebar.display = False
             except (OSError, ValueError):
                 self.sidebar.display = False
 
     def start(self) -> None:
         """Rebuild native rows only after the selected shell has been painted."""
-        if not self.sidebar.is_attached or not self.sidebar.screen.is_current or self.sidebar._closing:
+        if not self.sidebar.accepts_publication():
             return
         if self.worker is None or self.worker.is_finished:
             self.worker = self.sidebar.run_worker(
@@ -69,7 +68,7 @@ class SidebarNavigation:
             )
 
     async def hydrate(self) -> None:
-        while self.sidebar.is_attached and self.sidebar.screen.is_current and not self.sidebar._closing:
+        while self.sidebar.accepts_publication():
             revision = self.revision
             await self.sidebar.observation.present_cached()
             if revision == self.revision:
@@ -77,10 +76,9 @@ class SidebarNavigation:
                 return
 
     def finish(self, revision: int) -> None:
-        if (revision != self.revision or not self.sidebar.is_attached
-                or not self.sidebar.screen.is_current or self.sidebar._closing):
+        if revision != self.revision or not self.sidebar.accepts_publication():
             return
-        if (self.sidebar.display and self.sidebar.projection.snapshot is not None
+        if (self.sidebar.display and self.sidebar.projection.has_snapshot()
                 and not self.ready.is_set()):
             # A refresh callback may precede the resize messages from newly
             # mounted rows. Commit their geometry before scroll_to can clamp
@@ -113,10 +111,14 @@ class SidebarNavigation:
             self.state.selected = self.selection_for(row)
             self.apply()
 
+    def selection_current(self) -> bool:
+        """One selected destination has one retained painted row identity."""
+        painted = self.selected_row
+        return (self.selection_applied and self.painted_selection == self.state.selected
+                and (painted is None or painted.is_attached))
+
     def apply(self, *, force: bool = False) -> None:
-        if (not force and self.selection_applied
-                and self.painted_selection == self.state.selected
-                and (self.selected_row is None or self.selected_row.is_attached)):
+        if not force and self.selection_current():
             return
         self.selected_row = None
         for index, row in enumerate(self.sidebar.projection.rows):
@@ -129,7 +131,7 @@ class SidebarNavigation:
         self.selection_applied = True
 
     def restore_scroll(self) -> bool:
-        if self.sidebar.projection.snapshot is None:
+        if not self.sidebar.projection.has_snapshot():
             return False
         if self.restoring and self.sidebar.is_attached and self.sidebar.screen is self.sidebar.app.screen:
             return self.state.restore_scroll(*self.scroll_containers)
@@ -139,7 +141,7 @@ class SidebarNavigation:
         from toad.screens.comms import CommsScreen
         from toad.widgets.comms_sidebar import ThreadRow
 
-        if not self.sidebar.is_attached:
+        if not self.sidebar.accepts_publication():
             return
         if self.sidebar.screen is not self.sidebar.app.screen:
             # A tab switch changes presentation, not the channel roster's
@@ -167,10 +169,8 @@ class SidebarNavigation:
             aggregate = self.sidebar.projection.channels.get(ALL_COMMS_TARGET)
             if aggregate is not None:
                 group = aggregate.query_ancestor(ChannelGroup)
-                if not group.expanded:
-                    group.toggle_members()
-                    await group._sync_members()
-                    rows = self.sidebar.projection.rows
+                await group.reveal_members()
+                rows = self.sidebar.projection.rows
         target = next((row for row in self.sidebar.projection.session_rows if row.mode_name == current_mode), rows[0])
         self.sidebar._cursor = rows.index(target)
         self.sidebar._apply_cursor(rows)

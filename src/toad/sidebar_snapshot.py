@@ -20,10 +20,7 @@ class SidebarSnapshot:
             screen = app.session_navigation.source(details.mode_name)
             if screen is None:
                 continue
-            if (
-                screen.coordination_root is not None
-                and Path(screen.coordination_root).expanduser().resolve() != comms.root
-            ):
+            if not screen.belongs_to_wire(comms.root):
                 continue  # A same-named thread on another wire is not this open view.
             name = screen._comms_thread
             if name not in all_people and screen._agent_session_id in all_people:

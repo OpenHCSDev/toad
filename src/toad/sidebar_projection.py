@@ -33,12 +33,12 @@ class SidebarProjection:
         from toad.widgets.comms_sidebar import ChannelGroup
         return [row for group in self.sidebar.children if isinstance(group, ChannelGroup)
                 for row in (group.row, *group.member_rows)
-                if row.is_attached and not row._pruning and not row._closing]
+                if row.is_navigation_row()]
 
     @property
     def session_rows(self):
         from toad.widgets.comms_sidebar import ThreadRow
-        return [row for row in self.sidebar.query(ThreadRow) if row.mode_name is not None]
+        return [row for row in self.sidebar.query(ThreadRow) if row.has_open_view()]
 
     def mount(self) -> None:
         self.timer = self.sidebar.set_interval(.18, self.animate, pause=True)
@@ -47,23 +47,21 @@ class SidebarProjection:
         if self.timer is not None:
             self.timer.pause()
 
-    def sync_spinner(self, snapshot: SidebarSnapshot | None = None) -> None:
-        from toad.widgets.side_bar import SideBar
+    def has_snapshot(self) -> bool:
+        return self.snapshot is not None
 
+    def sync_spinner(self, snapshot: SidebarSnapshot | None = None) -> None:
         timer = self.timer
         if timer is None:
             return
-        current = snapshot or self.snapshot
-        bar = next((node for node in self.sidebar.ancestors if isinstance(node, SideBar)), None)
-        has_busy_rows = any(row.has_class("-busy") for row in self.rows)
-        if (self.sidebar.observation.enabled and self.sidebar.screen.is_active and bar is not None and bar.display and not bar.collapsed
-                and current is not None and has_busy_rows):
+        active = self.sidebar.shows_rows() and self.sidebar.observation.enabled
+        if active and self.has_snapshot() and any(row.has_class("-busy") for row in self.rows):
             timer.resume()
         else:
             timer.pause()
 
     def animate(self) -> None:
-        if not self.sidebar.screen.is_active or self.snapshot is None:
+        if not self.sidebar.shows_rows() or self.snapshot is None:
             self.sync_spinner()
             return
         self.phase = (self.phase + 1) % len(FRAMES)
@@ -71,15 +69,10 @@ class SidebarProjection:
             if row.has_class("-busy"):
                 row.advance_spinner(self.phase)
 
-    @property
-    def can_publish(self) -> bool:
-        return (self.sidebar.is_attached and not self.sidebar._closing and not self.sidebar._pruning
-                and self.sidebar.app.is_running and self.sidebar.screen.is_current)
-
     async def publish(self, snapshot: SidebarSnapshot) -> None:
         service = self.sidebar.observation.service
         async with self.lock:
-            if self.sidebar.observation.service is not service or not self.can_publish:
+            if self.sidebar.observation.service is not service or not self.sidebar.accepts_publication():
                 return
             changed = snapshot != self.snapshot
             paint = SidebarPaint(snapshot, tuple(self.sidebar.navigation.state.expanded.items()),
@@ -88,7 +81,7 @@ class SidebarProjection:
                 # Publication is serialized by this sidebar, not a global paint
                 # mask held across worker delivery and descendant mount awaits.
                 await self.rebuild(snapshot)
-                if not self.can_publish:
+                if not self.sidebar.accepts_publication():
                     return
                 self.paint = paint
                 if changed:
@@ -101,7 +94,7 @@ class SidebarProjection:
                 self.sidebar.call_after_refresh(self.sidebar.navigation.finish, self.sidebar.navigation.revision)
 
     async def rebuild(self, snapshot: SidebarSnapshot) -> None:
-        if not self.can_publish:
+        if not self.sidebar.accepts_publication():
             return
         self.snapshot = snapshot
         channels = self.channels
@@ -119,12 +112,12 @@ class SidebarProjection:
         ]
         if not self.sidebar.query(NewSessionButton):
             await self.sidebar.mount(NewSessionButton())
-            if not self.can_publish:
+            if not self.sidebar.accepts_publication():
                 return
         for key in set(channels) - set(desired_keys):
             row = channels.pop(key)
             await row.query_ancestor(ChannelGroup).remove()
-            if not self.can_publish:
+            if not self.sidebar.accepts_publication():
                 return
         new_groups: list[ChannelGroup] = []
         for key in desired_keys:
@@ -135,7 +128,7 @@ class SidebarProjection:
                 ))
         if new_groups:
             await self.sidebar.mount(*new_groups)
-            if not self.can_publish:
+            if not self.sidebar.accepts_publication():
                 return
         for view in snapshot.wire.channels:
             channel_row = channels[view.channel.name]
@@ -146,7 +139,7 @@ class SidebarProjection:
             group.update_activity(view, snapshot.all_people)
             channel_row.set_class(bool(unread), "-unread")
             await group.present(view, snapshot)
-            if not self.can_publish:
+            if not self.sidebar.accepts_publication():
                 return
         ordered = [self.sidebar.query_one(NewSessionButton), *(
             channels[key].query_ancestor(ChannelGroup) for key in desired_keys

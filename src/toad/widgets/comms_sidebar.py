@@ -98,6 +98,11 @@ class ChannelGroup(SidebarGroup):
                          controls=(self.unread_badge, self.sort_control),
                          disclosure_type=ChannelDisclosure)
 
+    async def reveal_members(self) -> None:
+        if not self.expanded:
+            self.toggle_members()
+        await self._sync_members()
+
     async def update_members(self, view: ChannelView, snapshot: SidebarSnapshot) -> None:
         self._view, self._snapshot = view, snapshot
         self.sort_control.update_order(view.channel.order)
@@ -258,6 +263,12 @@ class CommsRow(ThreadStatusRow):
         self.target = target
         self._label = label
         self.unread = unread
+
+    def is_navigation_row(self) -> bool:
+        return self.is_attached and not self._pruning and not self._closing
+
+    def has_open_view(self) -> bool:
+        return self.mode_name is not None
 
     @property
     def selected(self) -> bool:
@@ -472,6 +483,15 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
         self.navigation = SidebarNavigation(self)
         self.observation = SidebarObservation(self, enabled=observe)
         self.projection = SidebarProjection(self)
+
+    def accepts_publication(self) -> bool:
+        """The mounted widget owns the legality of writing its presentation."""
+        return (self.is_attached and not self._closing and not self._pruning
+                and self.app.is_running and self.screen.is_current)
+
+    def shows_rows(self) -> bool:
+        return self.screen.is_active and self.display and all(
+            node.display for node in self.ancestors if isinstance(node, Widget))
 
     def on_mount(self) -> None:
         self.projection.mount()
