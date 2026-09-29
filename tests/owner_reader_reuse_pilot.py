@@ -11,7 +11,7 @@ from agent_comms.child_process import ProcessIdentity
 from agent_comms.comms import wire
 from agent_comms.runtime import RuntimeProxy
 from agent_comms.threads import Thread
-from comms_boundary_fixture import attach_coordination
+from comms_boundary_fixture import attach_registered_coordination
 from runtime_fixture import ToadApp
 
 from toad.acp.agent import Agent
@@ -37,7 +37,7 @@ async def main():
                 )
             )
         agent = Agent(root, {"name": "fixture", "run_command": {"*": "false"}}, None)
-        attach_coordination(agent, str(roots[0]), "owner")
+        attach_registered_coordination(agent, str(roots[0]), "owner")
         ui_thread = threading.get_ident()
         constructors = []
         requests = []
@@ -60,7 +60,7 @@ async def main():
             await asyncio.gather(*(agent.controller.request_owner("fixture") for _ in range(6)))
             assert len(constructors) == 1 and len(requests) == 6
             assert all((row[0] is requests[0][0] for row in requests))
-            attach_coordination(agent, str(roots[1]), agent.coordination.thread.name)
+            attach_registered_coordination(agent, str(roots[1]), agent.coordination.thread.name)
             await agent.controller.request_owner("fixture", revision=2)
             assert len(constructors) == 2
             assert requests[-1][0].root == roots[1] and requests[-1][3] == {
@@ -74,7 +74,7 @@ async def main():
                 raise TimeoutError("Fixture did not release owner initialization")
             return wire(source)
 
-        attach_coordination(agent, str(roots[0]), agent.coordination.thread.name)
+        attach_registered_coordination(agent, str(roots[0]), agent.coordination.thread.name)
         try:
             with (
                 patch("toad.acp.transcript_reader.wire", blocked),
@@ -82,7 +82,7 @@ async def main():
             ):
                 pending = asyncio.create_task(agent.controller.request_owner("must-not-send"))
                 assert await asyncio.to_thread(entered.wait, 2)
-                attach_coordination(
+                attach_registered_coordination(
                     agent, str(roots[1]), agent.coordination.thread.name
                 )
                 release.set()

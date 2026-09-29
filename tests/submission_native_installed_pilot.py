@@ -44,6 +44,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     await until(pilot, lambda: not comms.registry.require('beta').executing and len(requests) == 3, 30)
     await until(pilot, lambda: response_painted(app, view, 'NATIVE_RESPONSE_3'))
     assert not view.queue_projection.items
+    await until(pilot, lambda: not view.submissions.active and view.submissions.requested_queue is None)
     assert not view.submissions.active and view.submissions.requested_queue is None
     disposition = InputDispositions(comms.root / InputDispositions.filename).read().rows['acp:' + queued.input_id]
     assert not disposition.unresolved and disposition.native_id
@@ -60,6 +61,11 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     assert returned.prompt.prompt_text_area.document is document
     assert returned.prompt.prompt_text_area.history is undo
     assert len(requests) == 3
+    delivery = await agent.controller.input_delivery(include_history=True)
+    assert delivery['inputs'] == [], delivery
+    assert await agent.get_goal_snapshot() == (None, None)
+    assert agent.controller.prompt_in_flight == 0
+    assert not agent.controller._deferred_submissions
     log = agent.presentation.log_path.read_text()
     assert log.count("'kind': 'send_now'") == 1, log
     root = Path(os.environ['L0A_EVIDENCE'])

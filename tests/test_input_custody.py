@@ -24,11 +24,15 @@ def test_pending_prompt_build_rejects_session_return_without_dispatch(tmp_path, 
         pending = asyncio.create_task(agent.send_prompt('unchanged local input', request=QueuePromptRequest('unchanged local input', True)))
         assert await asyncio.to_thread(entered.wait, 5)
         assert agent.controller.prompt_in_flight == 1
+        sending_now = asyncio.create_task(agent.controller.send_now())
+        await asyncio.sleep(0)
         agent.session_id = 'B'
         agent.session_id = 'A'
         release.set()
         with pytest.raises(jsonrpc.InvalidParams):
             await pending
+        with pytest.raises(jsonrpc.InvalidParams):
+            await sending_now
         assert dispatched == []
         assert agent.controller.prompt_in_flight == 0
         assert not agent.controller._deferred_submissions

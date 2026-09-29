@@ -50,3 +50,13 @@ def attach_coordination(agent, wire_root, thread):
     agent.coordination = coordination_fact(
         thread, wire_root, worktree=str(agent.project_root_path)
     )
+
+
+def attach_registered_coordination(agent, wire_root, thread):
+    """Use the real registry identity when a fixture actually registers an owner."""
+    from dataclasses import replace
+    from agent_comms.comms import wire
+    agent.coordination = replace(
+        coordination_fact(thread, wire_root, worktree=str(agent.project_root_path)),
+        thread=wire(wire_root).registry.require(thread).incarnation,
+    )

@@ -16,7 +16,7 @@ from agent_comms.goal_actions import (
     StandbyGoalAction,
 )
 from agent_comms.threads import Thread
-from comms_boundary_fixture import attach_coordination
+from comms_boundary_fixture import attach_registered_coordination
 from runtime_fixture import private_native_wire
 from textual.containers import VerticalScroll
 from textual.widgets import Static

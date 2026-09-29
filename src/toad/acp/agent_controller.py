@@ -255,13 +255,19 @@ class AgentController(OperationalTerminalOwner):
         await self.submit_blocks([{'type': 'text', 'text': ' '}], ClearQueueRequest())
 
     async def send_now(self):
+        authority = ClientSessionRequest(self.agent, self.agent.session_id)
+        queue_scope = self.agent.queue_attachment.scope
         if pending := tuple(self._deferred_submissions):
             await asyncio.gather(*(asyncio.shield(task) for task in pending))
-        return await self.submit_blocks([{'type': 'text', 'text': ' '}], SendNowRequest()) is not None
+        return await self.operate(self._prompt(
+            [{'type': 'text', 'text': ' '}], SendNowRequest(), authority, queue_scope)) is not None
 
     async def compact_context(self, instructions=None):
+        return await self.operate(self._compact_context(
+            instructions, ClientSessionRequest(self.agent, self.agent.session_id)))
+
+    async def _compact_context(self, instructions, authority):
         agent = self.agent
-        authority = ClientSessionRequest(agent, agent.session_id)
         authority.require()
         with agent.request():
             pending = api.session_prompt([{'type': 'text', 'text': ' '}],
@@ -280,7 +286,10 @@ class AgentController(OperationalTerminalOwner):
         return consumer.require_compaction_receipt()
 
     async def cancel_prompt(self):
-        authority = ClientSessionRequest(self.agent, self.agent.session_id)
+        return await self.operate(self._cancel_prompt(
+            ClientSessionRequest(self.agent, self.agent.session_id)))
+
+    async def _cancel_prompt(self, authority):
         authority.require()
         with self.agent.request():
             pending = api.session_cancel(authority.session_id, {})
