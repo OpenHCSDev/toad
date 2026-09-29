@@ -1,0 +1,25 @@
+{
+  "toad_commit": "8207017015787182b5c81230fc462d7a8d3daf8d",
+  "core_commit": "1dbb318dabc67866d282c97478877e44adf99a2a",
+  "toad": "/home/ts/wt/toad-saved-state-user-journey-20260929/.artifacts/body-native-acceptance/venv/lib/python3.14/site-packages/toad/__init__.py",
+  "agent_comms": "/home/ts/wt/toad-saved-state-user-journey-20260929/.artifacts/body-native-acceptance/venv/lib/python3.14/site-packages/agent_comms/__init__.py",
+  "textual": "/home/ts/.local/share/agent-comms/runtime-context-observation-20260929/lib/python3.14/site-packages/textual/__init__.py",
+  "distributions": {
+    "batrachian-toad": {
+      "url": "file:///home/ts/wt/toad-saved-state-user-journey-20260929/.artifacts/body-native-acceptance/src",
+      "dir_info": {}
+    },
+    "agent-comms": {
+      "url": "file:///home/ts/wt/toad-saved-state-user-journey-20260929/.artifacts/body-native-acceptance/core",
+      "dir_info": {}
+    },
+    "textual": {
+      "url": "https://github.com/OpenHCSDev/textual.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "1738abd8e3524b7e86171b70256d7f7e52fdb724",
+        "requested_revision": "1738abd8e3524b7e86171b70256d7f7e52fdb724"
+      }
+    }
+  }
+}
