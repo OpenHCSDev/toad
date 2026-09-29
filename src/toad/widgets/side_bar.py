@@ -690,7 +690,7 @@ class SideBar(SidebarDecorations, containers.Vertical):
 
             screen = self.screen
             if isinstance(screen, WorkspaceScreen):
-                screen.call_after_first_frame(self, self._start_hydration)
+                screen.frame_presentation.defer(self, self._start_hydration)
             else:
                 self.call_after_refresh(self._start_hydration)
 

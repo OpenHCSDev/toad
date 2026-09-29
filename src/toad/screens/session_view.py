@@ -14,7 +14,6 @@ class SessionView(SidebarFocusOwner, Vertical):
     COMMANDS = set()
     footer_compact = False
     shows_channels = True
-    _first_frame_presented = False
 
     @property
     def is_current(self) -> bool:
@@ -53,11 +52,8 @@ class SessionView(SidebarFocusOwner, Vertical):
     async def on_unmount(self) -> None:
         await self.close_presentation()
 
-    def call_after_first_frame(self, owner, callback) -> None:
-        self.screen.call_after_first_frame(owner, callback)
-
     async def wait_presented(self) -> bool:
-        return await self.screen.wait_presented() and self.is_current
+        return await self.screen.frame_presentation.wait() and self.is_current
 
     @property
     def viewport_presentation(self):

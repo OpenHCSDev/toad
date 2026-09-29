@@ -27,6 +27,10 @@ class CompletionPeer(Agent):
 
     async def new_session(self, cwd: str, **kwargs):
         self.project = Path(cwd)
+        # Controlled response timing, with the actual SDK/stdio/UI path intact.
+        hold = self.project / "hold-acp-startup"
+        while hold.exists():
+            await asyncio.sleep(.02)
         return NewSessionResponse(sessionId="completion-acceptance", configOptions=self.models())
 
     async def prompt(self, session_id, prompt, **kwargs):
@@ -34,7 +38,10 @@ class CompletionPeer(Agent):
         self.record({"prompt": text})
         await self.connection.session_update(session_id=session_id, update=AvailableCommandsUpdate(
             sessionUpdate="available_commands_update",
-            availableCommands=[AvailableCommand(name="proofcmd", description="Physical ACP completion command")],
+            availableCommands=[AvailableCommand(
+                name="proofcmd", description="Physical ACP completion command",
+                input={"hint": "UPDATED_ACP_HINT" if text == "change-command" else "ORIGINAL_ACP_HINT"},
+            )],
         ))
         await self.connection.session_update(session_id=session_id, update=AgentMessageChunk(
             sessionUpdate="agent_message_chunk",

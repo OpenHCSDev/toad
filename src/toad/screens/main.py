@@ -509,7 +509,7 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
         if self._content_loaded:
             self._content_ready.set()
         else:
-            self.call_after_first_frame(self, self._start_content_hydration)
+            self.screen.frame_presentation.defer(self, self._start_content_hydration)
         self.app.sidebar_layout_changed.subscribe(
             self, lambda _event: self._align_tabs_with_sidebar(False)
         )

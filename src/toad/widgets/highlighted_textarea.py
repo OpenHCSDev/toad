@@ -1,5 +1,4 @@
 from __future__ import annotations
-from dataclasses import dataclass
 import re
 from typing import Sequence
 
@@ -9,15 +8,12 @@ from textual import on
 from textual.reactive import reactive
 from textual.content import Content
 from textual.highlight import highlight, HighlightTheme, TokenType
-from textual.message import Message
 from textual.widgets import TextArea
-from textual.widgets.text_area import Selection
 
 from pygments.token import Token
 
 
 RE_MATCH_FILE_PROMPT = re.compile(r"(@\S+)|@\"(.*)\"")
-RE_SLASH_COMMAND = re.compile(r"(\/\S*)(\W.*)?$")
 
 
 class TextualHighlightTheme(HighlightTheme):
@@ -63,10 +59,6 @@ class TextualHighlightTheme(HighlightTheme):
 class HighlightedTextArea(TextArea):
     highlight_language = reactive("markdown")
 
-    @dataclass
-    class CursorMove(Message):
-        selection: Selection
-
     def __init__(
         self,
         text: str = "",
@@ -97,12 +89,6 @@ class HighlightedTextArea(TextArea):
     def notify_style_update(self) -> None:
         self._clear_caches()
         return super().notify_style_update()
-
-    def _watch_selection(
-        self, previous_selection: Selection, selection: Selection
-    ) -> None:
-        self.post_message(self.CursorMove(selection))
-        super()._watch_selection(previous_selection, selection)
 
     @property
     def highlight_lines(self) -> Sequence[Content]:
