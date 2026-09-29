@@ -14,6 +14,36 @@ from toad.render_backend import Renderer
 from toad.render_choices import RendererChoice
 
 
+def persist_terminal_failure(error: Exception) -> None:
+    """Keep Textual's terminal failure in the existing diagnostic directory."""
+    import traceback
+    from toad import paths
+    from toad.acp.agent import generate_datetime_filename
+
+    path = paths.get_log() / generate_datetime_filename("Terminal_crash", ".txt")
+    try:
+        descriptor = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+        with os.fdopen(descriptor, "w") as stream:
+            traceback.print_exception(error, file=stream)
+    except OSError as log_error:
+        click.echo(f"Unable to save terminal traceback: {log_error}", err=True)
+    else:
+        click.echo(f"Terminal traceback saved: {path}", err=True)
+
+
+def run_terminal(app: ToadApp) -> None:
+    """Own both escaping and Textual-retained failures at the CLI boundary."""
+    try:
+        app.run()
+    except Exception as error:
+        persist_terminal_failure(error)
+        raise
+    if app._exception is not None:
+        persist_terminal_failure(app._exception)
+        raise SystemExit(app.return_code or 1)
+    app.run_on_exit()
+
+
 def renderer_from_cli(backend: str | None) -> Renderer | None:
     if backend is None:
         return None
@@ -183,8 +213,7 @@ def run(
             project_dir=project_dir,
             renderer=renderer_from_cli(renderer),
         )
-        app.run()
-        app.run_on_exit()
+        run_terminal(app)
 
 
 @main.command("acp")
@@ -287,8 +316,7 @@ def acp(
             agent_data=agent_data, project_dir=project_dir, agent_session_id=session_id,
             renderer=renderer_from_cli(renderer),
         )
-        app.run()
-        app.run_on_exit()
+        run_terminal(app)
 
     print("")
     print("[bold magenta]Thanks for trying out Toad!")
