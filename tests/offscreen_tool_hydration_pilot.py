@@ -33,8 +33,8 @@ async def main():
             visual_policy = mock_patch.object(ToolCall, "_visible_in_window", return_value=True) if eager else nullcontext()
             with visual_policy:
                 start, cpu = time.perf_counter(), time.process_time()
-                await app.screen.conversation.contents.mount(*tools)
-                app.screen.conversation.window.anchor()
+                await app.selected_session.conversation.contents.mount(*tools)
+                app.selected_session.conversation.window.anchor()
                 await pilot.pause()
                 initial_ms = (time.perf_counter() - start) * 1000
                 initial_cpu_ms = (time.process_time() - cpu) * 1000

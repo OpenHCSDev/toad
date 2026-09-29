@@ -54,7 +54,7 @@ async def main():
             pulse = asyncio.create_task(heartbeat())
             start, cpu = time.perf_counter(), time.process_time()
             try:
-                await app.screen.conversation.contents.mount(*tools)
+                await app.selected_session.conversation.contents.mount(*tools)
                 await pilot.pause()
                 header = tools[-1].query_one(ToolCallHeader)
                 for _ in range(5):
@@ -82,7 +82,7 @@ async def main():
                 tools[-1].expanded = True
                 await pilot.pause()
                 assert "New result" in tools[-1].query_one(MarkdownContent).source
-                conversation = app.screen.conversation
+                conversation = app.selected_session.conversation
                 for channel in (ResponseStream(), ThoughtStream()):
                     block = await conversation.output.append(channel, "First")
                     await block.append_fragment(" last fragment")

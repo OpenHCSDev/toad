@@ -176,12 +176,9 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
         self._content_loading = False
         self._content_ready = asyncio.Event()
         self._content_error: BaseException | None = None
-        from toad.session_presentation import BlankSessionPresentation, OperationalSessionPresentation
+        from toad.session_presentation import OperationalSessionPresentation
 
-        self.presentation = (BlankSessionPresentation() if agent is None
-                             and agent_session_id is None and session_pk is None
-                             and initial_prompt is None
-                             else OperationalSessionPresentation())
+        self.presentation = OperationalSessionPresentation()
 
     async def prepare_presentation(self) -> None:
         from toad.widgets.session_thread_sidebar import SessionThreadSidebar

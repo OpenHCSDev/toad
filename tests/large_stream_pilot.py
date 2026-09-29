@@ -48,7 +48,7 @@ async def main():
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(70, 25)) as pilot:
             await pilot.pause()
-            conversation = app.screen.conversation
+            conversation = app.selected_session.conversation
             source = "| Name | Purpose | State |\n| --- | --- | --- |\n"
             response = await conversation.post(AgentResponse(source))
             conversation.window.anchor()

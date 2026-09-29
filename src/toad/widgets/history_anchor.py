@@ -19,6 +19,33 @@ if TYPE_CHECKING:
     from toad.widgets.transcript_history import TranscriptHistory
 
 
+class ReaderPosition(ABC):
+    """Source-owned reader intent, independent of retired widget geometry."""
+
+    @classmethod
+    def capture(cls, window: "HistoryWindow") -> "ReaderPosition":
+        # Follow intent enters from Textual's native scroll boundary once.
+        return TailReaderPosition() if window.follows_tail else OffsetReaderPosition(window.scroll_y)
+
+    @abstractmethod
+    def restore(self, window: "HistoryWindow") -> None: ...
+
+
+@dataclass(frozen=True)
+class TailReaderPosition(ReaderPosition):
+    def restore(self, window: "HistoryWindow") -> None:
+        window.anchor()
+
+
+@dataclass(frozen=True)
+class OffsetReaderPosition(ReaderPosition):
+    y: float
+
+    def restore(self, window: "HistoryWindow") -> None:
+        window.release_anchor()
+        window.scroll_to(y=self.y, animate=False, immediate=True)
+
+
 class HistoryWindow(VerticalScroll):
     """Explicit follow intent survives zero-height scroll ranges during reflow."""
 

@@ -47,8 +47,8 @@ async def main():
                 while first.query(Conversation):
                     await pilot.pause(.02)
             assert not first.query(Conversation), "Inactive blank tab retained its entire rich conversation"
-            assert first.presentation.editor_state.document is document
-            assert first.presentation.editor_state.history is history
+            assert first.presentation.state.editor.document is document
+            assert first.presentation.state.editor.history is history
             second = app.selected_session
             assert second.conversation is shared_surface
             assert shared_surface._task is original_task
@@ -69,7 +69,7 @@ async def main():
             assert restored.text == "first draft"
             restored.redo()
             assert restored.text == expected
-            assert app.workspace_sessions.require(second_mode).presentation.editor_state is not None
+            assert app.workspace_sessions.require(second_mode).presentation.state.editor is not None
             await app.select_session(second_mode)
             assert second.conversation is shared_surface
             assert second.conversation.prompt.text == "second draft"

@@ -19,7 +19,7 @@ async def main():
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(110, 40)) as pilot:
             await pilot.pause()
-            original = app.current_mode
+            original = app.selected_mode
             old_screen = app.screen
             tree = await reveal_project_tree(app, pilot)
             watcher = old_screen.conversation._directory_watcher

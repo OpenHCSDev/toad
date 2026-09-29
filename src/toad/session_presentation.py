@@ -6,13 +6,13 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 from weakref import ref
 
-from textual.screen import Screen
 from textual.widget import Widget
 from textual.widgets.text_area import Document, EditHistory, Selection, TextAreaState
 
 from toad.history import History
 from toad.widgets.conversation import Conversation
-from toad.widgets.message_filter import all_categories, MessageCategory
+from toad.widgets.history_anchor import ReaderPosition
+from toad.widgets.message_filter import MessageCategory
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
@@ -31,8 +31,7 @@ class SessionViewState:
 
     editor: TextAreaState
     visible_categories: frozenset[type[MessageCategory]]
-    scroll_y: float
-    follows_tail: bool
+    reader_position: ReaderPosition
     shell_mode: bool
     prompt_history: History
     shell_history: History
@@ -44,7 +43,7 @@ class SessionViewState:
         editor = conversation.prompt.prompt_text_area
         return cls(
             editor.capture_editor_state(), conversation.visible_categories,
-            conversation.window.scroll_y, conversation.window.follows_tail,
+            ReaderPosition.capture(conversation.window),
             editor.shell_mode, conversation.prompt_history, conversation.shell_history,
             conversation.prompt_history_index, conversation.shell_history_index,
         )
@@ -60,11 +59,8 @@ class SessionViewState:
         editor = conversation.prompt.prompt_text_area
         editor.restore_editor_state(self.editor)
         editor.shell_mode = self.shell_mode
-        if self.follows_tail:
-            conversation.window.anchor()
-        else:
-            conversation.window.release_anchor()
-            conversation.window.scroll_to(y=self.scroll_y, animate=False, immediate=True)
+        self.reader_position.restore(conversation.window)
+        conversation.transcript.reader_position = self.reader_position
 
 
 class SessionSurfaceLifetime(ABC):
@@ -95,11 +91,6 @@ class EditorSessionSurfaceLifetime(SessionSurfaceLifetime):
     @abstractmethod
     async def attach_binding(self, conversation: Conversation) -> None: ...
 
-    async def close(self, screen: "MainScreen") -> None:
-        conversation = screen.query_one_optional(Conversation)
-        if conversation is not None and conversation._shell is not None:
-            await conversation._shell.close()
-        self.state = None
 
 
 class OperationalSessionSources:
@@ -159,7 +150,6 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
     def __init__(self) -> None:
         super().__init__()
         self.sources = OperationalSessionSources()
-        self._lock = asyncio.Lock()
 
     def compose_content(self, screen: "MainScreen") -> Widget:
         return SessionSurfaceSlot()
@@ -183,33 +173,6 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
         self.state = None
 
 
-class BlankSessionPresentation(EditorSessionSurfaceLifetime):
-    """One logical blank session, independent of any mounted editor widget."""
-
-    @property
-    def editor_state(self) -> TextAreaState | None:
-        return self.state.editor if self.state is not None else None
-
-    def compose_content(self, screen: "MainScreen") -> Widget:
-        return SessionSurfaceSlot()
-
-    async def prepare(self, screen: "MainScreen") -> None:
-        await screen.app.workspace_chrome.native.activate(screen, self)
-
-    async def retire(self, screen: "MainScreen") -> None:
-        await screen.app.workspace_chrome.native.retire(screen, self)
-
-    async def release_binding(self, conversation: Conversation, screen: "MainScreen") -> None:
-        if NativeSessionSurface._can_transfer(screen, conversation):
-            self.state = SessionViewState.capture(conversation)
-        else:
-            screen.presentation = OperationalSessionPresentation()
-            await screen.presentation.release_binding(conversation, screen)
-
-    async def attach_binding(self, conversation: Conversation) -> None:
-        pass
-
-
 class NativeSessionSurface:
     """One bounded rich native surface; each logical owner retains its real state."""
 
@@ -219,23 +182,6 @@ class NativeSessionSurface:
         self.owner: EditorSessionSurfaceLifetime | None = None
         self.view: MainScreen | None = None
         self._lock = asyncio.Lock()
-
-    @staticmethod
-    def _can_transfer(screen: "MainScreen", conversation: Conversation) -> bool:
-        return (
-            screen._agent is None and conversation.agent is None
-            and conversation._agent_data is None and conversation._shell is None
-            and conversation._directory_watcher is None
-            and not conversation.contents.children
-            and conversation._terminal is None and not conversation.goal_display.visible
-            and not conversation.queued_prompts and not conversation.queue_projection.items
-            and not conversation.unresolved_inputs
-            and not conversation.status and conversation.native_history_status is None
-            and not conversation.input_delivery_error
-            and conversation.prompt._ask is None and not conversation.prompt.ask_queue
-            and conversation._initial_prompt is None and not conversation.prompt.disabled
-            and not conversation.prompt.prompt_text_area.disabled
-        )
 
     async def retire(self, screen: "MainScreen", owner: EditorSessionSurfaceLifetime) -> None:
         async with self._lock:

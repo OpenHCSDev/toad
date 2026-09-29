@@ -65,7 +65,7 @@ class ObservedPool(RenderProcessPool):
         assert len(args) == 1 and isinstance(args[0], TranscriptRenderTask)
         events = args[0].events
         if self.app is not None:
-            window = self.app.screen.conversation.window
+            window = self.app.selected_session.conversation.window
             assert not self.app._batch_count
             assert window.history_anchor is None and (not window.history_lock.locked())
         pid, started, finished, result = await super().run(
@@ -168,7 +168,7 @@ async def main():
         with patch.object(TranscriptHistory, "_check_edges", lambda self: None):
             async with app.run_test(size=(90, 35)) as pilot:
                 await pilot.pause()
-                conversation = app.screen.conversation
+                conversation = app.selected_session.conversation
                 live_text = text[:30000]
                 snapshot = page(live_text)
 

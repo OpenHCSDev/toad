@@ -32,11 +32,13 @@ async def settled(view, pilot):
 async def main():
     with TemporaryDirectory(prefix="toad-rapid-history-") as directory:
         root = Path(directory)
-        os.environ.update(AGENT_COMMS_ROOT=str(root / "wire"), XDG_CONFIG_HOME=str(root / "config"),
+        os.environ.update(AGENT_COMMS_ROOT=str(root / "wire"),
+                          TOAD_TEST_ATTEMPT=f"workspace-rapid-{os.getpid()}", XDG_CONFIG_HOME=str(root / "config"),
                           XDG_STATE_HOME=str(root / "state"), XDG_DATA_HOME=str(root / "data"))
         app = FrameApp(project_dir=str(root))
         async with app.run_test(size=(100, 34)) as pilot:
             await pilot.pause()
+            print("RAPID_WORKSPACE_READY", flush=True)
             view = app.selected_session.conversation
             docs = [AgentResponse(f"## Record {index}\n\n" + "measured source text " * 25)
                     for index in range(48)]
@@ -45,10 +47,12 @@ async def main():
             window = view.window
             window.anchor()
             await settled(view, pilot)
+            print("RAPID_SOURCE_READY", window.max_scroll_y, flush=True)
             assert window.max_scroll_y > 100
             end = docs[-1]
             assert end.body_ready
-            for _ in range(3):
+            for round_index in range(3):
+                print("RAPID_NAVIGATION_ROUND", round_index, flush=True)
                 window.release_anchor()
                 window.scroll_to(y=0, animate=False, immediate=True)
                 await settled(view, pilot)
@@ -74,6 +78,7 @@ async def main():
                  if any(key() is body for key in window.document_viewport._warm)],
                 end._body_measurement, end in app.screen._compositor.visible_widgets,
             )
+            print("RAPID_COLD_TAIL_READY", flush=True)
             frames = []
             app.observed = end, window, frames
             window.focus()

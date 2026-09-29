@@ -60,10 +60,10 @@ async def main():
         with patch.object(app, "render_processes", pool):
             async with app.run_test(size=(110, 35)) as pilot:
                 await pilot.pause()
-                owner = app.current_mode
+                owner = app.selected_mode
                 tool = ToolCall(tool_data("lifecycle"))
                 tool.set_expanded(True)
-                await app.screen.conversation.post(tool)
+                await app.selected_session.conversation.post(tool)
                 await requested(pool, 1, pilot)
                 first = tool.query_one(ToolCallDiff)
                 app.theme = "ansi-light"
@@ -99,7 +99,7 @@ async def main():
                 await wait_for_tool_diff(tool, pilot)
                 await tool.remove()
 
-                auto = await app.screen.conversation.post(ToolCall(tool_data("auto")))
+                auto = await app.selected_session.conversation.post(ToolCall(tool_data("auto")))
                 auto.scroll_visible(animate=False)
                 await requested(pool, 6, pilot)
                 async with asyncio.timeout(5):

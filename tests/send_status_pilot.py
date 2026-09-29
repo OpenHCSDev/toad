@@ -51,7 +51,7 @@ async def main():
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(190, 40)) as pilot:
             await pilot.pause()
-            view = app.screen.conversation
+            view = app.selected_session.conversation
             agent = Agent(root, AGENT, "beta")
             agent.attach_surface(view)
             view.agent = agent

@@ -59,7 +59,7 @@ async def main():
         app = ToadApp(project_dir=directory, renderer=renderer)
         async with app.run_test(size=(110, 35)) as pilot:
             await pilot.pause()
-            owner, screen = app.current_mode, app.screen
+            owner, screen = app.selected_mode, app.screen
             await app.switch_mode("store")
             tool = await screen.conversation.post(ToolCall(data("warm")))
             await until(pilot, lambda: len(renderer.requests) == 1)

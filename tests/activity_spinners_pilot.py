@@ -90,7 +90,7 @@ async def check_busy_labels() -> None:
             await tabs._sync_tabs()
             await pilot.pause()
             first = next(
-                (tab for tab in app.open_tabs if tab.mode_name == app.current_mode)
+                (tab for tab in app.open_tabs if tab.mode_name == app.selected_mode)
             )
             label = app.screen.query_one(
                 f"SessionLabel#{first.mode_name}", SessionLabel

@@ -14,7 +14,7 @@ class InstalledApp(ToadApp):
 
 
 async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):
-    mode = app.current_mode
+    mode = app.selected_mode
     process, runner = agent.process.process, agent.process.runner
     owner = comms.registry.require("beta").process_identity
     request_id = 0
@@ -49,7 +49,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
 
     await app.switch_mode(mode)
     await until(pilot, lambda: len(app.screen.query(TerminalTool)) == 2)
-    assert app.screen.conversation._shell is None, "ACP terminal resize spawned an unrelated shell"
+    assert app.selected_session.conversation._shell is None, "ACP terminal resize spawned an unrelated shell"
     assert app.screen.query_one(f"#{first}", TerminalTool).state is original_state
     await until(pilot, lambda: "CREATED_WHILE_DETACHED" in conversation_paint(app.screen))
 

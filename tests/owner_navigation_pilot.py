@@ -33,7 +33,7 @@ async def main() -> None:
     app = ToadApp(project_dir=str(root))
     async with app.run_test(size=(120, 44)) as pilot:
         await pilot.pause()
-        first = app.current_mode
+        first = app.selected_mode
         view_a = await app.open_comms_session(
             owner_mode=first,
             project_path=root,
@@ -58,13 +58,13 @@ async def main() -> None:
         assert isinstance(app.screen, CommsScreen)
         assert (app.screen.owner_mode, app.screen.me) == (second, "owner-b")
         await app.screen.action_back_to_agent()
-        assert app.current_mode == second
+        assert app.selected_mode == second
         app.tab_order.navigate(-1)
         await pilot.pause()
-        assert app.current_mode == view_b
+        assert app.selected_mode == view_b
         app.tab_order.navigate(+1)
         await pilot.pause()
-        assert app.current_mode == second
+        assert app.selected_mode == second
         duplicate = await app.open_comms_session(
             owner_mode=second,
             project_path=root,
@@ -80,11 +80,11 @@ async def main() -> None:
             app.get_screen_stack(view_b)[0].kind,
         )
         await app.screen.action_back_to_agent()
-        assert app.current_mode == second
+        assert app.selected_mode == second
         await app.switch_mode(view_a)
         assert isinstance(app.screen, CommsScreen)
         await app.screen.action_back_to_agent()
-        assert app.current_mode == first
+        assert app.selected_mode == first
         comms.registry.rename("owner-a", "owner-renamed")
         app.sync_coordination_identity(first, "owner-a", "owner-renamed")
         assert app.get_screen_stack(view_a)[0].me == "owner-renamed"
@@ -104,7 +104,7 @@ async def main() -> None:
         assert view_a not in app._screen_stacks
         assert view_b in app._screen_stacks
         assert app.session_tracker.get_session(second) is not None
-        active = app.current_mode
+        active = app.selected_mode
         assert (
             await app.open_comms_session(
                 owner_mode=first,
@@ -127,10 +127,10 @@ async def main() -> None:
         )
         assert view_reconnected not in (view_a, view_b)
         await app.screen.action_back_to_agent()
-        assert app.current_mode == replacement
+        assert app.selected_mode == replacement
         await app.switch_mode(view_b)
         await app.screen.action_back_to_agent()
-        assert app.current_mode == second
+        assert app.selected_mode == second
         # A poll started just before teardown must not race the disappearing
         # Textual screen stack and turn this focused navigation test flaky.
         app.workers.cancel_all()

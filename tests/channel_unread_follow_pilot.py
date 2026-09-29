@@ -37,7 +37,7 @@ async def main():
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(100, 30)) as pilot:
             await pilot.pause()
-            owner = app.current_mode
+            owner = app.selected_mode
             mode = await app.open_comms_session(
                 owner_mode=owner, project_path=root, me=names[0], target=channel_target("#talk"),
             )

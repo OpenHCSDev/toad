@@ -30,7 +30,7 @@ async def main():
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(120, 40)) as pilot:
             await pilot.pause()
-            view = app.screen.conversation
+            view = app.selected_session.conversation
             source = lambda i: f"## Document {i}\n\n" + "A measured paragraph with selectable source. " * 12 + "\n\nAnother paragraph."
             docs = [AgentResponse(source(i)) for i in range(32)]
             await view.contents.mount(*docs)
@@ -91,7 +91,7 @@ async def main():
             app.screen._refresh_layout()
             await asyncio.wait_for(pending, 2)
 
-            owner_mode = app.current_mode
+            owner_mode = app.selected_mode
             other = await app.new_session_screen(app.get_main_screen)
             await app.switch_mode(owner_mode)
             await settled(view, pilot)

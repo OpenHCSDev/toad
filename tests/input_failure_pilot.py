@@ -40,7 +40,7 @@ async def main():
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(110, 32)) as pilot:
             await pilot.pause()
-            conversation = app.screen.conversation
+            conversation = app.selected_session.conversation
             receiver = Agent(
                 root, {"name": "Fixture", "run_command": {"*": "true"}}, "fixture"
             )

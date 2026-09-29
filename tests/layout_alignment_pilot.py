@@ -60,7 +60,7 @@ async def main() -> None:
     expanded = width * 40 // 100
     async with app.run_test(size=(width, 44)) as pilot:
         await pilot.pause()
-        first_mode = app.current_mode
+        first_mode = app.selected_mode
         first = app.screen
         assert isinstance(first, MainScreen)
         aligned(first, expanded)  # First visible frame, not a follow-up sidebar tick.

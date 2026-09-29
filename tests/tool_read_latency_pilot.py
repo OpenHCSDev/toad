@@ -65,7 +65,7 @@ async def main():
                 started = time.perf_counter_ns()
                 try:
                     with patch.object(ToolCall, "_compose_content", foreground_read if kind == "native" else native):
-                        await app.screen.conversation.post(task)
+                        await app.selected_session.conversation.post(task)
                         task.set_expanded(True)
                         if kind == "worker":
                             async with asyncio.timeout(25):

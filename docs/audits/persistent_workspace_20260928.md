@@ -155,3 +155,73 @@ The pre-parent-fix run hangs (external45sec termination), receipt
 source-navigation-before-parent-fix.log; not a passed acceptance. Re-run after
 parent fix lands, using the same assertions/deadlines. Actual runner-specific
 child-process attestation added. No parent production/worktree edits.
+
+## Main146/147 integration and installed affected-path acceptance
+
+Consumed main14613dd52b and main14719de70c into142, preserving core311 and
+Textualc974. Permission dispatch now belongs to request.presentation; the old
+Conversation raw dictionary dispatcher and obsolete demo remain deleted. Parent
+App-owned preview worker merged cleanly with the logical SessionView parser.
+Noneditable installed source-navigation-main147.log exits0: physical link click,
+file read and native paint, resize, source return, same editor/Document/History,
+undo and teardown. Four observation/goal custody guards pass.
+
+Installed rapid-main147.log exits0 with all original PageDown/End/cold-tail
+visible-body assertions. Earlier main146 rapid exit143 was a launcher error:
+exporting the cleanup attestation outside Python tagged GNU timeout as an owned
+process, so fixture teardown terminated the supervisor. The runner now creates
+its own token internally; no assertion or deadline was relaxed.
+
+The new viewport_recent_tabs_pilot uses four actual native loopback calls, three
+logical blank tabs, ordinary collection and repeated cropped non-tail source
+return. It measures the existing application preparation cache and requires
+same Agent/process/editor/document/history without input replay or rich-view
+multiplication. This is a new affected-path gate, not a claim that recent source
+reuse or final performance is complete.
+
+## Corrected22:16 skill receipt and current ownership deletion
+
+Reread nra-refactoring and actual refactor-audit22:16 at
+/home/ts/.local/share/agent-comms/skills/refactor-audit-20260928-2216/refactor-audit,
+including changed SKILL, pattern README, implementation IMPL-14 last section and
+scripts/audit/chain_terms.py. TIME-9, IMPL-4/5 and AGENT-8 full pattern files were
+also read. The official classifier finds absence19 (IDEN-3), not unrelated
+predicates, in NativeSessionSurface._can_transfer. The attempted uncommitted
+rule-family split was discarded, not shipped.
+
+Deleted BlankSessionPresentation, its late promotion/checker, and duplicate
+compose/prepare/retire forwarding. MainScreen now constructs the existing
+OperationalSessionPresentation once for blank and native sources alike. The same
+OperationalSessionSources owns any actual Agent/shell/directory watcher; empty
+sessions simply own no such resource. Removed its unused lock and unreachable
+base-close implementation. Blank/shared-channel editor callers use the existing
+SessionViewState.editor directly; no compatibility editor_state alias remains.
+Official chain-terms receipt shows session_presentation19->0 and main4->0; no
+touched file increases chain terms. TIME-9: no store/codec adaptation added;
+IMPL-4/5: one complete session custody path replaces promotion and duplicate
+dispatch. Actual installed original editor/chrome acceptance passes after deletion.
+
+New real native recent-source acceptance reproduced loss of non-tail intent on
+return (cropped selected reader text still paints, follows_tail incorrectly true).
+ReaderPosition now owns tail versus offset behavior in the existing history
+module; SessionViewState carries that actual source intent. Existing snapshot
+publication restores it only after native layout and only if its captured scroll
+revision remains current, so a newer user navigation supersedes pending restore.
+No retired widget, alternate cache, renderer or source mechanism is retained.
+
+Canonical suite attempt is intermediate, not final acceptance: it was interrupted
+once the installed branch changed during independent implementation. Preserve its
+failures/summary; do not call it green or final-pin evidence. Its undeclared
+pytest-asyncio guard was migrated to the existing asyncio.run convention with
+unchanged behavior assertions; observation family/cancellation guards4passed.
+Remaining final canonical suite/classification, prepared recent-source reuse,
+matched loaded/blank performance and stable30–40ms target are still open.
+
+Canonical intermediate run stopped110failed/43passed after560.78seconds. One
+verified category is obsolete native-Screen caller assumptions (for example
+acp_sdk_boundary_pilot: WorkspaceScreen.conversation); this is not a blanket
+classification of all110 failures. Migrated direct Toad session callers in164
+test files to selected_session.conversation/selected_mode; generic Textual App
+mode tests remain native. No compatibility forwarding added. Final canonical
+suite is not complete, and this interrupted changing-install run is not final
+acceptance. Owned test-generated browser/menu receipts restored from own HEAD.
