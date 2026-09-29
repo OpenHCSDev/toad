@@ -256,3 +256,12 @@ raw-future pilot deleted. Physical Pi/MCP + actual runtime proxy + installed UI 
 removal/rebind, granted execution and child cleanup pass with loopback-only
 model. Final shared per-class/debt ratchet has zero positive deltas. Parent owns
 merge/install; no own-scope blocker.
+
+146 pending-mount review closes a concrete preattachment permission race.
+Request-bound PermissionReview in existing permissions.py admits on mount/resume
+using original request and source authority; expired requests never leave a
+worker waiting on a stale modal. Active-screen retirement avoids duplicate pops.
+Actual installed controlled callback flush cancellation/source replacement,
+painted replacement grant and zero async callback errors pass; no additional
+flags/futures or fake mounted screen. Existing145 ToolOutput owns shared ACP
+content renderer integration; exact contract coordination recorded on145.
