@@ -1,6 +1,7 @@
 """Native Toad conversation view for an agent-comms channel or DM."""
 
 from __future__ import annotations
+from functools import partial
 from toad.delivery_failure_view import DeliveryFailureView
 
 import asyncio
@@ -121,7 +122,7 @@ class CommsChatView(DeliveryFailureView, Conversation):
         self._human_admission_blocked = False
         self._send_block_reason = ""
         self._bound_root = Path(wire_root).resolve() if wire_root is not None else None
-        self.set_prompt_history_scope(f"comms:{kind}:{target}")
+        self.input_histories.bind_scope(f"comms:{kind}:{target}")
         self._history: list[tuple[WireMessage, Widget]] = []
         self._has_older = False
         self._has_newer = False
@@ -819,9 +820,7 @@ class CommsChatView(DeliveryFailureView, Conversation):
                 style="error",
             )
             return
-        self.prompt_history.current = None
-        self.run_worker(self.prompt_history.append(body), group="history")
-        self.prompt_history_index = 0
+        self.run_worker(partial(self.input_histories.prompt.record, body), group="history")
         async with self._refresh_lock:
             if self._has_newer:
                 await self.contents.remove_children(widget for _, widget in self._history)
