@@ -31,3 +31,8 @@ def test_application_action_caller_deletion():
             if isinstance(node,ast.Call) and isinstance(node.func,ast.Attribute) and node.func.attr=='run_worker':
                 if node.args and isinstance(node.args[0],ast.Call):
                     assert isinstance(node.args[0].func,ast.Name) and node.args[0].func.id=='partial',(path,node.lineno)
+    for node in ast.walk(ast.parse((ROOT/'screens/settings.py').read_text())):
+        match node:
+            case ast.Call(func=ast.Attribute(attr='call_after_refresh'),
+                          args=[ast.Attribute(attr='dismiss'), *_]):
+                raise AssertionError('A refresh callback must not await its modal removal')
