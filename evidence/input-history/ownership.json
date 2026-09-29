@@ -1,0 +1,100 @@
+{
+  "src/toad/messages.py": {
+    "ForeignAbsenceProbe": [
+      0,
+      0
+    ],
+    "BooleanChainTerms": [
+      0,
+      0
+    ],
+    "god_excess": [
+      0,
+      0
+    ]
+  },
+  "src/toad/screens/main.py": {
+    "ForeignAbsenceProbe": [
+      4,
+      4
+    ],
+    "BooleanChainTerms": [
+      0,
+      0
+    ],
+    "god_excess": [
+      0,
+      0
+    ]
+  },
+  "src/toad/session_presentation.py": {
+    "ForeignAbsenceProbe": [
+      1,
+      1
+    ],
+    "BooleanChainTerms": [
+      0,
+      0
+    ],
+    "god_excess": [
+      0,
+      0
+    ]
+  },
+  "src/toad/widgets/comms_chat.py": {
+    "ForeignAbsenceProbe": [
+      15,
+      15
+    ],
+    "BooleanChainTerms": [
+      9,
+      9
+    ],
+    "god_excess": [
+      234,
+      232
+    ]
+  },
+  "src/toad/widgets/conversation.py": {
+    "ForeignAbsenceProbe": [
+      31,
+      31
+    ],
+    "BooleanChainTerms": [
+      25,
+      25
+    ],
+    "god_excess": [
+      1504,
+      1436
+    ]
+  },
+  "src/toad/widgets/prompt.py": {
+    "ForeignAbsenceProbe": [
+      4,
+      4
+    ],
+    "BooleanChainTerms": [
+      15,
+      15
+    ],
+    "god_excess": [
+      0,
+      0
+    ]
+  },
+  "src/toad/input_history.py": {
+    "ForeignAbsenceProbe": [
+      0,
+      0
+    ],
+    "BooleanChainTerms": [
+      0,
+      0
+    ],
+    "god_excess": [
+      0,
+      0
+    ]
+  }
+}

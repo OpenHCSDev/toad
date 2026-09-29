@@ -7,6 +7,7 @@ from textual.widget import Widget
 from textual.message import Message
 
 from toad.session_tracker import SessionState
+from toad.input_history import InputHistory
 
 
 class WorkStarted(Message):
@@ -22,8 +23,13 @@ class HistoryMove(Message):
     """Getting a new item form history."""
 
     direction: Literal[-1, +1]
-    shell: bool
+    history_kind: type[InputHistory]
     body: str
+
+    @classmethod
+    def for_mode(cls, direction, shell: bool, body: str):
+        from toad.input_history import PromptInputHistory, ShellInputHistory
+        return cls(direction, ShellInputHistory if shell else PromptInputHistory, body)
 
 
 @dataclass

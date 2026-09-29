@@ -338,7 +338,7 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
                 if self.id is not None:
                     self.app.sync_coordination_project(self.id, project)
         self.on_comms_session_named(event.thread.name)
-        self.conversation.set_prompt_history_scope(f"thread:{event.thread.name}")
+        self.conversation.input_histories.bind_scope(f"thread:{event.thread.name}")
 
     _last_dm_target: str | None = None
 
