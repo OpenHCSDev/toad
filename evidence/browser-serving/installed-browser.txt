@@ -1,0 +1,34 @@
+{
+  "boundary": "installed CLI + real aiohttp/vendor server + Chromium/Toad child; no mocks",
+  "gate": "Host/Origin/cookie/redirect/static/download-negative and zero unauthorized children passed",
+  "ports_independent": true,
+  "streamed_download": "real Textual child/driver, full content and prepared headers passed",
+  "proof": [
+    {
+      "entry": "serve",
+      "installed_child": true,
+      "browser_paint": true,
+      "browser_keyboard_response": true,
+      "frames": 41,
+      "actual_acp_session_ready": false,
+      "reload_after_second_port": true
+    },
+    {
+      "entry": "run",
+      "installed_child": true,
+      "browser_paint": true,
+      "browser_keyboard_response": true,
+      "frames": 43,
+      "actual_acp_session_ready": false
+    },
+    {
+      "entry": "acp",
+      "installed_child": true,
+      "browser_paint": true,
+      "browser_keyboard_response": true,
+      "frames": 247,
+      "actual_acp_session_ready": true
+    }
+  ],
+  "toad_import": "/home/ts/wt/toad-web-completion-20260928/.venv/lib/python3.14/site-packages/toad/web_server.py"
+}

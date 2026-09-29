@@ -1,3 +1,4 @@
+from toad.agent_presentation import LocalAgentPresentation
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
@@ -29,7 +30,7 @@ class AgentBase(ABC):
 
     def __init__(self, project_root: Path) -> None:
         self.project_root_path = project_root
-        super().__init__()
+        self.presentation = LocalAgentPresentation(self)
 
     async def get_thread_presentation(self) -> ThreadPresentation | None:
         """Agents without a coordination identity have no observed thread status."""

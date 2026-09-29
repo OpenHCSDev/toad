@@ -4,7 +4,6 @@ from dataclasses import dataclass
 from typing import Any, Callable
 
 from textual.app import ComposeResult
-from textual import getters
 from textual import events, on
 from textual.binding import Binding
 from textual import containers
@@ -16,6 +15,7 @@ from textual.widget import Widget
 from textual import widgets
 
 from toad.answer import Answer
+from toad.question_presentation import QuestionPresentation
 
 type Options = list[Answer]
 
@@ -197,7 +197,6 @@ class Question(containers.VerticalGroup, can_focus=True):
     selected: var[bool] = var(False, toggle_class="-selected")
     blink: var[bool] = var(False)
 
-    option_container = getters.query_one("#option-container", containers.VerticalGroup)
 
     DEFAULT_KINDS = {
         "allow_once": "a",
@@ -226,22 +225,22 @@ class Question(containers.VerticalGroup, can_focus=True):
     ):
         super().__init__(name=name, id=id, classes=classes, disabled=disabled)
         self.set_reactive(Question.title, title)
+        self.presentation = QuestionPresentation()
+        self._option_view = containers.VerticalGroup(id="option-container")
         self._ask: Ask | None = None
         self._get_content = get_content
         self.set_reactive(Question.options, options or [])
 
     def on_mount(self) -> None:
-        def toggle_blink() -> None:
-            if self.has_focus:
-                self.blink = not self.blink
-            else:
-                self.blink = False
+        self.presentation.reopen()
+        self.presentation.start(self, self._option_view)
 
-        self._blink_timer = self.set_interval(0.5, toggle_blink)
+    def on_unmount(self) -> None:
+        self.presentation.retire()
 
     def _reset_blink(self) -> None:
         self.blink = False
-        self._blink_timer.reset()
+        self.presentation.mount.reset()
 
     def update(self, ask: Ask) -> None:
         self._ask = ask
@@ -250,6 +249,7 @@ class Question(containers.VerticalGroup, can_focus=True):
         self.options = ask.options
         self.selection = 0
         self.selected = False
+        self.presentation.detach()
         self.refresh(recompose=True, layout=True)
 
     def compose(self) -> ComposeResult:
@@ -260,7 +260,8 @@ class Question(containers.VerticalGroup, can_focus=True):
             if self._get_content is not None:
                 yield self._get_content()
 
-        with containers.VerticalGroup(id="option-container"):
+        self._option_view = containers.VerticalGroup(id="option-container")
+        with self._option_view:
             kinds: set[str] = set()
             for index, answer in enumerate(self.options):
                 active = index == self.selection
@@ -279,11 +280,10 @@ class Question(containers.VerticalGroup, can_focus=True):
                     kinds.add(answer.kind)
 
     def watch_selection(self, old_selection: int, new_selection: int) -> None:
-        self.query("#option-container > .-active").remove_class("-active")
-        if new_selection >= 0:
-            self.query_one("#option-container").children[new_selection].add_class(
-                "-active"
-            )
+        self.presentation.mount.select(new_selection)
+
+    async def recompose(self) -> None:
+        await self.presentation.recompose(self, super().recompose)
 
     def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
         if self.selected and action in ("selection_up", "selection_down"):
@@ -302,7 +302,7 @@ class Question(containers.VerticalGroup, can_focus=True):
         return True
 
     def watch_blink(self, blink: bool) -> None:
-        self.option_container.set_class(blink, "-blink")
+        self.presentation.mount.blink(blink)
 
     def action_selection_up(self) -> None:
         self._reset_blink()

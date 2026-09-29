@@ -45,8 +45,16 @@ async def main():
             await view.contents.mount(*docs)
             window = view.window
             window.anchor()
+            deadline = asyncio.get_running_loop().time() + 12
+            while window.max_scroll_y <= 100 and asyncio.get_running_loop().time() < deadline:
+                await pilot.pause(.02)
+            assert window.max_scroll_y > 100, (
+                window.max_scroll_y, len(view.contents.children), len(window.document_viewport.owners),
+                len(app.screen._compositor.visible_widgets), app._exception,
+                [(doc.body_ready, doc.body_dormant, doc.loading, doc.display, doc.outer_size.height,
+                  len(doc.children), doc._body_measurement, doc.styles.height) for doc in docs[:3]],
+            )
             await settled(view, pilot)
-            assert window.max_scroll_y > 100
             end = docs[-1]
             assert end.body_ready
             original = AgentResponse.restore_body

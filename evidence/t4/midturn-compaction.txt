@@ -1,0 +1,1 @@
+typed mid-turn compaction: busy lifecycle, one summary, unknown then fresh usage

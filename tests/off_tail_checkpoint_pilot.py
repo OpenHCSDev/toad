@@ -17,9 +17,11 @@ from history_scroll_frames_pilot import ScrollFrameApp
 from agent_comms.messages import Message, MessageType
 from agent_comms.routing import TurnRouting
 from agent_comms.transcript_events import UserTranscript
+from toad.block_navigation import ConversationBlock
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.committed_presentation import CheckpointBarrier
 from toad.widgets.incoming_message import IncomingMessage
+from toad.widgets.note import Note
 from toad.widgets.transcript_history import TranscriptHistory
 
 
@@ -60,7 +62,7 @@ class PagedAgent(SnapshotAgent):
         return page
 
 
-class LocalBarrier(CheckpointBarrier, Static):
+class LocalBarrier(ConversationBlock, CheckpointBarrier, Static):
     pass
 
 
@@ -94,7 +96,7 @@ async def exercise(app, pilot):
         app.observed = marker, window, frames
         view.displayed_transcript_cursor = displayed = agent.cursor
         view.prompt.text = "Unsent checkpoint draft"
-        local = Static("Local-only note")
+        local = Note("Local-only note")
         await view.contents.mount(local)
         peak = 0
         for cycle in range(12):

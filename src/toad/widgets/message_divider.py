@@ -1,6 +1,7 @@
 """A full-width, timestamped separator owned by one displayed message."""
 
 from __future__ import annotations
+from toad.block_navigation import ConversationBlock
 
 import math
 import time
@@ -53,7 +54,7 @@ class MessageDivider(Static):
         )
 
 
-class AgentActivityDivider(SnapshotPresentation, CategorizedBlock, MessageDivider):
+class AgentActivityDivider(ConversationBlock, SnapshotPresentation, CategorizedBlock, MessageDivider):
     """A decorative role boundary filtered with the activity that follows it."""
 
     ALLOW_SELECT = False

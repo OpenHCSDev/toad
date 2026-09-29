@@ -136,7 +136,7 @@ class DocumentViewport:
             while isinstance(node, Widget) and node is not self.window:
                 protected.add(node)
                 node = node.parent
-        if self.window.history_anchor is not None:
+        if screen.is_current and self.window.history_anchor is not None:
             protected.add(self.window.history_anchor.widget)
         return protected
 

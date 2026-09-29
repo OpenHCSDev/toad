@@ -1,0 +1,13 @@
+{
+  "base": "67ddc9e606ff7a9ce59a63df5227f1d1fb8f536b",
+  "head": "7a17ad1924f627d15d284c1f94d193b4e9ebcb4a",
+  "positive": {},
+  "principal_reductions": {
+    "ClassSize:src/toad/acp/agent.py::Agent": -169,
+    "ClassSize:src/toad/widgets/agent_response.py::AgentResponse": -42,
+    "ClassSize:src/toad/widgets/conversation.py::Conversation": -116,
+    "ClassSize:src/toad/protocol.py::BlockProtocol": -7,
+    "TypeIdentity": -1,
+    "LongBooleanChain": -1
+  }
+}
