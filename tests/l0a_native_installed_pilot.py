@@ -99,7 +99,8 @@ async def notification_feedback(
     print("CHANNEL_NOTIFICATION", str(notification.title), flush=True)
 
 
-async def main(*, notification_only=False, retire_surface=False, app_type=ToadApp, acceptance=None, provider_reply=None):
+async def main(*, notification_only=False, retire_surface=False, app_type=ToadApp,
+               acceptance=None, provider_reply=None, prepare_state=None):
     evidence = Path(os.environ.get("L0A_EVIDENCE", os.environ["TMPDIR"]))
     evidence.mkdir(parents=True, exist_ok=True)
     package = Path(os.environ["AC_NATIVE_COPIED_PACKAGE"])
@@ -251,10 +252,14 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
             "protocol": "acp",
             "run_command": {"*": shlex.join([sys.executable, "-m", "agent_comms.acp"])},
         }
+        if prepare_state is not None:
+            await prepare_state(comms, project, requests, entered, release, hold_next)
         app = app_type(agent_data=data, project_dir=str(project), agent_session_id="beta")
         agent = None
         try:
+            print("INSTALLED_APP_RUN_TEST_ENTER", flush=True)
             async with app.run_test(size=(160, 44)) as pilot:
+                print("INSTALLED_APP_RUN_TEST_YIELDED", flush=True)
                 await pilot.pause()
                 owner_mode = app.selected_mode
                 view = app.selected_session.conversation
@@ -535,6 +540,8 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
                     (evidence / "toad-acp.log").write_bytes(
                         agent.presentation.log_path.read_bytes()
                     )
+            for path in (stage / "state" / "toad" / "logs").glob("*.txt"):
+                (evidence / path.name).write_bytes(path.read_bytes())
             for path in stage.glob("acp-debug*"):
                 destination = evidence / path.name
                 destination.write_bytes(path.read_bytes())
