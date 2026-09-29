@@ -10,151 +10,27 @@ import asyncio
 import json
 import os
 import shutil
-from dataclasses import dataclass
 from pathlib import Path
-import re
-from typing import Any
 
-from toad.mcp_declarations import DeclarationStatus, InventoryScope, ProjectScope, UserScope
+from agent_comms.field_codec import FieldCodec
+from toad import mcp_declarations
 
 
 MAX_INVENTORY_BYTES = 128_000
 INVENTORY_TIMEOUT_SECONDS = 5.0
-_ID = re.compile(r"[a-z][a-z0-9_-]{0,31}\Z")
-_DIGEST = re.compile(r"[a-f0-9]{64}\Z")
-_ENV = re.compile(r"[A-Z_][A-Z0-9_]*\Z")
-_POLICIES = {"allow", "ask", "unavailable"}
 
 
 class UnsupportedInventory(ValueError):
-    """The CLI's output is not the versioned package projection we support."""
+    """The CLI output violates the current package-owned inventory contract."""
 
 
-@dataclass(frozen=True)
-class Declaration:
-    id: str
-    scope: InventoryScope
-    digest: str
-    effective: bool
-    enabled: bool
-    status: DeclarationStatus
-    call_policy: str
-    argument_count: int
-    env_names: tuple[str, ...]
-    env_from: tuple[tuple[str, str], ...]
-
-
-@dataclass(frozen=True)
-class Inventory:
-    project_root: Path
-    project_trusted_saved: bool
-    project_config_skipped: bool
-    user: tuple[Declaration, ...]
-    project: tuple[Declaration, ...]
-
-
-def _object(value: object) -> dict[str, Any]:
-    if not isinstance(value, dict):
-        raise UnsupportedInventory("Expected object")
-    return value
-
-
-def _boolean(value: object) -> bool:
-    if not isinstance(value, bool):
-        raise UnsupportedInventory("Expected boolean")
-    return value
-
-
-def _rows(value: object, scope: InventoryScope) -> tuple[Declaration, ...]:
-    if not isinstance(value, list) or len(value) > 256:
-        raise UnsupportedInventory("Invalid declarations")
-    rows: list[Declaration] = []
-    seen: set[str] = set()
-    for raw in value:
-        row = _object(raw)
-        identifier, digest = row.get("id"), row.get("digest")
-        if (
-            not isinstance(identifier, str)
-            or not _ID.fullmatch(identifier)
-            or identifier in seen
-            or not isinstance(digest, str)
-            or not _DIGEST.fullmatch(digest)
-            or row.get("scope") != scope.declared_name
-        ):
-            raise UnsupportedInventory("Invalid declaration identity")
-        seen.add(identifier)
-        try:
-            status = DeclarationStatus.decode(row.get("status"))()
-        except ValueError as error:
-            raise UnsupportedInventory(str(error)) from error
-        policy = row.get("callPolicy")
-        if policy not in _POLICIES:
-            raise UnsupportedInventory("Unsupported declaration call policy")
-        effective = _boolean(row.get("effective"))
-        enabled = _boolean(row.get("enabled"))
-        try:
-            status.validate(effective, policy)
-        except ValueError as error:
-            raise UnsupportedInventory(str(error)) from error
-        transport = _object(row.get("transport"))
-        argument_count = transport.get("argumentCount")
-        if (
-            transport.get("type") != "stdio"
-            or transport.get("cwd") != "project"
-            or type(argument_count) is not int
-            or not 0 <= argument_count <= 256
-        ):
-            raise UnsupportedInventory("Unsupported transport summary")
-        names, from_pairs = transport.get("envNames"), transport.get("envFrom")
-        if (
-            not isinstance(names, list)
-            or len(names) > 128
-            or any(
-                not isinstance(name, str) or not _ENV.fullmatch(name) for name in names
-            )
-            or len(set(names)) != len(names)
-            or not isinstance(from_pairs, list)
-            or len(from_pairs) > 128
-        ):
-            raise UnsupportedInventory("Invalid environment summary")
-        pairs: list[tuple[str, str]] = []
-        for pair in from_pairs:
-            if (
-                not isinstance(pair, list)
-                or len(pair) != 2
-                or any(
-                    not isinstance(item, str) or not _ENV.fullmatch(item)
-                    for item in pair
-                )
-            ):
-                raise UnsupportedInventory("Invalid environment mapping")
-            pairs.append((pair[0], pair[1]))
-        if len(set(name for name, _ in pairs)) != len(pairs):
-            raise UnsupportedInventory("Duplicate environment mapping")
-        rows.append(
-            Declaration(
-                identifier,
-                scope,
-                digest,
-                effective,
-                enabled,
-                status,
-                policy,
-                argument_count,
-                tuple(names),
-                tuple(pairs),
-            )
-        )
-    return tuple(rows)
-
-
-def parse_inventory(data: bytes, expected_root: Path) -> Inventory:
-    """Accept only a bounded, exact-version, canonical-root static DTO."""
+def parse_inventory(data: bytes, expected_root: Path) -> mcp_declarations.Inventory:
+    """Decode the exact package record once; trust declared fields thereafter."""
     if len(data) > MAX_INVENTORY_BYTES:
         raise UnsupportedInventory("Oversized inventory")
 
-    def unique_pairs(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
-        value: dict[str, Any] = {}
+    def unique_pairs(pairs: list[tuple[str, object]]) -> dict[str, object]:
+        value: dict[str, object] = {}
         for key, item in pairs:
             if key in value:
                 raise UnsupportedInventory("Duplicate inventory field")
@@ -162,36 +38,15 @@ def parse_inventory(data: bytes, expected_root: Path) -> Inventory:
         return value
 
     try:
-        doc = _object(json.loads(data.decode("utf-8"), object_pairs_hook=unique_pairs))
-        if type(doc.get("version")) is not int or doc["version"] != 2:
-            raise UnsupportedInventory("Unsupported inventory version")
-        root = doc.get("projectRoot")
-        if not isinstance(root, str) or root != str(expected_root.resolve(strict=True)):
-            raise UnsupportedInventory("Project root mismatch")
-        trusted = _boolean(doc.get("projectTrustedSaved"))
-        skipped = _boolean(doc.get("projectConfigSkipped"))
-        if (
-            doc.get("lifetime") != "active_pi_turn"
-            or _object(doc.get("live")).get("state") != "not_running"
-        ):
-            raise UnsupportedInventory("Unsupported live status")
-        declarations = _object(doc.get("declarations"))
-        user = _rows(declarations.get("user"), UserScope())
-        project = _rows(declarations.get("project"), ProjectScope())
-        if not trusted and (project or any(row.status.allows_call_decision() for row in user)):
-            raise UnsupportedInventory("Approval without saved project trust")
-        effective_ids = [row.id for row in (*user, *project) if row.effective]
-        if len(set(effective_ids)) != len(effective_ids):
-            raise UnsupportedInventory("Multiple effective declarations")
-        return Inventory(
-            expected_root.resolve(strict=True),
-            trusted,
-            skipped,
-            user,
-            project,
+        inventory = FieldCodec.decode(
+            mcp_declarations.Inventory,
+            json.loads(data.decode("utf-8"), object_pairs_hook=unique_pairs),
         )
-    except (UnicodeError, json.JSONDecodeError, TypeError, KeyError, OSError) as error:
-        raise UnsupportedInventory("Invalid inventory") from error
+        if inventory.project_root != str(expected_root.resolve(strict=True)):
+            raise UnsupportedInventory("Project root mismatch")
+        return inventory
+    except (UnicodeError, ValueError, TypeError, OSError) as error:
+        raise UnsupportedInventory(str(error)) from error
 
 
 def installed_mcp_command() -> tuple[str, str]:
@@ -208,7 +63,7 @@ def installed_mcp_command() -> tuple[str, str]:
     return str(Path(node).resolve(strict=True)), str(cli)
 
 
-async def read_inventory(project_root: Path) -> Inventory | None:
+async def read_inventory(project_root: Path) -> mcp_declarations.Inventory | None:
     """Read the pinned package's static inventory without starting servers."""
     try:
         node, cli = await asyncio.to_thread(installed_mcp_command)
@@ -259,7 +114,7 @@ async def read_inventory(project_root: Path) -> Inventory | None:
             await process.wait()
 
 
-def render_inventory(inventory: Inventory | None) -> str:
+def render_inventory(inventory: mcp_declarations.Inventory | None) -> str:
     """Display only typed, redacted package fields; no authority inference."""
     if inventory is None:
         return (
@@ -267,27 +122,4 @@ def render_inventory(inventory: Inventory | None) -> str:
             "The current Comms native package must provide its MCP CLI.\n"
             "No MCP action is available here."
         )
-    lines = [
-        "Pi MCP declarations · static package snapshot (not live)",
-        f"Saved Pi project trust: {'yes' if inventory.project_trusted_saved else 'no'}",
-        f"Project config skipped before trust: {'yes' if inventory.project_config_skipped else 'no'}",
-        "Runtime: not running in this snapshot; live status is not asserted.",
-        "Decisions apply to the next Pi turn. This is not active server state.",
-        "Actions launch the installed package CLI in a visible POSIX PTY; it owns",
-        "the complete display, exact digest challenge and ledger write. Toad never",
-        "auto-answers and cannot undo a decision the package already committed.",
-    ]
-    for scope, rows in (("User", inventory.user), ("Project", inventory.project)):
-        lines.append(f"\n{scope} declarations ({len(rows)}):")
-        for row in rows:
-            lines.append(
-                f"  {row.id} · {row.status} · calls {row.call_policy}"
-                f" · {'effective' if row.effective else 'shadowed'}"
-            )
-            lines.append(f"    SHA-256: {row.digest}")
-            lines.append(
-                f"    stdio / project cwd · args {row.argument_count}"
-                f" · env names {', '.join(row.env_names) or '(none)'}"
-                f" · envFrom {', '.join(f'{name}={source}' for name, source in row.env_from) or '(none)'}"
-            )
-    return "\n".join(lines)
+    return inventory.render()
