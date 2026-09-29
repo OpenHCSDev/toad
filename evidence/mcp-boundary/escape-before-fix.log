@@ -1,0 +1,52 @@
+PASS actual-package boundary: typed fields, scope, policy, tuple lengths, unknown/duplicate fields, root and size rejection
+APP_MOUNTED
+PALETTE_OPEN
+PALETTE_QUERY_TYPED
+PALETTE_SELECTED
+INVENTORY_LOADED
+UNTRUSTED_VISIBLE
+PROJECT_TRUSTED
+PROJECT_ROW_SELECTED
+BEGIN actual clicked command approve
+PASS clicked installed package decision approve approved ask
+BEGIN actual clicked command deny
+PASS clicked installed package decision deny denied unavailable
+BEGIN actual clicked command ask
+PASS clicked installed package decision ask approved ask
+BEGIN actual clicked command allow
+PASS clicked installed package decision allow approved allow
+BEGIN actual clicked command approve_again
+PASS clicked installed package decision approve_again approved allow
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-mcp-boundary-sol-20260929/tests/mcp_decision_pty_pilot.py", line 40, in until
+    await pilot.pause(.03)
+  File "/home/ts/.local/share/agent-comms/runtime-workspace-navigation-20260929/lib/python3.14/site-packages/textual/pilot.py", line 546, in pause
+    await asyncio.sleep(delay)
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py", line 702, in sleep
+    return await future
+           ^^^^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-mcp-boundary-sol-20260929/tests/mcp_decision_pty_pilot.py", line 247, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-mcp-boundary-sol-20260929/tests/mcp_decision_pty_pilot.py", line 238, in main
+    await until(pilot, lambda: app.screen is screen and screen._inventory is not None and modal._pty._process is None)
+  File "/home/ts/wt/toad-mcp-boundary-sol-20260929/tests/mcp_decision_pty_pilot.py", line 38, in until
+    async with asyncio.timeout(12):
+               ~~~~~~~~~~~~~~~^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/timeouts.py", line 114, in __aexit__
+    raise TimeoutError from exc_val
+TimeoutError
