@@ -2551,8 +2551,14 @@ class CompactionRenderer(MroDispatch):
     @handles(comms_events.CompactionSummaryProgress)
     async def selected_summary_progress(self, event):
         view = self.conversation
-        view.turns.describe("Compacting context… selected model is summarizing")
+        detail = "Compacting context… selected model is summarizing"
+        if event.source is not None and event.source.source_bytes_total > 0:
+            detail += f" · {event.source.source_bytes_done * 100 // event.source.source_bytes_total}% of input processed"
+        view.turns.describe(detail)
         view.post_message(messages.SessionUpdate(state="busy", summary=view.turns.owner.activity))
+        if event.text and event.source is not None and event.source.summary_phase != "map":
+            from toad.live_output import CompactionStream
+            await view.output.append(CompactionStream(event.operation_id), event.text)
 
     @handles(comms_events.CompactionProgress)
     async def progress(self, event):
@@ -2577,6 +2583,8 @@ class CompactionRenderer(MroDispatch):
         from toad.widgets.agent_response import AgentResponse
 
         view = self.conversation
+        from toad.live_output import CompactionStream
+        await view.output.finish(CompactionStream)
         active = view.agent is not None and view.agent.current_turn.busy
         if active:
             view.turns.describe("Thinking…")
