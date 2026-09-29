@@ -31,7 +31,7 @@ async def main():
                 source, str(root.resolve()), app.native_ansi_color, app.current_theme.dark))
             assert [token.as_dict() for token in prepared.tokens] == [token.as_dict() for token in expected]
             response = AgentResponse(paginate=False)
-            await app.screen.conversation.post(response)
+            await app.selected_session.conversation.post(response)
             await pilot.pause()
             # Calls in worker processes import their own highlighter; parent
             # calls would fail, including fence construction/style notification.
@@ -44,7 +44,7 @@ async def main():
                 app.stylesheet.update(response)
                 await pilot.pause()
             reference = ConversationMarkdown()
-            await app.screen.conversation.post(reference)
+            await app.selected_session.conversation.post(reference)
             await reference.update(source)
             await pilot.pause()
             native = reference.query_one(MarkdownFence)

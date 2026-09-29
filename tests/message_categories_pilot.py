@@ -137,7 +137,7 @@ async def main():
             await pilot.pause()
             assert view.visible_categories == frozenset((OtherCategory, UserCategory))
             other_mode = (await app.new_session_screen(app.get_main_screen)).mode_name
-            assert app.screen.conversation.visible_categories == all_categories()
+            assert app.selected_session.conversation.visible_categories == all_categories()
             await app.switch_mode(screen.id)
             await pilot.pause()
             assert view.visible_categories == frozenset((OtherCategory, UserCategory))

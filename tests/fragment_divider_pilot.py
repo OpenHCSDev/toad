@@ -34,7 +34,7 @@ async def main() -> None:
         )
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(100, 35)) as pilot:
-            conversation = app.screen.conversation
+            conversation = app.selected_session.conversation
             await conversation.contents.remove_children()
             saved = TranscriptPageView(page, newest=False, fragments=fragments)
             await conversation.post(saved)

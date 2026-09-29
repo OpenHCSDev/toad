@@ -20,7 +20,7 @@ async def main():
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(120, 40)) as pilot:
             await pilot.pause()
-            area = app.screen.conversation.prompt.prompt_text_area
+            area = app.selected_session.conversation.prompt.prompt_text_area
             area.focus()
             await pilot.pause()
             original = area.post_message

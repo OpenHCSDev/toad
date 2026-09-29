@@ -34,7 +34,7 @@ async def main():
         assert not history.state.accepts_publication
         app = ToadApp(project_dir=str(root))
         async with app.run_test() as pilot:
-            await app.screen.conversation.post(history)
+            await app.selected_session.conversation.post(history)
             await pilot.pause()
             assert isinstance(history.state, ProvisionalTranscript)
             assert not history.state.accepts_publication

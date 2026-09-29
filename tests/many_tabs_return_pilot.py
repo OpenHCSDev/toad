@@ -131,7 +131,7 @@ async def main(*, empty=False, trace=False, observe=False, output=None, peers=0,
         with patch.object(Agent, "start", start):
             async with app.run_test(size=(110, 37)) as pilot:
                 await pilot.pause()
-                owner = app.current_mode
+                owner = app.selected_mode
                 app.screen._agent = {
                     "name": "Fixture",
                     "identity": "fixture",
@@ -150,10 +150,10 @@ async def main(*, empty=False, trace=False, observe=False, output=None, peers=0,
                             owner_mode=owner, project_path=root, target=name
                         )
                         async with asyncio.timeout(20):
-                            while not app.screen.conversation.agent_ready:
+                            while not app.selected_session.conversation.agent_ready:
                                 await asyncio.sleep(0.005)
                     modes.append(mode)
-                    app.screen.conversation.prompt.text = f"draft-{mode}"
+                    app.selected_session.conversation.prompt.text = f"draft-{mode}"
                     await pilot.pause()
 
                 census(app, "after-create")
@@ -165,7 +165,7 @@ async def main(*, empty=False, trace=False, observe=False, output=None, peers=0,
                           if phases is None or phase in phases]
                 for phase, visits in passes:
                     for mode in visits:
-                        if mode == app.current_mode:
+                        if mode == app.selected_mode:
                             continue
                         screen = app.get_screen_stack(mode)[0]
                         revision = screen._resume_style
@@ -603,7 +603,7 @@ async def verify_post_switch(app, pilot, modes, empty, observe, targets, run_sta
     finished = asyncio.Event()
 
     async def same_mode():
-        await app.switch_mode(app.current_mode)
+        await app.switch_mode(app.selected_mode)
         finished.set()
 
     app.screen.call_later(same_mode)
@@ -628,7 +628,7 @@ async def verify_post_switch(app, pilot, modes, empty, observe, targets, run_sta
     assert tuple(label.id for label in app.screen.query(SessionLabel)) == tuple(
         tab.mode_name for tab in app.open_tabs
     )
-    assert app.screen.conversation.prompt.text == f"draft-{modes[3]}"
+    assert app.selected_session.conversation.prompt.text == f"draft-{modes[3]}"
     if not observe and not empty:
         rebuilt = {
             (row.query_ancestor(ChannelGroup).row.target_name, row.thread_name): row

@@ -32,8 +32,16 @@ class SessionObservation(ABC):
 
     async def refresh(self):
         self.invalidate()
-        if self.task is not None:
-            await asyncio.shield(self.task)
+        task = self.task
+        if task is not None:
+            try:
+                await asyncio.shield(task)
+            except asyncio.CancelledError:
+                # Source retirement owns cancellation of its read. A callback
+                # awaiting that read must not cancel the retained UI pump.
+                if self.view is None and task.cancelled() and not asyncio.current_task().cancelling():
+                    return
+                raise
 
     async def close(self):
         self._view = None

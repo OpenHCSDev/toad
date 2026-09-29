@@ -17,11 +17,6 @@ from toad.widgets.message_filter import event_category
 if TYPE_CHECKING:
     from toad.render_backend import Renderer
 
-# Bound foreground work by input size, not by a timer after parsing has blocked.
-FOREGROUND_CHARACTER_BUDGET = 8192
-FOREGROUND_EVENT_BUDGET = 64
-
-
 class _FragmentParserState(local):
     def __init__(self) -> None:
         self.parser = MarkdownIt("gfm-like")
@@ -37,16 +32,12 @@ def _fragment_parser() -> MarkdownIt:
 
 async def prepare_transcript_fragments(
     events: tuple[TranscriptEvent, ...], pool: "Renderer | None" = None,
-    *, background: bool = False,
 ) -> tuple["TranscriptFragment", ...]:
     """Prepare plain model data; never send widgets or application state to workers.
 
     Standalone Textual apps may not own a pool. Their large requests own and close
     a temporary pool, including on cancellation; there is no hidden global pool.
     """
-    if (not background and len(events) <= FOREGROUND_EVENT_BUDGET
-            and sum(event.text_size for event in events) <= FOREGROUND_CHARACTER_BUDGET):
-        return transcript_fragments(events)
     from toad.render_tasks import TranscriptRenderTask
 
     if pool is not None:

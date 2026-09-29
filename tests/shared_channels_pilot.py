@@ -90,7 +90,7 @@ async def main():
                 await pilot.pause()
                 original_rows = dict(roster._row_map)
                 original_tasks = {key: row._task for key, row in original_rows.items()}
-                owner = app.current_mode
+                owner = app.selected_mode
                 right = app.screen.query_one("#thread-sidebar", SideBar)
                 right.reveal()
                 await pilot.pause()
@@ -113,10 +113,10 @@ async def main():
                 ), "Opening a tab discarded unchanged Channels paint"
                 assert app.screen.query_one("#thread-sidebar", SideBar) is not right
                 assert app.screen.query_one("#thread-sidebar", SideBar).collapsed
-                assert app.screen.conversation._shell is None
+                assert app.selected_session.conversation._shell is None
                 original = app.get_screen_stack(owner)[0]
                 assert not original.query(Conversation)
-                assert original.presentation.editor_state is not None
+                assert original.presentation.state.editor is not None
                 handle = bar.query_one(SidebarResizeHandle)
                 assert await pilot.mouse_down(handle, offset=(0, 4))
                 assert app.mouse_captured is handle and handle._dragging
@@ -214,7 +214,7 @@ async def main():
                     finally:
                         mount_release.set()
                     delayed = await asyncio.wait_for(opening, 8)
-                assert app.current_mode == owner and bar.screen is app.screen
+                assert app.selected_mode == owner and bar.screen is app.screen
                 assert not app.get_screen_stack(delayed)[0].query(ChannelsSidebar)
                 assert app._exception is None
                 new_root = root / "other-wire"
@@ -258,7 +258,7 @@ async def main():
                 assert not any(
                     (row.target_name == "#shared" for row in roster._row_map.values())
                 )
-                remaining = app.current_mode
+                remaining = app.selected_mode
                 abandoned = (
                     await app.new_session_screen(app.get_main_screen)
                 ).mode_name
@@ -279,9 +279,9 @@ async def main():
                     finally:
                         bind_release.set()
                     await asyncio.wait_for(activation, 3)
-                assert app.current_mode == remaining and bar.screen is app.screen
+                assert app.selected_mode == remaining and bar.screen is app.screen
                 assert bar.is_attached and not bar._closed
-                conversation = app.screen.conversation
+                conversation = app.selected_session.conversation
                 assert conversation._shell is None
                 await conversation.post_shell("printf 'workspace-shell-ready\\n'")
                 async with asyncio.timeout(5):

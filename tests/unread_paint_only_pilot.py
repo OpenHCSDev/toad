@@ -26,7 +26,7 @@ async def main():
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(120, 40)) as pilot:
             await pilot.pause()
-            first = app.current_mode
+            first = app.selected_mode
             screen = app.screen
             screen.on_comms_session_named("fixture")
             await app.new_session_screen(app.get_main_screen)

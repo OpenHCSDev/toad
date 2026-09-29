@@ -37,7 +37,7 @@ async def check(virtual):
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(140, 44)) as pilot:
             await pilot.pause()
-            mode = app.current_mode
+            mode = app.selected_mode
             screen = app.screen
             screen.on_comms_session_named("worker")
             sidebar = screen.query_one(CommsSidebar)

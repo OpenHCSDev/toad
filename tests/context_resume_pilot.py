@@ -52,16 +52,16 @@ async def main():
             async with asyncio.timeout(20):
                 while (
                     not app.screen.query_one_optional(Conversation)
-                    or not app.screen.conversation.agent_ready
+                    or not app.selected_session.conversation.agent_ready
                 ):
                     await asyncio.sleep(0.05)
             await pilot.pause()
-            agent = app.screen.conversation.agent
+            agent = app.selected_session.conversation.agent
             assert agent._context_usage.used == 38723
             assert agent._context_usage.size == 272000
             assert agent._context_usage_saved is True
-            assert "38.7K" in app.screen.conversation.status.plain
-            assert "last response" in app.screen.conversation.status.plain
+            assert "38.7K" in app.selected_session.conversation.status.plain
+            assert "last response" in app.selected_session.conversation.status.plain
             agent.rpc_session_update(
                 "saved",
                 {"sessionUpdate": "usage_update", "used": 40000, "size": 272000},
@@ -70,13 +70,13 @@ async def main():
             assert agent._context_usage.used == 40000 and (
                 not agent._context_usage_saved
             )
-            assert "last response" not in app.screen.conversation.status.plain
+            assert "last response" not in app.selected_session.conversation.status.plain
             agent.comms_consumer_class(agent, agent.session_id).dispatch_sync(
                 coordination_fact("saved", str(root / "wire"), context_usage=None)
             )
             await pilot.pause()
             assert agent._context_usage is None
-            assert "unavailable" in app.screen.conversation.status.plain
+            assert "unavailable" in app.selected_session.conversation.status.plain
             assert not (root / "provider-called").exists()
             assert app._exception is None
     print(

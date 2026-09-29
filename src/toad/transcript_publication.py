@@ -11,6 +11,7 @@ from textual.worker import Worker, WorkerCancelled
 
 if TYPE_CHECKING:
     from toad.widgets.conversation import Conversation, Window, Contents
+    from toad.widgets.history_anchor import ReaderPosition
 
 
 class TranscriptPublication(ABC):
@@ -53,9 +54,12 @@ class SnapshotPublication(TranscriptPublication):
             return
         view = self.owner.view
         history = TranscriptHistory(self.page, self.agent.get_transcript_page, fragments=fragments)
+        if self.owner.reader_position is not None:
+            self.owner.reader_position.prepare_history(history)
         view.output.boundary()
-        if self.window.scroll_revision == self.scroll_revision:
-            self.window.anchor()
+        if self.owner.reader_position is None:
+            if self.window.scroll_revision == self.scroll_revision:
+                self.window.anchor()
         with view.app.batch_update():
             await self.contents.mount(history)
         if not self.current():
@@ -63,7 +67,7 @@ class SnapshotPublication(TranscriptPublication):
                 await history.remove()
             return
         view.query_one(SessionDetails)._refresh_summary()
-        self.owner.painted(self.page.after)
+        self.owner.painted(self.page.after, reader_revision=self.scroll_revision)
 
 
 class CheckpointPublication(TranscriptPublication):
@@ -209,6 +213,7 @@ class TranscriptPresentation:
         self.checkpoint_required = False
         self.displayed_cursor: TranscriptCursor | None = None
         self.worker: Worker[None] | None = None
+        self.reader_position: ReaderPosition | None = None
 
     @property
     def view(self) -> Conversation | None:
@@ -249,7 +254,7 @@ class TranscriptPresentation:
         self.invalidate()
         await self.publish(SnapshotPublication, page)
 
-    def painted(self, cursor: TranscriptCursor) -> None:
+    def painted(self, cursor: TranscriptCursor, *, reader_revision: int | None = None) -> None:
         from toad.widgets.conversation import Window, Contents
         view = self.view
         if view is None:
@@ -265,12 +270,17 @@ class TranscriptPresentation:
                 return
             if window.is_attached and contents.is_attached:
                 self.displayed_cursor = cursor
+                if reader_revision is not None:
+                    position, self.reader_position = self.reader_position, None
+                    if position is not None and window.scroll_revision == reader_revision:
+                        position.restore(window)
         view.call_after_refresh(record)
 
     def source_changed(self) -> None:
         self.invalidate()
         self.dirty = self.checkpoint_required = False
         self.displayed_cursor = None
+        self.reader_position = None
         worker, self.worker = self.worker, None
         if worker is not None:
             worker.cancel()

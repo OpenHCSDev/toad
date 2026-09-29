@@ -27,7 +27,7 @@ async def main():
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(120, 40)) as pilot:
             await pilot.pause()
-            view = app.screen.conversation
+            view = app.selected_session.conversation
             started, release = asyncio.Event(), asyncio.Event()
 
             async def clipboard_image():

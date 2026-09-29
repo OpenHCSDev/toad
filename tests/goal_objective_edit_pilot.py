@@ -67,7 +67,7 @@ async def main():
             app = ToadApp(project_dir=str(project))
             async with app.run_test(size=(110, 35)) as pilot:
                 await pilot.pause()
-                conversation = app.screen.conversation
+                conversation = app.selected_session.conversation
                 conversation.set_reactive(type(conversation).agent, agent)
                 conversation.agent_ready = True
                 await conversation.goal_observation.refresh()

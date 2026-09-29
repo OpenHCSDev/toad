@@ -17,11 +17,11 @@ async def main():
         Comms(root/'wire').messaging.initialize_private_initial_protocol()
         app=ToadApp(project_dir=str(root))
         async with app.run_test(size=(139,25)) as pilot:
-            await app.screen.wait_content_ready()
+            await app.selected_session.wait_content_ready()
             await pilot.pause()
             screen=app.screen
-            first_mode=app.current_mode
-            view=screen.conversation
+            first_mode=app.selected_mode
+            view=app.selected_session.conversation
             response=await view.post(AgentResponse('\n\n'.join(f'Visible paragraph {i}' for i in range(45))))
             window=view.window
             window.anchor()
@@ -34,10 +34,10 @@ async def main():
             depth=0
             peak=0
             nested_layouts=0
-            def observe_prepare(wait):
+            def observe_prepare():
                 nonlocal depth,peak
                 depth+=1;peak=max(peak,depth)
-                try:return original_prepare(wait)
+                try:return original_prepare()
                 finally:depth-=1
             def observe_layout(*args,**kwargs):
                 nonlocal nested_layouts
@@ -70,10 +70,10 @@ async def main():
             assert 'Additional output while reading' in frame, frame
             assert nested_layouts==0 and peak==1
             await app.new_session_screen(app.get_main_screen)
-            await app.screen.wait_content_ready()
+            await app.selected_session.wait_content_ready()
             await pilot.pause()
-            await app.switch_mode(first_mode)
-            await app.screen.wait_content_ready()
+            await app.select_session(first_mode)
+            await app.selected_session.wait_content_ready()
             await pilot.pause()
             assert app._exception is None
             print('PASS actual installed139x25: no synchronous reentry, growth+resize tail, reader position, cropped output paint, session switch/return')

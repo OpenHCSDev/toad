@@ -19,7 +19,7 @@ async def main():
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(120, 40)) as pilot:
             await pilot.pause()
-            prompt = app.screen.conversation.prompt
+            prompt = app.selected_session.conversation.prompt
             area = prompt.prompt_text_area
             captured: list[UserInputSubmitted] = []
             original = area.post_message

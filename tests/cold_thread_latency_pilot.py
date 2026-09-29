@@ -87,7 +87,7 @@ async def main(profile_path=None, trace=False):
             with patch.object(Agent, "start", start):
                 async with app.run_test(size=(110, 35)) as pilot:
                     await pilot.pause()
-                    owner = app.current_mode
+                    owner = app.selected_mode
                     app.screen._agent = {
                         "name": "Fixture",
                         "identity": "fixture",

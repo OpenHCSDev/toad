@@ -83,7 +83,7 @@ async def main():
                 release_on_exit(release, disk_release),
             ):
                 await pilot.pause()
-                source = app.current_mode
+                source = app.selected_mode
                 app.screen._agent = agent_data
                 sidebar = app.screen.query_one(CommsSidebar)
                 await sidebar.sync_sessions()
@@ -110,7 +110,7 @@ async def main():
                         (strip.text for strip in app.screen._compositor.render_strips())
                     )
                     assert "Loading new thread and history" in frame, frame
-                    conversation = app.screen.conversation
+                    conversation = app.selected_session.conversation
                     loading = conversation.query_one(ThreadLoading)
                     viewport = conversation.window.content_region
                     assert loading.region.width >= viewport.width - 2

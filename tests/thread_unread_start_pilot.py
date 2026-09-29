@@ -73,7 +73,7 @@ async def main():
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(130, 45)) as pilot:
             await pilot.pause()
-            owner_mode, main_screen = (app.current_mode, app.screen)
+            owner_mode, main_screen = (app.selected_mode, app.screen)
             main_screen.initial_coordination_root = str(comms.root.resolve())
             main_screen._comms_thread = "worker"
             conversation = main_screen.conversation
@@ -180,7 +180,7 @@ async def main():
                 owner_mode=owner_mode, project_path=root, target="stopped"
             )
             await pilot.pause()
-            assert app.current_mode == stopped_view
+            assert app.selected_mode == stopped_view
             assert comms.registry.status("stopped").stopped
             await app.switch_mode(channel_mode)
             await pilot.pause()
@@ -215,7 +215,7 @@ async def main():
                 ):
                     await pilot.pause(0.05)
             assert chat.prompt.text == "Keep my draft"
-            assert app.current_mode == channel_mode
+            assert app.selected_mode == channel_mode
             await refresh(app, pilot)
             assert app._exception is None
         await asyncio.get_running_loop().shutdown_default_executor()

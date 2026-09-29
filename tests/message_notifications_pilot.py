@@ -59,8 +59,8 @@ async def main():
         with patch.object(type(comms.views), "message_notifications", read):
             async with app.run_test(size=(110, 40)) as pilot:
                 await pilot.pause()
-                native = app.screen.conversation
-                native_mode = app.current_mode
+                native = app.selected_session.conversation
+                native_mode = app.selected_mode
                 observed = native.query_one(ObservedThreadActivity)
                 current = ThreadPresentation("peer", "●", "Checking #comms message", True)
 

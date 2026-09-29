@@ -85,7 +85,7 @@ async def main():
         try:
             async with app.run_test(size=(100, 34)) as pilot:
                 await pilot.pause()
-                view = app.screen.conversation
+                view = app.selected_session.conversation
                 agent = PilotAgent(
                     base,
                     {

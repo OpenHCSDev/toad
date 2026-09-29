@@ -15,7 +15,7 @@ from agent_comms.messages import Message
 from agent_comms import HistoricalMessage
 from toad.widgets.comms_sidebar import SelectTarget
 from toad.widgets.inline_message import inline_message
-from toad.widgets.message_divider import MessageDivider
+from toad.widgets.message_divider import MessageDivider, MessageClock
 from toad.widgets.message_notifications import MessageNotifications
 
 
@@ -98,7 +98,7 @@ class IRCMessage(ConversationBlock, VerticalGroup, can_focus=True):
 
     def compose(self) -> ComposeResult:
         message = self.message
-        yield MessageDivider(self.direction, timestamp=message.timestamp)
+        yield MessageDivider(self.direction, clock=MessageClock.recorded(message.timestamp))
         with HorizontalGroup(classes="irc-body"):
             yield IRCMessageText(
                 Content.assemble(
@@ -158,7 +158,7 @@ class WireMarkdownMessage(ConversationBlock, VerticalGroup):
     def compose(self) -> ComposeResult:
         from toad.widgets.agent_response import AgentResponse
 
-        yield MessageDivider(self.direction, timestamp=self.message.timestamp)
+        yield MessageDivider(self.direction, clock=MessageClock.recorded(self.message.timestamp))
         source = self.message.source.key if isinstance(self.message, HistoricalMessage) else None
         with HorizontalGroup():
             yield ThreadLink(self.message.sender, source)

@@ -34,7 +34,7 @@ class SessionLabel(widgets.Label):
                 # full-layout timer run ahead of the user's tab click. The
                 # ordinary app mode-switch boundary already captures sidebar
                 # navigation and queues its serialized transition.
-                self.app.switch_mode(self.id)
+                self.app.select_session(self.id)
 
 
 class SessionTabClose(widgets.Static, can_focus=True):
@@ -176,8 +176,8 @@ class SessionsTabs(Widget):
         self._spinner_timer = self.set_interval(.18, self._animate_busy, pause=True)
         # Metadata can arrive after compose built the labels. Keep that exact
         # rendered snapshot as the cache, then reconcile the mounted widgets.
-        self.current_session = self.app.current_mode
-        self.app.mode_change_signal.subscribe(self, self.handle_mode_change)
+        self.current_session = self.app.selected_mode
+        self.app.session_selected_signal.subscribe(self, self.handle_mode_change)
         self.app.session_update_signal.subscribe(
             self, self.handle_session_update_signal
         )
@@ -249,7 +249,7 @@ class SessionsTabs(Widget):
                 yield SessionLabel(
                     self.render_session_label(session),
                     id=session.mode_name,
-                    classes="-current" if session.mode_name == self.screen.id else "",
+                    classes="-current" if session.mode_name == self.app.selected_mode else "",
                 )
                 yield SessionTabClose(session.mode_name)
         yield Underline()
@@ -279,7 +279,7 @@ class SessionsTabs(Widget):
             if tabs == self._last_tabs:
                 # Selection does not change the worker-owned label projection.
                 # Its native reactive updates the selected class and underline.
-                self.current_session = self.app.current_mode
+                self.current_session = self.app.selected_mode
                 self._sync_spinner(tabs)
                 return
             prepared = await self.app.preparation.submit(TabRosterWork(tabs))
@@ -293,7 +293,7 @@ class SessionsTabs(Widget):
         self._tab_projection = {tab.source.mode_name: tab for tab in prepared}
         previous_tabs = {tab.mode_name: tab for tab in self._last_tabs or ()}
         geometry_changed = self._last_tabs is None
-        mode_changed = self.current_session != self.app.current_mode
+        mode_changed = self.current_session != self.app.selected_mode
         labels = {label.id: label for label in self.query(SessionLabel)}
         desired = {tab.mode_name for tab in tabs}
         obsolete = set(labels) - desired
@@ -327,7 +327,7 @@ class SessionsTabs(Widget):
         if [widget.id for widget in self.title_container.children] != list(order):
             self.title_container.sort_children(key=lambda widget: order[widget.id])
             geometry_changed = True
-        self.current_session = self.app.current_mode
+        self.current_session = self.app.selected_mode
         self._last_tabs = tabs
         self._sync_spinner(tabs)
         if geometry_changed or mode_changed:

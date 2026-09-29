@@ -52,7 +52,7 @@ async def main():
                 assert background != purple, (name, background)
 
             app.settings.tools.expand = SuccessExpansion
-            conversation = app.screen.conversation
+            conversation = app.selected_session.conversation
             payload = {"sessionUpdate": "tool_call", "toolCallId": "last-tool", "title": "Run tests",
                        "status": "in_progress", "kind": "execute",
                        "content": [{"type": "content", "content": {"type": "text", "text": "Result"}}]}

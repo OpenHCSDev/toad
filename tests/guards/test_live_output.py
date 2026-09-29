@@ -35,7 +35,7 @@ async def declaration_case():
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(120, 40)) as pilot:
             await app.screen.wait_content_ready()
-            view = app.screen.conversation
+            view = app.selected_session.conversation
             assert await view.output.append(ThoughtStream(), '   ') is None
             thought = await view.output.append(ThoughtStream(), 'Thinking first')
             assert await view.output.append(ThoughtStream(), ' and next') is thought

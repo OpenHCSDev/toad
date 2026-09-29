@@ -422,7 +422,10 @@ This is a view of your conversation with the agent.
 - **start typing** Focus the prompt
 """
     BINDING_GROUP_TITLE = "View"
-    BINDINGS = [Binding("end", "screen.focus_prompt", "Latest / prompt")]
+    BINDINGS = [Binding("end", "focus_prompt", "Latest / prompt")]
+
+    def action_focus_prompt(self) -> None:
+        self.query_ancestor(Conversation).focus_prompt()
 
 
 
@@ -586,6 +589,11 @@ class Conversation(containers.Vertical):
     ) -> None:
         super().__init__()
 
+        self._initialize_session(project_path, agent, agent_session_id, session_pk,
+                                 session_title, initial_prompt)
+
+    def _initialize_session(self, project_path, agent=None, agent_session_id=None,
+                            session_pk=None, session_title=None, initial_prompt=None) -> None:
         project_path = project_path.resolve().absolute()
 
         self.set_reactive(Conversation.project_path, project_path)
@@ -1190,7 +1198,7 @@ class Conversation(containers.Vertical):
                 "Connect a provider",
                 [(method["id"], method["name"]) for method in methods],
             ),
-            mode=self.screen.id,
+            mode="workspace",
         )
         if not method_id:
             self.prompt.focus()
@@ -1212,7 +1220,7 @@ class Conversation(containers.Vertical):
                         env=method.get("env") or {},
                         cwd=str(self.project_path),
                     ),
-                    mode=self.screen.id,
+                    mode="workspace",
                 )
                 if code != 0:
                     return
@@ -1268,7 +1276,7 @@ class Conversation(containers.Vertical):
                         f"Thinking level for {model.name}",
                         [(value, value.title()) for value in levels],
                     ),
-                    mode=self.screen.id,
+                    mode="workspace",
                 )
                 if (
                     level
@@ -1968,11 +1976,9 @@ class Conversation(containers.Vertical):
         return ask
 
     def command_target_context(self):
-        from toad.navigation_target import NavigationOwner
+        from toad.screens.main import MainScreen
         from toad.target_commands import ThreadContext
-        if not isinstance(self.screen, NavigationOwner):
-            return None
-        nav = self.screen.navigation_context
+        nav = self.query_ancestor(MainScreen).navigation_context
         comms = self.app.coordination_wire
         from agent_comms.errors import UnregisteredThreadError
         try:
@@ -2006,6 +2012,14 @@ class Conversation(containers.Vertical):
         self.shell_history.complete.add_words(
             self.app.settings.shell.allow_commands.split()
         )
+        self.start_native_session()
+        self.update_title()
+        self.window.anchor()
+
+    def start_native_session(self) -> None:
+        if self.agent is not None:
+            self.agent_ready = self.agent.ready
+            return
         if self._agent_data is not None:
 
             async def start_agent() -> None:
@@ -2026,10 +2040,10 @@ class Conversation(containers.Vertical):
                     )
                 )
 
-            from toad.screens.session_view import SessionView
+            from toad.screens.workspace import WorkspaceScreen
 
             screen = self.screen
-            if isinstance(screen, SessionView):
+            if isinstance(screen, WorkspaceScreen):
                 screen.call_after_first_frame(self, start_agent)
             else:
                 self.call_after_refresh(start_agent)
@@ -2037,8 +2051,38 @@ class Conversation(containers.Vertical):
         else:
             self.agent_ready = True
 
-        self.update_title()
+    async def release_native_session(self) -> None:
+        """Invalidate all old publications before this rich surface changes source."""
+        self.goal_controls.close()
+        self.output.retire()
+        await self.window.document_viewport.suspend_source()
+        await asyncio.gather(self.transcript.close(), self.goal_observation.close(),
+                             self.delivery_observation.close())
+        self.agent = None
+        self._initial_prompt = None
+        await self.contents.remove_children()
+        self.cursor.follow(None)
+        self.prompt._ask = None
+        self.prompt.ask_queue.clear()
+        self._focusable_terminals.clear()
+
+    def bind_native_session(self, screen) -> None:
+        """Reset values from their declarations, then bind the existing source config."""
+        for name, declaration in Conversation._reactives.items():
+            if name in Conversation.__dict__:
+                self.set_reactive(declaration, declaration._default_value(self))
+        self._initialize_session(screen.project_path, screen._agent,
+                                 screen._agent_session_id, screen._session_pk,
+                                 screen._agent_session_title, screen._initial_prompt)
+        # Refresh cwd-bound editor projections, without replaying semantic
+        # history-navigation watchers against the restored document.
+        self.mutate_reactive(Conversation.project_path)
+        self.mutate_reactive(Conversation.working_directory)
+        self.column = screen.column
+        self.prompt.slash_commands = CommandCatalog(
+            self.agent_slash_commands, self.command_target_context()).commands
         self.window.anchor()
+        self.window.document_viewport.resume_source()
 
     def _history_scroll_changed(self, _position: float) -> None:
         self.call_after_refresh(self.transcript.retry)

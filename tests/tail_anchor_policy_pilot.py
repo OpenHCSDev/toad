@@ -20,7 +20,7 @@ async def main():
         app = ScrollFrameApp(project_dir=str(root))
         async with app.run_test(size=(100, 32)) as pilot:
             await pilot.pause()
-            view = app.screen.conversation
+            view = app.selected_session.conversation
             window, contents = view.window, view.contents
             blocks = [Note(f"Record {index}\nsecond line") for index in range(80)]
             await contents.mount(*blocks)

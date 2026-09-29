@@ -27,7 +27,7 @@ async def main(baseline):
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(130, 43)) as pilot:
             await pilot.pause()
-            view = app.screen.conversation
+            view = app.selected_session.conversation
             await view.contents.mount(*[
                 cls(f"## Record {index}\n\n" + "A paragraph of ordinary text.\n\n" * 5)
                 for index in range(30) for cls in (AgentResponse, AgentThought)

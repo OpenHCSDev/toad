@@ -128,7 +128,7 @@ async def main() -> None:
             async with app.run_test(size=(115, 38)) as pilot:
                 await pilot.pause()
                 assert app.coordination_wire.root == first
-                owner_mode = app.current_mode
+                owner_mode = app.selected_mode
                 mode = await app.open_comms_session(
                     owner_mode=owner_mode,
                     project_path=sandbox,
@@ -136,7 +136,7 @@ async def main() -> None:
                     target=channel_target("#team"),
 
                 )
-                assert mode == app.current_mode
+                assert mode == app.selected_mode
                 view = app.screen.query_one(CommsChatView)
                 await view._refresh()
                 await pilot.pause()
@@ -186,7 +186,7 @@ async def main() -> None:
                 await pilot.pause()
                 assert new_app.coordination_wire.root == second
                 await new_app.open_comms_session(
-                    owner_mode=new_app.current_mode,
+                    owner_mode=new_app.selected_mode,
                     project_path=sandbox,
                     me="user",
                     target=channel_target("#team"),

@@ -78,7 +78,7 @@ async def main() -> None:
                 async with settled_test_executor(), app.run_test(size=(115, 38)) as pilot:
                     await pilot.pause()
                     await app.open_comms_session(
-                        owner_mode=app.current_mode,
+                        owner_mode=app.selected_mode,
                         project_path=sandbox,
                         me="user",
                         target=channel_target("#team"),

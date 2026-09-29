@@ -51,7 +51,7 @@ async def main():
         with patch.object(SessionView, "_finish_first_frame", hold_frame), patch.object(Agent, "start", start):
             async with app.run_test(size=(100, 35)) as pilot:
                 await pilot.pause()
-                owner = app.current_mode
+                owner = app.selected_mode
                 owner_screen = app.screen
                 assert owner_screen in written
                 assert app._sidebar_snapshot is None, "Initial sidebar read escaped presentation gate"
@@ -61,8 +61,8 @@ async def main():
                                        "run_command": {"*": "/bin/false"}, "protocol": "acp"}
                 opening = asyncio.create_task(app.open_thread_session(
                     owner_mode=owner, project_path=root, target="visible-peer"))
-                await until(lambda: app.current_mode.startswith("session-")
-                            and app.current_mode != owner and app.screen in written)
+                await until(lambda: app.selected_mode.startswith("session-")
+                            and app.selected_mode != owner and app.screen in written)
                 view = app.screen
                 assert not view._content_loaded and not opening.done()
                 assert view.query_one(ThreadLoading).is_mounted and not started
@@ -77,9 +77,9 @@ async def main():
                 await app.switch_mode(owner)
                 opening = asyncio.create_task(app.open_thread_session(
                     owner_mode=owner, project_path=root, target="closed-peer"))
-                await until(lambda: app.current_mode.startswith("session-")
-                            and app.current_mode not in {owner, mode} and app.screen in written)
-                closing = app.current_mode
+                await until(lambda: app.selected_mode.startswith("session-")
+                            and app.selected_mode not in {owner, mode} and app.screen in written)
+                closing = app.selected_mode
                 closed_view = app.screen
                 assert closed_view in written and not closed_view._first_frame_presented
                 await app.close_session_mode(closing)

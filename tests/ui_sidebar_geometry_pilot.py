@@ -70,7 +70,7 @@ async def main() -> None:
                 check(panels.scroll_y > 0, "virtual keyboard navigation must scroll the sidebar")
             for selector in ("#sidebar-right", "#sidebar-float"):
                 button = left.query_one(selector, SidebarAction)
-                app.screen.conversation.prompt.focus()
+                app.selected_session.conversation.prompt.focus()
                 await pilot.hover(app.screen.query_one(TabHistoryControls))
                 await pilot.pause()
                 normal = button.styles.background

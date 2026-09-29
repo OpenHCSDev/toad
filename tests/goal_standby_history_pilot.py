@@ -101,7 +101,7 @@ async def main():
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(100, 35)) as pilot:
             await wait_channel_roster(app, pilot, "#all")
-            conversation = app.screen.conversation
+            conversation = app.selected_session.conversation
             owner = GoalOwner()
             conversation.set_reactive(type(conversation).agent, owner)
             conversation.agent_ready = True

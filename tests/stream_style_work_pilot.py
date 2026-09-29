@@ -20,7 +20,7 @@ async def main():
         async with app.run_test(size=(120, 40)) as pilot:
             await pilot.pause()
             response = AgentResponse("\n\n".join(f"## Heading {i}\n\nA paragraph." for i in range(80)))
-            await app.screen.conversation.post(response)
+            await app.selected_session.conversation.post(response)
             await pilot.pause()
             old = set(response.walk_children(with_self=True))
             original = app.stylesheet.apply

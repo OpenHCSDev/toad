@@ -15,12 +15,12 @@ from textual.containers import Vertical, VerticalGroup
 from textual.screen import ModalScreen
 from textual.widgets import Select, Static
 
-from toad.screens.session_view import SessionView
+from toad.screens.workspace import WorkspaceScreen
 from toad.widgets.conversation import Window
 from toad.widgets.transcript_history import TranscriptHistory
 
 
-class HistoricalSessions(SessionView, ModalScreen):
+class HistoricalSessions(WorkspaceScreen, ModalScreen):
     BINDINGS: ClassVar = [("escape", "close", "Back to chats")]
     DEFAULT_CSS = """
     HistoricalSessions { align: center middle; background: $background 60%; }

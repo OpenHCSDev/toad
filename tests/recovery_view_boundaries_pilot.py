@@ -91,7 +91,7 @@ async def dual_root_projection():
         with patch("toad.widgets.recovery_view._read_gateway", side_effect=read):
             async with app.run_test(size=(100, 35)) as pilot:
                 await pilot.pause()
-                owner_mode = app.current_mode
+                owner_mode = app.selected_mode
                 owner_screen = app.screen
                 assert not owner_screen.query(RecoveryView) and not requests
                 # Same name exists in A and B. Trusted ACP says B; the env A

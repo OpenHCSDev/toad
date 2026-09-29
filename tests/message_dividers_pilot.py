@@ -40,8 +40,8 @@ async def main() -> None:
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(110, 34)) as pilot:
             await pilot.pause()
-            owner = app.current_mode
-            native = app.screen.conversation
+            owner = app.selected_mode
+            native = app.selected_session.conversation
             user = await native.post(UserInput("human text"))
             reply = await native.output.append(ResponseStream(), "agent text")
             assert reply is not None

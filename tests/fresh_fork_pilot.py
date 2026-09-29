@@ -104,7 +104,7 @@ async def main():
                         for key in app._comms_modes
                     )
                 )
-                view = app.screen.conversation
+                view = app.selected_session.conversation
                 history = view.query_one(TranscriptHistory)
                 frame = "\n".join(
                     (strip.text for strip in app.screen._compositor.render_strips())

@@ -51,11 +51,11 @@ async def main() -> None:
                     assert warm_states == [WorkerState.SUCCESS], warm_states
                     await pilot.pause()
                     source = "```python\n" + "value = 123\n" * 100 + "```\n"
-                    response = await app.screen.conversation.post(AgentResponse(paginate=False))
+                    response = await app.selected_session.conversation.post(AgentResponse(paginate=False))
                     await response.update(source)
                     await pilot.pause()
                     assert response.query_one(MarkdownFence).code.startswith("value = 123")
-                    tool = await app.screen.conversation.post(ToolCall({
+                    tool = await app.selected_session.conversation.post(ToolCall({
                         "toolCallId": "persistent", "kind": "edit", "title": "Synthetic edit",
                         "status": "completed", "content": [{"type": "content", "content": {
                             "type": "resource", "resource": {"mimeType": "text/x-diff", "text": PATCH},
@@ -72,9 +72,9 @@ async def main() -> None:
                     content = preview.query_one(WorkerStatic)
                     assert content._prepared is not None
                     assert f"PERSISTENT_PREVIEW_{index}" in "\n".join(line.text for line in content._prepared.lines)
-                    await app.close_session_mode(app.current_mode)
+                    await app.close_session_mode(app.selected_mode)
                     read_source = f"def persistent_read_{index}():\n    return 42\n\n"
-                    read_tool = await app.screen.conversation.post(ToolCall({
+                    read_tool = await app.selected_session.conversation.post(ToolCall({
                         "toolCallId": f"persistent-read-{index}", "kind": "read", "title": "Read module.py",
                         "status": "completed", "rawInput": {"path": "module.py"},
                         "content": [{"type": "content", "content": {"type": "text", "text": read_source}}],

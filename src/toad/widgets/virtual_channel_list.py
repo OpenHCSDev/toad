@@ -61,7 +61,7 @@ class TargetChoice(VirtualChoice):
         sidebar.selected = self.target.name
         sidebar.apply_selection(force=True)
         if self.mode is not None:
-            sidebar.app.switch_mode(self.mode)
+            sidebar.app.select_session(self.mode)
         elif isinstance(sidebar.screen, NavigationOwner):
             await sidebar.screen.open_sidebar_target(self.target)
         else:
@@ -72,7 +72,7 @@ class TargetChoice(VirtualChoice):
 class NewSessionChoice(VirtualChoice):
     async def activate(self, sidebar) -> None:
         from toad import messages
-        sidebar.app.post_message(messages.SessionCreate(sidebar.screen.id or sidebar.app.current_mode))
+        sidebar.app.post_message(messages.SessionCreate(sidebar.app.selected_mode))
 
 
 class VirtualChannelList(OptionList, inherit_css=False):

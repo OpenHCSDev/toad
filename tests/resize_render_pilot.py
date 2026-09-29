@@ -27,7 +27,7 @@ async def main():
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(70, 25)) as pilot:
             await pilot.pause()
-            conversation = app.screen.conversation
+            conversation = app.selected_session.conversation
             await conversation.contents.remove_children()
             await conversation.post(TranscriptHistory(page, load))
             await conversation.post(AgentResponse("FINAL_VISIBLE_MARKER\n\n" + "Last paragraph. " * 10))

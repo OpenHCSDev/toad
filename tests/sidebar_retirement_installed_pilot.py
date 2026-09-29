@@ -52,7 +52,7 @@ async def main():
         measurements, timings, screens, references = [], [], [], []
         async with app.run_test(size=(130, 44)) as pilot:
             await pilot.pause(.02)
-            first = app.screen
+            first = app.selected_session
             first._comms_thread = "owner-0"
             first.initial_coordination_root = str(root / "wire")
             screens.append(first)
@@ -87,7 +87,7 @@ async def main():
                     screen.initial_coordination_root = str(root / "wire")
                     return screen
                 await app.new_session_screen(make_screen)
-                screen = app.screen
+                screen = app.selected_session
                 screens.append(screen)
                 await pilot.pause(.02)
                 bar = await reveal(screen, pilot)
@@ -105,7 +105,7 @@ async def main():
             first_bar.update_plan(latest)
             for screen in reversed(screens):
                 started = time.perf_counter()
-                await app.switch_mode(screen.id)
+                await app.select_session(screen.id)
                 await pilot.pause(.02)
                 bar = screen.query_one(SessionThreadSidebar)
                 await bar.wait_content_ready()

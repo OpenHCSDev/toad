@@ -39,7 +39,7 @@ async def declaration_case():
         app=ToadApp(project_dir=str(root))
         async with app.run_test(size=(120,40)) as pilot:
             await app.screen.wait_content_ready()
-            view=app.screen.conversation
+            view=app.selected_session.conversation
             entered,release=asyncio.Event(),asyncio.Event()
             pending=asyncio.create_task(view.transcript.publish(DeclaredPublication,entered,release))
             await entered.wait()

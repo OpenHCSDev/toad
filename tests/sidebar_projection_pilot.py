@@ -44,7 +44,7 @@ async def main():
         app = FrameApp(project_dir=str(root))
         async with app.run_test(size=(120, 40)) as pilot:
             await pilot.pause()
-            first = app.current_mode
+            first = app.selected_mode
             second = (await app.new_session_screen(app.get_main_screen)).mode_name
             channel = await app.open_comms_session(owner_mode=first, project_path=root,
                                                    me=me, target=channel_target("#projection"))

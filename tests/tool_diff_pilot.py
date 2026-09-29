@@ -29,7 +29,7 @@ async def main():
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(110, 35)) as pilot:
             await pilot.pause()
-            conversation = app.screen.conversation
+            conversation = app.selected_session.conversation
             content = tool_result_content("edit-1", "Successfully replaced 1 block.", ToolDiff(PATCH))
             live = await conversation.post(ToolCall({"toolCallId": "edit-1", "title": "Edit src/example.py",
                 "kind": "edit", "status": "in_progress"}))

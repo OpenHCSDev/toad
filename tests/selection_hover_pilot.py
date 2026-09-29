@@ -21,7 +21,7 @@ async def main():
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(120, 40)) as pilot:
             await pilot.pause()
-            conversation = app.screen.conversation
+            conversation = app.selected_session.conversation
             response = await conversation.post(AgentResponse("Select this phrase " * 25))
             await pilot.pause()
             text = response.query_one("MarkdownParagraph")

@@ -25,7 +25,7 @@ async def main():
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(100, 35)) as pilot:
             await pilot.pause()
-            first = app.screen
+            first = app.selected_session
             shared_surface = first.conversation
             original_task = shared_surface._task
             window = shared_surface.window
@@ -47,21 +47,21 @@ async def main():
                 while first.query(Conversation):
                     await pilot.pause(.02)
             assert not first.query(Conversation), "Inactive blank tab retained its entire rich conversation"
-            assert first.presentation.editor_state.document is document
-            assert first.presentation.editor_state.history is history
-            second = app.screen
+            assert first.presentation.state.editor.document is document
+            assert first.presentation.state.editor.history is history
+            second = app.selected_session
             assert second.conversation is shared_surface
             assert shared_surface._task is original_task
-            assert window not in first.viewport_presentation.windows and window in second.viewport_presentation.windows
-            assert window not in first.screen_layout_refresh_signal._subscriptions
-            assert len(second.screen_layout_refresh_signal._subscriptions[window]) == 2
+            assert window in app.workspace_screen.viewport_presentation.windows and window.screen is app.workspace_screen
+            assert shared_surface not in first.query(Conversation)
+            assert len(app.workspace_screen.screen_layout_refresh_signal._subscriptions[window]) == 2
             second.conversation.prompt.text = "second draft"
 
-            await app.switch_mode(first.id)
+            await app.select_session(first.id)
             await pilot.pause()
             restored = first.query_one(PromptTextArea)
             assert first.conversation is shared_surface and shared_surface._task is original_task
-            assert window in first.viewport_presentation.windows and window not in second.viewport_presentation.windows
+            assert window in app.workspace_screen.viewport_presentation.windows and window.screen is app.workspace_screen
             assert restored.text == expected
             assert restored.document is document and restored.history is history
             assert restored.selection == Selection((0, 1), (0, 5))
@@ -69,8 +69,8 @@ async def main():
             assert restored.text == "first draft"
             restored.redo()
             assert restored.text == expected
-            assert app.get_screen_stack(second_mode)[0].presentation.editor_state is not None
-            await app.switch_mode(second_mode)
+            assert app.workspace_sessions.require(second_mode).presentation.state.editor is not None
+            await app.select_session(second_mode)
             assert second.conversation is shared_surface
             assert second.conversation.prompt.text == "second draft"
             await second.conversation.post_shell("sleep 1; printf 'owned-shell-marker\\n'")
@@ -95,8 +95,8 @@ async def main():
                     await pilot.pause(.02)
             assert all(output.terminal is None for output in shell.outputs
                        if isinstance(output, ShellTerminalOutput))
-            await app.switch_mode(second_mode)
-            restored_shell_view = app.screen.conversation
+            await app.select_session(second_mode)
+            restored_shell_view = app.selected_session.conversation
             assert restored_shell_view is not shared_surface
             assert restored_shell_view._shell is shell
             assert restored_shell_view.prompt.text == "second draft"
@@ -105,7 +105,7 @@ async def main():
             await pilot.pause()
             paint = conversation_paint(app.screen)
             assert "owned-shell-marker" in paint, paint
-            await app.switch_mode(third)
+            await app.select_session(third)
             assert not second.query(Conversation)
             assert second.presentation.sources.shell is shell
             sidebar = app.screen.query_one("#thread-sidebar", SideBar)
@@ -118,13 +118,13 @@ async def main():
             other_project.mkdir()
             await app.new_session_screen(lambda: MainScreen(other_project))
             async with asyncio.timeout(5):
-                while app.screen.conversation._directory_watcher is None:
+                while app.selected_session.conversation._directory_watcher is None:
                     await pilot.pause(.02)
-            assert app.screen.conversation.project_path == other_project
-            assert app.screen.conversation._directory_watcher._path == other_project
-            await app.switch_mode(third)
-            assert app.screen.conversation.project_path == root
-            assert app.screen.conversation._directory_watcher._path == root
+            assert app.selected_session.conversation.project_path == other_project
+            assert app.selected_session.conversation._directory_watcher._path == other_project
+            await app.select_session(third)
+            assert app.selected_session.conversation.project_path == root
+            assert app.selected_session.conversation._directory_watcher._path == root
             assert app._exception is None
         assert shell._process.returncode is not None, "Logical session close leaked its shell process"
         assert shell._task.done(), "Logical session close leaked its reader"

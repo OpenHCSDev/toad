@@ -24,7 +24,7 @@ from toad.transcript_preparation import TranscriptFilterWork
 
 
 async def exercise(app, pilot, stage):
-    view = app.screen.conversation
+    view = app.selected_session.conversation
     view.visible_categories = all_categories()
     message = Message("peer", "owner", "OLD_INBOUND", MessageType.INFO, timestamp=0)
     incoming = UserTranscript(message.body, routing=TurnRouting((message,), None))
@@ -80,10 +80,10 @@ async def exercise(app, pilot, stage):
                 await pilot.press("x")
                 assert view.prompt.text.endswith("x"), "Typing blocked behind filter mount"
                 assert app._batch_count == 0, "A held page batch suppressed unrelated presentation"
-                owner_mode = app.current_mode
+                owner_mode = app.selected_mode
                 other = await app.new_session_screen(app.get_main_screen)
                 await pilot.pause()
-                other_view = app.screen.conversation
+                other_view = app.selected_session.conversation
                 assert other_view.visible_categories == all_categories()
                 other_view.prompt.focus()
                 await pilot.press("y")
@@ -109,7 +109,7 @@ async def exercise(app, pilot, stage):
 
 
 async def exercise_batched_selection(app, pilot):
-    view = app.screen.conversation
+    view = app.selected_session.conversation
     view.visible_categories = all_categories()
     message = Message("peer", "owner", "INBOUND", MessageType.INFO, timestamp=0)
     events = tuple(event for index in range(20) for event in (
@@ -156,7 +156,7 @@ async def main():
             for stage in ("prepare", "container", "children", "extend"):
                 await exercise(app, pilot, stage)
             await exercise_batched_selection(app, pilot)
-            view = app.screen.conversation
+            view = app.selected_session.conversation
             view.visible_categories = frozenset()
             cursor = TranscriptCursor("empty-filter", 10)
             calls = []

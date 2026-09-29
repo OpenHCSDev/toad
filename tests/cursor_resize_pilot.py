@@ -17,7 +17,7 @@ async def main():
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(70, 25)) as pilot:
             await pilot.pause()
-            conversation = app.screen.conversation
+            conversation = app.selected_session.conversation
             await conversation.contents.remove_children()
             await conversation.post(AgentResponse("\n\n".join("Words that wrap across a narrow terminal. " * 4 for _ in range(30))))
             last = await conversation.post(AgentResponse("Last visible paragraph."))

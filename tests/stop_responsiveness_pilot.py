@@ -51,7 +51,7 @@ async def main():
         try:
             async with app.run_test(size=(125, 40)) as pilot:
                 await pilot.pause()
-                source = app.current_mode
+                source = app.selected_mode
                 other = (await app.new_session_screen(app.get_main_screen)).mode_name
                 dm = await app.open_comms_session(owner_mode=other, project_path=root,
                     me="actor", target=DirectTarget("victim"))
@@ -78,9 +78,9 @@ async def main():
                     assert app.pending_thread_actions["victim"] == "Stopping…"
                     assert "Stopping…" in row.render().plain
                     # UI callbacks and keystrokes must complete before shutdown.
-                    app.screen.conversation.prompt.focus()
+                    app.selected_session.conversation.prompt.focus()
                     await pilot.press(*"keep typing")
-                    assert app.screen.conversation.prompt.text == "keep typing"
+                    assert app.selected_session.conversation.prompt.text == "keep typing"
                     await asyncio.wait_for(app.switch_mode(dm), 2)
                     await pilot.pause()
                     await asyncio.wait_for(app.switch_mode(channel), 2)

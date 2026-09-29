@@ -54,7 +54,7 @@ async def main():
         sizes = []
         async with app.run_test(size=(120, 40)) as pilot:
             await pilot.pause()
-            owner = app.current_mode
+            owner = app.selected_mode
             for target in targets:
                 app.target = target
                 app.pending = asyncio.get_running_loop().create_future()

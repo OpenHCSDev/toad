@@ -38,7 +38,7 @@ async def main() -> None:
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(100, 30)) as pilot:
             await pilot.pause()
-            owner = app.current_mode
+            owner = app.selected_mode
             sidebar = await wait_channel_roster(app, pilot, "#team")
             await pilot.click(group(sidebar, "#team").row, button=3)
             await pilot.pause()

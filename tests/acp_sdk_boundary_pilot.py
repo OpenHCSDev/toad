@@ -49,7 +49,7 @@ async def verify_dispatch_and_visible_rejection(root: Path) -> None:
     app = ToadApp(project_dir=str(root))
     async with app.run_test(size=(90, 30)) as pilot:
         await pilot.pause()
-        view = app.screen.conversation
+        view = app.selected_session.conversation
         agent = Agent(root, {"name": "Fixture", "identity": "fixture",
                              "short_name": "fixture", "run_command": {"*": "true"},
                              "protocol": "acp"}, "fixture")

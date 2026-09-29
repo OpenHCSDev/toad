@@ -21,8 +21,11 @@ def test_retired_root_readers_deleted():
             assert node.name not in retired
 
 
-@pytest.mark.asyncio
-async def test_new_case_inherits_coalescing_owner_fence_and_retirement():
+def test_new_case_inherits_coalescing_owner_fence_and_retirement():
+    asyncio.run(_new_case_inherits_coalescing_owner_fence_and_retirement())
+
+
+async def _new_case_inherits_coalescing_owner_fence_and_retirement():
     class ProbeObservation(SessionObservation):
         def __init__(self, view):
             super().__init__(view)

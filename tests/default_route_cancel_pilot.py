@@ -44,7 +44,7 @@ async def main() -> None:
             app = ToadApp(project_dir=str(sandbox))
             async with app.run_test(size=(105, 32)) as pilot:
                 await pilot.pause()
-                owner_mode = app.current_mode
+                owner_mode = app.selected_mode
                 await app.open_comms_session(
                     owner_mode=owner_mode,
                     project_path=sandbox,

@@ -28,7 +28,7 @@ async def main():
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(100, 35)) as pilot:
             await pilot.pause()
-            owner = app.current_mode
+            owner = app.selected_mode
             mode = await app.open_comms_session(
                 owner_mode=owner, project_path=root, me="alpha", target=channel_target("#team"),
             )
@@ -61,7 +61,7 @@ async def main():
             await pilot.pause()
             await pilot.press("escape")
             await pilot.pause()
-            assert app.current_mode == mode and prompt.text == "Keep @al"
+            assert app.selected_mode == mode and prompt.text == "Keep @al"
             assert not prompt.mention_list.display
     print("mentions: completion, keyboard choice, dismissal, highlighting, and shared delivery passed")
 

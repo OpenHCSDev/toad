@@ -711,7 +711,7 @@ class CommsChatView(DeliveryFailureView, Conversation):
         if self._wire is None:
             return None
         return TargetContext.decode(self.kind)(self.app, self._wire, self.target, self._me, self.project_path,
-                             self.app.current_mode)
+                             self.app.selected_mode)
 
     async def submit_input(self, event: messages.UserInputSubmitted) -> None:
         if event.body.strip().startswith("/") and await self.slash_command(event.body.strip()):

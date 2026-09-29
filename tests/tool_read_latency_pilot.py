@@ -43,7 +43,7 @@ async def main():
                 before = time.thread_time_ns()
                 started = time.perf_counter_ns()
                 try:
-                    await app.screen.conversation.post(task)
+                    await app.selected_session.conversation.post(task)
                     task.set_expanded(True)
                     async with asyncio.timeout(25):
                         while not task.query(WorkerStatic):

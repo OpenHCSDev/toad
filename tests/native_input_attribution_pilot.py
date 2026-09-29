@@ -112,7 +112,7 @@ async def main(*, historical: bool) -> None:
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(120, 44)) as pilot:
             await pilot.pause()
-            view = app.screen.conversation
+            view = app.selected_session.conversation
             agent = Agent(
                 root,
                 {

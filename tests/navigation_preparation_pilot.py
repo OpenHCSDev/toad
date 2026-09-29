@@ -96,7 +96,7 @@ async def mounted() -> None:
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(100, 32)) as pilot:
             await pilot.pause()
-            owner = app.current_mode
+            owner = app.selected_mode
             source = app.screen
             other = (await app.new_session_screen(app.get_main_screen)).mode_name
             for request_type, kind in (
@@ -129,7 +129,7 @@ async def mounted() -> None:
                             and thread_ids[0] != threading.get_ident()
                         )
                         if kind == "thread":
-                            assert app.current_mode.startswith("pending-thread-")
+                            assert app.selected_mode.startswith("pending-thread-")
                             assert any(
                                 tab.title == "⌛ @metadata-peer"
                                 for tab in app.open_tabs
@@ -142,7 +142,7 @@ async def mounted() -> None:
                         assert not release.is_set() and not opening.done()
                         release.set()
                         assert await asyncio.wait_for(opening, 2) == other
-                        assert app.current_mode == other, (
+                        assert app.selected_mode == other, (
                             "Old route metadata stole focus"
                         )
                         assert not app._comms_modes, (

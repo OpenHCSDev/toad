@@ -28,11 +28,11 @@ async def main():
             async with asyncio.timeout(5):
                 while sidebar._last_snapshot is None:
                     await pilot.pause(.02)
-            await app.screen.conversation.contents.mount(*[
+            await app.selected_session.conversation.contents.mount(*[
                 AgentResponse(f"Reply {index}\n\n" + "Paragraph.\n\n" * 16, paginate=False)
                 for index in range(100)
             ])
-            app.screen.conversation.window.anchor()
+            app.selected_session.conversation.window.anchor()
             await pilot.pause()
             with patch.object(CommsSidebar, "_refresh"):
                 snapshot = sidebar._last_snapshot

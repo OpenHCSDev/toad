@@ -16,7 +16,6 @@ from toad.widgets.irc_message import SelectHistoricalIdentity
 from toad.widgets.comms_sidebar import CoordinationStatus, CommsSidebar, SelectTarget
 from toad.widgets.channels_sidebar import ChannelsSlot, ChannelsSidebar
 from toad.session_tracker import SidebarState
-from toad.workspace_chrome import FooterSlot, NavigationSlot
 from toad.widgets.side_bar import SideBar
 from toad.navigation_target import NavigationContext, NavigationOwner
 from toad.widgets.recovery_view import RecoveryView
@@ -85,13 +84,14 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
     def coordination_root(self) -> str | None:
         return self.wire_root
 
+    def relationship_context(self) -> tuple[str, str | None]:
+        return self.me, self.recovery_root
+
     def channels_context(self) -> tuple[str, str]:
         return self.me, self.target
 
     def compose(self) -> ComposeResult:
-        yield NavigationSlot()
         with containers.Center():
-            yield ChannelsSlot()
             yield ThreadSidebar(
                 SideBar.Panel(
                     "Connection",
@@ -117,7 +117,6 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
                         kind=self.kind,
                         wire_root=self.wire_root,
                     )
-        yield FooterSlot()
 
     @on(SelectHistoricalIdentity)
     async def select_historical_identity(self, event: SelectHistoricalIdentity) -> None:
@@ -159,9 +158,9 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
         if not self._sidebar_layout_watch:
             self._sidebar_layout_watch = True
             self.app.sidebar_layout_changed.subscribe(
-                self, lambda _event: self.align_tabs_to_sidebars()
+                self, lambda _event: self.screen.align_tabs_to_sidebars()
             )
-        self.align_tabs_to_sidebars()
+        self.screen.align_tabs_to_sidebars()
         chat = self.query_one(CommsChatView)
         chat._me = self.me
         chat.project_path = self.project_path
@@ -201,13 +200,9 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
         if self._content_error is not None:
             raise self._content_error
 
-    async def prepare_navigation(self) -> None:
-        # A tab switch must not wait on the writer lock. The mounted chat's
-        # asynchronous history refresh marks its displayed cursor as read.
-        await super().prepare_navigation()
 
-    def _on_screen_resume(self, event: ScreenResume) -> None:
-        self.align_tabs_to_sidebars()
+    def activate_session(self) -> None:
+        self.screen.align_tabs_to_sidebars()
         if chat := self.query_one_optional(CommsChatView):
             self.call_after_refresh(chat.prepare_prompt)
 
@@ -226,7 +221,7 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
         return None
 
     def action_show_sidebar(self) -> None:
-        sidebar = self.query_one(ChannelsSidebar)
+        sidebar = self.screen.query_one(ChannelsSidebar)
         sidebar.reveal()
         sidebar.query_one("SideBarCollapsible CollapsibleTitle").focus()
 
@@ -245,9 +240,9 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
 
     async def action_back_to_agent(self) -> None:
         if self.app.session_tracker.get_session(self.owner_mode) is None:
-            await self.app.switch_mode("store")
+            await self.app.select_session("store")
         else:
-            await self.app.switch_mode(self.owner_mode)
+            await self.app.select_session(self.owner_mode)
 
     async def action_toggle_irc(self) -> None:
         if self.kind == "irc":

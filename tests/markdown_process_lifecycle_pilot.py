@@ -58,7 +58,7 @@ async def main():
         with patch.object(app, "render_processes", pool):
             async with app.run_test(size=(110, 35)) as pilot:
                 await pilot.pause()
-                response = await app.screen.conversation.post(AgentResponse(paginate=False))
+                response = await app.selected_session.conversation.post(AgentResponse(paginate=False))
                 source = "```python\nvalue = 123\n```\n"
                 pending = asyncio.create_task(update(response, source))
                 await wait_requests(pool, 1, pilot)

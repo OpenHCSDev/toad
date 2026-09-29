@@ -83,7 +83,7 @@ async def main() -> None:
             await pilot.pause()
             assert panels.scroll_x > 0 and app._exception is None
 
-            owner = app.current_mode
+            owner = app.selected_mode
             await app.open_comms_session(owner_mode=owner, project_path=root,
                                          me=name, target=channel_target("#alpha"))
             comms_bar = app.screen.query_one("#channels-sidebar", SideBar)

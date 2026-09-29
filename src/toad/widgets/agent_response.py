@@ -6,7 +6,7 @@ from textual.widget import Widget
 from toad.widgets.streaming_markdown import StreamingMarkdown
 from agent_comms.routing import MessageRoute
 from toad.widgets.route_header import RouteHeader
-from toad.widgets.message_divider import MessageDivider
+from toad.widgets.message_divider import MessageDivider, MessageClock, LiveMessageClock
 from toad.widgets.message_filter import (
     CategorizedBlock,
     MessageCategory,
@@ -29,7 +29,7 @@ class ResponseDelivery(ABC):
     def category(self) -> type[MessageCategory]: ...
 
     @abstractmethod
-    def prefix(self) -> tuple[Widget, ...]: ...
+    def prefix(self, clock: MessageClock) -> tuple[Widget, ...]: ...
 
     def decorate(self, widget: Widget) -> None:
         pass
@@ -41,8 +41,8 @@ class UnroutedResponse(ResponseDelivery):
     def category(self):
         return AgentCategory
 
-    def prefix(self):
-        return (MessageDivider("Agent"),)
+    def prefix(self, clock: MessageClock):
+        return (MessageDivider("Agent", clock=clock),)
 
 
 @dataclass(frozen=True)
@@ -53,8 +53,8 @@ class RoutedResponse(ResponseDelivery):
     def category(self):
         return OutboundCategory
 
-    def prefix(self):
-        return MessageDivider("Outbound"), RouteHeader(self.route)
+    def prefix(self, clock: MessageClock):
+        return MessageDivider("Outbound", clock=clock), RouteHeader(self.route)
 
     def decorate(self, widget):
         widget.add_class("-routed")
@@ -69,12 +69,12 @@ class AgentResponse(ConversationBlock, CategorizedBlock, StreamingMarkdown):
 
     def __init__(self, markdown: str | None = None, *, delivery: ResponseDelivery = UnroutedResponse(),
                  category: type[MessageCategory] | None = None,
-                 paginate: bool = True, show_divider: bool = True) -> None:
+                 paginate: bool = True, show_divider: bool = True, clock: MessageClock = LiveMessageClock()) -> None:
         self._message_category = category or delivery.category
         super().__init__(
             markdown,
             paginate=paginate,
-            prefix=delivery.prefix() if show_divider else (),
+            prefix=delivery.prefix(clock) if show_divider else (),
         )
         self.delivery = delivery
         delivery.decorate(self)

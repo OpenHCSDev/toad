@@ -95,7 +95,7 @@ async def main():
             async with app.run_test(size=(90, 35)) as pilot:
                 app.theme = "textual-dark"
                 await pilot.pause()
-                conversation = app.screen.conversation
+                conversation = app.selected_session.conversation
                 conversation.set_reactive(type(conversation).agent, agent)
                 conversation.agent_ready = True
                 await until(lambda: conversation.goal_execution is not None)

@@ -188,7 +188,7 @@ class TranscriptPageWork(SerializedWork[PreparedTranscriptPage], ScopedWork[Prep
                 raise ValueError("Transcript history made no cursor progress")
         if self.scope.closed:
             raise asyncio.CancelledError
-        fragments = await prepare_transcript_fragments(page.events, runtime.renderer, background=True)
+        fragments = await prepare_transcript_fragments(page.events, runtime.renderer)
         size = await runtime.run_thread(retained_bytes, (page, fragments))
         return PreparedTranscriptPage(page, fragments, size)
 

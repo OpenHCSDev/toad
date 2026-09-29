@@ -36,7 +36,7 @@ async def main():
         synchronous = {name: [] for name in results}
         async with app.run_test(size=(120, 40)) as pilot:
             await pilot.pause()
-            await app.screen.conversation.contents.mount(*[
+            await app.selected_session.conversation.contents.mount(*[
                 AgentResponse(f"## Response {index}\n\n" + "A paragraph with **bold** and `code`.\n\n" * 8,
                               paginate=False) for index in range(45)
             ])

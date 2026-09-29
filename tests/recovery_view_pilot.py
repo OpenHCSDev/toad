@@ -143,7 +143,7 @@ async def main():
                 assert not panel.display
                 assert view.render().plain.startswith("Recovery unavailable")
                 reads = len(seen)
-                await app.open_comms_session(owner_mode=app.current_mode, project_path=root,
+                await app.open_comms_session(owner_mode=app.selected_mode, project_path=root,
                                              me="fixture", target=channel_target("#test"))
                 await pilot.pause()
                 channel_view = app.screen.query_one(RecoveryView)

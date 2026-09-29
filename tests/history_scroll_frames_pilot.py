@@ -40,7 +40,7 @@ async def main():
             cursor = TranscriptCursor("fixture", 1)
             page = TranscriptPage(tuple(AssistantTranscript(f'Record {i}\n\n' + '\n'.join((f'- item {j}' for j in range(20)))) for i in range(30)),
                 cursor, cursor, False, False)
-            conversation = app.screen.conversation
+            conversation = app.selected_session.conversation
             history = await conversation.post(TranscriptHistory(page))
             await pilot.pause()
             window = conversation.window
@@ -84,7 +84,7 @@ async def main():
             comms.threads.register(Thread("sender", frozenset({"scroll"}), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
             for index in range(140):
                 comms.messaging.send("sender", "#scroll", f"Message {index}: " + "wrapped body " * 30)
-            await app.open_comms_session(owner_mode=app.current_mode, project_path=root,
+            await app.open_comms_session(owner_mode=app.selected_mode, project_path=root,
                                          me="sender", target=channel_target("#scroll"))
             await pilot.pause()
             chat = app.screen.query_one(CommsChatView)

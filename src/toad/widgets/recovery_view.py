@@ -45,11 +45,11 @@ class RecoveryView(Static):
 
     def on_mount(self) -> None:
         self.app.settings_changed_signal.subscribe(self, self._settings_changed)
-        self.app.mode_change_signal.subscribe(self, self._mode_changed)
+        self.app.session_selected_signal.subscribe(self, self._mode_changed)
         self._settings_changed(PreferenceChange(UiSettings.recovery_view, self.app.settings.ui.recovery_view))
 
     def _mode_changed(self, mode: str) -> None:
-        if self._enabled and mode == self.screen.id:
+        if self._enabled and mode == self.app.selected_mode and self.is_on_screen:
             self._after_paint_read()
 
     def on_unmount(self) -> None:

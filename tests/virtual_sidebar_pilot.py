@@ -35,7 +35,7 @@ async def main():
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(100, 36)) as pilot:
             await pilot.pause()
-            first = app.current_mode
+            first = app.selected_mode
             sidebar = app.screen.query_one(CommsSidebar)
             async with asyncio.timeout(5):
                 while sidebar._last_snapshot is None:
@@ -67,7 +67,7 @@ async def main():
                 roster._forward_event(disclosure)
                 await pilot.pause()
                 assert ("member:#alpha:archived" in sidebar._virtual_targets) is expanded
-                assert app.current_mode == first, "Disclosure inadvertently opened a tab"
+                assert app.selected_mode == first, "Disclosure inadvertently opened a tab"
             app.settings.sidebar.show_archived = False
             await sidebar.sync_sessions()
             assert "member:#alpha:archived" not in sidebar._virtual_targets
@@ -81,7 +81,7 @@ async def main():
                 while (getattr(app.screen, "target", None) != "#alpha"
                        or app.screen.query_one_optional(CommsSidebar) is None):
                     await pilot.pause(.02)
-            channel = app.current_mode
+            channel = app.selected_mode
             assert first != channel
             await pilot.pause()
             await app.screen.query_one(CommsSidebar).sync_sessions()
@@ -92,7 +92,7 @@ async def main():
                 while (getattr(app.screen, "target", None) != "#any"
                        or app.screen.query_one_optional(CommsSidebar) is None):
                     await pilot.pause(.02)
-            any_mode = app.current_mode
+            any_mode = app.selected_mode
             assert any_mode != channel
             await pilot.pause()
             await app.screen.query_one(CommsSidebar).sync_sessions()
@@ -102,7 +102,7 @@ async def main():
             members.highlighted = members.get_option_index(member_id)
             members.action_select()
             async with asyncio.timeout(6):
-                while app.current_mode != first:
+                while app.selected_mode != first:
                     await pilot.pause(.02)
             sidebar = app.screen.query_one(CommsSidebar)
             await sidebar.focus_current_session()
@@ -133,12 +133,12 @@ async def main():
             current_list._forward_event(click)
             await pilot.pause()
             assert isinstance(app.screen, ContextMenu), "Right-click did not open a channel menu"
-            assert app.current_mode == first
+            assert app.selected_mode == first
             await pilot.press("escape")
             await pilot.pause()
             assert app._exception is None
             print({"first_paint_route": "real OptionSelected", "channels": ("#alpha", "#any"),
-                   "existing_session_reused": app.current_mode == first,
+                   "existing_session_reused": app.selected_mode == first,
                    "virtual_scroll_restored": True,
                    "right_click_menu": True,
                    "sidebar_widget_count": len(list(sidebar.walk_children()))})

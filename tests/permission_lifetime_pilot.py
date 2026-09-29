@@ -43,7 +43,7 @@ async def main():
         app = ToadApp(project_dir=str(project))
         async with app.run_test(size=(120, 40)) as pilot:
             await app.screen.wait_content_ready()
-            view = app.screen.conversation
+            view = app.selected_session.conversation
             agent = Agent(project, {"name": "RPC", "run_command": {"*": "true"}}, "session")
             view.agent = agent
             await pilot.pause()

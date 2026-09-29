@@ -22,7 +22,7 @@ async def main():
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(100, 30)) as pilot:
             await pilot.pause()
-            view = app.screen.conversation
+            view = app.selected_session.conversation
             agent = Agent(root, {"name": "Rejected request test", "run_command": {"*": "false"}, "identity": "rejected"}, "test-session")
             view.set_reactive(type(view).agent, agent)
             view.queued_prompts = ["keep this instruction"]
