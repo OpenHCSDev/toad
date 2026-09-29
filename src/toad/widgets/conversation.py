@@ -628,6 +628,46 @@ class ConversationSessionBinding(containers.Vertical):
 
 
 
+    def start_native_session(self) -> None:
+        # Source identity must include its filesystem owner before the first
+        # saved-history publication, rather than changing after AgentReady.
+        if self._directory_watcher is None:
+            self._directory_watcher = DirectoryWatcher(self.project_path, self)
+            self._directory_watcher.start()
+        if self.agent is not None:
+            self.agent_ready = self.agent.ready
+            return
+        if self._agent_data is not None:
+
+            async def start_agent() -> None:
+                """Start the agent after refreshing the UI."""
+                assert self._agent_data is not None
+                from toad.acp.agent import Agent
+
+                self.agent = Agent(
+                    self.project_path,
+                    self._agent_data,
+                    self._agent_session_id,
+                    self._session_pk,
+                )
+                await self.agent.start(self)
+                self.post_message(
+                    messages.SessionUpdate(
+                        self._session_title or "New Session", self.agent_title
+                    )
+                )
+
+            from toad.screens.workspace import WorkspaceScreen
+
+            screen = self.screen
+            if isinstance(screen, WorkspaceScreen):
+                screen.call_after_first_frame(self, start_agent)
+            else:
+                self.call_after_refresh(start_agent)
+
+        else:
+            self.agent_ready = True
+
     @work
     async def watch_agent_ready(self, ready: bool) -> None:
         presentation = self.transcript
@@ -638,9 +678,6 @@ class ConversationSessionBinding(containers.Vertical):
             await self.query(ThreadLoading).remove()
             if self.transcript is not presentation or presentation.view is not self:
                 return
-        if ready and self._directory_watcher is None:
-            self._directory_watcher = DirectoryWatcher(self.project_path, self)
-            self._directory_watcher.start()
         if ready and (agent_data := self._agent_data) is not None:
             welcome = agent_data.get("welcome", None)
             if welcome is not None:
@@ -1844,7 +1881,7 @@ class Conversation(ConversationSessionBinding):
         from toad.screens.main import MainScreen
         from toad.target_commands import ThreadContext
         nav = self.query_ancestor(MainScreen).navigation_context
-        comms = self.app.coordination_wire
+        comms = self.app.coordination_access.service
         from agent_comms.errors import UnregisteredThreadError
         try:
             comms.registry.require(nav.actor)
@@ -1880,43 +1917,6 @@ class Conversation(ConversationSessionBinding):
         self.start_native_session()
         self.update_title()
         self.window.anchor()
-
-    def start_native_session(self) -> None:
-        if self.agent is not None:
-            self.agent_ready = self.agent.ready
-            return
-        if self._agent_data is not None:
-
-            async def start_agent() -> None:
-                """Start the agent after refreshing the UI."""
-                assert self._agent_data is not None
-                from toad.acp.agent import Agent
-
-                self.agent = Agent(
-                    self.project_path,
-                    self._agent_data,
-                    self._agent_session_id,
-                    self._session_pk,
-                )
-                await self.agent.start(self)
-                self.post_message(
-                    messages.SessionUpdate(
-                        self._session_title or "New Session", self.agent_title
-                    )
-                )
-
-            from toad.screens.workspace import WorkspaceScreen
-
-            screen = self.screen
-            if isinstance(screen, WorkspaceScreen):
-                screen.call_after_first_frame(self, start_agent)
-            else:
-                self.call_after_refresh(start_agent)
-
-        else:
-            self.agent_ready = True
-
-
 
     def _history_scroll_changed(self, _position: float) -> None:
         self.call_after_refresh(self.transcript.retry)

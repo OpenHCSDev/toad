@@ -87,6 +87,28 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
     def relationship_context(self) -> tuple[str, str | None]:
         return self.me, self.recovery_root
 
+    def rebind_identity(self, identity: str) -> None:
+        self.me = identity
+        if chat := self.query_one_optional(CommsChatView):
+            chat._me = identity
+        if sidebar := self.query_one_optional(CommsSidebar):
+            sidebar.session_thread = identity
+        if status := self.query_one_optional(CoordinationStatus):
+            status.set_thread(identity)
+        if recovery := self.query_one_optional(RecoveryView):
+            recovery.set_identity(identity, self.recovery_root)
+
+    def rebind_recovery(self, root: str | None) -> None:
+        self.recovery_root = root
+        if recovery := self.query_one_optional(RecoveryView):
+            recovery.set_identity(self.me, root)
+
+    def rebind_project(self, project: Path) -> None:
+        self.project_path = project
+        if chat := self.query_one_optional(CommsChatView):
+            chat.project_path = project
+            chat.working_directory = str(project)
+
     def channels_context(self) -> tuple[str, str]:
         return self.me, self.target
 
@@ -122,7 +144,7 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
     async def select_historical_identity(self, event: SelectHistoricalIdentity) -> None:
         event.stop()
         from toad.screens.historical_sessions import HistoricalSessions
-        comms = self.app.coordination_wire
+        comms = self.app.coordination_access.service
         threads = await asyncio.to_thread(comms.views.historical_threads, event.name)
         if not threads:
             self.notify("This sender has no preserved identity declaration.")
@@ -132,7 +154,7 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
     @on(Button.Pressed, "#historical-sessions")
     async def action_historical_sessions(self) -> None:
         from toad.screens.historical_sessions import HistoricalSessions
-        comms = self.app.coordination_wire
+        comms = self.app.coordination_access.service
         threads = await asyncio.to_thread(comms.views.historical_threads)
         if not threads:
             self.notify("No preserved history sources are attached yet.")
@@ -269,4 +291,4 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
 
     async def action_close_session(self) -> None:
         if self.id is not None:
-            await self.app.close_session_mode(self.id)
+            await self.app.session_navigation.close(self.id)

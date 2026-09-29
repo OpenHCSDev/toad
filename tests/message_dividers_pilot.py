@@ -1,3 +1,4 @@
+from toad.navigation_target import NavigationContext
 from toad.live_output import ResponseStream
 """Full-width timed headers stay inside text blocks across native and wire views."""
 
@@ -82,9 +83,7 @@ async def main() -> None:
                 )
                 assert user.get_clipboard_text() == "human text"
 
-            await app.open_comms_session(owner_mode=owner, project_path=root,
-                                         me=app._main_session_screen(owner)._comms_thread,
-                                         target=channel_target("#all"))
+            await channel_target("#all").open(NavigationContext(app, owner, root, app.session_navigation.source(owner)._comms_thread))
             chat = app.screen.query_one(CommsChatView)
             async with asyncio.timeout(5):
                 while not any(message.seq == sent.seq for message, _ in chat._history):

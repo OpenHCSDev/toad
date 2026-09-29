@@ -1,4 +1,5 @@
 from __future__ import annotations
+from toad.navigation_target import NavigationContext
 from toad.conversation_turn import AgentTurn, ClientTurn
 
 from agent_comms.acp_extension import (
@@ -349,7 +350,7 @@ async def main() -> None:
             preview_mode = app.selected_mode
             assert any((tab.mode_name == preview_mode for tab in app.open_tabs))
             assert app.screen.query_one(FilePreview).query_one(Markdown)
-            await app.close_session_mode(preview_mode)
+            await app.session_navigation.close(preview_mode)
             assert app.selected_mode == preview_owner_mode
             search_button = app.screen.query_one(ProjectSearchButton)
             search_button.action_search()
@@ -549,13 +550,7 @@ async def main() -> None:
             await pilot.pause()
             assert app.session_tracker.get_session(owner_mode).title == ""
             assert me in open_rows(app.screen)[0].render().plain
-            opened = await app.open_comms_session(
-                owner_mode=owner_mode,
-                project_path=project,
-                me=me,
-                target=DirectTarget("missing-peer"),
-
-            )
+            opened = await DirectTarget("missing-peer").open(NavigationContext(app, owner_mode, project, me))
             await pilot.pause()
             assert opened == owner_mode
             assert app.session_tracker.session_count == 1
@@ -977,7 +972,7 @@ async def main() -> None:
             state_path = root / "state"
             state_path.mkdir()
             paths.get_state = lambda: state_path
-            await app.new_session_screen(app.get_main_screen)
+            await app.session_navigation.new(app.get_main_screen)
             await pilot.pause()
             saved_mode = app.selected_mode
             saved_db = DB()

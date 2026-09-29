@@ -1,4 +1,5 @@
 """Optional recovery presentation reads only the post-paint gateway DTO."""
+from toad.navigation_target import NavigationContext
 from runtime_fixture import coordination_update
 
 from toad.navigation_target import channel_target
@@ -143,8 +144,7 @@ async def main():
                 assert not panel.display
                 assert view.render().plain.startswith("Recovery unavailable")
                 reads = len(seen)
-                await app.open_comms_session(owner_mode=app.selected_mode, project_path=root,
-                                             me="fixture", target=channel_target("#test"))
+                await channel_target("#test").open(NavigationContext(app, app.selected_mode, root, "fixture"))
                 await pilot.pause()
                 channel_view = app.screen.query_one(RecoveryView)
                 assert channel_view.thread == "fixture"

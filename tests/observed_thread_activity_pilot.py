@@ -1,4 +1,5 @@
 """Current core activity reaches DM/native views without starting a provider."""
+from toad.navigation_target import NavigationContext
 
 from toad.navigation_target import DirectTarget
 
@@ -106,7 +107,7 @@ async def main():
             await pilot.pause()
             assert tracker.summary == "Ready" and not details.has_class("-attention")
             comms.threads.register(Thread("dm-peer", frozenset({"comms"}), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
-            await app.open_comms_session(owner_mode=owner, project_path=root, me="peer", target=DirectTarget("dm-peer"))
+            await DirectTarget("dm-peer").open(NavigationContext(app, owner, root, "peer"))
             dm_mode = app.selected_mode
             dm = app.selected_session.query_one(CommsChatView)
             observed = dm.query_one(ObservedThreadActivity)

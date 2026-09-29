@@ -66,7 +66,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     # the actual native journal snapshot publishes that canonical content.
     modes = []
     for index in range(3):
-        details = await app.new_session_screen(lambda: MainScreen(
+        details = await app.session_navigation.new(lambda: MainScreen(
             original_agent.project_root_path, agent_session_id=f"recent-return-{index}"))
         modes.append(details.mode_name)
         await pilot.pause(.02)

@@ -27,7 +27,7 @@ async def main():
             view=await publish()
             original=tuple(view.query(TranscriptFragmentView))
             assert "BODY_RECORD_3" in conversation_paint(app.screen)
-            await app.new_session_screen(app.get_main_screen)
+            await app.session_navigation.new(app.get_main_screen)
             await app.select_session(first.id)
             view=await publish()
             assert any(node is old for node in view.query(TranscriptFragmentView) for old in original)

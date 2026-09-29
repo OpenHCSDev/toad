@@ -1,4 +1,5 @@
 """Clicking an already-open thread never creates a provisional tab."""
+from toad.navigation_target import NavigationContext
 
 from toad.navigation_target import DirectTarget
 
@@ -46,10 +47,10 @@ async def main():
             source = app.selected_session
             source.initial_coordination_root = str(wire_root)
             source._comms_thread = "owner"
-            foreign = (await app.new_session_screen(app.get_main_screen)).mode_name
+            foreign = (await app.session_navigation.new(app.get_main_screen)).mode_name
             app.selected_session.initial_coordination_root = str(root / "foreign-wire")
             app.selected_session._comms_thread = "peer"
-            existing = (await app.new_session_screen(app.get_main_screen)).mode_name
+            existing = (await app.session_navigation.new(app.get_main_screen)).mode_name
             destination = app.selected_session
             destination.initial_coordination_root = str(wire_root)
             destination._comms_thread = "peer"
@@ -77,11 +78,11 @@ async def main():
                 )
                 assert tuple(app.tab_order.names) == order
                 assert destination.conversation.prompt.text == "Keep this draft"
-                assert not app._thread_openings
+                assert not app.thread_navigation.pending
                 # Repeated/self links reuse the very same mounted screen too.
                 for _ in range(2):
                     assert (
-                        await app.open_thread_session(
+                        await app.thread_navigation.open(
                             owner_mode=existing,
                             project_path=root,
                             target="peer",
@@ -92,10 +93,8 @@ async def main():
 
             # Comms views inherit Conversation's mouse handlers but deliberately
             # omit goal controls. A real link click must still reuse the tab.
-            await app.new_session_screen(app.get_main_screen)
-            await app.open_comms_session(
-                owner_mode=owner, project_path=root, me="owner", target=DirectTarget("peer"),
-            )
+            await app.session_navigation.new(app.get_main_screen)
+            await DirectTarget("peer").open(NavigationContext(app, owner, root, "owner"))
             await pilot.pause()
             chat = app.screen.query_one(CommsChatView)
             assert chat.query_one_optional(GoalBar) is None

@@ -85,7 +85,7 @@ async def main():
             await until(
                 pilot, lambda: comms.registry.status("peer") == ArchivedThreadStatus()
             )
-            await until(pilot, lambda: "peer" not in app.pending_thread_actions)
+            await until(pilot, lambda: "peer" not in app.thread_actions.pending)
             assert (
                 comms.registry.require("peer").incarnation == before_thread.incarnation
             )

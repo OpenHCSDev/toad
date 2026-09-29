@@ -81,7 +81,7 @@ async def exercise(app, pilot, stage):
                 assert view.prompt.text.endswith("x"), "Typing blocked behind filter mount"
                 assert app._batch_count == 0, "A held page batch suppressed unrelated presentation"
                 owner_mode = app.selected_mode
-                other = await app.new_session_screen(app.get_main_screen)
+                other = await app.session_navigation.new(app.get_main_screen)
                 await pilot.pause()
                 other_view = app.selected_session.conversation
                 assert other_view.visible_categories == all_categories()
@@ -99,7 +99,7 @@ async def exercise(app, pilot, stage):
             await pilot.pause()
             assert pager.filter.overlay is not None
             assert all(child.fragment.events[0].declared_name == "thinking" for child in pager.filter.overlay.fragment_views)
-            await app.close_session_mode(other.mode_name)
+            await app.session_navigation.close(other.mode_name)
             assert app._exception is None
         finally:
             release.set()

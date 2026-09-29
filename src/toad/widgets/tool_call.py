@@ -35,7 +35,7 @@ class ToolCallHeader(Static):
     DEFAULT_CSS = """
     ToolCallHeader {
         width: auto;
-        max-width: 1fr;        
+        max-width: 1fr;
         &:hover {
             background: $panel;
         }
@@ -44,6 +44,56 @@ class ToolCallHeader(Static):
 
 
 class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, containers.VerticalGroup):
+    DEFAULT_CSS = """
+    ToolCall {
+        # margin: 0 0 0 0 !important;
+        margin: 0 0 0 1 !important;
+
+        width: 1fr;
+        layout: vertical;
+        height: auto;
+
+        .icon {
+            width: auto;
+            margin-right: 1;
+        }
+        #tool-content {
+            display: none;
+        }
+        &.-has-content #tool-content {
+            margin: 1 1 1 0;
+            DiffView {
+                margin: 0 1 1 0;
+            }
+
+            Markdown {
+                layout: stream;
+                padding: 0;
+                margin: 0 0 0 0;
+            }
+        }
+        &.-expanded {
+            #tool-content {
+                display: block;
+            }
+            ToolCallHeader {
+                text-wrap: wrap;
+                text-overflow: fold;
+            }
+        }
+
+        ToolCallHeader {
+            color: $text-secondary;
+            pointer: pointer;
+            width: auto;
+            max-width: 1fr;
+            margin: 0 1 0 0;
+            text-wrap: nowrap;
+            text-overflow: ellipsis;
+        }
+    }
+    """
+
     DEFAULT_CLASSES = "block"
 
     @property

@@ -200,6 +200,7 @@ class ReaderCheckpoint:
     reader_y: float
     painted: str
     rendered_bodies: tuple[ReferenceType[MarkdownBlock], ...]
+    rendered_content: tuple[object, ...]
 
     @staticmethod
     def record_failed_reader(source, app):
@@ -248,7 +249,8 @@ class ReaderCheckpoint:
                        if block.region.overlaps(region))
         assert len(bodies) > 0, "Checkpoint needs actually rendered native Markdown bodies"
         return cls(source, editor.document, editor.history, view.window.scroll_y,
-                   conversation_paint(app.screen), tuple(ref(block) for block in bodies))
+                   conversation_paint(app.screen), tuple(ref(block) for block in bodies),
+                   tuple(block._render_cache for block in bodies))
 
     async def verify(self, app, pilot):
         view = self.source.conversation
@@ -261,10 +263,14 @@ class ReaderCheckpoint:
         assert conversation_paint(app.screen) == self.painted
         current_bodies = {block for block in view.query(MarkdownBlock)
                           if block in app.screen._compositor.visible_widgets}
-        for body in self.rendered_bodies:
+        for body, rendered in zip(self.rendered_bodies, self.rendered_content):
             assert body() in current_bodies, (
                 "Native tab return replaced a previously rendered Markdown body",
                 self.source.id, body(),
+            )
+            assert body()._render_cache is rendered, (
+                "Warm return rendered an unchanged Markdown body again",
+                self.source.id, body(), rendered.size, body()._render_cache.size,
             )
         print("CLICKED_RETURN_ACTUAL_RENDERED_BODY_IDENTITY", self.source.id,
               len(self.rendered_bodies), flush=True)
@@ -276,9 +282,17 @@ async def clicked_reader_editor_return(app, pilot, first):
     for source in (first, second):
         await click_tab(app, pilot, source.id)
         checkpoints.append(await ReaderCheckpoint.capture(source, app, pilot))
+    raw_reads = []
     for checkpoint in (*checkpoints, checkpoints[0]):
+        agent = checkpoint.source.presentation.sources.agent
+        async with agent.controller.transcripts.bind(agent.coordination.wire_root) as reader:
+            before = reader.transcripts.page_reads
         await click_tab(app, pilot, checkpoint.source.id)
         await checkpoint.verify(app, pilot)
+        async with agent.controller.transcripts.bind(agent.coordination.wire_root) as reader:
+            raw_reads.append(reader.transcripts.page_reads - before)
+    assert raw_reads == [0, 0, 0], ("Already-loaded source repeated raw page reads", raw_reads)
+    print("CLICKED_ABA_CANONICAL_RAW_PAGE_READ_COUNTS", raw_reads, flush=True)
     for checkpoint in checkpoints:
         await click_tab(app, pilot, checkpoint.source.id)
         editor = checkpoint.source.conversation.prompt.prompt_text_area
@@ -329,8 +343,23 @@ async def adaptive_reader_journey(app, pilot, requests):
     await until(pilot, lambda: lookahead.ahead_rows(window.size.height) == 0)
     await until(pilot, lambda: len(app.preparation._pending) == 0)
     before = app.preparation.misses, len(requests)
-    await pilot.pause(.5)
-    assert (app.preparation.misses, len(requests)) == before, "Idle reader kept preparing or replaying"
+    import sys
+    idle_work = {}
+    def trace_idle_work(frame, event, arg):
+        if event == "call" and frame.f_code.co_name == "_execute" and "work" in frame.f_locals:
+            work = frame.f_locals["work"]
+            from toad.work_preparation import ContentAddressedWork
+            idle_work[id(work)] = (type(work).__name__, repr(work.inputs)[:5000], repr(work)[:5000]) if isinstance(work, ContentAddressedWork) else (type(work).__name__, "scoped")
+    previous_profile = sys.getprofile()
+    sys.setprofile(trace_idle_work)
+    try:
+        await pilot.pause(1.2)
+    finally:
+        sys.setprofile(previous_profile)
+    after = app.preparation.misses, len(requests)
+    print("ACTUAL_IDLE_PREPARATION_CENSUS", {"before": before, "after": after,
+          "work": list(idle_work.values()), "pending": len(app.preparation._pending)}, flush=True)
+    assert after == before, ("Idle reader kept preparing or replaying", before, after, idle_work)
     assert len(app.preparation._pending) == 0
     assert app.preparation.retained_bytes <= app.preparation.max_bytes
     assert len(app.preparation._ready) <= app.preparation.max_entries

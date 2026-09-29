@@ -1,0 +1,28 @@
+INSTALLED_APP_RUN_TEST_ENTER
+INSTALLED_APP_RUN_TEST_YIELDED
+ATTACHED_AND_NAVIGABLE
+PASS_ACTUAL_NATIVE_OPEN_DUPLICATE_CANCELLED_WAITER_ONE_TAB_PAINT
+ACTUAL_WARM_RETURN_ORIGINAL_NATIVE_BODIES 0 1
+PASS_NEW_CASE_SINGLE_DECLARATION_REAL_FILE_PROJECTION_RETURN_CLOSE_PREVIEW_REUSE
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-workspace-latency-sol-20260929/tests/thread_navigation_installed_journey.py", line 188, in <module>
+    asyncio.run(native_fixture(app_type=InstalledApp, prepare_state=prepare,
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                              provider_reply=reply, acceptance=acceptance))
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-workspace-latency-sol-20260929/tests/l0a_native_installed_pilot.py", line 282, in main
+    await acceptance(app, pilot, agent, comms, entered, release,
+                     hold_next, requests)
+  File "/home/ts/wt/toad-workspace-latency-sol-20260929/tests/thread_navigation_installed_journey.py", line 168, in acceptance
+    assert retained_alpha == len(alpha_bodies), "Returning the native tab discarded its original painted bodies"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Returning the native tab discarded its original painted bodies

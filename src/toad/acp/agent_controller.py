@@ -10,6 +10,7 @@ from agent_comms.declared_family import DeclaredFamily
 from toad.render_tasks import ValidateSessionUpdateTask
 from toad.plan import PlanItem
 from .terminal_owner import OperationalTerminalOwner
+from .transcript_reader import CoordinationTranscriptReader
 
 
 @dataclass(frozen=True)
@@ -74,6 +75,7 @@ class AgentController(OperationalTerminalOwner):
         self.surface: SurfaceBinding = DetachedSurfaceBinding()
         self.validation: ValidationOwner = HeadlessValidationOwner()
         self.app = None
+        self.transcripts = CoordinationTranscriptReader(self)
         self.coordination = None
         self.session = SessionBinding(None)
         self.modes = {}
@@ -95,6 +97,7 @@ class AgentController(OperationalTerminalOwner):
             return
         self.detach(previous)
         self.app = target.app
+        self.transcripts.prepare_with(self.app.preparation)
         self.validation = ApplicationValidationOwner(self.app.render_processes)
         self.surface = AttachedSurfaceBinding(target)
         self.agent.permissions.present(target)

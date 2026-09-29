@@ -49,12 +49,12 @@ async def main():
             app._sidebar_snapshot = comms.views.viewer_snapshot(str(root))
             with (
                 patch.object(
-                    app.coordination_wire.views,
+                    app.coordination_access.service.views,
                     "thread_views",
                     side_effect=AssertionError("UI wire scan"),
                 ),
                 patch.object(
-                    type(app.coordination_wire.registry.store),
+                    type(app.coordination_access.service.registry.store),
                     "read",
                     side_effect=AssertionError("UI registry read"),
                 ),

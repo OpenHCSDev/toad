@@ -1,0 +1,36 @@
+{
+  "base": {
+    "Loading": 0,
+    "PaintOnlyRefresh": 0,
+    "ThreadLoading": 0,
+    "TurnActivity": 0,
+    "Cursor": 0,
+    "CategorizedMount": 0,
+    "Contents": 0,
+    "ContentsGrid": 0,
+    "CursorContainer": 0,
+    "ConversationWindowSettings": 0,
+    "Window": 0,
+    "ConversationSessionBinding": 0,
+    "Conversation": 1268,
+    "ConversationCommsConsumer": 0,
+    "CompactionRenderer": 0
+  },
+  "current": {
+    "Loading": 0,
+    "PaintOnlyRefresh": 0,
+    "ThreadLoading": 0,
+    "TurnActivity": 0,
+    "Cursor": 0,
+    "CategorizedMount": 0,
+    "Contents": 0,
+    "ContentsGrid": 0,
+    "CursorContainer": 0,
+    "ConversationWindowSettings": 0,
+    "Window": 0,
+    "ConversationSessionBinding": 0,
+    "Conversation": 1231,
+    "ConversationCommsConsumer": 0,
+    "CompactionRenderer": 0
+  }
+}

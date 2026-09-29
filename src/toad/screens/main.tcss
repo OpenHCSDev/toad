@@ -77,7 +77,8 @@ Conversation {
     Window {                      
         layout: vertical;
         margin: 0;                
-        scrollbar-size-vertical: 2;        
+        scrollbar-size-vertical: 2;
+        scrollbar-gutter: stable;
         padding: 0 1 0 0;
         height: 1fr;                
         align: left bottom;   
@@ -142,112 +143,18 @@ Conversation {
         }
     }        
 
-    AgentResponse {         
-        min-height: 1;        
-        padding: 0 0 0 0;       
-        overflow-x: auto;
-        scrollbar-size-horizontal: 0;
-        layout: stream;
-    }
 
-    AgentResponse.-routed, IncomingMessage {
-        border-left: tall $accent;
-        background: transparent;
-        padding-left: 1;
-    }
-    IncomingMessage > AgentResponse.routed-body { margin: 0; padding: 0; }
+
+
+
 
     LoadingIndicator {
         height: 10;
     }
 
-    AgentThought {
-        background: $primary-muted 20%;
-        color: $text-primary;        
-        min-height: 1;        
-        margin: 0 1 1 0;
-        padding:  0 1 0 1;
-        border: none;
-        border-left: tall $primary;
-        overflow-x: auto;
-        scrollbar-size-horizontal: 0;
-        layout: stream;
-       
-        &.-loading {            
-            background: transparent !important;
-            padding: 0;
-            margin: 0;            
-        }
-        overflow-y: hidden;
 
-        MarkdownParagraph {
-            margin: 0;
-        }
 
-        &.-maximized {
-            max-height: 100h;
-            margin: 1 2;
-            scrollbar-visibility: visible;
-            &>* {                
-                padding-right: 1;
-            }
-        }
-        &:focus {
-            border-left: tall $primary;
-        }
-        &:ansi {
-            background: ansi_default;
-            border-left: tall ansi_blue;
-        }
-    }
 
-    ToolCall {    
-        # margin: 0 0 0 0 !important;    
-        margin: 0 0 0 1 !important;        
-        
-        width: 1fr;
-        layout: vertical;
-        height: auto;        
-
-        .icon {
-            width: auto;
-            margin-right: 1;
-        }
-        #tool-content {
-            display: none;
-        }
-        &.-has-content #tool-content {            
-            margin: 1 1 1 0;            
-            DiffView {
-                margin: 0 1 1 0;                                              
-            }
-
-            Markdown {                
-                layout: stream;
-                padding: 0;
-                margin: 0 0 0 0;
-            }                  
-        }
-        &.-expanded {
-            #tool-content {
-                display: block;                
-            }
-            ToolCallHeader {
-                text-wrap: wrap;
-                text-overflow: fold;
-            }
-        }
-        
-        ToolCallHeader {  
-            color: $text-secondary;   
-            pointer: pointer;       
-            width: auto;
-            max-width: 1fr;   
-            margin: 0 1 0 0;    
-            text-wrap: nowrap;
-            text-overflow: ellipsis;
-        }        
-    }
     padding-left: 0;
 
    
@@ -307,30 +214,7 @@ Conversation {
                   
     }
          
-    UserInput {        
-        background: transparent;
-        padding: 0;
-        margin: 0 1 1 0;
-        & > .user-input-body {
-            border-left: blank $secondary;
-            background: $secondary 15%;
-            padding: 0 1 0 0;
-        }
-        Markdown {            
-            padding:0 2 0 0;
-        }
-        MarkdownFence {                           
-            margin: 0 2 1 0;
-        }
-        #prompt {
-            margin: 0 1 0 0;
-            color: $text-secondary;
-        }
-        &:ansi > .user-input-body {
-            background: ansi_default;
-            border-left: tall ansi_cyan;
-        }
-    }
+
 
 }
 
@@ -652,3 +536,11 @@ MainScreen {
     }
 
 }
+
+AgentResponse.-routed, IncomingMessage {
+    border-left: tall $accent;
+    background: transparent;
+    padding-left: 1;
+}
+
+IncomingMessage > AgentResponse.routed-body { margin: 0; padding: 0; }
