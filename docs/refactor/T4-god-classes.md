@@ -490,3 +490,6 @@ installation claim is made.
 Tesla142 acknowledged detached typed Plan retention in comment5883513100,
 explicitly retained in the operational source continuation. 151 does not claim
 that separately owned acceptance complete. Parent owns review/merge/live pins.
+
+
+PR154 final review checkpoint: main040607 integrated normally at0ec22684; actual popup pilots use selected_session/selected_mode rather than retired Screen ownership. Installed physical ACP/files/model/new-declaration paint and three deletion/lifetime/admission guards pass with core9251/Textual1738. Product445lines deleted/294added; no chain/foreign-absence/codec growth. Detailed current boundary is evidence/prompt-completion/CHECKPOINT.md. Parent owns merge/install and actual live popup/entry check; independent CommsScreen/first-open bugs remain Carver/Tesla. No remaining assigned popup implementation blocker.
