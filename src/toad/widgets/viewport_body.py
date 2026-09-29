@@ -8,8 +8,12 @@ The window owns admission; documents implement their own retirement/restoration.
 from collections import OrderedDict
 from functools import partial
 from weakref import WeakSet, ref
+from time import monotonic
+from toad.widgets.presentation_window import DirectionalPreparation
 
 from textual.widget import Widget
+from textual._measurement import NATIVE_WIDGET_HEIGHT, height_dependency
+from textual.geometry import Size
 from textual.worker import WorkerCancelled
 
 
@@ -33,6 +37,56 @@ class ViewportBody:
 
     async def restore_body(self) -> None:
         raise NotImplementedError
+
+    def matches_retained(self, identity) -> bool:
+        return False
+
+    def park_body(self, shelf: Widget) -> bool:
+        return False
+
+    @property
+    def retained_source_bytes(self) -> int:
+        return 0
+
+
+class MeasuredViewportBody(ViewportBody):
+    """Shared native extent and restoration state for body-owning widgets."""
+
+    def __init__(self, *args, **kwargs):
+        self._body_dormant = False
+        self._body_restoring = False
+        self._body_measurement = None
+        self._body_measurement_stale = False
+        super().__init__(*args, **kwargs)
+
+    @property
+    def body_dormant(self) -> bool:
+        return self._body_dormant
+
+    @property
+    def body_measurement_stale(self) -> bool:
+        return self._body_measurement_stale
+
+    @property
+    def body_ready(self) -> bool:
+        return not self._body_dormant and not self._body_restoring
+
+    @height_dependency(NATIVE_WIDGET_HEIGHT)
+    def get_content_height(self, container: Size, viewport: Size, width: int) -> int:
+        if self._body_dormant and self._body_measurement is not None:
+            if width != self._body_measurement[0]:
+                self._body_measurement_stale = True
+            return self._body_measurement[1]
+        height = super().get_content_height(container, viewport, width)
+        self._body_measurement = width, height
+        self._body_measurement_stale = False
+        return height
+
+
+class RetainedBodyShelf(Widget):
+    """Placement for the existing viewport's bounded warm bodies, never a tab."""
+
+    DEFAULT_CSS = "RetainedBodyShelf { display: none; }"
 
 
 class ViewportPresentation:
@@ -111,9 +165,13 @@ class DocumentViewport:
         if type(max_warm_bodies) is not int or max_warm_bodies < 0:
             raise ValueError("max_warm_bodies must be a non-negative integer")
         self.max_warm_bodies = max_warm_bodies
+        self.lookahead = DirectionalPreparation()
         self._window = ref(window)
         self.owners = WeakSet()
         self._warm = OrderedDict()
+        self._shelf = RetainedBodyShelf()
+        self.reuse_hits = 0
+        self.body_evictions = 0
         self._pending = False
         self._running = False
         self._worker = None
@@ -138,10 +196,42 @@ class DocumentViewport:
         self.owners.discard(owner)
         self._warm.pop(ref(owner), None)
 
+    def claim_retained(self, identity):
+        for key in tuple(self._warm):
+            owner = key()
+            if owner is not None and owner.parent is self._shelf and owner.matches_retained(identity):
+                self._warm.pop(key)
+                self.reuse_hits += 1
+                return owner
+        return None
+
+    async def _trim_warm(self) -> None:
+        def source_bytes():
+            return sum(owner.retained_source_bytes for key in self._warm
+                       if (owner := key()) is not None)
+        while (len(self._warm) > self.max_warm_bodies or
+               source_bytes() > self.window.app.preparation.max_bytes):
+            key, _ = self._warm.popitem(last=False)
+            owner = key()
+            if owner is not None and owner.parent is self._shelf:
+                self.body_evictions += 1
+                await owner.remove()
+
+    async def park_source(self) -> None:
+        """Move only admitted warm bodies before the source's pager is removed."""
+        await self._trim_warm()
+        if not self._shelf.is_mounted:
+            await self.window.mount(self._shelf)
+        for key in tuple(self._warm):
+            owner = key()
+            if owner is not None and owner.parent is not self._shelf:
+                owner.park_body(self._shelf)
+
     def request(self, *_args) -> None:
         if self._suspended or not self.window.is_attached or self.window._closing:
             return
         self._pending = True
+        self.lookahead.observe(self.window.scroll_y)
         if not self._running:
             self._running = True
             self._worker = self.window.run_worker(partial(self._reconcile), group="viewport-bodies")
@@ -199,8 +289,7 @@ class DocumentViewport:
                         key = ref(owner)
                         self._warm[key] = None
                         self._warm.move_to_end(key)
-                while len(self._warm) > self.max_warm_bodies:
-                    self._warm.popitem(last=False)
+                await self._trim_warm()
                 warm = {key() for key in self._warm} if active else set()
                 retained = protected | warm | visible.keys()
                 # Restore visible source before retiring unrelated bodies.
@@ -208,8 +297,11 @@ class DocumentViewport:
                 for owner in ordered:
                     if not owner.is_attached or owner._closing:
                         continue
+                    if owner.parent is self._shelf:
+                        continue
                     wanted = owner in retained
                     if owner.body_dormant and wanted:
+                        preparation_started = monotonic()
                         async with self.window.history_lock:
                             if not self.window.is_attached or not owner.is_attached:
                                 continue
@@ -222,6 +314,7 @@ class DocumentViewport:
                                         await owner.restore_body()
                             else:
                                 continue
+                        self.lookahead.prepared(monotonic() - preparation_started)
                     if (not wanted and not owner.body_dormant and owner not in self.protected()
                             and not (screen.is_current and owner in screen._compositor.visible_widgets)):
                         await owner.retire_body()

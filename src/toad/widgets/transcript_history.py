@@ -488,7 +488,8 @@ class TranscriptHistory(ConversationBlock, CommittedHistory, CategorizedBlock, V
     @property
     def _prefetch_distance(self) -> int:
         """Start background reads before the earlier edge enters the viewport."""
-        return max(4, min(32, self.window.size.height // 2))
+        rows = self.window.size.height
+        return max(4, rows // 2) + self.window.document_viewport.lookahead.ahead_rows(rows)
 
 
 
@@ -655,6 +656,10 @@ class TranscriptHistory(ConversationBlock, CommittedHistory, CategorizedBlock, V
 
     def request_latest(self) -> None:
         if not self._loading:
+            self.window.document_viewport.lookahead.destination(self.window.size.height)
+            if self._prefetch_worker is not None:
+                self._prefetch_worker.cancel()
+            self._prefetched_edges = None
             self._loading = True
             self.run_worker(self._jump_latest())
 
@@ -675,7 +680,10 @@ class TranscriptHistory(ConversationBlock, CommittedHistory, CategorizedBlock, V
                     return
                 self._saturated_widget_limit = 0
                 await self.remove_children(list(self.pages))
-                view = TranscriptPageView(page, fragments=fragments, batch_size=self.budget.admission_items)
+                view = TranscriptPageView(
+                    page, fragments=fragments,
+                    batch_size=window.document_viewport.lookahead.admission(self.budget, window.size.height),
+                )
                 view.visible_categories = self._selected_categories
                 self.pages = deque([view])
                 await self.mount(view, before=self.newer)
