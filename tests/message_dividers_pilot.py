@@ -1,3 +1,4 @@
+from toad.live_output import ResponseStream
 """Full-width timed headers stay inside text blocks across native and wire views."""
 
 from toad.navigation_target import channel_target
@@ -42,7 +43,7 @@ async def main() -> None:
             owner = app.current_mode
             native = app.screen.conversation
             user = await native.post(UserInput("human text"))
-            reply = await native.post_agent_response("agent text")
+            reply = await native.output.append(ResponseStream(), "agent text")
             assert reply is not None
             incoming = await native.post(IncomingMessage("peer", "hello", "#all"))
             thought = await native.post(AgentThought("not a displayed message"))
