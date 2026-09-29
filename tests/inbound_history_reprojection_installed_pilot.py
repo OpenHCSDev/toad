@@ -1,93 +1,99 @@
-"""Continuous real UI/ACP/native journey: source ownership survives retirement."""
+"""One continuously open real UI/ACP/native recipient under history pressure."""
 import asyncio
 import json
 import sys
-from pathlib import Path
-from agent_comms.threads import Thread
 
+from agent_comms.threads import Thread
 from l0a_native_installed_pilot import main, until
 from receiver_inbound_installed_pilot import paint
-from toad.widgets.incoming_message import AssignedIncomingMessage, IncomingMessage
+from toad.widgets.incoming_message import IncomingMessage
 from toad.widgets.observed_thread_activity import ObservedThreadActivity
-from toad.widgets.transcript_history import TranscriptHistory
-from toad.transcript_preparation import incoming_sequences
 
 
-async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):
-    view = app.selected_session.conversation
-    comms.registry.declare(Thread("sender", frozenset({"team"}), str(app.project_dir)))
+async def send_channel(comms, text):
     process = await asyncio.create_subprocess_exec(
         sys.executable, "-m", "agent_comms.cli", "send", "--from", "sender",
-        "--to", "#team", "--body", "@beta RECEIVER_NATIVE_INBOUND_PROOF",
+        "--to", "#team", "--body", text,
         stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
     )
     stdout, stderr = await process.communicate()
     assert process.returncode == 0, (stdout, stderr)
-    message = comms.bus.log.message_by_id(json.loads(stdout)["id"])
-    sequence = message.seq
+    return comms.bus.log.message_by_id(json.loads(stdout)["id"])
+
+
+def matching(view, sequence):
+    return [block for block in view.contents.query(IncomingMessage)
+            if block.sequence == sequence]
+
+
+async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):
+    view = app.selected_session.conversation
+    app.settings.ui.prune_low_mark = 100
+    app.settings.ui.prune_excess = 0
+    comms.registry.declare(Thread("sender", frozenset({"team"}), str(app.project_dir)))
+    message = await send_channel(comms, "@beta OLD_CHANNEL_MESSAGE_PROOF")
     await until(pilot, entered.is_set)
-    await until(pilot, lambda: any(item.sequence == sequence for item in view.query(IncomingMessage)))
+    await until(pilot, lambda: bool(matching(view, message.seq)))
+    original = matching(view, message.seq)[0]
     release.set()
     await until(pilot, lambda: not comms.registry.require("beta").executing)
+    assert len(requests) == 1
     print("REAL_AGENT_CHANNEL_MESSAGE_AND_NATIVE_RECEIPT", flush=True)
-    await until(pilot, lambda: view.turns.managed_id is None)
-    print("SOURCE_DIAGNOSTIC", [(type(e).__name__, repr(e.routing), e.text_size) for e in (await agent.get_transcript_page()).events], flush=True)
-    view.window.anchor()
-    view.transcript.require_checkpoint()
-    try:
-        await until(pilot, lambda: not view.transcript.dirty)
-    except TimeoutError:
-        from toad.widgets.committed_presentation import protected_blocks
-        print("CHECKPOINT_DIAGNOSTIC", {
-            "agent_ready": view.agent_ready,
-            "managed": view.turns.managed_id,
-            "owner_busy": view.turns.owner.busy,
-            "worker": str(view.transcript.worker),
-            "cursor": str(view.cursor_block),
-            "follow": view.window.follows_tail,
-            "protected": [str(item) for item in protected_blocks(view, view.contents.children)],
-            "children": [str(item) for item in view.contents.children],
-            "histories": [(h.checkpoint_available, str(h.state)) for h in view.contents.query(TranscriptHistory)],
-        }, flush=True)
-        raise
-    await until(pilot, lambda: bool(view.contents.query(TranscriptHistory)))
-    assert sequence in incoming_sequences((await agent.get_transcript_page()).events)
-    assert not view.contents.query(AssignedIncomingMessage)
-    observed = view.query_one(ObservedThreadActivity)
 
-    # A real subsequent native turn changes the observed owner presentation.
-    # Its poll reprojects the old assignment while the same chat remains open.
+    # Trigger real activity publications, then a substantial native response.
+    # Keep the same selected conversation throughout, as in the user's report.
+    observed = view.query_one(ObservedThreadActivity)
+    entered.clear()
+    release.clear()
+    hold_next.set()
     view.prompt.text = "UNRELATED_NEW_NATIVE_TURN"
     view.prompt.prompt_text_area.focus()
     await pilot.press("enter")
-    await until(pilot, lambda: len(requests) == 2)
-    await until(pilot, lambda: not comms.registry.require("beta").executing)
+    await until(pilot, entered.is_set)
     observed.refresh_observation()
     await pilot.pause(.3)
-    blocks = [item for item in view.contents.query(IncomingMessage) if item.sequence == sequence]
-    assert len(blocks) == 1, [(type(item).__name__, item.sequence) for item in blocks]
-    assert not view.contents.query(AssignedIncomingMessage), "Old receipt returned to live tail"
-    assert "RECEIVER_NATIVE_INBOUND_PROOF" in paint(app)
-    print("SAME_OPEN_VIEW_NATIVE_TURN_AND_ASSIGNMENT_POLL_NO_REPLAY", flush=True)
+    assert matching(view, message.seq) == [original]
+    release.set()
+    await until(pilot, lambda: not comms.registry.require("beta").executing)
+    await until(pilot, lambda: "LONG_NATIVE_HISTORY" in paint(app), seconds=30)
+    observed.refresh_observation()
+    await pilot.pause(.5)
+    assert app.selected_session.conversation is view
+    assert matching(view, message.seq) == [original], "Old inbound was discarded and appended again"
+    assert len(requests) == 2
+    print("SAME_OPEN_VIEW_NATIVE_ACTIVITY_AND_HISTORY_PRESSURE_NO_REPLAY", flush=True)
 
-    # Reattach the real ACP process to the saved owner, without sending an input.
+    # ACP reconnect is additional coverage; it must not repeat a native input.
     before = len(requests)
     await agent.session.reconnect()
     await until(pilot, agent.session.settled.is_set)
     assert agent.session.connected
     observed.refresh_observation()
     await pilot.pause(.3)
-    assert sum(item.sequence == sequence for item in view.contents.query(IncomingMessage)) == 1
+    assert matching(view, message.seq) == [original]
     assert len(requests) == before
-    assert not view.contents.query(AssignedIncomingMessage)
+    print("REAL_ACP_RECONNECT_NO_PROVIDER_REPLAY", flush=True)
+
+    fresh = await send_channel(comms, "@beta FRESH_CHANNEL_MESSAGE_PROOF")
+    await until(pilot, lambda: bool(matching(view, fresh.seq)))
+    await until(pilot, lambda: not comms.registry.require("beta").executing)
+    observed.refresh_observation()
+    await pilot.pause(.3)
+    assert matching(view, message.seq) == [original]
+    assert len(matching(view, fresh.seq)) == 1
+    assert len(requests) == 3
+    expected = next(receipt.state for receipt in comms.views.recent_notifications("beta")
+                    if receipt.message is not None and receipt.message.seq == message.seq)
+    assert str(original.query_one(".assignment-handling").render()) == f"Handling: {expected}"
     assert app._exception is None
-    print("REAL_ACP_RECONNECT_RETAINED_SOURCE_AND_ONE_WIRE_IDENTITY", flush=True)
+    print("FRESH_INPUT_ONE_WIRE_IDENTITY_AND_LATE_HANDLING_IN_PLACE", flush=True)
 
 
 def reply(request, number):
-    content = '{"decision":"FULL"}' if number == 1 else f"NATIVE_RESPONSE_{number}"
+    content = ("\n\n".join("\n".join(f"LONG_NATIVE_HISTORY {block}:{line}" for line in range(8))
+                           for block in range(35)) if number == 2 else f"NATIVE_RESPONSE_{number}")
     return {"role": "assistant", "content": content}, "stop"
 
 
 if __name__ == "__main__":
-    asyncio.run(main(acceptance=acceptance, provider_request_budget=2))
+    asyncio.run(main(acceptance=acceptance, provider_reply=reply, provider_request_budget=3))
