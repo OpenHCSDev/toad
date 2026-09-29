@@ -1,0 +1,576 @@
+ATTEMPT failed-current-native-multiprocess.txt
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=9, pipe_handle=15)
+                                                  ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/spawn.py", line 122, in spawn_main
+    exitcode = _main(fd, parent_sentinel)
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/spawn.py", line 131, in _main
+    prepare(preparation_data)
+    ~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/spawn.py", line 246, in prepare
+    _fixup_main_from_path(data['init_main_from_path'])
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/spawn.py", line 297, in _fixup_main_from_path
+    main_content = runpy.run_path(main_path,
+                                  run_name="__mp_main__")
+  File "<frozen runpy>", line 287, in run_path
+  File "<frozen runpy>", line 98, in _run_module_code
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/ts/wt/toad-permission-presentation-sol-20260928/.artifacts/run_native_permission.py", line 12, in <module>
+    root=Path('.artifacts/current-native-permission').resolve();root.mkdir()
+                                                                ~~~~~~~~~~^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/pathlib/__init__.py", line 1011, in mkdir
+    os.mkdir(self, mode)
+    ~~~~~~~~^^^^^^^^^^^^
+FileExistsError: [Errno 17] File exists: '/home/ts/wt/toad-permission-presentation-sol-20260928/.artifacts/current-native-permission'
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-permission-presentation-sol-20260928/.artifacts/run_native_permission.py", line 55, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-permission-presentation-sol-20260928/.artifacts/run_native_permission.py", line 46, in main
+    assert len(requests)==2 and not errors
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+
+
+ATTEMPT failed-environment.txt
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-permission-presentation-sol-20260928/tests/permission_lifetime_pilot.py", line 7, in <module>
+    from agent_comms.comms import Comms
+  File "/home/ts/wt/toad-goal-interaction-owner-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/__init__.py", line 5, in <module>
+    from .exporting import (
+    ...<6 lines>...
+    )
+  File "/home/ts/wt/toad-goal-interaction-owner-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/exporting.py", line 20, in <module>
+    from .catalog_store import ChannelCatalog
+  File "/home/ts/wt/toad-goal-interaction-owner-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/catalog_store.py", line 11, in <module>
+    from .catalog_document import CatalogDocument
+  File "/home/ts/wt/toad-goal-interaction-owner-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/catalog_document.py", line 10, in <module>
+    from .channels import Channel, SavedView, ViewPredicate
+  File "/home/ts/wt/toad-goal-interaction-owner-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/channels.py", line 11, in <module>
+    from .declared_family import DeclaredFamily
+  File "/home/ts/wt/toad-goal-interaction-owner-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/declared_family.py", line 9, in <module>
+    from metaclass_registry import AutoRegisterMeta, RegistryConfig  # type: ignore[import-untyped]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ModuleNotFoundError: No module named 'metaclass_registry'
+
+
+ATTEMPT failed-modal-wait.txt
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-permission-presentation-sol-20260928/tests/permission_lifetime_pilot.py", line 96, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-permission-presentation-sol-20260928/tests/permission_lifetime_pilot.py", line 81, in main
+    assert isinstance(app.screen, PermissionsScreen)
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+
+
+ATTEMPT failed-native-collection.txt
+ImportError while loading conftest '/home/ts/.agent-comms/tests/conftest.py'.
+../../.agent-comms/tests/conftest.py:7: in <module>
+    from agent_comms import Thread
+E   ImportError: cannot import name 'Thread' from 'agent_comms' (/home/ts/wt/toad-permission-presentation-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/__init__.py). Did you mean: 'threads'?
+
+
+ATTEMPT failed-native-environment-selection.txt
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_______________________ test_real_pi_mcp_acp_link[allow] _______________________
+
+case = 'allow'
+tmp_path = PosixPath('/home/ts/wt/toad-permission-presentation-sol-20260928/.artifacts/native-permission/test_real_pi_mcp_acp_link_allo0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f0d20124050>
+
+    @pytest.mark.parametrize("case", ["allow", "no_controller", "revoke_midturn", "disconnect"])
+    async def test_real_pi_mcp_acp_link(case, tmp_path, monkeypatch):
+        binary = os.environ.get("AC_MCP_NATIVE_BIN")
+        if not binary:
+            pytest.skip("Set AC_MCP_NATIVE_BIN to an explicitly prepared native Pi launcher")
+        assert Path(binary).is_absolute() and os.access(binary, os.X_OK)
+        node, agent, project, digest, starts, calls, env = _prepare(tmp_path)
+        receipt_seen, second_request, release_final = (threading.Event() for _ in range(3))
+        if case != "revoke_midturn":
+            release_final.set()
+        attachment_settled = asyncio.Event()
+        attachment_turn = None
+        updates, permissions = [], []
+        entered, release = asyncio.Event(), asyncio.Event()
+        task = proxy = owner = None
+        (tmp_path / "launch.json").write_text(
+            json.dumps(
+                {
+                    "launcher": binary,
+                    "sha256": hashlib.sha256(Path(binary).read_bytes()).hexdigest(),
+                    "package": str(PACKAGE),
+                    "case": case,
+                }
+            )
+        )
+        async with _observer(case, tmp_path) as observer:
+            with _mock_model(tmp_path, agent, receipt_seen, second_request, release_final) as (
+                requests,
+                errors,
+                guard,
+            ):
+                env.update(
+                    OPENROUTER_API_KEY="offline-fixture-no-real-key", NODE_OPTIONS=f"--require={guard}"
+                )
+                monkeypatch.setattr(backend.os, "environ", env)
+                args = [
+                    "--offline",
+                    "--no-extensions",
+                    "--no-skills",
+                    "--no-prompt-templates",
+                    "--no-themes",
+                    "--no-context-files",
+                    "--no-builtin-tools",
+                    "--provider",
+                    "openrouter",
+                    "--model",
+                    "z-ai/glm-5.3-flash",
+                    "--thinking",
+                    "off",
+                    "-e",
+                    str(PACKAGE),
+                ]
+                comms = wire(tmp_path / "wire")
+                root_id = comms.messaging.initialize_private_initial_protocol()
+                owner = CommsAgent(
+                    comms,
+                    agent_bin=binary,
+                    agent_args=args,
+                    runtime_enabled=True,
+                    auto_wake=False,
+>                   private_nk_native_package=Path(env["PI_COMPACTION_TEST_PACKAGE"]),
+                                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                    private_nk_wire_root_id=root_id,
+                )
+E               KeyError: 'PI_COMPACTION_TEST_PACKAGE'
+
+.artifacts/test_native_permission_acceptance.py:355: KeyError
+=========================== short test summary info ============================
+FAILED ../../../../dev::test_real_pi_mcp_acp_link[allow] - KeyError: 'PI_COMP...
+1 failed, 3 deselected in 5.17s
+
+
+ATTEMPT failed-native-extension-route.txt
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_______________________ test_real_pi_mcp_acp_link[allow] _______________________
+
+case = 'allow'
+tmp_path = PosixPath('/home/ts/wt/toad-permission-presentation-sol-20260928/.artifacts/native-permission/test_real_pi_mcp_acp_link_allo0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fef17024050>
+
+    @pytest.mark.parametrize("case", ["allow", "no_controller", "revoke_midturn", "disconnect"])
+    async def test_real_pi_mcp_acp_link(case, tmp_path, monkeypatch):
+        binary = os.environ.get("AC_MCP_NATIVE_BIN")
+        if not binary:
+            pytest.skip("Set AC_MCP_NATIVE_BIN to an explicitly prepared native Pi launcher")
+        assert Path(binary).is_absolute() and os.access(binary, os.X_OK)
+>       node, agent, project, digest, starts, calls, env = _prepare(tmp_path)
+                                                           ^^^^^^^^^^^^^^^^^^
+
+.artifacts/test_native_permission_acceptance.py:301: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+.artifacts/test_native_permission_acceptance.py:100: in _prepare
+    digest = _node_run(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+node = '/usr/bin/node'
+env = {'PATH': '/home/ts/wt/toad-permission-presentation-sol-20260928/.venv/bin:/home/ts/.codex/tmp/arg0/codex-arg0uFvMKg:/h...ssion-presentation-sol-20260928/.artifacts/native-permission/test_real_pi_mcp_acp_link_allo0/agent', 'CI': 'true', ...}
+script = 'import {declarationDigest,parseNativeConfig} from "file:///home/ts/.agent-comms/extensions/pi-mcp-client/src/config.m...ifacts/native-permission/test_real_pi_mcp_acp_link_allo0/fixture.mjs\\"], \\"cwd\\": \\"project\\"}}]}").servers[0]));'
+cwd = PosixPath('/home/ts/wt/toad-permission-presentation-sol-20260928/.artifacts/native-permission/test_real_pi_mcp_acp_link_allo0/project')
+
+    def _node_run(node, env, script, cwd):
+        result = subprocess.run(
+            [node, "--input-type=module", "-e", script],
+            cwd=cwd,
+            env=env,
+            capture_output=True,
+            text=True,
+            timeout=15,
+        )
+>       assert result.returncode == 0, result.stderr
+E       AssertionError: node:internal/modules/package_json_reader:301
+E           throw new ERR_MODULE_NOT_FOUND(packageName, fileURLToPath(base), null);
+E                 ^
+E         
+E         Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'zod' imported from /home/ts/.agent-comms/extensions/pi-mcp-client/src/config.mjs
+E             at Object.getPackageJSONURL (node:internal/modules/package_json_reader:301:9)
+E             at packageResolve (node:internal/modules/esm/resolve:784:25)
+E             at moduleResolve (node:internal/modules/esm/resolve:873:18)
+E             at defaultResolve (node:internal/modules/esm/resolve:1006:11)
+E             at #cachedDefaultResolve (node:internal/modules/esm/loader:708:20)
+E             at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:728:38)
+E             at ModuleLoader.resolveSync (node:internal/modules/esm/loader:766:56)
+E             at #resolve (node:internal/modules/esm/loader:690:17)
+E             at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:610:35)
+E             at ModuleJob.syncLink (node:internal/modules/esm/module_job:277:33) {
+E           code: 'ERR_MODULE_NOT_FOUND'
+E         }
+E         
+E         Node.js v26.5.0
+E         
+E       assert 1 == 0
+E        +  where 1 = CompletedProcess(args=['/usr/bin/node', '--input-type=module', '-e', 'import {declarationDigest,parseNativeConfig} fro...eJob.syncLink (node:internal/modules/esm/module_job:277:33) {\n  code: 'ERR_MODULE_NOT_FOUND'\n}\n\nNode.js v26.5.0\n").returncode
+
+.artifacts/test_native_permission_acceptance.py:49: AssertionError
+=========================== short test summary info ============================
+FAILED ../../../../dev::test_real_pi_mcp_acp_link[allow] - AssertionError: no...
+1 failed, 3 deselected in 1.85s
+
+
+ATTEMPT failed-native-launcher-route.txt
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-permission-presentation-sol-20260928/.artifacts/run_native_permission.py", line 57, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-permission-presentation-sol-20260928/.artifacts/run_native_permission.py", line 47, in main
+    assert len(requests)==2 and not errors, (requests,errors)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ([], [])
+
+
+ATTEMPT failed-native-package-route.txt
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_______________________ test_real_pi_mcp_acp_link[allow] _______________________
+
+case = 'allow'
+tmp_path = PosixPath('/home/ts/wt/toad-permission-presentation-sol-20260928/.artifacts/native-permission/test_real_pi_mcp_acp_link_allo0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fb3bbb44050>
+
+    @pytest.mark.parametrize("case", ["allow", "no_controller", "revoke_midturn", "disconnect"])
+    async def test_real_pi_mcp_acp_link(case, tmp_path, monkeypatch):
+        binary = os.environ.get("AC_MCP_NATIVE_BIN")
+        if not binary:
+            pytest.skip("Set AC_MCP_NATIVE_BIN to an explicitly prepared native Pi launcher")
+        assert Path(binary).is_absolute() and os.access(binary, os.X_OK)
+>       node, agent, project, digest, starts, calls, env = _prepare(tmp_path)
+                                                           ^^^^^^^^^^^^^^^^^^
+
+.artifacts/test_native_permission_acceptance.py:301: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+.artifacts/test_native_permission_acceptance.py:93: in _prepare
+    _node_run(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+node = '/usr/bin/node'
+env = {'PATH': '/home/ts/wt/toad-permission-presentation-sol-20260928/.venv/bin:/home/ts/.codex/tmp/arg0/codex-arg0uFvMKg:/h...ssion-presentation-sol-20260928/.artifacts/native-permission/test_real_pi_mcp_acp_link_allo0/agent', 'CI': 'true', ...}
+script = 'import {ProjectTrustStore} from "file:///home/ts/.agent-comms/extensions/pi-mcp-client/node_modules/%40earendil-works...toad-permission-presentation-sol-20260928/.artifacts/native-permission/test_real_pi_mcp_acp_link_allo0/project",true);'
+cwd = PosixPath('/home/ts/wt/toad-permission-presentation-sol-20260928/.artifacts/native-permission/test_real_pi_mcp_acp_link_allo0/project')
+
+    def _node_run(node, env, script, cwd):
+        result = subprocess.run(
+            [node, "--input-type=module", "-e", script],
+            cwd=cwd,
+            env=env,
+            capture_output=True,
+            text=True,
+            timeout=15,
+        )
+>       assert result.returncode == 0, result.stderr
+E       AssertionError: node:internal/modules/esm/resolve:272
+E             throw new ERR_MODULE_NOT_FOUND(
+E                   ^
+E         
+E         Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/home/ts/.agent-comms/extensions/pi-mcp-client/node_modules/@earendil-works/pi-coding-agent/dist/index.js' imported from /home/ts/wt/toad-permission-presentation-sol-20260928/.artifacts/native-permission/test_real_pi_mcp_acp_link_allo0/project/[eval1]
+E             at finalizeResolution (node:internal/modules/esm/resolve:272:11)
+E             at moduleResolve (node:internal/modules/esm/resolve:879:10)
+E             at defaultResolve (node:internal/modules/esm/resolve:1006:11)
+E             at #cachedDefaultResolve (node:internal/modules/esm/loader:708:20)
+E             at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:728:38)
+E             at ModuleLoader.resolveSync (node:internal/modules/esm/loader:766:56)
+E             at #resolve (node:internal/modules/esm/loader:690:17)
+E             at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:610:35)
+E             at ModuleJob.syncLink (node:internal/modules/esm/module_job:277:33)
+E             at ModuleJob.link (node:internal/modules/esm/module_job:389:17) {
+E           code: 'ERR_MODULE_NOT_FOUND',
+E           url: 'file:///home/ts/.agent-comms/extensions/pi-mcp-client/node_modules/%40earendil-works/pi-coding-agent/dist/index.js'
+E         }
+E         
+E         Node.js v26.5.0
+E         
+E       assert 1 == 0
+E        +  where 1 = CompletedProcess(args=['/usr/bin/node', '--input-type=module', '-e', 'import {ProjectTrustStore} from "file:///home/ts...-comms/extensions/pi-mcp-client/node_modules/%40earendil-works/pi-coding-agent/dist/index.js'\n}\n\nNode.js v26.5.0\n").returncode
+
+.artifacts/test_native_permission_acceptance.py:49: AssertionError
+=========================== short test summary info ============================
+FAILED ../../../../dev::test_real_pi_mcp_acp_link[allow] - AssertionError: no...
+1 failed, 3 deselected in 1.10s
+
+
+ATTEMPT failed-native-root-bootstrap.txt
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_______________________ test_real_pi_mcp_acp_link[allow] _______________________
+
+case = 'allow'
+tmp_path = PosixPath('/home/ts/wt/toad-permission-presentation-sol-20260928/.artifacts/native-permission/test_real_pi_mcp_acp_link_allo0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f77a6824050>
+
+    @pytest.mark.parametrize("case", ["allow", "no_controller", "revoke_midturn", "disconnect"])
+    async def test_real_pi_mcp_acp_link(case, tmp_path, monkeypatch):
+        binary = os.environ.get("AC_MCP_NATIVE_BIN")
+        if not binary:
+            pytest.skip("Set AC_MCP_NATIVE_BIN to an explicitly prepared native Pi launcher")
+        assert Path(binary).is_absolute() and os.access(binary, os.X_OK)
+        node, agent, project, digest, starts, calls, env = _prepare(tmp_path)
+        receipt_seen, second_request, release_final = (threading.Event() for _ in range(3))
+        if case != "revoke_midturn":
+            release_final.set()
+        attachment_settled = asyncio.Event()
+        attachment_turn = None
+        updates, permissions = [], []
+        entered, release = asyncio.Event(), asyncio.Event()
+        task = proxy = owner = None
+        (tmp_path / "launch.json").write_text(
+            json.dumps(
+                {
+                    "launcher": binary,
+                    "sha256": hashlib.sha256(Path(binary).read_bytes()).hexdigest(),
+                    "package": str(PACKAGE),
+                    "case": case,
+                }
+            )
+        )
+        async with _observer(case, tmp_path) as observer:
+            with _mock_model(tmp_path, agent, receipt_seen, second_request, release_final) as (
+                requests,
+                errors,
+                guard,
+            ):
+                env.update(
+                    OPENROUTER_API_KEY="offline-fixture-no-real-key", NODE_OPTIONS=f"--require={guard}"
+                )
+                monkeypatch.setattr(backend.os, "environ", env)
+                args = [
+                    "--offline",
+                    "--no-extensions",
+                    "--no-skills",
+                    "--no-prompt-templates",
+                    "--no-themes",
+                    "--no-context-files",
+                    "--no-builtin-tools",
+                    "--provider",
+                    "openrouter",
+                    "--model",
+                    "z-ai/glm-5.3-flash",
+                    "--thinking",
+                    "off",
+                    "-e",
+                    str(PACKAGE),
+                ]
+                owner = CommsAgent(
+                    wire(tmp_path / "wire"),
+                    agent_bin=binary,
+                    agent_args=args,
+                    runtime_enabled=True,
+                    auto_wake=False,
+                )
+    
+                class Audit:
+                    async def session_update(self, session_id, update):
+                        row = {
+                            "sessionId": session_id,
+                            "update": update.model_dump(by_alias=True, exclude_none=True),
+                        }
+                        updates.append(row)
+                        if "mcpClient" in row["update"].get("_meta", {}).get("agentComms", {}):
+                            receipt_seen.set()
+    
+                class Attachment:
+                    async def session_update(self, session_id, update):
+                        nonlocal attachment_turn
+                        if observer:
+                            await observer.session_update(session_id=session_id, update=update)
+                        meta = update.get("_meta", {}).get("agentComms", {})
+                        if meta.get("turnStarted") and meta.get("turnId"):
+                            attachment_turn = meta["turnId"]
+                        if (
+                            meta.get("turnSettled")
+                            and attachment_turn
+                            and meta.get("turnId") == attachment_turn
+                        ):
+                            # Ignore the initial idle replay during subscribe. Only
+                            # the actual prompt's UI drain permits attachment close.
+                            attachment_settled.set()
+    
+                    async def request_permission(self, **kwargs):
+                        permissions.append(kwargs)
+                        entered.set()
+                        answer = (
+                            await observer.request_permission(**kwargs)
+                            if observer
+                            else {"outcome": {"outcome": "selected", "optionId": "allow-once"}}
+                        )
+                        await release.wait()
+                        return answer
+    
+                owner.on_connect(Audit())  # Passive evidence sink, never a permission controller.
+                try:
+>                   await owner.new_session(cwd=str(project), mcp_servers=[])
+
+.artifacts/test_native_permission_acceptance.py:395: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+.venv/lib/python3.14/site-packages/agent_comms/acp.py:192: in new_session
+    return await self.sessions.new_session(cwd, mcp_servers, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.14/site-packages/agent_comms/session_lifecycle.py:159: in new_session
+    self.effects._private_nk_marker()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <agent_comms.acp.CommsAgent object at 0x7f779fe87a10>
+
+    def _private_nk_marker(self) -> str:
+        """Require the configured, certified root before any selected request."""
+        from .private_bus_checkpoint import verify_private_bus_checkpoint_unlocked
+    
+        if self._private_nk_wire_root_id is None or self._private_nk_native_package is None:
+>           raise PublicationActivationBlocked(
+                "private N/K ACP session requires explicit matching root and package"
+            )
+E           agent_comms.coordination_errors.PublicationActivationBlocked: private N/K ACP session requires explicit matching root and package
+
+.venv/lib/python3.14/site-packages/agent_comms/acp.py:492: PublicationActivationBlocked
+=========================== short test summary info ============================
+FAILED ../../../../dev::test_real_pi_mcp_acp_link[allow] - agent_comms.coordi...
+1 failed, 3 deselected in 5.42s
+
+
+ATTEMPT failed-obsolete-native-harness.txt
+
+==================================== ERRORS ====================================
+________________________ ERROR collecting test session _________________________
+ImportError while importing test module '/home/ts/wt/toad-permission-presentation-sol-20260928/.artifacts/test_native_permission_acceptance.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+../../.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.artifacts/test_native_permission_acceptance.py:32: in <module>
+    from agent_comms.operations import wire
+E   ModuleNotFoundError: No module named 'agent_comms.operations'
+=============================== warnings summary ===============================
+../toad-t4-conversation-sol-20260928/.venv/lib/python3.14/site-packages/_pytest/cacheprovider.py:469
+  /home/ts/wt/toad-t4-conversation-sol-20260928/.venv/lib/python3.14/site-packages/_pytest/cacheprovider.py:469: PytestCacheWarning: could not create cache path /dev/.pytest_cache/v/cache/nodeids: [Errno 13] Permission denied: '/dev/pytest-cache-files-4f396cu8'
+    config.cache.set("cache/nodeids", sorted(self.cached_nodeids))
+
+../toad-t4-conversation-sol-20260928/.venv/lib/python3.14/site-packages/_pytest/cacheprovider.py:423
+  /home/ts/wt/toad-t4-conversation-sol-20260928/.venv/lib/python3.14/site-packages/_pytest/cacheprovider.py:423: PytestCacheWarning: could not create cache path /dev/.pytest_cache/v/cache/lastfailed: [Errno 13] Permission denied: '/dev/pytest-cache-files-rigihfga'
+    config.cache.set("cache/lastfailed", self.lastfailed)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+ERROR ../../../../dev
+!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+2 warnings, 1 error in 1.29s
+
+
+ATTEMPT failed-stale-native-observer-view.txt
+PASS physical installed Pi + MCP + actual RuntimeServer/proxy + mounted permission options painted, surface retirement/rebinding and granted execution; loopback only
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-permission-presentation-sol-20260928/.artifacts/run_native_permission.py", line 57, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-permission-presentation-sol-20260928/.artifacts/run_native_permission.py", line 19, in main
+    async with open_observer('allow',root) as observer:
+               ~~~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 221, in __aexit__
+    await anext(self.gen)
+  File "/home/ts/wt/toad-permission-presentation-sol-20260928/tests/native_permission_ui.py", line 140, in open_observer
+    assert not notes(view) and view._mcp_live_turn is None
+               ~~~~~^^^^^^
+  File "/home/ts/wt/toad-permission-presentation-sol-20260928/tests/mcp_observation_fixture.py", line 20, in notes
+    return [str(widget.render()) for widget in view.contents.children
+                                               ^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-agent-controller-sol-20260928/.venv/lib/python3.14/site-packages/textual/getters.py", line 149, in __get__
+    query_node = obj.query_one(self.selector, self.expect_type)
+  File "/home/ts/wt/toad-agent-controller-sol-20260928/.venv/lib/python3.14/site-packages/textual/dom.py", line 1595, in query_one
+    raise NoMatches(f"No nodes match {query_selector!r} on {base_node!r}")
+textual.css.query.NoMatches: No nodes match 'Contents' on Conversation()
+
+
+ATTEMPT failed-stopped-source.txt
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-permission-presentation-sol-20260928/tests/permission_lifetime_pilot.py", line 83, in main
+    await pilot.pause(.05)
+  File "/home/ts/wt/toad-agent-controller-sol-20260928/.venv/lib/python3.14/site-packages/textual/pilot.py", line 542, in pause
+    await self._wait_for_screen()
+  File "/home/ts/wt/toad-agent-controller-sol-20260928/.venv/lib/python3.14/site-packages/textual/pilot.py", line 513, in _wait_for_screen
+    _, pending = await asyncio.wait(
+                 ^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py", line 432, in wait
+    return await _wait(fs, timeout, return_when, loop)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py", line 521, in _wait
+    await waiter
+asyncio.exceptions.CancelledError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-permission-presentation-sol-20260928/tests/permission_lifetime_pilot.py", line 100, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-permission-presentation-sol-20260928/tests/permission_lifetime_pilot.py", line 81, in main
+    async with asyncio.timeout(5):
+               ~~~~~~~~~~~~~~~^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/timeouts.py", line 114, in __aexit__
+    raise TimeoutError from exc_val
+TimeoutError
+
+Initial raw decode ratchet:
+{"base_revision": "86ba0e2f5970afd597a6d35ae71f2d3eb3fbcbd3", "head_revision": "f68007ee10d13f0ccfe4088a084c12dac98d65c6", "positive_deltas": {"ClassSize:src/toad/acp/permission_controller.py::ToolPermissionRequest": 1, "StringSubscript": 6}}
+Final request-class import placement corrected +1 per-class delta before ready handoff.
