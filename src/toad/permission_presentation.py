@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
+from acp.schema import Diff
 from functools import partial
 from agent_comms.declared_family import DeclaredFamily
 from toad import messages
@@ -45,10 +46,10 @@ class DiffPermissionPresentation(PermissionPresentation):
 
     @classmethod
     def admit(cls, kind, title, content):
-        if kind != "edit" and not all(item["type"] == "diff" for item in content):
+        if kind != "edit" and not all(item.get("type") == "diff" for item in content):
             return None
-        diffs = [(item["path"], item["path"], item["oldText"], item["newText"])
-                 for item in content if item["type"] == "diff"]
+        records = [Diff.model_validate(item) for item in content if item.get("type") == "diff"]
+        diffs = [(item.path, item.path, item.old_text, item.new_text) for item in records]
         return cls(title, diffs) if diffs else None
 
     async def show(self, view, request):
