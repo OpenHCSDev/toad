@@ -29,6 +29,87 @@ from toad.widgets.comms_sidebar import ChannelGroup, CommsRow
 from toad.widgets.message_notifications import MessageNotifications
 from toad.widgets.prepared_markdown import PreparedConversationMarkdown
 from toad.widgets.session_tabs import SessionLabel
+from toad.widgets.agent_response import AgentResponse
+from toad.widgets.transcript_history import TranscriptFragmentView
+from toad.widgets.message_divider import MessageDivider
+
+
+# 2,800 characters / forty characters per SSE delta = 70 native chunks. Only
+# the first gamma reply is long, keeping the rest of the continuous journey small.
+_reply_body = "NATIVE_RESPONSE_3\n\n" + "\n\n".join(
+    f"Streamed paragraph {row}: the native owner delivers one continuous answer. "
+    "Queued UI events must retain the response identity captured at ACP ingress."
+    for row in range(20)
+)
+_reply_end = "\n\nSTREAM_REPLY_END_3\n"
+STREAM_REPLY = _reply_body[:2800 - len(_reply_end)] + _reply_end
+assert len(STREAM_REPLY) == 2800
+
+
+def streamed_reply(request, number):
+    content = STREAM_REPLY if number == 3 else f"NATIVE_RESPONSE_{number}"
+    if any("IGNORE" in str(message.get("content")) and "FULL" in str(message.get("content"))
+           for message in request["messages"]):
+        content = '{"decision":"IGNORE"}'
+    return {"role": "assistant", "content": content}, "stop"
+
+
+class StreamJourneyApp(InstalledApp):
+    """Observe every composited frame, including transient and saved headers."""
+    stream_view = None
+
+    def observe_stream(self, view):
+        self.stream_view = view
+        self.stream_frames = []
+        self.stream_live_blocks = set()
+        self.stream_violations = []
+
+    def _display(self, screen, renderable):
+        super()._display(screen, renderable)
+        view = self.stream_view
+        if (view is None or renderable is None or self._batch_count
+                or screen is not self.screen or self.selected_session.conversation is not view):
+            return
+        viewport = view.window.scrollable_content_region
+        visible = screen._compositor.visible_widgets
+        blocks = [block for block in view.query(AgentResponse)
+                  if block in visible and block.region.overlaps(viewport)]
+        live = [block for block in blocks
+                if not isinstance(block.parent, TranscriptFragmentView)]
+        # Weak references preserve observations without retaining retired bodies.
+        self.stream_live_blocks.update(ref(block) for block in live)
+        headers = [header for block in blocks for header in block.query(MessageDivider)
+                   if header in visible and header.region.overlaps(viewport)]
+        frame = {
+            "frame": len(self.stream_frames), "headers": len(headers),
+            "live_response_identities": len(self.stream_live_blocks),
+            "response_lengths": [len(block.source) for block in blocks],
+            "busy": view.turns.owner.busy,
+        }
+        self.stream_frames.append(frame)
+        if len(headers) > 1 or len(self.stream_live_blocks) > 1:
+            self.stream_violations.append(frame)
+            if len(self.stream_violations) == 1:
+                evidence = Path(os.environ["L0A_EVIDENCE"])
+                (evidence / "first-duplicate-header.txt").write_text(conversation_paint(screen))
+                (evidence / "first-duplicate-header.svg").write_text(self.export_screenshot())
+
+    def require_continuous_stream(self):
+        evidence = Path(os.environ["L0A_EVIDENCE"])
+        (evidence / "stream-frames.json").write_text(json.dumps(self.stream_frames, indent=2))
+        assert not self.stream_violations, (
+            "One native reply created multiple painted Agent headers", self.stream_violations[:3]
+        )
+        assert self.stream_frames and max(frame["headers"] for frame in self.stream_frames) == 1
+        assert len(self.stream_live_blocks) == 1, "The journey never painted a live response"
+        print("EVERY_STREAM_FRAME_ONE_CONTINUOUS_RESPONSE", {
+            "characters": len(STREAM_REPLY), "sse_chunks": 70,
+            "frames": len(self.stream_frames), "live_response_identities": 1,
+            "max_visible_headers": 1,
+        }, flush=True)
+        self.stream_view = None
+from toad.widgets.side_bar import SideBar
+from toad.widgets.thread_comms import ThreadCommsSidebar
 
 
 class SavedStateSubscriber:
@@ -87,7 +168,7 @@ async def click_tab(app, pilot, session_id):
     tab = next(label for label in app.screen.query(SessionLabel) if label.id == session_id)
     tab.scroll_visible(animate=False, immediate=True)
     await pilot.pause()
-    assert await pilot.click(tab), f"Tab {session_id} was not physically clickable"
+    assert await pilot.click(tab, offset=(tab.size.width // 2, 0)), f"Tab {session_id} was not physically clickable"
     await until(pilot, lambda: app.selected_session.id == session_id)
 
 
@@ -115,12 +196,22 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
         raise
     assert len(requests) == 2, "Channel/tab navigation replayed an input"
     print("SAVED_CHANNEL_AGENT_RETURN_NO_REPLAY", flush=True)
-    await unopened_participant(app, pilot, comms, channel, entered, release, hold_next, requests)
+    gamma = await unopened_participant(app, pilot, comms, channel, entered, release, hold_next, requests)
+    sidebar = await wait_channel_roster(app, pilot, "#team")
+    row = next(row for row in sidebar.query(CommsRow) if row.target_name == "#team")
+    row.scroll_visible(animate=False, immediate=True)
+    await pilot.pause()
+    assert await pilot.click(row)
+    await until(pilot, lambda: app.selected_session is channel)
+    assert sum(isinstance(app.workspace_sessions.require(entry.mode), CommsScreen)
+               for entry in app.session_navigation.members) == 1
+    print("SAME_CHANNEL_FROM_SECOND_AGENT_REUSES_ONE_EXISTING_TAB", flush=True)
+    await click_tab(app, pilot, gamma.id)
     await clicked_reader_editor_return(app, pilot, first)
     await adaptive_reader_journey(app, pilot, requests)
     await fork_and_first_input(app, pilot, comms, first, entered, release, hold_next, requests)
     await channel_reply_feedback(app, pilot, comms, channel, first, entered, release,
-                                 hold_next, requests)
+                                 hold_next, requests, gamma)
 
 
 async def independent_source_publication(agent, comms):
@@ -190,9 +281,11 @@ async def unopened_participant(app, pilot, comms, channel, entered, release, hol
     assert await pilot.click(names, offset=(offset, 0)), "Participant link not physically clickable"
     await until(pilot, lambda: app.selected_session is gamma)
     print("CHANNEL_ACTIVE_PARTICIPANT_CLICK_SAME_NATIVE_TAB", flush=True)
+    app.observe_stream(gamma.conversation)
     release.set()
     try:
-        await until(pilot, lambda: "NATIVE_RESPONSE_3" in conversation_paint(app.screen))
+        await until(pilot, lambda: app.stream_violations
+                    or "STREAM_REPLY_END_3" in conversation_paint(app.screen))
     except TimeoutError:
         view = gamma.conversation
         print("PARTICIPANT_RETURN_READER", {
@@ -208,8 +301,13 @@ async def unopened_participant(app, pilot, comms, channel, entered, release, hol
         (evidence / "participant-return-painted.txt").write_text(conversation_paint(app.screen))
         (evidence / "participant-return.svg").write_text(app.export_screenshot())
         raise
+    if app.stream_violations:
+        app.require_continuous_stream()
     await until(pilot, lambda: comms.registry.require("gamma").executing is False)
+    await pilot.pause(.3)
+    app.require_continuous_stream()
     assert len(requests) == 3
+    return gamma
 
 
 @dataclass
@@ -413,9 +511,12 @@ async def fork_and_first_input(app, pilot, comms, first, entered, release, hold_
                 if item.action == ForkAction.declared_name)
     assert await pilot.click(fork)
     await until(pilot, lambda: isinstance(app.screen, ForkDialog))
-    entry = app.screen.query_one(Input)
+    entry = app.screen.query_one("#fork-name", Input)
     assert await pilot.click(entry)
-    entry.value = "journey-child JOURNEY_FORK_INPUT"
+    entry.value = "journey-child"
+    assert app.screen.query_one("#fork-tags", Input).value == "team"
+    app.screen.query_one("#fork-task", Input).value = "JOURNEY_FORK_INPUT"
+    app.screen.query_one("#fork-tags", Input).value = "refactor"
     entered.clear()
     release.clear()
     hold_next.set()
@@ -433,6 +534,7 @@ async def fork_and_first_input(app, pilot, comms, first, entered, release, hold_
     await until(pilot, lambda: len(requests) == before + 1)
     await until(pilot, lambda: comms.registry.require("journey-child").executing is False)
     child = comms.registry.require("journey-child")
+    assert child.tags == frozenset({"refactor"}), child.tags
     assert parent_path.read_bytes() == original
     native = Path(child.session_file).read_text()
     rows = [json.loads(line) for line in native.splitlines()]
@@ -448,11 +550,30 @@ async def fork_and_first_input(app, pilot, comms, first, entered, release, hold_
     assert len(requests) == before + 1, "Opening the fork replayed its first input"
     assert parent_path.read_bytes() == original
     print("FORK_FIRST_OPEN_SAVED_NATIVE_ANSWER_ACTUAL_PAINT_NO_REPLAY", flush=True)
+    right = child_view.query_one("#thread-sidebar", SideBar)
+    right.reveal()
+    await until(pilot, lambda: child_view.query_one_optional(ThreadCommsSidebar) is not None)
+    relationships = child_view.query_one(ThreadCommsSidebar)
+    await until(pilot, lambda: "parent" in relationships.groups
+                and any(row.target_name == "beta"
+                        for row in relationships.groups["parent"].rows.values()))
+    parent_row = next(row for row in relationships.groups["parent"].rows.values()
+                      if row.target_name == "beta")
+    parent_row.scroll_visible(animate=False, immediate=True)
+    await pilot.pause()
+    assert await pilot.click(parent_row), "Right-sidebar Parent row was not physically clickable"
+    await until(pilot, lambda: app.selected_session is first)
+    await until(pilot, lambda: "NATIVE_RESPONSE_2" in conversation_paint(app.screen))
+    assert await click_thread(app, pilot, "journey-child", "#any") is child_view
+    await until(pilot, lambda: f"NATIVE_RESPONSE_{before + 1}" in conversation_paint(app.screen))
+    assert len(requests) == before + 1 and parent_path.read_bytes() == original
+    print("RIGHT_PARENT_ROW_AND_CHANNEL_CHILD_ROW_PHYSICAL_NAVIGATION_NO_REPLAY", flush=True)
     await click_tab(app, pilot, first.id)
 
 
 async def channel_reply_feedback(app, pilot, comms, channel, first, entered, release,
-                                 hold_next, requests):
+                                 hold_next, requests, gamma):
+    from manual_live_turn_status import require_current_activity
     await click_tab(app, pilot, channel.id)
     chat = channel.query_one(CommsChatView)
     before = len(requests)
@@ -464,12 +585,21 @@ async def channel_reply_feedback(app, pilot, comms, channel, first, entered, rel
     participants = chat.query_one(ChannelParticipants)
     await until(pilot, lambda: "gamma" in participants.names.render().plain)
     assert comms.registry.require("gamma").executing
+    await click_tab(app, pilot, gamma.id)
+    await until(pilot, lambda: gamma.conversation.agent.current_turn.busy)
+    require_current_activity(gamma)
+    await click_tab(app, pilot, channel.id)
     await until(pilot, lambda: "Responding" in screen_paint(app))
     print("CHANNEL_NOTIFICATION_ACTUAL_NATIVE_WORKING_STATUS", flush=True)
     release.set()
     await until(pilot, lambda: f"NATIVE_RESPONSE_{before + 1}" in screen_paint(app))
     await until(pilot, lambda: any("Responded" in str(feedback.title)
                                  for feedback in chat.query(MessageNotifications)))
+    await click_tab(app, pilot, gamma.id)
+    await until(pilot, lambda: not gamma.conversation.agent.current_turn.busy)
+    require_current_activity(gamma)
+    assert not comms.registry.require("gamma").executing
+    await click_tab(app, pilot, channel.id)
     feedback = next(feedback for feedback in chat.query(MessageNotifications)
                     if "Responded" in str(feedback.title))
     title = feedback.query_one("CollapsibleTitle")
@@ -493,5 +623,6 @@ async def channel_reply_feedback(app, pilot, comms, channel, first, entered, rel
 
 if __name__ == "__main__":
     asyncio.run(native_fixture(
-        app_type=InstalledApp, prepare_state=prepare_saved_state, acceptance=acceptance,
+        app_type=StreamJourneyApp, prepare_state=prepare_saved_state, acceptance=acceptance,
+        provider_reply=streamed_reply, provider_chunk_characters=40,
     ))

@@ -65,13 +65,53 @@ class SnapshotPublication(TranscriptPublication):
                 self.window.anchor()
         with view.app.batch_update():
             await self.contents.mount(history)
-            await history.admit_retained_pages()
         if not self.current():
             if history.is_attached:
                 await history.remove()
             return
         view.query_one(SessionDetails)._refresh_summary()
         self.owner.painted(self.page.after, reader_revision=self.scroll_revision)
+
+
+class AssignedInboundPublication(TranscriptPublication):
+    """One sequence claim belongs to its source even while its body is unmounted."""
+
+    def __init__(self, owner, view, window, contents, notifications):
+        super().__init__(owner, view, window, contents)
+        self.notifications = notifications
+
+    async def publish(self) -> None:
+        from toad.widgets.committed_presentation import CommittedHistory
+        from toad.widgets.incoming_message import AssignedIncomingMessage, IncomingMessage
+        from toad.widgets.message_divider import MessageClock
+
+        wanted = frozenset(receipt.message.seq for receipt in self.notifications
+                           if receipt.message is not None and receipt.message.seq > 0)
+        histories = tuple(history for history in self.contents.children
+                          if isinstance(history, CommittedHistory))
+        if not histories and self.agent is not None and self.agent.transcript_ready:
+            # The initial source publication retries the canonical observation.
+            # Until it exists, recent assignment rows have no live chronology.
+            return
+        covered = frozenset(sequence for history in histories
+                            for sequence in history.covered_sequences(wanted))
+        if not self.current():
+            return
+        for receipt in reversed(self.notifications):
+            message = receipt.message
+            if message is None or message.seq <= 0:
+                continue
+            blocks = [block for block in self.contents.query(IncomingMessage)
+                      if block.sequence == message.seq]
+            if not blocks and message.seq not in covered:
+                block = AssignedIncomingMessage(
+                    message.sender, message.body, message.target,
+                    sequence=message.seq, clock=MessageClock.recorded(message.timestamp),
+                )
+                await self.owner.view.post(block)
+                blocks.append(block)
+            for block in blocks:
+                await block.show_handling(receipt.state, receipt.detail)
 
 
 class CheckpointPublication(TranscriptPublication):
@@ -218,6 +258,7 @@ class TranscriptPresentation:
         self.displayed_cursor: TranscriptCursor | None = None
         self.worker: Worker[None] | None = None
         self.reader_position: ReaderPosition | None = None
+        self._revealed_history: TranscriptHistory | None = None
 
     @property
     def view(self) -> Conversation | None:
@@ -233,6 +274,54 @@ class TranscriptPresentation:
             return False
         position.prepare_history(history)
         return True
+
+    async def reveal_retained(self, history: TranscriptHistory) -> None:
+        """Display the mounted reader while its native source remains fenced."""
+        from toad.widgets.conversation import ThreadLoading
+        from toad.widgets.session_details import SessionDetails
+
+        view = self.view
+        if view is None or not view.is_attached:
+            return
+        self._revealed_history = history
+        self.displayed_cursor = history.committed_cursor
+        self.reader_position = None
+        if (loading := view.query_one_optional(ThreadLoading)) is not None:
+            await loading.remove()
+        view.remove_class("-initial-loading")
+        view.query_one(SessionDetails)._refresh_summary()
+
+    async def refresh_revealed(self, agent) -> None:
+        """Validate the retained reader after its first completed display."""
+        from toad.transcript_state import ParkedSourceTranscript
+        from toad.widgets.transcript_history import TranscriptHistory
+
+        generation = self.generation
+        page = await agent.get_transcript_page()
+        view = self.view
+        if (view is None or view.agent is not agent or generation != self.generation
+                or not view.is_attached):
+            return
+        history = self._revealed_history
+        if history is None or not history.is_attached:
+            await self.snapshot(page)
+            return
+        latest = history.pages[-1].page
+        if (page.after.session_file == history.through.session_file
+                and page.after.offset >= history.through.offset
+                and (page.after.offset > history.through.offset or page.events == latest.events)):
+            for node in history.walk_children(with_self=True):
+                if (isinstance(node, TranscriptHistory)
+                        and isinstance(node._source_state, ParkedSourceTranscript)):
+                    node.resume_source()
+            self._revealed_history = None
+            await self.snapshot(page)
+        else:
+            self._revealed_history = None
+            await history.remove()
+            self.displayed_cursor = None
+            self.invalidate()
+            await self.publish(SnapshotPublication, page)
 
     async def publish(self, kind: type[TranscriptPublication], *args) -> None:
         from toad.widgets.conversation import Window, Contents
@@ -256,9 +345,9 @@ class TranscriptPresentation:
             frontiers.append(self.displayed_cursor)
         frontier = max((cursor for cursor in frontiers
                         if cursor.session_file == page.after.session_file),
-                       key=lambda cursor: cursor.offset, default=None)
+                       key=lambda cursor: (cursor.offset, cursor.wire_seq), default=None)
         if frontier is not None:
-            if frontier.offset < page.after.offset:
+            if not frontier.contains(page.after):
                 # The existing evidence/viewport policy advances retained content;
                 # a load response is not a reason to append its whole page twice.
                 self.require_checkpoint()
@@ -290,6 +379,7 @@ class TranscriptPresentation:
 
     def source_changed(self) -> None:
         self.invalidate()
+        self._revealed_history = None
         self.dirty = self.checkpoint_required = False
         self.displayed_cursor = None
         self.reader_position = None
@@ -323,8 +413,12 @@ class TranscriptPresentation:
             self.request()
 
     async def close(self) -> None:
-        self.invalidate()
         self._view = lambda: None
+        await self.suspend()
+
+    async def suspend(self) -> None:
+        """Revoke in-flight publications while retaining this source's mounted frontier."""
+        self.invalidate()
         worker, self.worker = self.worker, None
         if worker is not None:
             worker.cancel()
@@ -337,6 +431,7 @@ class TranscriptPresentation:
         from toad.widgets.conversation import Contents
         from toad.widgets.committed_presentation import (
             CommitEvidence,
+            CommitParticipant,
             protected_blocks,
             retirement_candidates,
         )
@@ -355,7 +450,10 @@ class TranscriptPresentation:
                 contents.children,
                 CommitEvidence(
                     frozenset(),
-                    frozenset(message.sequences),
+                    frozenset(message.sequences) | message.history.covered_sequences(
+                        frozenset(sequence for child in contents.children
+                                  if isinstance(child, CommitParticipant)
+                                  for sequence in child.commit_claim.required_sequences)),
                     message.history,
                 ),
             )

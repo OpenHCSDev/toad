@@ -1,0 +1,11 @@
+src/toad/acp/agent.py file_before (0, 0) file_after (0, 0)
+src/toad/acp/comms_updates.py file_before (0, 0) file_after (0, 0)
+src/toad/acp/messages.py file_before (0, 0) file_after (0, 0)
+src/toad/acp/session_updates.py file_before (0, 0) file_after (0, 0)
+src/toad/conversation_turn.py file_before (0, 0) file_after (0, 0)
+src/toad/live_output.py file_before (0, 0) file_after (0, 0)
+src/toad/widgets/conversation.py file_before (3, 0) file_after (3, 0)
+src/toad/widgets/prompt.py file_before (0, 0) file_after (0, 0)
+EXTERNAL_TAXONOMY: unchanged ACP/SDK decoding remains at SessionNotificationOwner boundary; no added literal/type cases.
+PER_FUNCTION_INCREASES []
+Existing unchanged dispatch sites in Conversation: check_action (Textual action hook); agent_turn_over (ACP stopReason taxonomy); on_acp_tool_call_update (ACP tool status taxonomy). All are external taxonomies. This checkpoint adds no alternatives or cases to them.

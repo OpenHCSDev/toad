@@ -91,7 +91,7 @@ class CommittedHistory(SnapshotPresentation):
 
     def accepts_commit(self, cursor: TranscriptCursor) -> bool:
         previous = self.committed_cursor
-        return previous.session_file == cursor.session_file and previous.offset <= cursor.offset
+        return cursor.contains(previous)
 
     async def advance_committed(self, through: TranscriptCursor, is_current: Callable[[], bool]) -> bool:
         raise NotImplementedError
@@ -104,6 +104,7 @@ class CommittedHistory(SnapshotPresentation):
 
     def covered_sequences(self, sequences: frozenset[int]) -> frozenset[int]:
         return frozenset(sequence for sequence in sequences if self.covers_incoming(sequence))
+
 
 
 def retirement_candidates(widgets: Iterable[Widget], evidence: CommitEvidence) -> list[Widget]:
@@ -190,7 +191,13 @@ class FollowTailCheckpoint(CheckpointPlan):
 
     def finish(self, view, cursor):
         view.transcript.painted(cursor)
-        view.call_after_refresh(view.window.anchor)
+        view.call_after_refresh(self.restore_reader, view.window)
+
+    def restore_reader(self, window):
+        # The publication's captured intent owns its deferred layout effect as
+        # well. A later scroll or source return cannot inherit an older anchor.
+        if self.current(window):
+            window.anchor()
 
     @asynccontextmanager
     async def publication(self, view, prepared):
@@ -226,19 +233,15 @@ class RetainViewportCheckpoint(CheckpointPlan):
                        for widget in candidates)
 
     async def prepare(self, view, history, page, captured, is_current):
-        from toad.transcript_preparation import CommittedInterval, incoming_sequences
+        from toad.transcript_preparation import incoming_sequences
 
         if (history is None or not history.accepts_commit(page.after)
                 or not history.checkpoint_available):
             return None
         required = required_sequences(captured)
         known = incoming_sequences(page.events) | history.covered_sequences(required)
-        missing = required - known
-        covered = await CommittedInterval(history.committed_cursor, page.after).coverage(
-            view.agent.get_transcript_page, missing, view.app.preparation, is_current,
-        )
-        if covered is None or not history.checkpoint_available:
-            return None
+        covered = frozenset(sequence for sequence in required
+                            if page.after.covers_incoming(sequence))
         return PreparedCommit(history, None, known | covered)
 
     def commit(self, prepared, cursor):

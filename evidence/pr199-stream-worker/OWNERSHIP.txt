@@ -1,0 +1,8 @@
+PR199 stream completion worker owns transferred fix/queue-loading-feedback-20260929 worktree.
+Parent owns global combined activation and existing .venv; never modify it.
+Worker environment: /home/ts/wt/toad-agent-tab-state-latency-20260929/.venv-stream-worker (installed noneditable Core411 + Toad205 wheels after final checkpoint; original stream proof used Core405 1f5b).
+Read-only baseline worktree: /home/ts/wt/toad-pr199-stream-baseline-20260929 at 26aff491 (PR198).
+Disposable wheels: /home/ts/.cache/agent-scratch/pr199-stream-worker; remove at completion.
+Disposable fixture stages: /home/ts/wt/toad-agent-tab-state-latency-20260929/.stream-worker-stages; fixture cleans stages and private wires on exit.
+Persistent evidence: evidence/pr199-stream-worker; retain bounded frame evidence and run logs.
+Resource guard: swap 11.9GiB, RAM 11GiB; serial native journeys only, no helpers.

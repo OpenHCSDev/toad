@@ -1,0 +1,44 @@
+                                                                                                                                                                
+  ☰     <──    ──>   ✓ beta ×                                                                                                                                  
+                      ━━━━━━                                                                                                                                    
+▼ Channels                                           Name ▾    │                                                                                                
++ New Session                                                  │                                                                                                
+▾ #any                                       Date created ▾    │                                                                                                
+  ✓ beta                                                       │                                                                                                
+    Ready                                                      │                                                                                                
+▸ #none                                      Date created ▾    │                                                                                                
+▸ #all                                       Date created ▾    │                                                                                                
+▸ #team                                      Date created ▾    │                                                                                                
+                                                               │                                                                                                
+                                                               │                                                                                                
+                                                               │                                                                                                
+                                                               │                                                                                                
+                                                               │                                                                                                
+                                                               │                                                                                                
+                                                               │                                                                                                
+                                                               │                                                                                                
+                                                               │                                                                                                
+                                                               │                                                                                                
+                                                               │                                                                                                
+                                                             < │                                                                                              < 
+                                                               │                                                                                                
+                                                               │▌─────────────────────────────────── User · 17:37:31 ────────────────────────────────────       
+                                                               │▌▊❯ UNSENT_OS_FAILURE_FIXTURE                                                                   
+                                                               │▌                                                                                               
+                                                               │▌┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓      
+                                                               │▌┃Request failed — agent launch failed: [Errno 13] Permission denied:                    ┃      
+                                                               │▌┃'/home/ts/wt/toad-agent-tab-state-latency-20260929/.stream-worker-stages/l0a-native-ar ┃      
+                                                               │▌┃c244i4/project'                                                                        ┃      
+                                                               │▌┃Not sent — input not retried                                                           ┃      
+                                                               │▌┃Inspect the input delivery status before deciding whether to send again.               ┃      
+                                                               │▌┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛      
+                                                               │▌Open ACP log                                                                                   
+                                                               │Request failed; draft restored: agent launch failed: [Errno 13] Permission denied: '/home/ts…   
+                                                               │                                                                                                
+                                                               │ ▶ Session details · Ready · Saved history available · 1 notices                                
+                                                               │                                                                                                
+                                                               │▊▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▎   
+                                                               │▊ ❯ UNSENT_OS_FAILURE_FIXTURE                                                               ▎   
+40% ───────────────────────────────────────●────────────────   │▊▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▎   
+  ──>   Float                                                  │  selected-offline/fixture · off  … Context unavailable · Native owner has not reported cont    
+⏎ Send ⇧+⏎ Line ^c Interrupt ^g IRC view ^s Channels                                                                                                ▏^p palette 

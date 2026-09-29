@@ -194,6 +194,9 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
             await sidebar.retire_presentation()
         await self.presentation.retire(self)
 
+    def retained_native_presentations(self):
+        return ((self, self.presentation),) if self.presentation.widget is not None else ()
+
     def watch_title(self, title: str) -> None:
         self.app.terminal_attention.update()
 
@@ -329,9 +332,10 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
               title: str | None = None, root: str | None = None) -> "MainScreen":
         """Create a peer of this native source through its actual declaration."""
         app = self.app
-        peer = MainScreen(project or self.project_path, self._agent, agent_session_id=session_id,
-                          agent_session_title=title).data_bind(column=type(app).column,
-                          column_width=type(app).column_width, scrollbar=type(app).scrollbar)
+        with app._context():
+            peer = MainScreen(project or self.project_path, self._agent, agent_session_id=session_id,
+                              agent_session_title=title).data_bind(column=type(app).column,
+                              column_width=type(app).column_width, scrollbar=type(app).scrollbar)
         peer.initial_coordination_root = root
         return peer
 

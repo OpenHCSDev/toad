@@ -275,10 +275,12 @@ class Agent(AgentBase):
         self.controller.coordination = value
 
     def _receive_comms_response(
-        self, response, cursor_token: int, queue_token: int
+        self, response, cursor_token: int, queue_token: int, turn_token: int | None = None,
+        *, consumer_class=None,
     ) -> None:
-        consumer = self.comms_consumer_class(
-            self, self.session_id, cursor_token=cursor_token, queue_token=queue_token
+        consumer = (consumer_class or self.comms_consumer_class)(
+            self, self.session_id, cursor_token=cursor_token, queue_token=queue_token,
+            turn_token=turn_token,
         )
         for fact in decode_updates(response.get("_meta")):
             consumer.dispatch_sync(fact)
@@ -325,12 +327,17 @@ class Agent(AgentBase):
         return (await self.get_goal_snapshot())[0]
 
     async def get_goal_snapshot(self) -> tuple[Goal | None, GoalExecution | None]:
+        from .comms_updates import OwnerSnapshotConsumer
         if (self.coordination.wire_root if self.coordination else None) is None or (
             self.coordination.thread.name if self.coordination else None
         ) is None:
             return None, None
         async with asyncio.timeout(3):
+            turn_token = self._turn_lifecycle_sequence
             result = await self.controller.request_owner("goal_snapshot")
+        self._receive_comms_response(result, self._private_cursor_sequence,
+                                     self._queue_sequence, turn_token,
+                                     consumer_class=OwnerSnapshotConsumer)
         raw_goal, raw_execution = result["goal"], result["goalExecution"]
         goal = FieldCodec.decode(Goal, raw_goal) if raw_goal is not None else None
         execution = (

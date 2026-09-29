@@ -20,7 +20,7 @@ from agent_comms.acp_extension import (
     PromptRequest, QueuePromptRequest, ClearQueueRequest, SendNowRequest,
     CompactRequest, InputFailedUpdate, decode_updates, encode_request,
 )
-from agent_comms.acp_failure import ACPFailure, BackendDeliveryFailure
+from agent_comms.acp_failure import ACPFailure, BackendDeliveryFailure, PromptFailureReceipt
 
 
 @dataclass(frozen=True)
@@ -248,9 +248,10 @@ class AgentController(OperationalTerminalOwner):
         except jsonrpc.APIError as error:
             if authority.retired:
                 return None
-            failure = ACPFailure.from_error(error.code, error.message, error.data)
+            receipt = PromptFailureReceipt.from_error(error.code, error.message, error.data)
+            failure = receipt.failure
             self._prompt_failed(command, authority, queue_scope, failure,
-                failure.title, f'{failure.detail}\n{failure.input_disposition}\n{failure.action}')
+                failure.title, failure.feedback, published=receipt.notification_published)
             return None
         except jsonrpc.JSONRPCError as error:
             if authority.retired:
@@ -264,13 +265,14 @@ class AgentController(OperationalTerminalOwner):
         assert result is not None
         return result.get('stopReason')
 
-    def _prompt_failed(self, command, authority, queue_scope, failure, title, detail):
+    def _prompt_failed(self, command, authority, queue_scope, failure, title, detail, *, published=False):
         agent = self.agent
         user_text = command.draft_text if command is not None else None
         if user_text:
             agent.post_message(messages.CommsUpdated(InputFailedUpdate(user_text, failure),
                 recover_draft=True, agent=agent, session_id=authority.session_id, queue_scope=queue_scope))
-        agent.post_message(LogAgentFail(title, detail, log_path=agent.presentation.log_path))
+        if not published:
+            agent.post_message(LogAgentFail(title, detail, log_path=agent.presentation.log_path))
 
     async def clear_queue(self):
         await self.submit_blocks([{'type': 'text', 'text': ' '}], ClearQueueRequest())

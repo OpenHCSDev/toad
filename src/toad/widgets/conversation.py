@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from toad.conversation_submission import ConversationSubmissions
-from toad.live_output import LiveOutput, ResponseStream, ThoughtStream
+from toad.live_output import LiveOutput, ThoughtStream
 from toad.transcript_publication import TranscriptPresentation
 from toad.goal_interaction import GoalSession
 from toad.widgets.message_filter import OtherCategory
@@ -27,6 +27,7 @@ from agent_comms.acp_extension import (
     GoalChangedUpdate,
     InputFailedUpdate,
     InputStartedUpdate,
+    PromptCancelledUpdate,
     McpClientReceiptUpdate,
     PendingQueueProjection,
     QueueProjection,
@@ -600,34 +601,6 @@ class ConversationSessionBinding(containers.Vertical):
         self.prompt.ask_queue.clear()
         self._focusable_terminals.clear()
 
-    def fragment_presentation_identity(self, interval, fragment):
-        """Bind immutable rendering to this source and its filesystem revision."""
-        from toad.widgets.transcript_history import FragmentPresentationIdentity
-        watcher = self._directory_watcher
-        return FragmentPresentationIdentity(
-            self.agent, interval, fragment, str(self.project_path), watcher,
-            watcher.observed_revision if watcher is not None else -1,
-        )
-
-
-    async def bind_native_session(self, screen) -> None:
-        """Reset values from their declarations, then bind the existing source config."""
-        for name, declaration in ConversationSessionBinding._reactives.items():
-            if name in ConversationSessionBinding.__dict__:
-                self.set_reactive(declaration, declaration._default_value(self))
-        self._initialize_session(screen.project_path, screen._agent,
-                                 screen._agent_session_id, screen._session_pk,
-                                 screen._agent_session_title, screen._initial_prompt)
-        await self.contents.mount(*ThreadLoading.initial_contents(self._agent_data))
-        # Refresh cwd-bound editor projections, without replaying semantic
-        # history-navigation watchers against the restored document.
-        self.mutate_reactive(ConversationSessionBinding.project_path)
-        self.mutate_reactive(ConversationSessionBinding.working_directory)
-        self.column = screen.column
-        self.prompt.slash_commands = CommandCatalog(
-            self.agent_slash_commands, self.command_target_context()).commands
-        self.window.anchor()
-
     async def present_retained_native_session(self) -> None:
         """Bring a returning native source into the atomic first frame."""
         agent = self.agent
@@ -962,7 +935,7 @@ class Conversation(ConversationSessionBinding):
                 ),
             )
             yield self.make_throbber()
-            yield GoalBar().data_bind(goal_display=Conversation.goal_display, execution=Conversation.goal_execution)
+            yield GoalBar(self)
             yield Prompt(turns=self.turns).data_bind(
                 project_path=Conversation.project_path,
                 working_directory=Conversation.working_directory,
@@ -1161,27 +1134,9 @@ class Conversation(ConversationSessionBinding):
             )
 
     async def _show_assigned_inbound(self, notifications) -> None:
-        """Project assigned wire inputs into the chat that owns this agent."""
-        if not self.contents.is_attached:
-            return
-        from toad.widgets.incoming_message import AssignedIncomingMessage, IncomingMessage
-        from toad.widgets.message_divider import MessageClock
+        from toad.transcript_publication import AssignedInboundPublication
 
-        shown = {block.sequence: block for block in self.contents.query(IncomingMessage)
-                 if block.sequence is not None}
-        for receipt in reversed(notifications):
-            message = receipt.message
-            if message is None or message.seq <= 0:
-                continue
-            block = shown.get(message.seq)
-            if block is None:
-                block = AssignedIncomingMessage(
-                    message.sender, message.body, message.target,
-                    sequence=message.seq, clock=MessageClock.recorded(message.timestamp),
-                )
-                await self.post(block)
-                shown[message.seq] = block
-            await block.show_handling(receipt.state, receipt.detail)
+        await self.transcript.publish(AssignedInboundPublication, notifications)
 
     @on(messages.SessionUpdate)
     def preserve_observed_activity(self, event: messages.SessionUpdate) -> None:
@@ -1641,20 +1596,15 @@ class Conversation(ConversationSessionBinding):
 
     @on(acp_messages.Update)
     async def on_acp_agent_message(self, message: acp_messages.Update):
-        from toad.widgets.agent_response import AgentResponse
-
         message.stop()
-        if not self.turns.owner.busy:
-            # Owner notices (including manual compaction) are complete messages,
-            # not a live response waiting for a future turn-settled event.
-            await self.post(AgentResponse(message.text, delivery=ResponseDelivery.from_route(message.route)))
+        if message.agent is not self.agent:
             return
         if self.turns.owner.busy:
             self.turns.describe("Writing response…")
             self.post_message(
                 messages.SessionUpdate(state="busy", summary="Writing response")
             )
-        await self.output.append(ResponseStream(ResponseDelivery.from_route(message.route)), message.text)
+        await self.output.append(message.stream, message.text)
 
     async def on_turn_started(self, message: acp_messages.CommsUpdated) -> None:
         if not self.turns.start(message):
@@ -1734,6 +1684,9 @@ class Conversation(ConversationSessionBinding):
     async def on_transcript_history_covered(self, message) -> None:
         message.stop()
         await self.transcript.covered(message)
+        observed = self.query_one_optional(ObservedThreadActivity)
+        if observed is not None and observed.presentation is not None:
+            await self._show_assigned_inbound(observed.presentation.notifications)
 
     @on(acp_messages.Thinking)
     async def on_acp_agent_thinking(self, message: acp_messages.Thinking):
@@ -2193,7 +2146,14 @@ class Conversation(ConversationSessionBinding):
             self._require_check_prune = False
             low_mark = self.app.settings.ui.prune_low_mark
             high_mark = low_mark + self.app.settings.ui.prune_excess
-            await self.prune_window(low_mark, high_mark)
+            if self.agent is not None and self.agent.transcript_ready:
+                # Height pressure is not source evidence. Dropping the source
+                # pager or an uncovered wire claim lets a later observation
+                # recreate the same record as a new tail arrival.
+                if self.contents.virtual_size.height > high_mark:
+                    self.transcript.require_checkpoint()
+            else:
+                await self.prune_window(low_mark, high_mark)
 
     async def prune_window(self, low_mark: int, high_mark: int) -> None:
         """Remove older children to keep within a certain range.
@@ -2358,11 +2318,7 @@ class Conversation(ConversationSessionBinding):
         self.prompt.focus()
 
     def jump_to_latest(self) -> None:
-        self.window.document_viewport.destination()
-        for history in self.query(TranscriptHistory):
-            if history.has_newer:
-                history.request_latest()
-        self.window.anchor()
+        self.window.jump_to_latest()
         self.transcript.request()
 
     async def action_select_block(self) -> None:
@@ -2507,6 +2463,12 @@ class ConversationCommsConsumer(MroDispatch):
     async def input_failed(self, update):
         self.conversation.on_input_failed(self.message)
 
+    @handles(PromptCancelledUpdate)
+    async def prompt_cancelled(self, update):
+        from toad.widgets.markdown_note import MarkdownNote
+        await self.conversation.post(MarkdownNote(
+            f"## Turn cancelled\n\n{update.feedback}", classes="-stop-reason"))
+
     @handles(TranscriptChangedUpdate)
     async def transcript_changed(self, update):
         self.conversation.transcript.changed(update.cursor)
@@ -2521,7 +2483,7 @@ class ConversationCommsConsumer(MroDispatch):
 
     @handles(GoalChangedUpdate)
     async def goal_changed(self, update: GoalChangedUpdate):
-        self.conversation.goal_observation.invalidate()
+        self.conversation.goal_observation.receive(self.message.agent, (update.goal, update.execution))
 
     @handles(CompactionChangedUpdate)
     async def compaction_changed(self, update: CompactionChangedUpdate):
@@ -2556,8 +2518,14 @@ class CompactionRenderer(MroDispatch):
     @handles(comms_events.CompactionSummaryProgress)
     async def selected_summary_progress(self, event):
         view = self.conversation
-        view.turns.describe("Compacting context… selected model is summarizing")
+        detail = "Compacting context… selected model is summarizing"
+        if event.source is not None and event.source.source_bytes_total > 0:
+            detail += f" · {event.source.source_bytes_done * 100 // event.source.source_bytes_total}% of input processed"
+        view.turns.describe(detail)
         view.post_message(messages.SessionUpdate(state="busy", summary=view.turns.owner.activity))
+        if event.text and event.source is not None and event.source.summary_phase != "map":
+            from toad.live_output import CompactionStream
+            await view.output.append(CompactionStream(event.operation_id), event.text)
 
     @handles(comms_events.CompactionProgress)
     async def progress(self, event):
@@ -2582,6 +2550,8 @@ class CompactionRenderer(MroDispatch):
         from toad.widgets.agent_response import AgentResponse
 
         view = self.conversation
+        from toad.live_output import CompactionStream
+        await view.output.finish(CompactionStream)
         active = view.agent is not None and view.agent.current_turn.busy
         if active:
             view.turns.describe("Thinking…")
