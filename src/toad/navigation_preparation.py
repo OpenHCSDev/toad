@@ -1,20 +1,25 @@
 """Bounded route discovery without accessing widgets from a reader thread."""
 
 from __future__ import annotations
+from toad.navigation_target import NavigationContext
 
 import asyncio
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Generic, TypeVar, cast
+from typing import TYPE_CHECKING, Generic, TypeVar, cast
 
 from agent_comms.threads import Thread
 from agent_comms.comms import wire
+from agent_comms.declared_family import DeclaredFamily
 
 from toad.session_tracker import CommsViewKey
 from toad.conversation_kind import ConversationKind
 
 ResultT = TypeVar("ResultT")
+
+if TYPE_CHECKING:
+    from toad.thread_navigation import ThreadNavigator, ThreadOrigin
 
 
 class NavigationRequest(ABC, Generic[ResultT]):
@@ -59,13 +64,46 @@ class OpenThread:
 
 
 @dataclass(frozen=True)
-class ThreadNavigation:
+class ThreadNavigation(DeclaredFamily, affix="ThreadNavigation"):
     root: str
     thread: Thread
-    active: bool
-    resumable: bool
     project: Path
-    existing: OpenThread | None
+
+    attachable = False
+
+    @abstractmethod
+    async def open(self, opening: ThreadOpening) -> str: ...
+
+
+class StoppedThreadNavigation(ThreadNavigation):
+    async def open(self, opening: ThreadOpening) -> str:
+        from toad.navigation_target import DirectTarget
+
+        app = opening.navigator.app
+        app.notify(f"@{self.thread.name} is stopped; choose Start thread to resume it",
+                   title="Thread view")
+        return await DirectTarget(self.thread.name).open(NavigationContext(app, opening.owner_mode, opening.request.project, opening.origin.source._comms_thread))
+
+
+class NativeThreadNavigation(ThreadNavigation):
+    attachable = True
+
+    async def open(self, opening: ThreadOpening) -> str:
+        return await opening.navigator.mount(self, opening)
+
+
+@dataclass(frozen=True)
+class ExistingThreadNavigation(NativeThreadNavigation):
+    existing: OpenThread
+
+    async def open(self, opening: ThreadOpening) -> str:
+        navigator = opening.navigator
+        source = navigator.app.session_navigation.source(self.existing.mode)
+        if source is not None:
+            if (source.coordination_root, source._comms_thread) == (self.existing.root, self.existing.name):
+                await navigator.app.select_session(self.existing.mode)
+        # An obsolete open-view identity must never manufacture a duplicate.
+        return navigator.app.selected_mode
 
 
 @dataclass(frozen=True)
@@ -80,31 +118,53 @@ class ThreadNavigationRequest(NavigationRequest[ThreadNavigation]):
         comms = wire(root)
         thread = comms.registry.require(self.target)
         active = comms.registry.status(thread.name).active
-        persisted = bool(thread.session_file and Path(thread.session_file).is_file())
         # An active registration authorizes native attachment while its first
         # owner is still launching. ACP admission serializes with that launch;
         # a missing PID/session at this instant is not a direct-message route.
-        attachable = active
         project = Path(thread.worktree)
         if not project.is_dir():
             project = self.project
         existing = next((view for view in self.open_threads
                          if view.root == str(root)
                          and comms.registry.canonical_name(view.name) == thread.name), None)
-        return ThreadNavigation(str(root), thread, active, persisted or attachable, project, existing)
+        if not active:
+            return StoppedThreadNavigation(str(root), thread, project)
+        if existing is not None:
+            return ExistingThreadNavigation(str(root), thread, project, existing)
+        return NativeThreadNavigation(str(root), thread, project)
 
 
-@dataclass(frozen=True)
 class ThreadOpening:
-    """One unfinished navigation request, not another displayed session."""
+    """The actual unfinished task owns completion and survives one waiter."""
 
-    owner_mode: str
-    request: ThreadNavigationRequest
-    completion: asyncio.Future[str]
+    def __init__(self, navigator: ThreadNavigator, owner_mode: str,
+                 request: ThreadNavigationRequest, origin: ThreadOrigin) -> None:
+        self.navigator, self.owner_mode = navigator, owner_mode
+        self.request, self.origin = request, origin
+        self.task = asyncio.create_task(self.run(), name="thread-navigation")
 
     @property
     def key(self) -> tuple[str, str, str]:
         return self.owner_mode, self.request.root, self.request.target
+
+    async def run(self) -> str:
+        from toad.comms_root import root_is_current
+
+        navigator = self.navigator
+        try:
+            prepared = await navigator.app.navigation_reader.read(self.request)
+            if prepared is None:
+                return navigator.app.selected_mode
+            if not self.origin.current(navigator, self.owner_mode):
+                return navigator.app.selected_mode
+            if not root_is_current(self.request.root):
+                return navigator.app.selected_mode
+            return await prepared.open(self)
+        except Exception as error:
+            navigator.app.notify(str(error), title="Thread unavailable", severity="error")
+            return navigator.app.selected_mode
+        finally:
+            navigator.finished(self)
 
 
 class NavigationReader:

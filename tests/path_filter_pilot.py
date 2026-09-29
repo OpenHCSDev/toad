@@ -52,7 +52,7 @@ async def main():
             await pilot.pause()
             assert not tree.path_filter.match(other / "new.py")
             assert tree.path_filter.match(admitted)
-            await app.new_session_screen(lambda: MainScreen(project))
+            await app.session_navigation.new(lambda: MainScreen(project))
             await pilot.pause()
             calls = []
             original = tree.reload

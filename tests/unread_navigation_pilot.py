@@ -1,4 +1,5 @@
 """A displayed channel page clears its own unread rows after every navigation."""
+from toad.navigation_target import NavigationContext
 
 from toad.navigation_target import DirectTarget, FeedTarget, channel_target
 
@@ -50,8 +51,7 @@ async def main() -> None:
             await pilot.pause()
             owner = app.selected_mode
             name = app.screen._comms_thread
-            mode = await app.open_comms_session(owner_mode=owner, project_path=root,
-                                               me=name, target=channel_target("#all"))
+            mode = await channel_target("#all").open(NavigationContext(app, owner, root, name))
             chat = app.screen.query_one(CommsChatView)
             await wait_for(pilot, lambda: chat._history_initialized)
             assert any(item.body == "first-pending" for item, _ in chat._history)
@@ -74,8 +74,7 @@ async def main() -> None:
                 return comms.views.viewer_snapshot(str(root)).unread.get("sender", 0)
 
             assert dm_unread() == 1
-            dm_mode = await app.open_comms_session(owner_mode=owner, project_path=root,
-                                                   me=viewer.name, target=DirectTarget("sender"))
+            dm_mode = await DirectTarget("sender").open(NavigationContext(app, owner, root, viewer.name))
             dm = app.screen.query_one(CommsChatView)
             await wait_for(pilot, lambda: any(
                 item.body == "dm-pending" for item, _ in dm._history
@@ -89,8 +88,7 @@ async def main() -> None:
                 return comms.views.viewer_snapshot(str(root)).channel_unread.get("#any", 0)
 
             assert aggregate_unread() >= 1
-            aggregate_mode = await app.open_comms_session(owner_mode=owner, project_path=root,
-                                                          me=viewer.name, target=FeedTarget())
+            aggregate_mode = await FeedTarget().open(NavigationContext(app, owner, root, viewer.name))
             aggregate = app.screen.query_one(CommsChatView)
             await wait_for(pilot, lambda: any(
                 item.body == "aggregate-pending" for item, _ in aggregate._history

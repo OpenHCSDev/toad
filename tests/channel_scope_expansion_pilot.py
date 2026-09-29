@@ -1,4 +1,5 @@
 """A mounted any-mode channel must reveal older messages entering its scope."""
+from toad.navigation_target import NavigationContext
 
 from toad.navigation_target import channel_target
 
@@ -42,13 +43,7 @@ async def main() -> None:
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(100, 30)) as pilot:
             await pilot.pause()
-            await app.open_comms_session(
-                owner_mode=app.selected_mode,
-                project_path=root,
-                me=viewer,
-                target=channel_target("#team"),
-
-            )
+            await channel_target("#team").open(NavigationContext(app, app.selected_mode, root, viewer))
             chat = app.screen.query_one(CommsChatView)
             await chat._refresh()
             await pilot.pause()

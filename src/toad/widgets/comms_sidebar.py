@@ -154,7 +154,7 @@ class ChannelGroup(SidebarGroup):
                 snapshot.all_people[name],
                 unread=person_target(snapshot.all_people[name]).unread(snapshot.wire),
                 pinned=name in view.pinned_members,
-                action_status=app.pending_thread_actions.get(name),
+                action_status=app.thread_actions.pending.get(name),
             ) for name in wanted)
             results = await app.preparation.submit(ThreadRowsWork(inputs)) if inputs else ()
             if (not self.is_attached or self._pruning or self._closing
@@ -649,7 +649,7 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
             if root != Path(self.screen.wire_root).resolve():
                 self.display = False
                 return
-        self._wire = (app.coordination_wire if root == app.coordination_wire.root
+        self._wire = (app.coordination_access.service if root == app.coordination_access.service.root
                       else wire(root))
         app.session_update_signal.subscribe(self, self._session_updated)
         app.session_selected_signal.subscribe(self, self._mode_changed)
@@ -844,7 +844,7 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
         session_threads: dict[str, str] = {}
         claimed_threads: set[str] = set()
         for details in app.session_tracker.ordered_sessions:
-            screen = app._main_session_screen(details.mode_name)
+            screen = app.session_navigation.source(details.mode_name)
             if screen is None:
                 continue
             if (
@@ -1023,7 +1023,7 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
                 return
             changed = snapshot != self._last_snapshot
             if (changed or self._rendered_expansion != self.navigation.expanded
-                    or self._rendered_actions != cast("ToadApp", self.app).pending_thread_actions):
+                    or self._rendered_actions != cast("ToadApp", self.app).thread_actions.pending):
                 # Publication is serialized by this sidebar, not a global paint
                 # mask held across worker delivery and descendant mount awaits.
                 await self._rebuild(snapshot)
@@ -1094,7 +1094,7 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
         self.apply_selection(force=True)
         self._mode_changed(cast("ToadApp", self.app).selected_mode, force=True)
         self._rendered_expansion = dict(self.navigation.expanded)
-        self._rendered_actions = dict(cast("ToadApp", self.app).pending_thread_actions)
+        self._rendered_actions = dict(cast("ToadApp", self.app).thread_actions.pending)
         self._sync_spinner(snapshot)
         # The ordinary widget-tree roster must retain the same full text as
         # the virtual roster. Only the content grows; the outer sidebar owns
@@ -1159,7 +1159,7 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
                 choices[choice_id] = TargetChoice(person_target(person), channel, mode)
                 badge = person_target(person).unread(snapshot.wire)
                 label = person.presentation.label
-                action_status = app.pending_thread_actions.get(member)
+                action_status = app.thread_actions.pending.get(member)
                 summary = " ".join((action_status or person.presentation.summary).splitlines())
                 pin = "* " if member in view.pinned_members else ""
                 text = f"  {badge.label + ' ' if badge.label else ''}{pin}{label}\n    {summary}"
@@ -1186,7 +1186,7 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
         self._busy_virtual_rows = busy_rows
         self._rendered_selection = selected
         self._rendered_expansion = dict(self.navigation.expanded)
-        self._rendered_actions = dict(app.pending_thread_actions)
+        self._rendered_actions = dict(app.thread_actions.pending)
         self._selection_applied = True
         self._sync_spinner(snapshot)
 

@@ -1,4 +1,5 @@
 """Mounted regression: a Comms Back target belongs to the opening owner."""
+from toad.navigation_target import NavigationContext
 
 from toad.navigation_target import channel_target
 
@@ -19,7 +20,7 @@ from toad.screens.main import MainScreen
 
 async def main() -> None:
     # A separate no-provider root, not the running user's coordination wire.
-    root = Path(tempfile.mkdtemp(prefix="toad-owner-nav-", dir="/dev/shm"))
+    root = Path(tempfile.mkdtemp(prefix="toad-owner-nav-"))
     os.environ.update(
         AGENT_COMMS_ROOT=str(root / "wire"),
         XDG_CONFIG_HOME=str(root / "config"),
@@ -34,30 +35,18 @@ async def main() -> None:
     async with app.run_test(size=(120, 44)) as pilot:
         await pilot.pause()
         first = app.selected_mode
-        view_a = await app.open_comms_session(
-            owner_mode=first,
-            project_path=root,
-            me="owner-a",
-            target=channel_target("#all"),
-
-        )
-        assert isinstance(app.screen, CommsScreen)
-        assert (app.screen.owner_mode, app.screen.me) == (first, "owner-a")
-        second = (await app.new_session_screen(lambda: MainScreen(root))).mode_name
+        view_a = await channel_target("#all").open(NavigationContext(app, first, root, "owner-a"))
+        assert isinstance(app.selected_session, CommsScreen)
+        assert (app.selected_session.owner_mode, app.selected_session.me) == (first, "owner-a")
+        second = (await app.session_navigation.new(lambda: MainScreen(root))).mode_name
         await pilot.pause()
-        view_b = await app.open_comms_session(
-            owner_mode=second,
-            project_path=root,
-            me="owner-b",
-            target=channel_target("#all"),
-
-        )
+        view_b = await channel_target("#all").open(NavigationContext(app, second, root, "owner-b"))
         assert (
             view_a != view_b
         ), "A second owner must not reuse the first owner's Back view"
-        assert isinstance(app.screen, CommsScreen)
-        assert (app.screen.owner_mode, app.screen.me) == (second, "owner-b")
-        await app.screen.action_back_to_agent()
+        assert isinstance(app.selected_session, CommsScreen)
+        assert (app.selected_session.owner_mode, app.selected_session.me) == (second, "owner-b")
+        await app.selected_session.action_back_to_agent()
         assert app.selected_mode == second
         app.tab_order.navigate(-1)
         await pilot.pause()
@@ -65,71 +54,47 @@ async def main() -> None:
         app.tab_order.navigate(+1)
         await pilot.pause()
         assert app.selected_mode == second
-        duplicate = await app.open_comms_session(
-            owner_mode=second,
-            project_path=root,
-            me="owner-b",
-            target=channel_target("#all"),
-
-        )
+        duplicate = await channel_target("#all").open(NavigationContext(app, second, root, "owner-b"))
         assert duplicate == view_b, (
             duplicate,
             view_b,
-            list(app._comms_modes.items()),
-            app.get_screen_stack(view_b)[0].owner_mode,
-            app.get_screen_stack(view_b)[0].kind,
+            app.open_tabs,
+            app.workspace_sessions.require(view_b).owner_mode,
+            app.workspace_sessions.require(view_b).kind,
         )
-        await app.screen.action_back_to_agent()
+        await app.selected_session.action_back_to_agent()
         assert app.selected_mode == second
-        await app.switch_mode(view_a)
-        assert isinstance(app.screen, CommsScreen)
-        await app.screen.action_back_to_agent()
+        await app.select_session(view_a)
+        assert isinstance(app.selected_session, CommsScreen)
+        await app.selected_session.action_back_to_agent()
         assert app.selected_mode == first
         comms.registry.rename("owner-a", "owner-renamed")
-        app.sync_coordination_identity(first, "owner-a", "owner-renamed")
-        assert app.get_screen_stack(view_a)[0].me == "owner-renamed"
-        assert app.get_screen_stack(view_b)[0].me == "owner-b"
+        app.session_navigation.sync_identity(first, "owner-a", "owner-renamed")
+        assert app.workspace_sessions.require(view_a).me == "owner-renamed"
+        assert app.workspace_sessions.require(view_b).me == "owner-b"
         assert (
-            await app.open_comms_session(
-                owner_mode=first,
-                project_path=root,
-                me="owner-a",
-                target=channel_target("#all"),
-
-            )
+            await channel_target("#all").open(NavigationContext(app, first, root, "owner-a"))
             == view_a
         ), "A late old alias must resolve to the existing renamed view"
         # Closing one owner must close only its own channel; no sibling orphan.
-        await app.close_session_mode(first)
-        assert view_a not in app._screen_stacks
-        assert view_b in app._screen_stacks
+        await app.session_navigation.close(first)
+        assert view_a not in app.workspace_sessions.factories
+        assert view_b in app.workspace_sessions.factories
         assert app.session_tracker.get_session(second) is not None
         active = app.selected_mode
         assert (
-            await app.open_comms_session(
-                owner_mode=first,
-                project_path=root,
-                me="owner-a",
-                target=channel_target("#all"),
-
-            )
+            await channel_target("#all").open(NavigationContext(app, first, root, "owner-a"))
             == active
         ), "A late action from a removed owner must not create a tab"
-        assert not any(key.owner_mode == first for key in app._comms_modes)
-        replacement = (await app.new_session_screen(lambda: MainScreen(root))).mode_name
+        assert view_a not in app.workspace_sessions.factories
+        replacement = (await app.session_navigation.new(lambda: MainScreen(root))).mode_name
         assert replacement not in (first, second)
-        view_reconnected = await app.open_comms_session(
-            owner_mode=replacement,
-            project_path=root,
-            me="owner-renamed",
-            target=channel_target("#all"),
-
-        )
+        view_reconnected = await channel_target("#all").open(NavigationContext(app, replacement, root, "owner-renamed"))
         assert view_reconnected not in (view_a, view_b)
-        await app.screen.action_back_to_agent()
+        await app.selected_session.action_back_to_agent()
         assert app.selected_mode == replacement
-        await app.switch_mode(view_b)
-        await app.screen.action_back_to_agent()
+        await app.select_session(view_b)
+        await app.selected_session.action_back_to_agent()
         assert app.selected_mode == second
         # A poll started just before teardown must not race the disappearing
         # Textual screen stack and turn this focused navigation test flaky.

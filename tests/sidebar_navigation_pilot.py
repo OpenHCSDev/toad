@@ -110,7 +110,7 @@ async def main(*, finish_before_layout=False):
         async with app.run_test(size=(100, 30)) as pilot:
             await pilot.pause()
             owner = app.selected_mode
-            worker = await app.new_session_screen(lambda: MainScreen(root, agent_session_id="worker"))
+            worker = await app.session_navigation.new(lambda: MainScreen(root, agent_session_id="worker"))
             await app.screen.on_coordination_update(coordination_update(str(comms.root), 'worker'))
             await app.switch_mode(owner)
             await pilot.pause()

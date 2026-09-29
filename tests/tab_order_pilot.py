@@ -1,4 +1,5 @@
 """Thread and channel tabs share one opening order across every screen."""
+from toad.navigation_target import NavigationContext
 
 from toad.navigation_target import channel_target
 
@@ -24,16 +25,15 @@ async def main():
         async with app.run_test(size=(140, 32)) as pilot:
             await pilot.pause()
             first = app.selected_mode
-            channel = await app.open_comms_session(owner_mode=first, project_path=root,
-                me="owner", target=channel_target("#all"))
-            second = (await app.new_session_screen(app.get_main_screen)).mode_name
+            channel = await channel_target("#all").open(NavigationContext(app, first, root, "owner"))
+            second = (await app.session_navigation.new(app.get_main_screen)).mode_name
             expected = [first, channel, second]
             for mode in expected * 2:
                 await app.switch_mode(mode)
                 await pilot.pause()
                 assert [tab.mode_name for tab in app.open_tabs] == expected
                 assert [label.id for label in app.screen.query_one(SessionsTabs).query(SessionLabel)] == expected
-            await app.close_session_mode(channel)
+            await app.session_navigation.close(channel)
             expected.remove(channel)
             for mode in expected:
                 await app.switch_mode(mode)

@@ -99,7 +99,7 @@ async def main():
                     patch.object(type(comms.views), "viewer_snapshot", slow_read),
                 ):
                     mode = await asyncio.wait_for(
-                        app.open_thread_session(
+                        app.thread_navigation.open(
                             owner_mode=source, project_path=root, target="slow-thread"
                         ),
                         2,

@@ -23,7 +23,7 @@ async def main():
             await pilot.pause()
             base = app.selected_mode
             for index in range(4):
-                mode = (await app.new_session_screen(app.get_main_screen)).mode_name
+                mode = (await app.session_navigation.new(app.get_main_screen)).mode_name
                 await app.selected_session.conversation.contents.mount(*[
                     AgentResponse(f"Response {i}\n\n" + "long paragraphs.\n\n" * 10)
                     for i in range(14)
@@ -43,7 +43,7 @@ async def main():
                     return result
 
                 with patch.object(app, "remove_mode", measured_remove):
-                    await app.close_session_mode(mode)
+                    await app.session_navigation.close(mode)
                 observed.append(("closed", (time.perf_counter() - start) * 1000))
                 assert app.selected_mode == base and mode not in app.tab_order.names
                 results.append({"round": index, "stages_ms": [(name, round(ms, 2)) for name, ms in observed]})

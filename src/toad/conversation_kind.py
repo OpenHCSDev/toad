@@ -40,6 +40,11 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
         return target
 
     @classmethod
+    def unread(cls, snapshot, target):
+        from toad.session_tracker import ExactUnread
+        return ExactUnread(snapshot.channel_unread.get(target, 0)) if snapshot else ExactUnread()
+
+    @classmethod
     def placeholder(cls, target):
         return f"Message {target}"
 
@@ -199,6 +204,11 @@ class ChannelConversation(ConversationKind):
 
 
 class DmConversation(ConversationKind):
+    @classmethod
+    def unread(cls, snapshot, target):
+        from toad.session_tracker import ExactUnread
+        return ExactUnread(snapshot.unread.get(target, 0)) if snapshot else ExactUnread()
+
     @classmethod
     def page(cls, comms: Comms, target: str, **bounds) -> MessagePage:
         return comms.views.dm_display_page(target, **bounds)

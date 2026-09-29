@@ -1,4 +1,5 @@
 """A painted bounded channel page reads its members, never omitted history."""
+from toad.navigation_target import NavigationContext
 
 from toad.navigation_target import channel_target
 
@@ -39,10 +40,7 @@ async def main():
             async with app.run_test(size=(120, 40)) as pilot:
                 await pilot.pause()
                 owner = app.selected_mode
-                await app.open_comms_session(
-                    owner_mode=owner, project_path=root, me=viewer,
-                    target=channel_target("#team"),
-                )
+                await channel_target("#team").open(NavigationContext(app, owner, root, viewer))
                 chat = app.screen.query_one(CommsChatView)
                 async with asyncio.timeout(5):
                     while comms.views.viewer_snapshot(str(root)).channel_unread["#team"] != 10:

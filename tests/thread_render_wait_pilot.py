@@ -106,7 +106,7 @@ async def main():
                         "run_command": {"*": "/bin/false"},
                         "protocol": "acp",
                     }
-                    mode = await app.open_thread_session(
+                    mode = await app.thread_navigation.open(
                         owner_mode=owner, project_path=root, target="replay"
                     )
                     trace("opened thread")

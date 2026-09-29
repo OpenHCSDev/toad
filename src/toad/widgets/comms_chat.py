@@ -180,7 +180,7 @@ class CommsChatView(DeliveryFailureView, Conversation):
         if self._bound_root is not None and root != self._bound_root:
             self.display = False
             return
-        self._wire = (self.app.coordination_wire if root == self.app.coordination_wire.root
+        self._wire = (self.app.coordination_access.service if root == self.app.coordination_access.service.root
                       else wire(root))
         self.agent_info = Content(self._target_label())
         self.agent_ready = True

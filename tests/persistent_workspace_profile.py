@@ -11,7 +11,7 @@ from toad.screens.main import MainScreen
 async def profile(app,pilot,agent,comms,*unused):
     modes=[app.selected_mode]
     for index in range(3):
-        details=await app.new_session_screen(lambda: MainScreen(agent.project_root_path,agent_session_id=f'profile-{index}'))
+        details=await app.session_navigation.new(lambda: MainScreen(agent.project_root_path,agent_session_id=f'profile-{index}'))
         modes.append(details.mode_name)
     profiler=cProfile.Profile()
     profiler.enable()

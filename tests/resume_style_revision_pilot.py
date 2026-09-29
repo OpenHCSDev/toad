@@ -30,7 +30,7 @@ async def main():
             target = Static("Scoped selector target", id="style-target")
             component = ComponentProbe("Component target")
             await first.conversation.contents.mount(target, component)
-            second = (await app.new_session_screen(app.get_main_screen)).mode_name
+            second = (await app.session_navigation.new(app.get_main_screen)).mode_name
             await app.switch_mode(first_mode)
             await pilot.pause()
             assert first._resume_style is not None

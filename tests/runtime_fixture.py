@@ -8,6 +8,7 @@ from pathlib import Path
 import psutil
 from agent_comms.comms import wire
 from agent_comms.child_process import STOP_GRACE_SECONDS
+from agent_comms.active_route import resolve_comms_route
 from toad.app import ToadApp as Application
 
 
@@ -56,7 +57,7 @@ class ToadApp(Application):
 
     @asynccontextmanager
     async def run_test(self, **kwargs):
-        root = Path(os.environ["AGENT_COMMS_ROOT"])
+        root = resolve_comms_route().observe_root()
         try:
             async with super().run_test(**kwargs) as pilot:
                 yield pilot

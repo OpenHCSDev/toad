@@ -33,8 +33,8 @@ class FilePreviewScreen(SessionView, can_focus=False):
 
     async def action_back(self) -> None:
         if self.id is not None:
-            await self.app.return_from_preview(self.id)
+            await self.app.session_navigation.return_from(self.id)
 
     async def action_close_preview(self) -> None:
         if self.id is not None:
-            await self.app.close_session_mode(self.id)
+            await self.app.session_navigation.close(self.id)
