@@ -255,3 +255,23 @@ Carver/Tesla/Dalton. Existing hidden cache-shape pilot is deleted; actual instal
 hidden/visible/theme/retirement acceptance replaces its private renderer goldens.
 Existing ToolCallDiff behavior moves intact with unique class baseline retained.
 Root keeps header/expansion and viewport participation. No aliases or live writes.
+
+### Tool output completion (current main144 integration, PR145)
+
+00d016e completes the scoped owner/caller/deletion batch: ToolCall469 →235,
+ToolCallDiff136 →135; no independent class/debt increase. LiteralTextToolOutputPart
+is the declared ordinary-text capability; no compatibility path/alias. Installed
+actual native Read/Edit/Bash execution + ACP/cropped paint/copy/collapse/reopen
+and real renderer hidden/reveal/replacement/theme/remount/retirement pass. The
+existing hidden lifecycle also proves worker cancellation before entry without
+unawaited coroutines: async partial/callables only. Old private cache goldens and
+historical foreground-reader substitutions are deleted. New declaration adopts
+installed composition without root/catalog/worker edits. Final raw audit covers
+all709 Python files across Toad/core/Textual; runtime evidence is separate.
+
+Noether has no own-scope blocker. Root retains header/expansion/viewport handlers;
+permission-only ACPToolCallContent remains Carver's existing permission-preview
+surface with distinct policy, not a competing ToolCall output implementation.
+Tesla142/Carver Conversation/Dalton read ACK stay separately owned. Parent owns
+merge/live activation; no unchanged143 or64 matrix is repeated. Receipts under
+evidence/tool-output state exact installed pins and earlier diagnostic failures.
