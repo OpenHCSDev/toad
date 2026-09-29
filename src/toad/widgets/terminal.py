@@ -263,16 +263,23 @@ Tap escape *twice* to exit.
         scrollback_delta, alternate_delta = await self.state.write(
             text, hide_output=hide_output
         )
-        self._update_from_state(scrollback_delta, alternate_delta)
+        self.project_state(scrollback_delta, alternate_delta)
         scrollback_changed = bool(scrollback_delta is None or scrollback_delta)
         alternate_changed = bool(alternate_delta is None or alternate_delta)
 
+        return scrollback_changed or alternate_changed
+
+    def project_state(
+        self, scrollback_delta: set[int] | None, alternate_delta: set[int] | None
+    ) -> None:
+        """Paint the owning ANSI state without decoding or replaying output."""
+        self._update_from_state(scrollback_delta, alternate_delta)
+        self.display = self.state.alternate_screen or not self.state.scrollback_buffer.is_blank
         if self._alternate_screen != self.state.alternate_screen:
             self.post_message(
                 self.AlternateScreenChanged(self, enabled=self.state.alternate_screen)
             )
         self._alternate_screen = self.state.alternate_screen
-        return scrollback_changed or alternate_changed
 
     def on_click(self, event: events.Click) -> None:
         self.focus()

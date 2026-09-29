@@ -3036,11 +3036,8 @@ class Conversation(containers.Vertical):
         Args:
             command: Command to execute.
         """
-        from toad.widgets.shell_result import ShellResult
-
         if command.strip():
             self._shell_count += 1
-            await self.post(ShellResult(command))
             width, height = self.get_terminal_dimensions()
             await self.shell.send(command, width, height)
 

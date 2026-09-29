@@ -87,6 +87,7 @@ class OperationalSessionPresentation(SessionSurfaceLifetime):
     def __init__(self) -> None:
         self.state: SessionViewState | None = None
         self.agent = None
+        self.shell = None
         self.directory_watcher = None
         self._lock = asyncio.Lock()
 
@@ -108,6 +109,9 @@ class OperationalSessionPresentation(SessionSurfaceLifetime):
             if self.state is not None:
                 self.state.restore(conversation)
                 self.state = None
+            if self.shell is not None:
+                conversation._shell = self.shell
+                await self.shell.attach(conversation)
             if self.agent is not None:
                 conversation.agent = self.agent
                 self.agent.attach_surface(conversation)
@@ -119,6 +123,10 @@ class OperationalSessionPresentation(SessionSurfaceLifetime):
                 return
             self.state = SessionViewState.capture(conversation)
             self.agent = conversation.agent
+            self.shell = conversation._shell
+            conversation._shell = None
+            if self.shell is not None:
+                await self.shell.detach()
             self.directory_watcher = conversation._directory_watcher
             conversation._directory_watcher = None
             if self.directory_watcher is not None:
@@ -138,6 +146,11 @@ class OperationalSessionPresentation(SessionSurfaceLifetime):
             self.directory_watcher.stop()
             await asyncio.to_thread(self.directory_watcher.join)
             self.directory_watcher = None
+        conversation = screen.query_one_optional(Conversation)
+        shell = conversation._shell if conversation is not None else self.shell
+        if shell is not None:
+            await shell.close()
+        self.shell = None
         self.state = None
 
 
@@ -165,6 +178,9 @@ class BlankSessionPresentation(SessionSurfaceLifetime):
         return
 
     async def close(self, screen: "MainScreen") -> None:
+        conversation = screen.query_one_optional(Conversation)
+        if conversation is not None and conversation._shell is not None:
+            await conversation._shell.close()
         self.state = None
 
 
@@ -190,7 +206,7 @@ class BlankSessionSurface:
             screen._agent is None and conversation.agent is None
             and conversation._agent_data is None and conversation._shell is None
             and not conversation.contents.children and not conversation.terminals
-            and conversation._terminal is None and conversation.goal is None
+            and conversation._terminal is None and not conversation.goal_display.visible
             and not conversation.queued_prompts and not conversation.queue_projection.items
             and not conversation.unresolved_inputs
             and not conversation.status and conversation.native_history_status is None

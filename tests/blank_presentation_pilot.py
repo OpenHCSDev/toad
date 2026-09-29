@@ -12,6 +12,7 @@ from toad.widgets.conversation import Conversation
 from toad.widgets.prompt import PromptTextArea
 from toad.widgets.side_bar import SideBar
 from toad.screens.main import MainScreen
+from toad.shell_output import ShellTerminalOutput
 
 
 async def main():
@@ -27,7 +28,7 @@ async def main():
             original_task = shared_surface._task
             window = shared_surface.window
             viewport = window.document_viewport
-            assert window in first.body_windows
+            assert window in first.viewport_presentation.windows
             editor = first.conversation.prompt.prompt_text_area
             editor.insert("first draft")
             editor.history.checkpoint()
@@ -49,7 +50,7 @@ async def main():
             second = app.screen
             assert second.conversation is shared_surface
             assert shared_surface._task is original_task
-            assert window not in first.body_windows and window in second.body_windows
+            assert window not in first.viewport_presentation.windows and window in second.viewport_presentation.windows
             assert window not in first.screen_layout_refresh_signal._subscriptions
             assert len(second.screen_layout_refresh_signal._subscriptions[window]) == 2
             second.conversation.prompt.text = "second draft"
@@ -58,7 +59,7 @@ async def main():
             await pilot.pause()
             restored = first.query_one(PromptTextArea)
             assert first.conversation is shared_surface and shared_surface._task is original_task
-            assert window in first.body_windows and window not in second.body_windows
+            assert window in first.viewport_presentation.windows and window not in second.viewport_presentation.windows
             assert restored.text == expected
             assert restored.document is document and restored.history is history
             assert restored.selection == Selection((0, 1), (0, 5))
@@ -70,18 +71,36 @@ async def main():
             await app.switch_mode(second_mode)
             assert second.conversation is shared_surface
             assert second.conversation.prompt.text == "second draft"
-            await second.conversation.post_shell("printf 'owned-shell-marker\\n'")
+            await second.conversation.post_shell("sleep 1; printf 'owned-shell-marker\\n'")
             async with asyncio.timeout(5):
                 while not second.conversation.query("ShellTerminal"):
                     await pilot.pause(.02)
+            shell = second.conversation._shell
+            shell_task, shell_process = shell._task, shell._process
             third = (await app.new_session_screen(app.get_main_screen)).mode_name
-            assert second.conversation is shared_surface
-            assert second.conversation._shell is not None
-            assert app.screen.conversation is not shared_surface
+            assert not second.query(Conversation)
+            assert second.presentation.shell is shell
+            assert shell._task is shell_task and not shell_task.done()
+            assert shell._process is shell_process and shell_process.returncode is None
+            async with asyncio.timeout(5):
+                while not any("owned-shell-marker" in "\n".join(line.content.plain for line in output.state.buffer.lines)
+                              for output in shell.outputs if isinstance(output, ShellTerminalOutput)):
+                    await pilot.pause(.02)
+            assert all(output.terminal is None for output in shell.outputs
+                       if isinstance(output, ShellTerminalOutput))
             await app.switch_mode(second_mode)
-            assert app.screen.conversation is shared_surface
+            restored_shell_view = app.screen.conversation
+            assert restored_shell_view is not shared_surface
+            assert restored_shell_view._shell is shell
+            assert restored_shell_view.prompt.text == "second draft"
+            assert any(terminal.state is output.state for terminal in restored_shell_view.query("ShellTerminal")
+                       for output in shell.outputs if isinstance(output, ShellTerminalOutput))
+            await pilot.pause()
+            paint = "\n".join(strip.text for strip in app.screen._compositor.render_strips())
+            assert "owned-shell-marker" in paint, paint
             await app.switch_mode(third)
-            assert second.conversation is shared_surface and second.conversation.prompt.text == "second draft"
+            assert not second.query(Conversation)
+            assert second.presentation.shell is shell
             sidebar = app.screen.query_one("#thread-sidebar", SideBar)
             assert not sidebar._panels_loaded
             sidebar.reveal()
@@ -100,6 +119,8 @@ async def main():
             assert app.screen.conversation.project_path == root
             assert app.screen.conversation._directory_watcher._path == root
             assert app._exception is None
+        assert shell._process.returncode is not None, "Logical session close leaked its shell process"
+        assert shell._task.done(), "Logical session close leaked its reader"
         await asyncio.get_running_loop().shutdown_default_executor()
     print("blank presentation: one shared editor, original undo/selection/drafts, executing shell promoted")
 

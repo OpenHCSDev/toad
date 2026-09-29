@@ -7,17 +7,22 @@ import os
 import platform
 import pty
 import struct
+import signal
+from weakref import ref
 import termios
 from contextlib import suppress
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
+
+from agent_comms.child_process import STOP_GRACE_SECONDS
 
 from textual import log
 from textual.message import Message
 
 from toad.shell_read import shell_read
 from toad.terminal_environment import TerminalEnvironment
-from toad.widgets.terminal import Terminal
+from toad import ansi
+from toad.shell_output import ShellOutput, ShellCommandOutput, ShellTerminalOutput
 
 if TYPE_CHECKING:
     from toad.widgets.conversation import Conversation
@@ -59,10 +64,14 @@ class Shell:
         start="",
         hide_start: bool = True,
     ) -> None:
-        self.conversation = conversation
+        self._conversation = ref(conversation)
+        self._app = conversation.app
+        self.outputs: list[ShellOutput] = []
+        self.output: ShellTerminalOutput | None = None
+        self._presentation_lock = asyncio.Lock()
+        self._terminal_size = conversation.get_terminal_dimensions()
         self.working_directory = working_directory
 
-        self.terminal: Terminal | None = None
         self.new_log: bool = False
         self.shell = shell
         self.shell_start = start
@@ -70,6 +79,7 @@ class Shell:
         self.master: int | None = None
         self._task: asyncio.Task | None = None
         self._process: asyncio.subprocess.Process | None = None
+        self._transport: asyncio.ReadTransport | None = None
 
         self._finished: bool = False
         self._ready_event: asyncio.Event = asyncio.Event()
@@ -83,6 +93,43 @@ class Shell:
 
         self._pid: int | None = None
         """Shell process id"""
+
+    async def attach(self, conversation: Conversation) -> None:
+        async with self._presentation_lock:
+            self._conversation = ref(conversation)
+            conversation.working_directory = self.working_directory
+            for output in self.outputs:
+                await output.present(conversation)
+
+    async def detach(self) -> None:
+        async with self._presentation_lock:
+            self._conversation = lambda: None
+            for output in self.outputs:
+                output.detach()
+
+    async def _present(self, output: ShellOutput) -> None:
+        async with self._presentation_lock:
+            if (conversation := self._conversation()) is not None:
+                await output.present(conversation)
+
+    async def close(self) -> None:
+        """Closing a logical session ends its owned PTY; UI retirement does not."""
+        await self.detach()
+        if self._process is not None and self._process.returncode is None:
+            with suppress(ProcessLookupError):
+                os.killpg(self._process.pid, signal.SIGTERM)
+            try:
+                async with asyncio.timeout(STOP_GRACE_SECONDS):
+                    await self._process.wait()
+            except TimeoutError:
+                with suppress(ProcessLookupError):
+                    os.killpg(self._process.pid, signal.SIGKILL)
+                await self._process.wait()
+        if self._task is not None and not self._task.done():
+            self._task.cancel()
+            await asyncio.gather(self._task, return_exceptions=True)
+        self.outputs.clear()
+        self.output = None
 
     @property
     def is_finished(self) -> bool:
@@ -126,13 +173,17 @@ class Shell:
 
     async def send(self, command: str, width: int, height: int) -> None:
         await self._ready_event.wait()
+        self._terminal_size = width, height
         if self.master is None:
             print("TTY FD not set")
             return
 
-        if self.terminal is not None:
-            self.terminal.finalize()
-            self.terminal = None
+        if self.output is not None:
+            self.output.finalize()
+            self.output = None
+        command_output = ShellCommandOutput(command)
+        self.outputs.append(command_output)
+        await self._present(command_output)
 
         try:
             await asyncio.to_thread(resize_pty, self.master, width, max(height, 1))
@@ -166,7 +217,7 @@ class Shell:
         await self._ready_event.wait()
         if self.master is None:
             return
-        if paste and self.terminal is not None and self.terminal.state.bracketed_paste:
+        if paste and self.output is not None and self.output.state.bracketed_paste:
             text = f"\x1b[200~{text}\x1b[201~"
         await self.write(f"{text}\n", hide_echo=True)
 
@@ -186,6 +237,9 @@ class Shell:
             width: Desired width.
             height: Desired height.
         """
+        self._terminal_size = width, height
+        if self.output is not None:
+            self.output.state.update_size(width, height)
         if self.master is None:
             return
         with suppress(OSError):
@@ -210,6 +264,19 @@ class Shell:
         return result
 
     async def run(self) -> None:
+        try:
+            await self._run_pty()
+        finally:
+            if self._transport is not None:
+                self._transport.close()
+                self._transport = None
+            elif self.master is not None:
+                with suppress(OSError):
+                    os.close(self.master)
+            self.master = None
+            self._finished = True
+
+    async def _run_pty(self) -> None:
         current_directory = self.working_directory
 
         master, slave = pty.openpty()
@@ -237,12 +304,14 @@ class Shell:
                 preexec_fn=setup_pty,
             )
         except Exception as error:
-            self.conversation.notify(
+            os.close(slave)
+            self._app.notify(
                 f"Unable to start shell: {error}\n\nCheck your settings.",
                 title="Shell",
                 severity="error",
             )
             return
+        self._process = _process
         self._pid = _process.pid
 
         os.close(slave)
@@ -255,6 +324,7 @@ class Shell:
             lambda: protocol, os.fdopen(master, "rb", 0)
         )
 
+        self._transport = transport
         self._ready_event.set()
 
         if shell_start := self.shell_start.strip():
@@ -282,43 +352,36 @@ class Shell:
                     self._hide_echo.discard(string_bytes)
 
             if line := unicode_decoder.decode(data, final=not data):
-                if self.terminal is None or self.terminal.is_finalized:
-                    previous_state = (
-                        None if self.terminal is None else self.terminal.state
-                    )
-                    self.terminal = await self.conversation.new_terminal()
-                    # if previous_state is not None:
-                    #     self.terminal.set_state(previous_state)
-                    self.terminal.set_write_to_stdin(self.write)
-
-                terminal_updated = await self.terminal.write(
+                if self.output is None or self.output.finalized:
+                    self.output = ShellTerminalOutput(ansi.TerminalState(
+                        self.write, width=self._terminal_size[0], height=self._terminal_size[1]
+                    ))
+                    self.outputs.append(self.output)
+                output = self.output
+                scrollback, alternate = await output.state.write(
                     line, hide_output=self._hide_output
                 )
-                if terminal_updated and not self.terminal.display:
-                    if (
-                        self.terminal.alternate_screen
-                        or not self.terminal.state.scrollback_buffer.is_blank
-                    ):
-                        self.terminal.display = True
-                new_directory = self.terminal.current_directory
+                new_directory = output.state.current_directory
+                if new_directory:
+                    output.finalized = True
+                await self._present(output)
+                output.project(scrollback, alternate)
                 if new_directory == self._pending_directory:
                     self._pending_directory = None
                 if new_directory and new_directory != current_directory:
-                    current_directory = new_directory
-                    self.conversation.post_message(
-                        CurrentWorkingDirectoryChanged(current_directory)
-                    )
-            if (
-                self.terminal is not None
-                and self.terminal.is_finalized
-                and self.terminal.state.scrollback_buffer.is_blank
-            ):
-                self.terminal.finalize()
-                self.terminal = None
+                    current_directory = self.working_directory = new_directory
+                    if (conversation := self._conversation()) is not None:
+                        conversation.post_message(CurrentWorkingDirectoryChanged(new_directory))
+                if output.finalized and output.state.scrollback_buffer.is_blank:
+                    output.finalize()
+                    self.outputs.remove(output)
+                    self.output = None
 
             if not data:
                 break
 
         self.master = None
         self._finished = True
-        self.conversation.post_message(ShellFinished())
+        transport.close()
+        if (conversation := self._conversation()) is not None:
+            conversation.post_message(ShellFinished())

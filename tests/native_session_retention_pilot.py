@@ -6,6 +6,8 @@ No Agent, transport, queue, editor or renderer method is mocked.
 """
 
 import asyncio
+import cProfile
+import pstats
 import gc
 from importlib.resources import files
 import json
@@ -68,6 +70,10 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
             # Each cohort uses the same three strict visit phases. Do not hide
             # a bad phase with the predecessor's optional diagnostic filtering.
             durations = []
+            profile_path = os.environ.get("WORKSPACE_SWITCH_PROFILE")
+            profiler = cProfile.Profile() if count == 4 and profile_path else None
+            if profiler is not None:
+                profiler.enable()
             for order in (tuple(reversed(modes)), tuple(modes), tuple(reversed(modes))):
                 for mode in order:
                     if mode == app.current_mode:
@@ -77,6 +83,12 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
                     await pilot.pause(.02)
                     assert app.current_mode == mode and app.screen.id == mode
                     durations.append((time.monotonic() - before) * 1000)
+            if profiler is not None:
+                profiler.disable()
+                with Path(profile_path).open("w") as stream:
+                    stats = pstats.Stats(profiler, stream=stream).sort_stats("cumulative")
+                    stats.print_stats(55)
+                    stats.print_callers("viewer_snapshot")
             await app.switch_mode(modes[-1])
             entered.clear()
             release.clear()
