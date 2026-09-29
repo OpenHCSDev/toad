@@ -1,0 +1,97 @@
+[1790661128.225] prompt:start sender=beta mode=agent sent_seq=0
+[1790661131.084] prompt:returning
+[1790661131.092] prompt:start sender=beta mode=agent sent_seq=0
+[1790661136.854] prompt:returning
+[1790661139.856] incoming: {"jsonrpc": "2.0", "method": "initialize", "params": {"protocolVersion": 1, "clientCapabilities": {"fs": {"readTextFile": true, "writeTextFile": true}, "terminal": true, "auth": {"terminal": true}}, "
+[1790661139.857] outgoing: {"jsonrpc": "2.0", "id": 1, "result": {"protocolVersion": 1, "agentCapabilities": {"loadSession": true, "promptCapabilities": {"image": true}}, "authMethods": [{"id": "pi-login-openai-codex", "name": 
+[1790661139.859] incoming: {"jsonrpc": "2.0", "method": "session/load", "params": {"cwd": "/home/ts/.cache/agent-scratch/dalton-saved-state-journey/l0a-native-7w_no1op/project", "mcpServers": [], "sessionId": "beta"}, "id": 2}
+[1790661139.889] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"content": {"text": "", "type": "text"}, "_meta": {"agentComms": {"updates": [{"kind": "coordination_changed",
+[1790661139.892] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"content": {"text": "", "type": "text"}, "_meta": {"agentComms": {"updates": [{"kind": "transcript_snapshot", 
+[1790661139.892] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"content": {"text": "", "type": "text"}, "_meta": {"agentComms": {"updates": [{"kind": "turn_settled", "turn_i
+[1790661139.893] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"content": {"text": "", "type": "text"}, "_meta": {"agentComms": {"updates": [{"kind": "input_delivery_changed
+[1790661139.909] outgoing: {"jsonrpc": "2.0", "id": 2, "result": {"configOptions": [{"currentValue": "selected-offline/fixture", "options": [{"value": "selected-offline/fixture", "name": "selected-offline/fixture"}], "id": "mod
+=== watchdog: 4 tasks ===
+  acp.Sender.loop: sender.py:46
+  Task-1: acp.py:747
+  Task-3: runtime.py:426
+  Task-2: base_events.py:677 <- base_events.py:2046 <- events.py:94 <- acp.py:722
+[1790661146.026] incoming: {"jsonrpc": "2.0", "method": "initialize", "params": {"protocolVersion": 1, "clientCapabilities": {"fs": {"readTextFile": true, "writeTextFile": true}, "terminal": true, "auth": {"terminal": true}}, "
+[1790661146.027] outgoing: {"jsonrpc": "2.0", "id": 3, "result": {"protocolVersion": 1, "agentCapabilities": {"loadSession": true, "promptCapabilities": {"image": true}}, "authMethods": [{"id": "pi-login-openai-codex", "name": 
+[1790661146.027] incoming: {"jsonrpc": "2.0", "method": "session/load", "params": {"cwd": "/home/ts/.cache/agent-scratch/dalton-saved-state-journey/l0a-native-7w_no1op/project", "mcpServers": [], "sessionId": "gamma"}, "id": 4}
+[1790661146.052] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "gamma", "update": {"content": {"text": "", "type": "text"}, "_meta": {"agentComms": {"updates": [{"kind": "coordination_changed"
+[1790661146.053] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "gamma", "update": {"content": {"text": "", "type": "text"}, "_meta": {"agentComms": {"updates": [{"kind": "transcript_snapshot",
+[1790661146.054] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "gamma", "update": {"content": {"text": "", "type": "text"}, "_meta": {"agentComms": {"updates": [{"kind": "turn_settled", "turn_
+[1790661146.054] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "gamma", "update": {"content": {"text": "", "type": "text"}, "_meta": {"agentComms": {"updates": [{"kind": "input_delivery_change
+[1790661146.067] outgoing: {"jsonrpc": "2.0", "id": 4, "result": {"configOptions": [{"currentValue": "selected-offline/fixture", "options": [{"value": "selected-offline/fixture", "name": "selected-offline/fixture"}], "id": "mod
+[1790661146.600] incoming: {"jsonrpc": "2.0", "method": "session/prompt", "params": {"prompt": [{"type": "text", "text": "JOURNEY_GAMMA_INPUT\n\nGamma retained reader paragraph 0: native journal content.\n\nGamma retained reade
+[1790661146.608] prompt:start sender=gamma mode=agent sent_seq=0
+[1790661146.618] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "gamma", "update": {"content": {"text": "", "type": "text"}, "_meta": {"agentComms": {"updates": [{"kind": "input_delivery_change
+[1790661146.650] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "gamma", "update": {"content": {"text": "", "type": "text"}, "_meta": {"agentComms": {"updates": [{"kind": "turn_started", "turn_
+[1790661146.650] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "gamma", "update": {"content": {"text": "", "type": "text"}, "_meta": {"agentComms": {"updates": [{"kind": "input_delivery_change
+[1790661146.681] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "gamma", "update": {"_meta": {"agentComms": {"updates": [{"kind": "goal_changed", "goal": null, "execution": null}]}}, "sessionUp
+[1790661147.707] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "gamma", "update": {"_meta": {"agentComms": {"updates": [{"kind": "cursor_advanced", "envelope": {"scope": {"session_id": "gamma"
+[1790661147.761] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"_meta": {"agentComms": {"updates": [{"kind": "cursor_advanced", "envelope": {"scope": {"session_id": "beta", 
+[1790661149.238] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "gamma", "update": {"content": {"text": "", "type": "text"}, "_meta": {"agentComms": {"updates": [{"kind": "input_delivery_change
+[1790661149.239] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "gamma", "update": {"content": {"text": "", "type": "text"}, "_meta": {"agentComms": {"updates": [{"kind": "input_started", "inpu
+[1790661149.239] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "gamma", "update": {"content": {"text": "", "type": "text"}, "_meta": {"agentComms": {"updates": [{"kind": "queue_changed", "scop
+=== watchdog: 4 tasks ===
+  acp.Sender.loop: sender.py:46
+  Task-1: acp.py:747
+  Task-3: runtime.py:426
+  Task-2: base_events.py:677 <- base_events.py:2046 <- events.py:94 <- acp.py:722
+[1790661150.258] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "gamma", "update": {"_meta": {"agentComms": {"updates": [{"kind": "cursor_advanced", "envelope": {"scope": {"session_id": "gamma"
+[1790661150.717] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "gamma", "update": {"used": 110, "size": 32768, "_meta": {"agentComms": {"updates": []}}, "sessionUpdate": "usage_update"}}}
+[1790661150.725] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "gamma", "update": {"used": 110, "size": 32768, "_meta": {"agentComms": {"updates": []}}, "sessionUpdate": "usage_update"}}}
+[1790661150.726] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "gamma", "update": {"content": {"text": "NATIVE_RESPONSE_3", "type": "text"}, "_meta": {"agentComms": {"updates": [{"kind": "text
+[1790661150.731] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "gamma", "update": {"used": 110, "size": 32768, "_meta": {"agentComms": {"updates": []}}, "sessionUpdate": "usage_update"}}}
+[1790661150.740] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "gamma", "update": {"used": 110, "size": 32768, "_meta": {"agentComms": {"updates": []}}, "sessionUpdate": "usage_update"}}}
+[1790661150.750] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "gamma", "update": {"used": 110, "size": 32768, "_meta": {"agentComms": {"updates": []}}, "sessionUpdate": "usage_update"}}}
+[1790661150.760] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "gamma", "update": {"used": 110, "size": 32768, "_meta": {"agentComms": {"updates": []}}, "sessionUpdate": "usage_update"}}}
+[1790661150.775] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "gamma", "update": {"content": {"text": "", "type": "text"}, "_meta": {"agentComms": {"updates": [{"kind": "turn_settled", "turn_
+[1790661150.913] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "gamma", "update": {"content": {"text": "", "type": "text"}, "_meta": {"agentComms": {"updates": [{"kind": "transcript_changed", 
+[1790661150.915] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "gamma", "update": {"content": {"text": "", "type": "text"}, "_meta": {"agentComms": {"updates": [{"kind": "input_delivery_change
+[1790661150.916] prompt:returning
+[1790661150.916] outgoing: {"jsonrpc": "2.0", "id": 5, "result": {"stopReason": "end_turn"}}
+=== watchdog: 4 tasks ===
+  acp.Sender.loop: sender.py:46
+  Task-1: acp.py:747
+  Task-3: runtime.py:426
+  Task-2: base_events.py:677 <- base_events.py:2046 <- events.py:94 <- acp.py:722
+[1790661151.925] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "gamma", "update": {"_meta": {"agentComms": {"updates": [{"kind": "cursor_advanced", "envelope": {"scope": {"session_id": "gamma"
+=== watchdog: 4 tasks ===
+  acp.Sender.loop: sender.py:46
+  Task-1: acp.py:747
+  Task-3: runtime.py:426
+  Task-2: base_events.py:677 <- base_events.py:2046 <- events.py:94 <- acp.py:722
+[1790661155.021] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "beta", "update": {"_meta": {"agentComms": {"updates": [{"kind": "cursor_advanced", "envelope": {"scope": {"session_id": "beta", 
+=== watchdog: 4 tasks ===
+  acp.Sender.loop: sender.py:46
+  Task-1: acp.py:747
+  Task-3: runtime.py:426
+  Task-2: base_events.py:677 <- base_events.py:2046 <- events.py:94 <- acp.py:722
+[1790661157.110] outgoing: {"jsonrpc": "2.0", "method": "session/update", "params": {"sessionId": "gamma", "update": {"_meta": {"agentComms": {"updates": [{"kind": "cursor_advanced", "envelope": {"scope": {"session_id": "gamma"
+=== watchdog: 4 tasks ===
+  acp.Sender.loop: sender.py:46
+  Task-1: acp.py:747
+  Task-3: runtime.py:426
+  Task-2: base_events.py:677 <- base_events.py:2046 <- events.py:94 <- acp.py:722
+=== watchdog: 4 tasks ===
+  acp.Sender.loop: sender.py:46
+  Task-1: acp.py:747
+  Task-3: runtime.py:426
+  Task-2: base_events.py:677 <- base_events.py:2046 <- events.py:94 <- acp.py:722
+=== watchdog: 4 tasks ===
+  acp.Sender.loop: sender.py:46
+  Task-1: acp.py:747
+  Task-3: runtime.py:426
+  Task-2: base_events.py:677 <- base_events.py:2046 <- events.py:94 <- acp.py:722
+=== watchdog: 4 tasks ===
+  acp.Sender.loop: sender.py:46
+  Task-1: acp.py:747
+  Task-3: runtime.py:426
+  Task-2: base_events.py:677 <- base_events.py:2046 <- events.py:94 <- acp.py:722
+=== watchdog: 4 tasks ===
+  acp.Sender.loop: sender.py:46
+  Task-1: acp.py:747
+  Task-3: runtime.py:426
+  Task-2: base_events.py:677 <- base_events.py:2046 <- events.py:94 <- acp.py:722

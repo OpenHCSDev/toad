@@ -1,0 +1,29 @@
+{
+  "textual-8.2.8.dist-info": {
+    "url": "https://github.com/OpenHCSDev/textual.git",
+    "vcs_info": {
+      "vcs": "git",
+      "commit_id": "1738abd8e3524b7e86171b70256d7f7e52fdb724",
+      "requested_revision": "1738abd8e3524b7e86171b70256d7f7e52fdb724"
+    }
+  },
+  "batrachian_toad-0.6.20.dist-info": {
+    "url": "https://github.com/OpenHCSDev/toad.git",
+    "vcs_info": {
+      "vcs": "git",
+      "commit_id": "51fdf2b856963b62d3d569ed110d4581ba8a1bf0",
+      "requested_revision": "51fdf2b856963b62d3d569ed110d4581ba8a1bf0"
+    }
+  },
+  "agent_comms-0.1.0.dist-info": {
+    "url": "https://github.com/OpenHCSDev/agent-comms.git",
+    "vcs_info": {
+      "vcs": "git",
+      "commit_id": "77c2ac671e80018e75e97d9f8c5643cffe1dd39e",
+      "requested_revision": "77c2ac671e80018e75e97d9f8c5643cffe1dd39e"
+    }
+  },
+  "native_package": "/home/ts/.local/share/agent-comms/native-current-d3967e8b6ee0cf28/node_modules/@earendil-works/pi-coding-agent",
+  "test_head": "ddda23451d004d2d8e8b0fdb9ef38c13858af943",
+  "pythonpath": "tests only; production imports installed runtime site-packages"
+}
