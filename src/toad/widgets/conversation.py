@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from toad.live_output import LiveOutput, ResponseStream, ThoughtStream
 from toad.transcript_publication import TranscriptPresentation
+from toad.goal_interaction import GoalSession
 from toad.widgets.message_filter import OtherCategory
 
 from toad.settings import PreferenceChange
@@ -632,7 +633,7 @@ class Conversation(containers.Vertical):
         self._initial_prompt = initial_prompt
 
         self.goal_observation = GoalObservation(self)
-        self._goal_modal = None
+        self.goal_controls = GoalSession(self)
         self.delivery_observation = InputDeliveryObservation(self)
         self.transcript = TranscriptPresentation(self)
         self.tool_expansions: dict[str, bool] = {}
@@ -1093,6 +1094,7 @@ class Conversation(containers.Vertical):
             await self.rename_session(message.title or "")
 
     async def on_unmount(self) -> None:
+        self.goal_controls.close()
         await self.transcript.close()
         self.output.retire()
         await asyncio.gather(self.goal_observation.close(), self.delivery_observation.close())
@@ -2183,7 +2185,7 @@ class Conversation(containers.Vertical):
         ).commands
 
     async def on_mount(self) -> None:
-        self.set_interval(1, self._poll_goal)
+        self.set_interval(1, lambda: self.goal_controls.poll())
         await self.initialize_view()
 
     async def initialize_view(self) -> None:
@@ -2278,22 +2280,6 @@ class Conversation(containers.Vertical):
                 lambda value: setattr(details, "overview_text", value),
             )
 
-    def _poll_goal(self) -> None:
-        if not self.is_attached:
-            return
-        # Only the visible conversation or its own goal modal polls. Hidden tabs
-        # do not multiply owner reads; the draft in an edit modal stays local.
-        try:
-            current = self.app.screen
-            visible = (
-                current is self.screen
-                and self in self.screen._compositor.visible_widgets
-            ) or current is self._goal_modal
-        except ScreenStackError, UnknownModeError:
-            return
-        if visible and not self.goal_observation.active:
-            self.goal_observation.invalidate()
-
     @on(acp_messages.CommsUpdated)
     async def on_comms_updated(self, event: acp_messages.CommsUpdated) -> None:
         if event.agent is not None and (
@@ -2310,63 +2296,7 @@ class Conversation(containers.Vertical):
     @on(GoalControl.Activated)
     async def on_goal_control(self, event: GoalControl.Activated):
         event.stop()
-        if not self.goal_display.can_control:
-            self.flash("Goal state unavailable; waiting for the owner", style="error")
-            return
-        if event.action == "goal-history" and self.goal_display.snapshot is not None:
-            from toad.screens.goal_details import GoalDetails
-
-            goal = self.goal_display.snapshot
-            history = ()
-            if self.agent is not None:
-                try:
-                    history = await self.agent.get_goal_history(goal.id)
-                except (OSError, ValueError) as error:
-                    self.flash(str(error), style="error")
-                    return
-            details = GoalDetails(goal, history=history)
-            self._goal_modal = details
-            self.app.push_screen(details)
-            details.watch(self, "goal_display", lambda value: setattr(details, "goal_display", value))
-            details.watch(self, "goal_execution", lambda value: setattr(details, "execution", value))
-        elif event.action == "goal-edit":
-            from toad.screens.goal_edit import GoalEdit
-            from toad.widgets.goal_text import goal_mention_candidates
-
-            goal = self.goal_display.snapshot
-            if goal is None or self.agent is None:
-                self.flash("Editing requires an agent-comms goal", style="error")
-                return
-
-            async def save(text: str) -> None:
-                await self.agent.edit_goal(goal, text)
-                await self.goal_observation.refresh()
-
-            editor = GoalEdit(goal, goal_mention_candidates(self.app), on_save=save)
-            self._goal_modal = editor
-            self.app.push_screen(editor)
-        elif event.action == "goal-clear":
-            await self.change_goal("clear")
-        elif event.action == "goal-toggle":
-            action = self.goal_display.snapshot.state.toggle if self.goal_display.snapshot else None
-            if action is not None:
-                await self.change_goal(action.declared_name)
-            else:
-                self.flash("This goal is completed; set a new goal to continue.")
-
-    async def change_goal(self, action: str, text: str = "") -> None:
-        if self.agent is None:
-            self.flash("Persistent goals require an agent-comms session", style="error")
-            return
-        try:
-            # Goal state only governs auto-continuation. Changing it must not
-            # interrupt work already in progress; the running turn finishes and
-            # then scheduling honours the new state.
-            await self.agent.update_goal(action, text)
-            await self.goal_observation.refresh()
-            self.prompt.focus()
-        except (OSError, ValueError) as error:
-            self.flash(str(error), style="error")
+        await self.goal_controls.activate(event.action)
 
     @work(group="context-compaction")
     async def compact_context(self, instructions: str | None) -> None:

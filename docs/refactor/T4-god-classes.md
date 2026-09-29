@@ -203,3 +203,24 @@ All current source/event/viewport/FollowTailCheckpoint and retained pilot caller
 migrate here. New-case/invalidation/retirement, actual native committed-page read
 plus cropped paint and retained NRA source paint are acceptance gates. PR141
 is the existing scoped draft; no live changes or CI wait.
+
+## Current remaining dispatch: goal interaction custody (Carver, after141)
+
+Remeasured1413faecdf: Conversation2455 AST-span lines. Source goal snapshots are
+already GoalObservation-owned. Root still stores goal modal, repeats action
+strings across five UI controls, gates polling on modal/current screen, writes
+goals and binds editor saves through its mutable current Agent. GoalBar keeps a
+second hand-written control inventory and collapse/disabled/toggle decisions.
+Next full slice transfers modal/poll/write/edit custody to GoalSession and UI
+behavior to GoalInteraction declarations. GoalObservation remains read authority;
+core GoalAction/GoalState remain persistent behavior and transition authorities.
+Delete root _goal_modal/_poll_goal/change_goal and action ladder; derive controls
+and presentation from declarations and migrate slash/current native callers.
+One new control adds one declaration, zero root/bar/list branches.
+
+Tesla reusable source initialization owns Conversation constructor/mount binding,
+WorkspaceScreen/pool and shell. GoalSession is source-bound: replace after close,
+one existing Widget timer dynamically addresses the current owner. Edit captures
+Agent+Goal and refuses another source. Noether panels remain untouched. Parent's
+partial async-callable worker fix and App cursor closure are consumed exactly in
+the isolated continuation; shipping141/shared trees are unchanged.
