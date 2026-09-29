@@ -343,8 +343,23 @@ async def adaptive_reader_journey(app, pilot, requests):
     await until(pilot, lambda: lookahead.ahead_rows(window.size.height) == 0)
     await until(pilot, lambda: len(app.preparation._pending) == 0)
     before = app.preparation.misses, len(requests)
-    await pilot.pause(.5)
-    assert (app.preparation.misses, len(requests)) == before, "Idle reader kept preparing or replaying"
+    import sys
+    idle_work = {}
+    def trace_idle_work(frame, event, arg):
+        if event == "call" and frame.f_code.co_name == "_execute" and "work" in frame.f_locals:
+            work = frame.f_locals["work"]
+            from toad.work_preparation import ContentAddressedWork
+            idle_work[id(work)] = (type(work).__name__, repr(work.inputs)[:5000], repr(work)[:5000]) if isinstance(work, ContentAddressedWork) else (type(work).__name__, "scoped")
+    previous_profile = sys.getprofile()
+    sys.setprofile(trace_idle_work)
+    try:
+        await pilot.pause(1.2)
+    finally:
+        sys.setprofile(previous_profile)
+    after = app.preparation.misses, len(requests)
+    print("ACTUAL_IDLE_PREPARATION_CENSUS", {"before": before, "after": after,
+          "work": list(idle_work.values()), "pending": len(app.preparation._pending)}, flush=True)
+    assert after == before, ("Idle reader kept preparing or replaying", before, after, idle_work)
     assert len(app.preparation._pending) == 0
     assert app.preparation.retained_bytes <= app.preparation.max_bytes
     assert len(app.preparation._ready) <= app.preparation.max_entries
