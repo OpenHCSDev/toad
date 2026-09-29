@@ -28,6 +28,9 @@ class PaintedReturnApp(InstalledApp):
     """Capture every actual compositor frame during native tab selection."""
 
     observed_frames = None
+    expected_source_id = None
+    first_paint_at = None
+    last_click_metrics = None
 
     def _display(self, screen, renderable):
         super()._display(screen, renderable)
@@ -35,6 +38,8 @@ class PaintedReturnApp(InstalledApp):
         # Only a completed display is an observable first paint.
         if (self.observed_frames is not None and renderable is not None
                 and not self._batch_count and screen is self.screen):
+            if self.selected_mode == self.expected_source_id and self.first_paint_at is None:
+                self.first_paint_at = perf_counter()
             view = self.selected_session.query_one_optional(Conversation)
             agent = view.agent if view is not None else None
             self.observed_frames.append((
@@ -50,8 +55,18 @@ async def click_session(app, pilot, source):
     tab.scroll_visible(animate=False, immediate=True)
     await pilot.pause()
     app.observed_frames = []
+    app.expected_source_id = source.id
+    app.first_paint_at = None
+    click_started = perf_counter()
     assert await pilot.click(tab), f"Session tab {source.id} was not clickable"
+    click_completed = perf_counter()
+    assert app.first_paint_at is not None, f"Session tab {source.id} never painted"
+    app.last_click_metrics = (
+        (app.first_paint_at - click_started) * 1000,
+        (click_completed - click_started) * 1000,
+    )
     frames, app.observed_frames = app.observed_frames, None
+    app.expected_source_id = None
     return frames
 
 
@@ -216,7 +231,10 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
                      n.identity.directory_revision,n.body_ready,
                      type(n.parent).__name__) for n in view.query(TranscriptFragmentView)],flush=True)
             assert reused > 0, ("Already-loaded native source discarded every response body", source.id)
-            records.append({"source":source.id,"return_painted_ms":(perf_counter()-started)*1000,
+            records.append({"source":source.id,
+                            "return_painted_ms":app.last_click_metrics[0],
+                            "click_completed_ms":app.last_click_metrics[1],
+                            "fixture_total_ms":(perf_counter()-started)*1000,
                             "reader_y":y,"cache_hits":app.preparation.hits-before_hits,
                             "cache_misses":app.preparation.misses-before_misses,
                             "mounted_response_bodies":len(bodies),
