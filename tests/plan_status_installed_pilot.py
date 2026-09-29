@@ -9,6 +9,7 @@ import sys
 from tempfile import TemporaryDirectory
 from typing import get_args
 
+from textual.widget import Widget
 from acp.schema import PlanEntryStatus
 from runtime_fixture import ToadApp
 from sidebar_retirement_pilot import reveal, until, viewport_text
@@ -23,7 +24,12 @@ class InstalledApp(ToadApp):
 
 
 def painted(widget, text):
-    return widget in widget.screen._compositor.visible_widgets and text in viewport_text(widget)
+    if widget not in widget.screen._compositor.visible_widgets:
+        return False
+    # A resized sidebar may wrap one content token over successive painted
+    # rows. Read the actual cropped strips, preserving the complete token.
+    painted_rows = viewport_text(widget).splitlines()
+    return text in "".join(row.strip() for row in painted_rows)
 
 
 async def main():
@@ -101,7 +107,19 @@ async def main():
                 assert plan.query_one(StrikeText).has_class("-complete")
                 assert plan.query_one(StrikeText).strike_time is None
                 await until(pilot, lambda: painted(plan, "ACP_pending_ITEM"))
-                await until(pilot, lambda: painted(sidebar.query_one(Plan), "ACP_pending_ITEM"))
+                try:
+                    await until(pilot, lambda: painted(sidebar.query_one(Plan), "ACP_pending_ITEM"))
+                except TimeoutError:
+                    mounted = sidebar.query_one(Plan)
+                    print("PLAN_REVEAL_DIAGNOSTIC", {
+                        "source": [entry.content.plain for entry in sidebar.plan.entries],
+                        "mounted": [entry.content.plain for entry in mounted.entries],
+                        "region": str(mounted.region),
+                        "visible": mounted in mounted.screen._compositor.visible_widgets,
+                        "paint": viewport_text(mounted) if mounted in mounted.screen._compositor.visible_widgets else "<absent>",
+                        "ancestors": [(type(owner).__name__, str(owner.region), owner.display) for owner in mounted.ancestors if isinstance(owner, Widget)],
+                    }, flush=True)
+                    raise
                 (root / "plan-advance-3").touch()
                 await asyncio.wait_for(sending, 10)
                 await until(pilot, lambda: len([note for note in view.query(Note)
