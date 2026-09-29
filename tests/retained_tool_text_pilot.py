@@ -30,7 +30,7 @@ async def main():
         async with app.run_test(size=(110, 35)) as pilot:
             await pilot.pause()
             tool = ToolCall(payload("first"))
-            await app.screen.conversation.post(tool)
+            await app.selected_session.conversation.post(tool)
             tool.set_expanded(True)
             await pilot.pause()
             original = tool.query_one(TextContent)

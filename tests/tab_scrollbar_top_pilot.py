@@ -27,7 +27,7 @@ async def main():
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(100, 35)) as pilot:
             await pilot.pause()
-            owner = app.current_mode
+            owner = app.selected_mode
             peers = []
             for index in range(5):
                 details = await app.new_session_screen(app.get_main_screen)
@@ -49,7 +49,7 @@ async def main():
             tabs = app.screen.query_one(SessionsTabs)
             assert tabs.show_horizontal_scrollbar
             scrollbar = tabs.horizontal_scrollbar
-            label = tabs.query_one(f"#{app.current_mode}", SessionLabel)
+            label = tabs.query_one(f"#{app.selected_mode}", SessionLabel)
             underline = tabs.query_one(Underline)
             assert scrollbar.region.y == tabs.content_region.y
             assert scrollbar.region.bottom <= label.region.y, (scrollbar.region, label.region)
@@ -69,17 +69,17 @@ async def main():
 
             tabs.scroll_to(x=0, animate=False, immediate=True)
             await pilot.pause()
-            before = app.current_mode
+            before = app.selected_mode
             assert await pilot.click(scrollbar, offset=(scrollbar.size.width - 2, 0))
             await pilot.pause()
             await pilot.wait_for_scheduled_animations()
-            assert tabs.scroll_x > 0 and app.current_mode == before
+            assert tabs.scroll_x > 0 and app.selected_mode == before
 
             tabs.scroll_to(x=0, animate=False, immediate=True)
             await pilot.pause()
             assert await pilot.click(tabs.query_one(f"#{owner}", SessionLabel))
             await pilot.pause()
-            assert app.current_mode == owner
+            assert app.selected_mode == owner
             tabs = app.screen.query_one(SessionsTabs)
             close = tabs.query_one(f"#close-{peers[0]}", SessionTabClose)
             close.scroll_visible(animate=False)
@@ -87,7 +87,7 @@ async def main():
             assert await pilot.click(close)
             await pilot.pause()
             assert app.session_tracker.get_session(peers[0]) is None
-            assert app.current_mode == owner
+            assert app.selected_mode == owner
 
             for width in (300, 100):
                 await pilot.resize_terminal(width, 35)

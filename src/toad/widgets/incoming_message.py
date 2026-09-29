@@ -6,7 +6,7 @@ from toad.widgets.message_filter import InboundCategory
 from textual.app import ComposeResult
 from textual.containers import VerticalGroup
 from toad.widgets.route_header import RouteHeader
-from toad.widgets.message_divider import MessageDivider
+from toad.widgets.message_divider import MessageDivider, MessageClock, LiveMessageClock
 from agent_comms.routing import MessageRoute
 from toad.widgets.message_filter import CategorizedBlock, MessageCategory
 from toad.widgets.committed_presentation import CommitParticipant, SequenceClaim
@@ -37,19 +37,20 @@ class IncomingMessage(ConversationBlock, CommitParticipant, CategorizedBlock, Ve
         return SequenceClaim(self.sequence)
 
     def __init__(self, sender: str, text: str, target: str | None = None,
-                 *, show_header: bool = True, sequence: int | None = None) -> None:
+                 *, show_header: bool = True, sequence: int | None = None, clock: MessageClock = LiveMessageClock()) -> None:
         super().__init__()
         self.sender = sender
         self.text = text
         self.target = target
         self.show_header = show_header
         self.sequence = sequence
+        self.clock = clock
 
     def compose(self) -> ComposeResult:
         from toad.widgets.agent_response import AgentResponse
 
         if self.show_header:
-            yield MessageDivider(f"Inbound · @{self.sender}")
+            yield MessageDivider(f"Inbound · @{self.sender}", clock=self.clock)
             yield IncomingSender(self.sender, self.target)
         yield AgentResponse(self.text, show_divider=False).add_class("routed-body")
 

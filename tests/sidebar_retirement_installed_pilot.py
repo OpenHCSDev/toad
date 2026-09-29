@@ -18,6 +18,7 @@ from agent_comms.comms import wire
 from agent_comms.threads import Thread
 from sidebar_retirement_pilot import InstalledApp, until, reveal, prepare_project, viewport_text
 from toad.screens.main import MainScreen
+from toad.plan import PlanItem, PendingPlanStatus, InProgressPlanStatus
 from toad.widgets.plan import Plan
 from toad.widgets.project_directory_tree import ProjectDirectoryTree
 from toad.widgets.session_thread_sidebar import SessionThreadSidebar
@@ -51,7 +52,7 @@ async def main():
         measurements, timings, screens, references = [], [], [], []
         async with app.run_test(size=(130, 44)) as pilot:
             await pilot.pause(.02)
-            first = app.screen
+            first = app.selected_session
             first._comms_thread = "owner-0"
             first.initial_coordination_root = str(root / "wire")
             screens.append(first)
@@ -86,11 +87,11 @@ async def main():
                     screen.initial_coordination_root = str(root / "wire")
                     return screen
                 await app.new_session_screen(make_screen)
-                screen = app.screen
+                screen = app.selected_session
                 screens.append(screen)
                 await pilot.pause(.02)
                 bar = await reveal(screen, pilot)
-                bar.update_plan([Plan.Entry(Content(f"Plan {index}"), "high", "pending")])
+                bar.update_plan([PlanItem(Content(f"Plan {index}"), "high", PendingPlanStatus)])
                 assert len(bar.panels) == 5
                 assert rich_count(screens) == 5, f"Retained rich panels after {len(screens)} tabs"
                 references.extend(ref(panel.widget) for panel in bar.panels)
@@ -100,11 +101,11 @@ async def main():
                                          "rss_bytes": psutil.Process().memory_info().rss,
                                          "tasks": len(asyncio.all_tasks())})
             assert not first_bar.panels
-            latest = [Plan.Entry(Content("Source update while inactive"), "high", "in_progress")]
+            latest = [PlanItem(Content("Source update while inactive"), "high", InProgressPlanStatus)]
             first_bar.update_plan(latest)
             for screen in reversed(screens):
                 started = time.perf_counter()
-                await app.switch_mode(screen.id)
+                await app.select_session(screen.id)
                 await pilot.pause(.02)
                 bar = screen.query_one(SessionThreadSidebar)
                 await bar.wait_content_ready()

@@ -248,7 +248,7 @@ class ThreadCommsSidebar(SidebarVisibilityObserver, TargetTree):
         # per group or per mounted thread view.
         self.app.coordination_observed.subscribe(self, self._observed)
         self.app.open_tabs_changed.subscribe(self, self._observed)
-        self.app.mode_change_signal.subscribe(self, self._observed)
+        self.app.session_selected_signal.subscribe(self, self._observed)
         self.app.thread_actions_changed.subscribe(self, self._observed)
         if self._live:
             self._bind_screen_identity()
@@ -326,10 +326,10 @@ class ThreadCommsSidebar(SidebarVisibilityObserver, TargetTree):
         self.refresh_relationships()
 
     def _sync_filter_control(self):
-        from toad.screens.main import MainScreen
+        from toad.screens.session_view import SessionView
         from toad.widgets.conversation import Conversation
 
-        view = self.screen.query_one_optional(Conversation) if isinstance(self.screen, MainScreen) else None
+        view = self.query_ancestor(SessionView).query_one_optional(Conversation)
         checkboxes = tuple(self.query(Checkbox))
         for checkbox in checkboxes:
             checkbox.display = view is not None
@@ -353,13 +353,8 @@ class ThreadCommsSidebar(SidebarVisibilityObserver, TargetTree):
                 )
 
     def _bind_screen_identity(self):
-        from toad.screens.comms import CommsScreen
-        from toad.screens.main import MainScreen
-
-        if isinstance(self.screen, MainScreen):
-            self.set_identity(self.screen._comms_thread, self.screen.coordination_root)
-        elif isinstance(self.screen, CommsScreen):
-            self.set_identity(self.screen.me, self.screen.recovery_root)
+        from toad.screens.session_view import SessionView
+        self.set_identity(*self.query_ancestor(SessionView).relationship_context())
 
     def _visible(self):
         return (self.is_attached and self.screen is self.app.screen

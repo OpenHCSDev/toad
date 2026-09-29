@@ -98,7 +98,7 @@ async def main():
                 ):
                     await pilot.pause()
                     trace("initial screen")
-                    owner = app.current_mode
+                    owner = app.selected_mode
                     app.screen._agent = {
                         "name": "Fixture",
                         "identity": "fixture",
@@ -110,7 +110,7 @@ async def main():
                         owner_mode=owner, project_path=root, target="replay"
                     )
                     trace("opened thread")
-                    conversation = app.screen.conversation
+                    conversation = app.selected_session.conversation
                     await pilot.pause()
                     assert conversation.query(ThreadLoading)
                     dispatch.set()

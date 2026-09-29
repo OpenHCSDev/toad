@@ -26,14 +26,14 @@ async def main():
         async with app.run_test(size=(100, 35)) as pilot:
             await pilot.pause()
             app.settings.ui.auto_copy = False
-            source = await app.screen.conversation.post(AgentResponse("START marker\n\nBefore the diff."))
+            source = await app.selected_session.conversation.post(AgentResponse("START marker\n\nBefore the diff."))
             text = "very_long_identifier_" * 9
             patch_text = ("--- x.py\n+++ x.py\n@@ -1,2 +1,2 @@\n context\n"
                           f"-{text}\n+{text} updated\n")
-            tool = await app.screen.conversation.post(ToolCall({"toolCallId": "edit", "title": "Edit x.py",
+            tool = await app.selected_session.conversation.post(ToolCall({"toolCallId": "edit", "title": "Edit x.py",
                 "kind": "edit", "status": "completed",
                 "content": tool_result_content("edit", "done", ToolDiff(patch_text))}))
-            destination = await app.screen.conversation.post(AgentResponse("After the diff.\n\nEND marker"))
+            destination = await app.selected_session.conversation.post(AgentResponse("After the diff.\n\nEND marker"))
             await pilot.pause()
             await wait_for_tool_diff(tool, pilot)
             assert tool.query_one(ToolCallDiff)
@@ -41,7 +41,7 @@ async def main():
             end = destination.query_one("MarkdownParagraph")
             code = tool.query_one("DiffCode")
             assert code.is_mounted and code in app.screen._compositor.visible_widgets
-            viewport = app.screen.conversation.window.content_region
+            viewport = app.selected_session.conversation.window.content_region
             assert viewport.contains_point(start.region.offset)
             assert viewport.contains_point(end.region.offset)
             screen = app.screen

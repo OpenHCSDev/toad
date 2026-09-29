@@ -31,7 +31,7 @@ async def main(observe):
             cursor = TranscriptCursor("fixture", 0)
             page = TranscriptPage(events, cursor, cursor, False, False)
             history = TranscriptHistory(page)
-            await app.screen.conversation.contents.mount(history)
+            await app.selected_session.conversation.contents.mount(history)
             await pilot.pause()
             window = history.window
             window.release_anchor()

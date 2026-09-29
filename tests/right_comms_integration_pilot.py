@@ -62,7 +62,7 @@ async def main():
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(130, 44)) as pilot:
             await pilot.pause()
-            owner_mode = app.current_mode
+            owner_mode = app.selected_mode
             await app.screen.on_coordination_update(coordination_update(str(root / 'wire'), 'owner'))
             main = app.screen
             draft = "Keep the native thread draft"
@@ -169,7 +169,7 @@ async def main():
                 pilot, lambda: getattr(app.screen, "target", None) == "#team"
             )
             await app.screen.wait_content_ready()
-            channel_mode = app.current_mode
+            channel_mode = app.selected_mode
             assert not app.screen.query_one(
                 "#thread-comms-panel", SideBarCollapsible
             ).collapsed
@@ -181,7 +181,7 @@ async def main():
             await pilot.pause()
             assert main.conversation.prompt.text == draft
             tree.groups["outbound"].rows["channel", "#team"].action_open_selected()
-            await wait_until(pilot, lambda: app.current_mode == channel_mode)
+            await wait_until(pilot, lambda: app.selected_mode == channel_mode)
             await app.switch_mode(owner_mode)
             await pilot.pause()
             row.scroll_visible(animate=False)
@@ -210,7 +210,7 @@ async def main():
             assert "Review the sidebar" in str(row.tooltip)
             row.action_open_selected()
             await pilot.pause()
-            assert app.current_mode == owner_mode
+            assert app.selected_mode == owner_mode
             with patch.object(app, "copy_to_clipboard") as copy:
                 row.scroll_visible(animate=False)
                 await pilot.pause()

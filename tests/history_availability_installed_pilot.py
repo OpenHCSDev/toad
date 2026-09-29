@@ -36,7 +36,7 @@ async def main():
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(140, 42)) as pilot:
             await pilot.pause()
-            view = app.screen.conversation
+            view = app.selected_session.conversation
             agent = Agent(root, {'identity': 'saved-page-proof', 'name': 'Saved page proof', 'run_command': {'*': ''}}, None, None)
             view.agent = agent
             details = view.query_one(SessionDetails)

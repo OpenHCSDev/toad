@@ -48,7 +48,7 @@ async def main():
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(110, 40)) as pilot:
             await pilot.pause()
-            native = app.screen.conversation
+            native = app.selected_session.conversation
             observed = native.query_one(ObservedThreadActivity)
             assert not observed.display, (
                 "Non-Comms idle view must not gain a blank line"
@@ -65,7 +65,7 @@ async def main():
             agent.attach_surface(native)
             attach_coordination(agent, str(comms.root), "peer")
             native.set_reactive(type(native).agent, agent)
-            owner = app.current_mode
+            owner = app.selected_mode
             tracker = app.session_tracker.sessions[owner]
             for detail in ("Checking #comms message", "Responding in #comms"):
                 comms.agents.set_activity("peer", ActivityState.THINKING, detail)

@@ -15,6 +15,7 @@ from weakref import ref
 from agent_comms.comms import wire
 from agent_comms.threads import Thread
 from runtime_fixture import ToadApp
+from toad.plan import PlanItem, PendingPlanStatus, InProgressPlanStatus
 from toad.widgets.plan import Plan
 from toad.widgets.project_directory_tree import ProjectDirectoryTree
 from toad.widgets.session_thread_sidebar import SessionThreadSidebar
@@ -55,10 +56,10 @@ async def prepare_project(sidebar, pilot):
 
 def viewport_text(widget):
     """Crop actual compositor strips to the visible native widget viewport."""
-    region, clip = widget.screen._compositor.visible_widgets[widget]
+    region, clip = widget.screen.screen._compositor.visible_widgets[widget]
     region = region.intersection(clip).intersection(widget.screen.region)
     return "\n".join(strip.crop(region.x, region.right).text
-                     for strip in widget.screen._compositor.render_strips()[region.y:region.bottom])
+                     for strip in widget.screen.screen._compositor.render_strips()[region.y:region.bottom])
 
 
 async def exercise(screen, pilot, root):
@@ -102,7 +103,7 @@ async def exercise(screen, pilot, root):
     gc.collect()
     assert all(widget() is None for widget in saved), "Retired panel graph remains reachable"
     assert tree_ref() is None, "Retired DirectoryTree remains reachable"
-    latest = [Plan.Entry(Content("Latest while absent"), "high", "in_progress")]
+    latest = [PlanItem(Content("Latest while absent"), "high", InProgressPlanStatus)]
     sidebar.update_plan(latest)
     await sidebar.prepare_presentation()
     async with asyncio.timeout(12):
@@ -144,7 +145,7 @@ async def main():
         app = InstalledApp(project_dir=str(project))
         async with app.run_test(size=(130, 44)) as pilot:
             await pilot.pause(.02)
-            screen = app.screen
+            screen = app.selected_session
             screen._comms_thread = "owner"
             screen.initial_coordination_root = str(root / "wire")
             for _ in range(3):
@@ -185,7 +186,7 @@ async def main():
             await pilot.pause(.02)
             assert not sidebar.panels and not sidebar._panels_loading
             assert all(worker.is_finished for worker in workers)
-            await app.switch_mode(screen.id)
+            await app.select_session(screen.id)
             await sidebar.wait_content_ready()
             assert len(sidebar.panels) == 5
             assert app._exception is None

@@ -24,7 +24,7 @@ async def main():
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(100, 35)) as pilot:
             await pilot.pause()
-            first_mode = app.current_mode
+            first_mode = app.selected_mode
             first = app.screen
             await first.conversation.contents.mount(AgentResponse("Style target"))
             target = Static("Scoped selector target", id="style-target")
