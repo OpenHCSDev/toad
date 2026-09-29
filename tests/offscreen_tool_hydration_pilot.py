@@ -12,7 +12,8 @@ from agent_comms.tool_results import ToolDiff, tool_result_content
 from runtime_fixture import ToadApp
 from tool_diff_fixture import wait_for_tool_diff
 from toad.setting_choices import AlwaysExpansion
-from toad.widgets.tool_call import ToolCall, ToolCallDiff
+from toad.widgets.tool_call import ToolCall
+from toad.widgets.tool_content import ToolCallDiff
 
 
 async def main():

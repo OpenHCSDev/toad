@@ -3,18 +3,19 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from acp.schema import Diff
+from dataclasses import dataclass
 from functools import partial
 from toad.screens.permissions import PermissionReview
 from agent_comms.declared_family import DeclaredFamily
 from toad import messages
 from toad.widgets.acp_content import ACPToolCallContent
+from toad.tool_output import ToolOutputPart, decode_content
 
 
+@dataclass
 class PermissionPresentation(DeclaredFamily, affix="PermissionPresentation"):
     priority = 0
-
-    def __init__(self, title):
-        self.title = title
+    title: str
 
     @classmethod
     def from_acp(cls, tool_call):
@@ -70,15 +71,15 @@ class DiffPermissionPresentation(PermissionPresentation):
                 view.post_message(messages.SessionUpdate(state="busy"))
 
 
+@dataclass
 class InlinePermissionPresentation(PermissionPresentation):
     priority = -1
-    def __init__(self, title, content):
-        super().__init__(title)
-        self.content = content
+    parts: tuple[ToolOutputPart, ...]
 
     @classmethod
     def admit(cls, kind, title, content):
-        return cls(title, content)
+        return cls(title, tuple(preview for item in content
+                               if (preview := decode_content(item).permission_preview()) is not None))
 
     async def show(self, view, request):
         def answer(answer):
@@ -89,7 +90,7 @@ class InlinePermissionPresentation(PermissionPresentation):
                 view.post_message(messages.SessionUpdate(state="busy"))
 
         ask = view.ask(request.options, self.title,
-                       partial(ACPToolCallContent, self.content) if self.content else None,
+                       partial(ACPToolCallContent, self.parts) if self.parts else None,
                        answer)
 
         def retire():

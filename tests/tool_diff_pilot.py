@@ -12,8 +12,9 @@ from agent_comms.transcript_events import ToolEndTranscript
 from agent_comms.tool_results import ToolDiff, tool_result_content
 from runtime_fixture import ToadApp
 from tool_diff_fixture import wait_for_tool_diff
-from toad.widgets.tool_call import ToolCall, ToolCallDiff
-from toad.widgets.patch_diff import PatchDiffView, parse_patch
+from toad.widgets.tool_call import ToolCall
+from toad.widgets.tool_content import ToolCallDiff
+from toad.widgets.patch_diff import PatchDiffView
 from toad.widgets.transcript_history import transcript_blocks
 
 
@@ -75,14 +76,20 @@ async def main():
             # High source offsets are represented sparsely, not by allocating
             # a fake file prefix just to make the line numbers look right.
             distant = PATCH.replace("-40,2 +40,2", "-1000000,2 +1000000,2")
-            sparse = await conversation.post(PatchDiffView(parse_patch(distant), split=False))
-            await pilot.pause()
+            sparse_tool = ToolCall({"toolCallId": "sparse", "title": "Sparse edit",
+                "status": "completed", "content": tool_result_content("sparse", "done", ToolDiff(distant))})
+            sparse_tool.set_expanded(True)
+            await conversation.post(sparse_tool)
+            sparse = (await wait_for_tool_diff(sparse_tool, pilot)).query_one(PatchDiffView)
             before, after = sparse.highlighted_code_lines
             assert len(before.positions) == len(after.positions) == 2
             assert sparse.counts == (1, 1)
             blank_tail = PATCH.replace("-40,2 +40,2", "-830,4 +830,4") + " \n \n"
-            blanks = await conversation.post(PatchDiffView(parse_patch(blank_tail), split=False))
-            await pilot.pause()
+            blanks_tool = ToolCall({"toolCallId": "blanks", "title": "Blank-tail edit",
+                "status": "completed", "content": tool_result_content("blanks", "done", ToolDiff(blank_tail))})
+            blanks_tool.set_expanded(True)
+            await conversation.post(blanks_tool)
+            blanks = (await wait_for_tool_diff(blanks_tool, pilot)).query_one(PatchDiffView)
             before, after = blanks.highlighted_code_lines
             assert [line.plain for line in before[829:833]] == ["context", "old = 1", "", ""]
             assert [line.plain for line in after[829:833]] == ["context", "new = 2", "", ""]
@@ -90,7 +97,7 @@ async def main():
             await pilot.pause()
             assert app._exception is None
             # Read output uses syntax colors and remains selectable as exact text.
-            from toad.widgets.tool_call import TextContent
+            from toad.widgets.tool_content import TextContent
             from toad.widgets.worker_static import WorkerStatic
             code = "def example(value):\n    return value + 1\n"
             read = ToolCall({"toolCallId": "read", "title": "Read example.py", "kind": "read",

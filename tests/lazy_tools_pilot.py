@@ -10,7 +10,8 @@ from pathlib import Path
 
 from toad.setting_choices import NeverExpansion
 from toad.app import ToadApp
-from toad.widgets.tool_call import ToolCall, ToolCallHeader, MarkdownContent
+from toad.widgets.tool_call import ToolCall, ToolCallHeader
+from toad.widgets.tool_content import MarkdownContent
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.agent_thought import AgentThought
 from toad.widgets.transcript_history import TranscriptHistory
