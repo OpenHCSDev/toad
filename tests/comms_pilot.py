@@ -98,13 +98,13 @@ async def main() -> None:
         os.environ["AGENT_COMMS_ROOT"] = str(wire_root)
         comms = wire(wire_root)
         me = project.name
-        comms.threads.register(
+        comms.registry.declare(
             Thread(name=me, tags=frozenset({"session"}), worktree=str(project))
         )
-        comms.threads.register(
+        comms.registry.declare(
             Thread(name="peer", tags=frozenset({"test"}), worktree=str(project))
         )
-        comms.threads.register(
+        comms.registry.declare(
             Thread(name="other-peer", tags=frozenset(), worktree=str(project))
         )
         resumable_session = root / "resumable-session.jsonl"
@@ -171,7 +171,7 @@ async def main() -> None:
                 )
             )
         )
-        comms.threads.register(
+        comms.registry.declare(
             Thread(
                 name="resumable-peer",
                 tags=frozenset({"test"}),
@@ -378,7 +378,7 @@ async def main() -> None:
             created_conversation = app.selected_session.conversation
             assert app.session_tracker.get_session(created_mode).title == "New Session"
             managed_thread = "managed-test-thread"
-            comms.threads.register(
+            comms.registry.declare(
                 Thread(
                     name=managed_thread,
                     tags=frozenset({"acp"}),

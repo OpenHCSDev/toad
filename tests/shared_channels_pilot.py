@@ -64,7 +64,7 @@ async def main():
         )
         comms = wire(root / "wire")
         for name in ("owner", "peer"):
-            comms.threads.register(
+            comms.registry.declare(
                 Thread(
                     name,
                     frozenset({"fixture", "shared", "slow"}),
@@ -218,7 +218,7 @@ async def main():
                 new_root = root / "other-wire"
                 await app.get_screen_stack(owner)[0].on_coordination_update(coordination_update(str(root / 'wire'), 'owner'))
                 other = wire(new_root)
-                other.threads.register(
+                other.registry.declare(
                     Thread(
                         "owner",
                         frozenset({"new", "new-source"}),

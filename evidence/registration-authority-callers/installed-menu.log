@@ -1,0 +1,1 @@
+{"action": "comms_stop", "subject": "sender", "stopped": true, "installed_toad": "/home/ts/.local/share/agent-comms/runtime-idle-warm-source-20260929/lib/python3.14/site-packages/toad/__init__.py", "installed_core": "/home/ts/wt/comms-wire-receipt-identity-20260929/.artifacts/installed/lib/python3.14/site-packages/agent_comms/__init__.py", "mocked_calls": false}

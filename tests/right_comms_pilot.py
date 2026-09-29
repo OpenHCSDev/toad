@@ -254,7 +254,7 @@ async def main():
             # core service. Neither panel invents a directional relationship.
             comms = Comms(Path(directory) / "mutual")
             for name in ("owner", "peer"):
-                comms.threads.register(Thread(name, frozenset(), directory))
+                comms.registry.declare(Thread(name, frozenset(), directory))
             comms.relationships.edit("peer", "add", "owner", "Shared review")
             shared = WireRelationshipSource(str(comms.root), comms)
             for owner, partner in (("owner", "peer"), ("peer", "owner")):

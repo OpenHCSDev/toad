@@ -140,7 +140,7 @@ async def main():
                           XDG_STATE_HOME=str(root / "state"), XDG_DATA_HOME=str(root / "data"))
         comms = wire(root / "wire")
         for name in ("owner", "peer"):
-            comms.threads.register(Thread(name, frozenset(), str(project)))
+            comms.registry.declare(Thread(name, frozenset(), str(project)))
         comms.relationships.edit("owner", "add", "peer", "Actual relationship")
         app = InstalledApp(project_dir=str(project))
         async with app.run_test(size=(130, 44)) as pilot:

@@ -32,7 +32,7 @@ async def main() -> None:
         )
         app = ToadApp(project_dir=str(root))
         comms = app.coordination_access.service
-        comms.threads.register(Thread("sender", frozenset(), str(root)))
+        comms.registry.declare(Thread("sender", frozenset(), str(root)))
         comms.messaging.send("sender", "#all", "exported message")
 
         source = root / "source.json"

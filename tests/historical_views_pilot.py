@@ -58,7 +58,7 @@ async def main():
                 for i in range(45)
             )
         )
-        old.threads.register(
+        old.registry.declare(
             Thread(
                 "peer",
                 frozenset({"team"}),
@@ -70,7 +70,7 @@ async def main():
         for i in range(85):
             old.messaging.send("peer", "#team", f"OLD row {i}\n" + "source content\n" * 3)
         live = wire(root / "live")
-        live.threads.register(Thread("peer", frozenset({"team"}), str(root), created_at=20.0))
+        live.registry.declare(Thread("peer", frozenset({"team"}), str(root), created_at=20.0))
         viewer = live.messaging.user_identity(str(root)).name
         for i in range(3):
             live.messaging.send("peer", "#team", f"LIVE row {i}")

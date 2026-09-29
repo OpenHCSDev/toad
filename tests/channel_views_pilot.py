@@ -35,7 +35,7 @@ async def main():
                           AGENT_COMMS_ROOT=str(root / "wire"))
         comms = wire(root / "wire")
         for name, tags in ((root.name, set()), ("api-agent", {"api", "engineering"}), ("ui-agent", {"ui", "engineering"}), ("other", set())):
-            comms.threads.register(Thread(name, frozenset(tags), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
+            comms.registry.declare(Thread(name, frozenset(tags), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
         comms.channels.create_tag("engineering")
         order_saved = asyncio.Event()
 

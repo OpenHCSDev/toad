@@ -62,7 +62,7 @@ async def main():
         comms = wire(root / "wire")
         names = ("fixture-owner", *(f"fixture-{index:02}" for index in range(24)))
         for name in names:
-            comms.threads.register(
+            comms.registry.declare(
                 Thread(
                     name,
                     frozenset({"fixture"}),

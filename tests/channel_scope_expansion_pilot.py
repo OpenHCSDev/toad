@@ -31,7 +31,7 @@ async def main() -> None:
             ("carol", frozenset()),
             ("dave", frozenset()),
         ):
-            comms.threads.register(Thread(name, tags, str(root), process_identity=ProcessIdentity.capture(os.getpid())))
+            comms.registry.declare(Thread(name, tags, str(root), process_identity=ProcessIdentity.capture(os.getpid())))
         viewer = comms.messaging.user_identity(str(root)).name
         comms.messaging.send("carol", "dave", "older newly visible DM")
         comms.messaging.send("alice", "#team", "current channel message")
