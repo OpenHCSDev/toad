@@ -3,6 +3,7 @@
 from datetime import datetime
 
 from agent_comms.field_codec import FieldCodec
+from agent_comms.goals import Goal
 from textual import on
 from textual.app import ComposeResult
 from textual.containers import Vertical, VerticalScroll

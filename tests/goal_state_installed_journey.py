@@ -14,6 +14,7 @@ from l0a_native_installed_pilot import main as native_fixture, until
 from native_session_retention_pilot import InstalledApp
 from saved_state_user_journey_pilot import click_tab, click_thread, prepare_saved_state, screen_paint
 from toad.screens.goal_edit import GoalEdit
+from toad.screens.goal_details import GoalDetails
 from toad.widgets.goal_bar import GoalBar
 from toad.widgets.comms_fork_dialog import ForkDialog
 from toad.widgets.comms_menu import ContextMenuItem
@@ -41,6 +42,11 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     await until(pilot, lambda: view.goal_display.snapshot is not None)
     await until(pilot, lambda: "INITIAL_SAVED_GOAL" in screen_paint(app))
     print("SAVED_GOAL_ACTUAL_PAINT", flush=True)
+    assert await pilot.click("#goal-history")
+    await until(pilot, lambda: isinstance(app.screen, GoalDetails))
+    await until(pilot, lambda: "INITIAL_SAVED_GOAL" in screen_paint(app))
+    await pilot.press("escape")
+    print("PHYSICAL_GOAL_HISTORY_CURRENT_SOURCE_AND_REVISIONS", flush=True)
     first = app.selected_session
     await click_thread(app, pilot, "gamma")
     await click_tab(app, pilot, first.id)
