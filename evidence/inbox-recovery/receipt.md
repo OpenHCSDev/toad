@@ -23,3 +23,7 @@ Read-only SQLite: originals 157/158 each sealed, member_count=5, claim_count=5. 
 Saved viewport matches 21 five-word phrases, 437 nonspace characters. Current summary Ready; Inbox unavailable absent from painted frame. Recursion remains unresolved, no exception in this observation.
 
 Initial diagnostic incorrectly forced stale ~/.agent-comms root and failed WireMetadata before launch; corrected by using normal launcher active-route discovery. Raw log/SVG/script kept local ignored; no saved content published. No production change or chain-term/caller delta.
+
+## After PR326 cutover
+
+Canonical agent-comms-acp and toad launchers resolve runtime-channel-participants-20260928. Actual installed ToadApp rerun after restart exits 0: Ready, no painted inbox error, 21 saved five-word matches, 437 viewport nonspace characters, no app exception, zero prompts. Mounted current domain-mapping owner PID 3088910. Read-only original claims 157/158 remain completed. No second restart or resend. Local mounted-after-326.log and saved SVG retain exact evidence.
