@@ -91,3 +91,30 @@ Beta. Narrow existing infrastructure extension, no new framework. All imported
 product modules are noneditable installed bytes; PYTHONPATH contains tests only.
 Parent owns live read-only entrypoint proof and activation. No old142 baseline
 hold, no extra agents, paid providers, user input replay, or CI gate.
+
+## Continuous physical native journey PASS
+
+continuous-selected-reader.log exit0, installed d511836d/core77c2ac67/native d396/
+Textual1738. Saved startup/channel click/original-tab return -> unopened Gamma
+real attachment -> held native input -> active participant click returns same
+Gamma -> A/B/A actual tab clicks preserve same Document/EditHistory, draft/undo,
+non-tail scroll and exact cropped reader paint -> actual fork dialog creates
+normal native child with one first input/answer, parent unchanged, no compaction
+or replay -> actual channel working status/reply saved paint and automatic
+Beta author native observation with exactly two requests/no ping-pong.
+
+Prior answer-paint RED is conclusively a TEST HELPER defect, not product loss.
+participant-return.svg paints NATIVE_RESPONSE_3. Reader diagnostics show selected
+Gamma, real answer settled, follows_tail true at scroll25/max25. The old helper
+cropped screen.query_one(Conversation), i.e. the retained inactive Beta pane,
+with empty region. Replaced that lookup with selected logical source ownership
+in existing native_session_retention_pilot.conversation_paint. Actual cropped
+paint assertions are preserved; no product edits or alternative renderer.
+
+Deleted 1 stale shared helper ownership lookup line. Pattern IDEN-1: selected
+source identity owns viewport selection; IMPL-12: one existing crop helper fixed
+for all callers, not a parallel paint mechanism. AGENT-8: one installed continuous
+real journey using existing fixture. Remaining explicit strengthening: child
+first-open paint and notification detail assertions in this same journey.
+Parent latest15603ed adds post-welcome fence and owns actual live gate. This
+passing d511 receipt does not attest different product bytes or final latency.
