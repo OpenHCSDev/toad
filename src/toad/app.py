@@ -54,7 +54,6 @@ if TYPE_CHECKING:
     from toad.db import DB
     from toad.render_tasks import RenderTask
     from toad.screens.main import MainScreen
-    from toad.screens.settings import SettingsScreen
     from toad.screens.store import StoreScreen
 
 RenderResultT = TypeVar("RenderResultT")
@@ -227,13 +226,6 @@ QUOTES = [
 ]
 
 
-def get_settings_screen() -> SettingsScreen:
-    """Get a settings screen instance (lazily loaded)."""
-    from toad.screens.settings import SettingsScreen
-
-    return SettingsScreen()
-
-
 def get_workspace_screen():
     from toad.screens.workspace import WorkspaceScreen
     return WorkspaceScreen(id="workspace")
@@ -250,9 +242,6 @@ class ToadApp(WorkspaceSessionShutdown, App, inherit_bindings=False):
     """The top level app."""
 
     CSS_PATH = ["toad.tcss", "screens/comms.tcss"]
-    SCREENS = {
-        "settings": get_settings_screen,
-    }
     COMMANDS = {ApplicationCommands}
     MODES = {"store": get_store_screen, "workspace": get_workspace_screen}
     BINDING_GROUP_TITLE = "System"
@@ -691,5 +680,4 @@ class ToadApp(WorkspaceSessionShutdown, App, inherit_bindings=False):
 
     def update_show_sessions(self) -> None:
         self.show_sessions = self.settings.ui.sessions_bar.shown(len(self.open_tabs))
-
 

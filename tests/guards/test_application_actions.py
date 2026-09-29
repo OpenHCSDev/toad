@@ -24,6 +24,8 @@ def test_application_action_caller_deletion():
     bindings=next(n for n in app.body if isinstance(n,ast.Assign)
                   and any(isinstance(target,ast.Name) and target.id=='BINDINGS' for target in n.targets))
     assert isinstance(bindings.value,ast.ListComp)
+    assert not any(isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='SCREENS'
+                   for t in n.targets) for n in app.body)
     for path in ('application_actions.py','application_lifetime.py'):
         for node in ast.walk(ast.parse((ROOT/path).read_text())):
             if isinstance(node,ast.Call) and isinstance(node.func,ast.Attribute) and node.func.attr=='run_worker':

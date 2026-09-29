@@ -62,7 +62,8 @@ class SettingsAction(ApplicationAction, KeyboundAction, PaletteAction):
         app.run_worker(partial(self.edit, app))
 
     async def edit(self, app: ToadApp) -> None:
-        await app.push_screen_wait("settings")
+        from toad.screens.settings import SettingsScreen
+        await app.push_screen_wait(SettingsScreen())
         await app.settings.save()
 
 
