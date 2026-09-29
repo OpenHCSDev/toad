@@ -954,10 +954,11 @@ class Agent(AgentBase):
         self._post_queue_view()
 
     def _rename_coordination_thread(self, display_name: str) -> None:
+        if not self.process.accepts_session(self.session_id):
+            return
         thread = self.coordination.thread.name if self.coordination else None
         wire_root = self.coordination.wire_root if self.coordination else None
-        process = self.process.process
-        if thread is None or wire_root is None or process is None:
+        if thread is None or wire_root is None:
             return
 
         from agent_comms.comms import wire
