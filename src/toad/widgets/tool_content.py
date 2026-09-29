@@ -20,6 +20,7 @@ if TYPE_CHECKING:
     from textual.screen import Screen
     from textual.worker import Worker
     from toad.widgets.patch_diff import PreparedPatch
+    from toad.tool_output import PatchPreparation
 
 
 class TextContent(Static):
@@ -40,14 +41,6 @@ class PatchWarmup:
     source: str
     theme: tuple[bool, bool]
     result: "asyncio.Future[PreparedPatch | None]"
-
-    def prepared_for(self, source: str) -> "PreparedPatch | None":
-        if source != self.source:
-            return None
-        if self.result.cancelled() or not self.result.done():
-            return None
-        return self.result.result()
-
 
 @dataclass(frozen=True)
 class PatchPreparationTicket:
@@ -136,10 +129,10 @@ class ToolCallDiff(containers.VerticalGroup):
     }
     """
 
-    def __init__(self, patch: str, *, warmup: PatchWarmup | None = None) -> None:
+    def __init__(self, patch: str, *, preparation: "PatchPreparation | None" = None) -> None:
         self.patch = patch
-        self._warmup = warmup
-        prepared = None if warmup is None else warmup.prepared_for(patch)
+        self._warmup = None if preparation is None else preparation.warmup
+        prepared = None if preparation is None else preparation.prepared_for(patch)
         task = None if prepared is None else PatchRenderTask(patch, *prepared.theme)
         self.publication: PatchPublication = (WaitingPatchPublication() if prepared is None
                                              else PublishedPatchPublication(prepared, task))

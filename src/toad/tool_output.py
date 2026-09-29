@@ -184,6 +184,14 @@ class PatchPreparation:
         self.retire()
         self.warmup = PatchWarmup(source, theme, asyncio.get_running_loop().create_future())
 
+    def prepared_for(self, source: str):
+        entry = self.warmup
+        if entry is None or entry.source != source:
+            return None
+        if entry.result.cancelled() or not entry.result.done():
+            return None
+        return entry.result.result()
+
     async def prepare(self, view: ToolCall) -> None:
         from toad.render_tasks import PatchRenderTask
 
@@ -211,11 +219,7 @@ class PatchToolOutputPart(ToolOutputPart):
     preparation: PatchPreparation = field(default_factory=PatchPreparation, compare=False)
 
     def compose(self, view: Widget) -> tuple[Widget, ...]:
-        warmup = self.preparation.warmup
-        theme = view.app.current_theme
-        if warmup is not None and warmup.theme != (theme.ansi, theme.dark):
-            warmup = None
-        return (ToolCallDiff(self.source, warmup=warmup),)
+        return (ToolCallDiff(self.source, preparation=self.preparation),)
 
     def begin_preparation(self, theme: tuple[bool, bool]) -> bool:
         self.preparation.begin(self.source, theme)
