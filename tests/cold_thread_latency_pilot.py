@@ -45,7 +45,7 @@ async def main(profile_path=None, trace=False):
             XDG_STATE_HOME=str(root / "state"),
             XDG_DATA_HOME=str(root / "data"),
         )
-        wire(root / "wire").threads.register(
+        wire(root / "wire").registry.declare(
             Thread(
                 "cold-replay",
                 frozenset(),

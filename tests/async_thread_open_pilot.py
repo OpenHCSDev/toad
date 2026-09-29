@@ -43,7 +43,7 @@ async def main():
             AGENT_COMMS_ROOT=str(root / "wire"),
         )
         comms = wire(root / "wire")
-        comms.threads.register(
+        comms.registry.declare(
             Thread(
                 "slow-thread",
                 frozenset(),

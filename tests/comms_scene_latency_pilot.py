@@ -45,7 +45,7 @@ async def main():
                           XDG_DATA_HOME=str(root / "data"), XDG_STATE_HOME=str(root / "state"))
         comms = wire(root / "wire")
         me = session_thread_name(root)
-        comms.threads.register(Thread(me, frozenset({"fixture"}), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
+        comms.registry.declare(Thread(me, frozenset({"fixture"}), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
         targets = [f"#scene-{index}" for index in range(6)]
         for target in targets:
             comms.channels.create_tag(target.removeprefix("#"))

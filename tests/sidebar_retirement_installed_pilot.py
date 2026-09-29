@@ -46,7 +46,7 @@ async def main():
         comms = wire(root / "wire")
         tabs = int(os.environ.get("TOAD_SIDEBAR_TABS", "64"))
         for name in ["peer"] + [f"owner-{index}" for index in range(tabs)]:
-            comms.threads.register(Thread(name, frozenset(), str(project)))
+            comms.registry.declare(Thread(name, frozenset(), str(project)))
         comms.relationships.edit("owner-0", "add", "peer", "Persist actual relationship state")
         app = InstalledApp(project_dir=str(project))
         measurements, timings, screens, references = [], [], [], []

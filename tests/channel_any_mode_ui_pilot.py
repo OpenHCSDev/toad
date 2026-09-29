@@ -28,8 +28,8 @@ async def main() -> None:
             XDG_STATE_HOME=str(root / "state"), XDG_DATA_HOME=str(root / "data"),
         )
         comms = wire(root / "wire")
-        comms.threads.register(Thread("alice", frozenset({"team"}), str(root)))
-        comms.threads.register(Thread("bob", frozenset({"other"}), str(root)))
+        comms.registry.declare(Thread("alice", frozenset({"team"}), str(root)))
+        comms.registry.declare(Thread("bob", frozenset({"other"}), str(root)))
         comms.messaging.send("alice", "#team", "exact route")
         comms.messaging.send("alice", "bob", "outbound from member")
         comms.messaging.send("bob", "alice", "inbound to member")

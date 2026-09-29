@@ -33,7 +33,7 @@ async def main():
         os.environ.update(AGENT_COMMS_ROOT=str(root / "wire"), XDG_CONFIG_HOME=str(root / "config"),
                           XDG_STATE_HOME=str(root / "state"), XDG_DATA_HOME=str(root / "data"))
         comms = wire(root / "wire")
-        comms.threads.register(Thread("edge-reader", frozenset({"edge"}), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
+        comms.registry.declare(Thread("edge-reader", frozenset({"edge"}), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
         for index in range(60):
             comms.messaging.send("edge-reader", "#edge", f"History {index}: " + "body " * 40)
         app = ToadApp(project_dir=str(root))

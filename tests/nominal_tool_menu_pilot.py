@@ -27,7 +27,7 @@ async def main():
             AGENT_COMMS_ROOT=str(root / "wire"),
         )
         comms = wire(root / "wire")
-        comms.threads.register(Thread("sender", frozenset({"tools"}), str(root)))
+        comms.registry.declare(Thread("sender", frozenset({"tools"}), str(root)))
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(120, 45)) as pilot:
             await pilot.pause()

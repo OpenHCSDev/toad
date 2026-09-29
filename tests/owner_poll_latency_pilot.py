@@ -27,7 +27,7 @@ async def main():
         os.environ["XDG_STATE_HOME"] = str(root / "state")
         comms = wire(root / "wire")
         for index in range(100):
-            comms.threads.register(
+            comms.registry.declare(
                 Thread(
                     f"worker-{index}",
                     frozenset({"shared", "test"}),

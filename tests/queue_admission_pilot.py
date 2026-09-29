@@ -46,7 +46,7 @@ async def main():
         )
         comms = Comms(root / "wire")
         comms.messaging.initialize_private_initial_protocol()
-        comms.threads.register(
+        comms.registry.declare(
             Thread(
                 "beta",
                 frozenset(),
