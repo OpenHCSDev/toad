@@ -38,6 +38,15 @@ class PromptPopup(DeclaredFamily, VerticalGroup, metaclass=_PopupMeta, affix="Po
     def admitted(self) -> bool:
         return True
 
+    def focus(self, scroll_visible: bool = False) -> Self:
+        if self.open():
+            self.focus_content(scroll_visible)
+        return self
+
+    @abstractmethod
+    def focus_content(self, scroll_visible: bool) -> None:
+        """The leaf focuses its own control; opening and eligibility are shared."""
+
     def open(self) -> bool:
         if not self.admitted():
             return False

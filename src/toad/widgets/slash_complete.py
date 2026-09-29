@@ -107,14 +107,11 @@ class SlashComplete(CompletionPopup):
         yield SlashCompleteInput(compact=True, placeholder="fuzzy search")
         yield SelectionOptionList()
 
-    def focus(self, scroll_visible: bool = False) -> Self:
-        if not self.open():
-            return self
+    def focus_content(self, scroll_visible: bool) -> None:
         from toad.widgets.conversation import Conversation
         self.query_ancestor(Conversation).update_slash_commands()
         self.filter_slash_commands("")
         self.input.focus(scroll_visible)
-        return self
 
     def on_mount(self) -> None:
         self.filter_slash_commands("")

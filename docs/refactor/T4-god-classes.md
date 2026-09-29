@@ -465,9 +465,13 @@ No persisted schema/store/wire change or second renderer/registry is introduced.
 
 A new popup requires one declaration implementing its construction/focus and
 case behavior, zero Prompt composition/flag/selection/dismiss roster edits.
+The shared focus implementation invokes the leaf focus_content hook; selection
+and admission remain declaration-owned. Prompt.supports_completion owns the
+composer state answer so leaves do not repeat foreign absence probes.
 IMPL-4/5/8/12/13, MEMB-1/2, IDEN-1/3, TIME-1/6/9 and AGENT-8 apply.
-Every existing touched class must shrink or stay level, and touched-file chain
-terms cannot increase. Existing root submission fields are outside this batch.
+The exact newest archive principle13 governs class size: small correct owners
+may absorb behavior, no class crosses500 and no existing god class grows.
+Touched-file chain terms and foreign absence probes cannot increase. Existing root submission fields are outside this batch.
 
 Actual installed acceptance uses an official-SDK ACP subprocess for command
 discovery, submitted completion and model selection; actual filesystem scan,

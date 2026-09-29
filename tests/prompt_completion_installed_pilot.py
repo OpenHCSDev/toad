@@ -71,8 +71,11 @@ async def main():
                 sidebar = await reveal(app.screen, pilot)
                 sidebar.query_one("#project-panel", SideBarCollapsible).collapsed = False
                 await until(pilot, lambda: sidebar.query_one_optional(ProjectSearchButton) is not None)
-                await until(pilot, lambda: sidebar.query_one(ProjectSearchButton) in app.screen._compositor.visible_widgets)
-                await pilot.click(sidebar.query_one(ProjectSearchButton))
+                button = sidebar.query_one(ProjectSearchButton)
+                button.scroll_visible(animate=False, immediate=True)
+                await until(pilot, lambda: painted(button, "Search files"))
+                await pilot.hover(button, offset=(3, 0))
+                await pilot.click(button, offset=(3, 0))
                 paths = prompt.path_search
                 await until(pilot, lambda: paths.is_open and paths.input.has_focus and bool(paths.display_paths))
                 await until(pilot, lambda: not paths.option_list.loading)
@@ -82,7 +85,8 @@ async def main():
                 await until(pilot, lambda: '"space name.txt"' in prompt.text and prompt.prompt_text_area.has_focus)
                 assert not paths.is_open
 
-                await pilot.click(sidebar.query_one(ProjectSearchButton))
+                await pilot.hover(button, offset=(3, 0))
+                await pilot.click(button, offset=(3, 0))
                 await until(pilot, lambda: paths.is_open)
                 await pilot.press(*"target")
                 await until(pilot, lambda: paths.option_list.option_count >= 20)
@@ -104,7 +108,8 @@ async def main():
                 (project / "folder" / "target-127.txt").unlink()
                 (project / "folder" / "target-127-new.txt").write_text("Current catalog")
                 prompt.project_directory_updated()
-                await pilot.click(sidebar.query_one(ProjectSearchButton))
+                await pilot.hover(button, offset=(3, 0))
+                await pilot.click(button, offset=(3, 0))
                 await until(pilot, lambda: "folder/target-127-new.txt" in paths.display_paths)
                 await until(pilot, lambda: not paths.option_list.loading)
                 await pilot.press(*"target-127")
@@ -118,6 +123,7 @@ async def main():
                 await until(pilot, lambda: picker.is_open and picker.search_input.has_focus)
                 assert not paths.is_open and not slash.is_open
                 await pilot.press(*"second")
+                await pilot.pause(.05)
                 await until(pilot, lambda: painted(picker, "Local second"))
                 await pilot.press("enter")
                 await until(pilot, lambda: view.current_model.id == "local/second")

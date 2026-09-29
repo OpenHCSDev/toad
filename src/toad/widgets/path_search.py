@@ -288,15 +288,14 @@ class PathSearch(CompletionPopup):
         if self.is_on_screen and self.screen is self.app.screen:
             self.refresh_paths()
 
-    def focus(self, scroll_visible: bool = False) -> Self:
-        if not self.open():
-            return self
-        self.reset()
+    def focus_content(self, scroll_visible: bool) -> None:
+        self.input.clear()
         if self._paths_dirty:
             self.refresh_paths()
         if self.show_tree_picker and (tree := self.query_one_optional(ProjectDirectoryTree)):
-            return tree.focus(scroll_visible=scroll_visible)
-        return self.input.focus(scroll_visible=scroll_visible)
+            tree.focus(scroll_visible=scroll_visible)
+        else:
+            self.input.focus(scroll_visible=scroll_visible)
 
     @classmethod
     def make_relative(cls, path: Path, root: Path) -> Path:

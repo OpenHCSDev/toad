@@ -29,7 +29,7 @@ class ConnectProvider(Static, can_focus=True):
         super().__init__("Connect a provider…", markup=False)
 
     def action_connect(self):
-        self.query_ancestor(ModelSwitcher).is_open = False
+        self.query_ancestor(ModelSwitcher).action_dismiss()
         self.post_message(messages.ProviderLogin())
 
     def on_click(self, event: events.Click):
@@ -71,7 +71,7 @@ class ModelSwitcher(InfoPopup):
         overlay: screen;
         constrain: inside inflect;
         width: 80;
-        max-width: 100vw;
+        max-width: 100%;
         height: auto;
         max-height: 80vh;
         border: round $primary;
@@ -134,17 +134,14 @@ class ModelSwitcher(InfoPopup):
         if self.is_mounted and self.is_open:
             self.filter_models(preserve_selection=True)
 
-    def focus(self, scroll_visible: bool = False) -> Self:
+    def focus_content(self, scroll_visible: bool) -> None:
         self._open_generation += 1
         self._selection_moved = False
-        if not self.open():
-            return self
         with self.search_input.prevent(Input.Changed):
             self.search_input.value = ""
         self.filter_models()
         self.search_input.focus(scroll_visible=False)
         self.load_recents(self._open_generation, self.history_scope)
-        return self
 
     @work(exclusive=True)
     async def load_recents(self, generation: int, scope: str) -> None:
