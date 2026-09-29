@@ -2426,7 +2426,7 @@ class Conversation(containers.Vertical):
         """Post any welcome content."""
 
     def watch_agent(self, agent: AgentBase | None) -> None:
-        self.transcript.invalidate()
+        self.transcript.source_changed()
         # A presentation remount is not a fresh attachment. Start at the
         # Agent's current projection/floor so previously queued receipts cannot
         # revive proof after its reducer entered quarantine or evidence loss.

@@ -56,9 +56,12 @@ class SnapshotPublication(TranscriptPublication):
             self.window.anchor()
         with view.app.batch_update():
             await self.contents.mount(history)
-        if self.current():
-            view.query_one(SessionDetails)._refresh_summary()
-            self.owner.painted(self.page.after)
+        if not self.current():
+            if history.is_attached:
+                await history.remove()
+            return
+        view.query_one(SessionDetails)._refresh_summary()
+        self.owner.painted(self.page.after)
 
 
 class CheckpointPublication(TranscriptPublication):
@@ -242,7 +245,16 @@ class TranscriptPresentation:
                 self.displayed_cursor = cursor
         view.call_after_refresh(record)
 
+    def source_changed(self) -> None:
+        self.invalidate()
+        self.dirty = self.checkpoint_required = False
+        self.displayed_cursor = None
+        worker, self.worker = self.worker, None
+        if worker is not None:
+            worker.cancel()
+
     def changed(self, cursor: TranscriptCursor | None) -> None:
+        self.invalidate()
         self.dirty = True
         if cursor is None:
             self.checkpoint_required = True
@@ -251,6 +263,7 @@ class TranscriptPresentation:
         self.request()
 
     def require_checkpoint(self) -> None:
+        self.invalidate()
         self.checkpoint_required = self.dirty = True
         self.request()
 
