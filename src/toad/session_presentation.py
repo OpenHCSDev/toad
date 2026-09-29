@@ -81,64 +81,43 @@ class SessionSurfaceLifetime(ABC):
     async def close(self, screen: "MainScreen") -> None: ...
 
 
-class OperationalSessionPresentation(SessionSurfaceLifetime):
-    """The operational Agent survives; only the selected rich view is mounted."""
+class OperationalSessionSources:
+    """Logical session custody of existing operational owners, without a view."""
 
     def __init__(self) -> None:
-        self.state: SessionViewState | None = None
         self.agent = None
         self.shell = None
         self.directory_watcher = None
-        self._lock = asyncio.Lock()
 
-    def compose_content(self, screen: "MainScreen") -> Widget:
-        return SessionSurfaceSlot()
+    def wire(self, conversation: Conversation) -> None:
+        if self.directory_watcher is not None:
+            conversation._directory_watcher = self.directory_watcher
+            self.directory_watcher.rebind(conversation)
 
-    async def prepare(self, screen: "MainScreen") -> None:
-        async with self._lock:
-            if screen.query_one_optional(Conversation) is not None:
-                return
-            conversation = (screen.make_blank_conversation() if self.state is not None
-                            else screen._make_conversation())
-            if self.directory_watcher is not None:
-                conversation._directory_watcher = self.directory_watcher
-                self.directory_watcher.rebind(conversation)
-            await screen.query_one("#session-content").mount(conversation)
-            if self.directory_watcher is not None:
-                conversation.call_after_refresh(self.directory_watcher.notify_if_visible)
-            if self.state is not None:
-                self.state.restore(conversation)
-                self.state = None
-            if self.shell is not None:
-                conversation._shell = self.shell
-                await self.shell.attach(conversation)
-            if self.agent is not None:
-                conversation.agent = self.agent
-                self.agent.attach_surface(conversation)
+    async def present(self, conversation: Conversation) -> None:
+        if self.directory_watcher is not None:
+            conversation.call_after_refresh(self.directory_watcher.notify_if_visible)
+        if self.shell is not None:
+            conversation._shell = self.shell
+            await self.shell.attach(conversation)
+        if self.agent is not None:
+            conversation.agent = self.agent
+            self.agent.attach_surface(conversation)
 
-    async def retire(self, screen: "MainScreen") -> None:
-        async with self._lock:
-            conversation = screen.query_one_optional(Conversation)
-            if conversation is None:
-                return
-            self.state = SessionViewState.capture(conversation)
-            self.agent = conversation.agent
-            self.shell = conversation._shell
-            conversation._shell = None
-            if self.shell is not None:
-                await self.shell.detach()
-            self.directory_watcher = conversation._directory_watcher
-            conversation._directory_watcher = None
-            if self.directory_watcher is not None:
-                self.directory_watcher.rebind(screen)
-            screen.viewport_presentation.release(conversation.window)
-            if self.agent is not None:
-                # Detach before unmount: retiring optional UI must not call stop.
-                self.agent.detach_surface(conversation)
-            await conversation.remove()
+    async def detach(self, conversation: Conversation, screen: "MainScreen") -> None:
+        self.agent = conversation.agent
+        self.shell = conversation._shell
+        conversation._shell = None
+        if self.shell is not None:
+            await self.shell.detach()
+        self.directory_watcher = conversation._directory_watcher
+        conversation._directory_watcher = None
+        if self.directory_watcher is not None:
+            self.directory_watcher.rebind(screen)
+        if self.agent is not None:
+            self.agent.detach_surface(conversation)
 
     async def close(self, screen: "MainScreen") -> None:
-        # Closing the logical session is distinct from retiring optional UI.
         if self.agent is not None:
             await self.agent.stop()
             self.agent = None
@@ -151,6 +130,44 @@ class OperationalSessionPresentation(SessionSurfaceLifetime):
         if shell is not None:
             await shell.close()
         self.shell = None
+
+
+class OperationalSessionPresentation(SessionSurfaceLifetime):
+    """The operational Agent survives; only the selected rich view is mounted."""
+
+    def __init__(self) -> None:
+        self.state: SessionViewState | None = None
+        self.sources = OperationalSessionSources()
+        self._lock = asyncio.Lock()
+
+    def compose_content(self, screen: "MainScreen") -> Widget:
+        return SessionSurfaceSlot()
+
+    async def prepare(self, screen: "MainScreen") -> None:
+        async with self._lock:
+            if screen.query_one_optional(Conversation) is not None:
+                return
+            conversation = (screen.make_blank_conversation() if self.state is not None
+                            else screen._make_conversation())
+            self.sources.wire(conversation)
+            await screen.query_one("#session-content").mount(conversation)
+            if self.state is not None:
+                self.state.restore(conversation)
+                self.state = None
+            await self.sources.present(conversation)
+
+    async def retire(self, screen: "MainScreen") -> None:
+        async with self._lock:
+            conversation = screen.query_one_optional(Conversation)
+            if conversation is None:
+                return
+            self.state = SessionViewState.capture(conversation)
+            await self.sources.detach(conversation, screen)
+            screen.viewport_presentation.release(conversation.window)
+            await conversation.remove()
+
+    async def close(self, screen: "MainScreen") -> None:
+        await self.sources.close(screen)
         self.state = None
 
 
@@ -205,7 +222,7 @@ class BlankSessionSurface:
         return (
             screen._agent is None and conversation.agent is None
             and conversation._agent_data is None and conversation._shell is None
-            and not conversation.contents.children and not conversation.terminals
+            and not conversation.contents.children
             and conversation._terminal is None and not conversation.goal_display.visible
             and not conversation.queued_prompts and not conversation.queue_projection.items
             and not conversation.unresolved_inputs

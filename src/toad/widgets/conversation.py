@@ -115,7 +115,6 @@ if TYPE_CHECKING:
     from toad.widgets.agent_thought import AgentThought
     from toad.widgets.question import Ask
     from toad.widgets.terminal import Terminal
-    from toad.widgets.terminal_tool import TerminalTool
 
 
 AGENT_FAIL_HELP = {
@@ -590,7 +589,6 @@ class Conversation(containers.Vertical):
         self.set_reactive(Conversation.project_path, project_path)
         self.set_reactive(Conversation.working_directory, str(project_path))
         self.agent_slash_commands: list[AgentAdvertisedCommand] = []
-        self.terminals: dict[str, TerminalTool] = {}
         self._loading: Loading | None = None
         self._agent_response: AgentResponse | None = None
         self.turns = ConversationTurn(self._turn_changed)
@@ -2093,25 +2091,6 @@ class Conversation(containers.Vertical):
         ]
         self.update_slash_commands()
 
-    def get_terminal(self, terminal_id: str) -> TerminalTool | None:
-        """Get a terminal from its id.
-
-        Args:
-            terminal_id: ID of the terminal.
-
-        Returns:
-            Terminal instance, or `None` if no terminal was found.
-        """
-        from toad.widgets.terminal_tool import TerminalTool
-
-        try:
-            terminal = self.contents.query_one(f"#{terminal_id}", TerminalTool)
-        except NoMatches:
-            return None
-        if terminal.released:
-            return None
-        return terminal
-
     async def action_interrupt(self) -> None:
         terminal = self._terminal
         if terminal is not None and not terminal.is_finalized:
@@ -2124,76 +2103,6 @@ class Conversation(containers.Vertical):
     def action_focus_block(self, block_id: str) -> None:
         with suppress(NoMatches):
             self.query_one(f"#{block_id}").focus()
-
-    @work
-    @on(acp_messages.CreateTerminal)
-    async def on_acp_create_terminal(self, message: acp_messages.CreateTerminal):
-        from toad.widgets.terminal_tool import Command, TerminalTool
-
-        command = Command(
-            message.command,
-            message.args or [],
-            message.env or {},
-            message.cwd or str(self.project_path),
-        )
-        width = self.window.size.width - 5 - self.window.styles.scrollbar_size_vertical
-        height = self.window.scrollable_content_region.height - 2
-
-        terminal = TerminalTool(
-            command,
-            output_byte_limit=message.output_byte_limit,
-            id=message.terminal_id,
-            minimum_terminal_width=width,
-        )
-        self.terminals[message.terminal_id] = terminal
-        terminal.display = False
-
-        try:
-            await terminal.start(width, height)
-        except Exception as error:
-            log(str(error))
-            message.result_future.set_result(False)
-            return
-
-        try:
-            await self.post(terminal)
-        except Exception:
-            message.result_future.set_result(False)
-        else:
-            message.result_future.set_result(True)
-
-    @on(acp_messages.KillTerminal)
-    async def on_acp_kill_terminal(self, message: acp_messages.KillTerminal):
-        if (terminal := self.get_terminal(message.terminal_id)) is not None:
-            terminal.kill()
-
-    @on(acp_messages.GetTerminalState)
-    def on_acp_get_terminal_state(self, message: acp_messages.GetTerminalState):
-        if (terminal := self.get_terminal(message.terminal_id)) is None:
-            message.result_future.set_exception(
-                KeyError(f"No terminal with id {message.terminal_id!r}")
-            )
-        else:
-            message.result_future.set_result(terminal.tool_state)
-
-    @on(acp_messages.ReleaseTerminal)
-    def on_acp_terminal_release(self, message: acp_messages.ReleaseTerminal):
-        if (terminal := self.get_terminal(message.terminal_id)) is not None:
-            terminal.kill()
-            terminal.release()
-
-    @work
-    @on(acp_messages.WaitForTerminalExit)
-    async def on_acp_wait_for_terminal_exit(
-        self, message: acp_messages.WaitForTerminalExit
-    ):
-        if (terminal := self.get_terminal(message.terminal_id)) is None:
-            message.result_future.set_exception(
-                KeyError(f"No terminal with id {message.terminal_id!r}")
-            )
-        else:
-            return_code, signal = await terminal.wait_for_exit()
-            message.result_future.set_result((return_code or 0, signal))
 
     async def set_mode(self, mode_id: str | None) -> None:
         """Set the mode give its id (if it exists).

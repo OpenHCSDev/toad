@@ -79,7 +79,7 @@ async def main():
             shell_task, shell_process = shell._task, shell._process
             third = (await app.new_session_screen(app.get_main_screen)).mode_name
             assert not second.query(Conversation)
-            assert second.presentation.shell is shell
+            assert second.presentation.sources.shell is shell
             assert shell._task is shell_task and not shell_task.done()
             assert shell._process is shell_process and shell_process.returncode is None
             async with asyncio.timeout(5):
@@ -100,7 +100,7 @@ async def main():
             assert "owned-shell-marker" in paint, paint
             await app.switch_mode(third)
             assert not second.query(Conversation)
-            assert second.presentation.shell is shell
+            assert second.presentation.sources.shell is shell
             sidebar = app.screen.query_one("#thread-sidebar", SideBar)
             assert not sidebar._panels_loaded
             sidebar.reveal()

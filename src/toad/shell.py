@@ -7,14 +7,10 @@ import os
 import platform
 import pty
 import struct
-import signal
-from weakref import ref
 import termios
 from contextlib import suppress
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
-
-from agent_comms.child_process import STOP_GRACE_SECONDS
 
 from textual import log
 from textual.message import Message
@@ -22,7 +18,8 @@ from textual.message import Message
 from toad.shell_read import shell_read
 from toad.terminal_environment import TerminalEnvironment
 from toad import ansi
-from toad.shell_output import ShellOutput, ShellCommandOutput, ShellTerminalOutput
+from toad.shell_output import ShellCommandOutput, ShellTerminalOutput
+from toad.shell_source import ShellOperationalSource
 
 if TYPE_CHECKING:
     from toad.widgets.conversation import Conversation
@@ -53,7 +50,7 @@ class ShellFinished(Message):
     """The shell finished."""
 
 
-class Shell:
+class Shell(ShellOperationalSource):
     """Responsible for shell interactions in Conversation."""
 
     def __init__(
@@ -64,24 +61,14 @@ class Shell:
         start="",
         hide_start: bool = True,
     ) -> None:
-        self._conversation = ref(conversation)
-        self._app = conversation.app
-        self.outputs: list[ShellOutput] = []
-        self.output: ShellTerminalOutput | None = None
-        self._presentation_lock = asyncio.Lock()
-        self._terminal_size = conversation.get_terminal_dimensions()
+        super().__init__(conversation)
         self.working_directory = working_directory
 
         self.new_log: bool = False
         self.shell = shell
         self.shell_start = start
         self.hide_start = hide_start
-        self.master: int | None = None
-        self._task: asyncio.Task | None = None
-        self._process: asyncio.subprocess.Process | None = None
-        self._transport: asyncio.ReadTransport | None = None
 
-        self._finished: bool = False
         self._ready_event: asyncio.Event = asyncio.Event()
 
         self._hide_echo: set[bytes] = set()
@@ -93,43 +80,6 @@ class Shell:
 
         self._pid: int | None = None
         """Shell process id"""
-
-    async def attach(self, conversation: Conversation) -> None:
-        async with self._presentation_lock:
-            self._conversation = ref(conversation)
-            conversation.working_directory = self.working_directory
-            for output in self.outputs:
-                await output.present(conversation)
-
-    async def detach(self) -> None:
-        async with self._presentation_lock:
-            self._conversation = lambda: None
-            for output in self.outputs:
-                output.detach()
-
-    async def _present(self, output: ShellOutput) -> None:
-        async with self._presentation_lock:
-            if (conversation := self._conversation()) is not None:
-                await output.present(conversation)
-
-    async def close(self) -> None:
-        """Closing a logical session ends its owned PTY; UI retirement does not."""
-        await self.detach()
-        if self._process is not None and self._process.returncode is None:
-            with suppress(ProcessLookupError):
-                os.killpg(self._process.pid, signal.SIGTERM)
-            try:
-                async with asyncio.timeout(STOP_GRACE_SECONDS):
-                    await self._process.wait()
-            except TimeoutError:
-                with suppress(ProcessLookupError):
-                    os.killpg(self._process.pid, signal.SIGKILL)
-                await self._process.wait()
-        if self._task is not None and not self._task.done():
-            self._task.cancel()
-            await asyncio.gather(self._task, return_exceptions=True)
-        self.outputs.clear()
-        self.output = None
 
     @property
     def is_finished(self) -> bool:
@@ -262,19 +212,6 @@ class Shell:
             return 0
         self._hide_output = hide_output
         return result
-
-    async def run(self) -> None:
-        try:
-            await self._run_pty()
-        finally:
-            if self._transport is not None:
-                self._transport.close()
-                self._transport = None
-            elif self.master is not None:
-                with suppress(OSError):
-                    os.close(self.master)
-            self.master = None
-            self._finished = True
 
     async def _run_pty(self) -> None:
         current_directory = self.working_directory

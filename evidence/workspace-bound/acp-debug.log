@@ -1,3 +1,3 @@
-2026-09-28 20:08:37,450 metaclass_registry.core DEBUG Auto-registered ReplyIndex as 'reply_index' plugin
-2026-09-28 20:08:37,451 metaclass_registry.core DEBUG Auto-registered TranscriptReply as 'transcript_reply' plugin
-2026-09-28 20:08:37,466 asyncio DEBUG Using selector: EpollSelector
+2026-09-28 20:21:37,232 metaclass_registry.core DEBUG Auto-registered ReplyIndex as 'reply_index' plugin
+2026-09-28 20:21:37,233 metaclass_registry.core DEBUG Auto-registered TranscriptReply as 'transcript_reply' plugin
+2026-09-28 20:21:37,251 asyncio DEBUG Using selector: EpollSelector
