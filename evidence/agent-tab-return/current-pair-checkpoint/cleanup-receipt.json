@@ -1,0 +1,27 @@
+{
+  "owner": "PR202",
+  "reason": "completed receipts and exact573 wheel retained; obsolete runtime and reconstructible Git archives unused",
+  "removed": [
+    "/home/ts/.cache/agent-scratch/toad-retained-outer-history-first-paint-20260929/installed-runtime",
+    "/home/ts/wt/toad-retained-outer-history-first-paint-20260929/.artifacts/sidebar-geometry-package/source",
+    "/home/ts/wt/toad-retained-outer-history-first-paint-20260929/.artifacts/retained-session-package/source",
+    "/home/ts/wt/toad-retained-outer-history-first-paint-20260929/.artifacts/retained-reader-guard-package/source"
+  ],
+  "retired_old_c1_runtime": {
+    "path": "/home/ts/wt/toad-retained-outer-history-first-paint-20260929/.artifacts/sidebar-geometry-package/runtime",
+    "purpose": "old installed887 and geometry verification; all receipts committed; wheel retained",
+    "active_processes": []
+  },
+  "candidate_disposable_bytecode": {
+    "path": ".artifacts/current-pair-package/runtime",
+    "bytes": 17433251,
+    "directories": 72,
+    "scope": "only owned runtime copy; source and distributions preserved"
+  },
+  "followup_checkout": {
+    "path": "/home/ts/wt/toad-workspace-presentation-continuation-20260929",
+    "commit": "6e6f3381c8f0a0c4e548c7c2145829176befee70",
+    "draft_pr": 213,
+    "reason": "all work committed/pushed; release duplicate checkout headroom for required serial202 installed native journey; continuation will use original persistent WT after shipment"
+  }
+}
