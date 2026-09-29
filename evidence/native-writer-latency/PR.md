@@ -1,0 +1,9 @@
+# Independent native source / terminal-writer latency continuation
+
+Remaining116/110 scope after merged179/180. Uses existing real localhost Pi/ACP runtime, App/Pilot and PTY fixtures; no replacement Agent/history/cache/renderer/driver. Four genuinely independent native files with distinct native model responses and retained live Agent/process/editor identities. Ordinary GC. Existing FrameFlush declaration observes actual Linux writer flush after a matching compositor frame; reports compositor and writer phases separately. Existing provisional mixed two-loaded matrix is not repeated or represented as final acceptance.
+
+First noneditable real-PTY run on merged180 +core13d92f80/Textual609b/native921 reproduced a concrete source-producer failure: actual native source bodies and editor/process identities survive, but native raw page reads grow0→4 during loaded returns. The unchanged zero-reread guard remains red; no readiness/speedup/50ms claim. Exact canonical identity census is underway to choose the producer fix, not speculative cache replacement. Original failure terminal/process receipt retained.
+
+This is separate from Dalton382/182 idle regression, which Dalton owns. Parent current fulljourney idle gate is passing. Default/root/launchers/quiet cutover untouched. Resource floor gates test actor admission before pressure can consume host memory; initial cohort is4, not64. Current host root6.5/home13GiB and14GiB available RAM; completed disposable own copies already cleaned, source/evidence preserved. No paid provider/CI/duplicate matrix.
+
+NRA/latest exact refactor-audit reread; IDEN-1/IDEN-7/TIME-9: cache identity must belong canonical source, rendering/source/process/editor custody must remain proven. Large remaining producer choice follows actual identity and phase evidence. Draft is active work, not final116 completion.

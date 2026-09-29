@@ -97,7 +97,7 @@ async def notification_feedback(
 
 async def main(*, notification_only=False, retire_surface=False, app_type=ToadApp,
                acceptance=None, provider_reply=None, provider_usage=None,
-               native_settings=None, prepare_state=None, expected_response_disconnects=frozenset()):
+               native_settings=None, prepare_state=None, expected_response_disconnects=frozenset(), headless=True):
     evidence = Path(os.environ.get("L0A_EVIDENCE", os.environ["TMPDIR"]))
     evidence.mkdir(parents=True, exist_ok=True)
     package = Path(os.environ["AC_NATIVE_COPIED_PACKAGE"])
@@ -262,7 +262,7 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
         agent = None
         try:
             print("INSTALLED_APP_RUN_TEST_ENTER", flush=True)
-            async with app.run_test(size=(160, 44)) as pilot:
+            async with app.run_test(headless=headless, size=(160, 44)) as pilot:
                 print("INSTALLED_APP_RUN_TEST_YIELDED", flush=True)
                 await pilot.pause()
                 owner_mode = app.selected_mode
