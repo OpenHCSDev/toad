@@ -56,7 +56,9 @@ class TerminalTitle(DeclaredFamily, affix="TerminalTitle"):
     def publish(self) -> None:
         attention = self.attention
         selected = attention.app.selected_session
-        screen_title = selected.title if selected is not None else attention.app.screen.title
+        screen_title = (selected.title
+                        if attention.app.current_mode == "workspace" and selected is not None
+                        else attention.app.screen.title)
         title = f"{attention.title} — {screen_title}" if screen_title else attention.title
         if driver := attention.app._driver:
             driver.write(f"\033]0;{self.icon()} {title}\007")
