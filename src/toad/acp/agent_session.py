@@ -318,4 +318,4 @@ class AgentSession:
             self.agent.controller.publish_modes(modes.current_mode_id, {
                 mode.id: Mode(mode.id, mode.name, mode.description)
                 for mode in modes.available_modes})
-        self.agent.configuration.receive(response)
+        self.agent.configuration.receive(response.config_options)

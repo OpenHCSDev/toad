@@ -43,7 +43,7 @@ class ToolCallStatus(DeclaredFamily, affix='ToolCallStatus'):
 
     @classmethod
     def from_acp(cls, call: ToolCall):
-        kind = cls.decode(call.status) if call.status is not None else PendingToolCallStatus
+        kind = cls.decode(call.status or PendingToolCallStatus.declared_name)
         return kind(call)
 
     busy = False

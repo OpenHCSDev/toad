@@ -42,9 +42,10 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
                      if item.action == ForkAction.declared_name)
     assert await pilot.click(menu_item)
     await until(pilot, lambda: isinstance(app.screen, ForkDialog))
-    entry = app.screen.query_one(Input)
+    entry = app.screen.query_one("#fork-name", Input)
     assert await pilot.click(entry)
-    entry.value = "immediate-fork Reply briefly to this isolated first fork test."
+    entry.value = "immediate-fork"
+    app.screen.query_one("#fork-task", Input).value = "Reply briefly to this isolated first fork test."
     async def hold_actual_startup():
         async with asyncio.timeout(20):
             while True:

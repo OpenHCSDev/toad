@@ -65,7 +65,7 @@ class ConfigurationSetting(DeclaredFamily, affix="ConfigurationSetting"):
         except jsonrpc.APIError as error:
             return ACPFailure.from_error(error.code, error.message, error.data).feedback
         if result is not None:
-            agent.configuration.receive(result)
+            agent.configuration.receive(result.config_options)
         return None
 
     @abstractmethod
@@ -123,13 +123,13 @@ class AgentConfiguration:
     def thinking(self) -> ThinkingConfigurationSetting:
         return self.setting(ThinkingConfigurationSetting)
 
-    def receive(self, response):
-        if response.config_options is None:
+    def receive(self, options):
+        if options is None:
             return
         # Official external decoder once; consumers use its guaranteed typed fields.
         selections = {kind: kind() for kind in ConfigurationSetting.members_with(ConfigurationSetting)}
         decoder = ConfigurationAdvertisements(selections)
-        for option in response.config_options:
+        for option in options:
             decoder.dispatch_sync(option)
         self.selections = selections
         self.publish()

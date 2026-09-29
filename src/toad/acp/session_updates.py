@@ -59,7 +59,7 @@ class SessionUpdateEffect(MroDispatch):
 
     @handles(ConfigOptionUpdate)
     def config(self, update):
-        self.agent.configuration.receive(update)
+        self.agent.configuration.receive(update.config_options)
 
     @handles(SessionInfoUpdate)
     def info(self, update):
