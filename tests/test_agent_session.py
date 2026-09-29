@@ -1,3 +1,4 @@
+from toad.agent_schema import AgentDefinition
 """Session boundary publications retain actual process and binding custody."""
 import asyncio
 from toad import jsonrpc
@@ -14,7 +15,7 @@ def test_pending_handshake_authentication_and_mode_reject_retired_binding(tmp_pa
             ('new', 'session_new', {'sessionId': 'late-new'}, ()),
             ('load', 'session_load', {}, ()),
         ):
-            agent = Agent(tmp_path, {'name': 'session', 'run_command': {'*': 'true'}}, 'original')
+            agent = Agent(tmp_path, AgentDefinition.decode({'identity': 'session', 'name': 'session', 'run_command': {'*': 'true'}}), 'original')
             entered, release = asyncio.Event(), asyncio.Event()
             class Pending:
                 async def wait(self):
@@ -37,7 +38,7 @@ def test_pending_handshake_authentication_and_mode_reject_retired_binding(tmp_pa
                 # Mode's existing public failure contract returns actionable feedback.
                 assert method == 'set_mode' and 'retired session' in response
             assert agent.session_id == 'original'
-            assert not agent.session.capabilities['loadSession']
+            assert not agent.session.capabilities.load_session
             assert not agent.presentation.auth_methods
             assert not agent.session.ready
             await agent.stop()

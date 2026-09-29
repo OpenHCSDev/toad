@@ -189,14 +189,8 @@ class FilePreview(VerticalScroll):
                 self.query_one("#file-preview-loading", Static).update(f"{self.path.name} is a binary file.")
                 return
             text = data.decode("utf-8", errors="replace")
-            if self.path.suffix.lower() in {".md", ".markdown", ".mdown"}:
-                markdown = PreparedConversationMarkdown()
-                await self.mount(markdown)
-                await markdown.update(text)
-            else:
-                content = WorkerStatic.code(text, filename=str(self.path))
-                await self.mount(content)
-                await content.wait_ready()
+            from toad.file_kind import FileKind
+            await FileKind.for_path(self.path).preview(self, text)
             if self.is_attached and not self._pruning:
                 await self.query_one("#file-preview-loading", Static).remove()
         finally:

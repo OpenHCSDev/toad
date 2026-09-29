@@ -274,7 +274,7 @@ async def main():
 
                 history.loader = load_latest
                 pool.hold()
-                jump = asyncio.create_task(history._jump_latest())
+                jump = asyncio.create_task(history._jump_latest(history.window.scroll_revision))
                 await until(pool.entered.is_set)
                 conversation.window.release_anchor()
                 pool.release.set()

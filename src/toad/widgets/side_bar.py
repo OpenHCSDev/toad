@@ -14,6 +14,7 @@ from textual.reactive import reactive
 from textual.widget import Widget
 
 from toad.session_tracker import SidebarState
+from toad.sidebar_layout import SidebarPlacementAction
 from toad.widgets.sidebar_viewport import SidebarHeader, SidebarViewport
 
 if TYPE_CHECKING:
@@ -474,12 +475,12 @@ class SidebarAction(widgets.Static, can_focus=True):
 
     @dataclass
     class Pressed(Message):
-        action: str
+        action: "SidebarPlacementAction"
 
-    def __init__(self, action: str, label: str) -> None:
-        super().__init__(label, id=f"sidebar-{action}")
+    def __init__(self, action: "SidebarPlacementAction") -> None:
+        super().__init__(action.label, id=f"sidebar-{action.declared_name}")
         self.action = action
-        self.set_class(action in {"left", "right"}, "-direction")
+        self.set_class(action.directional, "-direction")
 
     def action_activate(self) -> None:
         self.post_message(self.Pressed(self.action))
@@ -750,8 +751,8 @@ class SideBar(SidebarDecorations, containers.Vertical):
     def _compose_controls(self) -> ComposeResult:
         yield SidebarSlider("width", 15, 50, 40 if not self.right else 34)
         yield containers.Horizontal(
-            SidebarAction("left", "<──"), SidebarAction("right", "──>"),
-            SidebarAction("float", "Float"), id="sidebar-layout-actions",
+            *(SidebarAction(kind()) for kind in SidebarPlacementAction.members_with(SidebarPlacementAction)),
+            id="sidebar-layout-actions",
         )
 
     def _order_sidebars(self) -> None:
@@ -776,7 +777,7 @@ class SideBar(SidebarDecorations, containers.Vertical):
                 ancestor.display for ancestor in self.ancestors if isinstance(ancestor, Widget)):
             self._presented_layout = None
             return False
-        resolved = app.workspace_chrome.sidebar_geometry(self.screen)
+        resolved = app.workspace_chrome.sidebar_geometry(self)
         geometry = resolved.bars[self.id]
         width = geometry.width
         key = (placement, geometry, resolved.left_gutter, resolved.right_gutter,
@@ -817,13 +818,12 @@ class SideBar(SidebarDecorations, containers.Vertical):
                 slider.set_range(15, 50, placement.width_percent)
                 for direction, action in directions.items():
                     button = buttons[direction]
-                    button.display = action is not None
-                    button.tooltip = (f"Swap with the sidebar to the {direction}" if action == "swap"
-                                      else f"Move sidebar to the {direction}" if action == "move" else None)
+                    button.display = action.available
+                    button.tooltip = action.tooltip(direction)
                 toggle_mode = buttons["float"]
                 toggle_mode.update("Push" if placement.floating else "Float", layout=False)
                 toggle_mode.tooltip = "Push conversation text" if placement.floating else "Float over conversation text"
-                compact = all(action is not None for action in directions.values()) and width - 4 < 21
+                compact = all(action.available for action in directions.values()) and width - 4 < 21
                 actions.set_class(compact, "-compact")
                 controls.styles.height = 3 if compact else 2
         content = next((child for child in parent.children
@@ -862,10 +862,7 @@ class SideBar(SidebarDecorations, containers.Vertical):
         if self.id is None:
             return
         app = cast("ToadApp", self.app)
-        if event.action in {"left", "right"}:
-            app.sidebar_layout.shift(self.id, "left" if event.action == "left" else "right")
-        elif event.action == "float":
-            app.sidebar_layout.float_mode(self.id)
+        event.action.apply(app.sidebar_layout, self.id)
         app.sidebar_layout_changed.publish(None)
 
     @on(widgets.Collapsible.Collapsed)

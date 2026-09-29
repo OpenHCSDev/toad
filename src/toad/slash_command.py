@@ -87,8 +87,7 @@ class AgentAdvertisedCommand(SlashCommand):
 
     @classmethod
     def from_acp(cls, record) -> Self:
-        inputs = record.get("input") or {}
-        return cls(record["name"], record["description"], inputs.get("hint"))
+        return cls(record.name, record.description, record.input.hint if record.input else None)
 
     @classmethod
     def parse(cls, arguments: str) -> Self:
@@ -319,7 +318,7 @@ class SessionNewCommand(SlashCommand, LocalCommand, declared_name="toad:session-
             conversation.post_message(
                 messages.SessionNew(
                     conversation.working_directory,
-                    conversation._agent_data["identity"],
+                    conversation._agent_data.identity,
                     self.prompt,
                 )
             )

@@ -87,8 +87,15 @@ class HistoryWindow(VerticalScroll):
     history_paint_ready: asyncio.Event | None = None
 
     def action_scroll_end(self) -> None:
+        self.jump_to_latest()
+
+    def jump_to_latest(self) -> None:
+        """Follow the source tail, including pages outside the mounted window."""
+        self.anchor()
         self.document_viewport.destination()
-        super().action_scroll_end()
+        for history in tuple(self.histories):
+            if history.has_newer:
+                history.request_latest()
 
     def prepare_history_layout(self) -> HistoryAnchor | None:
         anchor = self.history_anchor

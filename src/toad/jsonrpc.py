@@ -4,7 +4,7 @@ import asyncio
 import json
 from asyncio import Future, get_running_loop
 from dataclasses import dataclass
-from functools import wraps
+from functools import wraps, lru_cache
 import inspect
 from inspect import signature
 from enum import IntEnum
@@ -14,7 +14,7 @@ import weakref
 
 import rich.repr
 from typing import Callable, ParamSpec, TypeVar, get_type_hints
-from typeguard import check_type, CollectionCheckStrategy, TypeCheckError
+from pydantic import TypeAdapter, ValidationError
 
 
 type MethodType = Callable
@@ -24,6 +24,13 @@ type JSONObject = dict[str, JSONType]
 type JSONList = list[JSONType]
 
 log = logging.getLogger("jsonrpc")
+
+
+@lru_cache(maxsize=128)
+def value_schema(annotation):
+    """Immutable declarations retain their validators, never request values."""
+    return TypeAdapter(annotation)
+
 
 
 def expose(name: str = "", prefix: str = "", *, ordered: bool = False):
@@ -222,41 +229,38 @@ class Server:
             name: parameter.default for name, parameter in method.parameters.items()
         }
 
-        def validate(value: JSONType, parameter_type: type) -> None:
-            """Validate types."""
+        def decode(value: JSONType, parameter_type: type):
+            """The declared type owns decoding at the JSON-RPC boundary."""
             try:
-                check_type(
-                    value,
-                    parameter_type,
-                    collection_check_strategy=CollectionCheckStrategy.ALL_ITEMS,
-                )
-            except TypeCheckError as error:
-                raise InvalidParams(
-                    f"Parameter is not the expected type ({parameter_type}); {error}",
-                    id=request_id,
-                )
+                return value_schema(parameter_type).validate_python(value, strict=True)
+            except ValidationError as error:
+                raise InvalidParams(str(error), id=request_id) from error
 
         if isinstance(params, list):
             parameter_items = [
                 (name, parameter)
                 for name, parameter in method.parameters.items()
-                if not issubclass(parameter.type, Server)
+                if not (inspect.isclass(parameter.type) and issubclass(parameter.type, Server))
             ]
             for (parameter_name, parameter), value in zip(parameter_items, params):
-                if issubclass(parameter.type, Server):
+                if inspect.isclass(parameter.type) and issubclass(parameter.type, Server):
                     value = self
                 else:
-                    validate(value, parameter.type)
+                    value = decode(value, parameter.type)
                 arguments[parameter_name] = value
         else:
             for parameter_name, value in params.items():
                 if parameter := method.parameters.get(parameter_name):
-                    validate(value, parameter.type)
+                    value = decode(value, parameter.type)
                     arguments[parameter_name] = value
 
         for name, parameter in method.parameters.items():
             if inspect.isclass(parameter.type) and issubclass(parameter.type, Server):
                 arguments[name] = self
+
+        for name, value in arguments.items():
+            if value is NO_DEFAULT:
+                raise InvalidParams(f"Missing required parameter {name!r}", id=request_id)
 
         try:
             call_result = method.callable(**arguments)
@@ -278,7 +282,7 @@ class Server:
             # Notification
             return None
 
-        response_object = {"jsonrpc": "2.0", "result": result, "id": request_id}
+        response_object = {"jsonrpc": "2.0", "result": value_schema(object).dump_python(result, mode="json", by_alias=True, exclude_none=True), "id": request_id}
         return response_object
 
     async def _dispatch_batch(self, json: JSONList) -> list[JSONType]:
@@ -340,9 +344,10 @@ class Server:
 @rich.repr.auto
 class MethodCall[ReturnType]:
     def __init__(
-        self, method: str, id: int | None, parameters: dict[str, JSONType]
+        self, method: str, id: int | None, parameters: dict[str, JSONType], result_type: object = object
     ) -> None:
         self.method = method
+        self.result_schema = value_schema(result_type)
         self.id = id
         self.parameters = parameters
         self.notification = False
@@ -361,13 +366,13 @@ class MethodCall[ReturnType]:
             json = {
                 "jsonrpc": "2.0",
                 "method": self.method,
-                "params": self.parameters,
+                "params": value_schema(object).dump_python(self.parameters, mode="json", by_alias=True, exclude_none=True),
             }
         else:
             json = {
                 "jsonrpc": "2.0",
                 "method": self.method,
-                "params": self.parameters,
+                "params": value_schema(object).dump_python(self.parameters, mode="json", by_alias=True, exclude_none=True),
                 "id": self.id,
             }
         return json
@@ -450,7 +455,7 @@ class API:
                 except KeyError:
                     if (error := response.get("error")) is not None:
                         if isinstance(error, dict):
-                            code = error.get("error", -1)
+                            code = error.get("code", -1)
                             if not isinstance(code, int):
                                 code = -1
                             message = str(error.get("message", "unknown error"))
@@ -459,7 +464,12 @@ class API:
                                 APIError(code, message, data)
                             )
                 else:
-                    method_call.future.set_result(result)
+                    try:
+                        decoded = method_call.result_schema.validate_python(result, strict=True)
+                    except ValidationError as error:
+                        method_call.future.set_exception(InvalidParams(str(error), id=id))
+                    else:
+                        method_call.future.set_result(decoded)
 
     def process_response(self, response: JSONType) -> None:
         if isinstance(response, list):
@@ -488,19 +498,21 @@ class API:
                 name = func.__name__
             name = f"{prefix}{name}"
 
+            result_type = get_type_hints(func).get("return", object)
+
             @wraps(func)
             def wrapper(*args: P.args, **kwargs: P.kwargs) -> MethodCall[T]:
                 parameters = signature(func).parameters
                 call_parameters = {}
                 for arg, parameter_name in zip(args, parameters):
                     call_parameters[parameter_name] = arg
-                for parameter_name, arg in kwargs:
+                for parameter_name, arg in kwargs.items():
                     call_parameters[parameter_name] = arg
                 if notification:
-                    method_call = MethodCall(name, None, call_parameters)
+                    method_call = MethodCall(name, None, call_parameters, result_type)
                 else:
                     self._request_id += 1
-                    method_call = MethodCall(name, self._request_id, call_parameters)
+                    method_call = MethodCall(name, self._request_id, call_parameters, result_type)
                 self._requests[-1].add_call(method_call)
                 if method_call.id is not None:
                     self._calls[method_call.id] = method_call

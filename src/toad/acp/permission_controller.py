@@ -5,7 +5,7 @@ import asyncio
 from abc import abstractmethod
 from agent_comms.declared_family import DeclaredFamily
 from toad import jsonrpc
-from toad.acp import protocol
+from acp import schema as protocol
 from .client_session import ClientRequestOwner, ClientSessionRequest
 from toad.answer import Answer
 from toad.permission_presentation import PermissionPresentation
@@ -63,7 +63,7 @@ class PermissionRequest(DeclaredFamily, affix="PermissionRequest"):
 class ToolPermissionRequest(PermissionRequest):
     def __init__(self, controller, options, tool_call):
         super().__init__(controller)
-        self._options = [Answer(option["name"], option["optionId"], option["kind"]) for option in options]
+        self._options = [Answer(option.name, option.option_id, option.kind) for option in options]
         self._presentation = PermissionPresentation.from_acp(tool_call)
 
     @property
@@ -111,9 +111,9 @@ class PermissionController(ClientRequestOwner):
     @jsonrpc.expose("session/request_permission")
     async def request_permission(self, sessionId: str,
                                  options: list[protocol.PermissionOption],
-                                 toolCall: protocol.ToolCallUpdatePermissionRequest,
+                                 toolCall: protocol.ToolCallUpdate,
                                  _meta: dict | None = None) -> protocol.RequestPermissionResponse:
-        cancelled = {"outcome": {"outcome": "cancelled"}}
+        cancelled = protocol.RequestPermissionResponse(outcome=protocol.DeniedOutcome(outcome="cancelled"))
         authority = ClientSessionRequest(self.agent, sessionId)
         if authority.retired:
             return cancelled
@@ -122,4 +122,4 @@ class PermissionController(ClientRequestOwner):
         answer = await request.wait(PERMISSION_TIMEOUT_SECONDS)
         if answer is None or authority.retired:
             return cancelled
-        return {"outcome": {"optionId": answer.id, "outcome": "selected"}}
+        return protocol.RequestPermissionResponse(outcome=protocol.AllowedOutcome(option_id=answer.id, outcome="selected"))

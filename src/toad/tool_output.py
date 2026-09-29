@@ -21,7 +21,8 @@ from textual.content import Content
 from textual.css.query import NoMatches
 from textual.widget import Widget
 
-from toad.acp import protocol
+from acp import schema
+from agent_comms.mro_dispatch import MroDispatch, handles
 from toad.widgets.tool_content import (
     MarkdownContent, PatchWarmup, TextContent, ToolCallDiff,
 )
@@ -275,23 +276,40 @@ class TerminalToolOutputPart(ToolOutputPart):
         return ()
 
 
-def decode_content(item: protocol.ToolCallContent, read_path: str | None = None) -> ToolOutputPart:
-    """One ACP boundary; external schema discriminators end here."""
-    match item:
-        case {"type": "content", "content": {"type": "text", "text": str(text)}}:
-            return TextToolOutputPart.from_text(text, read_path)
-        case {"type": "content", "content": {"type": "resource", "resource": {
-            "mimeType": "text/x-diff", "text": str(source),
-        }}}:
-            return PatchToolOutputPart(source)
-        case {"type": "diff", "path": path, "oldText": old, "newText": new}:
-            return FileDiffToolOutputPart(path, old, new)
-        case {"type": "terminal", "terminalId": terminal_id}:
-            return TerminalToolOutputPart(terminal_id)
-        case {"type": "content", "content": content}:
-            return UnrenderedToolOutputPart(deepcopy(content))
-        case _:
-            raise ValueError("Unsupported ACP tool output")
+class ToolContentDecoder(MroDispatch):
+    def __init__(self, read_path=None):
+        self.read_path = read_path
+        self.part = None
+
+    @handles(schema.ContentToolCallContent)
+    def content(self, item):
+        self.dispatch_sync(item.content)
+
+    @handles(schema.TextContentBlock)
+    def text(self, item):
+        self.part = TextToolOutputPart.from_text(item.text, self.read_path)
+
+    @handles(schema.EmbeddedResourceContentBlock)
+    def resource(self, item):
+        self.dispatch_sync(item.resource)
+
+    @handles(schema.TextResourceContents)
+    def text_resource(self, item):
+        self.part = PatchToolOutputPart(item.text) if item.mime_type == 'text/x-diff' else UnrenderedToolOutputPart(item)
+
+    @handles(schema.FileEditToolCallContent)
+    def diff(self, item):
+        self.part = FileDiffToolOutputPart(item.path, item.old_text, item.new_text)
+
+    @handles(schema.TerminalToolCallContent)
+    def terminal(self, item):
+        self.part = TerminalToolOutputPart(item.terminal_id)
+
+
+def decode_content(item: object, read_path: str | None = None) -> ToolOutputPart:
+    decoder = ToolContentDecoder(read_path)
+    decoder.dispatch_sync(item)
+    return decoder.part or UnrenderedToolOutputPart(item)
 
 
 class ToolHydration(DeclaredFamily, LifecycleState, affix="ToolHydration"):
@@ -347,12 +365,12 @@ class ToolOutput:
         assert view is not None
         return view
 
-    def replace(self, tool_call: protocol.ToolCall) -> None:
-        self.suppress_auto_expansion = tool_call.get("kind") == "read"
-        raw_input = tool_call.get("rawInput") or {}
+    def replace(self, tool_call: schema.ToolCall) -> None:
+        self.suppress_auto_expansion = tool_call.kind == "read"
+        raw_input = tool_call.raw_input or {}
         path = (raw_input.get("path") or raw_input.get("file_path") or raw_input.get("filePath")) if isinstance(raw_input, dict) else None
         read_path = path if self.suppress_auto_expansion and isinstance(path, str) else None
-        parts = tuple(decode_content(item, read_path) for item in tool_call.get("content") or ())
+        parts = tuple(decode_content(item, read_path) for item in tool_call.content or ())
         if parts != self.parts:
             self.cancel_preparation()
             self.parts = parts

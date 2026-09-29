@@ -26,7 +26,7 @@ from textual.screen import Screen
 from textual.signal import Signal
 
 from toad import messages
-from toad.agent_schema import Agent as AgentData
+from toad.agent_schema import AgentDefinition
 from toad.render_backend import Renderer
 from toad.channel_preparation import ChannelHistoryReader
 from toad.navigation_preparation import (
@@ -260,7 +260,7 @@ class ToadApp(WorkspaceSessionShutdown, App, inherit_bindings=False):
 
     def __init__(
         self,
-        agent_data: AgentData | None = None,
+        agent_data: AgentDefinition | None = None,
         project_dir: str | None = None,
         mode: str | None = None,
         agent_session_id: str | None = None,
@@ -496,8 +496,7 @@ class ToadApp(WorkspaceSessionShutdown, App, inherit_bindings=False):
             try:
                 with self.batch_update():
                     if mode == "store":
-                        if selected := self.workspace_sessions.selected:
-                            await selected.retire_presentation()
+                        await self.workspace_sessions.retire()
                         await super().switch_mode("store")
                     else:
                         if self.current_mode != "workspace":
@@ -535,12 +534,12 @@ class ToadApp(WorkspaceSessionShutdown, App, inherit_bindings=False):
 
     @property
     def selected_session(self):
-        return self.workspace_sessions.selected
+        return self.workspace_sessions.source.view
 
     @property
     def selected_mode(self):
-        selected = self.selected_session
-        return selected.id if self.current_mode == "workspace" and selected is not None else self.current_mode
+        return (self.workspace_sessions.source.identity
+                if self.current_mode == "workspace" else self.current_mode)
 
 
     def local_coordination_threads(self) -> set[str]:

@@ -17,8 +17,7 @@ from toad.widgets.session_tabs import SessionLabel
 from viewport_recent_tabs_pilot import settled
 from toad.screens.main import MainScreen
 from toad.widgets.agent_response import AgentResponse
-from toad.widgets.conversation import Conversation
-from toad.widgets.conversation import TurnActivity
+from toad.widgets.conversation import Conversation, TurnActivity, Window
 from toad.widgets.prompt import Prompt
 from toad.widgets.throbber import Throbber
 from toad.widgets.transcript_history import TranscriptFragmentView, TranscriptHistory, TranscriptPageView
@@ -60,12 +59,23 @@ class PaintedReturnApp(InstalledApp):
             if self.selected_mode == self.expected_source_id and self.first_paint_at is None:
                 self.first_paint_at = displayed
             view = self.selected_session.query_one_optional(Conversation)
+            window = view.query_one_optional(Window) if view is not None else None
             agent = view.agent if view is not None else None
+            strips = screen._compositor.render_strips()
+            reader = ""
+            if window is not None:
+                region = window.scrollable_content_region
+                reader = "\n".join(strip.crop(region.x, region.right).text
+                                   for strip in strips[region.y:region.bottom])
             self.observed_frames.append((
-                self.selected_mode, conversation_paint(screen),
-                "\n".join(strip.text for strip in screen._compositor.render_strips()),
+                self.selected_mode, reader,
+                "\n".join(strip.text for strip in strips),
                 agent is None or view.status == agent.context_measurement.status(),
                 agent is None or view.turns.owner.busy == agent.current_turn.busy,
+                window.scroll_y if window is not None else None,
+                window.max_scroll_y if window is not None else None,
+                (label.has_class("-current") if (label := screen.query_one_optional(
+                    f"SessionLabel#{self.expected_source_id}", SessionLabel)) is not None else False),
             ))
 
 
@@ -80,7 +90,7 @@ async def click_session(app, pilot, source):
     app.trace_events = []
     phases = {}
     wrapped = []
-    previous = app.workspace_sessions.selected
+    previous = app.selected_session
     native = app.workspace_chrome.native
     conversation = native.widget
     viewport = conversation.window.document_viewport if conversation is not None else None
@@ -91,21 +101,15 @@ async def click_session(app, pilot, source):
         (source, "prepare_presentation", "prepare_presentation"),
         (native, "retire", "native_retire"),
         (native, "activate", "native_activate"),
-        (viewport, "park_source", "viewport_park_source"),
         (viewport, "suspend_source", "viewport_suspend_source"),
         (conversation, "release_native_session", "conversation_release"),
-        (conversation, "bind_native_session", "conversation_bind"),
         (conversation, "present_retained_native_session", "conversation_present_retained"),
         (Agent, "get_transcript_page", "native_page_read"),
         (GoalObservation, "read", "goal_read"),
         (TranscriptPresentation, "snapshot", "transcript_snapshot"),
         (SnapshotPublication, "publish", "snapshot_publish"),
         (contents, "mount", "contents_mount"),
-        (TranscriptPageView, "admit_retained", "page_admit_retained"),
-        (TranscriptHistory, "admit_retained_pages", "history_admit_retained_pages"),
         (app.preparation, "submit", "preparation_submit"),
-        (app.workspace_screen, "prepare_navigation", "prepare_navigation"),
-        (app.workspace_screen, "layout_navigation", "layout_navigation"),
     ]
     for owner, method, label in targets:
         if owner is None:
@@ -149,10 +153,14 @@ async def click_session(app, pilot, source):
     click_started = perf_counter()
     try:
         assert await pilot.click(tab), f"Session tab {source.id} was not clickable"
+        click_completed = perf_counter()
+        # Continue through the destination's later paints. A click completion
+        # and one source-correct frame do not prove the visible return stable.
+        await pilot.pause(.35)
+        await until(pilot, lambda: source.query_one_optional(Conversation) is not None)
     finally:
         for owner, method, original in reversed(wrapped):
             setattr(owner, method, original)
-    click_completed = perf_counter()
     assert app.first_paint_at is not None, f"Session tab {source.id} never painted"
     assert app.selection_requested_at is not None, f"Session tab {source.id} was not selected"
     app.last_click_metrics = (
@@ -213,17 +221,17 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
                 await until(pilot, lambda: not comms.registry.require(name).executing)
                 await until(pilot, lambda: not agent.current_turn.busy)
             comms.goals.update_goal(name, SetGoalAction(text=f"SELECTED_GOAL_{name.upper()}"))
+            # Establish saved publication through its real owner. Retaining an
+            # actual Conversation no longer turns tab navigation into a forced
+            # remount of otherwise below-pressure live response blocks.
+            await until(pilot, lambda: not view.turns.owner.busy)
+            view.transcript.require_checkpoint()
+            await until(pilot, lambda: bool(view.window.histories)
+                        and view.transcript.displayed_cursor is not None)
         # Both now have durable, actually produced native journals. Establish
         # comparable reader/editor state only after ordinary saved publication.
         states = {}
         for source_index, (source, agent) in enumerate(zip(sources, agents)):
-            print("CACHE_BEFORE_SELECT", source.id,
-                  [(type(k().parent).__name__, getattr(k().identity.source,"session_id",None),
-                    k().identity.interval.before.offset,k().identity.interval.through.offset,
-                    k().identity.directory_revision,k().body_ready,
-                    1+sum(1 for _ in k().walk_children()))
-                   for k in app.selected_session.conversation.window.document_viewport._warm.values()
-                   if k() is not None and isinstance(k(),TranscriptFragmentView)],flush=True)
             frames = await click_session(app, pilot, source)
             view = source.conversation
             await until(pilot, lambda: bool(view.window.histories) and view.transcript.displayed_cursor is not None)
@@ -237,7 +245,7 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
                   "FRAME", "\n".join(strip.text for strip in app.screen._compositor.render_strips()), flush=True)
             print("WINDOW_LAYOUT", [(type(n).__name__, n.display, str(n.styles.height), n.region, n.size, n.virtual_size) for n in view.window.walk_children() if n.parent is view.window or n in view.contents.ancestors_with_self], flush=True)
             print("SOURCE_BODY_CUSTODY", source.id, view.window.scroll_y, view.window.max_scroll_y,
-                  view.window.document_viewport.reuse_hits,
+                  sum(history.fragment_count for history in view.window.histories),
                   [(type(node).__name__, type(node.parent).__name__, node.visible, node.display,
                     node._closing, node._pruning, node.is_running,
                     app.screen._compositor._full_map.get(node))
@@ -272,8 +280,10 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
                                        if body in frame._compositor.visible_widgets
                                        and body.region.overlaps(view.window.scrollable_content_region)),
                                  tuple(ref(page) for history_view in view.window.histories
-                                       for page in history_view.pages))
-            assert states[source.id][-2], "Saved reader fixture must contain a painted response"
+                                       for page in history_view.pages),
+                                 ref(next(history_view for history_view in view.contents.children
+                                          if isinstance(history_view, TranscriptHistory))))
+            assert states[source.id][-3], "Saved reader fixture must contain a painted response"
         native_calls = len(requests)
         assert native_calls == 2 * prompt_count
         profile = cProfile.Profile() if os.environ.get("NATIVE_RETURN_PROFILE") == "1" else None
@@ -292,33 +302,36 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
                               (sources[0], agents[0]), (sources[1], agents[1]), (sources[0], agents[0])):
             before_hits, before_misses = app.preparation.hits, app.preparation.misses
             viewport = app.workspace_chrome.native.widget.window.document_viewport
-            before_reuse, before_evictions = viewport.reuse_hits, viewport.body_evictions
+            before_evictions = viewport.body_evictions
             started = perf_counter()
-            print("CACHE_BEFORE_SELECT", source.id,
-                  [(type(k().parent).__name__, getattr(k().identity.source,"session_id",None),
-                    k().identity.interval.before.offset,k().identity.interval.through.offset,
-                    k().identity.directory_revision,k().body_ready,
-                    1+sum(1 for _ in k().walk_children()))
-                   for k in app.selected_session.conversation.window.document_viewport._warm.values()
-                   if k() is not None and isinstance(k(),TranscriptFragmentView)],flush=True)
             frames = await click_session(app, pilot, source)
             view = source.conversation
             await until(pilot, lambda: bool(view.window.histories))
-            y, painted, document, history, process, runner, old_bodies, old_pages = states[source.id]
+            y, painted, document, history, process, runner, old_bodies, old_pages, old_history = states[source.id]
             print("FIRST_FRAMES", source.id,
                   [(mode, len(reader.strip()), "NATIVE_RESPONSE" in reader,
-                    "Earlier history" in reader) for mode, reader, _full, _status, _turn in frames[:8]], flush=True)
+                    "Earlier history" in reader, y, maximum)
+                   for mode, reader, _full, _status, _turn, y, maximum, _tab in frames[:8]], flush=True)
             destination_frames = [frame for frame in frames if frame[0] == source.id]
             reader_marker = f"{agent.session_id} saved reader paragraph"
             other_reader = "gamma saved reader paragraph" if agent.session_id == "beta" else "beta saved reader paragraph"
+            selected_tab_frames = [full for _mode, _reader, full, _status, _turn,
+                                   _y, _maximum, selected in frames if selected]
+            assert selected_tab_frames and all(other_reader not in full
+                                               for full in selected_tab_frames), (
+                "Selected destination tab still painted the previous reader",
+                source.id, [full[:500] for full in selected_tab_frames[:3]],
+            )
             frame_sequence = [{
                 "reader": reader_marker in reader,
                 "response": "NATIVE_RESPONSE" in reader,
-                "other_source": other_reader in reader,
+                "other_source": other_reader in full,
                 "loading": "Loading new thread" in full,
                 "blank": not reader.strip(),
                 "length": len(reader.strip()),
-            } for _mode, reader, full, _status, _turn in destination_frames]
+                "reader_y": y,
+                "maximum_y": maximum,
+            } for _mode, reader, full, _status, _turn, y, maximum, _tab in destination_frames]
             assert frame_sequence and all(
                 item["reader"] and item["response"] and not item["other_source"]
                 and not item["loading"] and not item["blank"]
@@ -326,7 +339,8 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
             ), ("A completed destination frame lost the saved reader", source.id, frame_sequence)
             assert destination_frames and reader_marker in destination_frames[0][1] and other_reader not in destination_frames[0][1], (
                 "First painted return frame did not show the destination reader",
-                source.id, [(mode, reader[:200]) for mode, reader, _full, _status, _turn in frames[:3]],
+                source.id, [(mode, reader[:200]) for mode, reader, _full, _status, _turn,
+                            _y, _maximum, _tab in frames[:3]],
             )
             goal_text = f"SELECTED_GOAL_{agent.session_id.upper()}"
             other_goal = f"SELECTED_GOAL_{'GAMMA' if agent.session_id == 'beta' else 'BETA'}"
@@ -342,12 +356,12 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
                 await until(pilot, lambda: conversation_paint(frame) == painted)
             except TimeoutError:
                 print("FAILED_RETURN", source.id, "reader", view.window.scroll_y, y,
-                      "reuse", view.window.document_viewport.reuse_hits,
+                      "reuse", sum(history.fragment_count for history in view.window.histories),
                       "expected", painted, "actual", conversation_paint(frame),
                       "layout", [(type(n).__name__, n.display, n.region, n.size, n.virtual_size)
                                  for n in view.window.walk_children()
                                  if n.parent is view.window or n in view.contents.ancestors_with_self],
-                      "cached", [(type(k()).__name__, type(k().parent).__name__, k().identity)
+                      "cached", [(type(k()).__name__, type(k().parent).__name__)
                                  for k in view.window.document_viewport._warm.values() if k() is not None], flush=True)
                 raise
             await settled(pilot, view)
@@ -355,7 +369,7 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
                   [(type(node).__name__, node.size, node.virtual_size, node.display)
                    for history_view in view.window.histories for node in history_view.walk_children()
                    if type(node).__name__ in {"TranscriptPageView", "TranscriptFragmentView", "AgentResponse"}],
-                  "REUSE", view.window.document_viewport.reuse_hits,
+                  "REUSE", sum(history.fragment_count for history in view.window.histories),
                   "PAINT", conversation_paint(frame), flush=True)
             assert view.window.scroll_y == y, (view.window.scroll_y, y)
             assert conversation_paint(frame) == painted
@@ -370,12 +384,13 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
             reused = sum(any(previous() is body for previous in old_bodies) for body in bodies)
             reused_pages = sum(any(previous() is page for previous in old_pages)
                                for history_view in view.window.histories for page in history_view.pages)
+            reused_history = any(history_view is old_history()
+                                 for history_view in view.contents.children)
+            assert reused_history, "Warm return rebuilt the mounted outer history"
             assert reused_pages > 0, "Warm native return rebuilt every admitted page"
             if reused == 0:
-                print("CACHE_MISS_ROOTS", [(getattr(n.identity.source,"session_id",None),
-                     n.identity.interval.before.offset,n.identity.interval.through.offset,
-                     n.identity.directory_revision,n.body_ready,
-                     type(n.parent).__name__) for n in view.query(TranscriptFragmentView)],flush=True)
+                print("CACHE_MISS_ROOTS", [(body.body_ready, type(body.parent).__name__)
+                      for body in view.query(TranscriptFragmentView)], flush=True)
             assert reused > 0, ("Already-loaded native source discarded every response body", source.id)
             assert not render_submissions, (
                 "Warm tab return re-fragmented a saved native page", source.id,
@@ -393,8 +408,8 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
                             "cache_misses":app.preparation.misses-before_misses,
                             "mounted_response_bodies":len(bodies),
                             "reused_body_instances":reused,
+                            "reused_outer_history":reused_history,
                             "reused_page_instances":reused_pages,
-                            "retained_body_reuse_hits":viewport.reuse_hits-before_reuse,
                             "retained_body_evictions":viewport.body_evictions-before_evictions,
                             "warm_bodies":sum(key() is not None for key in viewport._warm.values()),
                             "prepared_bytes":app.preparation.retained_bytes})

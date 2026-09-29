@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import ClassVar
 
 from acp.schema import (SessionConfigSelectOption, SessionConfigSelectGroup,
-                        SessionConfigOptionSelect, SetSessionConfigOptionResponse)
+                        SessionConfigOptionSelect)
 from agent_comms.acp_failure import ACPFailure
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.mro_dispatch import MroDispatch, handles
@@ -64,8 +64,7 @@ class ConfigurationSetting(DeclaredFamily, affix="ConfigurationSetting"):
             return ACPFailure.from_error(error.code, error.message).feedback
         except jsonrpc.APIError as error:
             return ACPFailure.from_error(error.code, error.message, error.data).feedback
-        if result is not None:
-            agent.configuration.receive(result)
+        agent.configuration.receive(result.config_options)
         return None
 
     @abstractmethod
@@ -123,14 +122,13 @@ class AgentConfiguration:
     def thinking(self) -> ThinkingConfigurationSetting:
         return self.setting(ThinkingConfigurationSetting)
 
-    def receive(self, response):
-        if "configOptions" not in response:
+    def receive(self, options):
+        if options is None:
             return
         # Official external decoder once; consumers use its guaranteed typed fields.
-        decoded = SetSessionConfigOptionResponse.model_validate(response, strict=True)
         selections = {kind: kind() for kind in ConfigurationSetting.members_with(ConfigurationSetting)}
         decoder = ConfigurationAdvertisements(selections)
-        for option in decoded.config_options:
+        for option in options:
             decoder.dispatch_sync(option)
         self.selections = selections
         self.publish()

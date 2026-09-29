@@ -1,6 +1,6 @@
 """The pager's source-owned read, lookahead and retirement lifetime."""
 from textual.worker import WorkerCancelled
-from toad.transcript_state import TranscriptState, RetiredSourceTranscript
+from toad.transcript_state import TranscriptState, RetiredSourceTranscript, ParkedSourceTranscript
 from toad.transcript_preparation import PreparedPageSource, TranscriptPageBuffer
 
 
@@ -22,10 +22,13 @@ class TranscriptSourcePreparation:
     def state(self) -> TranscriptState:
         return self._source_state.observed(self)
 
-    async def retire_source(self) -> None:
+    async def retire_source(self, *, parked: bool = False) -> None:
         """End pager mutations before any of its bodies transfer to the shelf."""
-        self._source_state = RetiredSourceTranscript(self._source_state)
+        if not isinstance(self._source_state, ParkedSourceTranscript):
+            self._source_state = (ParkedSourceTranscript(self._source_state) if parked
+                                  else RetiredSourceTranscript(self._source_state))
         self._generation += 1
+        self._latest_revision = None
         self._prefetch_intent = None
         self.window.histories.discard(self)
         if self._page_buffer is not None:
@@ -35,6 +38,19 @@ class TranscriptSourcePreparation:
                 await worker.wait()
             except WorkerCancelled:
                 pass
+
+    def resume_source(self) -> None:
+        state = self._source_state
+        if not isinstance(state, ParkedSourceTranscript):
+            raise RuntimeError("Only a parked transcript can resume publication")
+        self._source_state = state.resume()
+        self._page_buffer = None
+        self._prefetched_edges = self._prefetch_intent = None
+        self.window.histories.add(self)
+        if self._source_state.reports_coverage:
+            self.post_message(self.Covered(tuple(self.coverage_events), self))
+        self._finish_page_request()
+        self._warm_pages()
 
 
     def _reader(self) -> PreparedPageSource:
@@ -86,4 +102,3 @@ class TranscriptSourcePreparation:
         """Start background reads before the earlier edge enters the viewport."""
         rows = self.window.size.height
         return max(4, rows // 2) + self.window.document_viewport.lookahead.ahead_rows(rows)
-

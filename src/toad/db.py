@@ -15,6 +15,7 @@ from agent_comms.field_codec import FieldCodec, PathText, TimestampText
 from agent_comms.typed_table import Column, JsonStorage, SqlStorage, TypedTable
 
 from toad import paths
+from toad.agent_schema import AgentDefinition
 
 MODEL_HISTORY_SCHEMA = """
     CREATE TABLE IF NOT EXISTS model_history (
@@ -45,7 +46,7 @@ class SessionTimestampStorage(SqlStorage):
 class SessionMeta:
     cwd: Annotated[Path | None, PathText] = None
     # Saved external agent definition, also used when its catalog entry is gone.
-    agent_data: dict[str, Any] | None = None
+    agent_data: AgentDefinition | None = None
 
 
 class SessionMetaStorage(JsonStorage):

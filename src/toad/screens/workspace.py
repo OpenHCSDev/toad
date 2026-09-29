@@ -14,6 +14,8 @@ from textual.screen import Screen
 from textual.widget import Widget
 
 from toad.widgets.side_bar import SidebarFocusOwner
+from agent_comms.declared_family import DeclaredFamily
+from abc import abstractmethod
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
@@ -29,16 +31,58 @@ class ViewStyleRevision:
     css_generation: int
 
 
+@dataclass(frozen=True)
+class WorkspaceLayoutSnapshot:
+    """One native layout's size, style and invalidation proof."""
+
+    mounted: bool
+    stack_updates: bool
+    size: Size
+    layout_pending: bool
+    scroll_pending: bool
+    widgets: frozenset[Widget]
+    style: ViewStyleRevision
+
+    @classmethod
+    def capture(cls, screen, *, include_scroll=True):
+        return cls(screen.is_attached, screen.stack_updates, screen._size,
+                   screen._layout_required, screen._scroll_required if include_scroll else False,
+                   frozenset(screen._layout_widgets), screen._style_revision())
+
+    @classmethod
+    def ready(cls, screen, size):
+        return cls(True, True, size, False, False, frozenset(), screen._style_revision())
+
+
+class WorkspaceLayout(DeclaredFamily, affix="WorkspaceLayout"):
+    @abstractmethod
+    def reusable(self, screen, size, *, include_scroll=True) -> bool: ...
+
+
+class PendingWorkspaceLayout(WorkspaceLayout):
+    def reusable(self, screen, size, *, include_scroll=True):
+        return False
+
+
+@dataclass(frozen=True)
+class MeasuredWorkspaceLayout(WorkspaceLayout):
+    proof: WorkspaceLayoutSnapshot
+
+    def reusable(self, screen, size, *, include_scroll=True):
+        requested = WorkspaceLayoutSnapshot.ready(screen, size)
+        if self.proof != requested:
+            return False
+        return WorkspaceLayoutSnapshot.capture(screen, include_scroll=include_scroll) == requested
+
+
 class WorkspaceScreen(SidebarFocusOwner, Screen):
     @property
     def COMMANDS(self):
-        selected = self.app.workspace_sessions.selected
-        return selected.COMMANDS if selected is not None else set()
+        return self.app.workspace_sessions.source.commands()
 
     @property
     def coordination_root(self):
-        selected = self.app.workspace_sessions.selected
-        return selected.coordination_root if selected is not None else None
+        return self.app.workspace_sessions.source.coordination_root()
 
     CSS_PATH = ["main.tcss", "comms.tcss"]
 
@@ -52,17 +96,14 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
         yield chrome.footer
 
     def sidebar_focus_target(self):
-        selected = self.app.workspace_sessions.selected
-        return selected.sidebar_focus_target() if selected is not None else None
+        return self.app.workspace_sessions.source.sidebar_focus_target()
 
     # Keep measured geometry for fast revisits, but do not retain every inactive
     # tab's rendered line/segment graph in the cyclic collector's live heap.
     RETAIN_INACTIVE_PAINT = False
 
     _resume_style: ViewStyleRevision | None = None
-    _navigation_applied = False
-    _navigation_changed = False
-    _resume_styles_changed = False
+    _navigation_layout: WorkspaceLayout = PendingWorkspaceLayout()
     @cached_property
     def frame_presentation(self):
         from toad.frame_presentation import FramePresentation
@@ -192,10 +233,7 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
             # measures their completed tree; retain real resize invalidation.
             self._layout_required |= self._size != size
             return
-        if (self.stack_updates and self.is_attached
-                and self._navigation_applied and not self._resume_styles_changed
-                and self._size == size and not self._layout_required
-                and not self._layout_widgets):
+        if self._navigation_layout.reusable(self, size, include_scroll=False):
             # A resumed mounted tab has already been measured at this width.
             # Textual's full reflow walks all descendants even when only the
             # viewport/visibility needs reconciliation. Keep the full path
@@ -203,8 +241,11 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
             self._refresh_layout(size, scroll=True)
         else:
             super()._screen_resized(size)
-            if (self.stack_updates and self.is_attached and self._size == size
-                    and not self._layout_widgets):
+            # Textual owns these live invalidation facts. Its completed native
+            # layout record, rather than several workspace flags, proves reuse.
+            native = WorkspaceLayoutSnapshot.capture(self, include_scroll=False)
+            ready = WorkspaceLayoutSnapshot.ready(self, size)
+            if replace(native, layout_pending=False) == ready:
                 # Mode activation just performed and painted a full reflow.
                 # Textual leaves the earlier _layout_required bit set for its
                 # later timer, so layout_navigation otherwise reflows the
@@ -228,8 +269,10 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
         from toad.widgets.session_tabs import SessionsTabs
 
         self.frame_presentation.begin()
-        self._navigation_changed = await self.app.selected_session.prepare_navigation()
-        self._navigation_changed |= self.app.workspace_chrome.prepare_navigation(self)
+        changed = await self.app.selected_session.prepare_navigation()
+        changed |= self.app.workspace_chrome.prepare_navigation(self)
+        if changed:
+            self._navigation_layout = PendingWorkspaceLayout()
 
         if tabs := self.query_one_optional(SessionsTabs):
             await tabs._sync_tabs()
@@ -237,9 +280,7 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
     async def layout_navigation(self) -> None:
         """Measure the selected source and restore its own sidebar position."""
         roster = self.app.workspace_chrome.channels.roster
-        if (self._navigation_applied and not self._navigation_changed
-                and self._size == self.app.size and not self._layout_required
-                and not self._scroll_required and not self._layout_widgets):
+        if self._navigation_layout.reusable(self, self.app.size):
             if roster.navigation.restore_scroll():
                 self._refresh_layout(self.app.size, scroll=True)
             return
@@ -249,7 +290,7 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
         self._layout_required = False
         self._scroll_required = False
         self._dirty_widgets.clear()
-        self._navigation_applied = True
+        self._navigation_layout = MeasuredWorkspaceLayout(WorkspaceLayoutSnapshot.ready(self, self.app.size))
 
     def _on_screen_resume(self, event: ScreenResume) -> None:
         self.frame_presentation.resume()
@@ -274,7 +315,8 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
                 partially_refreshed = bool(targets)
                 changed = False
         event.refresh_styles = changed
-        self._resume_styles_changed = changed or partially_refreshed
+        if changed or partially_refreshed:
+            self._navigation_layout = PendingWorkspaceLayout()
         self._resume_style = revision
 
     def _changed_source_targets(

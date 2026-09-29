@@ -1,23 +1,19 @@
-"""Strict item admission where the official SDK otherwise skips invalid rows.
-
-Imported by the SDK boundary inside its validation worker, never at UI startup.
-The SDK's declarations still own the external format and field validation.
-"""
-from acp.schema import AgentPlanUpdate, PlanEntry
+"""Reject lossy SDK plan admission rather than clearing the user's valid plan."""
+from acp.schema import AgentPlanUpdate
 from agent_comms.mro_dispatch import MroDispatch, handles
-from pydantic import TypeAdapter
 
 
 class NotificationItems(MroDispatch):
-    entry_schema = TypeAdapter(list[PlanEntry])
-
     def __init__(self, raw):
         self.raw = raw
 
     @handles(AgentPlanUpdate)
     def plan(self, notification: AgentPlanUpdate) -> None:
-        self.require_plan_items(**self.raw)
+        self.require_plan_items(notification.entries, **self.raw)
 
-    @classmethod
-    def require_plan_items(cls, entries: object, **_extensions) -> None:
-        cls.entry_schema.validate_python(entries, strict=True)
+    @staticmethod
+    def require_plan_items(admitted, entries, **_extensions):
+        # The official SDK deliberately drops invalid items. A complete plan
+        # replacement may never silently turn invalid required fields into a clear.
+        if len(admitted) != len(entries):
+            raise ValueError('ACP plan contains invalid entries; the saved plan was not replaced')

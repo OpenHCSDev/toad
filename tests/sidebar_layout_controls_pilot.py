@@ -43,26 +43,26 @@ async def main() -> None:
             assert app.sidebar_layout.get("channels-sidebar").width_percent == 41
             assert left.region.width >= 40
 
-            left.query_one("#sidebar-right", SidebarAction).action_activate()
+            assert await pilot.click(left.query_one("#sidebar-right", SidebarAction))
             await pilot.pause()
             assert left.right and right.right
             assert right.region.x > left.region.x, "New right bar belongs inside the existing outer one"
             assert content.region.x == 0
             assert tabs.region.x == app.screen.query_one(TabHistoryControls).region.right
-            left.query_one("#sidebar-right", SidebarAction).action_activate()
+            assert await pilot.click(left.query_one("#sidebar-right", SidebarAction))
             await pilot.pause()
             assert left.region.x > right.region.x
             assert content.region.x == 0
 
             pushing_width = content.region.width
-            left.query_one("#sidebar-float", SidebarAction).action_activate()
+            assert await pilot.click(left.query_one("#sidebar-float", SidebarAction))
             await pilot.pause()
             assert app.sidebar_layout.get("channels-sidebar").floating
             # An inner pushed handle reserves space through its inside edge.
             assert content.region.width >= pushing_width
             assert left.region.x >= content.region.x and left.region.width > 3
             assert content.region.x == 0
-            left.query_one("#sidebar-float", SidebarAction).action_activate()
+            assert await pilot.click(left.query_one("#sidebar-float", SidebarAction))
             await pilot.pause()
             assert not app.sidebar_layout.get("channels-sidebar").floating
 
@@ -89,10 +89,10 @@ async def main() -> None:
                 comms_bar.region, comms_tabs.region, chat.region,
                 app.sidebar_layout.ordered(), app.screen.query_one("#tab-navigation-header").styles.padding,
             )
-            comms_bar.query_one("#sidebar-left", SidebarAction).action_activate()
+            assert await pilot.click(comms_bar.query_one("#sidebar-left", SidebarAction))
             await pilot.pause()
             assert comms_bar.right  # Swap with the inner neighbor before crossing the center.
-            comms_bar.query_one("#sidebar-left", SidebarAction).action_activate()
+            assert await pilot.click(comms_bar.query_one("#sidebar-left", SidebarAction))
             await pilot.pause()
             assert not comms_bar.right
             assert chat.region.x == comms_bar.region.width
@@ -103,6 +103,14 @@ async def main() -> None:
             await app.select_session(owner)
             assert not left.right and content.region.x == left.region.width
             assert tabs.region.x == app.screen.query_one(TabHistoryControls).region.right
+            retained = app.selected_session
+            await retained.action_go_home()
+            await pilot.pause()
+            assert app.current_mode == "store" and not retained.is_current
+            await app.select_session(owner)
+            await pilot.pause()
+            assert app.selected_session is retained and retained.is_current and retained.display
+            assert content.region.x == left.region.width and app._exception is None
         await asyncio.get_running_loop().shutdown_default_executor()
     print("sidebar controls: move/swap/width/float and untruncated horizontal row scroll")
 

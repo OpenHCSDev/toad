@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from acp.schema import Diff
+from acp.schema import FileEditToolCallContent
 from dataclasses import dataclass
 from functools import partial
 from toad.screens.permissions import PermissionReview
@@ -20,10 +20,10 @@ class PermissionPresentation(DeclaredFamily, affix="PermissionPresentation"):
     @classmethod
     def from_acp(cls, tool_call):
         """Decode the external ACP choice once, at request admission."""
-        content = tool_call.get("content") or []
-        title = tool_call.get("title") or ""
+        content = tool_call.content or []
+        title = tool_call.title or ""
         for member in sorted(cls.members_with(cls), key=lambda member: member.priority, reverse=True):
-            if (presentation := member.admit(tool_call.get("kind"), title, content)) is not None:
+            if (presentation := member.admit(tool_call.kind, title, content)) is not None:
                 return presentation
         raise ValueError("No permission presentation admitted the ACP request")
 
@@ -49,9 +49,9 @@ class DiffPermissionPresentation(PermissionPresentation):
 
     @classmethod
     def admit(cls, kind, title, content):
-        if kind != "edit" and not all(item.get("type") == "diff" for item in content):
+        if kind != "edit" and not all(isinstance(item, FileEditToolCallContent) for item in content):
             return None
-        records = [Diff.model_validate(item) for item in content if item.get("type") == "diff"]
+        records = [item for item in content if isinstance(item, FileEditToolCallContent)]
         diffs = [(item.path, item.path, item.old_text, item.new_text) for item in records]
         return cls(title, diffs) if diffs else None
 

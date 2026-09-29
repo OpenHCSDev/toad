@@ -51,7 +51,8 @@ class LiveTranscript(TranscriptState):
 
     @classmethod
     def successors(cls):
-        return (LiveTranscript, DetachedTranscript, PruningTranscript, ClosingTranscript)
+        return (LiveTranscript, ParkedSourceTranscript, DetachedTranscript,
+                PruningTranscript, ClosingTranscript)
 
     def publish(self) -> TranscriptState:
         return self
@@ -110,3 +111,19 @@ class RetiredSourceTranscript(SuspendedTranscript):
 
     def publish(self) -> TranscriptState:
         raise RuntimeError("A retired source pager cannot publish again")
+
+
+class ParkedSourceTranscript(SuspendedTranscript):
+    """A mounted warm pager remains inert until its native source is checked."""
+
+    reports_coverage = False
+
+    @classmethod
+    def successors(cls):
+        return (LiveTranscript, ClosingTranscript, DetachedTranscript)
+
+    def publish(self) -> TranscriptState:
+        raise RuntimeError("A parked source pager cannot publish before validation")
+
+    def resume(self) -> TranscriptState:
+        return self.source

@@ -11,7 +11,8 @@ from agent_comms.acp_extension import (
 )
 from textual.message import Message
 
-from toad.acp import protocol
+from acp import schema
+from toad.acp.status import ToolCallStatus
 from toad.plan import PlanItem
 from toad.acp.encode_tool_call_id import encode_tool_call_id
 
@@ -22,7 +23,7 @@ if TYPE_CHECKING:
     from toad.live_output import OutputStream
     from textual.content import Content
     from toad.acp.agent import Model
-    from toad.acp.agent_session import Mode
+    from acp.schema import SessionMode
 
 
 class AgentMessage(Message):
@@ -82,30 +83,30 @@ class Plan(AgentMessage):
 
 @dataclass
 class ToolCall(AgentMessage):
-    tool_call: protocol.ToolCall
+    tool_call: ToolCallStatus
 
     @property
     def tool_id(self) -> str:
         """An id suitable for use as a TCSS ID."""
-        return encode_tool_call_id(self.tool_call["toolCallId"])
+        return encode_tool_call_id(self.tool_call.call.tool_call_id)
 
 
 @dataclass
 class ToolCallUpdate(AgentMessage):
-    tool_call: protocol.ToolCall
-    update: protocol.ToolCallUpdate
+    tool_call: ToolCallStatus
+    update: schema.ToolCallUpdate
 
     @property
     def tool_id(self) -> str:
         """An id suitable for use as a TCSS ID."""
-        return encode_tool_call_id(self.tool_call["toolCallId"])
+        return encode_tool_call_id(self.tool_call.call.tool_call_id)
 
 
 @dataclass
 class AvailableCommandsUpdate(AgentMessage):
     """The agent is reporting its slash commands."""
 
-    commands: list[protocol.AvailableCommand]
+    commands: list[schema.AvailableCommand]
 
 
 @rich.repr.auto
@@ -114,7 +115,7 @@ class SetModes(AgentMessage):
     """Set modes from agent."""
 
     current_mode: str
-    modes: dict[str, Mode]
+    modes: dict[str, SessionMode]
 
 
 @dataclass
