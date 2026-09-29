@@ -74,6 +74,28 @@ class CompleteResponseStream(ResponseStream):
         return block
 
 
+class CompactionStream(OutputStream):
+    """A provisional summary body belongs to its selected native operation."""
+
+    def __init__(self, operation_id: str):
+        super().__init__()
+        self.operation_id = operation_id
+
+    def matches(self, incoming: CompactionStream) -> bool:
+        return self.operation_id == incoming.operation_id
+
+    def create(self, fragment: str) -> AgentResponse:
+        from toad.widgets.message_filter import OtherCategory
+        return AgentResponse("## Compaction summary · draft\n\n" + fragment,
+                             category=OtherCategory)
+
+    async def finish(self) -> None:
+        block, self.block = self.block, None
+        if block is not None:
+            await block.finish_stream()
+            await block.remove()
+
+
 class ThoughtStream(OutputStream):
     def accepts(self, fragment: str) -> bool:
         return bool(fragment.strip())
