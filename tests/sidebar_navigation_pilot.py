@@ -109,7 +109,7 @@ async def main(*, finish_before_layout=False):
         app = FrameApp(project_dir=str(root))
         async with app.run_test(size=(100, 30)) as pilot:
             await pilot.pause()
-            owner = app.current_mode
+            owner = app.selected_mode
             worker = await app.new_session_screen(lambda: MainScreen(root, agent_session_id="worker"))
             await app.screen.on_coordination_update(coordination_update(str(comms.root), 'worker'))
             await app.switch_mode(owner)
@@ -156,7 +156,7 @@ async def main(*, finish_before_layout=False):
             app.panel_frames = []
             selected.row.action_open_selected()
             await pilot.pause()
-            channel_mode = app.current_mode
+            channel_mode = app.selected_mode
             assert channel_mode != owner
             current = app.screen.query_one(CommsSidebar)
             await settled(current)
@@ -226,7 +226,7 @@ async def main(*, finish_before_layout=False):
             expected_frame = app.panel_text(app.screen)
             app.panel_frames = []
             async with asyncio.timeout(5):
-                while app.current_mode != worker.mode_name or not any(
+                while app.selected_mode != worker.mode_name or not any(
                     (
                         mode == worker.mode_name and ready
                         for mode, ready, _ in app.panel_frames
@@ -249,7 +249,7 @@ async def main(*, finish_before_layout=False):
                 )
             ), app.panel_frames
             app.panel_frames = None
-            assert app.current_mode == worker.mode_name
+            assert app.selected_mode == worker.mode_name
             assert group(current, "#channel-28").expanded
             assert not group(current, "#any").expanded
             assert app.sidebar_state.selected == SidebarSelection(
@@ -270,7 +270,7 @@ async def main(*, finish_before_layout=False):
                 app.get_widget_at(member.region.x, member.region.y),
                 current.scroll_containers[0].region,
             )
-            await pilot.hover(app.screen.conversation.prompt)
+            await pilot.hover(app.selected_session.conversation.prompt)
             assert "hover" not in member.pseudo_classes and member.current
             assert (
                 tuple((widget.scroll_y for widget in current.scroll_containers))

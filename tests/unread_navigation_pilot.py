@@ -48,7 +48,7 @@ async def main() -> None:
         assert unread() == 1
         async with app.run_test(size=(110, 36)) as pilot:
             await pilot.pause()
-            owner = app.current_mode
+            owner = app.selected_mode
             name = app.screen._comms_thread
             mode = await app.open_comms_session(owner_mode=owner, project_path=root,
                                                me=name, target=channel_target("#all"))

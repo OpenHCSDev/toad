@@ -50,7 +50,7 @@ async def main():
             with patch.object(HistoryViews, "mark_dm_view_read", pause_old_mark):
                 async with app.run_test(size=(120, 40)) as pilot:
                     await pilot.pause()
-                    owner_mode = app.current_mode
+                    owner_mode = app.selected_mode
                     await app.open_comms_session(
                         owner_mode=owner_mode,
                         project_path=root,

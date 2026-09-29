@@ -38,7 +38,7 @@ async def main() -> None:
             async with app.run_test(size=(80, 22)) as pilot:
                 await pilot.pause()
                 await app.open_comms_session(
-                    owner_mode=app.current_mode, project_path=root, me="peer",
+                    owner_mode=app.selected_mode, project_path=root, me="peer",
                     target=channel_target("#team"),
                 )
                 chat = app.screen.query_one(CommsChatView)

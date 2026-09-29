@@ -60,9 +60,9 @@ class PreparedConversationMarkdown(ViewportBody, ConversationMarkdown):
     def on_mount(self) -> None:
         self._preparation_closed = False
         from toad.widgets.history_anchor import HistoryWindow
-        from toad.screens.session_view import SessionView
+        from toad.screens.workspace import WorkspaceScreen
 
-        if isinstance(self.screen, SessionView):
+        if isinstance(self.screen, WorkspaceScreen):
             ancestors = self.ancestors
             if any(isinstance(node, ViewportBody) for node in ancestors):
                 return  # The outer source owner retires/restores this entire body.

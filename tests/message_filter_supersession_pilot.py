@@ -26,7 +26,7 @@ async def main():
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(110, 37)) as pilot:
             await pilot.pause()
-            view = app.screen.conversation
+            view = app.selected_session.conversation
             file = "fixture"
             cursor = TranscriptCursor(file, 100)
             entered, release = asyncio.Event(), asyncio.Event()

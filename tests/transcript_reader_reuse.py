@@ -106,7 +106,7 @@ async def main():
                 for _ in range(3)
             ]
             for attachment in attachments:
-                attachment.attach_surface(app.screen.conversation)
+                attachment.attach_surface(app.selected_session.conversation)
                 attach_coordination(attachment, str(root / "wire"), "fixture")
             with patch("agent_comms.comms.wire", wraps=wire) as create:
                 await asyncio.gather(
@@ -119,7 +119,7 @@ async def main():
                     for attachment in attachments
                 )
             )
-            owner_mode = app.current_mode
+            owner_mode = app.selected_mode
             with (
                 patch(
                     "toad.widgets.comms_chat.wire",

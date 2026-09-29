@@ -60,7 +60,7 @@ async def main():
         comms.messaging.send(me, "#kept", "Retained source")
         app = FrameApp(project_dir=str(root))
         async with app.run_test(size=(130, 45)) as pilot:
-            first = app.current_mode
+            first = app.selected_mode
             await settled(app, pilot)
             second = (await app.new_session_screen(app.get_main_screen)).mode_name
             await settled(app, pilot)

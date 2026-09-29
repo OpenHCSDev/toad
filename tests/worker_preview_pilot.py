@@ -60,8 +60,8 @@ async def main():
         app = ToadApp(project_dir=str(root), renderer=renderer)
         async with app.run_test(size=(110, 35)) as pilot:
             await pilot.pause()
-            owner = app.current_mode
-            prompt = app.screen.conversation.prompt
+            owner = app.selected_mode
+            prompt = app.selected_session.conversation.prompt
 
             # Even file IO cannot hold mode mounting or prevent leaving the tab.
             entered, release = Event(), Event()
@@ -210,12 +210,12 @@ async def main():
                              "title": "Read module.py", "status": "completed",
                              "rawInput": {"path": "module.py"},
                              "content": [{"type": "content", "content": {"type": "text", "text": read_source}}]})
-            await app.screen.conversation.post(tool)
+            await app.selected_session.conversation.post(tool)
             tool.set_expanded(True)
             await asyncio.wait_for(renderer.entered.wait(), 3)
             code = tool.query_one(WorkerStatic)
             assert not code._ready.is_set()
-            prompt = app.screen.conversation.prompt
+            prompt = app.selected_session.conversation.prompt
             prompt.focus()
             await pilot.press("r", "e", "a", "d")
             assert prompt.text == "ioworkread"

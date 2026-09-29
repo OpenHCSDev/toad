@@ -1,0 +1,261 @@
+╭───────────────────── Traceback (most recent call last) ──────────────────────╮
+│ /home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site │
+│ -packages/toad/app.py:1657 in on_mount                                       │
+│                                                                              │
+│   1654 │   │   if mode := self._initial_mode:                                │
+│   1655 │   │   │   self.select_session(mode)                                 │
+│   1656 │   │   else:                                                         │
+│ ❱ 1657 │   │   │   await self.new_session_screen(self.get_main_screen)       │
+│   1658 │   │                                                                 │
+│   1659 │   │   self.update_terminal_title()                                  │
+│   1660 │   │   self.set_timer(1, self.run_version_check)                     │
+│                                                                              │
+│ ╭──────────────────────────── locals ────────────────────────────╮           │
+│ │ mode = None                                                    │           │
+│ │ self = ToadApp(                                                │           │
+│ │        │   title='ToadApp',                                    │           │
+│ │        │   classes={                                           │           │
+│ │        │   │   '-dark-mode',                                   │           │
+│ │        │   │   '-theme-ansi-dark',                             │           │
+│ │        │   │   '-show-sessions-bar'                            │           │
+│ │        │   },                                                  │           │
+│ │        │   pseudo_classes={                                    │           │
+│ │        │   │   'focus',                                        │           │
+│ │        │   │   'dark',                                         │           │
+│ │        │   │   'nocolor',                                      │           │
+│ │        │   │   'ansi'                                          │           │
+│ │        │   }                                                   │           │
+│ │        )                                                       │           │
+│ ╰────────────────────────────────────────────────────────────────╯           │
+│                                                                              │
+│ /home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site │
+│ -packages/toad/app.py:756 in new_session_screen                              │
+│                                                                              │
+│    753 │   │   │   return screen                                             │
+│    754 │   │                                                                 │
+│    755 │   │   self.workspace_sessions.register(session_details.mode_name, m │
+│ ❱  756 │   │   await self.select_session(session_details.mode_name)          │
+│    757 │   │   return session_details                                        │
+│    758 │                                                                     │
+│    759 │   def select_session(self, mode: str, *, history_index: int | None  │
+│                                                                              │
+│ ╭───────────────────────────────── locals ─────────────────────────────────╮ │
+│ │      get_screen = <bound method ToadApp.get_main_screen of               │ │
+│ │                   ToadApp(title='ToadApp', classes={'-dark-mode',        │ │
+│ │                   '-theme-ansi-dark', '-show-sessions-bar'},             │ │
+│ │                   pseudo_classes={'focus', 'dark', 'nocolor', 'ansi'})>  │ │
+│ │            self = ToadApp(                                               │ │
+│ │                   │   title='ToadApp',                                   │ │
+│ │                   │   classes={                                          │ │
+│ │                   │   │   '-dark-mode',                                  │ │
+│ │                   │   │   '-theme-ansi-dark',                            │ │
+│ │                   │   │   '-show-sessions-bar'                           │ │
+│ │                   │   },                                                 │ │
+│ │                   │   pseudo_classes={                                   │ │
+│ │                   │   │   'focus',                                       │ │
+│ │                   │   │   'dark',                                        │ │
+│ │                   │   │   'nocolor',                                     │ │
+│ │                   │   │   'ansi'                                         │ │
+│ │                   │   }                                                  │ │
+│ │                   )                                                      │ │
+│ │ session_details = SessionDetails(                                        │ │
+│ │                   │   index=1,                                           │ │
+│ │                   │   mode_name='session-1',                             │ │
+│ │                   │   title='New Session',                               │ │
+│ │                   │   subtitle='',                                       │ │
+│ │                   │   path='',                                           │ │
+│ │                   │   state='notready',                                  │ │
+│ │                   │   summary='',                                        │ │
+│ │                   │   updates=0,                                         │ │
+│ │                   │   created_at=1790643410.9634602                      │ │
+│ │                   )                                                      │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
+│                                                                              │
+│ /home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site │
+│ -packages/toad/app.py:844 in _switch_mode_ready                              │
+│                                                                              │
+│    841 │   │   │   │   │   else:                                             │
+│    842 │   │   │   │   │   │   if self.current_mode != "workspace":          │
+│    843 │   │   │   │   │   │   │   await super().switch_mode("workspace")    │
+│ ❱  844 │   │   │   │   │   │   view = await self.workspace_sessions.select(m │
+│    845 │   │   │   │   │   │   await self.workspace_screen.prepare_navigatio │
+│    846 │   │   │   │   │   │   await self.workspace_screen.layout_navigation │
+│    847 │   │   │   │   │   │   await self.workspace_chrome.blank.park_away_f │
+│                                                                              │
+│ ╭───────────────────────────────── locals ─────────────────────────────────╮ │
+│ │ history_index = None                                                     │ │
+│ │          mode = 'session-1'                                              │ │
+│ │      previous = '_default'                                               │ │
+│ │          self = ToadApp(                                                 │ │
+│ │                 │   title='ToadApp',                                     │ │
+│ │                 │   classes={                                            │ │
+│ │                 │   │   '-dark-mode',                                    │ │
+│ │                 │   │   '-theme-ansi-dark',                              │ │
+│ │                 │   │   '-show-sessions-bar'                             │ │
+│ │                 │   },                                                   │ │
+│ │                 │   pseudo_classes={                                     │ │
+│ │                 │   │   'focus',                                         │ │
+│ │                 │   │   'dark',                                          │ │
+│ │                 │   │   'nocolor',                                       │ │
+│ │                 │   │   'ansi'                                           │ │
+│ │                 │   }                                                    │ │
+│ │                 )                                                        │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
+│                                                                              │
+│ /home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site │
+│ -packages/toad/workspace_sessions.py:38 in select                            │
+│                                                                              │
+│   35 │   │   return view                                                     │
+│   36 │                                                                       │
+│   37 │   async def select(self, identity: str) -> "SessionView":             │
+│ ❱ 38 │   │   destination = await self.prepare(identity)                      │
+│   39 │   │   previous = self.selected                                        │
+│   40 │   │   if previous is destination:                                     │
+│   41 │   │   │   return destination                                          │
+│                                                                              │
+│ ╭───────────────────────────────── locals ─────────────────────────────────╮ │
+│ │ identity = 'session-1'                                                   │ │
+│ │     self = <toad.workspace_sessions.WorkspaceSessions object at          │ │
+│ │            0x7f89cdc4b770>                                               │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
+│                                                                              │
+│ /home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site │
+│ -packages/toad/workspace_sessions.py:30 in prepare                           │
+│                                                                              │
+│   27 │   │   if view := self.views.get(identity):                            │
+│   28 │   │   │   return view                                                 │
+│   29 │   │   view = self.factories[identity]()                               │
+│ ❱ 30 │   │   view.id = identity                                              │
+│   31 │   │   view.display = False                                            │
+│   32 │   │   self.views[identity] = view                                     │
+│   33 │   │   host = self.app.workspace_screen.query_one("#workspace-session- │
+│                                                                              │
+│ ╭───────────────────────────────── locals ─────────────────────────────────╮ │
+│ │ identity = 'session-1'                                                   │ │
+│ │     self = <toad.workspace_sessions.WorkspaceSessions object at          │ │
+│ │            0x7f89cdc4b770>                                               │ │
+│ │     view = MainScreen(id='session-1')                                    │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
+│                                                                              │
+│ /home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site │
+│ -packages/textual/dom.py:865 in id                                           │
+│                                                                              │
+│    862 │   │   check_identifiers("id", new_id)                               │
+│    863 │   │   self._nodes.updated()                                         │
+│    864 │   │   if self._id is not None:                                      │
+│ ❱  865 │   │   │   raise ValueError(                                         │
+│    866 │   │   │   │   f"Node 'id' attribute may not be changed once set (cu │
+│    867 │   │   │   )                                                         │
+│    868 │   │   self._id = new_id                                             │
+│                                                                              │
+│ ╭────────────── locals ───────────────╮                                      │
+│ │ new_id = 'session-1'                │                                      │
+│ │   self = MainScreen(id='session-1') │                                      │
+│ ╰─────────────────────────────────────╯                                      │
+╰──────────────────────────────────────────────────────────────────────────────╯
+ValueError: Node 'id' attribute may not be changed once set (current 
+id='session-1')
+
+NOTE: 1 of 2 errors shown. Run with textual run --dev to see all errors.
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/textual/app.py", line 2210, in run_test
+    yield pilot
+  File "/home/ts/wt/toad-workspace-persistent-sol-20260928/tests/runtime_fixture.py", line 62, in run_test
+    yield pilot
+  File "/home/ts/wt/toad-workspace-persistent-sol-20260928/tests/persistent_workspace_installed_pilot.py", line 19, in main
+    assert first is not None
+           ^^^^^^^^^^^^^^^^^
+AssertionError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-workspace-persistent-sol-20260928/tests/persistent_workspace_installed_pilot.py", line 16, in main
+    async with app.run_test(size=(130,44)) as pilot:
+               ~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 235, in __aexit__
+    await self.gen.athrow(value)
+  File "/home/ts/wt/toad-workspace-persistent-sol-20260928/tests/runtime_fixture.py", line 61, in run_test
+    async with super().run_test(**kwargs) as pilot:
+               ~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 235, in __aexit__
+    await self.gen.athrow(value)
+  File "/home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/textual/app.py", line 2218, in run_test
+    raise self._exception
+  File "/home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/textual/app.py", line 3493, in _process_messages
+    await run_process_messages()
+  File "/home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/textual/app.py", line 3438, in run_process_messages
+    await self._dispatch_message(events.Mount())
+  File "/home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/textual/message_pump.py", line 774, in _dispatch_message
+    await self.on_event(message)
+  File "/home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/textual/app.py", line 4148, in on_event
+    await super().on_event(event)
+  File "/home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/textual/message_pump.py", line 855, in on_event
+    await self._on_message(event)
+  File "/home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/textual/message_pump.py", line 876, in _on_message
+    await invoke(method, message)
+  File "/home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/textual/_callback.py", line 96, in invoke
+    return await _invoke(callback, *params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/textual/_callback.py", line 58, in _invoke
+    result = await result
+             ^^^^^^^^^^^^
+  File "/home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/toad/app.py", line 1657, in on_mount
+    await self.new_session_screen(self.get_main_screen)
+  File "/home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/toad/app.py", line 756, in new_session_screen
+    await self.select_session(session_details.mode_name)
+  File "/home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/toad/app.py", line 844, in _switch_mode_ready
+    view = await self.workspace_sessions.select(mode)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/toad/workspace_sessions.py", line 38, in select
+    destination = await self.prepare(identity)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/toad/workspace_sessions.py", line 30, in prepare
+    view.id = identity
+    ^^^^^^^
+  File "/home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/textual/dom.py", line 865, in id
+    raise ValueError(
+        f"Node 'id' attribute may not be changed once set (current id={self._id!r})"
+    )
+ValueError: Node 'id' attribute may not be changed once set (current id='session-1')
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-workspace-persistent-sol-20260928/tests/persistent_workspace_installed_pilot.py", line 44, in <module>
+    if __name__=='__main__':asyncio.run(main())
+                            ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-workspace-persistent-sol-20260928/tests/persistent_workspace_installed_pilot.py", line 11, in main
+    with TemporaryDirectory(dir=os.environ['TMPDIR'], prefix='persistent-workspace-') as directory:
+         ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/tempfile.py", line 971, in __exit__
+    self.cleanup()
+    ~~~~~~~~~~~~^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/tempfile.py", line 975, in cleanup
+    self._rmtree(self.name, ignore_errors=self._ignore_cleanup_errors)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/tempfile.py", line 955, in _rmtree
+    _shutil.rmtree(name, onexc=onexc)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/shutil.py", line 852, in rmtree
+    _rmtree_impl(path, dir_fd, onexc)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/shutil.py", line 721, in _rmtree_safe_fd
+    _rmtree_safe_fd_step(stack, onexc)
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/shutil.py", line 802, in _rmtree_safe_fd_step
+    onexc(func, path, err)
+    ~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/shutil.py", line 753, in _rmtree_safe_fd_step
+    os.rmdir(name, dir_fd=dirfd)
+    ~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+OSError: [Errno 39] Directory not empty: '/home/ts/wt/toad-workspace-persistent-sol-20260928/.artifacts/runtime/persistent-workspace-4z44l040/wire'

@@ -33,7 +33,7 @@ async def main():
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(100, 40)) as pilot:
             await pilot.pause()
-            conversation = app.screen.conversation
+            conversation = app.selected_session.conversation
             history = TranscriptHistory(page(29), load)
             await conversation.post(history)
             # Posting schedules a mount. Wait for the first page request before

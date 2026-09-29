@@ -22,7 +22,7 @@ async def main():
         async with app.run_test(size=(120, 40)) as pilot:
             await pilot.pause()
             diff = PatchDiffView(parse_patch("--- file.py\n+++ file.py\n@@ -1 +1 @@\n-old\n+new\n"), split=False)
-            await app.screen.conversation.post(diff)
+            await app.selected_session.conversation.post(diff)
             await pilot.pause()
             code = diff.query_one("DiffCode")
             await pilot.mouse_down(code, offset=(0, 0))

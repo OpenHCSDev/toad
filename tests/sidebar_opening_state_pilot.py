@@ -69,7 +69,7 @@ async def main():
             async with app.run_test(size=(110, 37)) as pilot:
                 await pilot.pause()
                 await until(lambda: app._sidebar_snapshot is not None)
-                owner = app.current_mode
+                owner = app.selected_mode
                 app.screen._agent = {"name": "Fixture", "identity": "fixture", "short_name": "fixture",
                                      "run_command": {"*": "/bin/false"}, "protocol": "acp"}
                 # Include the same-edge placement case: a loading screen must

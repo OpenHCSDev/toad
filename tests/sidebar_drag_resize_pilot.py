@@ -39,7 +39,7 @@ async def main() -> None:
                 assert slider.reversed == (side == "right")
                 for theme in ("ansi-dark", "textual-dark"):
                     app.theme = theme
-                    app.screen.conversation.prompt.focus()
+                    app.selected_session.conversation.prompt.focus()
                     await pilot.hover(app.screen.query_one(TabHistoryControls))
                     await pilot.pause()
                     normal = handle.styles.color

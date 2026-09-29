@@ -62,12 +62,12 @@ async def main():
                     tabs._last_tabs = None
                     synchronization = asyncio.create_task(tabs._sync_tabs())
                     await asyncio.wait_for(entered.wait(), 5)
-                    app.session_tracker.update_session(app.current_mode, title="New authoritative roster title")
+                    app.session_tracker.update_session(app.selected_mode, title="New authoritative roster title")
                     release.set()
                     await asyncio.wait_for(synchronization, 5)
                     assert tabs._last_tabs == app.open_tabs
-                    expected = next(tab for tab in app.open_tabs if tab.mode_name == app.current_mode)
-                    assert tabs.query_one(f"#{app.current_mode}", SessionLabel).render().plain == expected.title
+                    expected = next(tab for tab in app.open_tabs if tab.mode_name == app.selected_mode)
+                    assert tabs.query_one(f"#{app.selected_mode}", SessionLabel).render().plain == expected.title
             finally:
                 release.set()
             assert app._exception is None

@@ -1,0 +1,459 @@
+{
+  "base": {
+    "indexed_files": 723,
+    "finding_count": 137,
+    "raw_findings": 137,
+    "timing": {
+      "parse_seconds": 2.252,
+      "analysis_seconds": 45.265,
+      "planning_seconds": 0.0,
+      "source_index_seconds": 0.284,
+      "analysis_cache_status": "disabled",
+      "total_seconds": 47.801
+    },
+    "scan_status": null,
+    "surface_raw_findings": [
+      {
+        "pattern_id": 1,
+        "title": "`Plan.watch_entries:if` mirrors `DeclaredFamily`",
+        "why": "The branch literal at /home/ts/wt/toad-plan-entry-owner-sol-20260928/src/toad/widgets/plan.py:106 repeats CompletedGoal, NativeOutcome, NativePreparationResult from the `DeclaredFamily` semantic authority. A later class, enum member, or schema field can diverge from this hand-maintained view.",
+        "capability_gap": "derived class-family registry or polymorphic dispatch",
+        "relation_context": "branch_literal has semantic overlap ('completed', 'status') with class_family `DeclaredFamily`; branch literal `Plan.watch_entries:if` repeats members from class_family `DeclaredFamily`; derive it by iterating the authority registry or subclass family instead of maintaining a parallel presentation surface",
+        "confidence": "high",
+        "certification": "certified",
+        "capability_tags": [
+          "nominal_identity",
+          "provenance",
+          "enumeration",
+          "authoritative_mapping"
+        ],
+        "observation_tags": [
+          "class_family",
+          "manual_synchronization",
+          "projection_dict"
+        ],
+        "detector_id": "semantic_mirror_without_descent",
+        "summary": "`Plan.watch_entries:if` mirrors 3 member(s) of `DeclaredFamily` without a descent path",
+        "evidence": [
+          {
+            "file_path": "/home/ts/wt/toad-plan-entry-owner-sol-20260928/src/toad/widgets/plan.py",
+            "line": 106,
+            "symbol": "Plan.watch_entries:if"
+          },
+          {
+            "file_path": "/home/ts/wt/toad-block-interaction-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/declared_family.py",
+            "line": 86,
+            "symbol": "DeclaredFamily"
+          },
+          {
+            "file_path": "/home/ts/wt/toad-block-interaction-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/goal_states.py",
+            "line": 222,
+            "symbol": "CompletedGoal"
+          },
+          {
+            "file_path": "/home/ts/wt/toad-block-interaction-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/compaction_states.py",
+            "line": 303,
+            "symbol": "NativeOutcome"
+          },
+          {
+            "file_path": "/home/ts/wt/toad-block-interaction-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/owner_compaction_prepare.py",
+            "line": 49,
+            "symbol": "NativePreparationResult"
+          }
+        ],
+        "projection_evidence": {
+          "file_path": "/home/ts/wt/toad-plan-entry-owner-sol-20260928/src/toad/widgets/plan.py",
+          "line": 106,
+          "symbol": "Plan.watch_entries:if"
+        },
+        "authority_evidence": {
+          "file_path": "/home/ts/wt/toad-block-interaction-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/declared_family.py",
+          "line": 86,
+          "symbol": "DeclaredFamily"
+        },
+        "compression_certificate": null,
+        "metrics": {
+          "registration_site_count": 3,
+          "registry_name": "Plan.watch_entries:if",
+          "class_names": [
+            "CompletedGoal",
+            "NativeOutcome",
+            "NativePreparationResult"
+          ],
+          "class_key_pairs": [
+            "CompletedGoal='Completed'",
+            "NativeOutcome='status'",
+            "NativePreparationResult='status'"
+          ]
+        },
+        "stable_id": "9ade5c3672",
+        "evidence_ids": [
+          "5424607bb8",
+          "8fa8e02a08",
+          "a11f058d48",
+          "a9e1b33bd5",
+          "a3423368bc"
+        ]
+      },
+      {
+        "pattern_id": 1,
+        "title": "`Plan.compose:if` mirrors `DeclaredFamily`",
+        "why": "The branch literal at /home/ts/wt/toad-plan-entry-owner-sol-20260928/src/toad/widgets/plan.py:139 repeats CompletedGoal, NativeOutcome, NativePreparationResult from the `DeclaredFamily` semantic authority. A later class, enum member, or schema field can diverge from this hand-maintained view.",
+        "capability_gap": "derived class-family registry or polymorphic dispatch",
+        "relation_context": "branch_literal has semantic overlap ('completed', 'status') with class_family `DeclaredFamily`; branch literal `Plan.compose:if` repeats members from class_family `DeclaredFamily`; derive it by iterating the authority registry or subclass family instead of maintaining a parallel presentation surface",
+        "confidence": "high",
+        "certification": "certified",
+        "capability_tags": [
+          "nominal_identity",
+          "provenance",
+          "enumeration",
+          "authoritative_mapping"
+        ],
+        "observation_tags": [
+          "class_family",
+          "manual_synchronization",
+          "projection_dict"
+        ],
+        "detector_id": "semantic_mirror_without_descent",
+        "summary": "`Plan.compose:if` mirrors 3 member(s) of `DeclaredFamily` without a descent path",
+        "evidence": [
+          {
+            "file_path": "/home/ts/wt/toad-plan-entry-owner-sol-20260928/src/toad/widgets/plan.py",
+            "line": 139,
+            "symbol": "Plan.compose:if"
+          },
+          {
+            "file_path": "/home/ts/wt/toad-block-interaction-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/declared_family.py",
+            "line": 86,
+            "symbol": "DeclaredFamily"
+          },
+          {
+            "file_path": "/home/ts/wt/toad-block-interaction-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/goal_states.py",
+            "line": 222,
+            "symbol": "CompletedGoal"
+          },
+          {
+            "file_path": "/home/ts/wt/toad-block-interaction-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/compaction_states.py",
+            "line": 303,
+            "symbol": "NativeOutcome"
+          },
+          {
+            "file_path": "/home/ts/wt/toad-block-interaction-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/owner_compaction_prepare.py",
+            "line": 49,
+            "symbol": "NativePreparationResult"
+          }
+        ],
+        "projection_evidence": {
+          "file_path": "/home/ts/wt/toad-plan-entry-owner-sol-20260928/src/toad/widgets/plan.py",
+          "line": 139,
+          "symbol": "Plan.compose:if"
+        },
+        "authority_evidence": {
+          "file_path": "/home/ts/wt/toad-block-interaction-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/declared_family.py",
+          "line": 86,
+          "symbol": "DeclaredFamily"
+        },
+        "compression_certificate": null,
+        "metrics": {
+          "registration_site_count": 3,
+          "registry_name": "Plan.compose:if",
+          "class_names": [
+            "CompletedGoal",
+            "NativeOutcome",
+            "NativePreparationResult"
+          ],
+          "class_key_pairs": [
+            "CompletedGoal='Completed'",
+            "NativeOutcome='status'",
+            "NativePreparationResult='status'"
+          ]
+        },
+        "stable_id": "615315e870",
+        "evidence_ids": [
+          "a6448253ed",
+          "8fa8e02a08",
+          "a11f058d48",
+          "a9e1b33bd5",
+          "a3423368bc"
+        ]
+      },
+      {
+        "pattern_id": 1,
+        "title": "`Plan.render_status:if` mirrors `DeclaredFamily`",
+        "why": "The branch literal at /home/ts/wt/toad-plan-entry-owner-sol-20260928/src/toad/widgets/plan.py:144 repeats CompletedGoal, NativeOutcome, NativePreparationResult from the `DeclaredFamily` semantic authority. A later class, enum member, or schema field can diverge from this hand-maintained view.",
+        "capability_gap": "derived class-family registry or polymorphic dispatch",
+        "relation_context": "branch_literal has semantic overlap ('completed', 'status') with class_family `DeclaredFamily`; branch literal `Plan.render_status:if` repeats members from class_family `DeclaredFamily`; derive it by iterating the authority registry or subclass family instead of maintaining a parallel presentation surface",
+        "confidence": "high",
+        "certification": "certified",
+        "capability_tags": [
+          "nominal_identity",
+          "provenance",
+          "enumeration",
+          "authoritative_mapping"
+        ],
+        "observation_tags": [
+          "class_family",
+          "manual_synchronization",
+          "projection_dict"
+        ],
+        "detector_id": "semantic_mirror_without_descent",
+        "summary": "`Plan.render_status:if` mirrors 3 member(s) of `DeclaredFamily` without a descent path",
+        "evidence": [
+          {
+            "file_path": "/home/ts/wt/toad-plan-entry-owner-sol-20260928/src/toad/widgets/plan.py",
+            "line": 144,
+            "symbol": "Plan.render_status:if"
+          },
+          {
+            "file_path": "/home/ts/wt/toad-block-interaction-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/declared_family.py",
+            "line": 86,
+            "symbol": "DeclaredFamily"
+          },
+          {
+            "file_path": "/home/ts/wt/toad-block-interaction-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/goal_states.py",
+            "line": 222,
+            "symbol": "CompletedGoal"
+          },
+          {
+            "file_path": "/home/ts/wt/toad-block-interaction-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/compaction_states.py",
+            "line": 303,
+            "symbol": "NativeOutcome"
+          },
+          {
+            "file_path": "/home/ts/wt/toad-block-interaction-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/owner_compaction_prepare.py",
+            "line": 49,
+            "symbol": "NativePreparationResult"
+          }
+        ],
+        "projection_evidence": {
+          "file_path": "/home/ts/wt/toad-plan-entry-owner-sol-20260928/src/toad/widgets/plan.py",
+          "line": 144,
+          "symbol": "Plan.render_status:if"
+        },
+        "authority_evidence": {
+          "file_path": "/home/ts/wt/toad-block-interaction-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/declared_family.py",
+          "line": 86,
+          "symbol": "DeclaredFamily"
+        },
+        "compression_certificate": null,
+        "metrics": {
+          "registration_site_count": 3,
+          "registry_name": "Plan.render_status:if",
+          "class_names": [
+            "CompletedGoal",
+            "NativeOutcome",
+            "NativePreparationResult"
+          ],
+          "class_key_pairs": [
+            "CompletedGoal='Completed'",
+            "NativeOutcome='status'",
+            "NativePreparationResult='status'"
+          ]
+        },
+        "stable_id": "a2fd46e939",
+        "evidence_ids": [
+          "e97d1ad429",
+          "8fa8e02a08",
+          "a11f058d48",
+          "a9e1b33bd5",
+          "a3423368bc"
+        ]
+      },
+      {
+        "pattern_id": 1,
+        "title": "`Plan.render_status:if` mirrors `DeclaredFamily`",
+        "why": "The branch literal at /home/ts/wt/toad-plan-entry-owner-sol-20260928/src/toad/widgets/plan.py:146 repeats AssignmentState, FullPendingAssignment, NativeOutcome, NativePreparationResult, TriagePendingAssignment from the `DeclaredFamily` semantic authority. A later class, enum member, or schema field can diverge from this hand-maintained view.",
+        "capability_gap": "derived class-family registry or polymorphic dispatch",
+        "relation_context": "branch_literal has semantic overlap ('pending', 'status') with class_family `DeclaredFamily`; branch literal `Plan.render_status:if` repeats members from class_family `DeclaredFamily`; derive it by iterating the authority registry or subclass family instead of maintaining a parallel presentation surface",
+        "confidence": "high",
+        "certification": "certified",
+        "capability_tags": [
+          "nominal_identity",
+          "provenance",
+          "enumeration",
+          "authoritative_mapping"
+        ],
+        "observation_tags": [
+          "class_family",
+          "manual_synchronization",
+          "projection_dict"
+        ],
+        "detector_id": "semantic_mirror_without_descent",
+        "summary": "`Plan.render_status:if` mirrors 5 member(s) of `DeclaredFamily` without a descent path",
+        "evidence": [
+          {
+            "file_path": "/home/ts/wt/toad-plan-entry-owner-sol-20260928/src/toad/widgets/plan.py",
+            "line": 146,
+            "symbol": "Plan.render_status:if"
+          },
+          {
+            "file_path": "/home/ts/wt/toad-block-interaction-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/declared_family.py",
+            "line": 86,
+            "symbol": "DeclaredFamily"
+          },
+          {
+            "file_path": "/home/ts/wt/toad-block-interaction-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/assignment_states.py",
+            "line": 38,
+            "symbol": "AssignmentState"
+          },
+          {
+            "file_path": "/home/ts/wt/toad-block-interaction-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/assignment_states.py",
+            "line": 177,
+            "symbol": "FullPendingAssignment"
+          },
+          {
+            "file_path": "/home/ts/wt/toad-block-interaction-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/compaction_states.py",
+            "line": 303,
+            "symbol": "NativeOutcome"
+          },
+          {
+            "file_path": "/home/ts/wt/toad-block-interaction-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/owner_compaction_prepare.py",
+            "line": 49,
+            "symbol": "NativePreparationResult"
+          },
+          {
+            "file_path": "/home/ts/wt/toad-block-interaction-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/assignment_states.py",
+            "line": 160,
+            "symbol": "TriagePendingAssignment"
+          }
+        ],
+        "projection_evidence": {
+          "file_path": "/home/ts/wt/toad-plan-entry-owner-sol-20260928/src/toad/widgets/plan.py",
+          "line": 146,
+          "symbol": "Plan.render_status:if"
+        },
+        "authority_evidence": {
+          "file_path": "/home/ts/wt/toad-block-interaction-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/declared_family.py",
+          "line": 86,
+          "symbol": "DeclaredFamily"
+        },
+        "compression_certificate": null,
+        "metrics": {
+          "registration_site_count": 5,
+          "registry_name": "Plan.render_status:if",
+          "class_names": [
+            "AssignmentState",
+            "FullPendingAssignment",
+            "NativeOutcome",
+            "NativePreparationResult",
+            "TriagePendingAssignment"
+          ],
+          "class_key_pairs": [
+            "AssignmentState='Pending'",
+            "FullPendingAssignment='Pending'",
+            "NativeOutcome='status'",
+            "NativePreparationResult='status'",
+            "TriagePendingAssignment='Pending'"
+          ]
+        },
+        "stable_id": "84636cb3a0",
+        "evidence_ids": [
+          "492c5e4da4",
+          "8fa8e02a08",
+          "d5a1c392b5",
+          "8951fb91eb",
+          "a9e1b33bd5",
+          "a3423368bc",
+          "889148ee74"
+        ]
+      },
+      {
+        "pattern_id": 1,
+        "title": "`Plan.render_status:if` mirrors `DeclaredFamily`",
+        "why": "The branch literal at /home/ts/wt/toad-plan-entry-owner-sol-20260928/src/toad/widgets/plan.py:148 repeats GoalState, NativeOutcome, NativePreparationResult from the `DeclaredFamily` semantic authority. A later class, enum member, or schema field can diverge from this hand-maintained view.",
+        "capability_gap": "derived class-family registry or polymorphic dispatch",
+        "relation_context": "branch_literal has semantic overlap ('in_progress', 'status') with class_family `DeclaredFamily`; branch literal `Plan.render_status:if` repeats members from class_family `DeclaredFamily`; derive it by iterating the authority registry or subclass family instead of maintaining a parallel presentation surface",
+        "confidence": "high",
+        "certification": "certified",
+        "capability_tags": [
+          "nominal_identity",
+          "provenance",
+          "enumeration",
+          "authoritative_mapping"
+        ],
+        "observation_tags": [
+          "class_family",
+          "manual_synchronization",
+          "projection_dict"
+        ],
+        "detector_id": "semantic_mirror_without_descent",
+        "summary": "`Plan.render_status:if` mirrors 3 member(s) of `DeclaredFamily` without a descent path",
+        "evidence": [
+          {
+            "file_path": "/home/ts/wt/toad-plan-entry-owner-sol-20260928/src/toad/widgets/plan.py",
+            "line": 148,
+            "symbol": "Plan.render_status:if"
+          },
+          {
+            "file_path": "/home/ts/wt/toad-block-interaction-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/declared_family.py",
+            "line": 86,
+            "symbol": "DeclaredFamily"
+          },
+          {
+            "file_path": "/home/ts/wt/toad-block-interaction-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/goal_states.py",
+            "line": 50,
+            "symbol": "GoalState"
+          },
+          {
+            "file_path": "/home/ts/wt/toad-block-interaction-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/compaction_states.py",
+            "line": 303,
+            "symbol": "NativeOutcome"
+          },
+          {
+            "file_path": "/home/ts/wt/toad-block-interaction-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/owner_compaction_prepare.py",
+            "line": 49,
+            "symbol": "NativePreparationResult"
+          }
+        ],
+        "projection_evidence": {
+          "file_path": "/home/ts/wt/toad-plan-entry-owner-sol-20260928/src/toad/widgets/plan.py",
+          "line": 148,
+          "symbol": "Plan.render_status:if"
+        },
+        "authority_evidence": {
+          "file_path": "/home/ts/wt/toad-block-interaction-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/declared_family.py",
+          "line": 86,
+          "symbol": "DeclaredFamily"
+        },
+        "compression_certificate": null,
+        "metrics": {
+          "registration_site_count": 3,
+          "registry_name": "Plan.render_status:if",
+          "class_names": [
+            "GoalState",
+            "NativeOutcome",
+            "NativePreparationResult"
+          ],
+          "class_key_pairs": [
+            "GoalState='in_progress'",
+            "NativeOutcome='status'",
+            "NativePreparationResult='status'"
+          ]
+        },
+        "stable_id": "1267b0e04c",
+        "evidence_ids": [
+          "3c6e3c73de",
+          "8fa8e02a08",
+          "9cad7042ed",
+          "a9e1b33bd5",
+          "a3423368bc"
+        ]
+      }
+    ]
+  },
+  "final": {
+    "indexed_files": 725,
+    "finding_count": 132,
+    "raw_findings": 132,
+    "timing": {
+      "parse_seconds": 2.201,
+      "analysis_seconds": 45.025,
+      "planning_seconds": 0.0,
+      "source_index_seconds": 0.309,
+      "analysis_cache_status": "disabled",
+      "total_seconds": 47.535
+    },
+    "scan_status": null,
+    "surface_raw_findings": []
+  }
+}

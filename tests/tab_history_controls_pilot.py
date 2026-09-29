@@ -37,7 +37,7 @@ async def main():
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(100, 36)) as pilot:
             await pilot.pause()
-            first = app.current_mode
+            first = app.selected_mode
             first_screen = app.screen
             first_screen.conversation.prompt.text = "Preserve first draft"
             left = first_screen.query_one("#channels-sidebar", SideBar)
@@ -64,7 +64,7 @@ async def main():
                 unavailable_back.pseudo_classes,
             )
             assert await pilot.click(unavailable_back)
-            assert app.current_mode == first
+            assert app.selected_mode == first
             assert not first_screen.query_one("#thread-sidebar", SideBar).query(TabHistoryControls)
             assert controls.region.y < left.region.y
             assert controls.region.y < left.query_one("CollapsibleTitle").region.y
@@ -78,7 +78,7 @@ async def main():
             channel = await app.open_comms_session(
                 owner_mode=first, project_path=root, me="owner", target=channel_target("#all"))
             await pilot.pause()
-            assert app.current_mode == channel
+            assert app.selected_mode == channel
             assert app.screen.query_one(SessionsTabs).display
             assert app.screen.query_one(SessionsTabs).region.y == 0
             assert not app.screen.query_one("#tab-back", TabHistoryButton).has_class("-unavailable")
@@ -103,31 +103,31 @@ async def main():
             assert (app.screen.query_one(TabHistoryControls)
                     in app.screen._compositor.visible_widgets)
             assert await pilot.click("#tab-back")
-            await wait_for(pilot, lambda: app.current_mode == first)
+            await wait_for(pilot, lambda: app.selected_mode == first)
             assert await pilot.click("#tab-forward")
-            await wait_for(pilot, lambda: app.current_mode == channel)
+            await wait_for(pilot, lambda: app.selected_mode == channel)
             second = (await app.new_session_screen(app.get_main_screen)).mode_name
             second_screen = app.screen
             second_screen.conversation.prompt.text = "Preserve second draft"
 
             assert await pilot.click("#tab-back")
-            await wait_for(pilot, lambda: app.current_mode == channel)
+            await wait_for(pilot, lambda: app.selected_mode == channel)
             assert await pilot.click("#tab-back")
-            await wait_for(pilot, lambda: app.current_mode == first)
+            await wait_for(pilot, lambda: app.selected_mode == first)
             assert first_screen.conversation.prompt.text == "Preserve first draft"
             assert await pilot.click("#tab-forward")
-            await wait_for(pilot, lambda: app.current_mode == channel)
+            await wait_for(pilot, lambda: app.selected_mode == channel)
             assert await pilot.click("#tab-forward")
-            await wait_for(pilot, lambda: app.current_mode == second)
+            await wait_for(pilot, lambda: app.selected_mode == second)
             assert second_screen.conversation.prompt.text == "Preserve second draft"
 
             # A direct selection after Back branches history, without closing
             # the other tab or adding another view to the strip.
             assert await pilot.click("#tab-back")
-            await wait_for(pilot, lambda: app.current_mode == channel)
+            await wait_for(pilot, lambda: app.selected_mode == channel)
             label = app.screen.query_one(SessionsTabs).query_one(f"#{first}", SessionLabel)
             assert await pilot.click(label)
-            await wait_for(pilot, lambda: app.current_mode == first)
+            await wait_for(pilot, lambda: app.selected_mode == first)
             assert app.screen.query_one("#tab-forward", TabHistoryButton).has_class("-unavailable")
             assert {tab.mode_name for tab in app.open_tabs} == {first, channel, second}
 
@@ -143,11 +143,11 @@ async def main():
                 preview_back in app.screen._compositor.visible_widgets,
                 preview_back.has_class("-unavailable"),
             )
-            await wait_for(pilot, lambda: app.current_mode == first)
+            await wait_for(pilot, lambda: app.selected_mode == first)
             assert await pilot.click("#tab-forward")
-            await wait_for(pilot, lambda: app.current_mode == preview)
+            await wait_for(pilot, lambda: app.selected_mode == preview)
             await app.close_session_mode(preview)
-            assert app.current_mode == first
+            assert app.selected_mode == first
             await app.close_session_mode(channel)
             assert {tab.mode_name for tab in app.open_tabs} == {first, second}
             assert first_screen.conversation.prompt.text == "Preserve first draft"
@@ -182,9 +182,9 @@ async def main():
             await pilot.pause()
             assert await pilot.click("#tab-back")
             await wait_for(pilot, lambda: app.tab_order.history_target(+1) == (target[0] + 1, first))
-            assert app.current_mode == first
+            assert app.selected_mode == first
             assert await pilot.click("#tab-back")
-            await wait_for(pilot, lambda: app.current_mode != first)
+            await wait_for(pilot, lambda: app.selected_mode != first)
             assert app._exception is None
         await asyncio.get_running_loop().shutdown_default_executor()
     print("tab history: Back/Forward, branches, closed tabs, drafts, and horizontal scroll passed")

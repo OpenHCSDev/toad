@@ -41,7 +41,7 @@ async def main():
             app = ToadApp(project_dir=str(root))
             async with app.run_test(size=(100, 32)) as pilot:
                 await pilot.pause()
-                response = await app.screen.conversation.post(
+                response = await app.selected_session.conversation.post(
                     AgentResponse(f"[Open ACP log](toad-file:{quote(str(log))})")
                 )
                 async with asyncio.timeout(10):

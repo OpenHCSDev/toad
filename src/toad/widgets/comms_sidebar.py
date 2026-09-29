@@ -177,7 +177,7 @@ class ChannelGroup(SidebarGroup):
                 row.mode_name = modes.get(name)
                 row.target = person_target(self._snapshot.all_people[name])
                 row.apply_thread_preparation(prepared_rows[name])
-                row.current = row.mode_name == app.current_mode
+                row.current = row.mode_name == app.selected_mode
 
             self.member_rows = await self.reconcile_rows(
                 wanted, self._members, create, update)
@@ -318,7 +318,7 @@ class ThreadRow(CommsRow):
         else:
             if sidebar := self._sidebar():
                 sidebar.remember_row(self)
-            self.app.switch_mode(self.mode_name)
+            self.app.select_session(self.mode_name)
 
 
 class NewSessionButton(Static):
@@ -356,7 +356,7 @@ class NewSessionButton(Static):
         super().__init__("+ New Session")
 
     def action_create(self) -> None:
-        source_mode = self.screen.id or cast("ToadApp", self.app).current_mode
+        source_mode = cast("ToadApp", self.app).selected_mode
         self.app.post_message(messages.SessionCreate(source_mode))
 
     def on_mouse_up(self, event) -> None:
@@ -654,23 +654,23 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
         self._wire = (app.coordination_wire if root == app.coordination_wire.root
                       else wire(root))
         app.session_update_signal.subscribe(self, self._session_updated)
-        app.mode_change_signal.subscribe(self, self._mode_changed)
+        app.session_selected_signal.subscribe(self, self._mode_changed)
         app.thread_actions_changed.subscribe(self, self._thread_actions_changed)
         app.settings_changed_signal.subscribe(self, self._settings_changed)
         if self._observe:
             self.set_interval(COMMS_REFRESH_INTERVAL, self._refresh)
         self.prepare_navigation()
-        from toad.screens.session_view import SessionView
+        from toad.screens.workspace import WorkspaceScreen
 
-        if isinstance(self.screen, SessionView):
+        if isinstance(self.screen, WorkspaceScreen):
             self.screen.call_after_first_frame(self, self.start_navigation_hydration)
         self._refresh_after_first_frame()
 
     def _refresh_after_first_frame(self) -> None:
-        from toad.screens.session_view import SessionView
+        from toad.screens.workspace import WorkspaceScreen
 
         screen = self.screen
-        if isinstance(screen, SessionView):
+        if isinstance(screen, WorkspaceScreen):
             screen.call_after_first_frame(self, self._refresh)
         else:
             self.call_after_refresh(self._refresh)
@@ -747,7 +747,7 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
         # read whenever a selected rich Conversation is reconstructed.
         if self._last_snapshot is not None:
             await self._present_snapshot(self._snapshot(self._last_snapshot.wire))
-        self._mode_changed(cast("ToadApp", self.app).current_mode)
+        self._mode_changed(cast("ToadApp", self.app).selected_mode)
         self._refresh()
 
     async def sync_sessions(self) -> None:
@@ -902,9 +902,9 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
                 self.display = False
             if self._snapshot_pending:
                 return
-            from toad.screens.session_view import SessionView
+            from toad.screens.workspace import WorkspaceScreen
 
-            if isinstance(self.screen, SessionView) and not self.screen._first_frame_presented:
+            if isinstance(self.screen, WorkspaceScreen) and not self.screen._first_frame_presented:
                 self.screen.call_after_first_frame(self, self._refresh)
                 return
             revision = self._wire.views.revision()
@@ -1035,7 +1035,7 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
                     cast("ToadApp", self.app).open_tabs_changed.publish(None)
             else:
                 self.apply_selection()
-                self._mode_changed(cast("ToadApp", self.app).current_mode)
+                self._mode_changed(cast("ToadApp", self.app).selected_mode)
                 self._sync_spinner(snapshot)
             if not self.navigation_ready.is_set() and self.is_attached and self.screen.is_current:
                 self.call_after_refresh(self._finish_navigation, self._navigation_revision)
@@ -1094,7 +1094,7 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
             positions = {widget: index for index, widget in enumerate(ordered)}
             self.sort_children(key=positions.__getitem__)
         self.apply_selection(force=True)
-        self._mode_changed(cast("ToadApp", self.app).current_mode, force=True)
+        self._mode_changed(cast("ToadApp", self.app).selected_mode, force=True)
         self._rendered_expansion = dict(self.navigation.expanded)
         self._rendered_actions = dict(cast("ToadApp", self.app).pending_thread_actions)
         self._sync_spinner(snapshot)
@@ -1270,7 +1270,7 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
         """Focus the current session in this authoritative sessions view."""
         await self.sync_sessions()
         if self._virtual:
-            current_mode = cast("ToadApp", self.app).current_mode
+            current_mode = cast("ToadApp", self.app).selected_mode
             listing = self.query_one(VirtualChannelList)
             selected_id = next((key for key, choice in self._virtual_targets.items()
                                 if choice.represents_mode(current_mode, ALL_COMMS_TARGET)), None)
@@ -1290,7 +1290,7 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
         rows = self._ordered_rows()
         if not rows:
             return
-        current_mode = cast("ToadApp", self.app).current_mode
+        current_mode = cast("ToadApp", self.app).selected_mode
         if not any(row.mode_name == current_mode for row in self.session_rows):
             aggregate = self._row_map.get(ALL_COMMS_TARGET)
             if aggregate is not None:

@@ -48,7 +48,7 @@ async def main():
             await pilot.pause()
             for _ in range(9):
                 await app.new_session_screen(app.get_main_screen)
-            conversation = app.screen.conversation
+            conversation = app.selected_session.conversation
             await conversation.contents.mount(*[
                 AgentResponse(f"## Loaded response {index}\n\n" + "paragraph and line\n\n" * 10)
                 for index in range(12)
