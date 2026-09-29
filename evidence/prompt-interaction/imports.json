@@ -17,5 +17,7 @@
   "batrachian-toad-direct": {
     "url": "file:///home/ts/wt/toad-thread-opening-sol-20260929",
     "dir_info": {}
-  }
+  },
+  "core_source_head": "8cae0ae84d7fc094d9a8e45f1dd42199c9c12868",
+  "toad_source_head": "4c820b9a37197d0f2004f6783038f0a73c484830"
 }
