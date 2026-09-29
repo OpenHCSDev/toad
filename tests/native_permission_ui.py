@@ -69,6 +69,15 @@ class Observer:
             assert ask is not None and self.view.prompt.is_mounted
             frame="\n".join(strip.text for strip in self.app.screen._compositor.render_strips())
             assert any(option.text in frame for option in ask.options), "Native permission options must actually paint"
+            from toad.widgets.acp_content import ACPToolCallContent
+            from toad.widgets.tool_content import MarkdownContent
+            preview = self.view.prompt.query_one(ACPToolCallContent)
+            markdown = preview.query_one(MarkdownContent)
+            assert markdown.source == tool_call["content"][0]["content"]["text"]
+            async with asyncio.timeout(10):
+                while "per-call confirmation" not in frame:
+                    await self.pilot.pause(.05)
+                    frame = "\n".join(strip.text for strip in self.app.screen._compositor.render_strips())
             self.app.save_screenshot(str(self.root / "toad-permission.svg"))
             self.permission_presented.set()
             if os.environ.get("AC_MCP_RETIRE_SURFACE") == "1" and self.case != "disconnect":
@@ -86,6 +95,7 @@ class Observer:
                 await self.pilot.pause()
                 ask = replacement.prompt._ask
                 assert ask is not None and request.pending
+                assert replacement.prompt.query_one(ACPToolCallContent).query_one(MarkdownContent).source == markdown.source
                 (self.root / "permission-rebind.txt").write_text("Actual native permission remained pending across rich surface removal and remounted on replacement.\n")
             if self.case != "disconnect":
                 index, answer = next((i, a) for i, a in enumerate(ask.options)

@@ -12,11 +12,10 @@ from toad.widgets.acp_content import ACPToolCallContent
 from toad.tool_output import ToolOutputPart, decode_content
 
 
+@dataclass
 class PermissionPresentation(DeclaredFamily, affix="PermissionPresentation"):
     priority = 0
-
-    def __init__(self, title):
-        self.title = title
+    title: str
 
     @classmethod
     def from_acp(cls, tool_call):
@@ -75,7 +74,6 @@ class DiffPermissionPresentation(PermissionPresentation):
 @dataclass
 class InlinePermissionPresentation(PermissionPresentation):
     priority = -1
-    title: str
     parts: tuple[ToolOutputPart, ...]
 
     @classmethod
