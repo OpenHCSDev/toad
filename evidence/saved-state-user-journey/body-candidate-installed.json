@@ -1,0 +1,11 @@
+{
+  "source_head": "475d448f566bf71f88a9d57d4f8075ce478cb693",
+  "install": {
+    "url": "file:///home/ts/wt/toad-saved-state-user-journey-20260929/.artifacts/body-native-acceptance/src",
+    "dir_info": {}
+  },
+  "production_import": "/home/ts/wt/toad-saved-state-user-journey-20260929/.artifacts/body-native-acceptance/venv/lib/python3.14/site-packages/toad/__init__.py",
+  "dependency_runtime": "/home/ts/.local/share/agent-comms/runtime-owner-startup-20260929",
+  "native": "d3967e8b6ee0cf28",
+  "test_entry": "tests/saved_state_user_journey_pilot.py"
+}

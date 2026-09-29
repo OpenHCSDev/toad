@@ -1,0 +1,26 @@
+{
+  "textual-8.2.8.dist-info": {
+    "url": "https://github.com/OpenHCSDev/textual.git",
+    "vcs_info": {
+      "vcs": "git",
+      "commit_id": "1738abd8e3524b7e86171b70256d7f7e52fdb724",
+      "requested_revision": "1738abd8e3524b7e86171b70256d7f7e52fdb724"
+    }
+  },
+  "batrachian_toad-0.6.20.dist-info": {
+    "url": "https://github.com/OpenHCSDev/toad.git",
+    "vcs_info": {
+      "vcs": "git",
+      "commit_id": "51fdf2b856963b62d3d569ed110d4581ba8a1bf0",
+      "requested_revision": "51fdf2b856963b62d3d569ed110d4581ba8a1bf0"
+    }
+  },
+  "agent_comms-0.1.0.dist-info": {
+    "url": "https://github.com/OpenHCSDev/agent-comms.git",
+    "vcs_info": {
+      "vcs": "git",
+      "commit_id": "b1c0bde6e23988156761e698a0b2f026cae23b68",
+      "requested_revision": "b1c0bde6e23988156761e698a0b2f026cae23b68"
+    }
+  }
+}

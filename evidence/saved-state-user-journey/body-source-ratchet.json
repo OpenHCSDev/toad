@@ -1,0 +1,10 @@
+{
+  "base": {
+    "boolean_chain_terms": 0,
+    "foreign_absence_probe": 0
+  },
+  "current": {
+    "boolean_chain_terms": 0,
+    "foreign_absence_probe": 0
+  }
+}
