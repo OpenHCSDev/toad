@@ -279,20 +279,21 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
         self._presented_event.clear()
         self._first_frame_flush_queued = False
         self._navigation_changed = await self.app.selected_session.prepare_navigation()
+        self._navigation_changed |= self.app.workspace_chrome.prepare_navigation(self)
         if tabs := self.query_one_optional(SessionsTabs):
             await tabs._sync_tabs()
 
     async def layout_navigation(self) -> None:
         """Measure the selected source and restore its own sidebar position."""
-        selected = self.app.selected_session
+        roster = self.app.workspace_chrome.channels.roster
         if (self._navigation_applied and not self._navigation_changed
                 and self._size == self.app.size and not self._layout_required
                 and not self._scroll_required and not self._layout_widgets):
-            if selected.restore_navigation_scroll():
+            if roster.restore_scroll():
                 self._refresh_layout(self.app.size, scroll=True)
             return
         self._refresh_layout(self.app.size)
-        if selected.restore_navigation_scroll():
+        if roster.restore_scroll():
             self._refresh_layout(self.app.size, scroll=True)
         self._layout_required = False
         self._scroll_required = False
