@@ -29,6 +29,21 @@ from toad.widgets.comms_sidebar import ChannelGroup, CommsRow
 from toad.widgets.message_notifications import MessageNotifications
 from toad.widgets.prepared_markdown import PreparedConversationMarkdown
 from toad.widgets.session_tabs import SessionLabel
+from toad.widgets.agent_response import AgentResponse
+from toad.widgets.transcript_history import TranscriptFragmentView
+from toad.widgets.conversation import Conversation
+
+
+class StreamJourneyApp(InstalledApp):
+    """Observe actual painted live output while the native provider streams."""
+    def _display(self, screen, renderable):
+        super()._display(screen, renderable)
+        for view in screen.query(Conversation):
+            if view.agent is None or view.agent.session_id != "gamma":
+                continue
+            live = [block for block in view.query(AgentResponse)
+                    if not isinstance(block.parent, TranscriptFragmentView)]
+            assert len(live) <= 1, "One native reply created multiple live message headers"
 
 
 class SavedStateSubscriber:
@@ -518,5 +533,6 @@ async def channel_reply_feedback(app, pilot, comms, channel, first, entered, rel
 
 if __name__ == "__main__":
     asyncio.run(native_fixture(
-        app_type=InstalledApp, prepare_state=prepare_saved_state, acceptance=acceptance,
+        app_type=StreamJourneyApp, prepare_state=prepare_saved_state, acceptance=acceptance,
+        provider_chunk_characters=3,
     ))

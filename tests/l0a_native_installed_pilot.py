@@ -97,7 +97,8 @@ async def notification_feedback(
 
 async def main(*, notification_only=False, retire_surface=False, app_type=ToadApp,
                acceptance=None, provider_reply=None, provider_usage=None,
-               native_settings=None, prepare_state=None, expected_response_disconnects=frozenset(), headless=True, provider_request_budget=12):
+               native_settings=None, prepare_state=None, expected_response_disconnects=frozenset(), headless=True, provider_request_budget=12,
+               provider_chunk_characters=None):
     evidence = Path(os.environ.get("L0A_EVIDENCE", os.environ["TMPDIR"]))
     evidence.mkdir(parents=True, exist_ok=True)
     package = Path(os.environ["AC_NATIVE_COPIED_PACKAGE"])
@@ -156,9 +157,17 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
                         "total_tokens": 110,
                     }),
                 }
+                chunks = [chunk]
+                if provider_chunk_characters is not None:
+                    delta = chunk["choices"][0]["delta"]
+                    text = delta.get("content", "")
+                    chunks = [{**chunk, "choices": [{"index": 0, "delta": {
+                        **({"role": "assistant"} if offset == 0 else {}),
+                        "content": text[offset:offset + provider_chunk_characters],
+                    }, "finish_reason": None}]} for offset in range(0, len(text), provider_chunk_characters)]
                 body = (
                     "".join(
-                        "data: " + json.dumps(row) + "\n\n" for row in (chunk, final)
+                        "data: " + json.dumps(row) + "\n\n" for row in (*chunks, final)
                     )
                     + "data: [DONE]\n\n"
                 ).encode()

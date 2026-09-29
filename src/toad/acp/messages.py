@@ -9,7 +9,6 @@ from agent_comms.acp_extension import (
     AgentCommsUpdate,
     QueueScope,
 )
-from agent_comms.routing import MessageRoute
 from textual.message import Message
 
 from toad.acp import protocol
