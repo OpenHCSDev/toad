@@ -52,11 +52,25 @@ async def main():
         data = {"name": "Physical completion peer", "identity": "completion-acceptance",
                 "short_name": "Completion", "protocol": "acp",
                 "run_command": {"*": shlex.join([sys.executable, str(peer)])}}
+        hold = project / "hold-acp-startup"
+        hold.touch()
         app = InstalledApp(project_dir=str(project), agent_data=data)
         async with app.run_test(size=(130, 44)) as pilot:
             view = app.selected_session.conversation
             await until(pilot, lambda: view.agent is not None)
             agent = view.agent
+            try:
+                prompt = view.prompt
+                assert not agent.ready and not prompt.agent_ready
+                prompt.text = CursorProofCommand().command + " "
+                prompt.focus()
+                await until(pilot, lambda: "DECLARED_CURSOR_HINT" in viewport_text(prompt.prompt_text_area))
+                await pilot.press("enter")
+                await until(pilot, lambda: (project / "cursor-command.txt").exists())
+                assert (project / "cursor-command.txt").read_text() == "Applied actual local declaration"
+                print("DECLARATION_ONLY_LOCAL_COMMAND_HINT_AND_PHYSICAL_SUBMISSION_BEFORE_ACTUAL_ACP_READY_PASS", flush=True)
+            finally:
+                hold.unlink()
             await until(pilot, agent.session_ready_event.is_set)
             assert agent._connected_ok
             try:
@@ -202,23 +216,6 @@ async def main():
                 await until(pilot, lambda: not picker.is_open and prompt.prompt_text_area.has_focus)
                 assert app._exception is None
                 print("PHYSICAL_ACP_MODEL_SELECTION_POINTER_FOCUS_RETURN_AND_DRAFT_PRESERVED", flush=True)
-                hold = project / "hold-acp-startup"
-                hold.touch()
-                await app.session_navigation.new(app.get_main_screen)
-                starting = app.selected_session.conversation
-                await until(pilot, lambda: starting.agent is not None)
-                try:
-                    assert not starting.agent.ready and not starting.prompt.agent_ready
-                    starting.prompt.text = CursorProofCommand().command + " "
-                    starting.prompt.focus()
-                    await until(pilot, lambda: "DECLARED_CURSOR_HINT" in viewport_text(starting.prompt.prompt_text_area))
-                    await pilot.press("enter")
-                    await until(pilot, lambda: (project / "cursor-command.txt").exists())
-                    assert (project / "cursor-command.txt").read_text() == "Applied actual local declaration"
-                    print("DECLARATION_ONLY_LOCAL_COMMAND_HINT_AND_PHYSICAL_SUBMISSION_BEFORE_ACTUAL_ACP_READY_PASS", flush=True)
-                finally:
-                    hold.unlink()
-                    await starting.agent.stop()
             finally:
                 await agent.stop()
 
