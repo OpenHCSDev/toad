@@ -11,6 +11,7 @@ from toad.acp.client_session import ClientSessionRequest
 from toad.agent import AgentReady, UnsupportedResumeAgentFail
 from toad.db import DB, SessionMeta
 from agent_comms.acp_failure import ACPFailure
+from agent_comms.input_attempt import NotSentInput
 
 PROTOCOL_VERSION = 1
 
@@ -90,7 +91,11 @@ class AgentSession:
                     await self.new()
                 self.connected = True
             except jsonrpc.APIError as error:
-                self.agent.process.session_failed(ACPFailure.from_error(error.code, error.message, error.data))
+                # The handshake has not admitted a prompt, regardless of the
+                # server's reason for refusing this attachment.
+                failure = replace(ACPFailure.from_error(error.code, error.message, error.data),
+                                  input_state=NotSentInput)
+                self.agent.process.session_failed(failure)
                 return
         self.settled.set()
         self.agent.post_message(AgentReady(reconnected=self.reconnecting))

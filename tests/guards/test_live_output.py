@@ -34,7 +34,7 @@ async def declaration_case():
                           XDG_STATE_HOME=str(root/'state'), AGENT_COMMS_ROOT=str(root/'wire'))
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(120, 40)) as pilot:
-            await app.screen.wait_content_ready()
+            await app.selected_session.wait_content_ready()
             view = app.selected_session.conversation
             assert await view.output.append(ThoughtStream(), '   ') is None
             thought = await view.output.append(ThoughtStream(), 'Thinking first')
@@ -56,6 +56,30 @@ async def declaration_case():
                                 for strip in app.screen._compositor.render_strips()[viewport.y:viewport.bottom])
             assert 'Visible answer continued' in painted and 'New declared case' in painted
             assert diagnostic.region.overlaps(viewport)
+            # A generic ACP request can settle before its queued widget updates
+            # drain. Its captured local turn still owns one continuous reply.
+            from toad.acp.messages import Update
+            from toad.widgets.agent_response import AgentResponse, UnroutedResponse
+            view.turns.start_client()
+            first = view.turns.owner.response_stream(UnroutedResponse())
+            second = view.turns.owner.response_stream(UnroutedResponse())
+            view.turns.finish_client()
+            await view.on_acp_agent_message(Update('text', 'Local queued', first, None))
+            await view.on_acp_agent_message(Update('text', ' response', second, None))
+            local = view.output.streams[ResponseStream].block
+            await view.output.finish(ResponseStream)
+            assert local.source == 'Local queued response'
+            # Turn identity splits consecutive managed answers even with the
+            # same delivery. Idle notices finish without a future settlement.
+            one = await view.output.append(ResponseStream(turn_id='one'), 'First turn')
+            two = await view.output.append(ResponseStream(turn_id='two'), 'Second turn')
+            assert one is not two and one._stream is None
+            notice = await view.output.append(view.turns.owner.response_stream(UnroutedResponse()), 'Owner notice')
+            another = await view.output.append(view.turns.owner.response_stream(UnroutedResponse()), 'Next owner notice')
+            assert notice is not another and notice._stream is None and another._stream is None
+            count = len(view.query(AgentResponse))
+            await view.on_acp_agent_message(Update('text', 'Retired source', ResponseStream(), object()))
+            assert len(view.query(AgentResponse)) == count
             view.output.retire()
             assert await view.output.append(DiagnosticStream(), 'Retired view must not reopen') is None
             assert app._exception is None

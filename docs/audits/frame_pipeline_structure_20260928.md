@@ -1,5 +1,9 @@
 # Structural frame-pipeline investigation
 
+This is a historical investigation. Its per-mode `many_tabs_return_pilot.py` was
+retired after the persistent workspace cutover; current resource acceptance uses
+`tests/native_session_retention_pilot.py` and its real ACP/Pi journey.
+
 Status: source investigation and controlled scaling probes complete. The
 recommended change is a persistent workspace with explicit session-state and
 bounded presentation lifetimes. This PR contains the probes and design; it does

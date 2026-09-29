@@ -105,6 +105,11 @@ class CommittedHistory(SnapshotPresentation):
     def covered_sequences(self, sequences: frozenset[int]) -> frozenset[int]:
         return frozenset(sequence for sequence in sequences if self.covers_incoming(sequence))
 
+    async def source_coverage(self, sequences: frozenset[int], runtime,
+                              is_current: Callable[[], bool]) -> frozenset[int] | None:
+        """Resolve exact wire identities against the committed source, not DOM presence."""
+        raise NotImplementedError
+
 
 def retirement_candidates(widgets: Iterable[Widget], evidence: CommitEvidence) -> list[Widget]:
     return [widget for widget in widgets
@@ -175,14 +180,17 @@ class FollowTailCheckpoint(CheckpointPlan):
 
     async def prepare(self, view, history, page, captured, is_current):
         from toad.transcript_preparation import incoming_sequences
-        from toad.widgets.transcript_fragments import prepare_transcript_fragments
+        from toad.render_tasks import TranscriptRenderTask
+        from toad.work_preparation import RenderPreparation
 
         if history is not None and history.accepts_commit(page.after):
             if not await history.advance_committed(page.after, is_current):
                 return None
             return PreparedCommit(history, None, incoming_sequences(page.events)
                                   | history.covered_sequences(required_sequences(captured)))
-        fragments = await prepare_transcript_fragments(page.events, view.app.render_processes)
+        fragments = await view.app.preparation.submit(
+            RenderPreparation(TranscriptRenderTask(page.events))
+        )
         return PreparedCommit(None, fragments, incoming_sequences(page.events))
 
     def finish(self, view, cursor):

@@ -14,6 +14,7 @@ from agent_comms.acp_extension import (
     InputDeliveryChangedUpdate,
     InputFailedUpdate,
     InputStartedUpdate,
+    PromptCancelledUpdate,
     McpClientReceiptUpdate,
     QueueChangedUpdate,
     RequestFailedUpdate,
@@ -25,11 +26,13 @@ from agent_comms.acp_extension import (
     TurnStartedUpdate,
 )
 from agent_comms.mro_dispatch import MroDispatch, handles
+from toad.conversation_turn import AgentTurn, ObservedAgentTurn
 
 from . import messages
 
 
 class CommsUpdateConsumer(MroDispatch):
+    turn_class = AgentTurn
     def __init__(
         self,
         agent,
@@ -49,7 +52,13 @@ class CommsUpdateConsumer(MroDispatch):
 
     def accepts_turn(self):
         return (self.agent.process.accepts_session(self.session_id)
-                and (self.turn_token is None or self.turn_token == self.agent._turn_lifecycle_sequence))
+                and (self.turn_token is None or (
+                    self.turn_token == self.agent._turn_lifecycle_sequence
+                    # A snapshot response can observe native completion before
+                    # the ordered ACP stream delivers its remaining chunks.
+                    # Only ordered lifecycle notifications settle that turn.
+                    and self.agent.current_turn.accepts_snapshot
+                )))
 
     def require_compaction_receipt(self):
         if self.compaction_receipt is None:
@@ -82,8 +91,7 @@ class CommsUpdateConsumer(MroDispatch):
         agent = self.agent
         if not self.accepts_turn():
             return
-        from toad.conversation_turn import AgentTurn
-        turn = AgentTurn(
+        turn = self.turn_class(
             update.turn_id, update.activity_detail or "Thinking…", update.started_at,
         )
         if turn == agent._active_turn:
@@ -235,3 +243,12 @@ class CommsUpdateConsumer(MroDispatch):
         self.agent.post_message(
             LogAgentFail(failure.title, failure.feedback, log_path=self.agent.presentation.log_path)
         )
+
+    @handles(PromptCancelledUpdate)
+    def prompt_cancelled(self, update):
+        self.agent.post_message(messages.CommsUpdated(update, self.agent, self.session_id))
+
+
+class OwnerSnapshotConsumer(CommsUpdateConsumer):
+    """Snapshot turns reconcile controls without overtaking ordered output."""
+    turn_class = ObservedAgentTurn
