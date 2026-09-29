@@ -51,3 +51,7 @@ def thoughts(app: ToadApp, value: bool) -> None:
 
 def sessions_bar(app: ToadApp, value: type[SessionBar]) -> None:
     app.update_show_sessions()
+
+
+def blink_title(app: ToadApp, value: bool) -> None:
+    app.terminal_attention.update()
