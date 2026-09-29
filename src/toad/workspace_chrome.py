@@ -35,13 +35,15 @@ class WorkspaceChrome:
         screen.frame_presentation.defer(roster, roster.navigation.start)
         return changed
 
-    def sidebar_geometry(self, screen):
-        """Resolve both mounted bars in the workspace's screen coordinates."""
+    def sidebar_geometry(self, sidebar):
+        """Resolve the applying mounted member and its peers in one coordinate space."""
         from toad.widgets.side_bar import SideBar
+        from textual.widget import Widget
 
-        bars = {bar.id: bar for bar in screen.query(SideBar)
+        screen = sidebar.screen
+        bars = {bar.id: bar for bar in (*screen.query(SideBar), sidebar)
                 if bar.id in screen.app.sidebar_layout.placements and bar.display
-                and all(ancestor.display for ancestor in bar.ancestors)}
+                and all(ancestor.display for ancestor in bar.ancestors if isinstance(ancestor, Widget))}
         return screen.app.sidebar_layout.resolve(
             screen.size.width, {identity: bar.collapsed for identity, bar in bars.items()})
 

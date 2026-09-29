@@ -776,7 +776,7 @@ class SideBar(SidebarDecorations, containers.Vertical):
                 ancestor.display for ancestor in self.ancestors if isinstance(ancestor, Widget)):
             self._presented_layout = None
             return False
-        resolved = app.workspace_chrome.sidebar_geometry(self.screen)
+        resolved = app.workspace_chrome.sidebar_geometry(self)
         geometry = resolved.bars[self.id]
         width = geometry.width
         key = (placement, geometry, resolved.left_gutter, resolved.right_gutter,
