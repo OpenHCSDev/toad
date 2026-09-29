@@ -1,7 +1,7 @@
 {
   "root": "src/toad/",
   "base_revision": "18068512f1149a81c46abd530fee8da134384c7b",
-  "head_revision": "24957c389d1543c406649a43d94e47f699f8e571",
+  "head_revision": "9d3b99c9983db0160cb057edb39771a86ed529c9",
   "paths": [
     "src/toad/acp/agent_controller.py",
     "src/toad/acp/agent_process.py"
@@ -22,6 +22,7 @@
     "ClassSize:src/toad/acp/agent_controller.py::HeadlessValidationOwner": 3,
     "ClassSize:src/toad/acp/agent_controller.py::ApplicationValidationOwner": 6,
     "ClassSize:src/toad/acp/agent_controller.py::AgentController": 86,
+    "ClassSize:src/toad/acp/agent_controller.py::SessionInitialization": null,
     "ClassSize:src/toad/acp/agent_process.py::ProcessControl": 19,
     "ClassSize:src/toad/acp/agent_process.py::PosixProcessControl": 43,
     "ClassSize:src/toad/acp/agent_process.py::WindowsProcessControl": 16,
@@ -1006,7 +1007,8 @@
     "ClassSize:src/toad/acp/agent_controller.py::ValidationOwner": 3,
     "ClassSize:src/toad/acp/agent_controller.py::HeadlessValidationOwner": 3,
     "ClassSize:src/toad/acp/agent_controller.py::ApplicationValidationOwner": 6,
-    "ClassSize:src/toad/acp/agent_controller.py::AgentController": 98,
+    "ClassSize:src/toad/acp/agent_controller.py::AgentController": 86,
+    "ClassSize:src/toad/acp/agent_controller.py::SessionInitialization": 16,
     "ClassSize:src/toad/acp/agent_process.py::ProcessControl": 19,
     "ClassSize:src/toad/acp/agent_process.py::PosixProcessControl": 43,
     "ClassSize:src/toad/acp/agent_process.py::WindowsProcessControl": 16,
@@ -1991,7 +1993,8 @@
     "ClassSize:src/toad/acp/agent_controller.py::ValidationOwner": 0,
     "ClassSize:src/toad/acp/agent_controller.py::HeadlessValidationOwner": 0,
     "ClassSize:src/toad/acp/agent_controller.py::ApplicationValidationOwner": 0,
-    "ClassSize:src/toad/acp/agent_controller.py::AgentController": 12,
+    "ClassSize:src/toad/acp/agent_controller.py::AgentController": 0,
+    "ClassSize:src/toad/acp/agent_controller.py::SessionInitialization": null,
     "ClassSize:src/toad/acp/agent_process.py::ProcessControl": 0,
     "ClassSize:src/toad/acp/agent_process.py::PosixProcessControl": 0,
     "ClassSize:src/toad/acp/agent_process.py::WindowsProcessControl": 0,
