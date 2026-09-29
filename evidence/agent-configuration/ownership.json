@@ -1,0 +1,62 @@
+{
+  "src/toad/acp/agent_configuration.py": {
+    "before": {
+      "absence": 0,
+      "chain_terms": 0,
+      "class_excess": 0
+    },
+    "after": {
+      "absence": 0,
+      "chain_terms": 0,
+      "class_excess": 0
+    }
+  },
+  "src/toad/acp/agent.py": {
+    "before": {
+      "absence": 2,
+      "chain_terms": 0,
+      "class_excess": 722
+    },
+    "after": {
+      "absence": 2,
+      "chain_terms": 0,
+      "class_excess": 634
+    }
+  },
+  "src/toad/acp/agent_controller.py": {
+    "before": {
+      "absence": 2,
+      "chain_terms": 0,
+      "class_excess": 0
+    },
+    "after": {
+      "absence": 2,
+      "chain_terms": 0,
+      "class_excess": 0
+    }
+  },
+  "src/toad/agent_presentation.py": {
+    "before": {
+      "absence": 0,
+      "chain_terms": 0,
+      "class_excess": 0
+    },
+    "after": {
+      "absence": 0,
+      "chain_terms": 0,
+      "class_excess": 0
+    }
+  },
+  "src/toad/widgets/conversation.py": {
+    "before": {
+      "absence": 31,
+      "chain_terms": 25,
+      "class_excess": 1436
+    },
+    "after": {
+      "absence": 31,
+      "chain_terms": 25,
+      "class_excess": 1436
+    }
+  }
+}

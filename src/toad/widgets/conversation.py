@@ -1322,7 +1322,7 @@ class Conversation(ConversationSessionBinding):
             from toad.widgets.comms_menu import ContextMenu
 
             await DB().record_model_usage(self.model_history_scope, event.model_id)
-            levels = self.agent.presentation.thinking_levels
+            levels = [choice.value for choice in self.agent.configuration.thinking.choices]
             if len(levels) > 1:
                 level = await self.app.push_screen_wait(
                     ContextMenu(
@@ -1346,7 +1346,7 @@ class Conversation(ConversationSessionBinding):
                 Content.from_markup(
                     "Model changed to [b]$model[/] · thinking [b]$level",
                     model=model.name,
-                    level=self.agent.presentation.current_thinking_level or "off",
+                    level=self.agent.configuration.thinking.current or "unavailable",
                 ),
                 style="success",
             )

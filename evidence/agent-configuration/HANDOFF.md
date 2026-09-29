@@ -1,0 +1,17 @@
+# T4 Agent configuration owner
+
+Deletion first: removes raw _publish_models parser, model/thinking ID fields and duplicated setter request/error logic from Agent; removes AgentController model/current mirrors+publisher and AgentPresentation thinking/current mirrors. All new/load/config-update/setter response callers migrate to AgentConfiguration. Retained controller restore publishes that exact original owner rather than parallel fields. Conversation model-picker thinking choices/value project from same owner; unavailable no longer relabeled off. Old deletion test for removed function retired; declaration behavior test replaces it.
+
+AgentConfiguration holds actual official SDK configuration advertisements, decoded once. ConfigurationSetting public ABC/DeclaredFamily owns shared request/error/reconciliation. Model and Thinking declarations own external boundary classification and typed publication. SDK grouped/flat choices handled by existing MroDispatch at boundary; no raw-map rechecks/compatibility/codec subclass or parallel roster. New Budget setting class alone is discovered and publishes through same family without Agent/controller/caller edit.
+
+Latest NRA/audit IMPL-4/5/8, BOUND-1/2, MEMB-1, IDEN-1/3, TIME-9. Proposed configuration-only shared-file claim posted directly Tesla160 and Noether166; no workspace/source/cache/terminal attention edits. Noether167 not yet visible as To ad PR at scope check; no claim confirmation invented. Persistent own ~/wt/toad-agent-configuration-sol-20260929 based merged16cf. Parent owns merge/install/live gate/pins; no live mutation/provider paid calls. CI deferred.
+
+Code-bearing draft promptly. Typed/grouped/replace/absence/new-case test passed. Actual installed native saved-history -> physical model and thinking picker -> persisted native/ACP selection -> reconnect -> retained draft/Document/undo and physically painted reply/status test implemented, verification ongoing; NOT READY until actual affected path and ownership ratchets pass.
+
+## Installed acceptance complete
+
+Actual normal App/Pilot/ACP/pinned Pi native d396: saved NATIVE_RESPONSE_1 painted -> click AgentInfo/model picker -> keyboard model selection -> physical high thinking menu item click -> actual core persisted high -> same Agent reconnect -> high status/saved reply/unsent draft physically painted. Original TextArea Document and undo owner retained, exactly one controlled loopback provider request, EXIT0 (`native-final.log`, `native-final/configuration.svg`). No paid calls/Toad or native protocol mocks. Parent affected LIVE read-only gate still outstanding; do not equate private installed proof with live deployment.
+
+Typed grouped/new-case case test PASS1/2.21s. New Budget declaration alone binds/publishes without editing Agent/controller or roster. Production per-file foreign-absence/chain/>500 class excess ratchets PASS (`ownership.json`); Agent excess decreases, no new owner crosses500. Source semantic closure includes all actual new/load/notification/setter/restore/thinking-picker callers, old model-picker fixture now constructs same owner. No unchanged broad matrix requested.
+
+Remaining blocker: parent source review and LIVE gate; no known independent production defect from this slice. Scope claim URLs: Tesla160#issuecomment-5885950167, Noether166#issuecomment-5885950392 (proposed, no confirmation invented). Core356 confirmed LIVE by parent; no startup followup/product patch created for border-only proof matcher.

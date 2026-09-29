@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-agent-configuration-sol-20260929/tests/agent_configuration_native_installed_pilot.py", line 9, in <module>
+    from toad.widgets.agent_info import AgentInfo
+ModuleNotFoundError: No module named 'toad.widgets.agent_info'
