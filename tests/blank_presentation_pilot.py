@@ -14,6 +14,7 @@ from toad.widgets.prompt import PromptTextArea
 from toad.widgets.side_bar import SideBar
 from toad.screens.main import MainScreen
 from toad.shell_output import ShellTerminalOutput
+from toad.messages import UserInputSubmitted
 
 
 async def main():
@@ -78,6 +79,11 @@ async def main():
                     await pilot.pause(.02)
             shell = second.conversation._shell
             shell_task, shell_process = shell._task, shell._process
+            async with asyncio.timeout(5):
+                while not await shell.is_busy():
+                    await pilot.pause(.02)
+            await second.conversation.submit_input(UserInputSubmitted("busy-shell-input", shell=True))
+            assert app.focused is shell.output.terminal
             third = (await app.new_session_screen(app.get_main_screen)).mode_name
             assert not second.query(Conversation)
             assert second.presentation.sources.shell is shell

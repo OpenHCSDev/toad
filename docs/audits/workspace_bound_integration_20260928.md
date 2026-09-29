@@ -6,8 +6,11 @@ Candidate7205784809bea8b6b61a273cac26de592b6d8f1b integrates all published
 116/126 feature ancestry, main13806003aff, and Noether1391a563249.
 Ready12651c901c remains unchanged; predecessor unpublished work is preserved.
 Installed noneditable candidate pins core03b6f9f43e16aef6b86983f2f0e0a327c8293ea7
-and Textualc9743801. PR110's measured switching/resource investigation is carried
-here with the complete workspace source boundary, rather than a second mechanism.
+and Textualc9743801. PR129 is a functional-bound shipping slice, not completion of116/110.
+Persistent WorkspaceScreen topology with source rebinding and stable30–40ms
+median/worst-case spike improvement remain assigned and unfinished. Current
+per-mode Screens and rebuilding~258ms do not satisfy those gates. Continue
+the existing workspace/source owners in place; no parallel presentation engine.
 
 Selected-only Conversation admission, source-backed Agent/queue/permission,
 original editor state, shell PTY/ANSI custody, detached ACP terminal callbacks,
@@ -23,6 +26,10 @@ combined139-sidebar-retention.json/.log: exactly5 admitted panels at4/16/32/64,
 4/16/32/64 run and deployment. No full combined readiness or performance improvement
 is claimed until that actual gate passes. Prior137 native64 sample167.95MiB,
 999tasks,258.35ms settled switch median predates sidebar combination.
+
+Caller reconciliation also removed the last deleted shell.terminal reference:
+busy shell submission focuses through its ShellTerminalOutput owner. Actual
+installed shell/input/PTY/retirement/editor/cropped-paint pilot passed exit0.
 
 Focused current integration:48 synchronous contracts passed; installed environment
 has no pytest-asyncio, so the actual asynchronous session-observation guard passed

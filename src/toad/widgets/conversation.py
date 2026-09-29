@@ -1374,8 +1374,8 @@ class Conversation(containers.Vertical):
         self._transcript_generation += 1
         if event.shell:
             if await self.shell.is_busy():
-                if self.shell.terminal is not None:
-                    self.shell.terminal.focus(scroll_visible=False)
+                if (output := self.shell.output) is not None:
+                    output.focus()
                 await self.shell.send_input(event.body, paste=True)
             else:
                 self.shell_history.current = None
