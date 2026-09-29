@@ -2,6 +2,7 @@
 from typing import TYPE_CHECKING
 from weakref import ref
 from textual.app import ComposeResult
+from toad.plan import PlanItem
 from toad.widgets.plan import Plan
 from toad.widgets.retiring_sidebar import RetiringSidebar
 from toad.widgets.session_thread_panels import PlanSessionPanel, SessionPanel
@@ -31,7 +32,7 @@ class SessionThreadSidebar(RetiringSidebar):
         self.call_after_refresh(viewport.scroll_to, y=self.navigation.panel_scroll_y,
                                 animate=False, immediate=True)
 
-    def update_plan(self, entries: list[Plan.Entry]) -> None:
+    def update_plan(self, entries: list[PlanItem]) -> None:
         """Absent panels consume the latest source value, never a replay buffer."""
         self.plan.update(self, entries)
 

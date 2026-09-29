@@ -31,7 +31,6 @@ from toad.widgets.comms_fork_dialog import ForkDialog
 from toad.widgets.comms_sidebar import CommsSidebar, CoordinationStatus, SelectTarget
 from toad.widgets.conversation import Conversation, ThreadLoading
 from toad.widgets.footer import Footer
-from toad.widgets.plan import Plan
 from toad.widgets.project_directory_tree import ProjectDirectoryTree
 from toad.widgets.project_panel import ProjectPanel, ProjectSearchButton
 from toad.widgets.recovery_view import RecoveryView
@@ -469,17 +468,10 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
     @on(acp_messages.Plan)
     async def on_acp_plan(self, message: acp_messages.Plan):
         message.stop()
-        entries = [
-            Plan.Entry(
-                Content(entry["content"]),
-                entry.get("priority", "medium"),
-                entry.get("status", "pending"),
-            )
-            for entry in message.entries
-        ]
+
         from toad.widgets.session_thread_sidebar import SessionThreadSidebar
 
-        self.query_one(SessionThreadSidebar).update_plan(entries)
+        self.query_one(SessionThreadSidebar).update_plan(message.entries)
 
     @on(messages.SessionUpdate)
     async def on_session_update(self, event: messages.SessionUpdate) -> None:

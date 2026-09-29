@@ -253,8 +253,8 @@ class ToolCallUpdatePermissionRequest(SchemaDict, total=False, extra_items=Any):
 
 class PlanEntry(SchemaDict, total=False, extra_items=Any):
     content: Required[str]
-    priority: Literal["high", "medium", "low"]
-    status: Literal["pending", "in_progress", "completed"]
+    priority: Required[Literal["high", "medium", "low"]]
+    status: Required[Literal["pending", "in_progress", "completed"]]
 
 
 type SessionModeId = str

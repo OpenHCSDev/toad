@@ -13,6 +13,7 @@ from agent_comms.routing import MessageRoute
 from textual.message import Message
 
 from toad.acp import protocol
+from toad.plan import PlanItem
 from toad.acp.encode_tool_call_id import encode_tool_call_id
 
 from .attachment_presentation import CursorPresentation, QueuePresentation
@@ -74,7 +75,7 @@ class RequestPermission(AgentMessage):
 
 @dataclass
 class Plan(AgentMessage):
-    entries: list[protocol.PlanEntry]
+    entries: list[PlanItem]
 
 
 @dataclass

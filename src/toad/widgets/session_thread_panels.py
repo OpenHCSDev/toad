@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, ClassVar
 from agent_comms.declared_family import DeclaredFamily
 from textual.widget import Widget
 from toad.widgets.comms_sidebar import CoordinationStatus
+from toad.plan import PlanItem
 from toad.widgets.plan import Plan
 from toad.widgets.project_panel import ProjectPanel, RestorableProjectPanel
 from toad.widgets.project_tree_intent import ProjectTreeIntent
@@ -69,12 +70,12 @@ class PlanSessionPanel(SessionPanel[Plan]):
     collapsed = True
 
     def __init__(self) -> None:
-        self.entries: list[Plan.Entry] = []
+        self.entries: list[PlanItem] = []
 
     def make_widget(self, screen: "MainScreen") -> Plan:
         return Plan(self.entries)
 
-    def update(self, sidebar: "SessionThreadSidebar", entries: list[Plan.Entry]) -> None:
+    def update(self, sidebar: "SessionThreadSidebar", entries: list[PlanItem]) -> None:
         self.entries = entries
         title = self.declared_name.title()
         if entries:
