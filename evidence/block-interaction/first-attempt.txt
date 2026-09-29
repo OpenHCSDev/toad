@@ -1,0 +1,50 @@
+
+==================================== ERRORS ====================================
+______________ ERROR collecting tests/test_t4_turn_navigation.py _______________
+tests/test_t4_turn_navigation.py:10: in <module>
+    from toad.widgets.agent_response import AgentResponse
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1342: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:938: in _load_unlocked
+    ???
+../toad-tool-content-owner-sol-20260928/.venv/lib/python3.14/site-packages/_pytest/assertion/rewrite.py:188: in exec_module
+    exec(co, module.__dict__)
+.venv/lib/python3.14/site-packages/toad/widgets/agent_response.py:6: in <module>
+    from toad.widgets.streaming_markdown import StreamingMarkdown
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1342: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:938: in _load_unlocked
+    ???
+../toad-tool-content-owner-sol-20260928/.venv/lib/python3.14/site-packages/_pytest/assertion/rewrite.py:188: in exec_module
+    exec(co, module.__dict__)
+.venv/lib/python3.14/site-packages/toad/widgets/streaming_markdown.py:20: in <module>
+    from toad.widgets.prepared_markdown import PreparedConversationMarkdown
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1342: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:938: in _load_unlocked
+    ???
+../toad-tool-content-owner-sol-20260928/.venv/lib/python3.14/site-packages/_pytest/assertion/rewrite.py:188: in exec_module
+    exec(co, module.__dict__)
+.venv/lib/python3.14/site-packages/toad/widgets/prepared_markdown.py:29: in <module>
+    from toad.conversation_markdown import ConversationCodeFence, ConversationMarkdown, _ThreadLocalPathParser
+<frozen importlib._bootstrap>:1371: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1342: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:938: in _load_unlocked
+    ???
+../toad-tool-content-owner-sol-20260928/.venv/lib/python3.14/site-packages/_pytest/assertion/rewrite.py:188: in exec_module
+    exec(co, module.__dict__)
+.venv/lib/python3.14/site-packages/toad/conversation_markdown.py:21: in <module>
+    class ConversationCodeFence(MarkdownBlockContent, Markdown.BLOCKS["fence"]):
+E   TypeError: metaclass conflict: the metaclass of a derived class must be a (non-strict) subclass of the metaclasses of all its bases
+=========================== short test summary info ============================
+ERROR tests/test_t4_turn_navigation.py - TypeError: metaclass conflict: the m...
+!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+1 error in 0.62s

@@ -364,3 +364,24 @@ Coordination recorded directly on142/148 before editing. Existing cursor state
 and viewport custody are preserved. Parent owns merge/live installation. No store
 or wire format changes, paid calls or CI wait. Final evidence under
 evidence/block-interaction; failed first metaclass import is retained honestly.
+
+Final source d6af76c rebases onto merged CLI148/mainb5a40ce. Conversation AST span
+2204→2159, ToolCall249→246; other existing touched classes do not grow. Actual
+context admission found by the retained pilot is completed: ContextDisclosure
+owns the displayed payload and existing framework collapsed state, copy and
+expand/collapse; both actual disclosure leaves inherit it. Root Space/menu/copy
+and formatting/Original-payload paint pass through actual installed widgets.
+Product163 deleted/113 added; tests9 deleted/188 added because this previously
+unprotected interaction path now has one installed family/new-case/native-copy
+pilot plus permanent deletion guards. Two authored predecessor pilots replace
+hardcoded worktree paths with Path.home()/wt; same configured persistent location.
+
+Focused current-source disclosure/copy/new-case/guard gate5pass17.88s; unchanged
+mixed navigation and large prepared Markdown checks passed in the earlier affected
+batch. Earlier two failures (incomplete context admission, authored machine paths)
+are retained and corrected, not claimed green. Shared class/debt ratchet has zero
+positive existing-measure delta, every touched file has non-increasing chain terms,
+zero unparsed files in the final census. Complete raw723-file Toad/core/Textual
+snapshot is recorded separately before unrelated CLI148 integration; no native
+or DSL equivalence claimed. Latest22:16 NRA/audit reread and pattern application
+confirmed. Parent owns review/merge/live installation; no own-scope blocker.
