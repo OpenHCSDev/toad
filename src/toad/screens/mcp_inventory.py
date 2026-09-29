@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import asyncio
-import os
 from pathlib import Path
+from typing import cast
 
 from textual import containers, on
 from textual.app import ComposeResult
@@ -12,13 +12,18 @@ from textual.screen import ModalScreen
 from textual.widgets import Button, OptionList, Static
 from textual.widgets.option_list import Option
 
-from toad.mcp_decision import Decision, DecisionAction
+from toad.mcp_commands import MCPDecision, MCPSelection
+from toad.mcp_declarations import Declaration, Inventory
 from toad.mcp_inventory import (
-    Declaration,
-    Inventory,
     read_inventory,
     render_inventory,
 )
+
+
+class MCPDecisionButton(Button):
+    def __init__(self, command: MCPDecision) -> None:
+        super().__init__(command.label, id=command.button_id, disabled=True)
+        self.command = command
 
 
 class MCPInventoryScreen(ModalScreen[None]):
@@ -55,10 +60,8 @@ class MCPInventoryScreen(ModalScreen[None]):
                 )
             yield OptionList(id="mcp-inventory-rows")
             with containers.Horizontal(id="mcp-inventory-actions"):
-                yield Button("Approve project", id="trust_approve", disabled=True)
-                yield Button("Deny project", id="trust_deny", disabled=True)
-                yield Button("Require call asks", id="calls_ask", disabled=True)
-                yield Button("Allow autonomous calls", id="calls_allow", disabled=True)
+                for member in MCPDecision.members_with(MCPDecision):
+                    yield MCPDecisionButton(member())
             with containers.Horizontal(id="mcp-inventory-controls"):
                 yield Button("Refresh", id="refresh")
                 yield Button("Close", id="close")
@@ -103,28 +106,22 @@ class MCPInventoryScreen(ModalScreen[None]):
             if inventory is not None:
                 options = [
                     Option(
-                        f"{row.scope} / {row.id} · {row.status}",
-                        id=f"{row.scope}:{row.id}",
+                        f"{row.scope.declared_name} / {row.id} · {row.status.declared_name}",
+                        id=row.option_id,
                     )
-                    for row in (*inventory.user, *inventory.project)
+                    for row in inventory.rows
                 ]
                 self.query_one("#mcp-inventory-rows", OptionList).add_options(options)
 
+    def _selection(self) -> MCPSelection | None:
+        if self._inventory is None or self._selected is None:
+            return None
+        return MCPSelection(self._inventory, self._selected)
+
     def _update_actions(self) -> None:
-        row, snapshot = self._selected, self._inventory
-        if row is None or snapshot is None or os.name != "posix":
-            project = calls = False
-        else:
-            eligible = row.effective and row.enabled and snapshot.project_trusted_saved
-            project = eligible and row.scope.allows_trust_decision()
-            calls = eligible and row.status.allows_call_decision()
-        for identifier, enabled in (
-            ("trust_approve", project),
-            ("trust_deny", project),
-            ("calls_allow", calls),
-            ("calls_ask", calls),
-        ):
-            self.query_one(f"#{identifier}", Button).disabled = not enabled
+        selection = self._selection()
+        for button in self.query(MCPDecisionButton):
+            button.disabled = selection is None or not button.command.available(selection)
 
     @on(OptionList.OptionHighlighted, "#mcp-inventory-rows")
     def on_row_highlighted(self, event: OptionList.OptionHighlighted) -> None:
@@ -133,8 +130,8 @@ class MCPInventoryScreen(ModalScreen[None]):
             next(
                 (
                     row
-                    for row in (*snapshot.user, *snapshot.project)
-                    if f"{row.scope}:{row.id}" == event.option_id
+                    for row in snapshot.rows
+                    if row.option_id == event.option_id
                 ),
                 None,
             )
@@ -147,29 +144,15 @@ class MCPInventoryScreen(ModalScreen[None]):
     def close_inventory(self, event: Button.Pressed) -> None:
         self.dismiss()
 
-    @on(Button.Pressed, "#trust_approve")
-    def approve_project(self, event: Button.Pressed) -> None:
-        self.open_decision(event, "trust", "approve")
-
-    @on(Button.Pressed, "#trust_deny")
-    def deny_project(self, event: Button.Pressed) -> None:
-        self.open_decision(event, "trust", "deny")
-
-    @on(Button.Pressed, "#calls_allow")
-    def allow_calls(self, event: Button.Pressed) -> None:
-        self.open_decision(event, "calls", "allow")
-
-    @on(Button.Pressed, "#calls_ask")
-    def ask_calls(self, event: Button.Pressed) -> None:
-        self.open_decision(event, "calls", "ask")
-
-    def open_decision(self, event: Button.Pressed, action: DecisionAction, decision: Decision) -> None:
+    @on(Button.Pressed, "MCPDecisionButton")
+    def open_decision(self, event: Button.Pressed) -> None:
         from toad.screens.mcp_decision import MCPDecisionScreen
 
-        snapshot, row = self._inventory, self._selected
-        if snapshot is None or row is None or event.button.disabled:
+        selection = self._selection()
+        if selection is None or event.button.disabled:
             return
+        command = cast(MCPDecisionButton, event.button).command
         self.app.push_screen(
-            MCPDecisionScreen(snapshot, row, action=action, decision=decision),
+            MCPDecisionScreen(selection, command),
             lambda _: self.action_refresh(),
         )

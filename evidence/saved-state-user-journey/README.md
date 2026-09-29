@@ -175,3 +175,27 @@ the exact executed code. Test fixture retired all test-owned children and
 removed generated runtime scratch; completed owned scratch closed. No
 remaining concrete blocker within assigned157 journey. This receipt does not
 claim arbitrary saved data, every UI surface, final latency or global coverage.
+
+## Follow-up: immediate physical fork opening before first answer
+
+Parent157 merged; separate test-only follow-up based current main6a05d5e2.
+Existing continuous helper now holds the child first REAL provider response,
+physically opens its sidebar row immediately after normal fork registration,
+proves real ACP attachment to that child while native execution is active and
+first answer absent, then releases and verifies answer paint/unchanged parent/
+no duplicate input. All remaining channel/status/reply assertions stay in the
+same journey. continuous-immediate-fork-open.log PASS exit0 on installed
+51fdf/core77c2/Textual1738/native d396. No manual owner/PID/claim/native seeding.
+
+This is NOT coverage of the newly reported /open command or dead-startup
+ENOENT. Current maintained local SlashCommand/CommandCatalog owners contain
+no /open declaration. Exact intended command entrypoint is a named contract
+dependency on Carver, sole production startup/open owner; requested on153/157.
+Do not forward unknown /open syntax to the provider and call that a UI test.
+No live user mutation, input replay, new framework or product patch.
+
+Deleted the post-answer-only child row opening, replacing it in place with
+pre-answer opening. Latest canonical measure touched pilot: chain terms0->0,
+foreign absence probes0->0. All actual phase assertions preserved; strong early
+opening PASS is narrower than the real startup failure report. Three follow-up
+ACP logs retained. Generated fixture scratch retired normally.

@@ -536,6 +536,8 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
                 assert not failures, failures
                 assert app._exception is None
         finally:
+            for path in (comms.root / "diagnostics").glob("owner-*.log"):
+                (evidence / path.name).write_bytes(path.read_bytes())
             release.set()
             if agent:
                 await agent.stop()
