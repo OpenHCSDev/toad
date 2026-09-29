@@ -53,8 +53,12 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
                     process = psutil.Process(child.pid)
                     assert ProcessIdentity.capture(child.pid) == child.process_identity
                     assert Path(process.environ()["AGENT_COMMS_ROOT"]).resolve() == comms.root.resolve()
-                    process.suspend()
-                    return process
+                    # The launcher publishes identity before its exec handshake
+                    # completes. Suspending that launcher would deadlock ForkAction
+                    # itself, before any physical opening could be exercised.
+                    if process.cmdline()[1:3] == ["-m", "agent_comms.worker"]:
+                        process.suspend()
+                        return process
                 await asyncio.sleep(.002)
 
     # Hold only this disposable test's actual newly spawned worker, before its
