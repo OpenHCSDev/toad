@@ -69,7 +69,7 @@ class CommsUpdateConsumer(MroDispatch):
     @handles(TurnStartedUpdate)
     def turn_started(self, update: TurnStartedUpdate) -> None:
         agent = self.agent
-        if self.session_id != agent.session_id or agent.process.stopping:
+        if not agent.process.accepts_session(self.session_id):
             return
         agent._active_turn_id = update.turn_id
         agent._turn_lifecycle_sequence += 1
@@ -85,7 +85,7 @@ class CommsUpdateConsumer(MroDispatch):
     @handles(TurnSettledUpdate)
     def turn_settled(self, update: TurnSettledUpdate) -> None:
         agent = self.agent
-        if self.session_id != agent.session_id or agent.process.stopping:
+        if not agent.process.accepts_session(self.session_id):
             return
         if (
             agent._active_turn_id is not None
@@ -142,31 +142,19 @@ class CommsUpdateConsumer(MroDispatch):
         from dataclasses import replace
         from pathlib import Path
 
-        from textual.content import Content
-
-        from .agent import ContextUsage
+        from .context_measurement import ContextMeasurement
         from .maintenance_ingress import configured_root
 
         agent = self.agent
-        attached_env = (agent._maintenance_env or os.environ).copy()
+        attached_env = (agent.process.env or os.environ).copy()
         attached_env["AGENT_COMMS_ROOT"] = update.wire_root
         root = configured_root(
-            attached_env, agent._maintenance_cwd or agent.project_root_path.resolve()
+            attached_env, agent.process.cwd or agent.project_root_path.resolve()
         )
         agent.coordination = replace(update, wire_root=str(root))
         agent.project_root_path = Path(update.worktree)
-        if update.context_usage is None:
-            agent._context_usage = None
-            agent._context_usage_saved = False
-            agent.post_message(
-                messages.UpdateStatusLine(Content("Context estimate unavailable"))
-            )
-        else:
-            agent._context_usage = ContextUsage(
-                update.context_usage.used, update.context_usage.size
-            )
-            agent._context_usage_saved = True
-            agent.update_status_line()
+        agent.context_measurement = ContextMeasurement.saved(update.context_usage)
+        agent.update_status_line()
         agent.post_message(
             messages.CommsUpdated(agent.coordination, agent, self.session_id)
         )
@@ -184,8 +172,8 @@ class CommsUpdateConsumer(MroDispatch):
 
     @handles(CompactionChangedUpdate)
     def compaction_changed(self, update: CompactionChangedUpdate) -> None:
-        self.agent._context_usage = None
-        self.agent._context_usage_saved = False
+        from .context_measurement import ContextUnavailable
+        self.agent.context_measurement = ContextUnavailable("Native context measurement is pending")
         self.agent.update_status_line()
         self.agent.post_message(
             messages.CommsUpdated(update, self.agent, self.session_id)
@@ -231,9 +219,9 @@ class CommsUpdateConsumer(MroDispatch):
 
     @handles(RequestFailedUpdate)
     def request_failed(self, update):
-        from toad.agent import AgentFail
+        from toad.agent import LogAgentFail
 
         failure = update.failure
         self.agent.post_message(
-            AgentFail(failure.title, failure.feedback, help="prompt")
+            LogAgentFail(failure.title, failure.feedback, log_path=self.agent.presentation.log_path)
         )

@@ -19,7 +19,6 @@ from operator import attrgetter
 from pathlib import Path
 from time import monotonic, time
 from typing import TYPE_CHECKING, Any, Callable, Literal
-from urllib.parse import quote
 
 from agent_comms import agent_events as comms_events
 from agent_comms.acp_extension import (
@@ -121,41 +120,6 @@ if TYPE_CHECKING:
     from toad.widgets.terminal import Terminal
 
 
-AGENT_FAIL_HELP = {
-    "fail": """\
-## Agent failed to run
-
-**The agent failed to start.**
-
-Check that the agent is installed and up-to-date.
-
-Note that some agents require an ACP adapter to be installed to work with Toad.
-
-- Exit the app, and run `toad` again
-- Select the agent and hit ENTER
-- Click the dropdown, select "Install"
-- Click the GO button
-- Repeat the process to install an ACP adapter (if required)
-
-Some agents may require you to restart your shell (open a new terminal) after installing.
-
-If that fails, ask for help in [Discussions](https://github.com/batrachianai/toad/discussions)!
-""",
-    "no_resume": """\
-## Agent does not support resume
-
-The agent or ACP adapter does not support resuming sessions.
-
-Try updating to see if support has been added.
-
-- Exit the app, and run `toad` again
-- Select the agent and hit ENTER
-- Click the dropdown, select "Update" or "Install" again
-- Repeat the process to update the ACP adapter (if required)
-
-If that fails, ask for help in [Discussions](https://github.com/batrachianai/toad/discussions)!
-""",
-}
 
 HELP_URL = "https://github.com/batrachianai/toad/discussions"
 
@@ -1283,33 +1247,13 @@ class Conversation(ConversationSessionBinding):
             error = Content.assemble(
                 Content.from_markup(message.message).stylize("$text-error"),
                 " — ",
-                Content.from_markup(message.details.strip()).stylize("dim"),
+                Content(message.details.strip()).stylize("dim"),
             )
         else:
-            error = Content.from_markup(message.details.strip()).stylize("$text-error")
+            error = Content(message.details.strip()).stylize("$text-error")
         await self.post(Note(error, classes="-error"))
 
-        if message.help == "prompt":
-            log_path = self.agent.presentation.log_path if self.agent is not None else None
-            if isinstance(log_path, Path):
-                from toad.widgets.agent_response import AgentResponse
-
-                link = AgentResponse(
-                    f"[Open ACP log]({quote(str(log_path))})", show_divider=False,
-                    category=OtherCategory,
-                )
-                link.add_class("-error-log-link")
-                await self.post(link)
-            return
-
-        from toad.widgets.markdown_note import MarkdownNote
-
-        if message.help in AGENT_FAIL_HELP:
-            help = AGENT_FAIL_HELP[message.help]
-        else:
-            help = AGENT_FAIL_HELP["fail"]
-
-        await self.post(MarkdownNote(help))
+        await message.explain(self)
 
     @on(messages.WorkStarted)
     def on_work_started(self) -> None:
@@ -2787,6 +2731,12 @@ class CompactionRenderer(MroDispatch):
             messages.SessionUpdate(state="busy", summary="Compacting context")
         )
 
+    @handles(comms_events.CompactionSummaryProgress)
+    async def selected_summary_progress(self, event):
+        view = self.conversation
+        view.activity = "Compacting context… selected model is summarizing"
+        view.post_message(messages.SessionUpdate(state="busy", summary=view.activity))
+
     @handles(comms_events.CompactionProgress)
     async def progress(self, event):
         view = self.conversation
@@ -2811,7 +2761,7 @@ class CompactionRenderer(MroDispatch):
         view = self.conversation
         active = view.turns.owner.busy
         view.activity = "Thinking…" if active else ""
-        title = "Compaction aborted" if event.aborted else "Context compacted"
+        title = event.result_label
         view.post_message(
             messages.SessionUpdate(state="busy" if active else "idle", summary=title)
         )

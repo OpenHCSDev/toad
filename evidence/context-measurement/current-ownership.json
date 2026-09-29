@@ -1,0 +1,142 @@
+{
+  "src/toad/acp/agent.py": {
+    "ForeignAbsenceProbe": [
+      3,
+      2
+    ],
+    "BooleanChainTerms": [
+      0,
+      0
+    ],
+    "god_excess": [
+      811,
+      721
+    ]
+  },
+  "src/toad/acp/agent_controller.py": {
+    "ForeignAbsenceProbe": [
+      2,
+      2
+    ],
+    "BooleanChainTerms": [
+      0,
+      0
+    ],
+    "god_excess": [
+      0,
+      0
+    ]
+  },
+  "src/toad/acp/agent_process.py": {
+    "ForeignAbsenceProbe": [
+      9,
+      4
+    ],
+    "BooleanChainTerms": [
+      0,
+      0
+    ],
+    "god_excess": [
+      0,
+      0
+    ]
+  },
+  "src/toad/acp/comms_updates.py": {
+    "ForeignAbsenceProbe": [
+      5,
+      4
+    ],
+    "BooleanChainTerms": [
+      0,
+      0
+    ],
+    "god_excess": [
+      0,
+      0
+    ]
+  },
+  "src/toad/acp/context_measurement.py": {
+    "ForeignAbsenceProbe": [
+      0,
+      0
+    ],
+    "BooleanChainTerms": [
+      0,
+      0
+    ],
+    "god_excess": [
+      0,
+      0
+    ]
+  },
+  "src/toad/acp/maintenance_ingress.py": {
+    "ForeignAbsenceProbe": [
+      1,
+      0
+    ],
+    "BooleanChainTerms": [
+      4,
+      4
+    ],
+    "god_excess": [
+      0,
+      0
+    ]
+  },
+  "src/toad/acp/shell_command.py": {
+    "ForeignAbsenceProbe": [
+      0,
+      0
+    ],
+    "BooleanChainTerms": [
+      0,
+      0
+    ],
+    "god_excess": [
+      0,
+      0
+    ]
+  },
+  "src/toad/acp/wire_message.py": {
+    "ForeignAbsenceProbe": [
+      0,
+      0
+    ],
+    "BooleanChainTerms": [
+      0,
+      0
+    ],
+    "god_excess": [
+      0,
+      0
+    ]
+  },
+  "src/toad/agent.py": {
+    "ForeignAbsenceProbe": [
+      0,
+      0
+    ],
+    "BooleanChainTerms": [
+      0,
+      0
+    ],
+    "god_excess": [
+      0,
+      0
+    ]
+  },
+  "src/toad/widgets/conversation.py": {
+    "ForeignAbsenceProbe": [
+      31,
+      31
+    ],
+    "BooleanChainTerms": [
+      25,
+      25
+    ],
+    "god_excess": [
+      1524,
+      1504
+    ]
+  }
+}
