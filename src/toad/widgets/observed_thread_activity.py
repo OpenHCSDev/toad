@@ -20,10 +20,15 @@ class ObservedThreadActivity(Static):
     """
 
     class Changed(Message):
-        def __init__(self, presentation: ThreadPresentation | None, unavailable: bool):
+        def __init__(self, observation, read, presentation: ThreadPresentation | None, unavailable: bool):
             super().__init__()
+            self.observation, self.read = observation, read
             self.presentation = presentation
             self.unavailable = unavailable
+
+        @property
+        def current(self) -> bool:
+            return self.read is self.observation.read
 
     def __init__(self, read: Callable[[], Awaitable[ThreadPresentation | None]]):
         super().__init__("", markup=False)
@@ -37,6 +42,19 @@ class ObservedThreadActivity(Static):
         self.set_interval(COMMS_REFRESH_INTERVAL, self.refresh_observation)
         self.refresh_observation()
 
+    def bind(self, read: Callable[[], Awaitable[ThreadPresentation | None]]) -> None:
+        """Retire the old read and its paint before a shared view changes source."""
+        if self._read_task is not None:
+            self._read_task.cancel()
+        self._read_task = None
+        self.read = read
+        self._publish(None, False)
+        self.refresh_observation()
+
+    def on_unmount(self) -> None:
+        if self._read_task is not None:
+            self._read_task.cancel()
+
     def refresh_observation(self) -> None:
         if (not self.is_attached or not self.query_ancestor(SessionView).is_current
                 or self._read_task is not None and not self._read_task.done()):
@@ -44,12 +62,17 @@ class ObservedThreadActivity(Static):
         self._read_task = asyncio.create_task(self._observe())
 
     async def _observe(self) -> None:
+        read = self.read
         try:
-            presentation, unavailable = await self.read(), False
+            presentation, unavailable = await read(), False
         except Exception:
             presentation, unavailable = None, True
-        if not self.is_attached or not self.query_ancestor(SessionView).is_current:
+        if (read is not self.read or not self.is_attached
+                or not self.query_ancestor(SessionView).is_current):
             return
+        self._publish(presentation, unavailable)
+
+    def _publish(self, presentation, unavailable) -> None:
         if (presentation, unavailable) == (self.presentation, self.unavailable):
             return
         self.presentation, self.unavailable = presentation, unavailable
@@ -69,4 +92,4 @@ class ObservedThreadActivity(Static):
         self.update("\n".join(lines))
         self.set_class(bool(presentation and presentation.busy), "-working")
         self.set_class(unavailable or bool(presentation and presentation.attention), "-unavailable")
-        self.post_message(self.Changed(presentation, unavailable))
+        self.post_message(self.Changed(self, self.read, presentation, unavailable))

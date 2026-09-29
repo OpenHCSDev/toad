@@ -71,7 +71,7 @@ from toad.widgets.menu import Menu
 from toad.widgets.note import Note
 from toad.widgets.prompt import Prompt
 from toad.widgets.terminal import Terminal
-from toad.widgets.throbber import Throbber
+from toad.widgets.throbber import Throbber, ObservedThrobber
 from toad.goal_display import GoalDisplay, NoGoal
 from toad.session_observation import GoalObservation, InputDeliveryObservation
 from toad.widgets.goal_bar import GoalBar, GoalControl
@@ -83,7 +83,7 @@ from toad.private_native_cursor import CursorStatus
 from toad.block_navigation import admitted_blocks, ConversationBlock, ContentNavigation, UpCursor, DownCursor
 from functools import cached_property
 from toad.agent_presentation import AgentAttachmentView
-from toad.conversation_turn import TurnOwner, ConversationTurn, ClientTurn, NoTurn
+from toad.conversation_turn import TurnOwner, ConversationTurn
 from toad.shell import CurrentWorkingDirectoryChanged, Shell
 from toad.slash_command import SlashCommand
 from toad.widgets.history_anchor import HistoryWindow
@@ -243,10 +243,21 @@ class ThreadLoading(ConversationBlock, PaintOnlyRefresh, Static):
 
 class TurnActivity(Static):
     DEFAULT_CSS = "TurnActivity { height: 1; padding: 0 1; color: $text-muted; text-overflow: ellipsis; }"
-    owner: var[TurnOwner] = var(NoTurn())
 
-    def watch_owner(self, owner: TurnOwner) -> None:
-        self.display = bool(owner.activity)
+    def __init__(self, turns: ConversationTurn):
+        super().__init__()
+        self.turns = turns
+
+    @property
+    def owner(self) -> TurnOwner:
+        return self.turns.owner
+
+    def on_mount(self) -> None:
+        self.sync()
+
+    def sync(self) -> None:
+        owner = self.owner
+        self.visible = bool(owner.activity)
         self.auto_refresh = 1 if owner.activity and owner.started_at is not None else None
         self.refresh()
 
@@ -407,7 +418,6 @@ class ConversationSessionBinding(containers.Vertical):
         raise NotImplementedError
 
     busy_count = var(0)
-    turn_owner: var[TurnOwner] = var(NoTurn())
 
 
     visible_categories: var[frozenset[type[MessageCategory]]] = var(lambda: all_categories(), init=False)
@@ -503,7 +513,7 @@ class ConversationSessionBinding(containers.Vertical):
         initial_prompt: str | None = None,
     ) -> None:
         super().__init__()
-
+        self.turns = ConversationTurn(self._turn_changed)
         self._initialize_session(project_path, agent, agent_session_id, session_pk,
                                  session_title, initial_prompt)
 
@@ -517,7 +527,6 @@ class ConversationSessionBinding(containers.Vertical):
         self.agent_slash_commands: list[AgentAdvertisedCommand] = []
         self.output = LiveOutput(self)
         self._loading: Loading | None = None
-        self.turns = ConversationTurn(self._turn_changed)
         self._filter_scroll_positions = {}
         self._mcp_live_turn: str | None = None
         self._mcp_live_note: Note | None = None
@@ -785,7 +794,7 @@ class Conversation(ConversationSessionBinding):
 
 
     throbber: getters.query_one[Throbber] = getters.query_one("#throbber")
-    contents = getters.query_one(Contents)
+    contents = getters.query_one("#contents", Contents)
     window = getters.query_one(Window)
     cursor = getters.query_one(Cursor)
     prompt = getters.query_one(Prompt)
@@ -903,10 +912,13 @@ class Conversation(ConversationSessionBinding):
         self.update_title()
 
     def _turn_changed(self, owner: TurnOwner) -> None:
-        self.turn_owner = owner
         self._sync_throbber()
-        if self.is_mounted:
-            self.prompt.turn_owner = owner
+        if (activity := self.query_one_optional(TurnActivity)) is not None:
+            activity.sync()
+        if (prompt := self.query_one_optional(Prompt)) is not None:
+            prompt.sync_turn()
+        if (details := self.query_one_optional(SessionDetails)) is not None:
+            details.sync_turn()
         self.refresh_bindings()
         if self.is_mounted and self.agent_ready and owner.session_state is not None:
             self.post_message(messages.SessionUpdate(state=owner.session_state))
@@ -931,9 +943,10 @@ class Conversation(ConversationSessionBinding):
                     yield from ThreadLoading.initial_contents(self._agent_data)
         yield Flash()
         with containers.Vertical(id="prompt-stack"):
-            yield TurnActivity().data_bind(owner=Conversation.turn_owner)
+            yield TurnActivity(self.turns)
             yield SessionDetails(
                 self._read_thread_activity,
+                turns=self.turns,
                 read_history=lambda: self.query_one_optional(TranscriptHistory),
                 history=NativeHistory().data_bind(
                     status=Conversation.native_history_status
@@ -943,9 +956,9 @@ class Conversation(ConversationSessionBinding):
                     error=Conversation.input_delivery_error,
                 ),
             )
-            yield Throbber(id="throbber")
+            yield ObservedThrobber(lambda: self.busy_count > 0 or self.turns.owner.busy, id="throbber")
             yield GoalBar().data_bind(goal_display=Conversation.goal_display, execution=Conversation.goal_execution)
-            yield Prompt().data_bind(
+            yield Prompt(turns=self.turns).data_bind(
                 project_path=Conversation.project_path,
                 working_directory=Conversation.working_directory,
                 agent_info=Conversation.agent_info,
@@ -960,7 +973,7 @@ class Conversation(ConversationSessionBinding):
                 queue_projection=Conversation.queue_projection,
                 delivering_prompt=Conversation.delivering_prompt,
                 sending_queued_prompt=Conversation.sending_queued_prompt,
-                                status=Conversation.status,
+                status=Conversation.status,
             )
 
     @property
@@ -1124,6 +1137,8 @@ class Conversation(ConversationSessionBinding):
         self, event: ObservedThreadActivity.Changed
     ) -> None:
         event.stop()
+        if not event.current:
+            return
         if event.presentation is not None:
             await self._show_assigned_inbound(event.presentation.notifications)
         if not self.agent_ready or self.turns.managed_id is not None or self.turns.owner.busy:
@@ -1263,7 +1278,7 @@ class Conversation(ConversationSessionBinding):
     async def on_agent_fail(self, message: AgentFail) -> None:
         self.remove_class("-initial-loading")
         await self.query(ThreadLoading).remove()
-        self.turns.owner = ClientTurn()
+        self.turns.finish_client()
         self.agent_ready = True
         self._agent_fail = True
         self.post_message(messages.SessionUpdate(state="idle", summary="Agent failed"))
@@ -1445,7 +1460,7 @@ class Conversation(ConversationSessionBinding):
         Args:
             stop_reason: The stop reason returned from the Agent, or `None`.
         """
-        self.turns.owner = ClientTurn()
+        self.turns.finish_client()
         self._agent_activity_boundary.reset()
         if stop_reason == "end_turn" and self.current_model is not None:
             from toad.db import DB
@@ -1529,8 +1544,8 @@ class Conversation(ConversationSessionBinding):
             self.working_directory = str(Path(event.path).resolve().absolute())
 
     def _sync_throbber(self) -> None:
-        if (throbber := self.query_one_optional("#throbber", Throbber)) is not None:
-            throbber.busy = self.busy_count > 0 or self.turns.owner.busy
+        if (throbber := self.query_one_optional("#throbber", ObservedThrobber)) is not None:
+            throbber.sync()
 
     async def watch_busy_count(self, _busy: int) -> None:
         self._sync_throbber()
@@ -1630,15 +1645,14 @@ class Conversation(ConversationSessionBinding):
             await self.post(AgentResponse(message.text, delivery=ResponseDelivery.from_route(message.route)))
             return
         if self.turns.owner.busy:
-            self.turns.describe("Writing response…", self.agent)
+            self.turns.describe("Writing response…")
             self.post_message(
                 messages.SessionUpdate(state="busy", summary="Writing response")
             )
         await self.output.append(ResponseStream(ResponseDelivery.from_route(message.route)), message.text)
 
     async def on_turn_started(self, message: acp_messages.CommsUpdated) -> None:
-        previous = self.turns.start(message, self.agent)
-        if previous is None:
+        if not self.turns.start(message):
             return
         self.transcript.invalidate()
         await self._clear_mcp_live()
@@ -1648,17 +1662,17 @@ class Conversation(ConversationSessionBinding):
         self.post_message(messages.SessionUpdate(state="busy", summary=self.turns.owner.activity))
 
     async def on_turn_settled(self, message: acp_messages.CommsUpdated) -> None:
-        previous = self.turns.settle(message, self.agent)
-        if previous is None:
+        if not self.turns.settle(message):
             return
+        if self.agent is not None:
+            observed = self.query_one(ObservedThreadActivity)
+            observed.bind(self.agent.get_thread_presentation)
         await self._clear_mcp_live()
         self.submissions.reset()
         self.app.open_tabs_changed.publish(None)
         if message.update.turn_id is not None:
-            if previous.managed_id is not None:
-                await self.agent_turn_over("end_turn")
-                return
-            self.output.boundary()
+            await self.agent_turn_over("end_turn")
+            return
         self.post_message(messages.SessionUpdate(state="idle", summary="Ready for review"))
 
     async def on_queue_view_update(self, message: acp_messages.CommsUpdated) -> None:
@@ -1719,7 +1733,7 @@ class Conversation(ConversationSessionBinding):
     @on(acp_messages.Thinking)
     async def on_acp_agent_thinking(self, message: acp_messages.Thinking):
         message.stop()
-        self.turns.describe("Thinking…", self.agent)
+        self.turns.describe("Thinking…")
         activity = " ".join(message.text.splitlines()).strip() or "Thinking"
         self.post_message(messages.SessionUpdate(state="busy", summary=activity))
         await self.output.append(ThoughtStream(), message.text)
@@ -1752,7 +1766,7 @@ class Conversation(ConversationSessionBinding):
         status = tool_call.get("status")
         title = tool_call.get("title") or "Using tool"
         if status in {None, "pending", "in_progress"}:
-            self.turns.describe(" ".join(title.splitlines()), self.agent)
+            self.turns.describe(" ".join(title.splitlines()))
             self.post_message(messages.SessionUpdate(state="busy", summary=title))
 
         if status in (None, "completed"):
@@ -2081,7 +2095,9 @@ class Conversation(ConversationSessionBinding):
         self.queued_prompts = [row.text for row in self.queue_projection.items]
         self._queue_sequence = attachments.queue_sequence
         self.submissions.reset()
-        self.turns.owner = agent.current_turn if agent is not None else ClientTurn()
+        if (observed := self.query_one_optional(ObservedThreadActivity)) is not None:
+            observed.bind(agent.get_thread_presentation if agent is not None else self._read_thread_activity)
+        self.turns.bind(agent)
         self.busy_count = 0
         if agent is None:
             self.agent_info = Content.styled("shell")
@@ -2307,7 +2323,7 @@ class Conversation(ConversationSessionBinding):
         if monotonic() - self._last_escape_time < 3:
             if (agent := self.agent) is not None:
                 self.flash("Cancelling agent turn…")
-                self.turns.describe("Cancelling…", self.agent)
+                self.turns.describe("Cancelling…")
                 if self._loading is not None and self._loading.is_attached:
                     self._loading.update("Cancelling…")
                 self.post_message(
@@ -2527,7 +2543,7 @@ class CompactionRenderer(MroDispatch):
     @handles(comms_events.CompactionStart)
     async def start(self, event):
         view = self.conversation
-        view.turns.describe("Compacting context…", view.agent)
+        view.turns.describe("Compacting context…")
         view.post_message(
             messages.SessionUpdate(state="busy", summary="Compacting context")
         )
@@ -2535,7 +2551,7 @@ class CompactionRenderer(MroDispatch):
     @handles(comms_events.CompactionSummaryProgress)
     async def selected_summary_progress(self, event):
         view = self.conversation
-        view.turns.describe("Compacting context… selected model is summarizing", view.agent)
+        view.turns.describe("Compacting context… selected model is summarizing")
         view.post_message(messages.SessionUpdate(state="busy", summary=view.turns.owner.activity))
 
     @handles(comms_events.CompactionProgress)
@@ -2553,7 +2569,7 @@ class CompactionRenderer(MroDispatch):
             )
         if event.summary_phase == "synthesis":
             detail += " · combining summaries"
-        view.turns.describe(detail, view.agent)
+        view.turns.describe(detail)
         view.post_message(messages.SessionUpdate(state="busy", summary=detail))
 
     @handles(comms_events.CompactionEnd)
@@ -2563,9 +2579,9 @@ class CompactionRenderer(MroDispatch):
         view = self.conversation
         active = view.agent is not None and view.agent.current_turn.busy
         if active:
-            view.turns.describe("Thinking…", view.agent)
+            view.turns.describe("Thinking…")
         else:
-            view.turns.owner = ClientTurn()
+            view.turns.finish_client()
         title = event.result_label
         view.post_message(
             messages.SessionUpdate(state="busy" if active else "idle", summary=title)

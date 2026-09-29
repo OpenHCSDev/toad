@@ -19,6 +19,7 @@ from toad.screens.main import MainScreen
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.conversation import Conversation
 from toad.widgets.conversation import TurnActivity
+from toad.widgets.prompt import Prompt
 from toad.widgets.throbber import Throbber
 from toad.widgets.transcript_history import TranscriptFragmentView
 from textual.widget import Widget
@@ -119,9 +120,12 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
     sources = [app.selected_session]
     agents = [beta]
     records = []
+    await sources[0].wait_content_ready()
+    await until(pilot, lambda: sources[0].conversation.query_one_optional(Prompt) is not None)
     comms.registry.declare(Thread("gamma", frozenset({"team"}), str(beta.project_root_path),
                                   model="selected-offline/fixture", thinking_level="off"))
     try:
+        prompt_count = int(os.environ.get("NATIVE_RETURN_PROMPTS", "2"))
         for name in ("beta", "gamma"):
             if name == "gamma":
                 await app.session_navigation.new(lambda: MainScreen(
@@ -132,12 +136,22 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
                 agents.append(source.conversation.agent)
                 await until(pilot, agents[-1].session.settled.is_set)
             agent = agents[-1]
-            for index in range(2):
+            view = app.selected_session.conversation
+            await until(pilot, lambda: view.agent_ready and view.queue_projection.status == "available")
+            for index in range(prompt_count):
                 prompt = f"CACHE_{name.upper()}_{index}\n\n" + "\n\n".join(
                     f"{name} saved reader paragraph {row}: **canonical loaded source**."
                     for row in range(12))
-                await asyncio.wait_for(agent.send_prompt(prompt), 25)
+                before_requests = len(requests)
+                editor = view.prompt.prompt_text_area
+                editor.scroll_visible(animate=False, immediate=True)
+                await pilot.pause()
+                assert await pilot.click(editor)
+                editor.insert(prompt)
+                await pilot.press("enter")
+                await until(pilot, lambda: len(requests) == before_requests + 1)
                 await until(pilot, lambda: not comms.registry.require(name).executing)
+                await until(pilot, lambda: not agent.current_turn.busy)
             comms.goals.update_goal(name, SetGoalAction(text=f"SELECTED_GOAL_{name.upper()}"))
         # Both now have durable, actually produced native journals. Establish
         # comparable reader/editor state only after ordinary saved publication.
@@ -169,7 +183,7 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
                     app.screen._compositor._full_map.get(node))
                    for history in view.window.histories for node in history.walk_children()
                    if isinstance(node, TranscriptFragmentView)], flush=True)
-            await until(pilot, lambda: f"NATIVE_RESPONSE_{2 * (source_index + 1)}" in conversation_paint(frame))
+            await until(pilot, lambda: f"NATIVE_RESPONSE_{prompt_count * (source_index + 1)}" in conversation_paint(frame))
             await until(pilot, lambda: view.window.max_scroll_y > 0)
             await settled(pilot, view)
             view.window.release_anchor()
@@ -199,7 +213,7 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
                                        and body.region.overlaps(view.window.scrollable_content_region)))
             assert states[source.id][-1], "Saved reader fixture must contain a painted response"
         native_calls = len(requests)
-        assert native_calls == 4
+        assert native_calls == 2 * prompt_count
         profile = cProfile.Profile() if os.environ.get("NATIVE_RETURN_PROFILE") == "1" else None
         if profile is not None:
             profile.enable()
@@ -303,8 +317,9 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
         await until(pilot, lambda: agents[1].current_turn.busy)
         beta_view = sources[0].conversation
         assert not beta_view.turns.owner.busy
-        assert not beta_view.query_one(TurnActivity).display
+        assert not beta_view.query_one(TurnActivity).visible
         assert not beta_view.query_one(Throbber).busy
+        assert not beta_view.prompt.agent_busy and not beta_view.prompt.prompt_text_area.agent_busy
         active_started = perf_counter()
         active_frames = await click_session(app, pilot, sources[1])
         active_return_ms = (perf_counter() - active_started) * 1000
@@ -319,6 +334,8 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
         assert "SELECTED_GOAL_GAMMA" in selected_active[0][2]
         assert "Thinking" in selected_active[0][2]
         assert sources[1].conversation.turns.owner.busy
+        assert sources[1].conversation.prompt.agent_busy
+        assert sources[1].conversation.prompt.prompt_text_area.agent_busy
         # A status event queued by the departing source may reach the shared
         # widget after it is rebound. Its content has no destination identity.
         sources[1].conversation.post_message(UpdateStatusLine(Content("STALE_BETA_STATUS")))
@@ -331,11 +348,12 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
         await until(pilot, lambda: not agents[1].current_turn.busy)
         await until(pilot, lambda: not sources[1].conversation.turns.owner.busy)
         settled_view = sources[1].conversation
-        assert not settled_view.query_one(TurnActivity).display
+        assert not settled_view.query_one(TurnActivity).visible
         assert not settled_view.query_one(Throbber).busy
+        assert not settled_view.prompt.agent_busy and not settled_view.prompt.prompt_text_area.agent_busy
         await click_session(app, pilot, sources[0])
         await click_session(app, pilot, sources[1])
-        assert not sources[1].conversation.query_one(TurnActivity).display
+        assert not sources[1].conversation.query_one(TurnActivity).visible
         assert not sources[1].conversation.query_one(Throbber).busy
         assert len(requests) == native_calls + 1
         assert app.screen is frame and app._exception is None
@@ -352,4 +370,5 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
 
 
 if __name__ == "__main__":
-    asyncio.run(native_fixture(app_type=PaintedReturnApp, acceptance=acceptance))
+    asyncio.run(native_fixture(app_type=PaintedReturnApp, acceptance=acceptance,
+                               provider_request_budget=2 * int(os.environ.get("NATIVE_RETURN_PROMPTS", "2")) + 2))
