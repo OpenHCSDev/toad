@@ -178,6 +178,7 @@ class NativeSessionSurface:
             if self.owner is not owner or self.widget is None:
                 return
             await owner.release_binding(self.widget, screen)
+            await self.widget.window.document_viewport.park_source()
             await self.widget.release_native_session()
             self.widget.display = False
             self.owner = None
@@ -213,6 +214,7 @@ class NativeSessionSurface:
                     Selection.cursor((0, 0)), 0, 0, None, (), None))
             self.owner, self.view = owner, screen
             conversation.display = True
+            conversation.window.document_viewport.resume_source()
             if not first:
                 conversation.start_native_session()
             conversation.prompt.focus()

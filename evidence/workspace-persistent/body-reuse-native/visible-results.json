@@ -1,0 +1,52 @@
+[
+  {
+    "source": "session-1",
+    "return_painted_ms": 569.2863709991798,
+    "reader_y": 21,
+    "cache_hits": 1,
+    "cache_misses": 0,
+    "mounted_response_bodies": 1,
+    "reused_body_instances": 1,
+    "prepared_bytes": 72479
+  },
+  {
+    "source": "session-2",
+    "return_painted_ms": 559.4490299990866,
+    "reader_y": 21,
+    "cache_hits": 1,
+    "cache_misses": 0,
+    "mounted_response_bodies": 1,
+    "reused_body_instances": 1,
+    "prepared_bytes": 72479
+  },
+  {
+    "source": "session-1",
+    "return_painted_ms": 540.1739609951619,
+    "reader_y": 21,
+    "cache_hits": 1,
+    "cache_misses": 0,
+    "mounted_response_bodies": 1,
+    "reused_body_instances": 1,
+    "prepared_bytes": 72479
+  },
+  {
+    "source": "session-2",
+    "return_painted_ms": 539.9453699938022,
+    "reader_y": 21,
+    "cache_hits": 1,
+    "cache_misses": 0,
+    "mounted_response_bodies": 1,
+    "reused_body_instances": 1,
+    "prepared_bytes": 72479
+  },
+  {
+    "source": "session-1",
+    "return_painted_ms": 518.9230639953166,
+    "reader_y": 21,
+    "cache_hits": 1,
+    "cache_misses": 0,
+    "mounted_response_bodies": 1,
+    "reused_body_instances": 1,
+    "prepared_bytes": 72479
+  }
+]

@@ -1,0 +1,33 @@
+▌NATIVE_RESPONSE_1                                                                        
+▌                                                                                         
+▌▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔
+▌  ▶ Agent coordination context                                                           
+▌                                                                                         
+▌                                                                                         
+▌─────────────────────────────────── User · 02:50:10 ──────────────────────────────────── 
+▌▊❯ SAVED_READER_1                                                                        
+▌▊                                                                                        
+▌▊  Retained reader paragraph 0: actual native history.                                   
+▌▊                                                                                        
+▌▊  Retained reader paragraph 1: actual native history.                                   
+▌▊                                                                                        
+▌▊  Retained reader paragraph 2: actual native history.                                   
+▌▊                                                                                        
+▌▊  Retained reader paragraph 3: actual native history.                                   
+▌▊                                                                                        
+▌▊  Retained reader paragraph 4: actual native history.                                   
+▌                                                                                         
+▌▊  Retained reader paragraph 5: actual native history.                                   
+▌▊                                                                                        
+▌▊  Retained reader paragraph 6: actual native history.                                   
+▌▊                                                                                        
+▌▊  Retained reader paragraph 7: actual native history.                                   
+▌▊                                                                                        
+▌▊  Retained reader paragraph 8: actual native history.                                   
+▌▊                                                                                        
+▌▊  Retained reader paragraph 9: actual native history.                                   
+▌▊                                                                                        
+▌▊  Retained reader paragraph 10: actual native history.                                  
+▌                                                                                         
+▌▊  Retained reader paragraph 11: actual native history.                                  
+▌                                                                                         

@@ -1,0 +1,12 @@
+{
+  "source_head": "ea15ac1fae3872f6d3306de05109871128a22da8",
+  "install": {
+    "url": "file:///home/ts/wt/toad-saved-state-user-journey-20260929/.artifacts/body-native-acceptance/src",
+    "dir_info": {}
+  },
+  "dependency_runtime": "/home/ts/.local/share/agent-comms/runtime-context-observation-20260929",
+  "core": "a01927ed3c771f47767537a6e650788cec358cd1",
+  "textual": "1738abd8e3524b7e86171b70256d7f7e52fdb724",
+  "native": "d3967e8b6ee0cf28",
+  "source_test": "tests/saved_state_user_journey_pilot.py"
+}
