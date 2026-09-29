@@ -176,5 +176,8 @@ Delete root fields `_agent_response`, `_agent_thought`, `_post_lock` and root
 `post_agent_response`, `post_agent_thought`, `new_block`; migrate all event,
 checkpoint and retained pilot callers. Keep actual cropped live/native and
 retained-read paint acceptance. App/workspace/shell/sidebar and core deployment
-remain excluded. No stores or schemas change. This slice is not yet accepted;
-its complete implementation draft records installed evidence and remaining gates.
+remain excluded. No stores or schemas change. Completed production1952bf4:
+Conversation AST span2709 →2667. Installed new-case/paint guard, actual native
+ACP/UI live and saved cropped paint, retained NRA26-event source paint and
+zero-positive class/debt ratchet pass. PR140 receipts record exact boundaries;
+parent owns paired merge/live installation. No own-scope blocker remains.
