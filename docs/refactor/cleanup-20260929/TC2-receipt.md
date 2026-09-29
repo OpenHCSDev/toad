@@ -112,3 +112,11 @@ Other changed source inputs: `pyproject.toml`/`uv.lock` pin the SDK and accepted
 ## Artifacts and resource ownership
 
 TC2 owns `.venv` (~97 MiB), `evidence/tc2-sdk` (~1.1 MiB), and `/home/ts/.cache/agent-scratch/toad-tc2-sdk-20260929` (~1.7 MiB). Disposable fixture directories retire with TemporaryDirectory; test-owned processes are bounded and retired by the existing runner. Persistent small failure/pass receipts remain for review. Default/global activation still belongs to the parent; this worker has not modified it. This receipt does not claim #202 warm-tab or #211 canonical-turn issues are finished. Remove the env/scratch after review and activation when no process references them. No volatile worktree, global reset/clean, or edits in another worker's WT.
+
+## Final integrated202 acceptance
+
+Production source `cd445d5f` normally includes current main209 and reviewed202 merge `1e2cb39f`. One activate conflict resolved to202's original per-session retained tree, preserving declared SDK saved-history capability for generic ACP peers; Heisenberg reviewed the union directly.
+
+The first installed A/B/A run failed an actual reader return (y5 became145 after a source update); full evidence remains in `evidence/tc2-sdk/workspace-integration`. The same installed source then passed the complete native saved-reader journey with passthrough anchor-stack instrumentation, unchanged assertions and no protocol/state/UI replacement. Five returns retain original outer history/pages/body/draft/undo with zero prepared misses; see `workspace-anchor-trace/summary.json`. The intermittent reader defect is NOT claimed fixed: Heisenberg owns its source/reader correction in213. The diagnostic pass does not prove the earlier race absent.
+
+Pair remains Coreab3397a6/Textual412/native7817. No broad optional suite rerun. Parent owns merge and default installation. Adaptive viewport work continues independently in214, integrated by213.
