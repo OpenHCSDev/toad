@@ -23,20 +23,20 @@ class Expansion(Choice, DeclaredFamily, affix="Expansion"):
 
     @classmethod
     @abstractmethod
-    def should_expand(cls, status: str | None) -> bool: ...
+    def should_expand(cls, status) -> bool: ...
 
 
 class NeverExpansion(Expansion):
     patch_preview = False
 
     @classmethod
-    def should_expand(cls, status: str | None) -> bool:
+    def should_expand(cls, status) -> bool:
         return False
 
 
 class AlwaysExpansion(Expansion):
     @classmethod
-    def should_expand(cls, status: str | None) -> bool:
+    def should_expand(cls, status) -> bool:
         return True
 
 
@@ -44,23 +44,23 @@ class SuccessExpansion(Expansion):
     title = "Success only"
 
     @classmethod
-    def should_expand(cls, status: str | None) -> bool:
-        return status == "completed"
+    def should_expand(cls, status) -> bool:
+        return status.completed
 
 
 class FailExpansion(Expansion):
     title = "Fail only"
 
     @classmethod
-    def should_expand(cls, status: str | None) -> bool:
-        return status == "failed"
+    def should_expand(cls, status) -> bool:
+        return status.failed
 
 
 class BothExpansion(SuccessExpansion, FailExpansion):
     title = "Fail and success"
 
     @classmethod
-    def should_expand(cls, status: str | None) -> bool:
+    def should_expand(cls, status) -> bool:
         return SuccessExpansion.should_expand(status) or FailExpansion.should_expand(
             status
         )

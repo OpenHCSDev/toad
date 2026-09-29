@@ -1,0 +1,16 @@
+{
+  "launcher_names": [
+    "agent-comms",
+    "agent-comms-acp",
+    "agent-comms-agent",
+    "agent-comms-nk-foreground",
+    "toad"
+  ],
+  "core": "c1d2849b90023acf5206c35b7da4664407d6dce5",
+  "toad": "887ad457",
+  "textual": "412b5a2b5da8875dc2f3dc5be2365abddce0537b",
+  "native_package": "/home/ts/.local/share/agent-comms/native-current-776dc36857e630da/node_modules/@earendil-works/pi-coding-agent",
+  "baseline_runtime_toad": "8616aee5f91f8e200c982e02f0ee56d0f49d6c48",
+  "wheel_sha256": "aec89d9dba83b62b1797cb4b9485de61ec0f0d08cbeab07a4955c47815a43e0e",
+  "wheel_path": ".artifacts/retained-reader-guard-package/dist/batrachian_toad-0.6.20-py3-none-any.whl"
+}

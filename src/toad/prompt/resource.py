@@ -3,6 +3,7 @@ import mimetypes
 from pathlib import Path
 
 from agent_comms.image_inputs import MAX_IMAGE_BYTES
+from toad.file_kind import FileKind
 
 
 @dataclass
@@ -45,6 +46,7 @@ def load_resource(root: Path, path: Path, *, attachment_root: Path | None = None
         raise ResourceNotRelative("Resource path is not relative to project root.")
 
     mime_type, encoding = mimetypes.guess_file_type(resource_path)
+    mime_type = FileKind.for_path(resource_path).mime_type or mime_type
     if mime_type is None:
         mime_type = "application/octet-stream"
 

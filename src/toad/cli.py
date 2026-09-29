@@ -9,7 +9,7 @@ os.environ.setdefault("TEXTUAL_FPS", "120")
 
 import click
 from toad.app import ToadApp
-from toad.agent_schema import Agent
+from toad.agent_schema import AgentDefinition
 from toad.render_backend import Renderer
 from toad.render_choices import RendererChoice
 
@@ -80,7 +80,7 @@ def check_directory(path: str) -> None:
         sys.exit(-1)
 
 
-async def get_agent_data(launch_agent) -> Agent | None:
+async def get_agent_data(launch_agent) -> AgentDefinition | None:
     launch_agent = launch_agent.lower()
 
     from toad.agents import read_agents, AgentReadError
@@ -92,10 +92,10 @@ async def get_agent_data(launch_agent) -> Agent | None:
 
     for agent_data in agents.values():
         if (
-            agent_data["short_name"].lower() == launch_agent
-            or agent_data["identity"].lower() == launch_agent
+            agent_data.short_name.lower() == launch_agent
+            or agent_data.identity.lower() == launch_agent
         ):
-            launch_agent = agent_data["identity"]
+            launch_agent = agent_data.identity
             break
 
     return agents.get(launch_agent)
@@ -266,12 +266,12 @@ def acp(
 
     from rich import print
 
-    from toad.agent_schema import Agent as AgentData
+    from toad.agent_schema import AgentDefinition
 
     command_name = command.split(" ", 1)[0].lower()
     identity = f"{command_name}.custom.batrachian.ai"
 
-    agent_data: AgentData = {
+    agent_data = AgentDefinition.decode({
         "identity": identity,
         "name": title or command.partition(" ")[0],
         "short_name": "agent",
@@ -287,7 +287,7 @@ def acp(
         "help": "",
         "run_command": {"*": command},
         "actions": {},
-    }
+    })
     if serve:
         import shlex
 

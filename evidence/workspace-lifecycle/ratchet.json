@@ -1,0 +1,122 @@
+{
+  "src/toad/app.py": {
+    "StringDispatch": [
+      0,
+      0
+    ],
+    "StringDispatchArms": [
+      0,
+      0
+    ],
+    "TypeSwitch": [
+      0,
+      0
+    ],
+    "TypeSwitchArms": [
+      0,
+      0
+    ],
+    "BooleanChainTerms": [
+      4,
+      4
+    ],
+    "NoneIdentity": [
+      15,
+      14
+    ],
+    "ForeignAbsenceProbe": [
+      6,
+      6
+    ]
+  },
+  "src/toad/screens/session_view.py": {
+    "StringDispatch": [
+      0,
+      0
+    ],
+    "StringDispatchArms": [
+      0,
+      0
+    ],
+    "TypeSwitch": [
+      0,
+      0
+    ],
+    "TypeSwitchArms": [
+      0,
+      0
+    ],
+    "BooleanChainTerms": [
+      0,
+      0
+    ],
+    "NoneIdentity": [
+      1,
+      1
+    ],
+    "ForeignAbsenceProbe": [
+      0,
+      0
+    ]
+  },
+  "src/toad/screens/workspace.py": {
+    "StringDispatch": [
+      0,
+      0
+    ],
+    "StringDispatchArms": [
+      0,
+      0
+    ],
+    "TypeSwitch": [
+      0,
+      0
+    ],
+    "TypeSwitchArms": [
+      0,
+      0
+    ],
+    "BooleanChainTerms": [
+      17,
+      0
+    ],
+    "NoneIdentity": [
+      11,
+      8
+    ],
+    "ForeignAbsenceProbe": [
+      2,
+      2
+    ]
+  },
+  "src/toad/workspace_sessions.py": {
+    "StringDispatch": [
+      0,
+      0
+    ],
+    "StringDispatchArms": [
+      0,
+      0
+    ],
+    "TypeSwitch": [
+      0,
+      0
+    ],
+    "TypeSwitchArms": [
+      0,
+      0
+    ],
+    "BooleanChainTerms": [
+      0,
+      0
+    ],
+    "NoneIdentity": [
+      1,
+      0
+    ],
+    "ForeignAbsenceProbe": [
+      0,
+      0
+    ]
+  }
+}

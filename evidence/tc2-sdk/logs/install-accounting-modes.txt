@@ -1,0 +1,7 @@
+Resolved 98 packages in 1ms
+   Building batrachian-toad @ file:///home/ts/wt/toad-cleanup-tc2-sdk-20260929
+      Built batrachian-toad @ file:///home/ts/wt/toad-cleanup-tc2-sdk-20260929
+Prepared 1 package in 435ms
+Uninstalled 1 package in 14ms
+Installed 1 package in 8ms
+ ~ batrachian-toad==0.6.20 (from file:///home/ts/wt/toad-cleanup-tc2-sdk-20260929)

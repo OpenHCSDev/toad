@@ -48,6 +48,18 @@ class ToolState:
     return_code: int | None = None
     signal: str | None = None
 
+    @property
+    def finished(self) -> bool:
+        """Whether this execution ended normally or by a signal."""
+        return self.return_code is not None or self.signal is not None
+
+    @classmethod
+    def capture(cls, output: str, truncated: bool, return_code: int | None) -> ToolState:
+        """Decode the operating system's negative signal return code once."""
+        if return_code is not None and return_code < 0:
+            return cls(output, truncated, signal=signal.Signals(-return_code).name)
+        return cls(output, truncated, return_code=return_code)
+
 
 class TerminalExecution:
     """The original command, ANSI model, bounded ACP output and process lifecycle."""
@@ -120,10 +132,7 @@ class TerminalExecution:
     def tool_state(self) -> ToolState:
         """Get the current terminal state."""
         output, truncated = self.get_output()
-        # TODO: report signal
-        return ToolState(
-            output=output, truncated=truncated, return_code=self.return_code
-        )
+        return ToolState.capture(output, truncated, self.return_code)
 
     @staticmethod
     def resize_pty(fd: int, columns: int, rows: int) -> None:
@@ -144,7 +153,8 @@ class TerminalExecution:
             return None, None
         # await self._task
         await self._exit_event.wait()
-        return (self.return_code or 0, None)
+        state = self.tool_state
+        return state.return_code, state.signal
 
     def kill(self) -> bool:
         """Kill the terminal process.
