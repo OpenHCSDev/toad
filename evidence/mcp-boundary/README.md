@@ -1,0 +1,11 @@
+# T9 MCP inventory / decision closure
+
+Scope: Noether, base main be685a9b. Parent handles merge/install. Exact NRA and canonical refactor-audit reread; classification BOUND-1/3 (boundary types), IMPL-1/5/7 (command cases/shared eligibility), IDEN-1 (snapshot), MEMB-1/4 (derived membership/labels), TIME-9 (no codec subclass).
+
+Removed the hand-mapped raw inventory decoder/flattened transport DTO, primitive and literal rosters, action/decision cross product, second screen eligibility implementation, per-action button handlers, and string outcome/message map. FieldCodec decodes the single current package projection into its owning declarations, including strict nested transport and policy family. MCPDecision owns CLI arguments, button label and eligibility; the actual button retains its command. Outcomes own their feedback. No converter, alias, second registry, new format, configuration store, live root change or approval inference.
+
+The current package's producer/config contract remains unchanged. Inventory is transient read-only CLI output. Trust-sensitive decisions continue to require the actual visible package challenge and explicit user keyboard input; no auto-answer or MCP server is launched by product code. The package owns config and durable approval ledger.
+
+Working code is published while actual installed verification continues. Initial installed-package boundary checks passed. Startup at isolated main be685a9b with current installed core exposed the known deleted tool_kind caller in transcript_history; Tesla156 already migrates it. Verification integration uses the complete reviewed156 ancestry, not a restored alias. Initial fixture trust setup and startup failure logs retained. No readiness/installation claim yet.
+
+Installed verification: own noneditable wheel, actual current Textual/core dependencies read-only from paired runtime, current verified native package. Existing MCP pilot is now a continuous normal-App/compositor/click/PTY/keyboard/ledger/refresh journey; deletes old internal-shape-only pilot. Owned scratch lives under .artifacts and is removed after subprocesses exit. Resource warning /6.4GiB /home15.4GiB swap11.5GiB; no extra fleet, native package copies or broad reruns.
