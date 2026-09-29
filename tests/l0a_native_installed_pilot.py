@@ -56,7 +56,9 @@ async def notification_feedback(
 ):
     user = comms.messaging.user_identity(str(project)).name
     await channel_target("#team").open(NavigationContext(app, owner_mode, project, user))
-    channel = app.screen.query_one(CommsChatView)
+    await app.selected_session.wait_content_ready()
+    channel = app.selected_session.query_one(CommsChatView)
+    assert channel.target == '#team' and channel.kind == 'channel'
     entered.clear()
     release.clear()
     hold_next.set()
@@ -471,7 +473,9 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
 
                 user = comms.messaging.user_identity(str(project)).name
                 await DirectTarget("beta").open(NavigationContext(app, owner_mode, project, user))
-                dm = app.screen.query_one(CommsChatView)
+                await app.selected_session.wait_content_ready()
+                dm = app.selected_session.query_one(CommsChatView)
+                assert dm.target == 'beta' and dm.kind == 'dm'
                 entered.clear()
                 release.clear()
                 hold_next.set()
