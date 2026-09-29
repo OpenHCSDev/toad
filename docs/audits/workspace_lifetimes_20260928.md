@@ -275,3 +275,67 @@ loop gap median/p95/max 15.02/53.54/129.95 ms and GC maximum 119.33 ms
 the fixture exercises native navigation and scrolling, while the held-source
 End frame is checked by the focused mounted pilot. A full integrated test
 result and bounded executing-agent presentation remain outstanding.
+
+## Current-main T4 integration and installed checkpoint
+
+This next checkpoint merges Toad main `b4bdae1` into #116 at `4a602da` and
+uses its exact core `4510dddf737da3d445ba20d90c79f3dcb3f08b27` and
+Textual `c9743801c98dc570f82f82e25915ecce89800f4b` (which includes
+merged Textual #8). No shared runtime or user display was touched. The
+isolated `toad-workspace-round3-20260928` wheel includes the locked project
+and persistent renderer extra; pytest's canonical collector runs that wheel,
+not a source-path override. Its native Pi package was verified against the
+core-owned tree commitment before test use.
+
+- Integration exposed a real CSS/measurement regression: T4's nominal
+  `ConversationBlock` initially extended Textual `Widget`, preceding
+  `PreparedConversationMarkdown` in leaf MRO. In a 48-record mounted source,
+  only the first body had a positive layout height, the remaining 47 were
+  zero-height/unmeasured, `max_scroll_y` was 71, and bodies could not retire.
+  The contract is now a nominal non-DOM mixin, leaving each concrete widget
+  as the single native CSS/layout owner. Inactive history anchors stop
+  protecting a displaced window's warm body. Mounted rapid-scroll, recent-tab
+  and 32-body retirement tests pass after both fixes. Main independently
+  incorporated the same CSS fix in #137.
+- Main's `AgentReady` accidentally omitted `Message.__init__()`: posting the
+  ready notification failed with missing Textual message state. This branch
+  restored its base constructor; `shared_channels_pilot` passes. Main
+  independently incorporated that fix in #134. The agent-side T4 request for
+  eager shell startup remains omitted to preserve the workspace guard: blank
+  tabs do not start unused shells. The installed architecture/lifetime subset
+  passed **10/10** (including the held-source End and recent-window pilots).
+- Strict **64 blank tabs / 64 fixed source threads**: three visit phases,
+  resize, same-mode and close checks completed in **42.58 s**, retaining
+  **1,179 widgets, two Conversations/editors, one header/Footer/Channels**, and
+  65 labels and close buttons. Phase switch medians 76.00/76.23/76.30 ms;
+  loop-gap maxima 100.61/94.25/109.93 ms, GC maximum 5.93 ms. A separate
+  fully loaded 10-tab run completed in 18.10 s but still retained **11
+  Conversations/editors and 1,527 widgets**, demonstrating that loaded views
+  remain proportional to modes. Its switch medians were 42.47/44.92/30.59 ms.
+  Both receipts use the same current installed wheel and ordinary GC.
+- Native owned display `:198`: `toad-round3-native-nav-2` completed 83
+  actions/10 tabs/eight sidebar resizes with four singleton channel identities.
+  Loop gap max **166.54 ms**, GC max **133.09 ms**; scope peak 608.4 MiB,
+  zero swap. Fixed category-fixture selection in the observer input route;
+  `toad-round3-native-filters-20260928` completed **180 actions**, seven
+  categories, restored drafts across 10 modes and **130/130 native key
+  acknowledgments**. Key median/p95/max 29.38/52.25/63.06 ms; loop gap max
+  **225.01 ms**, GC max **197.64 ms**; scope peak 642.8 MiB, zero swap.
+  Functional visibility/input passes, but the worst-case stall target does not.
+- The complete canonical installed-wheel run was **257 passed, 13 subtests
+  passed, 49 failed in 1,636.49 s**. It is explicitly **not green**. Failures
+  include deprecated typed fixture imports, strict nominal block admission in
+  older direct-mount pilots, hidden-on-reveal right-panel assumptions, markdown
+  parser root assumptions on history/file preview screens, and native/goal
+  readiness cases. The full failure output is in the runner's captured pytest
+  receipt under `toad-round3-canonical-suite-20260928`; tests were neither
+  skipped nor given longer per-pilot deadlines. The performance probe's one
+  installed-wheel provenance failure was corrected after that run; its normal
+  10-tab and strict-64 executions above subsequently completed. This is not
+  a claim that the other 48 failures are resolved.
+
+Since this receipt, main has merged #131, which provides public
+`Agent.attach_surface`/`detach_surface` and agent-owned permission custody, as
+well as #137/#134. These contracts now permit #116 to implement bounded
+agent-backed presentation without parallel ACP reducers or operational-message
+replay. They have **not yet** been integrated or measured on this branch.

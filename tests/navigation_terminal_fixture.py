@@ -88,7 +88,7 @@ async def main():
             )
         )
         identity = hashlib.sha256(json.dumps([(event.declared_name, event.text) for event in events]).encode()).hexdigest()
-        all_categories = os.environ.get("TOAD_FIXTURE_all_categories()") == "1"
+        all_categories = os.environ.get("TOAD_FIXTURE_ALL_CATEGORIES") == "1"
         if all_categories:
             mixed = []
             for index in range(90):
