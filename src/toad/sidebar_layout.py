@@ -4,8 +4,83 @@ from __future__ import annotations
 
 from dataclasses import dataclass, replace
 from typing import Literal
+from abc import abstractmethod
+
+from agent_comms.declared_family import DeclaredFamily
 
 type Side = Literal["left", "right"]
+
+
+class SidebarShift(DeclaredFamily, affix="SidebarShift"):
+    available = True
+
+    @abstractmethod
+    def apply(self, layout: "SidebarLayout", identity: str, direction: Side) -> bool: ...
+
+    @abstractmethod
+    def tooltip(self, direction: Side) -> str: ...
+
+
+class BlockedSidebarShift(SidebarShift):
+    available = False
+
+    def apply(self, layout, identity, direction):
+        return False
+
+    def tooltip(self, direction):
+        return "Outside workspace edge"
+
+
+class SwapSidebarShift(SidebarShift):
+    def apply(self, layout, identity, direction):
+        return layout.swap(identity)
+
+    def tooltip(self, direction):
+        return f"Swap with the sidebar to the {direction}"
+
+
+class MoveSidebarShift(SidebarShift):
+    def apply(self, layout, identity, direction):
+        return layout.move(identity, direction)
+
+    def tooltip(self, direction):
+        return f"Move sidebar to the {direction}"
+
+
+class SidebarPlacementAction(DeclaredFamily, affix="SidebarPlacementAction"):
+    directional = False
+    label: str
+
+    @abstractmethod
+    def apply(self, layout: "SidebarLayout", identity: str) -> None: ...
+
+
+class DirectionalSidebarPlacementAction(SidebarPlacementAction):
+    directional = True
+
+    @property
+    @abstractmethod
+    def direction(self) -> Side: ...
+
+    def apply(self, layout, identity):
+        layout.shift(identity, self.direction)
+
+
+class LeftSidebarPlacementAction(DirectionalSidebarPlacementAction):
+    direction = "left"
+    label = "<──"
+
+
+class RightSidebarPlacementAction(DirectionalSidebarPlacementAction):
+    direction = "right"
+    label = "──>"
+
+
+class FloatSidebarPlacementAction(SidebarPlacementAction):
+    label = "Float"
+
+    def apply(self, layout, identity):
+        layout.float_mode(identity)
 
 
 @dataclass(frozen=True, slots=True)
@@ -64,28 +139,23 @@ class SidebarLayout:
         self.placements[other] = replace(self.placements[other], order=current.order)
         return True
 
-    def directions(self, identity: str) -> dict[Side, Literal["move", "swap"] | None]:
+    def directions(self, identity: str) -> dict[Side, SidebarShift]:
         """Resolve spatial arrows against the current neighbors and outside wall."""
         current = self.get(identity)
-        actions: dict[Side, Literal["move", "swap"] | None] = {"left": None, "right": None}
+        actions: dict[Side, SidebarShift] = {"left": BlockedSidebarShift(), "right": BlockedSidebarShift()}
         for direction in actions:
             inward = direction != current.side
             neighbor_order = current.order + (1 if inward else -1)
             if any(key != identity and peer.side == current.side and peer.order == neighbor_order
                    for key, peer in self.placements.items()):
-                actions[direction] = "swap"
+                actions[direction] = SwapSidebarShift()
             elif inward:
-                actions[direction] = "move"
+                actions[direction] = MoveSidebarShift()
         return actions
 
     def shift(self, identity: str, direction: Side) -> bool:
         """One arrow step: swap with a neighbor, cross the center, or stop at a wall."""
-        action = self.directions(identity)[direction]
-        if action == "swap":
-            return self.swap(identity)
-        if action == "move":
-            return self.move(identity, direction)
-        return False
+        return self.directions(identity)[direction].apply(self, identity, direction)
 
     def width(self, identity: str, percentage: int) -> bool:
         if type(percentage) is not int:
