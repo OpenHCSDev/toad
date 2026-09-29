@@ -233,7 +233,7 @@ class NativeSessionSurface:
                 conversation.turns.bind(agent)
                 await conversation.goal_observation.refresh()
             elif conversation.agent is not None and conversation.agent.ready:
-                await conversation.present_retained_native_session()
+                await conversation.agent.presentation.restore_saved_history(conversation)
             conversation.display = True
             conversation.window.document_viewport.resume_source()
             if returning:
