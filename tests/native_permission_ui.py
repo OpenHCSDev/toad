@@ -55,7 +55,7 @@ class Observer:
 
     async def request_permission(self, *, session_id, tool_call, options, **kwargs):
         self.permissions += 1
-        task = asyncio.create_task(self.agent.rpc_request_permission(
+        task = asyncio.create_task(self.agent.permissions.request_permission(
             sessionId=session_id, toolCall=tool_call, options=options,
         ))
         self.permission_tasks.add(task)
