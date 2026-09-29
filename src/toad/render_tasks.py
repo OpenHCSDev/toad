@@ -50,6 +50,10 @@ class ReusableRenderTask(RenderTask[ResultT]):
 class SessionUpdateValidation:
     error: str | None = None
 
+    @property
+    def rejected(self) -> bool:
+        return self.error is not None
+
 
 @dataclass(frozen=True)
 class ValidateSessionUpdateTask(RenderTask[SessionUpdateValidation]):

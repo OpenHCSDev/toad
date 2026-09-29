@@ -1,0 +1,142 @@
+{
+  "src/toad/acp/agent.py": {
+    "before": {
+      "absence": 2,
+      "chain": 0,
+      "excess500": 465,
+      "classes": {
+        "Mode": 6,
+        "Model": 6,
+        "TokenUsage": 9,
+        "Agent": 965
+      }
+    },
+    "after": {
+      "absence": 1,
+      "chain": 0,
+      "excess500": 353,
+      "classes": {
+        "Mode": 6,
+        "Model": 6,
+        "TokenUsage": 9,
+        "Agent": 853
+      }
+    }
+  },
+  "src/toad/acp/agent_controller.py": {
+    "before": {
+      "absence": 2,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {
+        "SurfaceBinding": 8,
+        "DetachedSurfaceBinding": 3,
+        "AttachedSurfaceBinding": 11,
+        "ValidationOwner": 3,
+        "HeadlessValidationOwner": 3,
+        "ApplicationValidationOwner": 6,
+        "AgentController": 95
+      }
+    },
+    "after": {
+      "absence": 2,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {
+        "SessionBinding": 6,
+        "SurfaceBinding": 8,
+        "DetachedSurfaceBinding": 3,
+        "AttachedSurfaceBinding": 11,
+        "ValidationOwner": 3,
+        "HeadlessValidationOwner": 3,
+        "ApplicationValidationOwner": 6,
+        "AgentController": 103
+      }
+    }
+  },
+  "src/toad/acp/client_session.py": {
+    "before": {
+      "absence": 0,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {
+        "ClientSessionRequest": 20,
+        "ClientRequestOwner": 12
+      }
+    },
+    "after": {
+      "absence": 0,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {
+        "ClientSessionRequest": 23,
+        "ClientRequestOwner": 12
+      }
+    }
+  },
+  "src/toad/acp/session_updates.py": {
+    "before": {
+      "absence": 0,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {}
+    },
+    "after": {
+      "absence": 0,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {
+        "SessionUpdateEffect": 11,
+        "MessageChunkEffect": 8,
+        "UserMessageEffect": 4,
+        "AgentMessageEffect": 6,
+        "AgentThoughtEffect": 3,
+        "ToolCallEffect": 3,
+        "ToolCallUpdateEffect": 3,
+        "PlanEffect": 3,
+        "CommandsEffect": 3,
+        "ModeEffect": 5,
+        "ConfigurationEffect": 3,
+        "SessionInfoEffect": 4,
+        "UsageEffect": 5,
+        "SessionNotificationOwner": 54
+      }
+    }
+  },
+  "src/toad/render_tasks.py": {
+    "before": {
+      "absence": 0,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {
+        "RenderExecution": 8,
+        "RenderTask": 6,
+        "ReusableRenderTask": 3,
+        "SessionUpdateValidation": 2,
+        "ValidateSessionUpdateTask": 21,
+        "PatchRenderTask": 12,
+        "MarkdownSyntaxRenderTask": 11,
+        "TokenRenderTask": 12,
+        "TranscriptRenderTask": 10,
+        "RichRenderTask": 11
+      }
+    },
+    "after": {
+      "absence": 0,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {
+        "RenderExecution": 8,
+        "RenderTask": 6,
+        "ReusableRenderTask": 3,
+        "SessionUpdateValidation": 6,
+        "ValidateSessionUpdateTask": 21,
+        "PatchRenderTask": 12,
+        "MarkdownSyntaxRenderTask": 11,
+        "TokenRenderTask": 12,
+        "TranscriptRenderTask": 10,
+        "RichRenderTask": 11
+      }
+    }
+  }
+}

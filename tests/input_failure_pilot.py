@@ -51,7 +51,7 @@ async def main():
             # Current public ACP metadata: a remote failure is evidence, never
             # authority to overwrite a local draft, including repeated delivery.
             for _ in range(2):
-                receiver.rpc_session_update(
+                receiver.updates.accept(
                     "fixture",
                     {
                         "sessionUpdate": "session_info_update",

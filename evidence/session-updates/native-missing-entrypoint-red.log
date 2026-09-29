@@ -1,0 +1,47 @@
+INSTALLED_APP_RUN_TEST_ENTER
+INSTALLED_APP_RUN_TEST_YIELDED
+ATTACHED_AND_NAVIGABLE
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-session-update-custody-sol-20260929/tests/l0a_native_installed_pilot.py", line 49, in until
+    await pilot.pause(0.05)
+  File "/home/ts/.local/share/agent-comms/runtime-idle-warm-source-20260929/lib/python3.14/site-packages/textual/pilot.py", line 542, in pause
+    await self._wait_for_screen()
+  File "/home/ts/.local/share/agent-comms/runtime-idle-warm-source-20260929/lib/python3.14/site-packages/textual/pilot.py", line 513, in _wait_for_screen
+    _, pending = await asyncio.wait(
+                 ^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py", line 432, in wait
+    return await _wait(fs, timeout, return_when, loop)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py", line 521, in _wait
+    await waiter
+asyncio.exceptions.CancelledError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-session-update-custody-sol-20260929/tests/client_session_native_installed_pilot.py", line 121, in <module>
+    asyncio.run(main(app_type=InstalledApp, acceptance=acceptance))
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-session-update-custody-sol-20260929/tests/l0a_native_installed_pilot.py", line 282, in main
+    await acceptance(app, pilot, agent, comms, entered, release,
+                     hold_next, requests)
+  File "/home/ts/wt/toad-session-update-custody-sol-20260929/tests/client_session_native_installed_pilot.py", line 23, in acceptance
+    await until(pilot, lambda: response_painted(app, view, 'NATIVE_RESPONSE_1'))
+  File "/home/ts/wt/toad-session-update-custody-sol-20260929/tests/l0a_native_installed_pilot.py", line 47, in until
+    async with asyncio.timeout(seconds):
+               ~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/timeouts.py", line 114, in __aexit__
+    raise TimeoutError from exc_val
+TimeoutError

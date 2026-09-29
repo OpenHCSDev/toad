@@ -7,7 +7,7 @@ from l0a_native_installed_pilot import main, until, response_painted
 from runtime_fixture import ToadApp
 from toad.screens.permissions import PermissionReview
 from toad.widgets.terminal_tool import TerminalTool
-from toad.navigation_target import channel_target
+from toad.navigation_target import channel_target, NavigationContext
 
 class InstalledApp(ToadApp):
     CSS_PATH = files('toad').joinpath('toad.tcss')
@@ -35,7 +35,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     tool = {'toolCallId': 'client-edit', 'title': 'CLIENT_BOUND_PERMISSION', 'kind': 'edit',
         'content': [{'type': 'diff', 'path': str(agent.project_root_path/'client.txt'),
                     'oldText': 'old client value', 'newText': 'CLIENT_NEW_VALUE'}]}
-    agent.rpc_session_update(agent.session_id, {'sessionUpdate': 'tool_call', **tool, 'status': 'in_progress'})
+    agent.updates.accept(agent.session_id, {'sessionUpdate': 'tool_call', **tool, 'status': 'in_progress'})
     permission = asyncio.create_task(rpc('session/request_permission',
         options=[{'optionId': 'allow', 'name': 'Allow once', 'kind': 'allow_once'},
                  {'optionId': 'reject', 'name': 'Reject', 'kind': 'reject_once'}],
@@ -59,8 +59,9 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     view.prompt.text = 'CLIENT_SESSION_UNSENT_DRAFT'
     document = view.prompt.prompt_text_area.document
     undo = view.prompt.prompt_text_area.history
-    await app.open_comms_session(owner_mode=mode, project_path=agent.project_root_path,
-        me=comms.messaging.user_identity(str(agent.project_root_path)).name, target=channel_target('#team'))
+    await channel_target('#team').open(NavigationContext(
+        app, mode, agent.project_root_path,
+        comms.messaging.user_identity(str(agent.project_root_path)).name))
     await app.select_session(mode)
     returned = app.selected_session.conversation
     assert returned.agent is agent and agent.controller.terminals.require(terminal_id) is execution

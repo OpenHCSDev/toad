@@ -130,10 +130,10 @@ async def main():
                     )
                     assert len(view.queue_projection.items) == 2
                     submit.assert_not_called()
-            agent.rpc_session_update(
+            agent.updates.accept(
                 "beta", update(InputStartedUpdate("a" * 32, "same text", scope, 2))
             )
-            agent.rpc_session_update(
+            agent.updates.accept(
                 "beta",
                 update(
                     QueueChangedUpdate(scope, 3, AvailableQueueProjection((items[1],)))
@@ -145,7 +145,7 @@ async def main():
             assert [row.input_id for row in view.queue_projection.items] == ["b" * 32]
             view.prompt.text = "my unsent draft"
             for _ in range(2):
-                agent.rpc_session_update(
+                agent.updates.accept(
                     "beta",
                     update(
                         QueueChangedUpdate(

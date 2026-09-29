@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from .agent import Agent
     from .agent_process import ProcessDisposition
+    from .agent_controller import SessionBinding
 from agent_comms.declared_family import DeclaredFamily
 from toad.jsonrpc import InvalidParams
 
@@ -14,13 +15,16 @@ class ClientSessionRequest:
     agent: "Agent"
     session_id: str
     disposition: "ProcessDisposition" = field(init=False)
+    binding: "SessionBinding" = field(init=False)
 
     def __post_init__(self):
         object.__setattr__(self, 'disposition', self.agent.process.disposition)
+        object.__setattr__(self, 'binding', self.agent.controller.session)
 
     @property
     def current(self):
-        return (self.agent.process.disposition is self.disposition
+        return (self.agent.controller.session is self.binding
+                and self.agent.process.disposition is self.disposition
                 and self.agent.process.accepts_session(self.session_id))
 
     @property

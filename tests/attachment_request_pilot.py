@@ -162,7 +162,7 @@ async def main():
                         ):
                             await agent.acp_load_session()
                     else:
-                        agent.rpc_session_update(
+                        agent.updates.accept(
                             "beta",
                             {
                                 "sessionUpdate": "session_info_update",

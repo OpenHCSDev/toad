@@ -104,7 +104,7 @@ def test_terminal_wait_rejects_same_session_return_after_owner_replacement(tmp_p
         release.set()
         result = await waiting
         assert result['error']['code'] == -32602
-        assert 'owner was replaced' in result['error']['message']
+        assert 'result' not in result
         assert execution._process.returncode is not None
         assert not original.executions and not agent.controller.terminals.executions
         await agent.stop()

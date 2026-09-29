@@ -22,17 +22,17 @@ async def main():
                                  "short_name": "fixture", "run_command": {"*": "true"},
                                  "protocol": "acp"}, "fixture")
             agent.attach_surface(view)
-            agent.rpc_session_update("fixture", {"sessionUpdate": "usage_update", "used": 120000,
+            agent.updates.accept("fixture", {"sessionUpdate": "usage_update", "used": 120000,
                                                  "size": 272000})
             await pilot.pause()
             assert "120.0K" in str(view.status)
-            agent.rpc_session_update("fixture", {"sessionUpdate": "usage_update", "used": 0,
+            agent.updates.accept("fixture", {"sessionUpdate": "usage_update", "used": 0,
                                                  "size": 272000})
             await pilot.pause()
             assert not agent.context_measurement.available
             assert "Context unavailable" in str(view.status)
             assert "0.0K" not in str(view.status)
-            agent.rpc_session_update("fixture", {"sessionUpdate": "usage_update", "used": 27000,
+            agent.updates.accept("fixture", {"sessionUpdate": "usage_update", "used": 27000,
                                                  "size": 272000})
             await pilot.pause()
             assert "27.0K" in str(view.status)
