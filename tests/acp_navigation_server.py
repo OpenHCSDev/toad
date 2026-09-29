@@ -8,9 +8,6 @@ from acp.schema import (AgentCapabilities, AgentMessageChunk, InitializeResponse
                         LoadSessionResponse, NewSessionResponse, PromptResponse,
                         TextContentBlock)
 from agent_comms.acp_extension import CoordinationChangedUpdate, TranscriptSnapshotUpdate, encode_updates
-from agent_comms.thread_identity import ThreadIncarnation
-from agent_comms.transcript_events import AssistantTranscript
-from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 
 
 class NavigationPeer(Agent):
@@ -31,14 +28,21 @@ class NavigationPeer(Agent):
             async with asyncio.timeout(15):
                 while not (root / ("allow-" + session_id)).exists():
                     await asyncio.sleep(.02)
-        cursor = TranscriptCursor("physical-sdk-" + session_id, 0)
-        page = TranscriptPage((AssistantTranscript("SAVED_FIRST_OPEN_" + session_id),),
-                              cursor, TranscriptCursor(cursor.session_file, 1), False, False)
+        from agent_comms.comms import wire
+        comms = wire(os.environ["AGENT_COMMS_ROOT"])
+        native = root / ("sdk-history-" + session_id + ".jsonl")
+        native.write_text(json.dumps({"type": "message", "id": "saved-first-open",
+            "message": {"role": "assistant", "content": "SAVED_FIRST_OPEN_" + session_id}}) + "\n")
+        thread = comms.registry.require(session_id)
+        from dataclasses import replace
+        comms.registry.declare(replace(thread, session_file=str(native)))
+        read = comms.transcripts.capture_page_read(session_id)
+        page = read.read()
         await self.connection.session_update(session_id=session_id,
             update=AgentMessageChunk(sessionUpdate="agent_message_chunk",
                 content=TextContentBlock(type="text", text=""),
-                field_meta=encode_updates(TranscriptSnapshotUpdate(page),
-                    CoordinationChangedUpdate(ThreadIncarnation(session_id, 1.0),
+                field_meta=encode_updates(TranscriptSnapshotUpdate(page, read.identity),
+                    CoordinationChangedUpdate(comms.registry.require(session_id).incarnation,
                         os.environ["AGENT_COMMS_ROOT"], os.getpid(), cwd, None, None,
                         session_id, None))))
         return LoadSessionResponse()

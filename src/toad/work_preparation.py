@@ -321,7 +321,9 @@ class PreparationRuntime:
         result = await work.execute(self)
         prepared = await self.run_thread(work.store_result, result)
         if work.retain_result:
-            size = prepared.size
+            # Structured source keys retain their immutable metadata too.
+            # Account it under the same global byte budget as prepared data.
+            size = prepared.size + getsizeof(key) + await self.run_thread(retained_bytes, key.revision)
             if not self._closed and (key.scope is None or not key.scope.closed) and size <= self.max_bytes:
                 while self._ready and (len(self._ready) >= self.max_entries
                                        or self.retained_bytes + size > self.max_bytes):

@@ -9,30 +9,44 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from agent_comms.comms import wire
+from agent_comms.acp_extension import TranscriptSnapshotUpdate
 from agent_comms.coordination_errors import StaleRevision
 from agent_comms.transcripts import TranscriptRead, TranscriptPage
 
 from toad.work_preparation import (
-    ContentAddressedWork, SerializedWork, ThreadWork, PreparationRuntime,
+    ScopedWork, SerializedWork, ThreadWork, PreparationRuntime, WorkKey,
 )
 
 
 @dataclass(frozen=True)
-class NativeTranscriptReadWork(ContentAddressedWork[TranscriptPage],
+class NativeTranscriptReadWork(ScopedWork[TranscriptPage],
                                SerializedWork[TranscriptPage], ThreadWork[TranscriptPage]):
     read: TranscriptRead
 
     @property
-    def inputs(self):
-        return self.read.identity
+    def work_key(self) -> WorkKey:
+        # The canonical owner already supplies a frozen semantic identity.
+        # Pickle bytes include incidental object-sharing and transient fields;
+        # equal source snapshots must name the same preparation work.
+        return WorkKey(NativeTranscriptReadWork, self.read.identity)
 
     def prepare(self) -> TranscriptPage:
         return self.read.read()
 
 
+@dataclass(frozen=True)
+class PublishedNativeTranscriptReadWork(NativeTranscriptReadWork):
+    page: TranscriptPage
+
+    def prepare(self) -> TranscriptPage:
+        if not self.read.current():
+            raise StaleRevision("Published transcript inputs changed before admission")
+        return self.page
+
+
 class TranscriptReadDelivery(ABC):
     @abstractmethod
-    async def deliver(self, read: TranscriptRead) -> TranscriptPage: ...
+    async def deliver(self, work: NativeTranscriptReadWork) -> TranscriptPage: ...
 
     def with_runtime(self, runtime: PreparationRuntime) -> TranscriptReadDelivery:
         return PreparedTranscriptReadDelivery(runtime)
@@ -41,8 +55,8 @@ class TranscriptReadDelivery(ABC):
 class DirectTranscriptReadDelivery(TranscriptReadDelivery):
     """An operational Agent can read before an application is attached."""
 
-    async def deliver(self, read):
-        return await asyncio.to_thread(read.read)
+    async def deliver(self, work):
+        return await asyncio.to_thread(work.prepare)
 
 
 class PreparedTranscriptReadDelivery(TranscriptReadDelivery):
@@ -51,8 +65,8 @@ class PreparedTranscriptReadDelivery(TranscriptReadDelivery):
     def __init__(self, runtime: PreparationRuntime):
         self.runtime = runtime
 
-    async def deliver(self, read):
-        return await self.runtime.submit(NativeTranscriptReadWork(read))
+    async def deliver(self, work):
+        return await self.runtime.submit(work)
 
     def with_runtime(self, runtime):
         return self if self.runtime is runtime else super().with_runtime(runtime)
@@ -92,7 +106,25 @@ class CoordinationTranscriptReader:
         # read transactions and the Agent fences publication after awaits.
         yield reader
 
+    async def publication(self, update: TranscriptSnapshotUpdate) -> TranscriptSnapshotUpdate:
+        identity = update.identity
+        async with self.bind(identity.root) as reader:
+            read = TranscriptRead(reader.transcripts, identity)
+        try:
+            page = await self.delivery.deliver(PublishedNativeTranscriptReadWork(read, update.page))
+        except StaleRevision:
+            return await self.snapshot(identity.root, identity.requested_name,
+                before=identity.before, after=identity.after, through=identity.through)
+        if not await asyncio.to_thread(read.current):
+            return await self.snapshot(identity.root, identity.requested_name,
+                before=identity.before, after=identity.after, through=identity.through)
+        return TranscriptSnapshotUpdate(page, identity)
+
     async def page(self, root, thread, *, before=None, after=None, through=None):
+        snapshot = await self.snapshot(root, thread, before=before, after=after, through=through)
+        return snapshot.page
+
+    async def snapshot(self, root, thread, *, before=None, after=None, through=None):
         while True:
             async with self.bind(root) as reader:
                 read = await asyncio.to_thread(
@@ -100,10 +132,10 @@ class CoordinationTranscriptReader:
                     before=before, after=after, through=through,
                 )
             try:
-                page = await self.delivery.deliver(read)
+                page = await self.delivery.deliver(NativeTranscriptReadWork(read))
             except StaleRevision:
                 # A changed canonical source is a new work identity. No old
                 # result is promoted just because it finished before its copy.
                 continue
             if await asyncio.to_thread(read.current):
-                return page
+                return TranscriptSnapshotUpdate(page, read.identity)

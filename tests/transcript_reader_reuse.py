@@ -11,6 +11,10 @@ from pathlib import Path
 from unittest.mock import patch
 
 from agent_comms.comms import Comms, wire
+from agent_comms.acp_extension import TranscriptSnapshotUpdate
+from agent_comms.field_codec import FieldCodec
+from agent_comms.transcripts import TranscriptRead
+from toad.acp.transcript_reader import NativeTranscriptReadWork
 from agent_comms.routing import MessageRoute, TurnRouting
 from agent_comms.threads import Thread
 from comms_boundary_fixture import attach_coordination
@@ -117,6 +121,23 @@ async def main():
             for attachment in attachments:
                 async with attachment.controller.transcripts.bind(str(app.coordination_access.service.root)) as reader:
                     assert reader is app.coordination_access.service
+            # Actual ACP publication and canonical page requests share one key.
+            reader = app.coordination_access.service
+            source.write_text(source.read_text() + record("publication", "Published without a UI read"))
+            read = reader.transcripts.capture_page_read("fixture")
+            snapshot = TranscriptSnapshotUpdate(read.read(), read.identity)
+            decoded = FieldCodec.decode(TranscriptSnapshotUpdate, FieldCodec.encode(snapshot))
+            assert NativeTranscriptReadWork(read).work_key == NativeTranscriptReadWork(
+                TranscriptRead(reader.transcripts, decoded.identity)).work_key
+            before = reader.transcripts.page_reads
+            await attachments[0].controller.transcripts.publication(decoded)
+            assert await attachments[0].get_transcript_page() == snapshot.page
+            assert reader.transcripts.page_reads == before, "Published page was read again"
+            source.write_text(source.read_text() + record("three", "Changed after publication"))
+            current = await attachments[0].controller.transcripts.publication(decoded)
+            assert current.identity != decoded.identity
+            assert current.page.events[-1].text == "Changed after publication"
+            assert reader.transcripts.page_reads == before + 1, "Stale publication must recapture"
             owner_mode = app.selected_mode
             with (
                 patch(

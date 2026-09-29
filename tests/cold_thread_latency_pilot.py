@@ -1,5 +1,4 @@
 """Observe post-spinner replay and quiet/updated tab returns without a provider."""
-from agent_comms.acp_extension import TranscriptSnapshotUpdate
 from toad.acp.messages import CommsUpdated
 
 import argparse
@@ -19,7 +18,6 @@ from agent_comms.comms import wire
 from agent_comms.threads import Thread
 from agent_comms.transcript_events import AssistantTranscript
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
-from comms_boundary_fixture import snapshot_fact
 from runtime_fixture import ToadApp
 from textual.widget import Widget
 
@@ -77,7 +75,7 @@ async def main(profile_path=None, trace=False):
 
             async def attach():
                 await released.wait()
-                target.post_message(CommsUpdated(TranscriptSnapshotUpdate(page)))
+                await target.transcript.snapshot(page)
                 target.post_message(AgentReady())
 
             agent.process.session_task = asyncio.create_task(attach())

@@ -38,6 +38,7 @@ class PaintedSwitchApp(InstalledApp):
     observed_started = None
     observed_frames = None
     observed_expected = None
+    observed_writer_frames = None
 
     def select_session(self, mode, *, history_index=None):
         if mode == self.observed_destination and self.observed_started is None:
@@ -48,11 +49,19 @@ class PaintedSwitchApp(InstalledApp):
         super()._display(screen, renderable)
         if (self.observed_started is not None and renderable is not None
                 and not self._batch_count and screen is self.screen
-                and self.selected_mode == self.observed_destination
-                and screen.frame_presentation.ready):
+                and self.selected_mode == self.observed_destination):
             paint = "\n".join(strip.text for strip in screen._compositor.render_strips())
             if all(marker in paint for marker in self.observed_expected):
                 self.observed_frames.append((time.monotonic() - self.observed_started) * 1000)
+                from functools import partial
+                from toad.frame_presentation import FrameFlush
+                FrameFlush.for_driver(self._driver).submit(partial(
+                    self.record_written_destination, self.observed_started,
+                    self.observed_destination))
+
+    def record_written_destination(self, started, destination):
+        if self.observed_started is started and self.selected_mode == destination:
+            self.observed_writer_frames.append((time.monotonic() - started) * 1000)
 
 
 async def physical_painted_switch(app, pilot, mode, expected):
@@ -62,14 +71,18 @@ async def physical_painted_switch(app, pilot, mode, expected):
     app.observed_destination = mode
     app.observed_started = None
     app.observed_frames = []
+    app.observed_writer_frames = []
     app.observed_expected = expected
     assert await pilot.click(tab), f"Tab {mode} was not physically clickable"
-    await until(pilot, lambda: bool(app.observed_frames))
+    await until(pilot, lambda: bool(app.observed_frames) and bool(app.observed_writer_frames))
     frames = tuple(app.observed_frames)
+    writes = tuple(app.observed_writer_frames)
     app.observed_destination = None
     app.observed_started = None
     return {"first_paint_ms": frames[0], "last_observed_paint_ms": frames[-1],
-            "painted_frames": len(frames)}
+            "painted_frames": len(frames), "first_written_ms": writes[0],
+            "last_observed_written_ms": writes[-1], "writer_receipts": len(writes),
+            "driver": type(app._driver).__name__}
 
 
 def conversation_paint(screen):
