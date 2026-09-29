@@ -35,7 +35,7 @@ Tests execute a noneditable installed wheel from this WT's `.venv`, not source i
 
 | Actual journey | Evidence and result |
 |---|---|
-| SDK initialize/new, plan status/sidebar/completion/reset, malformed required entries, detached plan and A/B/A retained agent/process/editor | `plan_status_installed_pilot.py`: exit 0; `plan-journey2.log` |
+| SDK initialize/new, plan status/sidebar/completion/reset, malformed required entries, detached plan and A/B/A retained agent/process/editor | `plan_status_installed_pilot.py`: exit 0 again on current accounting pair; `evidence/tc2-sdk/logs/plan-accounting.txt` |
 | Native Read/Edit/Bash, typed tool output, copy/collapse/reopen and paint | `native_tool_output_pilot.py`: exit 0; `native-tool2.log` |
 | Native model/thinking picker, high selection, ACP reconnect, retained saved answer/draft/document/undo | `agent_configuration_native_installed_pilot.py`: exit 0; `native-config-settled.log` |
 | Production fork, physical immediate opening before worker socket, inherited history, first input and exactly one answer in same logical tab | `first_fork_native_installed_pilot.py`: exit 0; `native-fork2.log` |
@@ -44,7 +44,7 @@ Tests execute a noneditable installed wheel from this WT's `.venv`, not source i
 
 Earlier failing attempts are retained honestly: the SDK A/B/A journey exposed the missing presentation capability; the native tool fixture addressed the obsolete screen conversation owner; the fork fixture used the obsolete combined name/task field; the final configuration click preceded painted menu layout. Their fixes use current owners and actual layout admission; no receipt/retention/input assertion was weakened.
 
-Initial accepted installed pair: Core `d6a2ac55`, Textual `412b5a2b`, native `776dc368`. Current own-WT installed pair is Core `ab3397a6` (#416/#423), integrated Toad #207, Textual `412b5a2b`, SDK 0.12.1; native fixture target `7817b54e`. Combined new-pair native channel acceptance is pending the directly coordinated serial test slot. No default/global installation has been changed by this worker; parent owns paired activation.
+Initial accepted installed pair: Core `d6a2ac55`, Textual `412b5a2b`, native `776dc368`. Current own-WT installed wheel and stdio fixtures pass on Core `ab3397a6` (#416/#423), integrated Toad #207, Textual `412b5a2b`, SDK 0.12.1; native fixture target `7817b54e`. Combined new-pair native saved-history/queue/DM/channel/restart acceptance is pending Einstein’s directly coordinated serial test slot. No native fixture is active in this WT; #417 currently owns that slot. Resume the existing `l0a_native_installed_pilot.py` continuous journey when the slot is released. No default/global installation has been changed by this worker; parent owns paired activation.
 
 ## Guards and measurement
 
@@ -108,4 +108,4 @@ Other changed source inputs: `pyproject.toml`/`uv.lock` pin the SDK and accepted
 
 ## Artifacts and resource ownership
 
-TC2 owns `.venv` (~92 MiB), `evidence/tc2-sdk` (~832 KiB), and `/home/ts/.cache/agent-scratch/toad-tc2-sdk-20260929` (~700 KiB). Disposable fixture directories retire with TemporaryDirectory; test-owned processes are bounded and retired by the existing runner. Persistent small failure/pass receipts remain for review. Remove the env/scratch after review and activation when no process references them. No volatile worktree, global reset/clean, or edits in another worker's WT.
+TC2 owns `.venv` (~97 MiB), `evidence/tc2-sdk` (~1.1 MiB), and `/home/ts/.cache/agent-scratch/toad-tc2-sdk-20260929` (~1.7 MiB). Disposable fixture directories retire with TemporaryDirectory; test-owned processes are bounded and retired by the existing runner. Persistent small failure/pass receipts remain for review. Remove the env/scratch after review and activation when no process references them. No volatile worktree, global reset/clean, or edits in another worker's WT.

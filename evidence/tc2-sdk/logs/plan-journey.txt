@@ -1,0 +1,40 @@
+ACP_STDIO_ALL_STATUS_MARKERS_AND_PLAN_SIDEBAR_PAINTED
+ACP_CONTINUOUS_UPDATE_COMPLETION_ANIMATED_STABLE_COMPLETION_RESIZED_AND_PAINTED
+ACP_EMPTY_RESET_INACTIVE_PANEL_REVEAL_AND_ALREADY_COMPLETED_REAPPEARANCE_PAINTED
+PHYSICAL_MALFORMED_STATUS_MISSING_FIELD_WRONG_TYPE_REJECTED_WITH_VISIBLE_NOTES
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/tests/plan_status_installed_pilot.py", line 172, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/tests/plan_status_installed_pilot.py", line 145, in main
+    await app.select_session(source.id)
+  File "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/.venv/lib/python3.14/site-packages/toad/app.py", line 505, in _switch_mode_ready
+    view = await self.workspace_sessions.select(mode)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/.venv/lib/python3.14/site-packages/toad/workspace_sessions.py", line 48, in select
+    await destination.prepare_presentation()
+  File "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/.venv/lib/python3.14/site-packages/toad/screens/main.py", line 185, in prepare_presentation
+    await self.presentation.prepare(self)
+  File "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/.venv/lib/python3.14/site-packages/toad/session_presentation.py", line 148, in prepare
+    await screen.app.workspace_chrome.native.activate(screen, self)
+  File "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/.venv/lib/python3.14/site-packages/toad/session_presentation.py", line 218, in activate
+    await conversation.present_retained_native_session()
+  File "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/.venv/lib/python3.14/site-packages/toad/widgets/conversation.py", line 615, in present_retained_native_session
+    page, _ = await asyncio.gather(
+              ^^^^^^^^^^^^^^^^^^^^^
+        agent.get_transcript_page(), self.goal_observation.refresh(),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/.venv/lib/python3.14/site-packages/toad/acp/agent.py", line 405, in get_transcript_page
+    raise ValueError("Transcript paging requires an agent-comms thread.")
+ValueError: Transcript paging requires an agent-comms thread.
