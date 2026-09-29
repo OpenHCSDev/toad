@@ -57,6 +57,10 @@ class ShellTerminalOutput(ShellOutput):
             if self.finalized:
                 self.terminal.finalize()
 
+    def focus(self) -> None:
+        if self.terminal is not None:
+            self.terminal.focus(scroll_visible=False)
+
     def finalize(self) -> None:
         self.finalized = True
         self.state.show_cursor = False
