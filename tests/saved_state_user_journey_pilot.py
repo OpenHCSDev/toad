@@ -360,6 +360,14 @@ async def adaptive_reader_journey(app, pilot, requests):
     await until(pilot, lambda: window.follows_tail)
     await until(pilot, lambda: "NATIVE_RESPONSE_2" in conversation_paint(app.screen))
     await settled(pilot, view)
+    for _ in range(4):
+        await pilot.press("pagedown")
+        await settled(pilot, view)
+        assert window.scroll_y <= window.max_scroll_y
+        assert "NATIVE_RESPONSE_2" in conversation_paint(app.screen), (
+            "Scrolling past the saved tail exposed empty history", window.scroll_y,
+            window.max_scroll_y, conversation_paint(app.screen),
+        )
     await until(pilot, lambda: lookahead.ahead_rows(window.size.height) == 0)
     await until(pilot, lambda: len(app.preparation._pending) == 0)
     before = app.preparation.misses, len(requests)

@@ -80,9 +80,6 @@ class HistoryWindow(VerticalScroll):
     """Explicit follow intent survives zero-height scroll ranges during reflow."""
 
     CACHE_SUBTREE_GEOMETRY = True
-    WARM_DOCUMENT_BODIES = DocumentViewport.DEFAULT_WARM_BODIES
-    """Tunable number of recently visible document bodies retained offscreen."""
-
     scroll_revision = 0
     _restoring = False
     history_anchor: HistoryAnchor | None = None
@@ -129,7 +126,7 @@ class HistoryWindow(VerticalScroll):
 
     @cached_property
     def document_viewport(self):
-        return DocumentViewport(self, max_warm_bodies=self.WARM_DOCUMENT_BODIES)
+        return DocumentViewport(self)
 
     @cached_property
     def history_lock(self) -> asyncio.Lock:

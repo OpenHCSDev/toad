@@ -167,7 +167,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
             "page_reads": app.coordination_access.service.transcripts.page_reads,
             "body_evictions": app.selected_session.conversation.window.document_viewport.body_evictions,
             "body_reuse_hits": app.selected_session.conversation.window.document_viewport.reuse_hits,
-            "warm_body_limit": app.selected_session.conversation.window.document_viewport.max_warm_bodies,
+            "warm_body_count": len(app.selected_session.conversation.window.document_viewport._warm),
             "warm_widget_limit": app.selected_session.conversation.window.document_viewport.budget.widget_limit(
                 app.selected_session.conversation.window.size.height),
         }, indent=2))
