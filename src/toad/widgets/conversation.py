@@ -1712,6 +1712,9 @@ class Conversation(ConversationSessionBinding):
     async def on_transcript_history_covered(self, message) -> None:
         message.stop()
         await self.transcript.covered(message)
+        observed = self.query_one_optional(ObservedThreadActivity)
+        if observed is not None and observed.presentation is not None:
+            await self._show_assigned_inbound(observed.presentation.notifications)
 
     @on(acp_messages.Thinking)
     async def on_acp_agent_thinking(self, message: acp_messages.Thinking):

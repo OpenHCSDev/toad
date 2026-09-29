@@ -651,13 +651,16 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         return self.filter.covers_incoming(sequence)
 
     async def source_coverage(self, sequences, runtime, is_current):
+        if not self.state.reports_coverage:
+            return None
         known = self.covered_sequences(sequences)
         if known == sequences or self.loader is None:
             return known
         through = self.committed_cursor
         found = await CommittedInterval(
             TranscriptCursor(through.session_file, 0), through,
-        ).coverage(self.loader, sequences - known, runtime, is_current)
+        ).coverage(self.loader, sequences - known, runtime,
+                   lambda: self.state.reports_coverage and is_current())
         return None if found is None else known | found
 
     @property

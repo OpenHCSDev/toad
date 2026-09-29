@@ -74,6 +74,11 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     assert len(requests) == before
     print("REAL_ACP_RECONNECT_NO_PROVIDER_REPLAY", flush=True)
 
+    view.window.focus(scroll_visible=False)
+    await pilot.press("pageup", "pageup", "pageup", "pageup")
+    await pilot.pause(.5)
+    print("ACTUAL_HISTORY_GEOMETRY", view.contents.virtual_size.height, view.window.scroll_y, flush=True)
+    assert view.contents.virtual_size.height > app.settings.ui.prune_low_mark
     fresh = await send_channel(comms, "@beta FRESH_CHANNEL_MESSAGE_PROOF")
     await until(pilot, lambda: bool(matching(view, fresh.seq)))
     await until(pilot, lambda: not comms.registry.require("beta").executing)
