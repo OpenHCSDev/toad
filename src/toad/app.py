@@ -1458,7 +1458,7 @@ class ToadApp(App, inherit_bindings=False):
             # acknowledge an unfiltered transcript cursor on their behalf.
             return
         window = conversation.query_one_optional(Window)
-        through = conversation.displayed_transcript_cursor
+        through = conversation.transcript.displayed_cursor
         if through is None or window is None or not window.follows_tail:
             return
         viewport = window.__dict__.get("document_viewport")
