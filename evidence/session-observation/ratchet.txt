@@ -1,7 +1,7 @@
 {
   "root": "src/toad/",
   "base_revision": "5983adbafde62e9b6fbd12ef6d722e0027da7e02",
-  "head_revision": "9e0b7cdbad2351af0b18d66045661767c0876745",
+  "head_revision": "54cda99d29d06e7f18a72d40ea63480391cebe05",
   "paths": [
     "src/toad/session_observation.py",
     "src/toad/slash_command.py",
@@ -1500,7 +1500,7 @@
     "ClassSize:src/toad/screens/store.py::StoreScreen.OpenAgentDetails": 3,
     "ClassSize:src/toad/session_observation.py::SessionObservation": 66,
     "ClassSize:src/toad/session_observation.py::GoalObservation": 11,
-    "ClassSize:src/toad/session_observation.py::InputDeliveryObservation": 48,
+    "ClassSize:src/toad/session_observation.py::InputDeliveryObservation": 52,
     "ClassSize:src/toad/session_tracker.py::UnreadPresentation": 21,
     "ClassSize:src/toad/session_tracker.py::ExactUnread": 7,
     "ClassSize:src/toad/session_tracker.py::IndexingUnread": 9,
