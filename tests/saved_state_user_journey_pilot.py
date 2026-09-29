@@ -200,6 +200,7 @@ class ReaderCheckpoint:
     reader_y: float
     painted: str
     rendered_bodies: tuple[ReferenceType[MarkdownBlock], ...]
+    rendered_content: tuple[object, ...]
 
     @staticmethod
     def record_failed_reader(source, app):
@@ -248,7 +249,8 @@ class ReaderCheckpoint:
                        if block.region.overlaps(region))
         assert len(bodies) > 0, "Checkpoint needs actually rendered native Markdown bodies"
         return cls(source, editor.document, editor.history, view.window.scroll_y,
-                   conversation_paint(app.screen), tuple(ref(block) for block in bodies))
+                   conversation_paint(app.screen), tuple(ref(block) for block in bodies),
+                   tuple(block._render_cache for block in bodies))
 
     async def verify(self, app, pilot):
         view = self.source.conversation
@@ -261,10 +263,14 @@ class ReaderCheckpoint:
         assert conversation_paint(app.screen) == self.painted
         current_bodies = {block for block in view.query(MarkdownBlock)
                           if block in app.screen._compositor.visible_widgets}
-        for body in self.rendered_bodies:
+        for body, rendered in zip(self.rendered_bodies, self.rendered_content):
             assert body() in current_bodies, (
                 "Native tab return replaced a previously rendered Markdown body",
                 self.source.id, body(),
+            )
+            assert body()._render_cache is rendered, (
+                "Warm return rendered an unchanged Markdown body again",
+                self.source.id, body(), rendered.size, body()._render_cache.size,
             )
         print("CLICKED_RETURN_ACTUAL_RENDERED_BODY_IDENTITY", self.source.id,
               len(self.rendered_bodies), flush=True)

@@ -19,3 +19,11 @@ Existing global byte/widget/LRU admission unchanged. Visible/protected bodies ca
 ## Canonical read census
 
 AgentController.restore reads one native page on every attachment. Pager retirement discards its existing PreparationScope; subsequent pager source begins fresh. Rendering is already cached via PreparedRenderer and must not be duplicated. Immutable raw-page reuse requires the canonical transcript/routing revision, including annotation changes, rather than a Toad stat-based mirror. Thread activity currently constructs the whole core thread view set to select one; canonical target projection belongs to the same core owner. Noether next thread-opening scope (App ThreadOpening/ThreadNavigation) is disjoint; Carver167 owns configuration publication in restore.
+
+## Canonical raw-read continuation (PR168 + core366)
+
+Deleted Agent reader fields/lock/factory and migrated RPC, status and raw-page callers into AgentController-owned CoordinationTranscriptReader. NativeTranscriptReadWork uses the SAME global content-addressed PreparationRuntime byte/entry/pending budgets. Core TranscriptRead owns source selection, native file replacement/append, routing DB+WAL, bus and cursor identity; stale reads recapture without a second parser/cache. Parent owns targeted ThreadPresentation independently and Q6 codec removal.
+
+Current main167 merged normally (e21a8ce2); configuration publication preserved. Core366 d91607cd focused actual journal/SQLite DELETE+WAL tests:13 passed. Installed native continuous source-read-closure.log PASS EXIT0 with raw canonical page reads [0,0,0], retained original visible leaves13/17/13, exact paint/drafts/undo/reader/End/idle/fork/reply. No paid calls/live writes.
+
+Stronger whole-render acceptance FAILS: source-read-final.log and bounded invalidation trace source-render-trace.log show the SAME visible paragraph gets a NEW rendered-line cache despite final size84x1 unchanged. Widget identity alone was insufficient. Native trace identifies reparent->stylesheet.replace_rules->ColorProperty.refresh and native _size_updated repaint. Tesla owns root closure; this draft is NOT ready for a full warm-render claim. Final116/110 latency target remains unfinished; no CI/final50ms gate for useful checkpoints.
