@@ -48,6 +48,11 @@ class ToolState:
     return_code: int | None = None
     signal: str | None = None
 
+    @property
+    def finished(self) -> bool:
+        """Whether this execution ended normally or by a signal."""
+        return self.return_code is not None or self.signal is not None
+
     @classmethod
     def capture(cls, output: str, truncated: bool, return_code: int | None) -> ToolState:
         """Decode the operating system's negative signal return code once."""

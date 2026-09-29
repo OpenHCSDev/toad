@@ -68,8 +68,7 @@ class OperationalTerminalOwner(ClientRequestOwner, ABC):
     async def terminal_output(self, sessionId: str, terminalId: str, _meta: dict | None = None) -> protocol.TerminalOutputResponse:
         self.session_request(sessionId)
         state = self.terminals.output(terminalId)
-        return_code = state.return_code
-        exit_status = protocol.TerminalExitStatus(exit_code=return_code, signal=state.signal) if return_code is not None or state.signal is not None else None
+        exit_status = protocol.TerminalExitStatus(exit_code=state.return_code, signal=state.signal) if state.finished else None
         return protocol.TerminalOutputResponse(output=state.output, truncated=state.truncated, exit_status=exit_status)
 
     @jsonrpc.expose("terminal/release")
