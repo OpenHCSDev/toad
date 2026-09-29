@@ -6,6 +6,7 @@ import argparse
 from contextlib import ExitStack
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from collections import defaultdict
 import hashlib
 import importlib.metadata
 import importlib.util
@@ -22,6 +23,11 @@ import signal
 import subprocess
 import sys
 import time
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from agent_comms.child_process import ParentedProcess, ObservedProcess
+    from agent_comms.registration import Registration
 
 
 def process_table():
@@ -38,35 +44,30 @@ def process_table():
 
 @dataclass
 class OwnedProcess:
-    process: subprocess.Popen
-    identities: dict[int, int]
+    child: ParentedProcess | ObservedProcess
+    registration: Registration | None = None
+
+    @property
+    def process(self):
+        return self.child.process
 
     def members(self):
-        table = process_table()
-        owned = {pid for pid, (_, sid, ticks, _) in table.items()
-                 if sid == self.process.pid or self.identities.get(pid) == ticks}
-        leader = table.get(self.process.pid)
-        if leader is not None and self.identities.get(self.process.pid, leader[2]) != leader[2]:
-            # This PID now belongs to a different process, so its new session
-            # and descendants are outside recorder ownership.
-            owned = {pid for pid in owned if self.identities.get(pid) == table[pid][2]}
-        # Include children that created their own sessions (e.g. native workers).
-        while True:
-            children = {pid for pid, (parent, _, _, _) in table.items() if parent in owned}
-            if children <= owned:
-                break
-            owned |= children
-        for pid in owned:
-            self.identities[pid] = table[pid][2]
-        return {pid: table[pid] for pid in owned if table[pid][3] != "Z"}
+        # Group custody comes from the installed platform authority. Detached
+        # application owners are never adopted merely because they are children.
+        members = self.child.platform.group_members(self.child.identity)
+        if self.registration is None:
+            return members
+        owners = {thread.process_identity for thread in
+                  self.registration.snapshot().threads.values()
+                  if thread.process_identity is not None}
+        return tuple(identity for identity in members if identity not in owners)
 
     def send_signal(self, sig):
-        for pid, (_, _, ticks, _) in self.members().items():
-            if process_table().get(pid, (0, 0, -1, ""))[2] == ticks:
-                try:
-                    os.kill(pid, sig)
-                except ProcessLookupError:
-                    pass
+        for identity in self.members():
+            try:
+                self.child.platform.send(identity, sig)
+            except ProcessLookupError:
+                pass
 
     def stop(self, sig=signal.SIGTERM):
         self.send_signal(sig)
@@ -80,19 +81,62 @@ class OwnedProcess:
         deadline = time.monotonic() + 2
         while self.members() and time.monotonic() < deadline:
             time.sleep(.05)
-        return sorted(self.members())
+        return [identity.pid for identity in self.members()]
+
+    def receipt(self):
+        return {"pid": self.child.identity.pid, "start_ticks": self.child.identity.start_time,
+                "returncode": self.process.returncode}
+
+
+class TransferredGroup(OwnedProcess):
+    """The profiler wrapper transfers its exact st launch identity, not ancestry."""
+
+    def stop(self, sig=signal.SIGTERM):
+        self.send_signal(sig)
+        deadline = time.monotonic() + 3
+        while self.members() and time.monotonic() < deadline:
+            time.sleep(.05)
+        if self.members():
+            self.send_signal(signal.SIGKILL)
+        deadline = time.monotonic() + 2
+        while self.members() and time.monotonic() < deadline:
+            time.sleep(.05)
+        return [identity.pid for identity in self.members()]
+
+    def receipt(self):
+        return {"pid": self.child.identity.pid, "start_ticks": self.child.identity.start_time,
+                "custody": "wrapper launch identity transferred to installed ObservedProcess"}
 
 
 class ProcessOwner:
     """One launcher/timeout/cleanup mechanism for all recorder subprocesses."""
 
-    def __init__(self):
+    def __init__(self, registration: Registration | None = None):
         self.children = []
+        self.registration = registration
 
     def start(self, argv, **kwargs):
-        process = subprocess.Popen(argv, start_new_session=True, **kwargs)
-        owned = OwnedProcess(process, {})
-        owned.members()
+        from agent_comms.child_process import Platform
+        text = kwargs.pop("text", False)
+        with Platform.current().launch(tuple(argv), tuple(kwargs.pop("pass_fds", ()))) as launch:
+            child = launch.spawn(**kwargs)
+            try:
+                launch.release(child.identity)
+                launch.verify()
+            except BaseException:
+                launch.cancel_before_release(child.identity)
+                child.reap()
+                child.close_streams()
+                raise
+        # Popen communicates bytes; text conversion belongs to this boundary.
+        owned = OwnedProcess(child, self.registration)
+        owned.text = text
+        self.children.append(owned)
+        return owned
+
+    def transfer(self, pid, start_ticks):
+        from agent_comms.child_process import ObservedProcess, ProcessIdentity
+        owned = TransferredGroup(ObservedProcess(ProcessIdentity(pid, start_ticks)), self.registration)
         self.children.append(owned)
         return owned
 
@@ -100,6 +144,9 @@ class ProcessOwner:
         owned = self.start(argv, env=env, stdout=stdout, **kwargs)
         try:
             out, err = owned.process.communicate(timeout=timeout)
+            if owned.text:
+                out = out.decode() if out is not None else None
+                err = err.decode() if err is not None else None
             if owned.process.returncode:
                 raise subprocess.CalledProcessError(owned.process.returncode, argv, out, err)
             return subprocess.CompletedProcess(argv, owned.process.returncode, out, err)
@@ -114,8 +161,9 @@ class ProcessOwner:
             except (OSError, subprocess.SubprocessError) as error:
                 errors.append(str(error))
         return {"remaining_owned_pids": sorted(set(leaks)), "errors": errors,
-                "processes": [{"pid": o.process.pid, "returncode": o.process.returncode,
-                               "identities": o.identities} for o in self.children]}
+                "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+                "processes": [o.receipt() for o in self.children]}
+
 
 
 def digest(path):
@@ -125,6 +173,14 @@ def digest(path):
 def runtime_probe():
     """Executed by the selected runtime interpreter, without loading the app."""
     result = {"python": sys.executable, "prefix": sys.prefix, "packages": {}}
+    if os.environ.get("TOAD_VIDEO_PRIVATE_ROUTE_REQUIRED") == "1":
+        from agent_comms.active_route import ActiveRoute
+        route = ActiveRoute(Path(os.environ["AGENT_COMMS_ROOT"]),
+                            os.environ["AGENT_COMMS_PRIVATE_NK_WIRE_ROOT_ID"],
+                            Path(os.environ["AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE"]))
+        root = route.observe_root()
+        result["route"] = {"root": str(root), "wire_root_id": route.wire_root_id,
+                           "native_package": str(route.native_package.resolve())}
     for name in ("toad", "textual", "agent_comms"):
         spec = importlib.util.find_spec(name)
         if spec is None or spec.origin is None:
@@ -159,8 +215,8 @@ class RuntimeSelection:
     @classmethod
     def from_environment(cls, command, env):
         launcher = Path(shutil.which(command[0]) or command[0]).resolve()
-        if Path(command[0]).name != "toad-comms":
-            raise ValueError("Use the installed toad-comms entrypoint (optional thread argument)")
+        if Path(command[0]).name != "toad":
+            raise ValueError("Use installed toad acp with an explicitly matched private fixture; toad-comms clears private pins")
         runtime = env.get("AGENT_COMMS_RUNTIME_ROOT")
         if runtime:
             return cls(launcher, Path(runtime).expanduser().absolute(), "AGENT_COMMS_RUNTIME_ROOT")
@@ -183,7 +239,162 @@ class RuntimeSelection:
         probe = owner.run([str(self.bin_directory / "python"), str(Path(__file__).resolve()),
                            "--runtime-probe"], env, stdout=subprocess.PIPE, text=True, timeout=15)
         result["observed"] = json.loads(probe.stdout)
+        route = result["observed"].get("route")
+        if route is not None:
+            native = result.get("activation", {}).get("native_package")
+            if not native or Path(native).resolve() != Path(route["native_package"]):
+                raise ValueError("Candidate activation and private route native packages must match")
         return result
+
+
+def cpu_snapshot(root_pid):
+    """Read existing kernel counters for the launched terminal and its workers."""
+    table = process_table()
+    selected = {pid for pid, (_, sid, _, _) in table.items() if sid == root_pid}
+    if root_pid in table:
+        selected.add(root_pid)
+    while True:
+        children = {pid for pid, (parent, _, _, _) in table.items() if parent in selected}
+        if children <= selected:
+            break
+        selected |= children
+    result = {}
+    for pid in selected:
+        try:
+            path = Path(f"/proc/{pid}")
+            fields = (path / "stat").read_text().rsplit(")", 1)[1].split()
+            result[str(pid)] = {"start_ticks": int(fields[19]),
+                "cpu_seconds": (int(fields[11]) + int(fields[12])) / os.sysconf("SC_CLK_TCK"),
+                "command": (path / "cmdline").read_bytes().replace(b"\0", b" ").decode(errors="replace")}
+        except (OSError, ValueError, IndexError):
+            continue
+    return result
+
+
+def profile_launch(command):
+    """Launch plain st, then exec py-spy as an ancestor of the verified UI PID."""
+    output = Path(os.environ["TOAD_VIDEO_OUTPUT"])
+    owner = ProcessOwner()
+    try:
+        terminal = owner.start(["st", "-e", *command], env=os.environ.copy())
+        deadline = time.monotonic() + 10
+        ui_pid = None
+        while time.monotonic() < deadline and terminal.process.poll() is None:
+            for pid, (parent, _, _, _) in process_table().items():
+                if parent != terminal.process.pid:
+                    continue
+                try:
+                    executable = Path(f"/proc/{pid}/exe").resolve()
+                    if "python" in executable.name:
+                        ui_pid = pid
+                        break
+                except OSError:
+                    continue
+            if ui_pid is not None:
+                break
+            time.sleep(.05)
+        if ui_pid is None:
+            raise RuntimeError("Installed UI interpreter did not appear for profiling")
+        argv = [shutil.which("py-spy"), "record", "--pid", str(ui_pid), "--format", "chrometrace",
+                "--subprocesses", "--nonblocking", "--full-filenames",
+                "--rate", os.environ["TOAD_VIDEO_PROFILE_RATE"],
+                "--duration", os.environ["TOAD_VIDEO_PROFILE_DURATION"],
+                "--output", str(output / "cpu-profile.json")]
+        (output / "profile-launch.json").write_text(json.dumps({
+            "terminal_pid": terminal.process.pid, "terminal_start_ticks": terminal.child.identity.start_time,
+            "ui_pid": ui_pid, "profiler_command": argv,
+            "profiler_exec_monotonic": time.monotonic()}) + "\n")
+        # exec preserves the ancestor identity that Linux ptrace admission requires.
+        os.execv(argv[0], argv)
+    finally:
+        owner.cleanup()
+
+
+def profile_review(output, receipt, rate):
+    """Decode py-spy's Chrome trace once and map samples to native action spans."""
+    trace_path = output / "cpu-profile.json"
+    if trace_path.stat().st_size > 128 * 1024 * 1024:
+        raise RuntimeError("CPU profile exceeds the 128 MiB review bound")
+    trace = json.loads(trace_path.read_text())
+    stacks = defaultdict(list)
+    spans = []
+    for event in trace:
+        identity = (event["pid"], event["tid"])
+        if event["ph"] == "B":
+            stacks[identity].append((event, []))
+        elif event["ph"] == "E" and stacks[identity]:
+            begin, children = stacks[identity].pop()
+            cursor = begin["ts"]
+            self_spans = []
+            for child_start, child_end in children:
+                if child_start > cursor:
+                    self_spans.append((cursor, child_start))
+                cursor = max(cursor, child_end)
+            if event["ts"] > cursor:
+                self_spans.append((cursor, event["ts"]))
+            spans.append((begin, event["ts"], self_spans))
+            if stacks[identity]:
+                stacks[identity][-1][1].append((begin["ts"], event["ts"]))
+    launch = json.loads((output / "profile-launch.json").read_text())
+    if not any(begin["pid"] == launch["ui_pid"] and begin["args"]["filename"] for begin, _, _ in spans):
+        raise RuntimeError("Profiler did not sample the actual installed UI PID")
+    lower = launch["profiler_exec_monotonic"]
+    upper = receipt["profiler"]["sampling_ready_observed_monotonic"]
+    origin = (lower + upper) / 2
+    offset = origin - receipt["capture_launch_monotonic"]
+    result = {"profiler": "py-spy", "rate_hz": rate, "nonblocking": True,
+        "trace": "cpu-profile.json", "trace_origin_monotonic_estimate": origin,
+        "trace_to_video_offset_seconds": offset,
+        "ui_pid": launch["ui_pid"],
+        "trace_origin_monotonic_bounds": [lower, upper],
+        "alignment": "profiler exec to sampling-ready observation bound; approximate midpoint",
+        "alignment_nominal_uncertainty_seconds": (upper - lower) / 2 + 1 / rate,
+        "limits": ["Scheduler delays and sampling errors can increase clock uncertainty",
+                   "Stack spans are sampled wall activity, not exact call counts or CPU time",
+                   "Kernel counter deltas give per-process CPU time at action boundaries",
+                   "Sampled functions identify activation/preparation/layout/paint activity; no production event hook supplies exact phase timestamps",
+                   "No automatic inference that a UI frame passed or a function is redundant"],
+        "processes": sorted({str(event["pid"]) for event in trace}), "phases": []}
+    log = (output / "profiler.log").read_text()
+    quality = re.search(r"Samples: (\d+) Errors: (\d+)", log)
+    if quality:
+        result["sample_count"] = int(quality[1])
+        result["sampling_errors"] = int(quality[2])
+        result["sampling_quality"] = "partial; inspect errors and missing thread intervals" if int(quality[2]) else "no reported sampling errors"
+    events = receipt["events"]
+    for index, event in enumerate(events[:-1]):
+        start = event["seconds_since_capture_launch"]
+        following = events[index + 1]
+        end = following["seconds_since_capture_launch"]
+        if end <= start:
+            continue
+        hot = defaultdict(lambda: [0.0, 0.0])
+        for begin, stop, self_spans in spans:
+            filename = begin["args"]["filename"]
+            if not filename:
+                continue
+            overlap = min(end, stop / 1_000_000 + offset) - max(start, begin["ts"] / 1_000_000 + offset)
+            if overlap > 0:
+                key = (str(begin["pid"]), begin["name"], filename, begin["args"]["line"])
+                hot[key][0] += overlap
+                hot[key][1] += sum(max(0, min(end, segment_end / 1_000_000 + offset)
+                                         - max(start, segment_start / 1_000_000 + offset))
+                                   for segment_start, segment_end in self_spans)
+        cpu = []
+        for pid, before in event.get("cpu", {}).items():
+            after = following.get("cpu", {}).get(pid)
+            if after is not None and after["start_ticks"] == before["start_ticks"]:
+                elapsed_cpu = max(0, after["cpu_seconds"] - before["cpu_seconds"])
+                cpu.append({"pid": pid, "command": before["command"], "cpu_seconds": elapsed_cpu,
+                            "average_cpu_percent": elapsed_cpu / (end - start) * 100})
+        result["phases"].append({"label": event["label"], "video_start_seconds": start,
+            "video_end_seconds": end, "cpu": sorted(cpu, key=lambda item: item["cpu_seconds"], reverse=True),
+            "hot_sampled_frames": [{"pid": key[0], "function": key[1], "filename": key[2], "line": key[3],
+                                    "inclusive_sampled_wall_seconds": seconds[0], "self_sampled_wall_seconds": seconds[1]}
+                                   for key, seconds in sorted(hot.items(), key=lambda item: item[1][1], reverse=True)[:20]],
+            "visible_stall_assessment": "unreviewed; correlate with phase video and actual frames"})
+    (output / "profile-review.json").write_text(json.dumps(result, indent=2) + "\n")
+    return result
 
 
 def artifacts(output, args, env, owner, *, start, seconds, label=None):
@@ -223,14 +434,35 @@ def record(args):
     env.pop("DISPLAY", None)
     env.pop("NO_COLOR", None)
     env.pop("PYTHONPATH", None)  # The installed toad-comms launcher also clears it.
+    if args.private_root is None:
+        raise ValueError("Recording requires --private-root from an existing matched fixture; active owner routes are refused")
+    private_root = args.private_root.expanduser().resolve()
+    if not private_root.is_dir() or private_root == (Path.home() / ".agent-comms").resolve():
+        raise ValueError("Private fixture root must already exist")
+    if Path(env.get("AGENT_COMMS_ROOT", "")).resolve() != private_root:
+        raise ValueError("Private fixture root must match explicit AGENT_COMMS_ROOT")
+    from agent_comms.active_route import read_active_route
+    active = read_active_route()
+    if active is not None and private_root == active.root.resolve():
+        raise ValueError("Refusing the owner's active bus")
+    env["TOAD_VIDEO_PRIVATE_ROUTE_REQUIRED"] = "1"
     selection = RuntimeSelection.from_environment(command, env)
     # Pin the selection before a concurrently changed launcher symlink can redirect it.
     env["AGENT_COMMS_RUNTIME_ROOT"] = str(selection.bin_directory.resolve())
+    if selection.bin_directory.parent.resolve() != Path(sys.prefix).resolve():
+        raise ValueError("Run recorder with the selected installed runtime's Python")
+    expected_acp = shlex.join([str(selection.bin_directory / "python"), "-m", "agent_comms.acp"])
+    if len(command) < 4 or command[1:3] != ["acp", expected_acp] or Path(command[0]).resolve() != (selection.bin_directory / "toad").resolve():
+        raise ValueError("Private capture requires selected installed toad acp and its paired Python ACP command")
     output.mkdir(parents=True, exist_ok=False)
     receipt = {
         "owner": args.owner, "purpose": "installed TUI physical interaction video review",
         "output": str(output), "command": command, "terminal_command": ["st", "-e", *command],
         "fps": args.fps, "screen": [args.width, args.height],
+        "profiling_requested": args.profile,
+        "private_root": str(private_root),
+        "recorder_argv": sys.argv,
+        "recorder_source_sha256": digest(Path(__file__)),
         "started_utc": datetime.now(timezone.utc).isoformat(),
         "assessment": "unreviewed", "capture_completed": False, "completed": False,
         "review": {"start_seconds": args.review_start, "seconds": args.review_seconds,
@@ -239,8 +471,11 @@ def record(args):
     }
     env["TOAD_VIDEO_OUTPUT"] = str(output)
     env["TOAD_VIDEO_MARK_SNAPSHOTS"] = "1"
-    owner = ProcessOwner()
+    from agent_comms.registration import Registration
+    registration = Registration(private_root / "registry.json")
+    owner = ProcessOwner(registration)
     capture = terminal = None
+    terminal_pid = None
     window = None
     try:
         with ExitStack() as stack:
@@ -266,9 +501,40 @@ def record(args):
                 raise RuntimeError("Virtual display returned no safe display number")
             env["DISPLAY"] = ":" + number
             receipt["display"] = env["DISPLAY"]
-            terminal = owner.start(["st", "-e", *command], env=env,
-                                  stderr=stack.enter_context((output / "terminal.log").open("w")))
-            window = owner.run(["xdotool", "search", "--sync", "--pid", str(terminal.process.pid)], env,
+            if args.profile:
+                profiler = shutil.which("py-spy")
+                if profiler is None:
+                    raise RuntimeError("Optional profiling needs the existing py-spy installation")
+                env["TOAD_VIDEO_PROFILE_RATE"] = str(args.profile_rate)
+                env["TOAD_VIDEO_PROFILE_DURATION"] = str(math.ceil(args.max_duration + 30))
+                argv = [sys.executable, str(Path(__file__).resolve()), "--profile-launch", *command]
+                receipt["profiler"] = {"command": argv, "executable_sha256": digest(Path(profiler)),
+                                      "launch_monotonic": time.monotonic()}
+                terminal = owner.start(argv, env=env,
+                    stdout=stack.enter_context((output / "profiler.log").open("w")),
+                    stderr=stack.enter_context((output / "terminal.log").open("w")))
+                deadline = time.monotonic() + 10
+                launch = output / "profile-launch.json"
+                while not launch.exists() and terminal.process.poll() is None and time.monotonic() < deadline:
+                    time.sleep(.05)
+                if not launch.exists():
+                    raise RuntimeError("Profiled installed launcher failed; inspect profiler/terminal logs")
+                receipt["profiler"]["launch"] = json.loads(launch.read_text())
+                terminal_pid = receipt["profiler"]["launch"]["terminal_pid"]
+                owner.transfer(terminal_pid, receipt["profiler"]["launch"]["terminal_start_ticks"])
+                while time.monotonic() < deadline and terminal.process.poll() is None:
+                    if "Sampling process" in (output / "profiler.log").read_text():
+                        break
+                    time.sleep(.05)
+                if "Sampling process" not in (output / "profiler.log").read_text():
+                    raise RuntimeError("Profiler failed to sample the installed UI PID")
+                receipt["profiler"]["sampling_ready_observed_monotonic"] = time.monotonic()
+            else:
+                terminal = owner.start(["st", "-e", *command], env=env,
+                    stderr=stack.enter_context((output / "terminal.log").open("w")))
+                terminal_pid = terminal.process.pid
+            env["TOAD_VIDEO_TERMINAL"] = str(terminal_pid)
+            window = owner.run(["xdotool", "search", "--sync", "--pid", str(terminal_pid)], env,
                                stdout=subprocess.PIPE, timeout=10, text=True).stdout.splitlines()[0]
             owner.run(["xdotool", "windowfocus", "--sync", window], env)
             if args.fit_window:
@@ -283,6 +549,8 @@ def record(args):
             started = time.monotonic()
             deadline = started + args.max_duration
             env["TOAD_VIDEO_EPOCH"] = str(started)
+            receipt["capture_launch_monotonic"] = started
+            receipt["terminal_pid"] = terminal_pid
             print(f"Recording isolated display {env['DISPLAY']}: {output}", flush=True)
 
             def remaining():
@@ -297,9 +565,9 @@ def record(args):
 
             time.sleep(min(args.startup_wait, remaining()))
             screenshot("before.png")
-            receipt["terminal_processes"] = {str(pid): {"start_ticks": fields[2],
-                "command": Path(f"/proc/{pid}/cmdline").read_bytes().replace(b"\0", b" ").decode(errors="replace")}
-                for pid, fields in terminal.members().items() if Path(f"/proc/{pid}/cmdline").exists()}
+            receipt["terminal_processes"] = {str(identity.pid): {"start_ticks": identity.start_time,
+                "command": Path(f"/proc/{identity.pid}/cmdline").read_bytes().replace(b"\0", b" ").decode(errors="replace")}
+                for identity in terminal.members() if Path(f"/proc/{identity.pid}/cmdline").exists()}
             if args.actions:
                 script = args.actions.read_text()
                 (output / "actions.xdo").write_text(script)
@@ -325,13 +593,19 @@ def record(args):
             receipt["capture_completed"] = True
             receipt["runtime_after"] = selection.receipt(owner, env)
             receipt["runtime_unchanged"] = receipt["runtime_before"] == receipt["runtime_after"]
-            # Quit through the installed application; then reap all owned descendants.
+            # Quit through the installed application; persistent owners are excluded.
             terminal.members()
             owner.run(["xdotool", "key", "--window", window, "ctrl+q"], env, timeout=2)
             try:
                 terminal.process.wait(timeout=3)
             except subprocess.TimeoutExpired:
                 pass
+            if args.profile and terminal.process.poll() is None:
+                terminal.send_signal(signal.SIGINT)
+                try:
+                    terminal.process.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    pass
             terminal.stop()
             xvfb.stop()
             info = owner.run(["ffprobe", "-v", "error", "-show_streams", "-show_format", "-of", "json",
@@ -343,6 +617,8 @@ def record(args):
             events_path = output / "events.jsonl"
             events = [json.loads(line) for line in events_path.read_text().splitlines()] if events_path.exists() else []
             receipt["events"] = events
+            if args.profile:
+                receipt["profile_review"] = profile_review(output, receipt, args.profile_rate)
             intervals = [(None, args.review_start, min(args.review_seconds, duration - args.review_start))]
             for label in args.review_phase:
                 index = next((i for i, event in enumerate(events) if event["label"] == label), None)
@@ -357,6 +633,8 @@ def record(args):
             receipt["review_intervals"] = [{"label": label or "main", "start": start, "seconds": seconds}
                                            for label, start, seconds in intervals]
             names = ["terminal.mp4", "before.png", "after.png"]
+            if args.profile:
+                names.extend(["cpu-profile.json", "profile-review.json", "profile-launch.json", "profiler.log"])
             for label, start, seconds in intervals:
                 print(f"Preparing review {label or 'main'} at {start:.3f}s for {seconds:.3f}s", flush=True)
                 artifacts(output, args, env, owner, start=start, seconds=seconds, label=label)
@@ -396,6 +674,8 @@ def mark(label):
         raise ValueError("Marker needs an isolated display")
     event = {"label": label, "utc": datetime.now(timezone.utc).isoformat(),
              "seconds_since_capture_launch": time.monotonic() - float(os.environ["TOAD_VIDEO_EPOCH"])}
+    if os.environ.get("TOAD_VIDEO_TERMINAL"):
+        event["cpu"] = cpu_snapshot(int(os.environ["TOAD_VIDEO_TERMINAL"]))
     if os.environ.get("TOAD_VIDEO_MARK_SNAPSHOTS") == "1":
         owner = ProcessOwner()
         try:
@@ -429,13 +709,19 @@ def main():
     if len(sys.argv) == 3 and sys.argv[1] == "--mark":
         mark(sys.argv[2])
         return
+    if len(sys.argv) >= 3 and sys.argv[1] == "--profile-launch":
+        profile_launch(sys.argv[2:])
+        return
     parser = argparse.ArgumentParser(description=__doc__)
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S.%fZ")
     parser.add_argument("--output", type=Path, default=Path.home() / ".cache/agent-scratch/toad-video" / stamp)
     parser.add_argument("--owner", default="installed-tui-video-tools", help="Owner retaining/cleaning this evidence")
+    parser.add_argument("--private-root", type=Path, help="Existing matched fixture root; active bus capture refused")
     parser.add_argument("--actions", type=Path, help="Native xdotool stdin script with real clicks/keys/sleeps")
     parser.add_argument("--write-scroll-script", type=Path, help="Write an editable native held-key script, then exit")
     parser.add_argument("--review-phase", action="append", default=[], help="Also review this native script marker (up to 8)")
+    parser.add_argument("--profile", action="store_true", help="Sample actual UI and Python workers with installed py-spy")
+    parser.add_argument("--profile-rate", type=int, default=25, help="Bounded nonblocking sampling rate (10-49 Hz)")
     parser.add_argument("--fps", type=int, default=60)
     parser.add_argument("--width", type=int, default=1280)
     parser.add_argument("--height", type=int, default=800)
@@ -468,7 +754,7 @@ def main():
         raise InterruptedError(f"Recorder interrupted by signal {signum}")
     for sig in (signal.SIGTERM, signal.SIGHUP):
         signal.signal(sig, interrupted)
-    bounds = {"fps": (1, 120), "width": (320, 1920), "height": (240, 1200),
+    bounds = {"profile_rate": (10, 49), "fps": (1, 120), "width": (320, 1920), "height": (240, 1200),
               "max_duration": (1, 120), "slowdown": (1, 16), "review_seconds": (.01, 15),
               "review_fps": (.1, 60), "review_frames": (1, 96), "sheet_columns": (1, 8),
               "startup_wait": (0, 119), "tail_seconds": (0, 119), "review_start": (0, 119)}

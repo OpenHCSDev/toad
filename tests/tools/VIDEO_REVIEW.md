@@ -1,10 +1,20 @@
 # Installed TUI video assessment
 
-`record_installed_tui.py` launches plain **`st -e toad-comms [THREAD]`** on a
-new Xvfb display with an unused number above 99. It uses the installed application, saved history, native ACP
-and real mouse/keyboard events. It refuses display zero and passes its isolated
-`DISPLAY` to every driver and screenshot process. Run only trusted native
-xdotool scripts; never override `DISPLAY` inside a script.
+`record_installed_tui.py` launches plain **st** with the installed **Toad ACP
+entrypoint** on a new isolated Xvfb display above 99. Capture now requires an
+existing private native fixture with explicit root, wire-root ID and native
+package pins. It refuses the owner's active route. The `toad-comms` wrapper
+clears private pins, so it is refused for capture. No global runtime changes
+are needed. Actual saved state, UI, ACP and native processing remain intact.
+
+Run the recorder with the selected installed runtime's Python. Reuse
+`tests/l0a_native_installed_pilot.py` and its saved-state preparation callback:
+its loopback provider is bounded and never reaches a paid service. Fixture
+setup owns the native processes; the recorder only attaches. Configuration,
+projects, saved-session evidence and video belong under named persistent agent
+scratch. Current Core's `nk_foreground` requires a disposable private `/var/tmp`
+wire root; preserve its generated evidence into scratch before fixture teardown.
+Do not redirect the owner's route or alter that Core guard.
 
 Prerequisites: Python 3.14, Xvfb, st, xdotool, ffmpeg/ffprobe and ImageMagick
 `import`. Run `/home/ts/bin/agent-resource-check --assert-headroom` first and
@@ -24,20 +34,20 @@ A native stdin script opens saved sources and physically clicks A/B/A:
 mousemove --sync 130 240
 click 1
 sleep 4
-exec --sync /usr/bin/python /ABS/PATH/tests/tools/record_installed_tui.py --mark opened-a
+exec --sync /ABS/RUNTIME/bin/python /ABS/PATH/tests/tools/record_installed_tui.py --mark opened-a
 mousemove --sync 130 200
 click 1
 sleep 4
-exec --sync /usr/bin/python /ABS/PATH/tests/tools/record_installed_tui.py --mark opened-b
-exec --sync /usr/bin/python /ABS/PATH/tests/tools/record_installed_tui.py --mark warm-a
+exec --sync /ABS/RUNTIME/bin/python /ABS/PATH/tests/tools/record_installed_tui.py --mark opened-b
+exec --sync /ABS/RUNTIME/bin/python /ABS/PATH/tests/tools/record_installed_tui.py --mark warm-a
 mousemove --sync 220 40
 click 1
 sleep 1
-exec --sync /usr/bin/python /ABS/PATH/tests/tools/record_installed_tui.py --mark warm-b
+exec --sync /ABS/RUNTIME/bin/python /ABS/PATH/tests/tools/record_installed_tui.py --mark warm-b
 mousemove --sync 350 40
 click 1
 sleep 1
-exec --sync /usr/bin/python /ABS/PATH/tests/tools/record_installed_tui.py --mark warm-return
+exec --sync /ABS/RUNTIME/bin/python /ABS/PATH/tests/tools/record_installed_tui.py --mark warm-return
 mousemove --sync 220 40
 click 1
 sleep 1
@@ -48,22 +58,29 @@ installation these tab centers were 220,40 and 350,40; 520,40 hit empty tab-bar
 space. Sidebar order can change after opening a source. Marks **before** a click
 include its first destination frames in that review interval. Marks timestamp
 command boundaries, not application paint acknowledgements. Replace `/ABS/PATH`
-with this checkout's absolute path. The generated script writes literal quoted
+with this checkout's absolute path, and `/ABS/RUNTIME/bin/python` with the selected installed interpreter. The generated script writes literal quoted
 Python/tool paths. Native xdotool stdin environment expansion can swallow
 following arguments when expanding paths, so avoid it here. No shell evaluates
 the script.
 
 ```sh
-python tests/tools/record_installed_tui.py \
-  --owner YOUR-NAME --fit-window --startup-wait 15 --max-duration 70 \
+"$candidate_python" tests/tools/record_installed_tui.py \
+  --private-root "$fixture_root" --owner YOUR-NAME --fit-window --startup-wait 15 --max-duration 70 \
   --actions /home/ts/.cache/agent-scratch/YOUR-RUN/journey.xdo \
   --review-start 0 --review-seconds 3 \
   --review-phase warm-a --review-phase warm-b --review-phase warm-return \
   --output /home/ts/.cache/agent-scratch/YOUR-RUN/recording \
-  -- toad-comms
+  -- "$candidate_toad" acp "$candidate_python -m agent_comms.acp" \
+  "$fixture_project" --session beta
 ```
 
-Without actions it records startup within the capture budget. A zero exit means
+The fixture must already export `AGENT_COMMS_ROOT`,
+`AGENT_COMMS_PRIVATE_NK_WIRE_ROOT_ID` and
+`AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE`. Set `AGENT_COMMS_RUNTIME_ROOT` to the
+candidate's bin directory; the selected interpreter and ACP command must match.
+These are fixture values, never the owner's active root. Shell variables above
+are task-specific paths from that existing fixture. Without actions it records
+startup within the capture budget. A zero exit means
 capture, artifacts and cleanup completed. `assessment` always starts
 **`unreviewed`**; it never certifies a UI fix.
 
@@ -72,7 +89,7 @@ capture, artifacts and cleanup completed. `assessment` always starts
 Generate an editable native script, then append it to the opening/tab script:
 
 ```sh
-python tests/tools/record_installed_tui.py --write-scroll-script \
+"$candidate_python" tests/tools/record_installed_tui.py --write-scroll-script \
   /home/ts/.cache/agent-scratch/YOUR-RUN/scroll.xdo
 ```
 
@@ -81,27 +98,27 @@ The generated script physically clicks the message area at `700,260`, captures
 phase:
 
 ```text
-exec --sync /usr/bin/python /ABS/PATH/tests/tools/record_installed_tui.py --mark up
+exec --sync /ABS/RUNTIME/bin/python /ABS/PATH/tests/tools/record_installed_tui.py --mark up
 keydown Prior
 sleep 4
 keyup Prior
-exec --sync /usr/bin/python /ABS/PATH/tests/tools/record_installed_tui.py --mark up-done
-exec --sync /usr/bin/python /ABS/PATH/tests/tools/record_installed_tui.py --mark down
+exec --sync /ABS/RUNTIME/bin/python /ABS/PATH/tests/tools/record_installed_tui.py --mark up-done
+exec --sync /ABS/RUNTIME/bin/python /ABS/PATH/tests/tools/record_installed_tui.py --mark down
 keydown Next
 sleep 4
 keyup Next
-exec --sync /usr/bin/python /ABS/PATH/tests/tools/record_installed_tui.py --mark down-done
-exec --sync /usr/bin/python /ABS/PATH/tests/tools/record_installed_tui.py --mark reverse
+exec --sync /ABS/RUNTIME/bin/python /ABS/PATH/tests/tools/record_installed_tui.py --mark down-done
+exec --sync /ABS/RUNTIME/bin/python /ABS/PATH/tests/tools/record_installed_tui.py --mark reverse
 keydown Prior
 sleep 4
 keyup Prior
-exec --sync /usr/bin/python /ABS/PATH/tests/tools/record_installed_tui.py --mark reverse-done
-exec --sync /usr/bin/python /ABS/PATH/tests/tools/record_installed_tui.py --mark end
+exec --sync /ABS/RUNTIME/bin/python /ABS/PATH/tests/tools/record_installed_tui.py --mark reverse-done
+exec --sync /ABS/RUNTIME/bin/python /ABS/PATH/tests/tools/record_installed_tui.py --mark end
 key End
 sleep 1
-exec --sync /usr/bin/python /ABS/PATH/tests/tools/record_installed_tui.py --mark idle
+exec --sync /ABS/RUNTIME/bin/python /ABS/PATH/tests/tools/record_installed_tui.py --mark idle
 sleep 4
-exec --sync /usr/bin/python /ABS/PATH/tests/tools/record_installed_tui.py --mark idle-done
+exec --sync /ABS/RUNTIME/bin/python /ABS/PATH/tests/tools/record_installed_tui.py --mark idle-done
 ```
 
 Choose a visible message body, avoiding links, tools, disclosures and the editor.
@@ -126,8 +143,9 @@ owner's preparation evidence.
 
 `AGENT_COMMS_RUNTIME_ROOT` selects a reviewed candidate **bin directory** holding
 `python` and `toad`. Otherwise selection follows `AGENT_COMMS_ACP_LAUNCHER`, then
-the installed ACP launcher on PATH. Selection is pinned for this run. No global
-packages, launcher links, owner processes or environment are changed.
+the installed ACP launcher on PATH. Selection is pinned for this run. The actual private route and native package
+are independently observed through Core authorities and matched to activation.
+No global packages or launcher links are changed.
 
 `receipt.json` records the selected launcher/hash, bin directory, its activation
 path/content/hash if present, and an independent probe through the selected
@@ -148,13 +166,22 @@ the seek offset and refer to **source-video seconds**. Native event times are
 monotonic seconds since encoder launch; encoder startup can introduce a small
 offset, so correlate key effects against the saved video.
 
-SIGINT/SIGTERM/SIGHUP and timed-out commands clean owned sessions/descendants,
-including native children that changed process groups, using PID/start ticks.
-ffmpeg may return 255 after the requested SIGINT; media probing and nonempty
-artifacts are still required. Interrupted evidence receives an error receipt.
-Review subprocesses are bounded and are stopped on timeout. SIGKILL or host
-failure cannot run Python cleanup; inspect the recorded owned identities before
-cleaning such an interrupted run. Never stop an existing attached owner.
+Cleanup uses installed `agent_comms.child_process` **ParentedProcess** custody,
+**Platform** process groups and identity-bound pidfd signaling. It never adopts
+process descendants or their new sessions. The real **Registration** snapshot
+also excludes durable comms owners by their declared process identities. The
+profiler wrapper transfers its exact st launch identity to **ObservedProcess**;
+it cannot claim a parent's reap result. Background service lifetimes remain
+with their existing owners. No command-name heuristics or copied PID registry
+establish stop authority.
+
+SIGINT/SIGTERM/SIGHUP and command timeouts clean the capture's groups. ffmpeg may
+return 255 after requested SIGINT; media probing and nonempty artifacts are
+required. SIGKILL or host failure cannot execute cleanup. The receipt records
+capture custody identities and cleanup errors; inspect those identities before
+cleaning an interrupted run. The fixture separately checks that its original
+owners survive capture, remain attachable and process a new controlled input,
+then uses its own lifecycle teardown. No production owner is restarted.
 
 ## Assess the visible behavior
 
@@ -179,3 +206,50 @@ Retain demonstrated failures until their fix/evidence is durable. Delete owned
 failed recordings and disposable probes after extracting useful receipts; keep
 review evidence until its follow-up is accepted. Never delete saved sessions,
 the active bus, worktrees or another agent's evidence.
+
+## Same-run UI and renderer CPU profile
+
+Add `--profile --profile-rate 25` to the same physical journey. This uses the
+installed **py-spy**, nonblocking sampling and its existing Chrome trace format;
+Python renderer subprocesses are included. A small recorder wrapper
+launches plain `st -e <installed toad> acp ...`, waits for its actual Python UI PID and then
+executes py-spy as that UI process's ancestor under Linux `ptrace_scope=1`.
+Application, protocol and
+saved state follow the installed entrypoint. It neither imports a substitute app
+nor installs packages or changes ptrace policy. Profiling is optional and bounded
+at 10–49 Hz and capture duration plus 30 seconds. Review refuses raw traces larger than 128 MiB.
+A trace missing the verified main UI PID is rejected; sampling a launcher or
+workers alone does not establish UI stack coverage.
+
+Native action marks also read cumulative kernel CPU counters for the actual
+terminal/UI and current renderer descendants. `events.jsonl` includes monotonic
+video offsets, PID/start identities and CPU seconds. No polling monitor or
+application state store is introduced. CPU snapshots are included in unprofiled
+marks too, so the comparison uses the same action-boundary instrumentation. `cpu-profile.json` is the raw py-spy
+trace; `profile-review.json` maps action/video intervals to measured per-process
+CPU deltas and hot sampled functions. Background worker identities and stacks
+are included when py-spy sees them. The summary records py-spy sample/error
+counts and marks attribution partial when errors occur. Idle or exited threads
+can retain long Chrome stack spans; do not assign those spans CPU cost when
+the kernel counters show no CPU change. Self and inclusive sampled wall spans
+are both retained, with self spans used for ranking. Sampled activation, preparation, layout and
+paint functions provide phase activity; existing pilot instrumentation has no
+production enable flag, so these are not exact phase entry/exit events.
+
+The wrapper records its monotonic profiler-exec boundary, and the recorder
+records observation of py-spy's sampling-ready message. Those bounds align the
+trace's relative clock with the video origin. Alignment uses their midpoint,
+with half the bound width plus one sample period as nominal uncertainty;
+scheduler delay or sampler errors can increase it. Keep the raw clocks/trace,
+profiler log and this uncertainty in every correlation report. Nested sampled stack spans are
+inclusive wall activity, not exact call counts, per-function CPU attribution or
+proof of redundant work. The kernel deltas are the measured CPU totals.
+
+Run a short **unprofiled** comparison serially with the same runtime, viewport,
+history sources and physical actions. Mark it separately in the assessment and
+compare the visible switch/scroll/End behavior. Record perturbation and changes
+in timing; never subtract an assumed profiler overhead or certify a candidate
+from the profiled run alone. Associate inspected stall frame intervals with the
+matching `profile-review.json` phase and supporting sampled stacks in the local
+`assessment.json`. Leave absent/unsampled phases explicit. The performance owner
+must decide whether sampled work is redundant and implement its fix.
