@@ -48,7 +48,7 @@ async def main():
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(120, 50), message_hook=worker_changed) as pilot:
             await pilot.pause()
-            await app.action_set_footer(False)
+            await app.run_action("set_footer(False)")
             assert app.settings.ui.footer is False
             assert app.has_class("-hide-footer")
             owner = app.selected_mode

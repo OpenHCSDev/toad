@@ -25,7 +25,7 @@ async def main():
             editor.insert(' with undo')
             document,history=editor.document,editor.history
             header=workspace.query_one(SessionsTabs)
-            second=await app.session_navigation.new(app.get_main_screen)
+            second=await app.session_navigation.new(app.session_navigation.default_source)
             print("CAPTURE",type(first.presentation).__name__,id(document),id(first.presentation.state.editor.document) if first.presentation.state else None,flush=True)
             assert app.screen is workspace
             assert app.selected_session is not first

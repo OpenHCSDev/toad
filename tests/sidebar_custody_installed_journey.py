@@ -46,6 +46,7 @@ async def acceptance(app,pilot,agent,comms,entered,release,hold_next,requests):
                  if item.action==DeclarationSidebarCommand.declared_name)
     assert await pilot.click(command)
     await until(pilot,lambda:(app.project_dir/'sidebar-declaration-proof').exists())
+    await until(pilot,lambda:app.screen is app.workspace_screen and app.screen.frame_presentation.ready)
     assert (app.project_dir/'sidebar-declaration-proof').read_text()=='#team'
     print('DECLARATION_OWNED_NEW_MENU_COMMAND_PHYSICAL_CLICK_NO_CONSUMER_EDIT',flush=True)
     # Physical disclosure and keyboard traversal preserve one hierarchy identity.
@@ -53,7 +54,8 @@ async def acceptance(app,pilot,agent,comms,entered,release,hold_next,requests):
         assert await pilot.click(group.disclosure)
     await until(pilot,lambda:len(group.member_rows)>=2)
     member=next(row for row in group.member_rows if row.target_name=='beta')
-    member.focus();await pilot.press('down','up')
+    member.focus();await until(pilot,lambda:member.has_focus)
+    await pilot.press('down','up')
     assert member.has_focus
     assert sidebar.navigation.state.expanded['#team']
     retained.scroll_visible(animate=False,immediate=True);await pilot.pause()

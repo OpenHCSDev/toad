@@ -96,8 +96,12 @@ class ProjectDirectoryUpdated(Message):
     """The project directory may may changed."""
 
 
+class WorkspaceSessionRequest(Message):
+    """Application session requests consumed by the existing admission owner."""
+
+
 @dataclass
-class SessionNavigate(Message):
+class SessionNavigate(WorkspaceSessionRequest):
     """Request to switch session."""
 
     mode_name: str
@@ -105,14 +109,14 @@ class SessionNavigate(Message):
 
 
 @dataclass
-class SessionSwitch(Message):
+class SessionSwitch(WorkspaceSessionRequest):
     """Switch to specified session."""
 
     mode_name: str
 
 
 @dataclass
-class SessionNew(Message):
+class SessionNew(WorkspaceSessionRequest):
     """Open a new session."""
 
     path: str
@@ -124,20 +128,20 @@ class SessionNew(Message):
 
 
 @dataclass
-class SessionCreate(Message):
+class SessionCreate(WorkspaceSessionRequest):
     """Create another session with the app's configured agent and project."""
 
     source_mode: str
 
 
 @dataclass
-class SessionRename(Message):
+class SessionRename(WorkspaceSessionRequest):
     mode_name: str
     name: str
 
 
 @dataclass
-class SessionArchive(Message):
+class SessionArchive(WorkspaceSessionRequest):
     mode_name: str
 
 
@@ -156,13 +160,13 @@ class SessionUpdate(Message):
 
 
 @dataclass
-class SessionClose(Message):
+class SessionClose(WorkspaceSessionRequest):
     name: str
     """Name of the session."""
 
 
 @dataclass
-class LaunchAgent(Message):
+class LaunchAgent(WorkspaceSessionRequest):
     """Inform app to launch agent."""
 
     identity: str

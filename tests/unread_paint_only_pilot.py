@@ -31,6 +31,7 @@ async def main():
             screen.on_comms_session_named("fixture")
             await app.session_navigation.new(app.session_navigation.default_source)
             await app.select_session(first)
+
             await screen.conversation.contents.mount(*[
                 AgentResponse(f"Reply {index}\n\n" + "Paragraph under unread updates.\n\n" * 12,
                               paginate=False)

@@ -8,12 +8,10 @@ import asyncio
 import ast
 import json
 import os
-import platform
-from datetime import datetime, timezone
 from functools import cached_property, partial
 from pathlib import Path
 from time import monotonic
-from typing import TYPE_CHECKING, Any, Callable, ClassVar, TypeVar, cast
+from typing import TYPE_CHECKING, TypeVar, cast
 from weakref import WeakKeyDictionary
 
 from agent_comms.acp_extension import CoordinationChangedUpdate, TranscriptChangedUpdate
@@ -21,18 +19,14 @@ from rich import terminal_theme
 from textual import events, on, work
 from textual.app import App
 from textual.await_complete import AwaitComplete
-from textual.binding import Binding, BindingType
-from textual.command import DiscoveryHit, Hit, Hits, Provider
 from textual.content import Content
 from textual.notifications import Notify
 from textual.reactive import reactive, var
 from textual.screen import Screen
 from textual.signal import Signal
 
-import toad
-from toad import atomic, messages, paths
+from toad import messages
 from toad.agent_schema import Agent as AgentData
-from toad.version import VersionMeta
 from toad.render_backend import Renderer
 from toad.channel_preparation import ChannelHistoryReader
 from toad.navigation_preparation import (
@@ -53,12 +47,13 @@ from toad.tab_order import TabOrder
 from toad.thread_navigation import ThreadNavigator
 from toad.session_navigation import SessionAdmissions
 from toad.terminal_attention import TerminalAttention
+from toad.application_actions import ApplicationAction, ApplicationCommands, KeyboundAction
+from toad.application_lifetime import ApplicationLifetime
 
 if TYPE_CHECKING:
     from toad.db import DB
     from toad.render_tasks import RenderTask
     from toad.screens.main import MainScreen
-    from toad.screens.settings import SettingsScreen
     from toad.screens.store import StoreScreen
 
 RenderResultT = TypeVar("RenderResultT")
@@ -231,45 +226,6 @@ QUOTES = [
 ]
 
 
-class InterfaceProvider(Provider):
-    """Command-palette controls for persistent interface settings."""
-
-    def _footer_command(self) -> tuple[str, Callable[[], object]]:
-        app = self.app
-        visible = app.settings.ui.footer
-        return (
-            "Hide footer shortcut bar" if visible else "Show footer shortcut bar",
-            partial(app.action_set_footer, not visible),
-        )
-
-    async def search(self, query: str) -> Hits:
-        command, callback = self._footer_command()
-        matcher = self.matcher(query)
-        score = matcher.match(command)
-        if score > 0:
-            yield Hit(
-                score,
-                matcher.highlight(command),
-                callback,
-                help="Toggle the key-shortcut bar at the bottom of Toad",
-            )
-
-    async def discover(self) -> Hits:
-        command, callback = self._footer_command()
-        yield DiscoveryHit(
-            command,
-            callback,
-            help="Toggle the key-shortcut bar at the bottom of Toad",
-        )
-
-
-def get_settings_screen() -> SettingsScreen:
-    """Get a settings screen instance (lazily loaded)."""
-    from toad.screens.settings import SettingsScreen
-
-    return SettingsScreen()
-
-
 def get_workspace_screen():
     from toad.screens.workspace import WorkspaceScreen
     return WorkspaceScreen(id="workspace")
@@ -286,39 +242,15 @@ class ToadApp(WorkspaceSessionShutdown, App, inherit_bindings=False):
     """The top level app."""
 
     CSS_PATH = ["toad.tcss", "screens/comms.tcss"]
-    SCREENS = {
-        "settings": get_settings_screen,
-    }
-    COMMANDS = {InterfaceProvider}
+    COMMANDS = {ApplicationCommands}
     MODES = {"store": get_store_screen, "workspace": get_workspace_screen}
     BINDING_GROUP_TITLE = "System"
-    BINDINGS: ClassVar[list[BindingType]] = [
-        Binding(
-            "ctrl+q",
-            "quit",
-            "Quit",
-            tooltip="Quit the app and return to the command prompt.",
-            show=False,
-            priority=True,
-        ),
-        Binding("ctrl+c", "help_quit", show=False, system=True),
-        Binding("ctrl+s", "sessions", "Channels"),
-        Binding("f1", "toggle_help_panel", "Help", show=False, priority=True),
-        Binding(
-            "f2,ctrl+comma",
-            "settings",
-            "Settings",
-            tooltip="Settings screen",
-            show=False,
-        ),
-    ]
+    BINDINGS = [member.binding() for member in ApplicationAction.members_with(KeyboundAction)]
     ALLOW_IN_MAXIMIZED_VIEW = ""
 
     column: reactive[bool] = reactive(False)
     column_width: reactive[int] = reactive(100)
     scrollbar: reactive[str] = reactive("normal")
-    last_ctrl_c_time = reactive(0.0)
-    update_required: reactive[bool] = reactive(False)
     project_dir = var(Path)
     show_sessions = var(False, toggle_class="-show-sessions-bar")
 
@@ -346,9 +278,7 @@ class ToadApp(WorkspaceSessionShutdown, App, inherit_bindings=False):
         from toad.work_preparation import PreparationRuntime, PreparedRenderer
 
         Renderer.prepare_spawn()
-        settings_path = self.settings_path
-        raw_settings = json.loads(settings_path.read_text("utf-8")) if settings_path.exists() else {}
-        self.settings = ToadSettings(raw_settings, notify=self._apply_preference)
+        self.settings = ToadSettings.open(self)
         self.preparation = PreparationRuntime(self.settings.ui.renderer.start() if renderer is None else renderer)
         self.render_processes: Renderer = PreparedRenderer(self.preparation)
         self._renderer_warmup_started = False
@@ -361,9 +291,7 @@ class ToadApp(WorkspaceSessionShutdown, App, inherit_bindings=False):
         )
         self.agent_data = agent_data
 
-        self._initial_mode = mode
-        self._initial_agent_session_id = agent_session_id
-        self.version_meta: VersionMeta | None = None
+        self.application = ApplicationLifetime(self, mode)
         self.clipboard_transport = Clipboard.for_platform()
         self.terminal_attention = TerminalAttention(self)
 
@@ -371,7 +299,7 @@ class ToadApp(WorkspaceSessionShutdown, App, inherit_bindings=False):
             self, "session_update"
         )
         self._session_tracker = SessionTracker(self.session_update_signal)
-        self.session_navigation = SessionAdmissions(self)
+        self.session_navigation = SessionAdmissions(self, agent_session_id)
         self.thread_navigation = ThreadNavigator(self)
         self._sidebar_snapshot = None
         self.thread_actions = ThreadActions(self)
@@ -395,12 +323,7 @@ class ToadApp(WorkspaceSessionShutdown, App, inherit_bindings=False):
 
         super().__init__()
         self.project_dir = Path(project_dir or "./").expanduser().resolve()
-        self.start_time = monotonic()
-        """Time app was started."""
 
-    @property
-    def config_path(self) -> Path:
-        return paths.get_config()
 
     def _coordination_changed(self) -> None:
         self._sidebar_snapshot = None
@@ -439,13 +362,6 @@ class ToadApp(WorkspaceSessionShutdown, App, inherit_bindings=False):
             task.exception()
         self.background_render_slots.release()
 
-    @property
-    def settings_path(self) -> Path:
-        return paths.get_config() / "toad.json"
-
-    @property
-    def db_path(self) -> Path:
-        return paths.get_state() / "toad.db"
 
     @property
     def _background_screens(self) -> list[Screen]:
@@ -459,29 +375,6 @@ class ToadApp(WorkspaceSessionShutdown, App, inherit_bindings=False):
         db = DB()
         return db
 
-    @cached_property
-    def version(self) -> str:
-        """Version of the app."""
-        from toad import get_version
-
-        return get_version()
-
-    @cached_property
-    def settings(self) -> ToadSettings:
-        return ToadSettings(notify=self._apply_preference)
-
-    @cached_property
-    def anon_id(self) -> str:
-        """An anonymous ID for usage collection."""
-        if not (anon_id := self.settings.anon_id):
-            # Create a random UUID on demand
-            import uuid
-
-            anon_id = str(uuid.uuid4())
-            self.settings.anon_id = anon_id
-            self._save_settings()
-            self.call_later(self.capture_event, "toad-install")
-        return anon_id
 
     @property
     def session_tracker(self) -> SessionTracker:
@@ -490,82 +383,16 @@ class ToadApp(WorkspaceSessionShutdown, App, inherit_bindings=False):
     def copy_to_clipboard(self, text: str) -> None:
         self.clipboard_transport = self.clipboard_transport.copy(self, text)
 
-    @work(exit_on_error=False)
-    async def capture_event(self, event_name: str, **properties: Any) -> None:
-        """Capture an event.
-
-        Args:
-            event_name: Name of the event.
-            **properties: Additional data associated with the event.
-        """
-
-        POSTHOG_API_KEY = "phc_mJWPV7GP3ar1i9vxBg2U8aiKsjNgVwum6F6ZggaD4ri"
-        POSTHOG_HOST = "https://us.i.posthog.com"
-        POSTHOG_EVENT_URL = f"{POSTHOG_HOST}/i/v0/e/"
-        timestamp = datetime.now(timezone.utc).isoformat()
-        width, height = self.size
-
-        event_properties = {
-            "toad_version": self.version,
-            "term_program": self.terminal_attention.program,
-            "term_width": width,
-            "term_height": height,
-        } | properties
-        body_json = {
-            "api_key": POSTHOG_API_KEY,
-            "event": event_name,
-            "distinct_id": self.anon_id,
-            "properties": event_properties,
-            "timestamp": timestamp,
-            "os": platform.system(),
-        }
-        if not self.settings.statistics.allow_collect:
-            # User has disabled stats
-            return
-
-        import httpx
-
-        try:
-            async with httpx.AsyncClient() as client:
-                await client.post(POSTHOG_EVENT_URL, json=body_json)
-        except Exception:
-            pass
 
     def on_notify(self, event: Notify) -> None:
         self.terminal_attention.notification(event.notification)
 
-    async def save_settings(self, force: bool = False) -> None:
-        """Save settings in a thread.
-
-        Args:
-            force: Force saving, even when no change detected.
-
-        """
-        await asyncio.to_thread(self._save_settings, force=force)
-
-    def _save_settings(self, force: bool = False) -> None:
-        """Save the settings if they have changed."""
-        if force or self.settings.changed:
-            path = str(self.settings_path)
-            try:
-                atomic.write(path, self.settings.json)
-            except Exception as error:
-                self.notify(str(error), title="Settings", severity="error")
-            else:
-                self.settings.up_to_date()
-
-    def _apply_preference(self, change: PreferenceChange) -> None:
-        change.apply(self)
-        self.settings_changed_signal.publish(change)
 
     async def on_load(self) -> None:
         self._prewarm_conversation_css()
         db = await self.get_db()
         await db.create()
-        settings_path = self.settings_path
-        if not settings_path.exists():
-            settings_path.write_text(self.settings.json, "utf-8")
-            self.notify(f"Wrote default settings to {settings_path}", title="Settings")
+        self.settings.ensure_file(self)
         self.ansi_theme_dark = DRACULA_TERMINAL_THEME
         self.settings.apply_all()
 
@@ -687,9 +514,6 @@ class ToadApp(WorkspaceSessionShutdown, App, inherit_bindings=False):
                 self.screen.refresh()
 
 
-
-
-
     @property
     def open_tabs(self) -> tuple[OpenTab, ...]:
         return self.session_navigation.tabs
@@ -717,13 +541,6 @@ class ToadApp(WorkspaceSessionShutdown, App, inherit_bindings=False):
     def selected_mode(self):
         selected = self.selected_session
         return selected.id if self.current_mode == "workspace" and selected is not None else self.current_mode
-
-
-
-
-
-
-
 
 
     def local_coordination_threads(self) -> set[str]:
@@ -784,30 +601,23 @@ class ToadApp(WorkspaceSessionShutdown, App, inherit_bindings=False):
             return
 
 
-
-
-
     async def on_mount(self) -> None:
-        self.capture_event("toad-run")
-        self.anon_id  # Created on frst reference
-        if mode := self._initial_mode:
-            self.select_session(mode)
-        else:
-            await self.session_navigation.new(self.get_main_screen)
+        await self.application.start()
 
-        self.terminal_attention.attach()
-        self.set_timer(1, self.run_version_check)
-        self.set_process_title()
-        self.update_show_sessions()
+    @on(messages.WorkspaceSessionRequest)
+    async def on_workspace_session_request(self, event: messages.WorkspaceSessionRequest) -> None:
+        await self.session_navigation.dispatch(event)
 
-    @work(thread=True, exit_on_error=False)
-    def set_process_title(self) -> None:
-        try:
-            import setproctitle
-
-            setproctitle.setproctitle("toad")
-        except Exception:
-            pass
+    async def _dispatch_action(self, namespace, action_name: str, params) -> bool:
+        if namespace is self:
+            try:
+                declaration = ApplicationAction.decode(action_name)
+            except ValueError:
+                pass  # Remaining names belong to Textual's own action contract.
+            else:
+                await declaration.parse(params).apply(self)
+                return True
+        return await super()._dispatch_action(namespace, action_name, params)
 
     @on(events.TextSelected)
     async def on_text_selected(self) -> None:
@@ -867,166 +677,6 @@ class ToadApp(WorkspaceSessionShutdown, App, inherit_bindings=False):
             return
         super()._set_mouse_over(widget, hover_widget)
 
-    def run_on_exit(self):
-        if self.update_required and self.version_meta is not None:
-            version_meta = self.version_meta
-            from rich.console import Console
-            from rich.panel import Panel
-
-            console = Console()
-            console.print(
-                Panel(
-                    version_meta.upgrade_message,
-                    style="magenta",
-                    border_style="dim green",
-                    title="🐸 [bold green not dim]Update available![/] 🐸",
-                    expand=False,
-                    padding=(1, 2),
-                )
-            )
-            console.print(f"Please visit {version_meta.visit_url}")
-
-    @work(exit_on_error=False)
-    async def run_version_check(self) -> None:
-        """Check remote version."""
-        from toad.version import VersionCheckFailed, check_version
-
-        try:
-            update_required, version_meta = await check_version()
-        except VersionCheckFailed:
-            return
-        self.version_meta = version_meta
-        self.update_required = update_required
-
-    def get_main_screen(self) -> MainScreen:
-        """Make the default screen.
-
-        Returns:
-            Instance of `MainScreen`
-        """
-        # Lazy import
-        from toad.screens.main import MainScreen
-
-        project_path = Path(self.project_dir or "./").resolve().absolute()
-        session_id = self._initial_agent_session_id
-        self._initial_agent_session_id = None
-        return MainScreen(
-            project_path,
-            self.agent_data,
-            agent_session_id=session_id,
-            agent_session_title=session_id,
-        ).data_bind(
-            column=ToadApp.column,
-            column_width=ToadApp.column_width,
-            scrollbar=ToadApp.scrollbar,
-        )
-
-    @work
-    async def action_settings(self) -> None:
-        await self.push_screen_wait("settings")
-        await self.save_settings()
-
-    async def action_set_footer(self, visible: bool) -> None:
-        """Persist footer visibility from the command palette."""
-        self.settings.ui.footer = visible
-        await self.save_settings()
-        self.notify(
-            "Footer shortcut bar shown" if visible else "Footer shortcut bar hidden",
-            title="Interface",
-        )
-
-    async def action_quit(self) -> None:
-        """An [action](/guide/actions) to quit the app as soon as possible."""
-
-        self.screen.set_focus(None)
-
-        async def save_settings_and_exit():
-            await self.save_settings()
-            self.exit()
-
-        # TODO: Can we avoid the timer?
-        # If the user presses ctrl+q while on the settings page, we want to make sure the blur event is handled,
-        # which will update the setting the user is editing.
-        self.set_timer(0.05, save_settings_and_exit)
-
-    def action_help_quit(self) -> None:
-        if (time := monotonic()) - self.last_ctrl_c_time <= 5.0:
-            self.exit()
-        self.last_ctrl_c_time = time
-        self.notify(
-            "Press [b]ctrl+c[/b] again to quit the app", title="Do you want to quit?"
-        )
-
-    def action_toggle_help_panel(self):
-        if self.screen.query("HelpPanel"):
-            self.action_hide_help_panel()
-        else:
-            self.action_show_help_panel()
 
     def update_show_sessions(self) -> None:
         self.show_sessions = self.settings.ui.sessions_bar.shown(len(self.open_tabs))
-
-    @on(messages.SessionNavigate)
-    def on_session_navigate(self, event: messages.SessionNavigate) -> None:
-        modes = [tab.mode_name for tab in self.open_tabs]
-        if self.selected_mode in modes:
-            self.select_session(modes[(modes.index(self.selected_mode) + event.direction) % len(modes)])
-
-    @on(messages.SessionSwitch)
-    def on_session_switch(self, event: messages.SessionSwitch) -> None:
-        self.select_session(event.mode_name)
-
-    @on(messages.SessionNew)
-    def on_session_new(self, event: messages.SessionNew) -> None:
-        self.run_worker(partial(self.session_navigation.launch,
-            event.agent, project_path=Path(event.path), initial_prompt=event.prompt
-        ))
-
-    @on(messages.SessionCreate)
-    async def on_session_create(self, event: messages.SessionCreate) -> None:
-        await self.session_navigation.create_from(event.source_mode)
-
-
-    @on(messages.SessionRename)
-    async def on_session_rename(self, event: messages.SessionRename) -> None:
-        name = event.name.strip()
-        screen = self.session_navigation.source(event.mode_name)
-        if not name or screen is None:
-            return
-        await screen.conversation.rename_session(name)
-
-    @on(messages.SessionArchive)
-    async def on_session_archive(self, event: messages.SessionArchive) -> None:
-        await self.session_navigation.close(event.mode_name)
-
-    @on(messages.SessionClose)
-    def on_session_close(self) -> None:
-        self.update_show_sessions()
-
-    @work
-    async def action_sessions(self) -> None:
-        from toad.widgets.comms_sidebar import CommsSidebar
-        from toad.widgets.side_bar import SideBar, SideBarCollapsible
-
-        sidebar = self.screen.query_one_optional(CommsSidebar)
-        if sidebar is None:
-            sessions = self.session_tracker.ordered_sessions
-            if not sessions:
-                self.notify("No sessions are open", title="Sessions")
-                return
-            await self.select_session(sessions[-1].mode_name)
-            sidebar = self.screen.query_one_optional(CommsSidebar)
-        if sidebar is None:
-            return
-        sidebar.query_ancestor(SideBar).reveal()
-        sidebar.query_ancestor(SideBarCollapsible).collapsed = False
-        await sidebar.navigation.focus_current()
-
-    @on(messages.LaunchAgent)
-    def on_launch_agent(self, message: messages.LaunchAgent) -> None:
-        self.run_worker(partial(self.session_navigation.launch,
-            message.identity,
-            agent_session_id=message.session_id,
-            session_pk=message.pk,
-            initial_prompt=message.prompt,
-        ))

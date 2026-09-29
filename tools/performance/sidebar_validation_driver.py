@@ -168,11 +168,12 @@ def install_observer():
                           (Conversation, "on_agent_ready")]
     if os.environ.get("TOAD_VALIDATION_OPEN_STAGES"):
         from textual.widget import Widget
-        from toad.widgets.comms_sidebar import CommsSidebar
+        from toad.sidebar_observation import SidebarObservation
+        from toad.sidebar_projection import SidebarProjection
         from toad.widgets.session_tabs import SessionsTabs
         from toad.navigation_preparation import NavigationReader
         navigation_methods.extend(((ToadApp, "new_session_screen"), (Conversation, "initialize_view"),
-                                   (CommsSidebar, "present_cached_sessions"), (CommsSidebar, "_rebuild"),
+                                   (SidebarObservation, "present_cached"), (SidebarProjection, "rebuild"),
                                    (SessionsTabs, "_sync_tabs"), (NavigationReader, "read")))
         constructor = Widget.__init__
         preprocess = Widget._pre_process

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+from functools import partial
 import hashlib
 import json
 import os
@@ -188,7 +189,7 @@ async def main() -> None:
                 await pilot.pause()
                 assert app.column_width == 120 and width.value == "120"
                 app.settings = ExtendedSettings(
-                    app.settings.document(), notify=app._apply_preference
+                    app.settings.document(), notify=partial(ToadSettings.apply_change, app)
                 )
                 await app.pop_screen()
                 await app.push_screen(SettingsScreen())
@@ -207,7 +208,7 @@ async def main() -> None:
                     app.settings.experiment.badge == "FRESH"
                     and app.sub_title == "FRESH"
                 )
-                await app.save_settings()
+                await app.settings.save()
                 reopened = ExtendedSettings(json.loads(settings_file.read_text()))
                 assert (
                     reopened.experiment.badge == "FRESH"

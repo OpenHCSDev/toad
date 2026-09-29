@@ -518,3 +518,39 @@ for complete nominal owner/case contracts. App769→750, Workspace371→323,
 PromptTextArea363→305; no whole-T4/global-clean/default-live claim.
 See [the full Q7 source/installed/limits receipt](../../evidence/prompt-interaction/RECEIPT.md).
 Parent owns review, pair integration, merge/install and the affected LIVE check.
+
+## Q8 application/system actions closure: Noether181
+
+Merged176 frame/Prompt ownership and merged175/178 are consumed in own persistent
+~/wt/toad-thread-opening-sol-20260929; no Carver Agent/input or Tesla frame/body/
+selected-source implementation is duplicated. Production source6bd55e33; full
+receipt [application-actions/RECEIPT](../../evidence/application-actions/RECEIPT.md).
+
+413 replaced production lines deleted/518 added; App750 original/currentmain748
+→442. ApplicationAction declarations own bindings, parameters, behavior and
+palette membership, reusing core DeclaredFamily/Command. Existing SessionAdmissions
+owns all WorkspaceSessionRequest handlers/default source and callers through
+MroDispatch. Existing ToadSettings owns decode/save/installation ID and effects;
+existing BooleanSetting/StatisticsSettings own toggle/collection behavior. One
+application lifetime owns startup and save-after-blur quit; existing version
+boundary has metadata-bearing outcomes. Root action/persistence/reporting/quit
+flag/timer implementations, manual screen/command rosters and all old callers are
+deleted. No forwarding root aliases, extra factory/store, codec subclass or mixin.
+The extra105 production lines declare case/capability contracts rather than a
+second god owner. IMPL-4/5/6/7/10/13, MEMB-1/2, IDEN-3, TIME-1/3/9, AGENT-6/8.
+
+Actual noneditable installed normal-App SDK/physical settings/palette/new-session/
+close/disk rejection/retry/ephemeral modal dismissal/focused quit/saved reopen/
+distinct replies pass; same-pair LinuxDriver physical first frame/ACP/input/slash/
+resize/draft/quit and canonical native physical cold fork>5s/inherited paint/new
+reply pass with the source-delta limits recorded in the receipt. Seven guards
+and per-file excess/chain/absence/codec ratchet pass. Actual modal self-teardown
+RED was fixed by not returning its removal awaitable from a refresh callback;
+no assertion weakened. Own Q8 scratch retired after copied evidence/child audit.
+
+Parent owns current-core pin integration, review/merge, install and affected LIVE
+check. Inherited main corebeaa8 predates merged178's registry.declare API; actual
+final native acceptance uses core670f + Textual609b + manifest-matched nativefcade.
+No CI hold/default activation claim, whole-goal/global NRA proof or closure of
+other god owners. Remaining App functions are actual Textual/workspace/render/
+read/selection integration and existing file-link broker, retained unchanged.
