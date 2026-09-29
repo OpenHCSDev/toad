@@ -324,7 +324,8 @@ class ToadSettings(SettingsGroup):
         path = self.file_path()
         if not path.exists():
             self.save_sync(force=True)
-            app.notify(f"Wrote default settings to {path}", title="Settings")
+            if path.is_file():
+                app.notify(f"Wrote default settings to {path}", title="Settings")
 
     def ensure_installation(self) -> bool:
         if self.anon_id:

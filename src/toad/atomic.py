@@ -1,5 +1,6 @@
 import tempfile
 import os
+from pathlib import Path
 
 
 class AtomicWriteError(Exception):
@@ -16,6 +17,7 @@ def write(path: str, content: str) -> None:
     """
     path = os.path.abspath(path)
     dir_name = os.path.dirname(path) or "."
+    temp_name: str | None = None
     try:
         with tempfile.NamedTemporaryFile(
             mode="w",
@@ -24,15 +26,11 @@ def write(path: str, content: str) -> None:
             dir=dir_name,
             prefix=f".{os.path.basename(path)}_tmp_",
         ) as temporary_file:
-            temporary_file.write(content)
             temp_name = temporary_file.name
-    except Exception as error:
-        raise AtomicWriteError(
-            f"Failed to write {path!r}; error creating temporary file: {error}"
-        )
-
-    try:
+            temporary_file.write(content)
         os.replace(temp_name, path)  # Atomic on POSIX and Windows
     except Exception as error:
-        os.unlink(temp_name)
-        raise AtomicWriteError(f"Failed to write {path!r}; {error}")
+        raise AtomicWriteError(f"Failed to write {path!r}; {error}") from error
+    finally:
+        if temp_name is not None:
+            Path(temp_name).unlink(missing_ok=True)
