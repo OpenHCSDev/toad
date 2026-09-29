@@ -103,6 +103,14 @@ async def main() -> None:
             await app.select_session(owner)
             assert not left.right and content.region.x == left.region.width
             assert tabs.region.x == app.screen.query_one(TabHistoryControls).region.right
+            retained = app.selected_session
+            await retained.action_go_home()
+            await pilot.pause()
+            assert app.current_mode == "store" and not retained.is_current
+            await app.select_session(owner)
+            await pilot.pause()
+            assert app.selected_session is retained and retained.is_current and retained.display
+            assert content.region.x == left.region.width and app._exception is None
         await asyncio.get_running_loop().shutdown_default_executor()
     print("sidebar controls: move/swap/width/float and untruncated horizontal row scroll")
 

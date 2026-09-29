@@ -90,7 +90,7 @@ async def click_session(app, pilot, source):
     app.trace_events = []
     phases = {}
     wrapped = []
-    previous = app.workspace_sessions.selected
+    previous = app.selected_session
     native = app.workspace_chrome.native
     conversation = native.widget
     viewport = conversation.window.document_viewport if conversation is not None else None

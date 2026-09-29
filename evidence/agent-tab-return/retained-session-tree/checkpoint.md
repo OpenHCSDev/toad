@@ -57,3 +57,19 @@ with their owners. Current usage installation does not wait on those targets.
 Scratch owner PR202: `.artifacts/native-retained-layout*` under this persistent
 worktree. Failed fresh runs and normal teardown are retained as diagnostic
 evidence; no UNKNOWN input was replayed and no global/live-owner mutation occurred.
+
+## Exact installed 887ad457 checkpoint
+
+The exact Git archive wheel, installed only in the disposable candidate runtime,
+passed the same real native journey (exit0): five physical A/B/A returns, fifteen
+completed destination frames, zero preparation misses, retained outer history,
+page and body, and reader/draft/undo. Active-other/return/settlement and no replay
+assertions passed. Median selection-to-paint 84.02ms; individual values 84.02,
+81.57, 77.72, 88.32, 89.09ms. See installed-return-887ad457.json and installed
+pair provenance. This remains the small two-history fixture, not terminal video
+or 41MB performance acceptance. No global packages or user owners changed.
+
+The earlier installed reader failure used the original retained tree, not an
+evicted replacement. FollowTailCheckpoint now checks its existing captured
+reader revision/follow policy when the deferred anchor actually executes.
+This deletion/reader checkpoint is ready for paired review independently of TC1.

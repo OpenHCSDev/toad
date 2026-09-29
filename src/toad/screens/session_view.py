@@ -17,7 +17,7 @@ class SessionView(SidebarFocusOwner, Vertical):
 
     @property
     def is_current(self) -> bool:
-        return self.app.workspace_sessions.selected is self and self.screen.is_current
+        return self.app.workspace_sessions.owns(self) and self.screen.is_current
 
     @property
     def coordination_root(self) -> str | None:
