@@ -59,7 +59,8 @@ reach live owner attachment during tab clicks. After a live owner attachment
 failure and native-pin mismatch were reported, further live-root candidate
 captures were stopped. One owner PID appeared in the recorder's descendant
 cleanup identities; the cleanup may have stopped an owner it launched. This
-remains under parent-owned incident review. Resume recording only against an
+is not evidence that cleanup killed it: review found that owner already dead
+before cleanup. The incident remains under parent-owned review. Resume recording only against an
 approved default ACP or an explicitly complete, matched private root/native environment. The
 parent owns live-route recovery and installed runtime activation; Mendel owns
 the isolated physical-key recording tools.
@@ -80,9 +81,15 @@ therefore unsuitable for this candidate capture.
 The exact wheel's subsequent matched-private recordings are in Mendel's
 `candidate-private-custody/private-profiled` and `private-unprofiled` directories.
 Both show the previous response number under the selected destination tab
-for several reviewed frames. Physical PageUp/PageDown changes actual native
-history, but End leaves earlier paragraphs and the Jump to Latest control
-visible during idle. Neither recording passes visual acceptance.
+for several reviewed frames. Gamma also reports an IdentityConflict in its
+inbox/status path despite a distinct saved native session containing response3;
+that attachment failure confounds the source-return assessment.
+Physical PageUp/PageDown changes actual native history, but End visibly walks
+intermediate pages: the profiled End interval 39.344–41.143s advances from
+response1 into response2, and early idle still shows earlier paragraphs.
+The final idle screenshot reaches paragraphs147–159. This is delayed reflow,
+not a permanent failure to reach the bottom. Neither recording proves warm
+visual correctness or a speed improvement.
 The profiled run measured 85.1% UI CPU during PageUp, 83.3% during reverse,
 and 29.6% during idle. Its sampler reported 368 errors in 369 samples;
 call-stack attribution is insufficient to assign those costs precisely.
@@ -135,3 +142,21 @@ installed runtime remains the earlier 573 candidate. Next focused command is
 `PYTHONPATH=src:tests <paired-python> tests/transcript_history_pilot.py`, followed
 by the existing matched-private installed A/B/A and held-key recording. Those
 runs require the resource assertion to pass and a sequenced capture slot.
+
+The old source pilot's five first-frame traces put native retirement at
+35.5–59.6ms, activation at 124.3–149.5ms, and compositor reflow at 18.0–22.0ms.
+Styled-strip misses account for 7.0–9.6ms, including 4.5–6.0ms of widget raster
+work; these nested durations must not be added. Reusing terminal strips alone
+cannot remove the observed source retirement/rebind/activation cost. This is
+the earlier source pilot, not same-run attribution of the installed video.
+
+## Owned scratch disposition
+
+PR202 scratch remains under
+`/home/ts/.cache/agent-scratch/toad-retained-outer-history-first-paint-20260929`:
+the exact573 wheel/runtime and saved receipts are retained for reproducibility.
+The obsolete initial wheel directory `dist` was removed. PR203's verified-unused
+79MiB scratch runtime was removed after retaining its activation receipt and
+installed journey log under `toad-thread-spawn-app-binding-20260929`; its source
+worktree and evidence remain. No saved native session/private bus was removed.
+Mendel owns the recorder receipts and archived fixture under his scratch root.
