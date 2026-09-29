@@ -4,8 +4,13 @@ from __future__ import annotations
 import asyncio
 from abc import abstractmethod
 from agent_comms.declared_family import DeclaredFamily
+from toad import jsonrpc
+from toad.acp import protocol
+from .client_session import ClientRequestOwner, ClientSessionRequest
 from toad.answer import Answer
 from toad.permission_presentation import PermissionPresentation
+
+PERMISSION_TIMEOUT_SECONDS = 120.0
 
 
 class PermissionRequest(DeclaredFamily, affix="PermissionRequest"):
@@ -27,8 +32,8 @@ class PermissionRequest(DeclaredFamily, affix="PermissionRequest"):
     @abstractmethod
     def presentation(self): ...
 
-    def answer(self, surface, answer):
-        if self.pending and self.controller.agent.controller.surface.owns(surface):
+    def answer(self, binding, answer):
+        if self.pending and self.controller.agent.controller.surface is binding:
             if answer is None or any(option.id == answer.id for option in self.options):
                 self.future.set_result(answer)
 
@@ -70,9 +75,9 @@ class ToolPermissionRequest(PermissionRequest):
         return self._presentation
 
 
-class PermissionController:
+class PermissionController(ClientRequestOwner):
     def __init__(self, agent):
-        self.agent = agent
+        super().__init__(agent)
         self.requests: set[PermissionRequest] = set()
 
     @property
@@ -98,3 +103,23 @@ class PermissionController:
     def cancel(self):
         for request in self.pending:
             request.cancel()
+
+    @classmethod
+    def resolve(cls, agent):
+        return agent.permissions
+
+    @jsonrpc.expose("session/request_permission")
+    async def request_permission(self, sessionId: str,
+                                 options: list[protocol.PermissionOption],
+                                 toolCall: protocol.ToolCallUpdatePermissionRequest,
+                                 _meta: dict | None = None) -> protocol.RequestPermissionResponse:
+        cancelled = {"outcome": {"outcome": "cancelled"}}
+        authority = ClientSessionRequest(self.agent, sessionId)
+        if authority.retired:
+            return cancelled
+        visible = self.agent.tools.permission(toolCall)
+        request = self.request(options, visible)
+        answer = await request.wait(PERMISSION_TIMEOUT_SECONDS)
+        if answer is None or authority.retired:
+            return cancelled
+        return {"outcome": {"optionId": answer.id, "outcome": "selected"}}

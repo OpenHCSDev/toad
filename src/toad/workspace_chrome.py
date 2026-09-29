@@ -32,7 +32,7 @@ class WorkspaceChrome:
         self.channels.schedule_hydration()
         roster = self.channels.roster
         roster.prepare_navigation()
-        screen.call_after_first_frame(roster, roster.start_navigation_hydration)
+        screen.frame_presentation.defer(roster, roster.start_navigation_hydration)
         return changed
 
     async def select(self, view: "SessionView") -> None:

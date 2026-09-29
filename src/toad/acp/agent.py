@@ -1,3 +1,7 @@
+from toad.acp.session_updates import SessionNotificationOwner
+from toad.acp.client_session import ClientRequestOwner
+from toad.acp.client_files import FileClientRequestOwner
+from toad.acp.tool_calls import SessionToolCalls
 from toad.acp.agent_configuration import AgentConfiguration, ModelConfigurationSetting, ThinkingConfigurationSetting
 from toad.acp.context_measurement import ContextMeasurement, ContextUnavailable
 from toad.acp.agent_process import AgentProcess
@@ -8,12 +12,10 @@ from toad.agent_presentation import ACPAgentPresentation
 import asyncio
 import os
 from contextlib import suppress
-from copy import deepcopy
 from dataclasses import replace
 from datetime import datetime
 from pathlib import Path
-from typing import Any, NamedTuple, cast
-from urllib.parse import quote
+from typing import NamedTuple
 
 import rich.repr
 from agent_comms.acp_extension import (
@@ -35,7 +37,6 @@ from agent_comms.field_codec import FieldCodec
 from agent_comms.goal_actions import RetryGoalAction
 from agent_comms.goal_presentation import GoalExecution
 from agent_comms.goals import Goal
-from agent_comms.routing import MessageRoute
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from textual.content import Content
 from textual.message import Message
@@ -50,14 +51,11 @@ from toad.acp.comms_updates import CommsUpdateConsumer
 from toad.acp.projection_attachment import ProjectionAttachment
 from toad.acp.prompt import build as build_prompt
 from toad.acp.queue_attachment import QueueAttachment
-from toad.acp.sdk_boundary import validate_session_update
 from toad.agent import AgentBase, LogAgentFail, UnsupportedResumeAgentFail, AgentReady
 from toad.agent_schema import Agent as AgentData
-from toad.plan import decode_plan
 from toad.db import DB, SessionMeta
 
 PROTOCOL_VERSION = 1
-PERMISSION_TIMEOUT_SECONDS: float = 120.0
 
 
 class Mode(NamedTuple):
@@ -137,11 +135,14 @@ class Agent(AgentBase):
         self.permissions = PermissionController(self)
         self.controller = AgentController(self)
         self.configuration = AgentConfiguration(self)
+        self.tools = SessionToolCalls(self)
         self._agent_data = agent
         self.session_id = session_id
         self.server = jsonrpc.Server()
-        self._session_update_lock = asyncio.Lock()
+        self.updates = SessionNotificationOwner(self)
         self.server.expose_instance(self)
+        for owner in ClientRequestOwner.members_with(ClientRequestOwner):
+            self.server.expose_instance(owner.resolve(self))
         self._reconnecting = False
         self._connected_ok = False
         self._deferred_submissions: set[asyncio.Task] = set()
@@ -157,7 +158,6 @@ class Agent(AgentBase):
             },
         }
         self.session_pk: int | None = session_pk
-        self.tool_calls: dict[str, protocol.ToolCall] = {}
         self._active_turn_id: str | None = None
         self._turn_lifecycle_sequence = 0
         self._private_cursor = ProjectionAttachment()
@@ -259,271 +259,14 @@ class Agent(AgentBase):
         """
         return self.controller.surface.post(message)
 
-    @jsonrpc.expose("session/update", ordered=True)
-    async def _rpc_session_update(
-        self,
-        sessionId: str,
-        update: Any,
-        _meta: dict[str, Any] | None = None,
-    ) -> None:
-        """Validate wire notifications off-process, then publish to the same owner."""
-        session = self.session_id
-        async with self._session_update_lock:
-            if not self.process.accepts_session(session):
-                return
-            validation = await self.controller.validate(sessionId, update, _meta)
-            if not self.process.accepts_session(session):
-                return
-            if validation.error is not None:
-                self._reject_session_update(sessionId, update, _meta, validation.error)
-                return
-            self._apply_session_update(sessionId, cast(protocol.SessionUpdate, update))
-
-    def rpc_session_update(
-        self,
-        sessionId: str,
-        update: Any,
-        _meta: dict[str, Any] | None = None,
-    ):
-        """Synchronous in-process SDK boundary for direct protocol consumers.
-
-        Wire notifications use the asynchronous process-owned boundary above.
-        """
-        from pydantic import ValidationError
-
-        try:
-            update = validate_session_update(sessionId, update, _meta)
-        except ValidationError as error:
-            self._reject_session_update(sessionId, update, _meta, str(error))
-            return
-        self._apply_session_update(sessionId, update)
-
-    def _reject_session_update(self, session_id, update, metadata, error) -> None:
-        self.log(
-            f"[ACP rejected session/update] raw={{'sessionId': {session_id!r}, "
-            f"'update': {update!r}, '_meta': {metadata!r}}}; validation={error}"
-        )
-        self.post_message(messages.RejectedSessionUpdate())
-
-    def _apply_session_update(
-        self, sessionId: str, update: protocol.SessionUpdate
-    ) -> None:
-        if self.session_id is not None and sessionId != self.session_id:
-            return
-        metadata = update.get("_meta")
-        consumer = self.comms_consumer_class(self, sessionId)
-        try:
-            facts = decode_updates(metadata)
-        except (TypeError, ValueError) as error:
-            self._reject_session_update(sessionId, update, metadata, str(error))
-            return
-        for fact in facts:
-            consumer.dispatch_sync(fact)
-        route: MessageRoute | None = consumer.route
-        match update:
-            case {
-                "sessionUpdate": "user_message_chunk",
-                "content": {"type": type, "text": text},
-            }:
-                if text:
-                    self.post_message(messages.UserMessage(type, text))
-            case {
-                "sessionUpdate": "agent_message_chunk",
-                "content": {"type": type, "text": text},
-            }:
-                if text:
-                    if type == "text" and text.startswith("[agent error]"):
-                        text += f"\n\n[Open ACP log]({quote(str(self.presentation.log_path))})"
-                    self.post_message(messages.Update(type, text, route))
-            case {
-                "sessionUpdate": "agent_thought_chunk",
-                "content": {"type": type, "text": text},
-            }:
-                self.post_message(messages.Thinking(type, text))
-            case {"sessionUpdate": "tool_call", "toolCallId": tool_call_id}:
-                self.tool_calls[tool_call_id] = update
-                self.post_message(messages.ToolCall(update))
-            case {"sessionUpdate": "plan", "entries": entries}:
-                self.controller.publish_plan(decode_plan(entries))
-            case {"sessionUpdate": "tool_call_update", "toolCallId": tool_call_id}:
-                if tool_call_id in self.tool_calls:
-                    current_tool_call = self.tool_calls[tool_call_id]
-                    for key, value in update.items():
-                        if value is not None:
-                            current_tool_call[key] = value
-                    self.post_message(
-                        messages.ToolCallUpdate(deepcopy(current_tool_call), update)
-                    )
-                else:
-                    current_tool_call: protocol.ToolCall = {
-                        "sessionUpdate": "tool_call",
-                        "toolCallId": tool_call_id,
-                        "title": "Tool call",
-                    }
-                    for key, value in update.items():
-                        if value is not None:
-                            current_tool_call[key] = value
-                    self.tool_calls[tool_call_id] = current_tool_call
-                    self.post_message(messages.ToolCall(current_tool_call))
-            case {
-                "sessionUpdate": "available_commands_update",
-                "availableCommands": available_commands,
-            }:
-                self.controller.publish_commands(available_commands)
-            case {"sessionUpdate": "current_mode_update", "currentModeId": mode_id}:
-                self.controller.current_mode = mode_id
-                self.post_message(messages.ModeUpdate(mode_id))
-            case {
-                "sessionUpdate": "config_option_update",
-                "configOptions": config_options,
-            }:
-                self.configuration.receive({"configOptions": config_options})
-            case {"sessionUpdate": "session_info_update"} if "title" in update:
-                title = update.get("title")
-                self.post_message(messages.SessionInfoUpdate(title))
-            case {"sessionUpdate": "usage_update", "used": used, "size": size}:
-                self.context_measurement = ContextMeasurement.live(used, size, update.get("cost"))
-                self.update_status_line()
-
     def update_status_line(self) -> None:
         """The measurement owns availability and source-specific presentation."""
         self.post_message(messages.UpdateStatusLine(self.context_measurement.status()))
 
-    @jsonrpc.expose("session/request_permission")
-    async def rpc_request_permission(
-        self,
-        sessionId: str,
-        options: list[protocol.PermissionOption],
-        toolCall: protocol.ToolCallUpdatePermissionRequest,
-        _meta: dict | None = None,
-    ) -> protocol.RequestPermissionResponse:
-        """Agent requests permission to make a tool call.
-
-        Args:
-            sessionId: The session ID.
-            options: A list of permission options (potential replies).
-            toolCall: The tool or tools the agent is requesting permission to call.
-            _meta: Optional meta information.
-
-        Returns:
-            The response to the permission request.
-        """
-        cancelled: protocol.RequestPermissionResponse = {
-            "outcome": {"outcome": "cancelled"}
-        }
-        if not self.process.accepts_session(sessionId):
-            return cancelled
-        tool_call_id = toolCall["toolCallId"]
-
-        permission_tool_call = cast(dict[str, Any], toolCall.copy())
-        permission_tool_call.pop("sessionUpdate", None)
-        visible_tool_call: dict[str, Any] = (
-            deepcopy(dict(self.tool_calls[tool_call_id]))
-            if tool_call_id in self.tool_calls
-            else {}
-        )
-        visible_tool_call.update(permission_tool_call)
-        self.tool_calls[tool_call_id] = cast(protocol.ToolCall, deepcopy(visible_tool_call))
-        request = self.permissions.request(options, cast(protocol.ToolCallUpdatePermissionRequest, visible_tool_call))
-        ask_result = await request.wait(PERMISSION_TIMEOUT_SECONDS)
-        if ask_result is None or not self.process.accepts_session(sessionId):
-            return cancelled
-        if not any(option["optionId"] == ask_result.id for option in options):
-            return cancelled
-        return {"outcome": {"optionId": ask_result.id, "outcome": "selected"}}
-
-    @jsonrpc.expose("fs/read_text_file")
-    def rpc_read_text_file(
-        self,
-        sessionId: str,
-        path: str,
-        line: int | None = None,
-        limit: int | None = None,
-    ) -> dict[str, str]:
-        """Read a file in the project."""
-        # TODO: what if the read is outside of the project path?
-        # https://agentclientprotocol.com/protocol/file-system#reading-files
-        read_path = self.project_root_path / path
-        try:
-            text = read_path.read_text(encoding="utf-8", errors="ignore")
-        except IOError:
-            text = ""
-        if line is not None:
-            line = max(0, line - 1)
-            if limit is None:
-                text = "\n".join(text.splitlines()[line:])
-            else:
-                text = "\n".join(text.splitlines()[line : line + limit])
-        return {"content": text}
-
-    @jsonrpc.expose("fs/write_text_file")
-    def rpc_write_text_file(self, sessionId: str, path: str, content: str) -> None:
-        # TODO: What if the agent wants to write outside of the project path?
-        # https://agentclientprotocol.com/protocol/file-system#writing-files
-
-        write_path = self.project_root_path / path
-        write_path.write_text(content, encoding="utf-8", errors="ignore")
-
-    @jsonrpc.expose("terminal/create")
-    async def rpc_terminal_create(
-        self,
-        command: str,
-        _meta: dict | None = None,
-        args: list[str] | None = None,
-        cwd: str | None = None,
-        env: list[protocol.EnvVariable] | None = None,
-        outputByteLimit: int | None = None,
-        sessionId: str | None = None,
-    ) -> protocol.CreateTerminalResponse:
-        from toad.terminal_execution import Command
-
-        terminal_env = {variable["name"]: variable["value"] for variable in env} if env else {}
-        terminal_id = await self.controller.terminals.create(
-            Command(command, args or [], terminal_env, cwd or str(self.project_root_path)),
-            outputByteLimit,
-        )
-        return {"terminalId": terminal_id}
-
-    @jsonrpc.expose("terminal/kill")
-    def rpc_terminal_kill(
-        self, sessionID: str, terminalId: str, _meta: dict | None = None
-    ) -> protocol.KillTerminalCommandResponse:
-        self.controller.terminals.kill(terminalId)
-        return {}
-
-    @jsonrpc.expose("terminal/output")
-    async def rpc_terminal_output(
-        self, sessionId: str, terminalId: str, _meta: dict | None = None
-    ) -> protocol.TerminalOutputResponse:
-        terminal_state = self.controller.terminals.output(terminalId)
-
-        result: protocol.TerminalOutputResponse = {
-            "output": terminal_state.output,
-            "truncated": terminal_state.truncated,
-        }
-        if (return_code := terminal_state.return_code) is not None:
-            result["exitStatus"] = {"exitCode": return_code}
-        return result
-
-    @jsonrpc.expose("terminal/release")
-    def rpc_terminal_release(
-        self, sessionId: str, terminalId: str, _meta: dict | None = None
-    ) -> protocol.ReleaseTerminalResponse:
-        self.controller.terminals.release(terminalId)
-        return {}
-
-    @jsonrpc.expose("terminal/wait_for_exit")
-    async def rpc_terminal_wait_for_exit(
-        self, sessionId: str, terminalId: str, _meta: dict | None = None
-    ) -> protocol.WaitForTerminalExitResponse:
-        return_code, signal = await self.controller.terminals.wait(terminalId)
-        return {"exitCode": return_code, "signal": signal}
-
-
     async def stop(self) -> None:
         """Gracefully stop the process."""
-        await self.controller.terminals.close()
         self.process.close()
+        await self.controller.terminals.close()
         if self.session_pk is not None:
             db = DB()
             await db.session_update_last_used(self.session_pk)
@@ -817,15 +560,11 @@ class Agent(AgentBase):
 
     @property
     def session_id(self):
-        return self.controller.session_id
+        return self.controller.session.session_id
 
     @session_id.setter
     def session_id(self, value):
-        if value != self.controller.session_id:
-            self.controller.replace_terminal_session()
-            self.permissions.cancel()
-            self._active_turn_id = None
-            self.controller.session_id = value
+        self.controller.bind_session(value)
 
     @property
     def ready(self):

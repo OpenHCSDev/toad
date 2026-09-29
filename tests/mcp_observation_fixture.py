@@ -28,7 +28,7 @@ async def exercise_boundaries(agent, view, pilot):
     ))
 
     async def send(*facts, session=None):
-        agent.rpc_session_update(session or agent.session_id, packet(*facts))
+        agent.updates.accept(session or agent.session_id, packet(*facts))
         await pilot.pause()
 
     await send(McpClientReceiptUpdate("retired", receipt))
@@ -40,7 +40,7 @@ async def exercise_boundaries(agent, view, pilot):
     assert not notes(view)
     malformed = packet(McpClientReceiptUpdate("observed", receipt))
     malformed["_meta"]["agentComms"]["updates"][0]["receipt"]["version"] = True
-    agent.rpc_session_update(agent.session_id, malformed)
+    agent.updates.accept(agent.session_id, malformed)
     await pilot.pause()
     assert not notes(view)
     await send(McpClientReceiptUpdate("observed", receipt))

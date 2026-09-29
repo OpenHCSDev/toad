@@ -634,35 +634,16 @@ class ToadApp(WorkspaceSessionShutdown, App, inherit_bindings=False):
             super().delay_update(delay)
 
     def _display(self, screen: Screen, renderable) -> None:
-        from toad.screens.workspace import WorkspaceScreen
 
         super()._display(screen, renderable)
         if (not self._renderer_warmup_started and renderable is not None
                 and not self._batch_count and screen is self.screen):
             self._renderer_warmup_started = True
             self._warm_renderer()
-        if (renderable is not None and not self._batch_count and screen is self.screen
-                and isinstance(screen, WorkspaceScreen)
-                and (not screen._first_frame_presented or screen._navigation_frame_pending)
-                and not screen._first_frame_flush_queued):
-            # call_after_refresh may run on an unpainted update. A real Linux
-            # terminal writes asynchronously: do not start expensive native
-            # source work until the opening frame has actually been flushed.
-            after_flush = getattr(self._driver, "call_after_flush", None)
-            if after_flush is not None and not self.is_headless:
-                screen._first_frame_flush_queued = True
-                loop = asyncio.get_running_loop()
-                revision = screen._presentation_revision
-
-                def release_initial_frame() -> None:
-                    try:
-                        loop.call_soon_threadsafe(screen._frame_presented, revision)
-                    except RuntimeError:
-                        pass  # The app closed after this terminal write.
-
-                after_flush(release_initial_frame)
-            else:
-                screen._frame_presented(screen._presentation_revision)
+        if renderable is not None and not self._batch_count:
+            if screen is self.screen:
+                from toad.frame_presentation import FrameDisplay
+                FrameDisplay().dispatch_sync(screen)
 
     @work(group="renderer-warmup", exit_on_error=False)
     async def _warm_renderer(self) -> None:

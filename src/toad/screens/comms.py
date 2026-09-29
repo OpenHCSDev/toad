@@ -164,7 +164,7 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
 
     def on_mount(self) -> None:
         if not self._content_loaded:
-            self.call_after_first_frame(self, self._start_hydration)
+            self.screen.frame_presentation.defer(self, self._start_hydration)
             return
         self._prepare_content()
 

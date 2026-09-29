@@ -1,0 +1,261 @@
+{
+  "src/toad/acp/agent.py": {
+    "before": {
+      "absence": 2,
+      "chain": 0,
+      "excess500": 633,
+      "classes": {
+        "Mode": 6,
+        "Model": 6,
+        "TokenUsage": 9,
+        "Agent": 1133
+      }
+    },
+    "after": {
+      "absence": 2,
+      "chain": 0,
+      "excess500": 486,
+      "classes": {
+        "Mode": 6,
+        "Model": 6,
+        "TokenUsage": 9,
+        "Agent": 986
+      }
+    }
+  },
+  "src/toad/acp/agent_controller.py": {
+    "before": {
+      "absence": 2,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {
+        "SurfaceBinding": 8,
+        "DetachedSurfaceBinding": 3,
+        "AttachedSurfaceBinding": 11,
+        "ValidationOwner": 3,
+        "HeadlessValidationOwner": 3,
+        "ApplicationValidationOwner": 6,
+        "AgentController": 94
+      }
+    },
+    "after": {
+      "absence": 2,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {
+        "SurfaceBinding": 8,
+        "DetachedSurfaceBinding": 3,
+        "AttachedSurfaceBinding": 11,
+        "ValidationOwner": 3,
+        "HeadlessValidationOwner": 3,
+        "ApplicationValidationOwner": 6,
+        "AgentController": 93
+      }
+    }
+  },
+  "src/toad/acp/client_files.py": {
+    "before": {
+      "absence": 0,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {}
+    },
+    "after": {
+      "absence": 0,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {
+        "FileClientRequestOwner": 21
+      }
+    }
+  },
+  "src/toad/acp/client_session.py": {
+    "before": {
+      "absence": 0,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {}
+    },
+    "after": {
+      "absence": 0,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {
+        "ClientSessionRequest": 20,
+        "ClientRequestOwner": 12
+      }
+    }
+  },
+  "src/toad/acp/permission_controller.py": {
+    "before": {
+      "absence": 0,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {
+        "PermissionRequest": 45,
+        "ToolPermissionRequest": 13,
+        "PermissionController": 28
+      }
+    },
+    "after": {
+      "absence": 0,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {
+        "PermissionRequest": 45,
+        "ToolPermissionRequest": 13,
+        "PermissionController": 48
+      }
+    }
+  },
+  "src/toad/acp/terminal_controller.py": {
+    "before": {
+      "absence": 0,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {
+        "TerminalController": 66
+      }
+    },
+    "after": {
+      "absence": 0,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {
+        "TerminalSessionRetired": 2,
+        "TerminalControllerState": 3,
+        "OpenTerminalControllerState": 3,
+        "RetiredTerminalControllerState": 3,
+        "TerminalController": 78
+      }
+    }
+  },
+  "src/toad/acp/terminal_owner.py": {
+    "before": {
+      "absence": 0,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {
+        "OperationalTerminalOwner": 19
+      }
+    },
+    "after": {
+      "absence": 0,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {
+        "OperationalTerminalOwner": 73
+      }
+    }
+  },
+  "src/toad/acp/tool_calls.py": {
+    "before": {
+      "absence": 0,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {}
+    },
+    "after": {
+      "absence": 0,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {
+        "SessionToolCalls": 33
+      }
+    }
+  },
+  "src/toad/jsonrpc.py": {
+    "before": {
+      "absence": 1,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {
+        "NoDefault": 3,
+        "ErrorCode": 9,
+        "Parameter": 3,
+        "Method": 5,
+        "JSONRPCError": 18,
+        "InvalidRequest": 2,
+        "InvalidParams": 2,
+        "MethodNotFound": 2,
+        "InternalError": 2,
+        "APIError": 9,
+        "Server": 219,
+        "MethodCall": 39,
+        "Request": 44,
+        "API": 88
+      }
+    },
+    "after": {
+      "absence": 1,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {
+        "NoDefault": 3,
+        "ErrorCode": 9,
+        "Parameter": 3,
+        "Method": 5,
+        "JSONRPCError": 18,
+        "InvalidRequest": 2,
+        "InvalidParams": 2,
+        "MethodNotFound": 2,
+        "InternalError": 2,
+        "APIError": 9,
+        "Server": 216,
+        "MethodCall": 39,
+        "Request": 44,
+        "API": 88
+      }
+    }
+  },
+  "src/toad/permission_presentation.py": {
+    "before": {
+      "absence": 3,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {
+        "PermissionPresentation": 26,
+        "DiffPermissionPresentation": 27,
+        "InlinePermissionPresentation": 28
+      }
+    },
+    "after": {
+      "absence": 3,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {
+        "PermissionPresentation": 27,
+        "DiffPermissionPresentation": 27,
+        "InlinePermissionPresentation": 28
+      }
+    }
+  },
+  "src/toad/screens/permissions.py": {
+    "before": {
+      "absence": 2,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {
+        "PermissionsQuestion": 2,
+        "ChangesOptionList": 2,
+        "DiffViewSelect": 2,
+        "ToolScroll": 2,
+        "PermissionsScreen": 211,
+        "PermissionReview": 19
+      }
+    },
+    "after": {
+      "absence": 2,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {
+        "PermissionsQuestion": 2,
+        "ChangesOptionList": 2,
+        "DiffViewSelect": 2,
+        "ToolScroll": 2,
+        "PermissionsScreen": 211,
+        "PermissionReview": 20
+      }
+    }
+  }
+}

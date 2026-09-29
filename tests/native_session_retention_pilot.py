@@ -49,7 +49,7 @@ class PaintedSwitchApp(InstalledApp):
         if (self.observed_started is not None and renderable is not None
                 and not self._batch_count and screen is self.screen
                 and self.selected_mode == self.observed_destination
-                and not screen._navigation_frame_pending):
+                and screen.frame_presentation.ready):
             paint = "\n".join(strip.text for strip in screen._compositor.render_strips())
             if all(marker in paint for marker in self.observed_expected):
                 self.observed_frames.append((time.monotonic() - self.observed_started) * 1000)

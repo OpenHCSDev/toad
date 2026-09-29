@@ -4,12 +4,22 @@ from __future__ import annotations
 import asyncio
 from abc import abstractmethod
 from weakref import ref
+from dataclasses import dataclass
 
 from agent_comms.declared_family import DeclaredFamily
 from toad.render_tasks import ValidateSessionUpdateTask
 from toad.plan import PlanItem
 from .terminal_owner import OperationalTerminalOwner
 from .transcript_reader import CoordinationTranscriptReader
+
+
+@dataclass(frozen=True)
+class SessionBinding:
+    """Actual ACP binding identity, preserved only until session replacement."""
+    session_id: str | None
+
+    def admits_notification(self, session_id):
+        return self.session_id is None or self.session_id == session_id
 
 
 class SurfaceBinding(DeclaredFamily, affix="SurfaceBinding"):
@@ -61,18 +71,25 @@ class ApplicationValidationOwner(ValidationOwner):
 class AgentController(OperationalTerminalOwner):
     """One operational source; the surface is an optional weak projection."""
     def __init__(self, agent):
-        super().__init__()
-        self.agent = agent
+        super().__init__(agent)
         self.surface: SurfaceBinding = DetachedSurfaceBinding()
         self.validation: ValidationOwner = HeadlessValidationOwner()
         self.app = None
         self.transcripts = CoordinationTranscriptReader(self)
         self.coordination = None
-        self.session_id = None
+        self.session = SessionBinding(None)
         self.modes = {}
         self.current_mode = None
         self.commands = []
         self.plan_entries: list[PlanItem] | None = None
+
+    def bind_session(self, session_id):
+        if session_id != self.session.session_id:
+            self.replace_terminal_session()
+            self.agent.permissions.cancel()
+            self.agent.tools.reset()
+            self.agent._active_turn_id = None
+            self.session = SessionBinding(session_id)
 
     def attach(self, target):
         previous = self.surface.target

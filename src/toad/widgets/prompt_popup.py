@@ -81,6 +81,9 @@ class PromptPopup(DeclaredFamily, VerticalGroup, metaclass=_PopupMeta, affix="Po
 class CompletionPopup(PromptPopup):
     """Completion widgets appear above the editor; membership is derived."""
 
+    def cursor_changed(self, movement) -> None:
+        """Cases without cursor-triggered entry retain their existing control."""
+
 
 class InfoPopup(PromptPopup):
     """Session choices appear alongside the prompt's session information."""

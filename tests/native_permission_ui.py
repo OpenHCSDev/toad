@@ -34,7 +34,7 @@ class Observer:
     async def session_update(self, session_id: str, update: dict[str, Any]) -> None:
         with (self.root / "toad-updates.jsonl").open("a") as log:
             log.write(json.dumps({"session": session_id, "update": update}) + "\n")
-        self.agent.rpc_session_update(session_id, update)
+        self.agent.updates.accept(session_id, update)
         await self.pilot.pause()
         with (self.root / "toad-states.jsonl").open("a") as log:
             log.write(json.dumps({"agent": self.agent._active_turn_id,
@@ -55,7 +55,7 @@ class Observer:
 
     async def request_permission(self, *, session_id, tool_call, options, **kwargs):
         self.permissions += 1
-        task = asyncio.create_task(self.agent.rpc_request_permission(
+        task = asyncio.create_task(self.agent.permissions.request_permission(
             sessionId=session_id, toolCall=tool_call, options=options,
         ))
         self.permission_tasks.add(task)

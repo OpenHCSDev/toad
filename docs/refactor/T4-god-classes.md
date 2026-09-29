@@ -493,3 +493,28 @@ that separately owned acceptance complete. Parent owns review/merge/live pins.
 
 
 PR154 final review checkpoint: main040607 integrated normally at0ec22684; actual popup pilots use selected_session/selected_mode rather than retired Screen ownership. Installed physical ACP/files/model/new-declaration paint and three deletion/lifetime/admission guards pass with core9251/Textual1738. Product445lines deleted/294added; no chain/foreign-absence/codec growth. Detailed current boundary is evidence/prompt-completion/CHECKPOINT.md. Parent owns merge/install and actual live popup/entry check; independent CommsScreen/first-open bugs remain Carver/Tesla. No remaining assigned popup implementation blocker.
+
+## Q7 continuation: cursor/slash and first-frame lifetime (Noether, PR176)
+
+Parent assigned the complete remaining Q7 cursor/first-frame batch after169,
+coordinated directly in Carver173/Tesla174 threads. Existing command/popup
+families own cursor entry and hints; previous/next history cases consume actual
+framework wrapped-row boundaries. Workspace's nominal frame lifetime owns
+writer receipt identity, deferred callbacks and modal suspension/resumption.
+All actual App/SessionView/Main/Comms/sidebar/Conversation callers migrate;
+the obsolete flag/counter/event/forwarding mechanisms and mocked pilot are deleted.
+No Agent RPC, saved-body/cache, viewport/preparation or style/layout ownership
+is introduced. Merged174's source/filesystem startup custody is preserved.
+
+Actual installed continuous SDK/keyboard/channel/hint/new-command paint,
+Linux PTY writer-flush-before-ACP/physical completion/resize/close, and actual
+native cold fork/modal return/pre-socket open/5.4-second hold/distinct first
+reply in the same process and tab PASS. The actual native modal gate exposed
+a shadowed public resume handler; the frame hook now uses the authoritative
+private ScreenResume entrypoint. Ten deletion guards and per-file production
+ratchet PASS, including chain terms, foreign absence and excess over500.
+187 production and93 obsolete test lines deleted; production adds376 lines
+for complete nominal owner/case contracts. App769→750, Workspace371→323,
+PromptTextArea363→305; no whole-T4/global-clean/default-live claim.
+See [the full Q7 source/installed/limits receipt](../../evidence/prompt-interaction/RECEIPT.md).
+Parent owns review, pair integration, merge/install and the affected LIVE check.
