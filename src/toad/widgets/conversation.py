@@ -2354,11 +2354,7 @@ class Conversation(ConversationSessionBinding):
         self.prompt.focus()
 
     def jump_to_latest(self) -> None:
-        self.window.document_viewport.destination()
-        for history in self.query(TranscriptHistory):
-            if history.has_newer:
-                history.request_latest()
-        self.window.anchor()
+        self.window.jump_to_latest()
         self.transcript.request()
 
     async def action_select_block(self) -> None:

@@ -104,3 +104,34 @@ terminal Strip frame. The source pilot measured a median 244.5 ms from
 selection to first completed display, with `native_activate` around 124–150 ms
 and destination `layout_navigation` around 20–24 ms across its five returns.
 The reparent traversal is a likely contributor, not isolated by that timing.
+
+## Source checkpoint after interruption
+
+Current main `84e3bd94` was merged normally. The recorded End defect has a
+source fix: `HistoryWindow` owns tail navigation for both the physical End key
+and the existing jump control. A pager queues that destination against the
+window's actual scroll revision while an edge read is running, then requests
+the tail page through its existing worker preparation. The intervening edge
+read cannot publish against the superseded reader intent. Later user scrolling
+revokes the queued destination.
+
+Validated parked history now publishes its existing Covered message even when
+the committed cursor did not change. PR204 owns the inbound coverage gate and
+uses this notification to retry deferred original notifications. No inbound
+sequence store or model/goal copy was added.
+
+Static verification passed for all seven changed Python files: syntax plus
+per-function and per-file StringDispatch, StringDispatchArms, TypeSwitch and
+TypeSwitchArms ratchets. No dispatch count increased; the existing Conversation
+counts are 3 subjects/12 literal arms, unchanged in unrelated functions. This
+change introduces no external taxonomy. The same-run bounded merge review of
+PR199 reported no added dispatch and no weighted candidate debt.
+
+The existing transcript-history journey now includes actual End key delivery
+during a delayed native-page read and checks the painted final record. It and
+the new installed physical capture have not run at this checkpoint: the owner
+restricted work to bounded reads/code while resource headroom failed. The
+installed runtime remains the earlier 573 candidate. Next focused command is
+`PYTHONPATH=src:tests <paired-python> tests/transcript_history_pilot.py`, followed
+by the existing matched-private installed A/B/A and held-key recording. Those
+runs require the resource assertion to pass and a sequenced capture slot.

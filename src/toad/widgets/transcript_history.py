@@ -451,6 +451,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         self.older.tooltip = "Click or press Enter to load earlier history, including in In/out only mode"
         self.newer = JumpToLatest("↓ Jump to latest")
         self._loading = False
+        self._latest_revision: int | None = None
         self._advancing = False
         self._check_pending = False
         self._saturated_widget_limit = 0
@@ -780,7 +781,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
     @on(JumpToLatest.Requested)
     def on_jump(self, event: JumpToLatest.Requested) -> None:
         event.stop()
-        self.request_latest()
+        self.window.jump_to_latest()
 
     @on(HistoryEdge.Requested)
     def on_earlier_history(self, event: HistoryEdge.Requested) -> None:
@@ -791,21 +792,32 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
             self._request_page(True)
 
     def request_latest(self) -> None:
+        self._latest_revision = self.window.scroll_revision
+        if self._prefetch_worker is not None:
+            self._prefetch_worker.cancel()
+        self._prefetched_edges = None
+        self._prefetch_intent = None
         if not self._loading:
-            self.window.document_viewport.destination()
-            if self._prefetch_worker is not None:
-                self._prefetch_worker.cancel()
-            self._prefetched_edges = None
-            self._prefetch_intent = None
-            self._loading = True
-            self.run_worker(self._jump_latest())
+            self._finish_page_request()
 
-    async def _jump_latest(self) -> None:
+    def _finish_page_request(self) -> None:
+        """A destination supersedes an edge read without admitting skipped pages."""
+        self._loading = False
+        if self._latest_revision is not None and self.state.accepts_publication:
+            revision, self._latest_revision = self._latest_revision, None
+            if self.window.scroll_revision == revision:
+                self._loading = True
+                self.run_worker(self._jump_latest(revision))
+                return
+        if self.is_attached:
+            self.window.check_follow()
+            self._scroll_changed()
+
+    async def _jump_latest(self, scroll_revision: int) -> None:
         self._generation += 1
         generation = self._generation
         window, loader = self.window, self.loader
         destination_admission = window.document_viewport.lookahead.admission(self.budget, window.size.height)
-        scroll_revision = window.scroll_revision
         try:
             if loader is None:
                 page, fragments = self.pages[-1].page, self.pages[-1].fragments
@@ -813,7 +825,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
                 prepared = await self._reader().get(PageRequest(before=self.through))
                 page, fragments = prepared.page, prepared.fragments
             async with window.history_lock:
-                if (not self.is_attached or self.window is not window or self.loader is not loader
+                if (not self.state.accepts_publication or self.window is not window or self.loader is not loader
                         or generation != self._generation or window.scroll_revision != scroll_revision):
                     return
                 self._saturated_widget_limit = 0
@@ -830,9 +842,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
                 self._update_edges()
                 self.call_after_refresh(self._anchor_latest, generation, scroll_revision)
         finally:
-            self._loading = False
-            if self.is_attached:
-                self._scroll_changed()
+            self._finish_page_request()
 
     def _anchor_latest(self, generation: int, scroll_revision: int) -> None:
         if (self.is_attached and generation == self._generation
@@ -900,10 +910,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         except (OSError, ValueError) as error:
             self.notify(str(error), title="History", severity="error")
         finally:
-            self._loading = False
-            if self.is_attached:
-                self.window.check_follow()
-                self._scroll_changed()
+            self._finish_page_request()
 
     async def _extend_and_trim(
         self, edge: TranscriptPageView, older: bool, local: bool,

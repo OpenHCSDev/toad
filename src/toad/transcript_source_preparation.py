@@ -28,6 +28,7 @@ class TranscriptSourcePreparation:
             self._source_state = (ParkedSourceTranscript(self._source_state) if parked
                                   else RetiredSourceTranscript(self._source_state))
         self._generation += 1
+        self._latest_revision = None
         self._prefetch_intent = None
         self.window.histories.discard(self)
         if self._page_buffer is not None:
@@ -46,7 +47,9 @@ class TranscriptSourcePreparation:
         self._page_buffer = None
         self._prefetched_edges = self._prefetch_intent = None
         self.window.histories.add(self)
-        self._scroll_changed()
+        if self._source_state.reports_coverage:
+            self.post_message(self.Covered(tuple(self.coverage_events), self))
+        self._finish_page_request()
         self._warm_pages()
 
 
