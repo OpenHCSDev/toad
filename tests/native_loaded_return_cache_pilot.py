@@ -227,6 +227,8 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
         for source, agent in ((sources[0], agents[0]), (sources[1], agents[1]),
                               (sources[0], agents[0]), (sources[1], agents[1]), (sources[0], agents[0])):
             before_hits, before_misses = app.preparation.hits, app.preparation.misses
+            viewport = app.workspace_chrome.native.widget.window.document_viewport
+            before_reuse, before_evictions = viewport.reuse_hits, viewport.body_evictions
             started = perf_counter()
             print("CACHE_BEFORE_SELECT", source.id,
                   [(type(k().parent).__name__, getattr(k().identity.source,"session_id",None),
@@ -305,6 +307,9 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
                             "cache_misses":app.preparation.misses-before_misses,
                             "mounted_response_bodies":len(bodies),
                             "reused_body_instances":reused,
+                            "retained_body_reuse_hits":viewport.reuse_hits-before_reuse,
+                            "retained_body_evictions":viewport.body_evictions-before_evictions,
+                            "warm_bodies":sum(key() is not None for key in viewport._warm),
                             "prepared_bytes":app.preparation.retained_bytes})
         if profile is not None:
             profile.disable()
