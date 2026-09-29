@@ -23,14 +23,14 @@ class IncomingWireMessage(ABC):
         raise ValueError("Agent sent an invalid JSON-RPC object or response batch")
 
     @abstractmethod
-    async def receive(self, agent, call_jsonrpc, tasks): ...
+    async def receive(self, agent, call_jsonrpc, process_owner): ...
 
 
 @dataclass(frozen=True)
 class WireResponse(IncomingWireMessage):
     payload: dict | list[dict]
 
-    async def receive(self, agent, call_jsonrpc, tasks):
+    async def receive(self, agent, call_jsonrpc, process_owner):
         API.process_response(self.payload)
 
 
@@ -38,11 +38,11 @@ class WireResponse(IncomingWireMessage):
 class WireCall(IncomingWireMessage):
     payload: dict
 
-    async def receive(self, agent, call_jsonrpc, tasks):
+    async def receive(self, agent, call_jsonrpc, process_owner):
         import asyncio
 
         if agent.server.requires_ordered_dispatch(self.payload):
             await call_jsonrpc(self.payload)
         else:
-            tasks.add(asyncio.create_task(call_jsonrpc(self.payload)))
+            process_owner.start_operation(call_jsonrpc(self.payload))
             await asyncio.sleep(0)

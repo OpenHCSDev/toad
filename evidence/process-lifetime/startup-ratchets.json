@@ -1,0 +1,52 @@
+{
+  "src/toad/acp/agent.py": {
+    "ForeignAbsenceProbe": [
+      6,
+      6
+    ],
+    "BooleanChainTerms": [
+      0,
+      0
+    ]
+  },
+  "src/toad/acp/agent_process.py": {
+    "ForeignAbsenceProbe": [
+      4,
+      4
+    ],
+    "BooleanChainTerms": [
+      0,
+      0
+    ]
+  },
+  "src/toad/acp/comms_updates.py": {
+    "ForeignAbsenceProbe": [
+      7,
+      7
+    ],
+    "BooleanChainTerms": [
+      0,
+      0
+    ]
+  },
+  "src/toad/agent.py": {
+    "ForeignAbsenceProbe": [
+      0,
+      0
+    ],
+    "BooleanChainTerms": [
+      0,
+      0
+    ]
+  },
+  "src/toad/widgets/conversation.py": {
+    "ForeignAbsenceProbe": [
+      31,
+      31
+    ],
+    "BooleanChainTerms": [
+      25,
+      25
+    ]
+  }
+}

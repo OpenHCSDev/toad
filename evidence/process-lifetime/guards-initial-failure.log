@@ -1,0 +1,24 @@
+..F                                                                      [100%]
+=================================== FAILURES ===================================
+___________________ test_acp_process_retirement_single_owner ___________________
+
+    def test_acp_process_retirement_single_owner():
+        retired = {'ProcessControl', 'PosixProcessControl', 'WindowsProcessControl',
+                   '_maintenance_env', '_maintenance_cwd', '_maintenance_root',
+                   '_maintenance_implicit_root', 'stopping'}
+        for relative in ('acp/agent.py', 'acp/agent_process.py', 'acp/maintenance_ingress.py',
+                         'acp/agent_controller.py', 'acp/comms_updates.py'):
+            for node in ast.walk(ast.parse((ROOT / relative).read_text())):
+                if isinstance(node, ast.Name):
+                    assert node.id not in retired, (relative, node.lineno)
+                if isinstance(node, ast.Attribute):
+                    assert node.attr not in retired, (relative, node.lineno)
+>                   assert node.attr not in {'killpg', 'terminate', 'kill', 'create_subprocess_shell'}, (relative, node.lineno)
+E                   AssertionError: ('acp/agent.py', 566)
+E                   assert 'kill' not in {'create_subprocess_shell', 'kill', 'killpg', 'terminate'}
+E                    +  where 'kill' = Attribute(value=Attribute(value=Attribute(value=Name(...), attr='controller', ctx=Load(...)), attr='terminals', ctx=Load()), attr='kill', ctx=Load()).attr
+
+tests/guards/test_t4.py:75: AssertionError
+=========================== short test summary info ============================
+FAILED tests/guards/test_t4.py::test_acp_process_retirement_single_owner - As...
+1 failed, 2 passed in 2.03s

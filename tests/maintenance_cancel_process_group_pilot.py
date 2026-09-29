@@ -23,7 +23,8 @@ async def main() -> None:
         child_ready: asyncio.Future[int] = loop.create_future()
         held = asyncio.Event()
         release = asyncio.Event()
-        actual = asyncio.create_subprocess_shell
+        from agent_comms.child_process import AttachedChild
+        actual = AttachedChild.start
         shell = None
         data = bytearray()
 
@@ -49,14 +50,14 @@ async def main() -> None:
 
         try:
             with patch.dict(os.environ, {"AGENT_COMMS_ROOT": directory}), patch(
-                "asyncio.create_subprocess_shell", delayed_actual
+                "agent_comms.child_process.AttachedChild.start", delayed_actual
             ):
                 attempt = asyncio.create_task(
                     admitted_spawn(
-                        command, start_new_session=True, pass_fds=(write_fd,),
-                        stdin=asyncio.subprocess.DEVNULL,
-                        stdout=asyncio.subprocess.DEVNULL,
-                        stderr=asyncio.subprocess.DEVNULL,
+                        command, pass_fds=(write_fd,),
+
+
+
                         cwd=directory, env=os.environ.copy(),
                     )
                 )
@@ -85,7 +86,7 @@ async def main() -> None:
             os.close(write_fd)
             if shell is not None:
                 try:
-                    os.killpg(shell.pid, signal.SIGKILL)
+                    os.killpg(shell.identity.pid, signal.SIGKILL)
                 except ProcessLookupError:
                     pass
                 await shell.wait()
