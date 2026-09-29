@@ -28,13 +28,13 @@ from textual.widget import Widget
 from textual.widgets import Static
 
 from toad.transcript_filter import TranscriptFilter
-from toad.transcript_state import TranscriptState, LiveTranscript, ProvisionalTranscript, RetiredSourceTranscript
-from textual.worker import WorkerCancelled
+from toad.transcript_state import TranscriptState, LiveTranscript, ProvisionalTranscript
+from toad.transcript_source_preparation import TranscriptSourcePreparation
 from toad.acp import protocol
 from toad.acp.encode_tool_call_id import encode_tool_call_id
 from toad.transcript_preparation import (
     CategoryProjection, CommittedInterval, PageRequest, PreparedPageSource, PreparedTranscriptPage,
-    ProjectedTranscriptSource, TranscriptPageBuffer, incoming_sequences,
+    ProjectedTranscriptSource, incoming_sequences,
 )
 from toad.widgets.agent_response import AgentResponse, ResponseDelivery
 from toad.widgets.agent_thought import AgentThought
@@ -407,7 +407,7 @@ class TranscriptPageView(VerticalGroup):
         self.start, self.stop = start, stop
 
 
-class TranscriptHistory(ConversationBlock, CommittedHistory, CategorizedBlock, VerticalGroup):
+class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, CommittedHistory, CategorizedBlock, VerticalGroup):
     CACHE_HEIGHT_INDEPENDENT_BOX = True
     CACHE_HEIGHT_INDEPENDENT_ARRANGEMENT = True
     MAX_FRAGMENTS = 24
@@ -419,16 +419,14 @@ class TranscriptHistory(ConversationBlock, CommittedHistory, CategorizedBlock, V
     def __init__(self, page: TranscriptPage, loader: Callable[..., Awaitable[TranscriptPage]] | None = None,
                   *, fragments: tuple[TranscriptFragment, ...] | None = None,
                   budget: PresentationBudget | None = None, committed: bool = True):
-        super().__init__()
-        self._source_state: TranscriptState = LiveTranscript() if committed else ProvisionalTranscript()
+        super().__init__(source_state=LiveTranscript() if committed else ProvisionalTranscript(),
+                         loader=loader, through=page.after)
         self.budget = budget or PresentationBudget(
             max_items=self.MAX_FRAGMENTS, admission_items=TranscriptPageView.BATCH,
         )
         self.pages = deque([TranscriptPageView(
             page, fragments=fragments, batch_size=self.budget.admission_items,
         )])
-        self.loader = loader
-        self.through = page.after
         self.older = HistoryEdge("↑ Earlier history loads as you scroll")
         self.older.tooltip = "Click or press Enter to load earlier history, including in In/out only mode"
         self.newer = JumpToLatest("↓ Jump to latest")
@@ -436,22 +434,13 @@ class TranscriptHistory(ConversationBlock, CommittedHistory, CategorizedBlock, V
         self._advancing = False
         self._check_pending = False
         self._saturated_widget_limit = 0
-        self._generation = 0
         self.filter = TranscriptFilter(self)
-        self._page_buffer: PreparedPageSource | None = None
-        self._prefetch_worker = None
-        self._prefetched_edges = None
-        self._prefetch_intent = None
         self._fragment_budget = self.budget.max_items
         self.window: Window
 
     @property
     def fragment_views(self) -> tuple[TranscriptFragmentView, ...]:
         return tuple(child for page in self.pages for child in page.children)
-
-    @property
-    def state(self) -> TranscriptState:
-        return self._source_state.observed(self)
 
     def _require_publication(self) -> None:
         if not self.state.accepts_publication:
@@ -539,60 +528,8 @@ class TranscriptHistory(ConversationBlock, CommittedHistory, CategorizedBlock, V
         if self._page_buffer is not None:
             self._page_buffer.close()
 
-    async def retire_source(self) -> None:
-        """End pager mutations before any of its bodies transfer to the shelf."""
-        self._source_state = RetiredSourceTranscript(self._source_state)
-        self._generation += 1
-        self._prefetch_intent = None
-        self.window.histories.discard(self)
-        if self._page_buffer is not None:
-            self._page_buffer.close()
-        for worker in self.workers.cancel_node(self):
-            try:
-                await worker.wait()
-            except WorkerCancelled:
-                pass
 
-    def _reader(self) -> PreparedPageSource:
-        assert self.loader is not None
-        reader = self._page_buffer
-        if reader is None or reader.loader is not self.loader or reader.through != self.through:
-            if reader is not None:
-                reader.close()
-            self._page_buffer = reader = TranscriptPageBuffer(
-                self.loader, self.through, self.app.preparation,
-            )
-            self._prefetched_edges = None
-            self._prefetch_intent = None
-        return reader
 
-    def _warm_pages(self) -> None:
-        if (self.loader is None or not self.is_mounted or not self.state.accepts_publication or not self.screen.is_current
-                or not self._selected_categories):
-            return
-        reader = self._reader()
-        edges = (self.pages[0].page.before if self.pages[0].page.has_older else None,
-                 self.pages[-1].page.after if self.pages[-1].page.has_newer else None)
-        travel = self.window.document_viewport.lookahead.travel_rows
-        if travel < 0:
-            edges = (edges[0], None)
-        elif travel > 0:
-            edges = (None, edges[1])
-        rounds = 1 + self.window.document_viewport.lookahead.ahead_rows(self.window.size.height) // max(1, self.window.size.height // self.budget.admission_items)
-        intent = edges, rounds, self._selected_categories
-        if intent == self._prefetch_intent:
-            return
-        self._prefetch_intent = intent
-        if self._prefetch_worker is not None and not self._prefetch_worker.is_finished:
-            self._prefetch_worker.cancel()
-
-        async def prepare() -> None:
-            current = lambda: (self._prefetch_intent is intent
-                               and self._page_buffer is reader and self.screen.is_current)
-            if await reader.prefetch(*edges, current, rounds=rounds) and current():
-                self._prefetched_edges = edges
-
-        self._prefetch_worker = self.run_worker(prepare(), group="history-lookahead", exit_on_error=False)
 
     def _layout_changed(self, _screen) -> None:
         # A scroll watcher may run before the compositor applies its new
@@ -620,11 +557,6 @@ class TranscriptHistory(ConversationBlock, CommittedHistory, CategorizedBlock, V
 
 
 
-    @property
-    def _prefetch_distance(self) -> int:
-        """Start background reads before the earlier edge enters the viewport."""
-        rows = self.window.size.height
-        return max(4, rows // 2) + self.window.document_viewport.lookahead.ahead_rows(rows)
 
 
 
