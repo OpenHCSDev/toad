@@ -1,3 +1,4 @@
+from toad.agent_schema import AgentDefinition
 from agent_comms.acp_extension import QueuePromptRequest
 """Installed Toad/ACP/owner/Pi path with a loopback-only model fixture."""
 from toad.navigation_target import NavigationContext
@@ -278,7 +279,7 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
         try:
             if prepare_state is not None:
                 await prepare_state(comms, project, requests, entered, release, hold_next)
-            app = app_type(agent_data=data, project_dir=str(project), agent_session_id="beta")
+            app = app_type(agent_data=AgentDefinition.decode(data), project_dir=str(project), agent_session_id="beta")
             print("INSTALLED_APP_RUN_TEST_ENTER", flush=True)
             async with app.run_test(headless=headless, size=(160, 44)) as pilot:
                 print("INSTALLED_APP_RUN_TEST_YIELDED", flush=True)

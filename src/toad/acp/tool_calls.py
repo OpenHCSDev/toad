@@ -1,38 +1,40 @@
-"""One session owns tool-call assembly for updates and permission admission."""
-from copy import deepcopy
+"""One session owns SDK tool-call assembly for updates and permission admission."""
+from acp.schema import ToolCall
 from toad.acp import messages
+from toad.acp.status import ToolCallStatus, PendingToolCallStatus
+
+
+def tool_status(value: ToolCall) -> type[ToolCallStatus]:
+    """The specification permits omitted status, which means pending."""
+    return ToolCallStatus.decode(value.status) if value.status is not None else PendingToolCallStatus
 
 
 class SessionToolCalls:
     def __init__(self, agent):
         self.agent = agent
-        self.calls = {}
+        self.calls: dict[str, ToolCall] = {}
 
     def reset(self):
         self.calls.clear()
 
     def begin(self, value):
-        current = deepcopy(value)
-        self.calls[value['toolCallId']] = current
-        self.agent.post_message(messages.ToolCall(deepcopy(current)))
+        current = ToolCall(**{name: getattr(value, name) for name in ToolCall.model_fields})
+        self.calls[value.tool_call_id] = current
+        self.agent.post_message(messages.ToolCall(current))
 
     def merge(self, value):
-        tool_id = value['toolCallId']
-        current = self.calls.setdefault(tool_id, {
-            'sessionUpdate': 'tool_call', 'toolCallId': tool_id, 'title': 'Tool call'})
-        current.update((key, deepcopy(item)) for key, item in value.items()
-                       if item is not None and key != 'sessionUpdate')
-        return deepcopy(current)
+        tool_id = value.tool_call_id
+        current = self.calls.get(tool_id, ToolCall(tool_call_id=tool_id, title='Tool call'))
+        changes = {name: getattr(value, name) for name in value.model_fields_set
+                   if name in ToolCall.model_fields and getattr(value, name) is not None}
+        current = current.model_copy(update=changes, deep=True)
+        self.calls[tool_id] = current
+        return current
 
     def update(self, value):
-        known = value['toolCallId'] in self.calls
+        known = value.tool_call_id in self.calls
         current = self.merge(value)
-        if known:
-            self.agent.post_message(messages.ToolCallUpdate(current, value))
-        else:
-            self.agent.post_message(messages.ToolCall(current))
+        self.agent.post_message(messages.ToolCallUpdate(current, value) if known else messages.ToolCall(current))
 
     def permission(self, value):
-        current = self.merge(value)
-        current.pop('sessionUpdate', None)
-        return current
+        return self.merge(value)

@@ -1,5 +1,6 @@
 """Operational ACP custody survives the retirement of a rich surface."""
 from __future__ import annotations
+from toad.acp.status import StopReason
 
 import asyncio
 from abc import abstractmethod
@@ -219,9 +220,9 @@ class AgentController(OperationalTerminalOwner):
             self._deferred_submissions.add(submission)
         try:
             content = await asyncio.to_thread(build_prompt, project, prompt)
-            if any(block.get('type') == 'image' for block in content):
+            if any(block.type == 'image' for block in content):
                 coordinated = self.coordination is not None
-                supported = coordinated or (self.agent.session.capabilities.get('promptCapabilities') or {}).get('image', False)
+                supported = coordinated or self.agent.session.capabilities.prompt_capabilities.image
                 if not supported:
                     raise ValueError('This agent owner does not support images yet; refresh it while idle.')
             return await self._prompt(content, command, authority, queue_scope)
@@ -258,12 +259,12 @@ class AgentController(OperationalTerminalOwner):
                 return None
             detail = error.message or 'Connection failed'
             self._prompt_failed(command, authority, queue_scope, BackendDeliveryFailure(detail),
-                'Failed to send prompt', error.message or f"{agent._agent_data['name']} returned an error")
+                'Failed to send prompt', error.message or f"{agent.definition.name} returned an error")
             return None
         if authority.retired:
             return None
         assert result is not None
-        return result.get('stopReason')
+        return StopReason.decode(result.stop_reason)
 
     def _prompt_failed(self, command, authority, queue_scope, failure, title, detail, *, published=False):
         agent = self.agent
@@ -304,7 +305,7 @@ class AgentController(OperationalTerminalOwner):
         if response is None:
             raise ValueError('Compaction returned no result')
         consumer = agent.comms_consumer_class(agent, authority.session_id)
-        for fact in decode_updates(response.get('_meta')):
+        for fact in decode_updates(response.field_meta):
             consumer.dispatch_sync(fact)
         return consumer.require_compaction_receipt()
 

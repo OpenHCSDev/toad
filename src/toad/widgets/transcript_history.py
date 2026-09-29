@@ -31,7 +31,8 @@ from textual.widgets import Static
 from toad.transcript_filter import FilterSnapshot, TranscriptFilter
 from toad.transcript_state import TranscriptState, LiveTranscript, ProvisionalTranscript
 from toad.transcript_source_preparation import TranscriptSourcePreparation
-from toad.acp import protocol
+from acp import schema as protocol
+from pydantic import TypeAdapter
 from toad.acp.encode_tool_call_id import encode_tool_call_id
 from toad.transcript_preparation import (
     CategoryProjection, CommittedInterval, PageRequest, PreparedPageSource, PreparedTranscriptPage,
@@ -101,23 +102,22 @@ class TranscriptBlockConsumer(MroDispatch):
     def tool(self, event: ToolTranscript) -> protocol.ToolCall:
         tool_id = event.tool_call_id
         if tool_id not in self.tools:
-            self.tools[tool_id] = {
-                "sessionUpdate": "tool_call", "toolCallId": tool_id,
-                "title": event.tool_name or "Tool", "status": "completed",
-                "kind": NativeTool.start(tool_id, event.tool_name, {}).kind,
-            }
+            self.tools[tool_id] = protocol.ToolCall(
+                tool_call_id=tool_id, title=event.tool_name or 'Tool', status='completed',
+                kind=NativeTool.start(tool_id, event.tool_name, {}).kind)
+
             self.blocks.append(ToolCall(self.tools[tool_id], id=encode_tool_call_id(tool_id)))
         return self.tools[tool_id]
 
     @handles(ToolStartTranscript)
     def tool_start(self, event: ToolStartTranscript):
-        self.tool(event)["rawInput"] = event.raw_input
+        self.tool(event).raw_input = event.raw_input
 
     @handles(ToolEndTranscript)
     def tool_end(self, event: ToolEndTranscript):
         tool = self.tool(event)
-        tool["status"] = "completed" if event.ok else "failed"
-        tool["content"] = tool_result_content(event.tool_call_id, event.text, event.diff)
+        tool.status = "completed" if event.ok else "failed"
+        tool.content = TypeAdapter(protocol.ToolCall.model_fields["content"].annotation).validate_python(tool_result_content(event.tool_call_id, event.text, event.diff), strict=True)
 
 
 def transcript_blocks(events: tuple[TranscriptEvent, ...], *, fragment: bool = False,

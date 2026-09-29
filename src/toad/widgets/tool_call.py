@@ -17,7 +17,8 @@ from textual.widgets import Static
 from toad.app import ToadApp
 from toad.tool_output import ToolOutput
 from toad.widgets.tool_content import ToolCallDiff
-from toad.acp import protocol
+from acp import schema as protocol
+from toad.acp.tool_calls import tool_status
 from toad.menus import MenuItem
 from toad.pill import pill
 from toad.widgets.message_filter import CategorizedBlock, MessageCategory
@@ -168,7 +169,7 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
             conversation = self.query_ancestor(Conversation)
         except NoMatches:
             return
-        tool_id = (self.tool_call or {}).get("toolCallId")
+        tool_id = self.tool_call.tool_call_id if self.tool_call else None
         if isinstance(tool_id, str):
             conversation.remember_tool_expansion(tool_id, expanded)
 
@@ -193,7 +194,7 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
         except NoMatches:
             pass
         else:
-            tool_id = (self.tool_call or {}).get("toolCallId")
+            tool_id = self.tool_call.tool_call_id if self.tool_call else None
             if isinstance(tool_id, str):
                 self._manual_expansion = conversation.tool_expansions.get(tool_id)
                 if self._manual_expansion is not None:
@@ -203,7 +204,7 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
 
     def _update_metadata(self) -> None:
         assert self.tool_call is not None
-        self.set_class(self.tool_call.get("status") == "failed", "-failed")
+        self.set_class(tool_status(self.tool_call).failed, "-failed")
         self.has_content = self.output.has_content
         self.check_expand()
 
@@ -261,8 +262,8 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
             # Don't auto expand reads, as it can generate a lot of noise
             return
         tool_call_expand = self.app.settings.tools.expand
-        status = tool_call.get("status")
-        if (status == "completed" and tool_call_expand.patch_preview
+        status = tool_status(tool_call)
+        if (status.completed and tool_call_expand.patch_preview
                 and self.output.preview_fits()):
             self._auto_expanded = True
             self.expanded = True
@@ -274,8 +275,8 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
     def tool_call_header_content(self) -> Content:
         tool_call = self.tool_call
         assert tool_call is not None
-        title = tool_call.get("title", "title")
-        status = tool_call.get("status", "pending")
+        title = tool_call.title
+        status = tool_status(tool_call)
 
         expand_icon: Content = Content()
         if self.has_content:
@@ -291,30 +292,7 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
 
         header = Content.assemble(expand_icon, "🔧 ", title)
 
-        if status == "pending":
-            header += Content.assemble(" ⌛")
-        elif status == "in_progress":
-            header += Content.assemble(
-                " ",
-                pill(
-                    "running",
-                    "$warning-muted",
-                    "$warning",
-                    filled=not self.app.theme.startswith("ansi-"),
-                ),
-            )
-        elif status == "failed":
-            header += Content.assemble(
-                " ",
-                pill(
-                    "failed",
-                    "$error-muted",
-                    "$error",
-                    filled=not self.app.theme.startswith("ansi-"),
-                ),
-            )
-        elif status == "completed":
-            header += Content.from_markup(" [$success]✔")
+        header += status.header(self)
         return header
 
     async def watch_expanded(self) -> None:

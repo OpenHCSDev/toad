@@ -26,7 +26,7 @@ from textual.screen import Screen
 from textual.signal import Signal
 
 from toad import messages
-from toad.agent_schema import Agent as AgentData
+from toad.agent_schema import AgentDefinition as AgentData
 from toad.render_backend import Renderer
 from toad.channel_preparation import ChannelHistoryReader
 from toad.navigation_preparation import (

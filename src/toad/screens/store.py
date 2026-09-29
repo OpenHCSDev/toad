@@ -30,7 +30,7 @@ from toad.widgets.directory_input import DirectoryInput
 from toad.widgets.mandelbrot import Mandelbrot
 from toad.widgets.condensed_path import CondensedPath
 from toad.widgets.grid_select import GridSelect
-from toad.agent_schema import Agent
+from toad.agent_schema import AgentDefinition
 from toad.agents import read_agents
 
 
@@ -132,29 +132,29 @@ class DirectoryDisplay(containers.HorizontalGroup):
 
 
 class AgentItem(containers.VerticalGroup):
-    """An entry in the Agent grid select."""
+    """An entry in the AgentDefinition grid select."""
 
-    def __init__(self, agent: Agent) -> None:
+    def __init__(self, agent: AgentDefinition) -> None:
         self._agent = agent
         super().__init__()
 
     @property
-    def agent(self) -> Agent:
+    def agent(self) -> AgentDefinition:
         return self._agent
 
     def compose(self) -> ComposeResult:
         agent = self._agent
         with containers.Grid():
-            yield widgets.Label(agent["name"], id="name")
+            yield widgets.Label(agent.name, id="name")
             tag = pill(
-                agent["type"],
+                agent.kind.declared_name,
                 "$primary-muted 50%",
                 "$text-primary",
                 filled=not self.app.theme.startswith("ansi-"),
             )
             yield widgets.Label(tag, id="type")
-        yield widgets.Label(agent["author_name"], id="author")
-        yield widgets.Static(agent["description"], id="description")
+        yield widgets.Label(agent.author_name, id="author")
+        yield widgets.Static(agent.description, id="description")
 
 
 class LauncherGridSelect(GridSelect):
@@ -193,7 +193,7 @@ Your favorite agents.
             return
         agent_item = self.children[self.highlighted]
         assert isinstance(agent_item, LauncherItem)
-        self.post_message(StoreScreen.OpenAgentDetails(agent_item._agent["identity"]))
+        self.post_message(StoreScreen.OpenAgentDetails(agent_item._agent.identity))
 
     def action_remove(self) -> None:
         agents = self.app.settings.launcher.agents.splitlines()
@@ -211,7 +211,7 @@ Your favorite agents.
             return
         child = self.children[self.highlighted]
         assert isinstance(child, LauncherItem)
-        self.screen.post_message(messages.LaunchAgent(child.agent["identity"]))
+        self.screen.post_message(messages.LaunchAgent(child.agent.identity))
 
 
 class Launcher(containers.VerticalGroup):
@@ -221,7 +221,7 @@ class Launcher(containers.VerticalGroup):
 
     def __init__(
         self,
-        agents: dict[str, Agent],
+        agents: dict[str, AgentDefinition],
         *,
         name: str | None = None,
         id: str | None = None,
@@ -273,15 +273,15 @@ class Launcher(containers.VerticalGroup):
 
 
 class LauncherItem(containers.VerticalGroup):
-    """An entry in the Agent grid select."""
+    """An entry in the AgentDefinition grid select."""
 
-    def __init__(self, digit: str, agent: Agent) -> None:
+    def __init__(self, digit: str, agent: AgentDefinition) -> None:
         self._digit = digit
         self._agent = agent
         super().__init__()
 
     @property
-    def agent(self) -> Agent:
+    def agent(self) -> AgentDefinition:
         return self._agent
 
     def compose(self) -> ComposeResult:
@@ -290,14 +290,14 @@ class LauncherItem(containers.VerticalGroup):
             if self._digit:
                 yield widgets.Digits(self._digit)
             with containers.VerticalGroup():
-                yield widgets.Label(agent["name"], id="name")
-                yield widgets.Label(agent["author_name"], id="author")
-                yield widgets.Static(agent["description"], id="description")
+                yield widgets.Label(agent.name, id="name")
+                yield widgets.Label(agent.author_name, id="author")
+                yield widgets.Static(agent.description, id="description")
 
 
 class AgentGridSelect(GridSelect):
     HELP = """\
-## Agent select
+## AgentDefinition select
 
 - **cursor keys** Navigate agents
 - **tab / shift+tab** Move to next / previous section
@@ -308,7 +308,7 @@ class AgentGridSelect(GridSelect):
         Binding("enter", "select", "Details", tooltip="Open agent details"),
         Binding("space", "launch", "Launch", tooltip="Launch highlighted agent"),
     ]
-    BINDING_GROUP_TITLE = "Agent Select"
+    BINDING_GROUP_TITLE = "AgentDefinition Select"
 
     def action_launch(self) -> None:
         if self.highlighted is None:
@@ -317,7 +317,7 @@ class AgentGridSelect(GridSelect):
         if not isinstance(child, AgentItem):
             self.app.open_url("https://github.com/sponsors/willmcgugan")
             return
-        self.post_message(messages.LaunchAgent(child.agent["identity"]))
+        self.post_message(messages.LaunchAgent(child.agent.identity))
 
 
 class Container(containers.VerticalScroll):
@@ -375,12 +375,12 @@ class StoreScreen(Screen):
     def __init__(
         self, name: str | None = None, id: str | None = None, classes: str | None = None
     ):
-        self._agents: dict[str, Agent] = {}
+        self._agents: dict[str, AgentDefinition] = {}
         super().__init__(name=name, id=id, classes=classes)
         self.project_dir = self.app.project_dir
 
     @property
-    def agents(self) -> dict[str, Agent]:
+    def agents(self) -> dict[str, AgentDefinition]:
         return self._agents
 
     def compose(self) -> ComposeResult:
@@ -439,11 +439,11 @@ class StoreScreen(Screen):
         yield Launcher(agents, id="launcher")
 
         ordered_agents = sorted(
-            agents.values(), key=lambda agent: agent["name"].casefold()
+            agents.values(), key=lambda agent: agent.name.casefold()
         )
 
         recommended_agents = [
-            agent for agent in ordered_agents if agent.get("recommended", False)
+            agent for agent in ordered_agents if agent.recommended
         ]
         # Shuffle reccomended agents so none has priority
         shuffle(recommended_agents)
@@ -461,29 +461,9 @@ class StoreScreen(Screen):
                         classes="sponsor-me",
                     )
 
-        chat_bots = [
-            agent for agent in ordered_agents if agent["type"] in {"chat", "assistant"}
-        ]
-        if chat_bots:
-            yield widgets.Static(
-                "[$text-warning u]Chat & Assistants[/] [$text-secondary 100% i]Biddi-biddi-biddi",
-                classes="heading",
-            )
-            with containers.VerticalGroup():
-                with AgentGridSelect(classes="agents-picker", min_column_width=40):
-                    for agent in chat_bots:
-                        yield AgentItem(agent)
-
-        coding_agents = [agent for agent in ordered_agents if agent["type"] == "coding"]
-        if coding_agents:
-            yield widgets.Static(
-                "[$text-warning u]Coding agents[/] [$text-secondary i]Build software with AI",
-                classes="heading",
-            )
-            with containers.VerticalGroup():
-                with AgentGridSelect(classes="agents-picker", min_column_width=40):
-                    for agent in coding_agents:
-                        yield AgentItem(agent)
+        from toad.agent_schema import AgentKind
+        for kind in AgentKind.members_with(AgentKind):
+            yield from kind.compose([agent for agent in ordered_agents if agent.kind is kind])
 
     def move_focus(self, direction: Literal[-1] | Literal[+1]) -> None:
         if isinstance(self.focused, GridSelect):
@@ -519,7 +499,7 @@ class StoreScreen(Screen):
         modal_response = await self.app.push_screen_wait(AgentModal(event.widget.agent))
         await self.app.settings.save()
         if modal_response == "launch":
-            self.post_message(messages.LaunchAgent(event.widget.agent["identity"]))
+            self.post_message(messages.LaunchAgent(event.widget.agent.identity))
 
     @on(OpenAgentDetails)
     @work
@@ -533,7 +513,7 @@ class StoreScreen(Screen):
         modal_response = await self.app.push_screen_wait(AgentModal(agent))
         await self.app.settings.save()
         if modal_response == "launch":
-            self.post_message(messages.LaunchAgent(agent["identity"]))
+            self.post_message(messages.LaunchAgent(agent.identity))
 
     @on(GridSelect.Selected, "#launcher GridSelect")
     @work
@@ -548,7 +528,7 @@ class StoreScreen(Screen):
         )
         await self.app.settings.save()
         if modal_response == "launch":
-            self.post_message(messages.LaunchAgent(launcher_item.agent["identity"]))
+            self.post_message(messages.LaunchAgent(launcher_item.agent.identity))
 
     @on(ChangeDirectory)
     def on_change_directory(self, event: ChangeDirectory) -> None:

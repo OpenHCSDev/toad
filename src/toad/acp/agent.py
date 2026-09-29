@@ -44,7 +44,7 @@ from toad.acp.comms_updates import CommsUpdateConsumer
 from toad.acp.projection_attachment import ProjectionAttachment
 from toad.acp.queue_attachment import QueueAttachment
 from toad.agent import AgentBase, UnsupportedResumeAgentFail, AgentReady
-from toad.agent_schema import Agent as AgentData
+from toad.agent_schema import AgentDefinition as AgentData
 
 
 class Model(NamedTuple):
@@ -106,7 +106,7 @@ class Agent(AgentBase):
         self.controller = AgentController(self)
         self.configuration = AgentConfiguration(self)
         self.tools = SessionToolCalls(self)
-        self._agent_data = agent
+        self.definition = agent
         self.session_id = session_id
         self.server = jsonrpc.Server()
         self.updates = SessionNotificationOwner(self)
@@ -121,7 +121,7 @@ class Agent(AgentBase):
         self._private_cursor_sequence = 0
         self.queue_attachment = QueueAttachment()
         self._queue_sequence = 0
-        log_filename: str = generate_datetime_filename(f"{agent['name']}", ".txt")
+        log_filename: str = generate_datetime_filename(f"{agent.name}", ".txt")
         if log_path := os.environ.get("TOAD_LOG"):
             self.presentation.log_path = Path(log_path).resolve().absolute()
             with suppress(OSError):
@@ -133,7 +133,7 @@ class Agent(AgentBase):
     @property
     def command(self) -> str | None:
         """The command used to launch the agent, or `None` if there isn't one."""
-        acp_command = toad.get_os_matrix(self._agent_data["run_command"])
+        acp_command = toad.get_os_matrix(self.definition.run_command)
         return acp_command
 
     @property
@@ -174,7 +174,7 @@ class Agent(AgentBase):
         await asyncio.to_thread(write_log, self.presentation.log_path, line)
 
     def get_info(self) -> Content:
-        agent_name = self._agent_data["name"]
+        agent_name = self.definition.name
         return Content(agent_name)
 
     async def start(self, message_target: MessagePump | None = None) -> None:
@@ -274,15 +274,15 @@ class Agent(AgentBase):
     def coordination(self, value: CoordinationChangedUpdate | None) -> None:
         self.controller.coordination = value
 
-    def _receive_comms_response(
-        self, response, cursor_token: int, queue_token: int, turn_token: int | None = None,
+    def _receive_comms_metadata(
+        self, metadata, cursor_token: int, queue_token: int, turn_token: int | None = None,
         *, consumer_class=None,
     ) -> None:
         consumer = (consumer_class or self.comms_consumer_class)(
             self, self.session_id, cursor_token=cursor_token, queue_token=queue_token,
             turn_token=turn_token,
         )
-        for fact in decode_updates(response.get("_meta")):
+        for fact in decode_updates(metadata):
             consumer.dispatch_sync(fact)
 
     def _post_queue_view(self, starts: tuple[QueueItem, ...] = ()) -> None:
@@ -335,7 +335,7 @@ class Agent(AgentBase):
         async with asyncio.timeout(3):
             turn_token = self._turn_lifecycle_sequence
             result = await self.controller.request_owner("goal_snapshot")
-        self._receive_comms_response(result, self._private_cursor_sequence,
+        self._receive_comms_metadata(result.get("_meta"), self._private_cursor_sequence,
                                      self._queue_sequence, turn_token,
                                      consumer_class=OwnerSnapshotConsumer)
         raw_goal, raw_execution = result["goal"], result["goalExecution"]

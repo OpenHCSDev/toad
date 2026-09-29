@@ -46,6 +46,6 @@ You can override ACP configurations using environment variables:
 command = "curl -fsSL https://github.com/block/goose/releases/download/stable/download_cli.sh | bash"
 description = "Install Goose"
 
-[action."*".update]
+[actions."*".update]
 command = "Update Goose"
 description = "Update Goose"

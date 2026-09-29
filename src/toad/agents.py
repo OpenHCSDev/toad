@@ -1,25 +1,25 @@
 from importlib.resources import files
 import asyncio
 
-from toad.agent_schema import Agent
+from toad.agent_schema import AgentDefinition
 
 
 class AgentReadError(Exception):
     """Problem reading the agents."""
 
 
-async def read_agents() -> dict[str, Agent]:
+async def read_agents() -> dict[str, AgentDefinition]:
     """Read agent information from data/agents
 
     Raises:
         AgentReadError: If the files could not be read.
 
     Returns:
-        A mapping of identity on to Agent dict.
+        A mapping of identity on to AgentDefinition dict.
     """
     import tomllib
 
-    def read_agents() -> list[Agent]:
+    def read_agents() -> list[AgentDefinition]:
         """Read agent information.
 
         Stored in data/agents
@@ -27,11 +27,11 @@ async def read_agents() -> dict[str, Agent]:
         Returns:
             List of agent dicts.
         """
-        agents: list[Agent] = []
+        agents: list[AgentDefinition] = []
         try:
             for file in files("toad.data").joinpath("agents").iterdir():
-                agent: Agent = tomllib.load(file.open("rb"))
-                if agent.get("active", True):
+                agent = AgentDefinition.decode(tomllib.load(file.open("rb")))
+                if agent.active:
                     agents.append(agent)
 
         except Exception as error:
@@ -40,6 +40,6 @@ async def read_agents() -> dict[str, Agent]:
         return agents
 
     agents = await asyncio.to_thread(read_agents)
-    agent_map = {agent["identity"]: agent for agent in agents}
+    agent_map = {agent.identity: agent for agent in agents}
 
     return agent_map

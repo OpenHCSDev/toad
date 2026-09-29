@@ -6,7 +6,8 @@ from typing import NamedTuple
 from dataclasses import replace
 import toad
 from toad import constants, jsonrpc
-from toad.acp import api, messages, protocol
+from toad.acp import api, messages
+from acp import schema
 from toad.acp.client_session import ClientSessionRequest
 from toad.agent import AgentReady, UnsupportedResumeAgentFail
 from toad.db import DB, SessionMeta
@@ -34,10 +35,7 @@ class AgentSession:
         self.connected = False
         self.reconnecting = False
         self.settled = asyncio.Event()
-        self.capabilities: protocol.AgentCapabilities = {
-            "loadSession": False,
-            "promptCapabilities": {"audio": False, "embeddedContent": False, "image": False},
-        }
+        self.capabilities = schema.AgentCapabilities()
 
     @property
     def ready(self):
@@ -45,7 +43,7 @@ class AgentSession:
 
     @property
     def supports_load(self):
-        return self.capabilities.get("loadSession", False)
+        return self.capabilities.load_session
 
     def starting(self):
         """Start admission clears readiness before any asynchronous work."""
@@ -80,7 +78,7 @@ class AgentSession:
                         self.agent.post_message(
                             UnsupportedResumeAgentFail(
                                 "Resume not supported",
-                                f"{self.agent._agent_data['name']} does not currently support resuming sessions.",
+                                f"{self.agent.definition.name} does not currently support resuming sessions.",
                             )
                         )
                         self.settled.set()
@@ -152,19 +150,10 @@ class AgentSession:
         with self.agent.request():
             initialize_response = api.initialize(
                 PROTOCOL_VERSION,
-                {
-                    "fs": {
-                        "readTextFile": True,
-                        "writeTextFile": True,
-                    },
-                    "terminal": True,
-                    "auth": {"terminal": os.name != "nt"},
-                },
-                {
-                    "name": toad.NAME,
-                    "title": toad.TITLE,
-                    "version": toad.get_version(),
-                },
+                schema.ClientCapabilities(fs=schema.FileSystemCapabilities(
+                    read_text_file=True, write_text_file=True), terminal=True,
+                    auth=schema.AuthCapabilities(terminal=os.name != "nt")),
+                schema.Implementation(name=toad.NAME, title=toad.TITLE, version=toad.get_version()),
             )
 
         response = await initialize_response.wait()
@@ -172,9 +161,9 @@ class AgentSession:
         assert response is not None
 
         # Store agents capabilities
-        if agent_capabilities := response.get("agentCapabilities"):
+        if agent_capabilities := response.agent_capabilities:
             self.capabilities = agent_capabilities
-        self.agent.presentation.auth_methods = response.get("authMethods") or []
+        self.agent.presentation.auth_methods = response.auth_methods or []
 
 
     async def new(self) -> None:
@@ -195,9 +184,9 @@ class AgentSession:
         if not self.agent._private_cursor.is_current_request(cursor_token):
             return
         assert response is not None
-        self.agent.session_id = response["sessionId"]
+        self.agent.session_id = response.session_id
         authority = ClientSessionRequest(self.agent, self.agent.session_id)
-        self.agent._receive_comms_response(response, cursor_token, queue_token)
+        self.agent._receive_comms_metadata(response.field_meta, cursor_token, queue_token)
 
         if self.supports_load:
             db = DB()
@@ -208,12 +197,12 @@ class AgentSession:
             )
             session_pk = await db.session_new(
                 session_name,
-                self.agent._agent_data["name"],
-                self.agent._agent_data["identity"],
+                self.agent.definition.name,
+                self.agent.definition.identity,
                 self.agent.session_id,
                 protocol="acp",
                 meta=SessionMeta(
-                    cwd=self.agent.project_root_path, agent_data=self.agent._agent_data
+                    cwd=self.agent.project_root_path, agent_data=self.agent.definition
                 ),
             )
             authority.require()
@@ -251,7 +240,7 @@ class AgentSession:
                 if session_cwd := session.meta_json.cwd:
                     cwd = str(session_cwd)
                 if agent_data := session.meta_json.agent_data:
-                    self.agent._agent_data = agent_data
+                    self.agent.definition = agent_data
 
         with self.agent.request():
             session_load_response = api.session_load(cwd, [], request_session_id)
@@ -263,7 +252,7 @@ class AgentSession:
         ):
             return
         assert response is not None
-        self.agent._receive_comms_response(response, cursor_token, queue_token)
+        self.agent._receive_comms_metadata(response.field_meta, cursor_token, queue_token)
 
         self.publish_configuration(response)
 
@@ -320,14 +309,8 @@ class AgentSession:
 
 
     def publish_configuration(self, response):
-        if (modes := response.get("modes", None)) is not None:
-            current_mode = modes["currentModeId"]
-            available_modes = modes["availableModes"]
-            modes_update = {
-                mode["id"]: Mode(
-                    mode["id"], mode["name"], mode.get("description", None)
-                )
-                for mode in available_modes
-            }
-            self.agent.controller.publish_modes(current_mode, modes_update)
+        if (modes := response.modes) is not None:
+            self.agent.controller.publish_modes(modes.current_mode_id, {
+                mode.id: Mode(mode.id, mode.name, mode.description)
+                for mode in modes.available_modes})
         self.agent.configuration.receive(response)

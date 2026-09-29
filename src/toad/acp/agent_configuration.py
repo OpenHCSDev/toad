@@ -124,13 +124,12 @@ class AgentConfiguration:
         return self.setting(ThinkingConfigurationSetting)
 
     def receive(self, response):
-        if "configOptions" not in response:
+        if response.config_options is None:
             return
         # Official external decoder once; consumers use its guaranteed typed fields.
-        decoded = SetSessionConfigOptionResponse.model_validate(response, strict=True)
         selections = {kind: kind() for kind in ConfigurationSetting.members_with(ConfigurationSetting)}
         decoder = ConfigurationAdvertisements(selections)
-        for option in decoded.config_options:
+        for option in response.config_options:
             decoder.dispatch_sync(option)
         self.selections = selections
         self.publish()

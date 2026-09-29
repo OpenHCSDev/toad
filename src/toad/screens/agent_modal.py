@@ -13,7 +13,7 @@ from textual.reactive import var
 
 import toad
 from textual.binding import Binding
-from toad.agent_schema import Action, Agent, OS, Command
+from toad.agent_schema import Action, AgentDefinition, OS, Command
 from toad.app import ToadApp
 
 
@@ -37,7 +37,7 @@ class AgentModal(ModalScreen):
     action_select = getters.query_one("#action-select", widgets.Select)
     launcher_checkbox = getters.query_one("#launcher-checkbox", widgets.Checkbox)
 
-    def __init__(self, agent: Agent) -> None:
+    def __init__(self, agent: AgentDefinition) -> None:
         self._agent = agent
         super().__init__()
 
@@ -51,7 +51,7 @@ class AgentModal(ModalScreen):
         app = self.app
         launcher_set = frozenset(app.settings.launcher.agents.splitlines())
         agent = self._agent
-        actions = agent["actions"]
+        actions = agent.actions
 
         script_os = cast(OS, toad.os)
         if script_os not in actions:
@@ -59,25 +59,25 @@ class AgentModal(ModalScreen):
 
         commands: dict[Action, Command] = actions[cast(OS, script_os)]
         script_choices = [
-            (action["description"], name) for name, action in commands.items()
+            (action.description, name) for name, action in commands.items()
         ]
-        script_choices.append((f"Launch {agent['name']}", "__launch__"))
+        script_choices.append((f"Launch {agent.name}", "__launch__"))
 
         with containers.Vertical(id="container"):
             with DescriptionContainer(id="description-container"):
-                yield widgets.Markdown(agent["help"], id="description")
+                yield widgets.Markdown(agent.help, id="description")
             with containers.VerticalGroup():
                 if "install_acp" in commands:
                     yield widgets.Static(
                         Content(
-                            f"{agent['name']} requires an ACP adapter to work with Toad. Install from the actions list."
+                            f"{agent.name} requires an ACP adapter to work with Toad. Install from the actions list."
                         ),
                         classes="acp-warning",
                     )
                 with containers.HorizontalGroup():
                     yield widgets.Checkbox(
                         "Show in launcher",
-                        value=agent["identity"] in launcher_set,
+                        value=agent.identity in launcher_set,
                         id="launcher-checkbox",
                     )
                     yield widgets.Select(
@@ -97,7 +97,7 @@ class AgentModal(ModalScreen):
     @on(widgets.Checkbox.Changed)
     def on_checkbox_changed(self, event: widgets.Select.Changed) -> None:
         launcher_agents = self.app.settings.launcher.agents.splitlines()
-        agent_identity = self._agent["identity"]
+        agent_identity = self._agent.identity
         if agent_identity in launcher_agents:
             launcher_agents.remove(agent_identity)
         if event.value:
@@ -119,14 +119,14 @@ class AgentModal(ModalScreen):
             self.dismiss("launch")
             return
 
-        agent_actions = self._agent["actions"]
+        agent_actions = self._agent.actions
 
         if (commands := agent_actions.get(toad.os, None)) is None:
             commands = agent_actions.get("*", None)
         if commands is None:
             self.notify(
                 "Action is not available on this platform",
-                title="Agent action",
+                title="AgentDefinition action",
                 severity="error",
             )
             return
@@ -135,10 +135,10 @@ class AgentModal(ModalScreen):
         from toad.screens.action_modal import ActionModal
         from toad.screens.command_edit_modal import CommandEditModal
 
-        title = command["description"]
-        agent_id = self._agent["identity"]
-        action_command = command["command"]
-        bootstrap_uv = command.get("bootstrap_uv", False)
+        title = command.description
+        agent_id = self._agent.identity
+        action_command = command.command
+        bootstrap_uv = command.bootstrap_uv
 
         agent = self._agent
         # Focus the select
@@ -164,7 +164,7 @@ class AgentModal(ModalScreen):
             # Add to launcher if we installed something
             if not self.launcher_checkbox.value:
                 self.notify(
-                    f"{agent['name']} has been added to your launcher",
+                    f"{agent.name} has been added to your launcher",
                     title="Add agent",
                     severity="information",
                 )

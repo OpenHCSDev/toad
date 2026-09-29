@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 from .terminal_controller import TerminalController, TerminalSessionRetired
 from .client_session import ClientRequestOwner
 from toad import jsonrpc
-from toad.acp import protocol
+from acp import schema as protocol
 from toad.terminal_execution import Command
 
 if TYPE_CHECKING:
@@ -45,7 +45,7 @@ class OperationalTerminalOwner(ClientRequestOwner, ABC):
                               outputByteLimit: int | None = None) -> protocol.CreateTerminalResponse:
         authority = self.session_request(sessionId)
         terminals = self.terminals
-        terminal_env = {variable["name"]: variable["value"] for variable in env} if env else {}
+        terminal_env = {variable.name: variable.value for variable in env} if env else {}
         try:
             terminal_id = await terminals.create(
                 Command(command, args or [], terminal_env, cwd or str(self.agent.project_root_path)),
@@ -59,7 +59,7 @@ class OperationalTerminalOwner(ClientRequestOwner, ABC):
         raise jsonrpc.InvalidParams("ACP terminal owner was replaced during creation")
 
     @jsonrpc.expose("terminal/kill")
-    def terminal_kill(self, sessionId: str, terminalId: str, _meta: dict | None = None) -> protocol.KillTerminalCommandResponse:
+    def terminal_kill(self, sessionId: str, terminalId: str, _meta: dict | None = None) -> protocol.KillTerminalResponse:
         self.session_request(sessionId)
         self.terminals.kill(terminalId)
         return {}

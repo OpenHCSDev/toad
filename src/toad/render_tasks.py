@@ -48,6 +48,7 @@ class ReusableRenderTask(RenderTask[ResultT]):
 
 @dataclass(frozen=True, slots=True)
 class SessionUpdateValidation:
+    notification: object | None = None
     error: str | None = None
 
     @property
@@ -65,13 +66,13 @@ class ValidateSessionUpdateTask(RenderTask[SessionUpdateValidation]):
 
     def execute(self) -> SessionUpdateValidation:
         from pydantic import ValidationError
-        from toad.acp.sdk_boundary import validate_session_update
+        from toad.acp.sdk_boundary import decode_session_update
 
         try:
-            validate_session_update(self.session_id, self.update, self.metadata)
-        except ValidationError as error:
-            return SessionUpdateValidation(str(error))
-        return SessionUpdateValidation()
+            notification = decode_session_update(self.session_id, self.update, self.metadata)
+        except (ValueError, TypeError) as error:
+            return SessionUpdateValidation(error=str(error))
+        return SessionUpdateValidation(notification=notification)
 
     def accept_result(self, result: object) -> SessionUpdateValidation:
         if not isinstance(result, SessionUpdateValidation):

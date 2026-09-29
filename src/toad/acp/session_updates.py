@@ -11,97 +11,98 @@ from toad import jsonrpc
 from toad.acp import messages
 from toad.acp.client_session import ClientRequestOwner, ClientSessionRequest
 from toad.acp.context_measurement import ContextMeasurement
-from toad.acp.sdk_boundary import validate_session_update
+from toad.acp.sdk_boundary import decode_session_update
+from agent_comms.mro_dispatch import MroDispatch, handles
+from acp.schema import (UserMessageChunk, AgentMessageChunk, AgentThoughtChunk,
+    ToolCallStart, ToolCallProgress, AgentPlanUpdate, AvailableCommandsUpdate,
+    CurrentModeUpdate, ConfigOptionUpdate, SessionInfoUpdate, UsageUpdate, TextContentBlock)
 from toad.plan import decode_plan
 
 
-class SessionUpdateEffect(DeclaredFamily, affix="SessionUpdateEffect"):
-    """The official SDK owns field validation; each declared case owns its effect."""
-    def __init__(self, update):
-        self.update = update
+class SessionUpdateEffect(MroDispatch):
+    """Effect registrations consume official SDK declarations, never raw shapes."""
+    def __init__(self, agent, route):
+        self.agent, self.route = agent, route
 
-    @classmethod
-    def from_wire(cls, update):
-        return cls.decode(update['sessionUpdate'])(update)
+    @handles(UserMessageChunk)
+    def user(self, update):
+        UserContentEffect(self.agent, self.route).dispatch_sync(update.content)
+
+    @handles(AgentMessageChunk)
+    def message(self, update):
+        AgentContentEffect(self.agent, self.route).dispatch_sync(update.content)
+
+    @handles(AgentThoughtChunk)
+    def thought(self, update):
+        ThoughtContentEffect(self.agent, self.route).dispatch_sync(update.content)
+
+    @handles(ToolCallStart)
+    def tool_start(self, update):
+        self.agent.tools.begin(update)
+
+    @handles(ToolCallProgress)
+    def tool_progress(self, update):
+        self.agent.tools.update(update)
+
+    @handles(AgentPlanUpdate)
+    def plan(self, update):
+        self.agent.controller.publish_plan(decode_plan(update.entries))
+
+    @handles(AvailableCommandsUpdate)
+    def commands(self, update):
+        self.agent.controller.publish_commands(update.available_commands)
+
+    @handles(CurrentModeUpdate)
+    def mode(self, update):
+        self.agent.controller.current_mode = update.current_mode_id
+        self.agent.post_message(messages.ModeUpdate(update.current_mode_id))
+
+    @handles(ConfigOptionUpdate)
+    def config(self, update):
+        self.agent.configuration.receive(update)
+
+    @handles(SessionInfoUpdate)
+    def info(self, update):
+        if 'title' in update.model_fields_set:
+            self.agent.post_message(messages.SessionInfoUpdate(update.title))
+
+    @handles(UsageUpdate)
+    def usage(self, update):
+        self.agent.context_measurement = ContextMeasurement.live(update.used, update.size, update.cost)
+        self.agent.update_status_line()
+
+
+class MessageContentEffect(MroDispatch):
+    def __init__(self, agent, route):
+        self.agent, self.route = agent, route
+
+    @handles(TextContentBlock)
+    def text(self, content):
+        if content.text:
+            self.publish(content)
 
     @abstractmethod
-    def apply(self, agent, route): ...
+    def publish(self, content): ...
 
 
-class MessageChunkEffect(SessionUpdateEffect):
-    def apply(self, agent, route):
-        match self.update['content']:
-            case {'type': kind, 'text': text}:
-                self.publish(agent, route, kind, text)
-
-    @abstractmethod
-    def publish(self, agent, route, kind, text): ...
+class UserContentEffect(MessageContentEffect):
+    def publish(self, content):
+        self.agent.post_message(messages.UserMessage(content.type, content.text))
 
 
-class UserMessageEffect(MessageChunkEffect, declared_name='user_message_chunk'):
-    def publish(self, agent, route, kind, text):
-        if text:
-            agent.post_message(messages.UserMessage(kind, text))
+class ThoughtContentEffect(MessageContentEffect):
+    def publish(self, content):
+        self.agent.post_message(messages.Thinking(content.type, content.text))
 
 
-class AgentMessageEffect(MessageChunkEffect, declared_name='agent_message_chunk'):
-    def publish(self, agent, route, kind, text):
-        if text:
-            if kind == 'text' and text.startswith('[agent error]'):
-                text += f'\n\n[Open ACP log]({quote(str(agent.presentation.log_path))})'
-            from toad.widgets.agent_response import ResponseDelivery
-            stream = agent.presentation.turns.owner.response_stream(ResponseDelivery.from_route(route))
-            agent.post_message(messages.Update(kind, text, stream, agent))
-
-
-class AgentThoughtEffect(MessageChunkEffect, declared_name='agent_thought_chunk'):
-    def publish(self, agent, route, kind, text):
-        agent.post_message(messages.Thinking(kind, text))
-
-
-class ToolCallEffect(SessionUpdateEffect, declared_name='tool_call'):
-    def apply(self, agent, route):
-        agent.tools.begin(self.update)
-
-
-class ToolCallUpdateEffect(SessionUpdateEffect, declared_name='tool_call_update'):
-    def apply(self, agent, route):
-        agent.tools.update(self.update)
-
-
-class PlanEffect(SessionUpdateEffect, declared_name='plan'):
-    def apply(self, agent, route):
-        agent.controller.publish_plan(decode_plan(self.update['entries']))
-
-
-class CommandsEffect(SessionUpdateEffect, declared_name='available_commands_update'):
-    def apply(self, agent, route):
-        agent.controller.publish_commands(self.update['availableCommands'])
-
-
-class ModeEffect(SessionUpdateEffect, declared_name='current_mode_update'):
-    def apply(self, agent, route):
-        mode = self.update['currentModeId']
-        agent.controller.current_mode = mode
-        agent.post_message(messages.ModeUpdate(mode))
-
-
-class ConfigurationEffect(SessionUpdateEffect, declared_name='config_option_update'):
-    def apply(self, agent, route):
-        agent.configuration.receive({'configOptions': self.update['configOptions']})
-
-
-class SessionInfoEffect(SessionUpdateEffect, declared_name='session_info_update'):
-    def apply(self, agent, route):
-        if 'title' in self.update:
-            agent.post_message(messages.SessionInfoUpdate(self.update['title']))
-
-
-class UsageEffect(SessionUpdateEffect, declared_name='usage_update'):
-    def apply(self, agent, route):
-        agent.context_measurement = ContextMeasurement.live(
-            self.update['used'], self.update['size'], self.update.get('cost'))
-        agent.update_status_line()
+class AgentContentEffect(MessageContentEffect):
+    def publish(self, content):
+        text = content.text
+        if text.startswith('[agent error]'):
+            text += f'\n\n[Open ACP log]({quote(str(self.agent.presentation.log_path))})'
+        from toad.widgets.agent_response import ResponseDelivery
+        stream = self.agent.presentation.turns.owner.response_stream(ResponseDelivery.from_route(self.route))
+        self.agent.post_message(messages.Update(content.type, text, stream, self.agent))
 
 
 class SessionNotificationOwner(ClientRequestOwner):
@@ -125,7 +126,7 @@ class SessionNotificationOwner(ClientRequestOwner):
             if validation.rejected:
                 self.reject(sessionId, update, _meta, validation.error)
                 return
-            self.publish(sessionId, update)
+            self.publish(sessionId, validation.notification)
 
     def accept(self, session_id, update, metadata=None):
         """Official SDK boundary for synchronous in-process protocol consumers."""
@@ -134,8 +135,8 @@ class SessionNotificationOwner(ClientRequestOwner):
         if authority.retired or not authority.binding.admits_notification(session_id):
             return
         try:
-            accepted = validate_session_update(session_id, update, metadata)
-        except ValidationError as error:
+            accepted = decode_session_update(session_id, update, metadata)
+        except (ValueError, TypeError) as error:
             self.reject(session_id, update, metadata, str(error))
             return
         self.publish(session_id, accepted)
@@ -147,14 +148,13 @@ class SessionNotificationOwner(ClientRequestOwner):
         self.agent.post_message(messages.RejectedSessionUpdate())
 
     def publish(self, session_id, update):
-        metadata = update.get('_meta')
+        metadata = update.update.field_meta
         try:
             facts = decode_updates(metadata)
-            effect = SessionUpdateEffect.from_wire(update)
         except (TypeError, ValueError) as error:
             self.reject(session_id, update, metadata, str(error))
             return
         consumer = self.agent.comms_consumer_class(self.agent, session_id)
         for fact in facts:
             consumer.dispatch_sync(fact)
-        effect.apply(self.agent, consumer.route)
+        SessionUpdateEffect(self.agent, consumer.route).dispatch_sync(update.update)

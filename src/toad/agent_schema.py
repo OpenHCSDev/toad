@@ -1,70 +1,83 @@
-from typing import TypedDict, Literal, NotRequired
+"""Agent catalog definitions, decoded once from TOML or saved metadata."""
+from __future__ import annotations
+from dataclasses import dataclass, field
+from typing import Annotated, Literal
+from agent_comms.declared_family import DeclaredFamily
+from agent_comms.field_codec import FieldCodec, TextRepresentation
 
-type Tag = str
-"""A tag used for categorizing the agent. For example: 'open-source', 'reasoning'."""
-type OS = Literal["macos", "linux", "windows", "*"]
-"""An operating system identifier, or a '*" wildcard, if it is the same for all OSes."""
+type OS = Literal['macos', 'linux', 'windows', '*']
 type Action = str
-"""An action which the agent supports."""
-type AgentType = Literal["coding", "chat"]
-"""The type of agent. More types TBD."""
-type AgentProtocol = Literal["acp"]
-"""The protocol used to communicate with the agent. Currently only "acp" is supported."""
 
 
-class Command(TypedDict):
-    """Used to perform an action associate with an Agent."""
-
+class AgentKind(DeclaredFamily, affix='AgentKind'):
+    heading: str
     description: str
-    """Describes what the script will do. For example: 'Install Claude Code'."""
+
+    @classmethod
+    def compose(cls, agents):
+        from textual import containers, widgets
+        from toad.screens.store import AgentGridSelect, AgentItem
+        if not agents:
+            return
+        yield widgets.Static(f'[$text-warning u]{cls.heading}[/] [$text-secondary i]{cls.description}', classes='heading')
+        with containers.VerticalGroup():
+            with AgentGridSelect(classes='agents-picker', min_column_width=40):
+                for agent in agents:
+                    yield AgentItem(agent)
+
+
+class ChatAgentKind(AgentKind):
+    heading = 'Chat & Assistants'
+    description = 'Biddi-biddi-biddi'
+
+
+class AssistantAgentKind(ChatAgentKind):
+    pass
+
+
+class CodingAgentKind(AgentKind):
+    heading = 'Coding agents'
+    description = 'Build software with AI'
+
+
+class AgentKindText(TextRepresentation):
+    @classmethod
+    def from_text(cls, value):
+        return AgentKind.decode(value)
+
+    @classmethod
+    def encode(cls, value):
+        return value.declared_name
+
+
+@dataclass(frozen=True)
+class Command:
+    description: str
     command: str
-    """Command to run."""
-    bootstrap_uv: NotRequired[bool]
-    """Bootstrap UV installer (set to `true` if the command users `uv`)."""
+    bootstrap_uv: bool = False
 
 
-class Agent(TypedDict):
-    """Describes an agent which Toad can connect to. Currently only Agent Client Protocol is supported.
-
-    This information is stoed within TOML files, where the filename is the "identity" key plus the extension ".toml"
-
-    """
-
-    active: NotRequired[bool]
-    """If `True` (default), the agent will be shown in the UI. If `False` the agent will be removed from the UI."""
-    recommended: NotRequired[bool]
-    """Agent is in recommended set. Set to `True` in main branch only if previously agreed with Will McGugan."""
+@dataclass(frozen=True)
+class AgentDefinition:
     identity: str
-    """A unique identifier for this agent. Should be a domain the agent developer owns,
-    although it doesn't have to resolve to anything. Must be useable in a filename on all platforms. 
-    For example: 'claude.anthropic.ai'"""
     name: str
-    """The name of the agent. For example: 'Claude Code'."""
-    short_name: str
-    """A short name, usable on the command line. Try to make it unique. For example: 'claude'."""
-    url: str
-    """A URL for the agent."""
-    protocol: AgentProtocol
-    """The protocol used by the agent. Currently only 'acp' is supported."""
-    type: "AgentType"
-    """The type of the agent. Currently "coding" or "chat". More types TBD."""
-    author_name: str
-    """The author of the agent. For example 'Anthropic'."""
-    author_url: str
-    """The authors homepage. For example 'https://www.anthropic.com/'."""
-    publisher_name: str
-    """The publisher's name (individual or organization that wrote this data)."""
-    publisher_url: str
-    """The publisher's url."""
-    description: str
-    """A description of the agent. A few sentences max. May contain content markup (https://textual.textualize.io/guide/content/#markup) if used subtly."""
-    tags: list[Tag]
-    """Tags which identify the agent. Should be empty for now."""
-    help: str
-    """A Markdown document with additional details regarding the agent."""
-    welcome: NotRequired[str]
-    """A Markdown document shown to the user when the conversation starts. Should contain a welcome message and any advice on getting started."""
-    run_command: dict[OS, str]
-    """Command to run the agent, by OS or wildcard."""
-    actions: dict[OS, dict[Action, Command]]
-    """Scripts to perform actions, typically at least to install the agent."""
+    run_command: dict[str, str]
+    short_name: str = ''
+    protocol: Literal['acp'] = 'acp'
+    kind: Annotated[type[AgentKind], AgentKindText] = field(default=CodingAgentKind, metadata={'wire_name': 'type'})
+    url: str = ''
+    author_name: str = ''
+    author_url: str = ''
+    publisher_name: str = ''
+    publisher_url: str = ''
+    description: str = ''
+    tags: list[str] = field(default_factory=list)
+    help: str = ''
+    welcome: str | None = None
+    actions: dict[str, dict[str, Command]] = field(default_factory=dict)
+    active: bool = True
+    recommended: bool = False
+
+    @classmethod
+    def decode(cls, value: object) -> AgentDefinition:
+        return FieldCodec.decode(cls, value)

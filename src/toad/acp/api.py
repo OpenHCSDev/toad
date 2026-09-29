@@ -4,13 +4,13 @@ ACP remote API
 """
 
 from toad import jsonrpc
-from toad.acp import protocol
+from acp import schema
 
 API = jsonrpc.API()
 
 
 @API.method()
-def authenticate(methodId: str) -> dict:
+def authenticate(methodId: str) -> schema.AuthenticateResponse:
     """Use an agent-advertised protocol authentication method."""
     ...
 
@@ -18,25 +18,25 @@ def authenticate(methodId: str) -> dict:
 @API.method()
 def initialize(
     protocolVersion: int,
-    clientCapabilities: protocol.ClientCapabilities,
-    clientInfo: protocol.Implementation,
-) -> protocol.InitializeResponse:
+    clientCapabilities: schema.ClientCapabilities,
+    clientInfo: schema.Implementation,
+) -> schema.InitializeResponse:
     """https://agentclientprotocol.com/protocol/initialization"""
     ...
 
 
 @API.method(name="session/new")
 def session_new(
-    cwd: str, mcpServers: list[protocol.McpServer]
-) -> protocol.NewSessionResponse:
+    cwd: str, mcpServers: list[schema.McpServerStdio]
+) -> schema.NewSessionResponse:
     """https://agentclientprotocol.com/protocol/session-setup#session-id"""
     ...
 
 
 @API.method(name="session/load")
 def session_load(
-    cwd: str, mcpServers: list[protocol.McpServer], sessionId: str
-) -> protocol.LoadSessionResponse:
+    cwd: str, mcpServers: list[schema.McpServerStdio], sessionId: str
+) -> schema.LoadSessionResponse:
     """https://agentclientprotocol.com/protocol/session-setup#loading-a-session"""
     ...
 
@@ -49,14 +49,14 @@ def session_cancel(sessionId: str, _meta: dict):
 
 @API.method(name="session/prompt")
 def session_prompt(
-    prompt: list[protocol.ContentBlock], sessionId: str, _meta: dict | None = None
-) -> protocol.SessionPromptResponse:
+    prompt: schema.PromptRequest.model_fields["prompt"].annotation, sessionId: str, _meta: dict | None = None
+) -> schema.PromptResponse:
     """https://agentclientprotocol.com/protocol/prompt-turn#1-user-message"""
     ...
 
 
 @API.method(name="session/set_mode")
-def session_set_mode(sessionId: str, modeId: str) -> protocol.SetSessionModeResponse:
+def session_set_mode(sessionId: str, modeId: str) -> schema.SetSessionModeResponse:
     """https://agentclientprotocol.com/protocol/session-modes#from-the-client"""
     ...
 
@@ -64,6 +64,6 @@ def session_set_mode(sessionId: str, modeId: str) -> protocol.SetSessionModeResp
 @API.method(name="session/set_config_option")
 def session_set_config_option(
     sessionId: str, configId: str, value: str
-) -> protocol.SetSessionConfigOptionResponse:
+) -> schema.SetSessionConfigOptionResponse:
     """https://agentclientprotocol.com/protocol/session-config-options"""
     ...

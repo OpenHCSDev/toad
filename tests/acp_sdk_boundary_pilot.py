@@ -10,12 +10,13 @@ from agent_comms.acp_extension import TextRouteUpdate, encode_updates
 from runtime_fixture import ToadApp
 
 from toad.acp.agent import Agent
+from toad.agent_schema import AgentDefinition
 from toad.acp.messages import ToolCall
-from toad.acp.sdk_boundary import validate_session_update
+from toad.acp.sdk_boundary import decode_session_update
 from toad.widgets.note import Note
 
 
-def verify_valid_updates_preserve_identity() -> None:
+def verify_valid_updates_are_sdk_owned() -> None:
     updates = [
         {"sessionUpdate": "agent_message_chunk", "content": {"type": "text", "text": "hi",
             "displayExtension": "keep"}, "_meta": encode_updates(TextRouteUpdate(None))},
@@ -27,7 +28,7 @@ def verify_valid_updates_preserve_identity() -> None:
     ]
     for update in updates:
         before = repr(update)
-        assert validate_session_update("fixture", update) is update
+        assert decode_session_update("fixture", update).session_id == "fixture"
         assert repr(update) == before
 
     for update in (
@@ -38,7 +39,7 @@ def verify_valid_updates_preserve_identity() -> None:
         ["not an ACP notification"],
     ):
         try:
-            validate_session_update("fixture", update)
+            decode_session_update("fixture", update)
         except ValidationError:
             pass
         else:
@@ -50,9 +51,9 @@ async def verify_dispatch_and_visible_rejection(root: Path) -> None:
     async with app.run_test(size=(90, 30)) as pilot:
         await pilot.pause()
         view = app.selected_session.conversation
-        agent = Agent(root, {"name": "Fixture", "identity": "fixture",
+        agent = Agent(root, AgentDefinition.decode({"name": "Fixture", "identity": "fixture",
                              "short_name": "fixture", "run_command": {"*": "true"},
-                             "protocol": "acp"}, "fixture")
+                             "protocol": "acp"}), "fixture")
         agent.attach_surface(view)
         recorded = []
         agent.log = recorded.append
@@ -63,7 +64,7 @@ async def verify_dispatch_and_visible_rejection(root: Path) -> None:
         agent.post_message = intercepted.append
         agent.updates.accept("fixture", raw)
         assert len(intercepted) == 1 and isinstance(intercepted[0], ToolCall)
-        assert intercepted[0].tool_call == raw
+        assert intercepted[0].tool_call.tool_call_id == "t1"
         assert raw["customToolField"] == {"nested": [1, 2]}
 
         agent.post_message = view.post_message
@@ -85,7 +86,7 @@ async def verify_dispatch_and_visible_rejection(root: Path) -> None:
 
 
 async def main() -> None:
-    verify_valid_updates_preserve_identity()
+    verify_valid_updates_are_sdk_owned()
     with tempfile.TemporaryDirectory(prefix="toad-acp-sdk-phase1-") as directory:
         root = Path(directory)
         os.environ.update(XDG_CONFIG_HOME=str(root / "config"),
@@ -93,7 +94,7 @@ async def main() -> None:
                           XDG_STATE_HOME=str(root / "state"),
                           AGENT_COMMS_ROOT=str(root / "wire"))
         await verify_dispatch_and_visible_rejection(root)
-    print("ACP SDK v1: raw extensions preserved; invalid wire update logged and shown")
+    print("ACP SDK v1: typed specification models; invalid wire update logged and shown")
 
 
 if __name__ == "__main__":
