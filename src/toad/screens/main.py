@@ -21,7 +21,7 @@ from textual.widgets import (
 
 from toad import messages
 from toad.acp import messages as acp_messages
-from toad.agent_schema import Agent
+from toad.agent_schema import AgentDefinition
 from toad.app import ToadApp
 from toad.navigation_target import NavigationContext, NavigationOwner
 from toad.screens.session_view import SessionView
@@ -149,7 +149,7 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
     def __init__(
         self,
         project_path: Path,
-        agent: Agent | None = None,
+        agent: AgentDefinition | None = None,
         agent_session_id: str | None = None,
         agent_session_title: str | None = None,
         session_pk: int | None = None,
@@ -164,7 +164,7 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
         self._identity_wire: Comms | None = None
         self._comms_thread = (
             ""
-            if agent is not None and agent["identity"] == "agent-comms.openhcs.dev"
+            if agent is not None and agent.identity == "agent-comms.openhcs.dev"
             else session_thread_name(project_path)
         )
         self._session_pk = session_pk
@@ -193,6 +193,9 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
         if sidebar := self.query_one_optional(SessionThreadSidebar):
             await sidebar.retire_presentation()
         await self.presentation.retire(self)
+
+    def retained_native_presentations(self):
+        return ((self, self.presentation),) if self.presentation.widget is not None else ()
 
     def watch_title(self, title: str) -> None:
         self.app.terminal_attention.update()

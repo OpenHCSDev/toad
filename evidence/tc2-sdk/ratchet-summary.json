@@ -1,0 +1,19 @@
+{
+  "base_revision": "533c7f6ca0fdf546e7e892af309b820586a2f007",
+  "head_revision": "270cb16017b044094f0f1fdb5ab261b998609609",
+  "positive": {},
+  "changes": {
+    "StringDispatch:src/toad/acp/prompt.py": -1,
+    "StringDispatch:src/toad/screens/store.py": -1,
+    "StringDispatch:src/toad/widgets/conversation.py": -2,
+    "StringDispatch:src/toad/widgets/project_panel.py": -1,
+    "StringDispatch:src/toad/widgets/tool_call.py": -1,
+    "StringDispatchArms:src/toad/acp/prompt.py": -5,
+    "StringDispatchArms:src/toad/screens/store.py": -3,
+    "StringDispatchArms:src/toad/widgets/conversation.py": -7,
+    "StringDispatchArms:src/toad/widgets/project_panel.py": -3,
+    "StringDispatchArms:src/toad/widgets/tool_call.py": -4,
+    "GodClassExcess:src/toad/widgets/conversation.py::Conversation": -61,
+    "StringSubscript": -94
+  }
+}

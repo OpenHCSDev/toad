@@ -65,7 +65,6 @@ class SnapshotPublication(TranscriptPublication):
                 self.window.anchor()
         with view.app.batch_update():
             await self.contents.mount(history)
-            await history.admit_retained_pages()
         if not self.current():
             if history.is_attached:
                 await history.remove()
@@ -259,6 +258,7 @@ class TranscriptPresentation:
         self.displayed_cursor: TranscriptCursor | None = None
         self.worker: Worker[None] | None = None
         self.reader_position: ReaderPosition | None = None
+        self._revealed_history: TranscriptHistory | None = None
 
     @property
     def view(self) -> Conversation | None:
@@ -274,6 +274,54 @@ class TranscriptPresentation:
             return False
         position.prepare_history(history)
         return True
+
+    async def reveal_retained(self, history: TranscriptHistory) -> None:
+        """Display the mounted reader while its native source remains fenced."""
+        from toad.widgets.conversation import ThreadLoading
+        from toad.widgets.session_details import SessionDetails
+
+        view = self.view
+        if view is None or not view.is_attached:
+            return
+        self._revealed_history = history
+        self.displayed_cursor = history.committed_cursor
+        self.reader_position = None
+        if (loading := view.query_one_optional(ThreadLoading)) is not None:
+            await loading.remove()
+        view.remove_class("-initial-loading")
+        view.query_one(SessionDetails)._refresh_summary()
+
+    async def refresh_revealed(self, agent) -> None:
+        """Validate the retained reader after its first completed display."""
+        from toad.transcript_state import ParkedSourceTranscript
+        from toad.widgets.transcript_history import TranscriptHistory
+
+        generation = self.generation
+        page = await agent.get_transcript_page()
+        view = self.view
+        if (view is None or view.agent is not agent or generation != self.generation
+                or not view.is_attached):
+            return
+        history = self._revealed_history
+        if history is None or not history.is_attached:
+            await self.snapshot(page)
+            return
+        latest = history.pages[-1].page
+        if (page.after.session_file == history.through.session_file
+                and page.after.offset >= history.through.offset
+                and (page.after.offset > history.through.offset or page.events == latest.events)):
+            for node in history.walk_children(with_self=True):
+                if (isinstance(node, TranscriptHistory)
+                        and isinstance(node._source_state, ParkedSourceTranscript)):
+                    node.resume_source()
+            self._revealed_history = None
+            await self.snapshot(page)
+        else:
+            self._revealed_history = None
+            await history.remove()
+            self.displayed_cursor = None
+            self.invalidate()
+            await self.publish(SnapshotPublication, page)
 
     async def publish(self, kind: type[TranscriptPublication], *args) -> None:
         from toad.widgets.conversation import Window, Contents
@@ -331,6 +379,7 @@ class TranscriptPresentation:
 
     def source_changed(self) -> None:
         self.invalidate()
+        self._revealed_history = None
         self.dirty = self.checkpoint_required = False
         self.displayed_cursor = None
         self.reader_position = None
@@ -364,8 +413,12 @@ class TranscriptPresentation:
             self.request()
 
     async def close(self) -> None:
-        self.invalidate()
         self._view = lambda: None
+        await self.suspend()
+
+    async def suspend(self) -> None:
+        """Revoke in-flight publications while retaining this source's mounted frontier."""
+        self.invalidate()
         worker, self.worker = self.worker, None
         if worker is not None:
             worker.cancel()

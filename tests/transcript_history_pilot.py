@@ -60,15 +60,38 @@ async def main():
                 assert history.fragment_count <= history.fragment_limit
                 assert len(history.query("AgentResponse")) <= history.fragment_limit
             assert history.pages[0].page.events[0].text.startswith("Record 0\n")
-            while history.newer.display:
-                position = (history.pages[-1].page.after.offset, history.pages[-1].stop)
-                conversation.window.scroll_end(animate=False, immediate=True)
-                await until(lambda: (history.pages[-1].page.after.offset, history.pages[-1].stop) > position)
-                await pilot.pause()
+            # End addresses the native source tail rather than each intervening
+            # admitted page. Actual key delivery must work during an edge read.
+            while history.pages[-1].stop < len(history.pages[-1].fragments):
+                history._request_page(False)
                 await until(lambda: not history._loading)
-                assert len(history.pages) <= history.fragment_limit
-                assert history.fragment_count <= history.fragment_limit
+                await pilot.pause()
+            assert history.pages[-1].page.has_newer
+            entered, release = asyncio.Event(), asyncio.Event()
+            original_loader = history.loader
+
+            async def delayed_load(**kwargs):
+                entered.set()
+                await release.wait()
+                return await original_loader(**kwargs)
+
+            history.loader = delayed_load
+            history._request_page(False)
+            await entered.wait()
+            conversation.window.focus()
+            await pilot.press("end")
+            release.set()
+            await until(lambda: not history._loading and not history.has_newer)
+            await pilot.pause()
+            assert conversation.window.follows_tail
+            assert conversation.window.scroll_y == conversation.window.max_scroll_y
+            assert len(history.pages) == 1
+            assert history.fragment_count <= history.fragment_limit
             assert history.pages[-1].page.events[-1].text.startswith("Record 104\n")
+            region = conversation.window.scrollable_content_region
+            painted = "\n".join(strip.crop(region.x, region.right).text for strip in
+                                app.screen._compositor.render_strips()[region.y:region.bottom])
+            assert "Record 104" in painted, painted
     print("transcript history: scroll to first record and back, bounded DOM and adjacent cursors passed")
 
 

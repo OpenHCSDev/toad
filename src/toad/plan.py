@@ -11,7 +11,7 @@ from textual.app import ComposeResult
 from textual.content import Content
 from textual.widget import Widget
 
-from toad.acp.protocol import PlanEntry
+from acp.schema import PlanEntry
 from toad.widgets.strike_text import StrikeText
 
 
@@ -83,4 +83,4 @@ class PlanItem:
 
 def decode_plan(entries: list[PlanEntry]) -> list[PlanItem]:
     """Consume SDK-validated ACP entries; subsequent consumers trust these items."""
-    return [PlanItem.from_acp(**entry) for entry in entries]
+    return [PlanItem.from_acp(entry.content, entry.priority, entry.status) for entry in entries]

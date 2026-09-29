@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Generic, TypeVar
+from typing import Generic, TypeVar, TYPE_CHECKING
 
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.transcript_events import TranscriptEvent
@@ -21,6 +21,9 @@ from toad.rich_preparation import (
 )
 
 ResultT = TypeVar("ResultT", covariant=True)
+
+if TYPE_CHECKING:
+    from acp.schema import SessionNotification
 
 
 class RenderExecution(ABC, Generic[ResultT]):
@@ -46,13 +49,25 @@ class ReusableRenderTask(RenderTask[ResultT]):
         return self
 
 
-@dataclass(frozen=True, slots=True)
-class SessionUpdateValidation:
-    error: str | None = None
+class SessionUpdateValidation(DeclaredFamily, affix='SessionUpdateValidation'):
+    @abstractmethod
+    def publish(self, owner, session_id, raw, metadata): ...
 
-    @property
-    def rejected(self) -> bool:
-        return self.error is not None
+
+@dataclass(frozen=True)
+class AcceptedSessionUpdateValidation(SessionUpdateValidation):
+    notification: SessionNotification
+
+    def publish(self, owner, session_id, raw, metadata):
+        owner.publish(session_id, self.notification)
+
+
+@dataclass(frozen=True)
+class RejectedSessionUpdateValidation(SessionUpdateValidation):
+    error: str
+
+    def publish(self, owner, session_id, raw, metadata):
+        owner.reject(session_id, raw, metadata, self.error)
 
 
 @dataclass(frozen=True)
@@ -64,14 +79,13 @@ class ValidateSessionUpdateTask(RenderTask[SessionUpdateValidation]):
     metadata: dict | None = None
 
     def execute(self) -> SessionUpdateValidation:
-        from pydantic import ValidationError
-        from toad.acp.sdk_boundary import validate_session_update
+        from toad.acp.sdk_boundary import decode_session_update
 
         try:
-            validate_session_update(self.session_id, self.update, self.metadata)
-        except ValidationError as error:
-            return SessionUpdateValidation(str(error))
-        return SessionUpdateValidation()
+            notification = decode_session_update(self.session_id, self.update, self.metadata)
+        except (ValueError, TypeError) as error:
+            return RejectedSessionUpdateValidation(str(error))
+        return AcceptedSessionUpdateValidation(notification)
 
     def accept_result(self, result: object) -> SessionUpdateValidation:
         if not isinstance(result, SessionUpdateValidation):
