@@ -26,12 +26,14 @@ async def main():
             document,history=editor.document,editor.history
             header=workspace.query_one(SessionsTabs)
             second=await app.new_session_screen(app.get_main_screen)
+            print("CAPTURE",type(first.presentation).__name__,id(document),id(first.presentation.state.editor.document) if first.presentation.state else None,flush=True)
             assert app.screen is workspace
             assert app.selected_session is not first
             app.selected_session.conversation.prompt.text='second draft'
             await app.select_session(first.id)
             await pilot.pause(.02)
             restored=app.selected_session.conversation.prompt.prompt_text_area
+            print("RESTORE",id(restored.document),id(document),id(restored.history),id(history),type(first.presentation).__name__,flush=True)
             assert restored.document is document and restored.history is history
             restored.undo()
             assert restored.text=='persistent original draft'

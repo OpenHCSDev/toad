@@ -87,6 +87,12 @@ class EditorSessionSurfaceLifetime(SessionSurfaceLifetime):
     def __init__(self) -> None:
         self.state: SessionViewState | None = None
 
+    @abstractmethod
+    async def release_binding(self, conversation: Conversation, screen: "MainScreen") -> None: ...
+
+    @abstractmethod
+    async def attach_binding(self, conversation: Conversation) -> None: ...
+
     async def close(self, screen: "MainScreen") -> None:
         conversation = screen.query_one_optional(Conversation)
         if conversation is not None and conversation._shell is not None:
@@ -157,27 +163,18 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
         return SessionSurfaceSlot()
 
     async def prepare(self, screen: "MainScreen") -> None:
-        async with self._lock:
-            if screen.query_one_optional(Conversation) is not None:
-                return
-            conversation = (screen.make_blank_conversation() if self.state is not None
-                            else screen._make_conversation())
-            self.sources.wire(conversation)
-            await screen.query_one("#session-content").mount(conversation)
-            if self.state is not None:
-                self.state.restore(conversation)
-                self.state = None
-            await self.sources.present(conversation)
+        await screen.app.workspace_chrome.native.activate(screen, self)
 
     async def retire(self, screen: "MainScreen") -> None:
-        async with self._lock:
-            conversation = screen.query_one_optional(Conversation)
-            if conversation is None:
-                return
-            self.state = SessionViewState.capture(conversation)
-            await self.sources.detach(conversation, screen)
-            screen.viewport_presentation.release(conversation.window)
-            await conversation.remove()
+        await screen.app.workspace_chrome.native.retire(screen, self)
+
+    async def release_binding(self, conversation: Conversation, screen: "MainScreen") -> None:
+        self.state = SessionViewState.capture(conversation)
+        await self.sources.detach(conversation, screen)
+
+    async def attach_binding(self, conversation: Conversation) -> None:
+        self.sources.wire(conversation)
+        await self.sources.present(conversation)
 
     async def close(self, screen: "MainScreen") -> None:
         await self.sources.close(screen)
@@ -195,30 +192,31 @@ class BlankSessionPresentation(EditorSessionSurfaceLifetime):
         return SessionSurfaceSlot()
 
     async def prepare(self, screen: "MainScreen") -> None:
-        # Actual shell/agent use promotes the editor to a retained presentation.
-        if screen.query_one_optional(Conversation) is None:
-            await screen.app.workspace_chrome.blank.activate(screen, self)
+        await screen.app.workspace_chrome.native.activate(screen, self)
 
     async def retire(self, screen: "MainScreen") -> None:
-        # WorkspaceChrome has moved or parked the surface, capturing this
-        # session's editor before changing custody. No duplicate state owner.
-        return
+        await screen.app.workspace_chrome.native.retire(screen, self)
 
-class BlankSessionSurface:
-    """One native blank editor tree; session controllers own document identity."""
+    async def release_binding(self, conversation: Conversation, screen: "MainScreen") -> None:
+        if NativeSessionSurface._can_transfer(screen, conversation):
+            self.state = SessionViewState.capture(conversation)
+        else:
+            screen.presentation = OperationalSessionPresentation()
+            await screen.presentation.release_binding(conversation, screen)
+
+    async def attach_binding(self, conversation: Conversation) -> None:
+        pass
+
+
+class NativeSessionSurface:
+    """One bounded rich native surface; each logical owner retains its real state."""
 
     def __init__(self, app: "ToadApp") -> None:
         self._app = ref(app)
         self.widget: Conversation | None = None
-        self.owner: BlankSessionPresentation | None = None
+        self.owner: EditorSessionSurfaceLifetime | None = None
+        self.view: MainScreen | None = None
         self._lock = asyncio.Lock()
-
-    @property
-    def app(self) -> "ToadApp":
-        app = self._app()
-        if app is None:
-            raise ReferenceError("The blank workspace owner has retired")
-        return app
 
     @staticmethod
     def _can_transfer(screen: "MainScreen", conversation: Conversation) -> bool:
@@ -236,90 +234,55 @@ class BlankSessionSurface:
             and not conversation.prompt.prompt_text_area.disabled
         )
 
-    async def _release_owner(self) -> None:
-        widget, owner = self.widget, self.owner
-        if widget is None or owner is None:
-            return
-        from toad.screens.main import MainScreen
-
-        screen = next(node for node in widget.ancestors if isinstance(node, MainScreen))
-        if not self._can_transfer(screen, widget):
-            # First operational use changes custody in place. Detach its source
-            # before admitting another rich blank surface; keep no old UI tree.
-            screen.presentation = OperationalSessionPresentation()
-            self.widget = None
-            self.owner = None
-            await screen.presentation.retire(screen)
-            return
-        owner.state = SessionViewState.capture(widget)
-        self.owner = None
-
-    def _move(self, parent: Widget, slot: Widget | None = None) -> None:
-        widget = self.widget
-        assert widget is not None
-        if widget.parent is parent:
-            return
-        captured = self.app.mouse_captured
-        if captured is not None and widget in captured.ancestors_with_self:
-            captured.release_mouse()
-        previous = widget.screen
-        widget.reparent(parent, before=slot)
-        widget.window.rebind_screen(previous, widget.screen)
-
-    async def activate(self, screen: "MainScreen", owner: BlankSessionPresentation) -> None:
+    async def retire(self, screen: "MainScreen", owner: EditorSessionSurfaceLifetime) -> None:
         async with self._lock:
-            if self.owner is owner and self.widget is not None and screen in self.widget.ancestors:
+            if self.owner is not owner or self.widget is None:
                 return
-            await self._release_owner()
+            await owner.release_binding(self.widget, screen)
+            await self.widget.release_native_session()
+            self.widget.display = False
+            self.owner = None
+            self.view = None
+
+    async def activate(self, screen: "MainScreen", owner: EditorSessionSurfaceLifetime) -> None:
+        async with self._lock:
+            if self.owner is owner and self.view is screen:
+                return
             slot = screen.query_one(SessionSurfaceSlot)
             content = slot.parent
             assert isinstance(content, Widget)
-            if self.widget is None:
-                self.widget = screen.make_blank_conversation()
+            first = self.widget is None
+            if first:
+                self.widget = screen._make_conversation()
                 await content.mount(self.widget, before=slot)
             else:
-                self._move(content, slot)
-                self.widget.display = True
+                assert self.owner is None, "Departing source must retire before admitting the next source"
+                self.widget.reparent(content, before=slot)
+                self.widget.bind_native_session(screen)
             conversation = self.widget
-            if conversation.project_path != screen.project_path:
-                # A retained editor may cross project roots. Its watcher and
-                # history scope follow the actual session through the existing
-                # project-path owner, not just a cosmetic reactive assignment.
-                await conversation.sync_project_path(screen.project_path)
-            if (state := owner.state) is None:
-                # load_text clears its current EditHistory in place. That history
-                # belongs to the departing session; install independent model
-                # objects before presenting a new logical session.
+            await owner.attach_binding(conversation)
+            if owner.state is not None:
+                owner.state.restore(conversation)
+                owner.state = None
+            elif not first:
                 editor = conversation.prompt.prompt_text_area
                 previous = editor.history
                 editor.restore_editor_state(TextAreaState(
                     Document(""), EditHistory(previous.max_checkpoints,
                                               previous.checkpoint_timer,
                                               previous.checkpoint_max_characters),
-                    Selection.cursor((0, 0)), 0, 0, None, (), None,
-                ))
-                editor.shell_mode = False
-                conversation.visible_categories = all_categories()
-                conversation.prompt_history = History(conversation._prompt_history_path())
-                conversation.shell_history = History(conversation.project_data_path / "shell_history.jsonl")
-                conversation.prompt_history_index = conversation.shell_history_index = 0
-                conversation.window.anchor()
-            else:
-                state.restore(conversation)
-                owner.state = None
-            conversation.column = screen.column
-            self.owner = owner
+                    Selection.cursor((0, 0)), 0, 0, None, (), None))
+            self.owner, self.view = owner, screen
+            conversation.display = True
+            if not first:
+                conversation.start_native_session()
+            conversation.prompt.focus()
 
-    async def park_away_from(self, screen: Screen) -> None:
+    async def close(self) -> None:
         async with self._lock:
-            widget = self.widget
-            if widget is None or screen in widget.ancestors:
-                return
-            await self._release_owner()
-            if self.widget is None:
-                return
-            # Only the selected editor is admitted. The actual document and
-            # undo objects already belong to the departing session's state.
-            self.widget.screen.viewport_presentation.release(self.widget.window)
-            await self.widget.remove()
-            self.widget = None
+            if self.widget is not None:
+                if self.owner is not None and self.view is not None:
+                    await self.owner.release_binding(self.widget, self.view)
+                await self.widget.release_native_session()
+                await self.widget.remove()
+            self.widget = self.owner = self.view = None

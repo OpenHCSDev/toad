@@ -694,9 +694,14 @@ class SideBar(SidebarDecorations, containers.Vertical):
             else:
                 self.call_after_refresh(self._start_hydration)
 
+    @property
+    def presentation_visible(self) -> bool:
+        return self.screen.is_current and self.display and all(
+            ancestor.display for ancestor in self.ancestors if isinstance(ancestor, Widget))
+
     def _start_hydration(self) -> None:
         if (self._panels_loaded or self._panels_loading or not self.is_attached
-                or not self.screen.is_current or self._closing):
+                or not self.presentation_visible or self._closing):
             return
         self._panels_loading = True
         self.run_worker(self._hydrate_panels(), group="sidebar-panels")
@@ -704,12 +709,12 @@ class SideBar(SidebarDecorations, containers.Vertical):
     async def _hydrate_panels(self) -> None:
         try:
             await self.query_one("#sidebar-panels").mount_all(self._compose_panels())
-            if not self.is_attached or self._closing:
+            if not self.is_attached or self._closing or not self.presentation_visible:
                 return
             controls = self.query_one_optional("#sidebar-controls")
             if controls is not None:
                 await controls.mount_all(self._compose_controls())
-            if self.is_attached and not self._closing:
+            if self.is_attached and not self._closing and self.presentation_visible:
                 self._panels_loaded = True
                 self._presented_layout = None
                 if self._on_hydrated is not None:

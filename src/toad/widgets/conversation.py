@@ -586,6 +586,11 @@ class Conversation(containers.Vertical):
     ) -> None:
         super().__init__()
 
+        self._initialize_session(project_path, agent, agent_session_id, session_pk,
+                                 session_title, initial_prompt)
+
+    def _initialize_session(self, project_path, agent=None, agent_session_id=None,
+                            session_pk=None, session_title=None, initial_prompt=None) -> None:
         project_path = project_path.resolve().absolute()
 
         self.set_reactive(Conversation.project_path, project_path)
@@ -2120,6 +2125,14 @@ class Conversation(containers.Vertical):
         self.shell_history.complete.add_words(
             self.app.settings.shell.allow_commands.split()
         )
+        self.start_native_session()
+        self.update_title()
+        self.window.anchor()
+
+    def start_native_session(self) -> None:
+        if self.agent is not None:
+            self.agent_ready = self.agent.ready
+            return
         if self._agent_data is not None:
 
             async def start_agent() -> None:
@@ -2151,7 +2164,33 @@ class Conversation(containers.Vertical):
         else:
             self.agent_ready = True
 
-        self.update_title()
+    async def release_native_session(self) -> None:
+        """Invalidate all old publications before this rich surface changes source."""
+        self.output.retire()
+        await asyncio.gather(self.transcript.close(), self.goal_observation.close(),
+                             self.delivery_observation.close())
+        self.agent = None
+        self._initial_prompt = None
+        await self.contents.remove_children()
+        self.cursor.follow(None)
+        self.prompt._ask = None
+        self.prompt.ask_queue.clear()
+        self._focusable_terminals.clear()
+
+    def bind_native_session(self, screen) -> None:
+        """Reset values from their declarations, then bind the existing source config."""
+        for name, declaration in Conversation._reactives.items():
+            if name in Conversation.__dict__:
+                setattr(self, name, declaration._default_value(self))
+        self._initialize_session(screen.project_path, screen._agent,
+                                 screen._agent_session_id, screen._session_pk,
+                                 screen._agent_session_title, screen._initial_prompt)
+        for name, declaration in Conversation._reactives.items():
+            if name in Conversation.__dict__:
+                self.mutate_reactive(declaration)
+        self.column = screen.column
+        self.prompt.slash_commands = CommandCatalog(
+            self.agent_slash_commands, self.command_target_context()).commands
         self.window.anchor()
 
     def _history_scroll_changed(self, _position: float) -> None:

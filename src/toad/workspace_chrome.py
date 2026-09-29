@@ -4,7 +4,7 @@ from textual.app import ComposeResult
 from textual.containers import Horizontal
 from toad.widgets.channels_sidebar import ChannelsSidebar
 from toad.widgets.footer import Footer
-from toad.session_presentation import BlankSessionSurface
+from toad.session_presentation import NativeSessionSurface
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
@@ -24,7 +24,7 @@ class WorkspaceChrome:
         self.navigation = WorkspaceHeader(id="tab-navigation-header")
         self.channels = ChannelsSidebar()
         self.footer = Footer(id="workspace-footer")
-        self.blank = BlankSessionSurface(app)
+        self.native = NativeSessionSurface(app)
 
     async def select(self, view: "SessionView") -> None:
         roster = self.channels.roster

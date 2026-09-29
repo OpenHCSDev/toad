@@ -41,8 +41,8 @@ class WorkspaceSessions:
             return destination
         if previous is not None:
             previous.capture_navigation()
-            await previous.retire_presentation()
             previous.display = False
+            await previous.retire_presentation()
         self.selected = destination
         destination.display = True
         await self.app.workspace_chrome.select(destination)

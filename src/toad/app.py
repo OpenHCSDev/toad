@@ -845,7 +845,6 @@ class ToadApp(App, inherit_bindings=False):
                         view = await self.workspace_sessions.select(mode)
                         await self.workspace_screen.prepare_navigation()
                         await self.workspace_screen.layout_navigation()
-                        await self.workspace_chrome.blank.park_away_from(view)
                     if mode != previous:
                         self.tab_order.record_visit(mode, history_index)
                         self.session_selected_signal.publish(mode)
