@@ -1,0 +1,760 @@
+INSTALLED_APP_RUN_TEST_ENTER
+INSTALLED_APP_RUN_TEST_ENTER
+Error dispatching JSONRPC request
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/jsonrpc.py", line 159, in _dispatch_object
+    return await self._dispatch_object_call(request_id, json)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/jsonrpc.py", line 264, in _dispatch_object_call
+    result = await call_result
+             ^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/acp/agent.py", line 278, in _rpc_session_update
+    validation = await self.controller.validate(sessionId, update, _meta)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/acp/agent_controller.py", line 98, in validate
+    return await self.validation.validate(ValidateSessionUpdateTask(session_id, update, metadata))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/acp/agent_controller.py", line 57, in validate
+    return await self.processes.submit(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/work_preparation.py", line 358, in submit
+    return await self.runtime.submit(RenderPreparation(task))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/work_preparation.py", line 308, in submit
+    result = await asyncio.shield(pending)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/work_preparation.py", line 321, in _execute
+    result = await work.execute(self)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/work_preparation.py", line 163, in execute
+    return await runtime.renderer.submit(self.render_task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/render_processes.py", line 105, in submit
+    return await self.run(execute_render_task, task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/render_processes.py", line 95, in run
+    future = asyncio.wrap_future(self._executor.submit(function, *args), loop=loop)
+                                 ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/process.py", line 816, in submit
+    self._adjust_process_count()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/process.py", line 775, in _adjust_process_count
+    self._spawn_process()
+    ~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/process.py", line 793, in _spawn_process
+    p.start()
+    ~~~~~~~^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/process.py", line 121, in start
+    self._popen = self._Popen(self)
+                  ~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/context.py", line 288, in _Popen
+    return Popen(process_obj)
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/popen_spawn_posix.py", line 32, in __init__
+    super().__init__(process_obj)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/popen_fork.py", line 20, in __init__
+    self._launch(process_obj)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/popen_spawn_posix.py", line 42, in _launch
+    prep_data = spawn.get_preparation_data(process_obj._name)
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/spawn.py", line 164, in get_preparation_data
+    _check_not_importing_main()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/spawn.py", line 140, in _check_not_importing_main
+    raise RuntimeError('''
+    ...<16 lines>...
+    ''')
+RuntimeError: 
+        An attempt has been made to start a new process before the
+        current process has finished its bootstrapping phase.
+
+        This probably means that you are not using fork to start your
+        child processes and you have forgotten to use the proper idiom
+        in the main module:
+
+            if __name__ == '__main__':
+                freeze_support()
+                ...
+
+        The "freeze_support()" line can be omitted if the program
+        is not going to be frozen to produce an executable.
+
+        To fix this issue, refer to the "Safe importing of main module"
+        section in https://docs.python.org/3/library/multiprocessing.html
+        
+Error dispatching JSONRPC request
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/jsonrpc.py", line 159, in _dispatch_object
+    return await self._dispatch_object_call(request_id, json)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/jsonrpc.py", line 264, in _dispatch_object_call
+    result = await call_result
+             ^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/acp/agent.py", line 278, in _rpc_session_update
+    validation = await self.controller.validate(sessionId, update, _meta)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/acp/agent_controller.py", line 98, in validate
+    return await self.validation.validate(ValidateSessionUpdateTask(session_id, update, metadata))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/acp/agent_controller.py", line 57, in validate
+    return await self.processes.submit(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/work_preparation.py", line 358, in submit
+    return await self.runtime.submit(RenderPreparation(task))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/work_preparation.py", line 308, in submit
+    result = await asyncio.shield(pending)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/work_preparation.py", line 321, in _execute
+    result = await work.execute(self)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/work_preparation.py", line 163, in execute
+    return await runtime.renderer.submit(self.render_task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/render_processes.py", line 105, in submit
+    return await self.run(execute_render_task, task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/render_processes.py", line 95, in run
+    future = asyncio.wrap_future(self._executor.submit(function, *args), loop=loop)
+                                 ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/process.py", line 816, in submit
+    self._adjust_process_count()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/process.py", line 775, in _adjust_process_count
+    self._spawn_process()
+    ~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/process.py", line 793, in _spawn_process
+    p.start()
+    ~~~~~~~^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/process.py", line 121, in start
+    self._popen = self._Popen(self)
+                  ~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/context.py", line 288, in _Popen
+    return Popen(process_obj)
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/popen_spawn_posix.py", line 32, in __init__
+    super().__init__(process_obj)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/popen_fork.py", line 20, in __init__
+    self._launch(process_obj)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/popen_spawn_posix.py", line 42, in _launch
+    prep_data = spawn.get_preparation_data(process_obj._name)
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/spawn.py", line 164, in get_preparation_data
+    _check_not_importing_main()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/spawn.py", line 140, in _check_not_importing_main
+    raise RuntimeError('''
+    ...<16 lines>...
+    ''')
+RuntimeError: 
+        An attempt has been made to start a new process before the
+        current process has finished its bootstrapping phase.
+
+        This probably means that you are not using fork to start your
+        child processes and you have forgotten to use the proper idiom
+        in the main module:
+
+            if __name__ == '__main__':
+                freeze_support()
+                ...
+
+        The "freeze_support()" line can be omitted if the program
+        is not going to be frozen to produce an executable.
+
+        To fix this issue, refer to the "Safe importing of main module"
+        section in https://docs.python.org/3/library/multiprocessing.html
+        
+Error dispatching JSONRPC request
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/jsonrpc.py", line 159, in _dispatch_object
+    return await self._dispatch_object_call(request_id, json)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/jsonrpc.py", line 264, in _dispatch_object_call
+    result = await call_result
+             ^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/acp/agent.py", line 278, in _rpc_session_update
+    validation = await self.controller.validate(sessionId, update, _meta)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/acp/agent_controller.py", line 98, in validate
+    return await self.validation.validate(ValidateSessionUpdateTask(session_id, update, metadata))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/acp/agent_controller.py", line 57, in validate
+    return await self.processes.submit(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/work_preparation.py", line 358, in submit
+    return await self.runtime.submit(RenderPreparation(task))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/work_preparation.py", line 308, in submit
+    result = await asyncio.shield(pending)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/work_preparation.py", line 321, in _execute
+    result = await work.execute(self)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/work_preparation.py", line 163, in execute
+    return await runtime.renderer.submit(self.render_task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/render_processes.py", line 105, in submit
+    return await self.run(execute_render_task, task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/render_processes.py", line 95, in run
+    future = asyncio.wrap_future(self._executor.submit(function, *args), loop=loop)
+                                 ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/process.py", line 816, in submit
+    self._adjust_process_count()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/process.py", line 775, in _adjust_process_count
+    self._spawn_process()
+    ~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/process.py", line 793, in _spawn_process
+    p.start()
+    ~~~~~~~^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/process.py", line 121, in start
+    self._popen = self._Popen(self)
+                  ~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/context.py", line 288, in _Popen
+    return Popen(process_obj)
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/popen_spawn_posix.py", line 32, in __init__
+    super().__init__(process_obj)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/popen_fork.py", line 20, in __init__
+    self._launch(process_obj)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/popen_spawn_posix.py", line 42, in _launch
+    prep_data = spawn.get_preparation_data(process_obj._name)
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/spawn.py", line 164, in get_preparation_data
+    _check_not_importing_main()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/spawn.py", line 140, in _check_not_importing_main
+    raise RuntimeError('''
+    ...<16 lines>...
+    ''')
+RuntimeError: 
+        An attempt has been made to start a new process before the
+        current process has finished its bootstrapping phase.
+
+        This probably means that you are not using fork to start your
+        child processes and you have forgotten to use the proper idiom
+        in the main module:
+
+            if __name__ == '__main__':
+                freeze_support()
+                ...
+
+        The "freeze_support()" line can be omitted if the program
+        is not going to be frozen to produce an executable.
+
+        To fix this issue, refer to the "Safe importing of main module"
+        section in https://docs.python.org/3/library/multiprocessing.html
+        
+Error dispatching JSONRPC request
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/jsonrpc.py", line 159, in _dispatch_object
+    return await self._dispatch_object_call(request_id, json)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/jsonrpc.py", line 264, in _dispatch_object_call
+    result = await call_result
+             ^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/acp/agent.py", line 278, in _rpc_session_update
+    validation = await self.controller.validate(sessionId, update, _meta)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/acp/agent_controller.py", line 98, in validate
+    return await self.validation.validate(ValidateSessionUpdateTask(session_id, update, metadata))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/acp/agent_controller.py", line 57, in validate
+    return await self.processes.submit(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/work_preparation.py", line 358, in submit
+    return await self.runtime.submit(RenderPreparation(task))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/work_preparation.py", line 308, in submit
+    result = await asyncio.shield(pending)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/work_preparation.py", line 321, in _execute
+    result = await work.execute(self)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/work_preparation.py", line 163, in execute
+    return await runtime.renderer.submit(self.render_task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/render_processes.py", line 105, in submit
+    return await self.run(execute_render_task, task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/render_processes.py", line 95, in run
+    future = asyncio.wrap_future(self._executor.submit(function, *args), loop=loop)
+                                 ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/process.py", line 816, in submit
+    self._adjust_process_count()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/process.py", line 775, in _adjust_process_count
+    self._spawn_process()
+    ~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/process.py", line 793, in _spawn_process
+    p.start()
+    ~~~~~~~^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/process.py", line 121, in start
+    self._popen = self._Popen(self)
+                  ~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/context.py", line 288, in _Popen
+    return Popen(process_obj)
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/popen_spawn_posix.py", line 32, in __init__
+    super().__init__(process_obj)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/popen_fork.py", line 20, in __init__
+    self._launch(process_obj)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/popen_spawn_posix.py", line 42, in _launch
+    prep_data = spawn.get_preparation_data(process_obj._name)
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/spawn.py", line 164, in get_preparation_data
+    _check_not_importing_main()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/spawn.py", line 140, in _check_not_importing_main
+    raise RuntimeError('''
+    ...<16 lines>...
+    ''')
+RuntimeError: 
+        An attempt has been made to start a new process before the
+        current process has finished its bootstrapping phase.
+
+        This probably means that you are not using fork to start your
+        child processes and you have forgotten to use the proper idiom
+        in the main module:
+
+            if __name__ == '__main__':
+                freeze_support()
+                ...
+
+        The "freeze_support()" line can be omitted if the program
+        is not going to be frozen to produce an executable.
+
+        To fix this issue, refer to the "Safe importing of main module"
+        section in https://docs.python.org/3/library/multiprocessing.html
+        
+Exception in thread Directory observation: /home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/l0a-native-9gqa6o06/project:
+Traceback (most recent call last):
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py", line 1082, in _bootstrap_inner
+    self._context.run(self.run)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/directory_watcher.py", line 174, in run
+    self.process.start()
+    ~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/process.py", line 121, in start
+    self._popen = self._Popen(self)
+                  ~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/context.py", line 288, in _Popen
+    return Popen(process_obj)
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/popen_spawn_posix.py", line 32, in __init__
+    super().__init__(process_obj)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/popen_fork.py", line 20, in __init__
+    self._launch(process_obj)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/popen_spawn_posix.py", line 42, in _launch
+    prep_data = spawn.get_preparation_data(process_obj._name)
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/spawn.py", line 164, in get_preparation_data
+    _check_not_importing_main()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/spawn.py", line 140, in _check_not_importing_main
+    raise RuntimeError('''
+    ...<16 lines>...
+    ''')
+RuntimeError: 
+        An attempt has been made to start a new process before the
+        current process has finished its bootstrapping phase.
+
+        This probably means that you are not using fork to start your
+        child processes and you have forgotten to use the proper idiom
+        in the main module:
+
+            if __name__ == '__main__':
+                freeze_support()
+                ...
+
+        The "freeze_support()" line can be omitted if the program
+        is not going to be frozen to produce an executable.
+
+        To fix this issue, refer to the "Safe importing of main module"
+        section in https://docs.python.org/3/library/multiprocessing.html
+        
+INSTALLED_APP_RUN_TEST_YIELDED
+ATTACHED_AND_NAVIGABLE
+ACTUAL_NATIVE_ATTACHED_RENAME_RETIRED_REJECTION_ZERO_PROVIDER_REQUESTS
+INSTALLED_APP_RUN_TEST_ENTER
+Error dispatching JSONRPC request
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/jsonrpc.py", line 159, in _dispatch_object
+    return await self._dispatch_object_call(request_id, json)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/jsonrpc.py", line 264, in _dispatch_object_call
+    result = await call_result
+             ^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/acp/agent.py", line 278, in _rpc_session_update
+    validation = await self.controller.validate(sessionId, update, _meta)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/acp/agent_controller.py", line 98, in validate
+    return await self.validation.validate(ValidateSessionUpdateTask(session_id, update, metadata))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/acp/agent_controller.py", line 57, in validate
+    return await self.processes.submit(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/work_preparation.py", line 358, in submit
+    return await self.runtime.submit(RenderPreparation(task))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/work_preparation.py", line 308, in submit
+    result = await asyncio.shield(pending)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/work_preparation.py", line 321, in _execute
+    result = await work.execute(self)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/work_preparation.py", line 163, in execute
+    return await runtime.renderer.submit(self.render_task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/render_processes.py", line 105, in submit
+    return await self.run(execute_render_task, task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/render_processes.py", line 95, in run
+    future = asyncio.wrap_future(self._executor.submit(function, *args), loop=loop)
+                                 ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/process.py", line 816, in submit
+    self._adjust_process_count()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/process.py", line 775, in _adjust_process_count
+    self._spawn_process()
+    ~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/process.py", line 793, in _spawn_process
+    p.start()
+    ~~~~~~~^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/process.py", line 121, in start
+    self._popen = self._Popen(self)
+                  ~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/context.py", line 288, in _Popen
+    return Popen(process_obj)
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/popen_spawn_posix.py", line 32, in __init__
+    super().__init__(process_obj)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/popen_fork.py", line 20, in __init__
+    self._launch(process_obj)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/popen_spawn_posix.py", line 42, in _launch
+    prep_data = spawn.get_preparation_data(process_obj._name)
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/spawn.py", line 164, in get_preparation_data
+    _check_not_importing_main()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/spawn.py", line 140, in _check_not_importing_main
+    raise RuntimeError('''
+    ...<16 lines>...
+    ''')
+RuntimeError: 
+        An attempt has been made to start a new process before the
+        current process has finished its bootstrapping phase.
+
+        This probably means that you are not using fork to start your
+        child processes and you have forgotten to use the proper idiom
+        in the main module:
+
+            if __name__ == '__main__':
+                freeze_support()
+                ...
+
+        The "freeze_support()" line can be omitted if the program
+        is not going to be frozen to produce an executable.
+
+        To fix this issue, refer to the "Safe importing of main module"
+        section in https://docs.python.org/3/library/multiprocessing.html
+        
+Error dispatching JSONRPC request
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/jsonrpc.py", line 159, in _dispatch_object
+    return await self._dispatch_object_call(request_id, json)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/jsonrpc.py", line 264, in _dispatch_object_call
+    result = await call_result
+             ^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/acp/agent.py", line 278, in _rpc_session_update
+    validation = await self.controller.validate(sessionId, update, _meta)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/acp/agent_controller.py", line 98, in validate
+    return await self.validation.validate(ValidateSessionUpdateTask(session_id, update, metadata))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/acp/agent_controller.py", line 57, in validate
+    return await self.processes.submit(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/work_preparation.py", line 358, in submit
+    return await self.runtime.submit(RenderPreparation(task))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/work_preparation.py", line 308, in submit
+    result = await asyncio.shield(pending)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/work_preparation.py", line 321, in _execute
+    result = await work.execute(self)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/work_preparation.py", line 163, in execute
+    return await runtime.renderer.submit(self.render_task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/render_processes.py", line 105, in submit
+    return await self.run(execute_render_task, task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/render_processes.py", line 95, in run
+    future = asyncio.wrap_future(self._executor.submit(function, *args), loop=loop)
+                                 ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/process.py", line 816, in submit
+    self._adjust_process_count()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/process.py", line 775, in _adjust_process_count
+    self._spawn_process()
+    ~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/process.py", line 793, in _spawn_process
+    p.start()
+    ~~~~~~~^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/process.py", line 121, in start
+    self._popen = self._Popen(self)
+                  ~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/context.py", line 288, in _Popen
+    return Popen(process_obj)
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/popen_spawn_posix.py", line 32, in __init__
+    super().__init__(process_obj)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/popen_fork.py", line 20, in __init__
+    self._launch(process_obj)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/popen_spawn_posix.py", line 42, in _launch
+    prep_data = spawn.get_preparation_data(process_obj._name)
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/spawn.py", line 164, in get_preparation_data
+    _check_not_importing_main()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/spawn.py", line 140, in _check_not_importing_main
+    raise RuntimeError('''
+    ...<16 lines>...
+    ''')
+RuntimeError: 
+        An attempt has been made to start a new process before the
+        current process has finished its bootstrapping phase.
+
+        This probably means that you are not using fork to start your
+        child processes and you have forgotten to use the proper idiom
+        in the main module:
+
+            if __name__ == '__main__':
+                freeze_support()
+                ...
+
+        The "freeze_support()" line can be omitted if the program
+        is not going to be frozen to produce an executable.
+
+        To fix this issue, refer to the "Safe importing of main module"
+        section in https://docs.python.org/3/library/multiprocessing.html
+        
+Error dispatching JSONRPC request
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/jsonrpc.py", line 159, in _dispatch_object
+    return await self._dispatch_object_call(request_id, json)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/jsonrpc.py", line 264, in _dispatch_object_call
+    result = await call_result
+             ^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/acp/agent.py", line 278, in _rpc_session_update
+    validation = await self.controller.validate(sessionId, update, _meta)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/acp/agent_controller.py", line 98, in validate
+    return await self.validation.validate(ValidateSessionUpdateTask(session_id, update, metadata))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/acp/agent_controller.py", line 57, in validate
+    return await self.processes.submit(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/work_preparation.py", line 358, in submit
+    return await self.runtime.submit(RenderPreparation(task))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/work_preparation.py", line 308, in submit
+    result = await asyncio.shield(pending)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/work_preparation.py", line 321, in _execute
+    result = await work.execute(self)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/work_preparation.py", line 163, in execute
+    return await runtime.renderer.submit(self.render_task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/render_processes.py", line 105, in submit
+    return await self.run(execute_render_task, task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/render_processes.py", line 95, in run
+    future = asyncio.wrap_future(self._executor.submit(function, *args), loop=loop)
+                                 ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/process.py", line 816, in submit
+    self._adjust_process_count()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/process.py", line 775, in _adjust_process_count
+    self._spawn_process()
+    ~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/process.py", line 793, in _spawn_process
+    p.start()
+    ~~~~~~~^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/process.py", line 121, in start
+    self._popen = self._Popen(self)
+                  ~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/context.py", line 288, in _Popen
+    return Popen(process_obj)
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/popen_spawn_posix.py", line 32, in __init__
+    super().__init__(process_obj)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/popen_fork.py", line 20, in __init__
+    self._launch(process_obj)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/popen_spawn_posix.py", line 42, in _launch
+    prep_data = spawn.get_preparation_data(process_obj._name)
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/spawn.py", line 164, in get_preparation_data
+    _check_not_importing_main()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/spawn.py", line 140, in _check_not_importing_main
+    raise RuntimeError('''
+    ...<16 lines>...
+    ''')
+RuntimeError: 
+        An attempt has been made to start a new process before the
+        current process has finished its bootstrapping phase.
+
+        This probably means that you are not using fork to start your
+        child processes and you have forgotten to use the proper idiom
+        in the main module:
+
+            if __name__ == '__main__':
+                freeze_support()
+                ...
+
+        The "freeze_support()" line can be omitted if the program
+        is not going to be frozen to produce an executable.
+
+        To fix this issue, refer to the "Safe importing of main module"
+        section in https://docs.python.org/3/library/multiprocessing.html
+        
+Error dispatching JSONRPC request
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/jsonrpc.py", line 159, in _dispatch_object
+    return await self._dispatch_object_call(request_id, json)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/jsonrpc.py", line 264, in _dispatch_object_call
+    result = await call_result
+             ^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/acp/agent.py", line 278, in _rpc_session_update
+    validation = await self.controller.validate(sessionId, update, _meta)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/acp/agent_controller.py", line 98, in validate
+    return await self.validation.validate(ValidateSessionUpdateTask(session_id, update, metadata))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/acp/agent_controller.py", line 57, in validate
+    return await self.processes.submit(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/work_preparation.py", line 358, in submit
+    return await self.runtime.submit(RenderPreparation(task))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/work_preparation.py", line 308, in submit
+    result = await asyncio.shield(pending)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/work_preparation.py", line 321, in _execute
+    result = await work.execute(self)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/work_preparation.py", line 163, in execute
+    return await runtime.renderer.submit(self.render_task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/render_processes.py", line 105, in submit
+    return await self.run(execute_render_task, task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/render_processes.py", line 95, in run
+    future = asyncio.wrap_future(self._executor.submit(function, *args), loop=loop)
+                                 ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/process.py", line 816, in submit
+    self._adjust_process_count()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/process.py", line 775, in _adjust_process_count
+    self._spawn_process()
+    ~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/process.py", line 793, in _spawn_process
+    p.start()
+    ~~~~~~~^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/process.py", line 121, in start
+    self._popen = self._Popen(self)
+                  ~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/context.py", line 288, in _Popen
+    return Popen(process_obj)
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/popen_spawn_posix.py", line 32, in __init__
+    super().__init__(process_obj)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/popen_fork.py", line 20, in __init__
+    self._launch(process_obj)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/popen_spawn_posix.py", line 42, in _launch
+    prep_data = spawn.get_preparation_data(process_obj._name)
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/spawn.py", line 164, in get_preparation_data
+    _check_not_importing_main()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/spawn.py", line 140, in _check_not_importing_main
+    raise RuntimeError('''
+    ...<16 lines>...
+    ''')
+RuntimeError: 
+        An attempt has been made to start a new process before the
+        current process has finished its bootstrapping phase.
+
+        This probably means that you are not using fork to start your
+        child processes and you have forgotten to use the proper idiom
+        in the main module:
+
+            if __name__ == '__main__':
+                freeze_support()
+                ...
+
+        The "freeze_support()" line can be omitted if the program
+        is not going to be frozen to produce an executable.
+
+        To fix this issue, refer to the "Safe importing of main module"
+        section in https://docs.python.org/3/library/multiprocessing.html
+        
+Exception in thread Directory observation: /home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/l0a-native-fnvo83s5/project:
+Traceback (most recent call last):
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py", line 1082, in _bootstrap_inner
+    self._context.run(self.run)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/directory_watcher.py", line 174, in run
+    self.process.start()
+    ~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/process.py", line 121, in start
+    self._popen = self._Popen(self)
+                  ~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/context.py", line 288, in _Popen
+    return Popen(process_obj)
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/popen_spawn_posix.py", line 32, in __init__
+    super().__init__(process_obj)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/popen_fork.py", line 20, in __init__
+    self._launch(process_obj)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/popen_spawn_posix.py", line 42, in _launch
+    prep_data = spawn.get_preparation_data(process_obj._name)
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/spawn.py", line 164, in get_preparation_data
+    _check_not_importing_main()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/spawn.py", line 140, in _check_not_importing_main
+    raise RuntimeError('''
+    ...<16 lines>...
+    ''')
+RuntimeError: 
+        An attempt has been made to start a new process before the
+        current process has finished its bootstrapping phase.
+
+        This probably means that you are not using fork to start your
+        child processes and you have forgotten to use the proper idiom
+        in the main module:
+
+            if __name__ == '__main__':
+                freeze_support()
+                ...
+
+        The "freeze_support()" line can be omitted if the program
+        is not going to be frozen to produce an executable.
+
+        To fix this issue, refer to the "Safe importing of main module"
+        section in https://docs.python.org/3/library/multiprocessing.html
+        
+INSTALLED_APP_RUN_TEST_YIELDED
+ATTACHED_AND_NAVIGABLE
+ACTUAL_NATIVE_ATTACHED_RENAME_RETIRED_REJECTION_ZERO_PROVIDER_REQUESTS
+INSTALLED_APP_RUN_TEST_YIELDED
+ATTACHED_AND_NAVIGABLE
+ACTUAL_NATIVE_ATTACHED_RENAME_RETIRED_REJECTION_ZERO_PROVIDER_REQUESTS

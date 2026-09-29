@@ -1,0 +1,9 @@
+# PR152 final caller closure
+
+Deletion first: ProcessControl hierarchy/second cancellation supervisor and Agent maintenance launch fields deleted; six external session/retirement checks replaced by AgentProcess.accepts_session declaration-owned admission. Managed rename no longer reaches through AgentProcess.process. No remaining production caller reads process.process/stopping or retired maintenance fields. Lifecycle work/state stays AgentProcess; native detached process custody stays core AttachedChild. No mixin/facade/parallel store.
+
+Source15204009c35 + paired1559cbf3683 (152 ancestry) installed noneditable on core349e1f4/native d396/Textual1738. Actual normalApp/ACP/native attach -> rename registered native identity -> stop/retire -> reject second rename, ZERO provider requests PASS exit0. Two relevant lifecycle/declaration caller guards PASS0.13s. The same paired source previously completed native saved-context -> ACP adaptive phases -> painted Compacting/busy -> native commit/original+reply once (PR155 receipt). Existing process EOF/stop/cancellation descendants receipts retained; no unchanged broad rerun. First rename harness lacked multiprocessing main guard and produced actual Python safe-import errors; preserved RED and fixed harness before accepting final clean run. No claim RED was product failure.
+
+Latest authoritative archive refactor-audit.skill/NRA used: IMPL-13 process custody, IDEN-1/3 current-session admission, IMPL-10 declared retirement, AGENT-8 harness same ownership/import rules. Toad paired touched10file ForeignAbsenceProbe/BooleanChainTerms nonincrease; god excess no growth. Child/global source watchers remain Tesla-owned, not duplicated.
+
+Parent merges/installs; no live owner starts/history/input replay performed. Ready PR152 code04009c35, PR155 includes this ancestry; Core349 readiness recorded separately. Useful pair live gate remains parent. CI deferred.
