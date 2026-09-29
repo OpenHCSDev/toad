@@ -275,7 +275,7 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
         if self._content_error is not None and not self._closing and not self._closed:
             raise self._content_error
 
-    async def on_unmount(self) -> None:
+    async def close_presentation(self) -> None:
         self._content_ready.set()
         await self.presentation.close(self)
 

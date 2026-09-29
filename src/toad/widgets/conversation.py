@@ -9,6 +9,7 @@ from toad.settings import PreferenceChange
 from toad.preferences import SidebarSettings, ShellSettings
 
 import asyncio
+from abc import abstractmethod
 import hashlib
 from contextlib import suppress
 from functools import partial
@@ -436,7 +437,264 @@ This is a view of your conversation with the agent.
 
 
 
-class Conversation(containers.Vertical):
+class ConversationSessionBinding(containers.Vertical):
+    """Source-bound state and reusable rich-surface lifecycle shared by conversations."""
+
+    @abstractmethod
+    def _turn_changed(self, owner: TurnOwner) -> None:
+        """Publish the concrete conversation's changed turn projection."""
+        raise NotImplementedError
+
+    busy_count = var(0)
+
+
+    visible_categories: var[frozenset[type[MessageCategory]]] = var(lambda: all_categories(), init=False)
+
+
+    project_path = var("")
+
+
+    working_directory: var[str] = var("")
+
+
+    _blocks: var[list[MarkdownBlock] | None] = var(None)
+
+
+    _shell: var[Shell | None] = var(None)
+
+
+    shell_history_index: var[int] = var(0, init=False)
+
+
+    prompt_history_index: var[int] = var(0, init=False)
+
+
+    agent: var[AgentBase | None] = var(None, bindings=True)
+
+
+    agent_info: var[Content] = var(Content())
+
+
+    agent_ready: var[bool] = var(False)
+
+
+    modes: var[dict[str, Mode]] = var({}, bindings=True)
+
+
+    current_mode: var[Mode | None] = var(None)
+
+
+    models: var[dict[str, Model]] = var({}, bindings=True)
+
+
+    model_history_scope = var("")
+
+
+    queue_supported = var(False)
+
+
+    queued_prompts: var[list[str]] = var(list)
+
+
+    queue_projection: var[QueueProjection] = var(PendingQueueProjection())
+
+
+    delivering_prompt = var("")
+
+
+    activity = var("")
+
+
+    activity_started_at: var[float | None] = var(None)
+
+
+    sending_queued_prompt = var("")
+
+
+    current_model: var[Model | None] = var(None)
+
+
+    thinking_level = var("")
+
+
+    input_delivery: var[dict] = var(empty_delivery)
+
+
+    input_delivery_error: var[str] = var("")
+
+
+    native_history_status: var[CursorStatus | None] = var(None)
+
+
+    goal_display: var[GoalDisplay] = var(NoGoal())
+
+
+    goal_execution: var[GoalExecution | None] = var(None)
+
+
+    status: var[str | Content] = var("")
+
+
+    column: var[bool] = var(False, toggle_class="-column")
+
+
+    title = var("")
+
+
+    def __init__(
+        self,
+        project_path: Path,
+        agent: AgentData | None = None,
+        agent_session_id: str | None = None,
+        session_pk: int | None = None,
+        session_title: str | None = None,
+        initial_prompt: str | None = None,
+    ) -> None:
+        super().__init__()
+
+        self._initialize_session(project_path, agent, agent_session_id, session_pk,
+                                 session_title, initial_prompt)
+
+
+    def _initialize_session(self, project_path, agent=None, agent_session_id=None,
+                            session_pk=None, session_title=None, initial_prompt=None) -> None:
+        project_path = project_path.resolve().absolute()
+
+        self.set_reactive(ConversationSessionBinding.project_path, project_path)
+        self.set_reactive(ConversationSessionBinding.working_directory, str(project_path))
+        self.agent_slash_commands: list[AgentAdvertisedCommand] = []
+        self.output = LiveOutput(self)
+        self._loading: Loading | None = None
+        self.turns = ConversationTurn(self._turn_changed)
+        self._filter_scroll_positions = {}
+        self._mcp_live_turn: str | None = None
+        self._mcp_live_note: Note | None = None
+        self._private_cursor_sequence = 0
+        self._queue_sequence = 0
+        self._sending_queue_input_id: str | None = None
+        from toad.widgets.agent_activity import AgentActivityBoundary
+
+        self._agent_activity_boundary = AgentActivityBoundary()
+        self._last_escape_time = 0.0
+        self._agent_data = agent
+        self.set_class(agent is not None, "-initial-loading")
+        self.set_reactive(
+            ConversationSessionBinding.model_history_scope, agent["identity"] if agent else ""
+        )
+        self._agent_session_id = agent_session_id
+        self._session_pk = session_pk
+        self._session_title = session_title
+        self._auto_title_eligible = (
+            agent_session_id is None and session_pk is None and session_title is None
+        )
+        self._agent_fail = False
+        self._mouse_down_offset: Offset | None = None
+
+        self._focusable_terminals: list[Terminal] = []
+
+        self.project_data_path = paths.get_project_data(project_path)
+        self._prompt_history_scope = agent_session_id or (
+            f"session-{session_pk}" if session_pk is not None else ""
+        )
+        self.shell_history = History(self.project_data_path / "shell_history.jsonl")
+        self.prompt_history = History(self._prompt_history_path())
+
+        self.session_start_time: float | None = None
+        self._terminal_count = 0
+        self._require_check_prune = False
+
+        self._turn_count = 0
+        self._shell_count = 0
+
+        self._directory_changed = False
+        self._directory_watcher: DirectoryWatcher | None = None
+
+        self._initial_prompt = initial_prompt
+
+        self.goal_observation = GoalObservation(self)
+        self.goal_controls = GoalSession(self)
+        self.delivery_observation = InputDeliveryObservation(self)
+        self.transcript = TranscriptPresentation(self)
+        self.tool_expansions: dict[str, bool] = {}
+        self._compacting = False
+
+
+    async def release_native_session(self) -> None:
+        """Invalidate all old publications before this rich surface changes source."""
+        await self.transcript.close()
+        self.goal_controls.close()
+        self.output.retire()
+        if self._directory_watcher is not None:
+            await self._directory_watcher.aclose()
+            self._directory_watcher = None
+        await self.window.document_viewport.suspend_source()
+        await asyncio.gather(self.goal_observation.close(),
+                             self.delivery_observation.close())
+        self.agent = None
+        self._initial_prompt = None
+        await self.contents.remove_children()
+        self.cursor.follow(None)
+        self.prompt._ask = None
+        self.prompt.ask_queue.clear()
+        self._focusable_terminals.clear()
+
+
+    async def bind_native_session(self, screen) -> None:
+        """Reset values from their declarations, then bind the existing source config."""
+        for name, declaration in ConversationSessionBinding._reactives.items():
+            if name in ConversationSessionBinding.__dict__:
+                self.set_reactive(declaration, declaration._default_value(self))
+        self._initialize_session(screen.project_path, screen._agent,
+                                 screen._agent_session_id, screen._session_pk,
+                                 screen._agent_session_title, screen._initial_prompt)
+        await self.contents.mount(*ThreadLoading.initial_contents(self._agent_data))
+        # Refresh cwd-bound editor projections, without replaying semantic
+        # history-navigation watchers against the restored document.
+        self.mutate_reactive(ConversationSessionBinding.project_path)
+        self.mutate_reactive(ConversationSessionBinding.working_directory)
+        self.column = screen.column
+        self.prompt.slash_commands = CommandCatalog(
+            self.agent_slash_commands, self.command_target_context()).commands
+        self.window.anchor()
+        self.window.document_viewport.resume_source()
+
+
+
+    @work
+    async def watch_agent_ready(self, ready: bool) -> None:
+        presentation = self.transcript
+        if presentation.view is not self:
+            return
+        if ready:
+            self.remove_class("-initial-loading")
+            await self.query(ThreadLoading).remove()
+            if self.transcript is not presentation or presentation.view is not self:
+                return
+        if ready and self._directory_watcher is None:
+            self._directory_watcher = DirectoryWatcher(self.project_path, self)
+            self._directory_watcher.start()
+        if ready and (agent_data := self._agent_data) is not None:
+            welcome = agent_data.get("welcome", None)
+            if welcome is not None:
+                from toad.widgets.markdown_note import MarkdownNote
+
+                await self.post(MarkdownNote(welcome))
+                if self.transcript is not presentation or presentation.view is not self:
+                    return
+        if ready and self._initial_prompt is not None:
+            prompt = self._initial_prompt
+            if prompt.startswith("!"):
+                self.post_message(
+                    messages.UserInputSubmitted(self._initial_prompt[1:], shell=True)
+                )
+            else:
+                self.post_message(
+                    messages.UserInputSubmitted(self._initial_prompt, shell=False)
+                )
+            self._initial_prompt = None
+
+
+class Conversation(ConversationSessionBinding):
     """Holds the agent conversation (input, output, and various controls / information)."""
 
     BLANK = True
@@ -507,11 +765,6 @@ class Conversation(containers.Vertical):
         ),
     ]
 
-    busy_count = var(0)
-    visible_categories: var[frozenset[type[MessageCategory]]] = var(lambda: all_categories(), init=False)
-    project_path = var("")
-    working_directory: var[str] = var("")
-    _blocks: var[list[MarkdownBlock] | None] = var(None)
 
     throbber: getters.query_one[Throbber] = getters.query_one("#throbber")
     contents = getters.query_one(Contents)
@@ -554,111 +807,10 @@ class Conversation(containers.Vertical):
 
         self.call_after_refresh(restore_position)
 
-    _shell: var[Shell | None] = var(None)
-    shell_history_index: var[int] = var(0, init=False)
-    prompt_history_index: var[int] = var(0, init=False)
 
-    agent: var[AgentBase | None] = var(None, bindings=True)
-    agent_info: var[Content] = var(Content())
-    agent_ready: var[bool] = var(False)
-    modes: var[dict[str, Mode]] = var({}, bindings=True)
-    current_mode: var[Mode | None] = var(None)
-    models: var[dict[str, Model]] = var({}, bindings=True)
-    model_history_scope = var("")
-    queue_supported = var(False)
-    queued_prompts: var[list[str]] = var(list)
-    queue_projection: var[QueueProjection] = var(PendingQueueProjection())
-    delivering_prompt = var("")
-    activity = var("")
-    activity_started_at: var[float | None] = var(None)
-    sending_queued_prompt = var("")
-    current_model: var[Model | None] = var(None)
-    thinking_level = var("")
-    input_delivery: var[dict] = var(empty_delivery)
-    input_delivery_error: var[str] = var("")
-    native_history_status: var[CursorStatus | None] = var(None)
-    goal_display: var[GoalDisplay] = var(NoGoal())
-    goal_execution: var[GoalExecution | None] = var(None)
-    status: var[str | Content] = var("")
-    column: var[bool] = var(False, toggle_class="-column")
 
-    title = var("")
 
-    def __init__(
-        self,
-        project_path: Path,
-        agent: AgentData | None = None,
-        agent_session_id: str | None = None,
-        session_pk: int | None = None,
-        session_title: str | None = None,
-        initial_prompt: str | None = None,
-    ) -> None:
-        super().__init__()
 
-        self._initialize_session(project_path, agent, agent_session_id, session_pk,
-                                 session_title, initial_prompt)
-
-    def _initialize_session(self, project_path, agent=None, agent_session_id=None,
-                            session_pk=None, session_title=None, initial_prompt=None) -> None:
-        project_path = project_path.resolve().absolute()
-
-        self.set_reactive(Conversation.project_path, project_path)
-        self.set_reactive(Conversation.working_directory, str(project_path))
-        self.agent_slash_commands: list[AgentAdvertisedCommand] = []
-        self.output = LiveOutput(self)
-        self._loading: Loading | None = None
-        self.turns = ConversationTurn(self._turn_changed)
-        self._filter_scroll_positions = {}
-        self._mcp_live_turn: str | None = None
-        self._mcp_live_note: Note | None = None
-        self._private_cursor_sequence = 0
-        self._queue_sequence = 0
-        self._sending_queue_input_id: str | None = None
-        from toad.widgets.agent_activity import AgentActivityBoundary
-
-        self._agent_activity_boundary = AgentActivityBoundary()
-        self._last_escape_time = 0.0
-        self._agent_data = agent
-        self.set_class(agent is not None, "-initial-loading")
-        self.set_reactive(
-            Conversation.model_history_scope, agent["identity"] if agent else ""
-        )
-        self._agent_session_id = agent_session_id
-        self._session_pk = session_pk
-        self._session_title = session_title
-        self._auto_title_eligible = (
-            agent_session_id is None and session_pk is None and session_title is None
-        )
-        self._agent_fail = False
-        self._mouse_down_offset: Offset | None = None
-
-        self._focusable_terminals: list[Terminal] = []
-
-        self.project_data_path = paths.get_project_data(project_path)
-        self._prompt_history_scope = agent_session_id or (
-            f"session-{session_pk}" if session_pk is not None else ""
-        )
-        self.shell_history = History(self.project_data_path / "shell_history.jsonl")
-        self.prompt_history = History(self._prompt_history_path())
-
-        self.session_start_time: float | None = None
-        self._terminal_count = 0
-        self._require_check_prune = False
-
-        self._turn_count = 0
-        self._shell_count = 0
-
-        self._directory_changed = False
-        self._directory_watcher: DirectoryWatcher | None = None
-
-        self._initial_prompt = initial_prompt
-
-        self.goal_observation = GoalObservation(self)
-        self.goal_controls = GoalSession(self)
-        self.delivery_observation = InputDeliveryObservation(self)
-        self.transcript = TranscriptPresentation(self)
-        self.tool_expansions: dict[str, bool] = {}
-        self._compacting = False
 
     def remember_tool_expansion(self, tool_id: str, expanded: bool) -> None:
         """Retain bounded manual disclosure state across canonical transcript remounts."""
@@ -2051,42 +2203,7 @@ class Conversation(containers.Vertical):
         else:
             self.agent_ready = True
 
-    async def release_native_session(self) -> None:
-        """Invalidate all old publications before this rich surface changes source."""
-        self.goal_controls.close()
-        self.output.retire()
-        if self._directory_watcher is not None:
-            await self._directory_watcher.aclose()
-            self._directory_watcher = None
-        await self.window.document_viewport.suspend_source()
-        await asyncio.gather(self.transcript.close(), self.goal_observation.close(),
-                             self.delivery_observation.close())
-        self.agent = None
-        self._initial_prompt = None
-        await self.contents.remove_children()
-        self.cursor.follow(None)
-        self.prompt._ask = None
-        self.prompt.ask_queue.clear()
-        self._focusable_terminals.clear()
 
-    async def bind_native_session(self, screen) -> None:
-        """Reset values from their declarations, then bind the existing source config."""
-        for name, declaration in Conversation._reactives.items():
-            if name in Conversation.__dict__:
-                self.set_reactive(declaration, declaration._default_value(self))
-        self._initialize_session(screen.project_path, screen._agent,
-                                 screen._agent_session_id, screen._session_pk,
-                                 screen._agent_session_title, screen._initial_prompt)
-        await self.contents.mount(*ThreadLoading.initial_contents(self._agent_data))
-        # Refresh cwd-bound editor projections, without replaying semantic
-        # history-navigation watchers against the restored document.
-        self.mutate_reactive(Conversation.project_path)
-        self.mutate_reactive(Conversation.working_directory)
-        self.column = screen.column
-        self.prompt.slash_commands = CommandCatalog(
-            self.agent_slash_commands, self.command_target_context()).commands
-        self.window.anchor()
-        self.window.document_viewport.resume_source()
 
     def _history_scroll_changed(self, _position: float) -> None:
         self.call_after_refresh(self.transcript.retry)
@@ -2231,32 +2348,6 @@ class Conversation(containers.Vertical):
                 self.call_later(self.goal_observation.refresh)
                 self.call_later(self.delivery_observation.refresh)
         self.update_title()
-
-    @work
-    async def watch_agent_ready(self, ready: bool) -> None:
-        if ready:
-            self.remove_class("-initial-loading")
-            await self.query(ThreadLoading).remove()
-        if ready and self._directory_watcher is None:
-            self._directory_watcher = DirectoryWatcher(self.project_path, self)
-            self._directory_watcher.start()
-        if ready and (agent_data := self._agent_data) is not None:
-            welcome = agent_data.get("welcome", None)
-            if welcome is not None:
-                from toad.widgets.markdown_note import MarkdownNote
-
-                await self.post(MarkdownNote(welcome))
-        if ready and self._initial_prompt is not None:
-            prompt = self._initial_prompt
-            if prompt.startswith("!"):
-                self.post_message(
-                    messages.UserInputSubmitted(self._initial_prompt[1:], shell=True)
-                )
-            else:
-                self.post_message(
-                    messages.UserInputSubmitted(self._initial_prompt, shell=False)
-                )
-            self._initial_prompt = None
 
     def on_resize(self) -> None:
         # A goal can retain its own size while the surrounding viewport changes.

@@ -57,7 +57,7 @@ def test_new_status_owns_installed_rendering_without_consumer_edits(tmp_path, mo
         app = InstalledApp(project_dir=str(tmp_path))
         async with app.run_test(size=(100, 32)) as pilot:
             plan = Plan([PlanItem(Content("DECLARED_REVIEWING_PLAN"), "medium", ReviewingPlanStatus)])
-            await app.screen.conversation.post(plan)
+            await app.selected_session.conversation.post(plan)
             plan.scroll_visible(animate=False, immediate=True)
             await until(pilot, lambda: plan in app.screen._compositor.visible_widgets)
             await until(pilot, lambda: "DECLARED_REVIEWING_PLAN" in viewport_text(plan))

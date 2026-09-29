@@ -1,0 +1,7 @@
+SDK_APP_CONSTRUCT
+SDK_RUN_TEST
+SDK_APP_MOUNTED
+SOURCE_STARTUP None []
+BEFORE_CHILD_READY session-2 session-2 fresh-peer fresh-peer False [('ThreadLoading', 'Region(x=56, y=6, width=79, height=7)')]
+INITIAL_TAB_STATUS fresh-peer notready 
+PHYSICAL_SDK_CONTINUOUS_SAVED_CHANNEL_PARTICIPANT_RETURN_ONE_TAB_REPLY_ONCE session-2
