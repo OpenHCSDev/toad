@@ -149,13 +149,16 @@ class AgentController(OperationalTerminalOwner):
         agent._post_queue_view()
         agent._post_private_cursor()
         if agent.coordination is not None:
-            binding.post(CommsUpdated(agent.coordination, agent, agent.session_id))
+            coordination = agent.coordination
+            authority = ClientSessionRequest(agent, agent.session_id)
+            binding.post(CommsUpdated(coordination, agent, agent.session_id))
             snapshot = await self.transcripts.snapshot(
-                agent.coordination.wire_root, agent.coordination.thread.name)
+                coordination.wire_root, coordination.thread.name)
             if self.surface is not binding:
                 return
             if self.session is not session:
                 return
+            self.require_owner(coordination, authority)
             binding.post(CommsUpdated(snapshot, agent, agent.session_id))
         target = binding.target
         if target is not None:
