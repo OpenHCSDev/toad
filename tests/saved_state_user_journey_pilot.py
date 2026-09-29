@@ -168,7 +168,7 @@ async def click_tab(app, pilot, session_id):
     tab = next(label for label in app.screen.query(SessionLabel) if label.id == session_id)
     tab.scroll_visible(animate=False, immediate=True)
     await pilot.pause()
-    assert await pilot.click(tab), f"Tab {session_id} was not physically clickable"
+    assert await pilot.click(tab, offset=(tab.size.width // 2, 0)), f"Tab {session_id} was not physically clickable"
     await until(pilot, lambda: app.selected_session.id == session_id)
 
 
