@@ -54,3 +54,32 @@ instrumented cohort. It demonstrates page reuse and a shorter publication
 phase in a small cohort, **not** a reliable first-paint improvement. This still
 mounts a new outer history and reads the owner before first paint. Retaining
 that outer presentation is the next source-lifecycle change to evaluate.
+
+## Selection to actual display
+
+The `native-first-frame-trace.json` receipt instruments five more physical
+A/B/A selections through the actual Textual compositor and `_display` call.
+Its median selection-to-first-completed-display was 195.2 ms. Nested medians
+were 98.8 ms destination native activation (including native page and goal
+reads plus 27.6 ms snapshot publication), 16.6 ms screen layout, 12.7 ms
+compositor reflow within layout, and 9.9 ms compositor render update. The
+departure's viewport park was 17.5 ms within native retirement. These phases
+overlap and must not be added together. One return had a 127 ms layout outlier;
+the measured compositor reflow inside it stayed 12.7 ms, so its remaining
+delay needs a separate event-loop trace.
+
+Textual already retains each widget's `_render_cache` of content `Strip` lines
+and its `StylesCache` of styled lines. Across this first-display trace there
+were median 19 content rasterizations (1.6 ms total) and 78 styled-line cache
+misses (3.2 ms total); the selected screen's `render_update` still composed
+the visible strips. Those figures are far smaller than source activation and
+snapshot publication on this fixture. The controlled-provider renderer
+received no saved-page work on warm return. Retaining a parallel bitmap or
+strip store has no measured case here; retaining the existing outer mounted
+history may bypass the owner read and publication before first paint.
+
+All completed destination frames in this receipt contained the correct reader
+and response, with no blank, loading, or other-source frame. Later frames had
+a shorter visible reader than the first in each click. A terminal recording
+is needed to determine whether that is an objectionable scroll correction;
+the frame classification alone does not prove visually stable paint.

@@ -23,6 +23,7 @@ from toad.widgets.prompt import Prompt
 from toad.widgets.throbber import Throbber
 from toad.widgets.transcript_history import TranscriptFragmentView, TranscriptHistory, TranscriptPageView
 from textual.widget import Widget
+from textual._styles_cache import StylesCache
 from textual.content import Content
 from toad.acp.messages import UpdateStatusLine
 from toad.acp.agent import Agent
@@ -39,6 +40,7 @@ class PaintedReturnApp(InstalledApp):
     first_paint_at = None
     selection_requested_at = None
     last_click_metrics = None
+    trace_events = None
 
     def select_session(self, mode, *, history_index=None):
         if mode == self.expected_source_id and self.selection_requested_at is None:
@@ -46,13 +48,17 @@ class PaintedReturnApp(InstalledApp):
         return super().select_session(mode, history_index=history_index)
 
     def _display(self, screen, renderable):
+        started = perf_counter()
         super()._display(screen, renderable)
+        displayed = perf_counter()
+        if self.trace_events is not None and self.selection_requested_at is not None:
+            self.trace_events.append(("display", started, displayed))
         # Textual calls _display inside batch_update but discards that frame.
         # Only a completed display is an observable first paint.
         if (self.observed_frames is not None and renderable is not None
                 and not self._batch_count and screen is self.screen):
             if self.selected_mode == self.expected_source_id and self.first_paint_at is None:
-                self.first_paint_at = perf_counter()
+                self.first_paint_at = displayed
             view = self.selected_session.query_one_optional(Conversation)
             agent = view.agent if view is not None else None
             self.observed_frames.append((
@@ -71,6 +77,7 @@ async def click_session(app, pilot, source):
     app.expected_source_id = source.id
     app.first_paint_at = None
     app.selection_requested_at = None
+    app.trace_events = []
     phases = {}
     wrapped = []
     previous = app.workspace_sessions.selected
@@ -110,9 +117,34 @@ async def click_session(app, pilot, source):
             try:
                 return await _original(*args, **kwargs)
             finally:
-                phases[_label] = phases.get(_label, 0.0) + (perf_counter() - started) * 1000
+                ended = perf_counter()
+                phases[_label] = phases.get(_label, 0.0) + (ended - started) * 1000
+                if app.selection_requested_at is not None and app.first_paint_at is None:
+                    app.trace_events.append((_label, started, ended))
 
         setattr(owner, method, timed)
+        wrapped.append((owner, method, original))
+    sync_targets = [
+        (app.workspace_screen, "_refresh_layout", "screen_layout"),
+        (app.workspace_screen, "_compositor_refresh", "screen_compositor_refresh"),
+        (app.workspace_screen._compositor, "reflow", "compositor_reflow"),
+        (app.workspace_screen._compositor, "render_update", "compositor_render_update"),
+        (Widget, "_render_content", "widget_rasterize"),
+        (StylesCache, "render_line", "styled_strip_miss"),
+    ]
+    for owner, method, label in sync_targets:
+        original = getattr(owner, method)
+
+        def timed_sync(*args, _original=original, _label=label, **kwargs):
+            started = perf_counter()
+            try:
+                return _original(*args, **kwargs)
+            finally:
+                ended = perf_counter()
+                if app.selection_requested_at is not None and app.first_paint_at is None:
+                    app.trace_events.append((_label, started, ended))
+
+        setattr(owner, method, timed_sync)
         wrapped.append((owner, method, original))
     click_started = perf_counter()
     try:
@@ -129,6 +161,14 @@ async def click_session(app, pilot, source):
         (app.first_paint_at - app.selection_requested_at) * 1000,
     )
     app.last_phase_times = phases
+    app.last_click_trace = [
+        {"phase": label,
+         "start_ms": (started - app.selection_requested_at) * 1000,
+         "end_ms": (ended - app.selection_requested_at) * 1000}
+        for label, started, ended in app.trace_events
+        if app.selection_requested_at <= started and ended <= app.first_paint_at
+    ]
+    app.trace_events = None
     frames, app.observed_frames = app.observed_frames, None
     app.expected_source_id = None
     return frames
@@ -271,6 +311,19 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
             destination_frames = [frame for frame in frames if frame[0] == source.id]
             reader_marker = f"{agent.session_id} saved reader paragraph"
             other_reader = "gamma saved reader paragraph" if agent.session_id == "beta" else "beta saved reader paragraph"
+            frame_sequence = [{
+                "reader": reader_marker in reader,
+                "response": "NATIVE_RESPONSE" in reader,
+                "other_source": other_reader in reader,
+                "loading": "Loading new thread" in full,
+                "blank": not reader.strip(),
+                "length": len(reader.strip()),
+            } for _mode, reader, full, _status, _turn in destination_frames]
+            assert frame_sequence and all(
+                item["reader"] and item["response"] and not item["other_source"]
+                and not item["loading"] and not item["blank"]
+                for item in frame_sequence
+            ), ("A completed destination frame lost the saved reader", source.id, frame_sequence)
             assert destination_frames and reader_marker in destination_frames[0][1] and other_reader not in destination_frames[0][1], (
                 "First painted return frame did not show the destination reader",
                 source.id, [(mode, reader[:200]) for mode, reader, _full, _status, _turn in frames[:3]],
@@ -333,6 +386,8 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
                             "click_completed_ms":app.last_click_metrics[1],
                             "selection_to_paint_ms":app.last_click_metrics[2],
                             "phases_ms":app.last_phase_times,
+                            "first_paint_trace":app.last_click_trace,
+                            "completed_frame_sequence":frame_sequence,
                             "fixture_total_ms":(perf_counter()-started)*1000,
                             "reader_y":y,"cache_hits":app.preparation.hits-before_hits,
                             "cache_misses":app.preparation.misses-before_misses,
