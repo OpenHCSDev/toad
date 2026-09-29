@@ -1,0 +1,34 @@
+{
+  "distributions": {
+    "batrachian-toad": {
+      "version": "0.6.20",
+      "direct_url": {
+        "url": "file:///home/ts/wt/toad-quit-save-sol-20260929",
+        "dir_info": {}
+      }
+    },
+    "agent-comms": {
+      "version": "0.1.0",
+      "direct_url": {
+        "url": "https://github.com/OpenHCSDev/agent-comms.git",
+        "vcs_info": {
+          "vcs": "git",
+          "commit_id": "40b66442b1d6915297f551ddb09200a9c828bf39",
+          "requested_revision": "40b66442b1d6915297f551ddb09200a9c828bf39"
+        }
+      }
+    },
+    "textual": {
+      "version": "8.2.8",
+      "direct_url": {
+        "url": "https://github.com/OpenHCSDev/textual.git",
+        "vcs_info": {
+          "vcs": "git",
+          "commit_id": "609b74bf3d7851bd2c1eff61dc2790e86e1925af",
+          "requested_revision": "609b74bf3d7851bd2c1eff61dc2790e86e1925af"
+        }
+      }
+    }
+  },
+  "input_contract": "{'screen': <class 'textual.screen.Screen'>, 'return': <class 'NoneType'>}"
+}

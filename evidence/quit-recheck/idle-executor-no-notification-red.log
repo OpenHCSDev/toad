@@ -1,0 +1,36 @@
+quit-failure-before-teardown {"running": true, "exit": false, "dirty": true, "width": 137, "editor_value": "137", "bound_value": 137, "focus": "NoneType", "screen": "SettingsScreen", "path": "/home/ts/wt/toad-quit-save-sol-20260929/.artifacts/quit-recheck/tmp/quit-save-yqs5hpkv/config/toad/toad.json", "path_directory": true, "save_path": "/home/ts/wt/toad-quit-save-sol-20260929/.artifacts/quit-recheck/tmp/quit-save-yqs5hpkv/config/toad/toad.json", "exception": "None", "notification_calls": [], "save_locked": false, "notifications": []}
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-quit-save-sol-20260929/tests/sidebar_retirement_pilot.py", line 36, in until
+    await pilot.pause(.02)
+  File "/home/ts/.local/share/agent-comms/runtime-selected-admission-app-20260929/lib/python3.14/site-packages/textual/pilot.py", line 546, in pause
+    await asyncio.sleep(delay)
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py", line 702, in sleep
+    return await future
+           ^^^^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-quit-save-sol-20260929/tests/quit_save_installed_pilot.py", line 124, in <module>
+    if __name__=='__main__':asyncio.run(run())
+                            ~~~~~~~~~~~^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-quit-save-sol-20260929/tests/quit_save_installed_pilot.py", line 119, in run
+    await main()
+  File "/home/ts/wt/toad-quit-save-sol-20260929/tests/quit_save_installed_pilot.py", line 93, in main
+    await until(pilot,lambda:'Failed to write' in paint(app))
+  File "/home/ts/wt/toad-quit-save-sol-20260929/tests/sidebar_retirement_pilot.py", line 34, in until
+    async with asyncio.timeout(12):
+               ~~~~~~~~~~~~~~~^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/timeouts.py", line 114, in __aexit__
+    raise TimeoutError from exc_val
+TimeoutError
