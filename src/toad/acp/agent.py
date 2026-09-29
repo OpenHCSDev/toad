@@ -65,17 +65,6 @@ class Model(NamedTuple):
     description: str | None
 
 
-class TokenUsage(NamedTuple):
-    """Tokens used for a single prompt (per-turn)."""
-
-    total_tokens: int
-    input_tokens: int
-    output_tokens: int
-    thought_tokens: int | None
-    cached_read_tokens: int | None
-    cached_write_tokens: int | None
-
-
 def generate_datetime_filename(
     prefix: str, suffix: str, datetime_format: str | None = None
 ) -> str:
@@ -161,7 +150,6 @@ class Agent(AgentBase):
                 self.presentation.log_path.unlink(missing_ok=True)
         else:
             self.presentation.log_path = paths.get_log() / log_filename
-        self._token_usage: TokenUsage | None = None
         self.context_measurement = ContextUnavailable("Native owner has not reported context usage")
 
     @property

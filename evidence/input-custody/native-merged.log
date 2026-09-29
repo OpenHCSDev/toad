@@ -1,0 +1,5 @@
+INSTALLED_APP_RUN_TEST_ENTER
+INSTALLED_APP_RUN_TEST_YIELDED
+ATTACHED_AND_NAVIGABLE
+EXPECTED_NATIVE_INTERRUPTED_PROVIDER_RESPONSE 2
+PASS physical ordinary/deferred/Send now, exact native queue consumption, retained reply/draft/Document/undo; three loopback requests
