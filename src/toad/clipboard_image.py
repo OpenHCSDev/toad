@@ -39,7 +39,9 @@ async def read_clipboard_png() -> bytes | None:
             if await process.wait() != 0 or not data:
                 return None
         if not data.startswith(PNG_SIGNATURE):
-            raise ValueError("The clipboard did not return a PNG image.")
+            # X11 selections may return their text for an unsupported PNG
+            # target. This boundary has no PNG; let the text owner read it.
+            return None
         return data
     finally:
         if process.returncode is None:
