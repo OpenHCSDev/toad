@@ -24,7 +24,7 @@ class PermissionRequest(DeclaredFamily, affix="PermissionRequest"):
 
     @property
     @abstractmethod
-    def tool_call(self): ...
+    def presentation(self): ...
 
     def answer(self, surface, answer):
         if self.pending and self.controller.agent.controller.surface.owns(surface):
@@ -58,15 +58,16 @@ class ToolPermissionRequest(PermissionRequest):
     def __init__(self, controller, options, tool_call):
         super().__init__(controller)
         self._options = [Answer(option["name"], option["optionId"], option["kind"]) for option in options]
-        self._tool_call = tool_call
+        from toad.permission_presentation import PermissionPresentation
+        self._presentation = PermissionPresentation.from_acp(tool_call)
 
     @property
     def options(self):
         return self._options
 
     @property
-    def tool_call(self):
-        return self._tool_call
+    def presentation(self):
+        return self._presentation
 
 
 class PermissionController:

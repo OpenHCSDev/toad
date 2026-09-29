@@ -23,6 +23,7 @@ async def main():
         project.mkdir()
         app = ToadApp(project_dir=str(project))
         async with app.run_test(size=(120, 40)) as pilot:
+            await app.screen.wait_content_ready()
             view = app.screen.conversation
             agent = Agent(project, {"name": "RPC", "run_command": {"*": "true"}}, "session")
             view.agent = agent
@@ -37,6 +38,8 @@ async def main():
                 await pilot.pause()
                 request, = agent.permissions.pending
                 assert view.prompt._ask is not None
+                frame="\n".join(strip.text for strip in app.screen._compositor.render_strips())
+                assert lifecycle in frame and "Allow" in frame and "Reject" in frame
                 parent = view.parent
                 agent.detach_surface(view)
                 await view.remove()
@@ -66,6 +69,32 @@ async def main():
                     assert outcome == {"outcome": "selected", "optionId": desired}
                 agent.session_id = "session"
                 assert app._exception is None
+            agent = Agent(project, {"name": "RPC", "run_command": {"*": "true"}}, "session")
+            view.agent = agent
+            await pilot.pause()
+            from toad.screens.permissions import PermissionsScreen
+            params = {"sessionId": "session", "options": [
+                {"optionId": "allow", "name": "Allow", "kind": "allow_once"}],
+                "toolCall": {"toolCallId": "diff", "kind": "edit", "title": "Review edit",
+                             "content": [{"type": "diff", "path": str(project/"test.txt"),
+                                          "oldText": "previous visible value", "newText": "replacement visible value"}]}}
+            task = asyncio.create_task(agent.server.call({"jsonrpc": "2.0", "id": 2,
+                "method": "session/request_permission", "params": params}))
+            await pilot.pause()
+            async with asyncio.timeout(5):
+                while not isinstance(app.screen, PermissionsScreen):
+                    await pilot.pause(.05)
+            await pilot.pause()
+            assert isinstance(app.screen, PermissionsScreen)
+            frame="\n".join(strip.text for strip in app.screen._compositor.render_strips())
+            assert "visible value" in frame
+            request, = agent.permissions.pending
+            request.cancel()
+            result = await asyncio.wait_for(task, 5)
+            await pilot.pause()
+            assert result["result"]["outcome"] == {"outcome": "cancelled"}
+            assert not isinstance(app.screen, PermissionsScreen)
+            assert app._exception is None
             await agent.stop()
     print("PASS: installed RPC/mounted grant, reject, session replacement and stop after actual surface removal/rebind")
 

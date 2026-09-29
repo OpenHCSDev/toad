@@ -236,3 +236,21 @@ independent shared per-class/debt ratchet has zero positive deltas. PR144 receip
 separate native backend, controlled UI and parent ACP shipping proofs. No
 own-scope blocker. Tesla consumes source-bound GoalSession in reusable view
 initialization; parent retains merge/deployment and completed141/143 gates.
+
+## Current remaining dispatch: permission presentation (Carver, after144)
+
+Ready144 remeasure Conversation2287 AST span. Root still decodes external tool
+content, chooses a diff modal or inline question and owns display/retirement
+closures. Agent PermissionController already owns pending futures, source
+attachment, completion and cancellation. This slice decodes presentation once at
+ToolPermissionRequest admission into PermissionPresentation declarations; shared
+present owns eligibility, Diff/Inline own complete rendering/retirement. Existing
+Agent lifetime is unchanged, no new source store or presentation flags. Delete
+root raw dispatcher and request raw-tool mirror; actual callers use the decoded
+request. A new presentation adds one declaration with admission/behavior, zero
+root/controller case edits. Tesla owns source/workspace; Noether renderer is
+untouched. Conversation2287→2204; request classes unchanged semantic span.
+Existing permission lifecycle pilot now checks actual inline/diff paint through
+installed RPC, removal/rebinding and final grant/reject/cancel. Obsolete97-line
+raw-future pilot deleted. Physical native acceptance remains being verified;
+parent owns merge/install.
