@@ -1,0 +1,6 @@
+{
+  "owned_remaining_processes": [],
+  "private_bus_and_native_owners_reaped": true,
+  "resource_policy": "one serial bounded native/UI/PTY job; existing read-only package/dependencies; own persistent worktree",
+  "disposable_wire_stage_fixture_closed": true
+}

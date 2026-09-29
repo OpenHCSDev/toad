@@ -1,0 +1,9 @@
+{
+  "production_deleted": 148,
+  "production_added": 218,
+  "per_file_numstat": "1\t1\tsrc/toad/about.py\n6\t135\tsrc/toad/app.py\n5\t6\tsrc/toad/permission_presentation.py\n1\t0\tsrc/toad/preferences.py\n1\t1\tsrc/toad/screens/main.py\n18\t0\tsrc/toad/setting_choices.py\n4\t0\tsrc/toad/setting_effects.py\n175\t0\tsrc/toad/terminal_attention.py\n2\t2\tsrc/toad/widgets/conversation.py\n5\t3\tsrc/toad/widgets/prompt.py\n",
+  "ToadApp_lines": {
+    "before": 1638,
+    "after": 1510
+  }
+}

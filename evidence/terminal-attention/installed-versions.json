@@ -1,0 +1,39 @@
+{
+  "tested_source": "a80a6ab6be54b4e0947c00f08ab6b0f5be66e8e7",
+  "imports": {
+    "toad": "/home/ts/wt/toad-terminal-attention-sol-20260929/.venv/lib/python3.14/site-packages/toad/__init__.py",
+    "core": "/home/ts/.local/share/agent-comms/runtime-context-observation-20260929/lib/python3.14/site-packages/agent_comms/__init__.py",
+    "textual": "/home/ts/.local/share/agent-comms/runtime-context-observation-20260929/lib/python3.14/site-packages/textual/__init__.py"
+  },
+  "batrachian-toad": {
+    "version": "0.6.20",
+    "direct_url": {
+      "url": "file:///home/ts/wt/toad-terminal-attention-sol-20260929",
+      "dir_info": {}
+    }
+  },
+  "agent-comms": {
+    "version": "0.1.0",
+    "direct_url": {
+      "url": "https://github.com/OpenHCSDev/agent-comms.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "a01927ed3c771f47767537a6e650788cec358cd1",
+        "requested_revision": "a01927ed3c771f47767537a6e650788cec358cd1"
+      }
+    }
+  },
+  "textual": {
+    "version": "8.2.8",
+    "direct_url": {
+      "url": "https://github.com/OpenHCSDev/textual.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "1738abd8e3524b7e86171b70256d7f7e52fdb724",
+        "requested_revision": "1738abd8e3524b7e86171b70256d7f7e52fdb724"
+      }
+    }
+  },
+  "source_head": "a80a6ab6be54b4e0947c00f08ab6b0f5be66e8e7",
+  "native_package": "/home/ts/.local/share/agent-comms/native-current-d3967e8b6ee0cf28/node_modules/@earendil-works/pi-coding-agent"
+}

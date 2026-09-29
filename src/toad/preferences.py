@@ -160,6 +160,7 @@ class NotificationsSettings(SettingsGroup):
         title="Blink terminal title when input is required?",
         default=True,
         wire_name="blink_title",
+        effect=effects.blink_title,
     )
     enable_sounds = BooleanSetting(
         title="Allow sound in notifications?", default=True, wire_name="enable_sounds"
