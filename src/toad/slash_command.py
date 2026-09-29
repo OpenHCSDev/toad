@@ -180,7 +180,7 @@ class GoalCommand(SlashCommand, LocalCommand):
         elif self.objective:
             await conversation.change_goal(SetGoalAction.declared_name, self.objective)
         else:
-            await conversation.refresh_goal()
+            await conversation.goal_observation.refresh()
             conversation.flash(
                 f"Use /goal {self.hint} to set, edit or manage this thread's goal."
             )

@@ -140,3 +140,21 @@ Conversation's `in_out_only` and migrated all retained filtering callers.
 ## TR0 class-size closure (2026-09-28)
 
 Comms PR268 adds the required independent class-size measure to the existing installed ratchet. Paired Toad117 pins that implementation and passes it against current main. Unique qualified-name moves retain their baseline; new owners report no baseline until their first merge. Existing classes cannot offset their growth with another class shrinking. This closes the immediate TR0 guard requirement; the remaining T4 decomposition is still assigned in its existing order.
+
+## Goal/input-delivery observation closure (current main137, Carver)
+
+Current main5983adb remeasure: Conversation AST span 2817; this slice 2709.
+The duplicate goal and input-delivery task/revision/read loops are removed.
+SessionObservation owns one scheduling/custody lifecycle; GoalObservation and
+InputDeliveryObservation own source reads and their typed projection reactions.
+Delivery history/dismiss readers leave the root with their revision fence.
+Actual callers consume the owners directly, with no old wrappers or fields.
+Task cancellation and source-identity fencing prevent stale success/error paint
+after rich view retirement or owner replacement. A new case adds one subclass,
+zero root/scheduler branch edits. No persistent schema changes.
+
+Existing installed native goal and loopback ACP/UI pilots protect behavior;
+retained/live response acceptance now requires compositor text and regions.
+The duplicate weak/captured replay pilot is deleted and the existing history
+pilot is strengthened. Permanent deletion/new-case guards and scoped per-class
+ratchet apply. App/workspace/shell/sidebar lifetimes remain with Tesla/Noether.

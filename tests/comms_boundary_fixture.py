@@ -45,21 +45,8 @@ def snapshot_fact(events, page=None):
     )
 
 
-class HeadlessScreen:
-    """A weakly owned screen identity for headless reader fixtures."""
-
-
 def attach_coordination(agent, wire_root, thread):
-    """Headless reader tests still use the same app-owned typed fact contract."""
-    from types import SimpleNamespace
-
-    from runtime_fixture import ToadApp
-
-    if agent._message_target is None:
-        app = ToadApp(project_dir=str(agent.project_root_path))
-        agent.attach_surface(SimpleNamespace()
-            app=app, screen=HeadlessScreen(), post_message=lambda value: True
-        )
+    """Bind the actual Agent-owned typed coordination fact, without a fake UI."""
     agent.coordination = coordination_fact(
         thread, wire_root, worktree=str(agent.project_root_path)
     )
