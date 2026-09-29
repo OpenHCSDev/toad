@@ -621,13 +621,14 @@ class ConversationSessionBinding(containers.Vertical):
 
     async def release_native_session(self) -> None:
         """Invalidate all old publications before this rich surface changes source."""
+        await self.transcript.close()
         self.goal_controls.close()
         self.output.retire()
         if self._directory_watcher is not None:
             await self._directory_watcher.aclose()
             self._directory_watcher = None
         await self.window.document_viewport.suspend_source()
-        await asyncio.gather(self.transcript.close(), self.goal_observation.close(),
+        await asyncio.gather(self.goal_observation.close(),
                              self.delivery_observation.close())
         self.agent = None
         self._initial_prompt = None
@@ -657,6 +658,38 @@ class ConversationSessionBinding(containers.Vertical):
         self.window.anchor()
         self.window.document_viewport.resume_source()
 
+
+
+    @work
+    async def watch_agent_ready(self, ready: bool) -> None:
+        presentation = self.transcript
+        if presentation.view is not self:
+            return
+        if ready:
+            self.remove_class("-initial-loading")
+            await self.query(ThreadLoading).remove()
+            if self.transcript is not presentation or presentation.view is not self:
+                return
+        if ready and self._directory_watcher is None:
+            self._directory_watcher = DirectoryWatcher(self.project_path, self)
+            self._directory_watcher.start()
+        if ready and (agent_data := self._agent_data) is not None:
+            welcome = agent_data.get("welcome", None)
+            if welcome is not None:
+                from toad.widgets.markdown_note import MarkdownNote
+
+                await self.post(MarkdownNote(welcome))
+        if ready and self._initial_prompt is not None:
+            prompt = self._initial_prompt
+            if prompt.startswith("!"):
+                self.post_message(
+                    messages.UserInputSubmitted(self._initial_prompt[1:], shell=True)
+                )
+            else:
+                self.post_message(
+                    messages.UserInputSubmitted(self._initial_prompt, shell=False)
+                )
+            self._initial_prompt = None
 
 
 class Conversation(ConversationSessionBinding):
@@ -2313,32 +2346,6 @@ class Conversation(ConversationSessionBinding):
                 self.call_later(self.goal_observation.refresh)
                 self.call_later(self.delivery_observation.refresh)
         self.update_title()
-
-    @work
-    async def watch_agent_ready(self, ready: bool) -> None:
-        if ready:
-            self.remove_class("-initial-loading")
-            await self.query(ThreadLoading).remove()
-        if ready and self._directory_watcher is None:
-            self._directory_watcher = DirectoryWatcher(self.project_path, self)
-            self._directory_watcher.start()
-        if ready and (agent_data := self._agent_data) is not None:
-            welcome = agent_data.get("welcome", None)
-            if welcome is not None:
-                from toad.widgets.markdown_note import MarkdownNote
-
-                await self.post(MarkdownNote(welcome))
-        if ready and self._initial_prompt is not None:
-            prompt = self._initial_prompt
-            if prompt.startswith("!"):
-                self.post_message(
-                    messages.UserInputSubmitted(self._initial_prompt[1:], shell=True)
-                )
-            else:
-                self.post_message(
-                    messages.UserInputSubmitted(self._initial_prompt, shell=False)
-                )
-            self._initial_prompt = None
 
     def on_resize(self) -> None:
         # A goal can retain its own size while the surrounding viewport changes.
