@@ -1,0 +1,11 @@
+# PR131 complete operational boundary
+
+Source checkpoint: 1296ad7, incorporating current main b4bdae1 (PR132). Core 4510dddf, Textual8 c9743801. Complete native receipt was obtained at a648ad1/core280 before the caller/pin merge; affected installed permission path checked again on the synced pair. Installed noneditable wheel; no product PYTHONPATH. No live installation changes.
+
+AgentController owns optional weak surface binding, source validation, coordination and current capabilities. Existing AgentProcess task set now owns outbound prompts; UI worker cancellation cannot cancel accepted native input. Existing QueueAttachment remains the only queue owner. PermissionController owns typed requests/futures, surviving presentation detach; source stop, EOF and session replacement cancel. Conversation uses source attach/retire and typed permission answers. Stale projection answers are rejected. Actual source window registration is now WindowMembership, released by HistoryWindow unmount.
+
+Removed private _message_target and pending-future set, migrated retained callers, deleted two coupled mocked pilot implementations. Production bootstrap pilot no longer manually installs runtime schemas.
+
+Evidence: guards-final.txt 3 passed. permission-lifetime-final.txt mounted installed RPC grant/reject/stop/replacement passed. Native permission grant/disconnect 2 passed, detached grant 1 passed, detached reject plus MCP revocation 1 passed; native-permission-reject-final.txt records final reject. Closed-loop process watcher warning is retained, not claimed absent. ratchet-final.txt at a648ad1 has no positive debt deltas.
+
+Final actual UI Enter/native surface-retirement path is in native-retired-surface-ready.txt. Earlier stronger checks exposed stopped-Agent fixture reuse and actual stale viewport membership; both fixed rather than reported ready. Complete final native run passed, including original process cleanup, stopped-owner restart and idle no-input replay. Parent caller/pin fix after core287 is merged into this branch. Tesla116 owns App/MainScreen coordination_facts deletion and workspace admission/retirement integration; agreed API is public Agent.attach_surface/detach_surface and Agent.permissions.pending. This PR does not claim the global workspace bound. Parent owns merge/cutover.

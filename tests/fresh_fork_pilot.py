@@ -64,7 +64,7 @@ async def main():
         started = asyncio.Event()
 
         async def start(agent, target):
-            agent._message_target = target
+            agent.attach_surface(target)
             attach_coordination(agent, str(root / "wire"), "child")
             page = await agent.get_transcript_page()
             target.post_message(CommsUpdated(TranscriptSnapshotUpdate(page)))

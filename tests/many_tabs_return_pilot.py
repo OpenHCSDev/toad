@@ -118,7 +118,7 @@ async def main(
         )
 
         async def start(agent, target):
-            agent._message_target = target
+            agent.attach_surface(target)
 
             async def deliver():
                 target.post_message(CommsUpdated(TranscriptSnapshotUpdate(page)))

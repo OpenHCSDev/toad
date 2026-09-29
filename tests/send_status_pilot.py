@@ -53,7 +53,7 @@ async def main():
             await pilot.pause()
             view = app.screen.conversation
             agent = Agent(root, AGENT, "beta")
-            agent._message_target = view
+            agent.attach_surface(view)
             view.agent = agent
             await pilot.pause()
             view.agent_ready = True
