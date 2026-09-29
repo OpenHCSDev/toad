@@ -7,6 +7,7 @@ from functools import partial
 from typing import TYPE_CHECKING
 
 from textual import containers
+from textual.app import ComposeResult
 from textual.content import Content
 from textual.widgets import Static
 from agent_comms.declared_family import DeclaredFamily
