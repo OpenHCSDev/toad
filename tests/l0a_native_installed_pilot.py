@@ -99,7 +99,7 @@ async def notification_feedback(
     print("CHANNEL_NOTIFICATION", str(notification.title), flush=True)
 
 
-async def main(*, notification_only=False, retire_surface=False, app_type=ToadApp, acceptance=None, provider_reply=None):
+async def main(*, notification_only=False, retire_surface=False, app_type=ToadApp, acceptance=None, provider_reply=None, provider_usage=None):
     evidence = Path(os.environ.get("L0A_EVIDENCE", os.environ["TMPDIR"]))
     evidence.mkdir(parents=True, exist_ok=True)
     package = Path(os.environ["AC_NATIVE_COPIED_PACKAGE"])
@@ -150,11 +150,11 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
                 final = {
                     **chunk,
                     "choices": [{"index": 0, "delta": {}, "finish_reason": provider_reply(request, len(requests))[1] if provider_reply else "stop"}],
-                    "usage": {
+                    "usage": (provider_usage(request, len(requests)) if provider_usage else {
                         "prompt_tokens": 100,
                         "completion_tokens": 10,
                         "total_tokens": 110,
-                    },
+                    }),
                 }
                 body = (
                     "".join(
