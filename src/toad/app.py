@@ -1,3 +1,4 @@
+from inspect import isabstract
 from toad.comms_root import current_root, implicit_root, root_is_current, run_selected_write
 
 from toad.navigation_target import DirectTarget, NavigationTarget
@@ -719,7 +720,7 @@ class ToadApp(App, inherit_bindings=False):
                 seen.add(widget_type)
                 pending.append(widget_type)
                 if not (widget_type.__module__.startswith("toad.")
-                        or widget_type in markdown_blocks or widget_type is KeyGroup):
+                        or widget_type in markdown_blocks or widget_type is KeyGroup) or isabstract(widget_type):
                     continue
                 for read_from, css, tie_breaker, scope in widget_type._get_default_css(
                     object.__new__(widget_type)

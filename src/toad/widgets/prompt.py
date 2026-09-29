@@ -31,6 +31,7 @@ from toad.widgets.path_search import PathSearch
 from toad.widgets.question import Ask, Question
 from toad.widgets.slash_complete import SlashComplete
 from toad.widgets.model_switcher import ModelSwitcher
+from toad.widgets.prompt_popup import PromptPopup, CompletionPopup, InfoPopup
 from toad.messages import UserInputSubmitted
 from toad.slash_command import SlashCommand
 from toad.path_complete import PathComplete
@@ -52,10 +53,6 @@ class ModeSwitcher(SelectionOptionList):
 
     def action_dismiss(self):
         self.blur()
-
-
-class InvokeFileSearch(Message):
-    pass
 
 
 class InvokeSlashComplete(Message):
@@ -492,18 +489,7 @@ See on-screen instructions for details.
                     return
 
 
-class PromptCompletion:
-    """Refresh declared commands before opening completion."""
-
-    @on(InvokeSlashComplete)
-    def on_invoke_slash_complete(self, event: InvokeSlashComplete) -> None:
-        event.stop()
-        from toad.widgets.conversation import Conversation
-        self.query_ancestor(Conversation).update_slash_commands()
-        self.show_slash_complete = True
-
-
-class Prompt(PromptCompletion, containers.VerticalGroup):
+class Prompt(containers.VerticalGroup):
 
     DEFAULT_CSS = """
     Prompt .queue-summary { display: none; height: auto; max-height: 3; color: $text-muted; }
@@ -537,8 +523,6 @@ class Prompt(PromptCompletion, containers.VerticalGroup):
     slash_commands: var[list[SlashCommand]] = var(list)
     shell_mode = var(False)
     multi_line = var(False)
-    show_path_search = var(False, toggle_class="-show-path-search", bindings=True)
-    show_slash_complete = var(False, toggle_class="-show-slash-complete", bindings=True)
     project_path = var(Path, init=False)
     working_directory = var("")
     display_directory = var("")
@@ -613,10 +597,6 @@ class Prompt(PromptCompletion, containers.VerticalGroup):
             )
         self.watch_models(self.models)
 
-    async def watch_project_path(self, old_path: Path, new_path: Path) -> None:
-        """Initial refresh of paths."""
-        if not self.simple_input and old_path != new_path:
-            self.call_later(self.path_search.invalidate_paths)
 
     def ask(self, ask: Ask) -> None:
         """Replace the textarea prompt with a menu of options.
@@ -829,12 +809,11 @@ class Prompt(PromptCompletion, containers.VerticalGroup):
             text, maintain_selection_offset=False
         )
 
-    def watch_show_path_search(self, show: bool) -> None:
-        self.prompt_text_area.suggestion = ""
 
-    def watch_show_slash_complete(self, show: bool) -> None:
-        if show:
-            self.slash_complete.focus()
+    @on(InvokeSlashComplete)
+    def on_invoke_slash_complete(self, event: InvokeSlashComplete) -> None:
+        event.stop()
+        self.slash_complete.focus()
 
     def project_directory_updated(self) -> None:
         """Called when there is may be new files"""
@@ -861,56 +840,6 @@ class Prompt(PromptCompletion, containers.VerticalGroup):
     def on_cancel_shell(self, event: PromptTextArea.CancelShell):
         self.shell_mode = False
 
-    @on(InvokeFileSearch)
-    def on_invoke_file_search(self, event: InvokeFileSearch) -> None:
-        event.stop()
-        self.open_path_search()
-
-    def open_path_search(self) -> None:
-        if not self.simple_input and not self.shell_mode:
-            self.show_path_search = True
-            self.path_search.reset()
-
-
-    @on(messages.PromptSuggestion)
-    def on_prompt_suggestion(self, event: messages.PromptSuggestion) -> None:
-        event.stop()
-        if self.show_path_search:
-            self.prompt_text_area.suggestion = event.suggestion
-
-    @on(SlashComplete.Completed)
-    def on_slash_complete_completed(self, event: SlashComplete.Completed) -> None:
-        self.prompt_text_area.clear()
-        self.prompt_text_area.insert(f"{event.command} ")
-        self.prompt_text_area.suggestion = ""
-        self.focus()
-
-    @on(messages.Dismiss)
-    def on_dismiss(self, event: messages.Dismiss) -> None:
-        event.stop()
-        if self.show_slash_complete and event.widget is self.slash_complete:
-            self.show_slash_complete = False
-            self.prompt_text_area.suggestion = ""
-            self.focus()
-        elif not self.simple_input and event.widget is self.path_search and self.show_path_search:
-            self.show_path_search = False
-            self.focus()
-        elif not self.simple_input and event.widget is self.model_switcher:
-            self.focus()
-
-    @on(messages.InsertPath)
-    def on_insert_path(self, event: messages.InsertPath) -> None:
-        event.stop()
-        if " " in event.path:
-            path = f'"{event.path}"'
-        else:
-            path = event.path
-            if (
-                self.prompt_text_area.get_text_range(*self.prompt_text_area.selection)
-                != " "
-            ):
-                path += " "
-        self.prompt_text_area.insert(path)
 
     @on(Question.Answer)
     def on_question_answer(self, event: Question.Answer) -> None:
@@ -928,9 +857,10 @@ class Prompt(PromptCompletion, containers.VerticalGroup):
             self.prompt_text_area.suggestion = suggestion[len(self.text) :]
 
     def compose(self) -> ComposeResult:
-        yield SlashComplete().data_bind(slash_commands=Prompt.slash_commands)
+        for kind in CompletionPopup.members_with(CompletionPopup):
+            if (popup := kind.for_prompt(self)) is not None:
+                yield popup
         if not self.simple_input:
-            yield PathSearch(self.project_path).data_bind(root=Prompt.project_path)
             yield QueueSummary("", classes="queue-summary", markup=False)
             with containers.HorizontalGroup(classes="delivery-controls"):
                 yield Label("Enter queues · ")
@@ -954,7 +884,9 @@ class Prompt(PromptCompletion, containers.VerticalGroup):
                 yield AgentInfo()
                 yield CondensedPath().data_bind(path=Prompt.display_directory)
                 yield StatusLine(markup=False).data_bind(status=Prompt.status)
-                yield ModelSwitcher().data_bind(history_scope=Prompt.model_history_scope)
+                for kind in InfoPopup.members_with(InfoPopup):
+                    if (popup := kind.for_prompt(self)) is not None:
+                        yield popup
                 yield ModeSwitcher()
                 yield ModeInfo("mode")
 
@@ -967,7 +899,9 @@ class Prompt(PromptCompletion, containers.VerticalGroup):
             return
         if self.shell_mode:
             self.shell_mode = False
-        elif self.show_slash_complete:
-            self.show_slash_complete = False
-        else:
-            raise SkipAction()
+            return
+        for popup in self.query(PromptPopup):
+            if popup.is_open:
+                popup.action_dismiss()
+                return
+        raise SkipAction()

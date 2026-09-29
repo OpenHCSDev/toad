@@ -460,7 +460,7 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
     @on(ProjectSearchButton.Requested)
     def on_project_search_requested(self, event: ProjectSearchButton.Requested) -> None:
         event.stop()
-        self.conversation.prompt.open_path_search()
+        self.conversation.prompt.path_search.focus()
 
     async def open_file_preview(self, path: Path) -> None:
         await self.app.open_file_preview(path)

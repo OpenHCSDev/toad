@@ -436,3 +436,47 @@ surface drops plan posts and controller.restore has no retained Plan value.
 still attached; it does not claim complete inactive-Agent plan restoration.
 The exact plan-only source hook was requested directly in142 comment5883172179;
 no competing operational store or source-lifetime edit was added here.
+
+## Prompt popup custody (Noether, after151)
+
+Dispatch mainc2534676. Prompt still stores separate completion flags and its
+PromptCompletion mixin changes the same root self. Path/Slash/Model widgets repeat
+opening, blur and dismissal with a root identity ladder; composition repeats
+the membership list. Noether owns this entire presentation/caller/deletion batch
+in ~/wt/toad-prompt-completion-sol-20260929. Tesla142 source/Workspace/editor/shell,
+Carver152 AgentProcess/startup and Boyle/Dalton first-input failures are excluded.
+Exact coordination is in142 comments5883486201/5883601482 and152 comment5883486372.
+
+PromptPopup combines the existing DeclaredFamily/Textual metaclasses and is the
+public owning ABC on the actual mounted widgets. CompletionPopup and InfoPopup
+are abstract capability views; composition derives members from declarations.
+The widget owns its single is_open reactive, mutual exclusion, focus return and
+blur. Actual PathSearch/SlashComplete leaves own selection and eligibility.
+Delete PromptCompletion, show_path_search/show_slash_complete, InvokeFileSearch,
+root completion selection/dismiss/insert/watchers and both root CSS flags.
+Migrate the MainScreen ProjectSearchButton caller and retained pilots directly.
+
+PathSearchRanking takes the index/scorer/cache custody and keys cached results
+on the query plus captured candidates. Delete the interpreter pool and duplicate
+141-line _path_match implementation; all result sizes use the existing richer
+PathFuzzySearch. SlashCommandResults inherits existing FuzzySearch and owns
+ranked command row production. Typed match records replace anonymous row tuples.
+No persisted schema/store/wire change or second renderer/registry is introduced.
+
+A new popup requires one declaration implementing its construction/focus and
+case behavior, zero Prompt composition/flag/selection/dismiss roster edits.
+IMPL-4/5/8/12/13, MEMB-1/2, IDEN-1/3, TIME-1/6/9 and AGENT-8 apply.
+Every existing touched class must shrink or stay level, and touched-file chain
+terms cannot increase. Existing root submission fields are outside this batch.
+
+Actual installed acceptance uses an official-SDK ACP subprocess for command
+discovery, submitted completion and model selection; actual filesystem scan,
+Project Search click, fuzzy/tree keyboard focus, quoted insertion, changed
+catalog, resize, focus return and cropped compositor text protect presentation.
+The new-case guard must mount a fresh declared popup through normal installed
+App composition without changing a consumer. Local verification is ongoing;
+no readiness/whole-T4/live installation claim is made.
+
+Tesla142 acknowledged detached typed Plan retention in comment5883513100,
+explicitly retained in the operational source continuation. 151 does not claim
+that separately owned acceptance complete. Parent owns review/merge/live pins.
