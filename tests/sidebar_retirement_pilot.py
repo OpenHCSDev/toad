@@ -108,7 +108,9 @@ async def exercise(screen, pilot, root):
     tree = await prepare_project(sidebar, pilot)
     await until(pilot, lambda: tree.cursor_node is not None and tree.cursor_node.data.path == root / "folder/deep/item-38.txt")
     await pilot.pause(.05)
-    assert tree.scroll_y == tree_scroll, (tree.scroll_y, tree_scroll)
+    assert tree.scroll_y == tree_scroll, (tree.scroll_y, tree_scroll, tree.size, tree.virtual_size,
+                                         tree.max_scroll_y, [owner.intent for owner in sidebar._panel_owners
+                                                            if hasattr(owner, "intent")])
     assert viewport.scroll_y == panel_scroll, (viewport.scroll_y, panel_scroll)
     print(json.dumps({"restored_selection": str(tree.cursor_node.data.path), "tree_scroll": tree_scroll,
                       "panel_scroll": panel_scroll, "retired_widgets_collected": len(saved)+1}), flush=True)

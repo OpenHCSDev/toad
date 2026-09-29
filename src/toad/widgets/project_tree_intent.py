@@ -47,5 +47,7 @@ class ProjectTreeIntent:
                 await tree._add_to_load_queue(node)
                 pending.extend(node.children)
         tree.move_cursor(selection, animate=False)
+        # Mount/expansion produces native resize messages on the first frame.
+        # Scroll on the following refresh, after their viewport limits settle.
         tree.call_after_refresh(tree.scroll_to, self.scroll.x, self.scroll.y,
-                                animate=False, immediate=True)
+                                animate=False)
