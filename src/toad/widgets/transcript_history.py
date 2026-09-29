@@ -7,7 +7,7 @@ from toad.widgets.message_filter import OtherCategory
 
 import asyncio
 from collections import deque
-from dataclasses import replace
+from dataclasses import dataclass, replace
 from collections.abc import Awaitable, Callable, Iterator
 from typing import TYPE_CHECKING
 from weakref import ref
@@ -32,7 +32,7 @@ from toad.transcript_state import TranscriptState, LiveTranscript, ProvisionalTr
 from toad.acp import protocol
 from toad.acp.encode_tool_call_id import encode_tool_call_id
 from toad.transcript_preparation import (
-    CategoryProjection, PageRequest, PreparedPageSource, PreparedTranscriptPage,
+    CategoryProjection, CommittedInterval, PageRequest, PreparedPageSource, PreparedTranscriptPage,
     ProjectedTranscriptSource, TranscriptPageBuffer, incoming_sequences,
 )
 from toad.widgets.agent_response import AgentResponse, ResponseDelivery
@@ -216,6 +216,15 @@ class TranscriptFragmentView(CategorizedBlock, VerticalGroup):
         await self.recompose()
 
 
+@dataclass(frozen=True)
+class TranscriptPageAdmission:
+    """A measured page's admitted range, without retaining its rich widgets."""
+
+    interval: CommittedInterval
+    start: int
+    stop: int
+
+
 class TranscriptPageView(VerticalGroup):
     CACHE_HEIGHT_INDEPENDENT_BOX = True
     CACHE_HEIGHT_INDEPENDENT_ARRANGEMENT = True
@@ -237,6 +246,18 @@ class TranscriptPageView(VerticalGroup):
     def compose(self) -> ComposeResult:
         for fragment in self.fragments[self.start:self.stop]:
             yield TranscriptFragmentView(fragment, self.visible_categories)
+
+    def capture_admission(self) -> TranscriptPageAdmission:
+        return TranscriptPageAdmission(
+            CommittedInterval(self.page.before, self.page.after), self.start, self.stop,
+        )
+
+    def restore_admission(self, admission: TranscriptPageAdmission) -> None:
+        # Positions refer to this immutable native interval, not to whatever
+        # newer snapshot happened to be published during an inactive turn.
+        if admission.interval != CommittedInterval(self.page.before, self.page.after):
+            return
+        self.start, self.stop = admission.start, admission.stop
 
     def set_categories(self, selected: frozenset[type[MessageCategory]]) -> None:
         self.visible_categories = selected

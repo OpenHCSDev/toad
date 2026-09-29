@@ -235,3 +235,11 @@ IMPL-12: ReaderPosition and HistoryAnchor now share WindowRestoration's existing
 Installed main145 rapid PageDown/End and cold-tail return passed cropped visible-body paint (`evidence/workspace-persistent/rapid-main145.log`). Recent source native test remains red (`recent-native-main145.log`): saved non-tail19 returns0/max0; returned history admits4 fragments. Same native input/process checks precede the reader assertion. Source admission/range retention is unresolved, owned in142. Initial position gate now waits for actual max_scroll_y>0, using existing native deadline, before selecting the non-tail record. Exact return offset and cropped paint assertions remain unchanged.
 
 This is not full116/110 performance completion or final canonical suite acceptance. Prepared source custody must retain native admitted reader intent with bounded existing PreparationRuntime storage, without a second cache or retained widget tree.
+
+## Native admitted-range checkpoint
+
+IDEN-1: the native CommittedInterval is reused as the immutable identity for a page-admission snapshot. TranscriptPageView captures its own start/stop; no transcript text, widgets, renderer or second cache is retained by ReaderPosition. The offset-reader case prepares that owned admission before SnapshotPublication mounts its history; tail readers continue ordinary newest admission through the same nominal hook.
+
+Installed native acceptance now passes the exact19→19 scroll offset on the first return and original operational-source identity checks. It still fails full cropped conversation paint: a blank row appears above coordination context, shifting the bottom divider outside the crop, although virtual90x55/viewport90x33 and vertical scrollbar agree. Receipt `recent-native-admission.log` remains RED. This is a checkpoint, not recent-source/full116 completion. Older multi-page returns and changed native intervals still require complete prepared-source custody integration; this snapshot does not claim those gates.
+
+Carver owns urgent ViewportPresentation.prepare/native layout reentrancy;142 has no changes to viewport_body.py, session_view.py or WorkspaceScreen layout. No recursion-limit increase or exception masking. Chain-term counts unchanged: transcript_publication21→21/history_anchor4→4/transcript_history47→47/recent pilot0→0.

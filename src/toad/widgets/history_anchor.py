@@ -16,7 +16,7 @@ from toad.widgets.viewport_body import DocumentViewport
 
 if TYPE_CHECKING:
     from toad.widgets.tool_call import ToolCall
-    from toad.widgets.transcript_history import TranscriptHistory
+    from toad.widgets.transcript_history import TranscriptHistory, TranscriptPageAdmission
 
 
 class WindowRestoration(ABC):
@@ -44,7 +44,15 @@ class ReaderPosition(WindowRestoration):
     @classmethod
     def capture(cls, window: "HistoryWindow") -> "ReaderPosition":
         # Follow intent enters from Textual's native scroll boundary once.
-        return TailReaderPosition() if window.follows_tail else OffsetReaderPosition(window.scroll_y)
+        if window.follows_tail:
+            return TailReaderPosition()
+        return OffsetReaderPosition(window.scroll_y, tuple(
+            page.capture_admission()
+            for history in window.histories for page in history.pages
+        ))
+
+    def prepare_history(self, history: "TranscriptHistory") -> None:
+        """Tail readers use ordinary newest-page admission."""
 
 
 @dataclass(frozen=True)
@@ -56,6 +64,12 @@ class TailReaderPosition(ReaderPosition):
 @dataclass(frozen=True)
 class OffsetReaderPosition(ReaderPosition):
     y: float
+    admissions: tuple["TranscriptPageAdmission", ...]
+
+    def prepare_history(self, history: "TranscriptHistory") -> None:
+        for page in history.pages:
+            for admission in self.admissions:
+                page.restore_admission(admission)
 
     def _restore(self, window: "HistoryWindow") -> None:
         window.release_anchor()

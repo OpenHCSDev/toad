@@ -4,6 +4,7 @@ One real Pi/ACP source is visited through four logical tabs. No transport,
 restoration, source loader or body renderer is replaced by a test double.
 """
 import asyncio
+import difflib
 import gc
 import json
 import os
@@ -102,6 +103,12 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
                   history.region, frame._compositor.visible_widgets.get(history))
                   for history in restored.window.histories], flush=True)
         assert restored.window.scroll_y == before_y, (restored.window.scroll_y, before_y, restored.window.max_scroll_y, restored.window.scrollable_content_region)
+        if conversation_paint(frame) != source_paint:
+            print("RECENT_PAINT_DIFF", "\n".join(difflib.unified_diff(
+                source_paint.splitlines(), conversation_paint(frame).splitlines(),
+                fromfile="departing", tofile="returned")), flush=True)
+            print("RECENT_PAINT_GEOMETRY", window.virtual_size, window.region,
+                  window.show_vertical_scrollbar, window.scrollable_content_region, flush=True)
         assert conversation_paint(frame) == source_paint
         assert restored.prompt.prompt_text_area is editor
         assert editor.document is document and editor.history is history

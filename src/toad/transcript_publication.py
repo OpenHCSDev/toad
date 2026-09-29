@@ -54,6 +54,8 @@ class SnapshotPublication(TranscriptPublication):
             return
         view = self.owner.view
         history = TranscriptHistory(self.page, self.agent.get_transcript_page, fragments=fragments)
+        if self.owner.reader_position is not None:
+            self.owner.reader_position.prepare_history(history)
         view.output.boundary()
         if self.owner.reader_position is None:
             if self.window.scroll_revision == self.scroll_revision:
