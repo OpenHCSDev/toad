@@ -11,18 +11,17 @@ import codecs
 import errno
 import os
 from pathlib import Path
-from typing import Awaitable, Callable, Literal
+from typing import Awaitable, Callable
 
-from toad.mcp_inventory import (
-    installed_mcp_command,
-    Declaration,
-    Inventory,
-    read_inventory,
+from toad.mcp_inventory import installed_mcp_command, read_inventory
+from toad.mcp_commands import MCPDecision, MCPSelection
+from toad.mcp_outcomes import (
+    DecisionOutcome, ControllerLostOutcome, ExitedZeroOutcome, ExitedErrorOutcome,
+    OutputLimitOutcome, StaleSnapshotOutcome, TimeoutOutcome, UnavailableOutcome,
+    UnknownOutcome, UnsupportedOutcome,
 )
 
 
-DecisionAction = Literal["trust", "calls"]
-Decision = Literal["approve", "deny", "allow", "ask"]
 DECISION_TIMEOUT_SECONDS = 120.0
 MAX_DECISION_OUTPUT_BYTES = 128_000
 
@@ -47,13 +46,11 @@ class LocalDecisionPTY:
     async def run(
         self,
         *,
-        inventory: Inventory,
-        row: Declaration,
-        action: DecisionAction,
-        decision: Decision,
+        selection: MCPSelection,
+        command: MCPDecision,
         show: Callable[[str], Awaitable[None]],
         controller_visible: Callable[[], bool],
-    ) -> str:
+    ) -> DecisionOutcome:
         """Recheck the typed package snapshot before a direct exec, then show raw PTY output.
 
         The return is a *process outcome*, never an approval receipt. On failure,
@@ -61,34 +58,16 @@ class LocalDecisionPTY:
         is killed at the output cap. The caller must not infer a ledger decision.
         """
         if os.name != "posix" or not controller_visible():
-            return "unavailable"
-        if (action, decision) not in {
-            ("trust", "approve"),
-            ("trust", "deny"),
-            ("calls", "allow"),
-            ("calls", "ask"),
-        }:
-            return "unsupported"
-        if (
-            not row.effective
-            or not row.enabled
-            or not inventory.project_trusted_saved
-            or (action == "trust" and not row.scope.allows_trust_decision())
-            or (action == "calls" and not row.status.allows_call_decision())
-        ):
-            return "unsupported"
+            return UnavailableOutcome()
+        if not command.available(selection):
+            return UnsupportedOutcome()
         try:
             node, cli = await asyncio.to_thread(installed_mcp_command)
         except (OSError, ValueError, RuntimeError):
-            return "unavailable"
-        fresh = await read_inventory(inventory.project_root)
-        if (
-            not controller_visible()
-            or fresh is None
-            or fresh != inventory
-            or row not in row.scope.rows(fresh)
-        ):
-            return "stale_snapshot"
+            return UnavailableOutcome()
+        fresh = await read_inventory(selection.inventory.root)
+        if not controller_visible() or not selection.matches(fresh):
+            return StaleSnapshotOutcome()
 
         import pty
 
@@ -103,14 +82,7 @@ class LocalDecisionPTY:
             process = await asyncio.create_subprocess_exec(
                 str(node),
                 str(cli),
-                action,
-                decision,
-                "--id",
-                row.id,
-                "--digest",
-                row.digest,
-                "--project",
-                str(inventory.project_root),
+                *command.apply(selection),
                 stdin=slave,
                 stdout=slave,
                 stderr=slave,
@@ -122,7 +94,7 @@ class LocalDecisionPTY:
             os.close(slave)
             slave = -1
             if not controller_visible():
-                return "controller_lost"  # Hidden during spawn: never expose an input path.
+                return ControllerLostOutcome()  # Hidden during spawn: never expose an input path.
             self._active = True
             decoder = codecs.getincrementaldecoder("utf-8")(errors="replace")
             read_bytes = 0
@@ -154,7 +126,7 @@ class LocalDecisionPTY:
                 finally:
                     loop.remove_reader(master)
 
-            async def relay() -> str:
+            async def relay() -> DecisionOutcome | None:
                 nonlocal read_bytes
                 while controller_visible():
                     data = await read_pty()
@@ -163,25 +135,25 @@ class LocalDecisionPTY:
                     read_bytes += len(data)
                     if read_bytes > MAX_DECISION_OUTPUT_BYTES:
                         process.kill()
-                        return "output_limit"
+                        return OutputLimitOutcome()
                     rendered = decoder.decode(data)
                     if rendered:
                         await show(rendered)
                 if not controller_visible():
-                    return "controller_lost"
+                    return ControllerLostOutcome()
                 await show(decoder.decode(b"", final=True))
-                return "exited"
+                return None
 
             try:
                 outcome = await asyncio.wait_for(relay(), DECISION_TIMEOUT_SECONDS)
             except TimeoutError:
-                return "timeout"
-            if outcome != "exited":
+                return TimeoutOutcome()
+            if outcome is not None:
                 return outcome
             code = await asyncio.wait_for(process.wait(), 2.0)
-            return "exited_zero" if code == 0 else "exited_error"
+            return ExitedZeroOutcome() if code == 0 else ExitedErrorOutcome()
         except OSError, TimeoutError:
-            return "outcome_unknown" if process is not None else "unavailable"
+            return UnknownOutcome() if process is not None else UnavailableOutcome()
         finally:
             self._active = False
             if process is not None and process.returncode is None:

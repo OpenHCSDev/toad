@@ -275,7 +275,7 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
         if self._content_error is not None and not self._closing and not self._closed:
             raise self._content_error
 
-    async def on_unmount(self) -> None:
+    async def close_presentation(self) -> None:
         self._content_ready.set()
         await self.presentation.close(self)
 
@@ -451,7 +451,7 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
     @on(ProjectSearchButton.Requested)
     def on_project_search_requested(self, event: ProjectSearchButton.Requested) -> None:
         event.stop()
-        self.conversation.prompt.open_path_search()
+        self.conversation.prompt.path_search.focus()
 
     async def open_file_preview(self, path: Path) -> None:
         await self.app.open_file_preview(path)

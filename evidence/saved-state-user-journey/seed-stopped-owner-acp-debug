@@ -1,0 +1,8 @@
+[1790659733.712] prompt:start sender=beta mode=agent sent_seq=0
+[1790659736.604] prompt:returning
+[1790659736.610] prompt:start sender=beta mode=agent sent_seq=0
+[1790659742.599] prompt:returning
+[1790659746.263] incoming: {"jsonrpc": "2.0", "method": "initialize", "params": {"protocolVersion": 1, "clientCapabilities": {"fs": {"readTextFile": true, "writeTextFile": true}, "terminal": true, "auth": {"terminal": true}}, "
+[1790659746.263] outgoing: {"jsonrpc": "2.0", "id": 1, "result": {"protocolVersion": 1, "agentCapabilities": {"loadSession": true, "promptCapabilities": {"image": true}}, "authMethods": [{"id": "pi-login-openai-codex", "name": 
+[1790659746.264] incoming: {"jsonrpc": "2.0", "method": "session/load", "params": {"cwd": "/home/ts/.cache/agent-scratch/dalton-saved-state-journey/l0a-native-yg3ee8l9/project", "mcpServers": [], "sessionId": "beta"}, "id": 2}
+[1790659746.269] outgoing: {"jsonrpc": "2.0", "id": 2, "error": {"code": -32603, "message": "Internal error", "data": {"details": "Explicit start is required for a stopped agent."}}}

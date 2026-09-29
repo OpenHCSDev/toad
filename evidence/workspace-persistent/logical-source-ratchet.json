@@ -1,0 +1,35 @@
+{
+  "src/toad/widgets/comms_chat.py": {
+    "ForeignAbsenceProbe": [
+      15,
+      15
+    ],
+    "BooleanChainTerms": [
+      10,
+      10
+    ],
+    "god_excess_growth": []
+  },
+  "src/toad/widgets/observed_thread_activity.py": {
+    "ForeignAbsenceProbe": [
+      2,
+      2
+    ],
+    "BooleanChainTerms": [
+      0,
+      0
+    ],
+    "god_excess_growth": []
+  },
+  "src/toad/widgets/transcript_history.py": {
+    "ForeignAbsenceProbe": [
+      23,
+      23
+    ],
+    "BooleanChainTerms": [
+      47,
+      47
+    ],
+    "god_excess_growth": []
+  }
+}

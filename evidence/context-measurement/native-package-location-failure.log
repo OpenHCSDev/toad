@@ -1,0 +1,35 @@
+Traceback (most recent call last):
+  File "/home/ts/.local/share/agent-comms/runtime-automatic-reply-20260928/lib/python3.14/site-packages/agent_comms/native_package.py", line 109, in package_tree_digest
+    visit(root, ".", 0)
+    ~~~~~^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-automatic-reply-20260928/lib/python3.14/site-packages/agent_comms/native_package.py", line 66, in visit
+    before = path.lstat()
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/pathlib/__init__.py", line 661, in lstat
+    return os.lstat(self)
+           ~~~~~~~~^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/ts/.local/share/agent-comms/runtime-automatic-reply-20260928/lib/python3.14/site-packages/agent_comms/_native/.pi-native-5fdef596596173bd/node_modules/@earendil-works/pi-coding-agent'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/tests/context_native_installed_pilot.py", line 35, in <module>
+    asyncio.run(main(app_type=InstalledApp, acceptance=acceptance))
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/tests/l0a_native_installed_pilot.py", line 106, in main
+    verify_native_package(package)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-automatic-reply-20260928/lib/python3.14/site-packages/agent_comms/native_package.py", line 124, in verify_native_package
+    if package_tree_digest(root) != pins[0]:
+       ~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-automatic-reply-20260928/lib/python3.14/site-packages/agent_comms/native_package.py", line 111, in package_tree_digest
+    raise NativePackageError("Native package could not be verified") from error
+agent_comms.native_package.NativePackageError: Native package could not be verified

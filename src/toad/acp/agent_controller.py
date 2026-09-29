@@ -7,6 +7,7 @@ from weakref import ref
 
 from agent_comms.declared_family import DeclaredFamily
 from toad.render_tasks import ValidateSessionUpdateTask
+from toad.plan import PlanItem
 from .terminal_owner import OperationalTerminalOwner
 
 
@@ -71,6 +72,7 @@ class AgentController(OperationalTerminalOwner):
         self.modes = {}
         self.current_mode = None
         self.commands = []
+        self.plan_entries: list[PlanItem] | None = None
 
     def attach(self, target):
         previous = self.surface.target
@@ -111,6 +113,9 @@ class AgentController(OperationalTerminalOwner):
                 agent.post_message(SetModes(self.current_mode, self.modes))
             agent.post_message(SetThinkingLevels(agent.presentation.current_thinking_level or "off", agent.presentation.thinking_levels))
             agent.post_message(AvailableCommandsUpdate(self.commands))
+            if self.plan_entries is not None:
+                from .messages import Plan
+                agent.post_message(Plan(self.plan_entries))
             agent._post_queue_view()
             agent._post_private_cursor()
             target = binding.target
@@ -137,6 +142,12 @@ class AgentController(OperationalTerminalOwner):
         from .messages import SetModes
         self.current_mode, self.modes = current, modes
         self.agent.post_message(SetModes(current, modes))
+
+    def publish_plan(self, entries: list[PlanItem]) -> None:
+        """Keep the latest typed source value while its optional view is absent."""
+        from .messages import Plan
+        self.plan_entries = entries
+        self.agent.post_message(Plan(entries))
 
     def publish_commands(self, commands):
         from .messages import AvailableCommandsUpdate
