@@ -10,4 +10,4 @@ DeclaredFamily cases own behavior and derived controls. GoalObservation and
 core GoalAction/GoalState remain authorities. Delete root state/helpers/string
 ladder and all real callers, no facade/mixin, alternative store or read engine.
 App/workspace/reusable source initialization/shell and panels remain other owners.
-Implementation/installed native goal acceptance pending; draft not ready.
+Complete productiona7bda05 ready on mergedmain129e46f8cb. Actual installed native goal backend/UI and declaration/fence/paint guard pass. Shared ratchet zero positive deltas. See README.md. Parent owns integration/live deployment.
