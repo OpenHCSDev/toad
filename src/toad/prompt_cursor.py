@@ -21,6 +21,10 @@ class CursorMovement:
     current: Selection
 
     @property
+    def moved_cursor(self) -> bool:
+        return self.previous != self.current and self.current.is_empty
+
+    @property
     def entered_slash(self) -> bool:
         return (self.previous.end, self.current.end) == ((0, 0), (0, 1))
 
@@ -85,13 +89,11 @@ class HistoryCursor(DeclaredFamily, affix="Cursor"):
     def move(cls, editor: PromptTextArea, select: bool, ordinary) -> None:
         from toad.messages import HistoryMove
 
-        if select or not editor.selection.is_empty:
-            ordinary(select)
-            return
-        if cls.at_edge(editor):
-            editor.post_message(HistoryMove.for_mode(cls.direction, editor.shell_mode, editor.text))
-        else:
-            ordinary(select)
+        if editor.selection.is_empty and not select:
+            if cls.at_edge(editor):
+                editor.post_message(HistoryMove.for_mode(cls.direction, editor.shell_mode, editor.text))
+                return
+        ordinary(select)
 
 
 class PreviousHistoryCursor(HistoryCursor):
@@ -119,16 +121,13 @@ class PromptCursor:
         from toad.widgets.prompt_popup import CompletionPopup
 
         editor = self._editor()
-        if editor is None or not editor.is_mounted:
-            return
-        if previous == current or not current.is_empty:
-            return
-        prompt = editor.query_ancestor(Prompt)
-        if not prompt.supports_completion:
+        if editor is None:
             return
         movement = CursorMovement(previous, current)
-        for popup in prompt.query(CompletionPopup):
-            popup.cursor_changed(movement)
-        if current.end[0] == 0:
-            line = editor.document.get_line(0)
-            CommandText.decode_input(line, editor.slash_commands).retreat(editor, movement)
+        prompt = editor.query_ancestor(Prompt)
+        if prompt.supports_completion and movement.moved_cursor:
+            for popup in prompt.query(CompletionPopup):
+                popup.cursor_changed(movement)
+            if current.end[0] == 0:
+                line = editor.document.get_line(0)
+                CommandText.decode_input(line, editor.slash_commands).retreat(editor, movement)

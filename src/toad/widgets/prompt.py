@@ -424,7 +424,8 @@ See on-screen instructions for details.
                 self.suggestion = self.suggestions[self.suggestions_index]
 
     def watch_selection(self, previous_selection: Selection, selection: Selection) -> None:
-        self.input_cursor.changed(previous_selection, selection)
+        if self.is_mounted:
+            self.input_cursor.changed(previous_selection, selection)
 
 
 class Prompt(containers.VerticalGroup):

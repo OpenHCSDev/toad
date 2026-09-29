@@ -69,6 +69,12 @@ class FrameState(DeclaredFamily, affix="Frame"):
         frame.state = PendingFrame()
         frame.presented.clear()
 
+    def suspend(self, frame):
+        frame.state = SuspendedFrame()
+
+    def resume(self, frame):
+        pass
+
 
 class PendingFrame(FrameState):
     def displayed(self, frame):
@@ -79,6 +85,11 @@ class PendingFrame(FrameState):
 
 class WritingFrame(FrameState):
     pass
+
+
+class SuspendedFrame(FrameState):
+    def resume(self, frame):
+        self.begin(frame)
 
 
 class PresentedFrame(FrameState):
@@ -96,6 +107,9 @@ class ClosedFrame(FrameState):
         pass
 
     def begin(self, frame):
+        pass
+
+    def suspend(self, frame):
         pass
 
 
@@ -129,10 +143,6 @@ class FramePresentation:
     def written(self, receipt: WritingFrame):
         if receipt is not self.state:
             return
-        screen = self.screen
-        if not screen.is_attached or not screen.is_current:
-            self.state = PendingFrame()
-            return
         self.state = PresentedFrame()
         self.presented.set()
         callbacks = tuple(self.callbacks)
@@ -143,7 +153,11 @@ class FramePresentation:
                 owner.call_later(callback)
 
     def suspend(self):
+        self.state.suspend(self)
         self.presented.set()
+
+    def resume(self):
+        self.state.resume(self)
 
     def close(self):
         self.state = ClosedFrame()

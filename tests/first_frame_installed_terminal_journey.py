@@ -36,7 +36,8 @@ async def main():
             assert first["new_session_after_frame"]["time_ns"] < first["peer_time_ns"], first
             assert first["new_session_after_frame"]["ready"]
             assert first["new_session_after_frame"]["driver"] == "LinuxDriver"
-            assert len(terminal.buffer) or "Physical" in terminal._screen()
+            initial_frame = terminal._screen()
+            assert terminal.buffer and "Frame" in initial_frame, initial_frame
             await terminal.type_text("PTY_FIRST_FRAME_INPUT")
             await terminal.press_enter()
             await until(lambda: "COMPLETION_PEER_EXECUTED PTY_FIRST_FRAME_INPUT" in terminal._screen(), terminal)

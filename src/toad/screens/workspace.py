@@ -78,6 +78,7 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
         self.viewport_presentation.suspend()
 
     def on_screen_resume(self) -> None:
+        self.frame_presentation.resume()
         self.viewport_presentation.request()
 
     async def _message_loop_exit(self) -> None:
