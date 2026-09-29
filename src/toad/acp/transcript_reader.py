@@ -86,7 +86,11 @@ class CoordinationTranscriptReader:
                 self._reader = (shared if shared is not None and shared.root == Path(root).expanduser()
                                 else await asyncio.to_thread(wire, root))
                 self._root = root
-            yield self._reader
+            reader = self._reader
+        # The lock owns service initialization/replacement, not projections.
+        # Each caller retains this exact root service; its canonical stores own
+        # read transactions and the Agent fences publication after awaits.
+        yield reader
 
     async def page(self, root, thread, *, before=None, after=None, through=None):
         while True:
