@@ -1,3 +1,4 @@
+from toad.acp.agent_configuration import AgentConfiguration, ModelConfigurationSetting, ThinkingConfigurationSetting
 from toad.acp.context_measurement import ContextMeasurement, ContextUnavailable
 from toad.acp.agent_process import AgentProcess
 from toad.acp.agent_controller import AgentController
@@ -6,7 +7,6 @@ from toad.acp.permission_controller import PermissionController
 from toad.agent_presentation import ACPAgentPresentation
 import asyncio
 import os
-from collections.abc import Mapping
 from contextlib import suppress
 from copy import deepcopy
 from dataclasses import replace
@@ -136,6 +136,7 @@ class Agent(AgentBase):
         self.presentation = ACPAgentPresentation(self)
         self.permissions = PermissionController(self)
         self.controller = AgentController(self)
+        self.configuration = AgentConfiguration(self)
         self._agent_data = agent
         self.session_id = session_id
         self.server = jsonrpc.Server()
@@ -175,8 +176,6 @@ class Agent(AgentBase):
             self.presentation.log_path = paths.get_log() / log_filename
         self._token_usage: TokenUsage | None = None
         self.context_measurement = ContextUnavailable("Native owner has not reported context usage")
-        self._model_config_id: str | None = None
-        self._thinking_config_id: str | None = None
 
     @property
     def command(self) -> str | None:
@@ -381,7 +380,7 @@ class Agent(AgentBase):
                 "sessionUpdate": "config_option_update",
                 "configOptions": config_options,
             }:
-                self._publish_models({"configOptions": config_options})
+                self.configuration.receive({"configOptions": config_options})
             case {"sessionUpdate": "session_info_update"} if "title" in update:
                 title = update.get("title")
                 self.post_message(messages.SessionInfoUpdate(title))
@@ -776,7 +775,7 @@ class Agent(AgentBase):
                 for mode in available_modes
             }
             self.controller.publish_modes(current_mode, modes_update)
-        self._publish_models(response)
+        self.configuration.receive(response)
 
     async def acp_load_session(self) -> None:
         assert self.session_id is not None, "Session id must be set"
@@ -818,64 +817,7 @@ class Agent(AgentBase):
                 for mode in available_modes
             }
             self.controller.publish_modes(current_mode, modes_update)
-        self._publish_models(response)
-
-    def _publish_models(self, response: Mapping[str, object]) -> None:
-        """Publish the current model and thinking-level config options."""
-        config_options = response.get("configOptions")
-        if isinstance(config_options, list):
-            self._model_config_id = None
-            self._thinking_config_id = None
-            for config in config_options:
-                if not isinstance(config, dict) or config.get("type") != "select":
-                    continue
-                current = config.get("currentValue")
-                raw_options = config.get("options")
-                if not isinstance(current, str) or not isinstance(raw_options, list):
-                    continue
-                options: list[Mapping[str, object]] = []
-                for option in raw_options:
-                    if not isinstance(option, dict):
-                        continue
-                    grouped = option.get("options")
-                    if isinstance(grouped, list):
-                        options.extend(
-                            item for item in grouped if isinstance(item, dict)
-                        )
-                    else:
-                        options.append(option)
-                if config.get("category") == "model" or config.get("id") == "model":
-                    models = {
-                        str(option["value"]): Model(
-                            str(option["value"]),
-                            str(option.get("name") or option["value"]),
-                            (
-                                str(option["description"])
-                                if option.get("description") is not None
-                                else None
-                            ),
-                        )
-                        for option in options
-                        if isinstance(option.get("value"), str)
-                    }
-                    if current not in models:
-                        continue
-                    self._model_config_id = str(config["id"])
-                    self.controller.publish_models(current, models)
-                elif config.get("id") == "thinking_level":
-                    levels = [
-                        str(option["value"])
-                        for option in options
-                        if isinstance(option.get("value"), str)
-                    ]
-                    if current in levels:
-                        self._thinking_config_id = str(config["id"])
-                        self.presentation.current_thinking_level = current
-                        self.presentation.thinking_levels = levels
-                        self.post_message(messages.SetThinkingLevels(current, levels))
-            if self._model_config_id is None:
-                self.controller.publish_models("", {})
-            return
+        self.configuration.receive(response)
 
     @property
     def session_id(self):
@@ -1063,40 +1005,10 @@ class Agent(AgentBase):
         return await self.acp_session_set_mode(mode_id)
 
     async def set_model(self, model_id: str) -> str | None:
-        """Update the session model through ACP config options."""
-        if self._model_config_id is None:
-            return "This agent does not advertise model configuration"
-        with self.request():
-            response = api.session_set_config_option(
-                self.session_id, self._model_config_id, model_id
-            )
-        try:
-            result = await response.wait()
-        except jsonrpc.APIError as error:
-            return ACPFailure.from_error(error.code, error.message, error.data).feedback
-        except jsonrpc.JSONRPCError as error:
-            return ACPFailure.from_error(error.code, error.message).feedback
-        if result is not None:
-            self._publish_models(result)
-        return None
+        return await self.configuration.setting(ModelConfigurationSetting).select(self, model_id)
 
     async def set_thinking_level(self, level: str) -> str | None:
-        """Update Pi's persisted thinking level through ACP config options."""
-        if self._thinking_config_id is None:
-            return "This agent does not advertise thinking-level configuration"
-        with self.request():
-            response = api.session_set_config_option(
-                self.session_id, self._thinking_config_id, level
-            )
-        try:
-            result = await response.wait()
-        except jsonrpc.APIError as error:
-            return ACPFailure.from_error(error.code, error.message, error.data).feedback
-        except jsonrpc.JSONRPCError as error:
-            return ACPFailure.from_error(error.code, error.message).feedback
-        if result is not None:
-            self._publish_models(result)
-        return None
+        return await self.configuration.setting(ThinkingConfigurationSetting).select(self, level)
 
     async def get_goal(self) -> Goal | None:
         return (await self.get_goal_snapshot())[0]
