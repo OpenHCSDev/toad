@@ -120,7 +120,7 @@ class SessionNotificationOwner(ClientRequestOwner):
             validation = await self.agent.controller.validate(sessionId, update, _meta)
             if authority.retired:
                 return
-            if validation.error is not None:
+            if validation.rejected:
                 self.reject(sessionId, update, _meta, validation.error)
                 return
             self.publish(sessionId, update)

@@ -15,7 +15,7 @@ from contextlib import suppress
 from dataclasses import replace
 from datetime import datetime
 from pathlib import Path
-from typing import Any, NamedTuple
+from typing import NamedTuple
 
 import rich.repr
 from agent_comms.acp_extension import (
