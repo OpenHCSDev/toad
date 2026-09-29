@@ -25,6 +25,7 @@ Noneditable Toad wheel in this WT, installed merged core372 `8cae0ae8` from our 
 ## Commands / resources / limits
 
 ```sh
+mkdir -p .artifacts/q7/tmp
 uv pip install --python .venv/bin/python --no-deps .
 uv pip install --python .venv/bin/python --no-deps 'textual @ git+https://github.com/OpenHCSDev/textual.git@73909c044e245a99bf66d49d01e2c071e8c8597d'
 TMPDIR=$PWD/.artifacts/q7/tmp timeout 90 .venv/bin/python -u tests/prompt_completion_installed_pilot.py
