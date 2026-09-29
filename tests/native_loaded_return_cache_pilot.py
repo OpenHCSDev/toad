@@ -25,6 +25,10 @@ from toad.widgets.transcript_history import TranscriptFragmentView
 from textual.widget import Widget
 from textual.content import Content
 from toad.acp.messages import UpdateStatusLine
+from toad.acp.agent import Agent
+from toad.render_tasks import TranscriptRenderTask
+from toad.session_observation import GoalObservation
+from toad.transcript_publication import SnapshotPublication, TranscriptPresentation
 
 
 class PaintedReturnApp(InstalledApp):
@@ -71,12 +75,24 @@ async def click_session(app, pilot, source):
     wrapped = []
     previous = app.workspace_sessions.selected
     native = app.workspace_chrome.native
+    conversation = native.widget
+    viewport = conversation.window.document_viewport if conversation is not None else None
     targets = [
         (previous, "retire_presentation", "retire_presentation"),
         (app.workspace_chrome, "select", "chrome_select"),
         (source, "prepare_presentation", "prepare_presentation"),
         (native, "retire", "native_retire"),
         (native, "activate", "native_activate"),
+        (viewport, "park_source", "viewport_park_source"),
+        (viewport, "suspend_source", "viewport_suspend_source"),
+        (conversation, "release_native_session", "conversation_release"),
+        (conversation, "bind_native_session", "conversation_bind"),
+        (conversation, "present_retained_native_session", "conversation_present_retained"),
+        (Agent, "get_transcript_page", "native_page_read"),
+        (GoalObservation, "read", "goal_read"),
+        (TranscriptPresentation, "snapshot", "transcript_snapshot"),
+        (SnapshotPublication, "publish", "snapshot_publish"),
+        (app.preparation, "submit", "preparation_submit"),
         (app.workspace_screen, "prepare_navigation", "prepare_navigation"),
         (app.workspace_screen, "layout_navigation", "layout_navigation"),
     ]
@@ -162,7 +178,7 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
                     k().identity.interval.before.offset,k().identity.interval.through.offset,
                     k().identity.directory_revision,k().body_ready,
                     1+sum(1 for _ in k().walk_children()))
-                   for k in app.selected_session.conversation.window.document_viewport._warm
+                   for k in app.selected_session.conversation.window.document_viewport._warm.values()
                    if k() is not None and isinstance(k(),TranscriptFragmentView)],flush=True)
             frames = await click_session(app, pilot, source)
             view = source.conversation
@@ -217,16 +233,27 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
         profile = cProfile.Profile() if os.environ.get("NATIVE_RETURN_PROFILE") == "1" else None
         if profile is not None:
             profile.enable()
+        render_submissions = []
+        original_render_submit = app.render_processes.submit
+
+        async def count_render_submit(task):
+            if isinstance(task, TranscriptRenderTask):
+                render_submissions.append(task)
+            return await original_render_submit(task)
+
+        app.render_processes.submit = count_render_submit
         for source, agent in ((sources[0], agents[0]), (sources[1], agents[1]),
                               (sources[0], agents[0]), (sources[1], agents[1]), (sources[0], agents[0])):
             before_hits, before_misses = app.preparation.hits, app.preparation.misses
+            viewport = app.workspace_chrome.native.widget.window.document_viewport
+            before_reuse, before_evictions = viewport.reuse_hits, viewport.body_evictions
             started = perf_counter()
             print("CACHE_BEFORE_SELECT", source.id,
                   [(type(k().parent).__name__, getattr(k().identity.source,"session_id",None),
                     k().identity.interval.before.offset,k().identity.interval.through.offset,
                     k().identity.directory_revision,k().body_ready,
                     1+sum(1 for _ in k().walk_children()))
-                   for k in app.selected_session.conversation.window.document_viewport._warm
+                   for k in app.selected_session.conversation.window.document_viewport._warm.values()
                    if k() is not None and isinstance(k(),TranscriptFragmentView)],flush=True)
             frames = await click_session(app, pilot, source)
             view = source.conversation
@@ -262,7 +289,7 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
                                  for n in view.window.walk_children()
                                  if n.parent is view.window or n in view.contents.ancestors_with_self],
                       "cached", [(type(k()).__name__, type(k().parent).__name__, k().identity)
-                                 for k in view.window.document_viewport._warm if k() is not None], flush=True)
+                                 for k in view.window.document_viewport._warm.values() if k() is not None], flush=True)
                 raise
             await settled(pilot, view)
             print("RETURN_GEOMETRY", source.id, view.window.scroll_y, view.window.max_scroll_y,
@@ -288,6 +315,10 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
                      n.identity.directory_revision,n.body_ready,
                      type(n.parent).__name__) for n in view.query(TranscriptFragmentView)],flush=True)
             assert reused > 0, ("Already-loaded native source discarded every response body", source.id)
+            assert not render_submissions, (
+                "Warm tab return re-fragmented a saved native page", source.id,
+                len(render_submissions),
+            )
             records.append({"source":source.id,
                             "return_painted_ms":app.last_click_metrics[0],
                             "click_completed_ms":app.last_click_metrics[1],
@@ -298,7 +329,11 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
                             "cache_misses":app.preparation.misses-before_misses,
                             "mounted_response_bodies":len(bodies),
                             "reused_body_instances":reused,
+                            "retained_body_reuse_hits":viewport.reuse_hits-before_reuse,
+                            "retained_body_evictions":viewport.body_evictions-before_evictions,
+                            "warm_bodies":sum(key() is not None for key in viewport._warm.values()),
                             "prepared_bytes":app.preparation.retained_bytes})
+        app.render_processes.submit = original_render_submit
         if profile is not None:
             profile.disable()
             with Path(os.environ["NATIVE_RETURN_RECEIPT"]).with_suffix(".profile.txt").open("w") as stream:

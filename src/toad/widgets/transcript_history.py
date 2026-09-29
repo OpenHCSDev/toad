@@ -169,6 +169,13 @@ class FragmentPresentationIdentity:
     project_path: str
     directory_watcher: object
     directory_revision: int
+    position: int = 0
+
+    def __hash__(self) -> int:
+        # A fragment may contain unhashable wire fields. Its page position
+        # selects the cache bucket; equality still checks the full fragment.
+        return hash((self.interval, self.position, self.project_path,
+                     self.directory_revision))
 
 
 class TranscriptFragmentView(MeasuredViewportBody, CategorizedBlock, VerticalGroup):
@@ -198,7 +205,11 @@ class TranscriptFragmentView(MeasuredViewportBody, CategorizedBlock, VerticalGro
             self._body_viewport.discard(self)
 
     def matches_retained(self, identity: FragmentPresentationIdentity) -> bool:
-        return self.identity == identity and self.fragment == identity.fragment and self.body_ready
+        return self.identity == identity and self.body_ready
+
+    @property
+    def retained_key(self) -> FragmentPresentationIdentity:
+        return self.identity
 
     @property
     def body_ready(self) -> bool:
@@ -313,12 +324,12 @@ class TranscriptPageView(VerticalGroup):
         self.visible_categories = all_categories()
         self._returning_bodies = []
 
-    def _body(self, fragment: TranscriptFragment) -> TranscriptFragmentView:
+    def _body(self, fragment: TranscriptFragment, position: int) -> TranscriptFragmentView:
         from toad.widgets.conversation import Conversation
         view = self.query_ancestor(Conversation)
-        identity = view.fragment_presentation_identity(
+        identity = replace(view.fragment_presentation_identity(
             CommittedInterval(self.page.before, self.page.after), fragment,
-        )
+        ), position=position)
         body = view.window.document_viewport.claim_retained(identity)
         if body is None:
             body = TranscriptFragmentView(fragment, self.visible_categories, identity=identity)
@@ -328,7 +339,7 @@ class TranscriptPageView(VerticalGroup):
 
     def compose(self) -> ComposeResult:
         for index, fragment in enumerate(self.fragments[self.start:self.stop]):
-            body = self._body(fragment)
+            body = self._body(fragment, self.start + index)
             if body.is_mounted:
                 self._returning_bodies.append((index, body))
             else:
@@ -366,8 +377,8 @@ class TranscriptPageView(VerticalGroup):
         start = max(0, self.start - self.batch_size) if older else self.stop
         stop = self.start if older else min(len(self.fragments), self.stop + self.batch_size)
         before = self.children[0] if older and self.children else None
-        for fragment in self.fragments[start:stop]:
-            body = self._body(fragment)
+        for index in range(start, stop):
+            body = self._body(self.fragments[index], index)
             if body.is_mounted:
                 body.reparent(self, before=before)
                 body._body_viewport.register(body)
@@ -397,7 +408,7 @@ class TranscriptPageView(VerticalGroup):
         for index in range(start, stop):
             child = previous.get(index)
             if child is None:
-                body = self._body(fragments[index])
+                body = self._body(fragments[index], index)
                 if body.is_mounted:
                     body.reparent(self)
                     body._body_viewport.register(body)
