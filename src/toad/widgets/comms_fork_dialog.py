@@ -5,11 +5,14 @@ from __future__ import annotations
 from textual.app import ComposeResult
 from textual.containers import Vertical
 from textual.screen import ModalScreen
-from textual.widgets import Input, Static
+from textual.widgets import Button, Input, Static
+from agent_comms.channel_targets import Tag
+from agent_comms.thread_management import ForkSpec
+from agent_comms.threads import Thread
 
 
-class ForkDialog(ModalScreen[tuple[str, str]]):
-    """Ask for child name and task; returns (name, task) or None."""
+class ForkDialog(ModalScreen[ForkSpec]):
+    """Collect one domain fork declaration, with editable inherited tags."""
 
     DEFAULT_CSS = """
     ForkDialog {
@@ -26,32 +29,48 @@ class ForkDialog(ModalScreen[tuple[str, str]]):
 
     BINDINGS = [("escape", "cancel")]
 
-    def __init__(self, parent: str) -> None:
+    def __init__(self, parent: Thread) -> None:
         super().__init__()
         self._parent_thread = parent
 
     def compose(self) -> ComposeResult:
         with Vertical(id="box"):
             yield Static(
-                f"Fork from @{self._parent_thread} — child name and task:",
+                f"Fork from @{self._parent_thread.name}",
                 id="title",
             )
-            yield Input(
-                placeholder="child-name fix the flake in the viewer", id="fork-input"
-            )
+            yield Static("Name")
+            yield Input(placeholder="child-name", id="fork-name")
+            yield Static("Task / goal / prompt (optional)")
+            yield Input(placeholder="Leave empty to start ready for your first message", id="fork-task")
+            yield Static("Tags (comma-separated; edit to add or remove)")
+            yield Input(", ".join(sorted(self._parent_thread.tags)), id="fork-tags")
+            yield Static("", id="fork-error", markup=False)
+            yield Button("Fork", id="fork-create", variant="primary")
 
     def on_mount(self) -> None:
-        self.query_one(Input).focus()
+        self.query_one("#fork-name", Input).focus()
 
     def on_input_submitted(self, event: Input.Submitted) -> None:
-        value = event.value.strip()
-        parts = value.split(maxsplit=1)
-        if len(parts) != 2:
-            self.query_one("#title", Static).update(
-                "need: child-name task (esc to cancel)"
-            )
+        self.submit()
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        self.submit()
+
+    def submit(self) -> None:
+        name = self.query_one("#fork-name", Input).value.strip()
+        if not name:
+            self.query_one("#fork-error", Static).update("Enter a child name.")
             return
-        self.dismiss((parts[0], parts[1]))
+        try:
+            tags = frozenset(Tag(value.strip()).name for value in
+                             self.query_one("#fork-tags", Input).value.split(",") if value.strip())
+            spec = ForkSpec(name=name, parent=self._parent_thread.name,
+                            task=self.query_one("#fork-task", Input).value.strip(), tags=tags)
+        except ValueError as error:
+            self.query_one("#fork-error", Static).update(str(error))
+            return
+        self.dismiss(spec)
 
     def action_cancel(self) -> None:
         self.dismiss(None)

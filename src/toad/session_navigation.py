@@ -184,7 +184,7 @@ class SessionAdmissions(MroDispatch):
             return app.selected_mode
         # History admission is the only owner of this typed key. Workspace
         # factories carry its identity, so no key-to-mode mirror can go stale.
-        admission = self.find(prepared.key)
+        admission = self.find(kind.view_identity(prepared.key))
         if admission is None:
             admission = HistorySessionAdmission(f"comms-{next(self.identities)}", prepared.key, kind,
                                                 project_path, prepared.recovery_root)

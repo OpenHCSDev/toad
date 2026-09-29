@@ -211,8 +211,7 @@ class AcknowledgeAction(ChannelAction, FinishedAction):
 class ForkAction(ThreadAction[Thread]):
     tool = CommsForkTool
     pending = "Forking…"
-    name: str
-    task: str
+    spec: ForkSpec
 
     @classmethod
     def request(
@@ -223,18 +222,27 @@ class ForkAction(ThreadAction[Thread]):
 
         selected_root = current_root()
 
-        def accepted(spec: tuple[str, str] | None) -> None:
+        def accepted(spec: ForkSpec | None) -> None:
             if spec is None:
                 return
             if not root_is_current(selected_root):
                 app.notify("Comms route changed; reopen the thread before forking", severity="error")
                 return
-            app.thread_actions.invoke(cls(*spec), subject, actor, session_modes)
+            app.thread_actions.invoke(cls(spec), subject, actor, session_modes)
 
-        app.push_screen(ForkDialog(subject), accepted)
+        async def collect():
+            try:
+                selected = RouteSelection.capture(selected_root)
+                comms = app.coordination_access.require(selected)
+                parent = await asyncio.to_thread(comms.registry.require, subject)
+                if root_is_current(selected_root):
+                    app.push_screen(ForkDialog(parent), accepted)
+            except (OSError, ValueError, RuntimeError) as error:
+                app.notify(str(error), title="Fork", severity="error")
+        app.run_worker(collect(), name="fork-dialog", exit_on_error=False)
 
     def apply(self, ctx: ThreadActionContext) -> Thread:
-        return ctx.comms.threads.fork(ForkSpec(name=self.name, parent=ctx.subject, task=self.task))
+        return ctx.comms.threads.fork(self.spec)
 
     async def completed(self, app: ToadApp, ctx: ThreadActionContext, result: Thread) -> None:
         app.notify(f"forked {result.name} from {ctx.subject}", title="Comms")

@@ -51,10 +51,8 @@ class HistoryInteraction(GoalInteraction):
         history = await agent.get_goal_history(goal.id) if agent is not None else ()
         if not session.owns(agent):
             return
-        details = GoalDetails(goal, history=history)
+        details = GoalDetails(session, history=history)
         session.present(details)
-        details.watch(view, "goal_display", lambda value: setattr(details, "goal_display", value))
-        details.watch(view, "goal_execution", lambda value: setattr(details, "execution", value))
 
 
 class CollapseInteraction(GoalInteraction):
@@ -111,9 +109,7 @@ class EditInteraction(GoalInteraction):
         async def save(text: str) -> None:
             if not session.owns(agent):
                 raise ValueError("The goal presentation changed; reopen its editor.")
-            await agent.edit_goal(goal, text)
-            if session.owns(agent):
-                await view.goal_observation.refresh()
+            await session.write(agent, agent.edit_goal(goal, text))
 
         session.present(GoalEdit(goal, goal_mention_candidates(view.app), on_save=save))
 
@@ -141,6 +137,15 @@ class GoalSession:
     def modal(self):
         return self._modal() if self._modal is not None else None
 
+    @property
+    def display(self):
+        from toad.goal_display import NoGoal
+        return self.view.goal_display if self.view is not None else NoGoal()
+
+    @property
+    def execution(self):
+        return self.view.goal_execution if self.view is not None else None
+
     def owns(self, agent) -> bool:
         view = self.view
         if view is None or not view.is_attached:
@@ -155,11 +160,14 @@ class GoalSession:
         view = self.view
         if view is None or not self.owns(view.agent):
             return
-        if not action.enabled(view.goal_display):
-            view.flash("Goal state unavailable; waiting for the owner", style="error")
-            return
         agent = view.agent
         try:
+            await view.goal_observation.refresh()
+            if not self.owns(agent):
+                return
+            if not action.enabled(view.goal_display):
+                view.flash(view.goal_display.heading(view.goal_execution))
+                return
             await action.apply(self)
         except (OSError, ValueError) as error:
             if self.owns(agent):
@@ -178,13 +186,25 @@ class GoalSession:
         try:
             # The existing Agent boundary encodes the declared goal operation.
             # Goal state governs continuation, never interruption of an active turn.
-            await agent.update_goal(action.declared_name, text)
+            await self.write(agent, agent.update_goal(action.declared_name, text))
             if self.owns(agent):
-                await view.goal_observation.refresh()
                 view.prompt.focus()
         except (OSError, ValueError) as error:
             if self.owns(agent):
                 view.flash(str(error), style="error")
+
+    async def write(self, agent, operation):
+        """Every write settles by reading the owner, including rejected writes."""
+        try:
+            try:
+                return await operation
+            finally:
+                if self.owns(agent):
+                    await self.view.goal_observation.refresh()
+        except (OSError, ValueError) as error:
+            if self.owns(agent):
+                raise ValueError(self.view.goal_display.action_failure(error)) from error
+            raise
 
     def poll(self) -> None:
         view = self.view

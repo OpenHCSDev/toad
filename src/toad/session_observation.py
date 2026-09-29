@@ -51,6 +51,14 @@ class SessionObservation(ABC):
             await asyncio.gather(self.task, return_exceptions=True)
         self.task = None
 
+    def receive(self, agent, result):
+        """An owner fact supersedes an older in-flight read of that source."""
+        view = self.view
+        if view is None or not view.is_attached or view.agent is not agent:
+            return
+        self.revision += 1
+        self.publish(view, result)
+
     async def _run(self):
         while (view := self.view) is not None and view.is_attached:
             revision, agent = self.revision, view.agent

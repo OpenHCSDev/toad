@@ -77,6 +77,13 @@ class CommsViewKey:
 
 
 @dataclass(frozen=True)
+class ChannelViewAddress:
+    root: str
+    target: str
+    kind: type
+
+
+@dataclass(frozen=True)
 class SidebarSelection:
     channel: str
     target: str

@@ -626,6 +626,7 @@ class ConversationSessionBinding(containers.Vertical):
         self.column = screen.column
         self.prompt.slash_commands = CommandCatalog(
             self.agent_slash_commands, self.command_target_context()).commands
+        self.query_one(GoalBar).watch_goal_display()
         self.window.anchor()
 
     async def present_retained_native_session(self) -> None:
@@ -962,7 +963,7 @@ class Conversation(ConversationSessionBinding):
                 ),
             )
             yield self.make_throbber()
-            yield GoalBar().data_bind(goal_display=Conversation.goal_display, execution=Conversation.goal_execution)
+            yield GoalBar(self)
             yield Prompt(turns=self.turns).data_bind(
                 project_path=Conversation.project_path,
                 working_directory=Conversation.working_directory,
@@ -2521,7 +2522,7 @@ class ConversationCommsConsumer(MroDispatch):
 
     @handles(GoalChangedUpdate)
     async def goal_changed(self, update: GoalChangedUpdate):
-        self.conversation.goal_observation.invalidate()
+        self.conversation.goal_observation.receive(self.message.agent, (update.goal, update.execution))
 
     @handles(CompactionChangedUpdate)
     async def compaction_changed(self, update: CompactionChangedUpdate):

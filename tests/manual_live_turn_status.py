@@ -9,12 +9,13 @@ import sys
 from pathlib import Path
 
 from toad.app import ToadApp
-from toad.screens.main import MainScreen
 from toad.widgets.conversation import TurnActivity
 from toad.widgets.prompt import Prompt
 from toad.widgets.throbber import Throbber
 from toad.widgets.session_tabs import SessionLabel
 from toad.widgets.session_details import SessionDetails
+from toad.widgets.goal_bar import GoalBar
+from saved_state_user_journey_pilot import click_thread
 
 
 def acp_agent():
@@ -90,21 +91,21 @@ async def select_tab(pilot, app, source):
 
 
 async def main():
-    project = Path("/home/ts/.agent-comms")
+    from agent_comms.comms import wire
+    comms = wire()
     agent = acp_agent()
     owner = os.environ.get("LIVE_STATUS_OWNER", "agent-comms-ux")
     peer = os.environ.get("LIVE_STATUS_PEER", "nra-architecture")
+    project = Path(comms.registry.require(owner).worktree)
     app = ToadApp(agent_data=agent, project_dir=str(project),
                   agent_session_id=owner)
     async with app.run_test(headless=True, size=(140, 36)) as pilot:
         first = app.selected_session
         first_view = await ready(pilot, app, first)
         print("LIVE_FIRST", state(first), flush=True)
-        await app.session_navigation.new(
-            lambda: MainScreen(project, agent=agent,
-                               agent_session_id=peer)
-        )
-        second = app.selected_session
+        peer_tags = comms.registry.require(peer).tags
+        peer_channel = "#" + next(iter(sorted(peer_tags))) if peer_tags else "#any"
+        second = await click_thread(app, pilot, peer, peer_channel)
         await ready(pilot, app, second)
         print("LIVE_SECOND", state(second), flush=True)
         if os.environ.get("LIVE_STATUS_SEND") == "1":
@@ -150,6 +151,18 @@ async def main():
         await pilot.pause(.3)
         print("LIVE_FIRST_RETURN", state(first), flush=True)
         require_current_activity(first)
+        for source in (first, second):
+            await select_tab(pilot, app, source)
+            await ready(pilot, app, source)
+            view = source.conversation
+            await view.goal_observation.refresh()
+            bar = view.query_one(GoalBar)
+            expected = comms.registry.require(view.agent.session_id).goal
+            assert view.goal_display.snapshot == expected
+            assert bar.goal_display is view.goal_display
+            assert bar.display == view.goal_display.visible
+            print("LIVE_GOAL_CURRENT_OWNER", view.agent.session_id,
+                  "absent" if expected is None else expected.text[:50], flush=True)
 
 
 if __name__ == "__main__":
