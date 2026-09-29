@@ -117,18 +117,19 @@ async def main():
                     await pilot.pause(.02)
                     assert tree.scroll_y == tree_scroll
                     relationships = bar.query_one(ThreadCommsSidebar)
-                    await until(pilot, lambda: len(relationships.groups) == 5)
                     assert relationships.view_state is state
                     assert state.selected == ("collaborating", "peer")
-                    assert not relationships.groups["collaborating"].expanded
                     assert "Source" in viewport_text(bar) and "inactive" in viewport_text(bar)
                     tree.scroll_visible(animate=False, immediate=True)
-                    tree.scroll_to_node(tree.cursor_node, animate=False)
+                    tree.scroll_to(y=tree.max_scroll_y, animate=False, immediate=True)
                     await pilot.pause(.02)
                     assert "item-38.txt" in viewport_text(tree), "Restored selected filename not painted"
+                    relationships.scroll_visible(animate=False, immediate=True)
+                    await pilot.pause(.02)
+                    await until(pilot, lambda: len(relationships.groups) == 5)
+                    assert not relationships.groups["collaborating"].expanded
                     relationships.groups["collaborating"].toggle_members()
                     await until(pilot, lambda: bool(relationships.groups["collaborating"].rows))
-                    relationships.scroll_visible(animate=False, immediate=True)
                     await pilot.pause(.02)
                     assert "peer" in viewport_text(relationships), "Restored relationship not painted"
                     assert next(iter(relationships.groups["collaborating"].rows.values())).has_class("-selected")

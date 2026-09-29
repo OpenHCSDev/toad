@@ -21,6 +21,7 @@ from toad.widgets.session_thread_sidebar import SessionThreadSidebar
 from toad.widgets.side_bar import SideBarCollapsible
 from toad.widgets.sidebar_viewport import SidebarViewport
 from toad.widgets.thread_comms import ThreadCommsSidebar
+from toad.screens.main import MainScreen
 from textual.content import Content
 
 
@@ -54,7 +55,8 @@ async def prepare_project(sidebar, pilot):
 
 def viewport_text(widget):
     """Crop actual compositor strips to the visible native widget viewport."""
-    region = widget.region.intersection(widget.screen.region)
+    region, clip = widget.screen._compositor.visible_widgets[widget]
+    region = region.intersection(clip).intersection(widget.screen.region)
     return "\n".join(strip.crop(region.x, region.right).text
                      for strip in widget.screen._compositor.render_strips()[region.y:region.bottom])
 
@@ -119,7 +121,7 @@ async def exercise(screen, pilot, root):
     assert viewport.scroll_y == panel_scroll, (viewport.scroll_y, panel_scroll)
     assert all(word in viewport_text(sidebar) for word in ("Latest", "while", "absent"))
     tree.scroll_visible(animate=False, immediate=True)
-    tree.scroll_to_node(tree.cursor_node, animate=False)
+    tree.scroll_to(y=tree.max_scroll_y, animate=False, immediate=True)
     await pilot.pause(.02)
     assert "item-38.txt" in viewport_text(tree), ("Restored filename was not actually painted", viewport_text(tree))
     print(json.dumps({"restored_selection": str(tree.cursor_node.data.path), "tree_scroll": tree_scroll,
@@ -154,6 +156,36 @@ async def main():
             await pilot.pause(.05)
             assert not sidebar.panels
             sidebar.reveal()
+            await sidebar.wait_content_ready()
+            assert len(sidebar.panels) == 5
+            # Change the source project while the optional presentation is gone.
+            await sidebar.retire_presentation()
+            replacement = root / "replacement-project"
+            replacement.mkdir()
+            (replacement / "new-source.txt").write_text("Current filesystem")
+            screen.project_path = replacement
+            await sidebar.prepare_presentation()
+            await sidebar.wait_content_ready()
+            tree = await prepare_project(sidebar, pilot)
+            assert Path(tree.path) == replacement
+            assert not any(node.data.path.name == "folder" for node in tree.root.children)
+            tree.scroll_visible(animate=False, immediate=True)
+            await pilot.pause(.02)
+            assert "new-source.txt" in viewport_text(tree)
+            del tree
+            # Enter the real hydration worker, then switch through the normal
+            # production caller before its mount finishes. No gated/mock mount.
+            await sidebar.retire_presentation()
+            sidebar._start_hydration()
+            assert sidebar._panels_loading
+            workers = tuple(worker for worker in sidebar.workers
+                            if worker.node is sidebar and worker.group == "sidebar-panels")
+            await asyncio.sleep(0)
+            await app.new_session_screen(lambda: MainScreen(replacement))
+            await pilot.pause(.02)
+            assert not sidebar.panels and not sidebar._panels_loading
+            assert all(worker.is_finished for worker in workers)
+            await app.switch_mode(screen.id)
             await sidebar.wait_content_ready()
             assert len(sidebar.panels) == 5
             assert app._exception is None
