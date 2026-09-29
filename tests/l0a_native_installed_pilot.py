@@ -1,3 +1,4 @@
+from toad.agent_schema import AgentDefinition
 from agent_comms.acp_extension import QueuePromptRequest
 """Installed Toad/ACP/owner/Pi path with a loopback-only model fixture."""
 from toad.navigation_target import NavigationContext
@@ -55,7 +56,9 @@ async def notification_feedback(
 ):
     user = comms.messaging.user_identity(str(project)).name
     await channel_target("#team").open(NavigationContext(app, owner_mode, project, user))
-    channel = app.screen.query_one(CommsChatView)
+    await app.selected_session.wait_content_ready()
+    channel = app.selected_session.query_one(CommsChatView)
+    assert channel.target == '#team' and channel.kind == 'channel'
     entered.clear()
     release.clear()
     hold_next.set()
@@ -280,7 +283,7 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
         try:
             if prepare_state is not None:
                 await prepare_state(comms, project, requests, entered, release, hold_next)
-            app = app_type(agent_data=data, project_dir=str(project), agent_session_id="beta")
+            app = app_type(agent_data=AgentDefinition.decode(data), project_dir=str(project), agent_session_id="beta")
             print("INSTALLED_APP_RUN_TEST_ENTER", flush=True)
             async with app.run_test(headless=headless, size=(160, 44)) as pilot:
                 print("INSTALLED_APP_RUN_TEST_YIELDED", flush=True)
@@ -472,7 +475,9 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
 
                 user = comms.messaging.user_identity(str(project)).name
                 await DirectTarget("beta").open(NavigationContext(app, owner_mode, project, user))
-                dm = app.screen.query_one(CommsChatView)
+                await app.selected_session.wait_content_ready()
+                dm = app.selected_session.query_one(CommsChatView)
+                assert dm.target == 'beta' and dm.kind == 'dm'
                 entered.clear()
                 release.clear()
                 hold_next.set()

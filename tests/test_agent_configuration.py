@@ -1,5 +1,5 @@
 """Typed grouped advertisements, retained state and declaration-owned new cases."""
-from acp.schema import SessionConfigOptionSelect
+from acp.schema import SessionConfigOptionSelect, SetSessionConfigOptionResponse
 from toad.acp.agent_configuration import (AgentConfiguration, ConfigurationSetting,
                                          ModelConfigurationSetting, ThinkingConfigurationSetting)
 
@@ -13,23 +13,23 @@ class Publication:
 def test_configuration_owns_typed_groups_replacement_and_new_case():
     agent = Publication()
     configuration = AgentConfiguration(agent)
-    configuration.receive({'configOptions': [
+    configuration.receive(SetSessionConfigOptionResponse.model_validate({'configOptions': [
         {'id':'native-model','name':'Model','category':'model','type':'select','currentValue':'model-a',
          'options':[{'group':'local','name':'Local','options':[{'value':'model-a','name':'Model A'}]}]},
         {'id':'native-thinking','name':'Thinking','category':'thought_level','type':'select','currentValue':'high',
          'options':[{'value':'off','name':'Off'},{'value':'high','name':'High'}]},
-    ]})
+    ]}, strict=True).config_options)
     model = configuration.setting(ModelConfigurationSetting)
     thinking = configuration.thinking
     assert model.option.id == 'native-model' and model.current == 'model-a'
     assert model.choices[0].name == 'Model A'
     assert thinking.option.id == 'native-thinking' and thinking.current == 'high'
-    configuration.receive({})
+    configuration.receive(None)
     assert configuration.setting(ModelConfigurationSetting) is model
     configuration.publish()
     assert agent.messages[-2].models['model-a'].name == 'Model A'
     assert agent.messages[-1].current_level == 'high'
-    configuration.receive({'configOptions':[]})
+    configuration.receive([])
     assert not configuration.thinking.choices and configuration.thinking.current == ''
     assert agent.messages[-1].current_level == ''  # unavailable never invented off
 
@@ -43,8 +43,8 @@ def test_configuration_owns_typed_groups_replacement_and_new_case():
 
     try:
         extra = AgentConfiguration(agent)
-        extra.receive({'configOptions':[{'id':'budget','name':'Budget','type':'select','currentValue':'bounded',
-                                        'options':[{'value':'bounded','name':'Bounded'}]}]})
+        extra.receive(SetSessionConfigOptionResponse.model_validate({'configOptions':[{'id':'budget','name':'Budget','type':'select','currentValue':'bounded',
+                                        'options':[{'value':'bounded','name':'Bounded'}]}]}, strict=True).config_options)
         assert extra.setting(BudgetConfigurationSetting).current == 'bounded'
         assert 'bounded' in agent.messages
     finally:
