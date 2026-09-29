@@ -133,19 +133,19 @@ async def main():
             assert status.display
             standby_execution = owner.execution
             owner.execution = GoalExecution(GoalExecutionState.RUNNABLE, owner.goal.id)
-            await conversation.refresh_goal()
+            await conversation.goal_observation.refresh()
             await pilot.pause()
             assert not status.display, "Goal prose must never infer standby"
             owner.execution = standby_execution
             active_goal = owner.goal
             owner.goal = replace(owner.goal, state=PausedGoal())
-            await conversation.refresh_goal()
+            await conversation.goal_observation.refresh()
             await pilot.pause()
             assert not status.display, (
                 "A previous standby projection cannot override paused goal state"
             )
             owner.goal = active_goal
-            await conversation.refresh_goal()
+            await conversation.goal_observation.refresh()
             await pilot.pause()
             await pilot.click("#goal-edit")
             await pilot.pause()
