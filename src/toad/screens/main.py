@@ -329,9 +329,10 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
               title: str | None = None, root: str | None = None) -> "MainScreen":
         """Create a peer of this native source through its actual declaration."""
         app = self.app
-        peer = MainScreen(project or self.project_path, self._agent, agent_session_id=session_id,
-                          agent_session_title=title).data_bind(column=type(app).column,
-                          column_width=type(app).column_width, scrollbar=type(app).scrollbar)
+        with app._context():
+            peer = MainScreen(project or self.project_path, self._agent, agent_session_id=session_id,
+                              agent_session_title=title).data_bind(column=type(app).column,
+                              column_width=type(app).column_width, scrollbar=type(app).scrollbar)
         peer.initial_coordination_root = root
         return peer
 

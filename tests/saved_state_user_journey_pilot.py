@@ -29,6 +29,8 @@ from toad.widgets.comms_sidebar import ChannelGroup, CommsRow
 from toad.widgets.message_notifications import MessageNotifications
 from toad.widgets.prepared_markdown import PreparedConversationMarkdown
 from toad.widgets.session_tabs import SessionLabel
+from toad.widgets.side_bar import SideBar
+from toad.widgets.thread_comms import ThreadCommsSidebar
 
 
 class SavedStateSubscriber:
@@ -463,6 +465,24 @@ async def fork_and_first_input(app, pilot, comms, first, entered, release, hold_
     assert len(requests) == before + 1, "Opening the fork replayed its first input"
     assert parent_path.read_bytes() == original
     print("FORK_FIRST_OPEN_SAVED_NATIVE_ANSWER_ACTUAL_PAINT_NO_REPLAY", flush=True)
+    right = child_view.query_one("#thread-sidebar", SideBar)
+    right.reveal()
+    await until(pilot, lambda: child_view.query_one_optional(ThreadCommsSidebar) is not None)
+    relationships = child_view.query_one(ThreadCommsSidebar)
+    await until(pilot, lambda: "parent" in relationships.groups
+                and any(row.target_name == "beta"
+                        for row in relationships.groups["parent"].rows.values()))
+    parent_row = next(row for row in relationships.groups["parent"].rows.values()
+                      if row.target_name == "beta")
+    parent_row.scroll_visible(animate=False, immediate=True)
+    await pilot.pause()
+    assert await pilot.click(parent_row), "Right-sidebar Parent row was not physically clickable"
+    await until(pilot, lambda: app.selected_session is first)
+    await until(pilot, lambda: "NATIVE_RESPONSE_2" in conversation_paint(app.screen))
+    assert await click_thread(app, pilot, "journey-child", "#any") is child_view
+    await until(pilot, lambda: f"NATIVE_RESPONSE_{before + 1}" in conversation_paint(app.screen))
+    assert len(requests) == before + 1 and parent_path.read_bytes() == original
+    print("RIGHT_PARENT_ROW_AND_CHANNEL_CHILD_ROW_PHYSICAL_NAVIGATION_NO_REPLAY", flush=True)
     await click_tab(app, pilot, first.id)
 
 
