@@ -17,7 +17,12 @@ async def main():
         app=InstalledApp(project_dir=str(root))
         async with app.run_test(size=(120,40)) as pilot:
             first=app.selected_session
-            page=TranscriptPage(tuple(AssistantTranscript(f"BODY_RECORD_{i}\n\n"+"persistent paragraph "*60) for i in range(4)), TranscriptCursor("saved-body",0), TranscriptCursor("saved-body",4),False,False)
+            repeated = AssistantTranscript("REPEATED_BODY_RECORD\n\n"+"persistent paragraph "*60)
+            page=TranscriptPage((
+                AssistantTranscript("BODY_RECORD_0\n\n"+"persistent paragraph "*60),
+                repeated, repeated,
+                AssistantTranscript("BODY_RECORD_3\n\n"+"persistent paragraph "*60),
+            ), TranscriptCursor("saved-body",0), TranscriptCursor("saved-body",4),False,False)
             async def publish():
                 view=app.selected_session.conversation
                 await view.contents.mount(TranscriptHistory(page))
@@ -26,11 +31,19 @@ async def main():
                 return view
             view=await publish()
             original=tuple(view.query(TranscriptFragmentView))
+            assert len(original) == 4 and original[1].fragment == original[2].fragment
+            assert original[1].identity != original[2].identity
             assert "BODY_RECORD_3" in conversation_paint(app.screen)
             await app.session_navigation.new(app.session_navigation.default_source)
             await app.select_session(first.id)
             view=await publish()
-            assert any(node is old for node in view.query(TranscriptFragmentView) for old in original)
+            returned=tuple(view.query(TranscriptFragmentView))
+            assert len(returned) == len(original)
+            assert returned[1] is original[1] and returned[2] is original[2], (
+                "Identical saved events must reclaim their own positioned bodies",
+                view.window.document_viewport.reuse_hits,
+            )
+            assert any(node is old for node in returned for old in original)
             if "BODY_RECORD_3" not in conversation_paint(app.screen):
                 before=conversation_paint(app.screen)
                 view.contents.parent.refresh(layout=True)
