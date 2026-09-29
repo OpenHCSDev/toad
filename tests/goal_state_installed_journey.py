@@ -99,6 +99,8 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     await until(pilot, lambda: "goal-child" in comms.registry.all_threads())
     child = comms.registry.require("goal-child")
     assert child.tags == comms.registry.require("beta").tags
+    from psutil import Process
+    assert "AGENT_COMMS_STARTUP_INPUT_KEY" not in Process(child.pid).environ()
     child_screen = await click_thread(app, pilot, "goal-child")
     assert not child.executing
     assert len(requests) == 2, "A fork without a task admitted a native input"

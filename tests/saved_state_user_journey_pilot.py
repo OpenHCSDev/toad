@@ -116,6 +116,16 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     assert len(requests) == 2, "Channel/tab navigation replayed an input"
     print("SAVED_CHANNEL_AGENT_RETURN_NO_REPLAY", flush=True)
     gamma = await unopened_participant(app, pilot, comms, channel, entered, release, hold_next, requests)
+    sidebar = await wait_channel_roster(app, pilot, "#team")
+    row = next(row for row in sidebar.query(CommsRow) if row.target_name == "#team")
+    row.scroll_visible(animate=False, immediate=True)
+    await pilot.pause()
+    assert await pilot.click(row)
+    await until(pilot, lambda: app.selected_session is channel)
+    assert sum(isinstance(app.workspace_sessions.require(entry.mode), CommsScreen)
+               for entry in app.session_navigation.members) == 1
+    print("SAME_CHANNEL_FROM_SECOND_AGENT_REUSES_ONE_EXISTING_TAB", flush=True)
+    await click_tab(app, pilot, gamma.id)
     await clicked_reader_editor_return(app, pilot, first)
     await adaptive_reader_journey(app, pilot, requests)
     await fork_and_first_input(app, pilot, comms, first, entered, release, hold_next, requests)

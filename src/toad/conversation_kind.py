@@ -12,6 +12,10 @@ from agent_comms.message_page import MessagePage
 
 class ConversationKind(DeclaredFamily, affix="Conversation"):
     @classmethod
+    def view_identity(cls, key):
+        return key
+
+    @classmethod
     @abstractmethod
     def page(cls, comms: Comms, target: str, **bounds) -> MessagePage: ...
 
@@ -99,6 +103,11 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
 
 
 class ChannelConversation(ConversationKind):
+    @classmethod
+    def view_identity(cls, key):
+        from toad.session_tracker import ChannelViewAddress
+        return ChannelViewAddress(key.root, key.target, cls)
+
     @classmethod
     def page(cls, comms: Comms, target: str, **bounds) -> MessagePage:
         return comms.views.channel_display_page(target, **bounds)
