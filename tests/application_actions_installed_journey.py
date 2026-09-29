@@ -8,7 +8,8 @@ import shlex
 import sys
 from tempfile import TemporaryDirectory
 
-from runtime_fixture import ToadApp
+from toad.app import ToadApp
+from runtime_fixture import stop_test_children
 from sidebar_retirement_pilot import until, viewport_text
 from toad.application_actions import ApplicationAction, PaletteAction
 from toad.preferences import UiSettings
@@ -145,4 +146,11 @@ async def main():
         assert [r['prompt'] for r in rows if 'prompt' in r]==['Q8_FIRST_REPLY','Q8_REOPEN_REPLY'],rows
 
 
-if __name__=='__main__':asyncio.run(main())
+async def run():
+    try:
+        await main()
+    finally:
+        await stop_test_children(os.environ.get('TOAD_TEST_ATTEMPT'))
+
+
+if __name__=='__main__':asyncio.run(run())
