@@ -1,6 +1,7 @@
 """A read-only project file in the ordinary, closeable session tab bar."""
 
 from pathlib import Path
+from typing import cast
 
 from textual.app import ComposeResult
 from textual.binding import Binding
@@ -20,15 +21,15 @@ class FilePreviewScreen(SessionView, can_focus=False):
     ]
 
     def __init__(self, path: Path) -> None:
-        super().__init__()
-        self.path = path
+        super().__init__(name=path.name)
+        self.project_path = path.parent
 
     def compose(self) -> ComposeResult:
         with Vertical(id="file-preview-content"):
             with Horizontal(id="tab-navigation-header"):
                 yield TabHistoryControls()
                 yield SessionsTabs()
-            yield file_preview(self.path)
+            yield file_preview(self.project_path / cast(str, self.name))
         yield Footer(compact=True)
 
     async def action_back(self) -> None:

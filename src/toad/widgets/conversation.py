@@ -2807,6 +2807,7 @@ class Conversation(containers.Vertical):
             self.agent_info = agent.get_info()
             self.agent_ready = agent.ready
             self.turns.owner = agent.current_turn
+            self.busy_count = int(self.turns.owner.busy)
             if self.agent_ready:
                 self.call_later(self.refresh_goal)
                 self.call_later(self.refresh_input_dispositions)

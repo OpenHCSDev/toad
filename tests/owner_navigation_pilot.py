@@ -59,10 +59,10 @@ async def main() -> None:
         assert (app.screen.owner_mode, app.screen.me) == (second, "owner-b")
         await app.screen.action_back_to_agent()
         assert app.current_mode == second
-        app.navigate_tab_history(-1)
+        app.tab_order.navigate(-1)
         await pilot.pause()
         assert app.current_mode == view_b
-        app.navigate_tab_history(+1)
+        app.tab_order.navigate(+1)
         await pilot.pause()
         assert app.current_mode == second
         duplicate = await app.open_comms_session(

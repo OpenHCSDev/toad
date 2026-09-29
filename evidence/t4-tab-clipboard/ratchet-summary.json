@@ -1,0 +1,24 @@
+{
+  "base_revision": "b4bdae1657a819dd943ed1fbd5a2b684c2683019",
+  "head_revision": "e25179065c530251df6bddffd50f4a86c2dd0107",
+  "paths": [
+    "src/toad/app.py",
+    "src/toad/clipboard.py",
+    "src/toad/clipboard_image.py",
+    "src/toad/screens/file_preview.py",
+    "src/toad/tab_order.py",
+    "src/toad/widgets/prompt.py",
+    "src/toad/widgets/side_bar.py"
+  ],
+  "positive_deltas": {},
+  "changed_existing_metrics": {
+    "ClassSize:src/toad/app.py::ToadApp": -91,
+    "ClassSize:src/toad/widgets/prompt.py::PromptTextArea": -5
+  },
+  "new_owner_baselines": [
+    "ClassSize:src/toad/clipboard.py::Clipboard",
+    "ClassSize:src/toad/clipboard.py::SystemClipboard",
+    "ClassSize:src/toad/clipboard.py::TerminalClipboard",
+    "ClassSize:src/toad/tab_order.py::TabOrder"
+  ]
+}

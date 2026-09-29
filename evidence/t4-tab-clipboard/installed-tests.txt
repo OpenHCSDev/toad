@@ -1,0 +1,7 @@
+....                                                                     [100%]
+4 passed in 10.25s
+
+tab history: Back/Forward, branches, closed tabs, drafts, and horizontal scroll passed
+tab order: interleaved channel/thread opening order survives all selections and closure
+
+The two UI pilots passed in the preceding 5-pass/1-fail batch; its failing clipboard exit-reap assertion was corrected and reran as the 4-pass batch above. No full-suite or aborted-run pass claim.

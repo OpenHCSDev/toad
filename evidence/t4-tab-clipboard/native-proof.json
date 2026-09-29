@@ -1,0 +1,34 @@
+{
+  "proof": [
+    {
+      "initial_transport": "system",
+      "transport": "system",
+      "length": 79200,
+      "physical_input": true,
+      "prompt_paste": true,
+      "terminal_sequences": 0
+    },
+    {
+      "initial_transport": "terminal",
+      "transport": "terminal",
+      "length": 79200,
+      "physical_input": true,
+      "prompt_paste": true,
+      "terminal_sequences": 1
+    },
+    {
+      "initial_transport": "system",
+      "transport": "terminal",
+      "length": 79200,
+      "physical_input": true,
+      "prompt_paste": true,
+      "terminal_sequences": 1
+    },
+    {
+      "native_png_capture": true,
+      "bytes": 68
+    }
+  ],
+  "boundary": "installed Toad/LinuxDriver + private X11/xclip + PTY",
+  "mocks": false
+}

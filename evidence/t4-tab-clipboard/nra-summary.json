@@ -1,0 +1,100 @@
+{
+  "boundary": "package + merged core context, Python3.14; direct semantic edits, no codemod execution proof",
+  "normal_json_report": true,
+  "exit_code": 0,
+  "reported_scan_status": null,
+  "timing": {
+    "parse_seconds": 1.957,
+    "analysis_seconds": 9.701,
+    "planning_seconds": 0.0,
+    "source_index_seconds": 0.911,
+    "analysis_cache_status": "partial",
+    "total_seconds": 12.569
+  },
+  "reported_source_files": 412,
+  "supporting_raw_findings": 31,
+  "detectors": {
+    "semantic_mirror_without_descent": 26,
+    "repeated_property_alias_hooks": 4,
+    "numeric_literal_dispatch": 1
+  },
+  "R1_raw_records": {
+    "mapping_read": [],
+    "unmodeled_record_shape": [],
+    "redundant_type_check": []
+  },
+  "findings_in_changed_paths": [],
+  "owner_observations": [
+    {
+      "file_path": "/home/ts/wt/toad-t4-tab-clipboard-sol-20260928/src/toad/clipboard.py",
+      "owner_symbol": "SystemClipboard.native_copy",
+      "nominal_witness": "SystemClipboard",
+      "line": 44,
+      "observation_kind": "field",
+      "execution_level": "init_body",
+      "observed_name": "native_copy",
+      "fiber_key": "native_copy"
+    },
+    {
+      "file_path": "/home/ts/wt/toad-t4-tab-clipboard-sol-20260928/src/toad/clipboard.py",
+      "owner_symbol": "SystemClipboard.native_paste",
+      "nominal_witness": "SystemClipboard",
+      "line": 45,
+      "observation_kind": "field",
+      "execution_level": "init_body",
+      "observed_name": "native_paste",
+      "fiber_key": "native_paste"
+    },
+    {
+      "file_path": "/home/ts/wt/toad-t4-tab-clipboard-sol-20260928/src/toad/tab_order.py",
+      "owner_symbol": "TabOrder._open",
+      "nominal_witness": "TabOrder",
+      "line": 13,
+      "observation_kind": "field",
+      "execution_level": "init_body",
+      "observed_name": "_open",
+      "fiber_key": "_open"
+    },
+    {
+      "file_path": "/home/ts/wt/toad-t4-tab-clipboard-sol-20260928/src/toad/tab_order.py",
+      "owner_symbol": "TabOrder._visits",
+      "nominal_witness": "TabOrder",
+      "line": 14,
+      "observation_kind": "field",
+      "execution_level": "init_body",
+      "observed_name": "_visits",
+      "fiber_key": "_visits"
+    },
+    {
+      "file_path": "/home/ts/wt/toad-t4-tab-clipboard-sol-20260928/src/toad/tab_order.py",
+      "owner_symbol": "TabOrder._cursor",
+      "nominal_witness": "TabOrder",
+      "line": 15,
+      "observation_kind": "field",
+      "execution_level": "init_body",
+      "observed_name": "_cursor",
+      "fiber_key": "_cursor"
+    },
+    {
+      "file_path": "/home/ts/wt/toad-t4-tab-clipboard-sol-20260928/src/toad/tab_order.py",
+      "owner_symbol": "TabOrder._focus",
+      "nominal_witness": "TabOrder",
+      "line": 16,
+      "observation_kind": "field",
+      "execution_level": "init_body",
+      "observed_name": "_focus",
+      "fiber_key": "_focus"
+    },
+    {
+      "file_path": "/home/ts/wt/toad-t4-tab-clipboard-sol-20260928/src/toad/tab_order.py",
+      "owner_symbol": "TabOrder.changed",
+      "nominal_witness": "TabOrder",
+      "line": 17,
+      "observation_kind": "field",
+      "execution_level": "init_body",
+      "observed_name": "changed",
+      "fiber_key": "changed"
+    }
+  ],
+  "limitation": "NRA reports existing findings elsewhere, not a clean-package or runtime-equivalence claim. This JSON format does not supply analyzed/omitted detector counts."
+}
