@@ -12,7 +12,7 @@ class InstalledApp(ToadApp):
 
 
 async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):
-    view = app.screen.conversation
+    view = app.selected_session.conversation
     release.set()
     hold_next.clear()
     await until(pilot, lambda: view.agent_ready)

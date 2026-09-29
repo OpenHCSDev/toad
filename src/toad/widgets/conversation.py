@@ -2634,6 +2634,12 @@ class CompactionRenderer(MroDispatch):
             messages.SessionUpdate(state="busy", summary="Compacting context")
         )
 
+    @handles(comms_events.CompactionSummaryProgress)
+    async def selected_summary_progress(self, event):
+        view = self.conversation
+        view.activity = "Compacting context… selected model is summarizing"
+        view.post_message(messages.SessionUpdate(state="busy", summary=view.activity))
+
     @handles(comms_events.CompactionProgress)
     async def progress(self, event):
         view = self.conversation

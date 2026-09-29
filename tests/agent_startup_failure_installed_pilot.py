@@ -34,8 +34,8 @@ async def case(root, kind):
     app = InstalledApp(agent_data=data, project_dir=str(root))
     with patch.object(Agent, 'acp_initialize', error if kind == 'error' else original):
         async with app.run_test(size=(139, 25)) as pilot:
-            await app.screen.wait_content_ready()
-            view = app.screen.query_one(Conversation)
+            await app.selected_session.wait_content_ready()
+            view = app.selected_session.query_one(Conversation)
             await until(pilot, lambda: view.agent is not None)
             agent = view.agent
             await until(pilot, agent.session_ready_event.is_set)
