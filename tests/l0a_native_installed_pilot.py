@@ -268,6 +268,7 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
         )
         for key in ("PI_PROMPT", "PI_PARENT_ID", "PI_AGENT_ID"):
             os.environ.pop(key, None)
+        comms.owners.pin_private_nk_launch(comms.root, root_id, package)
         data = {
             "name": "Native fixture",
             "identity": "native-fixture",
