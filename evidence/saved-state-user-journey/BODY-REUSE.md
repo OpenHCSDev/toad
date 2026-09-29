@@ -36,3 +36,36 @@ Owned isolated candidate/source/install artifacts will live below this
 persistent worktree .artifacts/body-native-acceptance; generated runtime scratch
 under /home/ts/.cache/agent-scratch/dalton-saved-state-journey. Existing installed
 parent/live slots remain untouched. Clean owned artifacts after receipts copy.
+
+## Installed Tesla475d candidate: actual retained-layout failures
+
+Own isolated wheel install from exact Tesla475d448f, production imported from
+.artifacts/body-native-acceptance/venv site-packages; coreb1c0bde6/Textual1738
+reused readonly installed dependency slot; native d396. Install receipt and
+body-candidate-installed.json retained. No parent/live package changes.
+
+continuous-rendered-body-475d-candidate.log: real startup/channel/participant
+pass, return to Beta later has no scroll range for20s. Body identity/adaptive
+assertions remain unexecuted, no green claim.
+continuous-rendered-body-475d-geometry.log: same candidate fails even earlier,
+first saved Beta return after channel cannot paint NATIVE_RESPONSE_2.
+continuous-rendered-body-475d-source-diagnostic.log captures concrete layout:
+Beta reader y3,height33,bottom36; virtualheight50; scroll17=max17. Last ready
+Markdown body is at y36,height3, entirely below the cropped reader despite
+maximum scroll. Saved prompt bodies are present/ready and native answer had
+painted before channel navigation. Exact body-return-geometry.json, reader.txt,
+fullSVG retained. Retained extent/reflow defect is an inference; measured tail
+clipping is verified. Sole product owner Tesla notified directly. No test
+weakening, source workaround or false body/adaptive PASS.
+
+ReaderCheckpoint now owns shared failed-reader capture at both real return
+entrypoints; same continuous case, not an optional matrix. Latest canonical
+ratchet: chain0->0/foreign absence0->0. Current actual cold baseline proof and
+475d candidate failures are distinct receipts. Need corrected Tesla checkpoint
+for full current-source/body/adaptive/native acceptance; no further unchanged
+475d reruns. All test-only source changes published promptly in same163.
+
+Parent clarified literal /open is absent and physical UI opening is intended;
+merged159 already covers held real first-answer physical opening. No invented
+slash-command dependency remains. Parent NEXT startup concern also resolved;
+no investigation/retest of that completed checkpoint.

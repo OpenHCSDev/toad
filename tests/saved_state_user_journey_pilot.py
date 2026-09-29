@@ -107,7 +107,11 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     await until(pilot, lambda: "SAVED_CHANNEL_MESSAGE" in screen_paint(app))
     print("CHANNEL_BAR_CLICK_COMMS_SCREEN_SAVED_HISTORY_PAINT", flush=True)
     await click_tab(app, pilot, first.id)
-    await until(pilot, lambda: "NATIVE_RESPONSE_2" in conversation_paint(app.screen))
+    try:
+        await until(pilot, lambda: "NATIVE_RESPONSE_2" in conversation_paint(app.screen))
+    except TimeoutError:
+        ReaderCheckpoint.record_failed_reader(first, app)
+        raise
     assert len(requests) == 2, "Channel/tab navigation replayed an input"
     print("SAVED_CHANNEL_AGENT_RETURN_NO_REPLAY", flush=True)
     await unopened_participant(app, pilot, comms, channel, entered, release, hold_next, requests)
@@ -197,11 +201,37 @@ class ReaderCheckpoint:
     painted: str
     rendered_bodies: tuple[ReferenceType[MarkdownBlock], ...]
 
+    @staticmethod
+    def record_failed_reader(source, app):
+        view = source.conversation
+        evidence = Path(os.environ["L0A_EVIDENCE"])
+        diagnostic = {
+            "source": source.id,
+            "native_session": view.agent.session_id,
+            "reader_region": str(view.window.region),
+            "reader_virtual_size": str(view.window.virtual_size),
+            "scroll_y": view.window.scroll_y,
+            "max_scroll_y": view.window.max_scroll_y,
+            "markdown": [{
+                "region": str(body.region), "virtual_size": str(body.virtual_size),
+                "display": body.display, "ready": body.body_ready,
+                "children": len(body.children), "parent": type(body.parent).__name__,
+            } for body in view.query(PreparedConversationMarkdown)],
+        }
+        (evidence / "body-return-geometry.json").write_text(json.dumps(diagnostic, indent=2))
+        (evidence / "body-return-reader.txt").write_text(conversation_paint(app.screen))
+        (evidence / "body-return.svg").write_text(app.export_screenshot())
+        print("BODY_RETURN_GEOMETRY_FAILURE", diagnostic, flush=True)
+
     @classmethod
     async def capture(cls, source, app, pilot):
         view = source.conversation
         await settled(pilot, view)
-        await until(pilot, lambda: view.window.max_scroll_y > 0)
+        try:
+            await until(pilot, lambda: view.window.max_scroll_y > 0)
+        except TimeoutError:
+            cls.record_failed_reader(source, app)
+            raise
         view.window.release_anchor()
         view.window.scroll_to(y=min(5, view.window.max_scroll_y - 1),
                               animate=False, immediate=True)
