@@ -13,7 +13,7 @@ import shutil
 from pathlib import Path
 
 from agent_comms.field_codec import FieldCodec
-from toad.mcp_declarations import Inventory
+from toad import mcp_declarations
 
 
 MAX_INVENTORY_BYTES = 128_000
@@ -24,7 +24,7 @@ class UnsupportedInventory(ValueError):
     """The CLI output violates the current package-owned inventory contract."""
 
 
-def parse_inventory(data: bytes, expected_root: Path) -> Inventory:
+def parse_inventory(data: bytes, expected_root: Path) -> mcp_declarations.Inventory:
     """Decode the exact package record once; trust declared fields thereafter."""
     if len(data) > MAX_INVENTORY_BYTES:
         raise UnsupportedInventory("Oversized inventory")
@@ -38,7 +38,10 @@ def parse_inventory(data: bytes, expected_root: Path) -> Inventory:
         return value
 
     try:
-        inventory = FieldCodec.decode(Inventory, json.loads(data.decode("utf-8"), object_pairs_hook=unique_pairs))
+        inventory = FieldCodec.decode(
+            mcp_declarations.Inventory,
+            json.loads(data.decode("utf-8"), object_pairs_hook=unique_pairs),
+        )
         if inventory.project_root != str(expected_root.resolve(strict=True)):
             raise UnsupportedInventory("Project root mismatch")
         return inventory
@@ -60,7 +63,7 @@ def installed_mcp_command() -> tuple[str, str]:
     return str(Path(node).resolve(strict=True)), str(cli)
 
 
-async def read_inventory(project_root: Path) -> Inventory | None:
+async def read_inventory(project_root: Path) -> mcp_declarations.Inventory | None:
     """Read the pinned package's static inventory without starting servers."""
     try:
         node, cli = await asyncio.to_thread(installed_mcp_command)
@@ -111,7 +114,7 @@ async def read_inventory(project_root: Path) -> Inventory | None:
             await process.wait()
 
 
-def render_inventory(inventory: Inventory | None) -> str:
+def render_inventory(inventory: mcp_declarations.Inventory | None) -> str:
     """Display only typed, redacted package fields; no authority inference."""
     if inventory is None:
         return (

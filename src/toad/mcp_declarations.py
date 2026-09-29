@@ -11,12 +11,7 @@ from typing import Literal
 from agent_comms.declared_family import DeclaredFamily
 
 
-class InventoryTerm:
-    def __str__(self) -> str:
-        return self.declared_name
-
-
-class InventoryScope(InventoryTerm, DeclaredFamily, affix="Scope"):
+class InventoryScope(DeclaredFamily, affix="Scope"):
     @classmethod
     @abstractmethod
     def rows(cls, inventory: Inventory) -> tuple[Declaration, ...]: ...
@@ -42,8 +37,10 @@ class ProjectScope(InventoryScope):
         return True
 
 
-class CallPolicy(InventoryTerm, DeclaredFamily, affix="Policy"):
-    available = True
+class CallPolicy(DeclaredFamily, affix="Policy"):
+    @classmethod
+    def allows_calls(cls) -> bool:
+        return True
 
 
 class AllowPolicy(CallPolicy):
@@ -55,13 +52,15 @@ class AskPolicy(CallPolicy):
 
 
 class UnavailablePolicy(CallPolicy):
-    available = False
-
-
-class DeclarationStatus(InventoryTerm, DeclaredFamily, affix="Status"):
     @classmethod
-    def validate(cls, row: Declaration) -> None:
-        if not row.effective or row.call_policy.available:
+    def allows_calls(cls) -> bool:
+        return False
+
+
+class DeclarationStatus(DeclaredFamily, affix="Status"):
+    @classmethod
+    def validate(cls, effective: bool, enabled: bool, policy: type[CallPolicy]) -> None:
+        if not effective or policy.allows_calls():
             raise ValueError("Inconsistent declaration state")
 
     @classmethod
@@ -71,10 +70,10 @@ class DeclarationStatus(InventoryTerm, DeclaredFamily, affix="Status"):
 
 class ApprovedStatus(DeclarationStatus):
     @classmethod
-    def validate(cls, row: Declaration) -> None:
-        if not row.effective or not row.enabled:
+    def validate(cls, effective: bool, enabled: bool, policy: type[CallPolicy]) -> None:
+        if not effective or not enabled:
             raise ValueError("Approved declaration must be enabled and effective")
-        if not row.call_policy.available:
+        if not policy.allows_calls():
             raise ValueError("Approved declaration needs a call policy")
 
     @classmethod
@@ -100,8 +99,8 @@ class UnsupportedEnvStatus(DeclarationStatus):
 
 class ShadowedStatus(DeclarationStatus):
     @classmethod
-    def validate(cls, row: Declaration) -> None:
-        if row.effective or row.call_policy.available:
+    def validate(cls, effective: bool, enabled: bool, policy: type[CallPolicy]) -> None:
+        if effective or policy.allows_calls():
             raise ValueError("Shadowed declaration cannot be effective or authorize calls")
 
 
@@ -145,7 +144,7 @@ class Declaration:
             raise ValueError("Invalid declaration identifier")
         if not re.fullmatch(r"[a-f0-9]{64}", self.digest):
             raise ValueError("Invalid declaration digest")
-        self.status.validate(self)
+        self.status.validate(self.effective, self.enabled, self.call_policy)
 
     @property
     def option_id(self) -> str:
@@ -154,7 +153,8 @@ class Declaration:
     def render(self) -> tuple[str, ...]:
         disposition = 'effective' if self.effective else 'shadowed'
         return (
-            f"  {self.id} · {self.status.declared_name} · calls {self.call_policy.declared_name} · {disposition}",
+            f"  {self.id} · {self.status.declared_name} · calls {self.call_policy.declared_name}"
+            f" · {disposition}",
             f"    SHA-256: {self.digest}",
             self.transport.render(),
         )

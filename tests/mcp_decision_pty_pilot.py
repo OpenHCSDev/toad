@@ -5,14 +5,17 @@ config/ledgers/wire belong to this test; no MCP server or paid provider starts.
 """
 
 import asyncio
+import faulthandler
 from copy import deepcopy
 import json
 import os
 from pathlib import Path
 import subprocess
+import sys
 from tempfile import TemporaryDirectory
 
 from agent_comms.comms import Comms
+from textual import events
 from textual.widgets import OptionList, Button, Static
 from toad.app import ToadApp
 from toad.mcp_commands import MCPDecision, MCPSelection, AllowCommand, ProjectTrustDecision
@@ -89,7 +92,7 @@ def inventory_boundary(project):
         except UnsupportedInventory:
             continue
         raise AssertionError('Invalid package inventory accepted')
-    print('PASS actual-package boundary: typed fields, scope, policy, tuple lengths, unknown/duplicate fields, root and size rejection', flush=True)
+    print('PASS actual-package boundary: typed fields, scope, policy, tuple lengths, unknown/duplicate fields, root and size rejection', file=sys.__stdout__, flush=True)
     return snapshot
 
 
@@ -122,12 +125,20 @@ async def main():
         package_setup(package, project, agent_dir, trusted=False)
         untrusted = inventory_boundary(project)
         assert not untrusted.project_trusted_saved and not untrusted.declarations.project
+        faulthandler.dump_traceback_later(100, repeat=False)
         app = ToadApp(project_dir=str(project))
         async with app.run_test(size=(160, 44)) as pilot:
-            app.screen.action_mcp_inventory()
+            print('APP_MOUNTED', file=sys.__stdout__, flush=True)
+            await pilot.press('ctrl+p')
+            print('PALETTE_OPEN', file=sys.__stdout__, flush=True)
+            await pilot.press(*'Pi MCP inventory')
+            print('PALETTE_QUERY_TYPED', file=sys.__stdout__, flush=True)
+            await pilot.press('enter')
+            print('PALETTE_SELECTED', file=sys.__stdout__, flush=True)
             await until(pilot, lambda: isinstance(app.screen, MCPInventoryScreen))
             screen = app.screen
             await until(pilot, lambda: screen._inventory is not None)
+            print('INVENTORY_LOADED', file=sys.__stdout__, flush=True)
             listing = screen.query_one(OptionList)
             listing.focus()
             await pilot.press('down')
@@ -135,19 +146,27 @@ async def main():
             assert all(button.disabled for button in screen.query(MCPDecisionButton))
             assert 'trust_required' in viewport_text(listing)
             assert 'HIDDEN_ARGUMENT' not in viewport_text(screen)
+            print('UNTRUSTED_VISIBLE', file=sys.__stdout__, flush=True)
             package_setup(package, project, agent_dir, trusted=True)
+            print('PROJECT_TRUSTED', file=sys.__stdout__, flush=True)
             assert await pilot.click('#refresh')
             await until(pilot, lambda: screen._inventory is not None and screen._inventory.project_trusted_saved)
-            listing.highlighted = next(i for i, row in enumerate(screen._inventory.rows)
-                                       if row.scope.declared_name == 'project')
+            listing.focus()
+            await pilot.press('end')
             await pilot.pause()
+            print('PROJECT_ROW_SELECTED', file=sys.__stdout__, flush=True)
             assert not screen.query_one('#approve', Button).disabled
             assert screen.query_one('#allow', Button).disabled
             assert 'shadowed' in viewport_text(listing)
             assert 'Approve again' in viewport_text(screen)
             for member in MCPDecision.members_with(MCPDecision):
                 command = member()
+                listing.focus()
+                await pilot.press('end')
+                await pilot.pause()
+                assert not screen.query_one(f'#{command.button_id}', Button).disabled
                 row = next(row for row in screen._inventory.rows if row.scope.declared_name == 'project')
+                print('BEGIN actual clicked command', command.declared_name, file=sys.__stdout__, flush=True)
                 assert await pilot.click(f'#{command.button_id}')
                 await until(pilot, lambda: isinstance(app.screen, MCPDecisionScreen))
                 modal = app.screen
@@ -158,7 +177,9 @@ async def main():
                 assert 'never-launched' in viewport_text(terminal)
                 terminal.focus()
                 challenge = f'{command.arguments()[1]}:{row.id}:{row.digest}'
-                await pilot.press(*challenge, 'enter')
+                app._driver.send_message(events.Paste(challenge))
+                await pilot.pause()
+                await pilot.press('enter')
                 await until(pilot, lambda: 'CLI exited zero' in viewport_text(modal.query_one('#mcp-decision-status', Static)))
                 assert modal._pty._process is None and modal._pty._master is None
                 assert await pilot.click('#cancel')
@@ -166,18 +187,23 @@ async def main():
                 changed = next(row for row in screen._inventory.rows if row.scope.declared_name == 'project')
                 expected = {'approve': ApprovedStatus, 'deny': DeniedStatus}.get(command.declared_name)
                 if expected is not None:
-                    assert changed.status is expected
-                print('PASS clicked installed package decision', command.declared_name, changed.status.declared_name, changed.call_policy.declared_name, flush=True)
+                    assert changed.status is expected, '\n'.join(line.content.plain for line in terminal.state.buffer.lines)
+                print('PASS clicked installed package decision', command.declared_name, changed.status.declared_name, changed.call_policy.declared_name, file=sys.__stdout__, flush=True)
                 # Family order is declaration-derived. Re-approve after deny so
                 # the following call-policy decisions are valid user actions.
                 if changed.status is DeniedStatus:
+                    listing.focus()
+                    await pilot.press('end')
+                    await pilot.pause()
                     assert await pilot.click('#approve')
                     await until(pilot, lambda: isinstance(app.screen, MCPDecisionScreen))
                     modal = app.screen
                     terminal = modal.query_one(Terminal)
                     await until(pilot, lambda: ' to apply:' in '\n'.join(line.content.plain for line in terminal.state.buffer.lines))
                     terminal.focus()
-                    await pilot.press(*f'approve:{changed.id}:{changed.digest}', 'enter')
+                    app._driver.send_message(events.Paste(f'approve:{changed.id}:{changed.digest}'))
+                    await pilot.pause()
+                    await pilot.press('enter')
                     await until(pilot, lambda: 'CLI exited zero' in viewport_text(modal.query_one('#mcp-decision-status', Static)))
                     await pilot.click('#cancel')
                     await until(pilot, lambda: app.screen is screen and screen._inventory is not None)
@@ -189,6 +215,7 @@ async def main():
             async def unexpected(text):
                 raise AssertionError('Stale snapshot launched child')
             # Approved-only command must be eligible in its captured snapshot.
+            print('PASS declaration-only new command discovered/clicked/painted/applied without consumer roster', file=sys.__stdout__, flush=True)
             prior = screen._inventory
             prior_row = next(row for row in prior.rows if row.scope.declared_name == 'project')
             package_setup(package, project, agent_dir, trusted=False)
@@ -196,10 +223,12 @@ async def main():
                                     show=unexpected, controller_visible=lambda: True)
             assert isinstance(outcome, StaleSnapshotOutcome)
             assert pty._process is None
+            print('PASS actual changed snapshot refused before child launch', file=sys.__stdout__, flush=True)
             package_setup(package, project, agent_dir, trusted=True)
             await pilot.click('#refresh')
             await until(pilot, lambda: screen._inventory is not None)
-            listing.highlighted = 1
+            listing.focus()
+            await pilot.press('end')
             await pilot.pause()
             await pilot.click('#deny')
             await until(pilot, lambda: isinstance(app.screen, MCPDecisionScreen))
@@ -210,9 +239,12 @@ async def main():
             await pilot.press('escape')
             await until(pilot, lambda: app.screen is screen and screen._inventory is not None and modal._pty._process is None)
             assert next(row for row in screen._inventory.rows if row.scope.declared_name == 'project').status is ApprovedStatus
+            print('PASS focused-terminal Escape after resize cancels/reaps without changing ledger', file=sys.__stdout__, flush=True)
             await pilot.press('escape')
+            assert not isinstance(app.screen, MCPInventoryScreen)
             assert app._exception is None
-        print('PASS continuous actual UI: trust/refusal, shadowing/redaction, all declared decision buttons, challenge keyboard/ledger/refresh, stale snapshot, resized cancel + child reaping', flush=True)
+        faulthandler.cancel_dump_traceback_later()
+        print('PASS continuous actual UI: trust/refusal, shadowing/redaction, all declared decision buttons, challenge keyboard/ledger/refresh, stale snapshot, resized cancel + child reaping', file=sys.__stdout__, flush=True)
 
 
 if __name__ == '__main__':

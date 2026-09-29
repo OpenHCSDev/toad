@@ -6,6 +6,7 @@ import asyncio
 
 from textual import containers, events, on
 from textual.app import ComposeResult
+from textual.binding import Binding
 from textual.screen import ModalScreen
 from textual.widgets import Button, Static
 
@@ -24,7 +25,7 @@ class MCPDecisionScreen(ModalScreen[None]):
     MCPDecisionScreen #mcp-decision-terminal { height: 1fr; border: round $accent; }
     MCPDecisionScreen #mcp-decision-controls { height: auto; }
     """
-    BINDINGS = [("escape", "close_decision", "Cancel local action")]
+    BINDINGS = [Binding("escape", "close_decision", "Cancel local action", priority=True)]
 
     def __init__(
         self,

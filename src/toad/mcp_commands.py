@@ -16,7 +16,6 @@ class MCPSelection:
     inventory: Inventory
     row: Declaration
 
-    @property
     def eligible(self) -> bool:
         return self.row.effective and self.row.enabled and self.inventory.project_trusted_saved
 
@@ -40,7 +39,7 @@ class MCPDecision(Command, DeclaredFamily, affix="Command"):
         return self.declared_name
 
     def available(self, selection: MCPSelection) -> bool:
-        if os.name != 'posix' or not selection.eligible:
+        if os.name != 'posix' or not selection.eligible():
             return False
         return selection.row in selection.inventory.rows and self.permits(selection.row)
 
