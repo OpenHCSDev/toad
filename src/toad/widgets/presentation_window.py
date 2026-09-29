@@ -120,12 +120,16 @@ class DirectionalPreparation:
     presentation budget bounds how much of that prediction can be admitted.
     """
 
-    def __init__(self, budget: PresentationBudget):
-        self.budget = budget
+    def __init__(self, viewport):
+        self.viewport = viewport
         self.position = 0.0
         self.sampled_at = monotonic()
         self.render_seconds = 0.0
         self.demand: PreparationDemand = StationaryPreparation()
+
+    @property
+    def budget(self) -> PresentationBudget:
+        return self.viewport.budget
 
     def observe(self, position: float) -> bool:
         now = monotonic()

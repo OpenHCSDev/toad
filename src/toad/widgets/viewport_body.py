@@ -164,7 +164,7 @@ class DocumentViewport:
 
     def __init__(self, window, *, budget: PresentationBudget = PresentationBudget()):
         self.budget = budget
-        self.lookahead = DirectionalPreparation(self.budget)
+        self.lookahead = DirectionalPreparation(self)
         self._settle_timer = None
         self._window = ref(window)
         self.owners = WeakSet()
