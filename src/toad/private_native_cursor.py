@@ -13,10 +13,12 @@ LABELS = {
     "proven": "Bus history: prior messages included in model input",
     "coverage_only": "Bus history: checked; no model input yet",
     "none": "Bus history: no verified input for this session yet",
-    "unavailable": "Bus history: verification unavailable",
+    "unavailable": "Bus input verification unavailable — check the ACP log; saved history is separate",
 }
 TOOLTIP = (
     "Last successful check of bus history for this agent session. A verified input "
     "can be a short relevance check, not a full reply. This does not confirm "
-    "receipt or completion of your latest message."
+    "receipt or completion of your latest message. Saved transcript availability "
+    "is reported separately. If verification is unavailable, check the ACP log; "
+    "do not resend input solely because proof is missing."
 )

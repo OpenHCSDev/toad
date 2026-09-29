@@ -778,6 +778,7 @@ class Conversation(containers.Vertical):
             self.prompt.prompt_text_area.post_message(event)
 
     def compose(self) -> ComposeResult:
+        from toad.widgets.transcript_history import TranscriptHistory
         with Window():
             with ContentsGrid():
                 with CursorContainer(id="cursor-container"):
@@ -793,6 +794,7 @@ class Conversation(containers.Vertical):
             )
             yield SessionDetails(
                 self._read_thread_activity,
+                read_history=lambda: self.query_one_optional(TranscriptHistory),
                 history=NativeHistory().data_bind(
                     status=Conversation.native_history_status
                 ),
@@ -1826,14 +1828,12 @@ class Conversation(containers.Vertical):
             )
         ]
         self.new_block()
-        if blocks:
-            # The first replay frame is a latest view, not a remembered scroll
-            # position. Anchor before mounting so a large transcript never
-            # paints at the top and then walks down after it becomes visible.
-            if window.scroll_revision == scroll_revision:
-                window.anchor()
-            with self.app.batch_update():
-                await self.contents.mount(*blocks)
+        # Anchor the first replay frame before mounting the saved page.
+        if window.scroll_revision == scroll_revision:
+            window.anchor()
+        with self.app.batch_update():
+            await self.contents.mount(*blocks)
+        self.query_one(SessionDetails)._refresh_summary()
         self.call_after_refresh(self._record_displayed_transcript, message.page.after)
 
     def _record_displayed_transcript(self, cursor) -> None:
@@ -3341,4 +3341,3 @@ class CompactionRenderer(MroDispatch):
         await view.post(
             AgentResponse(f"## {title}\n\n{detail}", category=OtherCategory)
         )
-
