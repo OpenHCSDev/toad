@@ -1,0 +1,90 @@
+{
+  "running": true,
+  "exit": false,
+  "dirty": true,
+  "width": 137,
+  "editor_value": "137",
+  "bound_value": 137,
+  "focus": "NoneType",
+  "screen": "SettingsScreen",
+  "path": "/home/ts/wt/toad-quit-save-sol-20260929/.artifacts/quit-recheck/tmp/quit-save-2myk6nbj/config/toad/toad.json",
+  "path_directory": true,
+  "save_path": "/home/ts/wt/toad-quit-save-sol-20260929/.artifacts/quit-recheck/tmp/quit-save-2myk6nbj/config/toad/toad.json",
+  "exception": "None",
+  "notification_calls": [],
+  "save_locked": false,
+  "quit_callbacks": [
+    {
+      "accepted": true,
+      "callback": "ApplicationLifetime.save_and_exit"
+    }
+  ],
+  "queue_size": 0,
+  "save_trace": [
+    {
+      "function": "quit",
+      "event": "call"
+    },
+    {
+      "function": "quit",
+      "event": "return"
+    },
+    {
+      "function": "save_and_exit",
+      "event": "call"
+    },
+    {
+      "function": "save_before_exit",
+      "event": "call"
+    },
+    {
+      "function": "save",
+      "event": "call"
+    },
+    {
+      "function": "save",
+      "event": "return"
+    },
+    {
+      "function": "save_before_exit",
+      "event": "return"
+    },
+    {
+      "function": "save_and_exit",
+      "event": "return"
+    },
+    {
+      "function": "save_sync",
+      "event": "call"
+    },
+    {
+      "function": "save_sync",
+      "event": "return"
+    },
+    {
+      "function": "save_and_exit",
+      "event": "call"
+    },
+    {
+      "function": "save_before_exit",
+      "event": "call"
+    },
+    {
+      "function": "save",
+      "event": "call"
+    },
+    {
+      "function": "save",
+      "event": "return"
+    },
+    {
+      "function": "save_before_exit",
+      "event": "return"
+    },
+    {
+      "function": "save_and_exit",
+      "event": "return"
+    }
+  ],
+  "notifications": []
+}
