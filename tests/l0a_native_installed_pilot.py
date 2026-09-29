@@ -362,6 +362,18 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
                 assert view.prompt.text == "unsent local draft"
                 await until(pilot, lambda: response_painted(app, view, "NATIVE_RESPONSE_2"))
                 print("ACTUAL_LIVE_AND_SAVED_RESPONSE_PAINT_CONFIRMED", flush=True)
+                # Real native source read, evidence-backed live-to-saved publication.
+                from toad.widgets.transcript_history import TranscriptHistory
+                await until(pilot, lambda: view.turns.managed_id is None)
+                await until(pilot, lambda: all(history.checkpoint_available for history in view.contents.query(TranscriptHistory)))
+                view.window.anchor()
+                view.transcript.require_checkpoint()
+                await until(pilot, lambda: not view.transcript.dirty)
+                await until(pilot, lambda: response_painted(app, view, "NATIVE_RESPONSE_2"))
+                assert view.contents.query(TranscriptHistory)
+                assert not any(isinstance(child, AgentResponse) for child in view.contents.children)
+                assert view.transcript.displayed_cursor is not None
+                print("ACTUAL_NATIVE_CHECKPOINT_SOURCE_AND_PAINT_CONFIRMED", flush=True)
                 print("NATIVE_QUEUE_DONE", len(requests), flush=True)
                 print("QUEUE_PROJECTION", view.queue_projection, flush=True)
                 print(

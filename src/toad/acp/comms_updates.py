@@ -197,10 +197,9 @@ class CommsUpdateConsumer(MroDispatch):
 
     @handles(TranscriptSnapshotUpdate)
     def transcript_snapshot(self, update: TranscriptSnapshotUpdate) -> None:
-        if not self.agent._reconnecting:
-            self.agent.post_message(
-                messages.CommsUpdated(update, self.agent, self.session_id)
-            )
+        self.agent.post_message(
+            messages.CommsUpdated(update, self.agent, self.session_id)
+        )
 
     @handles(InputDeliveryChangedUpdate)
     def input_delivery_changed(self, update: InputDeliveryChangedUpdate) -> None:

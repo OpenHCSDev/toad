@@ -44,7 +44,7 @@ async def main():
             await pilot.pause()
             assert 'Bus input verification unavailable' in details.title
             assert 'Saved history not loaded' in details.title
-            await view.on_transcript_snapshot(TranscriptSnapshotUpdate(page))
+            await view.transcript.snapshot(page)
             await pilot.pause()
             source = view.query_one(TranscriptHistory)
             await pilot.pause(1)
