@@ -1,3 +1,4 @@
+from toad.acp.agent_session import AgentSession
 from toad.acp.session_updates import SessionNotificationOwner
 from toad.acp.client_session import ClientRequestOwner
 from toad.acp.client_files import FileClientRequestOwner
@@ -35,8 +36,8 @@ from textual.message import Message
 from textual.message_pump import MessagePump
 
 import toad
-from toad import constants, jsonrpc, paths
-from toad.acp import api, messages, protocol
+from toad import jsonrpc, paths
+from toad.acp import messages
 from toad.acp.api import API
 from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
 from toad.acp.comms_updates import CommsUpdateConsumer
@@ -44,17 +45,6 @@ from toad.acp.projection_attachment import ProjectionAttachment
 from toad.acp.queue_attachment import QueueAttachment
 from toad.agent import AgentBase, UnsupportedResumeAgentFail, AgentReady
 from toad.agent_schema import Agent as AgentData
-from toad.db import DB, SessionMeta
-
-PROTOCOL_VERSION = 1
-
-
-class Mode(NamedTuple):
-    """An agent mode."""
-
-    id: str
-    name: str
-    description: str | None
 
 
 class Model(NamedTuple):
@@ -123,20 +113,8 @@ class Agent(AgentBase):
         self.server.expose_instance(self)
         for owner in ClientRequestOwner.members_with(ClientRequestOwner):
             self.server.expose_instance(owner.resolve(self))
-        self._reconnecting = False
-        self._connected_ok = False
-        self._pending_session_name: str | None = None
-        self.session_ready_event = asyncio.Event()
+        self.session = AgentSession(self, session_pk)
         self.done_event = asyncio.Event()
-        self.agent_capabilities: protocol.AgentCapabilities = {
-            "loadSession": False,
-            "promptCapabilities": {
-                "audio": False,
-                "embeddedContent": False,
-                "image": False,
-            },
-        }
-        self.session_pk: int | None = session_pk
         self._active_turn_id: str | None = None
         self._turn_lifecycle_sequence = 0
         self._private_cursor = ProjectionAttachment()
@@ -161,7 +139,7 @@ class Agent(AgentBase):
     @property
     def supports_load_session(self) -> bool:
         """Does the agent support loading sessions?"""
-        return self.agent_capabilities.get("loadSession", False)
+        return self.session.supports_load
 
     def __rich_repr__(self) -> rich.repr.Result:
         yield self.project_root_path
@@ -245,213 +223,15 @@ class Agent(AgentBase):
         """Gracefully stop the process."""
         self.process.close()
         await self.controller.terminals.close()
-        if self.session_pk is not None:
-            db = DB()
-            await db.session_update_last_used(self.session_pk)
+        await self.session.touch()
 
         await self.process.stop()
 
-
-    async def run(self) -> None:
-        """The main logic of the Agent."""
-        if constants.ACP_INITIALIZE:
-            self._connected_ok = False
-            try:
-                await self.acp_initialize()
-                if self.session_id is None:
-                    await self.acp_new_session()
-                else:
-                    if not self.agent_capabilities.get("loadSession", False):
-                        self.post_message(
-                            UnsupportedResumeAgentFail(
-                                "Resume not supported",
-                                f"{self._agent_data['name']} does not currently support resuming sessions.",
-                            )
-                        )
-                        self.session_ready_event.set()
-                        return
-                    await self.acp_load_session()
-                    if self.session_pk is not None:
-                        db = DB()
-                        await db.session_update_last_used(self.session_pk)
-                self._connected_ok = True
-            except jsonrpc.APIError as error:
-                self.process.session_failed(ACPFailure.from_error(error.code, error.message, error.data))
-                return
-        self.session_ready_event.set()
-        self.post_message(AgentReady(reconnected=self._reconnecting))
 
     async def send_prompt(self, prompt: str, *, request: PromptRequest | None = None):
         """AgentBase submission contract, executed by operational custody."""
         return await self.controller.submit(prompt, request=request)
 
-    async def reconnect_after_auth(self) -> None:
-        await self.reconnect()
-
-    async def reconnect(self) -> None:
-        """Reattach the existing view after login or an explicit owner start."""
-        if self.session_id is not None and not self.supports_load_session:
-            raise ValueError("This agent cannot resume its session.")
-        from .maintenance_ingress import configured_root, preflight
-
-        requested_env = os.environ.copy()
-        requested_cwd = str(self.project_root_path.resolve())
-        requested_root = configured_root(requested_env, requested_cwd)
-        try:
-            await asyncio.to_thread(
-                preflight,
-                (self.coordination.wire_root if self.coordination else None),
-                ingress_root=requested_root,
-                cwd=requested_cwd,
-            )
-        except Exception as error:
-            raise ValueError(
-                f"Reconnect not attempted: maintenance admission denied: {error}"
-            ) from error
-        target = self.controller.surface.target
-        await self.stop()
-        self._reconnecting = True
-        self.session_ready_event.clear()
-        try:
-            await self.start(target)
-            await asyncio.wait_for(self.session_ready_event.wait(), timeout=30)
-            if not self._connected_ok:
-                raise ValueError("The agent could not reconnect.")
-        finally:
-            self._reconnecting = False
-
-    async def authenticate(self, method_id: str) -> None:
-        with self.request():
-            response = api.authenticate(method_id)
-        await response.wait()
-        await self.acp_initialize()
-
-    async def acp_initialize(self):
-        """Initialize agent."""
-        with self.request():
-            initialize_response = api.initialize(
-                PROTOCOL_VERSION,
-                {
-                    "fs": {
-                        "readTextFile": True,
-                        "writeTextFile": True,
-                    },
-                    "terminal": True,
-                    "auth": {"terminal": os.name != "nt"},
-                },
-                {
-                    "name": toad.NAME,
-                    "title": toad.TITLE,
-                    "version": toad.get_version(),
-                },
-            )
-
-        response = await initialize_response.wait()
-        assert response is not None
-
-        # Store agents capabilities
-        if agent_capabilities := response.get("agentCapabilities"):
-            self.agent_capabilities = agent_capabilities
-        self.presentation.auth_methods = response.get("authMethods") or []
-
-    async def acp_new_session(self) -> None:
-        """Create a new session."""
-        cursor_token = self._private_cursor.begin(None)
-        queue_token = self.queue_attachment.begin(None)
-        self._post_private_cursor()
-        self._post_queue_view()
-        with self.request():
-            session_new_response = api.session_new(
-                str(self.project_root_path),
-                [],
-            )
-        response = await session_new_response.wait()
-        if not self._private_cursor.is_current_request(cursor_token):
-            return
-        assert response is not None
-        self.session_id = response["sessionId"]
-        self._receive_comms_response(response, cursor_token, queue_token)
-
-        if self.supports_load_session:
-            db = DB()
-            session_name = (
-                self._pending_session_name
-                if self._pending_session_name is not None
-                else (self.coordination.title if self.coordination else "New Session")
-            )
-            session_pk = await db.session_new(
-                session_name,
-                self._agent_data["name"],
-                self._agent_data["identity"],
-                self.session_id,
-                protocol="acp",
-                meta=SessionMeta(
-                    cwd=self.project_root_path, agent_data=self._agent_data
-                ),
-            )
-            if not self._private_cursor.is_current_request(cursor_token):
-                return
-            self.session_pk = session_pk
-            if self.session_pk is not None and self._pending_session_name is not None:
-                await db.session_update_title(
-                    self.session_pk, self._pending_session_name
-                )
-
-        if not self._private_cursor.is_current_request(cursor_token):
-            return
-        if (modes := response.get("modes", None)) is not None:
-            current_mode = modes["currentModeId"]
-            available_modes = modes["availableModes"]
-            modes_update = {
-                mode["id"]: Mode(
-                    mode["id"], mode["name"], mode.get("description", None)
-                )
-                for mode in available_modes
-            }
-            self.controller.publish_modes(current_mode, modes_update)
-        self.configuration.receive(response)
-
-    async def acp_load_session(self) -> None:
-        assert self.session_id is not None, "Session id must be set"
-        request_session_id = self.session_id
-        cursor_token = self._private_cursor.begin(request_session_id)
-        queue_token = self.queue_attachment.begin(request_session_id)
-        self._post_private_cursor()
-        self._post_queue_view()
-        cwd = str(self.project_root_path)
-        if self.session_pk is not None:
-            db = DB()
-            session = await db.session_get(self.session_pk)
-            if not self._private_cursor.is_current_request(cursor_token):
-                return
-            if session is not None:
-                if session_cwd := session.meta_json.cwd:
-                    cwd = str(session_cwd)
-                if agent_data := session.meta_json.agent_data:
-                    self._agent_data = agent_data
-
-        with self.request():
-            session_load_response = api.session_load(cwd, [], request_session_id)
-        response = await session_load_response.wait()
-        if (
-            not self._private_cursor.is_current_request(cursor_token)
-            or self.session_id != request_session_id
-        ):
-            return
-        assert response is not None
-        self._receive_comms_response(response, cursor_token, queue_token)
-
-        if (modes := response.get("modes", None)) is not None:
-            current_mode = modes["currentModeId"]
-            available_modes = modes["availableModes"]
-            modes_update = {
-                mode["id"]: Mode(
-                    mode["id"], mode["name"], mode.get("description", None)
-                )
-                for mode in available_modes
-            }
-            self.controller.publish_modes(current_mode, modes_update)
-        self.configuration.receive(response)
 
     @property
     def session_id(self):
@@ -463,7 +243,7 @@ class Agent(AgentBase):
 
     @property
     def ready(self):
-        return self._connected_ok and self.session_ready_event.is_set()
+        return self.session.ready
 
     @property
     def current_turn(self):
@@ -525,43 +305,9 @@ class Agent(AgentBase):
         self.queue_attachment.invalidate()
         self._post_queue_view()
 
-    def _rename_coordination_thread(self, display_name: str) -> None:
-        if not self.process.accepts_session(self.session_id):
-            return
-        thread = self.coordination.thread.name if self.coordination else None
-        wire_root = self.coordination.wire_root if self.coordination else None
-        if thread is None or wire_root is None:
-            return
-
-        from agent_comms.comms import wire
-
-        result = wire(wire_root).threads.rename_managed_thread(
-            thread,
-            display_name,
-            owner_pid=self.coordination.owner_pid,
-        )
-        self.coordination = replace(
-            self.coordination,
-            thread=replace(self.coordination.thread, name=result.current),
-            title=display_name,
-        )
-        self.post_message(
-            messages.CommsUpdated(self.coordination, self, self.session_id)
-        )
-
-    async def acp_session_set_mode(self, mode_id: str) -> str | None:
-        """Update the current mode with the agent."""
-        with self.request():
-            response = api.session_set_mode(self.session_id, mode_id)
-        try:
-            await response.wait()
-        except jsonrpc.APIError as error:
-            return ACPFailure.from_error(error.code, error.message, error.data).feedback
-        else:
-            return None
 
     async def set_mode(self, mode_id: str) -> str | None:
-        return await self.acp_session_set_mode(mode_id)
+        return await self.session.set_mode(mode_id)
 
     async def set_model(self, model_id: str) -> str | None:
         return await self.configuration.setting(ModelConfigurationSetting).select(self, model_id)
@@ -705,16 +451,10 @@ class Agent(AgentBase):
             else None
         )
 
-    async def set_session_name(self, name: str) -> None:
-        self._pending_session_name = name
-        self._rename_coordination_thread(name)
-        if (self.coordination.thread.name if self.coordination else None) is not None:
-            self._pending_session_name = None
-        if self.session_pk is None:
-            return
-        db = DB()
-        await db.session_update_title(self.session_pk, name)
 
     async def cancel(self) -> bool:
         """AgentBase cancellation contract."""
         return await self.controller.cancel_prompt()
+
+    async def set_session_name(self, name: str) -> None:
+        await self.session.set_name(name)

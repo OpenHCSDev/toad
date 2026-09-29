@@ -36,7 +36,7 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
                 sources.append(source)
                 await until(pilot, lambda: source.conversation.agent is not None)
                 agents.append(source.conversation.agent)
-                await until(pilot, agents[-1].session_ready_event.is_set)
+                await until(pilot, agents[-1].session.settled.is_set)
             agent = agents[-1]
             for index in range(2):
                 prompt = f"CACHE_{name.upper()}_{index}\n\n" + "\n\n".join(

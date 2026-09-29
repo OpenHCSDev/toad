@@ -7,6 +7,7 @@ from l0a_native_installed_pilot import main, until, response_painted
 from runtime_fixture import ToadApp
 from toad.screens.permissions import PermissionReview
 from toad.widgets.terminal_tool import TerminalTool
+from toad.db import DB
 from toad.navigation_target import channel_target, NavigationContext
 
 class InstalledApp(ToadApp):
@@ -22,6 +23,9 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     await pilot.press('enter')
     await until(pilot, lambda: response_painted(app, view, 'NATIVE_RESPONSE_1'))
     await until(pilot, lambda: not comms.registry.require('beta').executing)
+    await agent.session.reconnect()
+    assert agent.session.ready
+    await until(pilot, lambda: response_painted(app, view, 'NATIVE_RESPONSE_1'))
     call_id = 100
     async def rpc(method, **params):
         nonlocal call_id
@@ -104,8 +108,12 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
         toolCall={**tool, 'toolCallId': 'replaced-permission'}))
     await until(pilot, lambda: isinstance(app.screen, PermissionReview))
     original_session = agent.session_id
-    await agent.acp_new_session()
+    await agent.session.new()
     assert agent.session_id != original_session
+    durable_pk = agent.session.pk
+    assert durable_pk is not None and agent.session.ready
+    await agent.set_session_name(agent.session_id)
+    assert (await DB().session_get(durable_pk)).title == agent.session_id
     assert (await replacing)['outcome'] == {'outcome': 'cancelled'}
     stopped = asyncio.create_task(rpc('session/request_permission',
         options=[{'optionId': 'allow', 'name': 'Allow once', 'kind': 'allow_once'}],
@@ -116,7 +124,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     assert not agent.permissions.pending and not agent.controller.terminals.executions
     assert len(requests) == 1
     Path(os.environ['L0A_EVIDENCE'], 'client-session.svg').write_text(app.export_screenshot())
-    print('PASS actual native reply/physical grant+retained reject/session replacement+stop/shared tool merge/files/terminal/source return/draft undo; one loopback request', flush=True)
+    print('PASS actual native startup/durable title/reconnect+saved paint/new-session+reply/physical grant+retained reject/session replacement+stop/shared tool merge/files/terminal/source return/draft undo; one loopback request', flush=True)
 
 if __name__ == '__main__':
     asyncio.run(main(app_type=InstalledApp, acceptance=acceptance))

@@ -96,9 +96,9 @@ async def main():
 
                 async def load():
                     with patch(
-                        "toad.acp.agent.api.session_load", return_value=Response()
+                        "toad.acp.agent_session.api.session_load", return_value=Response()
                     ):
-                        await consumer.acp_load_session()
+                        await consumer.session.load()
                     await pilot.pause()
 
                 async def enqueue(text):

@@ -40,7 +40,8 @@ from agent_comms.acp_extension import QueueProjection, PendingQueueProjection
 from toad.widgets.selection import SelectionOptionList
 
 if TYPE_CHECKING:
-    from toad.acp.agent import Mode, Model
+    from toad.acp.agent import Model
+    from toad.acp.agent_session import Mode
 
 
 class ModeSwitcher(SelectionOptionList):

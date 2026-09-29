@@ -163,11 +163,7 @@ class CommsUpdateConsumer(MroDispatch):
         agent.post_message(
             messages.CommsUpdated(agent.coordination, agent, self.session_id)
         )
-        title = agent._pending_session_name or update.title
-        agent.post_message(messages.SessionInfoUpdate(title))
-        if agent._pending_session_name is not None:
-            agent._rename_coordination_thread(agent._pending_session_name)
-            agent._pending_session_name = None
+        agent.session.coordinated_title(update.title)
 
     @handles(GoalChangedUpdate)
     def goal_changed(self, update: GoalChangedUpdate) -> None:

@@ -1,3 +1,4 @@
+from toad.acp.agent_session import AgentSession
 """Real installed Toad rendering of terminal ACP startup outcomes, no providers."""
 import asyncio
 from importlib.resources import files
@@ -26,19 +27,19 @@ async def case(root, kind):
     code = "import sys;sys.stdin.readline()"
     data = {'name': 'Startup proof', 'identity': 'startup-proof', 'short_name': 'proof',
             'protocol': 'acp', 'run_command': {'*': shlex.join((sys.executable, '-c', code))}}
-    original = Agent.acp_initialize
+    original = AgentSession.initialize
 
     async def error(self):
         raise RuntimeError('SOURCE_INITIALIZATION_FAILURE')
 
     app = InstalledApp(agent_data=data, project_dir=str(root))
-    with patch.object(Agent, 'acp_initialize', error if kind == 'error' else original):
+    with patch.object(AgentSession, 'initialize', error if kind == 'error' else original):
         async with app.run_test(size=(139, 25)) as pilot:
             await app.selected_session.wait_content_ready()
             view = app.selected_session.query_one(Conversation)
             await until(pilot, lambda: view.agent is not None)
             agent = view.agent
-            await until(pilot, agent.session_ready_event.is_set)
+            await until(pilot, agent.session.settled.is_set)
             await until(pilot, lambda: view._agent_fail and not view.query(ThreadLoading))
             expected = ('SOURCE_INITIALIZATION_FAILURE' if kind == 'error'
                         else 'ACP process closed')

@@ -35,7 +35,7 @@ async def main():
                     raise jsonrpc.JSONRPCError("Send boundary rejected")
 
             with patch.object(agent, "request", return_value=nullcontext()), patch(
-                "toad.acp.agent.api.session_prompt", return_value=FailedRequest()
+                "toad.acp.agent_controller.api.session_prompt", return_value=FailedRequest()
             ):
                 await view.submissions.send_now().wait()
             assert view.sending_queued_prompt == ""

@@ -69,15 +69,15 @@ async def check_title(title: str | None) -> None:
             assert isinstance(screen, MainScreen)
             mode = app.selected_mode
             agent = Agent(root, agent_data, None)
-            agent.agent_capabilities["loadSession"] = True
+            agent.session.capabilities["loadSession"] = True
             screen.conversation.agent = agent
             agent.attach_surface(screen.conversation)
             with (
                 patch.object(agent, "request", return_value=nullcontext()),
-                patch("toad.acp.agent.api.session_new", return_value=Response(payload)),
+                patch("toad.acp.agent_session.api.session_new", return_value=Response(payload)),
                 patch.object(DB, "session_new", new=record_creation),
             ):
-                await agent.acp_new_session()
+                await agent.session.new()
             await pilot.pause()
             assert created_titles == [expected], (
                 "saved title at creation",
@@ -90,23 +90,23 @@ async def check_title(title: str | None) -> None:
                 expected
                 in screen.query_one(f"SessionLabel#{mode}", SessionLabel).render().plain
             )
-            assert agent.session_pk is not None
-            assert (await DB().session_get(agent.session_pk)).title == expected
+            assert agent.session.pk is not None
+            assert (await DB().session_get(agent.session.pk)).title == expected
             assert comms.registry.require(thread).title == title, (
                 "Presenting a title must not rename the thread"
             )
             loaded = await app.session_navigation.new(lambda: MainScreen(root))
             screen = app.screen
-            resumed = Agent(root, agent_data, thread, agent.session_pk)
+            resumed = Agent(root, agent_data, thread, agent.session.pk)
             screen.conversation.agent = resumed
             resumed.attach_surface(screen.conversation)
             with (
                 patch.object(resumed, "request", return_value=nullcontext()),
                 patch(
-                    "toad.acp.agent.api.session_load", return_value=Response(payload)
+                    "toad.acp.agent_session.api.session_load", return_value=Response(payload)
                 ),
             ):
-                await resumed.acp_load_session()
+                await resumed.session.load()
             await pilot.pause()
             assert app.selected_mode == loaded.mode_name
             assert app.session_tracker.get_session(loaded.mode_name).title == expected
@@ -116,7 +116,7 @@ async def check_title(title: str | None) -> None:
                 .render()
                 .plain
             )
-            assert (await DB().session_get(agent.session_pk)).title == expected
+            assert (await DB().session_get(agent.session.pk)).title == expected
             app.session_tracker.update_session(
                 loaded.mode_name, title="My explicit label"
             )
@@ -135,19 +135,19 @@ async def check_title(title: str | None) -> None:
             )
             assert app._exception is None
         agent = Agent(root, agent_data, None)
-        agent.agent_capabilities["loadSession"] = True
-        agent._pending_session_name = "My pending title"
+        agent.session.capabilities["loadSession"] = True
+        agent.session.pending_name = "My pending title"
         saved = AsyncMock(return_value=7)
         updates = Mock()
         with (
             patch.object(agent, "request", return_value=nullcontext()),
-            patch("toad.acp.agent.api.session_new", return_value=Response(payload)),
+            patch("toad.acp.agent_session.api.session_new", return_value=Response(payload)),
             patch.object(DB, "session_new", new=saved),
             patch.object(DB, "session_update_title", new=AsyncMock()),
             patch.object(agent, "_rename_coordination_thread"),
             patch.object(agent, "post_message", new=updates),
         ):
-            await agent.acp_new_session()
+            await agent.session.new()
         assert saved.call_args.args[0] == "My pending title"
         from toad.acp.messages import SessionInfoUpdate
 

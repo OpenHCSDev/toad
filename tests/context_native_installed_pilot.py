@@ -27,8 +27,8 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     assert measurement.percentage_display in frame, frame
     assert len(requests) == 1
     await until(pilot, lambda: not comms.registry.require('beta').executing)
-    await agent.reconnect()
-    await until(pilot, agent.session_ready_event.is_set)
+    await agent.session.reconnect()
+    await until(pilot, agent.session.settled.is_set)
     await until(pilot, lambda: agent.context_measurement.available and agent.context_measurement.source_label == 'last response')
     assert len(requests) == 1, 'Saved-load measurement requested provider input'
     restored = agent.context_measurement

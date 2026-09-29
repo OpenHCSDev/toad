@@ -36,7 +36,7 @@ async def main():
                     await asyncio.sleep(.05)
             await pilot.pause()
             conversation = app.selected_session.conversation
-            assert conversation.agent._connected_ok, conversation.agent.presentation.log_path.read_text()
+            assert conversation.agent.session.connected, conversation.agent.presentation.log_path.read_text()
             from runtime_fixture import reveal_project_tree
             await reveal_project_tree(app, pilot)
             assert app.screen.project_path == new

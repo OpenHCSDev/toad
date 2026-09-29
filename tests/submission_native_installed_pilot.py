@@ -23,7 +23,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     await pilot.press('enter')
     await until(pilot, lambda: response_painted(app, view, 'NATIVE_RESPONSE_1'))
     await until(pilot, lambda: not comms.registry.require('beta').executing)
-    await agent.reconnect()
+    await agent.session.reconnect()
     await until(pilot, lambda: view.agent_ready and response_painted(app, view, 'NATIVE_RESPONSE_1'))
     entered.clear(); release.clear(); hold_next.set()
     view.prompt.text = 'SUBMISSION_ORDINARY'

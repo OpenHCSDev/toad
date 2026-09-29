@@ -91,23 +91,23 @@ async def main():
                     new_responses = [first, second] if first_kind == "new" else [second]
                     with (
                         patch(
-                            "toad.acp.agent.api.session_new", side_effect=new_responses
+                            "toad.acp.agent_session.api.session_new", side_effect=new_responses
                         ),
                         patch(
-                            "toad.acp.agent.api.session_load", return_value=first
+                            "toad.acp.agent_session.api.session_load", return_value=first
                         ) as load,
                     ):
                         call = (
-                            agent.acp_new_session
+                            agent.session.new
                             if first_kind == "new"
-                            else agent.acp_load_session
+                            else agent.session.load
                         )
                         pending = asyncio.create_task(call())
                         await first.started.wait()
                         if first_kind == "load":
                             assert load.call_args.args[2] == "old-session"
                         if successor == "new":
-                            replacement = asyncio.create_task(agent.acp_new_session())
+                            replacement = asyncio.create_task(agent.session.new())
                             await second.started.wait()
                             second.result.set_result(response("new-session"))
                             await replacement

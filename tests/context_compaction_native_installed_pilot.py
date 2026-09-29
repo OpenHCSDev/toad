@@ -28,8 +28,8 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
         await until(pilot, lambda: response_painted(app, view, f"NATIVE_RESPONSE_{index}"), 30)
         await until(pilot, lambda: not comms.registry.require("beta").executing)
     assert agent.context_measurement.available and agent.context_measurement.used >= 31000
-    await agent.reconnect()
-    await until(pilot, agent.session_ready_event.is_set)
+    await agent.session.reconnect()
+    await until(pilot, agent.session.settled.is_set)
     await until(pilot, lambda: "last response" in paint(app))
     assert len(requests) == 2, "Saved context reopen must not prompt provider"
     original_details = app.session_tracker.get_session(app.selected_mode)
