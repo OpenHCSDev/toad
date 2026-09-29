@@ -44,6 +44,7 @@ class AgentProcess:
         self.disposition = ActiveProcessDisposition()
 
     async def start(self):
+        self.agent.session.starting()
         # Freeze exactly the environment and working directory passed to the
         # child. A relative wire root is relative to the child cwd, not Toad's.
         # Preflight is early denial; the actual spawn takes the core wire lock.
@@ -72,6 +73,7 @@ class AgentProcess:
             self.agent.post_message(LogAgentFail("Failed to start agent", details=str(error), log_path=self.agent.presentation.log_path))
             return
         self.disposition = ActiveProcessDisposition()
+        self.agent.controller.replace_terminal_session()
         self.retirement = None
         self.runner = asyncio.create_task(self.run())
 
@@ -104,7 +106,7 @@ class AgentProcess:
     def accepts_updates(self):
         return self.disposition.accepts_updates
 
-    def accepts_session(self, session_id: str) -> bool:
+    def accepts_session(self, session_id: str | None) -> bool:
         """Only the active process may consume work for its current binding."""
         return self.accepts_updates and self.agent.session_id == session_id
 

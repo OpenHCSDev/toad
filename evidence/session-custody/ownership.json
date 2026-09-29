@@ -72,7 +72,44 @@
         "ProcessDisposition": 5,
         "ActiveProcessDisposition": 6,
         "ClosedProcessDisposition": 2,
-        "AgentProcess": 215
+        "AgentProcess": 217
+      }
+    }
+  },
+  "src/toad/acp/agent_session.py": {
+    "before": {
+      "absence": 0,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {}
+    },
+    "after": {
+      "absence": 0,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {
+        "Mode": 6,
+        "AgentSession": 302
+      }
+    }
+  },
+  "src/toad/acp/client_session.py": {
+    "before": {
+      "absence": 0,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {
+        "ClientSessionRequest": 23,
+        "ClientRequestOwner": 12
+      }
+    },
+    "after": {
+      "absence": 0,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {
+        "ClientSessionRequest": 23,
+        "ClientRequestOwner": 12
       }
     }
   },
@@ -147,6 +184,24 @@
         "SessionInfoUpdate": 4,
         "CommsUpdated": 9,
         "UsageUpdage": 6
+      }
+    }
+  },
+  "src/toad/acp/terminal_owner.py": {
+    "before": {
+      "absence": 0,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {
+        "OperationalTerminalOwner": 76
+      }
+    },
+    "after": {
+      "absence": 0,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {
+        "OperationalTerminalOwner": 77
       }
     }
   },
@@ -273,23 +328,6 @@
         "Submitted": 4,
         "RequestShellMode": 2,
         "CancelShell": 2
-      }
-    }
-  },
-  "src/toad/acp/agent_session.py": {
-    "before": {
-      "absence": 0,
-      "chain": 0,
-      "excess500": 0,
-      "classes": {}
-    },
-    "after": {
-      "absence": 0,
-      "chain": 0,
-      "excess500": 0,
-      "classes": {
-        "Mode": 6,
-        "AgentSession": 297
       }
     }
   }

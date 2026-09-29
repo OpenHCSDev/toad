@@ -46,6 +46,11 @@ class AgentSession:
     def supports_load(self):
         return self.capabilities.get("loadSession", False)
 
+    def starting(self):
+        """Start admission clears readiness before any asynchronous work."""
+        self.connected = False
+        self.settled.clear()
+
     def closed(self):
         self.connected = False
 
