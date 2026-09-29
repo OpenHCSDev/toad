@@ -28,6 +28,13 @@ def test_root_content_mechanisms_are_deleted():
         if isinstance(node, ast.Constant):
             assert node.value not in ("mimeType", "text/x-diff", "oldText", "newText", "content")
     assert not (ROOT / "tests/hidden_diff_warmup_pilot.py").exists()
+    permission = ast.parse((ROOT / "src/toad/widgets/acp_content.py").read_text())
+    assert not any(isinstance(node, ast.Match) for node in ast.walk(permission))
+    assert not any(isinstance(node, ast.Name) and node.id in {"make_diff", "Markdown", "ToolCall"}
+                   for node in ast.walk(permission))
+    assert not any(isinstance(node, ast.Constant) and node.value in {
+        "type", "text", "diff", "oldText", "newText", "path", "content"
+    } for node in ast.walk(permission))
     for relative in ("src/toad/tool_output.py", "src/toad/widgets/tool_content.py"):
         source = (ROOT / relative).read_text()
         assert "__registry__ =" not in source and "Enum" not in source

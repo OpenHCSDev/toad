@@ -37,7 +37,11 @@ class ToolOutputPart(DeclaredFamily, affix="ToolOutputPart"):
     available = True
 
     @abstractmethod
-    def compose(self, view: ToolCall) -> tuple[Widget, ...]: ...
+    def compose(self, view: Widget) -> tuple[Widget, ...]: ...
+
+    def permission_preview(self) -> ToolOutputPart | None:
+        """Permission previews admit only text and file diffs."""
+        return None
 
     @property
     def retained_text(self) -> Content | None:
@@ -63,6 +67,11 @@ class ToolOutputPart(DeclaredFamily, affix="ToolOutputPart"):
 @dataclass(frozen=True)
 class TextToolOutputPart(ToolOutputPart):
     text: str
+
+    def permission_preview(self) -> ToolOutputPart:
+        # Permission questions interpret all text as Markdown, independent of
+        # the streaming output's Read/ANSI/literal heuristics.
+        return MarkdownToolOutputPart(self.text)
 
     @classmethod
     @abstractmethod
@@ -99,7 +108,7 @@ class RetainedTextToolOutputPart(TextToolOutputPart):
     @abstractmethod
     def retained_text(self) -> Content: ...
 
-    def compose(self, view: ToolCall) -> tuple[Widget, ...]:
+    def compose(self, view: Widget) -> tuple[Widget, ...]:
         return (TextContent(self.retained_text),)
 
     def update_widget(self, previous: ToolOutputPart, widget: Widget) -> bool:
@@ -142,7 +151,7 @@ class MarkdownToolOutputPart(SpecificTextToolOutputPart):
             "```" in text or re.search(r"^#{1,6}\s.*$", text, re.MULTILINE) is not None
         )
 
-    def compose(self, view: ToolCall) -> tuple[Widget, ...]:
+    def compose(self, view: Widget) -> tuple[Widget, ...]:
         return (MarkdownContent(self.text),)
 
 
@@ -159,7 +168,7 @@ class ReadToolOutputPart(SpecificTextToolOutputPart):
         assert read_path is not None
         return cls(text, read_path)
 
-    def compose(self, view: ToolCall) -> tuple[Widget, ...]:
+    def compose(self, view: Widget) -> tuple[Widget, ...]:
         return (WorkerStatic.code(self.text, filename=self.path, line_numbers=False,
                                   themed=True, filename_only=True),)
 
@@ -200,7 +209,7 @@ class PatchToolOutputPart(ToolOutputPart):
     source: str
     preparation: PatchPreparation = field(default_factory=PatchPreparation, compare=False)
 
-    def compose(self, view: ToolCall) -> tuple[Widget, ...]:
+    def compose(self, view: Widget) -> tuple[Widget, ...]:
         warmup = self.preparation.warmup
         theme = view.app.current_theme
         if warmup is not None and warmup.theme != (theme.ansi, theme.dark):
@@ -228,7 +237,10 @@ class FileDiffToolOutputPart(ToolOutputPart):
     old_text: str | None
     new_text: str
 
-    def compose(self, view: ToolCall) -> tuple[Widget, ...]:
+    def permission_preview(self) -> ToolOutputPart:
+        return self
+
+    def compose(self, view: Widget) -> tuple[Widget, ...]:
         from toad.widgets.diff_view import make_diff
 
         diff = make_diff(self.path, self.path, self.old_text, self.new_text)
@@ -243,7 +255,7 @@ class UnrenderedToolOutputPart(ToolOutputPart):
 
     source: object
 
-    def compose(self, view: ToolCall) -> tuple[Widget, ...]:
+    def compose(self, view: Widget) -> tuple[Widget, ...]:
         return ()
 
 
@@ -254,11 +266,11 @@ class TerminalToolOutputPart(ToolOutputPart):
     terminal_id: str
     available = False
 
-    def compose(self, view: ToolCall) -> tuple[Widget, ...]:
+    def compose(self, view: Widget) -> tuple[Widget, ...]:
         return ()
 
 
-def decode_content(item: protocol.ToolCallContent, read_path: str | None) -> ToolOutputPart:
+def decode_content(item: protocol.ToolCallContent, read_path: str | None = None) -> ToolOutputPart:
     """One ACP boundary; external schema discriminators end here."""
     match item:
         case {"type": "content", "content": {"type": "text", "text": str(text)}}:

@@ -303,3 +303,16 @@ Actual installed controlled callback flush cancellation/source replacement,
 painted replacement grant and zero async callback errors pass; no additional
 flags/futures or fake mounted screen. Existing145 ToolOutput owns shared ACP
 content renderer integration; exact contract coordination recorded on145.
+
+## Tool output permission caller closure (Noether145, merged146/147)
+
+The prior145 receipt wrongly excluded the caller assigned in146 coordination.
+InlinePermissionPresentation now decodes ACP once at request admission; the
+existing declared output cases own permission admission (all text is Markdown,
+file diff uses existing settings, other content is not shown). ACPToolCallContent
+retains typed parts only and composes via ToolOutputPart.compose(Widget); raw
+match/make_diff and its raw mirror are deleted. No renderer fork or ToolCall
+adapter. Actual installed mixed inline content/diff paint survives removal and
+rebind after raw producer mutation, grant/reject/replacement/stop. Current147
+corec338/Textualc974 wheel, nativepermission replay and shared ratchet receipts
+are under evidence/tool-output. Carver146 lifetime/parent147 crash fix preserved.
