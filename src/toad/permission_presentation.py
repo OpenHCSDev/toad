@@ -35,10 +35,11 @@ class PermissionPresentation(DeclaredFamily, affix="PermissionPresentation"):
         if not request.pending or not request.controller.agent.controller.surface.owns(view):
             return
         view.post_message(messages.SessionUpdate(state="asking"))
-        await self.show(view, request)
+        binding = request.controller.agent.controller.surface
+        await self.show(view, request, binding)
 
     @abstractmethod
-    async def show(self, view, request): ...
+    async def show(self, view, request, binding): ...
 
 
 class DiffPermissionPresentation(PermissionPresentation):
@@ -54,8 +55,8 @@ class DiffPermissionPresentation(PermissionPresentation):
         diffs = [(item.path, item.path, item.old_text, item.new_text) for item in records]
         return cls(title, diffs) if diffs else None
 
-    async def show(self, view, request):
-        screen = PermissionReview(request, view, self.diffs)
+    async def show(self, view, request, binding):
+        screen = PermissionReview(request, view, self.diffs, binding)
         app = view.app
         try:
             app.terminal_attention.require(screen)
@@ -63,10 +64,10 @@ class DiffPermissionPresentation(PermissionPresentation):
                                           title="Permissions request", sound="question")
             request.watch(view, screen.retire)
             result = await app.push_screen_wait(screen, mode=view.screen.id)
-            request.answer(view, result)
+            request.answer(binding, result)
         finally:
             app.terminal_attention.release(screen)
-            if request.controller.agent.controller.surface.owns(view):
+            if request.controller.agent.controller.surface is binding:
                 view.post_message(messages.SessionUpdate(state="busy"))
 
 
@@ -80,11 +81,11 @@ class InlinePermissionPresentation(PermissionPresentation):
         return cls(title, tuple(preview for item in content
                                if (preview := decode_content(item).permission_preview()) is not None))
 
-    async def show(self, view, request):
+    async def show(self, view, request, binding):
         def answer(answer):
-            if not request.controller.agent.controller.surface.owns(view):
+            if request.controller.agent.controller.surface is not binding:
                 return
-            request.answer(view, answer)
+            request.answer(binding, answer)
             if not view.prompt.ask_queue:
                 view.post_message(messages.SessionUpdate(state="busy"))
 

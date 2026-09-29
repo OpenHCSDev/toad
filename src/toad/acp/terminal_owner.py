@@ -2,16 +2,21 @@
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
 
-from .terminal_controller import TerminalController
+from .terminal_controller import TerminalController, TerminalSessionRetired
+from .client_session import ClientRequestOwner
+from toad import jsonrpc
+from toad.acp import protocol
+from toad.terminal_execution import Command
 
 if TYPE_CHECKING:
     from .agent_controller import SurfaceBinding
 
 
-class OperationalTerminalOwner(ABC):
+class OperationalTerminalOwner(ClientRequestOwner, ABC):
     surface: "SurfaceBinding"
 
-    def __init__(self) -> None:
+    def __init__(self, agent) -> None:
+        super().__init__(agent)
         self.terminals = TerminalController()
 
     @abstractmethod
@@ -22,9 +27,64 @@ class OperationalTerminalOwner(ABC):
             self.start_operation(self.terminals.attach(target))
 
     def replace_terminal_session(self):
-        from .terminal_controller import TerminalController
         previous = self.terminals
         self.terminals = TerminalController()
         if previous.executions:
             self.start_operation(previous.close())
 
+
+    @classmethod
+    def resolve(cls, agent):
+        return agent.controller
+
+    @jsonrpc.expose("terminal/create")
+    async def terminal_create(self, sessionId: str, command: str,
+                              _meta: dict | None = None, args: list[str] | None = None,
+                              cwd: str | None = None, env: list[protocol.EnvVariable] | None = None,
+                              outputByteLimit: int | None = None) -> protocol.CreateTerminalResponse:
+        authority = self.session_request(sessionId)
+        terminals = self.terminals
+        terminal_env = {variable["name"]: variable["value"] for variable in env} if env else {}
+        try:
+            terminal_id = await terminals.create(
+                Command(command, args or [], terminal_env, cwd or str(self.agent.project_root_path)),
+                outputByteLimit)
+        except TerminalSessionRetired as error:
+            raise jsonrpc.InvalidParams(str(error)) from error
+        if authority.current and self.terminals is terminals:
+            return {"terminalId": terminal_id}
+        await terminals.retire(terminal_id)
+        authority.require()
+        raise jsonrpc.InvalidParams("ACP terminal owner was replaced during creation")
+
+    @jsonrpc.expose("terminal/kill")
+    def terminal_kill(self, sessionId: str, terminalId: str, _meta: dict | None = None) -> protocol.KillTerminalCommandResponse:
+        self.session_request(sessionId)
+        self.terminals.kill(terminalId)
+        return {}
+
+    @jsonrpc.expose("terminal/output")
+    async def terminal_output(self, sessionId: str, terminalId: str, _meta: dict | None = None) -> protocol.TerminalOutputResponse:
+        self.session_request(sessionId)
+        state = self.terminals.output(terminalId)
+        result = {"output": state.output, "truncated": state.truncated}
+        return_code = state.return_code
+        if return_code is not None:
+            result["exitStatus"] = {"exitCode": return_code}
+        return result
+
+    @jsonrpc.expose("terminal/release")
+    def terminal_release(self, sessionId: str, terminalId: str, _meta: dict | None = None) -> protocol.ReleaseTerminalResponse:
+        self.session_request(sessionId)
+        self.terminals.release(terminalId)
+        return {}
+
+    @jsonrpc.expose("terminal/wait_for_exit")
+    async def terminal_wait_for_exit(self, sessionId: str, terminalId: str, _meta: dict | None = None) -> protocol.WaitForTerminalExitResponse:
+        authority = self.session_request(sessionId)
+        terminals = self.terminals
+        code, signal = await terminals.wait(terminalId)
+        authority.require()
+        if self.terminals is not terminals:
+            raise jsonrpc.InvalidParams("ACP terminal owner was replaced while awaiting exit")
+        return {"exitCode": code, "signal": signal}

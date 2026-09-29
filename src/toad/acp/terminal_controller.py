@@ -1,5 +1,22 @@
 """ACP terminal requests address operational executions, never mounted widgets."""
 from weakref import ref
+from abc import abstractmethod
+from agent_comms.declared_family import DeclaredFamily
+
+class TerminalSessionRetired(RuntimeError):
+    pass
+
+class TerminalControllerState(DeclaredFamily, affix="TerminalControllerState"):
+    @abstractmethod
+    def require_create(self): ...
+
+class OpenTerminalControllerState(TerminalControllerState):
+    def require_create(self):
+        pass
+
+class RetiredTerminalControllerState(TerminalControllerState):
+    def require_create(self):
+        raise TerminalSessionRetired("ACP terminal session is retired")
 
 from toad.terminal_execution import Command, TerminalExecution, ToolState
 from toad.widgets.terminal_tool import TerminalTool
@@ -8,10 +25,13 @@ from toad.widgets.terminal_tool import TerminalTool
 class TerminalController:
     def __init__(self) -> None:
         self.executions: dict[str, TerminalExecution] = {}
+        self.state = OpenTerminalControllerState()
         self._next_id = 0
         self._target = lambda: None
 
     async def create(self, command: Command, output_byte_limit: int | None) -> str:
+        state = self.state
+        state.require_create()
         self._next_id += 1
         terminal_id = f"terminal-{self._next_id}"
         execution = TerminalExecution(command, output_byte_limit)
@@ -20,12 +40,15 @@ class TerminalController:
         width, height = target.get_terminal_dimensions() if target is not None else (80, 24)
         try:
             await execution.start(width, height)
-        except Exception:
+            if self.state is state:
+                await self._present(terminal_id, execution)
+            if self.state is not state:
+                raise TerminalSessionRetired("ACP terminal session retired during creation")
+            return terminal_id
+        except BaseException:
             await execution.close()
-            del self.executions[terminal_id]
+            self.executions.pop(terminal_id, None)
             raise
-        await self._present(terminal_id, execution)
-        return terminal_id
 
     async def _present(self, terminal_id: str, execution: TerminalExecution) -> None:
         target = self._target()
@@ -66,8 +89,14 @@ class TerminalController:
         execution.kill()
         execution.release()
 
+    async def retire(self, terminal_id) -> None:
+        execution = self.executions.pop(terminal_id, None)
+        if execution is not None:
+            await execution.close()
+
     async def close(self) -> None:
+        self.state = RetiredTerminalControllerState()
         self.detach()
-        for execution in self.executions.values():
+        for execution in tuple(self.executions.values()):
             await execution.close()
         self.executions.clear()

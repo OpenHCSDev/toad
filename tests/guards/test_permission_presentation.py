@@ -21,7 +21,7 @@ async def new_case():
         @classmethod
         def admit(cls, kind, title, content):
             return cls(title) if kind=='probe' else None
-        async def show(self, view, request):
+        async def show(self, view, request, binding):
             view.prompt.text=self.title
     selected=PermissionPresentation.from_acp({'kind':'probe','title':'Declaration-owned permission'})
     assert isinstance(selected,ProbePermissionPresentation)
