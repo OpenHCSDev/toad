@@ -41,6 +41,10 @@ class ViewportBody:
     def matches_retained(self, identity) -> bool:
         return False
 
+    @property
+    def retained_key(self):
+        return ref(self)
+
     def park_body(self, shelf: Widget) -> bool:
         return False
 
@@ -201,33 +205,38 @@ class DocumentViewport:
 
     def register(self, owner: ViewportBody) -> None:
         self.owners.add(owner)
-        self._warm[ref(owner)] = None
+        key = ref(owner)
+        self._warm[key] = key
         self.request()
 
     def discard(self, owner: ViewportBody) -> None:
         self.owners.discard(owner)
         self._warm.pop(ref(owner), None)
+        key = owner.retained_key
+        retained = self._warm.get(key)
+        if retained is not None and retained() is owner:
+            self._warm.pop(key)
 
     def claim_retained(self, identity):
-        for key in tuple(self._warm):
-            owner = key()
-            if owner is not None and owner.parent is self._shelf and owner.matches_retained(identity):
-                self._warm.pop(key)
-                self.reuse_hits += 1
-                return owner
+        retained = self._warm.get(identity)
+        owner = retained() if retained is not None else None
+        if owner is not None and owner.parent is self._shelf and owner.matches_retained(identity):
+            self._warm.pop(identity)
+            self.reuse_hits += 1
+            return owner
         return None
 
     async def _trim_warm(self) -> None:
         def source_bytes():
-            return sum(owner.retained_source_bytes for key in self._warm
+            return sum(owner.retained_source_bytes for key in self._warm.values()
                        if (owner := key()) is not None)
         def widget_count():
-            return sum(1 + sum(1 for _ in owner.walk_children()) for key in self._warm
+            return sum(1 + sum(1 for _ in owner.walk_children()) for key in self._warm.values()
                        if (owner := key()) is not None)
         while (source_bytes() > self.window.app.preparation.max_bytes or
                widget_count() > self.budget.widget_limit(self.window.size.height)):
-            key, _ = self._warm.popitem(last=False)
-            owner = key()
+            _, retained = self._warm.popitem(last=False)
+            owner = retained()
             if owner is not None and owner.parent is self._shelf:
                 self.body_evictions += 1
                 await owner.remove()
@@ -239,10 +248,11 @@ class DocumentViewport:
             await history.retire_source()
         await self._trim_warm()
         await self._shelf.acquire(self.window)
-        for key in tuple(self._warm):
-            owner = key()
-            if owner is not None and owner.parent is not self._shelf:
-                owner.park_body(self._shelf)
+        for key, retained in tuple(self._warm.items()):
+            owner = retained()
+            if owner is not None and owner.parent is not self._shelf and owner.park_body(self._shelf):
+                self._warm.pop(key)
+                self._warm[owner.retained_key] = retained
 
     def request(self, *_args) -> None:
         if self._suspended or not self.window.is_attached or self.window._closing:
@@ -335,10 +345,10 @@ class DocumentViewport:
                 for owner in owners:
                     if owner in visible:
                         key = ref(owner)
-                        self._warm[key] = None
+                        self._warm[key] = key
                         self._warm.move_to_end(key)
                 await self._trim_warm()
-                warm = {key() for key in self._warm} if active else set()
+                warm = {key() for key in self._warm.values()} if active else set()
                 retained = protected | warm | visible.keys()
                 # Reuse the same body admission and worker. Restore only the
                 # neighboring destination bodies, not every skipped record.

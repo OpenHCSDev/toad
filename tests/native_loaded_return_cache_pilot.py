@@ -169,7 +169,7 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
                     k().identity.interval.before.offset,k().identity.interval.through.offset,
                     k().identity.directory_revision,k().body_ready,
                     1+sum(1 for _ in k().walk_children()))
-                   for k in app.selected_session.conversation.window.document_viewport._warm
+                   for k in app.selected_session.conversation.window.document_viewport._warm.values()
                    if k() is not None and isinstance(k(),TranscriptFragmentView)],flush=True)
             frames = await click_session(app, pilot, source)
             view = source.conversation
@@ -235,7 +235,7 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
                     k().identity.interval.before.offset,k().identity.interval.through.offset,
                     k().identity.directory_revision,k().body_ready,
                     1+sum(1 for _ in k().walk_children()))
-                   for k in app.selected_session.conversation.window.document_viewport._warm
+                   for k in app.selected_session.conversation.window.document_viewport._warm.values()
                    if k() is not None and isinstance(k(),TranscriptFragmentView)],flush=True)
             frames = await click_session(app, pilot, source)
             view = source.conversation
@@ -271,7 +271,7 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
                                  for n in view.window.walk_children()
                                  if n.parent is view.window or n in view.contents.ancestors_with_self],
                       "cached", [(type(k()).__name__, type(k().parent).__name__, k().identity)
-                                 for k in view.window.document_viewport._warm if k() is not None], flush=True)
+                                 for k in view.window.document_viewport._warm.values() if k() is not None], flush=True)
                 raise
             await settled(pilot, view)
             print("RETURN_GEOMETRY", source.id, view.window.scroll_y, view.window.max_scroll_y,
@@ -309,7 +309,7 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
                             "reused_body_instances":reused,
                             "retained_body_reuse_hits":viewport.reuse_hits-before_reuse,
                             "retained_body_evictions":viewport.body_evictions-before_evictions,
-                            "warm_bodies":sum(key() is not None for key in viewport._warm),
+                            "warm_bodies":sum(key() is not None for key in viewport._warm.values()),
                             "prepared_bytes":app.preparation.retained_bytes})
         if profile is not None:
             profile.disable()
