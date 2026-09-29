@@ -1,0 +1,9 @@
+# Actual Project reader intent restoration
+
+Functional correction, not polish: the installed repeated Project return pilot caught expected scroll11 becoming0; parent independently caught11 becoming2 at39x40 viewport/26x51 content. Selection survived while reader scroll was lost. The failed receipt is retained here.
+
+ProjectTreeIntent now waits for the newly mounted tree's native refresh boundary before restoring expanded path intent. The selected line is assigned through Tree.cursor_line (native selection/NodeHighlighted), without Tree.move_cursor's separate ensure-visible scrolling. Saved scroll remains applied after expansion refresh through the original native scroll API. No sleep/retry cap, new store/bound, callback-type dispatch, compatibility path or weakened assertion.
+
+Actual installed focused acceptance on core303664623a3/Textualc9743801:5passed15.22s. Original sidebar_retirement_pilot retains three full real filesystem/relationship/plan state capture/rebuild cycles, exact scroll equality, cropped visible filename/relationship/plan text, changed root and in-flight hydration cancellation. Existing ordinary App/MainScreen installed companion runs2tabs with actual resize/return and11retired rich references collected. Tests import noneditable installed Toad; no patched/mocked renderer/tree/App/transport, no provider call, no live changes. No129/full64 matrix rerun.
+
+Parent129+140 combined shipping source is the integration target; parent already consumed Project admission7b30b48 and obsolete pilot deletione6d8fc7. Main140 merges its stream owner; Tesla116 owns persistent WorkspaceScreen topology and performance. This patch changes only ProjectTreeIntent and adds assertion failure diagnostics to the existing installed return pilot; source native loader and capture owners remain original. Native terminal/ACP64 acceptance remains parent's receipt and is not claimed by this focused headless check. CI deferred.
