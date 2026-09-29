@@ -1,3 +1,4 @@
+from agent_comms.acp_extension import QueuePromptRequest
 """Installed Toad/ACP/owner/Pi path with a loopback-only model fixture."""
 
 from toad.navigation_target import DirectTarget, channel_target
@@ -339,7 +340,7 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
                     assert agent.process.process is process and process.returncode is None
                     assert agent.controller.surface.target is None
                 await asyncio.wait_for(
-                    agent.send_prompt("QUEUED_NATIVE_INPUT", defer_display=True), 10
+                    agent.send_prompt("QUEUED_NATIVE_INPUT", request=QueuePromptRequest("QUEUED_NATIVE_INPUT", True)), 10
                 )
                 if retire_surface:
                     await until(pilot, lambda: bool(agent.queue_attachment.projection.items))

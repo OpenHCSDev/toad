@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from toad.conversation_submission import ConversationSubmissions
 from toad.live_output import LiveOutput, ResponseStream, ThoughtStream
 from toad.transcript_publication import TranscriptPresentation
 from toad.goal_interaction import GoalSession
@@ -530,7 +531,7 @@ class ConversationSessionBinding(containers.Vertical):
         self._mcp_live_note: Note | None = None
         self._private_cursor_sequence = 0
         self._queue_sequence = 0
-        self._sending_queue_input_id: str | None = None
+        self.submissions = ConversationSubmissions(self)
         from toad.widgets.agent_activity import AgentActivityBoundary
 
         self._agent_activity_boundary = AgentActivityBoundary()
@@ -1362,153 +1363,8 @@ class Conversation(ConversationSessionBinding):
         await self.submit_input(event)
 
     async def submit_input(self, event: messages.UserInputSubmitted) -> None:
-        """Agent conversation submission; wire views override this single hook."""
-        if not event.body.strip():
-            if (
-                event.immediate
-                and not event.shell
-                and self.queue_supported
-                and self.queued_prompts
-            ):
-                # This requests scheduling, not membership mutation. Retain
-                # every remote row until authoritative exact-ID evidence.
-                if (
-                    self.queue_projection.status == "available"
-                    and self.queue_projection.items
-                ):
-                    first = self.queue_projection.items[0]
-                    self._sending_queue_input_id = first.input_id
-                    self.sending_queued_prompt = first.text
-                    self.send_queued_now()
-            return
-        self.transcript.invalidate()
-        if event.shell:
-            if await self.shell.is_busy():
-                if (output := self.shell.output) is not None:
-                    output.focus()
-                await self.shell.send_input(event.body, paste=True)
-            else:
-                self.run_worker(partial(self.input_histories.shell.record, event.body), group="history")
-                await self.post_shell(event.body)
-            self.jump_to_latest()
-        elif text := event.body.strip():
-            if text.startswith("/") and await self.slash_command(text):
-                # Toad has processed the slash command.
-                return
-            queued = (
-                self.turns.owner.busy and self.queue_supported and not event.immediate
-            )
-            if event.immediate and self.queue_supported:
-                self.delivering_prompt = text
-            if not queued:
-                await self.post(UserInput(text))
-                self.jump_to_latest()
-            # Local feedback precedes persistence and agent metadata work.
-            self.run_worker(partial(self.input_histories.prompt.record, event.body), group="history")
-            if queued:
-                self.send_prompt_to_agent(text, queued=True)
-                self.flash("Queue request sent; awaiting authoritative queue state")
-                return
-            await self._auto_name_from_prompt(text)
-            waiting = (
-                "Waiting for replies…"
-                if text.lstrip().startswith(("@", "#", "!relay "))
-                else "Thinking…"
-            )
-            self.post_message(
-                messages.SessionUpdate(state="busy", summary=waiting.rstrip("…"))
-            )
-            self.activity = waiting
-            await asyncio.sleep(0)
-            self.send_prompt_to_agent(text, immediate=event.immediate)
-
-    @work(group="send-queued-now", exclusive=True)
-    async def send_queued_now(self) -> None:
-        try:
-            if not await self.agent.send_now():
-                self.sending_queued_prompt = ""
-        except (jsonrpc.APIError, jsonrpc.JSONRPCError, OSError, ValueError) as error:
-            self.sending_queued_prompt = ""
-            self.flash(f"Send now failed: {error}", style="error")
-
-    @work
-    async def send_prompt_to_agent(
-        self, prompt: str, *, queued: bool = False, immediate: bool = False
-    ) -> None:
-        sending_agent = self.agent
-        sending_session = sending_agent.session_id
-        queue = sending_agent.queue_attachment if sending_agent is not None else None
-        sending_scope = queue.scope if queue is not None else None
-
-        def current_request_owner() -> bool:
-            return (
-                self.agent is sending_agent
-                and sending_agent.session_id == sending_session
-                and (
-                    queue is None
-                    or (
-                        queue.scope == sending_scope
-                        and (
-                            sending_scope is None
-                            or queue.projection.status == "available"
-                        )
-                    )
-                )
-            )
-
-        if sending_agent is not None:
-            stop_reason: str | None = None
-            server_owned_turn = sending_agent.coordination is not None
-            if not server_owned_turn:
-                self.busy_count += 1
-            try:
-                if not server_owned_turn:
-                    self.turns.owner = AgentTurn()
-                if self.queue_supported:
-                    stop_reason = await sending_agent.send_prompt(
-                        prompt,
-                        delivery="steer" if immediate else "queue",
-                        defer_display=queued,
-                    )
-                else:
-                    stop_reason = await sending_agent.send_prompt(prompt)
-            except (
-                jsonrpc.APIError,
-                jsonrpc.JSONRPCError,
-                OSError,
-                ValueError,
-            ) as error:
-                from toad.widgets.markdown_note import MarkdownNote
-
-                if not current_request_owner():
-                    return
-                self.turns.owner = ClientTurn()
-
-                message = (
-                    str(error) or "no details were provided"
-                )
-                self.activity = ""
-                self.activity_started_at = None
-                # A send failure cannot identify/remove a remote row by text.
-                self.prompt.text = "\n\n".join(filter(None, [self.prompt.text, prompt]))
-
-                await self.post(
-                    MarkdownNote(
-                        INTERNAL_EROR.replace("$ERROR", message),
-                        classes="-stop-reason",
-                    )
-                )
-            finally:
-                if (
-                    current_request_owner()
-                    and immediate
-                    and self.delivering_prompt == prompt
-                ):
-                    self.delivering_prompt = ""
-                if not server_owned_turn:
-                    self.busy_count -= 1
-            if current_request_owner() and not server_owned_turn:
-                self.call_later(self.agent_turn_over, stop_reason)
+        """Wire views override the same submission boundary."""
+        await self.submissions.submit(event)
 
     async def agent_turn_over(self, stop_reason: str | None) -> None:
         """Called when the agent's turn is over.
@@ -1724,8 +1580,7 @@ class Conversation(ConversationSessionBinding):
         if previous is None:
             return
         await self._clear_mcp_live()
-        self.delivering_prompt = ""
-        self.sending_queued_prompt = ""
+        self.submissions.reset()
         self.activity = ""
         self.activity_started_at = None
         self.app.open_tabs_changed.publish(None)
@@ -1754,9 +1609,7 @@ class Conversation(ConversationSessionBinding):
                 or message.session_id != self.agent.session_id
             ):
                 return
-            if started.input_id == self._sending_queue_input_id:
-                self._sending_queue_input_id = None
-                self.sending_queued_prompt = ""
+            self.submissions.started(started)
             self.output.boundary()
             await self.post(UserInput(started.text))
 
@@ -1773,20 +1626,7 @@ class Conversation(ConversationSessionBinding):
 
     def on_input_failed(self, message: acp_messages.CommsUpdated) -> None:
         """Only a locally failed request may recover its own draft text."""
-        if (
-            self.agent is None
-            or message.agent is not self.agent
-            or message.session_id != self.agent.session_id
-        ):
-            return
-        queue = self.agent.queue_attachment
-        if message.recover_draft and (
-            message.queue_scope != (queue.scope if queue is not None else None)
-            or (
-                message.queue_scope is not None
-                and queue.projection.status != "available"
-            )
-        ):
+        if not self.submissions.accepts_failure(message):
             return
         if not message.recover_draft:
             # Server notices (including unstarted queued/restored inputs) are
@@ -1796,14 +1636,8 @@ class Conversation(ConversationSessionBinding):
                 style="error",
             )
             return
-        if message.update.text and not (
-            self.prompt.text == message.update.text
-            or self.prompt.text.endswith("\n\n" + message.update.text)
-        ):
-            self.prompt.text = "\n\n".join(
-                filter(None, [self.prompt.text, message.update.text])
-            )
-        self.delivering_prompt = ""
+        self.submissions.restore_draft(message.update.text)
+
         self.flash(
             f"{message.update.failure.title}; draft restored: {message.update.failure.description}\n{message.update.failure.input_disposition}\n{message.update.failure.action}",
             style="error",
@@ -2214,8 +2048,7 @@ class Conversation(ConversationSessionBinding):
         self.queue_projection = attachments.queue
         self.queued_prompts = [row.text for row in self.queue_projection.items]
         self._queue_sequence = attachments.queue_sequence
-        self._sending_queue_input_id = None
-        self.sending_queued_prompt = ""
+        self.submissions.reset()
         if agent is None:
             self.agent_info = Content.styled("shell")
         else:

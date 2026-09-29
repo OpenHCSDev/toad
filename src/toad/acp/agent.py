@@ -25,6 +25,7 @@ from agent_comms.acp_extension import (
     InputFailedUpdate,
     PromptRequest,
     QueueItem,
+    QueuePromptRequest,
     SendNowRequest,
     decode_updates,
     encode_request,
@@ -564,14 +565,14 @@ class Agent(AgentBase):
         self.session_ready_event.set()
         self.post_message(AgentReady(reconnected=self._reconnecting))
 
-    async def send_prompt(self, prompt: str, *, delivery="queue", defer_display=False):
+    async def send_prompt(self, prompt: str, *, request: PromptRequest | None = None):
         return await self.controller.operate(self._send_prompt(
-            prompt, delivery=delivery, defer_display=defer_display,
+            prompt, request=request if request is not None else QueuePromptRequest(prompt),
             request_session_id=self.session_id, request_queue_scope=self.queue_attachment.scope,
             project=self.project_root_path))
 
     async def _send_prompt(
-        self, prompt: str, *, delivery: str, defer_display: bool,
+        self, prompt: str, *, request: PromptRequest,
         request_session_id, request_queue_scope, project
     ) -> str | None:
         """Send a prompt to the agent.
@@ -583,7 +584,7 @@ class Agent(AgentBase):
             prompt: Prompt text.
         """
         self.presentation.prompt_in_flight += 1
-        submission = asyncio.current_task() if defer_display else None
+        submission = asyncio.current_task() if request.defer_display else None
         if submission is not None:
             self._deferred_submissions.add(submission)
         try:
@@ -603,9 +604,8 @@ class Agent(AgentBase):
                     raise ValueError(
                         "This agent owner does not support images yet; refresh it while idle."
                     )
-            request_type = PromptRequest.decode(delivery + "_prompt")
             return await self._acp_session_prompt(
-                prompt_content_blocks, request_type(prompt, defer_display),
+                prompt_content_blocks, request,
                 request_session_id, request_queue_scope
             )
         finally:
