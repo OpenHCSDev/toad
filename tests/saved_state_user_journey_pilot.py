@@ -29,6 +29,7 @@ from toad.widgets.comms_sidebar import ChannelGroup, CommsRow
 from toad.widgets.message_notifications import MessageNotifications
 from toad.widgets.prepared_markdown import PreparedConversationMarkdown
 from toad.widgets.session_tabs import SessionLabel
+from toad.widgets.session_details import SessionDetails
 
 
 class SavedStateSubscriber:
@@ -475,6 +476,12 @@ async def channel_reply_feedback(app, pilot, comms, channel, first, entered, rel
     await until(pilot, lambda: comms.registry.require("gamma").executing is False)
     assert "JOURNEY_CHANNEL_QUESTION" in str(requests[before]["messages"])
     assert f"NATIVE_RESPONSE_{before + 1}" in str(requests[-1]["messages"])
+    receiver = await click_thread(app, pilot, "gamma")
+    details = receiver.query_one(SessionDetails)
+    await until(pilot, lambda: "Latest inbound #team" in str(details.title))
+    await until(pilot, lambda: "Latest inbound #team" in screen_paint(app))
+    assert "JOURNEY_CHANNEL_QUESTION" in str(details.activity.render())
+    print("CHANNEL_RECEIVER_NATIVE_TAB_INBOUND_SOURCE_AND_BODY_ACTUAL_PAINT", flush=True)
     await click_tab(app, pilot, first.id)
     await click_tab(app, pilot, channel.id)
     await until(pilot, lambda: f"NATIVE_RESPONSE_{before + 1}" in screen_paint(app))
