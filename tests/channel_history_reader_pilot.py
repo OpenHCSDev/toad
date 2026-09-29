@@ -24,7 +24,7 @@ class ReaderTests(unittest.IsolatedAsyncioTestCase):
         with tempfile.TemporaryDirectory(prefix="dm-turn-basis-") as directory:
             root = Path(directory)
             comms = wire(root / "wire")
-            comms.threads.register(Thread("peer", frozenset(), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
+            comms.registry.declare(Thread("peer", frozenset(), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
             viewer = comms.messaging.user_identity(str(root)).name
             comms.messaging.send("peer", viewer, "painted across turn claim")
             page = comms.views.dm_display_page("peer", worktree=str(root))
@@ -37,9 +37,9 @@ class ReaderTests(unittest.IsolatedAsyncioTestCase):
         with tempfile.TemporaryDirectory(prefix="channel-scope-reader-") as directory:
             root = Path(directory)
             comms = wire(root / "wire")
-            comms.threads.register(Thread("alice", frozenset({"team"}), str(root)))
-            comms.threads.register(Thread("carol", frozenset({"team"}), str(root)))
-            comms.threads.register(Thread("dave", frozenset(), str(root)))
+            comms.registry.declare(Thread("alice", frozenset({"team"}), str(root)))
+            comms.registry.declare(Thread("carol", frozenset({"team"}), str(root)))
+            comms.registry.declare(Thread("dave", frozenset(), str(root)))
             comms.messaging.send("carol", "dave", "older DM")
             comms.messaging.send("alice", "#team", "channel message")
             request = HistoryReadRequest(
@@ -71,7 +71,7 @@ class ReaderTests(unittest.IsolatedAsyncioTestCase):
             old = wire(root / "old")
             comms = wire(root / "live")
             for source in (old, comms):
-                source.threads.register(Thread("alice", frozenset({"team"}), str(root)))
+                source.registry.declare(Thread("alice", frozenset({"team"}), str(root)))
                 source.messaging.send("alice", "#team", source.root.name)
             request = HistoryReadRequest(comms, ChannelConversation, "#team", root,
                 False, 0, True, None, 8, 40, 256 * 1024)
@@ -95,7 +95,7 @@ class ReaderTests(unittest.IsolatedAsyncioTestCase):
         with tempfile.TemporaryDirectory(prefix="channel-reader-") as directory:
             root = Path(directory)
             comms = wire(root)
-            comms.threads.register(Thread("sender", frozenset({"one", "two"}), str(root)))
+            comms.registry.declare(Thread("sender", frozenset({"one", "two"}), str(root)))
             for index in range(50):
                 comms.messaging.send("sender", "#one", f"Message {index}")
             comms.messaging.user_identity(str(root))

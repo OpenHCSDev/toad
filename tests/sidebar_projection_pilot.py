@@ -39,7 +39,7 @@ async def main():
                           XDG_STATE_HOME=str(root / "state"), XDG_DATA_HOME=str(root / "data"))
         comms = wire(root / "wire")
         me = session_thread_name(root)
-        comms.threads.register(Thread(me, frozenset({"fixture"}), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
+        comms.registry.declare(Thread(me, frozenset({"fixture"}), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
         comms.channels.create_tag("projection")
         comms.messaging.send(me, "#projection", "Channel history")
         app = FrameApp(project_dir=str(root))

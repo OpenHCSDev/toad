@@ -1,0 +1,71 @@
+         7938262 function calls (7794780 primitive calls) in 5.861 seconds
+
+   Ordered by: cumulative time
+   List reduced from 2799 to 55 due to restriction <55>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+1540/1537    0.022    0.000   11.272    0.007 /home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py:1966(_run_once)
+    13947    0.014    0.000    6.868    0.000 /home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py:92(_run)
+    68/57    0.001    0.000    5.919    0.104 /home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/connection.py:259(poll)
+    68/57    0.001    0.000    5.105    0.090 /home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/connection.py:456(_poll)
+1538/1537    0.004    0.000    4.826    0.003 /home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/selectors.py:435(select)
+13947/6124    0.018    0.000    2.679    0.000 {method 'run' of '_contextvars.Context' objects}
+   157/77    0.001    0.000    2.658    0.035 /home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/thread.py:71(run)
+   157/74    0.001    0.000    2.655    0.036 /home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/thread.py:81(run)
+15390/10548    0.011    0.000    2.321    0.000 /home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py:136(__enter__)
+59898/40513    0.032    0.000    2.283    0.000 {built-in method builtins.next}
+32022/22625    0.037    0.000    2.155    0.000 /home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/textual/_callback.py:62(invoke)
+    10794    0.005    0.000    2.120    0.000 /home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/textual/message_pump.py:597(_process_messages)
+32022/22625    0.045    0.000    2.060    0.000 /home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/textual/_callback.py:45(_invoke)
+    10910    0.106    0.000    1.975    0.000 /home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/textual/message_pump.py:674(_process_messages_loop)
+  908/661    0.003    0.000    1.876    0.003 /home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/locked_store.py:74(reading)
+       44    0.000    0.000    1.387    0.032 /home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/toad/owner_preparation.py:21(read_thread_presentation)
+       44    0.001    0.000    1.373    0.031 /home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/history_views.py:825(thread_presentation)
+    13290    0.049    0.000    1.278    0.000 /home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/textual/message_pump.py:754(_dispatch_message)
+  301/250    0.003    0.000    1.276    0.005 /home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/registry_store.py:49(_read_unlocked)
+      375    0.001    0.000    1.273    0.003 /home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/textual/timer.py:145(_run_timer)
+      375    0.002    0.000    1.232    0.003 /home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/textual/timer.py:158(_run)
+    12322    0.046    0.000    1.125    0.000 /home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/textual/message_pump.py:857(_on_message)
+      322    0.001    0.000    1.110    0.003 /home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/textual/timer.py:190(_tick)
+   114/94    0.001    0.000    1.059    0.011 /home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/registration.py:319(require)
+      123    0.001    0.000    0.983    0.008 /home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/toad/screens/workspace.py:164(_on_timer_update)
+     1537    0.976    0.001    0.976    0.001 {method 'poll' of 'select.epoll' objects}
+  301/250    0.004    0.000    0.944    0.004 /home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/registry_store.py:95(private_guard_unlocked)
+    10056    0.007    0.000    0.847    0.000 /home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/textual/message_pump.py:849(on_event)
+      123    0.001    0.000    0.839    0.007 /home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/textual/screen.py:1246(_on_timer_update)
+       62    0.001    0.000    0.826    0.013 /home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/toad/screens/workspace.py:208(_refresh_layout)
+       62    0.004    0.000    0.765    0.012 /home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/textual/screen.py:1339(_refresh_layout)
+     10/9    0.000    0.000    0.734    0.082 /home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/history_views.py:863(viewer_snapshot)
+       83    0.002    0.000    0.724    0.009 /home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/toad/screens/workspace.py:175(_compositor_refresh)
+     8336    0.038    0.000    0.675    0.000 /home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/textual/_compositor.py:1182(_get_renders)
+       83    0.002    0.000    0.644    0.008 /home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/textual/screen.py:1198(_compositor_refresh)
+  175/158    0.001    0.000    0.630    0.004 /home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/registration.py:337(snapshot)
+15386/14025    0.012    0.000    0.625    0.000 /home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py:145(__exit__)
+       16    0.000    0.000    0.577    0.036 /home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/toad/acp/agent.py:1048(resolve)
+       16    0.000    0.000    0.574    0.036 /home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/transcripts.py:169(_thread_transcript_source)
+      141    0.036    0.000    0.572    0.004 /home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/textual/_compositor.py:1348(_render_chops)
+  153/145    0.001    0.000    0.521    0.004 /home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/locked_store.py:80(read)
+       41    0.000    0.000    0.491    0.012 /home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/toad/app.py:686(_switch_mode_ready)
+       41    0.000    0.000    0.487    0.012 /home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/toad/workspace_sessions.py:37(select)
+       44    0.001    0.000    0.486    0.011 /home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/history_views.py:133(recent_notifications)
+       87    0.001    0.000    0.480    0.006 /home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/textual/_compositor.py:602(_arrange_root)
+  345/303    0.006    0.000    0.470    0.002 /home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/wire_log.py:628(read_metadata_unlocked)
+     8186    0.007    0.000    0.465    0.000 /home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/textual/widget.py:4464(render_lines)
+  7023/87    0.011    0.000    0.463    0.005 /home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/textual/_compositor.py:859(add_widget)
+     9284    0.016    0.000    0.456    0.000 /home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/textual/message_pump.py:937(on_callback)
+     8124    0.043    0.000    0.444    0.000 /home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/textual/_styles_cache.py:100(render_widget)
+       18    0.000    0.000    0.442    0.025 /home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/history_views.py:603(_display_snapshot)
+  6971/87    0.069    0.000    0.440    0.005 /home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/textual/_compositor.py:651(arrange_widget)
+       16    0.000    0.000    0.433    0.027 /home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/runtime.py:267(__init__)
+       83    0.001    0.000    0.430    0.005 /home/ts/wt/toad-workspace-latency-sol-20260929/tests/native_session_retention_pilot.py:47(_display)
+1934/1850    0.030    0.000    0.428    0.000 /home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/textual/css/stylesheet.py:575(apply)
+
+
+   Ordered by: cumulative time
+   List reduced from 2799 to 1 due to restriction <'viewer_snapshot'>
+
+Function                                                                                                                                 was called by...
+                                                                                                                                             ncalls  tottime  cumtime
+/home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/history_views.py:863(viewer_snapshot)  <-     3/1    0.000    0.033  /home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/thread.py:71(run)
+
+

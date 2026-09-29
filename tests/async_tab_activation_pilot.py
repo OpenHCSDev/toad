@@ -41,7 +41,7 @@ async def main():
         os.environ.update(AGENT_COMMS_ROOT=str(root / "wire"), XDG_CONFIG_HOME=str(root / "config"),
                           XDG_STATE_HOME=str(root / "state"), XDG_DATA_HOME=str(root / "data"))
         comms = wire(root / "wire")
-        comms.threads.register(Thread("peer", frozenset(), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
+        comms.registry.declare(Thread("peer", frozenset(), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
 
         async def start(agent, target):
             agent.attach_surface(target)

@@ -38,7 +38,7 @@ async def main() -> None:
                           XDG_STATE_HOME=str(root / "state"),
                           AGENT_COMMS_ROOT=str(root / "wire"))
         comms = wire(root / "wire")
-        comms.threads.register(Thread("sender", frozenset(), str(root)))
+        comms.registry.declare(Thread("sender", frozenset(), str(root)))
         viewer = comms.messaging.user_identity(str(root))
         comms.messaging.send("sender", "#all", "first-pending")
         app = ToadApp(project_dir=str(root))

@@ -61,7 +61,7 @@ async def check_busy_labels() -> None:
         me = session_thread_name(root)
         comms = wire(root / "wire")
         for name in (me, "busy-worker"):
-            comms.threads.register(
+            comms.registry.declare(
                 Thread(
                     name,
                     frozenset({"team"}),

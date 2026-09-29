@@ -28,7 +28,7 @@ async def check(virtual):
         session.write_text((json.dumps({"type": "message", "message": {
             "role": "assistant", "content": "Retained unread reply"}}) + "\n") * records)
         comms = wire(root / "wire")
-        comms.threads.register(Thread("worker", frozenset({"indexing"}), str(root),
+        comms.registry.declare(Thread("worker", frozenset({"indexing"}), str(root),
                                       session_file=str(session)))
         comms.owners.acquire_thread("worker", owner_pid=os.getpid())
         initial = comms.views.viewer_snapshot(str(root))

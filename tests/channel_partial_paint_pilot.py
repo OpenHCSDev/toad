@@ -24,7 +24,7 @@ async def main():
             XDG_STATE_HOME=str(root / "state"), XDG_DATA_HOME=str(root / "data"),
         )
         comms = wire(root / "wire")
-        comms.threads.register(Thread("peer", frozenset({"team"}), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
+        comms.registry.declare(Thread("peer", frozenset({"team"}), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
         viewer = comms.messaging.user_identity(str(root)).name
         rows = [comms.messaging.send_message("peer", "#team", f"row {i}\n" + "body\n" * 10) for i in range(8)]
         acknowledged = set()

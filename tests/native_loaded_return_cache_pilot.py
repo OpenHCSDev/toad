@@ -25,7 +25,7 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
     sources = [app.selected_session]
     agents = [beta]
     records = []
-    comms.threads.register(Thread("gamma", frozenset({"team"}), str(beta.project_root_path),
+    comms.registry.declare(Thread("gamma", frozenset({"team"}), str(beta.project_root_path),
                                   model="selected-offline/fixture", thinking_level="off"))
     try:
         for name in ("beta", "gamma"):

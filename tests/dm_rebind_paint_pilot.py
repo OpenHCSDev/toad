@@ -34,7 +34,7 @@ async def main():
             XDG_DATA_HOME=str(root / "data"),
         )
         comms = wire(root / "wire")
-        comms.threads.register(Thread("peer", frozenset(), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
+        comms.registry.declare(Thread("peer", frozenset(), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
         viewer = comms.messaging.user_identity(str(root)).name
         comms.messaging.send("peer", viewer, "old peer painted")
         entered, release = Event(), Event()
@@ -62,7 +62,7 @@ async def main():
 
                     comms.registry.unregister("peer")
                     comms.registry.remove("peer")
-                    comms.threads.register(
+                    comms.registry.declare(
                         Thread("peer", frozenset(), str(root), process_identity=ProcessIdentity.capture(os.getpid()))
                     )
                     comms.messaging.send("peer", viewer, "new peer never painted")

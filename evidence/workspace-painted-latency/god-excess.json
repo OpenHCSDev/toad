@@ -1,0 +1,20 @@
+{
+  "src/toad/screens/session_view.py": {
+    "base": {
+      "SessionView": 0
+    },
+    "current": {
+      "SessionView": 0
+    }
+  },
+  "src/toad/screens/workspace.py": {
+    "base": {
+      "ViewStyleRevision": 0,
+      "WorkspaceScreen": 0
+    },
+    "current": {
+      "ViewStyleRevision": 0,
+      "WorkspaceScreen": 0
+    }
+  }
+}
