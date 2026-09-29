@@ -601,16 +601,6 @@ class ConversationSessionBinding(containers.Vertical):
         self.prompt.ask_queue.clear()
         self._focusable_terminals.clear()
 
-    def fragment_presentation_identity(self, interval, fragment):
-        """Bind immutable rendering to this source and its filesystem revision."""
-        from toad.widgets.transcript_history import FragmentPresentationIdentity
-        watcher = self._directory_watcher
-        return FragmentPresentationIdentity(
-            self.agent, interval, fragment, str(self.project_path), watcher,
-            watcher.observed_revision if watcher is not None else -1,
-        )
-
-
     async def present_retained_native_session(self) -> None:
         """Bring a returning native source into the atomic first frame."""
         agent = self.agent

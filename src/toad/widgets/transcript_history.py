@@ -159,34 +159,14 @@ class JumpToLatest(Static, can_focus=True):
         self.action_jump()
 
 
-@dataclass(frozen=True)
-class FragmentPresentationIdentity:
-    """An immutable fragment in its original operational/render context."""
-
-    source: object
-    interval: CommittedInterval
-    fragment: TranscriptFragment
-    project_path: str
-    directory_watcher: object
-    directory_revision: int
-    position: int = 0
-
-    def __hash__(self) -> int:
-        # A fragment may contain unhashable wire fields. Its page position
-        # selects the cache bucket; equality still checks the full fragment.
-        return hash((self.interval, self.position, self.project_path,
-                     self.directory_revision))
-
-
 class TranscriptFragmentView(MeasuredViewportBody, CategorizedBlock, VerticalGroup):
     CACHE_HEIGHT_INDEPENDENT_BOX = True
     CACHE_HEIGHT_INDEPENDENT_ARRANGEMENT = True
 
-    def __init__(self, fragment: TranscriptFragment, selected=None, *, identity=None):
+    def __init__(self, fragment: TranscriptFragment, selected=None):
         super().__init__()
         self.fragment = fragment
         self._retained_bytes = retained_bytes(fragment)
-        self.identity = identity
         self._body_viewport = None
         self._message_category = (event_category(fragment.events[0]) if fragment.events
                                   else OtherCategory)
@@ -310,17 +290,12 @@ class TranscriptPageView(VerticalGroup):
         self.stop = min(len(self.fragments), self.start + self.batch_size)
         self.visible_categories = all_categories()
 
-    def _body(self, fragment: TranscriptFragment, position: int) -> TranscriptFragmentView:
-        from toad.widgets.conversation import Conversation
-        view = self.query_ancestor(Conversation)
-        identity = replace(view.fragment_presentation_identity(
-            CommittedInterval(self.page.before, self.page.after), fragment,
-        ), position=position)
-        return TranscriptFragmentView(fragment, self.visible_categories, identity=identity)
+    def _body(self, fragment: TranscriptFragment) -> TranscriptFragmentView:
+        return TranscriptFragmentView(fragment, self.visible_categories)
 
     def compose(self) -> ComposeResult:
-        for index, fragment in enumerate(self.fragments[self.start:self.stop]):
-            yield self._body(fragment, self.start + index)
+        for fragment in self.fragments[self.start:self.stop]:
+            yield self._body(fragment)
 
     def capture_admission(self) -> TranscriptPageAdmission:
         return TranscriptPageAdmission(
@@ -344,7 +319,7 @@ class TranscriptPageView(VerticalGroup):
         stop = self.start if older else min(len(self.fragments), self.stop + self.batch_size)
         before = self.children[0] if older and self.children else None
         for index in range(start, stop):
-            body = self._body(self.fragments[index], index)
+            body = self._body(self.fragments[index])
             await self.mount(body, before=before)
         if older:
             self.start = start
@@ -370,7 +345,7 @@ class TranscriptPageView(VerticalGroup):
         for index in range(start, stop):
             child = previous.get(index)
             if child is None:
-                body = self._body(fragments[index], index)
+                body = self._body(fragments[index])
                 await self.mount(body)
             elif child.fragment != fragments[index]:
                 await child.update_fragment(fragments[index])

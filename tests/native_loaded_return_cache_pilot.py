@@ -232,13 +232,6 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
         # comparable reader/editor state only after ordinary saved publication.
         states = {}
         for source_index, (source, agent) in enumerate(zip(sources, agents)):
-            print("CACHE_BEFORE_SELECT", source.id,
-                  [(type(k().parent).__name__, getattr(k().identity.source,"session_id",None),
-                    k().identity.interval.before.offset,k().identity.interval.through.offset,
-                    k().identity.directory_revision,k().body_ready,
-                    1+sum(1 for _ in k().walk_children()))
-                   for k in app.selected_session.conversation.window.document_viewport._warm.values()
-                   if k() is not None and isinstance(k(),TranscriptFragmentView)],flush=True)
             frames = await click_session(app, pilot, source)
             view = source.conversation
             await until(pilot, lambda: bool(view.window.histories) and view.transcript.displayed_cursor is not None)
@@ -311,13 +304,6 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
             viewport = app.workspace_chrome.native.widget.window.document_viewport
             before_evictions = viewport.body_evictions
             started = perf_counter()
-            print("CACHE_BEFORE_SELECT", source.id,
-                  [(type(k().parent).__name__, getattr(k().identity.source,"session_id",None),
-                    k().identity.interval.before.offset,k().identity.interval.through.offset,
-                    k().identity.directory_revision,k().body_ready,
-                    1+sum(1 for _ in k().walk_children()))
-                   for k in app.selected_session.conversation.window.document_viewport._warm.values()
-                   if k() is not None and isinstance(k(),TranscriptFragmentView)],flush=True)
             frames = await click_session(app, pilot, source)
             view = source.conversation
             await until(pilot, lambda: bool(view.window.histories))
@@ -375,7 +361,7 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
                       "layout", [(type(n).__name__, n.display, n.region, n.size, n.virtual_size)
                                  for n in view.window.walk_children()
                                  if n.parent is view.window or n in view.contents.ancestors_with_self],
-                      "cached", [(type(k()).__name__, type(k().parent).__name__, k().identity)
+                      "cached", [(type(k()).__name__, type(k().parent).__name__)
                                  for k in view.window.document_viewport._warm.values() if k() is not None], flush=True)
                 raise
             await settled(pilot, view)
@@ -403,10 +389,8 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
             assert reused_history, "Warm return rebuilt the mounted outer history"
             assert reused_pages > 0, "Warm native return rebuilt every admitted page"
             if reused == 0:
-                print("CACHE_MISS_ROOTS", [(getattr(n.identity.source,"session_id",None),
-                     n.identity.interval.before.offset,n.identity.interval.through.offset,
-                     n.identity.directory_revision,n.body_ready,
-                     type(n.parent).__name__) for n in view.query(TranscriptFragmentView)],flush=True)
+                print("CACHE_MISS_ROOTS", [(body.body_ready, type(body.parent).__name__)
+                      for body in view.query(TranscriptFragmentView)], flush=True)
             assert reused > 0, ("Already-loaded native source discarded every response body", source.id)
             assert not render_submissions, (
                 "Warm tab return re-fragmented a saved native page", source.id,
