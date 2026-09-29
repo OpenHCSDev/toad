@@ -34,6 +34,12 @@ class QueueAttachment(ProjectionAttachment):
             else UnavailableQueueProjection()
         )
 
+    def accepts_request(self, scope) -> bool:
+        """A request's original queue authority must still own this attachment."""
+        if self.scope != scope:
+            return False
+        return scope is None or self.projection.status == "available"
+
     def begin(self, session_id):
         self._pending_starts.clear()
         return super().begin(session_id)

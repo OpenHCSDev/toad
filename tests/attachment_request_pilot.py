@@ -20,6 +20,7 @@ from agent_comms.thread_identity import OwnerIdentity, ThreadIncarnation
 from runtime_fixture import ToadApp
 
 from toad.acp.agent import Agent
+from toad.conversation_submission import DeferredInputSubmission
 from toad.widgets.prompt import QueueSummary
 
 DATA = {
@@ -147,7 +148,7 @@ async def main():
                     raise ValueError("delayed old request failure")
 
                 with patch.object(agent, "send_prompt", side_effect=failed_send):
-                    worker = view.send_prompt_to_agent("old request", queued=True)
+                    worker = await DeferredInputSubmission("old request").execute(view.submissions)
                     await entered.wait()
                     if successor == "agent":
                         replacement = Agent(root, DATA, "beta")
