@@ -107,7 +107,7 @@ async def main():
             # Scheduling acknowledges no consumption. Both equal-text rows stay
             # until a current inputStarted receipt identifies one exact input.
             with (
-                patch.object(agent, "send_now", return_value=True),
+                patch.object(agent.controller, "send_now", return_value=True),
                 patch.object(agent, "send_prompt") as submit,
             ):
                 for key in (None, "ctrl+enter", "ctrl+y"):

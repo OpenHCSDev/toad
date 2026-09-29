@@ -15,7 +15,7 @@ from agent_comms.child_process import ProcessIdentity
 from agent_comms.comms import wire
 from agent_comms.runtime import RuntimeProxy
 from agent_comms.threads import Thread
-from comms_boundary_fixture import attach_coordination
+from comms_boundary_fixture import attach_registered_coordination
 
 from toad.acp.agent import Agent
 
@@ -36,7 +36,7 @@ async def main():
                 )
             )
         agent = Agent(root, {"name": "fixture", "run_command": {"*": "false"}}, None)
-        attach_coordination(agent, str(comms.root), "worker-0")
+        attach_registered_coordination(agent, str(comms.root), "worker-0")
         ui_thread = threading.get_ident()
         builds = []
 
@@ -54,7 +54,7 @@ async def main():
         ):
             for _ in range(20):
                 begin, before_cpu = (time.perf_counter(), time.thread_time())
-                assert await agent._owner_request("goal_snapshot") == {
+                assert await agent.controller.request_owner("goal_snapshot") == {
                     "thread": "worker-0"
                 }
                 durations.append((time.perf_counter() - begin) * 1000)

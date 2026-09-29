@@ -1986,7 +1986,7 @@ class Conversation(ConversationSessionBinding):
         try:
             self.window.anchor()
             self.flash("Compaction requested")
-            await self.agent.compact_context(instructions)
+            await self.agent.controller.compact_context(instructions)
             self.flash("Context compacted", style="success")
         except (OSError, ValueError, jsonrpc.JSONRPCError) as error:
             await self.post(

@@ -11,6 +11,16 @@ from toad.render_tasks import ValidateSessionUpdateTask
 from toad.plan import PlanItem
 from .terminal_owner import OperationalTerminalOwner
 from .transcript_reader import CoordinationTranscriptReader
+from .client_session import ClientSessionRequest
+from .prompt import build as build_prompt
+from . import api, messages
+from toad import jsonrpc
+from toad.agent import LogAgentFail
+from agent_comms.acp_extension import (
+    PromptRequest, QueuePromptRequest, ClearQueueRequest, SendNowRequest,
+    CompactRequest, InputFailedUpdate, decode_updates, encode_request,
+)
+from agent_comms.acp_failure import ACPFailure, BackendDeliveryFailure
 
 
 @dataclass(frozen=True)
@@ -75,6 +85,8 @@ class AgentController(OperationalTerminalOwner):
         self.surface: SurfaceBinding = DetachedSurfaceBinding()
         self.validation: ValidationOwner = HeadlessValidationOwner()
         self.app = None
+        self._deferred_submissions: set[asyncio.Task] = set()
+        self.prompt_in_flight = 0
         self.transcripts = CoordinationTranscriptReader(self)
         self.coordination = None
         self.session = SessionBinding(None)
@@ -171,3 +183,160 @@ class AgentController(OperationalTerminalOwner):
 
     async def operate(self, operation):
         return await asyncio.shield(self.start_operation(operation))
+
+    async def submit(self, prompt: str, *, request: PromptRequest | None = None):
+        agent = self.agent
+        command = request if request is not None else QueuePromptRequest(prompt)
+        return await self.operate(self._submit(
+            prompt, command, ClientSessionRequest(agent, agent.session_id),
+            agent.queue_attachment.scope, agent.project_root_path))
+
+    async def _submit(self, prompt, command, authority, queue_scope, project):
+        self.prompt_in_flight += 1
+        submission = asyncio.current_task() if command.defer_display else None
+        if submission is not None:
+            self._deferred_submissions.add(submission)
+        try:
+            content = await asyncio.to_thread(build_prompt, project, prompt)
+            if any(block.get('type') == 'image' for block in content):
+                coordinated = self.coordination is not None
+                supported = coordinated or (self.agent.agent_capabilities.get('promptCapabilities') or {}).get('image', False)
+                if not supported:
+                    raise ValueError('This agent owner does not support images yet; refresh it while idle.')
+            return await self._prompt(content, command, authority, queue_scope)
+        finally:
+            self.prompt_in_flight -= 1
+            if submission is not None:
+                self._deferred_submissions.discard(submission)
+
+    async def submit_blocks(self, content, command=None):
+        agent = self.agent
+        return await self.operate(self._prompt(content, command,
+            ClientSessionRequest(agent, agent.session_id), agent.queue_attachment.scope))
+
+    async def _prompt(self, content, command, authority, queue_scope):
+        agent = self.agent
+        authority.require()
+        if not agent.queue_attachment.accepts_request(queue_scope):
+            raise ValueError('The queued input owner changed before submission; inspect the current queue.')
+        with agent.request():
+            pending = api.session_prompt(content, authority.session_id,
+                encode_request(command) if command is not None else {})
+        try:
+            result = await pending.wait()
+        except jsonrpc.APIError as error:
+            if authority.retired:
+                return None
+            failure = ACPFailure.from_error(error.code, error.message, error.data)
+            self._prompt_failed(command, authority, queue_scope, failure,
+                failure.title, f'{failure.detail}\n{failure.input_disposition}\n{failure.action}')
+            return None
+        except jsonrpc.JSONRPCError as error:
+            if authority.retired:
+                return None
+            detail = error.message or 'Connection failed'
+            self._prompt_failed(command, authority, queue_scope, BackendDeliveryFailure(detail),
+                'Failed to send prompt', error.message or f"{agent._agent_data['name']} returned an error")
+            return None
+        if authority.retired:
+            return None
+        assert result is not None
+        return result.get('stopReason')
+
+    def _prompt_failed(self, command, authority, queue_scope, failure, title, detail):
+        agent = self.agent
+        user_text = command.draft_text if command is not None else None
+        if user_text:
+            agent.post_message(messages.CommsUpdated(InputFailedUpdate(user_text, failure),
+                recover_draft=True, agent=agent, session_id=authority.session_id, queue_scope=queue_scope))
+        agent.post_message(LogAgentFail(title, detail, log_path=agent.presentation.log_path))
+
+    async def clear_queue(self):
+        await self.submit_blocks([{'type': 'text', 'text': ' '}], ClearQueueRequest())
+
+    async def send_now(self):
+        authority = ClientSessionRequest(self.agent, self.agent.session_id)
+        queue_scope = self.agent.queue_attachment.scope
+        if pending := tuple(self._deferred_submissions):
+            await asyncio.gather(*(asyncio.shield(task) for task in pending))
+        return await self.operate(self._prompt(
+            [{'type': 'text', 'text': ' '}], SendNowRequest(), authority, queue_scope)) is not None
+
+    async def compact_context(self, instructions=None):
+        return await self.operate(self._compact_context(
+            instructions, ClientSessionRequest(self.agent, self.agent.session_id)))
+
+    async def _compact_context(self, instructions, authority):
+        agent = self.agent
+        authority.require()
+        with agent.request():
+            pending = api.session_prompt([{'type': 'text', 'text': ' '}],
+                authority.session_id, encode_request(CompactRequest(instructions)))
+        try:
+            response = await pending.wait()
+        except jsonrpc.APIError as error:
+            failure = ACPFailure.from_error(error.code, error.message, error.data)
+            raise ValueError(f'{failure.title}: {failure.detail}\n{failure.input_disposition}\n{failure.action}') from error
+        authority.require()
+        if response is None:
+            raise ValueError('Compaction returned no result')
+        consumer = agent.comms_consumer_class(agent, authority.session_id)
+        for fact in decode_updates(response.get('_meta')):
+            consumer.dispatch_sync(fact)
+        return consumer.require_compaction_receipt()
+
+    async def cancel_prompt(self):
+        return await self.operate(self._cancel_prompt(
+            ClientSessionRequest(self.agent, self.agent.session_id)))
+
+    async def _cancel_prompt(self, authority):
+        authority.require()
+        with self.agent.request():
+            pending = api.session_cancel(authority.session_id, {})
+        try:
+            await pending.wait()
+        except jsonrpc.APIError:
+            return False
+        return authority.current
+
+    async def request_owner(self, method: str, **params):
+        if self.coordination is None:
+            raise ValueError('This action requires an agent-comms thread.')
+        from agent_comms.runtime import RuntimeProxy, socket_path
+        from toad.owner_preparation import OwnerRequestContext
+        coordination = self.coordination
+        authority = ClientSessionRequest(self.agent, self.agent.session_id)
+        self.require_owner(coordination, authority)
+        async with self.transcripts.bind(coordination.wire_root) as comms:
+            def resolve():
+                owner = comms.registry.require(coordination.thread.name)
+                if owner.incarnation != coordination.thread:
+                    raise ValueError('The owner incarnation changed while preparing the request.')
+                return RuntimeProxy(OwnerRequestContext(comms), owner.name, socket_path(comms.root, owner.pid))
+            proxy = await asyncio.to_thread(resolve)
+        try:
+            self.require_owner(coordination, authority)
+            result = await proxy.request(method, **params)
+            self.require_owner(coordination, authority)
+            return result
+        except (RuntimeError, jsonrpc.InvalidParams) as error:
+            raise ValueError(str(error)) from error
+        finally:
+            await proxy.close()
+
+    def require_owner(self, coordination, authority):
+        if authority.retired or self.coordination is None:
+            raise ValueError('The connected owner session retired; refresh its state.')
+        if (self.coordination.wire_root, self.coordination.thread) != (coordination.wire_root, coordination.thread):
+            raise ValueError('The owner identity changed while preparing the request.')
+
+    async def input_delivery(self, *, include_history=False):
+        if self.coordination is None:
+            return {'inputs': [], 'historicalCount': 0, 'dismissedHistoricalCount': 0, 'historicalInputs': []}
+        return await self.request_owner('input_dispositions', include_history=include_history)
+
+    async def dismiss_historical_inputs(self):
+        return await self.request_owner('dismiss_historical_inputs')
+
+    async def unresolved_inputs(self):
+        return (await self.input_delivery())['inputs']

@@ -11,6 +11,7 @@ from agent_comms.acp_extension import QueuePromptRequest, SteerPromptRequest
 from agent_comms.declared_family import DeclaredFamily
 from toad import jsonrpc, messages
 from toad.conversation_turn import AgentTurn, ClientTurn
+from toad.acp.client_session import ClientSessionRequest
 from toad.widgets.user_input import UserInput
 
 
@@ -168,14 +169,14 @@ class SubmissionExecution:
     """Immutable source binding and the real outstanding local request."""
     def __init__(self, owner, submission, agent):
         self.owner, self.submission, self.agent = owner, submission, agent
-        self.session_id = agent.session_id
+        self.authority = ClientSessionRequest(agent, agent.session_id)
         self.scope = agent.queue_attachment.scope
         self.request = submission.request
 
     @property
     def current(self):
         view = self.owner.view
-        if view.agent is not self.agent or self.agent.session_id != self.session_id:
+        if view.agent is not self.agent or self.authority.retired:
             return False
         return self.agent.queue_attachment.accepts_request(self.scope)
 
@@ -280,7 +281,7 @@ class ConversationSubmissions:
 
     async def _send_now(self, agent, session, scope):
         try:
-            if await agent.send_now():
+            if await agent.controller.send_now():
                 return
         except (jsonrpc.APIError, jsonrpc.JSONRPCError, OSError, ValueError) as error:
             if self.view.agent is agent and agent.session_id == session:

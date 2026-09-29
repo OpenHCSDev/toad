@@ -45,6 +45,11 @@ class CommsUpdateConsumer(MroDispatch):
         self.cursor_token = cursor_token
         self.queue_token = queue_token
 
+    def require_compaction_receipt(self):
+        if self.compaction_receipt is None:
+            raise ValueError('Compaction result was missing')
+        return self.compaction_receipt
+
     @handles(TextRouteUpdate)
     def text_route(self, update: TextRouteUpdate) -> None:
         self.route = update.route
