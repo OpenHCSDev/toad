@@ -30,7 +30,7 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
     try:
         for name in ("beta", "gamma"):
             if name == "gamma":
-                await app.new_session_screen(lambda: MainScreen(
+                await app.session_navigation.new(lambda: MainScreen(
                     beta.project_root_path, agent=sources[0]._agent, agent_session_id="gamma"))
                 source = app.selected_session
                 sources.append(source)

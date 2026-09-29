@@ -1,4 +1,5 @@
 """Paging must preserve the reader's position on every painted frame."""
+from toad.navigation_target import NavigationContext
 
 from toad.navigation_target import channel_target
 
@@ -84,8 +85,7 @@ async def main():
             comms.threads.register(Thread("sender", frozenset({"scroll"}), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
             for index in range(140):
                 comms.messaging.send("sender", "#scroll", f"Message {index}: " + "wrapped body " * 30)
-            await app.open_comms_session(owner_mode=app.selected_mode, project_path=root,
-                                         me="sender", target=channel_target("#scroll"))
+            await channel_target("#scroll").open(NavigationContext(app, app.selected_mode, root, "sender"))
             await pilot.pause()
             chat = app.screen.query_one(CommsChatView)
             window = chat.window

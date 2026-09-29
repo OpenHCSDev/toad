@@ -98,12 +98,7 @@ async def main():
                     isinstance(app.screen, MainScreen)
                     and app.screen._session_thread == "child"
                 )
-                assert not any(
-                    (
-                        key.kind == "dm" and key.target == "child"
-                        for key in app._comms_modes
-                    )
-                )
+                assert all(tab.title != "@child" for tab in app.open_tabs)
                 view = app.selected_session.conversation
                 history = view.query_one(TranscriptHistory)
                 frame = "\n".join(

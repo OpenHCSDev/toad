@@ -98,7 +98,7 @@ async def main():
         app = ToadApp(project_dir=str(root))
         async with app.run_test() as pilot:
             await pilot.pause()
-            shared = app.coordination_wire
+            shared = app.coordination_access.service
             agent.attach_surface(app.selected_session.conversation)
             with patch(
                 "toad.acp.transcript_reader.wire",

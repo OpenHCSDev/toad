@@ -1,4 +1,5 @@
 """Channel focus owns unread markers; late messages preserve explicit follow intent."""
+from toad.navigation_target import NavigationContext
 
 from toad.navigation_target import channel_target
 
@@ -38,9 +39,7 @@ async def main():
         async with app.run_test(size=(100, 30)) as pilot:
             await pilot.pause()
             owner = app.selected_mode
-            mode = await app.open_comms_session(
-                owner_mode=owner, project_path=root, me=names[0], target=channel_target("#talk"),
-            )
+            mode = await channel_target("#talk").open(NavigationContext(app, owner, root, names[0]))
             await pilot.pause()
             chat = app.screen.query_one(CommsChatView)
             # A bounded initial page has not painted all 50 older messages.

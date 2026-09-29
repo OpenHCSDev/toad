@@ -1,0 +1,22 @@
+{
+  "core_head": "8cae0ae84d7fc094d9a8e45f1dd42199c9c12868",
+  "installed_runtime_matches_source": true,
+  "core_import": "/home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/agent_comms/__init__.py",
+  "toad_import": "/home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/toad/__init__.py",
+  "textual_import": "/home/ts/.local/share/agent-comms/runtime-source-render-reuse-20260929/lib/python3.14/site-packages/textual/__init__.py",
+  "core_distribution": {
+    "url": "file:///home/ts/wt/core372-noether-gate-20260929",
+    "dir_info": {}
+  },
+  "textual_distribution": {
+    "url": "https://github.com/OpenHCSDev/textual.git",
+    "vcs_info": {
+      "vcs": "git",
+      "commit_id": "1738abd8e3524b7e86171b70256d7f7e52fdb724",
+      "requested_revision": "1738abd8e3524b7e86171b70256d7f7e52fdb724"
+    }
+  },
+  "native_package": "/home/ts/.local/share/agent-comms/native-current-d3967e8b6ee0cf28/node_modules/@earendil-works/pi-coding-agent",
+  "actual_test_exit": 0,
+  "live_default_changed": false
+}

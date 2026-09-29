@@ -82,7 +82,7 @@ class CoordinationTranscriptReader:
             if self._reader is None or self._root != root:
                 from toad.app import ToadApp
                 app = self.controller.app
-                shared = app._coordination_wire if isinstance(app, ToadApp) else None
+                shared = app.coordination_access.observed_service if isinstance(app, ToadApp) else None
                 self._reader = (shared if shared is not None and shared.root == Path(root).expanduser()
                                 else await asyncio.to_thread(wire, root))
                 self._root = root

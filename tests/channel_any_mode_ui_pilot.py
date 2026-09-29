@@ -1,4 +1,5 @@
 """A channel menu exposes the core member-activity mode without hiding unread traffic."""
+from toad.navigation_target import NavigationContext
 
 from toad.navigation_target import channel_target
 
@@ -53,10 +54,7 @@ async def main() -> None:
             ]
             assert comms.views.viewer_snapshot(str(root)).channel_unread["#team"] == 3
 
-            await app.open_comms_session(
-                owner_mode=owner, project_path=root, me="alice",
-                target=channel_target("#team"),
-            )
+            await channel_target("#team").open(NavigationContext(app, owner, root, "alice"))
             chat = app.screen.query_one(CommsChatView)
             async with asyncio.timeout(5):
                 while not chat._history_initialized:

@@ -1,4 +1,5 @@
 """A mounted DM view cannot acknowledge a replacement peer it never painted."""
+from toad.navigation_target import NavigationContext
 
 from toad.navigation_target import DirectTarget
 
@@ -51,13 +52,7 @@ async def main():
                 async with app.run_test(size=(120, 40)) as pilot:
                     await pilot.pause()
                     owner_mode = app.selected_mode
-                    await app.open_comms_session(
-                        owner_mode=owner_mode,
-                        project_path=root,
-                        me=viewer,
-                        target=DirectTarget("peer"),
-
-                    )
+                    await DirectTarget("peer").open(NavigationContext(app, owner_mode, root, viewer))
                     chat = app.screen.query_one(CommsChatView)
                     assert await asyncio.to_thread(entered.wait, 4)
                     assert [message.body for message, _ in chat._history] == [

@@ -28,7 +28,7 @@ class WorkspaceChrome:
 
     async def select(self, view: "SessionView") -> None:
         roster = self.channels.roster
-        await roster.bind_wire(view.app.coordination_wire)
+        await roster.bind_wire(view.app.coordination_access.service)
         actor, target = view.channels_context()
         roster.session_thread = actor
         roster.selected = target

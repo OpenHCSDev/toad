@@ -92,7 +92,7 @@ async def main():
             await asyncio.wait_for(pending, 2)
 
             owner_mode = app.selected_mode
-            other = await app.new_session_screen(app.get_main_screen)
+            other = await app.session_navigation.new(app.get_main_screen)
             await app.switch_mode(owner_mode)
             await settled(view, pilot)
 
@@ -106,7 +106,7 @@ async def main():
             await asyncio.wait_for(switch_during_transaction(), 3)
             assert not view.window.history_lock.locked()
             assert view.window.history_layout_ready is None
-            await app.close_session_mode(other.mode_name)
+            await app.session_navigation.close(other.mode_name)
             for node in app._registry:
                 for watchers in vars(node).get("__watchers", {}).values():
                     assert all(not subscriber._closed for subscriber, _ in watchers)
