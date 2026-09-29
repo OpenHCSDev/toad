@@ -98,7 +98,11 @@ class RetainedBodyShelf(Widget):
 
     async def acquire(self, window: Widget) -> None:
         if not self.is_mounted:
-            await window.mount(self)
+            # The workspace frame outlives source placement. Parked bodies must
+            # not join the active Conversation's reparent/style traversal on
+            # every tab return; their actual destination styles are reconciled
+            # when the same bodies are admitted back into a history page.
+            await window.screen.mount(self)
 
 
 class ViewportPresentation:
@@ -295,6 +299,14 @@ class DocumentViewport:
         self.window.layout.clear_cache()
         self.window.refresh(layout=True)
         self.request()
+
+    async def close(self) -> None:
+        """Release this working set before its window's final retirement."""
+        await self.suspend_source()
+        if self._shelf.is_mounted:
+            await self._shelf.remove()
+        self._warm.clear()
+        self.owners.clear()
 
     def protected(self) -> set[Widget]:
         screen = self.window.screen
