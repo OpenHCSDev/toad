@@ -14,14 +14,16 @@ async def main():
     with TemporaryDirectory(dir=os.environ["TMPDIR"], prefix="body-transfer-") as directory:
         root=Path(directory)
         os.environ.update(AGENT_COMMS_ROOT=str(root/"wire"), XDG_CONFIG_HOME=str(root/"config"), XDG_STATE_HOME=str(root/"state"), XDG_DATA_HOME=str(root/"data"))
-        app=InstalledApp(project_dir=str(root))
+        project=root/"project"
+        project.mkdir()
+        app=InstalledApp(project_dir=str(project))
         async with app.run_test(size=(120,40)) as pilot:
             first=app.selected_session
-            repeated = AssistantTranscript("REPEATED_BODY_RECORD\n\n"+"persistent paragraph "*25)
+            repeated = AssistantTranscript("REPEATED_BODY_RECORD\n\n"+"persistent paragraph "*10)
             page=TranscriptPage((
-                AssistantTranscript("BODY_RECORD_0\n\n"+"persistent paragraph "*25),
+                AssistantTranscript("BODY_RECORD_0\n\n"+"persistent paragraph "*10),
                 repeated, repeated,
-                AssistantTranscript("BODY_RECORD_3\n\n"+"persistent paragraph "*25),
+                AssistantTranscript("BODY_RECORD_3\n\n"+"persistent paragraph "*10),
             ), TranscriptCursor("saved-body",0), TranscriptCursor("saved-body",4),False,False)
             async def publish():
                 view=app.selected_session.conversation
@@ -33,6 +35,7 @@ async def main():
             original=tuple(view.query(TranscriptFragmentView))
             assert len(original) == 4 and original[1].fragment == original[2].fragment
             assert original[1].identity != original[2].identity
+            assert all(body.body_ready for body in original)
             assert "BODY_RECORD_3" in conversation_paint(app.screen)
             await app.session_navigation.new(app.session_navigation.default_source)
             await app.select_session(first.id)
