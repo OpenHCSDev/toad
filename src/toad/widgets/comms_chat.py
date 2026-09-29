@@ -13,7 +13,6 @@ from collections.abc import Callable
 from pathlib import Path
 
 from agent_comms.comms import Comms
-from agent_comms.message_page import MessagePage
 from toad.message_viewport import NotificationViewport
 from toad.constants import COMMS_REFRESH_INTERVAL
 from agent_comms.messages import Message as WireMessage

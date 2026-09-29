@@ -1,0 +1,120 @@
+╭───────────────────── Traceback (most recent call last) ──────────────────────╮
+│ /home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/p │
+│ ython3.14/site-packages/toad/mounted_message_history.py:364 in mark_visible  │
+│                                                                              │
+│   361 │   │   │   self.view.run_worker(self.mark_historical(historical, sele │
+│   362 │   │   │   return                                                     │
+│   363 │   │   painted = {sequence for source, sequence in visible if not sou │
+│ ❱ 364 │   │   selected = self.view.conversation_kind.painted_page(self, pain │
+│   365 │   │   if selected is None:                                           │
+│   366 │   │   │   return                                                     │
+│   367 │   │   page, original_page = selected                                 │
+│                                                                              │
+│ ╭───────────────────────────────── locals ─────────────────────────────────╮ │
+│ │   historical = None                                                      │ │
+│ │ mounted_keys = {                                                         │ │
+│ │                │   ('', 1),                                              │ │
+│ │                │   ('', 7),                                              │ │
+│ │                │   ('', 4),                                              │ │
+│ │                │   ('', 3),                                              │ │
+│ │                │   ('', 6),                                              │ │
+│ │                │   ('', 2),                                              │ │
+│ │                │   ('', 5),                                              │ │
+│ │                │   ('', 8)                                               │ │
+│ │                }                                                         │ │
+│ │      painted = {8}                                                       │ │
+│ │         self = <toad.mounted_message_history.MountedMessageHistory       │ │
+│ │                object at 0x7f83fc8d0d70>                                 │ │
+│ │      visible = {('', 8)}                                                 │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
+│                                                                              │
+│ /home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/p │
+│ ython3.14/site-packages/toad/conversation_kind.py:165 in painted_page        │
+│                                                                              │
+│   162 │   @classmethod                                                       │
+│   163 │   def painted_page(cls, history, painted):                           │
+│   164 │   │   mounted = {                                                    │
+│ ❱ 165 │   │   │   message.seq for message, _ in history.rows if not message. │
+│   166 │   │   }                                                              │
+│   167 │   │   history.channel_receipts = {                                   │
+│   168 │   │   │   seq: source                                                │
+│                                                                              │
+│ ╭───────────────────────────────── locals ─────────────────────────────────╮ │
+│ │ history = <toad.mounted_message_history.MountedMessageHistory object at  │ │
+│ │           0x7f83fc8d0d70>                                                │ │
+│ │ painted = {8}                                                            │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
+╰──────────────────────────────────────────────────────────────────────────────╯
+AttributeError: 'Message' object has no attribute 'history_key'
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-channel-history-custody-sol-20260929/tests/channel_partial_paint_pilot.py", line 52, in main
+    await pilot.pause(.02)
+  File "/home/ts/.local/share/agent-comms/runtime-idle-warm-source-20260929/lib/python3.14/site-packages/textual/pilot.py", line 546, in pause
+    await asyncio.sleep(delay)
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py", line 702, in sleep
+    return await future
+           ^^^^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/ts/.local/share/agent-comms/runtime-idle-warm-source-20260929/lib/python3.14/site-packages/textual/app.py", line 2210, in run_test
+    yield pilot
+  File "/home/ts/wt/toad-channel-history-custody-sol-20260929/tests/runtime_fixture.py", line 63, in run_test
+    yield pilot
+  File "/home/ts/wt/toad-channel-history-custody-sol-20260929/tests/channel_partial_paint_pilot.py", line 50, in main
+    async with asyncio.timeout(5):
+               ~~~~~~~~~~~~~~~^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/timeouts.py", line 114, in __aexit__
+    raise TimeoutError from exc_val
+TimeoutError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-channel-history-custody-sol-20260929/tests/channel_partial_paint_pilot.py", line 76, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-channel-history-custody-sol-20260929/tests/channel_partial_paint_pilot.py", line 46, in main
+    async with app.run_test(size=(90, 24)) as pilot:
+               ~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 235, in __aexit__
+    await self.gen.athrow(value)
+  File "/home/ts/wt/toad-channel-history-custody-sol-20260929/tests/runtime_fixture.py", line 62, in run_test
+    async with super().run_test(**kwargs) as pilot:
+               ~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 235, in __aexit__
+    await self.gen.athrow(value)
+  File "/home/ts/.local/share/agent-comms/runtime-idle-warm-source-20260929/lib/python3.14/site-packages/textual/app.py", line 2218, in run_test
+    raise self._exception
+  File "/home/ts/.local/share/agent-comms/runtime-idle-warm-source-20260929/lib/python3.14/site-packages/textual/message_pump.py", line 749, in _flush_next_callbacks
+    await invoke(callback.callback)
+  File "/home/ts/.local/share/agent-comms/runtime-idle-warm-source-20260929/lib/python3.14/site-packages/textual/_callback.py", line 96, in invoke
+    return await _invoke(callback, *params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-idle-warm-source-20260929/lib/python3.14/site-packages/textual/_callback.py", line 58, in _invoke
+    result = await result
+             ^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-idle-warm-source-20260929/lib/python3.14/site-packages/textual/screen.py", line 1285, in _invoke_and_clear_callbacks
+    await invoke(callback)
+  File "/home/ts/.local/share/agent-comms/runtime-idle-warm-source-20260929/lib/python3.14/site-packages/textual/_callback.py", line 96, in invoke
+    return await _invoke(callback, *params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-idle-warm-source-20260929/lib/python3.14/site-packages/textual/_callback.py", line 56, in _invoke
+    result = callback(*params[:parameter_count])
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/mounted_message_history.py", line 364, in mark_visible
+    selected = self.view.conversation_kind.painted_page(self, painted)
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/conversation_kind.py", line 165, in painted_page
+    message.seq for message, _ in history.rows if not message.history_key[0]
+                                                      ^^^^^^^^^^^^^^^^^^^
+AttributeError: 'Message' object has no attribute 'history_key'

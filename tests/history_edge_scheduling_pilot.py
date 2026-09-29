@@ -157,12 +157,12 @@ async def main():
                     chat.window.scroll_to(y=0, animate=False, immediate=True)
                     chat.message_history.on_scroll()
                     await asyncio.sleep(.04)
-                    await asyncio.wait_for(app.switch_mode(owner), 2)
+                    await asyncio.wait_for(app.select_session(owner), 2)
                     chat.message_history.lock.release()
                     held = False
                     await until(lambda: not chat.message_history.edge_scheduled)
                     reads.assert_not_called()
-                    await app.switch_mode(mode)
+                    await app.select_session(mode)
                     await until(lambda: chat.message_history.rows[0][0].seq < oldest)
                     await until(lambda: not chat.message_history.edge_scheduled)
             finally:
@@ -188,7 +188,7 @@ async def main():
                     chat.window.scroll_to(y=0, animate=False, immediate=True)
                     chat.message_history.on_scroll()
                     assert await asyncio.to_thread(entered.wait, 2)
-                    await app.switch_mode(owner)
+                    await app.select_session(owner)
                     release.set()
                     await until(lambda: not chat.message_history.edge_scheduled)
                     assert tuple(message.seq for message, _ in chat.message_history.rows) == records
@@ -196,7 +196,7 @@ async def main():
             finally:
                 release.set()
 
-            await app.switch_mode(mode)
+            await app.select_session(mode)
             await until(lambda: not chat.message_history.edge_scheduled and not chat.message_history.lock.locked())
             await chat.message_history.lock.acquire()
             try:

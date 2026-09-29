@@ -21,6 +21,10 @@ HISTORY_EDGE_THRESHOLD = 2
 
 
 class WireMessageStyle(DeclaredFamily, affix="MessageStyle"):
+    @property
+    @abstractmethod
+    def row_type(self): ...
+
     @abstractmethod
     def next(self): ...
 

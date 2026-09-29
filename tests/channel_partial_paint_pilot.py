@@ -68,12 +68,12 @@ async def main():
                             await pilot.pause(.02)
                 assert comms.bus.reads.seen_sequences(viewer, comms.registry.snapshot()) == {row.seq for row in rows}
                 recorded = tuple(message.view_key for message, _ in chat.message_history.rows)
-                await pilot.press('ctrl+g')
+                await pilot.press('ctrl+t')
                 async with asyncio.timeout(5):
                     while not isinstance(chat.message_history.style, MarkdownMessageStyle):
                         await pilot.pause(.02)
                 assert 'row 7' in '\n'.join(strip.text for strip in app.screen._compositor.render_strips())
-                await pilot.press('ctrl+g')
+                await pilot.press('ctrl+t')
                 async with asyncio.timeout(5):
                     while not isinstance(chat.message_history.style, IrcMessageStyle):
                         await pilot.pause(.02)

@@ -23,6 +23,25 @@
       }
     }
   },
+  "src/toad/mounted_message_history.py": {
+    "before": {
+      "absence": 0,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {}
+    },
+    "after": {
+      "absence": 0,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {
+        "WireMessageStyle": 10,
+        "IrcMessageStyle": 5,
+        "MarkdownMessageStyle": 5,
+        "MountedMessageHistory": 382
+      }
+    }
+  },
   "src/toad/screens/comms.py": {
     "before": {
       "absence": 0,
@@ -60,25 +79,6 @@
         "HistoryLoading": 2,
         "ChannelActivityTray": 2,
         "CommsChatView": 388
-      }
-    }
-  },
-  "src/toad/mounted_message_history.py": {
-    "before": {
-      "absence": 0,
-      "chain": 0,
-      "excess500": 0,
-      "classes": {}
-    },
-    "after": {
-      "absence": 0,
-      "chain": 0,
-      "excess500": 0,
-      "classes": {
-        "WireMessageStyle": 6,
-        "IrcMessageStyle": 5,
-        "MarkdownMessageStyle": 5,
-        "MountedMessageHistory": 382
       }
     }
   }
