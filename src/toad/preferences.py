@@ -1,5 +1,15 @@
 """The current durable preference tree; declarations own values and effects."""
 
+import asyncio
+from functools import partial
+import json
+from pathlib import Path
+from uuid import uuid4
+from collections.abc import Awaitable, Callable
+from typing import TYPE_CHECKING, Any
+
+from toad import atomic, paths
+
 from toad import setting_effects as effects
 from toad.render_choices import RendererChoice, LocalRenderer
 from toad.setting_choices import (
@@ -28,7 +38,15 @@ from toad.settings import (
     SettingsGroup,
     StringSetting,
     TextSetting,
+    PreferenceChange,
 )
+
+if TYPE_CHECKING:
+    from toad.app import ToadApp
+
+
+def raise_save_error(error: atomic.AtomicWriteError) -> None:
+    raise error
 
 
 class RendererSettings(SettingsGroup):
@@ -263,6 +281,10 @@ class LauncherSettings(SettingsGroup):
 
 
 class StatisticsSettings(SettingsGroup):
+    async def collect(self, operation: Callable[[], Awaitable[None]]) -> None:
+        if self.allow_collect:
+            await operation()
+
     allow_collect = BooleanSetting(
         title="Allow collection of anonymous usage data?",
         default=True,
@@ -272,6 +294,67 @@ class StatisticsSettings(SettingsGroup):
 
 
 class ToadSettings(SettingsGroup):
+    def __init__(self, *args: Any, report_error: Callable[[atomic.AtomicWriteError], None] = raise_save_error,
+                 **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.report_error = report_error
+        self.save_lock = asyncio.Lock()
+
+    @staticmethod
+    def file_path() -> Path:
+        return paths.get_config() / "toad.json"
+
+    @classmethod
+    def open(cls, app: ToadApp):
+        path = cls.file_path()
+        raw = json.loads(path.read_text("utf-8")) if path.exists() else {}
+        return cls(raw, notify=partial(cls.apply_change, app),
+                   report_error=partial(cls.report_failure, app))
+
+    @staticmethod
+    def apply_change(app: ToadApp, change: PreferenceChange) -> None:
+        change.apply(app)
+        app.settings_changed_signal.publish(change)
+
+    @staticmethod
+    def report_failure(app: ToadApp, error: atomic.AtomicWriteError) -> None:
+        app.notify(str(error), title="Settings", severity="error")
+
+    def ensure_file(self, app: ToadApp) -> None:
+        path = self.file_path()
+        if not path.exists():
+            self.save_sync(force=True)
+            if path.is_file():
+                app.notify(f"Wrote default settings to {path}", title="Settings")
+
+    def ensure_installation(self) -> bool:
+        if self.anon_id:
+            return False
+        self.anon_id = str(uuid4())
+        self.save_sync()
+        return True
+
+    async def save(self, force: bool = False) -> None:
+        async with self.save_lock:
+            await asyncio.to_thread(self.save_sync, force)
+
+    async def save_before_exit(self, exit: Callable[[], None]) -> None:
+        """Only the current persisted preference tree permits closing the app."""
+        await self.save()
+        if not self.changed:
+            exit()
+
+    def save_sync(self, force: bool = False) -> None:
+        if force or self.changed:
+            snapshot = self.json
+            try:
+                atomic.write(str(self.file_path()), snapshot)
+            except atomic.AtomicWriteError as error:
+                self.report_error(error)
+            else:
+                if self.json == snapshot:
+                    self.up_to_date()
+
     anon_id = StringSetting(
         title="Anonymous installation ID",
         default="",

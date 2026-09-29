@@ -54,4 +54,9 @@ class SettingsScreen(ModalScreen):
 
     async def action_dismiss(self, result: ScreenResultType | None = None) -> None:
         self.query("#search").focus()
-        self.call_after_refresh(self.dismiss, result)
+        self.call_after_refresh(self.finish_edit, result)
+
+    def finish_edit(self, result: ScreenResultType | None = None) -> None:
+        # Textual invokes and awaits callback results. Dismiss schedules stack
+        # cleanup; returning its AwaitComplete would wait on this modal's exit.
+        self.dismiss(result)

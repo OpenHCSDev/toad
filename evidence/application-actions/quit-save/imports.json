@@ -1,0 +1,27 @@
+{
+  "batrachian-toad": {
+    "url": "file:///home/ts/wt/toad-quit-save-sol-20260929",
+    "dir_info": {}
+  },
+  "agent-comms": {
+    "url": "https://github.com/OpenHCSDev/agent-comms.git",
+    "vcs_info": {
+      "vcs": "git",
+      "commit_id": "670f099525163235cc14c8436298eed009bf1c4d",
+      "requested_revision": "670f099525163235cc14c8436298eed009bf1c4d"
+    }
+  },
+  "textual": {
+    "url": "https://github.com/OpenHCSDev/textual.git",
+    "vcs_info": {
+      "vcs": "git",
+      "commit_id": "609b74bf3d7851bd2c1eff61dc2790e86e1925af",
+      "requested_revision": "609b74bf3d7851bd2c1eff61dc2790e86e1925af"
+    }
+  },
+  "files": [
+    "/home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/toad/preferences.py",
+    "/home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/toad/application_lifetime.py"
+  ],
+  "production_head": "dd47f1a0c45720dfa6da2589b5ddd0fb81a2a74c"
+}

@@ -1,0 +1,433 @@
+STARTING_INSTALLED_NORMAL_APP
+NORMAL_APP_MOUNTED
+PHYSICAL_SDK_READY
+OPENING_SETTINGS_MODAL
+SETTINGS_KEY_RETURNED SettingsScreen
+SETTINGS_EDIT_VISIBLE 100
+STALL_SCREEN WorkspaceScreen exception None
+PENDING_TASK message pump Static(classes='title') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump VerticalGroup(classes='setting-object') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump SidebarResizeHandle(id='sidebar-resize-handle') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump SelectOverlay() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump VerticalGroup(classes='heading') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump VerticalGroup(id='setting-group', classes='setting-group') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='title') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump StatusLine() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump VerticalGroup(name='user interface settings theme', classes='setting') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='help') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump SelectCurrent() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='title') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='help') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump GoalText(classes='goal-summary') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Label(id='title') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump SettingsScreen() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump VerticalGroup(name='user interface settings show sessions bar?', classes='setting') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump VerticalGroup(name='diff view settings display preference', classes='setting') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='help') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Footer(id='workspace-footer') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump VerticalGroup(classes='heading') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Vertical(id='session-content') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Question() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump SelectOverlay() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump VerticalGroup(name='sidebar settings show archived threads in channels?', classes='setting') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump ContentSwitcher() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump FooterKey() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump BooleanEditor(name='ui.status-line', classes='input -on') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump VerticalGroup(name='notification (toasts) settings desktop notification when agent has finished?', classes='setting') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Vertical(id='sidebar-controls') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='title') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='help') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump VerticalGroup(classes='setting-object') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump InputEditor(name='shell.command', classes='input -valid') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump ScrollBar(name='vertical', classes='-textual-system', window_virtual_size=100, window_size=0, position=0, thickness=2) /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump ChannelDisclosure() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump NonSelectableStatic(classes='arrow up-arrow') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='help') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump HorizontalGroup(id='info-container') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump VerticalGroup(name='user interface settings enable info bar?', classes='setting') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump MainMenuButton(id='main-menu') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump SidebarHeader(classes='sidebar-header') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump SideBarToggle() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump SessionDetails(id='session-details') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump CommsRow(classes='group-title channel-header') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Horizontal(id='workspace-body') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='help') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump FooterKey() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK Task-2 /home/ts/wt/toad-thread-opening-sol-20260929/tests/application_actions_installed_journey.py observe_stall 71
+PENDING_TASK message pump VerticalGroup(classes='heading') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump NonSelectableStatic(id='label') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK set_interval#1 /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/timer.py _run_timer 148
+PENDING_TASK message pump VerticalGroup(id='setting-group', classes='setting-group') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump SideBarToggle() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK set_interval#1 /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/timer.py _run_timer 148
+PENDING_TASK message pump NonSelectableStatic(classes='down-arrow arrow') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump SelectionOptionList() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump FooterKey() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK set_interval#1 /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/timer.py _run_timer 148
+PENDING_TASK message pump Static(classes='title') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK set_interval#1 /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/timer.py _run_timer 148
+PENDING_TASK message pump QueueSummary(classes='queue-summary') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='title') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='title') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump NonSelectableStatic(id='label') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump FooterKey(classes='-disabled') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='help') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump BooleanEditor(name='statistics.allow_collect', classes='input') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump GoalText(classes='goal-progress') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump ModeSwitcher() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='title') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='help') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump NonSelectableStatic(classes='down-arrow arrow') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump TurnActivity() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump HorizontalGroup(id='text-prompt') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Contents() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump ChannelUnread() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='title') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='title') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK set_interval#1 /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/timer.py _run_timer 148
+PENDING_TASK message pump MainScreen(id='session-1') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump ChannelUnread() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump VerticalGroup(name='user interface settings additional lines', classes='setting') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='help') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump VerticalGroup(classes='search-container') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='help') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump VerticalGroup(id='setting-group', classes='setting-group') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump SidebarViewport(id='sidebar-panels') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK set_interval#1 /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/timer.py _run_timer 148
+PENDING_TASK message pump Static(classes='title') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump StandbyPulse() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='title') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump VerticalGroup(name='diff view settings wrap code?', classes='setting') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump NonSelectableStatic(classes='arrow up-arrow') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump HorizontalGroup(classes='goal-controls') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump SelectCurrent() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump ChoiceEditor(name='tools.expand', classes='input') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='help') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump TabHistoryButton(id='tab-back') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump ObservedThreadActivity() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump VerticalGroup(id='contents') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump VerticalGroup(name='user interface settings show read-only recovery status?', classes='setting') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump TextEditor(name='shell.file_commands', classes='input') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump SelectOverlay() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Horizontal(id='sidebar-layout-actions') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump HorizontalGroup(classes='delivery-controls') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump BooleanEditor(name='sidebar.show_archived', classes='input') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='title') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='title') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump TabHistoryButton(id='tab-forward') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump FuzzyInput(classes='-textual-compact') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump VerticalGroup(name='user interface settings flash duration', classes='setting') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK set_interval#1 /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/timer.py _run_timer 148
+PENDING_TASK message pump VerticalGroup(name='notification (toasts) settings allow sound in notifications?', classes='setting') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK set_interval#1 /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/timer.py _run_timer 148
+PENDING_TASK message pump NonSelectableStatic(classes='arrow up-arrow') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump VerticalGroup(id='setting-group', classes='setting-group') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='help') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK set_interval#1 /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/timer.py _run_timer 148
+PENDING_TASK message pump VerticalGroup(name='user interface settings automatic copy', classes='setting') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump TextEditor(name='shell.directory_commands', classes='input') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump VerticalGroup(name='user interface settings show status line in the info bar?', classes='setting') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump NonSelectableStatic(id='label') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump SessionSort() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump SidebarSlider(id='sidebar-width-slider') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='title') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump SidebarViewport(id='sidebar-panels') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump SessionSurfaceSlot() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump NonSelectableStatic(classes='down-arrow arrow') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump TextEditor(name='shell.command_start', classes='input') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK run_test InstalledApp(title='InstalledApp', classes={'-dark-mode'}, pseudo_classes={'focus', 'nocolor', 'dark'}) /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/app.py run_app 2191
+PENDING_TASK message pump ChannelListSort() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump ModeInfo() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='help') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='help') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='help') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump TextEditor(name='shell.allow_commands', classes='input') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='title') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK set_interval#1 /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/timer.py _run_timer 148
+PENDING_TASK set_interval#1 /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/timer.py _run_timer 148
+PENDING_TASK message pump VerticalGroup(id='path-search-fuzzy') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='message') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Cursor() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='title') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Conversation(classes='-initial-loading') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump VerticalGroup(name='user interface settings compact text input?', classes='setting') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump ChoiceEditor(name='notifications.system', classes='input') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Screen(id='_default') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump GoalText(classes='goal-execution') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='title') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='help') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump VerticalGroup(id='setting-group', classes='setting-group') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='help') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump VerticalGroup(id='path-search-tree') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump ChannelDisclosure() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump VerticalGroup(classes='heading') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump SessionThreadSidebar(id='thread-sidebar', classes='-right') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump FooterKey() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='help') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK set_interval#1 /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/timer.py _run_timer 148
+PENDING_TASK message pump ChoiceEditor(name='diff.view', classes='input') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump SidebarAction(id='sidebar-left', classes='-direction') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump NativeHistory() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump CommsRow(classes='group-title channel-header') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump VerticalGroup(name='user interface settings prompt message', classes='setting') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='title') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump SidebarAction(id='sidebar-right', classes='-direction') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK set_interval#1 /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/timer.py _run_timer 148
+PENDING_TASK message pump FuzzyPathOptionList() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump SessionSort() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='title') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump NonSelectableStatic(classes='arrow up-arrow') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='help') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='help') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump NewSessionButton() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='help') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='title') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump VerticalGroup(name='diff view settings show annotations (+/- symbols)?', classes='setting') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='title') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Throbber(id='throbber') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump VerticalGroup(name='user interface settings enable column?', classes='setting') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump VerticalGroup(name='shell settings warn against potentially destructive commands?', classes='setting') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump GoalControl(id='goal-history') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump AgentInfo() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='help') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump VerticalGroup(name='notification (toasts) settings blink terminal title when input is required?', classes='setting') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump VerticalGroup(name='shell settings shell command completions', classes='setting') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump SelectCurrent() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump VerticalGroup(name='shell settings directory commands', classes='setting') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump VerticalGroup(name='user interface settings enable footer?', classes='setting') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump InputEditor(name='ui.prompt_message', classes='input -valid') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='title') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump VerticalGroup(name='shell settings file commands', classes='setting') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump BooleanEditor(name='ui.recovery-view', classes='input') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump SelectOverlay() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump NonSelectableStatic(id='label') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump GoalControl(id='goal-collapse') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK Task-30 /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/toad/acp/agent_process.py run 159
+PENDING_TASK message pump Static(classes='help') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump MessageDivider() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump VerticalGroup(name='user interface settings scrollbar size', classes='setting') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump BooleanEditor(name='notifications.blink_title', classes='input -on') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump SidebarAction(id='sidebar-float') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK Animator /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/timer.py _run_timer 148
+PENDING_TASK message pump Static(classes='help') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump VerticalGroup(name='notification (toasts) settings show toad notifications on your desktop?', classes='setting') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump VerticalGroup(name='tool call settings tool call expand', classes='setting') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='help') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump PromptContainer(id='prompt-container') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump VerticalGroup(name='user interface settings thinking animation', classes='setting') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='title') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump BooleanEditor(name='shell.warn_dangerous', classes='input -on') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Center() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='title') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump WorkspaceHeader(id='tab-navigation-header') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump BooleanEditor(name='diff.annotations', classes='input') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump ModelSwitcher() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='title') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump VerticalGroup(name='shell settings shell command', classes='setting') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='help') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='title') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK screen_update /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/timer.py _run_timer 148
+PENDING_TASK message pump VerticalGroup(name='user interface settings width of the column', classes='setting') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK screen_update /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/timer.py _run_timer 148
+PENDING_TASK message pump VerticalGroup(name='notification (toasts) settings limit desktop notifications to warning and errors?', classes='setting') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump VerticalGroup(name='shell settings startup commands', classes='setting') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump InputDeliveryBar() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK set_interval#1 /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/timer.py _run_timer 148
+PENDING_TASK message pump VerticalGroup(name='user interface settings target lines', classes='setting') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='help') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='title') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump BooleanEditor(name='ui.info-bar', classes='input -on') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK screen_update /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/timer.py _run_timer 148
+PENDING_TASK message pump Static(classes='help') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump ChannelsSidebar(id='channels-sidebar') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump SlashComplete() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='help') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Container(id='workspace-session-host') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump MarkdownParagraph(name='paragraph_open', classes='level-0') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump VerticalGroup(name='user interface settings show agent title the info bar?', classes='setting') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='title') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump VerticalGroup(name='data collection allow collection of anonymous usage data?', classes='setting') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump GoalControl(id='goal-toggle') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump CondensedPath() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump NonSelectableStatic(classes='down-arrow arrow') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump CommsSidebar() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump FooterKey() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump GoalControl(id='goal-edit') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump ConnectProvider() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump VerticalGroup(name='user interface settings rendering backend', classes='setting') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='help') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK set_interval#1 /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/timer.py _run_timer 148
+PENDING_TASK message pump Static(classes='help') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump BooleanEditor(name='sidebar.hide', classes='input') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump VerticalGroup(classes='heading') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump CollapsibleTitle() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump GoalControl(id='goal-clear') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump VerticalScroll(classes='goal-document') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump ChannelDisclosure() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='title') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump SideBarCollapsible(classes='-flex') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Label(id='prompt') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump HorizontalGroup(classes='user-input-body') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='help') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Vertical(id='prompt-stack') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Contents(id='contents') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK set_interval#1 /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/timer.py _run_timer 148
+PENDING_TASK set_interval#1 /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/timer.py _run_timer 148
+PENDING_TASK message pump CommsRow(classes='group-title channel-header') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump ChoiceEditor(name='diff.wrap', classes='input') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump PathSearch() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump NonSelectableStatic(id='label') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump SelectionOptionList() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK set_interval#1 /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/timer.py _run_timer 148
+PENDING_TASK message pump BooleanEditor(name='ui.auto_copy', classes='input -on') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump NonSelectableStatic(classes='down-arrow arrow') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump FooterKey(classes='-command-palette') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(id='delivery-summary') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='title') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump VerticalGroup(classes='setting-object') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='help') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='title') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump ChoiceEditor(name='ui.sessions-bar', classes='input') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump ChoiceEditor(name='ui.scrollbar', classes='input') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump VerticalGroup(classes='setting-object') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump NonSelectableStatic(classes='arrow up-arrow') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK complete removal /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/await_remove.py _finish 53
+PENDING_TASK set_interval#1 /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/timer.py _run_timer 148
+PENDING_TASK message pump Static(classes='title') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK Task-311 /home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py wait 213
+PENDING_TASK message pump VerticalGroup(id='setting-group', classes='setting-group') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='help') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump HorizontalGroup(classes='goal-execution-row') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='help') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump SelectCurrent() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump SessionTabClose(id='close-session-1') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='help') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump BooleanEditor(name='ui.column', classes='input') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump ChannelGroup() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='title') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump NonSelectableStatic(classes='arrow up-arrow') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump BooleanEditor(name='notifications.turn_over', classes='input -on') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump ChannelGroup() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump BooleanEditor(name='ui.compact-input', classes='input') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump CollapsibleTitle() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='title') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump ContentsGrid() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump CursorContainer(id='cursor-container') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(id='delivery-history-summary') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump VerticalGroup(classes='setting-object') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Label() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump ChoiceEditor(name='ui.renderer', classes='input') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump SelectOverlay() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK Task-304 /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/app.py do_pop 3119
+PENDING_TASK set_interval#1 /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/timer.py _run_timer 148
+PENDING_TASK message pump ChannelUnread() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='help') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump BooleanEditor(name='notifications.enable_sounds', classes='input -on') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump SidebarHeader(classes='group-header') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump MessageDivider() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Input(classes='-textual-compact') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump SidebarHeader(classes='group-header') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump NonSelectableStatic(id='label') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='goal-header') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump ChannelGroup() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump SidebarMembers(classes='group-members channel-members') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump NonSelectableLabel(id='prompt') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump VerticalGroup(classes='heading') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump SelectCurrent() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump NonSelectableStatic(classes='down-arrow arrow') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='title') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump PreparedConversationMarkdown(id='content') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Flash() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump NonSelectableStatic(id='label') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump SelectOverlay() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='title') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump BooleanEditor(name='agent.thoughts', classes='input -on') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump VerticalGroup(id='setting-group', classes='setting-group') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='help') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK set_interval#1 /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/timer.py _run_timer 148
+PENDING_TASK message pump TabHistoryControls() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump SessionLabel(id='session-1') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='help') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump ChoiceEditor(name='ui.theme', classes='input') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump SessionsTabs() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Contents() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump BooleanEditor(name='ui.agent-title', classes='input -on') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='title') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump NonSelectableStatic(classes='arrow up-arrow') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Underline() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Prompt() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='help') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump SendNow() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(id='delivery-error') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump VerticalGroup(id='option-container') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump SessionSort() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK set_interval#1 /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/timer.py _run_timer 148
+PENDING_TASK message pump NonSelectableStatic(classes='arrow up-arrow') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump NonSelectableStatic(classes='down-arrow arrow') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='model-count') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump BooleanEditor(name='ui.footer', classes='input -on') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='help') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='title') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump SelectCurrent() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump ChoiceEditor(name='ui.throbber', classes='input') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump NonSelectableStatic(id='label') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump VerticalGroup(name='sidebar settings show stopped threads in channels?', classes='setting') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump SelectOverlay() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump HorizontalGroup(id='title-container') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='title') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump NonSelectableStatic(classes='down-arrow arrow') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump VerticalGroup(classes='heading') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Window() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump AgentResponse(classes='-unrouted block -message-agent') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump SidebarHeader(classes='group-header') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='title') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump VerticalGroup(classes='heading') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump SidebarMembers(classes='group-members channel-members') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Vertical(id='contents') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='title') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='title') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump BooleanEditor(name='notifications.hide_low_severity', classes='input -on') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump SelectCurrent() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump WorkspaceScreen(id='workspace') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Input(id='search') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='help') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK Task-310 /home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py wait 213
+PENDING_TASK message pump MarkdownParagraph(name='paragraph_open', classes='level-0') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Footer() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump VerticalGroup(classes='setting-object') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump InputEditor(name='ui.flash_duration', classes='input -valid') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump UserInput(classes='-message-user -unrouted') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump InputEditor(name='ui.column-width', classes='input -valid') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump SelectOverlay() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump SlashCompleteInput(classes='-textual-compact') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump DeliveryInspect(id='delivery-inspect') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='help') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='title') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump InputEditor(name='ui.prune_excess', classes='input -valid') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump NonSelectableStatic(classes='arrow up-arrow') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='title') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump SelectCurrent() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='help') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump PromptTextArea(classes='-textual-compact') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump NonSelectableStatic(id='label') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump ScrollBar(name='vertical', classes='-textual-system', window_virtual_size=100, window_size=0, position=0, thickness=2) /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump VerticalGroup(id='setting-group', classes='setting-group') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='help') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump SelectOverlay() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='help') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump InputEditor(name='ui.prune_low_mark', classes='input -valid') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump NonSelectableStatic(classes='down-arrow arrow') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump VerticalGroup(classes='setting-object') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump VerticalGroup(name='sidebar settings hide the sidebar when not in use?', classes='setting') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump BooleanEditor(name='sidebar.show_stopped', classes='input -on') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump VerticalScroll(id='settings-container') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump GoalBar() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump ScrollBar(name='vertical', classes='-textual-system', window_virtual_size=100, window_size=0, position=0, thickness=2) /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump SidebarMembers(classes='group-members channel-members') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump VerticalGroup(classes='setting-object') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK Task-1 /home/ts/wt/toad-thread-opening-sol-20260929/tests/application_actions_installed_journey.py run 169
+PENDING_TASK message pump SelectCurrent() /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump Static(classes='title') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+PENDING_TASK message pump VerticalGroup(name='agent settings agent thoughts', classes='setting') /home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py _process_messages 604
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/resource_tracker.py:396: UserWarning: resource_tracker: There appear to be 5 leaked semaphore objects to clean up at shutdown: {'/mp-cmggg8z7', '/mp-mx9o4kl7', '/mp-kkniw15j', '/mp-rav5axxd', '/mp-5i85yog5'}
+  warnings.warn(

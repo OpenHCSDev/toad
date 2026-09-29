@@ -1,0 +1,57 @@
+STARTING_INSTALLED_NORMAL_APP
+NORMAL_APP_MOUNTED
+PHYSICAL_SDK_READY
+OPENING_SETTINGS_MODAL
+SETTINGS_KEY_RETURNED SettingsScreen
+SETTINGS_EDIT_VISIBLE 100
+SETTINGS_ESCAPE_RETURNED WorkspaceScreen 123
+PHYSICAL_FIRST_REPLY_HELP_SETTINGS_BLUR_SAVE_FRAME_DRAFT_IDENTITY_PASS
+REAL_PALETTE_NEW_DECLARATION_AND_PERSISTED_FOOTER_PAINT_PASS
+PHYSICAL_CHANNELS_NEW_SESSION_AND_CLOSE_THROUGH_NOMINAL_REQUEST_OWNER_PASS
+REAL_WRITE_FAILURE_VISIBLE_DIRTY_VALUE_RETRY_AND_TEMP_RETIREMENT_PASS
+OPENING_SETTINGS_MODAL
+SETTINGS_KEY_RETURNED SettingsScreen
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-quit-save-sol-20260929/tests/sidebar_retirement_pilot.py", line 36, in until
+    await pilot.pause(.02)
+  File "/home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/pilot.py", line 542, in pause
+    await self._wait_for_screen()
+  File "/home/ts/wt/toad-thread-opening-sol-20260929/.venv/lib/python3.14/site-packages/textual/pilot.py", line 513, in _wait_for_screen
+    _, pending = await asyncio.wait(
+                 ^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py", line 432, in wait
+    return await _wait(fs, timeout, return_when, loop)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py", line 521, in _wait
+    await waiter
+asyncio.exceptions.CancelledError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-quit-save-sol-20260929/tests/application_actions_installed_journey.py", line 179, in <module>
+    if __name__=='__main__':asyncio.run(run())
+                            ~~~~~~~~~~~^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-quit-save-sol-20260929/tests/application_actions_installed_journey.py", line 174, in run
+    await main()
+  File "/home/ts/wt/toad-quit-save-sol-20260929/tests/application_actions_installed_journey.py", line 146, in main
+    await until(pilot,lambda:'Failed to write' in '\n'.join(
+        strip.text for strip in app.screen._compositor.render_strips()))
+  File "/home/ts/wt/toad-quit-save-sol-20260929/tests/sidebar_retirement_pilot.py", line 34, in until
+    async with asyncio.timeout(12):
+               ~~~~~~~~~~~~~~~^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/timeouts.py", line 114, in __aexit__
+    raise TimeoutError from exc_val
+TimeoutError

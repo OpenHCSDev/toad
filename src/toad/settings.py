@@ -284,6 +284,9 @@ class SettingsGroup:
 
 
 class BooleanSetting(SettingKind[bool]):
+    def toggle(self, group: SettingsGroup) -> None:
+        self.__set__(group, not self.__get__(group))
+
     def parse(self, raw: object) -> bool:
         return FieldCodec.decode(bool, raw)
 
