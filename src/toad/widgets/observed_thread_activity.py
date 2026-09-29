@@ -4,6 +4,7 @@ import asyncio
 from collections.abc import Awaitable, Callable
 
 from toad.constants import COMMS_REFRESH_INTERVAL
+from toad.screens.session_view import SessionView
 from agent_comms.thread_presentation import ThreadPresentation
 from textual.message import Message
 from textual.widgets import Static
@@ -37,7 +38,7 @@ class ObservedThreadActivity(Static):
         self.refresh_observation()
 
     def refresh_observation(self) -> None:
-        if (not self.is_attached or not self.screen.is_active
+        if (not self.is_attached or not self.query_ancestor(SessionView).is_current
                 or self._read_task is not None and not self._read_task.done()):
             return
         self._read_task = asyncio.create_task(self._observe())
@@ -47,7 +48,7 @@ class ObservedThreadActivity(Static):
             presentation, unavailable = await self.read(), False
         except Exception:
             presentation, unavailable = None, True
-        if not self.is_attached or not self.screen.is_active:
+        if not self.is_attached or not self.query_ancestor(SessionView).is_current:
             return
         if (presentation, unavailable) == (self.presentation, self.unavailable):
             return

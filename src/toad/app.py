@@ -1,3 +1,4 @@
+from toad.workspace_sessions import WorkspaceSessionShutdown
 from inspect import isabstract
 from toad.comms_root import current_root, implicit_root, root_is_current, run_selected_write
 
@@ -286,7 +287,7 @@ def get_store_screen() -> StoreScreen:
     return StoreScreen()
 
 
-class ToadApp(App, inherit_bindings=False):
+class ToadApp(WorkspaceSessionShutdown, App, inherit_bindings=False):
     """The top level app."""
 
     CSS_PATH = ["toad.tcss", "screens/comms.tcss"]

@@ -28,7 +28,7 @@ from textual.widgets._markdown import Markdown, MarkdownBlock
 from toad.app import ToadApp
 from toad.conversation_markdown import ConversationCodeFence, ConversationMarkdown, _ThreadLocalPathParser
 from toad.markdown_preparation import FenceKey, PreparedFence
-from toad.render_tasks import MarkdownRenderTask, TokenRenderTask
+from toad.render_tasks import MarkdownSyntaxRenderTask, TokenRenderTask
 from toad.widgets.transcript_fragments import RenderBudget
 from toad.widgets.viewport_body import ViewportBody
 
@@ -144,19 +144,20 @@ class PreparedConversationMarkdown(ViewportBody, ConversationMarkdown):
                     if use_thread else parser.parse(markdown))
 
         parent = self.parent
-        tokens: list[Token] | None = None
-        if len(markdown) <= RenderBudget().characters:
-            # Avoid one process round trip per small paged paragraph. File-link
-            # discovery stays off-loop; even tiny code fences use a CPU worker.
-            tokens = await asyncio.to_thread(parser.parse, markdown)
-            if not any(token.type in {"fence", "code_block"} for token in tokens):
-                self._prepared_fences = {}
-                return tokens if not self._preparation_closed and not self._pruning else None
+        # Pure grammar preparation shares the existing application byte budget.
+        # Each delivery materializes independent tokens before fresh project
+        # file-link resolution, so neither filesystem nor mutable token state leaks.
+        prepared_tokens = await self.app.render_processes.submit(MarkdownSyntaxRenderTask(markdown))
+        tokens = await asyncio.to_thread(parser.resolve_tokens, prepared_tokens)
+        if self._preparation_closed or self._pruning or not self.is_attached:
+            return None
+        if not any(token.type in {"fence", "code_block"} for token in tokens):
+            self._prepared_fences = {}
+            return tokens
 
         while not self._preparation_closed and self.is_attached and not self._pruning:
             theme = (self.app.native_ansi_color, self.app.current_theme.dark)
-            task = (MarkdownRenderTask(markdown, str(parser.root), *theme)
-                    if tokens is None else TokenRenderTask(tuple(tokens), *theme))
+            task = TokenRenderTask(tuple(tokens), *theme)
             request = self.app.render_processes.submit(task)
             worker = self.run_worker(request, group="markdown-preparation", exit_on_error=False)
             try:

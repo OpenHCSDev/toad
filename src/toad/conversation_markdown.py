@@ -1,14 +1,13 @@
 import asyncio
 import os
 import re
-from collections import OrderedDict
 from functools import partial
 from pathlib import Path
 from threading import local
 from urllib.parse import quote, unquote, urlsplit
 
 from markdown_it import MarkdownIt
-from markdown_it.rules_core import StateCore
+from markdown_it.rules_core import StateCore, inline as inline_rule
 from markdown_it.token import Token
 from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
 from textual.layout import WidgetPlacement
@@ -107,11 +106,36 @@ def _file_lookup_notice(name: str, root: Path, reason: str) -> str:
     return f"No project file named {name} found under {root}."
 
 
-def _path_parser(root: Path) -> MarkdownIt:
-    parser = MarkdownIt("gfm-like")
+class _MarkdownParserState(local):
+    def __init__(self) -> None:
+        self.parser = MarkdownIt("gfm-like")
+        rules = tuple(self.parser.core.ruler.getRules(""))
+        boundary = rules.index(inline_rule) + 1
+        self.syntax_rules, self.presentation_rules = rules[:boundary], rules[boundary:]
 
-    def link_paths(state: StateCore) -> None:
-        for block in state.tokens:
+
+_parser_state = _MarkdownParserState()
+
+
+def parse_markdown_syntax(source: str, env: dict | None = None) -> list[Token]:
+    """Pure syntax owns no project filesystem inputs and may be reused."""
+    state = StateCore(source, _parser_state.parser, {} if env is None else env)
+    for rule in _parser_state.syntax_rules:
+        rule(state)
+    return state.tokens
+
+
+class _ThreadLocalPathParser:
+    """Resolve project links against fresh filesystem state in prepared syntax."""
+
+    def __init__(self, root: Path) -> None:
+        self.root = root
+
+    def parse(self, source: str, env: dict | None = None) -> list[Token]:
+        return self.resolve_tokens(parse_markdown_syntax(source, env))
+
+    def resolve_tokens(self, tokens: list[Token]) -> list[Token]:
+        for block in tokens:
             if block.type != "inline" or block.children is None:
                 continue
             linked = 0
@@ -119,7 +143,7 @@ def _path_parser(root: Path) -> MarkdownIt:
             for child in block.children:
                 if child.type == "link_open":
                     href = str(child.attrs.get("href", ""))
-                    if path := _linked_file(root, href):
+                    if path := _linked_file(self.root, href):
                         child.attrs["href"] = f"toad-file:{quote(str(path))}"
                     elif name := _searchable_basename(href):
                         child.attrs["href"] = f"toad-file-search:{quote(name)}"
@@ -142,7 +166,7 @@ def _path_parser(root: Path) -> MarkdownIt:
                     ]
                 position = 0
                 for match in matches:
-                    path = _resolve_path(root, match.group("path"))
+                    path = _resolve_path(self.root, match.group("path"))
                     if path is None:
                         name = _searchable_basename(match.group("path"))
                         if name is None:
@@ -173,39 +197,12 @@ def _path_parser(root: Path) -> MarkdownIt:
                     children.append(child)
             block.children = children
 
-    parser.core.ruler.after("inline", "toad_file_paths", link_paths)
-    return parser
-
-
-class _PathParserState(local):
-    def __init__(self) -> None:
-        self.parsers: OrderedDict[Path, MarkdownIt] = OrderedDict()
-
-
-_parser_state = _PathParserState()
-
-
-class _ThreadLocalPathParser:
-    """Resolve reusable parser machinery on the thread doing the actual parse.
-
-    Markdown creates its parser on the UI thread but can execute parse() in an
-    executor. Sharing the parser returned by a UI-thread cache would therefore
-    race linkifier state. This facade holds only an immutable project path;
-    actual parsers are thread-local and bounded across project changes.
-    """
-
-    def __init__(self, root: Path) -> None:
-        self.root = root
-
-    def parse(self, source: str, env: dict | None = None) -> list[Token]:
-        parsers = _parser_state.parsers
-        parser = parsers.get(self.root)
-        if parser is None:
-            parser = parsers[self.root] = _path_parser(self.root)
-            if len(parsers) > 8:
-                parsers.popitem(last=False)
-        parsers.move_to_end(self.root)
-        return parser.parse(source, env)
+        # Preserve the native ordering: project links run directly after
+        # inline parsing, before the parser's derived linkify/text-join suffix.
+        state = StateCore("", _parser_state.parser, {}, tokens)
+        for rule in _parser_state.presentation_rules:
+            rule(state)
+        return state.tokens
 
 
 class ConversationMarkdown(Markdown):

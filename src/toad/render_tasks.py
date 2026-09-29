@@ -10,7 +10,7 @@ from agent_comms.declared_family import DeclaredFamily
 from agent_comms.transcript_events import TranscriptEvent
 from markdown_it.token import Token
 
-from toad.markdown_preparation import PreparedMarkdown, prepare_markdown, prepare_tokens
+from toad.markdown_preparation import PreparedMarkdown, prepare_tokens
 from toad.widgets.patch_diff import PreparedPatch, prepare_patch
 from toad.widgets.transcript_fragments import TranscriptFragment, transcript_fragments
 from toad.rich_preparation import (
@@ -91,18 +91,16 @@ class PatchRenderTask(ReusableRenderTask[PreparedPatch]):
 
 
 @dataclass(frozen=True)
-class MarkdownRenderTask(RenderTask[PreparedMarkdown]):
+class MarkdownSyntaxRenderTask(ReusableRenderTask[list[Token]]):
     source: str
-    project: str
-    ansi: bool
-    dark: bool
 
-    def execute(self) -> PreparedMarkdown:
-        return prepare_markdown(self.source, self.project, self.ansi, self.dark)
+    def execute(self) -> list[Token]:
+        from toad.conversation_markdown import parse_markdown_syntax
+        return parse_markdown_syntax(self.source)
 
-    def accept_result(self, result: object) -> PreparedMarkdown:
-        if not isinstance(result, PreparedMarkdown):
-            raise TypeError("Markdown renderer returned an invalid result")
+    def accept_result(self, result: object) -> list[Token]:
+        if not isinstance(result, list) or not all(isinstance(token, Token) for token in result):
+            raise TypeError("Markdown syntax renderer returned invalid tokens")
         return result
 
 

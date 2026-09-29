@@ -41,6 +41,7 @@ from toad.widgets.throbber import Throbber
 from toad.widgets.irc_message import IRCMessage, MembershipNotice, WireMarkdownMessage
 from toad.widgets.message_notifications import MessageNotifications
 from toad.owner_preparation import read_thread_presentation
+from toad.screens.session_view import SessionView
 
 HISTORY_PAGE_SIZE = 40
 INITIAL_HISTORY_PAGE_SIZE = 8
@@ -245,7 +246,7 @@ class CommsChatView(DeliveryFailureView, Conversation):
         return WireMarkdownMessage(message, direction=direction)
 
     def _painted_message_keys(self) -> tuple[tuple[str, int], ...]:
-        if not self.is_attached or not self.screen.is_active:
+        if not self.is_attached or not self.query_ancestor(SessionView).is_current:
             return ()
         return tuple(message.view_key for message, _ in self._message_viewport(
             AcknowledgementViewport).visible_rows())
@@ -512,7 +513,7 @@ class CommsChatView(DeliveryFailureView, Conversation):
     async def _mark_historical_paint(self, page: MessagePage, keys: set[tuple[str, int]]) -> None:
         from toad.comms_root import implicit_root, root_is_current, run_selected_write
         try:
-            if self._wire is None or not root_is_current(self._wire.root) or not self.screen.is_active:
+            if self._wire is None or not root_is_current(self._wire.root) or not self.query_ancestor(SessionView).is_current:
                 return
             displayed = page.historical_display.select({seq for _, seq in keys})
             await asyncio.to_thread(run_selected_write, self._wire.root,
@@ -530,7 +531,7 @@ class CommsChatView(DeliveryFailureView, Conversation):
             comms = self._wire
             from toad.comms_root import root_is_current
 
-            if comms is None or not self.is_attached or not self.screen.is_active:
+            if comms is None or not self.is_attached or not self.query_ancestor(SessionView).is_current:
                 return
             if not root_is_current(comms.root):
                 self.display = False
@@ -567,7 +568,7 @@ class CommsChatView(DeliveryFailureView, Conversation):
     def _refresh_notifications(self) -> None:
         """One bounded batch for the painted window; independent of bus revision."""
         if (not self.is_attached or self._wire is None
-                or not self.screen.is_active or not self.display
+                or not self.display
                 or self._notification_task is not None and not self._notification_task.done()):
             return
         rows = self._visible_notification_rows()
@@ -604,7 +605,7 @@ class CommsChatView(DeliveryFailureView, Conversation):
         except Exception as failure:
             error, results = failure, {}
         if (not self.is_attached or self._wire is not comms or self.target != target
-                or not self.screen.is_active
+                or not self.query_ancestor(SessionView).is_current
                 or not root_is_current(comms.root)):
             return
         visible = {widget for _, widget in self._visible_notification_rows()}
@@ -621,7 +622,7 @@ class CommsChatView(DeliveryFailureView, Conversation):
     async def _refresh(self) -> None:
         if not self.is_attached or self._wire is None:
             return
-        if not self.screen.is_active:
+        if not self.query_ancestor(SessionView).is_current:
             return
         from toad.comms_root import root_is_current
 
@@ -635,6 +636,8 @@ class CommsChatView(DeliveryFailureView, Conversation):
             try:
                 comms = self._wire
                 catalog = await asyncio.to_thread(comms.channels.catalog.read)
+                if not self.is_attached or not self.query_ancestor(SessionView).is_current:
+                    return
                 read_only = self.conversation_kind.read_only(catalog, self.target)
                 if read_only:
                     self.prompt.prompt_text_area.disabled = True
@@ -648,12 +651,12 @@ class CommsChatView(DeliveryFailureView, Conversation):
                 finally:
                     if show_loading and self.is_attached:
                         self.throbber.busy = False
-                if not self.is_attached or read.request != self._history_request():
+                if not self.is_attached or not self.query_ancestor(SessionView).is_current:
+                    return
+                if read.request != self._history_request():
                     return
                 if not root_is_current(comms.root):
                     self.display = False
-                    return
-                if not self.screen.is_active:
                     return
                 self.update_slash_commands()
                 revision = read.revision
@@ -666,7 +669,7 @@ class CommsChatView(DeliveryFailureView, Conversation):
                 # which can scan a much larger coordination history.
                 follow = await self._refresh_history(read)
                 await self.conversation_kind.update_roster(self, comms)
-                if not self.is_attached or not self.screen.is_active:
+                if not self.is_attached or not self.query_ancestor(SessionView).is_current:
                     return
                 if not root_is_current(comms.root):
                     self.display = False

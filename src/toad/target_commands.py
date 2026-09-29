@@ -52,6 +52,9 @@ class TargetContext(PinTarget, DeclaredFamily, affix="Context"):
     @abstractmethod
     def can_run(self, action: type[ThreadAction]) -> bool: ...
 
+    def available_actions(self) -> tuple[type[ThreadAction], ...]:
+        return tuple(action for action in ThreadAction.menu() if self.can_run(action))
+
     def activity_available(self) -> bool:
         return False
 
@@ -65,6 +68,12 @@ class ThreadContext(TargetContext, declared_name="dm"):
 
     def can_run(self, action: type[ThreadAction]) -> bool:
         return action.available(self.comms.registry.status(self.subject), self.thread().pid)
+
+    def available_actions(self) -> tuple[type[ThreadAction], ...]:
+        snapshot = self.comms.registry.snapshot()
+        name = snapshot.aliases.get(self.subject, self.subject)
+        thread = snapshot.threads[name]
+        return ThreadAction.available_menu(snapshot.statuses[name], thread.pid)
 
     def pin_target(self, member: str | None) -> ThreadContext:
         if member is not None:
@@ -286,10 +295,9 @@ class AnyModeCommand(ViewCommand, declared_name="any_mode"):
 
 def target_commands(ctx: TargetContext) -> tuple[ContextualCommand, ...]:
     ctx.current()
-    candidates = [ThreadCommand(action) for action in ThreadAction.menu()] + [
-        member() for member in SlashCommand.members_with(TargetLocal)
-    ]
-    return tuple(command for command in candidates if command.available(ctx))
+    actions = tuple(ThreadCommand(action) for action in ctx.available_actions())
+    local = (member() for member in SlashCommand.members_with(TargetLocal))
+    return (*actions, *(command for command in local if command.available(ctx)))
 
 
 @dataclass(frozen=True)

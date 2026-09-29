@@ -6,7 +6,7 @@ from typing import TypeVar
 
 from toad.render_backend import Renderer
 from toad.render_service import RenderServiceConfig
-from toad.render_tasks import MarkdownRenderTask, PatchRenderTask, RenderTask
+from toad.render_tasks import MarkdownSyntaxRenderTask, TokenRenderTask, PatchRenderTask, RenderTask
 from toad.render_zmq import PersistentRendererPool, RendererEndpoint, RendererSessionFailed
 
 ResultT = TypeVar("ResultT")
@@ -96,10 +96,10 @@ class PersistentRenderClient(Renderer):
         These small, data-only tasks use normal admission and cancellation. No
         source files are opened, no user history is fetched and nothing is mounted.
         """
+        tokens = await self.submit(MarkdownSyntaxRenderTask(
+            "```python\npass\n```\n\n```json\n{}\n```\n"))
         await asyncio.gather(
-            self.submit(MarkdownRenderTask(
-                "```python\npass\n```\n\n```json\n{}\n```\n", str(project), ansi, dark,
-            )),
+            self.submit(TokenRenderTask(tuple(tokens), ansi, dark)),
             self.submit(PatchRenderTask(
                 "--- warmup.py\n+++ warmup.py\n@@ -1 +1 @@\n-pass\n+value = 1\n", ansi, dark,
             )),

@@ -107,7 +107,7 @@ async def main():
         async with app.run_test(size=(110, 38)) as pilot:
             mode = (await app.new_session_screen(lambda: MainScreen(root))).mode_name
             conversation = app.selected_session.conversation
-            actor = app.screen.navigation_context.actor
+            actor = app.selected_session.navigation_context.actor
             if actor not in comms.registry.all_threads():
                 comms.registry.register(
                     Thread(actor, frozenset({"team"}), str(root)), StoppedThreadStatus()

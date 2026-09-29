@@ -203,44 +203,34 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
 
     def _layout_geometry_targets(self) -> tuple[Widget, ...]:
         return tuple(target for window in self.viewport_presentation.anchors
-                     if window.history_anchor is not None
-                     for target in window.history_anchor.geometry_targets)
+                     for target in window.history_geometry_targets())
 
     def _refresh_layout(self, size: Size | None = None, scroll: bool = False) -> None:
-        from toad.widgets.history_anchor import HistoryAnchor
-
         # Keep the last committed geometry: reading virtual_region here can
         # itself rebuild Textual's invalidated map with the new child positions.
         # Only the reader's current scroll/follow intent is refreshed pre-layout.
         tracked = tuple(self.viewport_presentation.anchors)
         anchors = [
-            (window, window.history_anchor.before_layout(window))
+            (window, position)
             for window in tracked
-            if window.history_anchor is not None and window.history_anchor.widget.is_attached
+            if (position := window.prepare_history_layout()) is not None
         ]
         if not anchors:
             super()._refresh_layout(size, scroll)
             for window in tracked:
-                if window.history_layout_ready is not None:
-                    window.history_layout_ready.set()
+                window.finish_history_layout()
             return
         # Screen normally paints from inside _refresh_layout. Do not expose the
         # prepend/eviction coordinates before compensating for their height.
         with self.app.batch_update():
-            for window, position in anchors:
-                window.history_anchor = position
             super()._refresh_layout(size, scroll)
             changed = False
             for window, position in anchors:
-                previous = window.scroll_y
-                position.restore(window)
-                window.history_anchor = HistoryAnchor.capture(position.widget, window)
-                changed |= window.scroll_y != previous
+                changed |= window.restore_history_layout(position)
             if changed:
                 super()._refresh_layout(size, scroll=True)
             for window in tracked:
-                if window.history_layout_ready is not None:
-                    window.history_layout_ready.set()
+                window.finish_history_layout()
 
     def _screen_resized(self, size: Size) -> None:
         if cast("ToadApp", self.app)._atomic_mode_switch and self.is_mounted:
@@ -315,12 +305,12 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
             # Textual's ScreenResume already reflowed this mounted screen.
             # Repeating its full compositor pass on every tab activation is
             # unnecessary when navigation/geometry did not change.
-            if sidebar is not None and sidebar._last_snapshot is not None:
+            if sidebar is not None:
                 if sidebar.restore_scroll():
                     self._refresh_layout(self.app.size, scroll=True)
             return
         self._refresh_layout(self.app.size)
-        if sidebar is not None and sidebar._last_snapshot is not None:
+        if sidebar is not None:
             if sidebar.restore_scroll():
                 self._refresh_layout(self.app.size, scroll=True)
         # The native resize handlers and sidebar hydration complete normally

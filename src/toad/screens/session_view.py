@@ -47,6 +47,12 @@ class SessionView(SidebarFocusOwner, Vertical):
     async def retire_presentation(self) -> None:
         """Release rich presentation without stopping its operational sources."""
 
+    async def close_presentation(self) -> None:
+        """Views without retained operational sources need no domain finalization."""
+
+    async def on_unmount(self) -> None:
+        await self.close_presentation()
+
     def call_after_first_frame(self, owner, callback) -> None:
         self.screen.call_after_first_frame(owner, callback)
 

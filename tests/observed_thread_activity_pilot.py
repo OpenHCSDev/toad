@@ -107,7 +107,8 @@ async def main():
             assert tracker.summary == "Ready" and not details.has_class("-attention")
             comms.threads.register(Thread("dm-peer", frozenset({"comms"}), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
             await app.open_comms_session(owner_mode=owner, project_path=root, me="peer", target=DirectTarget("dm-peer"))
-            dm = app.screen.query_one(CommsChatView)
+            dm_mode = app.selected_mode
+            dm = app.selected_session.query_one(CommsChatView)
             observed = dm.query_one(ObservedThreadActivity)
             for detail in ("Checking #comms message", "Responding in #comms"):
                 comms.agents.set_activity("dm-peer", ActivityState.THINKING, detail)
@@ -136,6 +137,34 @@ async def main():
             comms.agents.set_drain_diagnostic("dm-peer", identity, None)
             await until(lambda: observed.presentation is not None and not observed.presentation.attention)
             assert str(observed.render()) == "Ready"
+            # All logical tabs share the active native WorkspaceScreen. A
+            # hidden DM must not keep reading/publishing just because that
+            # frame remains active. Instrument the real request callbacks;
+            # keep their implementations and the actual stores unchanged.
+            hidden_reads = []
+            original_read = observed.read
+            original_request = dm._history_request
+
+            async def counted_read():
+                hidden_reads.append("activity")
+                return await original_read()
+
+            def counted_request():
+                hidden_reads.append("history")
+                return original_request()
+
+            await app.select_session(owner)
+            if observed._read_task is not None:
+                await observed._read_task
+            observed.read = counted_read
+            dm._history_request = counted_request
+            observed.refresh_observation()
+            await dm._refresh()
+            await pilot.pause()
+            assert hidden_reads == [], hidden_reads
+            await app.select_session(dm_mode)
+            observed.refresh_observation()
+            await until(lambda: "activity" in hidden_reads)
 
         print(
             "PASS: actual registry/activity/core ThreadView -> ACP reader/native conversation and DM; Checking/Responding target, Ready override and idle recovery; no provider/process launch"

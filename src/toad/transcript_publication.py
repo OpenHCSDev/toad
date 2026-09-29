@@ -12,6 +12,7 @@ from textual.worker import Worker, WorkerCancelled
 if TYPE_CHECKING:
     from toad.widgets.conversation import Conversation, Window, Contents
     from toad.widgets.history_anchor import ReaderPosition
+    from toad.widgets.transcript_history import TranscriptHistory
 
 
 class TranscriptPublication(ABC):
@@ -54,10 +55,9 @@ class SnapshotPublication(TranscriptPublication):
             return
         view = self.owner.view
         history = TranscriptHistory(self.page, self.agent.get_transcript_page, fragments=fragments)
-        if self.owner.reader_position is not None:
-            self.owner.reader_position.prepare_history(history)
+        restoring_reader = self.owner.prepare_reader(history)
         view.output.boundary()
-        if self.owner.reader_position is None:
+        if not restoring_reader:
             if self.window.scroll_revision == self.scroll_revision:
                 self.window.anchor()
         with view.app.batch_update():
@@ -221,6 +221,14 @@ class TranscriptPresentation:
 
     def invalidate(self) -> None:
         self.generation += 1
+
+    def prepare_reader(self, history: TranscriptHistory) -> bool:
+        """Apply this source's owned reader intent before mounting its history."""
+        position = self.reader_position
+        if position is None:
+            return False
+        position.prepare_history(history)
+        return True
 
     async def publish(self, kind: type[TranscriptPublication], *args) -> None:
         from toad.widgets.conversation import Window, Contents

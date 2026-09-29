@@ -89,6 +89,29 @@ class HistoryWindow(VerticalScroll):
     history_layout_ready: asyncio.Event | None = None
     history_paint_ready: asyncio.Event | None = None
 
+    def prepare_history_layout(self) -> HistoryAnchor | None:
+        anchor = self.history_anchor
+        if anchor is None:
+            return None
+        if anchor.widget.is_attached:
+            self.history_anchor = anchor.before_layout(self)
+            return self.history_anchor
+        return None
+
+    def history_geometry_targets(self) -> tuple[Widget, ...]:
+        anchor = self.history_anchor
+        return anchor.geometry_targets if anchor is not None else ()
+
+    def restore_history_layout(self, position: HistoryAnchor) -> bool:
+        previous = self.scroll_y
+        position.restore(self)
+        self.history_anchor = HistoryAnchor.capture(position.widget, self)
+        return self.scroll_y != previous
+
+    def finish_history_layout(self) -> None:
+        if self.history_layout_ready is not None:
+            self.history_layout_ready.set()
+
     def retire_presentation_wait(self) -> None:
         """Release a transaction whose scene no longer promises another frame."""
         for ready in (self.history_layout_ready, self.history_paint_ready):

@@ -61,6 +61,11 @@ class ThreadAction(DeclaredFamily, Command, Generic[Result], affix="Action"):
         return tuple(sorted(cls.members_with(cls), key=lambda action: action.tool.action_order))
 
     @classmethod
+    def available_menu(cls, status: ThreadStatus, owner_pid: int) -> tuple[type[ThreadAction], ...]:
+        """Project one captured registry state through the action declarations."""
+        return tuple(action for action in cls.menu() if action.available(status, owner_pid))
+
+    @classmethod
     def request(
         cls, app: ToadApp, subject: str, actor: str, session_modes: tuple[str, ...] = ()
     ) -> None:
