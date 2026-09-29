@@ -9,7 +9,7 @@ from tempfile import TemporaryDirectory
 
 from l0a_native_installed_pilot import until
 from native_session_retention_pilot import InstalledApp
-from toad.widgets.side_bar import SideBar, SideBarToggle, SidebarAction
+from toad.widgets.side_bar import SideBar, SideBarToggle, SidebarAction, SidebarResizeHandle
 
 
 class PaintedSidebarApp(InstalledApp):
@@ -66,6 +66,25 @@ async def main():
             await right.wait_content_ready()
             await pilot.pause()
             assert not left.collapsed and not right.collapsed
+            grip = right.query_one(SidebarResizeHandle)
+            assert grip.display and grip in app.screen._compositor.visible_widgets
+            assert grip.region.x == right.region.x and grip.region.width == 1
+            old_width = right.region.width
+            start = grip.region.x
+            y = grip.region.y + 3
+            assert await pilot.hover(grip, offset=(0, 3))
+            assert "hover" in grip.pseudo_classes
+            assert await pilot.mouse_down(grip, offset=(0, 3))
+            assert not app.screen._selecting
+            assert await pilot.hover(offset=(start - 5, y))
+            assert not app.screen._selecting
+            assert await pilot.mouse_up(offset=(start - 5, y))
+            await pilot.pause()
+            assert abs(right.region.width - (old_width + 5)) <= 1, (
+                old_width, right.region, app.sidebar_layout.get(right.id))
+            assert grip.region.x == right.region.x
+            assert not grip._dragging and app.mouse_captured is None
+            print("PAINTED_RIGHT_GRIP_DRAG", old_width, right.region.width, flush=True)
             await click_and_check(app, pilot, left, True)
             await click_and_check(app, pilot, left, False)
             await click_and_check(app, pilot, right, True)

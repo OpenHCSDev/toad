@@ -527,7 +527,7 @@ class SidebarResizeHandle(widgets.Static, can_focus=True):
         app = cast("ToadApp", self.app)
         direction = -1 if app.sidebar_layout.get(bar.id).side == "right" else 1
         width = self._start_width + direction * (screen_x - self._start_x)
-        percent = round(100 * width / max(1, bar.parent.size.width))
+        percent = round(100 * width / max(1, bar.screen.size.width))
         if app.sidebar_layout.width(bar.id, percent):
             app.sidebar_layout_changed.publish(None)
 
