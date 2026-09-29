@@ -2,7 +2,7 @@
 
 **Status: ready for integration review; all assigned TC2 consumer/deletion work and the actual paired installed journeys passed.**
 
-**1,163 production lines deleted; 738 added, net 425 removed** against integrated Toad main `cd791811` (#209), across 45 production files. This includes the 504-line `acp/protocol.py` deletion. Initial base was `7e1133a2`; normal integrations preserve #207 receipt/history work and #209 manual/autonomous compaction progressive bodies. Final integration of `cd791811` applied without conflicts, including Conversation callbacks and the native runner; no callback was manually resolved. Per owner instruction, disjoint source integration does not repeat the completed broad journeys; #209's own receipts remain in the coherent tree. No compatibility readers or alternate codecs remain for TC2.
+**1,162 production lines deleted; 723 added, net 439 removed** for TC2 against reviewed202 `1e2cb39f`, across43 production files. The earlier209 comparison was1,163 deleted/738 added across45 files before integrating202. This includes the 504-line `acp/protocol.py` deletion. Initial base was `7e1133a2`; normal integrations preserve #207 receipt/history work and #209 manual/autonomous compaction progressive bodies. Final integration of `cd791811` applied without conflicts, including Conversation callbacks and the native runner; no callback was manually resolved. Per owner instruction, disjoint source integration does not repeat the completed broad journeys; #209's own receipts remain in the coherent tree. No compatibility readers or alternate codecs remain for TC2.
 
 Owner: TC2 worker. Draft [Toad #208](https://github.com/OpenHCSDev/toad/pull/208). Persistent worktree: `/home/ts/wt/toad-cleanup-tc2-sdk-20260929`. Working code checkpoint `348080fe` was pushed before current-main integration.
 
@@ -57,7 +57,7 @@ Canonical debt ratchet at pushed `53b879d0` against initial base reports **zero 
 
 ## Changed production files
 
-Counts below are exact `git diff --numstat cd791811 HEAD -- src/toad` for the current working checkpoint. Removed lines are source lines, not a semantic-debt score.
+Counts below are exact `git diff --numstat 1e2cb39f HEAD -- src/toad` for TC2 alone after normal202 integration;202 performance changes are preserved in the full PR but not counted again here. Removed lines are source lines, not a semantic-debt score.
 
 | File | Added | Deleted |
 |---|---:|---:|
@@ -79,7 +79,6 @@ Counts below are exact `git diff --numstat cd791811 HEAD -- src/toad` for the cu
 | `src/toad/acp/terminal_owner.py` | 9 | 12 |
 | `src/toad/acp/tool_calls.py` | 19 | 20 |
 | `src/toad/agent.py` | 2 | 1 |
-| `src/toad/agent_presentation.py` | 14 | 0 |
 | `src/toad/agent_schema.py` | 79 | 58 |
 | `src/toad/agents.py` | 8 | 8 |
 | `src/toad/app.py` | 2 | 2 |
@@ -96,7 +95,6 @@ Counts below are exact `git diff --numstat cd791811 HEAD -- src/toad` for the cu
 | `src/toad/screens/main.py` | 3 | 3 |
 | `src/toad/screens/store.py` | 28 | 48 |
 | `src/toad/session_admission.py` | 1 | 1 |
-| `src/toad/session_presentation.py` | 1 | 1 |
 | `src/toad/setting_choices.py` | 8 | 8 |
 | `src/toad/slash_command.py` | 2 | 3 |
 | `src/toad/terminal_execution.py` | 15 | 5 |
