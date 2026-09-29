@@ -1,0 +1,203 @@
+{
+  "src/toad/acp/agent.py": {
+    "before": {
+      "absence": 1,
+      "chain": 0,
+      "excess500": 353,
+      "classes": {
+        "Mode": 6,
+        "Model": 6,
+        "TokenUsage": 9,
+        "Agent": 853
+      }
+    },
+    "after": {
+      "absence": 0,
+      "chain": 0,
+      "excess500": 127,
+      "classes": {
+        "Mode": 6,
+        "Model": 6,
+        "Agent": 627
+      }
+    }
+  },
+  "src/toad/acp/agent_controller.py": {
+    "before": {
+      "absence": 2,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {
+        "SessionBinding": 6,
+        "SurfaceBinding": 8,
+        "DetachedSurfaceBinding": 3,
+        "AttachedSurfaceBinding": 11,
+        "ValidationOwner": 3,
+        "HeadlessValidationOwner": 3,
+        "ApplicationValidationOwner": 6,
+        "AgentController": 103
+      }
+    },
+    "after": {
+      "absence": 2,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {
+        "SessionBinding": 6,
+        "SurfaceBinding": 8,
+        "DetachedSurfaceBinding": 3,
+        "AttachedSurfaceBinding": 11,
+        "ValidationOwner": 3,
+        "HeadlessValidationOwner": 3,
+        "ApplicationValidationOwner": 6,
+        "AgentController": 262
+      }
+    }
+  },
+  "src/toad/acp/comms_updates.py": {
+    "before": {
+      "absence": 4,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {
+        "CommsUpdateConsumer": 196
+      }
+    },
+    "after": {
+      "absence": 4,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {
+        "CommsUpdateConsumer": 201
+      }
+    }
+  },
+  "src/toad/agent_presentation.py": {
+    "before": {
+      "absence": 0,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {
+        "AgentAttachmentView": 5,
+        "AgentPresentation": 14,
+        "LocalAgentPresentation": 6,
+        "ACPAgentPresentation": 8
+      }
+    },
+    "after": {
+      "absence": 0,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {
+        "AgentAttachmentView": 5,
+        "AgentPresentation": 17,
+        "LocalAgentPresentation": 6,
+        "ACPAgentPresentation": 12
+      }
+    }
+  },
+  "src/toad/conversation_submission.py": {
+    "before": {
+      "absence": 0,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {
+        "InputSubmission": 21,
+        "NoInputSubmission": 7,
+        "QueueNowInputSubmission": 13,
+        "ShellInputSubmission": 16,
+        "AgentInputSubmission": 40,
+        "OrdinaryInputSubmission": 9,
+        "DeferredInputSubmission": 14,
+        "ImmediateInputSubmission": 13,
+        "SubmissionExecution": 52,
+        "ConversationSubmissions": 70
+      }
+    },
+    "after": {
+      "absence": 0,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {
+        "InputSubmission": 21,
+        "NoInputSubmission": 7,
+        "QueueNowInputSubmission": 13,
+        "ShellInputSubmission": 16,
+        "AgentInputSubmission": 40,
+        "OrdinaryInputSubmission": 9,
+        "DeferredInputSubmission": 14,
+        "ImmediateInputSubmission": 13,
+        "SubmissionExecution": 52,
+        "ConversationSubmissions": 70
+      }
+    }
+  },
+  "src/toad/session_observation.py": {
+    "before": {
+      "absence": 7,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {
+        "SessionObservation": 74,
+        "GoalObservation": 11,
+        "InputDeliveryObservation": 52
+      }
+    },
+    "after": {
+      "absence": 7,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {
+        "SessionObservation": 74,
+        "GoalObservation": 11,
+        "InputDeliveryObservation": 52
+      }
+    }
+  },
+  "src/toad/widgets/conversation.py": {
+    "before": {
+      "absence": 27,
+      "chain": 21,
+      "excess500": 1231,
+      "classes": {
+        "Loading": 9,
+        "PaintOnlyRefresh": 10,
+        "ThreadLoading": 46,
+        "TurnActivity": 19,
+        "Cursor": 45,
+        "CategorizedMount": 13,
+        "Contents": 10,
+        "ContentsGrid": 8,
+        "CursorContainer": 8,
+        "ConversationWindowSettings": 25,
+        "Window": 15,
+        "ConversationSessionBinding": 296,
+        "Conversation": 1731,
+        "ConversationCommsConsumer": 52,
+        "CompactionRenderer": 55
+      }
+    },
+    "after": {
+      "absence": 27,
+      "chain": 21,
+      "excess500": 1231,
+      "classes": {
+        "Loading": 9,
+        "PaintOnlyRefresh": 10,
+        "ThreadLoading": 46,
+        "TurnActivity": 19,
+        "Cursor": 45,
+        "CategorizedMount": 13,
+        "Contents": 10,
+        "ContentsGrid": 8,
+        "CursorContainer": 8,
+        "ConversationWindowSettings": 25,
+        "Window": 15,
+        "ConversationSessionBinding": 296,
+        "Conversation": 1731,
+        "ConversationCommsConsumer": 52,
+        "CompactionRenderer": 55
+      }
+    }
+  }
+}

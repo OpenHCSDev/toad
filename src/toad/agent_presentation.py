@@ -19,8 +19,11 @@ class AgentPresentation(DeclaredFamily, affix="AgentPresentation"):
     def __init__(self, agent):
         self.agent = agent
         self.auth_methods = []
-        self.prompt_in_flight = 0
         self.log_path: Path | None = None
+
+    @property
+    def prompt_in_flight(self):
+        return 0
 
     @property
     @abstractmethod
@@ -41,6 +44,10 @@ class LocalAgentPresentation(AgentPresentation):
 
 class ACPAgentPresentation(AgentPresentation):
     uses_managed_turns = True
+
+    @property
+    def prompt_in_flight(self):
+        return self.agent.controller.prompt_in_flight
 
     @property
     def attachments(self):

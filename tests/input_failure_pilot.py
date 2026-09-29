@@ -78,7 +78,7 @@ async def main():
                 response = AsyncMock()
                 response.wait.side_effect = error
                 with patch("toad.acp.agent.api.session_prompt", return_value=response):
-                    await receiver.acp_session_prompt(
+                    await receiver.controller.submit_blocks(
                         [{"type": "text", "text": "rpc prompt"}],
                         QueuePromptRequest("rpc prompt"),
                     )
