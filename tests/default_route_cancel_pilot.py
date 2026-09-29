@@ -92,7 +92,7 @@ async def main() -> None:
                 channel = app.screen.query_one(CommsChatView)
                 await channel._refresh()
                 entered_paint, release_paint = asyncio.Event(), asyncio.Event()
-                original_mount = channel._mount_page
+                original_mount = channel.message_history.mount_page
 
                 async def delayed_paint(page, *, older):
                     if any(
@@ -104,7 +104,7 @@ async def main() -> None:
                     return await original_mount(page, older=older)
 
                 with (
-                    patch.object(channel, "_mount_page", delayed_paint),
+                    patch.object(channel.message_history, "mount_page", delayed_paint),
                     patch.object(
                         channel._wire.messaging,
                         'send_user_message',

@@ -51,7 +51,7 @@ async def main():
             chat = app.screen.query_one(CommsChatView)
             await chat._refresh()
             await pilot.pause()
-            assert [m.body for m,_ in chat._history] == [m.body for m in rows]
+            assert [m.body for m,_ in chat.message_history.rows] == [m.body for m in rows]
             assert chat.prompt.prompt_text_area.disabled
             assert 'Read-only' in chat.status
             await chat.submit_input(messages.UserInputSubmitted('must not publish'))

@@ -34,8 +34,8 @@ async def main():
         app = ToadApp(project_dir=str(root))
         # Bound the mounted window too, so automatic edge loading cannot fetch
         # omitted rows and obscure whether the initial page alone was marked.
-        with patch("toad.widgets.comms_chat.INITIAL_HISTORY_PAGE_SIZE", 2), patch(
-            "toad.widgets.comms_chat.HISTORY_WINDOW_SIZE", 2
+        with patch("toad.mounted_message_history.INITIAL_HISTORY_PAGE_SIZE", 2), patch(
+            "toad.mounted_message_history.HISTORY_WINDOW_SIZE", 2
         ):
             async with app.run_test(size=(120, 40)) as pilot:
                 await pilot.pause()
@@ -45,8 +45,8 @@ async def main():
                 async with asyncio.timeout(5):
                     while comms.views.viewer_snapshot(str(root)).channel_unread["#team"] != 10:
                         await pilot.pause(.02)
-                assert chat._has_older
-                painted = {seq for source, seq in chat._painted_message_keys() if not source}
+                assert chat.message_history.has_older
+                painted = {seq for source, seq in chat.message_history.painted_keys() if not source}
                 assert painted == {message.seq for message in messages[-2:]}
                 seen = comms.bus.reads.seen_sequences(viewer, comms.registry.snapshot())
                 assert seen == painted

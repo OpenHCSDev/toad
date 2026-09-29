@@ -55,7 +55,7 @@ async def main():
                     await DirectTarget("peer").open(NavigationContext(app, owner_mode, root, viewer))
                     chat = app.screen.query_one(CommsChatView)
                     assert await asyncio.to_thread(entered.wait, 4)
-                    assert [message.body for message, _ in chat._history] == [
+                    assert [message.body for message, _ in chat.message_history.rows] == [
                         "old peer painted"
                     ]
                     assert comms.bus.pending_count(viewer, "peer") == 1
@@ -68,11 +68,11 @@ async def main():
                     comms.messaging.send("peer", viewer, "new peer never painted")
                     await app.switch_mode(owner_mode)
                     release.set()
-                    await until(pilot, lambda: not chat._ack_inflight)
+                    await until(pilot, lambda: not chat.message_history.ack_inflight)
                     assert comms.bus.pending_count(viewer, "peer") == 1
                     assert not any(
                         message.body == "new peer never painted"
-                        for message, _ in chat._history
+                        for message, _ in chat.message_history.rows
                     )
                     assert app._exception is None
         finally:

@@ -33,19 +33,19 @@ async def main():
             owner = app.selected_mode
             first = await channel_target('#one').open(NavigationContext(app, owner, root, 'peer'))
             chat = app.screen.query_one(CommsChatView)
-            await until(lambda: chat._history_initialized and not chat._refresh_lock.locked())
+            await until(lambda: chat.message_history.initialized and not chat.message_history.lock.locked())
             await channel_target('#two').open(NavigationContext(app, owner, root, 'peer'))
             await pilot.pause()
             # Mark current page loaded before instrumenting the hidden reader.
-            await until(lambda: not chat._refresh_lock.locked() and not chat._ack_inflight)
+            await until(lambda: not chat.message_history.lock.locked() and not chat.message_history.ack_inflight)
             comms.messaging.send('peer', '#one', 'ARRIVED-WHILE-HIDDEN')
             with patch('toad.comms_root.root_is_current', side_effect=AssertionError('hidden route check')):
                 # Exercise the real hidden callback, not a mocked visibility test.
                 for _ in range(40):
                     await chat._refresh()
-                assert not any(m.body == 'ARRIVED-WHILE-HIDDEN' for m,_ in chat._history)
+                assert not any(m.body == 'ARRIVED-WHILE-HIDDEN' for m,_ in chat.message_history.rows)
             await app.switch_mode(first)
-            await until(lambda: any(m.body == 'ARRIVED-WHILE-HIDDEN' for m,_ in chat._history))
+            await until(lambda: any(m.body == 'ARRIVED-WHILE-HIDDEN' for m,_ in chat.message_history.rows))
             assert app._exception is None
         assert not app.channel_history_reader._pending
     print('PASS: hidden channel refresh has no root check/history query; resumed window fetches current message')

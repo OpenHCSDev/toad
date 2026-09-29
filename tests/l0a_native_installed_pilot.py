@@ -81,12 +81,12 @@ async def notification_feedback(
         detail = {
             "title": str(notification.title),
             "details": str(notification.details.render()),
-            "history": [(m.seq, m.body) for m, _ in channel._history],
+            "history": [(m.seq, m.body) for m, _ in channel.message_history.rows],
             "visible": [m.seq for m, _ in channel._visible_notification_rows()],
         }
         try:
             detail["core"] = repr(
-                comms.views.message_notifications(tuple(m for m, _ in channel._history))
+                comms.views.message_notifications(tuple(m for m, _ in channel.message_history.rows))
             )
         except Exception as error:
             detail["coreError"] = repr(error)
@@ -451,7 +451,7 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
                     pilot,
                     lambda: any(
                         row.sender == "beta" and row.body.startswith("NATIVE_RESPONSE_")
-                        for row, _ in dm._history
+                        for row, _ in dm.message_history.rows
                     ),
                 )
                 await until(pilot, lambda: not comms.registry.require("beta").executing)
