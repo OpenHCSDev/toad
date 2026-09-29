@@ -1,0 +1,28 @@
+{
+  "classification": "isolated_environment_missing_canonical_native_launcher",
+  "errors": [
+    {
+      "kind": "request_failed",
+      "failure": {
+        "kind": "request_acp",
+        "code": -32603,
+        "detail": "[Errno 2] No such file or directory: '/home/ts/wt/toad-terminal-crash-receipt-sol-20260928/.artifacts/installed/bin/pi-comms-native'",
+        "input_state": "reserved",
+        "diagnostics": []
+      }
+    },
+    {
+      "kind": "input_failed",
+      "text": "FIRST_NATIVE_INPUT",
+      "failure": {
+        "kind": "request_acp",
+        "code": -32603,
+        "detail": "[Errno 2] No such file or directory: '/home/ts/wt/toad-terminal-crash-receipt-sol-20260928/.artifacts/installed/bin/pi-comms-native'",
+        "input_state": "reserved",
+        "diagnostics": []
+      }
+    }
+  ],
+  "native_session": "Native executable spawn failed before native session/provider startup; no session consumption can be inferred",
+  "correction": "Own environment symlinks pi-comms-native/agent-comms/agent-comms-acp to exact current immutable paired runtime launchers; production unchanged"
+}
