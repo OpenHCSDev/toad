@@ -51,7 +51,7 @@ from toad.acp.projection_attachment import ProjectionAttachment
 from toad.acp.prompt import build as build_prompt
 from toad.acp.queue_attachment import QueueAttachment
 from toad.acp.sdk_boundary import validate_session_update
-from toad.agent import AgentBase, AgentFail, AgentReady
+from toad.agent import AgentBase, LogAgentFail, UnsupportedResumeAgentFail, AgentReady
 from toad.agent_schema import Agent as AgentData
 from toad.plan import decode_plan
 from toad.db import DB, SessionMeta
@@ -182,9 +182,6 @@ class Agent(AgentBase):
         self._connected_ok = False
         self._deferred_submissions: set[asyncio.Task] = set()
         self._pending_session_name: str | None = None
-        self._maintenance_env: dict[str, str] | None = None
-        self._maintenance_cwd: str | None = None
-        self._maintenance_root: Path | None = None
         self._transcript_reader: Comms | None = None
         self._transcript_reader_root: str | None = None
         self._transcript_reader_lock = asyncio.Lock()
@@ -270,41 +267,13 @@ class Agent(AgentBase):
         """Start the agent."""
         if message_target is not None:
             self.attach_surface(message_target)
-        # Freeze exactly the environment and working directory passed to the
-        # child. A relative wire root is relative to the child cwd, not Toad's.
-        # Preflight is early denial; the actual spawn takes the core wire lock.
-        from .maintenance_ingress import configured_root, preflight
-
-        self._maintenance_env = os.environ.copy()
-        self._maintenance_implicit_root = (
-            "AGENT_COMMS_ROOT" not in self._maintenance_env
-        )
-        self._maintenance_cwd = str(self.project_root_path.resolve())
-        self._maintenance_root = configured_root(
-            self._maintenance_env, self._maintenance_cwd
-        )
-        # The later process runner must not re-resolve an alias after the
-        # preflight snapshot while prompt admission still uses this root.
-        self._maintenance_env["AGENT_COMMS_ROOT"] = str(self._maintenance_root)
-        try:
-            await asyncio.to_thread(
-                preflight,
-                (self.coordination.wire_root if self.coordination else None),
-                ingress_root=self._maintenance_root,
-                cwd=self._maintenance_cwd,
-            )
-        except Exception as error:
-            self._connected_ok = False
-            self.session_ready_event.set()
-            self.post_message(AgentFail("Failed to start agent", details=str(error)))
-            return
         try:
             await asyncio.to_thread(
                 self.presentation.log_path.parent.mkdir, parents=True, exist_ok=True
             )
         except OSError:
             pass
-        self.process.start()
+        await self.process.start()
 
     def send(self, request: jsonrpc.Request) -> None:
         """Send a request to the agent.
@@ -315,29 +284,7 @@ class Agent(AgentBase):
             request: JSONRPC request object.
 
         """
-        if self.process.process is None:
-            self.log("[error] Agent process isnt running")
-            return
-
-        body = request.body
-        self.log(f"[client] {body}")
-        if (stdin := self.process.process.stdin) is not None:
-            calls = body if isinstance(body, list) else [body]
-            if any(
-                isinstance(call, dict) and call.get("method") == "session/prompt"
-                for call in calls
-            ):
-                from .maintenance_ingress import admitted_prompt
-
-                with admitted_prompt(
-                    (self.coordination.wire_root if self.coordination else None),
-                    ingress_root=self._maintenance_root,
-                    cwd=self._maintenance_cwd,
-                    implicit=getattr(self, "_maintenance_implicit_root", None),
-                ):
-                    stdin.write(b"%s\n" % request.body_json)
-            else:
-                stdin.write(b"%s\n" % request.body_json)
+        self.process.send(request)
 
     def request(self) -> jsonrpc.Request:
         """Create a request object."""
@@ -364,10 +311,10 @@ class Agent(AgentBase):
         """Validate wire notifications off-process, then publish to the same owner."""
         session = self.session_id
         async with self._session_update_lock:
-            if self.session_id != session or self.process.stopping:
+            if not self.process.accepts_session(session):
                 return
             validation = await self.controller.validate(sessionId, update, _meta)
-            if self.session_id != session or self.process.stopping:
+            if not self.process.accepts_session(session):
                 return
             if validation.error is not None:
                 self._reject_session_update(sessionId, update, _meta, validation.error)
@@ -540,7 +487,7 @@ class Agent(AgentBase):
         cancelled: protocol.RequestPermissionResponse = {
             "outcome": {"outcome": "cancelled"}
         }
-        if self.process.stopping or sessionId != self.session_id:
+        if not self.process.accepts_session(sessionId):
             return cancelled
         tool_call_id = toolCall["toolCallId"]
 
@@ -555,7 +502,7 @@ class Agent(AgentBase):
         self.tool_calls[tool_call_id] = cast(protocol.ToolCall, deepcopy(visible_tool_call))
         request = self.permissions.request(options, cast(protocol.ToolCallUpdatePermissionRequest, visible_tool_call))
         ask_result = await request.wait(PERMISSION_TIMEOUT_SECONDS)
-        if ask_result is None or self.process.stopping or sessionId != self.session_id:
+        if ask_result is None or not self.process.accepts_session(sessionId):
             return cancelled
         if not any(option["optionId"] == ask_result.id for option in options):
             return cancelled
@@ -652,8 +599,7 @@ class Agent(AgentBase):
     async def stop(self) -> None:
         """Gracefully stop the process."""
         await self.controller.terminals.close()
-        self.process.stopping = True
-        self.controller.connection_closed()
+        self.process.close()
         if self.session_pk is not None:
             db = DB()
             await db.session_update_last_used(self.session_pk)
@@ -672,10 +618,9 @@ class Agent(AgentBase):
                 else:
                     if not self.agent_capabilities.get("loadSession", False):
                         self.post_message(
-                            AgentFail(
+                            UnsupportedResumeAgentFail(
                                 "Resume not supported",
                                 f"{self._agent_data['name']} does not currently support resuming sessions.",
-                                help="no_resume",
                             )
                         )
                         self.session_ready_event.set()
@@ -686,8 +631,8 @@ class Agent(AgentBase):
                         await db.session_update_last_used(self.session_pk)
                 self._connected_ok = True
             except jsonrpc.APIError as error:
-                failure = ACPFailure.from_error(error.code, error.message, error.data)
-                self.post_message(AgentFail(failure.title, failure.feedback))
+                self.process.session_failed(ACPFailure.from_error(error.code, error.message, error.data))
+                return
         self.session_ready_event.set()
         self.post_message(AgentReady(reconnected=self._reconnecting))
 
@@ -1081,10 +1026,11 @@ class Agent(AgentBase):
         self._post_queue_view()
 
     def _rename_coordination_thread(self, display_name: str) -> None:
+        if not self.process.accepts_session(self.session_id):
+            return
         thread = self.coordination.thread.name if self.coordination else None
         wire_root = self.coordination.wire_root if self.coordination else None
-        process = self.process.process
-        if thread is None or wire_root is None or process is None:
+        if thread is None or wire_root is None:
             return
 
         from agent_comms.comms import wire
@@ -1139,10 +1085,10 @@ class Agent(AgentBase):
                     )
                 )
             self.post_message(
-                AgentFail(
+                LogAgentFail(
                     failure.title,
                     f"{failure.detail}\n{failure.input_disposition}\n{failure.action}",
-                    help="prompt",
+                    log_path=self.presentation.log_path,
                 )
             )
             return None
@@ -1164,10 +1110,10 @@ class Agent(AgentBase):
                     )
                 )
             self.post_message(
-                AgentFail(
+                LogAgentFail(
                     "Failed to send prompt",
                     error.message or f"{self._agent_data['name']} returned an error",
-                    help="prompt",
+                    log_path=self.presentation.log_path,
                 )
             )
             return None

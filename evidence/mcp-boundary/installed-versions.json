@@ -1,0 +1,37 @@
+{
+  "toad_import": "/home/ts/wt/toad-mcp-boundary-sol-20260929/.venv/lib/python3.14/site-packages/toad/__init__.py",
+  "editable": false,
+  "native_package": "/home/ts/.local/share/agent-comms/native-current-d3967e8b6ee0cf28/node_modules/@earendil-works/pi-coding-agent",
+  "live_writes": false,
+  "paid_provider_calls": 0,
+  "mcp_servers_started": 0,
+  "batrachian-toad": {
+    "version": "0.6.20",
+    "source": {
+      "url": "file:///home/ts/wt/toad-mcp-boundary-sol-20260929",
+      "dir_info": {}
+    }
+  },
+  "agent-comms": {
+    "version": "0.1.0",
+    "source": {
+      "url": "https://github.com/OpenHCSDev/agent-comms.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "77c2ac671e80018e75e97d9f8c5643cffe1dd39e",
+        "requested_revision": "77c2ac671e80018e75e97d9f8c5643cffe1dd39e"
+      }
+    }
+  },
+  "textual": {
+    "version": "8.2.8",
+    "source": {
+      "url": "https://github.com/OpenHCSDev/textual.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "1738abd8e3524b7e86171b70256d7f7e52fdb724",
+        "requested_revision": "1738abd8e3524b7e86171b70256d7f7e52fdb724"
+      }
+    }
+  }
+}
