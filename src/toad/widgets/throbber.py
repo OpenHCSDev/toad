@@ -15,6 +15,7 @@ from textual.visual import RenderOptions
 from textual.widget import Widget
 from textual.reactive import reactive
 from textual.css.styles import RulesMap
+from textual.screen import UPDATE_PERIOD
 
 
 COLORS = [
@@ -92,6 +93,13 @@ class Throbber(Widget):
     # The row is always reserved; only its paint and animation change.
     busy = reactive(False, layout=False)
 
+    def __init__(self, *, refresh_interval: float = UPDATE_PERIOD, **kwargs) -> None:
+        """Use the frame owner's default period, or a caller's explicit override."""
+        if refresh_interval <= 0:
+            raise ValueError("refresh_interval must be positive")
+        super().__init__(**kwargs)
+        self.refresh_interval = refresh_interval
+
     @cached_property
     def _busy_visual(self) -> ThrobberVisual:
         # Animation time is read while rendering. Keep the immutable color table
@@ -102,7 +110,9 @@ class Throbber(Widget):
         self.watch_busy(self.busy)
 
     def watch_busy(self, busy: bool) -> None:
-        self.auto_refresh = 1 / 30 if busy and self.is_mounted else None
+        interval = self.refresh_interval if busy and self.is_mounted else None
+        if self.auto_refresh != interval:
+            self.auto_refresh = interval
 
     def automatic_refresh(self) -> None:
         # Widget.is_on_screen falls back to the full geometry map for hidden
@@ -123,3 +133,18 @@ class Throbber(Widget):
 
     def render(self) -> ThrobberVisual | str:
         return self._busy_visual if self.busy else ""
+
+
+class ObservedThrobber(Throbber):
+    """Paint an existing activity owner without a writable busy mirror."""
+
+    def __init__(self, read_busy: Callable[[], bool], **kwargs) -> None:
+        super().__init__(**kwargs)
+        self._read_busy = read_busy
+
+    def compute_busy(self) -> bool:
+        return self._read_busy()
+
+    def sync(self) -> None:
+        self.watch_busy(self.busy)
+        self.refresh()

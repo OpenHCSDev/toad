@@ -5,6 +5,7 @@ from pathlib import Path
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.acp_extension import PendingQueueProjection, QueueProjection
 from toad.private_native_cursor import CursorStatus
+from toad.conversation_turn import TurnBinding, LocalTurnBinding, ManagedTurnBinding
 
 
 @dataclass(frozen=True)
@@ -16,8 +17,10 @@ class AgentAttachmentView:
 
 
 class AgentPresentation(DeclaredFamily, affix="AgentPresentation"):
+    TURN_BINDING: type[TurnBinding]
     def __init__(self, agent):
         self.agent = agent
+        self.turns = self.TURN_BINDING(agent)
         self.auth_methods = []
         self.log_path: Path | None = None
 
@@ -36,6 +39,7 @@ class AgentPresentation(DeclaredFamily, affix="AgentPresentation"):
 
 class LocalAgentPresentation(AgentPresentation):
     uses_managed_turns = False
+    TURN_BINDING = LocalTurnBinding
 
     @property
     def attachments(self):
@@ -44,6 +48,7 @@ class LocalAgentPresentation(AgentPresentation):
 
 class ACPAgentPresentation(AgentPresentation):
     uses_managed_turns = True
+    TURN_BINDING = ManagedTurnBinding
 
     @property
     def prompt_in_flight(self):

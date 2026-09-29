@@ -3,10 +3,13 @@
 import asyncio
 from pathlib import Path
 from unittest.mock import patch
+from math import ceil
+from time import monotonic
 
 from textual.app import App, ComposeResult
 from textual.containers import VerticalScroll
 from textual.widgets import Static
+from textual.screen import UPDATE_PERIOD
 
 from toad.widgets.throbber import Throbber
 
@@ -19,7 +22,7 @@ class Probe(App):
         with VerticalScroll(id="history"):
             for index in range(2000):
                 yield Static(f"Saved record {index}", classes="record")
-            yield Throbber(id="throbber")
+            yield Throbber(id="throbber", refresh_interval=UPDATE_PERIOD * 2)
 
 
 async def main():
@@ -57,7 +60,7 @@ async def main():
                 assert ("━" in painted) == (count > 0), (count, painted)
                 assert indicator.busy == (count > 0)
                 if count:
-                    assert indicator.auto_refresh == 1 / 30
+                    assert indicator.auto_refresh == indicator.refresh_interval == UPDATE_PERIOD * 2
                     assert indicator._auto_refresh_timer is not None
                     if timer is None:
                         timer = indicator._auto_refresh_timer
@@ -68,10 +71,12 @@ async def main():
                     assert indicator.auto_refresh is None
                     assert indicator._auto_refresh_timer is None
                 before = tick.call_count
+                started = monotonic()
                 await pilot.pause(0.3)
                 delta = tick.call_count - before
                 ticks.append(delta)
-                assert (1 <= delta <= 16 if count else delta == 0), (count, delta)
+                upper = ceil((monotonic() - started) / indicator.refresh_interval) + 2
+                assert (1 <= delta <= upper if count else delta == 0), (count, delta)
             assert arrange.call_count == 0
             assert geometry() == baseline
 

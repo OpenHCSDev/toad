@@ -104,7 +104,7 @@ class AgentController(OperationalTerminalOwner):
             self.replace_terminal_session()
             self.agent.permissions.cancel()
             self.agent.tools.reset()
-            self.agent._active_turn_id = None
+            self.agent._active_turn = None
             self.session = SessionBinding(session_id)
 
     def attach(self, target):
@@ -180,7 +180,7 @@ class AgentController(OperationalTerminalOwner):
         agent.session.closed()
         agent.permissions.cancel()
         agent._invalidate_attachment_views()
-        agent._active_turn_id = None
+        agent._active_turn = None
         agent.post_message(McpClientStopped(agent))
 
     def publish_modes(self, current, modes):

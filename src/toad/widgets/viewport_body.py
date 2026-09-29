@@ -174,13 +174,7 @@ class WindowMembership:
 class DocumentViewport:
     """One bounded warm working set for a history window, not one per message."""
 
-    DEFAULT_WARM_BODIES = PresentationBudget().item_limit(0)
-    """Use the shared presentation admission budget; explicit tuning may be zero."""
-
-    def __init__(self, window, *, max_warm_bodies: int = DEFAULT_WARM_BODIES):
-        if type(max_warm_bodies) is not int or max_warm_bodies < 0:
-            raise ValueError("max_warm_bodies must be a non-negative integer")
-        self.max_warm_bodies = max_warm_bodies
+    def __init__(self, window):
         self.lookahead = DirectionalPreparation()
         self.budget = PresentationBudget()
         self._settle_timer = None
@@ -230,8 +224,7 @@ class DocumentViewport:
         def widget_count():
             return sum(1 + sum(1 for _ in owner.walk_children()) for key in self._warm
                        if (owner := key()) is not None)
-        while (len(self._warm) > self.max_warm_bodies or
-               source_bytes() > self.window.app.preparation.max_bytes or
+        while (source_bytes() > self.window.app.preparation.max_bytes or
                widget_count() > self.budget.widget_limit(self.window.size.height)):
             key, _ = self._warm.popitem(last=False)
             owner = key()
@@ -357,7 +350,7 @@ class DocumentViewport:
                     heights = [sequence[index].measured_rows for index in visible_indexes
                                if sequence[index].measured_rows]
                     extent = max(1, sum(heights) / len(heights)) if heights else self.window.size.height
-                    count = min(self.max_warm_bodies, int(ahead / max(1, extent)) + bool(ahead))
+                    count = min(self.budget.item_limit(0), int(ahead / max(1, extent)) + bool(ahead))
                     if self.lookahead.travel_rows < 0:
                         first = min(visible_indexes)
                         retained.update(sequence[max(0, first - count):first])

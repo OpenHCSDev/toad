@@ -10,7 +10,6 @@ from typing import ClassVar
 from agent_comms.acp_extension import QueuePromptRequest, SteerPromptRequest
 from agent_comms.declared_family import DeclaredFamily
 from toad import jsonrpc, messages
-from toad.conversation_turn import AgentTurn, ClientTurn
 from toad.acp.client_session import ClientSessionRequest
 from toad.widgets.user_input import UserInput
 
@@ -99,7 +98,7 @@ class AgentInputSubmission(InputSubmission):
             return
         waiting = 'Waiting for replies…' if self.text.startswith(('@', '#', '!relay ')) else 'Thinking…'
         view.post_message(messages.SessionUpdate(state='busy', summary=waiting.rstrip('…')))
-        view.activity = waiting
+        view.turns.describe(waiting)
         await asyncio.sleep(0)
 
     async def execute(self, owner):
@@ -190,8 +189,7 @@ class SubmissionExecution:
         local = not managed
         reason = None
         if local:
-            view.busy_count += 1
-            view.turns.owner = AgentTurn()
+            view.turns.start_client()
         try:
             if view.queue_supported:
                 reason = await self.agent.send_prompt(self.submission.text, request=self.request)
@@ -201,16 +199,12 @@ class SubmissionExecution:
             if self.current:
                 from toad.widgets.conversation import INTERNAL_EROR
                 from toad.widgets.markdown_note import MarkdownNote
-                view.turns.owner = ClientTurn()
-                view.activity = ''
-                view.activity_started_at = None
+                view.turns.finish_client()
                 self.owner.restore_draft(self.submission.text)
                 await view.post(MarkdownNote(INTERNAL_EROR.replace('$ERROR', str(error) or 'no details were provided'),
                                              classes='-stop-reason'))
         finally:
             self.owner.finish(self)
-            if local and self.current:
-                view.busy_count -= 1
         if self.current and local:
             view.call_later(self.complete, reason)
 

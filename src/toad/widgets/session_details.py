@@ -11,6 +11,7 @@ from toad.widgets.input_delivery import InputDeliveryBar
 from toad.widgets.native_history import NativeHistory
 from toad.widgets.observed_thread_activity import ObservedThreadActivity
 from toad.widgets.session_history_details import SessionHistoryDetails
+from toad.conversation_turn import ConversationTurn
 
 
 class SessionDetails(Collapsible):
@@ -36,7 +37,9 @@ class SessionDetails(Collapsible):
         self, read: Callable[[], Awaitable[ThreadPresentation | None]], *,
         history: NativeHistory | None = None, delivery: InputDeliveryBar | None = None,
         read_history=None,
+        turns: ConversationTurn | None = None,
     ) -> None:
+        self.turns = turns
         self.activity = ObservedThreadActivity(read)
         self.history = history
         self.history_details = SessionHistoryDetails(read_history, history)
@@ -57,7 +60,8 @@ class SessionDetails(Collapsible):
     @on(ObservedThreadActivity.Changed)
     def observed_activity_changed(self, event: ObservedThreadActivity.Changed) -> None:
         # The same event still reaches Conversation's activity/Ready policy.
-        self._refresh_summary()
+        if event.current:
+            self._refresh_summary()
 
     def _refresh_summary(self, *_args) -> None:
         activity = self.activity
@@ -66,6 +70,8 @@ class SessionDetails(Collapsible):
         attention = activity.unavailable or bool(presentation and presentation.attention)
         if activity.unavailable:
             parts.append("Status unavailable")
+        elif self.turns is not None and self.turns.owner.busy:
+            parts.append(self.turns.owner.activity)
         elif presentation is not None:
             parts.append(presentation.summary.partition("\n")[0] or "Ready")
             if presentation.notifications:
@@ -78,6 +84,8 @@ class SessionDetails(Collapsible):
                     parts.append(f"Latest inbound {source.target} from @{source.sender}: {latest.state}")
                 if len(presentation.notifications) > 1:
                     parts.append(f"{len(presentation.notifications)} recent")
+        elif self.turns is not None and self.turns.owner.session_state is not None:
+            parts.append("Ready")
         parts.extend(self.history_details.summary)
         attention |= self.history_details.attention
         if self.delivery is not None:
@@ -103,3 +111,6 @@ class SessionDetails(Collapsible):
         self.display = bool(presentation is not None or activity.unavailable
                             or self.history is not None and self.history.status is not None
                             or self.delivery is not None and self.delivery.display)
+
+    def sync_turn(self) -> None:
+        self._refresh_summary()

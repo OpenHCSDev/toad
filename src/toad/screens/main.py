@@ -183,6 +183,7 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
         from toad.widgets.session_thread_sidebar import SessionThreadSidebar
 
         await self.presentation.prepare(self)
+        self._start_content_hydration()
         if sidebar := self.query_one_optional(SessionThreadSidebar):
             await sidebar.prepare_presentation()
 
@@ -240,7 +241,8 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
             )
 
     def _start_content_hydration(self) -> None:
-        if not self._content_loaded and not self._content_loading and self.is_attached:
+        if (self.is_current and not self._content_loaded and not self._content_loading
+                and self.is_attached):
             self._content_loading = True
             self.run_worker(self._load_content(), group="session-content")
 

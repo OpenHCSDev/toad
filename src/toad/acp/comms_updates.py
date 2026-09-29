@@ -76,7 +76,10 @@ class CommsUpdateConsumer(MroDispatch):
         agent = self.agent
         if not agent.process.accepts_session(self.session_id):
             return
-        agent._active_turn_id = update.turn_id
+        from toad.conversation_turn import AgentTurn
+        agent._active_turn = AgentTurn(
+            update.turn_id, update.activity_detail or "Thinking…", update.started_at,
+        )
         agent._turn_lifecycle_sequence += 1
         agent.post_message(
             messages.CommsUpdated(
@@ -93,11 +96,11 @@ class CommsUpdateConsumer(MroDispatch):
         if not agent.process.accepts_session(self.session_id):
             return
         if (
-            agent._active_turn_id is not None
-            and update.turn_id != agent._active_turn_id
+            agent._active_turn is not None
+            and update.turn_id != agent.current_turn.managed_id
         ):
             return
-        agent._active_turn_id = None
+        agent._active_turn = None
         agent._turn_lifecycle_sequence += 1
         agent.post_message(
             messages.CommsUpdated(
@@ -204,7 +207,7 @@ class CommsUpdateConsumer(MroDispatch):
     def mcp_receipt(self, update: McpClientReceiptUpdate) -> None:
         if (
             self.session_id != self.agent.session_id
-            or update.turn_id != self.agent._active_turn_id
+            or update.turn_id != self.agent.current_turn.managed_id
         ):
             self.agent.log(
                 "[ACP MCP live receipt rejected] receipt is not bound to the active session/turn"

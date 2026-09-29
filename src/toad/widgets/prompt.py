@@ -1,5 +1,5 @@
 from __future__ import annotations
-from toad.conversation_turn import TurnOwner, NoTurn
+from toad.conversation_turn import ConversationTurn
 
 from pathlib import Path
 import shlex
@@ -179,7 +179,6 @@ See on-screen instructions for details.
     multi_line = var(False, bindings=True)
     shell_mode = var(False, bindings=True)
     agent_ready: var[bool] = var(False)
-    agent_busy = var(False, bindings=True)
     queue_supported = var(False, bindings=True)
     path_complete: var[PathComplete] = var(Initialize(lambda obj: PathComplete()))
     suggestions: var[list[str] | None] = var(None)
@@ -190,12 +189,17 @@ See on-screen instructions for details.
 
     slash_commands: var[list[SlashCommand]] = var([])
 
-    def __init__(self, *, simple_input: bool = False) -> None:
+    def __init__(self, *, simple_input: bool = False, turns: ConversationTurn | None = None) -> None:
         self.input_cursor = PromptCursor(self)
         super().__init__()
         self.simple_input = simple_input
+        self.turns = turns
         self._submit_pending = False
         self._submit_immediate = False
+
+    @property
+    def agent_busy(self) -> bool:
+        return self.turns.owner.busy if self.turns is not None else False
 
     class Submitted(Message):
         def __init__(self, markdown: str) -> None:
@@ -479,8 +483,6 @@ class Prompt(containers.VerticalGroup):
     queue_projection: var[QueueProjection] = var(PendingQueueProjection())
     delivering_prompt = var("")
     sending_queued_prompt = var("")
-    turn_owner: var[TurnOwner] = var(NoTurn)
-    agent_busy = var(False)
     status: var[str | Content] = var("")
 
     app = getters.app(ToadApp)
@@ -494,11 +496,17 @@ class Prompt(containers.VerticalGroup):
         disabled: bool = False,
         simple_input: bool = False,
         placeholder: str | None = None,
+        turns: ConversationTurn | None = None,
     ):
         super().__init__(name=name, id=id, classes=classes, disabled=disabled)
         self.ask_queue: list[Ask] = []
         self.simple_input = simple_input
         self.simple_placeholder = placeholder
+        self.turns = turns
+
+    @property
+    def agent_busy(self) -> bool:
+        return self.turns.owner.busy if self.turns is not None else False
 
     @property
     def text(self) -> str:
@@ -603,12 +611,13 @@ class Prompt(containers.VerticalGroup):
             return
         self.model_switcher.set_models(models or {}, self.current_model)
 
-    def watch_turn_owner(self, turn_owner):
-        self.agent_busy = turn_owner.busy
+    def sync_turn(self) -> None:
         self.set_class(self.agent_busy and self.queue_supported, "-queue-mode")
+        if (editor := self.query_one_optional(PromptTextArea)) is not None:
+            editor.refresh_bindings()
 
     def watch_queue_supported(self, supported):
-        self.watch_turn_owner(self.turn_owner)
+        self.sync_turn()
         self._update_queue_summary()
 
     def watch_queued_prompts(self, queued):
@@ -812,11 +821,10 @@ class Prompt(containers.VerticalGroup):
             yield Question()
             with containers.HorizontalGroup(id="text-prompt"):
                 yield Label(self.PROMPT_AI, id="prompt", markup=False)
-                yield self.TEXT_AREA_CLASS(simple_input=self.simple_input).data_bind(
+                yield self.TEXT_AREA_CLASS(simple_input=self.simple_input, turns=self.turns).data_bind(
                     multi_line=Prompt.multi_line,
                     shell_mode=Prompt.shell_mode,
                     agent_ready=Prompt.agent_ready,
-                    agent_busy=Prompt.agent_busy,
                     queue_supported=Prompt.queue_supported,
                     project_path=Prompt.project_path,
                     working_directory=Prompt.working_directory,
