@@ -54,7 +54,7 @@ async def main():
             return {"ok": True}
 
         with (
-            patch("agent_comms.comms.wire", construct),
+            patch("toad.acp.transcript_reader.wire", construct),
             patch.object(RuntimeProxy, "request", request),
         ):
             await asyncio.gather(*(agent._owner_request("fixture") for _ in range(6)))
@@ -77,7 +77,7 @@ async def main():
         attach_coordination(agent, str(roots[0]), agent.coordination.thread.name)
         try:
             with (
-                patch("agent_comms.comms.wire", blocked),
+                patch("toad.acp.transcript_reader.wire", blocked),
                 patch.object(RuntimeProxy, "request", request),
             ):
                 pending = asyncio.create_task(agent._owner_request("must-not-send"))
@@ -100,13 +100,12 @@ async def main():
             await pilot.pause()
             shared = app.coordination_access.service
             agent.attach_surface(app.selected_session.conversation)
-            agent._transcript_reader = None
             with patch(
-                "agent_comms.comms.wire",
+                "toad.acp.transcript_reader.wire",
                 side_effect=AssertionError("Shared reader reconstructed"),
             ):
-                async with agent._transcript_reader_lock:
-                    reader = await agent._get_coordination_reader(str(shared.root))
+                async with agent.controller.transcripts.bind(str(shared.root)) as reader:
+                    assert reader is shared
             assert reader is shared
         await asyncio.get_running_loop().shutdown_default_executor()
     print(

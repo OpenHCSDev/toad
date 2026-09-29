@@ -58,7 +58,7 @@ async def main():
             "fixture",
         )
         attach_coordination(agent, str(root / "wire"), "fixture")
-        with patch("agent_comms.comms.wire", wraps=wire) as create:
+        with patch("toad.acp.transcript_reader.wire", wraps=wire) as create:
             pages = await asyncio.gather(
                 *(agent.get_transcript_page() for _ in range(4))
             )
@@ -109,17 +109,14 @@ async def main():
             for attachment in attachments:
                 attachment.attach_surface(app.selected_session.conversation)
                 attach_coordination(attachment, str(root / "wire"), "fixture")
-            with patch("agent_comms.comms.wire", wraps=wire) as create:
+            with patch("toad.acp.transcript_reader.wire", wraps=wire) as create:
                 await asyncio.gather(
                     *(attachment.get_transcript_page() for attachment in attachments)
                 )
                 assert create.call_count == 0
-            assert all(
-                (
-                    attachment._transcript_reader is app.coordination_access.service
-                    for attachment in attachments
-                )
-            )
+            for attachment in attachments:
+                async with attachment.controller.transcripts.bind(str(app.coordination_access.service.root)) as reader:
+                    assert reader is app.coordination_access.service
             owner_mode = app.selected_mode
             with (
                 patch(

@@ -31,7 +31,6 @@ from agent_comms.acp_extension import (
     encode_request,
 )
 from agent_comms.acp_failure import ACPFailure, BackendDeliveryFailure
-from agent_comms.comms import Comms
 from agent_comms.field_codec import FieldCodec
 from agent_comms.goal_actions import RetryGoalAction
 from agent_comms.goal_presentation import GoalExecution
@@ -147,9 +146,6 @@ class Agent(AgentBase):
         self._connected_ok = False
         self._deferred_submissions: set[asyncio.Task] = set()
         self._pending_session_name: str | None = None
-        self._transcript_reader: Comms | None = None
-        self._transcript_reader_root: str | None = None
-        self._transcript_reader_lock = asyncio.Lock()
         self.session_ready_event = asyncio.Event()
         self.done_event = asyncio.Event()
         self.agent_capabilities: protocol.AgentCapabilities = {
@@ -1047,8 +1043,7 @@ class Agent(AgentBase):
             (self.coordination.wire_root if self.coordination else None),
             (self.coordination.thread.name if self.coordination else None),
         )
-        async with self._transcript_reader_lock:
-            comms = await self._get_coordination_reader(root)
+        async with self.controller.transcripts.bind(root) as comms:
 
             def resolve():
                 from toad.owner_preparation import OwnerRequestContext
@@ -1116,22 +1111,6 @@ class Agent(AgentBase):
             self.coordination.thread.name if self.coordination else None
         ) is not None
 
-    async def _get_coordination_reader(self, root: str) -> Comms:
-        """Use under the reader lock; initialization and registry I/O stay off-loop."""
-        from agent_comms.comms import wire
-
-        from toad.app import ToadApp
-
-        if self._transcript_reader is None or self._transcript_reader_root != root:
-            app = self.controller.app
-            shared = app.coordination_access.observed_service if isinstance(app, ToadApp) else None
-            if shared is not None and shared.root == Path(root).expanduser():
-                self._transcript_reader = shared
-            else:
-                self._transcript_reader = await asyncio.to_thread(wire, root)
-            self._transcript_reader_root = root
-        return self._transcript_reader
-
     async def get_thread_presentation(self):
         from toad.owner_preparation import read_thread_presentation
 
@@ -1141,8 +1120,7 @@ class Agent(AgentBase):
         )
         if root is None or thread is None:
             return None
-        async with self._transcript_reader_lock:
-            reader = await self._get_coordination_reader(root)
+        async with self.controller.transcripts.bind(root) as reader:
             presentation = await asyncio.to_thread(
                 read_thread_presentation, reader, thread
             )
@@ -1168,15 +1146,15 @@ class Agent(AgentBase):
             (self.coordination.wire_root if self.coordination else None),
             (self.coordination.thread.name if self.coordination else None),
         )
-        async with self._transcript_reader_lock:
-            reader = await self._get_coordination_reader(root)
-            return await asyncio.to_thread(
-                reader.transcripts.thread_transcript_page,
-                thread,
-                before=before,
-                after=after,
-                through=through,
-            )
+        page = await self.controller.transcripts.page(
+            root, thread, before=before, after=after, through=through,
+        )
+        if (root, thread) != (
+            (self.coordination.wire_root if self.coordination else None),
+            (self.coordination.thread.name if self.coordination else None),
+        ):
+            raise ValueError("Thread attachment changed while reading transcript")
+        return page
 
     async def update_project(self, path: str) -> str:
         if (self.coordination.wire_root if self.coordination else None) is None or (
