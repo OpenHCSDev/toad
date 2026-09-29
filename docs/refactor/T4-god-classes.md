@@ -249,7 +249,7 @@ Agent lifetime is unchanged, no new source store or presentation flags. Delete
 root raw dispatcher and request raw-tool mirror; actual callers use the decoded
 request. A new presentation adds one declaration with admission/behavior, zero
 root/controller case edits. Tesla owns source/workspace; Noether renderer is
-untouched. Conversation2287→2204; request classes unchanged semantic span.
+untouched. Conversation2287→2204; request classes unchanged AST span45/13.
 Existing permission lifecycle pilot now checks actual inline/diff paint through
 installed RPC, removal/rebinding and final grant/reject/cancel. Obsolete97-line
 raw-future pilot deleted. Physical Pi/MCP + actual runtime proxy + installed UI cropped choices, source
