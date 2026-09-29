@@ -16,9 +16,19 @@ from toad.screens.main import MainScreen
 from textual.widget import Widget
 from toad.widgets.transcript_history import TranscriptFragmentView
 from agent_comms.transcript_events import TextTranscript
+from toad.widgets.agent_response import AgentResponse
 
 
 READER_TEXT = "READER_POSITION_3"
+
+
+def response_geometry(conversation):
+    """Expose the actual native leaf extent and its owned retirement state."""
+    return [(node.source, node.region, node.virtual_size, node.body_dormant,
+             node._body_measurement, node.loading,
+             [(type(child).__name__, child.region, child.styles.margin)
+              for child in node.children])
+            for node in conversation.query(AgentResponse)]
 
 
 async def settled(pilot, view):
@@ -81,6 +91,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     print("RECENT_INITIAL_GEOMETRY", [(type(node).__name__, node.region, node.virtual_size,
           node.show_vertical_scrollbar) for node in (window, *window.ancestors) if isinstance(node, Widget)], flush=True)
     source_paint = conversation_paint(frame)
+    source_responses = response_geometry(conversation)
     source_geometry = [
         (page.start, page.stop, page.region, tuple(
             (node.region, tuple(type(child).__name__ for child in node.children))
@@ -126,6 +137,8 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
                     for node in page.children
                 )) for pager in window.histories for page in pager.pages
             ], flush=True)
+            print("RECENT_RESPONSE_GEOMETRY", source_responses,
+                  response_geometry(restored), flush=True)
         assert conversation_paint(frame) == source_paint
         assert restored.prompt.prompt_text_area is editor
         assert editor.document is document and editor.history is history

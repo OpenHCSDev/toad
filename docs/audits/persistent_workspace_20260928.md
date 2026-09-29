@@ -253,3 +253,11 @@ An explicit native after-refresh fence in the recent pilot did not remove the re
 ### Rejected native-extent hypothesis
 
 The fragment trace shows identical admitted12..20 and page89x54 while older/latest AgentResponse heights exchange4/5→5/4. An own experimental capture of committed body extent during retirement did not change this result (`recent-native-extent.log`), so that production patch was removed completely and the installed own wheel restored. No unsupported body-measurement fix is published. The diagnostic caller remains for continued source/leaf investigation. Carver crash sites are still untouched.
+
+## Single-line divider measurement fix
+
+Production commit5eb99066 owns MessageDivider's one-line intrinsic height through the existing INDEPENDENT_HEIGHT method contract (IMPL-4). Native trace found the generic Static measurement wrapping a rule built with the previous self.size.width; divider heights exchanged1/2 across source return. The installed fix yields identical fragment regions/heights/range12..20/page89x53 and retains19→19. No CSS workaround, source replay, Textual/compositor change, recursion limit or exception catch.
+
+Actual installed recent test remains RED solely at full cropped-paint comparison: User and Agent timestamp strings change by one second. The canonical event-time contract request5882920918 remains open; do not erase or normalize those differences in the assertion. Receipt `recent-native-divider-height.log` records the complete actual geometry and text diff. Rapid PageDown/End/cold-tail cropped visible-body acceptance on the same installed wheel passed (`rapid-divider-height.log`, exit0). Chain terms message_divider0→0/recent pilot0→0.
+
+Carver owns authentic live Textual chops[y] IndexError and native layout reentrancy. Neither this fix nor parent150 is claimed to resolve that crash without its own evidence. Full116 prepared-source lifetime/recent reuse/performance30–40ms/final canonical suite remain open.
