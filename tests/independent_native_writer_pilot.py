@@ -128,7 +128,13 @@ async def continuous_acceptance(app, pilot, agent, comms, entered, release, hold
                 assert view.agent is original_agent and original_agent.process.process is process
                 assert process.returncode is None
                 assert editor.document is document and editor.history is history and editor.text == draft
-                assert all(body() in workspace._compositor.visible_widgets for body in leaves)
+                assert all(body() in workspace._compositor.visible_widgets for body in leaves), {
+                    "source": source._comms_thread,
+                    "original_leaves_alive": [body() is not None for body in leaves],
+                    "original_leaves_visible": [body() in workspace._compositor.visible_widgets for body in leaves],
+                    "body_evictions": view.window.document_viewport.body_evictions,
+                    "body_reuse_hits": view.window.document_viewport.reuse_hits,
+                }
                 assert comms.registry.require(source._comms_thread).process_identity == owner
                 timings.append({"source": source._comms_thread, **timing})
         reads_after = app.coordination_access.service.transcripts.page_reads
@@ -159,6 +165,11 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
             "retained_bytes": runtime.retained_bytes, "byte_limit": runtime.max_bytes,
             "kinds": dict(Counter(key.kind.__name__ for key in runtime._ready)),
             "page_reads": app.coordination_access.service.transcripts.page_reads,
+            "body_evictions": app.selected_session.conversation.window.document_viewport.body_evictions,
+            "body_reuse_hits": app.selected_session.conversation.window.document_viewport.reuse_hits,
+            "warm_body_limit": app.selected_session.conversation.window.document_viewport.max_warm_bodies,
+            "warm_widget_limit": app.selected_session.conversation.window.document_viewport.budget.widget_limit(
+                app.selected_session.conversation.window.size.height),
         }, indent=2))
 
 
@@ -166,4 +177,5 @@ if __name__ == "__main__":
     if os.environ.get("NATIVE_SOURCE_IDENTITY_CENSUS"):
         threading.setprofile_all_threads(capture_read_identity)
     asyncio.run(native_fixture(app_type=PaintedSwitchApp, prepare_state=prepare,
-        provider_reply=reply, acceptance=acceptance, headless=False))
+        provider_reply=reply, acceptance=acceptance, headless=False,
+        provider_request_budget=len(NAMES)))

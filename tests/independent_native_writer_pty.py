@@ -14,7 +14,8 @@ async def main():
  WORKSPACE_LOADED_COHORTS=str(cohort))
  session=ToadSession(PtyLaunch((sys.executable,str(root/'tests/independent_native_writer_pilot.py')),root,env))
  try:
-  await session.start();session._set_size(44,160)
+  await session.start()
+  if session.alive():session._set_size(44,160)
   while session.alive():
    session._drain();await asyncio.sleep(.05)
   session._drain();await session.proc.wait()
