@@ -93,6 +93,9 @@ unchanged. Deleted classes remain deleted; new owner measurements have no baseli
 Census: every touched file has non-increasing chain terms; aggregate terms0,
 string-key subscripts-2, literal gets-4, string equality-8, codec subclasses0.
 All product ASTs parse in the permanent guard. ratchet-final.json/census-final.json.
+The initial raw-field implementation added one string subscript (ratchet-first.json).
+Guaranteed fields now bind through their owning input signatures, removing raw
+projections rather than changing bracket reads to get calls; final delta is-2.
 
 Full raw NRA source/dependency context snapshots, no automatic context omission,
 single bounded worker, no cache: base723 indexed files/137 raw findings47.801s;
