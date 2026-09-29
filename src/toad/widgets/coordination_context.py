@@ -8,15 +8,36 @@ import asyncio
 from textual.widgets import Collapsible
 
 from toad.widgets.agent_response import AgentResponse
-from toad.widgets.message_filter import MessageCategory
 from toad.coordination_context_format import format_coordination_context, literal_context
 
 
 
-class OriginalCoordinationContext(ConversationBlock, Collapsible):
-    def __init__(self, content: str) -> None:
-        super().__init__(title="Original payload", collapsed=True)
+class ContextDisclosure(ConversationBlock, Collapsible):
+    """The displayed payload and disclosure state belong to this widget."""
+
+    def __init__(self, content: str, *, title: str) -> None:
+        super().__init__(title=title, collapsed=True)
         self.content = content
+
+    def get_clipboard_text(self) -> str:
+        return self.content
+
+    def can_expand(self) -> bool:
+        return self.collapsed
+
+    def is_block_expanded(self) -> bool:
+        return not self.collapsed
+
+    def expand_block(self) -> None:
+        self.collapsed = False
+
+    def collapse_block(self) -> None:
+        self.collapsed = True
+
+
+class OriginalCoordinationContext(ContextDisclosure):
+    def __init__(self, content: str) -> None:
+        super().__init__(content, title="Original payload")
         self._body: AgentResponse | None = None
 
     async def on_collapsible_expanded(self, event: Collapsible.Expanded) -> None:
@@ -25,14 +46,10 @@ class OriginalCoordinationContext(ConversationBlock, Collapsible):
                                        category=OtherCategory)
             await self.query_one(Collapsible.Contents).mount(self._body)
 
-    def get_clipboard_text(self) -> str:
-        return self.content
 
-
-class CoordinationContext(ConversationBlock, Collapsible):
+class CoordinationContext(ContextDisclosure):
     def __init__(self, content: str) -> None:
-        super().__init__(title="Agent coordination context", collapsed=True)
-        self.content = content
+        super().__init__(content, title="Agent coordination context")
         self._body: AgentResponse | None = None
         self._formatted: str | None = None
         self._preparing = False
@@ -55,12 +72,3 @@ class CoordinationContext(ConversationBlock, Collapsible):
                 await contents.mount(OriginalCoordinationContext(self.content))
         finally:
             self._preparing = False
-
-    def get_clipboard_text(self) -> str:
-        return self.content
-
-    def collapse_block(self) -> None:
-        self.collapsed = True
-
-    def expand_block(self) -> None:
-        self.collapsed = False

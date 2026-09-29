@@ -14,6 +14,7 @@ from toad.widgets.agent_response import AgentResponse
 from toad.widgets.menu import Menu
 from toad.widgets.tool_call import ToolCall
 from toad.widgets.user_input import UserInput
+from toad.widgets.coordination_context import CoordinationContext
 from runtime_fixture import ToadApp
 
 
@@ -128,7 +129,23 @@ async def main():
                 assert "DECLARED_ACTION_PAINT" in frame(app)
                 assert view.check_action("expand_block", ()) is None
                 assert view.check_action("collapse_block", ()) is False
-                print("PASS installed mixed nominal blocks, actual menu keys/cropped paint, private X11 copy, prompt, resize, expansion and new-case action")
+                context = CoordinationContext("CONTEXT_COPY_PAINT")
+                await view.post(context)
+                await pilot.pause()
+                assert view.navigation.select(context)
+                view.refresh_block_cursor()
+                assert view.check_action("expand_block", ()) is True
+                await pilot.press("space")
+                await until(pilot, lambda: not context.collapsed and "CONTEXT_COPY_PAINT" in frame(app))
+                await copied(context, "CONTEXT_COPY_PAINT")
+                await choose(context, "p")
+                assert view.prompt.text == "CONTEXT_COPY_PAINT"
+                assert view.navigation.select(context)
+                view.refresh_block_cursor()
+                await pilot.press("space")
+                await until(pilot, lambda: context.collapsed)
+                assert view.check_action("collapse_block", ()) is False
+                print("PASS installed mixed nominal blocks, actual menu keys/cropped paint, private X11 copy, prompt, resize, expansion, actual coordination disclosure and new-case action")
     finally:
         os.close(read_fd)
         server.terminate()
