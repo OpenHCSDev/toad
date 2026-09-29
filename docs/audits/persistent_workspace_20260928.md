@@ -42,3 +42,30 @@ lease closure remains work, not a completed target. Remaining actual caller
 closure and broad suite are not declared passed. No CI hold, paid calls or live
 root/install changes. Full NRA/context scan and shared class ratchet follow the
 latency run to avoid contaminating its measurements.
+
+## Current integration and owner handoff
+
+Current main e46f8cb5 (129/141/143) is integrated at6f7a3e1; installed pins
+are core306 b77db612 and Textualc974. PR142 carries remaining116/110, not a
+performance-complete replacement. Original116 fe5493b remains draft until
+unique15e4f93 behavior is adapted. No old per-tab Screen/chrome cherry-pick.
+
+The reusable native Conversation now resets declaration values without replaying
+history-navigation producers. Typed state restores history positions without
+loading editor text. Installed rebind-intent-watcher.log passes original actual
+Document/EditHistory/undo, separate drafts and fixed native frame/chrome; watcher
+custody promotes the logical lifetime before sharing the widget.
+
+ViewportPresentation now gates every native frame on visible-body readiness,
+including rapid PageDown/End outside activation. Readiness checks iterate visible
+widgets, not the full source inventory. The installed rapid scroll test uses real
+body restoration and cropped compositor text, with no patched restoration. Its
+current cold-tail End case fails follows-tail/exact-max acceptance: open blocker.
+Recent-source return/reuse acceptance from15e4f93 remains required; old warm-body
+8/24 and3-window evidence parameters are not new acceptance targets. Use existing
+source/viewport owners and the one shared view budget.
+
+Earlier native4/16/32/64 topology receipt passed all actual source/editor/paint
+gates but median258.69ms at64 was not the30–40ms target. New reused-surface full
+native matrix, sidebar return, source-close custody, recent-source behavior and
+latency/tail closure remain unfinished. CI deferred; no live changes.

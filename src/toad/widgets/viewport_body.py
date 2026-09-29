@@ -66,16 +66,17 @@ class ViewportPresentation:
         for window in self.anchors:
             window.retire_presentation_wait()
 
-    def prepare(self, wait_for_bodies: bool) -> bool:
+    def prepare(self) -> bool:
         screen = self.screen
         if not screen.is_current:
             return True
-        if wait_for_bodies:
-            for window in self.windows:
-                if not window.document_viewport.visible_bodies_ready:
-                    window.document_viewport.request()
-                    screen._repaint_required = True
-                    return False
+        # Visible source bodies must be ready on every frame, including rapid
+        # PageDown/End frames outside a session activation.
+        for window in self.windows:
+            if not window.document_viewport.visible_bodies_ready:
+                window.document_viewport.request()
+                screen._repaint_required = True
+                return False
         changed = False
         for window in self.windows:
             changed |= window.check_follow()
@@ -158,8 +159,10 @@ class DocumentViewport:
 
     @property
     def visible_bodies_ready(self) -> bool:
+        if not self.owners:
+            return True
         visible = self.window.screen._compositor.visible_widgets
-        return all(owner.body_ready for owner in self.owners if owner in visible)
+        return all(widget.body_ready for widget in visible if widget in self.owners)
 
     async def _reconcile(self) -> None:
         try:

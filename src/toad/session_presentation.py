@@ -52,8 +52,10 @@ class SessionViewState:
     def restore(self, conversation: Conversation) -> None:
         conversation.prompt_history = self.prompt_history
         conversation.shell_history = self.shell_history
-        conversation.prompt_history_index = self.prompt_history_index
-        conversation.shell_history_index = self.shell_history_index
+        # Restore reader intent without executing history navigation again.
+        # Its watchers load text and would replace the retained editor document.
+        conversation.set_reactive(Conversation.prompt_history_index, self.prompt_history_index)
+        conversation.set_reactive(Conversation.shell_history_index, self.shell_history_index)
         conversation.visible_categories = self.visible_categories
         editor = conversation.prompt.prompt_text_area
         editor.restore_editor_state(self.editor)
@@ -223,6 +225,7 @@ class NativeSessionSurface:
         return (
             screen._agent is None and conversation.agent is None
             and conversation._agent_data is None and conversation._shell is None
+            and conversation._directory_watcher is None
             and not conversation.contents.children
             and conversation._terminal is None and not conversation.goal_display.visible
             and not conversation.queued_prompts and not conversation.queue_projection.items

@@ -2181,13 +2181,14 @@ class Conversation(containers.Vertical):
         """Reset values from their declarations, then bind the existing source config."""
         for name, declaration in Conversation._reactives.items():
             if name in Conversation.__dict__:
-                setattr(self, name, declaration._default_value(self))
+                self.set_reactive(declaration, declaration._default_value(self))
         self._initialize_session(screen.project_path, screen._agent,
                                  screen._agent_session_id, screen._session_pk,
                                  screen._agent_session_title, screen._initial_prompt)
-        for name, declaration in Conversation._reactives.items():
-            if name in Conversation.__dict__:
-                self.mutate_reactive(declaration)
+        # Refresh cwd-bound editor projections, without replaying semantic
+        # history-navigation watchers against the restored document.
+        self.mutate_reactive(Conversation.project_path)
+        self.mutate_reactive(Conversation.working_directory)
         self.column = screen.column
         self.prompt.slash_commands = CommandCatalog(
             self.agent_slash_commands, self.command_target_context()).commands

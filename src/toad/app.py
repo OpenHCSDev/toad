@@ -1155,9 +1155,9 @@ class ToadApp(App, inherit_bindings=False):
         if source is None:
             from toad.screens.comms import CommsScreen
 
-            owner_stack = self.workspace_sessions.views.get(owner_mode, [])
-            if owner_stack and isinstance(owner_stack[-1], CommsScreen):
-                source = self._main_session_screen(owner_stack[-1].owner_mode)
+            owner_view = self.workspace_sessions.views.get(owner_mode)
+            if isinstance(owner_view, CommsScreen):
+                source = self._main_session_screen(owner_view.owner_mode)
         if source is None:
             return self.selected_mode
         source_identity = source._comms_thread
