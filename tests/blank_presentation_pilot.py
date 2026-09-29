@@ -6,6 +6,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 from runtime_fixture import ToadApp
+from native_session_retention_pilot import conversation_paint
 from textual.widgets.text_area import Selection
 
 from toad.widgets.conversation import Conversation
@@ -96,7 +97,7 @@ async def main():
             assert any(terminal.state is output.state for terminal in restored_shell_view.query("ShellTerminal")
                        for output in shell.outputs if isinstance(output, ShellTerminalOutput))
             await pilot.pause()
-            paint = "\n".join(strip.text for strip in app.screen._compositor.render_strips())
+            paint = conversation_paint(app.screen)
             assert "owned-shell-marker" in paint, paint
             await app.switch_mode(third)
             assert not second.query(Conversation)
