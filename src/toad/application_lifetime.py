@@ -85,10 +85,13 @@ class ApplicationLifetime:
             self.app.notify("Press [b]ctrl+c[/b] again to quit the app", title="Do you want to quit?")
 
     def quit(self) -> None:
+        from toad.setting_widgets import InputEditor
+
         app = self.app
+        InputEditor.finish_focused(app.screen)
         app.screen.set_focus(None)
-        # Textual queues blur ahead of this callback. Await saving before exit;
-        # a fixed timer never proves the focused editor has committed its value.
+        # Blur messages run on the widget queue, independently of App callbacks.
+        # The editor family commits first; the persisted tree alone permits exit.
         app.call_later(self.save_and_exit)
 
     async def save_and_exit(self) -> None:
