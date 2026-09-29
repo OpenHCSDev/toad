@@ -31,6 +31,16 @@ from toad import messages
 from toad.navigation_preparation import ThreadNavigationRequest
 
 
+def response_painted(app, view, text):
+    window = view.window.region
+    frame = "\n".join(strip.crop(window.x, window.right).text
+                      for strip in app.screen._compositor.render_strips()[window.y:window.bottom])
+    return text in frame and any(
+        block in app.screen._compositor.visible_widgets and block.region.overlaps(window)
+        for block in view.query(AgentResponse) if text in block.source
+    )
+
+
 async def until(pilot, predicate, seconds=20):
     async with asyncio.timeout(seconds):
         while not predicate():
@@ -350,6 +360,8 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
                 assert len(requests) >= 2, "Queued native input never reached provider"
                 assert not view.queue_projection.items
                 assert view.prompt.text == "unsent local draft"
+                await until(pilot, lambda: response_painted(app, view, "NATIVE_RESPONSE_2"))
+                print("ACTUAL_LIVE_AND_SAVED_RESPONSE_PAINT_CONFIRMED", flush=True)
                 print("NATIVE_QUEUE_DONE", len(requests), flush=True)
                 print("QUEUE_PROJECTION", view.queue_projection, flush=True)
                 print(
@@ -390,10 +402,7 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
                 assert agent._connected_ok
                 await until(
                     pilot,
-                    lambda: any(
-                        "NATIVE_RESPONSE_2" in block.source
-                        for block in view.query(AgentResponse)
-                    ),
+                    lambda: response_painted(app, view, "NATIVE_RESPONSE_2"),
                 )
                 assert comms.registry.require("beta").process_identity == old_process
                 assert len(requests) == native_count
@@ -456,10 +465,7 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
                 assert agent._connected_ok, "Stopped native owner failed to reopen"
                 await until(
                     pilot,
-                    lambda: any(
-                        "NATIVE_RESPONSE_2" in block.source
-                        for block in view.query(AgentResponse)
-                    ),
+                    lambda: response_painted(app, view, "NATIVE_RESPONSE_2"),
                 )
                 assert len(requests) == before_restart, "Restart replayed a model input"
                 restarted = comms.registry.require("beta").process_identity

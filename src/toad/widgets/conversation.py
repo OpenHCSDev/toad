@@ -69,7 +69,8 @@ from toad.widgets.note import Note
 from toad.widgets.prompt import Prompt
 from toad.widgets.terminal import Terminal
 from toad.widgets.throbber import Throbber
-from toad.goal_display import GoalDisplay, GoalUnavailable, NoGoal
+from toad.goal_display import GoalDisplay, NoGoal
+from toad.session_observation import GoalObservation, InputDeliveryObservation
 from toad.widgets.goal_bar import GoalBar, GoalControl
 from toad.widgets.native_history import NativeHistory
 from toad.widgets.observed_thread_activity import ObservedThreadActivity
@@ -639,11 +640,9 @@ class Conversation(containers.Vertical):
         self._initial_prompt = initial_prompt
 
         self._post_lock = asyncio.Lock()
-        self._goal_refresh_task: asyncio.Task | None = None
-        self._goal_refresh_revision = 0
+        self.goal_observation = GoalObservation(self)
         self._goal_modal = None
-        self._delivery_refresh_task: asyncio.Task | None = None
-        self._delivery_refresh_revision = 0
+        self.delivery_observation = InputDeliveryObservation(self)
         self._transcript_generation = 0
         self._transcript_dirty = False
         self.displayed_transcript_cursor = None
@@ -1091,8 +1090,8 @@ class Conversation(containers.Vertical):
                 )
 
         self.agent_ready = True
-        self.call_later(self.refresh_goal)
-        self.call_later(self.refresh_input_dispositions)
+        self.call_later(self.goal_observation.refresh)
+        self.call_later(self.delivery_observation.refresh)
         self._compact_committed_history()
         if self.turns.managed_id is None:
             self.post_message(messages.SessionUpdate(state="idle", summary="Ready"))
@@ -1136,6 +1135,7 @@ class Conversation(containers.Vertical):
             await self.rename_session(message.title or "")
 
     async def on_unmount(self) -> None:
+        await asyncio.gather(self.goal_observation.close(), self.delivery_observation.close())
         if self._directory_watcher is not None:
             self._directory_watcher.stop()
             await asyncio.to_thread(self._directory_watcher.join)
@@ -2403,96 +2403,24 @@ class Conversation(containers.Vertical):
         if self._transcript_dirty:
             self.call_after_refresh(self._compact_committed_history)
 
-    def _invalidate_input_dispositions(self) -> None:
-        if not self.is_attached or self.agent is None:
-            return
-        self._delivery_refresh_revision += 1
-        if self._delivery_refresh_task is None or self._delivery_refresh_task.done():
-            self._delivery_refresh_task = asyncio.create_task(
-                self._read_input_dispositions()
-            )
-
-    async def refresh_input_dispositions(self) -> None:
-        self._invalidate_input_dispositions()
-        if self._delivery_refresh_task is not None:
-            await asyncio.shield(self._delivery_refresh_task)
-
-    async def _read_input_dispositions(self) -> None:
-        while self.is_attached:
-            revision, agent = self._delivery_refresh_revision, self.agent
-            if agent is None:
-                return
-            try:
-                delivery = await agent.get_input_delivery()
-            except (OSError, ValueError, RuntimeError, TimeoutError, KeyError) as error:
-                if revision != self._delivery_refresh_revision:
-                    continue
-                self.input_delivery_error = f"Delivery unavailable: {error}"
-                return
-            if revision != self._delivery_refresh_revision or agent is not self.agent:
-                continue
-            self.input_delivery = delivery
-            self.input_delivery_error = ""
-            return
-
     @property
     def unresolved_inputs(self) -> list[dict]:
         return self.input_delivery["inputs"]
-
-    async def _load_delivery_history(self) -> list[dict]:
-        agent = self.agent
-        if agent is None:
-            raise ValueError("No connected owner.")
-        while True:
-            revision = self._delivery_refresh_revision
-            result = await agent.get_input_delivery(include_history=True)
-            if agent is not self.agent:
-                raise ValueError("The connected owner changed; inspect delivery again.")
-            if revision != self._delivery_refresh_revision:
-                continue
-            await self.refresh_input_dispositions()
-            if agent is not self.agent:
-                raise ValueError("The connected owner changed; inspect delivery again.")
-            if self.input_delivery_error:
-                raise ValueError(self.input_delivery_error)
-            # The refresh above adds one revision. A further invalidation means
-            # these historical bodies may predate another owner's dismissal.
-            if revision + 1 != self._delivery_refresh_revision or any(
-                result[key] != self.input_delivery[key]
-                for key in ("historicalCount", "dismissedHistoricalCount")
-            ):
-                continue
-            return result["historicalInputs"]
-
-    async def _dismiss_delivery_history(self) -> None:
-        agent = self.agent
-        if agent is None:
-            raise ValueError("No connected owner.")
-        await agent.dismiss_historical_inputs()
-        if agent is not self.agent:
-            raise ValueError("The connected owner changed; inspect delivery again.")
-        # Mutate once, then let the sole overview reader reconcile any receipt
-        # or newly admitted input that arrived while the action was in flight.
-        await self.refresh_input_dispositions()
-        if agent is not self.agent:
-            raise ValueError("The connected owner changed; inspect delivery again.")
-        if self.input_delivery_error:
-            raise ValueError(self.input_delivery_error)
 
     def on_input_dispositions_changed(
         self, event: acp_messages.InputDispositionsChanged
     ) -> None:
         event.stop()
-        self._invalidate_input_dispositions()
+        self.delivery_observation.invalidate()
 
     @on(InputDeliveryBar.Inspect)
     async def inspect_input_delivery(self, event: InputDeliveryBar.Inspect) -> None:
         event.stop()
-        await self.refresh_input_dispositions()
+        await self.delivery_observation.refresh()
         details = InputDeliveryDetails(
             log_path=self.agent.presentation.log_path if self.agent is not None else None,
-            load_history=self._load_delivery_history,
-            dismiss_history=self._dismiss_delivery_history,
+            load_history=self.delivery_observation.history,
+            dismiss_history=self.delivery_observation.dismiss_history,
         )
         # A modal remains a view of the same backend snapshot, including later starts.
         details.delivery = self.input_delivery
@@ -2527,43 +2455,8 @@ class Conversation(containers.Vertical):
             ) or current is self._goal_modal
         except ScreenStackError, UnknownModeError:
             return
-        if visible and (
-            self._goal_refresh_task is None or self._goal_refresh_task.done()
-        ):
-            self._invalidate_goal_snapshot()
-
-    def _invalidate_goal_snapshot(self) -> None:
-        if not self.is_attached or self.agent is None:
-            return
-        self._goal_refresh_revision += 1
-        if self._goal_refresh_task is None or self._goal_refresh_task.done():
-            self._goal_refresh_task = asyncio.create_task(self._read_goal_snapshot())
-
-    async def refresh_goal(self) -> None:
-        self._invalidate_goal_snapshot()
-        if self._goal_refresh_task is not None:
-            await asyncio.shield(self._goal_refresh_task)
-
-    async def _read_goal_snapshot(self) -> None:
-        # All actions and notifications invalidate the same backend projection.
-        # A read overtaken by another invalidation is discarded before painting.
-        while self.is_attached:
-            revision, agent = self._goal_refresh_revision, self.agent
-            if agent is None:
-                return
-            try:
-                goal, execution = await agent.get_goal_snapshot()
-            except OSError, ValueError:
-                if revision != self._goal_refresh_revision:
-                    continue
-                self.goal_display = GoalUnavailable(self.goal_display.snapshot)
-                return
-            if revision != self._goal_refresh_revision or agent is not self.agent:
-                continue
-            if self.is_attached:
-                self.goal_display = GoalDisplay.current(goal)
-                self.goal_execution = execution
-            return
+        if visible and not self.goal_observation.active:
+            self.goal_observation.invalidate()
 
     @on(acp_messages.CommsUpdated)
     async def on_comms_updated(self, event: acp_messages.CommsUpdated) -> None:
@@ -2576,7 +2469,7 @@ class Conversation(containers.Vertical):
 
     async def _coordination_changed(self, _update: None) -> None:
         self.update_slash_commands()
-        await self.refresh_goal()
+        await self.goal_observation.refresh()
 
     @on(GoalControl.Activated)
     async def on_goal_control(self, event: GoalControl.Activated):
@@ -2611,7 +2504,7 @@ class Conversation(containers.Vertical):
 
             async def save(text: str) -> None:
                 await self.agent.edit_goal(goal, text)
-                await self.refresh_goal()
+                await self.goal_observation.refresh()
 
             editor = GoalEdit(goal, goal_mention_candidates(self.app), on_save=save)
             self._goal_modal = editor
@@ -2634,7 +2527,7 @@ class Conversation(containers.Vertical):
             # interrupt work already in progress; the running turn finishes and
             # then scheduling honours the new state.
             await self.agent.update_goal(action, text)
-            await self.refresh_goal()
+            await self.goal_observation.refresh()
             self.prompt.focus()
         except (OSError, ValueError) as error:
             self.flash(str(error), style="error")
@@ -2718,8 +2611,8 @@ class Conversation(containers.Vertical):
             self.turns.owner = agent.current_turn
             self.busy_count = int(self.turns.owner.busy)
             if self.agent_ready:
-                self.call_later(self.refresh_goal)
-                self.call_later(self.refresh_input_dispositions)
+                self.call_later(self.goal_observation.refresh)
+                self.call_later(self.delivery_observation.refresh)
         self.update_title()
 
     @work
@@ -3182,7 +3075,7 @@ class ConversationCommsConsumer(MroDispatch):
 
     @handles(GoalChangedUpdate)
     async def goal_changed(self, update: GoalChangedUpdate):
-        self.conversation._invalidate_goal_snapshot()
+        self.conversation.goal_observation.invalidate()
 
     @handles(CompactionChangedUpdate)
     async def compaction_changed(self, update: CompactionChangedUpdate):
