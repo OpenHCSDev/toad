@@ -923,6 +923,11 @@ class Conversation(ConversationSessionBinding):
         if self.is_mounted and self.agent_ready and owner.session_state is not None:
             self.post_message(messages.SessionUpdate(state=owner.session_state))
 
+    def make_throbber(self) -> ObservedThrobber:
+        return ObservedThrobber(
+            lambda: self.busy_count > 0 or self.turns.owner.busy, id="throbber"
+        )
+
     @on(events.Key)
     async def on_key(self, event: events.Key):
         if (
@@ -956,7 +961,7 @@ class Conversation(ConversationSessionBinding):
                     error=Conversation.input_delivery_error,
                 ),
             )
-            yield ObservedThrobber(lambda: self.busy_count > 0 or self.turns.owner.busy, id="throbber")
+            yield self.make_throbber()
             yield GoalBar().data_bind(goal_display=Conversation.goal_display, execution=Conversation.goal_execution)
             yield Prompt(turns=self.turns).data_bind(
                 project_path=Conversation.project_path,

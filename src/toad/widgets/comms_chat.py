@@ -35,7 +35,6 @@ from toad.widgets.conversation import (
 )
 from toad.widgets.flash import Flash
 from toad.widgets.prompt import Prompt
-from toad.widgets.throbber import Throbber
 from toad.widgets.message_notifications import MessageNotifications
 from toad.owner_preparation import read_thread_presentation
 from toad.screens.session_view import SessionView
@@ -131,7 +130,7 @@ class CommsChatView(DeliveryFailureView, Conversation):
         yield Flash()
         with containers.Vertical(id="prompt-stack"):
             yield self.conversation_kind.activity_widget(self)
-            yield Throbber(id="throbber")
+            yield self.make_throbber()
             yield self.conversation_kind.prompt(self.target).data_bind(
                 project_path=Conversation.project_path,
                 working_directory=Conversation.working_directory,
@@ -301,12 +300,12 @@ class CommsChatView(DeliveryFailureView, Conversation):
                     self.status = "Read-only saved view"
                 show_loading = not self.message_history.initialized
                 if show_loading:
-                    self.throbber.busy = True
+                    self.on_work_started()
                 try:
                     read = await self.app.channel_history_reader.read(self.message_history.request())
                 finally:
-                    if show_loading and self.is_attached:
-                        self.throbber.busy = False
+                    if show_loading:
+                        self.on_work_finished()
                 if not self.is_attached or not self.query_ancestor(SessionView).is_current:
                     return
                 if read.request != self.message_history.request():
