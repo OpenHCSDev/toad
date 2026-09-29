@@ -679,6 +679,8 @@ class ConversationSessionBinding(containers.Vertical):
                 from toad.widgets.markdown_note import MarkdownNote
 
                 await self.post(MarkdownNote(welcome))
+                if self.transcript is not presentation or presentation.view is not self:
+                    return
         if ready and self._initial_prompt is not None:
             prompt = self._initial_prompt
             if prompt.startswith("!"):
