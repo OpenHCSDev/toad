@@ -52,7 +52,7 @@ class Plan(ConversationBlock, containers.Grid):
     """
 
     entries: reactive[list[PlanItem]] = reactive(list, recompose=True)
-    all_complete: reactive[bool] = reactive(False, toggle_class="-all-complete")
+    all_complete: reactive[bool] = reactive(False)
 
     def __init__(
         self,
@@ -70,6 +70,9 @@ class Plan(ConversationBlock, containers.Grid):
 
     def compute_all_complete(self) -> bool:
         return bool(self.entries) and all(entry.status.complete for entry in self.entries)
+
+    def watch_all_complete(self, complete: bool) -> None:
+        self.set_class(complete, "-all-complete")
 
     def compose(self) -> ComposeResult:
         if not self.entries:

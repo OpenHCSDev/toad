@@ -22,6 +22,10 @@ class InstalledApp(ToadApp):
     CSS_PATH = files("toad").joinpath("toad.tcss")
 
 
+def painted(widget, text):
+    return widget in widget.screen._compositor.visible_widgets and text in viewport_text(widget)
+
+
 async def main():
     with TemporaryDirectory(prefix="plan-wire-", dir=os.environ["TMPDIR"]) as directory:
         root = Path(directory)
@@ -52,14 +56,14 @@ async def main():
                 plan = view.query_one(Plan)
                 await until(pilot, lambda: len(plan.query(StrikeText)) == len(stages[0]["entries"]))
                 plan.scroll_visible(animate=False, immediate=True)
-                await until(pilot, lambda: "ACP_pending_ITEM" in viewport_text(plan))
+                await until(pilot, lambda: painted(plan, "ACP_pending_ITEM"))
                 assert not plan.all_complete
                 for entry, raw in zip(plan.entries, stages[0]["entries"]):
                     assert entry.status is PlanStatus.decode(raw["status"])
                     assert entry.content.plain == raw["content"]
                     assert entry.status.marker().plain.strip() in viewport_text(plan)
                 assert sidebar.query_one(Plan).entries is plan.entries
-                await until(pilot, lambda: "ACP_pending_ITEM" in viewport_text(sidebar.query_one(Plan)))
+                await until(pilot, lambda: painted(sidebar.query_one(Plan), "ACP_pending_ITEM"))
                 print("ACP_STDIO_ALL_STATUS_MARKERS_AND_PLAN_SIDEBAR_PAINTED", flush=True)
 
                 (root / "plan-advance-0").touch()
@@ -78,25 +82,26 @@ async def main():
                 assert plan.has_class("-all-complete")
                 await pilot.resize_terminal(104, 35)
                 plan.scroll_visible(animate=False, immediate=True)
-                await until(pilot, lambda: "ACP_pending_ITEM" in viewport_text(plan))
+                await until(pilot, lambda: painted(plan, "ACP_pending_ITEM"))
                 print("ACP_CONTINUOUS_UPDATE_COMPLETION_ANIMATED_STABLE_COMPLETION_RESIZED_AND_PAINTED", flush=True)
 
                 await sidebar.retire_presentation()
                 assert not sidebar.panels
                 (root / "plan-advance-1").touch()
                 await until(pilot, lambda: not plan.entries and not plan.all_complete)
-                await until(pilot, lambda: "No plan yet" in viewport_text(plan))
+                await until(pilot, lambda: painted(plan, "No plan yet"))
+                await sidebar.prepare_presentation()
                 await reveal(app.screen, pilot)
                 restored = sidebar.query_one(Plan)
                 assert restored.entries is plan.entries
-                assert "No plan yet" in viewport_text(restored)
+                await until(pilot, lambda: painted(restored, "No plan yet"))
 
                 (root / "plan-advance-2").touch()
                 await until(pilot, lambda: plan.all_complete and len(plan.query(StrikeText)) == 1)
                 assert plan.query_one(StrikeText).has_class("-complete")
                 assert plan.query_one(StrikeText).strike_time is None
-                await until(pilot, lambda: "ACP_pending_ITEM" in viewport_text(plan))
-                await until(pilot, lambda: "ACP_pending_ITEM" in viewport_text(sidebar.query_one(Plan)))
+                await until(pilot, lambda: painted(plan, "ACP_pending_ITEM"))
+                await until(pilot, lambda: painted(sidebar.query_one(Plan), "ACP_pending_ITEM"))
                 (root / "plan-advance-3").touch()
                 await asyncio.wait_for(sending, 10)
                 await until(pilot, lambda: len([note for note in view.query(Note)

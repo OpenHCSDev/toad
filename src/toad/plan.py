@@ -75,11 +75,12 @@ class PlanItem:
     priority: str
     status: type[PlanStatus]
 
+    @classmethod
+    def from_acp(cls, content: str, priority: str, status: str, **_extensions) -> PlanItem:
+        """Bind SDK-validated external fields once; metadata is not presentation."""
+        return cls(Content(content), priority, PlanStatus.decode(status))
+
 
 def decode_plan(entries: list[PlanEntry]) -> list[PlanItem]:
     """Consume SDK-validated ACP entries; subsequent consumers trust these items."""
-    return [
-        PlanItem(Content(entry["content"]), entry["priority"],
-                 PlanStatus.decode(entry["status"]))
-        for entry in entries
-    ]
+    return [PlanItem.from_acp(**entry) for entry in entries]

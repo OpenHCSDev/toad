@@ -419,3 +419,20 @@ rows, empty reset, retirement/reveal, resize and malformed external rejection.
 A permanent installed new-case/caller-deletion guard closes the architecture.
 CI is deferred; parent owns merge/live installation. Current code is a draft
 while this affected acceptance and the shared independent ratchets finish.
+
+Physical malformed input exposed a pre-existing boundary hole: the SDK Plan
+model silently skips invalid entries, while sdk_boundary returns the original
+raw payload. NotificationItems uses shared MroDispatch on the actual SDK class
+and a strict TypeAdapter of the SDK's PlanEntry, inside the existing validation
+worker. No repeated entry schema, string discriminator, codec subclass or UI
+startup SDK import. PlanItem.from_acp binds admitted fields at their owner;
+unknown external extension metadata is ignored for presentation, never rewritten.
+The actual subprocess gate now rejects bad status, missing priority and numeric
+content with visible rejection notes while preserving the last valid plan.
+
+Source custody is separately assigned to Tesla142: current detached Agent
+surface drops plan posts and controller.restore has no retained Plan value.
+151 tests actual optional sidebar retirement/prepare/reveal with Conversation
+still attached; it does not claim complete inactive-Agent plan restoration.
+The exact plan-only source hook was requested directly in142 comment5883172179;
+no competing operational store or source-lifetime edit was added here.
