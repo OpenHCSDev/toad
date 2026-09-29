@@ -15,6 +15,48 @@ from toad.widgets.message_filter import CategorizedBlock, MessageCategory
 class AgentThought(ConversationBlock, CategorizedBlock, StreamingMarkdown, can_focus=True):
     """The agent's 'thoughts'."""
 
+    DEFAULT_CSS = """
+    AgentThought {
+        background: $primary-muted 20%;
+        color: $text-primary;
+        min-height: 1;
+        margin: 0 1 1 0;
+        padding:  0 1 0 1;
+        border: none;
+        border-left: tall $primary;
+        overflow-x: auto;
+        scrollbar-size-horizontal: 0;
+        layout: stream;
+
+        &.-loading {
+            background: transparent !important;
+            padding: 0;
+            margin: 0;
+        }
+        overflow-y: hidden;
+
+        MarkdownParagraph {
+            margin: 0;
+        }
+
+        &.-maximized {
+            max-height: 100h;
+            margin: 1 2;
+            scrollbar-visibility: visible;
+            &>* {
+                padding-right: 1;
+            }
+        }
+        &:focus {
+            border-left: tall $primary;
+        }
+        &:ansi {
+            background: ansi_default;
+            border-left: tall ansi_blue;
+        }
+    }
+    """
+
     TRANSCRIPT_EVENT = ThinkingTranscript
 
     @property
