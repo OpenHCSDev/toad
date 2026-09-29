@@ -37,14 +37,20 @@ async def main():
             assert first["new_session_after_frame"]["ready"]
             assert first["new_session_after_frame"]["driver"] == "LinuxDriver"
             initial_frame = terminal._screen()
-            assert terminal.buffer and "Frame" in initial_frame, initial_frame
+            assert terminal.buffer and "New Session" in initial_frame, initial_frame
             await terminal.type_text("PTY_FIRST_FRAME_INPUT")
             await terminal.press_enter()
             await until(lambda: "COMPLETION_PEER_EXECUTED PTY_FIRST_FRAME_INPUT" in terminal._screen(), terminal)
             await terminal.type_text("/")
+            await until(lambda: json.loads((root / "current-ui.json").read_text())["slash_focused"], terminal)
             await until(lambda: "Physical ACP completion command" in terminal._screen(), terminal)
             await terminal.type_text("proof")
+            await until(lambda: json.loads((root / "current-ui.json").read_text())["slash_query"] == "proof", terminal)
             await terminal.press_enter()
+            def completion_returned():
+                state = json.loads((root / "current-ui.json").read_text())
+                return state["editor_focused"] and state["text"] == "/proofcmd " and not state["slash_open"]
+            await until(completion_returned, terminal)
             await until(lambda: "/proofcmd" in terminal._screen(), terminal)
             await terminal.press_enter()
             await until(lambda: "COMPLETION_PEER_EXECUTED /proofcmd" in terminal._screen(), terminal)
@@ -64,7 +70,11 @@ async def main():
             assert [row["prompt"] for row in rows if "prompt" in row] == ["PTY_FIRST_FRAME_INPUT", "/proofcmd"]
             print("INSTALLED_LINUX_WRITER_FLUSH_BEFORE_ACP_START_PHYSICAL_FIRST_INPUT_SLASH_REPLY_RESIZE_DRAFT_AND_CLOSE_PASS", flush=True)
         finally:
-            terminal._drain()
+            (receipt / "terminal-visible.txt").write_text(terminal._screen())
+            if (root / "completion-wire.jsonl").exists():
+                (receipt / "terminal-wire.jsonl").write_text((root / "completion-wire.jsonl").read_text())
+            if (root / "frames.jsonl").exists():
+                (receipt / "terminal-frames.jsonl").write_text((root / "frames.jsonl").read_text())
             (receipt / "terminal-output.txt").write_bytes(terminal.buffer)
             await terminal.stop()
 

@@ -8,6 +8,8 @@ from time import monotonic_ns
 
 from toad.app import ToadApp
 from toad.screens.workspace import WorkspaceScreen
+from toad.widgets.prompt import Prompt
+from toad.widgets.slash_complete import SlashComplete
 
 
 class FrameApp(ToadApp):
@@ -19,6 +21,14 @@ class FrameApp(ToadApp):
         if isinstance(screen, WorkspaceScreen) and not screen.frame_presentation.ready:
             screen.frame_presentation.defer(screen, self.record_frame)
         super()._display(screen, renderable)
+        if isinstance(screen, WorkspaceScreen):
+            if prompt := screen.query_one_optional(Prompt):
+                (Path(self.project_dir) / "current-ui.json").write_text(json.dumps({
+                    "text": prompt.text, "editor_focused": prompt.prompt_text_area.has_focus,
+                    "slash_open": any(popup.is_open for popup in prompt.query(SlashComplete)),
+                    "slash_focused": prompt.slash_complete.input.has_focus,
+                    "slash_query": prompt.slash_complete.input.value,
+                }))
 
     def record_frame(self):
         frame = self.screen.frame_presentation
