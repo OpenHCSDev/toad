@@ -1,23 +1,110 @@
 # TC2 execution receipt
 
-Base: Toad main 7e1133a2. Scope: entire ACP specification boundary and consumer closure, typed agent definitions/kinds, accepted file types.
+**1,141 production lines deleted; 723 added, net 418 removed** against integrated Toad main `533c7f6c` (#207), across 44 production files. This includes the 504-line `acp/protocol.py` deletion. Initial base was `7e1133a2`; the normal main integration preserves #207's separate receipt/history work. No compatibility readers or alternate codecs remain for TC2.
 
-Owner: TC2 worker, persistent worktree `/home/ts/wt/toad-cleanup-tc2-sdk-20260929`.
+Owner: TC2 worker. Draft [Toad #208](https://github.com/OpenHCSDev/toad/pull/208). Persistent worktree: `/home/ts/wt/toad-cleanup-tc2-sdk-20260929`. Working code checkpoint `348080fe` was pushed before current-main integration.
 
-## Ownership trajectory
+## Required relation and consumer closure
 
-BOUND-1/BOUND-7: official SDK validates and owns ACP shapes once at ingress; consumers keep typed objects. Delete protocol schema dictionaries and validate-then-cast-back boundary. Preserve the existing strict agent-comms extension owner, decoded from SDK metadata once.
+BOUND-1, BOUND-7, TIME-8: official `agent-client-protocol==0.12.1` is the sole ACP specification schema. The existing JSON-RPC transport decodes declared request arguments and response results with SDK/Pydantic models once, serializes models at the existing envelope boundary, and retains the original transport. MCP and prompt unions are derived from SDK field declarations. No second ACP schema, schema union roster, codec subclass, or validated-model-to-raw-dict cast exists.
 
-IMPL-1/MEMB-3: stop reasons and tool statuses share declaration-owned behavior families with protocol spellings. Agent definitions decode once; agent kind owns store presentation. File type declarations own accepted media types and previews.
+The complete update relation is wire request -> `SessionNotificationOwner` -> existing renderer validation task -> accepted/rejected result family -> SDK notification -> declared `SessionUpdateEffect` -> operational owners -> UI messages/presentation. Core extension metadata still goes through its existing `decode_updates` owner; Core snapshots and goal RPC payloads are outside the ACP specification, belong to C3, and are not relabelled as ACP records. Unsupported, unadvertised SDK update capabilities are rejected visibly rather than silently ignored.
 
-## Shared-file claims
+SDK 0.12.1 implements the external schema's deliberate lenient optional-field/list deserialization even when Pydantic strict mode is requested. TC2 honors that external contract. A complete plan replacement additionally checks whether the SDK dropped malformed entries; it rejects the replacement instead of false-clearing the retained valid plan. There is no second PlanEntry decoder or local copy of the schema. Actual stdio missing-priority, wrong-status and wrong-content cases preserve the prior plan and paint rejection notes.
 
-Conversation: only agent_turn_over/on_acp_tool_call_update ACP consumers; Toad207 owns inbound receipt/history; Toad202 owns presentation/workspace. Toad416 owner coordinates compaction extensions.
+IMPL-1, MEMB-3: protocol-spelled `StopReason` and `ToolCallStatus` members own completion, notes, headers, activity and boundary behavior. Tool status is chosen once at tool admission, carried with the original SDK ToolCall capture, and consumed by Conversation, tool headers, expansion settings and history. `SessionToolCalls` remains the single operational call assembly owner; no additional status store was introduced. Dead Conversation diff/tool emitters were deleted.
 
-## Acceptance
+BOUND-1, TIME-8: `AgentDefinition` decodes agent TOML and CLI-generated definitions once through existing FieldCodec. ACP uses a public immutable definition, and all definition consumers use attributes. Existing durable session metadata retains its external `type` key through a scalar TextRepresentation of the declared `AgentKind`; there is no old-format reader or renamed-key fallback. Kind declarations own grouping and presentation, so adding a kind changes its one declaration. Catalog validation also corrected Goose's existing singular `action` TOML typo to the actual `actions` contract.
 
-Pending: official SDK contract, continuous saved-state installed native/ACP/UI journey, required PlanEntry priority rejection, fork/load/input/notification/tool-update behavior. Source tests are not live readiness. No user history or uncertain attempts are replayed.
+MEMB-3: accepted image/Markdown suffixes, media types, image capability and preview behavior live in `FileKind` declarations. Prompt attachments, resource MIME projection and project preview consume that same family. Adding an accepted kind requires its declaration only.
 
-## Deletion closure
+File, permission and terminal client requests accept SDK types and return SDK responses. The real stdio journey exposed the old negative process exit-code bug; `ToolState.capture` owns OS return-code decoding, and both output/wait project the same signal or exit status without a mirror. The UI's terminal lifecycle continues to use the original execution owner.
 
-Pending implementation; no compatibility shims, parallel codecs or new state mirrors. Production deletion count will be measured against base.
+## Coordination and crossings
+
+- Schrodinger owns #207/#210 receipt/history/source lifetime. No competing cache/performance implementation here.
+- Heisenberg owns #202 workspace/session presentation. His `465962da` saved-history capability was integrated as `4d56a187` to prevent ordinary SDK peers being sent through comms transcript paging. Actual A/B/A SDK stdio acceptance passes with it.
+- Arendt owns #416/#209 compaction accounting/progressive presentation. TC2 preserves his extension contract and does not hold its activation.
+- Conversation changes here are ACP stop/tool consumers and typed definition access. Activity/status/cancel integration remains with the parent/T4 owner.
+
+The historical `toad-acp-sdk-migration.md` named by the zip was not found in the repository/plans/archive searches. The current TC2 zip, actual SDK declarations, current entrypoints and physical journeys supplied the verified contract. No behavior was inferred from the missing document.
+
+## Installed acceptance
+
+Tests execute a noneditable installed wheel from this WT's `.venv`, not source imports or a patched UI/protocol/state implementation. Providers are official SDK local stdio peers or the existing bounded localhost response fixture. Native journals, subprocesses, owners, ACP, renderer workers, UI and physical clicks remain real. No paid provider call or user-history replay occurred.
+
+| Actual journey | Evidence and result |
+|---|---|
+| SDK initialize/new, plan status/sidebar/completion/reset, malformed required entries, detached plan and A/B/A retained agent/process/editor | `plan_status_installed_pilot.py`: exit 0; `plan-journey2.log` |
+| Native Read/Edit/Bash, typed tool output, copy/collapse/reopen and paint | `native_tool_output_pilot.py`: exit 0; `native-tool2.log` |
+| Native model/thinking picker, high selection, ACP reconnect, retained saved answer/draft/document/undo | `agent_configuration_native_installed_pilot.py`: exit 0; `native-config-settled.log` |
+| Production fork, physical immediate opening before worker socket, inherited history, first input and exactly one answer in same logical tab | `first_fork_native_installed_pilot.py`: exit 0; `native-fork2.log` |
+| SDK file read/write, physical diff permission, terminal env/output/wait/kill/release, signal status, tool progression and painted answer | `acp_specification_installed_pilot.py`: exit 0; `sdk-rpc.log` |
+| Focused family/deletion/format/session/configuration contracts | 5 passed, 1.03s on the new accounting pair |
+
+Earlier failing attempts are retained honestly: the SDK A/B/A journey exposed the missing presentation capability; the native tool fixture addressed the obsolete screen conversation owner; the fork fixture used the obsolete combined name/task field; the final configuration click preceded painted menu layout. Their fixes use current owners and actual layout admission; no receipt/retention/input assertion was weakened.
+
+Initial accepted installed pair: Core `d6a2ac55`, Textual `412b5a2b`, native `776dc368`. Current own-WT installed pair is Core `ab3397a6` (#416/#423), integrated Toad #207, Textual `412b5a2b`, SDK 0.12.1; native fixture target `7817b54e`. Combined new-pair native channel acceptance is pending the directly coordinated serial test slot. No default/global installation has been changed by this worker; parent owns paired activation.
+
+## Guards and measurement
+
+`tests/guards/test_acp_specification_ownership.py` enforces the deleted schema, typed consumer closure/private-definition prohibition, SDK spelling equality and FieldCodec external format. Existing focused session/configuration tests retain their lifecycle assertions. The obsolete mocked boundary pilot was deleted; installed stdio/native journeys provide the behavior evidence.
+
+Canonical debt ratchet at pushed `53b879d0` against initial base reports **zero positive measures and 95 fewer string-keyed subscripts**. Current final-pair ratchet is pending final commit. This is scoped structural evidence, not a claim of a complete NRA proof or whole-application readiness.
+
+## Changed production files
+
+Counts below are exact `git diff --numstat 533c7f6c -- src/toad` for the current working checkpoint. Removed lines are source lines, not a semantic-debt score.
+
+| File | Added | Deleted |
+|---|---:|---:|
+| `src/toad/acp/agent.py` | 10 | 10 |
+| `src/toad/acp/agent_configuration.py` | 5 | 7 |
+| `src/toad/acp/agent_controller.py` | 6 | 5 |
+| `src/toad/acp/agent_session.py` | 28 | 40 |
+| `src/toad/acp/api.py` | 13 | 13 |
+| `src/toad/acp/client_files.py` | 5 | 3 |
+| `src/toad/acp/context_measurement.py` | 1 | 5 |
+| `src/toad/acp/messages.py` | 8 | 7 |
+| `src/toad/acp/notification_items.py` | 9 | 13 |
+| `src/toad/acp/permission_controller.py` | 5 | 5 |
+| `src/toad/acp/prompt.py` | 6 | 5 |
+| `src/toad/acp/protocol.py` | 0 | 504 |
+| `src/toad/acp/sdk_boundary.py` | 8 | 20 |
+| `src/toad/acp/session_updates.py` | 79 | 77 |
+| `src/toad/acp/status.py` | 97 | 0 |
+| `src/toad/acp/terminal_owner.py` | 9 | 11 |
+| `src/toad/acp/tool_calls.py` | 19 | 20 |
+| `src/toad/agent.py` | 2 | 1 |
+| `src/toad/agent_presentation.py` | 14 | 0 |
+| `src/toad/agent_schema.py` | 79 | 58 |
+| `src/toad/agents.py` | 8 | 8 |
+| `src/toad/app.py` | 2 | 2 |
+| `src/toad/cli.py` | 8 | 8 |
+| `src/toad/data/agents/goose.ai.toml` | 1 | 1 |
+| `src/toad/db.py` | 2 | 1 |
+| `src/toad/file_kind.py` | 60 | 0 |
+| `src/toad/jsonrpc.py` | 39 | 27 |
+| `src/toad/permission_presentation.py` | 6 | 6 |
+| `src/toad/plan.py` | 2 | 2 |
+| `src/toad/prompt/resource.py` | 2 | 0 |
+| `src/toad/render_tasks.py` | 27 | 13 |
+| `src/toad/screens/agent_modal.py` | 15 | 15 |
+| `src/toad/screens/main.py` | 3 | 3 |
+| `src/toad/screens/store.py` | 28 | 48 |
+| `src/toad/session_admission.py` | 1 | 1 |
+| `src/toad/session_presentation.py` | 1 | 1 |
+| `src/toad/setting_choices.py` | 8 | 8 |
+| `src/toad/slash_command.py` | 2 | 3 |
+| `src/toad/terminal_execution.py` | 10 | 5 |
+| `src/toad/tool_output.py` | 40 | 22 |
+| `src/toad/widgets/conversation.py` | 22 | 108 |
+| `src/toad/widgets/project_panel.py` | 2 | 8 |
+| `src/toad/widgets/tool_call.py` | 15 | 37 |
+| `src/toad/widgets/transcript_history.py` | 16 | 10 |
+
+Other changed source inputs: `pyproject.toml`/`uv.lock` pin the SDK and accepted accounting Core. Installed fixture and guard changes are listed by `git diff --name-status 533c7f6c -- tests`; no plan was assigned without a draft PR.
+
+## Artifacts and resource ownership
+
+TC2 owns `.venv` (~92 MiB), `evidence/tc2-sdk` (~832 KiB), and `/home/ts/.cache/agent-scratch/toad-tc2-sdk-20260929` (~700 KiB). Disposable fixture directories retire with TemporaryDirectory; test-owned processes are bounded and retired by the existing runner. Persistent small failure/pass receipts remain for review. Remove the env/scratch after review and activation when no process references them. No volatile worktree, global reset/clean, or edits in another worker's WT.

@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import ClassVar
 
 from acp.schema import (SessionConfigSelectOption, SessionConfigSelectGroup,
-                        SessionConfigOptionSelect, SetSessionConfigOptionResponse)
+                        SessionConfigOptionSelect)
 from agent_comms.acp_failure import ACPFailure
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.mro_dispatch import MroDispatch, handles
@@ -64,8 +64,7 @@ class ConfigurationSetting(DeclaredFamily, affix="ConfigurationSetting"):
             return ACPFailure.from_error(error.code, error.message).feedback
         except jsonrpc.APIError as error:
             return ACPFailure.from_error(error.code, error.message, error.data).feedback
-        if result is not None:
-            agent.configuration.receive(result.config_options)
+        agent.configuration.receive(result.config_options)
         return None
 
     @abstractmethod
