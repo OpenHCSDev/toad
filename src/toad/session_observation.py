@@ -16,7 +16,7 @@ class SessionObservation(ABC):
 
     @property
     def view(self):
-        return self._view()
+        return self._view() if self._view is not None else None
 
     @property
     def active(self):
@@ -36,6 +36,7 @@ class SessionObservation(ABC):
             await asyncio.shield(self.task)
 
     async def close(self):
+        self._view = None
         self.revision += 1
         if self.active:
             self.task.cancel()
@@ -50,13 +51,13 @@ class SessionObservation(ABC):
             try:
                 result = await self.read(agent)
             except self.errors as error:
-                if not view.is_attached:
+                if self.view is not view or not view.is_attached:
                     return
                 if revision != self.revision or agent is not view.agent:
                     continue
                 self.failed(view, error)
                 return
-            if not view.is_attached:
+            if self.view is not view or not view.is_attached:
                 return
             if revision != self.revision or agent is not view.agent:
                 continue
