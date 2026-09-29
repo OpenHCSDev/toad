@@ -68,6 +68,8 @@ class PaintedReturnApp(InstalledApp):
                 agent is None or view.turns.owner.busy == agent.current_turn.busy,
                 view.window.scroll_y if view is not None else None,
                 view.window.max_scroll_y if view is not None else None,
+                (label.has_class("-current") if (label := screen.query_one_optional(
+                    f"#{self.expected_source_id}", SessionLabel)) is not None else False),
             ))
 
 
@@ -151,10 +153,14 @@ async def click_session(app, pilot, source):
     click_started = perf_counter()
     try:
         assert await pilot.click(tab), f"Session tab {source.id} was not clickable"
+        click_completed = perf_counter()
+        # Continue through the destination's later paints. A click completion
+        # and one source-correct frame do not prove the visible return stable.
+        await pilot.pause(.35)
+        await until(pilot, lambda: source.query_one_optional(Conversation) is not None)
     finally:
         for owner, method, original in reversed(wrapped):
             setattr(owner, method, original)
-    click_completed = perf_counter()
     assert app.first_paint_at is not None, f"Session tab {source.id} never painted"
     assert app.selection_requested_at is not None, f"Session tab {source.id} was not selected"
     app.last_click_metrics = (
@@ -312,10 +318,17 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
             print("FIRST_FRAMES", source.id,
                   [(mode, len(reader.strip()), "NATIVE_RESPONSE" in reader,
                     "Earlier history" in reader, y, maximum)
-                   for mode, reader, _full, _status, _turn, y, maximum in frames[:8]], flush=True)
+                   for mode, reader, _full, _status, _turn, y, maximum, _tab in frames[:8]], flush=True)
             destination_frames = [frame for frame in frames if frame[0] == source.id]
             reader_marker = f"{agent.session_id} saved reader paragraph"
             other_reader = "gamma saved reader paragraph" if agent.session_id == "beta" else "beta saved reader paragraph"
+            selected_tab_frames = [full for _mode, _reader, full, _status, _turn,
+                                   _y, _maximum, selected in frames if selected]
+            assert selected_tab_frames and all(other_reader not in full
+                                               for full in selected_tab_frames), (
+                "Selected destination tab still painted the previous reader",
+                source.id, [full[:500] for full in selected_tab_frames[:3]],
+            )
             frame_sequence = [{
                 "reader": reader_marker in reader,
                 "response": "NATIVE_RESPONSE" in reader,
@@ -325,7 +338,7 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
                 "length": len(reader.strip()),
                 "reader_y": y,
                 "maximum_y": maximum,
-            } for _mode, reader, full, _status, _turn, y, maximum in destination_frames]
+            } for _mode, reader, full, _status, _turn, y, maximum, _tab in destination_frames]
             assert frame_sequence and all(
                 item["reader"] and item["response"] and not item["other_source"]
                 and not item["loading"] and not item["blank"]
@@ -333,7 +346,8 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
             ), ("A completed destination frame lost the saved reader", source.id, frame_sequence)
             assert destination_frames and reader_marker in destination_frames[0][1] and other_reader not in destination_frames[0][1], (
                 "First painted return frame did not show the destination reader",
-                source.id, [(mode, reader[:200]) for mode, reader, _full, _status, _turn, _y, _maximum in frames[:3]],
+                source.id, [(mode, reader[:200]) for mode, reader, _full, _status, _turn,
+                            _y, _maximum, _tab in frames[:3]],
             )
             goal_text = f"SELECTED_GOAL_{agent.session_id.upper()}"
             other_goal = f"SELECTED_GOAL_{'GAMMA' if agent.session_id == 'beta' else 'BETA'}"
