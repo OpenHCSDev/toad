@@ -1,0 +1,15 @@
+# PR154 working checkpoint
+
+Product445 lines deleted,294 added against merged1514985a19e. Tests3deleted/319added. Source f32a85e0 is pushed on PR154.
+
+Actual installed noneditable wheel with Textual1738 and core322: physical official-SDK ACP discovery, keyboard command selection/submission and painted reply; Project Search hover/click,128real files, quoted insertion, fuzzy/tree focus, resize, changed filesystem catalog; physical model selection RPC, draft/focus return and declaration-only new popup all pass. Final receipts owner-anchor-installed.log and owner-anchor-new-case.log. Three permanent deletion/lifetime/admission guards pass (final-guards.log). Earlier red receipts are retained.
+
+Final source/context NRA scan f32a85e0:727indexed files,132supporting raw findings,46.031s, cache disabled. Current CLI lacks scan_status/omitted detector fields; no zero-omission/native equivalence certification is claimed. Base scan differs in Textual context, so finding reduction is not a controlled architectural proof. Final census: no touched-file chain/foreign-probe growth, net130fewer Python code lines. Shared ratchet has no positive delta. No class crosses500/no existing god class grows. Ownership metrics provide exact spans.
+
+Authoritative exact refactor-audit.skill reread and used; SKILL, pattern README, implementation, identity, measures, principles and chain_terms match canonical resolved skill. IMPL4/5/8/12/13, MEMB1/2, IDEN1/3, TIME1/6/9 and AGENT8: actual mounted widgets own lifecycle; duplicate root flags/mixin/dispatch/interpreter pool and141line scorer removed; composition derives declarations; candidate snapshot owns cache identity. No persisted format/store/compatibility mechanism.
+
+Tesla142 retains detached typed Plan/source/editor/shell custody; Carver owns startup/compaction; parent owns merge/install. Whole T4 and live installation are not claimed. All assigned popup code is published. Archive interruption is closed by core345 actual parent application; the one-use converter has been deleted.
+
+Current integration source0ec22684 merges authoritative main040607/Tesla142 normally. The sole comms_pilot conflict keeps selected_session/selected_mode ownership and the new actual popup.is_open owner; no legacy flag is restored. Installed noneditable current branch + core9251 + Textual1738: physical ACP discovery/submitted completion/reply paint,128real files+actual Project Search hover/click+quoted selection/tree focus/resize/catalog change, model RPC and draft/focus return ALL PASS again. Current-main installed/new-case logs and three guards pass. Current census against040607 preserves zero per-file chain/foreign-probe/codec growth and net130fewer code lines. Prior NRA scan remains the explicitly labeled f32 scan; it was not repeated over unchanged popup implementation.
+
+This is ready for parent review/merge/integration. Parent retains the affected LIVE UI entrypoint/deployment gate; current-main popup installation in this isolated environment is not a claim that the separate live142 CommsScreen caller is fixed. No implementation blocker remains in the assigned popup slice.

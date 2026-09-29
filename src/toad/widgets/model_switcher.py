@@ -7,7 +7,6 @@ from typing import TYPE_CHECKING, Self
 from textual import events, getters, on, work
 from textual.app import ComposeResult
 from textual.binding import Binding
-from textual.containers import VerticalGroup
 from textual.content import Content
 from textual.reactive import var
 from textual.widgets import Input, OptionList, Static
@@ -16,9 +15,11 @@ from textual.widgets.option_list import Option
 from toad import messages
 from toad.db import DB
 from toad.widgets.selection import SelectionOptionList
+from toad.widgets.prompt_popup import InfoPopup
 
 if TYPE_CHECKING:
     from toad.acp.agent import Model
+    from toad.widgets.prompt import Prompt
 
 
 class ConnectProvider(Static, can_focus=True):
@@ -28,7 +29,7 @@ class ConnectProvider(Static, can_focus=True):
         super().__init__("Connect a provider…", markup=False)
 
     def action_connect(self):
-        self.query_ancestor(ModelSwitcher).is_open = False
+        self.query_ancestor(ModelSwitcher).action_dismiss()
         self.post_message(messages.ProviderLogin())
 
     def on_click(self, event: events.Click):
@@ -55,7 +56,7 @@ def match_score(query: str, candidate: str) -> float:
     return 10 + len(query) / max(1, previous - first + 1)
 
 
-class ModelSwitcher(VerticalGroup):
+class ModelSwitcher(InfoPopup):
     BINDING_GROUP_TITLE = "Model search"
     BINDINGS = [
         Binding("up", "cursor_up", "Previous model", priority=True),
@@ -70,7 +71,7 @@ class ModelSwitcher(VerticalGroup):
         overlay: screen;
         constrain: inside inflect;
         width: 80;
-        max-width: 100vw;
+        max-width: 100%;
         height: auto;
         max-height: 80vh;
         border: round $primary;
@@ -104,7 +105,6 @@ class ModelSwitcher(VerticalGroup):
 
     search_input = getters.query_one(Input)
     option_list = getters.query_one(OptionList)
-    is_open = var(False, toggle_class="-open")
     history_scope = var("")
 
     def __init__(self):
@@ -114,6 +114,11 @@ class ModelSwitcher(VerticalGroup):
         self.recent_ids: list[str] = []
         self._open_generation = 0
         self._selection_moved = False
+
+    @classmethod
+    def for_prompt(cls, prompt: Prompt) -> Self | None:
+        from toad.widgets.prompt import Prompt
+        return None if prompt.simple_input else cls().data_bind(history_scope=Prompt.model_history_scope)
 
     def compose(self) -> ComposeResult:
         yield Input(placeholder="Search models or providers…", compact=True)
@@ -129,16 +134,14 @@ class ModelSwitcher(VerticalGroup):
         if self.is_mounted and self.is_open:
             self.filter_models(preserve_selection=True)
 
-    def focus(self, scroll_visible: bool = False) -> Self:
+    def focus_content(self, scroll_visible: bool) -> None:
         self._open_generation += 1
         self._selection_moved = False
-        self.is_open = True
         with self.search_input.prevent(Input.Changed):
             self.search_input.value = ""
         self.filter_models()
         self.search_input.focus(scroll_visible=False)
         self.load_recents(self._open_generation, self.history_scope)
-        return self
 
     @work(exclusive=True)
     async def load_recents(self, generation: int, scope: str) -> None:
@@ -246,14 +249,3 @@ class ModelSwitcher(VerticalGroup):
 
     def action_clear_search(self):
         self.search_input.clear()
-
-    def action_dismiss(self):
-        self.is_open = False
-        self.post_message(messages.Dismiss(self))
-
-    def on_descendant_blur(self, event: events.DescendantBlur):
-        self.call_later(self._close_if_unfocused)
-
-    def _close_if_unfocused(self):
-        if self.is_open and not self.has_focus_within:
-            self.is_open = False
