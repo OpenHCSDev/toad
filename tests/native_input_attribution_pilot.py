@@ -37,7 +37,7 @@ async def main(*, historical: bool) -> None:
         comms = wire(root / "wire")
         session = root / "native.jsonl"
         for name in ("owner", "peer"):
-            comms.threads.register(Thread(name, frozenset(), str(root)))
+            comms.registry.declare(Thread(name, frozenset(), str(root)))
         comms.threads.attach_session("owner", str(session))
         incoming = comms.messaging.send_message("peer", "owner", "Incoming peer body")
         outgoing = comms.messaging.send_message("owner", "peer", "Outgoing peer body")

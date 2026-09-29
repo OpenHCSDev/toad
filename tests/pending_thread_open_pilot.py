@@ -59,7 +59,7 @@ async def main():
             XDG_DATA_HOME=str(root / "data"))
         comms = private_native_wire(root / "wire")
         for name in ("owner", "fresh-peer"):
-            comms.threads.register(Thread(name, frozenset({"journey"}), str(root),
+            comms.registry.declare(Thread(name, frozenset({"journey"}), str(root),
                 process_identity=ProcessIdentity.capture(os.getpid())))
         comms.channels.create_tag("journey")
         comms.messaging.send_initial_cohort("owner", "#journey", "SAVED_CHANNEL_JOURNEY")

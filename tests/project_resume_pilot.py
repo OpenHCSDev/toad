@@ -25,7 +25,7 @@ async def main():
                           AGENT_COMMS_AGENT_BIN="pi", AGENT_COMMS_AGENT_ARGS="",
                           AGENT_COMMS_AGENT_MODELS="test/model")
         comms = private_native_wire(root / "wire")
-        comms.threads.register(Thread("saved", frozenset({"acp"}), str(old)))
+        comms.registry.declare(Thread("saved", frozenset({"acp"}), str(old)))
         comms.threads.set_project("saved", str(new))
         agent = {"name": "Test", "identity": "project-resume", "short_name": "test",
                  "run_command": {"*": f"{sys.executable} -m agent_comms.acp"}, "protocol": "acp"}

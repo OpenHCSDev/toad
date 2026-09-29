@@ -55,8 +55,8 @@ async def main() -> None:
         legacy = home / ".agent-comms"
         legacy.mkdir(mode=0o700)
         old = Comms(legacy)
-        old.threads.register(Thread("user", frozenset(), str(sandbox), role=ThreadRole.USER))
-        old.threads.register(Thread("peer", frozenset({"team"}), str(sandbox / "peer")))
+        old.registry.declare(Thread("user", frozenset(), str(sandbox), role=ThreadRole.USER))
+        old.registry.declare(Thread("peer", frozenset({"team"}), str(sandbox / "peer")))
         old.messaging.send("peer", "#team", "LEGACY-PAINT")
         with tempfile.TemporaryDirectory(
             prefix="toad-route-private-", dir="/var/tmp"

@@ -58,7 +58,7 @@ async def main():
             XDG_STATE_HOME=str(root / "state"),
             XDG_DATA_HOME=str(root / "data"),
         )
-        wire(root / "wire").threads.register(
+        wire(root / "wire").registry.declare(
             Thread(
                 "replay",
                 frozenset(),

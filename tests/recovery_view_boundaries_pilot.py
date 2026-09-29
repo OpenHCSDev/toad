@@ -68,7 +68,7 @@ async def dual_root_projection():
             AGENT_COMMS_ROOT=str(a),
         )
         for target in (a, b):
-            wire(target).threads.register(
+            wire(target).registry.declare(
                 Thread(
                     "fixture",
                     frozenset({"test"}),

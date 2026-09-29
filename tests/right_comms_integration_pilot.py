@@ -53,7 +53,7 @@ async def main():
             ("child-one", "owner"),
             ("child-two", "owner"),
         ):
-            comms.threads.register(
+            comms.registry.declare(
                 Thread(name, frozenset({"team"}), str(root), parent=parent)
             )
         comms.messaging.send("peer", "owner", "Review request")
@@ -192,7 +192,7 @@ async def main():
             old_peer = comms.registry.require("peer")
             comms.owners.stop("peer")
             comms.registry.remove("peer")
-            comms.threads.register(
+            comms.registry.declare(
                 Thread(
                     "peer", frozenset(), str(root), created_at=old_peer.created_at + 1
                 )

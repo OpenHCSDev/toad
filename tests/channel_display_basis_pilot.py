@@ -27,7 +27,7 @@ async def main():
         )
         comms = wire(root / "wire")
         for name, tags in (("alice", {"team"}), ("bob", set()), ("carol", set())):
-            comms.threads.register(Thread(name, frozenset(tags), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
+            comms.registry.declare(Thread(name, frozenset(tags), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
         viewer = comms.messaging.user_identity(str(root)).name
         hidden = comms.messaging.send_message("bob", "carol", "older hidden DM")
         messages = [comms.messaging.send_message("alice", "#team", f"channel {i}") for i in range(12)]

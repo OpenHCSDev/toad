@@ -14,7 +14,7 @@ from toad.widgets.comms_sidebar import ChannelGroup, CommsSidebar
 from agent_comms.comms import wire
 from agent_comms.threads import Thread
 
-TREE = Path(__file__).resolve().parents[1]
+TREE = Path(os.environ.get("TOAD_PILOT_OUTPUT_ROOT", Path(__file__).resolve().parents[1]))
 
 
 async def main():
@@ -27,7 +27,7 @@ async def main():
             AGENT_COMMS_ROOT=str(root / "wire"),
         )
         comms = wire(root / "wire")
-        comms.threads.register(Thread("sender", frozenset({"tools"}), str(root)))
+        comms.registry.declare(Thread("sender", frozenset({"tools"}), str(root)))
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(120, 45)) as pilot:
             await pilot.pause()

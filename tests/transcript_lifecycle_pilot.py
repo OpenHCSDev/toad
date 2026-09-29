@@ -27,7 +27,7 @@ async def main():
         source.write_text(json.dumps({"type": "message", "message": {
             "role": "assistant", "content": "Retain the source"}}) + "\n")
         comms = wire(root / "wire")
-        comms.threads.register(Thread("source", frozenset(), str(root), session_file=str(source)))
+        comms.registry.declare(Thread("source", frozenset(), str(root), session_file=str(source)))
         page = comms.transcripts.thread_transcript_page("source")
         history = TranscriptHistory(page, committed=False)
         assert isinstance(history.state, DetachedTranscript)

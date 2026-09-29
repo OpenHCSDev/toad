@@ -86,7 +86,7 @@ async def mounted() -> None:
             XDG_DATA_HOME=str(root / "data"),
         )
         comms = wire(root / "wire")
-        comms.threads.register(
+        comms.registry.declare(
             Thread(
                 "metadata-peer",
                 frozenset(),

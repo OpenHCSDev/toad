@@ -225,7 +225,7 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
         )
         comms = Comms(Path(wire_dir) / "wire")
         root_id = comms.messaging.initialize_private_initial_protocol()
-        comms.threads.register(
+        comms.registry.declare(
             Thread(
                 "beta",
                 frozenset({"team"}),

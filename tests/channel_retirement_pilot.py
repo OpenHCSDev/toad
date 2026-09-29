@@ -25,7 +25,7 @@ async def main():
                           XDG_STATE_HOME=str(root/'state'), XDG_DATA_HOME=str(root/'data'))
         comms = wire(root/'wire')
         for name, tags in ((root.name, set()), ('api-agent', {'api'}), ('ui-agent', {'ui'})):
-            comms.threads.register(Thread(name, frozenset(tags), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
+            comms.registry.declare(Thread(name, frozenset(tags), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
         rows = [comms.messaging.send_message('api-agent', target, body)
                 for target, body in (('#engineering', 'original union message'),
                     ('#api', 'current exact message'), ('#engineering', 'another original message'))]

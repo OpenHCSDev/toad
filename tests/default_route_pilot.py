@@ -59,9 +59,9 @@ def route(home: Path, root: Path, root_id: str) -> Path:
 def private_root(path: Path, project: Path, message: str) -> tuple[Path, str]:
     path.mkdir(mode=0o700)
     comms = Comms(path, private_initial_writes=True)
-    comms.threads.register(Thread("user", frozenset(), str(project), role=ThreadRole.USER))
-    comms.threads.register(Thread("owner", frozenset({"team"}), str(project / "owner-project")))
-    comms.threads.register(Thread("peer", frozenset({"team"}), str(project / "peer-project")))
+    comms.registry.declare(Thread("user", frozenset(), str(project), role=ThreadRole.USER))
+    comms.registry.declare(Thread("owner", frozenset({"team"}), str(project / "owner-project")))
+    comms.registry.declare(Thread("peer", frozenset({"team"}), str(project / "peer-project")))
     root_id = comms.messaging.initialize_private_initial_protocol()
     comms.messaging.send_initial_cohort("peer", "#team", message)
     return path, root_id

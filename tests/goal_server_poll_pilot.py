@@ -64,7 +64,7 @@ async def main():
         peer_turn = None
         try:
             session = (await owner.new_session(cwd=str(project))).session_id
-            comms.threads.register(
+            comms.registry.declare(
                 Thread(
                     "peer",
                     frozenset(),

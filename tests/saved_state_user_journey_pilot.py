@@ -71,7 +71,7 @@ async def prepare_saved_state(comms, project, requests, entered, release, hold_n
         await client.shutdown()
 
     comms.messaging.send("beta", "#team", "SAVED_CHANNEL_MESSAGE")
-    comms.threads.register(Thread(
+    comms.registry.declare(Thread(
         "gamma", frozenset({"team"}), str(project),
         model="selected-offline/fixture", thinking_level="off",
     ))

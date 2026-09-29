@@ -49,10 +49,10 @@ async def main():
             )
         )
         comms = wire(root / "wire")
-        comms.threads.register(
+        comms.registry.declare(
             Thread("parent", frozenset(), str(root), session_file=str(session))
         )
-        comms.threads.register(
+        comms.registry.declare(
             Thread(
                 "child",
                 frozenset(),

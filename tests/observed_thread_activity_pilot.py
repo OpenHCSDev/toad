@@ -38,7 +38,7 @@ async def main():
             XDG_DATA_HOME=str(root / "data"),
         )
         comms = wire(root / "wire")
-        comms.threads.register(
+        comms.registry.declare(
             Thread(
                 "peer",
                 frozenset({"comms"}),
@@ -106,7 +106,7 @@ async def main():
             await until(lambda: observed.presentation is not None and not observed.presentation.attention)
             await pilot.pause()
             assert tracker.summary == "Ready" and not details.has_class("-attention")
-            comms.threads.register(Thread("dm-peer", frozenset({"comms"}), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
+            comms.registry.declare(Thread("dm-peer", frozenset({"comms"}), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
             await DirectTarget("dm-peer").open(NavigationContext(app, owner, root, "peer"))
             dm_mode = app.selected_mode
             dm = app.selected_session.query_one(CommsChatView)

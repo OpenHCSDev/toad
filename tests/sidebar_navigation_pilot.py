@@ -96,7 +96,7 @@ async def main(*, finish_before_layout=False):
             AGENT_COMMS_ROOT=str(root / "wire"),
         )
         comms = wire(root / "wire")
-        comms.threads.register(
+        comms.registry.declare(
             Thread(
                 "worker",
                 frozenset({"experiment", *(f"channel-{i:02}" for i in range(30))}),

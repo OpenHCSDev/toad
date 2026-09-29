@@ -55,7 +55,7 @@ async def main():
             ("old", 100, 300, 400),
             ("new", 200, 250, 500),
         ):
-            comms.threads.register(
+            comms.registry.declare(
                 Thread(
                     name=name,
                     tags=frozenset(),

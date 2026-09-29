@@ -57,12 +57,12 @@ async def main():
         comms = private_native_wire(root / "wire")
         source = root / "session.jsonl"
         source.touch()
-        comms.threads.register(
+        comms.registry.declare(
             Thread("worker", frozenset({"team"}), str(root), session_file=str(source))
         )
         stopped_source = root / "stopped.jsonl"
         stopped_source.touch()
-        comms.threads.register(
+        comms.registry.declare(
             Thread(
                 "stopped",
                 frozenset({"team"}),

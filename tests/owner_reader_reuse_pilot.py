@@ -28,7 +28,7 @@ async def main():
         )
         roots = [root / "first", root / "second"]
         for source in roots:
-            wire(source).threads.register(
+            wire(source).registry.declare(
                 Thread(
                     "owner",
                     frozenset(),

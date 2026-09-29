@@ -39,7 +39,7 @@ async def check_title(title: str | None) -> None:
         thread = "existing-worker"
         expected = title or thread
         comms = wire(root / "wire")
-        comms.threads.register(
+        comms.registry.declare(
             Thread(thread, frozenset({"acp"}), str(root), title=title)
         )
         payload = {

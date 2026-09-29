@@ -28,9 +28,9 @@ async def main() -> None:
             XDG_STATE_HOME=str(root / "state"),
         )
         comms = wire(root / "wire")
-        comms.threads.register(Thread("owner", frozenset({"team"}), str(root)))
+        comms.registry.declare(Thread("owner", frozenset({"team"}), str(root)))
         peer = "collaborator-with-a-long-label-" * 4
-        comms.threads.register(Thread(peer, frozenset({"team"}), str(root)))
+        comms.registry.declare(Thread(peer, frozenset({"team"}), str(root)))
         comms.relationships.edit("owner", "add", peer, "Review")
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(120, 40)) as pilot:

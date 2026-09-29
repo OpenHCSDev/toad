@@ -32,7 +32,7 @@ async def main():
         )
         comms = wire(wire_root)
         for name in ("owner", "peer"):
-            comms.threads.register(
+            comms.registry.declare(
                 Thread(
                     name,
                     frozenset(),

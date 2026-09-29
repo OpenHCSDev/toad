@@ -33,7 +33,7 @@ async def main():
             AGENT_COMMS_AGENT_MODELS="test/model",
         )
         comms = private_native_wire(root / "wire")
-        comms.threads.register(Thread("saved", frozenset({"acp"}), str(root)))
+        comms.registry.declare(Thread("saved", frozenset({"acp"}), str(root)))
         comms.agents.set_agent_info(
             "saved", model="test/model", context_used=38723, context_size=272000
         )

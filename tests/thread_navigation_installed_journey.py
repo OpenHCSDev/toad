@@ -33,9 +33,9 @@ def reply(request, number):
 
 async def prepare(comms, project, requests, entered, release, hold_next):
     release.set()
-    comms.threads.register(Thread("alpha", frozenset({"team"}), str(project),
+    comms.registry.declare(Thread("alpha", frozenset({"team"}), str(project),
                                  model="selected-offline/fixture", thinking_level="off"))
-    comms.threads.register(Thread("stopped", frozenset({"team"}), str(project),
+    comms.registry.declare(Thread("stopped", frozenset({"team"}), str(project),
                                  model="selected-offline/fixture", thinking_level="off"))
     # A declaration without a PID is still an admitted active launch. Retire
     # its actual registration to exercise a genuinely stopped history route.

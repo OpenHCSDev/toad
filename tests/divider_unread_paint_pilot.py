@@ -25,7 +25,7 @@ async def main() -> None:
             XDG_STATE_HOME=str(root / "state"), XDG_DATA_HOME=str(root / "data"),
         )
         comms = wire(root / "wire")
-        comms.threads.register(Thread("peer", frozenset({"team"}), str(root)))
+        comms.registry.declare(Thread("peer", frozenset({"team"}), str(root)))
         for index in range(7):
             comms.messaging.send("peer", "#team", f"earlier {index} " + "body " * 20)
         comms.views.mark_user_view_read("#team", worktree=str(root))

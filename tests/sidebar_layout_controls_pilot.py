@@ -30,7 +30,7 @@ async def main() -> None:
                           TOAD_BENCH_VIRTUAL_CHANNELS="1")
         name = "very-long-thread-name-with-an-explanatory-suffix-that-exceeds-the-sidebar-width"
         comms = wire(root / "wire")
-        comms.threads.register(Thread(name, frozenset({"alpha"}), str(root)))
+        comms.registry.declare(Thread(name, frozenset({"alpha"}), str(root)))
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(110, 34)) as pilot:
             await pilot.pause()

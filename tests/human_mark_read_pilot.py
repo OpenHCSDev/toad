@@ -40,8 +40,8 @@ async def main():
         source.write_text(json.dumps({"type": "message", "message": {
             "role": "assistant", "content": "Saved answer",
         }}) + "\n")
-        comms.threads.register(Thread(owner, frozenset({"ci"}), str(root)))
-        comms.threads.register(Thread("sender", frozenset({"ci"}), str(root), session_file=str(source)))
+        comms.registry.declare(Thread(owner, frozenset({"ci"}), str(root)))
+        comms.registry.declare(Thread("sender", frozenset({"ci"}), str(root), session_file=str(source)))
         human = comms.messaging.user_identity(str(root)).name
         comms.messaging.send("sender", owner, "Keep executor DM pending")
         comms.messaging.send("sender", "#ci", "Keep executor channel pending")

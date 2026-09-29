@@ -28,7 +28,7 @@ async def main():
             "role": "assistant", "content": f"Record {i}\n\nContent."
         }}) + "\n" for i in range(105)))
         comms = wire(root / "wire")
-        comms.threads.register(Thread("worker", frozenset(), str(root), session_file=str(path)))
+        comms.registry.declare(Thread("worker", frozenset(), str(root), session_file=str(path)))
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(120, 40)) as pilot:
             await pilot.pause()

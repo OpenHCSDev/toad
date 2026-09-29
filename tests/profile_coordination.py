@@ -13,7 +13,7 @@ with tempfile.TemporaryDirectory(prefix="toad-poll-profile-") as directory:
     root = Path(directory)
     comms = wire(root)
     for name in ("sender", "reader"):
-        comms.threads.register(Thread(name, frozenset({"team"}), str(root)))
+        comms.registry.declare(Thread(name, frozenset({"team"}), str(root)))
     count = 20000
     (root / "bus.jsonl").write_text("".join(
         json.dumps({"seq": i + 1, "from": "sender", "to": "#team", "type": "info",

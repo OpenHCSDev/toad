@@ -41,7 +41,7 @@ async def main():
             activity_ms.append((time.perf_counter() - start) * 1000)
         comms = wire(root / "wire")
         for index in range(24):
-            comms.threads.register(Thread(f"worker-{index}", frozenset({"team"}), str(root)))
+            comms.registry.declare(Thread(f"worker-{index}", frozenset({"team"}), str(root)))
         activity_file(comms.agents.activity._path)
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(120, 40)) as pilot:

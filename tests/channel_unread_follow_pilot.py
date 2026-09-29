@@ -32,7 +32,7 @@ async def main():
         comms = wire(root / "wire")
         names = [f"worker-{index}-long-display-name" for index in range(8)]
         for name in names:
-            comms.threads.register(Thread(name, frozenset({"talk"}), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
+            comms.registry.declare(Thread(name, frozenset({"talk"}), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
         for index in range(50):
             comms.messaging.send(names[0], "#talk", f"Message {index}: " + "body " * 30)
         app = ToadApp(project_dir=str(root))
