@@ -1,3 +1,4 @@
+from agent_comms.acp_extension import QueuePromptRequest
 """Matched logical-session scaling with a real ACP/owner/Pi loopback path.
 
 One native owner and one ACP attachment remain fixed across4/16/32/64 tabs.
@@ -115,7 +116,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
             assert agent.process.runner is acp_task and not acp_task.done()
             assert comms.registry.require("beta").process_identity == owner
             assert comms.registry.require("beta").executing
-            await asyncio.wait_for(agent.send_prompt(f"QUEUED_AT_{count}", defer_display=True), 10)
+            await asyncio.wait_for(agent.send_prompt(f"QUEUED_AT_{count}", request=QueuePromptRequest(f"QUEUED_AT_{count}", True)), 10)
             await until(pilot, lambda: bool(agent.queue_attachment.projection.items))
             state = owner_view.presentation.state
             assert state is not None

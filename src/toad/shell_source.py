@@ -31,6 +31,10 @@ class ShellOperationalSource(ABC):
     @abstractmethod
     async def _run_pty(self) -> None: ...
 
+    def focus_output(self) -> None:
+        if self.output is not None:
+            self.output.focus()
+
     async def attach(self, conversation: "Conversation") -> None:
         async with self._presentation_lock:
             self._conversation = ref(conversation)

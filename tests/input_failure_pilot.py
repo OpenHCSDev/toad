@@ -17,6 +17,7 @@ from runtime_fixture import ToadApp
 
 from toad import jsonrpc
 from toad.acp.agent import Agent
+from toad.conversation_submission import ImmediateInputSubmission
 from toad.widgets.conversation import Conversation
 
 
@@ -92,9 +93,8 @@ async def main():
                 ),
             )
             conversation.prompt.text = ""
-            await conversation.send_prompt_to_agent(
-                "the local failure prompt", immediate=True
-            ).wait()
+            worker = await ImmediateInputSubmission("the local failure prompt").execute(conversation.submissions)
+            await worker.wait()
             await pilot.pause()
             assert conversation.prompt.text == "the local failure prompt"
             await receiver.stop()

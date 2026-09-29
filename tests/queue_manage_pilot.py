@@ -28,8 +28,8 @@ class FakeAgent:
     async def clear_queue(self):
         self.cleared += 1
 
-    async def send_prompt(self, prompt, *, delivery="queue", defer_display=False):
-        self.sent.append((prompt, delivery))
+    async def send_prompt(self, prompt, *, request=None):
+        self.sent.append((prompt, request))
         return None
 
 
