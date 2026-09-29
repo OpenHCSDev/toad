@@ -8,7 +8,6 @@ import sys
 from tempfile import TemporaryDirectory
 from agent_comms.field_codec import FieldCodec
 from agent_comms.transcripts import TranscriptPage
-from agent_comms.acp_extension import TranscriptSnapshotUpdate
 from toad.acp.agent import Agent
 from toad.widgets.session_details import SessionDetails
 from toad.widgets.transcript_history import TranscriptHistory
@@ -44,12 +43,10 @@ async def main():
             await pilot.pause()
             assert 'Bus input verification unavailable' in details.title
             assert 'Saved history not loaded' in details.title
-            from toad.acp.comms_updates import CommsUpdateConsumer
             from toad.agent import AgentReady
             agent.session_id = "retained-reconnect-proof"
             agent._reconnecting = True
-            consumer = CommsUpdateConsumer(agent, agent.session_id)
-            consumer.transcript_snapshot(TranscriptSnapshotUpdate(page))
+            await view.transcript.snapshot(page)
             await pilot.pause()
             source = view.query_one(TranscriptHistory)
             await view.on_agent_ready(AgentReady(reconnected=True))
@@ -58,7 +55,7 @@ async def main():
             # Same source page before/after the painted cursor callback must use
             # mounted read-owner coverage, not a parallel initialized flag.
             view.transcript.displayed_cursor = None
-            consumer.transcript_snapshot(TranscriptSnapshotUpdate(page))
+            await view.transcript.snapshot(page)
             await pilot.pause()
             assert tuple(view.contents.children) == before
             assert len(view.window.histories) == 1

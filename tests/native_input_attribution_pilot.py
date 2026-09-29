@@ -1,5 +1,4 @@
 """Owner-bound native inputs keep the same FROM/TO presentation live and saved."""
-from agent_comms.acp_extension import TranscriptSnapshotUpdate
 from toad.acp.messages import CommsUpdated
 
 import asyncio
@@ -149,7 +148,7 @@ async def main(*, historical: bool) -> None:
                 live_out.query_one(RouteHeader).render().plain,
             )
             await view.contents.remove_children()
-            view.post_message(CommsUpdated(TranscriptSnapshotUpdate(page)))
+            await view.transcript.snapshot(page)
             await pilot.pause()
             received = view.contents.query_one(IncomingMessage)
             sent = next(

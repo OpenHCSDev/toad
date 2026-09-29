@@ -10,6 +10,7 @@ from pathlib import Path
 import statistics
 import threading
 from dataclasses import fields
+from collections import Counter
 from agent_comms.transcripts import Transcripts
 from agent_comms.field_codec import FieldCodec
 from weakref import ref
@@ -21,11 +22,12 @@ from agent_comms.threads import Thread
 from native_session_retention_pilot import PaintedSwitchApp, conversation_paint, physical_painted_switch
 from l0a_native_installed_pilot import main as native_fixture, until
 from saved_state_user_journey_pilot import SavedStateSubscriber
+from viewport_recent_tabs_pilot import settled
 from toad.navigation_target import ThreadTarget
 from toad.widgets.prepared_markdown import PreparedConversationMarkdown
 
 
-COHORTS = tuple(map(int, os.environ.get("WORKSPACE_LOADED_COHORTS", "4").split(",")))
+COHORTS = (int(os.environ.get("WORKSPACE_LOADED_COHORTS", "4")),)
 NAMES = ("beta", *(f"loaded-{index}" for index in range(1, max(COHORTS))))
 
 
@@ -85,7 +87,7 @@ async def prepare(comms, project, requests, entered, release, hold_next):
         await client.shutdown()
 
 
-async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):
+async def continuous_acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):
     assert type(app._driver).__name__ == "LinuxDriver", "Writer proof requires the real terminal driver"
     workspace = app.screen
     sources, checkpoints = [], {}
@@ -97,6 +99,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
         marker = f"NATIVE_COHORT_REPLY_{index + 1}"
         await until(pilot, lambda: marker in conversation_paint(app.screen))
         view = source.conversation
+        await settled(pilot, view)
         editor = view.prompt.prompt_text_area
         editor.insert(f"{name}_UNSENT_DRAFT")
         editor.history.checkpoint()
@@ -145,7 +148,22 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     print("INDEPENDENT_LOADED_NATIVE_WRITER_RETURN_CUSTODY_PASS", flush=True)
 
 
+async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):
+    try:
+        await continuous_acceptance(app, pilot, agent, comms, entered, release, hold_next, requests)
+    finally:
+        Path(os.environ["NATIVE_RETENTION_RECEIPT"]).with_suffix(".identity.json").write_text(json.dumps(_read_changes, indent=2))
+        runtime = app.preparation
+        Path(os.environ["NATIVE_RETENTION_RECEIPT"]).with_suffix(".retention.json").write_text(json.dumps({
+            "entries": len(runtime._ready), "entry_limit": runtime.max_entries,
+            "retained_bytes": runtime.retained_bytes, "byte_limit": runtime.max_bytes,
+            "kinds": dict(Counter(key.kind.__name__ for key in runtime._ready)),
+            "page_reads": app.coordination_access.service.transcripts.page_reads,
+        }, indent=2))
+
+
 if __name__ == "__main__":
-    threading.setprofile_all_threads(capture_read_identity)
+    if os.environ.get("NATIVE_SOURCE_IDENTITY_CENSUS"):
+        threading.setprofile_all_threads(capture_read_identity)
     asyncio.run(native_fixture(app_type=PaintedSwitchApp, prepare_state=prepare,
         provider_reply=reply, acceptance=acceptance, headless=False))

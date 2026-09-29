@@ -31,7 +31,8 @@ async def main():
         }}) + "\n")
         comms = wire(root / "wire")
         comms.registry.declare(Thread("worker", frozenset(), str(root), session_file=str(session)))
-        saved = comms.transcripts.thread_transcript_page("worker")
+        read = comms.transcripts.capture_page_read("worker")
+        saved = read.read()
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(110, 38)) as pilot:
             await pilot.pause()
@@ -43,7 +44,7 @@ async def main():
             agent.updates.accept("fixture", {
                 "sessionUpdate": "agent_message_chunk",
                 "content": {"type": "text", "text": ""},
-                "_meta": encode_updates(TranscriptSnapshotUpdate(saved)),
+                "_meta": encode_updates(TranscriptSnapshotUpdate(saved, read.identity)),
             })
             await pilot.pause()
             assert len(view.contents.query(MessageDivider)) == 1, "one native row gained extra timestamps"
