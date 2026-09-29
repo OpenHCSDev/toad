@@ -13,8 +13,9 @@ def test_new_case_needs_no_selector_or_caller_edit():
         def matches(cls, event, view):
             return event.body.startswith('DECLARED_ANNOTATED_INPUT:')
 
-    case = InputSubmission.decode(messages.UserInputSubmitted('DECLARED_ANNOTATED_INPUT:hello'), SimpleNamespace())
+    case = InputSubmission.from_event(messages.UserInputSubmitted('DECLARED_ANNOTATED_INPUT:hello'), SimpleNamespace())
     assert type(case) is AnnotatedInputSubmission
+    assert InputSubmission.decode(AnnotatedInputSubmission.declared_name) is AnnotatedInputSubmission
     assert case.request == QueuePromptRequest('DECLARED_ANNOTATED_INPUT:hello')
     assert AnnotatedInputSubmission.execute is OrdinaryInputSubmission.execute
     assert AnnotatedInputSubmission.feedback is OrdinaryInputSubmission.feedback

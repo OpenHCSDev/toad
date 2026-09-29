@@ -31,7 +31,7 @@ class InputSubmission(DeclaredFamily, affix="InputSubmission"):
     async def execute(self, owner): ...
 
     @classmethod
-    def decode(cls, event, view):
+    def from_event(cls, event, view):
         kind = next(kind for kind in sorted(cls.members_with(InputSubmission),
                                             key=lambda kind: kind.priority, reverse=True)
                     if kind.matches(event, view))
@@ -234,7 +234,7 @@ class ConversationSubmissions:
         return execution
 
     async def submit(self, event):
-        return await InputSubmission.decode(event, self.view).execute(self)
+        return await InputSubmission.from_event(event, self.view).execute(self)
 
     def accepts_failure(self, message):
         agent = self.view.agent
