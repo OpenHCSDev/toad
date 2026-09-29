@@ -283,7 +283,7 @@ class CommsRow(RowNavigation, ThreadStatusRow):
     def action_open_selected(self) -> None:
         if sidebar := self._sidebar():
             sidebar.remember_row(self)
-        screen = self.screen
+        screen = self.app.selected_session
         if isinstance(screen, NavigationOwner):
             # The route outlives this row (inactive rosters are retired after
             # presentation). Dispatch through its declared view owner without

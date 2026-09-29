@@ -19,7 +19,6 @@ from runtime_fixture import ToadApp, wait_channel_roster
 from toad.acp.agent import Agent
 from toad.agent import AgentReady
 from toad.navigation_preparation import ThreadNavigationRequest
-from toad.screens.pending_thread import PendingThreadScreen
 from toad.widgets.channels_sidebar import ChannelsSidebar
 from toad.widgets.conversation import Conversation
 from toad.widgets.footer import Footer
@@ -151,7 +150,7 @@ async def main():
                     )
                     try:
                         assert await asyncio.to_thread(entered.wait, 3)
-                        assert isinstance(app.screen, PendingThreadScreen)
+                        assert app.selected_mode == owner
                         await pilot.pause()
                         assert app.screen.query_one(ChannelsSidebar) is bar
                         release.set()

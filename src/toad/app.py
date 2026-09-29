@@ -38,6 +38,7 @@ from toad.render_backend import Renderer
 from toad.channel_preparation import ChannelHistoryReader
 from toad.conversation_kind import ConversationKind
 from toad.navigation_preparation import (
+    ThreadOpening,
     CommsNavigationRequest, NavigationReader, OpenThread, ThreadNavigationRequest,
 )
 from toad.db import DB
@@ -46,7 +47,6 @@ from toad.session_tracker import (
     CommsViewKey,
     ExactUnread,
     OpenTab,
-    PendingThreadTab,
     SessionDetails,
     SessionTracker,
     SidebarState,
@@ -379,8 +379,7 @@ class ToadApp(App, inherit_bindings=False):
         )
         self._session_tracker = SessionTracker(self.session_update_signal)
         self._comms_modes: dict[CommsViewKey, str] = {}
-        self._pending_thread_modes: dict[str, PendingThreadTab] = {}
-        self._pending_thread_index = 0
+        self._thread_openings: dict[tuple[str, str, str], ThreadOpening] = {}
         self._file_preview_modes: dict[Path, str] = {}
         self._file_preview_return: dict[str, str] = {}
         self._file_preview_index = 0
@@ -415,8 +414,6 @@ class ToadApp(App, inherit_bindings=False):
         return paths.get_config()
 
     async def on_unmount(self) -> None:
-        if shells := self.__dict__.get("pending_tab_shells"):
-            shells.close()
         await self.navigation_reader.aclose()
         await self.render_processes.aclose()
         if self._background_render_tasks:
@@ -742,9 +739,9 @@ class ToadApp(App, inherit_bindings=False):
             }))
 
     async def new_session_screen(
-        self, get_screen: Callable[[], Screen]
+        self, get_screen: Callable[[], Screen], *, title: str = "New Session"
     ) -> SessionDetails:
-        session_details = self._session_tracker.new_session()
+        session_details = self._session_tracker.new_session(title=title)
         self.tab_order.open(session_details.mode_name)
         self.update_show_sessions()
         self.session_update_signal.publish((session_details.mode_name, session_details))
@@ -788,7 +785,6 @@ class ToadApp(App, inherit_bindings=False):
                 and not self._batch_count and screen is self.screen):
             self._renderer_warmup_started = True
             self._warm_renderer()
-            self.pending_tab_shells.prepare()
         if (renderable is not None and not self._batch_count and screen is self.screen
                 and isinstance(screen, WorkspaceScreen)
                 and (not screen._first_frame_presented or screen._navigation_frame_pending)
@@ -1015,8 +1011,6 @@ class ToadApp(App, inherit_bindings=False):
             if snapshot else ExactUnread(),
         ) for key, mode in self._comms_modes.items())
         tabs.extend(OpenTab(mode, path.name) for path, mode in self._file_preview_modes.items())
-        tabs.extend(OpenTab(mode, f"⌛ @{pending.target}")
-                    for mode, pending in self._pending_thread_modes.items())
         by_mode = {tab.mode_name: tab for tab in tabs}
         return self.tab_order.project(by_mode)
 
@@ -1044,14 +1038,6 @@ class ToadApp(App, inherit_bindings=False):
         selected = self.selected_session
         return selected.id if self.current_mode == "workspace" and selected is not None else self.current_mode
 
-    PREPARED_TAB_SHELLS = 1
-    """Tunable UI-only lookahead count; zero disables preparation."""
-
-    @cached_property
-    def pending_tab_shells(self):
-        from toad.screens.pending_thread import PendingTabShells
-
-        return PendingTabShells(self, self.PREPARED_TAB_SHELLS)
 
     @property
     def coordination_wire(self):
@@ -1180,105 +1166,62 @@ class ToadApp(App, inherit_bindings=False):
             ):
                 await self.select_session(details.mode_name)
                 return details.mode_name
-        for mode, pending in self._pending_thread_modes.items():
-            if ((pending.owner_mode, pending.root, pending.target)
-                    == (owner_mode, requested_root, target)):
-                # Two clicks for one unfinished route share its one canonical
-                # resolution; the second cannot cancel or duplicate the first.
-                return await asyncio.shield(pending.completion)
-        pending_mode = await self._open_pending_thread_tab(
-            owner_mode, target, requested_root, navigation_owner=source.id or owner_mode,
-            project_path=project_path, me=source_identity,
-        )
-        result = owner_mode
-        try:
-            result = await self._finish_open_thread_session(
-                pending_mode, owner_mode, project_path, target, source,
-                source_identity, source_root, requested_root,
-            )
-            return result
-        finally:
-            pending = self._pending_thread_modes.get(pending_mode)
-            if pending is not None:
-                if not pending.completion.done():
-                    pending.completion.set_result(result)
-                await self.close_session_mode(pending_mode)
-
-    def _pending_thread_fallback(self, mode: str) -> str:
-        if self.selected_mode != mode:
-            return self.selected_mode
-        pending = self._pending_thread_modes.get(mode)
-        if pending is not None:
-            for candidate in (pending.return_mode, pending.owner_mode):
-                if candidate != mode and self.workspace_sessions.views.get(candidate):
-                    return candidate
-        return "store"
-
-    async def _open_pending_thread_tab(self, owner_mode: str, target: str, root: str, *,
-                                       navigation_owner: str, project_path: Path, me: str) -> str:
-        from toad.navigation_target import NavigationContext
-
-        return_mode = self.selected_mode
-        screen = await self.pending_tab_shells.acquire(
-            NavigationContext(self, navigation_owner, project_path, me)
-        )
-        mode = screen.id
-        assert mode is not None
-        if self.selected_mode != return_mode or not self.workspace_sessions.views.get(owner_mode):
-            await self.workspace_sessions.close(mode)
-            return mode
-        pending = PendingThreadTab(owner_mode, root, target, return_mode,
-                                   asyncio.get_running_loop().create_future())
-        self._pending_thread_modes[mode] = pending
-        self.tab_order.open(mode)
-        self.open_tabs_changed.publish(None)
-        self.update_show_sessions()
-        screen.call_after_first_frame(screen, self.pending_tab_shells.prepare)
-        await self.select_session(mode)
-        if not await screen.wait_presented() and mode in self._pending_thread_modes:
-            await self.close_session_mode(mode)
-        return mode
-
-    async def _finish_open_thread_session(
-        self,
-        pending_mode: str,
-        owner_mode: str,
-        project_path: Path,
-        target: str,
-        source: "MainScreen",
-        source_identity: str,
-        source_root: str | None,
-        requested_root: str,
-    ) -> str:
-        from toad.screens.main import MainScreen
-
-        if pending_mode not in self._pending_thread_modes or self.selected_mode != pending_mode:
-            return self._pending_thread_fallback(pending_mode)
         open_threads = tuple(
-            OpenThread(
-                details.mode_name, screen.coordination_root, screen._comms_thread
-            )
+            OpenThread(details.mode_name, screen.coordination_root, screen._comms_thread)
             for details in self.session_tracker.ordered_sessions
             if (screen := self._main_session_screen(details.mode_name)) is not None
             and screen.coordination_root is not None
         )
+        opening = ThreadOpening(
+            owner_mode,
+            ThreadNavigationRequest(requested_root, target, project_path, open_threads),
+            asyncio.get_running_loop().create_future(),
+        )
+        if pending := self._thread_openings.get(opening.key):
+            return await asyncio.shield(pending.completion)
+        self._thread_openings[opening.key] = opening
+        return_mode = self.selected_mode
+        result = return_mode
+        try:
+            result = await self._finish_open_thread_session(
+                opening.request, owner_mode, project_path, source,
+                source_identity, source_root, return_mode,
+            )
+            return result
+        finally:
+            self._thread_openings.pop(opening.key)
+            if not opening.completion.done():
+                opening.completion.set_result(result)
+
+    async def _finish_open_thread_session(
+        self,
+        request: ThreadNavigationRequest,
+        owner_mode: str,
+        project_path: Path,
+        source: "MainScreen",
+        source_identity: str,
+        source_root: str | None,
+        return_mode: str,
+    ) -> str:
+        from toad.screens.main import MainScreen
+
         try:
             prepared = await self.navigation_reader.read(
-                ThreadNavigationRequest(requested_root, target, project_path, open_threads)
+                request
             )
         except Exception as error:
             self.notify(str(error), title="Thread unavailable", severity="error")
-            return self._pending_thread_fallback(pending_mode)
+            return self.selected_mode
         if (
             prepared is None
-            or pending_mode not in self._pending_thread_modes
+            or self.selected_mode != return_mode
             or not source.is_attached
             or owner_mode not in self.workspace_sessions.factories
             or source._comms_thread != source_identity
             or source.coordination_root != source_root
-            or not root_is_current(requested_root)
+            or not root_is_current(request.root)
         ):
-            return self._pending_thread_fallback(pending_mode)
+            return self.selected_mode
         coordination_root, thread = prepared.root, prepared.thread
         if not prepared.active:
             self.notify(
@@ -1358,7 +1301,7 @@ class ToadApp(App, inherit_bindings=False):
             )
             return screen
 
-        details = await self.new_session_screen(get_screen)
+        details = await self.new_session_screen(get_screen, title=thread.name)
         if screen := self._main_session_screen(details.mode_name):
             await screen.wait_content_ready()
         return details.mode_name if self.workspace_sessions.views.get(details.mode_name) else self.selected_mode
@@ -1546,23 +1489,6 @@ class ToadApp(App, inherit_bindings=False):
 
     async def close_session_mode(self, mode_name: str) -> None:
         """Close any tracked mode after first switching to a safe mode."""
-        if pending := self._pending_thread_modes.get(mode_name):
-            if not pending.completion.done():
-                self.navigation_reader.invalidate()
-            if self.selected_mode == mode_name:
-                destination = next(
-                    (mode for mode in (pending.return_mode, pending.owner_mode)
-                     if mode != mode_name and self.workspace_sessions.views.get(mode)), "store",
-                )
-                await self.select_session(destination)
-            del self._pending_thread_modes[mode_name]
-            self.tab_order.close({mode_name})
-            await self.workspace_sessions.close(mode_name)
-            self.open_tabs_changed.publish(None)
-            self.update_show_sessions()
-            if not pending.completion.done():
-                pending.completion.set_result(self.selected_mode)
-            return
         if path := next((path for path, mode in self._file_preview_modes.items()
                          if mode == mode_name), None):
             if self.selected_mode == mode_name:
