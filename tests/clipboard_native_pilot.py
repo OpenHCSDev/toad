@@ -180,7 +180,7 @@ def capture_png(display):
 
 
 def main():
-    with tempfile.TemporaryDirectory(prefix="cp-", dir="/home/ts/wt") as directory:
+    with tempfile.TemporaryDirectory(prefix="cp-", dir=Path.home()/"wt") as directory:
         root = Path(directory)
         reader, writer = os.pipe()
         server = subprocess.Popen(

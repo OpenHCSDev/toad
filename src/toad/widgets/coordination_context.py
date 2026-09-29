@@ -1,7 +1,7 @@
 """A readable, inspectable disclosure for context identified by the executing owner."""
 
 from toad.widgets.message_filter import OtherCategory
-from toad.block_content import BlockContent
+from toad.block_navigation import ConversationBlock
 
 import asyncio
 
@@ -13,7 +13,7 @@ from toad.coordination_context_format import format_coordination_context, litera
 
 
 
-class OriginalCoordinationContext(BlockContent, Collapsible):
+class OriginalCoordinationContext(ConversationBlock, Collapsible):
     def __init__(self, content: str) -> None:
         super().__init__(title="Original payload", collapsed=True)
         self.content = content
@@ -29,7 +29,7 @@ class OriginalCoordinationContext(BlockContent, Collapsible):
         return self.content
 
 
-class CoordinationContext(BlockContent, Collapsible):
+class CoordinationContext(ConversationBlock, Collapsible):
     def __init__(self, content: str) -> None:
         super().__init__(title="Agent coordination context", collapsed=True)
         self.content = content
