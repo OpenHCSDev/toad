@@ -13,7 +13,7 @@ from toad.jsonrpc import InvalidParams
 @dataclass(frozen=True)
 class ClientSessionRequest:
     agent: "Agent"
-    session_id: str
+    session_id: str | None
     disposition: "ProcessDisposition" = field(init=False)
     binding: "SessionBinding" = field(init=False)
 

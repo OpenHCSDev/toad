@@ -1,4 +1,6 @@
 from typing import NamedTuple
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
 
 
 VERSION_TOML_URL = "https://www.batrachian.ai/toad.toml"
@@ -16,12 +18,44 @@ class VersionCheckFailed(Exception):
     """Something went wrong in the version check."""
 
 
-async def check_version() -> tuple[bool, VersionMeta]:
+class VersionStatus(ABC):
+    @abstractmethod
+    def print_notice(self) -> None: ...
+
+
+class CurrentVersion(VersionStatus):
+    def print_notice(self) -> None:
+        pass
+
+
+@dataclass(frozen=True)
+class AvailableVersion(VersionStatus):
+    metadata: VersionMeta
+
+    def print_notice(self) -> None:
+        from rich.console import Console
+        from rich.panel import Panel
+        console = Console()
+        console.print(Panel(self.metadata.upgrade_message, style="magenta", border_style="dim green",
+                            title="🐸 [bold green not dim]Update available![/] 🐸", expand=False, padding=(1, 2)))
+        console.print(f"Please visit {self.metadata.visit_url}")
+
+
+class VersionMonitor:
+    def __init__(self) -> None:
+        self.status: VersionStatus = CurrentVersion()
+
+    async def check(self) -> None:
+        try:
+            self.status = await check_version()
+        except VersionCheckFailed:
+            return
+
+
+async def check_version() -> VersionStatus:
     """Check for a new version of Toad.
 
-    Returns:
-        A tuple containing a boolean that indicates if there is a newer version,
-            and a `VersionMeta` structure with meta information.
+    The outcome owns whether an upgrade notice exists.
     """
     import httpx
     import packaging.version
@@ -64,7 +98,7 @@ async def check_version() -> tuple[bool, VersionMeta]:
     except packaging.version.InvalidVersion as error:
         raise VersionCheckFailed(f"Invalid remote version;{error}")
 
-    return new_version > current_version, verison_meta
+    return AvailableVersion(verison_meta) if new_version > current_version else CurrentVersion()
 
 
 if __name__ == "__main__":

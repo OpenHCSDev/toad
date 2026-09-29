@@ -31,6 +31,7 @@ class OperationalTerminalOwner(ClientRequestOwner, ABC):
         self.terminals = TerminalController()
         if previous.executions:
             self.start_operation(previous.close())
+        self.start_terminal_presentation(self.surface.target)
 
 
     @classmethod

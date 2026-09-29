@@ -28,6 +28,10 @@ class SessionBinding:
     """Actual ACP binding identity, preserved only until session replacement."""
     session_id: str | None
 
+    @property
+    def bound(self):
+        return self.session_id is not None
+
     def admits_notification(self, session_id):
         return self.session_id is None or self.session_id == session_id
 
@@ -170,7 +174,7 @@ class AgentController(OperationalTerminalOwner):
     def connection_closed(self):
         from .messages import McpClientStopped
         agent = self.agent
-        agent._connected_ok = False
+        agent.session.closed()
         agent.permissions.cancel()
         agent._invalidate_attachment_views()
         agent._active_turn_id = None
@@ -214,7 +218,7 @@ class AgentController(OperationalTerminalOwner):
             content = await asyncio.to_thread(build_prompt, project, prompt)
             if any(block.get('type') == 'image' for block in content):
                 coordinated = self.coordination is not None
-                supported = coordinated or (self.agent.agent_capabilities.get('promptCapabilities') or {}).get('image', False)
+                supported = coordinated or (self.agent.session.capabilities.get('promptCapabilities') or {}).get('image', False)
                 if not supported:
                     raise ValueError('This agent owner does not support images yet; refresh it while idle.')
             return await self._prompt(content, command, authority, queue_scope)

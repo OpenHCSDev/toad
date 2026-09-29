@@ -45,7 +45,7 @@ async def main():
             assert 'Saved history not loaded' in details.title
             from toad.agent import AgentReady
             agent.session_id = "retained-reconnect-proof"
-            agent._reconnecting = True
+            agent.session.reconnecting = True
             await view.transcript.snapshot(page)
             await pilot.pause()
             source = view.query_one(TranscriptHistory)

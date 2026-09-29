@@ -1,0 +1,34 @@
+# PR181: application actions and lifetime, ready for parent integration
+
+**413 replaced production lines deleted; 518 added.** The additional105 lines declare action capabilities/outcomes and complete operational ownership rather than move App into another large class. **43 obsolete caller/test lines deleted; final added test count recorded in deletion.json.** App **750 original / 748 current main →442 candidate**; no replacement owner crosses500. This closes the assigned application/system action batch, not all original T4 or the whole goal.
+
+## Source and ownership
+
+Production source `6bd55e33` includes normal merged175+178/main7c978599. Final publication also removes the temporary test task-stack observer and records receipts; no product delta after6bd55. Own persistent WT `/home/ts/wt/toad-thread-opening-sol-20260929`, branch `refactor/application-actions-sol-20260929`.
+
+- ApplicationAction uses the existing core Command/DeclaredFamily. Declarations own parameters/effects, KeyboundAction bindings and PaletteAction discovery/search. Root BINDINGS is derived; no action-name switch, hand-maintained command roster or root action bodies survive. SettingsAction owns modal creation; root SCREENS/factory roster is deleted. A new palette declaration is selected and executed physically without a consumer edit.
+- Existing SessionAdmissions consumes WorkspaceSessionRequest via core MroDispatch and owns the native/default source factory. All eight request handlers and all maintained get_main_screen callers migrate. Existing factories, tabs and source identities remain the only authorities.
+- Existing ToadSettings owns durable decode, serialized atomic snapshot save, installation identity and declaration effect publication. BooleanSetting owns toggling. Existing StatisticsSettings owns collection admission; UsageReports shares the external HTTP path. Existing version boundary owns CurrentVersion/AvailableVersion outcomes, removing App's bool/optional metadata pair.
+- ApplicationLifetime owns startup, confirmed quit and explicit quit. Quit saves after actual focus blur; the arbitrary0.05s quit timer is deleted. Settings modal dismissal requests stack cleanup without returning the teardown awaitable to Textual's refresh callback. Real ephemeral-modal removal exposed the self-wait, corrected and mechanically guarded.
+- Actual filesystem rejection retains dirty values, shows Settings error, leaves original target intact and removes the attempted atomic temporary file. Retry persists the same edited value. CLI path reporting avoids constructing application services.
+
+Carver's Agent/input/RPC and Tesla175 frame/layout/selected-source/render/preparation changes are preserved. No shared WT/live route/config/journal edits, owner restarts or original input replay. Parent owns final pair pins, source review/merge, install and affected default LIVE path.
+
+## Executed acceptance
+
+- `actions-dismiss-final.log`, installed noneditable Toad6bd55 + core670f0995 + Textual609b: normal App/real official SDK stdio, physical first reply, F1 help, F2 actual settings edit/blur/save/return, actual frame ready and original draft/Document identity, command palette new declaration/footer, Ctrl+S channels, physical new-session and close, real disk rejection/retry/temp cleanup, quit while focused editor remains uncommitted, unchanged installation ID/current preference reopen, second distinct physical reply and two-stage Ctrl+C quit. EXIT0. Removed diagnostic observer afterward; no assertion/path change.
+- `terminal.log`, installed Toadf7be + same core670f/Textual609b: real LinuxDriver PTY flush before ACP session/new, physical first input/reply, slash selection/submission/reply, resize, retained draft and Ctrl+Q. EXIT0. Raw ANSI/frame/wire receipts retained. Later changes are settings-modal-only; terminal owner/callers did not change.
+- `native-matched.log` + native-proof/fresh-fork.json: installed Toad eb1ffcf9 + current core670f + Textual609b + actual matching native fcade package. Canonical physical fork/open before socket, actual owner held5.4s, same process attaches, inherited history painted, distinct new physical Enter/reply exactly once in the same logical tab. EXIT0; three localhost controlled provider requests, zero paid calls. Raw harness label incorrectly names f7be because its storage-only commit occurred after the eb1 wheel install; imports.json explicitly corrects the imported source. Storage/modal-only later deltas do not change native attach/frame/input code; final affected storage/modal journey above runs rebuilt6bd55.
+- `guards-final.log`: seven guards PASS, including root caller/roster deletion, App≤500, no precreated worker coroutine, modal callback teardown protection and preserved frame/T4 closure.
+- `ratchet-final.json`, baseline current main7c978599: no touched-file increases. App excess−248, foreign absence−1; no chain terms/codec regression. Source/tests diff check passes; raw terminal ANSI padding intentionally preserved.
+- `cli.log`: actual installed CLI reports canonical preferences path without constructing App.
+
+No mocks replace UI, rendering, SDK, native process, protocol, persistence or filesystem. Controlled provider responses are local. No CI wait, full-suite/global NRA equivalence or default deployment claim. Latest exact archive/NRA skills reread and compared; patterns IMPL-4/5/6/7/10/13, MEMB-1/2, IDEN-3, TIME-1/3/9, AGENT-6/8 applied. No per-boolean rule family, field codec subclass, facade, compatibility reader or second store added.
+
+## Retained failures and integration
+
+Earlier Input Ctrl+A assumption and nonexistent pilot observation fields were corrected to actual controls without weakening assertions. `actions-fourth.log` exposed test teardown killing its shared resource tracker before reopen; normal App now runs the continuous lifecycle and owned process cleanup happens once after both closes. Modal REDs/timeouts and task stacks are preserved; returning dismissal's AwaitComplete created a real self-wait, not a mock failure.
+
+Inherited main core pin beaa8 predates canonical registry.declare used by merged178. `native.log` is setup-only AttributeError; `native-current.log` is setup-only mismatched old native artifact. Final native proof uses actual core670f + manifest-matched fcade artifact. Parent should pair current canonical core with this branch; no old API restored or parent pin ownership duplicated. Existing stable live remains untouched.
+
+App now retains actual Textual/workspace/render/read/selection integration and the existing file-link broker; no claim that every other original god owner or Markdown link policy is complete. Own source scope has no remaining implementation blocker. Commands/import/deletion/proof receipts are here. Owned disposable Q8 roots are removed only after copied evidence and test-child audit; persistent source/venv and predecessor work remain.

@@ -23,7 +23,7 @@ async def main():
             await pilot.pause()
             base = app.selected_mode
             for index in range(4):
-                mode = (await app.session_navigation.new(app.get_main_screen)).mode_name
+                mode = (await app.session_navigation.new(app.session_navigation.default_source)).mode_name
                 await app.selected_session.conversation.contents.mount(*[
                     AgentResponse(f"Response {i}\n\n" + "long paragraphs.\n\n" * 10)
                     for i in range(14)

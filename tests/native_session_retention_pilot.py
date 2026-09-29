@@ -176,7 +176,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
             active_prompt = asyncio.create_task(agent.send_prompt(f"HELD_AT_{count}"))
             await until(pilot, entered.is_set)
             assert app.selected_mode != owner_mode
-            assert agent._connected_ok
+            assert agent.session.connected
             assert agent.process.process is acp_process and acp_process.returncode is None
             assert agent.process.runner is acp_task and not acp_task.done()
             assert comms.registry.require("beta").process_identity == owner

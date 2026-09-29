@@ -114,7 +114,8 @@ def make_session_title(prompt: str) -> str:
 
 
 if TYPE_CHECKING:
-    from toad.acp.agent import Mode, Model
+    from toad.acp.agent import Model
+    from toad.acp.agent_session import Mode
     from toad.widgets.agent_response import AgentResponse
     from toad.widgets.question import Ask
     from toad.widgets.terminal import Terminal
@@ -883,7 +884,7 @@ class Conversation(ConversationSessionBinding):
                     await self._shell.change_directory(str(path))
         if self.agent is not None:
             self.agent.project_root_path = path
-            if (session_pk := self.agent.session_pk) is not None:
+            if (session_pk := self.agent.session.pk) is not None:
                 from toad.db import DB
 
                 await DB().session_update_project(session_pk, path)
@@ -1150,7 +1151,7 @@ class Conversation(ConversationSessionBinding):
                 content = Content.assemble(self.agent.get_info(), " connected")
                 self.flash(content, style="success")
                 if self._agent_data is not None:
-                    self.app.capture_event(
+                    self.app.application.usage.publish(
                         "agent-session-begin",
                         agent=self._agent_data["identity"],
                     )
@@ -1194,7 +1195,7 @@ class Conversation(ConversationSessionBinding):
 
             self._auto_title_eligible = False
             title = message.title or ""
-            if (pk := self.agent.session_pk) is not None:
+            if (pk := self.agent.session.pk) is not None:
                 await DB().session_update_title(pk, title)
             self.post_message(messages.SessionUpdate(name=title))
         else:
@@ -1213,7 +1214,7 @@ class Conversation(ConversationSessionBinding):
 
         if self._agent_data is not None and self.session_start_time is not None:
             session_time = monotonic() - self.session_start_time
-            await self.app.capture_event(
+            await self.app.application.usage.publish(
                 "agent-session-end",
                 agent=self._agent_data["identity"],
                 duration=session_time,
@@ -1234,7 +1235,7 @@ class Conversation(ConversationSessionBinding):
         self.notify(message.message, title="Agent failure", severity="error", timeout=5)
 
         if self._agent_data is not None:
-            self.app.capture_event(
+            self.app.application.usage.publish(
                 "agent-session-error",
                 agent=self._agent_data["identity"],
                 message=message.message,
@@ -1332,9 +1333,9 @@ class Conversation(ConversationSessionBinding):
                 ) is None:
                     await self.prune_window(0, 0)
                     self.output.boundary()
-                await agent.reconnect_after_auth()
+                await agent.session.reconnect()
             else:
-                await agent.authenticate(method_id)
+                await agent.session.authenticate(method_id)
             self.flash(
                 "Provider login finished; model catalogue refreshed", style="success"
             )
