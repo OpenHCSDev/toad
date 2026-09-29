@@ -121,7 +121,7 @@ async def main() -> None:
                             cohort_foreground, "_trusted_package", lambda _: None
                         ),
                     ):
-                        ack = asyncio.create_task(view._mark_painted_page(page))
+                        ack = asyncio.create_task(view.message_history.mark_page(page))
                         app.thread_actions.invoke(StartAction(), "peer", "user")
                         async with asyncio.timeout(8):
                             await entered_ack.wait()

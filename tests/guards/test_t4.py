@@ -89,3 +89,19 @@ def test_startup_failure_declaration_caller_closure():
             if isinstance(node, ast.Call):
                 assert not (isinstance(node.func, ast.Name) and node.func.id == 'AgentFail'), (relative, node.lineno)
                 assert all(keyword.arg != 'help' for keyword in node.keywords), (relative, node.lineno)
+
+
+def test_channel_history_has_one_publication_owner():
+    tree = ast.parse((ROOT / 'widgets/comms_chat.py').read_text())
+    retired = {'_history', '_has_older', '_has_newer', '_history_initialized',
+               '_poll_cursor', '_edge_load_scheduled', '_edge_check_on_resume',
+               '_refresh_lock', '_wire', '_revision', '_display_identity',
+               '_ack_page', '_channel_ack_pages', '_historical_ack_pages',
+               '_ack_inflight', 'irc_style', '_mount_page', '_insert_page',
+               '_mark_visible_after_layout', '_mark_painted_page',
+               '_mark_historical_paint', '_load_history_edge', '_history_request'}
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Attribute):
+            assert node.attr not in retired, (node.lineno, node.attr)
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            assert node.name not in retired, (node.lineno, node.name)

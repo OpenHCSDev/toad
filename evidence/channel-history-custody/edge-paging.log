@@ -1,0 +1,2 @@
+{"gate_seconds": 0.25, "edge_attempts_while_locked": 1, "ui_thread_cpu_ms": 51.57}
+history-edge scheduling: bounded wait, typing, no-progress/error, latest viewport, tab return, late IO, close and underfill OK

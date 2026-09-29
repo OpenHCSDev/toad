@@ -42,11 +42,8 @@ from toad.screens.comms import CommsScreen
 from toad.screens.main import MainScreen
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.agent_thought import AgentThought
-from toad.widgets.comms_chat import (
-    HISTORY_WINDOW_SIZE,
-    INITIAL_HISTORY_PAGE_SIZE,
-    CommsChatView,
-)
+from toad.widgets.comms_chat import CommsChatView
+from toad.mounted_message_history import HISTORY_WINDOW_SIZE, INITIAL_HISTORY_PAGE_SIZE
 from toad.widgets.comms_menu import ContextMenu, ContextMenuItem
 from toad.widgets.comms_sidebar import (
     CommsRow,
@@ -821,45 +818,45 @@ async def main() -> None:
             long_chat = app.screen.query_one(CommsChatView)
             assert (
                 INITIAL_HISTORY_PAGE_SIZE
-                <= len(long_chat._history)
+                <= len(long_chat.message_history.rows)
                 <= HISTORY_WINDOW_SIZE
             )
-            assert [message.body for message, _ in long_chat._history] == [
+            assert [message.body for message, _ in long_chat.message_history.rows] == [
                 f"long history {index:03}"
-                for index in range(240 - len(long_chat._history), 240)
+                for index in range(240 - len(long_chat.message_history.rows), 240)
             ]
-            assert "long history 239" in long_chat._history[-1][1].source
-            previous_oldest = long_chat._history[0][0].seq
-            long_chat._edge_load_scheduled = True
+            assert "long history 239" in long_chat.message_history.rows[-1][1].source
+            previous_oldest = long_chat.message_history.rows[0][0].seq
+            long_chat.message_history.edge_scheduled = True
             long_chat.window.scroll_home(animate=False)
             await pilot.pause()
-            anchor = long_chat._history[0][1]
+            anchor = long_chat.message_history.rows[0][1]
             anchor_y = anchor.region.y
-            long_chat._edge_load_scheduled = False
-            long_chat._on_window_scroll(long_chat.window.scroll_y)
+            long_chat.message_history.edge_scheduled = False
+            long_chat.message_history.on_scroll(long_chat.window.scroll_y)
             for _ in range(10):
-                if long_chat._history[0][0].seq < previous_oldest:
+                if long_chat.message_history.rows[0][0].seq < previous_oldest:
                     break
                 await pilot.pause()
-            assert long_chat._history[0][0].seq < previous_oldest
+            assert long_chat.message_history.rows[0][0].seq < previous_oldest
             await pilot.pause()
             assert abs(anchor.region.y - anchor_y) <= 1
-            while not long_chat._has_newer:
-                page = long_chat._message_page(
-                    comms, before=long_chat._history[0][0].seq
+            while not long_chat.message_history.has_newer:
+                page = long_chat.message_history.read_page(
+                    comms, before=long_chat.message_history.rows[0][0].seq
                 )
-                await long_chat._mount_page(page, older=True)
-            sequences = [message.seq for message, _ in long_chat._history]
+                await long_chat.message_history.mount_page(page, older=True)
+            sequences = [message.seq for message, _ in long_chat.message_history.rows]
             assert len(sequences) == HISTORY_WINDOW_SIZE
             assert len(sequences) == len(set(sequences))
             assert sequences[0] < previous_oldest
-            assert long_chat._has_newer
+            assert long_chat.message_history.has_newer
             newest_before = sequences[-1]
-            page = long_chat._message_page(comms, after=newest_before)
-            await long_chat._mount_page(page, older=False)
-            assert long_chat._history[-1][0].seq > newest_before
-            assert len(long_chat._history) == HISTORY_WINDOW_SIZE
-            assert long_chat._has_older
+            page = long_chat.message_history.read_page(comms, after=newest_before)
+            await long_chat.message_history.mount_page(page, older=False)
+            assert long_chat.message_history.rows[-1][0].seq > newest_before
+            assert len(long_chat.message_history.rows) == HISTORY_WINDOW_SIZE
+            assert long_chat.message_history.has_older
             await pilot.press("escape")
             await pilot.pause()
             assert isinstance(app.screen, MainScreen)

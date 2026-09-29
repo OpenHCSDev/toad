@@ -230,7 +230,7 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
 
     async def action_message_style(self) -> None:
         if chat := self.query_one_optional(CommsChatView):
-            await chat.toggle_message_style()
+            await chat.message_history.toggle_style()
 
     def action_focus_prompt(self) -> None:
         if chat := self.query_one_optional(CommsChatView):
