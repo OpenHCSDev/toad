@@ -95,6 +95,11 @@ class SlashComplete(CompletionPopup):
     def admitted(self) -> bool:
         return self.prompt.supports_completion
 
+    def cursor_changed(self, movement) -> None:
+        if movement.entered_slash:
+            if self.prompt.prompt_text_area.document.get_line(0).startswith("/"):
+                self.focus()
+
     @on(Completed)
     def insert_command(self, event: Completed) -> None:
         event.stop()

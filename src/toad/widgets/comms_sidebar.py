@@ -661,7 +661,7 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
         from toad.screens.workspace import WorkspaceScreen
 
         if isinstance(self.screen, WorkspaceScreen):
-            self.screen.call_after_first_frame(self, self.start_navigation_hydration)
+            self.screen.frame_presentation.defer(self, self.start_navigation_hydration)
         self._refresh_after_first_frame()
 
     def _refresh_after_first_frame(self) -> None:
@@ -669,7 +669,7 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
 
         screen = self.screen
         if isinstance(screen, WorkspaceScreen):
-            screen.call_after_first_frame(self, self._refresh)
+            screen.frame_presentation.defer(self, self._refresh)
         else:
             self.call_after_refresh(self._refresh)
 
@@ -902,8 +902,8 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
                 return
             from toad.screens.workspace import WorkspaceScreen
 
-            if isinstance(self.screen, WorkspaceScreen) and not self.screen._first_frame_presented:
-                self.screen.call_after_first_frame(self, self._refresh)
+            if isinstance(self.screen, WorkspaceScreen) and not self.screen.frame_presentation.ready:
+                self.screen.frame_presentation.defer(self, self._refresh)
                 return
             revision = self._wire.views.revision()
             if (self.display and revision == self._last_revision and route_stamp == self._last_route_stamp

@@ -36,8 +36,8 @@ class ChannelTextArea(PromptTextArea):
         else:
             super().action_cursor_down(select)
 
-    async def watch_selection(self, previous_selection: Selection, selection: Selection) -> None:
-        await super().watch_selection(previous_selection, selection)
+    def watch_selection(self, previous_selection: Selection, selection: Selection) -> None:
+        super().watch_selection(previous_selection, selection)
         if self.is_mounted:
             self.query_ancestor(ChannelPrompt).refresh_mentions()
 
