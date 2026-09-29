@@ -311,10 +311,10 @@ class Agent(AgentBase):
         """Validate wire notifications off-process, then publish to the same owner."""
         session = self.session_id
         async with self._session_update_lock:
-            if self.session_id != session or not self.process.accepts_updates:
+            if not self.process.accepts_session(session):
                 return
             validation = await self.controller.validate(sessionId, update, _meta)
-            if self.session_id != session or not self.process.accepts_updates:
+            if not self.process.accepts_session(session):
                 return
             if validation.error is not None:
                 self._reject_session_update(sessionId, update, _meta, validation.error)
@@ -487,7 +487,7 @@ class Agent(AgentBase):
         cancelled: protocol.RequestPermissionResponse = {
             "outcome": {"outcome": "cancelled"}
         }
-        if not self.process.accepts_updates or sessionId != self.session_id:
+        if not self.process.accepts_session(sessionId):
             return cancelled
         tool_call_id = toolCall["toolCallId"]
 
@@ -502,7 +502,7 @@ class Agent(AgentBase):
         self.tool_calls[tool_call_id] = cast(protocol.ToolCall, deepcopy(visible_tool_call))
         request = self.permissions.request(options, cast(protocol.ToolCallUpdatePermissionRequest, visible_tool_call))
         ask_result = await request.wait(PERMISSION_TIMEOUT_SECONDS)
-        if ask_result is None or not self.process.accepts_updates or sessionId != self.session_id:
+        if ask_result is None or not self.process.accepts_session(sessionId):
             return cancelled
         if not any(option["optionId"] == ask_result.id for option in options):
             return cancelled
