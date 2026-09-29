@@ -143,7 +143,7 @@ async def main(*, empty=False, trace=False, observe=False, output=None, peers=0,
                 for name in targets:
                     if empty:
                         mode = (
-                            await app.new_session_screen(app.get_main_screen)
+                            await app.session_navigation.new(app.get_main_screen)
                         ).mode_name
                     else:
                         mode = await app.thread_navigation.open(
@@ -617,7 +617,7 @@ async def verify_post_switch(app, pilot, modes, empty, observe, targets, run_sta
     for mode in modes[:3]:
         if ownership_census:
             print(json.dumps({"closing": mode, "elapsed_s": round(time.perf_counter() - run_started, 2)}), flush=True)
-        await app.close_session_mode(mode)
+        await app.session_navigation.close(mode)
         if ownership_census:
             print(json.dumps({"closed": mode, "elapsed_s": round(time.perf_counter() - run_started, 2)}), flush=True)
     await app.switch_mode(modes[3])

@@ -182,7 +182,7 @@ async def main():
             workers = tuple(worker for worker in sidebar.workers
                             if worker.node is sidebar and worker.group == "sidebar-panels")
             await asyncio.sleep(0)
-            await app.new_session_screen(lambda: MainScreen(replacement))
+            await app.session_navigation.new(lambda: MainScreen(replacement))
             await pilot.pause(.02)
             assert not sidebar.panels and not sidebar._panels_loading
             assert all(worker.is_finished for worker in workers)

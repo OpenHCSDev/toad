@@ -1,4 +1,5 @@
 """Blocked route metadata must not hold typing, steal focus, or reopen owners."""
+from toad.navigation_target import NavigationContext
 
 from toad.navigation_target import channel_target, ThreadTarget
 
@@ -98,7 +99,7 @@ async def mounted() -> None:
             await pilot.pause()
             owner = app.selected_mode
             source = app.selected_session
-            other = (await app.new_session_screen(app.get_main_screen)).mode_name
+            other = (await app.session_navigation.new(app.get_main_screen)).mode_name
             for request_type, kind in (
                 (ThreadNavigationRequest, "thread"),
                 (CommsNavigationRequest, "channel"),
@@ -119,10 +120,7 @@ async def mounted() -> None:
                 opening = None
                 try:
                     with patch.object(request_type, "read", gated):
-                        opening = asyncio.create_task(app.open_comms_session(
-                            owner_mode=owner, project_path=root, me=source._comms_thread,
-                            target=ThreadTarget("metadata-peer") if kind == "thread" else channel_target("#all"),
-                        ))
+                        opening = asyncio.create_task(ThreadTarget("metadata-peer") if kind == "thread" else channel_target("#all").open(NavigationContext(app, owner, root, source._comms_thread)))
                         assert await asyncio.to_thread(entered.wait, 2)
                         assert (
                             thread_ids == [thread_ids[0]]
@@ -139,7 +137,7 @@ async def mounted() -> None:
                         assert app.selected_mode == other, (
                             "Old route metadata stole focus"
                         )
-                        assert not app._comms_modes, (
+                        assert len(app.open_tabs) == 2, (
                             "Superseded route created an unused tab"
                         )
                         assert not app.thread_navigation.pending
@@ -150,7 +148,7 @@ async def mounted() -> None:
 
             # Canonical aliases must reuse open threads even before their UI
             # receives the asynchronous coordination rename notification.
-            existing = app._main_session_screen(other)
+            existing = app.session_navigation.source(other)
             existing.initial_coordination_root = str(root / "wire")
             existing._comms_thread = "metadata-peer"
             comms.registry.rename("metadata-peer", "metadata-renamed")
@@ -174,15 +172,12 @@ async def mounted() -> None:
             opening = None
             try:
                 with patch.object(CommsNavigationRequest, "read", after_close):
-                    opening = asyncio.create_task(app.open_comms_session(
-                        owner_mode=owner, project_path=root, me=source._comms_thread,
-                        target=channel_target("#all"),
-                    ))
+                    opening = asyncio.create_task(channel_target("#all").open(NavigationContext(app, owner, root, source._comms_thread)))
                     assert await asyncio.to_thread(entered.wait, 2)
-                    await asyncio.wait_for(app.close_session_mode(owner), 2)
+                    await asyncio.wait_for(app.session_navigation.close(owner), 2)
                     release.set()
                     assert await asyncio.wait_for(opening, 2) == other
-                    assert owner not in app._screen_stacks and not app._comms_modes
+                    assert owner not in app.workspace_sessions.factories and len(app.open_tabs) == 1
             finally:
                 release.set()
                 if opening is not None:

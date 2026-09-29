@@ -106,7 +106,7 @@ async def main():
                     publication = asyncio.create_task(sidebar._present_snapshot(snapshot))
                     try:
                         await asyncio.wait_for(entered.wait(), 3)
-                        await asyncio.wait_for(app.close_session_mode(destination), 4)
+                        await asyncio.wait_for(app.session_navigation.close(destination), 4)
                     finally:
                         release.set()
                     await asyncio.wait_for(publication, 3)

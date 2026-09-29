@@ -1,4 +1,5 @@
 """Persistent comms tabs and lazy model-owned multi-tag memberships."""
+from toad.navigation_target import NavigationContext
 
 from toad.navigation_target import FeedTarget, channel_target
 
@@ -125,8 +126,7 @@ async def main():
             await pilot.click(f"SessionLabel#{owner}")
             await pilot.pause()
             assert app.screen.query_one(f"SessionLabel#{engineering}")
-            any_mode = await app.open_comms_session(owner_mode=owner, project_path=root,
-                                                   me=root.name, target=FeedTarget())
+            any_mode = await FeedTarget().open(NavigationContext(app, owner, root, root.name))
             await pilot.pause()
             assert {label.id for label in app.screen.query(SessionLabel)} == {owner, engineering, any_mode}
             any_chat = app.screen.query_one("CommsChatView")
@@ -144,13 +144,10 @@ async def main():
             await app.switch_mode(owner)
             await pilot.pause()
             assert {label.id for label in app.screen.query(SessionLabel)} == {owner, engineering}
-            second = await app.new_session_screen(lambda: MainScreen(root))
+            second = await app.session_navigation.new(lambda: MainScreen(root))
             await pilot.pause()
             # Two owner tabs cannot share a channel's sender or Back target.
-            duplicate = await app.open_comms_session(
-                owner_mode=second.mode_name, project_path=root,
-                me="api-agent", target=channel_target("#engineering"),
-            )
+            duplicate = await channel_target("#engineering").open(NavigationContext(app, second.mode_name, root, "api-agent"))
             await pilot.pause()
             assert duplicate != engineering
             assert isinstance(app.screen, CommsScreen)
@@ -159,10 +156,7 @@ async def main():
             await app.screen.action_back_to_agent()
             assert app.selected_mode == second.mode_name
             # Within one owner, the original view and its draft are reusable.
-            original = await app.open_comms_session(
-                owner_mode=owner, project_path=root,
-                me=root.name, target=channel_target("#engineering"),
-            )
+            original = await channel_target("#engineering").open(NavigationContext(app, owner, root, root.name))
             assert original == engineering
             assert app.screen.query_one("Prompt").text == "draft stays here"
             # An old sidebar and a newly opened view must use the same model

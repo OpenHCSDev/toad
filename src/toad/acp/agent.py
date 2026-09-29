@@ -1124,7 +1124,7 @@ class Agent(AgentBase):
 
         if self._transcript_reader is None or self._transcript_reader_root != root:
             app = self.controller.app
-            shared = app._coordination_wire if isinstance(app, ToadApp) else None
+            shared = app.coordination_access.observed_service if isinstance(app, ToadApp) else None
             if shared is not None and shared.root == Path(root).expanduser():
                 self._transcript_reader = shared
             else:

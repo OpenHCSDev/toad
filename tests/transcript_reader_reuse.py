@@ -1,4 +1,5 @@
 """An attachment reuses core page-reader caches without retaining stale routes."""
+from toad.navigation_target import NavigationContext
 
 from toad.navigation_target import FeedTarget
 
@@ -115,7 +116,7 @@ async def main():
                 assert create.call_count == 0
             assert all(
                 (
-                    attachment._transcript_reader is app.coordination_wire
+                    attachment._transcript_reader is app.coordination_access.service
                     for attachment in attachments
                 )
             )
@@ -130,13 +131,12 @@ async def main():
                     side_effect=AssertionError("new sidebar reader"),
                 ),
             ):
-                await app.open_comms_session(owner_mode=owner_mode, project_path=root,
-                                             me="fixture", target=FeedTarget())
+                await FeedTarget().open(NavigationContext(app, owner_mode, root, "fixture"))
             from toad.widgets.comms_chat import CommsChatView
             from toad.widgets.comms_sidebar import CommsSidebar
 
-            assert app.screen.query_one(CommsChatView)._wire is app.coordination_wire
-            assert app.screen.query_one(CommsSidebar)._wire is app.coordination_wire
+            assert app.screen.query_one(CommsChatView)._wire is app.coordination_access.service
+            assert app.screen.query_one(CommsSidebar)._wire is app.coordination_access.service
         await asyncio.get_running_loop().shutdown_default_executor()
     print(
         "page reader: reused across concurrent pages; routing changes, appended replies and wire changes remain current"

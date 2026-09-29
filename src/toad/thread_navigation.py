@@ -40,15 +40,7 @@ class ThreadNavigator:
         self.pending: dict[tuple[str, str, str], ThreadOpening] = {}
 
     def source(self, owner_mode: str) -> MainScreen | None:
-        from toad.screens.comms import CommsScreen
-
-        source = self.app._main_session_screen(owner_mode)
-        if source is not None:
-            return source
-        owner_view = self.app.workspace_sessions.views.get(owner_mode)
-        if isinstance(owner_view, CommsScreen):
-            return self.app._main_session_screen(owner_view.owner_mode)
-        return None
+        return self.app.session_navigation.source(owner_mode)
 
     async def open(self, *, owner_mode: str, project_path: Path, target: str) -> str:
         app = self.app
@@ -63,7 +55,7 @@ class ThreadNavigator:
         mounted_root = str(Path(requested_root).expanduser())
         open_threads = []
         for details in app.session_tracker.ordered_sessions:
-            view = app._main_session_screen(details.mode_name)
+            view = app.session_navigation.source(details.mode_name)
             if view is None:
                 continue
             root, name = view.coordination_root, view._comms_thread
@@ -94,23 +86,19 @@ class ThreadNavigator:
         from toad.screens.main import MainScreen
 
         app = self.app
-        agent = opening.origin.source._agent
-        if agent is None:
+        source = opening.origin.source
+        if not source.has_agent():
             app.notify("The owning agent session is unavailable", title="Thread unavailable", severity="error")
             return opening.owner_mode
 
         def get_screen() -> MainScreen:
-            screen = MainScreen(prepared.project, agent, agent_session_id=prepared.thread.name,
-                                agent_session_title=prepared.thread.name).data_bind(
-                                    column=type(app).column,
-                                    column_width=type(app).column_width,
-                                    scrollbar=type(app).scrollbar)
-            screen.initial_coordination_root = prepared.root
+            screen = source.spawn(project=prepared.project, session_id=prepared.thread.name,
+                                  title=prepared.thread.name, root=prepared.root)
             screen._comms_thread = prepared.thread.name
             return screen
 
-        details = await app.new_session_screen(get_screen, title=prepared.thread.name)
-        view = app._main_session_screen(details.mode_name)
+        details = await app.session_navigation.new(get_screen, title=prepared.thread.name)
+        view = app.session_navigation.source(details.mode_name)
         if view is not None:
             await view.wait_content_ready()
         return details.mode_name if app.workspace_sessions.views.get(details.mode_name) else app.selected_mode

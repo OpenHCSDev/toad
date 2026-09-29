@@ -78,7 +78,7 @@ async def main():
                 closing = app.selected_mode
                 closed_view = app.selected_session
                 assert closed_view in written and not closed_view._first_frame_presented
-                await app.close_session_mode(closing)
+                await app.session_navigation.close(closing)
                 await asyncio.wait_for(opening, 8)
                 assert not closed_view._initial_frame_callbacks
                 finish_frame(closed_view)

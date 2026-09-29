@@ -1,6 +1,7 @@
 """Bounded route discovery without accessing widgets from a reader thread."""
 
 from __future__ import annotations
+from toad.navigation_target import NavigationContext
 
 import asyncio
 from abc import ABC, abstractmethod
@@ -81,9 +82,7 @@ class StoppedThreadNavigation(ThreadNavigation):
         app = opening.navigator.app
         app.notify(f"@{self.thread.name} is stopped; choose Start thread to resume it",
                    title="Thread view")
-        return await app.open_comms_session(
-            owner_mode=opening.owner_mode, project_path=opening.request.project,
-            me=opening.origin.source._comms_thread, target=DirectTarget(self.thread.name))
+        return await DirectTarget(self.thread.name).open(NavigationContext(app, opening.owner_mode, opening.request.project, opening.origin.source._comms_thread))
 
 
 class NativeThreadNavigation(ThreadNavigation):
@@ -99,7 +98,7 @@ class ExistingThreadNavigation(NativeThreadNavigation):
 
     async def open(self, opening: ThreadOpening) -> str:
         navigator = opening.navigator
-        source = navigator.app._main_session_screen(self.existing.mode)
+        source = navigator.app.session_navigation.source(self.existing.mode)
         if source is not None:
             if (source.coordination_root, source._comms_thread) == (self.existing.root, self.existing.name):
                 await navigator.app.select_session(self.existing.mode)

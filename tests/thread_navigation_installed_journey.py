@@ -107,7 +107,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     assert isinstance(stopped, StoppedThreadNavigation) and not stopped.attachable
     stopped_mode = await ThreadTarget("stopped").open(app.selected_session.navigation_context)
     chat = app.selected_session.query_one(CommsChatView)
-    assert chat.target == "stopped" and chat.kind.declared_name == "dm"
+    assert chat.target == "stopped" and chat.kind == "dm"
     await until(pilot, lambda: "stopped" in "\n".join(
         strip.text for strip in app.screen._compositor.render_strips()))
     assert not app.thread_navigation.pending

@@ -98,7 +98,7 @@ def render(app: ToadApp) -> str:
         "COMMS_NO_REPLY_WINDOW": os.environ.get("AGENT_COMMS_NO_REPLY_WINDOW", "2.5"),
         "COMMS_REPLY_QUIET": os.environ.get("AGENT_COMMS_REPLY_QUIET", "1.5"),
         "COMMS_REPLY_WINDOW": os.environ.get("AGENT_COMMS_REPLY_WINDOW", "8.0"),
-        "COMMS_ROOT": str(app.coordination_wire.root),
+        "COMMS_ROOT": str(app.coordination_access.service.root),
         "CONFIG": config,
         "DATA_PATH": paths.get_data(),
         "LOG_PATH": paths.get_log(),

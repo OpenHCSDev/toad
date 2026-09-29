@@ -1,4 +1,5 @@
 """Mounted notification feedback: bounded batch, changing state, no hidden polling."""
+from toad.navigation_target import NavigationContext
 
 from toad.navigation_target import channel_target
 
@@ -81,8 +82,7 @@ async def main():
                 await pilot.pause()
                 assert "Responding in #comms" in tracker.summary
 
-                await app.open_comms_session(owner_mode=native_mode, project_path=root,
-                                             me="peer", target=channel_target("#comms"))
+                await channel_target("#comms").open(NavigationContext(app, native_mode, root, "peer"))
                 chat = app.screen.query_one(CommsChatView)
                 await until(lambda: chat._history_initialized and not chat._refresh_lock.locked()
                             and not chat._edge_load_scheduled)

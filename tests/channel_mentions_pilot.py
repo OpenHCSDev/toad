@@ -1,4 +1,5 @@
 """Complete a thread mention while preserving shared-channel delivery and the draft."""
+from toad.navigation_target import NavigationContext
 
 from toad.navigation_target import channel_target
 
@@ -29,9 +30,7 @@ async def main():
         async with app.run_test(size=(100, 35)) as pilot:
             await pilot.pause()
             owner = app.selected_mode
-            mode = await app.open_comms_session(
-                owner_mode=owner, project_path=root, me="alpha", target=channel_target("#team"),
-            )
+            mode = await channel_target("#team").open(NavigationContext(app, owner, root, "alpha"))
             await pilot.pause()
             chat = app.screen.query_one(CommsChatView)
             prompt = chat.query_one(ChannelPrompt)

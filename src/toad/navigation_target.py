@@ -94,7 +94,7 @@ class HistoryRoute:
 
 class HistoryTarget(HistoryRoute, NavigationTarget):
     async def open(self, context: NavigationContext) -> str:
-        return await context.app._open_comms_history(
+        return await context.app.session_navigation.history(
             owner_mode=context.owner_mode, project_path=context.project_path,
             me=context.actor, target=self.name, kind=self.history_kind,
         )

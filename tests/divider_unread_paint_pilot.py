@@ -1,4 +1,5 @@
 """A visible divider cannot acknowledge a message whose body is below the viewport."""
+from toad.navigation_target import NavigationContext
 
 from toad.navigation_target import channel_target
 
@@ -37,10 +38,7 @@ async def main() -> None:
         with patch.object(CommsChatView, "_mark_visible_after_layout"):
             async with app.run_test(size=(80, 22)) as pilot:
                 await pilot.pause()
-                await app.open_comms_session(
-                    owner_mode=app.selected_mode, project_path=root, me="peer",
-                    target=channel_target("#team"),
-                )
+                await channel_target("#team").open(NavigationContext(app, app.selected_mode, root, "peer"))
                 chat = app.screen.query_one(CommsChatView)
                 async with asyncio.timeout(5):
                     while not chat._history_initialized:

@@ -1,4 +1,5 @@
 """Persistent native unread counts reach sidebar/tabs; Start uses the core tool."""
+from toad.navigation_target import NavigationContext
 from agent_comms.acp_extension import TranscriptSnapshotUpdate
 from toad.acp.messages import CommsUpdated
 
@@ -37,7 +38,7 @@ def reply(path, text):
 
 async def refresh(app, pilot):
     sidebar = app.screen.query_one(CommsSidebar)
-    await sidebar._read_snapshot(app.coordination_wire.views.revision())
+    await sidebar._read_snapshot(app.coordination_access.service.views.revision())
     await pilot.pause()
     return sidebar
 
@@ -88,8 +89,7 @@ async def main():
             await refresh(app, pilot)
             assert comms.views.viewer_snapshot(str(root)).thread_unread["worker"] == 0
 
-            channel_mode = await app.open_comms_session(owner_mode=owner_mode, project_path=root,
-                                                        me="worker", target=channel_target("#team"))
+            channel_mode = await channel_target("#team").open(NavigationContext(app, owner_mode, root, "worker"))
             await pilot.pause()
             reply(source, "New reply while another tab is selected")
             sidebar = await refresh(app, pilot)

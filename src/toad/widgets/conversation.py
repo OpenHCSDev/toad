@@ -2010,7 +2010,7 @@ class Conversation(ConversationSessionBinding):
         from toad.screens.main import MainScreen
         from toad.target_commands import ThreadContext
         nav = self.query_ancestor(MainScreen).navigation_context
-        comms = self.app.coordination_wire
+        comms = self.app.coordination_access.service
         from agent_comms.errors import UnregisteredThreadError
         try:
             comms.registry.require(nav.actor)

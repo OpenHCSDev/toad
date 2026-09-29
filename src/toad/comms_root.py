@@ -7,12 +7,76 @@ constructing a service. Write admission remains separately guarded at its sink.
 from __future__ import annotations
 
 import os
+from dataclasses import dataclass
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager, nullcontext
 from pathlib import Path
-from typing import TypeVar
+from typing import TYPE_CHECKING, TypeVar
+
+if TYPE_CHECKING:
+    from agent_comms.active_route import CommsRoute
+    from agent_comms.comms import Comms
 
 T = TypeVar("T")
+
+
+@dataclass(frozen=True)
+class RouteSelection:
+    route: CommsRoute
+    root: Path
+    implicit: bool
+
+    @classmethod
+    def capture(cls, source: str | Path | None = None) -> RouteSelection:
+        from agent_comms.active_route import resolve_comms_route
+
+        route = resolve_comms_route()
+        selection = cls(route, route.observe_root(), implicit_root())
+        if source is not None and Path(source).expanduser().resolve() != selection.root:
+            raise ValueError("Comms route changed; reopen this view")
+        return selection
+
+
+@dataclass(frozen=True)
+class ObservedCommsService:
+    selection: RouteSelection
+    service: Comms
+
+
+class CoordinationAccess:
+    """A validated core route owns cached access and guarded UI write admission."""
+
+    def __init__(self, changed: Callable[[], None]) -> None:
+        self.observation: ObservedCommsService | None = None
+        self.changed = changed
+
+    @property
+    def observed_service(self) -> Comms | None:
+        return self.observation.service if self.observation else None
+
+    @property
+    def service(self) -> Comms:
+        return self.require(RouteSelection.capture())
+
+    def require(self, selected: RouteSelection) -> Comms:
+        from agent_comms.comms import wire
+
+        if RouteSelection.capture() != selected:
+            raise ValueError("Comms route changed before the operation")
+        observed = self.observation
+        if observed is not None and observed.selection == selected:
+            return observed.service
+        service = wire()
+        if service.root.resolve() != selected.root or RouteSelection.capture() != selected:
+            raise ValueError("Comms route changed while opening the service")
+        self.observation = ObservedCommsService(selected, service)
+        self.changed()
+        return service
+
+    def write(self, selected: RouteSelection, operation: Callable[..., T], *args: object, **kwargs: object) -> T:
+        # This method runs in the same worker as the actual sink. The existing
+        # core route lock is held through the operation; no second lock/store.
+        return run_selected_write(selected.root, operation, *args, implicit=selected.implicit, **kwargs)
 
 
 def current_root() -> Path:
