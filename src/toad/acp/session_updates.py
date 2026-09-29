@@ -113,9 +113,9 @@ class SessionNotificationOwner(ClientRequestOwner):
 
     @jsonrpc.expose('session/update', ordered=True)
     async def receive(self, sessionId: str, update: object, _meta: dict | None = None):
-        authority = ClientSessionRequest(self.agent, sessionId)
+        authority = ClientSessionRequest(self.agent, self.agent.session_id)
         async with self.lock:
-            if authority.retired:
+            if authority.retired or not authority.binding.admits_notification(sessionId):
                 return
             validation = await self.agent.controller.validate(sessionId, update, _meta)
             if authority.retired:
@@ -128,7 +128,8 @@ class SessionNotificationOwner(ClientRequestOwner):
     def accept(self, session_id, update, metadata=None):
         """Official SDK boundary for synchronous in-process protocol consumers."""
         from pydantic import ValidationError
-        if ClientSessionRequest(self.agent, session_id).retired:
+        authority = ClientSessionRequest(self.agent, self.agent.session_id)
+        if authority.retired or not authority.binding.admits_notification(session_id):
             return
         try:
             accepted = validate_session_update(session_id, update, metadata)

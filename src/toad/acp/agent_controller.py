@@ -17,6 +17,9 @@ class SessionBinding:
     """Actual ACP binding identity, preserved only until session replacement."""
     session_id: str | None
 
+    def admits_notification(self, session_id):
+        return self.session_id is None or self.session_id == session_id
+
 
 class SurfaceBinding(DeclaredFamily, affix="SurfaceBinding"):
     target = None
