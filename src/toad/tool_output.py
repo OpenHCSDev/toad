@@ -15,6 +15,7 @@ from typing import TYPE_CHECKING
 from weakref import ref
 
 from agent_comms.declared_family import DeclaredFamily
+from agent_comms.lifecycle import LifecycleState
 from rich.text import Text
 from textual.content import Content
 from textual.css.query import NoMatches
@@ -289,6 +290,38 @@ def decode_content(item: protocol.ToolCallContent, read_path: str | None = None)
             raise ValueError("Unsupported ACP tool output")
 
 
+class ToolHydration(DeclaredFamily, LifecycleState, affix="ToolHydration"):
+    pending = False
+    schedulable = False
+
+    @classmethod
+    def successors(cls) -> tuple[type[ToolHydration], ...]:
+        return (IdleToolHydration, WaitingToolHydration)
+
+    def after_attempt(self) -> ToolHydration:
+        return self
+
+
+class IdleToolHydration(ToolHydration):
+    pass
+
+
+class WaitingToolHydration(ToolHydration):
+    pending = True
+    schedulable = True
+
+    @classmethod
+    def successors(cls) -> tuple[type[ToolHydration], ...]:
+        return (IdleToolHydration, ScheduledToolHydration)
+
+
+class ScheduledToolHydration(ToolHydration):
+    pending = True
+
+    def after_attempt(self) -> ToolHydration:
+        return WaitingToolHydration()
+
+
 class ToolOutput:
     """Mounted output, lazy hydration and cancellation belong to one lifetime."""
 
@@ -298,8 +331,7 @@ class ToolOutput:
         self.suppress_auto_expansion = False
         self._mounted: tuple[ToolOutputPart, ...] | None = None
         self._lock = asyncio.Lock()
-        self._awaiting_visible = False
-        self._hydration_scheduled = False
+        self.hydration: ToolHydration = IdleToolHydration()
         self._warming: tuple[ToolOutputPart, ...] = ()
         self._theme: tuple[bool, bool] | None = None
         self._generation = 0
@@ -338,17 +370,17 @@ class ToolOutput:
             body = view.query_one_optional("#tool-content", Widget)
             if body is None:
                 return
-            if view.expanded and view._auto_expanded and not view._visible_in_window() and not body.children:
+            if view.expanded and not view.content_presentable and not body.children:
                 self.prepare_hidden()
-                if not self._awaiting_visible:
-                    self._awaiting_visible = True
+                if not self.hydration.pending:
+                    self.hydration = WaitingToolHydration()
                     try:
                         view.query_ancestor(Window).pending_tool_content.add(view)
                     except NoMatches:
                         pass
                     view.call_after_refresh(self.hydrate)
                 return
-            self._awaiting_visible = False
+            self.hydration = IdleToolHydration()
             try:
                 view.query_ancestor(Window).pending_tool_content.discard(view)
             except NoMatches:
@@ -403,28 +435,28 @@ class ToolOutput:
         self._warming, self._theme = (), None
 
     def theme_changed(self) -> None:
-        if self.view.is_mounted and self.view.is_attached and self._awaiting_visible and self.view.expanded:
+        if self.hydration.pending and self.view.content_open:
             self.prepare_hidden()
 
     def hydrate_if_visible(self) -> None:
-        if (self._awaiting_visible and self.view.expanded and not self._hydration_scheduled
-                and self.view._visible_in_window()):
-            self._hydration_scheduled = True
+        if self.hydration.schedulable and self.view.content_in_view:
+            self.hydration = ScheduledToolHydration()
             self.view.run_worker(self.hydrate, group="visible-content")
 
     async def hydrate(self) -> None:
+        phase = self.hydration
         try:
-            if self.view.is_attached and self._awaiting_visible and self.view.expanded and self.view._visible_in_window():
+            if phase.pending and self.view.content_in_view:
                 await self.sync()
         finally:
-            self._hydration_scheduled = False
+            if self.hydration is phase:
+                self.hydration = phase.after_attempt()
 
     def retire(self) -> None:
         from toad.widgets.conversation import Window
 
         self.cancel_preparation()
-        self._awaiting_visible = False
-        self._hydration_scheduled = False
+        self.hydration = IdleToolHydration()
         try:
             self.view.query_ancestor(Window).pending_tool_content.discard(self.view)
         except NoMatches:

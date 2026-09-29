@@ -188,6 +188,20 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
         region, _clip = geometry
         return region.overlaps(window.content_region)
 
+    @property
+    def content_open(self) -> bool:
+        return self.is_mounted and self.is_attached and self.expanded
+
+    @property
+    def content_in_view(self) -> bool:
+        return self.content_open and self._visible_in_window()
+
+    @property
+    def content_presentable(self) -> bool:
+        if not self.expanded:
+            return False
+        return not self._auto_expanded or self._visible_in_window()
+
     def check_expand(self) -> None:
         """Check if the tool call should auto-expand."""
         if self._manual_expansion is not None:

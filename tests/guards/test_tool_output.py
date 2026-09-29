@@ -40,6 +40,11 @@ def test_root_content_mechanisms_are_deleted():
         assert "__registry__ =" not in source and "Enum" not in source
         assert "Fallback" not in source
         for node in ast.walk(ast.parse(source)):
+            if isinstance(node, ast.BoolOp):
+                assert len(node.values) < 4, (relative, node.lineno)
+            if isinstance(node, ast.Attribute):
+                assert node.attr not in {"_awaiting_visible", "_hydration_scheduled", "_presentable",
+                                         "_prepared_patch", "_requested_theme"}, (relative, node.lineno)
             if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute) and node.func.attr == "run_worker":
                 # Coroutines are created by Textual after worker entry. A
                 # cancelled queued worker must own only an async callable.

@@ -75,7 +75,7 @@ class Observer:
             markdown = preview.query_one(MarkdownContent)
             assert markdown.source == tool_call["content"][0]["content"]["text"]
             async with asyncio.timeout(10):
-                while "per-call confirmation" not in frame:
+                while "ACCEPTANCE_ECHO" not in frame:
                     await self.pilot.pause(.05)
                     frame = "\n".join(strip.text for strip in self.app.screen._compositor.render_strips())
             self.app.save_screenshot(str(self.root / "toad-permission.svg"))
