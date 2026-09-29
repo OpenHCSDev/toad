@@ -31,9 +31,25 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     await until(pilot, lambda: not comms.registry.require("beta").executing)
     print("REAL_AGENT_CHANNEL_MESSAGE_AND_NATIVE_RECEIPT", flush=True)
     await until(pilot, lambda: view.turns.managed_id is None)
+    print("SOURCE_DIAGNOSTIC", [(type(e).__name__, repr(e.routing), e.text_size) for e in (await agent.get_transcript_page()).events], flush=True)
     view.window.anchor()
     view.transcript.require_checkpoint()
-    await until(pilot, lambda: not view.transcript.dirty)
+    try:
+        await until(pilot, lambda: not view.transcript.dirty)
+    except TimeoutError:
+        from toad.widgets.committed_presentation import protected_blocks
+        print("CHECKPOINT_DIAGNOSTIC", {
+            "agent_ready": view.agent_ready,
+            "managed": view.turns.managed_id,
+            "owner_busy": view.turns.owner.busy,
+            "worker": str(view.transcript.worker),
+            "cursor": str(view.cursor_block),
+            "follow": view.window.follows_tail,
+            "protected": [str(item) for item in protected_blocks(view, view.contents.children)],
+            "children": [str(item) for item in view.contents.children],
+            "histories": [(h.checkpoint_available, str(h.state)) for h in view.contents.query(TranscriptHistory)],
+        }, flush=True)
+        raise
     await until(pilot, lambda: bool(view.contents.query(TranscriptHistory)))
     assert sequence in incoming_sequences((await agent.get_transcript_page()).events)
     assert not view.contents.query(AssignedIncomingMessage)
@@ -66,6 +82,11 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     assert not view.contents.query(AssignedIncomingMessage)
     assert app._exception is None
     print("REAL_ACP_RECONNECT_RETAINED_SOURCE_AND_ONE_WIRE_IDENTITY", flush=True)
+
+
+def reply(request, number):
+    content = '{"decision":"FULL"}' if number == 1 else f"NATIVE_RESPONSE_{number}"
+    return {"role": "assistant", "content": content}, "stop"
 
 
 if __name__ == "__main__":

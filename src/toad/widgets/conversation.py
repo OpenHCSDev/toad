@@ -2176,7 +2176,14 @@ class Conversation(ConversationSessionBinding):
             self._require_check_prune = False
             low_mark = self.app.settings.ui.prune_low_mark
             high_mark = low_mark + self.app.settings.ui.prune_excess
-            await self.prune_window(low_mark, high_mark)
+            if self.agent is not None and self.agent.transcript_ready:
+                # Height pressure is not source evidence. Dropping the source
+                # pager or an uncovered wire claim lets a later observation
+                # recreate the same record as a new tail arrival.
+                if self.contents.virtual_size.height > high_mark:
+                    self.transcript.require_checkpoint()
+            else:
+                await self.prune_window(low_mark, high_mark)
 
     async def prune_window(self, low_mark: int, high_mark: int) -> None:
         """Remove older children to keep within a certain range.
