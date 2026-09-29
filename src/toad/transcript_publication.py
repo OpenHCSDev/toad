@@ -47,10 +47,13 @@ class SnapshotPublication(TranscriptPublication):
         self.scroll_revision = window.scroll_revision
 
     async def publish(self) -> None:
-        from toad.widgets.transcript_fragments import prepare_transcript_fragments
+        from toad.render_tasks import TranscriptRenderTask
+        from toad.work_preparation import RenderPreparation
         from toad.widgets.transcript_history import TranscriptHistory
         from toad.widgets.session_details import SessionDetails
-        fragments = await prepare_transcript_fragments(self.page.events, self.owner.view.app.render_processes)
+        fragments = await self.owner.view.app.preparation.submit(
+            RenderPreparation(TranscriptRenderTask(self.page.events))
+        )
         if not self.current() or self.agent is None:
             return
         view = self.owner.view
@@ -62,6 +65,7 @@ class SnapshotPublication(TranscriptPublication):
                 self.window.anchor()
         with view.app.batch_update():
             await self.contents.mount(history)
+            await history.admit_retained_pages()
         if not self.current():
             if history.is_attached:
                 await history.remove()

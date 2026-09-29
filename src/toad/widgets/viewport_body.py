@@ -41,6 +41,10 @@ class ViewportBody:
     def matches_retained(self, identity) -> bool:
         return False
 
+    @property
+    def retained_key(self):
+        return ref(self)
+
     def park_body(self, shelf: Widget) -> bool:
         return False
 
@@ -201,48 +205,113 @@ class DocumentViewport:
 
     def register(self, owner: ViewportBody) -> None:
         self.owners.add(owner)
-        self._warm[ref(owner)] = None
+        key = ref(owner)
+        self._warm[key] = key
         self.request()
 
     def discard(self, owner: ViewportBody) -> None:
         self.owners.discard(owner)
         self._warm.pop(ref(owner), None)
+        key = owner.retained_key
+        retained = self._warm.get(key)
+        if retained is not None and retained() is owner:
+            self._warm.pop(key)
 
     def claim_retained(self, identity):
-        for key in tuple(self._warm):
-            owner = key()
-            if owner is not None and owner.parent is self._shelf and owner.matches_retained(identity):
-                self._warm.pop(key)
-                self.reuse_hits += 1
-                return owner
+        retained = self._warm.get(identity)
+        owner = retained() if retained is not None else None
+        parked = (owner is not None and (owner.parent is self._shelf
+                  or owner.parent is not None and owner.parent.parent is self._shelf))
+        if parked and owner.matches_retained(identity):
+            self._warm.pop(identity)
+            self.reuse_hits += 1
+            return owner
         return None
+
+    def claim_retained_page(self, page, view):
+        """Transfer a complete admitted page through the same warm-body cache."""
+        from dataclasses import replace
+        from toad.transcript_preparation import CommittedInterval
+
+        if page.start == page.stop:
+            return None
+        interval = CommittedInterval(page.page.before, page.page.after)
+        first = replace(view.fragment_presentation_identity(
+            interval, page.fragments[page.start]), position=page.start)
+        retained = self._warm.get(first)
+        body = retained() if retained is not None else None
+        parked = body.parent if body is not None else None
+        if (parked is None or type(parked) is not type(page) or parked.parent is not self._shelf
+                or parked.start != page.start or parked.stop != page.stop
+                or parked.page != page.page or parked.fragments != page.fragments
+                or parked.visible_categories != page.visible_categories
+                or len(parked.children) != page.stop - page.start):
+            return None
+        for index, child in enumerate(parked.children, page.start):
+            identity = replace(view.fragment_presentation_identity(
+                interval, page.fragments[index]), position=index)
+            key = self._warm.get(identity)
+            if key is None or key() is not child or not child.matches_retained(identity):
+                return None
+        for child in parked.children:
+            self._warm.pop(child.retained_key)
+            key = ref(child)
+            self._warm[key] = key
+            self.reuse_hits += 1
+        return parked
+
+    def release_retained_page(self, page) -> None:
+        """Return an unadmitted page's bodies to their native lookup keys."""
+        if page.parent is not self._shelf:
+            return
+        for child in page.children:
+            retained = self._warm.pop(ref(child), None)
+            if retained is not None:
+                self._warm[child.retained_key] = retained
 
     async def _trim_warm(self) -> None:
         def source_bytes():
-            return sum(owner.retained_source_bytes for key in self._warm
+            return sum(owner.retained_source_bytes for key in self._warm.values()
                        if (owner := key()) is not None)
         def widget_count():
-            return sum(1 + sum(1 for _ in owner.walk_children()) for key in self._warm
+            return sum(1 + sum(1 for _ in owner.walk_children()) for key in self._warm.values()
                        if (owner := key()) is not None)
         while (source_bytes() > self.window.app.preparation.max_bytes or
                widget_count() > self.budget.widget_limit(self.window.size.height)):
-            key, _ = self._warm.popitem(last=False)
-            owner = key()
-            if owner is not None and owner.parent is self._shelf:
+            _, retained = self._warm.popitem(last=False)
+            owner = retained()
+            parent = owner.parent if owner is not None else None
+            if parent is not None and (parent is self._shelf or parent.parent is self._shelf):
                 self.body_evictions += 1
                 await owner.remove()
+                if parent is not self._shelf and not parent.children:
+                    await parent.remove()
 
     async def park_source(self) -> None:
         """Move only admitted warm bodies before the source's pager is removed."""
         await self.suspend_source()
-        for history in tuple(self.window.histories):
+        histories = tuple(self.window.histories)
+        for history in histories:
             await history.retire_source()
         await self._trim_warm()
         await self._shelf.acquire(self.window)
-        for key in tuple(self._warm):
-            owner = key()
-            if owner is not None and owner.parent is not self._shelf:
-                owner.park_body(self._shelf)
+        for history in histories:
+            for page in history.pages:
+                children = tuple(page.children)
+                if (children and len(children) == page.stop - page.start
+                        and all(child.retained_key is not None and child.body_ready
+                                and ref(child) in self._warm for child in children)):
+                    page.reparent(self._shelf)
+                    for child in children:
+                        retained = self._warm.pop(ref(child))
+                        self._warm[child.retained_key] = retained
+        for key, retained in tuple(self._warm.items()):
+            owner = retained()
+            if (owner is not None and owner.parent is not self._shelf
+                    and (owner.parent is None or owner.parent.parent is not self._shelf)
+                    and owner.park_body(self._shelf)):
+                self._warm.pop(key)
+                self._warm[owner.retained_key] = retained
 
     def request(self, *_args) -> None:
         if self._suspended or not self.window.is_attached or self.window._closing:
@@ -335,10 +404,10 @@ class DocumentViewport:
                 for owner in owners:
                     if owner in visible:
                         key = ref(owner)
-                        self._warm[key] = None
+                        self._warm[key] = key
                         self._warm.move_to_end(key)
                 await self._trim_warm()
-                warm = {key() for key in self._warm} if active else set()
+                warm = {key() for key in self._warm.values()} if active else set()
                 retained = protected | warm | visible.keys()
                 # Reuse the same body admission and worker. Restore only the
                 # neighboring destination bodies, not every skipped record.
