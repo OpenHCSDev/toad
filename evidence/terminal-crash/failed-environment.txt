@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-terminal-crash-receipt-sol-20260928/.artifacts/check_terminal.py", line 17, in <module>
+    assert len(files)==1,files
+           ^^^^^^^^^^^^^
+AssertionError: []
