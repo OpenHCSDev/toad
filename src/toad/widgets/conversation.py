@@ -1163,27 +1163,9 @@ class Conversation(ConversationSessionBinding):
             )
 
     async def _show_assigned_inbound(self, notifications) -> None:
-        """Project assigned wire inputs into the chat that owns this agent."""
-        if not self.contents.is_attached:
-            return
-        from toad.widgets.incoming_message import AssignedIncomingMessage, IncomingMessage
-        from toad.widgets.message_divider import MessageClock
+        from toad.transcript_publication import AssignedInboundPublication
 
-        shown = {block.sequence: block for block in self.contents.query(IncomingMessage)
-                 if block.sequence is not None}
-        for receipt in reversed(notifications):
-            message = receipt.message
-            if message is None or message.seq <= 0:
-                continue
-            block = shown.get(message.seq)
-            if block is None:
-                block = AssignedIncomingMessage(
-                    message.sender, message.body, message.target,
-                    sequence=message.seq, clock=MessageClock.recorded(message.timestamp),
-                )
-                await self.post(block)
-                shown[message.seq] = block
-            await block.show_handling(receipt.state, receipt.detail)
+        await self.transcript.publish(AssignedInboundPublication, notifications)
 
     @on(messages.SessionUpdate)
     def preserve_observed_activity(self, event: messages.SessionUpdate) -> None:
@@ -1731,6 +1713,9 @@ class Conversation(ConversationSessionBinding):
     async def on_transcript_history_covered(self, message) -> None:
         message.stop()
         await self.transcript.covered(message)
+        observed = self.query_one_optional(ObservedThreadActivity)
+        if observed is not None and observed.presentation is not None:
+            await self._show_assigned_inbound(observed.presentation.notifications)
 
     @on(acp_messages.Thinking)
     async def on_acp_agent_thinking(self, message: acp_messages.Thinking):
@@ -2190,7 +2175,14 @@ class Conversation(ConversationSessionBinding):
             self._require_check_prune = False
             low_mark = self.app.settings.ui.prune_low_mark
             high_mark = low_mark + self.app.settings.ui.prune_excess
-            await self.prune_window(low_mark, high_mark)
+            if self.agent is not None and self.agent.transcript_ready:
+                # Height pressure is not source evidence. Dropping the source
+                # pager or an uncovered wire claim lets a later observation
+                # recreate the same record as a new tail arrival.
+                if self.contents.virtual_size.height > high_mark:
+                    self.transcript.require_checkpoint()
+            else:
+                await self.prune_window(low_mark, high_mark)
 
     async def prune_window(self, low_mark: int, high_mark: int) -> None:
         """Remove older children to keep within a certain range.
