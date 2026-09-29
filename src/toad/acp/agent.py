@@ -241,9 +241,7 @@ class Agent(AgentBase):
             line: Text to be logged.
 
         """
-        task = asyncio.create_task(self._log(line))
-        self.process.responses.add(task)
-        task.add_done_callback(self.process.responses.discard)
+        self.controller.start_operation(self._log(line))
 
     async def _log(self, line: str) -> None:
         """Write text to the agent log file.
@@ -466,8 +464,9 @@ class Agent(AgentBase):
                 "sessionUpdate": "available_commands_update",
                 "availableCommands": available_commands,
             }:
-                self.post_message(messages.AvailableCommandsUpdate(available_commands))
+                self.controller.publish_commands(available_commands)
             case {"sessionUpdate": "current_mode_update", "currentModeId": mode_id}:
+                self.controller.current_mode = mode_id
                 self.post_message(messages.ModeUpdate(mode_id))
             case {
                 "sessionUpdate": "config_option_update",
@@ -721,8 +720,15 @@ class Agent(AgentBase):
         self.session_ready_event.set()
         self.post_message(AgentReady(reconnected=self._reconnecting))
 
-    async def send_prompt(
-        self, prompt: str, *, delivery: str = "queue", defer_display: bool = False
+    async def send_prompt(self, prompt: str, *, delivery="queue", defer_display=False):
+        return await self.controller.operate(self._send_prompt(
+            prompt, delivery=delivery, defer_display=defer_display,
+            request_session_id=self.session_id, request_queue_scope=self.queue_attachment.scope,
+            project=self.project_root_path))
+
+    async def _send_prompt(
+        self, prompt: str, *, delivery: str, defer_display: bool,
+        request_session_id, request_queue_scope, project
     ) -> str | None:
         """Send a prompt to the agent.
 
@@ -738,7 +744,7 @@ class Agent(AgentBase):
             self._deferred_submissions.add(submission)
         try:
             prompt_content_blocks = await asyncio.to_thread(
-                build_prompt, self.project_root_path, prompt
+                build_prompt, project, prompt
             )
             if any((block.get("type") == "image" for block in prompt_content_blocks)):
                 supported = (
@@ -754,8 +760,9 @@ class Agent(AgentBase):
                         "This agent owner does not support images yet; refresh it while idle."
                     )
             request_type = PromptRequest.decode(delivery + "_prompt")
-            return await self.acp_session_prompt(
-                prompt_content_blocks, request_type(prompt, defer_display)
+            return await self._acp_session_prompt(
+                prompt_content_blocks, request_type(prompt, defer_display),
+                request_session_id, request_queue_scope
             )
         finally:
             self.presentation.prompt_in_flight -= 1
@@ -924,7 +931,7 @@ class Agent(AgentBase):
                 )
                 for mode in available_modes
             }
-            self.post_message(messages.SetModes(current_mode, modes_update))
+            self.controller.publish_modes(current_mode, modes_update)
         self._publish_models(response)
 
     async def acp_load_session(self) -> None:
@@ -966,7 +973,7 @@ class Agent(AgentBase):
                 )
                 for mode in available_modes
             }
-            self.post_message(messages.SetModes(current_mode, modes_update))
+            self.controller.publish_modes(current_mode, modes_update)
         self._publish_models(response)
 
     def _publish_models(self, response: Mapping[str, object]) -> None:
@@ -1010,7 +1017,7 @@ class Agent(AgentBase):
                     if current not in models:
                         continue
                     self._model_config_id = str(config["id"])
-                    self.post_message(messages.SetModels(current, models))
+                    self.controller.publish_models(current, models)
                 elif config.get("id") == "thinking_level":
                     levels = [
                         str(option["value"])
@@ -1023,7 +1030,7 @@ class Agent(AgentBase):
                         self.presentation.thinking_levels = levels
                         self.post_message(messages.SetThinkingLevels(current, levels))
             if self._model_config_id is None:
-                self.post_message(messages.SetModels("", {}))
+                self.controller.publish_models("", {})
             return
 
     @property
@@ -1124,8 +1131,13 @@ class Agent(AgentBase):
             messages.CommsUpdated(self.coordination, self, self.session_id)
         )
 
-    async def acp_session_prompt(
-        self, prompt: list[protocol.ContentBlock], command: CommsRequest | None = None
+    async def acp_session_prompt(self, prompt, command=None):
+        return await self.controller.operate(self._acp_session_prompt(
+            prompt, command, self.session_id, self.queue_attachment.scope))
+
+    async def _acp_session_prompt(
+        self, prompt: list[protocol.ContentBlock], command: CommsRequest | None,
+        request_session_id, request_queue_scope
     ) -> str | None:
         """Send the prompt to the agent.
 
@@ -1133,8 +1145,6 @@ class Agent(AgentBase):
             The stop reason.
 
         """
-        request_session_id = self.session_id
-        request_queue_scope = self.queue_attachment.scope
         with self.request():
             session_prompt = api.session_prompt(
                 prompt,

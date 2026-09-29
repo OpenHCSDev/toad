@@ -58,7 +58,7 @@ async def main():
             link = ThreadLink("peer")
             await source.conversation.contents.mount(link)
             await pilot.pause()
-            order = tuple(app._open_tab_order)
+            order = tuple(app.tab_order.names)
             pending_index = app._pending_thread_index
             with (
                 patch.object(app, "add_mode", wraps=app.add_mode) as added,
@@ -77,7 +77,7 @@ async def main():
                     "Existing mounted identity needed route discovery"
                 )
                 assert app._pending_thread_index == pending_index
-                assert tuple(app._open_tab_order) == order
+                assert tuple(app.tab_order.names) == order
                 assert destination.conversation.prompt.text == "Keep this draft"
                 assert not app._pending_thread_modes
                 # Repeated/self links reuse the very same mounted screen too.
@@ -112,7 +112,7 @@ async def main():
             await chat.contents.mount(chat_link)
             chat_link.scroll_visible(animate=False)
             await pilot.pause()
-            order = tuple(app._open_tab_order)
+            order = tuple(app.tab_order.names)
             with patch.object(app, "add_mode", wraps=app.add_mode) as added:
                 assert await pilot.click(chat_link)
                 await pilot.pause()
@@ -121,7 +121,7 @@ async def main():
                         await pilot.pause(0.05)
                 assert app.screen is destination
                 assert added.call_count == 0
-                assert tuple(app._open_tab_order) == order
+                assert tuple(app.tab_order.names) == order
                 assert destination.conversation.prompt.text == "Keep this draft"
             assert app._exception is None
         await asyncio.get_running_loop().shutdown_default_executor()

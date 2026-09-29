@@ -64,6 +64,11 @@ class AgentController:
         self.app = None
         self.coordination = None
         self.session_id = None
+        self.models = {}
+        self.current_model = ""
+        self.modes = {}
+        self.current_mode = None
+        self.commands = []
 
     def attach(self, target):
         previous = self.surface.target
@@ -75,9 +80,7 @@ class AgentController:
         self.surface = AttachedSurfaceBinding(target)
         self.agent.permissions.present(target)
         if self.agent.ready:
-            task = asyncio.create_task(self.restore(self.surface))
-            self.agent.process.responses.add(task)
-            task.add_done_callback(self.agent.process.responses.discard)
+            self.start_operation(self.restore(self.surface))
 
     def detach(self, target):
         if self.surface.owns(target):
@@ -89,7 +92,7 @@ class AgentController:
 
     async def restore(self, binding):
         from agent_comms.acp_extension import TranscriptSnapshotUpdate
-        from .messages import CommsUpdated
+        from .messages import CommsUpdated, SetModels, SetModes, SetThinkingLevels, AvailableCommandsUpdate
         agent = self.agent
         if agent.coordination is not None:
             page = await agent.get_transcript_page()
@@ -98,6 +101,11 @@ class AgentController:
             agent.post_message(CommsUpdated(agent.coordination, agent, agent.session_id))
             agent.post_message(CommsUpdated(TranscriptSnapshotUpdate(page), agent, agent.session_id))
         if self.surface is binding:
+            agent.post_message(SetModels(self.current_model, self.models))
+            if self.current_mode is not None:
+                agent.post_message(SetModes(self.current_mode, self.modes))
+            agent.post_message(SetThinkingLevels(agent.presentation.current_thinking_level or "off", agent.presentation.thinking_levels))
+            agent.post_message(AvailableCommandsUpdate(self.commands))
             agent._post_queue_view()
             agent._post_private_cursor()
 
@@ -109,3 +117,27 @@ class AgentController:
         agent._invalidate_attachment_views()
         agent._active_turn_id = None
         agent.post_message(McpClientStopped(agent))
+
+    def publish_models(self, current, models):
+        from .messages import SetModels
+        self.current_model, self.models = current, models
+        self.agent.post_message(SetModels(current, models))
+
+    def publish_modes(self, current, modes):
+        from .messages import SetModes
+        self.current_mode, self.modes = current, modes
+        self.agent.post_message(SetModes(current, modes))
+
+    def publish_commands(self, commands):
+        from .messages import AvailableCommandsUpdate
+        self.commands = commands
+        self.agent.post_message(AvailableCommandsUpdate(commands))
+
+    def start_operation(self, operation):
+        task = asyncio.create_task(operation)
+        self.agent.process.responses.add(task)
+        task.add_done_callback(self.agent.process.responses.discard)
+        return task
+
+    async def operate(self, operation):
+        return await asyncio.shield(self.start_operation(operation))

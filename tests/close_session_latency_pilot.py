@@ -45,7 +45,7 @@ async def main():
                 with patch.object(app, "remove_mode", measured_remove):
                     await app.close_session_mode(mode)
                 observed.append(("closed", (time.perf_counter() - start) * 1000))
-                assert app.current_mode == base and mode not in app._open_tab_order
+                assert app.current_mode == base and mode not in app.tab_order.names
                 results.append({"round": index, "stages_ms": [(name, round(ms, 2)) for name, ms in observed]})
             print(json.dumps({"boundary": "headless close handler; not terminal pixels", "samples": results}, indent=2))
         await asyncio.get_running_loop().shutdown_default_executor()
