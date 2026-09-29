@@ -109,7 +109,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     print("SAVED_CHANNEL_AGENT_RETURN_NO_REPLAY", flush=True)
     await unopened_participant(app, pilot, comms, channel, entered, release, hold_next, requests)
     await clicked_reader_editor_return(app, pilot, first)
-    await fork_and_first_input(app, pilot, comms, first, requests)
+    await fork_and_first_input(app, pilot, comms, first, entered, release, hold_next, requests)
     await channel_reply_feedback(app, pilot, comms, channel, first, entered, release,
                                  hold_next, requests)
 
@@ -238,7 +238,7 @@ async def clicked_reader_editor_return(app, pilot, first):
     print("CLICKED_ABA_SAVED_READER_DOCUMENT_HISTORY_DRAFT_UNDO_PRESERVED", flush=True)
 
 
-async def fork_and_first_input(app, pilot, comms, first, requests):
+async def fork_and_first_input(app, pilot, comms, first, entered, release, hold_next, requests):
     parent_path = Path(comms.registry.require("beta").session_file)
     original = parent_path.read_bytes()
     before = len(requests)
@@ -255,8 +255,20 @@ async def fork_and_first_input(app, pilot, comms, first, requests):
     entry = app.screen.query_one(Input)
     assert await pilot.click(entry)
     entry.value = "journey-child JOURNEY_FORK_INPUT"
+    entered.clear()
+    release.clear()
+    hold_next.set()
     await pilot.press("enter")
     await until(pilot, lambda: "journey-child" in comms.registry.all_threads())
+    # This physical opening now races normal startup instead of following the
+    # first answer. The real provider is held; no owner/PID state is fabricated.
+    child_view = await click_thread(app, pilot, "journey-child", "#any")
+    await until(pilot, entered.is_set)
+    assert comms.registry.require("journey-child").executing
+    assert f"NATIVE_RESPONSE_{before + 1}" not in conversation_paint(app.screen)
+    assert parent_path.read_bytes() == original
+    print("FORK_IMMEDIATE_PHYSICAL_OPEN_REAL_ATTACHMENT_BEFORE_FIRST_NATIVE_ANSWER", flush=True)
+    release.set()
     await until(pilot, lambda: len(requests) == before + 1)
     await until(pilot, lambda: comms.registry.require("journey-child").executing is False)
     child = comms.registry.require("journey-child")
@@ -270,7 +282,7 @@ async def fork_and_first_input(app, pilot, comms, first, requests):
     assert sum(row["type"] == "compaction" for row in rows) == 0
     assert len(requests) == before + 1, "Fork input replayed"
     print("PHYSICAL_FORK_DIALOG_NORMAL_NATIVE_FIRST_ANSWER_PARENT_PRESERVED", flush=True)
-    await click_thread(app, pilot, "journey-child", "#any")
+    assert app.selected_session is child_view
     await until(pilot, lambda: f"NATIVE_RESPONSE_{before + 1}" in conversation_paint(app.screen))
     assert len(requests) == before + 1, "Opening the fork replayed its first input"
     assert parent_path.read_bytes() == original
