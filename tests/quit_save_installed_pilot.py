@@ -20,6 +20,22 @@ def paint(app):
     return '\n'.join(strip.text for strip in app.screen._compositor.render_strips())
 
 
+def capture_failure(app, editor, path, label):
+    evidence=Path(os.environ['QUIT_SAVE_EVIDENCE']);evidence.mkdir(parents=True,exist_ok=True)
+    (evidence/f'{label}-paint.txt').write_text(paint(app))
+    (evidence/f'{label}.svg').write_text(app.export_screenshot())
+    state={'running':app.is_running,'exit':app._exit,'dirty':app.settings.changed,
+           'width':app.settings.ui.column_width,'editor_value':editor.value,
+           'bound_value':editor.bound.value,'focus':type(app.focused).__name__,
+           'screen':type(app.screen).__name__,'path':str(path),'path_directory':path.is_dir(),
+           'save_path':str(app.settings.file_path()),'exception':repr(app._exception),
+           'save_locked':app.settings.save_lock.locked(),
+           'notifications':[{'title':n.title,'message':n.message,'severity':n.severity}
+                            for n in app._notifications]}
+    (evidence/f'{label}-state.json').write_text(json.dumps(state,indent=2,default=str))
+    print(label,json.dumps(state,default=str),flush=True)
+
+
 async def main():
     with TemporaryDirectory(prefix='quit-save-', dir=os.environ['TMPDIR']) as directory:
         root=Path(directory)
@@ -53,7 +69,12 @@ async def main():
             assert await pilot.click(editor)
             original=path.read_bytes();path.unlink();path.mkdir()
             await pilot.press('home','shift+end','1','3','7','ctrl+q')
-            await until(pilot,lambda:'Failed to write' in paint(app))
+            try:
+                await until(pilot,lambda:'Failed to write' in paint(app))
+            except BaseException:
+                capture_failure(app,editor,path,'quit-failure-before-teardown')
+                raise
+            capture_failure(app,editor,path,'quit-failure-visible')
             assert app.is_running and not app._exit
             assert app.settings.changed and app.settings.ui.column_width==137
             assert path.is_dir() and not list(config.glob('.toad.json_tmp_*'))
