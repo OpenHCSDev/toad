@@ -89,7 +89,7 @@ class OwnedProcess:
 
 
 class TransferredGroup(OwnedProcess):
-    """The profiler wrapper transfers its exact st launch identity, not ancestry."""
+    """Custody of one verified launch identity through installed ObservedProcess."""
 
     def stop(self, sig=signal.SIGTERM):
         self.send_signal(sig)
@@ -105,7 +105,7 @@ class TransferredGroup(OwnedProcess):
 
     def receipt(self):
         return {"pid": self.child.identity.pid, "start_ticks": self.child.identity.start_time,
-                "custody": "wrapper launch identity transferred to installed ObservedProcess"}
+                "custody": "verified launch identity transferred to installed ObservedProcess"}
 
 
 class ProcessOwner:
@@ -115,12 +115,14 @@ class ProcessOwner:
         self.children = []
         self.registration = registration
 
-    def start(self, argv, **kwargs):
+    def start(self, argv, *, before_start=None, **kwargs):
         from agent_comms.child_process import Platform
         text = kwargs.pop("text", False)
         with Platform.current().launch(tuple(argv), tuple(kwargs.pop("pass_fds", ()))) as launch:
             child = launch.spawn(**kwargs)
             try:
+                if before_start is not None:
+                    before_start(child.identity)
                 launch.release(child.identity)
                 launch.verify()
             except BaseException:
@@ -271,30 +273,67 @@ def cpu_snapshot(root_pid):
     return result
 
 
+def terminal_program(owner, identity, deadline, before_ready=None):
+    """Verify st's one launched program and its separate OS session identity."""
+    from agent_comms.child_process import ProcessIdentity
+    program = None
+    while time.monotonic() < deadline and identity.alive():
+        # st owns exactly one -e program. Read its direct launch relationship,
+        # not a census of descendants that could include durable comms owners.
+        child_ids = Path(f"/proc/{identity.pid}/task/{identity.pid}/children")
+        try:
+            children = [int(pid) for pid in child_ids.read_text().split()]
+        except FileNotFoundError:
+            break
+        if len(children) > 1:
+            raise RuntimeError("Terminal launch has ambiguous program custody")
+        if children:
+            try:
+                if program is None and os.getsid(children[0]) == children[0]:
+                    launched = ProcessIdentity.capture(children[0])
+                    program = owner.transfer(launched.pid, launched.start_time)
+                    if before_ready is not None:
+                        before_ready(launched)
+                # Verify the selected interpreter, rather than a command name.
+                if program is not None and program.child.identity.alive() and (
+                    Path(f"/proc/{program.child.identity.pid}/exe").resolve() == Path(sys.executable).resolve()
+                ):
+                    return program
+            except ProcessLookupError:
+                pass
+        time.sleep(.05)
+    raise RuntimeError("Installed terminal program did not acquire a verified runtime identity")
+
+
+def publish_terminal_lease(output, identity):
+    path = output / "profile-terminal.json"
+    pending = path.with_suffix(".pending")
+    pending.write_text(json.dumps(identity) + "\n")
+    pending.replace(path)
+
+
 def profile_launch(command):
     """Launch plain st, then exec py-spy as an ancestor of the verified UI PID."""
+    from agent_comms.registration import Registration
     output = Path(os.environ["TOAD_VIDEO_OUTPUT"])
-    owner = ProcessOwner()
+    owner = ProcessOwner(Registration(Path(os.environ["AGENT_COMMS_ROOT"]) / "registry.json"))
+    def interrupted(signum, frame):
+        raise InterruptedError(f"Profiler launch interrupted by signal {signum}")
+    for sig in (signal.SIGTERM, signal.SIGHUP):
+        signal.signal(sig, interrupted)
+    def transfer_terminal(identity):
+        # Publish custody while Core's exec gate is closed, before st can run.
+        publish_terminal_lease(output, {"pid": identity.pid, "start_ticks": identity.start_time})
+    def transfer_program(identity):
+        lease = json.loads((output / "profile-terminal.json").read_text())
+        lease["program"] = {"pid": identity.pid, "start_ticks": identity.start_time}
+        publish_terminal_lease(output, lease)
     try:
-        terminal = owner.start(["st", "-e", *command], env=os.environ.copy())
+        terminal = owner.start(["st", "-e", *command], env=os.environ.copy(),
+                               before_start=transfer_terminal)
         deadline = time.monotonic() + 10
-        ui_pid = None
-        while time.monotonic() < deadline and terminal.process.poll() is None:
-            for pid, (parent, _, _, _) in process_table().items():
-                if parent != terminal.process.pid:
-                    continue
-                try:
-                    executable = Path(f"/proc/{pid}/exe").resolve()
-                    if "python" in executable.name:
-                        ui_pid = pid
-                        break
-                except OSError:
-                    continue
-            if ui_pid is not None:
-                break
-            time.sleep(.05)
-        if ui_pid is None:
-            raise RuntimeError("Installed UI interpreter did not appear for profiling")
+        program = terminal_program(owner, terminal.child.identity, deadline, transfer_program)
+        ui_pid = program.child.identity.pid
         argv = [shutil.which("py-spy"), "record", "--pid", str(ui_pid), "--format", "chrometrace",
                 "--subprocesses", "--nonblocking", "--full-filenames",
                 "--rate", os.environ["TOAD_VIDEO_PROFILE_RATE"],
@@ -302,7 +341,7 @@ def profile_launch(command):
                 "--output", str(output / "cpu-profile.json")]
         (output / "profile-launch.json").write_text(json.dumps({
             "terminal_pid": terminal.process.pid, "terminal_start_ticks": terminal.child.identity.start_time,
-            "ui_pid": ui_pid, "profiler_command": argv,
+            "ui_pid": ui_pid, "ui_start_ticks": program.child.identity.start_time, "profiler_command": argv,
             "profiler_exec_monotonic": time.monotonic()}) + "\n")
         # exec preserves the ancestor identity that Linux ptrace admission requires.
         os.execv(argv[0], argv)
@@ -475,6 +514,8 @@ def record(args):
     registration = Registration(private_root / "registry.json")
     owner = ProcessOwner(registration)
     capture = terminal = None
+    transferred_terminal = None
+    transferred_program = None
     terminal_pid = None
     window = None
     try:
@@ -521,7 +562,9 @@ def record(args):
                     raise RuntimeError("Profiled installed launcher failed; inspect profiler/terminal logs")
                 receipt["profiler"]["launch"] = json.loads(launch.read_text())
                 terminal_pid = receipt["profiler"]["launch"]["terminal_pid"]
-                owner.transfer(terminal_pid, receipt["profiler"]["launch"]["terminal_start_ticks"])
+                transferred_terminal = owner.transfer(terminal_pid, receipt["profiler"]["launch"]["terminal_start_ticks"])
+                transferred_program = owner.transfer(receipt["profiler"]["launch"]["ui_pid"],
+                                                     receipt["profiler"]["launch"]["ui_start_ticks"])
                 while time.monotonic() < deadline and terminal.process.poll() is None:
                     if "Sampling process" in (output / "profiler.log").read_text():
                         break
@@ -533,6 +576,9 @@ def record(args):
                 terminal = owner.start(["st", "-e", *command], env=env,
                     stderr=stack.enter_context((output / "terminal.log").open("w")))
                 terminal_pid = terminal.process.pid
+                transferred_program = terminal_program(owner, terminal.child.identity, time.monotonic() + 10)
+            receipt["ui_identity"] = {"pid": transferred_program.child.identity.pid,
+                                      "start_ticks": transferred_program.child.identity.start_time}
             env["TOAD_VIDEO_TERMINAL"] = str(terminal_pid)
             window = owner.run(["xdotool", "search", "--sync", "--pid", str(terminal_pid)], env,
                                stdout=subprocess.PIPE, timeout=10, text=True).stdout.splitlines()[0]
@@ -567,7 +613,8 @@ def record(args):
             screenshot("before.png")
             receipt["terminal_processes"] = {str(identity.pid): {"start_ticks": identity.start_time,
                 "command": Path(f"/proc/{identity.pid}/cmdline").read_bytes().replace(b"\0", b" ").decode(errors="replace")}
-                for identity in terminal.members() if Path(f"/proc/{identity.pid}/cmdline").exists()}
+                for group in (transferred_terminal or terminal, transferred_program)
+                for identity in group.members() if Path(f"/proc/{identity.pid}/cmdline").exists()}
             if args.actions:
                 script = args.actions.read_text()
                 (output / "actions.xdo").write_text(script)
@@ -582,7 +629,7 @@ def record(args):
                 time.sleep(min(args.tail_seconds, remaining()))
             else:
                 time.sleep(max(0, remaining() - 1))
-            if terminal.process.poll() is not None:
+            if terminal.process.poll() is not None or not transferred_program.child.identity.alive():
                 raise RuntimeError(f"Installed terminal exited during recording: {terminal.process.returncode}")
             screenshot("after.png")
             receipt["duration_seconds"] = time.monotonic() - started
@@ -594,7 +641,6 @@ def record(args):
             receipt["runtime_after"] = selection.receipt(owner, env)
             receipt["runtime_unchanged"] = receipt["runtime_before"] == receipt["runtime_after"]
             # Quit through the installed application; persistent owners are excluded.
-            terminal.members()
             owner.run(["xdotool", "key", "--window", window, "ctrl+q"], env, timeout=2)
             try:
                 terminal.process.wait(timeout=3)
@@ -606,6 +652,9 @@ def record(args):
                     terminal.process.wait(timeout=5)
                 except subprocess.TimeoutExpired:
                     pass
+            transferred_program.stop()
+            if transferred_terminal is not None:
+                transferred_terminal.stop()
             terminal.stop()
             xvfb.stop()
             info = owner.run(["ffprobe", "-v", "error", "-show_streams", "-show_format", "-of", "json",
@@ -634,7 +683,7 @@ def record(args):
                                            for label, start, seconds in intervals]
             names = ["terminal.mp4", "before.png", "after.png"]
             if args.profile:
-                names.extend(["cpu-profile.json", "profile-review.json", "profile-launch.json", "profiler.log"])
+                names.extend(["cpu-profile.json", "profile-review.json", "profile-launch.json", "profile-terminal.json", "profiler.log"])
             for label, start, seconds in intervals:
                 print(f"Preparing review {label or 'main'} at {start:.3f}s for {seconds:.3f}s", flush=True)
                 artifacts(output, args, env, owner, start=start, seconds=seconds, label=label)
@@ -648,6 +697,18 @@ def record(args):
         receipt["error"] = f"{type(error).__name__}: {error}"
         raise
     finally:
+        transfer = output / "profile-terminal.json"
+        if args.profile and transfer.exists():
+            try:
+                identity = json.loads(transfer.read_text())
+                if transferred_terminal is None:
+                    transferred_terminal = owner.transfer(identity["pid"], identity["start_ticks"])
+                if transferred_program is None and "program" in identity:
+                    program = identity["program"]
+                    transferred_program = owner.transfer(program["pid"], program["start_ticks"])
+            except (OSError, ValueError, KeyError) as error:
+                receipt["terminal_transfer_error"] = str(error)
+                receipt["completed"] = False
         if capture is not None:
             try:
                 capture.stop(signal.SIGINT)

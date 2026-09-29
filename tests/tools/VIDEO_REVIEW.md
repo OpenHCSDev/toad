@@ -168,10 +168,16 @@ offset, so correlate key effects against the saved video.
 
 Cleanup uses installed `agent_comms.child_process` **ParentedProcess** custody,
 **Platform** process groups and identity-bound pidfd signaling. It never adopts
-process descendants or their new sessions. The real **Registration** snapshot
+arbitrary descendants or detached service sessions. The real **Registration** snapshot
 also excludes durable comms owners by their declared process identities. The
-profiler wrapper transfers its exact st launch identity to **ObservedProcess**;
-it cannot claim a parent's reap result. Background service lifetimes remain
+terminal's one direct `-e` program starts a separate session: its exact launch
+identity is transferred to **ObservedProcess** and its executable is verified
+against the selected interpreter. Failed verification still cleans that launch.
+The profiler wrapper publishes its st identity before Core releases the exec
+gate, then atomically publishes the program identity in `profile-terminal.json`.
+The parent recovers both on timeout or profiler failure. Transferred custody
+cannot claim a parent's reap result. `ui_identity` and `terminal_processes` include
+the verified UI session and its group. Background service lifetimes remain
 with their existing owners. No command-name heuristics or copied PID registry
 establish stop authority.
 
@@ -182,6 +188,16 @@ capture custody identities and cleanup errors; inspect those identities before
 cleaning an interrupted run. The fixture separately checks that its original
 owners survive capture, remain attachable and process a new controlled input,
 then uses its own lifecycle teardown. No production owner is restarted.
+
+The owned acceptance probes in `evidence/installed-tui-video` extend the existing
+native fixture; their multiprocessing entry guards are required. The separate
+terminal custody probe covers abrupt terminal/profiler exit and failed runtime
+verification. Its sleeping OS programs establish cleanup only; real UI acceptance
+comes from the private installed journey. After a host/server interruption, inspect
+saved identities and input dispositions before any new action. A resume check must
+attach the original surviving owners and send a uniquely new loopback input only
+after excluding UNKNOWN or already attempted input. Preserve its receipt separately
+from the interrupted run; never infer continuity or replay an uncertain attempt.
 
 ## Assess the visible behavior
 
