@@ -18,6 +18,7 @@ import sys
 from typing import Generic, Mapping, TypeVar, cast
 from uuid import UUID, uuid4
 
+from agent_comms.field_codec import FieldCodec
 from zmqruntime import ZMQClient, ZMQConfig, ZMQServer
 from zmqruntime.config import TransportMode
 from zmqruntime.execution.client import ExecutionClient
@@ -39,7 +40,6 @@ from toad.render_protocol import (
     RequestCommand,
     ShutdownRender,
     SubmitRender,
-    RenderCodec,
 )
 from toad.render_service import RenderService, RenderServiceConfig
 from toad.render_tasks import RenderTask
@@ -102,13 +102,13 @@ class RendererServer(ZMQServer):
         super().process_messages()
 
     def handle_control_message(self, message: Mapping[str, object]) -> dict[str, object]:
-        command = RenderCodec.decode(RenderCommand, message)
+        command = FieldCodec.decode(RenderCommand, message)
         if isinstance(command, ShutdownRender):
             command.execute(self.service)
             self.request_shutdown()
             # ZMQRuntime owns this lifecycle acknowledgement's wire identity.
             return {"type": ResponseType.SHUTDOWN_ACK.value}
-        return RenderCodec.encode(replace(command.execute(self.service), renderer_pid=os.getpid()))
+        return FieldCodec.encode(replace(command.execute(self.service), renderer_pid=os.getpid()))
 
     def handle_data_message(self, message: object) -> None:
         raise TypeError("Renderer requests use the declared control boundary")
@@ -116,10 +116,10 @@ class RendererServer(ZMQServer):
 
 class RendererTransport(ExecutionClient[RenderCommand, None]):
     def serialize_task(self, task: RenderCommand, config: None = None) -> dict[str, object]:
-        return RenderCodec.encode(task)
+        return FieldCodec.encode(task)
 
     def send_data(self, data: RenderCommand) -> RenderReply:
-        return RenderCodec.decode(
+        return FieldCodec.decode(
             RenderReply,
             self._send_control_request(self.serialize_task(data), timeout_ms=5000),
         )

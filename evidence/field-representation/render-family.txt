@@ -1,0 +1,23 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_________________________ pilot: render_families_pilot _________________________
+Pilot failed: ExitedOutcome(code=1)
+Traceback (most recent call last):
+  File [35m"/home/ts/wt/toad-field-representation-owner-20260929/tests/render_families_pilot.py"[0m, line [35m30[0m, in [35m<module>[0m
+    from toad.render_zmq import RenderSubmission
+  File [35m"/home/ts/wt/toad-field-representation-owner-20260929/.venv/lib/python3.14/site-packages/toad/render_zmq.py"[0m, line [35m22[0m, in [35m<module>[0m
+    from zmqruntime import ZMQClient, ZMQConfig, ZMQServer
+  File [35m"/home/ts/wt/toad-field-representation-owner-20260929/.venv/lib/python3.14/site-packages/zmqruntime/__init__.py"[0m, line [35m283[0m, in [35m__getattr__[0m
+    value = getattr([31mimportlib.import_module[0m[1;31m(module_name)[0m, name)
+                    [31m~~~~~~~~~~~~~~~~~~~~~~~[0m[1;31m^^^^^^^^^^^^^[0m
+  File [35m"/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/importlib/__init__.py"[0m, line [35m88[0m, in [35mimport_module[0m
+    return [31m_bootstrap._gcd_import[0m[1;31m(name[level:], package, level)[0m
+           [31m~~~~~~~~~~~~~~~~~~~~~~[0m[1;31m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  File [35m"/home/ts/wt/toad-field-representation-owner-20260929/.venv/lib/python3.14/site-packages/zmqruntime/client.py"[0m, line [35m21[0m, in [35m<module>[0m
+    import zmq
+[1;35mModuleNotFoundError[0m: [35mNo module named 'zmq'[0m
+
+Logs: /tmp/pytest-of-ts/pytest-567/render_families_pilot0
+=========================== short test summary info ============================
+FAILED tests/render_families_pilot.py::render_families_pilot - Failed: Pilot ...
+1 failed in 0.72s
