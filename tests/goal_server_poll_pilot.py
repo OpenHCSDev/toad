@@ -1,3 +1,4 @@
+from agent_comms.goal_actions import GoalAction, ActiveGoalAction, PausedGoalAction, ClearGoalAction
 from runtime_fixture import coordination_update
 """Mounted goal UI polls the actual owner without notification or local mutations."""
 
@@ -192,9 +193,9 @@ async def main():
                 await until(lambda: conversation.goal_display.snapshot.text == "Concurrent owner edit")
                 assert editor.editor.text == "UNSAVED DRAFT"
                 await pilot.press("escape")
-                await conversation.change_goal("paused")
+                await conversation.goal_controls.change(PausedGoalAction)
                 assert conversation.goal_display.snapshot.state.declared_name == "paused" and not pulse.active
-                await conversation.change_goal("active")
+                await conversation.goal_controls.change(ActiveGoalAction)
                 assert conversation.goal_display.snapshot.state.declared_name == "active"
                 # Actual server error marks the retained snapshot unavailable, never standby.
                 read = comms.goals.goal_snapshot
@@ -218,7 +219,7 @@ async def main():
                 assert not bar.query_one("#goal-collapse", GoalControl).disabled
                 comms.goals.goal_snapshot = read
                 await until(lambda: conversation.goal_display.can_control)
-                await conversation.change_goal("clear")
+                await conversation.goal_controls.change(ClearGoalAction)
                 assert conversation.goal_display.snapshot is None and not bar.display
                 # A stalled read is bounded; mutations have no automatic timeout/replay.
                 request = agent._owner_request

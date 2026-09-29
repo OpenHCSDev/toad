@@ -1,3 +1,4 @@
+from agent_comms.goal_actions import GoalAction, ActiveGoalAction, PausedGoalAction, ClearGoalAction
 from runtime_fixture import coordination_update
 """A real owner save updates the mounted goal preview, independently of progress."""
 from agent_comms.acp_extension import GoalChangedUpdate
@@ -148,14 +149,14 @@ async def main():
                 agent.get_goal_snapshot = delayed_snapshot
                 first = asyncio.create_task(conversation.goal_observation.refresh())
                 await asyncio.wait_for(started.wait(), 2)
-                pause = asyncio.create_task(conversation.change_goal("paused"))
+                pause = asyncio.create_task(conversation.goal_controls.change(PausedGoalAction))
                 async with asyncio.timeout(2):
                     while (
                         comms.registry.require(session).goal.state.declared_name
                         != "paused"
                     ):
                         await asyncio.sleep(0.01)
-                clear = asyncio.create_task(conversation.change_goal("clear"))
+                clear = asyncio.create_task(conversation.goal_controls.change(ClearGoalAction))
                 async with asyncio.timeout(2):
                     while comms.registry.require(session).goal is not None:
                         await asyncio.sleep(0.01)
