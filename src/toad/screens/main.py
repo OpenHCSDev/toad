@@ -243,11 +243,6 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
                 initial_prompt=self._initial_prompt,
             )
 
-    def make_blank_conversation(self) -> Conversation:
-        """Construct the shared blank editor without binding it to one host."""
-        with self._context():
-            return Conversation(self.project_path)
-
     def _start_content_hydration(self) -> None:
         if not self._content_loaded and not self._content_loading and self.is_attached:
             self._content_loading = True

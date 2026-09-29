@@ -91,3 +91,26 @@ native-reused-main306.log and native-reused-main306-v2.log are failures, not gre
 native acceptance. This is own142 integration work; merged livee46 is unchanged.
 Inactive editor checks now inspect the actual retained logical owner's typed
 Document/EditHistory, and return additionally requires the original editor widget.
+
+## Ordered116 owner handoff5881976193 /144 integration
+
+Merged144 main4147eb1 consumed. Constructor creates GoalSession; source retirement
+closes it before new admission. Existing one widget timer resolves the new owner.
+Installed goal declaration/activation/stale-binding guards pass2/2 after migrating
+actual logical-view test callers. Blank operational-constructor rebind preserves
+original editor; rapid cold-tail paint still passes after this integration.
+
+All four ordered obligations remain: (1) fix actual operational swap/same Agent,
+queue, permission and editor without replay/restart, publish immediately; (2)
+rapid/recent non-tail reuse with bounded memory and real rebuild observations;
+(3) matched final-pin loaded+blank4/16/32/64 cropped paint/input/scroll/frame tails
+with ordinary GC and stable30–40ms/spike-frequency target; (4) final installed
+canonical suite, classify49 predecessor failures as regression versus retired
+structure without skipping or extending deadlines. No unrelated audit merge hold.
+
+Current viewport source retirement quiesces its existing worker and releases
+layout/paint waits before rebind; this has not passed the actual ACP swap yet.
+The native path alternately exposes detached cached Conversation geometry or
+message-processing timeout. No assertion/deadline is weakened. CLI thread search
+found no Noether handle; direct existing143 thread request5882012192 scopes only
+viewport_recent_tabs_pilot adaptation in own tree, no production overlap.

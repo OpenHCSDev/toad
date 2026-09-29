@@ -2171,7 +2171,9 @@ class Conversation(containers.Vertical):
 
     async def release_native_session(self) -> None:
         """Invalidate all old publications before this rich surface changes source."""
+        self.goal_controls.close()
         self.output.retire()
+        await self.window.document_viewport.suspend_source()
         await asyncio.gather(self.transcript.close(), self.goal_observation.close(),
                              self.delivery_observation.close())
         self.agent = None
@@ -2198,6 +2200,7 @@ class Conversation(containers.Vertical):
         self.prompt.slash_commands = CommandCatalog(
             self.agent_slash_commands, self.command_target_context()).commands
         self.window.anchor()
+        self.window.document_viewport.resume_source()
 
     def _history_scroll_changed(self, _position: float) -> None:
         self.call_after_refresh(self.transcript.retry)
