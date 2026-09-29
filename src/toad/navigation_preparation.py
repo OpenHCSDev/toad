@@ -153,11 +153,7 @@ class ThreadOpening:
 
         navigator = self.navigator
         try:
-            try:
-                prepared = await navigator.app.navigation_reader.read(self.request)
-            except Exception as error:
-                navigator.app.notify(str(error), title="Thread unavailable", severity="error")
-                return navigator.app.selected_mode
+            prepared = await navigator.app.navigation_reader.read(self.request)
             if prepared is None:
                 return navigator.app.selected_mode
             if not self.origin.current(navigator, self.owner_mode):
@@ -165,6 +161,9 @@ class ThreadOpening:
             if not root_is_current(self.request.root):
                 return navigator.app.selected_mode
             return await prepared.open(self)
+        except Exception as error:
+            navigator.app.notify(str(error), title="Thread unavailable", severity="error")
+            return navigator.app.selected_mode
         finally:
             navigator.finished(self)
 

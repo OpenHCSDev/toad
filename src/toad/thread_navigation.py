@@ -101,15 +101,12 @@ class ThreadNavigator:
 
         def get_screen() -> MainScreen:
             screen = MainScreen(prepared.project, agent, agent_session_id=prepared.thread.name,
-                                agent_session_title=prepared.thread.name)
+                                agent_session_title=prepared.thread.name).data_bind(
+                                    column=type(app).column,
+                                    column_width=type(app).column_width,
+                                    scrollbar=type(app).scrollbar)
             screen.initial_coordination_root = prepared.root
             screen._comms_thread = prepared.thread.name
-            screen.set_reactive(MainScreen.column, app.column)
-            screen.set_reactive(MainScreen.column_width, app.column_width)
-            screen.set_reactive(MainScreen.scrollbar, app.scrollbar)
-            screen.watch(app, "column", lambda value: setattr(screen, "column", value), init=False)
-            screen.watch(app, "column_width", lambda value: setattr(screen, "column_width", value), init=False)
-            screen.watch(app, "scrollbar", lambda value: setattr(screen, "scrollbar", value), init=False)
             return screen
 
         details = await app.new_session_screen(get_screen, title=prepared.thread.name)
