@@ -1,0 +1,38 @@
+{
+  "root": "src/toad/",
+  "base_revision": "8b5f410e55aba5f9f8a75463751adf908734eb9d",
+  "head_revision": "3405cf3eaf11e6032edb7b3f5e29e3f15bff3680",
+  "paths": [
+    "src/toad/about.py",
+    "src/toad/acp/transcript_reader.py",
+    "src/toad/app.py",
+    "src/toad/comms_root.py",
+    "src/toad/conversation_kind.py",
+    "src/toad/conversation_markdown.py",
+    "src/toad/navigation_preparation.py",
+    "src/toad/navigation_target.py",
+    "src/toad/screens/comms.py",
+    "src/toad/screens/file_preview.py",
+    "src/toad/screens/main.py",
+    "src/toad/session_admission.py",
+    "src/toad/session_navigation.py",
+    "src/toad/thread_actions.py",
+    "src/toad/thread_navigation.py",
+    "src/toad/widgets/comms_chat.py",
+    "src/toad/widgets/comms_sidebar.py",
+    "src/toad/widgets/comms_transfer.py",
+    "src/toad/widgets/conversation.py",
+    "src/toad/widgets/input_delivery.py",
+    "src/toad/widgets/session_sort.py",
+    "src/toad/widgets/side_bar.py",
+    "src/toad/widgets/thread_comms.py",
+    "src/toad/workspace_chrome.py"
+  ],
+  "increases": {},
+  "decreases": {
+    "GodClassExcess:src/toad/app.py::ToadApp": -741,
+    "LongBooleanChain": -2,
+    "BooleanChainTerms:src/toad/app.py": -13,
+    "ForeignAbsenceProbe:src/toad/app.py": -10
+  }
+}
