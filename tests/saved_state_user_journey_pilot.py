@@ -276,9 +276,17 @@ async def clicked_reader_editor_return(app, pilot, first):
     for source in (first, second):
         await click_tab(app, pilot, source.id)
         checkpoints.append(await ReaderCheckpoint.capture(source, app, pilot))
+    raw_reads = []
     for checkpoint in (*checkpoints, checkpoints[0]):
+        agent = checkpoint.source.presentation.sources.agent
+        async with agent.controller.transcripts.bind(agent.coordination.wire_root) as reader:
+            before = reader.transcripts.page_reads
         await click_tab(app, pilot, checkpoint.source.id)
         await checkpoint.verify(app, pilot)
+        async with agent.controller.transcripts.bind(agent.coordination.wire_root) as reader:
+            raw_reads.append(reader.transcripts.page_reads - before)
+    assert raw_reads == [0, 0, 0], ("Already-loaded source repeated raw page reads", raw_reads)
+    print("CLICKED_ABA_CANONICAL_RAW_PAGE_READ_COUNTS", raw_reads, flush=True)
     for checkpoint in checkpoints:
         await click_tab(app, pilot, checkpoint.source.id)
         editor = checkpoint.source.conversation.prompt.prompt_text_area
