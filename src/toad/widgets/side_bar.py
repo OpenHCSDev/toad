@@ -776,11 +776,11 @@ class SideBar(SidebarDecorations, containers.Vertical):
                 ancestor.display for ancestor in self.ancestors if isinstance(ancestor, Widget)):
             self._presented_layout = None
             return False
-        resolved, shared_gutters = app.workspace_chrome.sidebar_geometry(self.screen)
+        resolved = app.workspace_chrome.sidebar_geometry(self.screen)
         geometry = resolved.bars[self.id]
         width = geometry.width
         key = (placement, geometry, resolved.left_gutter, resolved.right_gutter,
-               shared_gutters["left"], shared_gutters["right"], self.collapsed)
+               self.collapsed)
         if key == self._presented_layout:
             return False
         self._presented_layout = key
@@ -794,10 +794,8 @@ class SideBar(SidebarDecorations, containers.Vertical):
         self.styles.dock = placement.side if not shared else "none"
         self.styles.position = "absolute"
         self.styles.overlay = "screen"
-        if shared or placement.side == "left":
-            offset_x = geometry.x if shared else geometry.x - shared_gutters["left"]
-        else:
-            offset_x = geometry.x + width - self.screen.size.width + shared_gutters["right"]
+        offset_x = (geometry.x if shared or placement.side == "left" else
+                    geometry.x + width - self.screen.size.width)
         self.offset = (offset_x, 0)
         if handle := self.query_one_optional(SidebarResizeHandle):
             handle.display = not self.collapsed
@@ -834,13 +832,11 @@ class SideBar(SidebarDecorations, containers.Vertical):
             local_dock = width if not shared else 0
             content.styles.margin = (
                 0,
-                shared_gutters["right"] if shared else (
-                    resolved.right_gutter - shared_gutters["right"]
-                    - (local_dock if placement.side == "right" else 0)),
+                0 if shared else resolved.right_gutter
+                - (local_dock if placement.side == "right" else 0),
                 0,
-                shared_gutters["left"] if shared else (
-                    resolved.left_gutter - shared_gutters["left"]
-                    - (local_dock if placement.side == "left" else 0)),
+                0 if shared else resolved.left_gutter
+                - (local_dock if placement.side == "left" else 0),
             )
         return True
 
