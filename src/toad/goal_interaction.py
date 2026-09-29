@@ -152,7 +152,7 @@ class GoalSession:
 
     async def activate(self, action: type[GoalInteraction]) -> None:
         view = self.view
-        if view is None or not view.is_attached:
+        if view is None or not self.owns(view.agent):
             return
         if not action.enabled(view.goal_display):
             view.flash("Goal state unavailable; waiting for the owner", style="error")
@@ -169,6 +169,8 @@ class GoalSession:
         if view is None or not view.is_attached:
             raise ValueError("The goal presentation changed; reopen its controls.")
         agent = view.agent
+        if not self.owns(agent):
+            raise ValueError("The goal presentation changed; reopen its controls.")
         if agent is None:
             view.flash("Persistent goals require an agent-comms session", style="error")
             return
