@@ -1,0 +1,21 @@
+{"restored_selection": "/home/ts/wt/toad-workspace-shipping-20260928/.artifacts/native-current/sidebar-retirement-hxf_x5i0/project/folder/deep/item-38.txt", "tree_scroll": 2.0, "panel_scroll": 3, "retired_widgets_collected": 6}
+{"restored_selection": "/home/ts/wt/toad-workspace-shipping-20260928/.artifacts/native-current/sidebar-retirement-hxf_x5i0/project/folder/deep/item-38.txt", "tree_scroll": 11, "panel_scroll": 3, "retired_widgets_collected": 6}
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-workspace-shipping-20260928/tests/sidebar_retirement_pilot.py", line 196, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-workspace-shipping-20260928/tests/sidebar_retirement_pilot.py", line 151, in main
+    await exercise(screen, pilot, project)
+  File "/home/ts/wt/toad-workspace-shipping-20260928/tests/sidebar_retirement_pilot.py", line 120, in exercise
+    assert tree.scroll_y == tree_scroll, (tree.scroll_y, tree_scroll, tree.size, tree.virtual_size)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: (2.0, 11, Size(width=39, height=40), Size(width=26, height=51))
