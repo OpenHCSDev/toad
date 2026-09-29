@@ -1,0 +1,50 @@
+{
+  "src/toad/app.py": {
+    "base": {
+      "InterfaceProvider": 0,
+      "ToadApp": 269
+    },
+    "current": {
+      "InterfaceProvider": 0,
+      "ToadApp": 267
+    }
+  },
+  "src/toad/screens/session_view.py": {
+    "base": {
+      "SessionView": 0
+    },
+    "current": {
+      "SessionView": 0
+    }
+  },
+  "src/toad/screens/workspace.py": {
+    "base": {
+      "ViewStyleRevision": 0,
+      "WorkspaceScreen": 0
+    },
+    "current": {
+      "ViewStyleRevision": 0,
+      "WorkspaceScreen": 0
+    }
+  },
+  "src/toad/workspace_chrome.py": {
+    "base": {
+      "WorkspaceHeader": 0,
+      "WorkspaceChrome": 0
+    },
+    "current": {
+      "WorkspaceHeader": 0,
+      "WorkspaceChrome": 0
+    }
+  },
+  "src/toad/workspace_sessions.py": {
+    "base": {
+      "WorkspaceSessions": 0,
+      "WorkspaceSessionShutdown": 0
+    },
+    "current": {
+      "WorkspaceSessions": 0,
+      "WorkspaceSessionShutdown": 0
+    }
+  }
+}
