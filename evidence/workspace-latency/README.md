@@ -21,3 +21,12 @@ Distinct169 physical native Alpha -> Beta -> stoppedDM -> Alpha test reproduced 
 Earlier coherent API/cursor/ancestry actual continuous test passed idle65->65 misses, provider3->3, admitted work[],pending0, rendered leaves13/17/13 with original render-cache identity and raw reads0/0/0; controlled native fork/firstsend/channelreply/author observation EXIT0. Updated final main pair is tested separately because169 revealed distinct first-read lifecycle defect.
 
 Latest exact audit: chain terms+0, foreign absence probes+0. Existing Conversation excess500 shrinks1268->1231; session binding remains below500. NRA/IDEN-1/IDEN-7/IMPL-10: lifecycle creates semantic filesystem identity before source reads; source revision still invalidates genuinely changed render input. Final latency4/16/32/64 target remains follow-up, not this checkpoint gate.
+
+## Final paired actual acceptance PASS
+
+Product8639a7d1 +corec2aebdb3 +Textual73909c04 +natived396: installed noneditable saved_state_user_journey_pilot.py completed EXIT0. Exact global idle misses65->65, provider requests3->3, admitted work[], pending0 after1.2s. ALL13/17/13 visible MarkdownBlock render-cache identities retained, canonical raw reads0/0/0. Slow/fast/reverse/physicalEnd croppedpaint/reader/draft/Document/undo/source custody pass, retained preparation bytes77699, idle pending0. Physical cold fork/immediateopen/firstanswer, channel working/responded/reply/nativeauthor observation all pass. Separate current-main169 stopped-DM continuous gate retains1/1 original paintedresponse and exits0. No product assertion removed or relaxed; idle duration strengthened. Checkpoint ready for parent exported-pair/live gate; default untouched. Final latency matrix/target remains unfinished.
+
+Exact own command from this tree:
+```sh
+AC_NATIVE_COPIED_PACKAGE=/home/ts/.local/share/agent-comms/native-current-d3967e8b6ee0cf28/node_modules/@earendil-works/pi-coding-agent TMPDIR=$PWD/.artifacts/native-tmp L0A_EVIDENCE=$PWD/evidence/workspace-latency/final-continuous /home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/bin/python tests/saved_state_user_journey_pilot.py
+```
