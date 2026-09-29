@@ -25,7 +25,7 @@ class SidebarObservation:
         self.sidebar = sidebar
         self.enabled = enabled
         self.service = None
-        self.worker = None
+        self.task = None
         self.lock = asyncio.Lock()
         self.identity = None
         self.route_stamp = None
@@ -33,8 +33,14 @@ class SidebarObservation:
 
     @property
     def pending(self) -> bool:
-        worker = self.worker
-        return self.lock.locked() or (worker is not None and not worker.is_finished)
+        task = self.task
+        return self.lock.locked() or (task is not None and not task.done())
+
+    async def close(self) -> None:
+        task = self.task
+        if task is not None:
+            task.cancel()
+            await asyncio.gather(task, return_exceptions=True)
 
     def mount(self) -> None:
         from toad.comms_root import current_root
@@ -213,7 +219,7 @@ class SidebarObservation:
             revision = self.service.views.revision()
             if (self.sidebar.display and self.read_identity(revision) == self.identity and route_stamp == self.route_stamp):
                 return
-            self.worker = self.sidebar.run_worker(partial(self.refresh_checked, revision, route_stamp))
+            self.task = asyncio.create_task(self.refresh_checked(revision, route_stamp))
         except Exception:
             self.sidebar.display = False
 

@@ -497,6 +497,9 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
         self.projection.mount()
         self.observation.mount()
 
+    async def on_unmount(self) -> None:
+        await self.observation.close()
+
     def sidebar_visibility_changed(self) -> None:
         self.projection.sync_spinner()
 
