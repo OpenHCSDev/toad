@@ -1,0 +1,64 @@
+PREPARED_REAL_NATIVE_SAVED_HISTORY_AND_CHANNEL 2
+INSTALLED_APP_RUN_TEST_ENTER
+INSTALLED_APP_RUN_TEST_YIELDED
+ATTACHED_AND_NAVIGABLE
+SAVED_HISTORY_STARTUP_ACTUAL_PAINT
+Traceback (most recent call last):
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py", line 488, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "/home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/toad/acp/agent.py", line 888, in get_transcript_page
+    page = await self.controller.transcripts.page(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        root, thread, before=before, after=after, through=through,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/toad/acp/transcript_reader.py", line 93, in page
+    async with self.bind(root) as reader:
+               ~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 214, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/toad/acp/transcript_reader.py", line 81, in bind
+    async with self._lock:
+               ^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py", line 14, in __aenter__
+    await self.acquire()
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py", line 110, in acquire
+    await fut
+asyncio.exceptions.CancelledError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-workspace-latency-sol-20260929/tests/saved_state_user_journey_pilot.py", line 487, in <module>
+    asyncio.run(native_fixture(
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^
+        app_type=InstalledApp, prepare_state=prepare_saved_state, acceptance=acceptance,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ))
+    ^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-workspace-latency-sol-20260929/tests/l0a_native_installed_pilot.py", line 282, in main
+    await acceptance(app, pilot, agent, comms, entered, release,
+                     hold_next, requests)
+  File "/home/ts/wt/toad-workspace-latency-sol-20260929/tests/saved_state_user_journey_pilot.py", line 99, in acceptance
+    await independent_source_publication(agent, comms)
+  File "/home/ts/wt/toad-workspace-latency-sol-20260929/tests/saved_state_user_journey_pilot.py", line 136, in independent_source_publication
+    page = await asyncio.wait_for(agent.get_transcript_page(), 3)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py", line 487, in wait_for
+    async with timeouts.timeout(timeout):
+               ~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/timeouts.py", line 114, in __aexit__
+    raise TimeoutError from exc_val
+TimeoutError
