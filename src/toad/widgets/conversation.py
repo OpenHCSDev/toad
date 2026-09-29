@@ -1214,7 +1214,7 @@ class Conversation(containers.Vertical):
                 "Connect a provider",
                 [(method["id"], method["name"]) for method in methods],
             ),
-            mode=self.screen.id,
+            mode="workspace",
         )
         if not method_id:
             self.prompt.focus()
@@ -1236,7 +1236,7 @@ class Conversation(containers.Vertical):
                         env=method.get("env") or {},
                         cwd=str(self.project_path),
                     ),
-                    mode=self.screen.id,
+                    mode="workspace",
                 )
                 if code != 0:
                     return
@@ -1292,7 +1292,7 @@ class Conversation(containers.Vertical):
                         f"Thinking level for {model.name}",
                         [(value, value.title()) for value in levels],
                     ),
-                    mode=self.screen.id,
+                    mode="workspace",
                 )
                 if (
                     level
@@ -2197,7 +2197,7 @@ class Conversation(containers.Vertical):
 
                 request.watch(self, retire_expired_diff)
                 result = await self.app.push_screen_wait(
-                    permissions_screen, mode=self.screen.id
+                    permissions_screen, mode="workspace"
                 )
                 self.post_message(messages.SessionUpdate(state="busy"))
                 self.app.terminal_alert(False)
@@ -2351,10 +2351,10 @@ class Conversation(containers.Vertical):
                     )
                 )
 
-            from toad.screens.session_view import SessionView
+            from toad.screens.workspace import WorkspaceScreen
 
             screen = self.screen
-            if isinstance(screen, SessionView):
+            if isinstance(screen, WorkspaceScreen):
                 screen.call_after_first_frame(self, start_agent)
             else:
                 self.call_after_refresh(start_agent)

@@ -100,11 +100,11 @@ class HistoryWindow(VerticalScroll):
     async def preserve_history(self, widget: Widget | None):
 
         """Serialize with history_lock; reflow retains the current reader position."""
-        from toad.screens.session_view import SessionView
+        from toad.screens.workspace import WorkspaceScreen
 
         screen = self.screen
         self.history_anchor = HistoryAnchor.capture(widget, self) if widget is not None else None
-        if self.history_anchor is not None and isinstance(screen, SessionView):
+        if self.history_anchor is not None and isinstance(screen, WorkspaceScreen):
             screen.viewport_presentation.anchors.add(self)
         try:
             yield
@@ -121,7 +121,7 @@ class HistoryWindow(VerticalScroll):
                 self.call_after_refresh(painted.set)
                 await painted.wait()
         finally:
-            if isinstance(screen, SessionView):
+            if isinstance(screen, WorkspaceScreen):
                 screen.viewport_presentation.anchors.discard(self)
             self.history_anchor = None
             self.history_layout_ready = self.history_paint_ready = None

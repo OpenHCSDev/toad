@@ -254,8 +254,8 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
         try:
             async with app.run_test(size=(160, 44)) as pilot:
                 await pilot.pause()
-                owner_mode = app.current_mode
-                view = app.screen.conversation
+                owner_mode = app.selected_mode
+                view = app.selected_session.conversation
                 await until(pilot, lambda: view.agent is not None)
                 agent = view.agent
                 await until(pilot, agent.session_ready_event.is_set)
@@ -459,7 +459,7 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
                     "Explicit Start did not launch owner"
                 )
                 before_restart = len(requests)
-                await app.switch_mode(owner_mode)
+                await app.select_session(owner_mode)
                 await agent.reconnect()
                 await until(pilot, agent.session_ready_event.is_set)
                 assert agent._connected_ok, "Stopped native owner failed to reopen"

@@ -21,6 +21,7 @@ import psutil
 from runtime_fixture import ToadApp
 from l0a_native_installed_pilot import main as native_fixture, until
 from toad.screens.main import MainScreen
+from toad.widgets.conversation import Conversation
 from toad.widgets.side_bar import SideBar
 
 
@@ -30,7 +31,7 @@ class InstalledApp(ToadApp):
 
 def conversation_paint(screen):
     """Only actually composited strips inside the message reader viewport."""
-    region = screen.conversation.window.scrollable_content_region
+    region = screen.query_one(Conversation).window.scrollable_content_region
     strips = screen._compositor.render_strips()
     return "\n".join(strip.crop(region.x, region.right).text
                      for strip in strips[region.y:region.bottom])
@@ -54,8 +55,9 @@ def resource_snapshot(owner, acp_process):
 
 
 async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):
-    owner_mode = app.current_mode
-    original = app.screen.conversation
+    workspace = app.screen
+    owner_mode = app.selected_mode
+    original = app.selected_session.conversation
     editor = original.prompt.prompt_text_area
     editor.insert("untouched native draft")
     editor.history.checkpoint()
@@ -84,12 +86,13 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
                 profiler.enable()
             for order in (tuple(reversed(modes)), tuple(modes), tuple(reversed(modes))):
                 for mode in order:
-                    if mode == app.current_mode:
+                    if mode == app.selected_mode:
                         continue
                     before = time.monotonic()
-                    await app.switch_mode(mode)
+                    await app.select_session(mode)
                     await pilot.pause(.02)
-                    assert app.current_mode == mode and app.screen.id == mode
+                    assert app.selected_mode == mode and app.selected_session.id == mode
+                    assert app.screen is workspace, "Tab change replaced native WorkspaceScreen"
                     durations.append((time.monotonic() - before) * 1000)
             if profiler is not None:
                 profiler.disable()
@@ -97,14 +100,14 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
                     stats = pstats.Stats(profiler, stream=stream).sort_stats("cumulative")
                     stats.print_stats(55)
                     stats.print_callers("viewer_snapshot")
-            await app.switch_mode(modes[-1])
+            await app.select_session(modes[-1])
             entered.clear()
             release.clear()
             hold_next.set()
             before_requests = len(requests)
             active_prompt = asyncio.create_task(agent.send_prompt(f"HELD_AT_{count}"))
             await until(pilot, entered.is_set)
-            assert app.current_mode != owner_mode
+            assert app.selected_mode != owner_mode
             assert agent._connected_ok
             assert agent.process.process is acp_process and acp_process.returncode is None
             assert agent.process.runner is acp_task and not acp_task.done()
@@ -114,14 +117,14 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
             await until(pilot, lambda: bool(agent.queue_attachment.projection.items))
             assert editor.document is document and editor.history is history
             assert editor.text == "untouched native draft with undo"
-            rich_views = {id(view) for stack in app._screen_stacks.values()
-                          for screen in stack for view in screen.query("Conversation")}
+            rich_views = {id(view) for screen in app.workspace_sessions.views.values()
+                          for view in screen.query("Conversation")}
             assert len(rich_views) == 1, "Inactive rich presentation escaped global admission"
             record = {
                 "global_rich_views": len(rich_views),
                 "tabs": count, "rss_bytes": psutil.Process().memory_info().rss,
                 "tasks": len(asyncio.all_tasks()), "tracked_objects": len(gc.get_objects()),
-                "constructed_panels": sum(len(app.get_screen_stack(mode)[0].query_one(
+                "constructed_panels": sum(len(app.workspace_sessions.require(mode).query_one(
                     "#thread-sidebar", SideBar).panels) for mode in modes),
                 "switch_median_ms": statistics.median(durations),
                 "switch_max_ms": max(durations),
@@ -137,9 +140,9 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
             await until(pilot, lambda: not comms.registry.require("beta").executing)
             await until(pilot, lambda: not agent.queue_attachment.projection.items)
             assert len(requests) == before_requests + 2, "Queued prompt was lost or replayed"
-            await app.switch_mode(owner_mode)
+            await app.select_session(owner_mode)
             await pilot.pause()
-            original = app.screen.conversation
+            original = app.selected_session.conversation
             editor = original.prompt.prompt_text_area
             assert original.agent is agent
             assert editor.document is document and editor.history is history

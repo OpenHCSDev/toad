@@ -686,10 +686,10 @@ class SideBar(SidebarDecorations, containers.Vertical):
 
     def schedule_hydration(self) -> None:
         if not self._panels_loaded and not self._panels_loading:
-            from toad.screens.session_view import SessionView
+            from toad.screens.workspace import WorkspaceScreen
 
             screen = self.screen
-            if isinstance(screen, SessionView):
+            if isinstance(screen, WorkspaceScreen):
                 screen.call_after_first_frame(self, self._start_hydration)
             else:
                 self.call_after_refresh(self._start_hydration)

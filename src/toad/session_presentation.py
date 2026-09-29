@@ -242,8 +242,7 @@ class BlankSessionSurface:
             return
         from toad.screens.main import MainScreen
 
-        screen = widget.screen
-        assert isinstance(screen, MainScreen)
+        screen = next(node for node in widget.ancestors if isinstance(node, MainScreen))
         if not self._can_transfer(screen, widget):
             # First operational use changes custody in place. Detach its source
             # before admitting another rich blank surface; keep no old UI tree.
@@ -269,7 +268,7 @@ class BlankSessionSurface:
 
     async def activate(self, screen: "MainScreen", owner: BlankSessionPresentation) -> None:
         async with self._lock:
-            if self.owner is owner and self.widget is not None and self.widget.screen is screen:
+            if self.owner is owner and self.widget is not None and screen in self.widget.ancestors:
                 return
             await self._release_owner()
             slot = screen.query_one(SessionSurfaceSlot)
@@ -314,7 +313,7 @@ class BlankSessionSurface:
     async def park_away_from(self, screen: Screen) -> None:
         async with self._lock:
             widget = self.widget
-            if widget is None or widget.screen is screen:
+            if widget is None or screen in widget.ancestors:
                 return
             await self._release_owner()
             if self.widget is None:
