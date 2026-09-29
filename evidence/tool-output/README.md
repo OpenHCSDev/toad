@@ -8,7 +8,7 @@ permission-installed acceptance uses the current main147 dependency pin.
 
 ## Implementation and deletion
 
-ToolCall AST469 →235; ToolCallDiff136 →135. ToolOutput owns mounted content,
+Final ToolCall AST469 →249; ToolCallDiff136 →118; ACPToolCallContent32 →15. ToolOutput owns mounted content,
 serialization, lazy hydration and background preparation custody. Declared
 ToolOutputPart cases own rendering, retained updates, preview and preparation/
 retirement. Membership derives from the existing core DeclaredFamily. Literal
@@ -148,3 +148,9 @@ The state scan captures4b43f4a before the final ready-result method moved to its
 existing preparation lifetime2ba9a27; it is not misreported as final exact-source
 or native equivalence proof. Final shared ratchet/census/installed acceptance
 apply to2ba9a27. No own-scope blocker; parent owns merge/install.
+
+State NRA snapshot:711 discovered production files, total50.203s,30 raw
+projections; no output/permission/diff owner projection emitted. CLI omission
+counts remain unavailable. Exact raw snapshot nra-state-final.json.gz retained;
+no final-source equivalence claim. Intermediate owned raw scans compressed,
+with no source/predecessor/live data removed.

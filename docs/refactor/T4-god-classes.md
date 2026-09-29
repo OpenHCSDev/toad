@@ -316,3 +316,16 @@ adapter. Actual installed mixed inline content/diff paint survives removal and
 rebind after raw producer mutation, grant/reject/replacement/stop. Current147
 corec338/Textualc974 wheel, nativepermission replay and shared ratchet receipts
 are under evidence/tool-output. Carver146 lifetime/parent147 crash fix preserved.
+
+### Updated22:16 pattern acceptance
+
+Source2ba9a27 fully closes145 shared caller on main147. Final AST spans:
+ToolCall469→249, ToolCallDiff136→118, ACPToolCallContent32→15.
+IMPL-4/5 and TIME-9 caller deletion above is complete. IMPL-10 replaces
+output hydration and patch publication flag combinations with declared states;
+IDEN-1 uses a captured renderer ticket, IDEN-3 puts future readiness on the
+existing PatchPreparation lifetime. No unrelated-predicate rule atomization.
+Per-touched-file chain terms do not increase: both new modules0, root -43.
+Shared ratchet has no positive delta. Actual affected installed/native8cases
+pass46.60s; native permission shared Markdown paint/rebind/grant passes
+separately. Receipt explicitly confirms the latest skill source and limits.
