@@ -90,11 +90,11 @@ class AgentInputSubmission(InputSubmission):
     async def feedback(self, execution):
         view = execution.owner.view
         await view.post(UserInput(self.text))
-        if not execution.current:
+        if execution.retired:
             return
         view.jump_to_latest()
         await view._auto_name_from_prompt(self.text)
-        if not execution.current:
+        if execution.retired:
             return
         waiting = 'Waiting for replies…' if self.text.startswith(('@', '#', '!relay ')) else 'Thinking…'
         view.post_message(messages.SessionUpdate(state='busy', summary=waiting.rstrip('…')))
@@ -106,10 +106,9 @@ class AgentInputSubmission(InputSubmission):
         view.transcript.invalidate()
         if self.text.startswith('/') and await view.slash_command(self.text):
             return
-        if view.agent is None:
+        execution = owner.begin(self)
+        if execution is None:
             return
-        execution = SubmissionExecution(owner, self, view.agent)
-        owner.active.append(execution)
         owner.publish_pending()
         view.run_worker(partial(view.input_histories.prompt.record, self.source_text), group='history')
         try:
@@ -126,7 +125,9 @@ class AgentInputSubmission(InputSubmission):
 class OrdinaryInputSubmission(AgentInputSubmission):
     @classmethod
     def matches(cls, event, view):
-        return not event.shell and bool(event.body.strip())
+        if event.shell:
+            return False
+        return bool(event.body.strip())
     @property
     def request(self):
         return QueuePromptRequest(self.text)
@@ -138,7 +139,9 @@ class DeferredInputSubmission(OrdinaryInputSubmission):
     def matches(cls, event, view):
         if not super().matches(event, view):
             return False
-        return view.turns.owner.busy and view.queue_supported and not event.immediate
+        if event.immediate:
+            return False
+        return view.turns.owner.busy and view.queue_supported
     @property
     def request(self):
         return QueuePromptRequest(self.text, True)
@@ -176,9 +179,14 @@ class SubmissionExecution:
             return False
         return self.agent.queue_attachment.accepts_request(self.scope)
 
+    @property
+    def retired(self):
+        return not self.current
+
     async def send(self):
         view = self.owner.view
-        local = not self.agent.presentation.uses_managed_turns
+        managed = self.agent.presentation.uses_managed_turns
+        local = not managed
         reason = None
         if local:
             view.busy_count += 1
@@ -217,6 +225,14 @@ class ConversationSubmissions:
         self.active: list[SubmissionExecution] = []
         self.requested_queue = None
 
+    def begin(self, submission):
+        agent = self.view.agent
+        if agent is None:
+            return None
+        execution = SubmissionExecution(self, submission, agent)
+        self.active.append(execution)
+        return execution
+
     async def submit(self, event):
         return await InputSubmission.decode(event, self.view).execute(self)
 
@@ -226,7 +242,9 @@ class ConversationSubmissions:
             return False
         if message.session_id != agent.session_id:
             return False
-        return not message.recover_draft or agent.queue_attachment.accepts_request(message.queue_scope)
+        if message.recover_draft:
+            return agent.queue_attachment.accepts_request(message.queue_scope)
+        return True
 
     def publish_pending(self):
         self.view.delivering_prompt = next((item.submission.pending_text for item in reversed(self.active)

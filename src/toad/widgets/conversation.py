@@ -83,7 +83,7 @@ from toad.private_native_cursor import CursorStatus
 from toad.block_navigation import admitted_blocks, ConversationBlock, ContentNavigation, UpCursor, DownCursor
 from functools import cached_property
 from toad.agent_presentation import AgentAttachmentView
-from toad.conversation_turn import TurnOwner, ConversationTurn, AgentTurn, ClientTurn
+from toad.conversation_turn import TurnOwner, ConversationTurn, ClientTurn
 from toad.shell import CurrentWorkingDirectoryChanged, Shell
 from toad.slash_command import SlashCommand
 from toad.widgets.history_anchor import HistoryWindow

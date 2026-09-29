@@ -102,7 +102,7 @@ async def notification_feedback(
 
 async def main(*, notification_only=False, retire_surface=False, app_type=ToadApp,
                acceptance=None, provider_reply=None, provider_usage=None,
-               native_settings=None, prepare_state=None):
+               native_settings=None, prepare_state=None, expected_response_disconnects=frozenset()):
     evidence = Path(os.environ.get("L0A_EVIDENCE", os.environ["TMPDIR"]))
     evidence.mkdir(parents=True, exist_ok=True)
     package = Path(os.environ["AC_NATIVE_COPIED_PACKAGE"])
@@ -117,11 +117,13 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
 
     class Handler(BaseHTTPRequestHandler):
         def do_POST(self):
+            request_number = None
             try:
                 request = json.loads(
                     self.rfile.read(int(self.headers["Content-Length"]))
                 )
                 requests.append(request)
+                request_number = len(requests)
                 assert request["model"] == "fixture"
                 assert self.headers["Authorization"] == "Bearer offline-only-fixture"
                 assert len(requests) <= 12, "Unbounded model loop"
@@ -171,6 +173,9 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
                 self.end_headers()
                 self.wfile.write(body)
             except Exception as error:
+                if isinstance(error, BrokenPipeError) and request_number in expected_response_disconnects:
+                    print("EXPECTED_NATIVE_INTERRUPTED_PROVIDER_RESPONSE", request_number, flush=True)
+                    return
                 failures.append(str(error))
                 print("LOOPBACK_PROVIDER_FAILURE", repr(error), flush=True)
                 self.send_error(400, "Offline fixture failed")
