@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 from textual.app import App
 from textual.widget import Widget
-from toad.session_observation import SessionObservation
+from toad.session_observation import SessionObservation, InputDeliveryObservation
 
 
 def test_retired_root_readers_deleted():
@@ -67,6 +67,11 @@ async def test_new_case_inherits_coalescing_owner_fence_and_retirement():
         await observation.close()
         observation.invalidate()
         assert observation.task is None and observation.view is None
+        delivery = InputDeliveryObservation(view)
+        await delivery.close()
+        for action in (delivery.history, delivery.dismiss_history):
+            with pytest.raises(ValueError, match="connected owner changed"):
+                await action()
         await view.remove()
         await pilot.pause()
         assert app._exception is None

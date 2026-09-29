@@ -104,10 +104,16 @@ class InputDeliveryObservation(SessionObservation):
         if self.view is None or not self.view.is_attached or agent is not self.view.agent:
             raise ValueError("The connected owner changed; inspect delivery again.")
 
-    async def history(self):
-        agent = self.view.agent
-        if agent is None:
+    def current_owner(self):
+        view = self.view
+        if view is None or not view.is_attached:
+            raise ValueError("The connected owner changed; inspect delivery again.")
+        if view.agent is None:
             raise ValueError("No connected owner.")
+        return view.agent
+
+    async def history(self):
+        agent = self.current_owner()
         while True:
             revision = self.revision
             result = await agent.get_input_delivery(include_history=True)
@@ -126,9 +132,7 @@ class InputDeliveryObservation(SessionObservation):
             return result["historicalInputs"]
 
     async def dismiss_history(self):
-        agent = self.view.agent
-        if agent is None:
-            raise ValueError("No connected owner.")
+        agent = self.current_owner()
         await agent.dismiss_historical_inputs()
         self.require_owner(agent)
         await self.refresh()
