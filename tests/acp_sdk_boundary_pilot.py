@@ -53,7 +53,7 @@ async def verify_dispatch_and_visible_rejection(root: Path) -> None:
         agent = Agent(root, {"name": "Fixture", "identity": "fixture",
                              "short_name": "fixture", "run_command": {"*": "true"},
                              "protocol": "acp"}, "fixture")
-        agent._message_target = view
+        agent.attach_surface(view)
         recorded = []
         agent.log = recorded.append
 

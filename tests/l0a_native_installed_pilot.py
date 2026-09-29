@@ -18,11 +18,6 @@ from pathlib import Path
 from agent_comms.comms import Comms
 from agent_comms.native_package import verify_native_package
 from agent_comms.threads import Thread
-from agent_comms.coordination_store import MutationStore
-from agent_comms.cohort_schema import install_private_cohort_schema
-from agent_comms.coordination_response import install_private_response_schema
-from agent_comms.coordinated_runtime_schema import install_native_runtime_schema
-from agent_comms.native_prompt_binding import install_prompt_binding_schema
 from agent_comms.input_disposition import InputDispositions
 from runtime_fixture import ToadApp
 from toad.acp.agent import Agent
@@ -94,7 +89,7 @@ async def notification_feedback(
     print("CHANNEL_NOTIFICATION", str(notification.title), flush=True)
 
 
-async def main(*, notification_only=False):
+async def main(*, notification_only=False, retire_surface=False):
     evidence = Path(os.environ.get("L0A_EVIDENCE", os.environ["TMPDIR"]))
     evidence.mkdir(parents=True, exist_ok=True)
     package = Path(os.environ["AC_NATIVE_COPIED_PACKAGE"])
@@ -213,11 +208,6 @@ async def main(*, notification_only=False):
         )
         comms = Comms(Path(wire_dir) / "wire")
         root_id = comms.messaging.initialize_private_initial_protocol()
-        with MutationStore(str(comms.root / "coordination.sqlite3")) as store:
-            install_private_cohort_schema(store)
-            install_private_response_schema(store)
-            install_native_runtime_schema(store)
-            install_prompt_binding_schema(store)
         comms.threads.register(
             Thread(
                 "beta",
@@ -249,17 +239,15 @@ async def main(*, notification_only=False):
             "protocol": "acp",
             "run_command": {"*": shlex.join([sys.executable, "-m", "agent_comms.acp"])},
         }
-        app = ToadApp(project_dir=str(project))
+        app = ToadApp(agent_data=data, project_dir=str(project), agent_session_id="beta")
         agent = None
-        turn = None
         try:
             async with app.run_test(size=(160, 44)) as pilot:
                 await pilot.pause()
                 owner_mode = app.current_mode
                 view = app.screen.conversation
-                agent = Agent(project, data, "beta")
-                view.agent = agent
-                await agent.start(view)
+                await until(pilot, lambda: view.agent is not None)
+                agent = view.agent
                 await until(pilot, agent.session_ready_event.is_set)
                 assert agent._connected_ok, "Actual ACP attach failed"
                 owner = comms.registry.require("beta")
@@ -288,7 +276,10 @@ async def main(*, notification_only=False):
                         flush=True,
                     )
                     return
-                turn = asyncio.create_task(agent.send_prompt("FIRST_NATIVE_INPUT"))
+                view.prompt.text = "FIRST_NATIVE_INPUT"
+                await until(pilot, lambda: view.agent_ready)
+                view.prompt.prompt_text_area.focus()
+                await pilot.press("enter")
                 await until(pilot, entered.is_set)
                 print("PROVIDER_FIRST", flush=True)
                 # An actual detached owner's turn is the status authority.
@@ -311,9 +302,34 @@ async def main(*, notification_only=False):
                 await pilot.resize_terminal(160, 44)
                 print("NATIVE_SIDEBAR_BUSY_AUTHORITY_CONFIRMED", flush=True)
                 view.prompt.text = "unsent local draft"
+                retired_editor = None
+                if retire_surface:
+                    retired_editor = view.prompt.prompt_text_area.capture_editor_state()
+                    parent = view.parent
+                    process = agent.process.process
+                    original_queue = agent.queue_attachment
+                    agent.detach_surface(view)
+                    await view.remove()
+                    assert agent.process.process is process and process.returncode is None
+                    assert agent.controller.surface.target is None
                 await asyncio.wait_for(
                     agent.send_prompt("QUEUED_NATIVE_INPUT", defer_display=True), 10
                 )
+                if retire_surface:
+                    await until(pilot, lambda: bool(agent.queue_attachment.projection.items))
+                    from toad.widgets.conversation import Conversation
+                    replacement = Conversation(project)
+                    await parent.mount(replacement)
+                    replacement.prompt.prompt_text_area.restore_editor_state(retired_editor)
+                    replacement.agent = agent
+                    view = replacement
+                    await until(pilot, lambda: view.turns.managed_id == agent._active_turn_id)
+                    await until(pilot, lambda: view.current_model is not None)
+                    assert view.current_model.id == "selected-offline/fixture"
+                    assert view.busy_count == 1
+                    assert agent.queue_attachment is original_queue
+                    assert agent.process.process is process and process.returncode is None
+                    print("RETIRED_SURFACE_NATIVE_QUEUE_REBOUND", flush=True)
                 await until(pilot, lambda: bool(view.queue_projection.items))
                 queued_ids = [row.input_id for row in view.queue_projection.items]
                 assert len(queued_ids) == 1
@@ -322,7 +338,7 @@ async def main(*, notification_only=False):
                 )
                 print("QUEUED", queued_ids, flush=True)
                 release.set()
-                await asyncio.wait_for(turn, 25)
+                await until(pilot, lambda: agent.presentation.prompt_in_flight == 0, 25)
                 await until(pilot, lambda: not comms.registry.require("beta").executing)
                 await pilot.pause()
                 assert len(requests) >= 2, "Queued native input never reached provider"
@@ -363,11 +379,7 @@ async def main(*, notification_only=False):
                 old_process = comms.registry.require("beta").process_identity
                 original_watcher = view._directory_watcher
                 assert original_watcher is not None
-                await agent.stop()
-                await view.contents.remove_children()
-                agent = Agent(project, data, "beta")
-                view.agent = agent
-                await agent.start(view)
+                await agent.reconnect()
                 await until(pilot, agent.session_ready_event.is_set)
                 assert agent._connected_ok
                 await until(
@@ -419,7 +431,11 @@ async def main(*, notification_only=False):
 
                 # A stopped owner's saved native session must reopen through
                 # the same installed entrypoint and accept a new native input.
+                proxy_process = agent.process.process
                 await agent.stop()
+                assert proxy_process.returncode is not None
+                assert not agent.permissions.pending
+                print("ACTUAL_ACP_PROCESS_CLEANUP_CONFIRMED", flush=True)
                 await asyncio.to_thread(comms.owners.stop, "beta")
                 assert not comms.registry.require("beta").process_alive
                 app.invoke_thread_action(StartAction(), "beta", user)
@@ -429,10 +445,7 @@ async def main(*, notification_only=False):
                 )
                 before_restart = len(requests)
                 await app.switch_mode(owner_mode)
-                await view.contents.remove_children()
-                agent = Agent(project, data, "beta")
-                view.agent = agent
-                await agent.start(view)
+                await agent.reconnect()
                 await until(pilot, agent.session_ready_event.is_set)
                 assert agent._connected_ok, "Stopped native owner failed to reopen"
                 await until(
@@ -478,9 +491,6 @@ async def main(*, notification_only=False):
                 assert app._exception is None
         finally:
             release.set()
-            if turn and not turn.done():
-                turn.cancel()
-                await asyncio.gather(turn, return_exceptions=True)
             if agent:
                 await agent.stop()
                 if agent.presentation.log_path.exists():
@@ -501,5 +511,6 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--notification-only", action="store_true")
+    parser.add_argument("--retire-surface", action="store_true")
     args = parser.parse_args()
-    asyncio.run(main(notification_only=args.notification_only))
+    asyncio.run(main(notification_only=args.notification_only, retire_surface=args.retire_surface))

@@ -78,6 +78,19 @@ class ViewportPresentation:
         return True
 
 
+class WindowMembership:
+    """One window's registration in its screen presentation."""
+    def __init__(self, window):
+        self.window = ref(window)
+        self.presentation = window.screen.viewport_presentation
+        self.presentation.windows.add(window)
+
+    def retire(self):
+        window = self.window()
+        self.presentation.windows.discard(window)
+        self.presentation.anchors.discard(window)
+
+
 class DocumentViewport:
     """One bounded warm working set for a history window, not one per message."""
 
@@ -95,7 +108,7 @@ class DocumentViewport:
         self._running = False
         window.watch(window, "scroll_y", self.request, init=False)
         window.screen.screen_layout_refresh_signal.subscribe(window, self.request)
-        window.screen.viewport_presentation.windows.add(window)
+        self.membership = WindowMembership(window)
 
     @property
     def window(self):

@@ -52,7 +52,7 @@ async def main() -> None:
                 },
                 "activity-fixture",
             )
-            agent._message_target = view
+            agent.attach_surface(view)
             view.set_reactive(type(view).agent, agent)
             sequence = 0
 

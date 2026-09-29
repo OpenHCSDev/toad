@@ -73,7 +73,7 @@ async def main(profile_path=None, trace=False):
         )
 
         async def start(agent, target):
-            agent._message_target = target
+            agent.attach_surface(target)
 
             async def attach():
                 await released.wait()

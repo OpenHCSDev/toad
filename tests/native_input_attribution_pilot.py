@@ -122,7 +122,7 @@ async def main(*, historical: bool) -> None:
                 },
                 "owner",
             )
-            agent._message_target = view
+            agent.attach_surface(view)
             await view.post(IncomingMessage(
                 incoming.sender, incoming.target, incoming.body, sequence=incoming.seq,
             ))

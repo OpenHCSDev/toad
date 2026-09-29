@@ -48,7 +48,7 @@ async def main():
             view=app.screen.conversation
             agent=Agent(root,{'name':'T2','identity':'t2','short_name':'t2','run_command':{'*':'true'},'protocol':'acp'},'pilot')
             view.agent=agent
-            agent._message_target=view
+            agent.attach_surface(view)
             await agent.server.call(json.loads(raw[0]))
             await pilot.pause()
             assert agent._active_turn_id=='actual-producer'

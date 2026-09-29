@@ -14,9 +14,9 @@ from textual.message import Message
 
 from toad.acp import protocol
 from toad.acp.encode_tool_call_id import encode_tool_call_id
-from toad.answer import Answer
 
 from .attachment_presentation import CursorPresentation, QueuePresentation
+from .permission_controller import PermissionRequest
 
 if TYPE_CHECKING:
     from textual.content import Content
@@ -70,9 +70,7 @@ class UserMessage(Message):
 @dataclass
 @rich.repr.auto
 class RequestPermission(AgentMessage):
-    options: list[protocol.PermissionOption]
-    tool_call: protocol.ToolCallUpdatePermissionRequest
-    result_future: Future[Answer | None]
+    request: PermissionRequest
 
 
 @dataclass

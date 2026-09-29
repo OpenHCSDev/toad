@@ -9,7 +9,6 @@ from pathlib import Path
 from agent_comms.declared_family import DeclaredFamily
 from toad import jsonrpc
 from toad.agent import AgentFail
-from toad.acp import messages
 from toad.acp.wire_message import IncomingWireMessage
 
 
@@ -197,14 +196,14 @@ class AgentProcess:
                 agent.log(f"[error] {error}")
                 continue
             await incoming.receive(agent, call_jsonrpc, tasks)
-        agent._invalidate_attachment_views()
-        agent._active_turn_id = None
-        agent.post_message(messages.McpClientStopped(agent))
+        unexpected = not self.stopping
+        self.stopping = True
+        agent.controller.connection_closed()
         for task in tasks:
             task.cancel()
         if tasks:
             await asyncio.gather(*tasks, return_exceptions=True)
-        if process.returncode and (not self.stopping):
+        if process.returncode and unexpected:
             assert process.stderr is not None
             fail_details = (await process.stderr.read()).decode("utf-8", "replace")
             agent.post_message(
@@ -213,6 +212,6 @@ class AgentProcess:
                     details=fail_details,
                 )
             )
-        if not self.stopping:
+        if unexpected:
             await self.control.finish(process)
         self.process = None

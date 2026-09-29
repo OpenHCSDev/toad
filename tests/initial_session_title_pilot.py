@@ -71,7 +71,7 @@ async def check_title(title: str | None) -> None:
             agent = Agent(root, agent_data, None)
             agent.agent_capabilities["loadSession"] = True
             screen.conversation.agent = agent
-            agent._message_target = screen.conversation
+            agent.attach_surface(screen.conversation)
             with (
                 patch.object(agent, "request", return_value=nullcontext()),
                 patch("toad.acp.agent.api.session_new", return_value=Response(payload)),
@@ -99,7 +99,7 @@ async def check_title(title: str | None) -> None:
             screen = app.screen
             resumed = Agent(root, agent_data, thread, agent.session_pk)
             screen.conversation.agent = resumed
-            resumed._message_target = screen.conversation
+            resumed.attach_surface(screen.conversation)
             with (
                 patch.object(resumed, "request", return_value=nullcontext()),
                 patch(

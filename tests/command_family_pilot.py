@@ -141,7 +141,7 @@ print(json.dumps({'jsonrpc':'2.0','method':'session/update','params':{
                 },
                 "commands",
             )
-            agent._message_target = conversation
+            agent.attach_surface(conversation)
             await agent.server.call(json.loads(payload))
             await until(
                 pilot,

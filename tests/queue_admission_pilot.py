@@ -64,7 +64,7 @@ async def main():
                 await pilot.pause()
                 view = app.screen.conversation
                 consumer = Agent(root, AGENT, "beta")
-                consumer._message_target = view
+                consumer.attach_surface(view)
                 view.agent = consumer
                 callbacks = []
 

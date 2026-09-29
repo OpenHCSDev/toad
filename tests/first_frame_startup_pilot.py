@@ -43,7 +43,7 @@ async def main():
         async def start(agent, target):
             assert target.screen._first_frame_presented
             started.append(target.screen._comms_thread)
-            agent._message_target = target
+            agent.attach_surface(target)
             agent.process.session_task = asyncio.create_task(asyncio.sleep(0))
             target.post_message(AgentReady())
 

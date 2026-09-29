@@ -69,12 +69,33 @@ class Observer:
             assert ask is not None and self.view.prompt.is_mounted
             self.app.save_screenshot(str(self.root / "toad-permission.svg"))
             self.permission_presented.set()
+            if os.environ.get("AC_MCP_RETIRE_SURFACE") == "1" and self.case != "disconnect":
+                from toad.widgets.conversation import Conversation
+                request, = self.agent.permissions.pending
+                previous = self.view
+                parent = previous.parent
+                self.agent.detach_surface(previous)
+                await previous.remove()
+                assert request.pending and not self.agent.controller.surface.owns(previous)
+                replacement = Conversation(self.agent.project_root_path)
+                await parent.mount(replacement)
+                replacement.agent = self.agent
+                self.view = replacement
+                await self.pilot.pause()
+                ask = replacement.prompt._ask
+                assert ask is not None and request.pending
+                (self.root / "permission-rebind.txt").write_text("Actual native permission remained pending across rich surface removal and remounted on replacement.\n")
             if self.case != "disconnect":
                 index, answer = next((i, a) for i, a in enumerate(ask.options)
-                                     if a.id == "allow-once")
+                                     if (a.kind or "").startswith(os.environ.get("AC_MCP_PERMISSION_ANSWER", "allow")))
                 self.view.prompt.on_question_answer(Question.Answer(index, answer, ask))
                 await self.pilot.pause()
-            return await task
+            result = await task
+            if os.environ.get("AC_MCP_RETIRE_SURFACE") == "1":
+                assert result["outcome"]["outcome"] == "selected"
+                assert result["outcome"]["optionId"] == answer.id
+                (self.root / "permission-answer.json").write_text(json.dumps(result))
+            return result
         finally:
             self.permission_tasks.discard(task)
 
@@ -104,7 +125,7 @@ async def open_observer(case: str, artifact_dir: Path) -> AsyncIterator[Observer
             assert isinstance(app.screen, MainScreen)
             view = app.screen.conversation
             agent = Agent(root / "project", AGENT_DATA, SESSION_ID)
-            agent._message_target = view
+            agent.attach_surface(view)
             view.agent = agent
             await exercise_boundaries(agent, view, pilot)
             observer = Observer(case, app, pilot, agent, view, root)

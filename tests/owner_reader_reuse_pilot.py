@@ -99,7 +99,7 @@ async def main():
         async with app.run_test() as pilot:
             await pilot.pause()
             shared = app.coordination_wire
-            agent._message_target = app.screen.conversation
+            agent.attach_surface(app.screen.conversation)
             agent._transcript_reader = None
             with patch(
                 "agent_comms.comms.wire",

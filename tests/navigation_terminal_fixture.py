@@ -147,7 +147,7 @@ async def main():
             )
 
         async def start(agent, target):
-            agent._message_target = target
+            agent.attach_surface(target)
 
             async def deliver():
                 initial = await page(agent)
@@ -166,7 +166,7 @@ async def main():
                 screen._agent = data
                 await screen.on_coordination_update(coordination_update(str(comms.root), 'fixture-owner'))
                 agent = Agent(root, data, "fixture-owner")
-                agent._message_target = screen.conversation
+                agent.attach_surface(screen.conversation)
                 screen.conversation.set_reactive(type(screen.conversation).agent, agent)
                 screen.conversation.agent_ready = True
                 await screen.conversation.contents.mount(
