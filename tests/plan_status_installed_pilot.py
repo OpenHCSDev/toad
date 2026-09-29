@@ -1,3 +1,4 @@
+from toad.agent_schema import AgentDefinition
 """Installed normal App receives plans from a physical official-SDK ACP peer."""
 import asyncio
 from importlib.resources import files
@@ -48,7 +49,7 @@ async def main():
         data = {"name": "Local ACP plan acceptance", "identity": "plan-acceptance",
                 "short_name": "Plan", "protocol": "acp",
                 "run_command": {"*": shlex.join([sys.executable, str(peer)])}}
-        app = InstalledApp(project_dir=str(root), agent_data=data)
+        app = InstalledApp(project_dir=str(root), agent_data=AgentDefinition.decode(data))
         async with app.run_test(size=(130, 44)) as pilot:
             view = app.selected_session.conversation
             await until(pilot, lambda: view.agent is not None)

@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/tests/l0a_native_installed_pilot.py", line 303, in main
+    await acceptance(app, pilot, agent, comms, entered, release,
+                     hold_next, requests)
+  File "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/tests/agent_configuration_native_installed_pilot.py", line 31, in acceptance
+    assert await pilot.click(next(item for item in app.screen.query('ContextMenuItem') if item.action == 'high'))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError

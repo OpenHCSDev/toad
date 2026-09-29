@@ -41,7 +41,7 @@ from toad.widgets.selection import SelectionOptionList
 
 if TYPE_CHECKING:
     from toad.acp.agent import Model
-    from toad.acp.agent_session import Mode
+    from acp.schema import SessionMode
 
 
 class ModeSwitcher(SelectionOptionList):
@@ -473,8 +473,8 @@ class Prompt(containers.VerticalGroup):
     agent_info = var(Content(""))
     _ask: var[Ask | None] = var(None)
     agent_ready: var[bool] = var(False)
-    current_mode: var[Mode | None] = var(None)
-    modes: var[dict[str, Mode] | None] = var(None)
+    current_mode: var[SessionMode | None] = var(None)
+    modes: var[dict[str, SessionMode] | None] = var(None)
     current_model: var[Model | None] = var(None)
     models: var[dict[str, Model] | None] = var(None)
     model_history_scope = var("")
@@ -524,7 +524,7 @@ class Prompt(containers.VerticalGroup):
             self.prompt_text_area.get_cursor_line_end_location()
         )
 
-    def watch_current_mode(self, mode: Mode | None) -> None:
+    def watch_current_mode(self, mode: SessionMode | None) -> None:
         if self.simple_input:
             return
         self.set_class(mode is not None, "-has-mode")
@@ -577,7 +577,7 @@ class Prompt(containers.VerticalGroup):
         if self.models:
             self.model_switcher.focus()
 
-    def watch_modes(self, modes: dict[str, Mode] | None) -> None:
+    def watch_modes(self, modes: dict[str, SessionMode] | None) -> None:
         if self.simple_input:
             return
         from toad.visuals.columns import Columns

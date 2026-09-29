@@ -23,6 +23,11 @@ class TabOrder:
     def names(self) -> tuple[str, ...]:
         return tuple(self._open)
 
+    @property
+    def recent(self) -> tuple[str, ...]:
+        """Visited sources first, derived from the existing navigation history."""
+        return tuple(dict.fromkeys((*reversed(self._visits[:self._cursor + 1]), *self._open)))
+
     def open(self, mode: str, *, after: str | None = None) -> None:
         if mode in self:
             return

@@ -51,7 +51,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     project = Path(comms.registry.require("beta").worktree)
     source = "# Actual installed native tool output\nvalue = 1\n"
     (project / "example.py").write_text(source)
-    view = app.screen.conversation
+    view = app.selected_session.conversation
     sending = asyncio.create_task(agent.send_prompt("Execute the fixture tools and report completion"))
     try:
         await until(pilot, entered.is_set)
@@ -59,12 +59,12 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
         await until(pilot, lambda: len(requests) == 4 or not comms.registry.require("beta").executing, 25)
         assert len(requests) == 4, (len(requests), [row.get("tools") for row in requests])
         await until(pilot, lambda: len(view.query(ToolCall)) == 3)
-        await until(pilot, lambda: all(tool.tool_call["status"] == "completed" for tool in view.query(ToolCall)))
+        await until(pilot, lambda: all(tool.tool_call.completed for tool in view.query(ToolCall)))
         tools = list(view.query(ToolCall))
         read, edit, bash = tools
         assert (project / "example.py").read_text() == source.replace("value = 1", "value = 2")
         for tool in tools:
-            assert tool.tool_call["status"] == "completed", tool.tool_call
+            assert tool.tool_call.completed, tool.tool_call
 
         read.set_expanded(True)
         read.scroll_visible(animate=False)
