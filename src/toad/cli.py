@@ -266,12 +266,12 @@ def acp(
 
     from rich import print
 
-    from toad.agent_schema import AgentDefinition as AgentData
+    from toad.agent_schema import AgentDefinition
 
     command_name = command.split(" ", 1)[0].lower()
     identity = f"{command_name}.custom.batrachian.ai"
 
-    agent_data = AgentData.decode({
+    agent_data = AgentDefinition.decode({
         "identity": identity,
         "name": title or command.partition(" ")[0],
         "short_name": "agent",

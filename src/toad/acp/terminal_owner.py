@@ -53,7 +53,7 @@ class OperationalTerminalOwner(ClientRequestOwner, ABC):
         except TerminalSessionRetired as error:
             raise jsonrpc.InvalidParams(str(error)) from error
         if authority.current and self.terminals is terminals:
-            return {"terminalId": terminal_id}
+            return protocol.CreateTerminalResponse(terminal_id=terminal_id)
         await terminals.retire(terminal_id)
         authority.require()
         raise jsonrpc.InvalidParams("ACP terminal owner was replaced during creation")
@@ -62,23 +62,21 @@ class OperationalTerminalOwner(ClientRequestOwner, ABC):
     def terminal_kill(self, sessionId: str, terminalId: str, _meta: dict | None = None) -> protocol.KillTerminalResponse:
         self.session_request(sessionId)
         self.terminals.kill(terminalId)
-        return {}
+        return protocol.KillTerminalResponse()
 
     @jsonrpc.expose("terminal/output")
     async def terminal_output(self, sessionId: str, terminalId: str, _meta: dict | None = None) -> protocol.TerminalOutputResponse:
         self.session_request(sessionId)
         state = self.terminals.output(terminalId)
-        result = {"output": state.output, "truncated": state.truncated}
         return_code = state.return_code
-        if return_code is not None:
-            result["exitStatus"] = {"exitCode": return_code}
-        return result
+        exit_status = protocol.TerminalExitStatus(exit_code=return_code, signal=state.signal) if return_code is not None or state.signal is not None else None
+        return protocol.TerminalOutputResponse(output=state.output, truncated=state.truncated, exit_status=exit_status)
 
     @jsonrpc.expose("terminal/release")
     def terminal_release(self, sessionId: str, terminalId: str, _meta: dict | None = None) -> protocol.ReleaseTerminalResponse:
         self.session_request(sessionId)
         self.terminals.release(terminalId)
-        return {}
+        return protocol.ReleaseTerminalResponse()
 
     @jsonrpc.expose("terminal/wait_for_exit")
     async def terminal_wait_for_exit(self, sessionId: str, terminalId: str, _meta: dict | None = None) -> protocol.WaitForTerminalExitResponse:
@@ -88,4 +86,4 @@ class OperationalTerminalOwner(ClientRequestOwner, ABC):
         authority.require()
         if self.terminals is not terminals:
             raise jsonrpc.InvalidParams("ACP terminal owner was replaced while awaiting exit")
-        return {"exitCode": code, "signal": signal}
+        return protocol.WaitForTerminalExitResponse(exit_code=code, signal=signal)

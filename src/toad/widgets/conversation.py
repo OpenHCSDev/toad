@@ -62,7 +62,7 @@ from acp import schema as acp_protocol
 from toad.acp.status import StopReason, EndTurnStopReason
 from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
 from toad.agent import AgentBase, AgentFail, AgentReady
-from toad.agent_schema import AgentDefinition as AgentData
+from toad.agent_schema import AgentDefinition
 from toad.answer import Answer
 from toad.app import ToadApp
 from toad.directory_watcher import DirectoryChanged, DirectoryWatcher
@@ -482,7 +482,7 @@ class ConversationSessionBinding(containers.Vertical):
     def __init__(
         self,
         project_path: Path,
-        agent: AgentData | None = None,
+        agent: AgentDefinition | None = None,
         agent_session_id: str | None = None,
         session_pk: int | None = None,
         session_title: str | None = None,

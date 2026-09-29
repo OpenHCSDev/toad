@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Generic, TypeVar
+from typing import Generic, TypeVar, TYPE_CHECKING
 
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.transcript_events import TranscriptEvent
@@ -21,6 +21,9 @@ from toad.rich_preparation import (
 )
 
 ResultT = TypeVar("ResultT", covariant=True)
+
+if TYPE_CHECKING:
+    from acp.schema import SessionNotification
 
 
 class RenderExecution(ABC, Generic[ResultT]):
@@ -53,7 +56,7 @@ class SessionUpdateValidation(DeclaredFamily, affix='SessionUpdateValidation'):
 
 @dataclass(frozen=True)
 class AcceptedSessionUpdateValidation(SessionUpdateValidation):
-    notification: object
+    notification: SessionNotification
 
     def publish(self, owner, session_id, raw, metadata):
         owner.publish(session_id, self.notification)
@@ -76,7 +79,6 @@ class ValidateSessionUpdateTask(RenderTask[SessionUpdateValidation]):
     metadata: dict | None = None
 
     def execute(self) -> SessionUpdateValidation:
-        from pydantic import ValidationError
         from toad.acp.sdk_boundary import decode_session_update
 
         try:

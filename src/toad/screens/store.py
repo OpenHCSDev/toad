@@ -132,7 +132,7 @@ class DirectoryDisplay(containers.HorizontalGroup):
 
 
 class AgentItem(containers.VerticalGroup):
-    """An entry in the AgentDefinition grid select."""
+    """An entry in the agent grid select."""
 
     def __init__(self, agent: AgentDefinition) -> None:
         self._agent = agent
@@ -273,7 +273,7 @@ class Launcher(containers.VerticalGroup):
 
 
 class LauncherItem(containers.VerticalGroup):
-    """An entry in the AgentDefinition grid select."""
+    """An entry in the agent grid select."""
 
     def __init__(self, digit: str, agent: AgentDefinition) -> None:
         self._digit = digit
@@ -297,7 +297,7 @@ class LauncherItem(containers.VerticalGroup):
 
 class AgentGridSelect(GridSelect):
     HELP = """\
-## AgentDefinition select
+## Agent select
 
 - **cursor keys** Navigate agents
 - **tab / shift+tab** Move to next / previous section
@@ -308,7 +308,7 @@ class AgentGridSelect(GridSelect):
         Binding("enter", "select", "Details", tooltip="Open agent details"),
         Binding("space", "launch", "Launch", tooltip="Launch highlighted agent"),
     ]
-    BINDING_GROUP_TITLE = "AgentDefinition Select"
+    BINDING_GROUP_TITLE = "Agent Select"
 
     def action_launch(self) -> None:
         if self.highlighted is None:

@@ -44,7 +44,7 @@ from toad.acp.comms_updates import CommsUpdateConsumer
 from toad.acp.projection_attachment import ProjectionAttachment
 from toad.acp.queue_attachment import QueueAttachment
 from toad.agent import AgentBase, UnsupportedResumeAgentFail, AgentReady
-from toad.agent_schema import AgentDefinition as AgentData
+from toad.agent_schema import AgentDefinition
 
 
 class Model(NamedTuple):
@@ -89,7 +89,7 @@ class Agent(AgentBase):
     def __init__(
         self,
         project_root: Path,
-        agent: AgentData,
+        agent: AgentDefinition,
         session_id: str | None,
         session_pk: int | None = None,
     ) -> None:

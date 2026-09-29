@@ -15,7 +15,7 @@ async def read_agents() -> dict[str, AgentDefinition]:
         AgentReadError: If the files could not be read.
 
     Returns:
-        A mapping of identity on to AgentDefinition dict.
+        A mapping from identity to typed agent definitions.
     """
     import tomllib
 

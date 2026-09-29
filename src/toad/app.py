@@ -26,7 +26,7 @@ from textual.screen import Screen
 from textual.signal import Signal
 
 from toad import messages
-from toad.agent_schema import AgentDefinition as AgentData
+from toad.agent_schema import AgentDefinition
 from toad.render_backend import Renderer
 from toad.channel_preparation import ChannelHistoryReader
 from toad.navigation_preparation import (
@@ -260,7 +260,7 @@ class ToadApp(WorkspaceSessionShutdown, App, inherit_bindings=False):
 
     def __init__(
         self,
-        agent_data: AgentData | None = None,
+        agent_data: AgentDefinition | None = None,
         project_dir: str | None = None,
         mode: str | None = None,
         agent_session_id: str | None = None,

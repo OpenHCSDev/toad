@@ -24,6 +24,10 @@ class SessionUpdateEffect(MroDispatch):
     def __init__(self, agent, route):
         self.agent, self.route = agent, route
 
+    def require_supported(self, update):
+        if not any(self.handlers_for(update)):
+            raise ValueError(f'ACP update capability is not supported: {type(update).__name__}')
+
     @handles(UserMessageChunk)
     def user(self, update):
         UserContentEffect(self.agent, self.route).dispatch_sync(update.content)
@@ -127,7 +131,6 @@ class SessionNotificationOwner(ClientRequestOwner):
 
     def accept(self, session_id, update, metadata=None):
         """Official SDK boundary for synchronous in-process protocol consumers."""
-        from pydantic import ValidationError
         authority = ClientSessionRequest(self.agent, self.agent.session_id)
         if authority.retired or not authority.binding.admits_notification(session_id):
             return
@@ -146,12 +149,14 @@ class SessionNotificationOwner(ClientRequestOwner):
 
     def publish(self, session_id, update):
         metadata = update.update.field_meta
+        consumer = self.agent.comms_consumer_class(self.agent, session_id)
+        effect = SessionUpdateEffect(self.agent, consumer.route)
         try:
+            effect.require_supported(update.update)
             facts = decode_updates(metadata)
         except (TypeError, ValueError) as error:
             self.reject(session_id, update, metadata, str(error))
             return
-        consumer = self.agent.comms_consumer_class(self.agent, session_id)
         for fact in facts:
             consumer.dispatch_sync(fact)
-        SessionUpdateEffect(self.agent, consumer.route).dispatch_sync(update.update)
+        effect.dispatch_sync(update.update)

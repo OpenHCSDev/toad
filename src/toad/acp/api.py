@@ -27,7 +27,7 @@ def initialize(
 
 @API.method(name="session/new")
 def session_new(
-    cwd: str, mcpServers: list[schema.McpServerStdio]
+    cwd: str, mcpServers: schema.NewSessionRequest.model_fields["mcp_servers"].annotation
 ) -> schema.NewSessionResponse:
     """https://agentclientprotocol.com/protocol/session-setup#session-id"""
     ...
@@ -35,7 +35,7 @@ def session_new(
 
 @API.method(name="session/load")
 def session_load(
-    cwd: str, mcpServers: list[schema.McpServerStdio], sessionId: str
+    cwd: str, mcpServers: schema.LoadSessionRequest.model_fields["mcp_servers"].annotation, sessionId: str
 ) -> schema.LoadSessionResponse:
     """https://agentclientprotocol.com/protocol/session-setup#loading-a-session"""
     ...

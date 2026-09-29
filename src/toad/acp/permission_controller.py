@@ -113,7 +113,7 @@ class PermissionController(ClientRequestOwner):
                                  options: list[protocol.PermissionOption],
                                  toolCall: protocol.ToolCallUpdate,
                                  _meta: dict | None = None) -> protocol.RequestPermissionResponse:
-        cancelled = {"outcome": {"outcome": "cancelled"}}
+        cancelled = protocol.RequestPermissionResponse(outcome=protocol.DeniedOutcome(outcome="cancelled"))
         authority = ClientSessionRequest(self.agent, sessionId)
         if authority.retired:
             return cancelled
@@ -122,4 +122,4 @@ class PermissionController(ClientRequestOwner):
         answer = await request.wait(PERMISSION_TIMEOUT_SECONDS)
         if answer is None or authority.retired:
             return cancelled
-        return {"outcome": {"optionId": answer.id, "outcome": "selected"}}
+        return protocol.RequestPermissionResponse(outcome=protocol.AllowedOutcome(option_id=answer.id, outcome="selected"))

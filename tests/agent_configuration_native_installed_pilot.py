@@ -28,7 +28,9 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     await until(pilot, lambda: picker.search_input.has_focus)
     await pilot.press('down', 'enter')
     await until(pilot, lambda: isinstance(app.screen, ContextMenu))
-    assert await pilot.click(next(item for item in app.screen.query('ContextMenuItem') if item.action == 'high'))
+    high = next(item for item in app.screen.query('ContextMenuItem') if item.action == 'high')
+    await until(pilot, lambda: high in app.screen._compositor.visible_widgets and high.region.width > 0)
+    assert await pilot.click(high, offset=(1, 0))
     await until(pilot, lambda: view.thinking_level == 'high')
     assert comms.registry.require('beta').thinking_level == 'high'
     assert agent.configuration.thinking.current == 'high'
