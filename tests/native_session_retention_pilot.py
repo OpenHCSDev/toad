@@ -26,7 +26,6 @@ from toad.widgets.conversation import Conversation
 from toad.widgets.side_bar import SideBar
 from toad.widgets.session_tabs import SessionLabel
 from toad.navigation_target import ThreadTarget
-from thread_navigation_installed_journey import prepare as prepare_loaded_histories
 
 
 class InstalledApp(ToadApp):
@@ -243,4 +242,5 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
 
 
 if __name__ == "__main__":
+    from thread_navigation_installed_journey import prepare as prepare_loaded_histories
     asyncio.run(native_fixture(app_type=PaintedSwitchApp, prepare_state=prepare_loaded_histories, acceptance=acceptance))
