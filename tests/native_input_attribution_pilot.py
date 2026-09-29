@@ -127,7 +127,7 @@ async def main(*, historical: bool) -> None:
                 incoming.sender, incoming.target, incoming.body, sequence=incoming.seq,
             ))
             route = MessageRoute("owner", ("peer",))
-            agent.rpc_session_update(
+            agent.updates.accept(
                 "owner",
                 {
                     "sessionUpdate": "agent_message_chunk",

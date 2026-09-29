@@ -62,7 +62,7 @@ async def main():
             assert agent.context_measurement.source_label == "last response"
             assert "38.7K" in app.selected_session.conversation.status.plain
             assert "last response" in app.selected_session.conversation.status.plain
-            agent.rpc_session_update(
+            agent.updates.accept(
                 "saved",
                 {"sessionUpdate": "usage_update", "used": 40000, "size": 272000},
             )

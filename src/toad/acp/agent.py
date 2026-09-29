@@ -1,3 +1,4 @@
+from toad.acp.session_updates import SessionNotificationOwner
 from toad.acp.client_session import ClientRequestOwner
 from toad.acp.client_files import FileClientRequestOwner
 from toad.acp.tool_calls import SessionToolCalls
@@ -14,8 +15,7 @@ from contextlib import suppress
 from dataclasses import replace
 from datetime import datetime
 from pathlib import Path
-from typing import Any, NamedTuple, cast
-from urllib.parse import quote
+from typing import NamedTuple
 
 import rich.repr
 from agent_comms.acp_extension import (
@@ -37,7 +37,6 @@ from agent_comms.field_codec import FieldCodec
 from agent_comms.goal_actions import RetryGoalAction
 from agent_comms.goal_presentation import GoalExecution
 from agent_comms.goals import Goal
-from agent_comms.routing import MessageRoute
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from textual.content import Content
 from textual.message import Message
@@ -52,10 +51,8 @@ from toad.acp.comms_updates import CommsUpdateConsumer
 from toad.acp.projection_attachment import ProjectionAttachment
 from toad.acp.prompt import build as build_prompt
 from toad.acp.queue_attachment import QueueAttachment
-from toad.acp.sdk_boundary import validate_session_update
 from toad.agent import AgentBase, LogAgentFail, UnsupportedResumeAgentFail, AgentReady
 from toad.agent_schema import Agent as AgentData
-from toad.plan import decode_plan
 from toad.db import DB, SessionMeta
 
 PROTOCOL_VERSION = 1
@@ -142,7 +139,7 @@ class Agent(AgentBase):
         self._agent_data = agent
         self.session_id = session_id
         self.server = jsonrpc.Server()
-        self._session_update_lock = asyncio.Lock()
+        self.updates = SessionNotificationOwner(self)
         self.server.expose_instance(self)
         for owner in ClientRequestOwner.members_with(ClientRequestOwner):
             self.server.expose_instance(owner.resolve(self))
@@ -261,113 +258,6 @@ class Agent(AgentBase):
             `True` if the message was posted successfully, or `False` if it wasn't.
         """
         return self.controller.surface.post(message)
-
-    @jsonrpc.expose("session/update", ordered=True)
-    async def _rpc_session_update(
-        self,
-        sessionId: str,
-        update: Any,
-        _meta: dict[str, Any] | None = None,
-    ) -> None:
-        """Validate wire notifications off-process, then publish to the same owner."""
-        session = self.session_id
-        async with self._session_update_lock:
-            if not self.process.accepts_session(session):
-                return
-            validation = await self.controller.validate(sessionId, update, _meta)
-            if not self.process.accepts_session(session):
-                return
-            if validation.error is not None:
-                self._reject_session_update(sessionId, update, _meta, validation.error)
-                return
-            self._apply_session_update(sessionId, cast(protocol.SessionUpdate, update))
-
-    def rpc_session_update(
-        self,
-        sessionId: str,
-        update: Any,
-        _meta: dict[str, Any] | None = None,
-    ):
-        """Synchronous in-process SDK boundary for direct protocol consumers.
-
-        Wire notifications use the asynchronous process-owned boundary above.
-        """
-        from pydantic import ValidationError
-
-        try:
-            update = validate_session_update(sessionId, update, _meta)
-        except ValidationError as error:
-            self._reject_session_update(sessionId, update, _meta, str(error))
-            return
-        self._apply_session_update(sessionId, update)
-
-    def _reject_session_update(self, session_id, update, metadata, error) -> None:
-        self.log(
-            f"[ACP rejected session/update] raw={{'sessionId': {session_id!r}, "
-            f"'update': {update!r}, '_meta': {metadata!r}}}; validation={error}"
-        )
-        self.post_message(messages.RejectedSessionUpdate())
-
-    def _apply_session_update(
-        self, sessionId: str, update: protocol.SessionUpdate
-    ) -> None:
-        if self.session_id is not None and sessionId != self.session_id:
-            return
-        metadata = update.get("_meta")
-        consumer = self.comms_consumer_class(self, sessionId)
-        try:
-            facts = decode_updates(metadata)
-        except (TypeError, ValueError) as error:
-            self._reject_session_update(sessionId, update, metadata, str(error))
-            return
-        for fact in facts:
-            consumer.dispatch_sync(fact)
-        route: MessageRoute | None = consumer.route
-        match update:
-            case {
-                "sessionUpdate": "user_message_chunk",
-                "content": {"type": type, "text": text},
-            }:
-                if text:
-                    self.post_message(messages.UserMessage(type, text))
-            case {
-                "sessionUpdate": "agent_message_chunk",
-                "content": {"type": type, "text": text},
-            }:
-                if text:
-                    if type == "text" and text.startswith("[agent error]"):
-                        text += f"\n\n[Open ACP log]({quote(str(self.presentation.log_path))})"
-                    self.post_message(messages.Update(type, text, route))
-            case {
-                "sessionUpdate": "agent_thought_chunk",
-                "content": {"type": type, "text": text},
-            }:
-                self.post_message(messages.Thinking(type, text))
-            case {"sessionUpdate": "tool_call", "toolCallId": tool_call_id}:
-                self.tools.begin(update)
-            case {"sessionUpdate": "plan", "entries": entries}:
-                self.controller.publish_plan(decode_plan(entries))
-            case {"sessionUpdate": "tool_call_update", "toolCallId": tool_call_id}:
-                self.tools.update(update)
-            case {
-                "sessionUpdate": "available_commands_update",
-                "availableCommands": available_commands,
-            }:
-                self.controller.publish_commands(available_commands)
-            case {"sessionUpdate": "current_mode_update", "currentModeId": mode_id}:
-                self.controller.current_mode = mode_id
-                self.post_message(messages.ModeUpdate(mode_id))
-            case {
-                "sessionUpdate": "config_option_update",
-                "configOptions": config_options,
-            }:
-                self.configuration.receive({"configOptions": config_options})
-            case {"sessionUpdate": "session_info_update"} if "title" in update:
-                title = update.get("title")
-                self.post_message(messages.SessionInfoUpdate(title))
-            case {"sessionUpdate": "usage_update", "used": used, "size": size}:
-                self.context_measurement = ContextMeasurement.live(used, size, update.get("cost"))
-                self.update_status_line()
 
     def update_status_line(self) -> None:
         """The measurement owns availability and source-specific presentation."""
@@ -670,16 +560,11 @@ class Agent(AgentBase):
 
     @property
     def session_id(self):
-        return self.controller.session_id
+        return self.controller.session.session_id
 
     @session_id.setter
     def session_id(self, value):
-        if value != self.controller.session_id:
-            self.controller.replace_terminal_session()
-            self.permissions.cancel()
-            self.tools.reset()
-            self._active_turn_id = None
-            self.controller.session_id = value
+        self.controller.bind_session(value)
 
     @property
     def ready(self):

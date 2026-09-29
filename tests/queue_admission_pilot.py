@@ -72,7 +72,7 @@ async def main():
                     async def session_update(self, *, session_id, update):
                         packet = update.model_dump(by_alias=True, exclude_none=False)
                         callbacks.append(packet)
-                        consumer.rpc_session_update(session_id, packet)
+                        consumer.updates.accept(session_id, packet)
 
                 producer.on_connect(Client())
 
@@ -139,7 +139,7 @@ async def main():
                         for f in decode_updates(packet["_meta"])
                     )
                 )
-                consumer.rpc_session_update("beta", started)
+                consumer.updates.accept("beta", started)
                 await pilot.pause()
                 assert len(view.query(UserInput)) == before + 1
                 await producer.inputs.finish_turn_inputs("beta", inbox)

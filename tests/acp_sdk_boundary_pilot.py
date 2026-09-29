@@ -61,9 +61,10 @@ async def verify_dispatch_and_visible_rejection(root: Path) -> None:
                "customToolField": {"nested": [1, 2]}}
         intercepted = []
         agent.post_message = intercepted.append
-        agent.rpc_session_update("fixture", raw)
+        agent.updates.accept("fixture", raw)
         assert len(intercepted) == 1 and isinstance(intercepted[0], ToolCall)
-        assert intercepted[0].tool_call is raw
+        assert intercepted[0].tool_call == raw
+        assert raw["customToolField"] == {"nested": [1, 2]}
 
         agent.post_message = view.post_message
         malformed = {"sessionUpdate": "agent_message_chunk", "content": {"type": "text"}}

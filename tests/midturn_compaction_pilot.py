@@ -28,11 +28,11 @@ async def main():
             agent = Agent(root, {'name': 'Fixture', 'identity': 'fixture', 'short_name': 'fixture', 'run_command': {'*': 'true'}, 'protocol': 'acp'}, 'fixture')
             agent.attach_surface(view)
             view.agent = agent
-            agent.rpc_session_update('fixture', {'sessionUpdate': 'agent_message_chunk', 'content': {'type': 'text', 'text': ''}, '_meta': encode_updates(TurnStartedUpdate('active-turn', time.time(), 'working', 'Thinking'))})
-            agent.rpc_session_update('fixture', {'sessionUpdate': 'usage_update', 'used': 120000, 'size': 272000})
+            agent.updates.accept('fixture', {'sessionUpdate': 'agent_message_chunk', 'content': {'type': 'text', 'text': ''}, '_meta': encode_updates(TurnStartedUpdate('active-turn', time.time(), 'working', 'Thinking'))})
+            agent.updates.accept('fixture', {'sessionUpdate': 'usage_update', 'used': 120000, 'size': 272000})
             await pilot.pause()
             assert '120.0K' in str(view.status)
-            agent.rpc_session_update('fixture', compaction_packet(CompactionStart('threshold')))
+            agent.updates.accept('fixture', compaction_packet(CompactionStart('threshold')))
             await pilot.pause()
             assert not agent.context_measurement.available
             assert 'Context unavailable' in str(view.status)
@@ -40,25 +40,25 @@ async def main():
             assert 'Compacting context' in view.query_one(TurnActivity).render().plain
             assert view.busy_count == 1
             summary = 'AUTO-COMPACTION-PRESERVED-DECISIONS'
-            agent.rpc_session_update('fixture', compaction_packet(CompactionEnd('threshold', summary=summary, will_retry=True)))
+            agent.updates.accept('fixture', compaction_packet(CompactionEnd('threshold', summary=summary, will_retry=True)))
             await pilot.pause()
             notices = [item for item in view.contents.children if isinstance(item, AgentResponse) and summary in item.source]
             assert len(notices) == 1
             assert 'Context compacted' in notices[0].source
             assert 'Core-only status' not in notices[0].source
             assert view.busy_count == 1 and 'Context unavailable' in str(view.status)
-            agent.rpc_session_update('fixture', compaction_packet(CompactionStart('threshold')))
+            agent.updates.accept('fixture', compaction_packet(CompactionStart('threshold')))
             failure = 'Compaction provider returned HTTP 400.'
-            agent.rpc_session_update('fixture', compaction_packet(ManualCompactionEnd(aborted=True, summary=failure)))
+            agent.updates.accept('fixture', compaction_packet(ManualCompactionEnd(aborted=True, summary=failure)))
             await pilot.pause()
             aborted = [item for item in view.contents.children if isinstance(item, AgentResponse) and 'Compaction aborted' in item.source]
             assert len(aborted) == 1 and view.busy_count == 1
             assert failure in aborted[0].source
             assert 'Context unavailable' in str(view.status)
-            agent.rpc_session_update('fixture', {'sessionUpdate': 'usage_update', 'used': 27000, 'size': 272000})
+            agent.updates.accept('fixture', {'sessionUpdate': 'usage_update', 'used': 27000, 'size': 272000})
             await pilot.pause()
             assert '27.0K' in str(view.status)
-            agent.rpc_session_update('fixture', {'sessionUpdate': 'agent_message_chunk', 'content': {'type': 'text', 'text': 'compaction_start is plain text'}})
+            agent.updates.accept('fixture', {'sessionUpdate': 'agent_message_chunk', 'content': {'type': 'text', 'text': 'compaction_start is plain text'}})
             await pilot.pause()
             assert '27.0K' in str(view.status) and app._exception is None
         await asyncio.get_running_loop().shutdown_default_executor()

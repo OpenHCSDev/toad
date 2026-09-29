@@ -58,7 +58,7 @@ async def main():
                                  "protocol": "acp"}, "fixture")
             agent.attach_surface(view)
             view.agent = agent
-            agent.rpc_session_update("fixture", {
+            agent.updates.accept("fixture", {
                 "sessionUpdate": "agent_message_chunk",
                 "content": {"type": "text", "text": ""},
                 "_meta": encode_updates(TranscriptSnapshotUpdate(TranscriptPage(
