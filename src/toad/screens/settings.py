@@ -54,4 +54,6 @@ class SettingsScreen(ModalScreen):
 
     async def action_dismiss(self, result: ScreenResultType | None = None) -> None:
         self.query("#search").focus()
-        self.call_after_refresh(self.dismiss, result)
+        # The stack owner can await removal; this modal's own message loop
+        # cannot await its termination while running its dismissal callback.
+        self.app.call_after_refresh(self.dismiss, result)

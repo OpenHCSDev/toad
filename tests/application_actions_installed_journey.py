@@ -59,11 +59,14 @@ async def main():
         peer=Path(__file__).with_name('acp_completion_server.py')
         data={'name':'Q8 physical SDK peer','identity':'q8-sdk','short_name':'Q8','protocol':'acp',
               'run_command':{'*':shlex.join([sys.executable,str(peer)])}}
+        print('STARTING_INSTALLED_NORMAL_APP',flush=True)
         app=InstalledApp(project_dir=str(project),agent_data=data)
         async with app.run_test(size=(130,44)) as pilot:
+            print('NORMAL_APP_MOUNTED',flush=True)
             source=app.selected_session
             view=source.conversation
             await until(pilot, lambda: view.agent is not None and view.agent.ready)
+            print('PHYSICAL_SDK_READY',flush=True)
             prompt=view.prompt
             prompt.focus();await pilot.press(*'Q8_FIRST_REPLY','enter')
             await until(pilot, lambda: 'COMPLETION_PEER_EXECUTED Q8_FIRST_REPLY' in viewport_text(view.query_one('Window')))
@@ -75,6 +78,7 @@ async def main():
             await pilot.press('f1')
             await until(pilot,lambda: not app.screen.query('HelpPanel'))
             assert prompt.text==draft and prompt.prompt_text_area.document is document
+            print('OPENING_SETTINGS_MODAL',flush=True)
             await pilot.press('f2')
             await until(pilot,lambda:isinstance(app.screen,SettingsScreen))
             search=app.screen.query_one('#search',Input)
@@ -120,6 +124,7 @@ async def main():
             assert json.loads(settings_path.read_text())['ui']['footer'] is True and not app.settings.changed
             print('REAL_WRITE_FAILURE_VISIBLE_DIRTY_VALUE_RETRY_AND_TEMP_RETIREMENT_PASS',flush=True)
             # Quit while editor still focused; no blur/save sleeps in product.
+            print('OPENING_SETTINGS_MODAL',flush=True)
             await pilot.press('f2')
             await until(pilot,lambda:isinstance(app.screen,SettingsScreen))
             width=next(w for w in app.screen.query(InputEditor) if w.bound.kind is UiSettings.column_width)
