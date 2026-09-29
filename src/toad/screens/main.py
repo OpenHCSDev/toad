@@ -289,7 +289,7 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
         try:
             sidebar = self.query_one(CommsSidebar)
             sidebar.session_thread = thread_name
-            sidebar._refresh()
+            sidebar.observation.refresh()
         except Exception:
             pass
         if self.id is not None:
@@ -423,7 +423,7 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
                 return
             peers = [
                 name
-                for name in sorted(sidebar._comms_registry_names())
+                for name in sorted(sidebar.observation.registry_names())
                 if name != self._session_thread
             ]
             target = peers[0] if peers else ""

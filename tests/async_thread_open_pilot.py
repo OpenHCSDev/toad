@@ -86,7 +86,7 @@ async def main():
                 source = app.selected_mode
                 app.screen._agent = agent_data
                 sidebar = app.screen.query_one(CommsSidebar)
-                await sidebar.sync_sessions()
+                await sidebar.observation.sync()
                 original_read = type(comms.views).viewer_snapshot
 
                 def slow_read(self, *args, **kwargs):
@@ -154,8 +154,8 @@ async def main():
                     conversation.prompt.focus()
                     await pilot.press("h", "i")
                     assert conversation.prompt.text == "hi"
-                    await asyncio.wait_for(app.switch_mode(source), 2)
-                    await asyncio.wait_for(app.switch_mode(mode), 2)
+                    await asyncio.wait_for(app.select_session(source), 2)
+                    await asyncio.wait_for(app.select_session(mode), 2)
                     assert not release.is_set() and (not disk_release.is_set())
                     assert conversation.query(ThreadLoading)
                     release.set()

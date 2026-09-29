@@ -49,7 +49,7 @@ class ThreadActions:
             from toad.widgets.comms_sidebar import CommsSidebar
             sidebar = app.screen.query_one_optional(CommsSidebar)
             if sidebar is not None:
-                observed = sidebar._wire
+                observed = sidebar.observation.service
                 if observed is not None:
                     source_root = observed.root
         try:

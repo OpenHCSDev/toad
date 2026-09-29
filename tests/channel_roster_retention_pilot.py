@@ -34,7 +34,7 @@ class FrameApp(ToadApp):
             visible = screen._compositor.visible_widgets
             self.roster_frames.append((self.current_mode, sidebar is not None and any(
                 item.target_name == "#all" and item in visible
-                for item in sidebar._row_map.values()
+                for item in sidebar.projection.channels.values()
             )))
 
 
@@ -43,9 +43,9 @@ async def settled(app, pilot):
         while True:
             await pilot.pause(.02)
             sidebar = app.screen.query_one_optional(CommsSidebar)
-            if (sidebar is not None and sidebar.display and sidebar.navigation_ready.is_set()
-                    and sidebar._last_snapshot is not None and not sidebar._snapshot_pending
-                    and any(item.target_name == "#kept" for item in sidebar._row_map.values())):
+            if (sidebar is not None and sidebar.display and sidebar.navigation.ready.is_set()
+                    and sidebar.projection.snapshot is not None and not sidebar.observation.pending
+                    and any(item.target_name == "#kept" for item in sidebar.projection.channels.values())):
                 return sidebar
 
 
@@ -63,19 +63,19 @@ async def main():
         async with app.run_test(size=(130, 45)) as pilot:
             first = app.selected_mode
             await settled(app, pilot)
-            second = (await app.session_navigation.new(app.get_main_screen)).mode_name
+            second = (await app.session_navigation.new(app.session_navigation.default_source)).mode_name
             await settled(app, pilot)
             channel = await channel_target("#kept").open(NavigationContext(app, first, root, me))
             await settled(app, pilot)
             modes = (first, second, channel)
             sidebars, original_rows = {}, {}
             for mode in modes:
-                await app.switch_mode(mode)
+                await app.select_session(mode)
                 sidebar = await settled(app, pilot)
                 app.screen.query_one("#channels-sidebar", SideBar).reveal()
                 await pilot.pause()
                 sidebars[mode] = sidebar
-                original_rows[mode] = dict(sidebar._row_map)
+                original_rows[mode] = dict(sidebar.projection.channels)
 
             # Visiting other tabs must not destroy an already rendered roster.
             for mode in modes:
@@ -83,49 +83,49 @@ async def main():
                            for item in original_rows[mode].values()), (
                     "Warm channel rows retired on tab switch", mode)
             assert all(sidebar is sidebars[first] for sidebar in sidebars.values())
-            await app.switch_mode("store")
-            with patch.object(sidebar, "_route_stamp", wraps=sidebar._route_stamp) as probe:
-                sidebar._refresh()
+            await app.select_session("store")
+            with patch.object(sidebar.observation, "current_route_stamp", wraps=sidebar.observation.current_route_stamp) as probe:
+                sidebar.observation.refresh()
                 assert not probe.called, "A parked shared roster still polls its source"
-            await app.switch_mode(channel)
+            await app.select_session(channel)
             await settled(app, pilot)
 
             app.expected_modes = set(modes)
             for mode in (*reversed(modes), *modes, *reversed(modes)):
-                await app.switch_mode(mode)
+                await app.select_session(mode)
                 sidebar = await settled(app, pilot)
-                assert sidebar._row_map == original_rows[mode]
+                assert sidebar.projection.channels == original_rows[mode]
             assert app.roster_frames and all(present for _, present in app.roster_frames), app.roster_frames
             app.expected_modes = None
 
             # Real wire changes still reconcile, preserving unaffected row identities.
-            retained = dict(sidebars[second]._row_map)
+            retained = dict(sidebars[second].projection.channels)
             comms.channels.create_tag("added")
             active = app.screen.query_one(CommsSidebar)
-            active._refresh()
+            active.observation.refresh()
             async with asyncio.timeout(12):
-                while not any(item.target_name == "#added" for item in active._row_map.values()):
+                while not any(item.target_name == "#added" for item in active.projection.channels.values()):
                     await pilot.pause(.02)
-            await app.switch_mode(second)
+            await app.select_session(second)
             sidebar = await settled(app, pilot)
             async with asyncio.timeout(12):
-                while not any(item.target_name == "#added" for item in sidebar._row_map.values()):
+                while not any(item.target_name == "#added" for item in sidebar.projection.channels.values()):
                     await pilot.pause(.02)
-            assert all(sidebar._row_map[key] is item for key, item in retained.items())
+            assert all(sidebar.projection.channels[key] is item for key, item in retained.items())
 
             # Retention is not route authority. A route change hides old rows
             # synchronously; the normal validated refresh can show them again.
-            stamp = sidebar._route_stamp()
-            with patch.object(sidebar, "_route_stamp", return_value=((0, 1, 2, 3), stamp[1])):
-                sidebar.prepare_navigation()
+            stamp = sidebar.observation.current_route_stamp()
+            with patch.object(sidebar.observation, "current_route_stamp", return_value=((0, 1, 2, 3), stamp[1])):
+                sidebar.navigation.prepare()
                 assert not sidebar.display
                 assert all(item.is_attached for item in retained.values())
-            sidebar._refresh()
+            sidebar.observation.refresh()
             await settled(app, pilot)
 
-            await app.switch_mode(first)
+            await app.select_session(first)
             await settled(app, pilot)
-            closed_rows = tuple(sidebars[second]._row_map.values())
+            closed_rows = tuple(sidebars[second].projection.channels.values())
             await app.session_navigation.close(second)
             await pilot.pause()
             assert closed_rows and all(not item._closed and item.is_attached for item in closed_rows)

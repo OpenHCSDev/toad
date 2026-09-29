@@ -23,7 +23,6 @@ from toad.widgets.conversation import ThreadLoading
 from toad.widgets.session_tabs import SessionLabel, SessionsTabs
 from toad.widgets.side_bar import SideBar
 from toad.widgets.thread_comms import ThreadCommsSidebar
-from toad.widgets.virtual_channel_list import VirtualChannelList
 
 
 class LoadingApp(App):
@@ -56,7 +55,6 @@ async def check_busy_labels() -> None:
             XDG_DATA_HOME=str(root / "data"),
             XDG_STATE_HOME=str(root / "state"),
             AGENT_COMMS_ROOT=str(root / "wire"),
-            TOAD_BENCH_VIRTUAL_CHANNELS="1",
         )
         me = session_thread_name(root)
         comms = wire(root / "wire")
@@ -75,17 +73,9 @@ async def check_busy_labels() -> None:
         async with app.run_test(size=(100, 34)) as pilot:
             await pilot.pause()
             sidebar = app.screen.query_one(CommsSidebar)
-            await sidebar.sync_sessions()
-            listing = sidebar.query_one(VirtualChannelList)
-            rows = [
-                item
-                for item in listing.options
-                if isinstance(item.prompt, Content)
-                and "busy-worker" in item.prompt.plain
-            ]
-            assert rows and any(
-                (frame in row.prompt.plain for frame in FRAMES for row in rows)
-            )
+            await sidebar.observation.sync()
+            rows = [row for row in sidebar.projection.rows if row.target_name == "busy-worker"]
+            assert rows and any(frame in row.render().plain for frame in FRAMES for row in rows)
             tabs = app.screen.query_one(SessionsTabs)
             await tabs._sync_tabs()
             await pilot.pause()
@@ -96,17 +86,17 @@ async def check_busy_labels() -> None:
                 f"SessionLabel#{first.mode_name}", SessionLabel
             )
             assert first.title.startswith("⌛ ") and label.render().plain[0] in FRAMES
-            before_sidebar = rows[0].prompt.plain
+            before_sidebar = rows[0].render().plain
             before_tab = label.render().plain
             with patch.object(
                 app.screen, "_refresh_layout", wraps=app.screen._refresh_layout
             ) as layout:
-                sidebar._animate_busy()
+                sidebar.projection.animate()
                 tabs._animate_busy()
                 await pilot.pause()
-                assert rows[0].prompt.plain != before_sidebar
+                assert rows[0].render().plain != before_sidebar
                 assert label.render().plain != before_tab
-                assert rows[0].prompt.plain[0] == " "
+                assert any(frame in rows[0].render().plain for frame in FRAMES)
                 assert layout.call_count == 0, "Spinner repaint triggered full layout"
 
             await app.screen.on_coordination_update(CoordinationUpdate(

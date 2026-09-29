@@ -49,7 +49,7 @@ class FrameApp(ToadApp):
             self.frames.append((self.current_mode, bar is self.expected_bar,
                                 bar is not None and any(row.target_name == "#all"
                                 and row in screen._compositor.visible_widgets
-                                for row in bar.roster._row_map.values()),
+                                for row in bar.roster.projection.channels.values()),
                                 screen.query_one_optional(WorkspaceHeader) is self.workspace_chrome.navigation.widget))
 
 
@@ -88,7 +88,7 @@ async def main():
                 assert footer.compact
                 bar.reveal()
                 await pilot.pause()
-                original_rows = dict(roster._row_map)
+                original_rows = dict(roster.projection.channels)
                 original_tasks = {key: row._task for key, row in original_rows.items()}
                 owner = app.selected_mode
                 right = app.screen.query_one("#thread-sidebar", SideBar)
@@ -100,7 +100,7 @@ async def main():
                 cached_lines = dict(marker._styles_cache._cache)
                 assert cached_lines
                 app.expected_bar = bar
-                second = (await app.session_navigation.new(app.get_main_screen)).mode_name
+                second = (await app.session_navigation.new(app.session_navigation.default_source)).mode_name
                 await wait_channel_roster(app, pilot, "#all")
                 assert app.screen.query_one(ChannelsSidebar) is bar
                 assert app.screen.query_one(Footer) is footer
@@ -121,7 +121,7 @@ async def main():
                 assert await pilot.mouse_down(handle, offset=(0, 4))
                 assert app.mouse_captured is handle and handle._dragging
                 try:
-                    await app.switch_mode(owner)
+                    await app.select_session(owner)
                     await pilot.pause()
                     assert app.mouse_captured is None and (not handle._dragging)
                 finally:
@@ -163,14 +163,14 @@ async def main():
                 channel = await channel_target("#shared").open(NavigationContext(app, owner, root, "owner"))
                 await wait_channel_roster(app, pilot, "#all")
                 for mode in (second, thread, owner, channel, second):
-                    await app.switch_mode(mode)
+                    await app.select_session(mode)
                     await pilot.pause()
                     assert app.screen.query_one(ChannelsSidebar) is bar
                     if app.screen.query_one_optional(Footer) is not None:
                         assert app.screen.query_one(Footer) is footer
                         assert footer in app.screen.bindings_updated_signal._subscriptions
                         assert footer._binding_state == footer._current_binding_state(app.screen)
-                    assert all(roster._row_map[key] is row for key, row in original_rows.items())
+                    assert all(roster.projection.channels[key] is row for key, row in original_rows.items())
                     assert all(row._task is original_tasks[key] for key, row in original_rows.items())
                 assert sum(isinstance(node, ChannelsSidebar) for node in app._registry) == 1
                 assert sum(isinstance(node, SessionsTabs) for node in app._registry) == 1
@@ -187,10 +187,10 @@ async def main():
                 assert app.screen.query_one(Footer) is footer and footer.compact
                 assert not bar.display
                 await app.session_navigation.close(preview)
-                await app.switch_mode("store")
+                await app.select_session("store")
                 assert not app.workspace_chrome.navigation.widget.display
                 assert not footer.display
-                await app.switch_mode(second)
+                await app.select_session(second)
                 await app.session_navigation.close(second)
                 await pilot.pause()
                 assert bar.is_attached and (not bar._closed)
@@ -208,7 +208,7 @@ async def main():
                     opening = asyncio.create_task(channel_target("#slow").open(NavigationContext(app, owner, root, "owner")))
                     try:
                         await asyncio.wait_for(mount_entered.wait(), 3)
-                        await app.switch_mode(owner)
+                        await app.select_session(owner)
                     finally:
                         mount_release.set()
                     delayed = await asyncio.wait_for(opening, 8)
@@ -227,7 +227,7 @@ async def main():
                     )
                 )
                 other.channels.create_tag("new-source")
-                old_service = roster._wire
+                old_service = roster.observation.service
                 read_entered, read_release = (Event(), Event())
                 original_read = old_service.views.viewer_snapshot
 
@@ -239,38 +239,38 @@ async def main():
 
                 with patch.object(old_service.views, "viewer_snapshot", held_read):
                     roster._last_revision = None
-                    roster._refresh()
+                    roster.observation.refresh()
                     try:
                         assert await asyncio.to_thread(read_entered.wait, 3)
                         os.environ["AGENT_COMMS_ROOT"] = str(new_root)
-                        await app.session_navigation.new(app.get_main_screen)
+                        await app.session_navigation.new(app.session_navigation.default_source)
                         assert app.screen.query_one(ChannelsSidebar) is bar
                         read_release.set()
                         await wait_channel_roster(app, pilot, "#new-source")
                     finally:
                         read_release.set()
-                assert roster._wire.root == new_root
-                assert "owner" not in roster._last_snapshot.session_threads.values(), (
+                assert roster.observation.service.root == new_root
+                assert "owner" not in roster.projection.snapshot.session_threads.values(), (
                     "A same-named new-wire thread borrowed an old-wire view"
                 )
                 assert not any(
-                    (row.target_name == "#shared" for row in roster._row_map.values())
+                    (row.target_name == "#shared" for row in roster.projection.channels.values())
                 )
                 remaining = app.selected_mode
                 abandoned = (
-                    await app.session_navigation.new(app.get_main_screen)
+                    await app.session_navigation.new(app.session_navigation.default_source)
                 ).mode_name
-                await app.switch_mode(remaining)
+                await app.select_session(remaining)
                 bind_entered, bind_release = (asyncio.Event(), asyncio.Event())
-                bind = roster.bind_wire
+                bind = roster.observation.bind
 
                 async def slow_bind(service):
                     bind_entered.set()
                     await bind_release.wait()
                     await bind(service)
 
-                with patch.object(roster, "bind_wire", slow_bind):
-                    activation = asyncio.ensure_future(app.switch_mode(abandoned))
+                with patch.object(roster.observation, "bind", slow_bind):
+                    activation = asyncio.ensure_future(app.select_session(abandoned))
                     try:
                         await asyncio.wait_for(bind_entered.wait(), 3)
                         await app.session_navigation.close(abandoned)

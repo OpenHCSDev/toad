@@ -31,7 +31,7 @@ class FrameApp(ToadApp):
         sidebar = screen.query_one_optional(CommsSidebar)
         if sidebar is None:
             return ()
-        region = sidebar.scroll_containers[0].content_region
+        region = sidebar.navigation.scroll_containers[0].content_region
         return tuple(
             (
                 strip.text[region.x : region.right]
@@ -53,7 +53,7 @@ class FrameApp(ToadApp):
             self.panel_frames.append(
                 (
                     self.current_mode,
-                    sidebar.navigation_ready.is_set(),
+                    sidebar.navigation.ready.is_set(),
                     self.panel_text(screen),
                 )
             )
@@ -66,16 +66,16 @@ async def main(*, finish_before_layout=False):
 
     def before_layout(sidebar, callback, *args, **kwargs):
         if callback == sidebar._finish_navigation:
-            if not sidebar.navigation_ready.is_set():
+            if not sidebar.navigation.ready.is_set():
                 completion_attempts.append(
                     (
                         sidebar.display,
                         sidebar.navigation.channel_scroll_y,
-                        sidebar.scroll_containers[0].max_scroll_y,
+                        sidebar.navigation.scroll_containers[0].max_scroll_y,
                     )
                 )
             callback(*args, **kwargs)
-            assert not sidebar.navigation_ready.is_set() or sidebar.display
+            assert not sidebar.navigation.ready.is_set() or sidebar.display
             return True
         return original_after_refresh(sidebar, callback, *args, **kwargs)
 
@@ -112,7 +112,7 @@ async def main(*, finish_before_layout=False):
             owner = app.selected_mode
             worker = await app.session_navigation.new(lambda: MainScreen(root, agent_session_id="worker"))
             await app.screen.on_coordination_update(coordination_update(str(comms.root), 'worker'))
-            await app.switch_mode(owner)
+            await app.select_session(owner)
             await pilot.pause()
             sidebar = app.screen.query_one(CommsSidebar)
 
@@ -127,7 +127,7 @@ async def main(*, finish_before_layout=False):
 
             async def settled(view):
                 async with asyncio.timeout(5):
-                    await view.navigation_ready.wait()
+                    await view.navigation.ready.wait()
                 await pilot.pause()
 
             group(sidebar, "#any").toggle_members()
@@ -139,7 +139,7 @@ async def main(*, finish_before_layout=False):
             await pilot.pause()
             await pilot.wait_for_scheduled_animations()
             expected_scroll = tuple(
-                (widget.scroll_y for widget in sidebar.scroll_containers)
+                (widget.scroll_y for widget in sidebar.navigation.scroll_containers)
             )
             assert max(expected_scroll) > 0, [
                 (
@@ -194,13 +194,13 @@ async def main(*, finish_before_layout=False):
             expected_scroll = tuple(
                 (widget.scroll_y for widget in current.scroll_containers)
             )
-            await app.switch_mode(owner)
+            await app.select_session(owner)
             await pilot.pause()
             await settled(sidebar)
             assert not group(sidebar, "#channel-28").expanded
             assert not group(sidebar, "#any").expanded
             actual_scroll = tuple(
-                (widget.scroll_y for widget in sidebar.scroll_containers)
+                (widget.scroll_y for widget in sidebar.navigation.scroll_containers)
             )
             assert actual_scroll == expected_scroll, (actual_scroll, expected_scroll)
             assert app.sidebar_state.selected == SidebarSelection(
@@ -215,7 +215,7 @@ async def main(*, finish_before_layout=False):
             await pilot.pause()
             await pilot.wait_for_scheduled_animations()
             expected_scroll = tuple(
-                (widget.scroll_y for widget in sidebar.scroll_containers)
+                (widget.scroll_y for widget in sidebar.navigation.scroll_containers)
             )
             member.action_open_selected()
             assert member.has_class("-selected")

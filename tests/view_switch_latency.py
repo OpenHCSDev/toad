@@ -92,10 +92,10 @@ async def main():
                 for line in range(tool_lines)
             )
             for _ in range(tab_count - 1):
-                await app.session_navigation.new(app.get_main_screen)
+                await app.session_navigation.new(app.session_navigation.default_source)
                 modes.append(app.selected_mode)
             for mode in modes:
-                await app.switch_mode(mode)
+                await app.select_session(mode)
                 await app.selected_session.conversation.contents.mount(*[
                     AgentResponse(f"## Block {i}\n\n" + response_body)
                     for i in range(responses)
@@ -143,15 +143,16 @@ async def main():
             else:
                 layout_context = (nullcontext(), nullcontext())
             if os.environ.get("TOAD_SWITCH_SIDEBAR_TRACE"):
-                from toad.widgets.comms_sidebar import CommsSidebar
+                from toad.sidebar_projection import SidebarProjection
 
-                original_present = CommsSidebar._present_snapshot
+                original_present = SidebarProjection.publish
 
-                async def timed_present(sidebar, snapshot):
+                async def timed_present(projection, snapshot):
+                    sidebar = projection.sidebar
                     started = time.perf_counter()
-                    changed = snapshot != sidebar._last_snapshot
+                    changed = snapshot != sidebar.projection.snapshot
                     try:
-                        return await original_present(sidebar, snapshot)
+                        return await original_present(projection, snapshot)
                     finally:
                         sidebar_events.append({"index": switch_index[0],
                             "mode": sidebar.screen.id,
@@ -159,7 +160,7 @@ async def main():
                             "changed": changed,
                             "elapsed_ms": round((time.perf_counter() - started) * 1000, 1)})
 
-                sidebar_context = patch.object(CommsSidebar, "_present_snapshot", timed_present)
+                sidebar_context = patch.object(SidebarProjection, "publish", timed_present)
             else:
                 sidebar_context = nullcontext()
             with layout_context[0], layout_context[1], sidebar_context:
@@ -172,7 +173,7 @@ async def main():
                     started = time.perf_counter()
                     painted = asyncio.get_running_loop().create_future()
                     app.pending_switch = SwitchSample(mode, started, painted)
-                    await app.switch_mode(mode)
+                    await app.select_session(mode)
                     duration = await asyncio.wait_for(painted, 5)
                     timings.append(duration)
                     if duration > .05:

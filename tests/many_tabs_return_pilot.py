@@ -143,7 +143,7 @@ async def main(*, empty=False, trace=False, observe=False, output=None, peers=0,
                 for name in targets:
                     if empty:
                         mode = (
-                            await app.session_navigation.new(app.get_main_screen)
+                            await app.session_navigation.new(app.session_navigation.default_source)
                         ).mode_name
                     else:
                         mode = await app.thread_navigation.open(
@@ -423,7 +423,7 @@ async def main(*, empty=False, trace=False, observe=False, output=None, peers=0,
                                 switch_cpu = time.thread_time()
                                 displayed = asyncio.get_running_loop().create_future()
                                 app.pending_display = (mode, displayed)
-                                await app.switch_mode(mode)
+                                await app.select_session(mode)
                                 record["switch_ms"] = round((time.perf_counter() - started) * 1000, 2)
                                 record["switch_ui_cpu_ms"] = round((time.thread_time() - switch_cpu) * 1000, 2)
                                 if not display_only:
@@ -597,13 +597,13 @@ async def main(*, empty=False, trace=False, observe=False, output=None, peers=0,
 async def verify_post_switch(app, pilot, modes, empty, observe, targets, run_started, ownership_census):
     """Retain the original resize/same-mode/close and source-route assertions."""
     await pilot.resize_terminal(96, 31)
-    await app.switch_mode(modes[-1])
+    await app.select_session(modes[-1])
     await pilot.pause()
     assert app.screen.size == app.size
     finished = asyncio.Event()
 
     async def same_mode():
-        await app.switch_mode(app.selected_mode)
+        await app.select_session(app.selected_mode)
         finished.set()
 
     app.screen.call_later(same_mode)
@@ -611,7 +611,7 @@ async def verify_post_switch(app, pilot, modes, empty, observe, targets, run_sta
     assert not app._atomic_mode_switch
 
     hidden_sidebar = app.screen.query_one(CommsSidebar)
-    retained_channels = dict(hidden_sidebar._row_map)
+    retained_channels = dict(hidden_sidebar.projection.channels)
     assert retained_channels
     assert all(row.is_attached for row in retained_channels.values())
     for mode in modes[:3]:
@@ -620,11 +620,11 @@ async def verify_post_switch(app, pilot, modes, empty, observe, targets, run_sta
         await app.session_navigation.close(mode)
         if ownership_census:
             print(json.dumps({"closed": mode, "elapsed_s": round(time.perf_counter() - run_started, 2)}), flush=True)
-    await app.switch_mode(modes[3])
+    await app.select_session(modes[3])
     async with asyncio.timeout(5):
-        await hidden_sidebar.navigation_ready.wait()
+        await hidden_sidebar.navigation.ready.wait()
     await pilot.pause()
-    assert all(hidden_sidebar._row_map[key] is row for key, row in retained_channels.items())
+    assert all(hidden_sidebar.projection.channels[key] is row for key, row in retained_channels.items())
     assert tuple(label.id for label in app.screen.query(SessionLabel)) == tuple(
         tab.mode_name for tab in app.open_tabs
     )
@@ -639,7 +639,7 @@ async def verify_post_switch(app, pilot, modes, empty, observe, targets, run_sta
         expected_modes = dict(zip(targets[3:], modes[3:]))
         for (_, name), row in rebuilt.items():
             assert row.mode_name == expected_modes.get(name), (name, row.mode_name, expected_modes.get(name))
-        await hidden_sidebar.sync_sessions()
+        await hidden_sidebar.observation.sync()
         refreshed = {
             (row.query_ancestor(ChannelGroup).row.target_name, row.thread_name): row
             for row in hidden_sidebar.query(ThreadStatusRow)

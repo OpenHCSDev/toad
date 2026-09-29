@@ -16,7 +16,7 @@ def test_t5_deletion_closure():
         if isinstance(declaration, ast.ClassDef) and declaration.name == 'TranscriptHistory':
             for node in ast.walk(declaration):
                 assert not isinstance(node, ast.Attribute) or node.attr not in {'_closing', '_pruning'}, node.lineno
-    for relative in ('navigation_target.py', 'widgets/comms_sidebar.py', 'widgets/virtual_channel_list.py'):
+    for relative in ('navigation_target.py', 'widgets/comms_sidebar.py'):
         for node in ast.walk(ast.parse((ROOT / relative).read_text())):
             if isinstance(node, ast.Attribute) and isinstance(node.value, ast.Name):
                 assert not (node.value.id in {'row', 'choice'} and node.attr == 'kind'), (relative, node.lineno)

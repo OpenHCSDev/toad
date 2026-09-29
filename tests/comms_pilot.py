@@ -71,7 +71,7 @@ def row(screen, target: str) -> CommsRow:
 
 
 def open_rows(screen):
-    return screen.app.workspace_chrome.channels.widget.roster.session_rows
+    return screen.app.workspace_chrome.channels.widget.roster.projection.session_rows
 
 
 async def main() -> None:
@@ -240,7 +240,7 @@ async def main() -> None:
             assert (
                 session_rows[0].rich_style.color != session_rows[0].rich_style.bgcolor
             ), (session_rows[0].rich_style, session_rows[0].classes, app.focused,
-                app.sidebar_state, app.screen.query_one(CommsSidebar).navigation_ready.is_set())
+                app.sidebar_state, app.screen.query_one(CommsSidebar).navigation.ready.is_set())
             assert not app.screen.query_one("#thread-sidebar", SideBar)._panels_loaded
             shell_sidebar = app.screen.query_one("#channels-sidebar", SideBar)
             panels = list(shell_sidebar.query(SideBarCollapsible))
@@ -335,7 +335,7 @@ async def main() -> None:
             assert not shell_sidebar.collapsed
             focused_session = open_rows(app.screen)[0]
             assert focused_session.has_focus
-            shortcut_snapshot = app.screen.query_one(CommsSidebar)._snapshot()
+            shortcut_snapshot = app.screen.query_one(CommsSidebar).projection.snapshot
             assert focused_session.has_class("-wire-thread"), (
                 shortcut_snapshot.session_threads,
                 shortcut_snapshot.all_people,
@@ -460,7 +460,7 @@ async def main() -> None:
             await pilot.pause()
             assert created_sidebar.collapsed
             assert app.settings.sidebar.hide
-            await app.switch_mode(owner_mode)
+            await app.select_session(owner_mode)
             await pilot.pause()
             assert app.screen.query_one("#channels-sidebar", SideBar).collapsed
             assert [
@@ -469,7 +469,7 @@ async def main() -> None:
                 if item.target_name == renamed_thread
             ] == [created_mode]
             assert len(open_rows(app.screen)) == 2
-            await app.switch_mode(created_mode)
+            await app.select_session(created_mode)
             await pilot.pause()
             assert app.screen.query_one("#channels-sidebar", SideBar).collapsed
             app.screen.query_one("#channels-sidebar", SideBar).reveal()
@@ -486,16 +486,16 @@ async def main() -> None:
                     stopped_agents += 1
 
             created_conversation.agent = ClosingAgent()
-            await app.switch_mode(owner_mode)
+            await app.select_session(owner_mode)
             assert await pilot.click(f"SessionLabel#{created_mode}", button=2)
             await pilot.pause()
             assert app.selected_mode == owner_mode
             assert app.session_tracker.session_count == 1
             assert stopped_agents == 1
             owner_sidebar = app.screen.query_one(CommsSidebar)
-            owner_sidebar._refresh()
+            owner_sidebar.observation.refresh()
             await pilot.pause()
-            owner_snapshot = owner_sidebar._snapshot()
+            owner_snapshot = owner_sidebar.projection.snapshot
             assert owner_mode in owner_snapshot.session_threads, (
                 owner_snapshot.session_threads,
                 app.screen.initial_coordination_root,
@@ -972,7 +972,7 @@ async def main() -> None:
             state_path = root / "state"
             state_path.mkdir()
             paths.get_state = lambda: state_path
-            await app.session_navigation.new(app.get_main_screen)
+            await app.session_navigation.new(app.session_navigation.default_source)
             await pilot.pause()
             saved_mode = app.selected_mode
             saved_db = DB()

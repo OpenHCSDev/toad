@@ -747,8 +747,8 @@ class ToadApp(WorkspaceSessionShutdown, App, inherit_bindings=False):
 
         sidebar = screen.query_one_optional(CommsSidebar)
         observed_root = screen.coordination_root or (
-            sidebar._wire.root
-            if sidebar is not None and sidebar._wire is not None
+            sidebar.observation.service.root
+            if sidebar is not None and sidebar.observation.service is not None
             else None
         )
         if observed_root is not None and not root_is_current(observed_root):
@@ -1020,7 +1020,7 @@ class ToadApp(WorkspaceSessionShutdown, App, inherit_bindings=False):
             return
         sidebar.query_ancestor(SideBar).reveal()
         sidebar.query_ancestor(SideBarCollapsible).collapsed = False
-        await sidebar.focus_current_session()
+        await sidebar.navigation.focus_current()
 
     @on(messages.LaunchAgent)
     def on_launch_agent(self, message: messages.LaunchAgent) -> None:

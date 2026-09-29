@@ -15,13 +15,11 @@ from __future__ import annotations
 
 import asyncio
 import os
-from dataclasses import dataclass
 from collections.abc import Callable, Mapping
 from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
-from agent_comms import context_tool_catalog
 from agent_comms.comms import Comms, wire
 from agent_comms.presentation import ChannelView, CoordinationSnapshot, ThreadView, WireRevision
 from textual import on
@@ -32,8 +30,7 @@ from textual.dom import DOMNode
 from textual.message import Message
 from textual.reactive import reactive
 from textual.widget import Widget
-from textual.widgets import OptionList, Static
-from textual.widgets.option_list import Option
+from textual.widgets import Static
 
 from toad.constants import COMMS_REFRESH_INTERVAL
 
@@ -52,20 +49,15 @@ from toad.sidebar_preparation import ThreadRowInput, ThreadRowsWork
 from toad.widgets.activity_spinner import FRAMES
 from toad.widgets.session_sidebar import ThreadStatusRow
 from toad.widgets.session_sort import ChannelListSort, SessionSort
-from toad.widgets.virtual_channel_list import VirtualChannelList, VirtualChoice, TargetChoice, NewSessionChoice, styled_row
 from toad.widgets.sidebar_tree import SidebarDisclosure, SidebarGroup, TargetTree
 from toad.widgets.side_bar import SidebarVisibilityObserver
 from toad.navigation_target import NavigationTarget, channel_target, person_target
+from toad.sidebar_snapshot import SidebarSnapshot
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
 
 
-@dataclass(frozen=True)
-class SidebarSnapshot:
-    wire: CoordinationSnapshot
-    session_threads: Mapping[str, str]
-    all_people: Mapping[str, ThreadView]
 
 
 class ChannelDisclosure(SidebarDisclosure):
@@ -135,12 +127,12 @@ class ChannelGroup(SidebarGroup):
 
     def toggle_members(self) -> None:
         super().toggle_members()
-        self.query_ancestor(CommsSidebar).navigation.expanded[self.row.target_name] = self.expanded
+        self.query_ancestor(CommsSidebar).navigation.state.expanded[self.row.target_name] = self.expanded
 
     async def _sync_and_select(self) -> None:
         await self._sync_members()
         if self.is_attached and not self._pruning and not self._closing:
-            self.query_ancestor(CommsSidebar).apply_selection(force=True)
+            self.query_ancestor(CommsSidebar).navigation.apply(force=True)
 
     async def _sync_members(self) -> None:
         async with self._lock:
@@ -164,7 +156,7 @@ class ChannelGroup(SidebarGroup):
             # A tab may close while immutable row text is being prepared. The
             # shared roster survives that close; project live view routes only
             # after the await, rather than restoring a retired mode from a DTO.
-            current = self.query_ancestor(CommsSidebar)._snapshot(snapshot.wire)
+            current = self.query_ancestor(CommsSidebar).observation.project(snapshot.wire)
             modes = {name: mode for mode, name in current.session_threads.items()}
 
             def create(name):
@@ -181,6 +173,23 @@ class ChannelGroup(SidebarGroup):
 
             self.member_rows = await self.reconcile_rows(
                 wanted, self._members, create, update)
+
+
+    async def present(self, view: ChannelView,
+                               snapshot: SidebarSnapshot) -> None:
+        row = self.row
+        sidebar = self.query_ancestor(CommsSidebar)
+        if row.is_attached:
+            row.tooltip = f"{len(view.members)} threads · tags: {', '.join(sorted(view.channel.tags)) or 'all'}"
+            group = self
+            expanded = sidebar.navigation.state.expanded.get(row.target_name, row.target.expanded_by_default)
+            if group.expanded != expanded:
+                group.expanded = expanded
+                # The glyph has fixed dimensions. Mounting/removing members
+                # owns the layout change, not repainting an unchanged arrow
+                # on every wire snapshot (which reflows the transcript too).
+                group.disclosure.update("▾" if expanded else "▸", layout=False)
+            await group.update_members(view, snapshot)
 
 
 def _comms_root() -> Path:
@@ -204,8 +213,8 @@ class SelectTarget(Message):
         super().__init__()
 
 
-class RowNavigation:
-    """Selection and menu context shared by open and unopened destinations."""
+class CommsRow(ThreadStatusRow):
+    """One interactive row: a channel or a thread."""
 
     mode_name: str | None = None
 
@@ -219,8 +228,6 @@ class RowNavigation:
         self.target.show_menu(sidebar, offset, mode_name=self.mode_name, channel=self.query_ancestor(ChannelGroup).row.target_name)
 
 
-class CommsRow(RowNavigation, ThreadStatusRow):
-    """One interactive row: a channel or a thread."""
 
     DEFAULT_CSS = """
     CommsRow {
@@ -282,14 +289,14 @@ class CommsRow(RowNavigation, ThreadStatusRow):
 
     def action_open_selected(self) -> None:
         if sidebar := self._sidebar():
-            sidebar.remember_row(self)
+            sidebar.navigation.remember(self)
         screen = self.app.selected_session
         if isinstance(screen, NavigationOwner):
             # The route outlives this row (inactive rosters are retired after
             # presentation). Dispatch through its declared view owner without
             # another message bubbling through each sidebar container.
             self.app.run_worker(
-                screen.open_sidebar_target(self.target),
+                partial(screen.open_sidebar_target, self.target),
                 group="sidebar-open",
             )
         else:
@@ -317,7 +324,7 @@ class ThreadRow(CommsRow):
             super().action_open_selected()
         else:
             if sidebar := self._sidebar():
-                sidebar.remember_row(self)
+                sidebar.navigation.remember(self)
             self.app.select_session(self.mode_name)
 
 
@@ -440,817 +447,44 @@ class CoordinationStatus(Static):
 
 
 class CommsSidebar(SidebarVisibilityObserver, TargetTree):
-    """Local and remote sessions with wire channels and live activity.
-
-    Keyboard: up/down move the selection, enter opens the selected
-    target in the main pane. Mouse: click selects+opens, right-click
-    opens the context menu.
-    """
-
+    """One shared channel hierarchy; source, paint and reader intent have owners."""
     DEFAULT_CSS = """
-    CommsSidebar {
-        height: auto;
-        padding: 0 0 1 0;
-    }
+    CommsSidebar { height: auto; padding: 0 0 1 0; }
     CommsSidebar .section { color: $text-muted; padding: 1 0 0 0; }
     CommsSidebar .row-name { color: $text; }
     CommsSidebar .row-detail { color: $text-muted; }
     """
-
-    BINDINGS = [
-        ("up", "cursor_up", "Previous"),
-        ("down", "cursor_down", "Next"),
-        ("enter", "open_selected", "Open"),
-    ]
-
+    BINDINGS = [("up", "cursor_up", "Previous"), ("down", "cursor_down", "Next"),
+                ("enter", "open_selected", "Open")]
     selected: reactive[str] = reactive("", init=False)
     session_thread: reactive[str] = reactive("", init=False)
 
-    def __init__(
-        self, session_thread: str = "", selected_target: str = "", *, observe: bool = True, **kwargs
-    ) -> None:
+    def __init__(self, session_thread: str = "", selected_target: str = "", *,
+                 observe: bool = True, **kwargs):
         super().__init__(**kwargs)
+        from toad.sidebar_navigation import SidebarNavigation
+        from toad.sidebar_observation import SidebarObservation
+        from toad.sidebar_projection import SidebarProjection
         self.session_thread = session_thread
         self.selected = selected_target
-        self._observe = observe
-        self._row_map: dict[str, CommsRow] = {}
-        self._virtual = os.environ.get("TOAD_BENCH_VIRTUAL_CHANNELS") == "1"
-        self._virtual_targets: dict[str, VirtualChoice] = {}
-        self._busy_virtual_rows: dict[int, tuple[str, bool, bool, bool]] = {}
-        self._spinner_phase = 0
-        self._spinner_timer = None
-        self._horizontal_width = 0
         self.can_focus = True
         self._cursor = 0
-        # A screen constructs its sidebar before attachment to an App. Resolve
-        # the already-retained reader on mount rather than building a second
-        # registry/catalog and immediately throwing it away.
-        self._wire = None
-        self._last_snapshot: SidebarSnapshot | None = None
-        self._snapshot_pending = False
-        self._snapshot_lock = asyncio.Lock()
-        self._presentation_lock = asyncio.Lock()
-        self._last_revision: WireRevision | None = None
-        self._last_route_stamp: tuple[tuple[int, int, int, int] | None, ...] | None = None
-        self._last_actor = ""
-        self._last_filters: tuple[bool, bool] | None = None
-        self._last_read_marker_notice: str | None = None
-        self._rendered_selection: SidebarSelection | None = None
-        self._selected_row: CommsRow | None = None
-        self._selection_applied = False
-        self._rendered_mode: tuple[str, str | None] | None = None
-        self._rendered_expansion: dict[str, bool] = {}
-        self._rendered_actions: dict[str, str] = {}
-        self.navigation_ready = asyncio.Event()
-        self._navigation_revision = 0
-        self._navigation_worker = None
-
-    def compose(self) -> ComposeResult:
-        if self._virtual:
-            yield VirtualChannelList()
-
-    @property
-    def _restore_navigation(self) -> bool:
-        return not self.navigation_ready.is_set()
-
-    @property
-    def navigation(self) -> SidebarState:
-        return cast("ToadApp", self.app).sidebar_state
-
-    def capture_navigation(self) -> None:
-        if not self._restore_navigation:
-            channel, panels = self.scroll_containers
-            self.navigation.channel_scroll_y = channel.scroll_y
-            self.navigation.panel_scroll_y = panels.scroll_y
-
-    @property
-    def scroll_containers(self) -> tuple[Widget, Widget]:
-        from toad.widgets.side_bar import SideBar, SideBarCollapsible
-
-        panel = self.query_ancestor(SideBarCollapsible)
-        panels = panel.query_ancestor(SideBar).query_one("#sidebar-panels")
-        return panels, panels
-
-    def prepare_navigation(self) -> None:
-        self._navigation_revision += 1
-        self.navigation_ready.clear()
-        # Retained rows belong to their validated route. Hide a changed route
-        # before its first frame; ordinary same-route tab switches keep the
-        # already-rendered roster while the canonical refresh runs afterward.
-        if self._observe and self._last_snapshot is not None:
-            try:
-                if (self._last_route_stamp is None
-                        or self._route_stamp()[0] != self._last_route_stamp[0]):
-                    self.display = False
-            except (OSError, ValueError):
-                self.display = False
-
-    def start_navigation_hydration(self) -> None:
-        """Rebuild native rows only after the selected shell has been painted."""
-        if not self.is_attached or not self.screen.is_current or self._closing:
-            return
-        if self._navigation_worker is None or self._navigation_worker.is_finished:
-            self._navigation_worker = self.run_worker(
-                self._hydrate_navigation(), group="sidebar-navigation",
-            )
-
-    async def _hydrate_navigation(self) -> None:
-        while self.is_attached and self.screen.is_current and not self._closing:
-            revision = self._navigation_revision
-            await self.present_cached_sessions()
-            if revision == self._navigation_revision:
-                self.call_after_refresh(self._finish_navigation, revision)
-                return
-
-    def _finish_navigation(self, revision: int) -> None:
-        if (revision != self._navigation_revision or not self.is_attached
-                or not self.screen.is_current or self._closing):
-            return
-        if (self.display and self._last_snapshot is not None
-                and not self.navigation_ready.is_set()):
-            # A refresh callback may precede the resize messages from newly
-            # mounted rows. Commit their geometry before scroll_to can clamp
-            # the saved offset against the retired, empty shell's extent.
-            with self.app.batch_update():
-                for node in self.walk_children(Widget, with_self=True):
-                    node._check_refresh()
-                for ancestor in self.ancestors:
-                    if isinstance(ancestor, Widget):
-                        ancestor._check_refresh()
-                # Host activation already committed a complete native layout.
-                # Reflow only if source reconciliation mounted/changed geometry
-                # afterward; source readiness is not another host reflow request.
-                if self.screen._layout_required or self.screen._layout_widgets:
-                    self.screen._refresh_layout(self.app.size)
-                if self.restore_scroll():
-                    self.screen._refresh_layout(self.app.size, scroll=True)
-                self.navigation_ready.set()
-
-    def _selection_for(self, row: CommsRow) -> SidebarSelection:
-        channel = row.query_ancestor(ChannelGroup).row.target_name
-        return SidebarSelection(channel, row.target_name)
-
-    def remember_row(self, row: CommsRow) -> None:
-        if self._restore_navigation:
-            return
-        rows = self._ordered_rows()
-        if row in rows:
-            self._cursor = rows.index(row)
-            self.navigation.selected = self._selection_for(row)
-            self.apply_selection()
-
-    def focus_row(self, row: CommsRow) -> None:
-        rows = self._ordered_rows()
-        if row in rows:
-            self._cursor = rows.index(row)
-
-    def apply_selection(self, *, force: bool = False) -> None:
-        if self._virtual:
-            if self._last_snapshot is not None and (
-                force or self._rendered_selection != self.navigation.selected
-            ):
-                self._rebuild_virtual(self._last_snapshot)
-            return
-        if (not force and self._selection_applied
-                and self._rendered_selection == self.navigation.selected
-                and (self._selected_row is None or self._selected_row.is_attached)):
-            return
-        self._selected_row = None
-        for index, row in enumerate(self._ordered_rows()):
-            selected = self._selection_for(row) == self.navigation.selected
-            row.set_class(selected, "-selected")
-            if selected:
-                self._selected_row = row
-                self._cursor = index
-        self._rendered_selection = self.navigation.selected
-        self._selection_applied = True
-
-    def restore_scroll(self) -> bool:
-        if self._last_snapshot is None:
-            return False
-        if self._restore_navigation and self.is_attached and self.screen is self.app.screen:
-            return self.navigation.restore_scroll(*self.scroll_containers)
-        return False
+        self.navigation = SidebarNavigation(self)
+        self.observation = SidebarObservation(self, enabled=observe)
+        self.projection = SidebarProjection(self)
 
     def on_mount(self) -> None:
-        self._spinner_timer = self.set_interval(.18, self._animate_busy, pause=True)
-        app = cast("ToadApp", self.app)
-        # Every mounted tab observes the same wire revision. Retain the app's
-        # core reader rather than rebuilding its registry, bus and catalog
-        # caches for each independently mounted sidebar.
-        try:
-            root = _comms_root().resolve()
-        except (OSError, ValueError, RuntimeError):
-            self.display = False
-            return
-        from toad.screens.comms import CommsScreen
-
-        if isinstance(self.screen, CommsScreen) and self.screen.wire_root is not None:
-            if root != Path(self.screen.wire_root).resolve():
-                self.display = False
-                return
-        self._wire = (app.coordination_access.service if root == app.coordination_access.service.root
-                      else wire(root))
-        app.session_update_signal.subscribe(self, self._session_updated)
-        app.session_selected_signal.subscribe(self, self._mode_changed)
-        app.thread_actions_changed.subscribe(self, self._thread_actions_changed)
-        app.settings_changed_signal.subscribe(self, self._settings_changed)
-        if self._observe:
-            self.set_interval(COMMS_REFRESH_INTERVAL, self._refresh)
-        self.prepare_navigation()
-        from toad.screens.workspace import WorkspaceScreen
-
-        if isinstance(self.screen, WorkspaceScreen):
-            self.screen.frame_presentation.defer(self, self.start_navigation_hydration)
-        self._refresh_after_first_frame()
-
-    def _refresh_after_first_frame(self) -> None:
-        from toad.screens.workspace import WorkspaceScreen
-
-        screen = self.screen
-        if isinstance(screen, WorkspaceScreen):
-            screen.frame_presentation.defer(self, self._refresh)
-        else:
-            self.call_after_refresh(self._refresh)
-
-    def _sync_spinner(self, snapshot: SidebarSnapshot | None = None) -> None:
-        from toad.widgets.side_bar import SideBar
-
-        timer = self._spinner_timer
-        if timer is None:
-            return
-        current = snapshot or self._last_snapshot
-        bar = next((node for node in self.ancestors if isinstance(node, SideBar)), None)
-        has_busy_rows = (bool(self._busy_virtual_rows) if self._virtual
-                         else any(row.has_class("-busy") for row in self._ordered_rows()))
-        if (self._observe and self.screen.is_active and bar is not None and bar.display and not bar.collapsed
-                and current is not None and has_busy_rows):
-            timer.resume()
-        else:
-            timer.pause()
+        self.projection.mount()
+        self.observation.mount()
 
     def sidebar_visibility_changed(self) -> None:
-        self._sync_spinner()
+        self.projection.sync_spinner()
 
-    def set_observation_enabled(self, enabled: bool) -> None:
-        """A parked shared panel retains rows without performing source polls."""
-        self._observe = enabled
-        if not enabled and self._spinner_timer is not None:
-            self._spinner_timer.pause()
-
-    async def bind_wire(self, service: Comms) -> None:
-        """Rebind shared navigation only through the app's validated route owner."""
-        if self._wire is service:
-            return
-        self.display = False
-        async with self._presentation_lock:
-            self._wire = service
-            self._last_snapshot = None
-            self._last_revision = None
-            self._last_route_stamp = None
-            self._selected_row = None
-            self._selection_applied = False
-            self._rendered_mode = None
-            self._rendered_expansion.clear()
-            self._rendered_actions.clear()
-            self.navigation_ready.clear()
-            for group in self.query(ChannelGroup):
-                group._snapshot = None
-            self._sync_spinner()
-
-    def _animate_busy(self) -> None:
-        if not self.screen.is_active or self._last_snapshot is None:
-            self._sync_spinner()
-            return
-        self._spinner_phase = (self._spinner_phase + 1) % len(FRAMES)
-        if self._virtual:
-            listing = self.query_one_optional(VirtualChannelList)
-            if listing is None:
-                return
-            for index, (source, selected, unread, ansi) in self._busy_virtual_rows.items():
-                text = source.replace("⌛ ", f"{FRAMES[self._spinner_phase]} ", 1)
-                listing.replace_option_prompt_at_index(index, styled_row(
-                    text, selected=selected, ansi=ansi, busy=True, muted=True, unread=unread,
-                ))
-        else:
-            for row in self._ordered_rows():
-                if row.has_class("-busy"):
-                    row.advance_spinner(self._spinner_phase)
-
-    async def _session_updated(self, update: tuple[str, SessionDetails | None]) -> None:
-        if not self.is_attached or self.screen is not self.app.screen:
-            return
-        # Session routes/title changes are local projection facts. The wire's
-        # own revision invalidates its snapshot; do not force a full history
-        # read whenever a selected rich Conversation is reconstructed.
-        if self._last_snapshot is not None:
-            await self._present_snapshot(self._snapshot(self._last_snapshot.wire))
-        self._mode_changed(cast("ToadApp", self.app).selected_mode)
-        self._refresh()
-
-    async def sync_sessions(self) -> None:
-        """Reconcile tracked rows before a resumed screen can accept input."""
-        self._snapshot_pending = True
-        async with self._snapshot_lock:
-            try:
-                revision = self._wire.views.revision()
-                if (self._last_snapshot is not None and revision == self._last_revision
-                        and self.visible_filters == self._last_filters):
-                    await self._present_snapshot(self._snapshot(self._last_snapshot.wire))
-                else:
-                    await self._read_snapshot(revision)
-            finally:
-                self._snapshot_pending = False
-
-    async def _thread_actions_changed(self, _update: None) -> None:
-        if not self.is_attached or self.screen is not self.app.screen:
-            self._last_revision = None
-            return
-        if self._last_snapshot is not None and self.is_attached:
-            await self._present_snapshot(self._last_snapshot)
-        self._last_revision = None
-        self._refresh()
-
-    async def present_cached_sessions(self) -> None:
-        """Paint the last observed projection; refresh disk state after activation."""
-        state = cast("ToadApp", self.app)._sidebar_snapshot
-        if state is not None and (
-            state.show_stopped, state.show_archived
-        ) == self.visible_filters:
-            await self._present_snapshot(self._snapshot(state))
-        # A cold tab has no last-known projection. Do not read the entire wire
-        # synchronously inside prepare_navigation before its first painted frame.
-        self._refresh_after_first_frame()
-
-    @property
-    def visible_filters(self) -> tuple[bool, bool]:
-        settings = cast("ToadApp", self.app).settings
-        return settings.sidebar.show_stopped, settings.sidebar.show_archived
-
-    def _settings_changed(self, update: PreferenceChange) -> None:
-        if update.field in {SidebarSettings.show_stopped, SidebarSettings.show_archived}:
-            self._last_revision = None
-            self._refresh()
-
-    def _mode_changed(self, mode_name: str, *, force: bool = False) -> None:
-        from toad.screens.comms import CommsScreen
-
-        if not self.is_attached:
-            return
-        if self.screen is not self.app.screen:
-            # A tab switch changes presentation, not the channel roster's
-            # lifetime. Keep keyed rows and reconcile real source changes on
-            # activation; closing the screen still performs normal teardown.
-            if self._spinner_timer is not None:
-                self._spinner_timer.pause()
-            return
-        target = self.screen.target if isinstance(self.screen, CommsScreen) and self.screen.is_active else None
-        if not force and self._rendered_mode == (mode_name, target):
-            return
-        if self._virtual:
-            self._rendered_mode = (mode_name, target)
-            if self._last_snapshot is not None:
-                self._rebuild_virtual(self._last_snapshot)
-            return
-        for row in self.query(ThreadRow):
-            row.current = row.mode_name == mode_name
-        for row in self._row_map.values():
-            row.current = row.target_name == target
-        self._rendered_mode = (mode_name, target)
-
-    def _comms_registry_names(self) -> list[str]:
-        """Registered thread names on the wire (for view toggles)."""
-        try:
-            local_threads = cast("ToadApp", self.app).local_coordination_threads()
-            return [
-                name
-                for name in wire(_comms_root()).registry.active_threads()
-                if name not in local_threads
-            ]
-        except Exception:
-            return []
-
-    # ─── Data ─────────────────────────────────────────────────────────────────
-
-    def _snapshot(self, state: CoordinationSnapshot | None = None) -> SidebarSnapshot:
-        comms = self._wire
-        app = cast("ToadApp", self.app)
-        if state is None:
-            show_stopped, show_archived = self.visible_filters
-            state = comms.views.viewer_snapshot(
-                str(app.project_dir), show_stopped=show_stopped, show_archived=show_archived
-            )
-        all_people = {person.thread.name: person for person in state.threads}
-        session_threads: dict[str, str] = {}
-        claimed_threads: set[str] = set()
-        for details in app.session_tracker.ordered_sessions:
-            screen = app.session_navigation.source(details.mode_name)
-            if screen is None:
-                continue
-            if (
-                screen.coordination_root is not None
-                and Path(screen.coordination_root).expanduser().resolve() != comms.root
-            ):
-                continue  # A same-named thread on another wire is not this open view.
-            name = screen._comms_thread
-            if name not in all_people and screen._agent_session_id in all_people:
-                name = screen._agent_session_id
-            if name in all_people and name not in claimed_threads:
-                session_threads[details.mode_name] = name
-                claimed_threads.add(name)
-        return SidebarSnapshot(state, session_threads, all_people)
-
-    def _route_stamp(self) -> tuple[tuple[int, int, int, int] | None, ...]:
-        # Stat-only change tokens avoid taking the private bus store lock on
-        # Textual's event loop. A changed route or marker still requires the
-        # canonical core resolver in the off-loop worker before presentation.
-        from agent_comms.active_route import active_route_path
-
-        def stamp(path: Path) -> tuple[int, int, int, int] | None:
-            try:
-                info = path.stat(follow_symlinks=False)
-            except FileNotFoundError:
-                return None
-            return info.st_dev, info.st_ino, info.st_mtime_ns, info.st_size
-
-        return stamp(active_route_path()), stamp(self._wire.root / "bus_meta.json")
-
-    def _refresh(self) -> None:
-        if not self._observe or not self.is_attached:
-            return
-        if self._wire is None:
-            self.display = False
-            return
-        try:
-            # Retained inactive rosters reconcile on activation. Do not queue
-            # source reads for every hidden tab; stack lookup may fail during
-            # ordinary shutdown and belongs inside this existing error boundary.
-            if self.screen is not self.app.screen:
-                return
-            route_stamp = self._route_stamp()
-            if (
-                self._last_route_stamp is None
-                or route_stamp[0] != self._last_route_stamp[0]
-            ):
-                # Route publication can overtake a pending snapshot worker.
-                # Hide on route-file replacement before waiting for its bus
-                # lock. The private bus_meta stamp also changes on *ordinary*
-                # sends: it triggers validation below but must not blank a
-                # valid same-route sidebar on every message.
-                self.display = False
-            if self._snapshot_pending:
-                return
-            from toad.screens.workspace import WorkspaceScreen
-
-            if isinstance(self.screen, WorkspaceScreen) and not self.screen.frame_presentation.ready:
-                self.screen.frame_presentation.defer(self, self._refresh)
-                return
-            revision = self._wire.views.revision()
-            if (self.display and revision == self._last_revision and route_stamp == self._last_route_stamp
-                    and self.session_thread == self._last_actor
-                    and self.visible_filters == self._last_filters):
-                return
-            self._snapshot_pending = True
-            self.run_worker(self._refresh_checked(revision, route_stamp))
-        except Exception:
-            self.display = False
-            self._snapshot_pending = False
-
-    async def _refresh_checked(
-        self, revision: WireRevision,
-        route_stamp: tuple[tuple[int, int, int, int] | None, ...],
-    ) -> None:
-        service = self._wire
-        try:
-            from toad.comms_root import root_is_current
-
-            if not await asyncio.to_thread(root_is_current, service.root):
-                if self._wire is service:
-                    self.display = False
-                return
-            if self._wire is not service or not self.is_attached or self.screen is not self.app.screen:
-                return
-            self.app.coordination_observed.publish(None)
-            await self._poll_snapshot(revision)
-            if (
-                self._wire is service and self._last_revision == revision
-                and self._route_stamp() == route_stamp
-                and await asyncio.to_thread(root_is_current, service.root)
-            ):
-                if self._wire is not service:
-                    return
-                self._last_route_stamp = route_stamp
-                self.display = True
-                if not self.navigation_ready.is_set():
-                    self.call_after_refresh(self._finish_navigation, self._navigation_revision)
-        except Exception:
-            # Route publication or writer recovery will be retried next tick.
-            return
-        finally:
-            self._snapshot_pending = False
-
-    async def _poll_snapshot(self, revision: WireRevision) -> None:
-        service = self._wire
-        async with self._snapshot_lock:
-            if self._wire is not service:
-                return
-            if (self._last_snapshot is not None and revision == self._last_revision
-                    and self.visible_filters == self._last_filters):
-                # Selection changes the local route projection, not this
-                # worktree-wide snapshot. A newly painted read cursor may
-                # change its revision, so observe that write before reuse.
-                await cast("ToadApp", self.app).mark_visible_thread_read()
-                revision = service.views.revision()
-                if self._wire is not service:
-                    return
-                if revision == self._last_revision:
-                    self._last_actor = self.session_thread
-                    await self._present_snapshot(self._snapshot(self._last_snapshot.wire))
-                    return
-            await self._read_snapshot(revision)
-
-    async def _read_snapshot(self, revision: WireRevision) -> None:
-        service = self._wire
-        try:
-            actor = self.session_thread
-            filters = self.visible_filters
-            await cast("ToadApp", self.app).mark_visible_thread_read()
-            state = await asyncio.to_thread(
-                service.views.viewer_snapshot, str(cast("ToadApp", self.app).project_dir),
-                show_stopped=filters[0], show_archived=filters[1],
-            )
-            if (self._wire is not service or not self.is_attached or self.screen is not self.app.screen
-                    or actor != self.session_thread or filters != self.visible_filters):
-                return
-            from toad.comms_root import root_is_current
-
-            if not await asyncio.to_thread(root_is_current, service.root):
-                if self._wire is service:
-                    self.display = False
-                return
-            if self._wire is not service:
-                return
-            snapshot = self._snapshot(state)
-            if state.read_marker_notice != self._last_read_marker_notice:
-                self._last_read_marker_notice = state.read_marker_notice
-                if state.read_marker_notice:
-                    self.notify(
-                        state.read_marker_notice,
-                        title="Read positions",
-                        severity="warning",
-                    )
-            cast("ToadApp", self.app)._sidebar_snapshot = state
-            self._last_revision, self._last_actor, self._last_filters = revision, actor, filters
-            await self._present_snapshot(snapshot)
-        except (OSError, ValueError):
-            # An external writer may be replacing/recovering the wire. Retry on
-            # the next poll without blocking or terminating the view.
-            return
-        finally:
-            self._snapshot_pending = False
-
-    # ─── Rendering ────────────────────────────────────────────────────────────
-
-    @property
-    def _can_publish(self) -> bool:
-        return (self.is_attached and not self._closing and not self._pruning
-                and self.app.is_running and self.screen.is_current)
-
-    async def _present_snapshot(self, snapshot: SidebarSnapshot) -> None:
-        service = self._wire
-        async with self._presentation_lock:
-            if self._wire is not service or not self._can_publish:
-                return
-            changed = snapshot != self._last_snapshot
-            if (changed or self._rendered_expansion != self.navigation.expanded
-                    or self._rendered_actions != cast("ToadApp", self.app).thread_actions.pending):
-                # Publication is serialized by this sidebar, not a global paint
-                # mask held across worker delivery and descendant mount awaits.
-                await self._rebuild(snapshot)
-                if not self._can_publish:
-                    return
-                if changed:
-                    cast("ToadApp", self.app).open_tabs_changed.publish(None)
-            else:
-                self.apply_selection()
-                self._mode_changed(cast("ToadApp", self.app).selected_mode)
-                self._sync_spinner(snapshot)
-            if not self.navigation_ready.is_set() and self.is_attached and self.screen.is_current:
-                self.call_after_refresh(self._finish_navigation, self._navigation_revision)
-
-    async def _rebuild(self, snapshot: SidebarSnapshot) -> None:
-        if not self._can_publish:
-            return
-        if self._virtual:
-            self._rebuild_virtual(snapshot)
-            return
-        self._last_snapshot = snapshot
-        from toad.widgets.side_bar import SideBarCollapsible
-
-        control = self.query_ancestor(SideBarCollapsible).header_control
-        assert isinstance(control, ChannelListSort)
-        control.update_order(snapshot.wire.channel_order)
-        desired_keys = [
-            view.channel.name
-            for view in snapshot.wire.channels
-        ]
-        if not self.query(NewSessionButton):
-            await self.mount(NewSessionButton())
-            if not self._can_publish:
-                return
-        for key in set(self._row_map) - set(desired_keys):
-            row = self._row_map.pop(key)
-            await row.query_ancestor(ChannelGroup).remove()
-            if not self._can_publish:
-                return
-        new_groups: list[ChannelGroup] = []
-        for key in desired_keys:
-            if key not in self._row_map:
-                row = self._row_map[key] = CommsRow(channel_target(key), key)
-                new_groups.append(ChannelGroup(
-                    row, expanded=self.navigation.expanded.get(key, row.target.expanded_by_default),
-                ))
-        if new_groups:
-            await self.mount(*new_groups)
-            if not self._can_publish:
-                return
-        for view in snapshot.wire.channels:
-            channel_row = self._row_map[view.channel.name]
-            unread = snapshot.wire.channel_unread.get(view.channel.name, 0)
-            channel_row.set_label(f"{'* ' if view.channel.pinned else ''}{view.channel.name}")
-            group = channel_row.query_ancestor(ChannelGroup)
-            group.update_unread(unread)
-            group.update_activity(view, snapshot.all_people)
-            channel_row.set_class(bool(unread), "-unread")
-            await self._update_channel_group(channel_row, view, snapshot)
-            if not self._can_publish:
-                return
-        ordered = [self.query_one(NewSessionButton), *(
-            self._row_map[key].query_ancestor(ChannelGroup) for key in desired_keys
-        )]
-        if list(self.children) != ordered:
-            positions = {widget: index for index, widget in enumerate(ordered)}
-            self.sort_children(key=positions.__getitem__)
-        self.apply_selection(force=True)
-        self._mode_changed(cast("ToadApp", self.app).selected_mode, force=True)
-        self._rendered_expansion = dict(self.navigation.expanded)
-        self._rendered_actions = dict(cast("ToadApp", self.app).thread_actions.pending)
-        self._sync_spinner(snapshot)
-        # The ordinary widget-tree roster must retain the same full text as
-        # the virtual roster. Only the content grows; the outer sidebar owns
-        # both native scrollbars and keeps their geometry at the visible edge.
-        widest = max((Content(view.channel.name).cell_length + 12
-                      for view in snapshot.wire.channels), default=0)
-        widest = max(widest, max((Content(person.presentation.label).cell_length + 8
-                                  for person in snapshot.all_people.values()), default=0))
-        widest = max(widest, max((Content(person.presentation.summary).cell_length + 8
-                                  for person in snapshot.all_people.values()), default=0))
-        widest = min(widest, 512)
-        panel = self.query_ancestor(SideBarCollapsible)
-        if widest != self._horizontal_width:
-            self._horizontal_width = widest
-            panel.styles.min_width = widest
-
-    def _rebuild_virtual(self, snapshot: SidebarSnapshot) -> None:
-        """Project canonical channel/member order into one viewport-painted list."""
-        self._last_snapshot = snapshot
-        from toad.widgets.side_bar import SideBarCollapsible
-
-        control = self.query_ancestor(SideBarCollapsible).header_control
-        assert isinstance(control, ChannelListSort)
-        control.update_order(snapshot.wire.channel_order)
-        app = cast("ToadApp", self.app)
-        modes = {name: mode for mode, name in snapshot.session_threads.items()}
-        selected = self.navigation.selected
-        busy_rows: dict[int, tuple[str, bool, bool, bool]] = {}
-        choices: dict[str, VirtualChoice] = {}
-        choices["new-session"] = NewSessionChoice()
-        options: list[Option] = [Option("+ New Session", id="new-session")]
-        ansi = app.theme.startswith("ansi-")
-        listing = self.query_one(VirtualChannelList)
-        width = self.scroll_containers[0].scrollable_content_region.width or 34
-        longest = width
-        for view in snapshot.wire.channels:
-            channel = view.channel.name
-            key = f"channel:{channel}"
-            choices[key] = TargetChoice(channel_target(channel), channel)
-            unread = snapshot.wire.channel_unread.get(channel, 0)
-            prefix = "▾" if self.navigation.expanded.get(channel, channel_target(channel).expanded_by_default) else "▸"
-            name = f"{'* ' if view.channel.pinned else ''}{channel}"
-            right = f"{'(' + str(unread) + ') ' if unread else ''}{view.channel.order.label} ▾"
-            left = f"{prefix} {name}"
-            text = f"{left}{' ' * max(1, width - Content(left).cell_length - Content(right).cell_length)}{right}"
-            longest = max(longest, Content(text).cell_length)
-            active = any(
-                person.thread.executing or person.presentation.busy
-                for member in view.members if (person := snapshot.all_people.get(member)) is not None
-            )
-            row_selected = selected == SidebarSelection(channel, channel)
-            options.append(Option(styled_row(text, selected=row_selected, ansi=ansi,
-                                             busy=active, unread=bool(unread)), id=key))
-            if prefix != "▾":
-                continue
-            for member in view.members:
-                person = snapshot.all_people.get(member)
-                if person is None:
-                    continue
-                mode = modes.get(member)
-                choice_id = f"member:{channel}:{member}"
-                choices[choice_id] = TargetChoice(person_target(person), channel, mode)
-                badge = person_target(person).unread(snapshot.wire)
-                label = person.presentation.label
-                action_status = app.thread_actions.pending.get(member)
-                summary = " ".join((action_status or person.presentation.summary).splitlines())
-                pin = "* " if member in view.pinned_members else ""
-                text = f"  {badge.label + ' ' if badge.label else ''}{pin}{label}\n    {summary}"
-                longest = max(longest, *(Content(line).cell_length for line in text.splitlines()))
-                row_selected = selected == SidebarSelection(channel, member)
-                if person.presentation.busy:
-                    busy_rows[len(options)] = (text, row_selected, badge.highlighted, ansi)
-                shown = text.replace("⌛ ", f"{FRAMES[self._spinner_phase]} ", 1) if person.presentation.busy else text
-                options.append(Option(styled_row(shown, selected=row_selected, ansi=ansi,
-                                                 busy=bool(action_status or person.presentation.busy),
-                                                 muted=True, unread=badge.highlighted), id=choice_id))
-        self.query_ancestor(SideBarCollapsible).styles.min_width = min(longest, 4096)
-        old_scroll = listing.scroll_y
-        old_ids = [option.id for option in listing.options]
-        if old_ids != [option.id for option in options]:
-            listing.set_options(options)
-            listing.scroll_to(y=old_scroll, animate=False, immediate=True)
-        else:
-            for index, option in enumerate(options):
-                old = listing.get_option_at_index(index).prompt
-                if not isinstance(old, Content) or not old.is_same(option.prompt):
-                    listing.replace_option_prompt_at_index(index, option.prompt)
-        self._virtual_targets = choices
-        self._busy_virtual_rows = busy_rows
-        self._rendered_selection = selected
-        self._rendered_expansion = dict(self.navigation.expanded)
-        self._rendered_actions = dict(app.thread_actions.pending)
-        self._selection_applied = True
-        self._sync_spinner(snapshot)
-
-    def _virtual_toggle(self, channel: str) -> None:
-        self.navigation.expanded[channel] = not self.navigation.expanded.get(channel, channel == ALL_COMMS_TARGET)
-        if self._last_snapshot is not None:
-            self._rebuild_virtual(self._last_snapshot)
-
-    def _virtual_context_menu(self, choice: VirtualChoice, offset) -> None:
-        choice.show_menu(self, offset)
-
-    @on(OptionList.OptionSelected)
-    async def on_virtual_option_selected(self, event: OptionList.OptionSelected) -> None:
-        if not self._virtual or not isinstance(event.option_list, VirtualChannelList):
-            return
-        event.stop()
-        choice = self._virtual_targets.get(event.option_id or "")
-        if choice is None:
-            return
-        await choice.activate(self)
-
-    async def _update_channel_group(self, row: CommsRow, view: ChannelView,
-                               snapshot: SidebarSnapshot) -> None:
-        if row.is_attached:
-            row.tooltip = f"{len(view.members)} threads · tags: {', '.join(sorted(view.channel.tags)) or 'all'}"
-            group = row.query_ancestor(ChannelGroup)
-            expanded = self.navigation.expanded.get(row.target_name, row.target.expanded_by_default)
-            if group.expanded != expanded:
-                group.expanded = expanded
-                # The glyph has fixed dimensions. Mounting/removing members
-                # owns the layout change, not repainting an unchanged arrow
-                # on every wire snapshot (which reflows the transcript too).
-                group.disclosure.update("▾" if expanded else "▸", layout=False)
-            await group.update_members(view, snapshot)
-
-    # ─── Keyboard ─────────────────────────────────────────────────────────────
-
-    @property
-    def session_rows(self) -> list[ThreadRow]:
-        """Mounted thread rows whose authoritative projection has an open view."""
-        return [row for row in self.query(ThreadRow) if row.mode_name is not None]
-
-    def _ordered_rows(self) -> list[CommsRow]:
-        return [row for group in self.children if isinstance(group, ChannelGroup)
-                for row in (group.row, *group.member_rows)
-                if row.is_attached and not row._pruning and not row._closing]
-
-    def action_cursor_up(self) -> None:
-        if self._virtual:
-            self.query_one(VirtualChannelList).action_cursor_up()
-            return
-        super().action_cursor_up()
-
-    def action_cursor_down(self) -> None:
-        if self._virtual:
-            self.query_one(VirtualChannelList).action_cursor_down()
-            return
-        super().action_cursor_down()
+    def _ordered_rows(self):
+        return self.projection.rows
 
     def action_open_selected(self) -> None:
-        if self._virtual:
-            self.query_one(VirtualChannelList).action_select()
-            return
-        rows = self._ordered_rows()
+        rows = self.projection.rows
         focused = self.app.focused if self.app else None
         if isinstance(focused, CommsRow) and focused in rows:
             target = focused
@@ -1260,49 +494,9 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
         else:
             return
         self._apply_cursor(rows)
-        self.remember_row(target)
+        self.navigation.remember(target)
         self.selected = target.target_name
         target.action_open_selected()
-
-    async def focus_current_session(self) -> None:
-        """Focus the current session in this authoritative sessions view."""
-        await self.sync_sessions()
-        if self._virtual:
-            current_mode = cast("ToadApp", self.app).selected_mode
-            listing = self.query_one(VirtualChannelList)
-            selected_id = next((key for key, choice in self._virtual_targets.items()
-                                if choice.represents_mode(current_mode, ALL_COMMS_TARGET)), None)
-            if selected_id is None:
-                if not self.navigation.expanded.get(ALL_COMMS_TARGET, True):
-                    self.navigation.expanded[ALL_COMMS_TARGET] = True
-                    if self._last_snapshot is not None:
-                        self._rebuild_virtual(self._last_snapshot)
-                selected_id = next((key for key, choice in self._virtual_targets.items()
-                                    if choice.represents_mode(current_mode)), None)
-            selected_id = selected_id or f"channel:{ALL_COMMS_TARGET}"
-            if selected_id in self._virtual_targets:
-                listing.highlighted = listing.get_option_index(selected_id)
-                listing.scroll_to_highlight()
-                listing.focus()
-            return
-        rows = self._ordered_rows()
-        if not rows:
-            return
-        current_mode = cast("ToadApp", self.app).selected_mode
-        if not any(row.mode_name == current_mode for row in self.session_rows):
-            aggregate = self._row_map.get(ALL_COMMS_TARGET)
-            if aggregate is not None:
-                group = aggregate.query_ancestor(ChannelGroup)
-                if not group.expanded:
-                    group.toggle_members()
-                    await group._sync_members()
-                    rows = self._ordered_rows()
-        target = next((row for row in self.session_rows if row.mode_name == current_mode), rows[0])
-        self._cursor = rows.index(target)
-        self._apply_cursor(rows)
-        target.focus()
-
-    # ─── Context menu ─────────────────────────────────────────────────────────
 
     def on_click(self, event) -> None:
         """Right click anywhere -> menu on the row under the mouse."""
@@ -1323,43 +517,3 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
 
     def _select(self, row: CommsRow) -> None:
         row.focus()
-
-    def _show_thread_menu(
-        self, name: str, menu_offset, *, mode_name: str | None = None,
-        channel: str | None = None,
-    ) -> None:
-        from toad.target_commands import ThreadContext
-        self._show_target_commands(ThreadContext(self.app, self._wire, name,
-            self.session_thread, self.app.project_dir, mode_name, channel), menu_offset)
-
-    def _show_channel_menu(self, name: str, menu_offset) -> None:
-        from toad.target_commands import ChannelContext
-        self._show_target_commands(ChannelContext(self.app, self._wire, name,
-            self.session_thread, self.app.project_dir), menu_offset)
-
-    def _show_target_commands(self, ctx, menu_offset) -> None:
-        from toad.target_commands import target_commands
-        from toad.widgets.comms_menu import show_target_menu
-        choices = target_commands(ctx)
-
-        def execute(command) -> None:
-            try:
-                ctx.current()
-                if not command.available(ctx):
-                    raise ValueError("Action is no longer available for this target")
-                command.execute(ctx)
-                self._refresh()
-            except (OSError, ValueError) as error:
-                self.notify(str(error), title="Target action", severity="error")
-
-        show_target_menu(self.app.screen, menu_offset, ctx.subject,
-            [(command.command.removeprefix("/"), command.label(ctx)) for command in choices],
-            {command.command.removeprefix("/"): partial(execute, command) for command in choices})
-
-    def _show_view_menu(self, mode_name: str, menu_offset) -> None:
-        from toad.target_commands import ViewContext
-        details = cast("ToadApp", self.app).session_tracker.get_session(mode_name)
-        if details is None:
-            return
-        self._show_target_commands(ViewContext(self.app, self._wire, details.title or "Session view",
-            self.session_thread, self.app.project_dir, mode_name), menu_offset)

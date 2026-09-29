@@ -133,7 +133,7 @@ async def main():
             from toad.widgets.comms_sidebar import CommsSidebar
 
             assert app.screen.query_one(CommsChatView)._wire is app.coordination_access.service
-            assert app.screen.query_one(CommsSidebar)._wire is app.coordination_access.service
+            assert app.screen.query_one(CommsSidebar).observation.service is app.coordination_access.service
         await asyncio.get_running_loop().shutdown_default_executor()
     print(
         "page reader: reused across concurrent pages; routing changes, appended replies and wire changes remain current"
