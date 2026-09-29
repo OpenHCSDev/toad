@@ -72,7 +72,7 @@ async def main():
             )
             assert saved is not None
             sidebar = app.screen.query_one(CommsSidebar)
-            await until(pilot, lambda: sidebar.navigation_ready.is_set())
+            await until(pilot, lambda: sidebar.navigation.ready.is_set())
             sidebar._show_thread_menu("peer", Offset(5, 5))
             await pilot.pause()
             assert isinstance(app.screen, ContextMenu)

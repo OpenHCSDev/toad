@@ -30,7 +30,8 @@ async def main():
             screen = app.screen
             screen.on_comms_session_named("fixture")
             await app.session_navigation.new(app.session_navigation.default_source)
-            await app.switch_mode(first)
+            await app.select_session(first)
+
             await screen.conversation.contents.mount(*[
                 AgentResponse(f"Reply {index}\n\n" + "Paragraph under unread updates.\n\n" * 12,
                               paginate=False)
@@ -41,17 +42,17 @@ async def main():
             sidebar = screen.query_one(CommsSidebar)
             for timer in tuple(sidebar._timers):
                 timer.pause()
-            await sidebar.sync_sessions()
+            await sidebar.observation.sync()
             await pilot.pause()
-            with patch.object(CommsSidebar, "_refresh"):
-                snapshot = sidebar._last_snapshot
+            with patch.object(type(sidebar.observation), "refresh"):
+                snapshot = sidebar.projection.snapshot
                 assert snapshot is not None
                 group = next(group for group in sidebar.query(ChannelGroup)
                              if group.row.target_name == "#test")
 
                 async def channel_count(count):
                     state = replace(snapshot.wire, channel_unread={**snapshot.wire.channel_unread, "#test": count})
-                    await sidebar._present_snapshot(sidebar._snapshot(state))
+                    await sidebar.projection.publish(sidebar.observation.project(state))
                     await pilot.pause(.02)
                     assert group.unread_badge.render().plain == f"({count})"
                     assert group.unread_badge.display == bool(count)
@@ -72,7 +73,7 @@ async def main():
                 async def thread_count(count):
                     state = replace(snapshot.wire, thread_unread={**snapshot.wire.thread_unread, "fixture": count})
                     app._sidebar_snapshot = state
-                    await sidebar._present_snapshot(sidebar._snapshot(state))
+                    await sidebar.projection.publish(sidebar.observation.project(state))
                     await pilot.pause(.02)
                     text = screen.query_one(f"SessionLabel#{first}", SessionLabel).render().plain
                     assert (f"({count})" in text) if count else ("(" not in text)

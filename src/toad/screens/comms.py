@@ -278,7 +278,7 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
             return
         sidebar = self.query_one(CommsSidebar)
         peers = [
-            name for name in sorted(sidebar._comms_registry_names()) if name != self.me
+            name for name in sorted(sidebar.observation.registry_names()) if name != self.me
         ]
         if peers:
             await self.open_sidebar_target(DirectTarget(peers[0]))

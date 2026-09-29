@@ -119,7 +119,7 @@ class SessionSort(SortControl[ThreadSort]):
             from toad.widgets.comms_sidebar import CommsSidebar
 
             sidebar = self.screen.query_one_optional(CommsSidebar)
-            source_root = sidebar._wire.root if sidebar is not None and sidebar._wire is not None else None
+            source_root = sidebar.observation.service.root if sidebar is not None and sidebar.observation.service is not None else None
         if source_root is not None and comms.root.resolve() != Path(source_root).resolve():
             raise ValueError("Comms route changed before sorting")
         channel = await asyncio.to_thread(
@@ -142,7 +142,7 @@ class ChannelListSort(SortControl[ChannelSort]):
             from toad.widgets.comms_sidebar import CommsSidebar
 
             sidebar = self.screen.query_one_optional(CommsSidebar)
-            source_root = sidebar._wire.root if sidebar is not None and sidebar._wire is not None else None
+            source_root = sidebar.observation.service.root if sidebar is not None and sidebar.observation.service is not None else None
         if source_root is not None and comms.root.resolve() != Path(source_root).resolve():
             raise ValueError("Comms route changed before sorting")
         return await asyncio.to_thread(

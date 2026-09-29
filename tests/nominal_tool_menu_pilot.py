@@ -32,7 +32,7 @@ async def main():
         async with app.run_test(size=(120, 45)) as pilot:
             await pilot.pause()
             sidebar = app.screen.query_one(CommsSidebar)
-            await sidebar.sync_sessions()
+            await sidebar.observation.sync()
             group = next(
                 group for group in sidebar.query(ChannelGroup) if group.row.target_name == "#tools"
             )

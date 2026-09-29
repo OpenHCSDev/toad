@@ -70,7 +70,7 @@ async def main():
             assert set(group._members) == {"api-agent", "ui-agent"}
             other = wire(root / "wire")
             other.channels.update_tags("other", add=frozenset({"engineering"}))
-            sidebar._refresh()
+            sidebar.observation.refresh()
             async with asyncio.timeout(5):
                 while set(group._members) != {"api-agent", "ui-agent", "other"}:
                     await pilot.pause(.02)
@@ -141,7 +141,7 @@ async def main():
             await pilot.pause()
             assert app.selected_mode == engineering
             assert not app.screen.query(f"SessionLabel#{any_mode}")
-            await app.switch_mode(owner)
+            await app.select_session(owner)
             await pilot.pause()
             assert {label.id for label in app.screen.query(SessionLabel)} == {owner, engineering}
             second = await app.session_navigation.new(lambda: MainScreen(root))
@@ -163,10 +163,10 @@ async def main():
             # order even when channels were created after the first view.
             comms.channels.create_tag("z-last")
             comms.channels.create_tag("a-first")
-            await app.screen.query_one(CommsSidebar).sync_sessions()
+            await app.screen.query_one(CommsSidebar).observation.sync()
             expected = [view.channel.name for view in comms.views.channel_views()]
             assert [group.row.target_name for group in app.screen.query(ChannelGroup)] == expected
-            await app.switch_mode(owner)
+            await app.select_session(owner)
             await pilot.pause()
             assert [group.row.target_name for group in app.screen.query(ChannelGroup)] == expected
             selector = app.screen.query_one(ChannelListSort)
@@ -181,11 +181,11 @@ async def main():
             await pilot.pause()
             async with asyncio.timeout(5):
                 await order_saved.wait()
-            await app.screen.query_one(CommsSidebar).sync_sessions()
+            await app.screen.query_one(CommsSidebar).observation.sync()
             assert selector.order is ChannelSort.LAST_USER_INPUT
             assert comms.channels.catalog.read().list_order is ChannelSort.LAST_USER_INPUT
             assert comms.channels.catalog.read().resolve("#none").order is ThreadSort.LAST_ACTIVITY
-            await app.switch_mode(engineering)
+            await app.select_session(engineering)
             await pilot.pause()
             assert app.screen.query_one(ChannelListSort).order is ChannelSort.LAST_USER_INPUT
             group = next(group for group in app.screen.query(ChannelGroup)
@@ -197,7 +197,7 @@ async def main():
             # The channel header must glow while any member is mid-turn or busy.
             comms.agents.set_activity("ui-agent", ActivityState.WORKING, "Rendering")
             sidebar = app.screen.query_one(CommsSidebar)
-            await sidebar.sync_sessions()
+            await sidebar.observation.sync()
             engineering_group = next(
                 group for group in sidebar.query(ChannelGroup)
                 if group.row.target_name == "#engineering"
@@ -208,7 +208,7 @@ async def main():
                 + engineering_group.row.render().plain
             )
             comms.agents.set_activity("ui-agent", ActivityState.IDLE, "")
-            await sidebar.sync_sessions()
+            await sidebar.observation.sync()
             await pilot.pause()
             assert not engineering_group.row.has_class("-channel-active")
             # Actual context-menu actions persist in the wire and render identically
@@ -219,7 +219,7 @@ async def main():
             assert "Pin channel" in pin.render().plain
             await pilot.click(pin)
             await pilot.pause()
-            await sidebar.sync_sessions()
+            await sidebar.observation.sync()
             assert wire(root / "wire").views.channel_views()[0].channel.name == "#engineering"
             assert next(iter(sidebar.query(ChannelGroup))) is engineering_group
             assert engineering_group.row.render().plain.startswith("* ")
@@ -232,7 +232,7 @@ async def main():
             assert "Pin in this channel" in pin.render().plain
             await pilot.click(pin)
             await pilot.pause()
-            await sidebar.sync_sessions()
+            await sidebar.observation.sync()
             views = {view.channel.name: view for view in wire(root / "wire").views.channel_views()}
             assert views["#engineering"].pinned_members == {"api-agent"}
             assert not views["#any"].pinned_members
@@ -243,7 +243,7 @@ async def main():
                 "pins": engineering_group._view.pinned_members,
             }
             assert engineering_group.member_rows[0].render().plain.startswith("* ")
-            await app.switch_mode(owner)
+            await app.select_session(owner)
             await pilot.pause()
             sidebar = app.screen.query_one(CommsSidebar)
             engineering_group = next(iter(sidebar.query(ChannelGroup)))

@@ -57,9 +57,9 @@ async def main():
                 dm = await DirectTarget("victim").open(NavigationContext(app, other, root, "actor"))
                 channel = await channel_target("#all").open(NavigationContext(app, other, root, "actor"))
                 await pilot.pause()
-                await app.switch_mode(source)
+                await app.select_session(source)
                 sidebar = app.screen.query_one(CommsSidebar)
-                await sidebar.sync_sessions()
+                await sidebar.observation.sync()
                 row = next(row for row in sidebar.query(CommsRow) if row.target_name == "victim")
                 real_notify = app.notify
 
@@ -80,9 +80,9 @@ async def main():
                     app.selected_session.conversation.prompt.focus()
                     await pilot.press(*"keep typing")
                     assert app.selected_session.conversation.prompt.text == "keep typing"
-                    await asyncio.wait_for(app.switch_mode(dm), 2)
+                    await asyncio.wait_for(app.select_session(dm), 2)
                     await pilot.pause()
-                    await asyncio.wait_for(app.switch_mode(channel), 2)
+                    await asyncio.wait_for(app.select_session(channel), 2)
                     await pilot.pause()
                     app.thread_actions.invoke(StopAction(), "victim", "actor")
                     await pilot.pause()

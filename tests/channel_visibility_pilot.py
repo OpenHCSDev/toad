@@ -17,7 +17,7 @@ from toad.widgets.session_sort import ChannelListSort
 
 async def sync(app, pilot):
     sidebar = app.screen.query_one(CommsSidebar)
-    await sidebar.sync_sessions()
+    await sidebar.observation.sync()
     await pilot.pause()
     group = next(group for group in sidebar.query(ChannelGroup) if group.row.target_name == "#team")
     if not group.expanded:
@@ -83,7 +83,7 @@ async def main():
             assert isinstance(app.screen, CommsScreen) and app.screen.kind == "dm"
             assert comms.registry.status("archived") == ArchivedThreadStatus()
             assert not comms.registry.status("stopped").active
-            await app.switch_mode("session-1")
+            await app.select_session("session-1")
             await pilot.pause()
             assert app.screen.query_one(CommsSidebar).visible_filters == (False, True)
         fresh = ToadApp(project_dir=str(root))

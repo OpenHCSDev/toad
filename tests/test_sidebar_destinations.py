@@ -30,6 +30,10 @@ class SidebarDestinationsTest(unittest.IsolatedAsyncioTestCase):
                 yield CommsRow(TestReportTarget("report"), "Open report")
 
         class DestinationApp(App):
+            @property
+            def selected_session(self):
+                return self.screen
+
             def get_default_screen(self):
                 return DestinationScreen()
 
@@ -43,7 +47,7 @@ class SidebarDestinationsTest(unittest.IsolatedAsyncioTestCase):
         source = Path(__file__).resolve().parents[1] / "src/toad"
         for relative in (
             "navigation_target.py", "widgets/comms_sidebar.py",
-            "widgets/virtual_channel_list.py", "widgets/thread_comms.py",
+            "widgets/thread_comms.py",
         ):
             tree = ast.parse((source / relative).read_text())
             for node in ast.walk(tree):

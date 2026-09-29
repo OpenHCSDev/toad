@@ -17,7 +17,6 @@ from textual.containers import VerticalScroll
 from toad.widgets.comms_sidebar import CommsSidebar
 from toad.widgets.session_tabs import SessionsTabs
 from toad.widgets.side_bar import SideBar, SidebarAction, SidebarSlider, TabHistoryControls
-from toad.widgets.virtual_channel_list import VirtualChannelList
 
 
 async def main() -> None:
@@ -26,8 +25,7 @@ async def main() -> None:
         os.environ.update(XDG_CONFIG_HOME=str(root / "config"),
                           XDG_DATA_HOME=str(root / "data"),
                           XDG_STATE_HOME=str(root / "state"),
-                          AGENT_COMMS_ROOT=str(root / "wire"),
-                          TOAD_BENCH_VIRTUAL_CHANNELS="1")
+                          AGENT_COMMS_ROOT=str(root / "wire"))
         name = "very-long-thread-name-with-an-explanatory-suffix-that-exceeds-the-sidebar-width"
         comms = wire(root / "wire")
         comms.registry.declare(Thread(name, frozenset({"alpha"}), str(root)))
@@ -70,14 +68,12 @@ async def main() -> None:
 
             sidebar = app.screen.query_one(CommsSidebar)
             async with asyncio.timeout(5):
-                while sidebar._last_snapshot is None:
+                while sidebar.projection.snapshot is None:
                     await pilot.pause(.02)
-            listing = sidebar.query_one(VirtualChannelList)
-            member = next(option for option in listing.options
-                          if isinstance(option.prompt, Content) and name in option.prompt.plain)
-            assert name in member.prompt.plain, "Source label must not be pre-truncated"
+            member = next(row for row in sidebar.projection.rows if row.target_name == name)
+            assert name in member.render().plain, "Source label must not be pre-truncated"
             panels = left.query_one("#sidebar-panels", VerticalScroll)
-            assert panels.max_scroll_x > 0 and listing.size.width > panels.size.width
+            assert panels.max_scroll_x > 0 and member.size.width > panels.size.width
             assert not left.query("#sidebar-horizontal-slider")
             await pilot.click(panels.horizontal_scrollbar,
                               offset=(panels.horizontal_scrollbar.size.width - 1, 0))
@@ -104,7 +100,7 @@ async def main() -> None:
             await pilot.resize_terminal(76, 34)
             assert chat.region.x == comms_bar.region.width
             assert comms_tabs.region.right == 76
-            await app.switch_mode(owner)
+            await app.select_session(owner)
             assert not left.right and content.region.x == left.region.width
             assert tabs.region.x == app.screen.query_one(TabHistoryControls).region.right
         await asyncio.get_running_loop().shutdown_default_executor()

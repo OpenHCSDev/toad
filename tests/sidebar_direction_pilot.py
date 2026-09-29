@@ -35,7 +35,14 @@ async def main() -> None:
             async def click(bar: SideBar, label: str) -> None:
                 button = next(button for button in bar.query(SidebarAction)
                               if button.display and button.render().plain == label)
-                assert await pilot.click(button)
+                assert await pilot.click(button), (
+                    bar.id, label, button.region, bar.region,
+                    tuple((item.id, item.region, item.collapsed)
+                          for item in app.screen.query(SideBar)),
+                    button in app.screen._compositor.visible_widgets,
+                    tuple((type(node).__name__, node.id, node.display, node.region)
+                          for node in button.ancestors if hasattr(node, "region")),
+                )
                 await pilot.pause()
 
             assert arrows(channels) == ["──>"] and arrows(thread) == ["<──"]

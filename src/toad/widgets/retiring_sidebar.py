@@ -1,11 +1,11 @@
 """Optional sidebar content uses the workspace's existing admission lifetime."""
 from textual.worker import WorkerCancelled
-from toad.widgets.side_bar import SideBar
+from toad.widgets.side_bar import CommsSideBar
 from toad.widgets.side_bar import SideBarCollapsible
 from toad.widgets.sidebar_viewport import SidebarViewport
 
 
-class RetiringSidebar(SideBar):
+class RetiringSidebar(CommsSideBar):
     """Retain reader intent, never an inactive panel widget graph."""
 
     def schedule_hydration(self) -> None:

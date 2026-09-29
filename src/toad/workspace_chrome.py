@@ -31,18 +31,28 @@ class WorkspaceChrome:
         changed = self.channels.restore_navigation()
         self.channels.schedule_hydration()
         roster = self.channels.roster
-        roster.prepare_navigation()
-        screen.frame_presentation.defer(roster, roster.start_navigation_hydration)
+        roster.navigation.prepare()
+        screen.frame_presentation.defer(roster, roster.navigation.start)
         return changed
+
+    def sidebar_geometry(self, screen):
+        """Resolve both mounted bars in the workspace's screen coordinates."""
+        from toad.widgets.side_bar import SideBar
+
+        bars = {bar.id: bar for bar in screen.query(SideBar)
+                if bar.id in screen.app.sidebar_layout.placements and bar.display
+                and all(ancestor.display for ancestor in bar.ancestors)}
+        return screen.app.sidebar_layout.resolve(
+            screen.size.width, {identity: bar.collapsed for identity, bar in bars.items()})
 
     async def select(self, view: "SessionView") -> None:
         roster = self.channels.roster
-        roster.capture_navigation()
-        await roster.bind_wire(view.app.coordination_access.service)
+        roster.navigation.capture()
+        await roster.observation.bind(view.app.coordination_access.service)
         actor, target = view.channels_context()
         roster.session_thread = actor
         roster.selected = target
-        roster.set_observation_enabled(view.shows_channels)
+        roster.observation.set_enabled(view.shows_channels)
         self.channels.display = view.shows_channels
         self.footer.compact = view.footer_compact
         self.footer.call_later(self.footer.bindings_changed, view.screen)

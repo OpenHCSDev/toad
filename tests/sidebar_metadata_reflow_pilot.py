@@ -26,7 +26,7 @@ async def main():
             await pilot.pause()
             sidebar = app.screen.query_one(CommsSidebar)
             async with asyncio.timeout(5):
-                while sidebar._last_snapshot is None:
+                while sidebar.projection.snapshot is None:
                     await pilot.pause(.02)
             await app.selected_session.conversation.contents.mount(*[
                 AgentResponse(f"Reply {index}\n\n" + "Paragraph.\n\n" * 16, paginate=False)
@@ -34,8 +34,8 @@ async def main():
             ])
             app.selected_session.conversation.window.anchor()
             await pilot.pause()
-            with patch.object(CommsSidebar, "_refresh"):
-                snapshot = sidebar._last_snapshot
+            with patch.object(type(sidebar.observation), "refresh"):
+                snapshot = sidebar.projection.snapshot
                 assert snapshot.wire.channels
                 screen = app.screen
                 with patch.object(screen, "_refresh_layout", wraps=screen._refresh_layout) as layout:
@@ -44,7 +44,7 @@ async def main():
                             replace(view, last_activity=view.last_activity + tick + 1)
                             for view in snapshot.wire.channels
                         ))
-                        await sidebar._present_snapshot(sidebar._snapshot(state))
+                        await sidebar.projection.publish(sidebar.observation.project(state))
                         await pilot.pause(.03)
                     assert layout.call_count == 0, f"Metadata-only updates caused {layout.call_count} layouts"
 

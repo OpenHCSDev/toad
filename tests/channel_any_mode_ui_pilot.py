@@ -62,7 +62,7 @@ async def main() -> None:
             assert [message.body for message, _ in chat.message_history.rows] == [
                 "exact route", "outbound from member", "inbound to member",
             ]
-            await app.switch_mode(owner)
+            await app.select_session(owner)
             await pilot.pause()
             sidebar = app.screen.query_one(CommsSidebar)
 

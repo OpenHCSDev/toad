@@ -85,7 +85,8 @@ async def main():
         async def skip_snapshot(self, revision):
             return None
 
-        CommsSidebar._read_snapshot = skip_snapshot
+        from toad.sidebar_observation import SidebarObservation
+        SidebarObservation.read = skip_snapshot
     with tempfile.TemporaryDirectory(prefix="toad-scroll-select-latency-") as directory:
         root = Path(directory)
         os.environ.update(XDG_CONFIG_HOME=str(root / "config"), XDG_STATE_HOME=str(root / "state"),

@@ -27,7 +27,7 @@ async def main():
         async with app.run_test(size=(120, 42)) as pilot:
             await pilot.pause()
             sidebar = app.screen.query_one(CommsSidebar)
-            await sidebar._read_snapshot(comms.views.revision())
+            await sidebar.observation.read(comms.views.revision())
             group = next(group for group in sidebar.query(ChannelGroup) if group.row.target_name == "#review")
             if not group.expanded:
                 group.toggle_members()
@@ -36,7 +36,7 @@ async def main():
             assert rows.keys() >= {"first", "second", "third"}
             # Selection denotes the remembered destination. Focus and hover
             # are navigation hints, never a second filled selection.
-            sidebar.remember_row(rows["first"])
+            sidebar.navigation.remember(rows["first"])
             rows["second"].focus(scroll_visible=False)
             await pilot.hover(rows["third"])
             await pilot.pause()

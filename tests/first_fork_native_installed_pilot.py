@@ -88,7 +88,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
         sidebar = await wait_channel_roster(app, pilot, "#team")
         print("FORK_MODAL_RETURN_FRAME", type(app.screen.frame_presentation.state).__name__,
               app.screen.frame_presentation.ready, app.screen.is_current, flush=True)
-        sidebar._refresh()
+        sidebar.observation.refresh()
         await until(pilot, lambda: any(row.target_name == child.name for row in sidebar.query(CommsRow)))
         child_row = next(row for row in sidebar.query(CommsRow) if row.target_name == child.name)
         child_row.scroll_visible(animate=False, immediate=True)

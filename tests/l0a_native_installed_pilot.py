@@ -313,14 +313,14 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
                 # UI-only state changes cannot clear its busy witness; geometry
                 # remains compact at both widths while the loopback holds it.
                 sidebar = app.screen.query_one(CommsSidebar)
-                sidebar._refresh()
+                sidebar.observation.refresh()
                 await until(pilot, lambda: any(row.target_name == "beta" and row.has_class("-busy")
                                               for row in sidebar.query(CommsRow)))
                 app.session_tracker.update_session(owner_mode, state="idle", summary="Ready from the view")
                 for width in (96, 120):
                     await pilot.resize_terminal(width, 44)
                     await pilot.pause()
-                    sidebar._refresh()
+                    sidebar.observation.refresh()
                     await pilot.pause()
                     row = next(row for row in sidebar.query(CommsRow) if row.target_name == "beta")
                     assert row.has_class("-busy") and row.region.height == 2, (row.render(), row.region)

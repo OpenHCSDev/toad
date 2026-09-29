@@ -71,7 +71,7 @@ async def main():
                 if not group.expanded:
                     group.toggle_members()
             await pilot.pause()
-            viewport = sidebar.scroll_containers[0].content_region
+            viewport = sidebar.navigation.scroll_containers[0].content_region
             rows = [row for row in sidebar._ordered_rows() if row.region.overlaps(viewport)]
             timings = []
             for row in rows[:7] * 3:
@@ -82,7 +82,7 @@ async def main():
                 await move
             started = time.perf_counter()
             comms.agents.set_activity("worker-01", ActivityState.WORKING, "Changed status")
-            await sidebar.sync_sessions()
+            await sidebar.observation.sync()
             update_ms = (time.perf_counter() - started) * 1000
             print({"rendered_rows": len(sidebar._ordered_rows()),
                    "median_hover_ms": statistics.median(timings), "max_hover_ms": max(timings),

@@ -91,7 +91,7 @@ async def main(title: str | None = None, *, cold_metadata: bool = False) -> None
                                  "protocol": "acp"}
             await app.screen.on_coordination_update(coordination_update(str(root / 'wire'), 'owner'))
             sidebar = app.screen.query_one(CommsSidebar)
-            await sidebar.sync_sessions()
+            await sidebar.observation.sync()
             row = next(
                 (
                     row
@@ -136,10 +136,10 @@ async def main(title: str | None = None, *, cold_metadata: bool = False) -> None
                     observations.append((phase, label, expected, cached, painted))
 
                 observe("new active view, before ACP attachment")
-                await app.switch_mode(owner)
+                await app.select_session(owner)
                 await pilot.pause()
                 observe("inactive tab")
-                await app.switch_mode(opened)
+                await app.select_session(opened)
                 await pilot.pause()
                 observe("reactivated tab")
                 release.set()

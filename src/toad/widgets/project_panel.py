@@ -74,9 +74,13 @@ class ProjectPanel(Vertical):
     def _ensure_tree(self) -> None:
         from toad.widgets.side_bar import SideBar, SideBarCollapsible
 
-        if self.query_ancestor(SideBar).collapsed or self.query_ancestor(SideBarCollapsible).collapsed:
+        if not self.is_attached:
             return
-        if self.is_attached and self.screen.is_current and not self._tree_requested:
+        sidebar = next((node for node in self.ancestors if isinstance(node, SideBar)), None)
+        panel = next((node for node in self.ancestors if isinstance(node, SideBarCollapsible)), None)
+        if sidebar is None or panel is None or sidebar.collapsed or panel.collapsed:
+            return
+        if self.screen.is_current and not self._tree_requested:
             self._tree_requested = True
             self._mount_tree()
 

@@ -67,18 +67,18 @@ async def main():
             await pilot.pause()
             assert chat.window.follows_tail
             await until(pilot, lambda: comms.views.viewer_snapshot(str(root)).channel_unread["#talk"] == 0)
-            await app.switch_mode(owner)
+            await app.select_session(owner)
             comms.messaging.send(names[0], "#talk", "unread one")
             comms.messaging.send(names[0], "#talk", "unread two")
             comms.messaging.acknowledge(names[1])
             sidebar = app.screen.query_one(CommsSidebar)
-            await sidebar.sync_sessions()
+            await sidebar.observation.sync()
             group = next(group for group in sidebar.query(ChannelGroup) if group.row.target_name == "#talk")
             assert group.unread_badge.render().plain == "(2)", (
                 group.unread_badge.render().plain,
                 comms.views.viewer_snapshot(str(root)).channel_unread["#talk"],
             )
-            await app.switch_mode(mode)
+            await app.select_session(mode)
             await until(pilot, lambda: comms.views.viewer_snapshot(str(root)).channel_unread["#talk"] == 0)
             assert comms.views.viewer_snapshot(str(root)).channel_unread["#talk"] == 0
         # Deferred first-frame wire reads can still be finishing after the UI

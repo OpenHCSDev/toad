@@ -5,6 +5,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
+from functools import partial
 from typing import TYPE_CHECKING, Self
 
 from agent_comms.comms import Comms
@@ -57,6 +58,24 @@ class TargetContext(PinTarget, DeclaredFamily, affix="Context"):
 
     def activity_available(self) -> bool:
         return False
+
+    def show_menu(self, sidebar, offset) -> None:
+        from toad.widgets.comms_menu import show_target_menu
+        choices = target_commands(self)
+        show_target_menu(sidebar.app.screen, offset, self.subject,
+            [(command.command.removeprefix("/"), command.label(self)) for command in choices],
+            {command.command.removeprefix("/"): partial(self.execute_menu, sidebar, command)
+             for command in choices})
+
+    def execute_menu(self, sidebar, command) -> None:
+        try:
+            self.current()
+            if not command.available(self):
+                raise ValueError("Action is no longer available for this target")
+            command.execute(self)
+            sidebar.observation.refresh()
+        except (OSError, ValueError) as error:
+            sidebar.notify(str(error), title="Target action", severity="error")
 
 
 @dataclass(frozen=True)
