@@ -5,6 +5,7 @@ import json
 import os
 from pathlib import Path
 import tempfile
+from urllib.parse import quote
 
 import toad
 from textual.widgets import Button, TextArea
@@ -25,7 +26,7 @@ async def main():
     snapshot = LogPage.read(source, FilePreview.MAX_BYTES)
     with tempfile.TemporaryDirectory(prefix="log-ui-") as directory:
         root = Path(directory)
-        log = root / "state/toad/logs/observed-acp.txt"
+        log = root / "state/toad/logs/ACP session café.txt"
         log.parent.mkdir(parents=True)
         log.write_bytes(snapshot.raw)
         os.environ.update(
@@ -40,7 +41,9 @@ async def main():
             app = ToadApp(project_dir=str(root))
             async with app.run_test(size=(100, 32)) as pilot:
                 await pilot.pause()
-                response = await app.screen.conversation.post(AgentResponse(f"[Open ACP log]({log})"))
+                response = await app.screen.conversation.post(
+                    AgentResponse(f"[Open ACP log](toad-file:{quote(str(log))})")
+                )
                 async with asyncio.timeout(10):
                     while not response.query(MarkdownParagraph):
                         await pilot.pause(0.02)
