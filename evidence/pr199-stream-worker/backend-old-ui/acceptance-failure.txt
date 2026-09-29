@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-agent-tab-state-latency-20260929/tests/l0a_native_installed_pilot.py", line 302, in main
+    await acceptance(app, pilot, agent, comms, entered, release,
+                     hold_next, requests)
+  File "/home/ts/wt/toad-agent-tab-state-latency-20260929/tests/backend_failure_feedback_installed_journey.py", line 24, in acceptance
+    assert len(errors) == 1, [str(note.render()) for note in errors]
+           ^^^^^^^^^^^^^^^^
+AssertionError: ["Request failed — agent launch failed: [Errno 13] Permission denied: '/home/ts/wt/toad-agent-tab-state-latency-20260929/.stream-worker-stages/l0a-native-e5ylb8ld/project'\nNot sent — input not retried\nInspect the input delivery status before deciding whether to send again.", 'Request failed — Internal error\nUnconfirmed — input not retried\nInspect the input delivery status before deciding whether to send again.']

@@ -40,6 +40,8 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
         assert not requests, 'Startup admission failed to hold native send'
         await pilot.press('escape', 'escape')
         await until(pilot, lambda: not comms.registry.require('beta').executing and agent.presentation.prompt_in_flight == 0)
+        await until(pilot, lambda: 'Not sent — cancellation completed before native delivery' in screen_paint(app))
+        assert all(row.public_status == 'not_sent' for row in InputDispositions(comms.root / InputDispositions.filename).read().rows.values())
         records.append({'stage': 'before_send', 'rows': [row.public() for row in InputDispositions(comms.root / InputDispositions.filename).read().rows.values()], 'paint': screen_paint(app)})
     finally:
         for lease in leases:
@@ -54,6 +56,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     assert len(requests) == 1
     await pilot.press('escape', 'escape')
     await until(pilot, lambda: not comms.registry.require('beta').executing and agent.presentation.prompt_in_flight == 0)
+    await until(pilot, lambda: 'Native input started; turn cancelled' in screen_paint(app))
     records.append({'stage': 'provider_inflight', 'rows': [row.public() for row in InputDispositions(comms.root / InputDispositions.filename).read().rows.values()], 'paint': screen_paint(app)})
     (evidence / 'cancel-stages.json').write_text(json.dumps(records, indent=2))
     release.set()
@@ -64,7 +67,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     await until(pilot, lambda: 'ACCEPTED_STREAM_PARTIAL_' in screen_paint(app))
     await pilot.press('escape', 'escape')
     await until(pilot, lambda: not comms.registry.require('beta').executing and agent.presentation.prompt_in_flight == 0)
-    await until(pilot, lambda: 'Turn cancelled' in screen_paint(app))
+    await until(pilot, lambda: screen_paint(app).count('Native input started; turn cancelled') >= 2)
     records.append({'stage': 'accepted_partial_reply', 'rows': [row.public() for row in InputDispositions(comms.root / InputDispositions.filename).read().rows.values()], 'paint': screen_paint(app)})
     (evidence / 'cancel-stages.json').write_text(json.dumps(records, indent=2))
     stream_release.set()
