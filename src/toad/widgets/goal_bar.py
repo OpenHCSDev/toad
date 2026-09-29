@@ -13,6 +13,7 @@ from textual.reactive import var
 from textual.widgets import Static
 
 from toad.goal_display import GoalDisplay, NoGoal
+from toad.goal_interaction import GoalInteraction
 from toad.widgets.goal_text import GoalText
 
 
@@ -24,13 +25,13 @@ class GoalControl(Static, can_focus=True):
     """
 
     class Activated(Message):
-        def __init__(self, action: str):
+        def __init__(self, action: type[GoalInteraction]):
             super().__init__()
             self.action = action
 
     def action_activate(self):
         if not self.disabled:
-            self.post_message(self.Activated(self.id or ""))
+            self.post_message(self.Activated(GoalInteraction.decode(self.id.removeprefix("goal-"))))
 
     def on_click(self, event: events.Click):
         event.stop()
@@ -144,25 +145,14 @@ class GoalBar(VerticalGroup):
             yield GoalText(classes="goal-summary")
             yield GoalText(classes="goal-progress")
         with HorizontalGroup(classes="goal-controls"):
-            yield GoalControl("History", id="goal-history")
-            yield GoalControl("Collapse", id="goal-collapse")
-            yield GoalControl("Pause", id="goal-toggle")
-            yield GoalControl("Edit", id="goal-edit")
-            yield GoalControl("Clear", id="goal-clear")
-
-    def on_goal_control_activated(self, event: GoalControl.Activated) -> None:
-        if event.action == "goal-collapse":
-            event.stop()
-            self.collapsed = not self.collapsed
+            for action in GoalInteraction.members_with(GoalInteraction):
+                yield GoalControl(action.label, id=action.control_id())
 
     def watch_collapsed(self) -> None:
         self.set_class(self.collapsed, "-collapsed")
         if self.collapsed:
             self._end_resize()
         if self.is_attached:
-            self.query_one("#goal-collapse", GoalControl).update(
-                "Expand" if self.collapsed else "Collapse"
-            )
             self._update_goal_text()
 
     def watch_goal_display(self) -> None:
@@ -175,9 +165,6 @@ class GoalBar(VerticalGroup):
             progress = self.query_one(".goal-progress", GoalText)
             progress.update_goal_text(f"Progress: {goal.progress}" if goal.progress else "")
             progress.display = bool(goal.progress)
-            toggle = self.query_one("#goal-toggle", Static)
-            toggle.update(goal.state.toggle_label)
-            toggle.display = not goal.state.terminal
             self._update_control_layout()
 
     def watch_execution(self) -> None:
@@ -191,8 +178,11 @@ class GoalBar(VerticalGroup):
         goal = state.snapshot
         execution = self.execution
         header.update(state.heading(execution))
-        for control in self.query(GoalControl):
-            control.disabled = not state.can_control and control.id != "goal-collapse"
+        for action in GoalInteraction.members_with(GoalInteraction):
+            control = self.query_one(f"#{action.control_id()}", GoalControl)
+            control.disabled = not action.enabled(state)
+            control.display = action.visible(state)
+            control.update(action.caption(state, self.collapsed))
         self.query_one(".goal-document").display = goal is not None and not self.collapsed
         if goal is not None:
             self.query_one(".goal-summary", GoalText).update_goal_text(f"Objective: {goal.text}")

@@ -1,3 +1,4 @@
+from agent_comms.goal_actions import GoalAction, ActiveGoalAction, PausedGoalAction, ClearGoalAction
 from toad.conversation_turn import AgentTurn, ClientTurn
 """Goal state governs auto-continuation only; changing it never cancels a turn."""
 
@@ -46,7 +47,7 @@ async def main():
             conversation.agent_ready = True
             conversation.turns.owner = AgentTurn()  # A turn is in progress.
             for action in ("paused", "active", "blocked", "completed", "clear"):
-                await conversation.change_goal(action)
+                await conversation.goal_controls.change(GoalAction.decode(action))
             assert agent.cancel_calls == 0, "changing a goal must not cancel the running turn"
             assert [action for action, _ in agent.actions] == [
                 "paused", "active", "blocked", "completed", "clear"
