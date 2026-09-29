@@ -1,0 +1,272 @@
+[
+  {
+    "frame": 0,
+    "headers": 0,
+    "live_response_identities": 0,
+    "response_lengths": [],
+    "busy": true
+  },
+  {
+    "frame": 1,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      80
+    ],
+    "busy": true
+  },
+  {
+    "frame": 2,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      80
+    ],
+    "busy": true
+  },
+  {
+    "frame": 3,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      80
+    ],
+    "busy": true
+  },
+  {
+    "frame": 4,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      160
+    ],
+    "busy": true
+  },
+  {
+    "frame": 5,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      160
+    ],
+    "busy": true
+  },
+  {
+    "frame": 6,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      160
+    ],
+    "busy": true
+  },
+  {
+    "frame": 7,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      200
+    ],
+    "busy": true
+  },
+  {
+    "frame": 8,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      200
+    ],
+    "busy": true
+  },
+  {
+    "frame": 9,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      280
+    ],
+    "busy": true
+  },
+  {
+    "frame": 10,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      280
+    ],
+    "busy": true
+  },
+  {
+    "frame": 11,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      320
+    ],
+    "busy": true
+  },
+  {
+    "frame": 12,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      320
+    ],
+    "busy": true
+  },
+  {
+    "frame": 13,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      320
+    ],
+    "busy": true
+  },
+  {
+    "frame": 14,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      360
+    ],
+    "busy": true
+  },
+  {
+    "frame": 15,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      360
+    ],
+    "busy": true
+  },
+  {
+    "frame": 16,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      400
+    ],
+    "busy": true
+  },
+  {
+    "frame": 17,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      400
+    ],
+    "busy": true
+  },
+  {
+    "frame": 18,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      440
+    ],
+    "busy": true
+  },
+  {
+    "frame": 19,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      440
+    ],
+    "busy": true
+  },
+  {
+    "frame": 20,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      520
+    ],
+    "busy": true
+  },
+  {
+    "frame": 21,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      520
+    ],
+    "busy": true
+  },
+  {
+    "frame": 22,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      560
+    ],
+    "busy": true
+  },
+  {
+    "frame": 23,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      560
+    ],
+    "busy": true
+  },
+  {
+    "frame": 24,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      560
+    ],
+    "busy": true
+  },
+  {
+    "frame": 25,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      560
+    ],
+    "busy": true
+  },
+  {
+    "frame": 26,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      560
+    ],
+    "busy": true
+  },
+  {
+    "frame": 27,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      560
+    ],
+    "busy": true
+  },
+  {
+    "frame": 28,
+    "headers": 2,
+    "live_response_identities": 2,
+    "response_lengths": [
+      560,
+      80
+    ],
+    "busy": true
+  },
+  {
+    "frame": 29,
+    "headers": 2,
+    "live_response_identities": 2,
+    "response_lengths": [
+      560,
+      80
+    ],
+    "busy": true
+  }
+]

@@ -1,0 +1,12 @@
+2 merges, 542684f8..origin/main
+
+net change: foreign_absence_probe +1, none_identity +2
+code lines +9
+
+merges adding the most debt (weighted):
+      3  #198   fix/owner-goal-and-fork-controls-20260929  none_identity +2, foreign_absence_probe +1
+      0  #195   fix/pr116-workspace-closure-20260929  
+
+weighted debt added, by branch kind: fix 3
+
+merges that added dispatch (polymorphism bypassed):
