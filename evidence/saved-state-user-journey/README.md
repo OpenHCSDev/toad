@@ -67,3 +67,27 @@ entry path for the channel hotfix, not whole-journey/finallatency completion.
 Parent owns affected LIVE path/activation; no live mutation here.
 Production selected NavigationOwner now comes from app.selected_session,
 resolving the sibling event-bubbling gap. Later feature scenarios continue here.
+
+## Continuous native extension, current installed candidate
+
+The same App now continues through unopened Gamma, an actual held native input,
+physical channel-tab click, and the active participant link back to the same
+Gamma tab. This removes the separate-path acceptance gap and adds actual
+A/B/A document/history/draft/undo/scroll, production fork dialog/first answer,
+and channel reply/automatic author observation assertions later in the journey.
+No later scenario is claimed executed until this continuous path passes.
+
+Installed Toad d511836d/core77c2ac67/native d3967e8b/Textual1738: startup, channel
+click, original-tab return, unopened Gamma attach, and active participant return
+PASS. continuous-latest-native.log then fails waiting for the answer to paint.
+Retained Gamma ACP Native_fixture_2026-09-29T01_52_23_618909.txt proves actual
+NATIVE_RESPONSE_3 received, turn settled and transcript changed. Provider/input
+loss is excluded for this attempt; cropped reader/source diagnostics continue.
+The earlier continuous-participant-fork-reply.log used old staged420/core942,
+with the same timeout. Neither is a whole-journey or live readiness claim.
+
+Shared l0a fixture now retains every test-agent ACP log rather than only primary
+Beta. Narrow existing infrastructure extension, no new framework. All imported
+product modules are noneditable installed bytes; PYTHONPATH contains tests only.
+Parent owns live read-only entrypoint proof and activation. No old142 baseline
+hold, no extra agents, paid providers, user input replay, or CI gate.

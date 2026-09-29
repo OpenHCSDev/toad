@@ -540,6 +540,8 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
                     (evidence / "toad-acp.log").write_bytes(
                         agent.presentation.log_path.read_bytes()
                     )
+            for path in (stage / "state" / "toad" / "logs").glob("*.txt"):
+                (evidence / path.name).write_bytes(path.read_bytes())
             for path in stage.glob("acp-debug*"):
                 destination = evidence / path.name
                 destination.write_bytes(path.read_bytes())
