@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import weakref
 from abc import ABC, abstractmethod
+from functools import partial
 from typing import TYPE_CHECKING
 
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
@@ -291,7 +292,7 @@ class TranscriptPresentation:
     def request(self) -> Worker[None] | None:
         if (view := self.view) is None or not view.is_attached:
             return None
-        self.worker = view.run_worker(self.publish(CheckpointPublication),
+        self.worker = view.run_worker(partial(self.publish, CheckpointPublication),
                                       group="transcript-window", exclusive=True)
         return self.worker
 
@@ -340,4 +341,3 @@ class TranscriptPresentation:
             await contents.remove_children(
                 [child for child in candidates if child not in protected]
             )
-
