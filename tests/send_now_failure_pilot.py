@@ -1,3 +1,4 @@
+from agent_comms.acp_extension import QueueItem
 """A rejected ACP Send now request clears its pending indicator, not its queue."""
 
 import asyncio
@@ -26,7 +27,8 @@ async def main():
             agent = Agent(root, {"name": "Rejected request test", "run_command": {"*": "false"}, "identity": "rejected"}, "test-session")
             view.set_reactive(type(view).agent, agent)
             view.queued_prompts = ["keep this instruction"]
-            view.sending_queued_prompt = "keep this instruction"
+            view.submissions.requested_queue = QueueItem("queued-input", "keep this instruction")
+            view.submissions.publish_pending()
 
             class FailedRequest:
                 async def wait(self):
@@ -35,7 +37,7 @@ async def main():
             with patch.object(agent, "request", return_value=nullcontext()), patch(
                 "toad.acp.agent.api.session_prompt", return_value=FailedRequest()
             ):
-                await view.send_queued_now().wait()
+                await view.submissions.send_now().wait()
             assert view.sending_queued_prompt == ""
             assert view.queued_prompts == ["keep this instruction"]
             assert app._exception is None

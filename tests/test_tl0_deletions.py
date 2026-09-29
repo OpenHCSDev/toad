@@ -14,7 +14,8 @@ def test_retired_local_sidebar_and_modules():
     assert not [name for name in removed_modules if (SOURCE / name).exists()]
     removed_symbols = {"SessionPresentation", "SessionRow", "SessionSidebar", "McpSettings",
                        "in_out_only", "_run_test_hook", "_compatibility",
-                       "POSITIVE_DECISIONS_CAPABILITY", "positive_decisions"}
+                       "POSITIVE_DECISIONS_CAPABILITY", "positive_decisions", "send_prompt_to_agent", "send_queued_now",
+                       "_sending_queue_input_id"}
     for path in SOURCE.rglob("*.py"):
         for node in ast.walk(ast.parse(path.read_text())):
             if isinstance(node, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef, ast.Name, ast.Attribute)):
