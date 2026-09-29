@@ -60,8 +60,7 @@ class ApplicationValidationOwner(ValidationOwner):
 class AgentController(OperationalTerminalOwner):
     """One operational source; the surface is an optional weak projection."""
     def __init__(self, agent):
-        super().__init__()
-        self.agent = agent
+        super().__init__(agent)
         self.surface: SurfaceBinding = DetachedSurfaceBinding()
         self.validation: ValidationOwner = HeadlessValidationOwner()
         self.app = None
