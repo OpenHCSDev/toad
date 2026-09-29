@@ -332,8 +332,7 @@ class DocumentViewport:
                 if active:
                     demand = self.lookahead.demand
                     for first in range(0, len(ahead_owners), self.budget.admission_items):
-                        if (demand is not self.lookahead.demand
-                                or not self.lookahead.travel_rows):
+                        if not self.lookahead.accepts(demand):
                             break
                         batch = [owner for owner in ahead_owners[first:first + self.budget.admission_items]
                                  if owner.is_attached and owner.body_dormant]
@@ -341,7 +340,7 @@ class DocumentViewport:
                             continue
                         await asyncio.gather(*(owner.prepare_body() for owner in batch))
                         for owner in batch:
-                            if demand is not self.lookahead.demand or not self.lookahead.travel_rows:
+                            if not self.lookahead.accepts(demand):
                                 break
                             anchor = next((item for item in owners if item in visible and item.is_attached), owner)
                             await self._restore_body(owner, anchor)

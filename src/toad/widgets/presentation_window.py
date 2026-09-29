@@ -172,3 +172,7 @@ class DirectionalPreparation:
 
     def admission(self, budget: PresentationBudget, viewport_rows: int) -> int:
         return min(budget.item_limit(0), budget.admission_items + self.ahead_rows(viewport_rows))
+
+    def accepts(self, demand: PreparationDemand) -> bool:
+        """A queued batch belongs to this still-moving or destination intent."""
+        return demand is self.demand and self.travel_rows != 0
