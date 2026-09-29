@@ -27,6 +27,7 @@ from agent_comms.acp_extension import (
     GoalChangedUpdate,
     InputFailedUpdate,
     InputStartedUpdate,
+    PromptCancelledUpdate,
     McpClientReceiptUpdate,
     PendingQueueProjection,
     QueueProjection,
@@ -2494,6 +2495,12 @@ class ConversationCommsConsumer(MroDispatch):
     @handles(InputFailedUpdate)
     async def input_failed(self, update):
         self.conversation.on_input_failed(self.message)
+
+    @handles(PromptCancelledUpdate)
+    async def prompt_cancelled(self, update):
+        from toad.widgets.markdown_note import MarkdownNote
+        await self.conversation.post(MarkdownNote(
+            f"## Turn cancelled\n\n{update.feedback}", classes="-stop-reason"))
 
     @handles(TranscriptChangedUpdate)
     async def transcript_changed(self, update):

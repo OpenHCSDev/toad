@@ -99,7 +99,8 @@ async def notification_feedback(
 async def main(*, notification_only=False, retire_surface=False, app_type=ToadApp,
                acceptance=None, provider_reply=None, provider_usage=None,
                native_settings=None, prepare_state=None, expected_response_disconnects=frozenset(), headless=True, provider_request_budget=12,
-               provider_chunk_characters=None):
+               provider_chunk_characters=None, provider_after_chunk=None,
+               attachment_expected=True):
     evidence = Path(os.environ.get("L0A_EVIDENCE", os.environ["TMPDIR"]))
     evidence.mkdir(parents=True, exist_ok=True)
     package = Path(os.environ["AC_NATIVE_COPIED_PACKAGE"])
@@ -176,7 +177,14 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
                 self.send_header("Content-Type", "text/event-stream")
                 self.send_header("Content-Length", str(len(body)))
                 self.end_headers()
-                self.wfile.write(body)
+                if provider_after_chunk is None:
+                    self.wfile.write(body)
+                else:
+                    for index, row in enumerate((*chunks, final)):
+                        self.wfile.write(("data: " + json.dumps(row) + "\n\n").encode())
+                        self.wfile.flush()
+                        provider_after_chunk(request_number, index)
+                    self.wfile.write(b"data: [DONE]\n\n")
             except Exception as error:
                 if isinstance(error, BrokenPipeError) and request_number in expected_response_disconnects:
                     print("EXPECTED_NATIVE_INTERRUPTED_PROVIDER_RESPONSE", request_number, flush=True)
@@ -280,14 +288,15 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
                 await until(pilot, lambda: view.agent is not None)
                 agent = view.agent
                 await until(pilot, agent.session.settled.is_set)
-                assert agent.session.connected, "Actual ACP attach failed"
-                owner = comms.registry.require("beta")
-                assert owner.process_identity is not None and owner.process_alive
-                navigation = await asyncio.to_thread(
-                    ThreadNavigationRequest(str(comms.root), "beta", project, ()).read
-                )
-                assert navigation.attachable and navigation.thread.process_alive
-                print("ATTACHED_AND_NAVIGABLE", flush=True)
+                assert agent.session.connected is attachment_expected, "Unexpected ACP attachment outcome"
+                if attachment_expected:
+                    owner = comms.registry.require("beta")
+                    assert owner.process_identity is not None and owner.process_alive
+                    navigation = await asyncio.to_thread(
+                        ThreadNavigationRequest(str(comms.root), "beta", project, ()).read
+                    )
+                    assert navigation.attachable and navigation.thread.process_alive
+                    print("ATTACHED_AND_NAVIGABLE", flush=True)
                 if acceptance is not None:
                     try:
                         await acceptance(app, pilot, agent, comms, entered, release,
