@@ -1,0 +1,2 @@
+PASS: mounted PTY environment, resume rows and typed selection
+PASS: all 46 original saved session identities/agent definitions/directories preserved; copy unchanged
