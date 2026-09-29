@@ -1,0 +1,20 @@
+{
+  "ForeignAbsenceProbe": [
+    31,
+    31
+  ],
+  "BooleanChainTerms": [
+    25,
+    25
+  ],
+  "classes": {
+    "ConversationSessionBinding": [
+      219,
+      253
+    ],
+    "Conversation": [
+      2050,
+      2024
+    ]
+  }
+}

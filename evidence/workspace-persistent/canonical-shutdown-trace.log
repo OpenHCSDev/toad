@@ -1,0 +1,26 @@
+SDK_APP_CONSTRUCT
+SDK_RUN_TEST
+SDK_APP_MOUNTED
+SOURCE_STARTUP None []
+BEFORE_CHILD_READY session-2 session-2 fresh-peer fresh-peer False [('ThreadLoading', 'Region(x=56, y=6, width=79, height=7)')]
+INITIAL_TAB_STATUS fresh-peer notready 
+PHYSICAL_SDK_CONTINUOUS_SAVED_CHANNEL_PARTICIPANT_RETURN_ONE_TAB_REPLY_ONCE session-2
+BEFORE_DOMAIN_CLOSE [('session-1', "DirectoryWatcher(PosixPath('/home/ts/wt/toad-workspace-persistent-sol-20260928/.artifacts/single-tab-sdk-twpmh3f2'), MainScreen(id='session-1'))"), ('session-2', 'None')]
+AFTER_DOMAIN_CLOSE [("DirectoryWatcher(PosixPath('/home/ts/wt/toad-workspace-persistent-sol-20260928/.artifacts/single-tab-sdk-twpmh3f2'), Conversation(classes='-scrollbar-normal'))", "Conversation(classes='-scrollbar-normal')")]
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-workspace-persistent-sol-20260928/tests/pending_thread_open_pilot.py", line 161, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-workspace-persistent-sol-20260928/tests/pending_thread_open_pilot.py", line 156, in main
+    assert not any(isinstance(thread, DirectoryWatcher) for thread in threads())
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError

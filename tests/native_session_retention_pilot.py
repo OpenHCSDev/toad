@@ -31,7 +31,7 @@ class InstalledApp(ToadApp):
 
 def conversation_paint(screen):
     """Only actually composited strips inside the message reader viewport."""
-    region = screen.query_one(Conversation).window.scrollable_content_region
+    region = screen.app.selected_session.conversation.window.scrollable_content_region
     strips = screen._compositor.render_strips()
     return "\n".join(strip.crop(region.x, region.right).text
                      for strip in strips[region.y:region.bottom])

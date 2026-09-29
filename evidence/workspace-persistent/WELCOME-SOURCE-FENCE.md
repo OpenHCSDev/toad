@@ -1,0 +1,7 @@
+# Post-welcome source fence and main integration
+
+Final source03ed4f20 includes the existing presentation identity check immediately after await self.post(MarkdownNote(welcome)), before reading/clearing/posting _initial_prompt. No new generation, flag or store; foreign absence31->31 and chains25->25. Existing source-binding owner stays below500 and concrete Conversation does not grow.
+
+Affected installed real App/Pilot test welcome_source_return_pilot.py PASS, process EXIT0: publish actual mounted MarkdownNote, delay only that publication's completion, select another logical MainScreen through real Workspace/NativeSessionSurface, assert same shared Conversation now has a different source, release retired callback, assert the new source's pending input is untouched and no app exception. No mocked UI/state/protocol path or provider call. Only the awaited completion is controlled to expose the source-change race. Receipt welcome-source-fence.log.
+
+Normal merge of current main be685a9b completed at b0462007 without textual conflicts and with ZERO production/pin diff from accepted03ed source: full153 ancestor had already been integrated. Current noneditable wheel rebuilt; accepted welcome/rebind source is exactly unchanged. Canonical source-shutdown/processEXIT0 receipt remains valid. No unchanged matrix repeated. Parent affectedLIVE-data journey passed earlier d511; Dalton physical Pi continuation remains independent. Follow-up body reuse deferred until checkpoint ships.
