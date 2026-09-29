@@ -6,11 +6,12 @@ import asyncio
 
 from textual import containers, events, on
 from textual.app import ComposeResult
+from textual.binding import Binding
 from textual.screen import ModalScreen
 from textual.widgets import Button, Static
 
-from toad.mcp_decision import Decision, DecisionAction, LocalDecisionPTY
-from toad.mcp_inventory import Declaration, Inventory
+from toad.mcp_decision import LocalDecisionPTY
+from toad.mcp_commands import MCPDecision, MCPSelection
 from toad.widgets.terminal import Terminal
 
 
@@ -24,19 +25,15 @@ class MCPDecisionScreen(ModalScreen[None]):
     MCPDecisionScreen #mcp-decision-terminal { height: 1fr; border: round $accent; }
     MCPDecisionScreen #mcp-decision-controls { height: auto; }
     """
-    BINDINGS = [("escape", "close_decision", "Cancel local action")]
+    BINDINGS = [Binding("escape", "close_decision", "Cancel local action", priority=True)]
 
     def __init__(
         self,
-        inventory: Inventory,
-        row: Declaration,
-        *,
-        action: DecisionAction,
-        decision: Decision,
+        selection: MCPSelection,
+        command: MCPDecision,
     ) -> None:
         super().__init__()
-        self._inventory, self._row = inventory, row
-        self._action, self._decision = action, decision
+        self._selection, self._command = selection, command
         self._pty = LocalDecisionPTY()
         self._runner: asyncio.Task[None] | None = None
         self._running = False
@@ -96,10 +93,8 @@ class MCPDecisionScreen(ModalScreen[None]):
 
         try:
             outcome = await self._pty.run(
-                inventory=self._inventory,
-                row=self._row,
-                action=self._action,
-                decision=self._decision,
+                selection=self._selection,
+                command=self._command,
                 show=show,
                 controller_visible=self._controller_visible,
             )
@@ -109,20 +104,7 @@ class MCPDecisionScreen(ModalScreen[None]):
         finally:
             terminal.finalize()
         if self._controller_visible():
-            messages = {
-                "exited_zero": "CLI exited zero; inspect its visible applied receipt. Changes apply next Pi turn.",
-                "exited_error": "CLI exited nonzero; outcome may be uncertain after a package write. Refresh inventory.",
-                "stale_snapshot": "Inventory changed or became unavailable. Action refused before launch; refresh it.",
-                "output_limit": "CLI output limit; child stopped. Package outcome may be uncertain; refresh inventory.",
-                "timeout": "Local decision timed out; child stopped. Package outcome may be uncertain; refresh inventory.",
-                "unsupported": "This action is unsupported or on safety hold.",
-                "unavailable": "Local PTY/package unavailable. No action launched.",
-                "controller_lost": "Controller disappeared; child stopped. Package outcome may be uncertain.",
-                "outcome_unknown": "CLI failed after spawn; package outcome may be uncertain. Refresh inventory.",
-            }
-            self.query_one("#mcp-decision-status", Static).update(
-                messages.get(outcome, "Action unavailable.")
-            )
+            self.query_one("#mcp-decision-status", Static).update(outcome.message)
 
     def _controller_visible(self) -> bool:
         return self._running and self.is_attached and self.app.screen is self

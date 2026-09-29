@@ -1,0 +1,23 @@
+{
+  "base_revision": "6a05d5e2184a037ef418aa8068484de7c350f360",
+  "head_revision": "26b2f7ca60f69c5b9a6da6a5c44c9c0bd7e69c91",
+  "paths": [
+    "src/toad/mcp_commands.py",
+    "src/toad/mcp_decision.py",
+    "src/toad/mcp_declarations.py",
+    "src/toad/mcp_inventory.py",
+    "src/toad/mcp_outcomes.py",
+    "src/toad/screens/mcp_decision.py",
+    "src/toad/screens/mcp_inventory.py"
+  ],
+  "nonzero_delta": {
+    "TypeIdentity": -2,
+    "LongBooleanChain": -5,
+    "BooleanChainTerms:src/toad/mcp_decision.py": -9,
+    "BooleanChainTerms:src/toad/mcp_inventory.py": -16,
+    "ForeignAbsenceProbe:src/toad/mcp_decision.py": -3,
+    "StringSubscript": 3
+  },
+  "packaged_cli_exit": 1,
+  "reason": "StringSubscript includes typing.Literal annotations; complete original stdout retained compressed"
+}
