@@ -12,6 +12,10 @@ Exact command: AC_NATIVE_COPIED_PACKAGE=/home/ts/.local/share/agent-comms/native
 
 ## Open scope
 
-Canonical snapshot freshness/repeated raw reads, activation costs and final116/110 latency remain Tesla-owned. Current continuous channel/participant/End/fork/response/process-exit proof is running; draft is not final readiness. Carver167 owns AgentConfiguration and its restoration publication; no edits there in this tranche. Noether166 terminal lifetime merged/disjoint. Parent owns latest paired pin installation and affected LIVE gate. Core1dbb proof is explicitly not latest live12bd evidence. No CI/final50ms gate on useful checkpoints.
+Canonical snapshot freshness/repeated raw reads, activation costs and final116/110 latency remain Tesla-owned. Continuous channel/participant/End/fork/response/process-exit proof PASS EXIT0 on this installed candidate. All original visible MarkdownBlock leaves retained13/17/13; real adaptive slow/fast/reverse/End/idle retained58007bytes, pending0. Physical fork/first-input/reply/author-observation pass. Draft is not final116/110 completion. Carver167 owns AgentConfiguration and its restoration publication; no edits there in this tranche. Noether166 terminal lifetime merged/disjoint. Parent owns latest paired pin installation and affected LIVE gate. Core1dbb proof is explicitly not latest live12bd evidence. No CI/final50ms gate on useful checkpoints.
 
 Existing global byte/widget/LRU admission unchanged. Visible/protected bodies can exceed warm quota; no whole-process RAM ceiling. Parked widgets remain hidden and source scopes canceled. Final close now explicitly removes the shelf in addition to frame shutdown.
+
+## Canonical read census
+
+AgentController.restore reads one native page on every attachment. Pager retirement discards its existing PreparationScope; subsequent pager source begins fresh. Rendering is already cached via PreparedRenderer and must not be duplicated. Immutable raw-page reuse requires the canonical transcript/routing revision, including annotation changes, rather than a Toad stat-based mirror. Thread activity currently constructs the whole core thread view set to select one; canonical target projection belongs to the same core owner. Noether next thread-opening scope (App ThreadOpening/ThreadNavigation) is disjoint; Carver167 owns configuration publication in restore.
