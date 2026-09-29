@@ -1,0 +1,188 @@
+[
+  {
+    "file": "src/toad/acp/agent_controller.py",
+    "class": "SessionBinding",
+    "before_excess": 0,
+    "after_excess": 0
+  },
+  {
+    "file": "src/toad/acp/agent_controller.py",
+    "class": "SurfaceBinding",
+    "before_excess": 0,
+    "after_excess": 0
+  },
+  {
+    "file": "src/toad/acp/agent_controller.py",
+    "class": "DetachedSurfaceBinding",
+    "before_excess": 0,
+    "after_excess": 0
+  },
+  {
+    "file": "src/toad/acp/agent_controller.py",
+    "class": "AttachedSurfaceBinding",
+    "before_excess": 0,
+    "after_excess": 0
+  },
+  {
+    "file": "src/toad/acp/agent_controller.py",
+    "class": "ValidationOwner",
+    "before_excess": 0,
+    "after_excess": 0
+  },
+  {
+    "file": "src/toad/acp/agent_controller.py",
+    "class": "HeadlessValidationOwner",
+    "before_excess": 0,
+    "after_excess": 0
+  },
+  {
+    "file": "src/toad/acp/agent_controller.py",
+    "class": "ApplicationValidationOwner",
+    "before_excess": 0,
+    "after_excess": 0
+  },
+  {
+    "file": "src/toad/acp/agent_controller.py",
+    "class": "AgentController",
+    "before_excess": 0,
+    "after_excess": 0
+  },
+  {
+    "file": "src/toad/acp/comms_updates.py",
+    "class": "CommsUpdateConsumer",
+    "before_excess": 0,
+    "after_excess": 0
+  },
+  {
+    "file": "src/toad/acp/transcript_reader.py",
+    "class": "NativeTranscriptReadWork",
+    "before_excess": 0,
+    "after_excess": 0
+  },
+  {
+    "file": "src/toad/acp/transcript_reader.py",
+    "class": "PublishedNativeTranscriptReadWork",
+    "before_excess": 0,
+    "after_excess": 0
+  },
+  {
+    "file": "src/toad/acp/transcript_reader.py",
+    "class": "TranscriptReadDelivery",
+    "before_excess": 0,
+    "after_excess": 0
+  },
+  {
+    "file": "src/toad/acp/transcript_reader.py",
+    "class": "DirectTranscriptReadDelivery",
+    "before_excess": 0,
+    "after_excess": 0
+  },
+  {
+    "file": "src/toad/acp/transcript_reader.py",
+    "class": "PreparedTranscriptReadDelivery",
+    "before_excess": 0,
+    "after_excess": 0
+  },
+  {
+    "file": "src/toad/acp/transcript_reader.py",
+    "class": "CoordinationTranscriptReader",
+    "before_excess": 0,
+    "after_excess": 0
+  },
+  {
+    "file": "src/toad/work_preparation.py",
+    "class": "WorkLane",
+    "before_excess": 0,
+    "after_excess": 0
+  },
+  {
+    "file": "src/toad/work_preparation.py",
+    "class": "PreparationScope",
+    "before_excess": 0,
+    "after_excess": 0
+  },
+  {
+    "file": "src/toad/work_preparation.py",
+    "class": "WorkKey",
+    "before_excess": 0,
+    "after_excess": 0
+  },
+  {
+    "file": "src/toad/work_preparation.py",
+    "class": "PreparedValue",
+    "before_excess": 0,
+    "after_excess": 0
+  },
+  {
+    "file": "src/toad/work_preparation.py",
+    "class": "CopiedValue",
+    "before_excess": 0,
+    "after_excess": 0
+  },
+  {
+    "file": "src/toad/work_preparation.py",
+    "class": "SerializedValue",
+    "before_excess": 0,
+    "after_excess": 0
+  },
+  {
+    "file": "src/toad/work_preparation.py",
+    "class": "PreparationWork",
+    "before_excess": 0,
+    "after_excess": 0
+  },
+  {
+    "file": "src/toad/work_preparation.py",
+    "class": "ReusableWork",
+    "before_excess": 0,
+    "after_excess": 0
+  },
+  {
+    "file": "src/toad/work_preparation.py",
+    "class": "SerializedWork",
+    "before_excess": 0,
+    "after_excess": 0
+  },
+  {
+    "file": "src/toad/work_preparation.py",
+    "class": "ContentAddressedWork",
+    "before_excess": 0,
+    "after_excess": 0
+  },
+  {
+    "file": "src/toad/work_preparation.py",
+    "class": "ScopedWork",
+    "before_excess": 0,
+    "after_excess": 0
+  },
+  {
+    "file": "src/toad/work_preparation.py",
+    "class": "ThreadWork",
+    "before_excess": 0,
+    "after_excess": 0
+  },
+  {
+    "file": "src/toad/work_preparation.py",
+    "class": "RendererWork",
+    "before_excess": 0,
+    "after_excess": 0
+  },
+  {
+    "file": "src/toad/work_preparation.py",
+    "class": "RenderPreparation",
+    "before_excess": 0,
+    "after_excess": 0
+  },
+  {
+    "file": "src/toad/work_preparation.py",
+    "class": "PreparationRuntime",
+    "before_excess": 0,
+    "after_excess": 0
+  },
+  {
+    "file": "src/toad/work_preparation.py",
+    "class": "PreparedRenderer",
+    "before_excess": 0,
+    "after_excess": 0
+  }
+]

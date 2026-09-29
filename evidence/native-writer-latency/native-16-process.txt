@@ -1,0 +1,44 @@
+ACTUAL_PTY_NATIVE_WRITER_EXIT 1
+0;48;2;0;0;0m  [0m[22;157H[48;2;0;0;0m [0m[22;158H
+[23;65H[39;49m▌[0m[23;66H[38;2;0;0;0;48;2;0;0;0mstable reader content.[0m[48;2;0;0;0m                                                                  [0m[23;154H[48;2;0;0;0m [0m[23;155H[7;38;2;0;0;0;48;2;0;0;0m  [0m[23;157H[48;2;0;0;0m [0m[23;158H
+[24;65H[39;49m▌[0m[24;66H[48;2;0;0;0m                                                                                         [0m[24;155H[7;38;2;0;0;0;48;2;0;0;0m  [0m[24;157H[48;2;0;0;0m [0m[24;158H
+[25;65H[39;49m▌[0m[25;66H[38;2;0;0;0;48;2;0;0;0mNATIVE_COHORT_REPLY_10 paragraph 36: independently generated actual native history with[0m[48;2;0;0;0m [0m[25;154H[48;2;0;0;0m [0m[25;155H[7;38;2;0;0;0;48;2;0;0;0m  [0m[25;157H[48;2;0;0;0m [0m[25;158H
+[26;65H[39;49m▌[0m[26;66H[38;2;0;0;0;48;2;0;0;0mstable reader content.[0m[48;2;0;0;0m                                                                  [0m[26;154H[48;2;0;0;0m [0m[26;155H[7;38;2;0;0;0;48;2;0;0;0m  [0m[26;157H[48;2;0;0;0m [0m[26;158H
+[27;65H[39;49m▌[0m[27;66H[48;2;0;0;0m                                                                                        [0m[27;154H[48;2;0;0;0m [0m[27;155H[7;38;2;0;0;0;48;2;0;0;0m  [0m[27;157H[48;2;0;0;0m [0m[27;158H
+[28;65H[39;49m▌[0m[28;66H[38;2;0;0;0;48;2;0;0;0mNATIVE_COHORT_REPLY_10 paragraph 37: independently generated actual native history with[0m[48;2;0;0;0m [0m[28;154H[48;2;0;0;0m [0m[28;155H[7;38;2;0;0;0;48;2;0;0;0m  [0m[28;157H[48;2;0;0;0m [0m[28;158H
+[29;65H[39;49m▌[0m[29;66H[38;2;0;0;0;48;2;0;0;0mstable reader content.[0m[48;2;0;0;0m                                                                  [0m[29;154H[48;2;0;0;0m [0m[29;155H[7;38;2;0;0;0;48;2;0;0;0m  [0m[29;157H[48;2;0;0;0m [0m[29;158H
+[30;65H[39;49m▌[0m[30;66H[48;2;0;0;0m                                                                                        [0m[30;154H[48;2;0;0;0m [0m[30;155H[7;38;2;0;0;0;48;2;0;0;0m  [0m[30;157H[48;2;0;0;0m [0m[30;158H
+[31;65H[39;49m▌[0m[31;66H[38;2;0;0;0;48;2;0;0;0mNATIVE_COHORT_REPLY_10 paragraph 38: independently generated actual native history with[0m[48;2;0;0;0m [0m[31;154H[48;2;0;0;0m [0m[31;155H[7;38;2;0;0;0;48;2;0;0;0m  [0m[31;157H[48;2;0;0;0m [0m[31;158H
+[32;65H[39;49m▌[0m[32;66H[38;2;0;0;0;48;2;0;0;0mstable reader content.[0m[48;2;0;0;0m                                                                  [0m[32;154H[48;2;0;0;0m [0m[32;155H[7;38;2;0;0;0;48;2;0;0;0m  [0m[32;157H[48;2;0;0;0m [0m[32;158H
+[33;65H[39;49m▌[0m[33;66H[48;2;0;0;0m                                                                                        [0m[33;154H[48;2;0;0;0m [0m[33;155H[7;38;2;0;0;0;48;2;0;0;0m  [0m[33;157H[48;2;0;0;0m [0m[33;158H
+[34;65H[39;49m▌[0m[34;66H[38;2;0;0;0;48;2;0;0;0mNATIVE_COHORT_REPLY_10 paragraph 39: independently generated actual native history with[0m[48;2;0;0;0m [0m[34;154H[48;2;0;0;0m [0m[34;155H[7;38;2;0;0;0;48;2;0;0;0m  [0m[34;157H[48;2;0;0;0m [0m[34;158H
+[35;65H[39;49m▌[0m[35;66H[38;2;0;0;0;48;2;0;0;0mstable reader content.[0m[48;2;0;0;0m                                                                  [0m[35;154H[48;2;0;0;0m [0m[35;155H[7;38;2;0;0;0;48;2;0;0;0m  [0m[35;157H[48;2;0;0;0m [0m[35;158H
+[36;65H[39;49m▌[0m[36;66H[48;2;0;0;0m                                                                                         [0m[36;155H[7;38;2;0;0;0;48;2;0;0;0m  [0m[36;157H[48;2;0;0;0m [0m[36;158H
+[38;65H[48;2;0;0;0m [0m[38;2;0;0;0;48;2;0;0;0m▶ Session details · Needs attention · Inbox unavailable · IdentityConflict: participant aggr[0m[38;158H
+[41;69H[38;2;0;0;0;48;2;0;0;0mloaded-9_UNSENT_DRAFT WITH_UNDO[0m[7;38;2;0;0;0;48;2;0;0;0m [0m[38;2;0;0;0;48;2;0;0;0m                                                       [0m[1;32H[?1000l[?1003l[?1015l[?1006l]0;🐸 Toad[?2004l[?7h[?1000l[?1003l[?1015l[?1006l[<u[?1049l[?25h[?1004lTraceback (most recent call last):
+  File "/home/ts/wt/toad-workspace-latency-sol-20260929/tests/independent_native_writer_pilot.py", line 168, in <module>
+    asyncio.run(native_fixture(app_type=PaintedSwitchApp, prepare_state=prepare,
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        provider_reply=reply, acceptance=acceptance, headless=False,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        provider_request_budget=len(NAMES)))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-workspace-latency-sol-20260929/tests/l0a_native_installed_pilot.py", line 282, in main
+    await acceptance(app, pilot, agent, comms, entered, release,
+                     hold_next, requests)
+  File "/home/ts/wt/toad-workspace-latency-sol-20260929/tests/independent_native_writer_pilot.py", line 153, in acceptance
+    await continuous_acceptance(app, pilot, agent, comms, entered, release, hold_next, requests)
+  File "/home/ts/wt/toad-workspace-latency-sol-20260929/tests/independent_native_writer_pilot.py", line 131, in continuous_acceptance
+    assert all(body() in workspace._compositor.visible_widgets for body in leaves)
+           ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+
