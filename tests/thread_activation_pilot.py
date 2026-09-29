@@ -1,5 +1,4 @@
 """Returning to a thread paints its intended viewport without replaying old scroll positions."""
-from agent_comms.acp_extension import TranscriptSnapshotUpdate
 from toad.acp.messages import CommsUpdated
 
 import asyncio
@@ -155,7 +154,7 @@ async def main():
                 False,
             )
             app.frames = []
-            conversation.post_message(CommsUpdated(TranscriptSnapshotUpdate(snapshot)))
+            await conversation.transcript.snapshot(snapshot)
             async with asyncio.timeout(5):
                 while not any(
                     ("LATEST-SNAPSHOT-ACTIVITY" in frame[3] for frame in app.frames)
