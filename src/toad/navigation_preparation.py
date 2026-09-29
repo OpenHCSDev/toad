@@ -94,6 +94,19 @@ class ThreadNavigationRequest(NavigationRequest[ThreadNavigation]):
         return ThreadNavigation(str(root), thread, active, persisted or attachable, project, existing)
 
 
+@dataclass(frozen=True)
+class ThreadOpening:
+    """One unfinished navigation request, not another displayed session."""
+
+    owner_mode: str
+    request: ThreadNavigationRequest
+    completion: asyncio.Future[str]
+
+    @property
+    def key(self) -> tuple[str, str, str]:
+        return self.owner_mode, self.request.root, self.request.target
+
+
 class NavigationReader:
     """Latest intent wins; at most two real metadata reads run concurrently.
 

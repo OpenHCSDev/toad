@@ -1,4 +1,3 @@
-import asyncio
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from time import time
@@ -60,17 +59,6 @@ class OpenTab:
     mode_name: str
     title: str
     unread: UnreadPresentation = ExactUnread()
-
-
-@dataclass(frozen=True)
-class PendingThreadTab:
-    """Presentation-only route request awaiting canonical thread discovery."""
-
-    owner_mode: str
-    root: str
-    target: str
-    return_mode: str
-    completion: asyncio.Future[str]
 
 
 @dataclass(frozen=True)
@@ -147,11 +135,11 @@ class SessionTracker:
     def session_count(self) -> int:
         return len(self.sessions)
 
-    def new_session(self) -> SessionDetails:
+    def new_session(self, *, title: str = "New Session") -> SessionDetails:
         self._session_index += 1
         mode_name = f"session-{self._session_index}"
         session_meta = SessionDetails(
-            index=self._session_index, mode_name=mode_name, title="New Session"
+            index=self._session_index, mode_name=mode_name, title=title
         )
         self.sessions[mode_name] = session_meta
         return session_meta

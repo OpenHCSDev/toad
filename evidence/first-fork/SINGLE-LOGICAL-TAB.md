@@ -1,0 +1,11 @@
+# PR153 coherent first-open and clicked navigation checkpoint
+
+Deleted first: pending_thread.py (138 source lines), PendingThreadTab, its prepared screen pool, placeholder roster/close/replacement callers, obsolete placeholder-only sidebar pilot (178 test lines). Existing unfinished navigation promises are now ThreadOpening; no second logical session or displayed placeholder.
+
+Read APPEND_SYSTEM.md and Codex AGENTS.md; latest exact archive audit and NRA ownership rules applied (IDEN-3, IMPL-4/5/10, TIME-9). Tesla156 explicitly ceded channel entry handlers and App/sidebar transition sites; retains sole Workspace/source-cache integration. CommsScreen calls existing canonical Workspace preparation/layout methods. Shared row click uses selected logical NavigationOwner, not native frame. Active first-launch participant routes native before PID/journal exists.
+
+Same titled logical SessionDetails survives native initialization/history/reply. Existing Conversation loading declaration serves compose and source binding; auto height paints the label rather than cropping it to one row. Existing readiness authority prevents idle metadata masquerading as initialized presentation. Existing viewport worker now receives async callable, not pre-created coroutine.
+
+Installed official physical SDK first-open gate PASS (single-tab-sdk.log + SVG): delayed native ACP load, one tab identity, painted loading, notready, retained saved history, ready, exactly one message and reply. Not a physical Pi proof. Continuous saved-channel click/participant click/A-B-A draft+Document/EditHistory route test is in pending_thread_open_pilot.py; current run must complete before readiness. Current native test expectation strengthened one tab/one input; prior native preflight failed transient OS libada mismatch before provider, not claimed green. Parent now reports native host checks healthy; no live installation modified here.
+
+Required affected LIVE entrypoint opening remains to verify before readiness/deploy. No claim fixed live from source/SDK tests alone. No CI/performance gate. Focused T5 deletion caller guards pass. Exact archive foreign absence and chain terms nonincreasing across all9 touched source files.

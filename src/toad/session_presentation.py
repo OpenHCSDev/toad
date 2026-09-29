@@ -207,7 +207,7 @@ class NativeSessionSurface:
             else:
                 assert self.owner is None, "Departing source must retire before admitting the next source"
                 self.widget.reparent(content, before=slot)
-                self.widget.bind_native_session(screen)
+                await self.widget.bind_native_session(screen)
             conversation = self.widget
             await owner.attach_binding(conversation)
             if owner.state is not None:

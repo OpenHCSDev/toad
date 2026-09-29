@@ -15,7 +15,7 @@ class InstalledApp(ToadApp):
 
 
 async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):
-    parent_view = app.screen.conversation
+    parent_view = app.selected_session.conversation
     release.set()
     hold_next.clear()
     await until(pilot, lambda: parent_view.agent_ready)
@@ -37,12 +37,13 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
         await fork
         raise AssertionError('Active first-fork startup routed to empty DirectTarget')
     user = comms.messaging.user_identity(str(project)).name
-    await app.open_comms_session(owner_mode=app.current_mode, project_path=project,
+    previous_modes = tuple(app.tab_order.names)
+    await app.open_comms_session(owner_mode=app.selected_mode, project_path=project,
         me=user, target=ThreadTarget(child.name))
     await fork
     print('PRODUCTION_FORK_RETURNED', flush=True)
-    await app.screen.wait_content_ready()
-    view = app.screen.query_one(Conversation)
+    await app.selected_session.wait_content_ready()
+    view = app.selected_session.query_one(Conversation)
     await until(pilot, lambda: view.agent is not None)
     await until(pilot, lambda: view.agent.session_ready_event.is_set(), 30)
     print('FIRST_OPEN_PHASE', view.agent.ready, view.agent_ready,
@@ -50,7 +51,10 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     await until(pilot, lambda: view.agent_ready, 30)
     assert view.agent.ready and view.agent_ready
     await until(pilot, lambda: response_painted(app, view, 'NATIVE_RESPONSE_1'), 30)
-    details = app.session_tracker.get_session(app.current_mode)
+    mode = app.selected_mode
+    details = app.session_tracker.get_session(mode)
+    assert tuple(app.tab_order.names) == (*previous_modes, mode)
+    attached_agent = view.agent
     await until(pilot, lambda: details.title == child.name)
     assert view.agent.session_id == child.name
     assert not details.title.startswith('@')
@@ -66,7 +70,14 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     await view.submit_input(messages.UserInputSubmitted('FIRST_FORK_NEW_INPUT'))
     await until(pilot, lambda: len(requests) >= 3, 30)
     await until(pilot, lambda: response_painted(app, view, 'NATIVE_RESPONSE_3'), 30)
-    print('FIRST_FORK_PROMPT_AND_ANSWER_PAINTED', flush=True)
+    from agent_comms.transcript_events import UserTranscript
+    page = comms.transcripts.thread_transcript(child.name)
+    assert sum(isinstance(event, UserTranscript) and event.text == 'FIRST_FORK_NEW_INPUT'
+               for event in page) == 1
+    assert app.selected_mode == mode
+    assert app.session_tracker.get_session(mode) is details and view.agent is attached_agent
+    assert tuple(app.tab_order.names) == (*previous_modes, mode)
+    print('FIRST_FORK_PROMPT_AND_ANSWER_PAINTED_ONCE_SAME_LOGICAL_TAB', flush=True)
 
 
 if __name__ == '__main__':
