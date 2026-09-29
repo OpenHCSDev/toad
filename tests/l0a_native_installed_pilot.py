@@ -306,6 +306,13 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
                         # Textual captures ordinary print output. Persist the
                         # original assertion before UI teardown can block it.
                         (evidence / "acceptance-failure.txt").write_text(traceback.format_exc())
+                        (evidence / "provider-failures.json").write_text(json.dumps({
+                            "errors": failures, "requests": [
+                                {"model": request.get("model"),
+                                 "max_tokens": request.get("max_tokens"),
+                                 "messages_characters": len(json.dumps(request.get("messages")))}
+                                for request in requests],
+                        }, indent=2))
                         raise
                     assert not failures, failures
                     assert app._exception is None

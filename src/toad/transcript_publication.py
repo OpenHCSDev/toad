@@ -87,15 +87,14 @@ class AssignedInboundPublication(TranscriptPublication):
 
         wanted = frozenset(receipt.message.seq for receipt in self.notifications
                            if receipt.message is not None and receipt.message.seq > 0)
-        covered = frozenset()
-        for history in tuple(self.contents.children):
-            if isinstance(history, CommittedHistory):
-                found = await history.source_coverage(
-                    wanted - covered, self.owner.view.app.preparation, self.current,
-                )
-                if found is None or not self.current():
-                    return
-                covered |= found
+        histories = tuple(history for history in self.contents.children
+                          if isinstance(history, CommittedHistory))
+        if not histories and self.agent is not None and self.agent.transcript_ready:
+            # The initial source publication retries the canonical observation.
+            # Until it exists, recent assignment rows have no live chronology.
+            return
+        covered = frozenset(sequence for history in histories
+                            for sequence in history.covered_sequences(wanted))
         if not self.current():
             return
         for receipt in reversed(self.notifications):
@@ -346,9 +345,9 @@ class TranscriptPresentation:
             frontiers.append(self.displayed_cursor)
         frontier = max((cursor for cursor in frontiers
                         if cursor.session_file == page.after.session_file),
-                       key=lambda cursor: cursor.offset, default=None)
+                       key=lambda cursor: (cursor.offset, cursor.wire_seq), default=None)
         if frontier is not None:
-            if frontier.offset < page.after.offset:
+            if not frontier.contains(page.after):
                 # The existing evidence/viewport policy advances retained content;
                 # a load response is not a reason to append its whole page twice.
                 self.require_checkpoint()
@@ -432,6 +431,7 @@ class TranscriptPresentation:
         from toad.widgets.conversation import Contents
         from toad.widgets.committed_presentation import (
             CommitEvidence,
+            CommitParticipant,
             protected_blocks,
             retirement_candidates,
         )
@@ -450,7 +450,10 @@ class TranscriptPresentation:
                 contents.children,
                 CommitEvidence(
                     frozenset(),
-                    frozenset(message.sequences),
+                    frozenset(message.sequences) | message.history.covered_sequences(
+                        frozenset(sequence for child in contents.children
+                                  if isinstance(child, CommitParticipant)
+                                  for sequence in child.commit_claim.required_sequences)),
                     message.history,
                 ),
             )

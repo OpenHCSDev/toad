@@ -1,0 +1,44 @@
+                                                                                                                                                                
+  ☰     <──    ──>   ! beta ×                                                                                                                                  
+                      ━━━━━━                                                                                                                                    
+▼ Channels                                           Name ▾    │▌COLD_RETAINED_LONG_ANSWER history for the saved reader. COLD_RETAINED_LONG_ANSWER              
++ New Session                                                  │▌history for the saved reader. COLD_RETAINED_LONG_ANSWER history for the saved reader.          
+▾ #any                                       Date created ▾    │▌COLD_RETAINED_LONG_ANSWER history for the saved reader. COLD_RETAINED_LONG_ANSWER              
+  ! beta                                                       │▌history for the saved reader. COLD_RETAINED_LONG_ANSWER history for the saved reader.          
+    Inbox unavailable · IdentityConflict: participant aggre    │▌COLD_RETAINED_LONG_ANSWER history for the saved reader. COLD_RETAINED_LONG_ANSWER              
+▸ #none                                      Date created ▾    │▌history for the saved reader. COLD_RETAINED_LONG_ANSWER history for the saved reader.          
+▸ #all                                       Date created ▾    │▌COLD_RETAINED_LONG_ANSWER history for the saved reader. COLD_RETAINED_LONG_ANSWER              
+▸ #team                                      Date created ▾    │▌history for the saved reader. COLD_RETAINED_LONG_ANSWER history for the saved reader.          
+                                                               │▌COLD_RETAINED_LONG_ANSWER history for the saved reader. COLD_RETAINED_LONG_ANSWER              
+                                                               │▌history for the saved reader. COLD_RETAINED_LONG_ANSWER history for the saved reader.          
+                                                               │▌COLD_RETAINED_LONG_ANSWER history for the saved reader. COLD_RETAINED_LONG_ANSWER              
+                                                               │▌history for the saved reader. COLD_RETAINED_LONG_ANSWER history for the saved reader.          
+                                                               │▌COLD_RETAINED_LONG_ANSWER history for the saved reader. COLD_RETAINED_LONG_ANSWER              
+                                                               │▌history for the saved reader. COLD_RETAINED_LONG_ANSWER history for the saved reader.          
+                                                               │▌COLD_RETAINED_LONG_ANSWER history for the saved reader.                                        
+                                                               │▌                                                                                               
+                                                               │▌▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔      
+                                                               │▌  ▶ Agent coordination context                                                                 
+                                                               │▌                                                                                               
+                                                             < │▌                                                                                             < 
+                                                               │▌─────────────────────────────────── User · 18:00:05 ────────────────────────────────────       
+                                                               │▌▊❯ COLD_RECENT_QUESTION                                                                        
+                                                               │▌                                                                                               
+                                                               │▌                                                                                               
+                                                               │▌─────────────────────────────────── Agent · 18:00:06 ───────────────────────────────────       
+                                                               │▌COLD_RECENT_ANSWER                                                                       ▁▁    
+                                                               │▌                                                                                               
+                                                               │                                                                                                
+                                                               │ Compacting context… · 0:06 elapsed                                                             
+                                                               │ ▶ Session details · Needs attention · Compacting context… · Saved history available · Bus in   
+                                                               │━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━   
+                                                               │ Goal · active · rev 1                                                                          
+                                                               │ Objective: One automatic cold-context continuation                                             
+                                                               │ History  Collapse  Pause  Edit  Clear                                                          
+                                                               │─────────────────────────────────────────────────────────────────────────────────────────────   
+                                                               │ Enter queues · Send now (Ctrl+Enter / Ctrl+Y)                                                  
+                                                               │▊▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▎   
+                                 ▍                             │▊ ❯                                                                                         ▎   
+40% ───────────────────────────────────────●────────────────   │▊▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▎   
+  ──>   Float                                                  │  selected-offline/fixture · off  … Context unavailable · Native context measurement is pend    
+^y Send now ⏎ Send ⇧+⏎ Line ^c Interrupt ^g IRC view ^s Channels                                                                                    ▏^p palette 

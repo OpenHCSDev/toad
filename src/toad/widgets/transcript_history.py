@@ -78,11 +78,11 @@ class TranscriptBlockConsumer(MroDispatch):
     def user(self, event: UserTranscript):
         if event.routed:
             from toad.widgets.incoming_message import IncomingMessage
-            message = event.routing.requests[0]
-            self.blocks.append(IncomingMessage(
-                message.sender, event.text, message.target, show_header=self.show_divider,
-                sequence=message.seq, clock=MessageClock.recorded(event.timestamp),
-            ))
+            for message in event.routing.requests:
+                self.blocks.append(IncomingMessage(
+                    message.sender, message.body, message.target, show_header=self.show_divider,
+                    sequence=message.seq, clock=MessageClock.recorded(message.timestamp),
+                ))
         else:
             self.blocks.append(UserInput(event.text, show_divider=self.show_divider, clock=MessageClock.recorded(event.timestamp)))
 
@@ -547,22 +547,11 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
     def covers_incoming(self, sequence: int) -> bool:
         if not self._source_state.reports_coverage:
             return False
+        if self.committed_cursor.covers_incoming(sequence):
+            return True
         if sequence in self.Covered(tuple(self.coverage_events)).sequences:
             return True
         return self.filter.covers_incoming(sequence)
-
-    async def source_coverage(self, sequences, runtime, is_current):
-        if not self.state.reports_coverage:
-            return None
-        known = self.covered_sequences(sequences)
-        if known == sequences or self.loader is None:
-            return known
-        through = self.committed_cursor
-        found = await CommittedInterval(
-            TranscriptCursor(through.session_file, 0), through,
-        ).coverage(self.loader, sequences - known, runtime,
-                   lambda: self.state.reports_coverage and is_current())
-        return None if found is None else known | found
 
     @property
     def committed_cursor(self) -> TranscriptCursor:
