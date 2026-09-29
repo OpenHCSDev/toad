@@ -80,12 +80,11 @@ async def main() -> None:
                     command,
                     cwd=str(sandbox),
                     env=dict(os.environ),
-                    stdin=asyncio.subprocess.PIPE,
-                    stdout=asyncio.subprocess.PIPE,
-                    stderr=asyncio.subprocess.DEVNULL,
-                    start_new_session=True,
+
+
+
                 )
-                group = process.pid  # Toad Agent._process_group_id and OS PGID
+                group = process.identity.pid  # Toad Agent._process_group_id and OS PGID
                 try:
                     assert process.stdout is not None
                     child_pid = int(
@@ -99,23 +98,12 @@ async def main() -> None:
                     )
                     agent.post_message = lambda _event: None
                     agent.process.process = process
-                    agent.process.control.group_id = group
-                    try:
-                        from toad.acp.group_retirement import capture_accepted_group
-                    except ImportError:
-                        accepted = None  # pre-stop-proof Toad branch
-                    else:
-                        accepted = capture_accepted_group(group)
-                        agent._accepted_group = accepted
                     agent.process.session_task = None
                     agent.process.runner = None
                     evidence = await agent.stop()
                     assert process.returncode is not None
                     assert not live_members(group), "old ACP descendant survived stop"
-                    if accepted is not None:
-                        assert evidence is not None and evidence.accepted == accepted
-                        assert agent.verify_retirement().accepted == accepted
-                    assert agent.process.control.group_id is None
+                    assert agent.process.process is None
                     with patch.object(
                         cohort_foreground, "_trusted_package", lambda _: None
                     ):

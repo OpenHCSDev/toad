@@ -7,7 +7,7 @@ import os
 import tempfile
 from pathlib import Path
 from types import SimpleNamespace
-from unittest.mock import AsyncMock, patch
+from unittest.mock import patch
 
 from default_route_pilot import private_root, route
 
@@ -17,7 +17,6 @@ from toad.acp.agent import Agent
 async def make_agent(project: Path) -> Agent:
     agent = Agent(project, {"name": "fake", "run_command": {"*": "true"}}, None)
     agent.post_message = lambda _message: None
-    agent._run_agent = AsyncMock()
     await agent.start()
     assert agent.process.runner is not None
     await agent.process.runner
@@ -50,7 +49,7 @@ async def main() -> None:
             os.environ.pop("AGENT_COMMS_ROOT", None)
             route(home, first, first_id)
             implicit_agent = await make_agent(project)
-            assert implicit_agent._maintenance_implicit_root
+            assert implicit_agent.process.implicit_root
             route(home, second, second_id)
             sent = []
             implicit_agent.process.process = SimpleNamespace(
@@ -72,7 +71,7 @@ async def main() -> None:
             # after the parent process drops its override.
             with patch.dict(os.environ, {"AGENT_COMMS_ROOT": str(first)}):
                 explicit_agent = await make_agent(project)
-            assert not explicit_agent._maintenance_implicit_root
+            assert not explicit_agent.process.implicit_root
             explicit_agent.process.process = SimpleNamespace(
                 stdin=SimpleNamespace(write=sent.append)
             )

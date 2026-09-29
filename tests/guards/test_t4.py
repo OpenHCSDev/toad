@@ -59,3 +59,33 @@ def test_nominal_block_interaction_caller_closure():
     from toad.block_content import BlockContent
     from toad.conversation_markdown import ConversationMarkdown
     assert all(issubclass(block,BlockContent) for block in ConversationMarkdown.BLOCKS.values())
+
+
+def test_acp_process_retirement_single_owner():
+    retired = {'ProcessControl', 'PosixProcessControl', 'WindowsProcessControl',
+               '_maintenance_env', '_maintenance_cwd', '_maintenance_root',
+               '_maintenance_implicit_root', 'stopping'}
+    for relative in ('acp/agent.py', 'acp/agent_process.py', 'acp/maintenance_ingress.py',
+                     'acp/agent_controller.py', 'acp/comms_updates.py'):
+        for node in ast.walk(ast.parse((ROOT / relative).read_text())):
+            if isinstance(node, ast.Name):
+                assert node.id not in retired, (relative, node.lineno)
+            if isinstance(node, ast.Attribute):
+                assert node.attr not in retired, (relative, node.lineno)
+                if relative in {'acp/agent_process.py', 'acp/maintenance_ingress.py'}:
+                    assert node.attr not in {'killpg', 'terminate', 'kill', 'create_subprocess_shell'}, (relative, node.lineno)
+    owner = ast.parse((ROOT / 'acp/agent_process.py').read_text())
+    run = next(node for node in ast.walk(owner)
+               if isinstance(node, ast.AsyncFunctionDef) and node.name == 'run')
+    assert isinstance(run.body[0], ast.Try) and run.body[0].finalbody
+
+
+def test_startup_failure_declaration_caller_closure():
+    for relative in ('agent.py', 'acp/agent.py', 'acp/agent_process.py',
+                     'acp/comms_updates.py', 'widgets/conversation.py'):
+        for node in ast.walk(ast.parse((ROOT / relative).read_text())):
+            if isinstance(node, ast.Name):
+                assert node.id != 'AGENT_FAIL_HELP', (relative, node.lineno)
+            if isinstance(node, ast.Call):
+                assert not (isinstance(node.func, ast.Name) and node.func.id == 'AgentFail'), (relative, node.lineno)
+                assert all(keyword.arg != 'help' for keyword in node.keywords), (relative, node.lineno)

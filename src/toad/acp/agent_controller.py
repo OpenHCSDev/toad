@@ -155,10 +155,7 @@ class AgentController(OperationalTerminalOwner):
         self.agent.post_message(AvailableCommandsUpdate(commands))
 
     def start_operation(self, operation):
-        task = asyncio.create_task(operation)
-        self.agent.process.responses.add(task)
-        task.add_done_callback(self.agent.process.responses.discard)
-        return task
+        return self.agent.process.start_operation(operation)
 
     async def operate(self, operation):
         return await asyncio.shield(self.start_operation(operation))

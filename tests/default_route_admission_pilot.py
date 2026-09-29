@@ -141,7 +141,7 @@ async def main() -> None:
                             await release_spawn.wait()
                             return SimpleNamespace(pid=123, returncode=0)
 
-                        with patch("asyncio.create_subprocess_shell", fake_spawn):
+                        with patch("agent_comms.child_process.AttachedChild.start", fake_spawn):
                             spawn = asyncio.create_task(
                                 admitted_spawn(
                                     "fake", env=dict(os.environ), cwd=str(sandbox)
@@ -182,7 +182,7 @@ async def main() -> None:
                         observed_env.update(kwargs["env"])
                         return SimpleNamespace(pid=123, returncode=0)
 
-                    with patch("asyncio.create_subprocess_shell", observe_private):
+                    with patch("agent_comms.child_process.AttachedChild.start", observe_private):
                         await admitted_spawn(
                             "fake-private", env=dict(os.environ), cwd=str(sandbox)
                         )
@@ -191,7 +191,7 @@ async def main() -> None:
                     assert observed_env[PACKAGE_ENV] == str(route.native_package)
                     observed_env.clear()
                     poisoned = dict(os.environ, **{ROOT_ID_ENV: "f" * 32})
-                    with patch("asyncio.create_subprocess_shell", observe_private):
+                    with patch("agent_comms.child_process.AttachedChild.start", observe_private):
                         try:
                             await admitted_spawn(
                                 "wrong-private-id", env=poisoned, cwd=str(sandbox)
@@ -207,7 +207,7 @@ async def main() -> None:
                     # A caller-provided child root is explicit, even when
                     # Toad's own environment still uses the default route.
                     explicit_env = dict(os.environ, AGENT_COMMS_ROOT=str(legacy))
-                    with patch("asyncio.create_subprocess_shell", observe_private):
+                    with patch("agent_comms.child_process.AttachedChild.start", observe_private):
                         await admitted_spawn(
                             "fake-explicit", env=explicit_env, cwd=str(sandbox)
                         )
@@ -222,7 +222,7 @@ async def main() -> None:
                             PACKAGE_ENV: str(route.native_package),
                         },
                     )
-                    with patch("asyncio.create_subprocess_shell", observe_private):
+                    with patch("agent_comms.child_process.AttachedChild.start", observe_private):
                         try:
                             await admitted_spawn(
                                 "explicit-legacy-with-private-flags",
