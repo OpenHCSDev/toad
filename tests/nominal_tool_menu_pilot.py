@@ -14,7 +14,7 @@ from toad.widgets.comms_sidebar import ChannelGroup, CommsSidebar
 from agent_comms.comms import wire
 from agent_comms.threads import Thread
 
-TREE = Path(__file__).resolve().parents[1]
+TREE = Path(os.environ.get("TOAD_PILOT_OUTPUT_ROOT", Path(__file__).resolve().parents[1]))
 
 
 async def main():
