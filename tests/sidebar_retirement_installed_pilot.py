@@ -115,7 +115,8 @@ async def main():
                     tree = await prepare_project(bar, pilot)
                     await until(pilot, lambda: tree.cursor_node is not None and tree.cursor_node.data.path == project / "folder/deep/item-38.txt")
                     await pilot.pause(.02)
-                    assert tree.scroll_y == tree_scroll
+                    assert tree.scroll_y == tree_scroll, (tree.scroll_y, tree_scroll,
+                        tree.size, tree.virtual_size, tree.max_scroll_y, tree.cursor_line)
                     relationships = bar.query_one(ThreadCommsSidebar)
                     assert relationships.view_state is state
                     assert state.selected == ("collaborating", "peer")

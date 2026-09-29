@@ -1,0 +1,1 @@
+{"cohorts": [], "returns": 2, "settled_return_median_ms": 137.26817999850027, "settled_return_max_ms": 212.61488299933262, "collected_retired_widgets": 11, "boundary": "actual installed MainScreen/App selection hooks, filesystem and relationship service; no ACP provider claimed"}
