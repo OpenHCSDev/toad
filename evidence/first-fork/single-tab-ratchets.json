@@ -9,6 +9,16 @@
       23
     ]
   },
+  "src/toad/directory_watcher.py": {
+    "ForeignAbsenceProbe": [
+      3,
+      3
+    ],
+    "BooleanChainTerms": [
+      0,
+      0
+    ]
+  },
   "src/toad/navigation_preparation.py": {
     "ForeignAbsenceProbe": [
       0,
@@ -83,6 +93,16 @@
     "ForeignAbsenceProbe": [
       11,
       11
+    ],
+    "BooleanChainTerms": [
+      4,
+      4
+    ]
+  },
+  "src/toad/widgets/virtual_channel_list.py": {
+    "ForeignAbsenceProbe": [
+      0,
+      0
     ],
     "BooleanChainTerms": [
       4,

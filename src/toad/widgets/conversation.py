@@ -623,6 +623,9 @@ class ConversationSessionBinding(containers.Vertical):
         """Invalidate all old publications before this rich surface changes source."""
         self.goal_controls.close()
         self.output.retire()
+        if self._directory_watcher is not None:
+            await self._directory_watcher.aclose()
+            self._directory_watcher = None
         await self.window.document_viewport.suspend_source()
         await asyncio.gather(self.transcript.close(), self.goal_observation.close(),
                              self.delivery_observation.close())
@@ -851,8 +854,7 @@ class Conversation(ConversationSessionBinding):
         self.shell_history_index = 0
         self.prompt_history_index = 0
         if self._directory_watcher is not None:
-            self._directory_watcher.stop()
-            await asyncio.to_thread(self._directory_watcher.join)
+            await self._directory_watcher.aclose()
             self._directory_watcher = None
         if self.agent_ready:
             self._directory_watcher = DirectoryWatcher(path, self)
@@ -1207,8 +1209,7 @@ class Conversation(ConversationSessionBinding):
         self.output.retire()
         await asyncio.gather(self.goal_observation.close(), self.delivery_observation.close())
         if self._directory_watcher is not None:
-            self._directory_watcher.stop()
-            await asyncio.to_thread(self._directory_watcher.join)
+            await self._directory_watcher.aclose()
             self._directory_watcher = None
         if self.agent is not None:
             await self.agent.retire_surface(self)
@@ -2582,7 +2583,6 @@ class Conversation(ConversationSessionBinding):
         self.prompt.focus()
 
     def jump_to_latest(self) -> None:
-        from toad.widgets.transcript_history import TranscriptHistory
 
         for history in self.query(TranscriptHistory):
             if history.has_newer:

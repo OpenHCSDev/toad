@@ -7,7 +7,7 @@ from pathlib import Path
 import shlex
 import sys
 from tempfile import TemporaryDirectory
-from threading import Event
+from threading import Event, enumerate as threads
 from unittest.mock import patch
 from agent_comms.child_process import ProcessIdentity
 from agent_comms.threads import Thread
@@ -17,6 +17,7 @@ from toad.widgets.channels_sidebar import ChannelsSidebar
 from toad import messages
 from toad.navigation_preparation import ThreadNavigationRequest
 from toad.widgets.conversation import ThreadLoading
+from toad.directory_watcher import DirectoryWatcher
 
 
 class InstalledApp(ToadApp):
@@ -73,8 +74,8 @@ async def main():
             source.conversation.prompt.text = "RETAINED_DRAFT"
             editor = source.conversation.prompt.prompt_text_area
             document, undo = editor.document, editor.history
-            roster = await wait_channel_roster(app, pilot, "#journey")
             app.screen.query_one(ChannelsSidebar).reveal()
+            roster = await wait_channel_roster(app, pilot, "#journey")
             await pilot.pause()
             group = next(g for g in roster.query(ChannelGroup) if g.row.target_name == "#journey")
             assert await pilot.click(group.row)
@@ -144,6 +145,8 @@ async def main():
                     print("PHYSICAL_SDK_CONTINUOUS_SAVED_CHANNEL_PARTICIPANT_RETURN_ONE_TAB_REPLY_ONCE", mode, flush=True)
                 finally:
                     release.set()
+        assert not any(isinstance(thread, DirectoryWatcher) for thread in threads())
+        print("CONTINUOUS_JOURNEY_AND_RETIRED_PROCESS_PASS", flush=True)
 
 
 if __name__ == "__main__":
