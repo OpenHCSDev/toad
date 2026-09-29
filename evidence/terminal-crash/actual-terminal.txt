@@ -1,0 +1,1 @@
+PASS actual PTY terminal UI exception: exit1, printed error retained, persistent traceback names failing callback, one owner-only file, no locals
