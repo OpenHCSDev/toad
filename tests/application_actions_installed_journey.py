@@ -80,6 +80,7 @@ async def main():
             assert prompt.text==draft and prompt.prompt_text_area.document is document
             print('OPENING_SETTINGS_MODAL',flush=True)
             await pilot.press('f2')
+            print('SETTINGS_KEY_RETURNED',type(app.screen).__name__,flush=True)
             await until(pilot,lambda:isinstance(app.screen,SettingsScreen))
             search=app.screen.query_one('#search',Input)
             await pilot.click(search);await pilot.press(*'Width of the column')
@@ -87,7 +88,9 @@ async def main():
             width=next(w for w in app.screen.query(InputEditor) if w.bound.kind is UiSettings.column_width)
             width.scroll_visible(animate=False,immediate=True);await pilot.pause()
             assert await pilot.click(width)
+            print('SETTINGS_EDIT_VISIBLE',width.value,flush=True)
             await pilot.press('home','shift+end','1','2','3','escape')
+            print('SETTINGS_ESCAPE_RETURNED',type(app.screen).__name__,app.settings.ui.column_width,flush=True)
             await until(pilot,lambda:app.screen is app.workspace_screen and app.settings.ui.column_width==123)
             await until(pilot,lambda:json.loads(settings_path.read_text())['ui']['column-width']==123)
             assert app.selected_session is source and app.workspace_screen.frame_presentation.ready
@@ -126,6 +129,7 @@ async def main():
             # Quit while editor still focused; no blur/save sleeps in product.
             print('OPENING_SETTINGS_MODAL',flush=True)
             await pilot.press('f2')
+            print('SETTINGS_KEY_RETURNED',type(app.screen).__name__,flush=True)
             await until(pilot,lambda:isinstance(app.screen,SettingsScreen))
             width=next(w for w in app.screen.query(InputEditor) if w.bound.kind is UiSettings.column_width)
             width.scroll_visible(animate=False,immediate=True);await pilot.pause()

@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-thread-opening-sol-20260929/tests/application_actions_installed_journey.py", line 11, in <module>
+    from runtime_fixture import ToadApp
+  File "/home/ts/wt/toad-thread-opening-sol-20260929/tests/runtime_fixture.py", line 8, in <module>
+    import psutil
+ModuleNotFoundError: No module named 'psutil'

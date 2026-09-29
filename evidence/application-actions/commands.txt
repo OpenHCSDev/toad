@@ -1,0 +1,13 @@
+Own persistent WT: /home/ts/wt/toad-thread-opening-sol-20260929
+Disposable roots: .artifacts/q8/{tmp,native-matched}; cleanup after test-owned child audit.
+
+uv pip install --python .venv/bin/python --no-deps .
+uv pip install --python .venv/bin/python --no-deps 'agent-comms @ git+https://github.com/OpenHCSDev/agent-comms.git@670f099525163235cc14c8436298eed009bf1c4d' 'textual @ git+https://github.com/OpenHCSDev/textual.git@609b74bf3d7851bd2c1eff61dc2790e86e1925af'
+mkdir -p .artifacts/q8/tmp
+TMPDIR=$PWD/.artifacts/q8/tmp timeout 100 .venv/bin/python -u tests/application_actions_installed_journey.py
+TMPDIR=$PWD/.artifacts/q8/tmp Q7_EVIDENCE=$PWD/evidence/application-actions timeout 70 .venv/bin/python -u tests/first_frame_installed_terminal_journey.py
+TOAD_TEST_SOURCE_HEAD=$(git rev-parse HEAD) TMPDIR=$PWD/.artifacts/q8/tmp AC_NATIVE_COPIED_PACKAGE=/home/ts/wt/comms-selected-cold-compaction-native-20260928/stack/.pi-native-fcadec01235eb0b5/node_modules/@earendil-works/pi-coding-agent L0A_EVIDENCE=$PWD/.artifacts/q8/native-matched timeout 130 .venv/bin/python -u tests/first_fork_native_installed_pilot.py
+.venv/bin/python -m pytest tests/guards/test_application_actions.py tests/guards/test_prompt_frame.py tests/guards/test_t4.py -q
+.venv/bin/python -m agent_comms.debt_ratchet --root src/toad --base 7c978599 --head HEAD
+
+The native package is read-only; the pilot verifies its declared manifest and writes only its own isolated fixture root. No paid provider, live route, original input, user journal or owner restart.
