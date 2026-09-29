@@ -67,6 +67,8 @@ class Observer:
             if self.disconnected_seen:
                 return await task
             assert ask is not None and self.view.prompt.is_mounted
+            frame="\n".join(strip.text for strip in self.app.screen._compositor.render_strips())
+            assert any(option.text in frame for option in ask.options), "Native permission options must actually paint"
             self.app.save_screenshot(str(self.root / "toad-permission.svg"))
             self.permission_presented.set()
             if os.environ.get("AC_MCP_RETIRE_SURFACE") == "1" and self.case != "disconnect":
@@ -121,6 +123,7 @@ async def open_observer(case: str, artifact_dir: Path) -> AsyncIterator[Observer
     try:
         app = ToadApp(project_dir=str(root / "project"))
         async with app.run_test(size=(120, 40)) as pilot:
+            await app.screen.wait_content_ready()
             await pilot.pause()
             assert isinstance(app.screen, MainScreen)
             view = app.screen.conversation
@@ -134,10 +137,10 @@ async def open_observer(case: str, artifact_dir: Path) -> AsyncIterator[Observer
                 assert len(observer.receipts) == 1
                 assert observer.permissions == (0 if case == "no_controller" else 1)
                 assert observer.disconnected_seen == (case == "disconnect")
-                assert not notes(view) and view._mcp_live_turn is None
+                assert not notes(observer.view) and observer.view._mcp_live_turn is None
                 assert app._exception is None
                 (root / "toad-evidence.json").write_text(json.dumps({
-                    "case": case, "session": agent.session_id,
+                    "case": case, "session": observer.agent.session_id,
                     "renderedReceipts": observer.receipts,
                     "permissionDialogs": observer.permissions,
                     "negativeBoundariesPassed": True, "liveProjectionCleared": True,
