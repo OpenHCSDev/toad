@@ -1,0 +1,18 @@
+{
+  "cli_exit_code": 0,
+  "base": "83d1d2c89ece5e8bb89650a256abc4efed6d72f6",
+  "head": "b4bd12d2638ec177cd81f71220754fbe7e87d352",
+  "changed_paths": [
+    "src/toad/transcript_filter.py",
+    "src/toad/transcript_state.py",
+    "src/toad/widgets/transcript_history.py"
+  ],
+  "nonzero_deltas": {
+    "GodClassExcess:src/toad/widgets/transcript_history.py::TranscriptHistory": -1,
+    "LongBooleanChain": -3,
+    "BooleanChainTerms:src/toad/transcript_filter.py": -14,
+    "BooleanChainTerms:src/toad/widgets/transcript_history.py": -1,
+    "ForeignAbsenceProbe:src/toad/widgets/transcript_history.py": -7
+  },
+  "positive_deltas": {}
+}

@@ -39,19 +39,19 @@ async def main():
             await view.contents.mount(history)
             view.window.anchor()
             await pilot.pause()
-            assert view.window.max_scroll_y > history._prefetch_distance
+            assert view.window.max_scroll_y > history.prefetch_distance
             assert history.pages[0].page.before.offset == 100, "Lookahead mounted old content at the tail"
             view.window.release_anchor()
             try:
                 async with asyncio.timeout(8):
                     while history.pages[0].page.before.offset != 0:
-                        view.window.scroll_to(y=history._prefetch_distance - 1,
+                        view.window.scroll_to(y=history.prefetch_distance - 1,
                                               animate=False, immediate=True)
                         await pilot.pause(.02)
             except TimeoutError:
                 raise AssertionError({"scroll": view.window.scroll_y,
                                       "max_scroll": view.window.max_scroll_y,
-                                      "prefetch": history._prefetch_distance,
+                                      "prefetch": history.prefetch_distance,
                                       "region": history.region,
                                       "viewport": view.window.content_region,
                                       "older": history.has_older,
@@ -83,8 +83,8 @@ async def main():
             await view.contents.mount(filtered)
             view.window.anchor()
             await pilot.pause()
-            assert view.window.max_scroll_y > filtered._prefetch_distance, (
-                view.window.max_scroll_y, filtered._prefetch_distance,
+            assert view.window.max_scroll_y > filtered.prefetch_distance, (
+                view.window.max_scroll_y, filtered.prefetch_distance,
                 filtered.fragment_count, filtered.widget_count,
                 filtered.pages[-1].start, filtered.pages[-1].stop,
                 filtered.filter.before, filtered_calls)
@@ -95,7 +95,7 @@ async def main():
             try:
                 async with asyncio.timeout(8):
                     while filtered.filter.overlay is None:
-                        view.window.scroll_to(y=filtered._prefetch_distance - 1,
+                        view.window.scroll_to(y=filtered.prefetch_distance - 1,
                                               animate=False, immediate=True)
                         await pilot.pause(.02)
             except TimeoutError:
