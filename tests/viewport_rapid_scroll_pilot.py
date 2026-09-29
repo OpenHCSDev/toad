@@ -2,6 +2,7 @@
 
 import asyncio
 import os
+import psutil
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
@@ -16,7 +17,9 @@ class FrameApp(ToadApp):
         if self.observed is not None and renderable is not None and not self._batch_count and screen is self.screen:
             end, window, frames = self.observed
             frames.append((window.follows_tail, end in screen._compositor.visible_widgets,
-                           end.body_ready, window.scroll_y, window.max_scroll_y))
+                           end.body_ready, window.scroll_y, window.max_scroll_y,
+                           window.document_viewport.lookahead.admission(
+                               window.document_viewport.budget, window.size.height)))
         super()._display(screen, renderable)
 
 
@@ -40,6 +43,11 @@ async def main():
             await pilot.pause()
             print("RAPID_WORKSPACE_READY", flush=True)
             view = app.selected_session.conversation
+            editor = view.prompt.prompt_text_area
+            editor.insert("retained rapid-scroll draft")
+            editor.history.checkpoint()
+            editor.insert(" with undo")
+            document, edit_history = editor.document, editor.history
             docs = [AgentResponse(f"## Record {index}\n\n" + "measured source text " * 25)
                     for index in range(48)]
             docs[-1] = AgentResponse("## LAST SOURCE\n\n" + "last record " * 15 + "\n\nTAIL-RECORD-END")
@@ -85,10 +93,32 @@ async def main():
             await pilot.press("end")
             await settled(view, pilot)
             app.observed = None
-            assert frames and all(y <= maximum for _, _, _, y, maximum in frames)
+            assert frames and all(y <= maximum for _, _, _, y, maximum, _ in frames)
+            print("END_PREPARATION_ADMISSION", [frame[-1] for frame in frames], flush=True)
             assert not any(follow and visible and not ready for follow, visible, ready, *_ in frames), frames
             assert window.follows_tail and window.scroll_y == window.max_scroll_y, (window.follows_tail, window.scroll_y, window.max_scroll_y)
             assert end.body_ready and end in app.screen._compositor.visible_widgets
+            await pilot.pause(.3)
+            viewport = window.document_viewport
+            assert viewport._settle_timer is None
+            assert viewport.lookahead.travel_rows == 0
+            assert viewport.lookahead.admission(viewport.budget, window.size.height) == viewport.budget.admission_items
+            assert not viewport._running and not viewport._pending
+            before = psutil.Process().cpu_times()
+            await pilot.pause(.3)
+            after = psutil.Process().cpu_times()
+            print("RAPID_IDLE_RESOURCES", {
+                "cpu_seconds": (after.user + after.system) - (before.user + before.system),
+                "rss_bytes": psutil.Process().memory_info().rss,
+                "prepared_bytes": app.preparation.retained_bytes,
+                "pending_work": len(app.preparation._pending),
+                "warm_bodies": len(viewport._warm),
+            }, flush=True)
+            assert app.preparation.retained_bytes <= app.preparation.max_bytes
+            assert len(app.preparation._pending) <= app.preparation.max_pending
+            assert editor.document is document and editor.history is edit_history
+            editor.undo()
+            assert editor.text == "retained rapid-scroll draft"
         await asyncio.get_running_loop().shutdown_default_executor()
     print("rapid viewport: PageDown/End and cold-tail return pass native visible-body paint")
 

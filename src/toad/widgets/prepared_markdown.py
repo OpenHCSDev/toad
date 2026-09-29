@@ -12,7 +12,6 @@ from rich.segment import Segment
 from rich.style import Style as RichStyle
 
 from textual.content import Content
-from textual._measurement import NATIVE_WIDGET_HEIGHT, height_dependency
 from textual.app import ComposeResult
 from textual.css.styles import RulesMap
 from textual.geometry import Offset, Size
@@ -30,10 +29,14 @@ from toad.conversation_markdown import ConversationCodeFence, ConversationMarkdo
 from toad.markdown_preparation import FenceKey, PreparedFence
 from toad.render_tasks import MarkdownSyntaxRenderTask, TokenRenderTask
 from toad.widgets.transcript_fragments import RenderBudget
-from toad.widgets.viewport_body import ViewportBody
+from toad.widgets.viewport_body import ViewportBody, MeasuredViewportBody
 
 
-class PreparedConversationMarkdown(ViewportBody, ConversationMarkdown):
+class PreparedConversationMarkdown(MeasuredViewportBody, ConversationMarkdown):
+    @property
+    def body_ready(self) -> bool:
+        return super().body_ready and not self.loading
+
     def _measured_virtual_size_requires_layout(self) -> bool:
         # Markdown extent comes from its arranged blocks, not a separately
         # authored virtual document. Committing that result must not feed it
@@ -48,10 +51,6 @@ class PreparedConversationMarkdown(ViewportBody, ConversationMarkdown):
     ) -> None:
         self._prepared_fences: dict[FenceKey, PreparedFence] = {}
         self._preparation_closed = False
-        self._body_dormant = False
-        self._body_restoring = False
-        self._body_measurement: tuple[int, int] | None = None
-        self._body_measurement_stale = False
         self._body_viewport = None
         factory = self._make_parser if parser_factory is None else parser_factory
         super().__init__(markdown, name=name, id=id, classes=classes,
@@ -70,29 +69,6 @@ class PreparedConversationMarkdown(ViewportBody, ConversationMarkdown):
             if window is not None:
                 self._body_viewport = window.document_viewport
                 self._body_viewport.register(self)
-
-    @property
-    def body_dormant(self) -> bool:
-        return self._body_dormant
-
-    @property
-    def body_measurement_stale(self) -> bool:
-        return self._body_measurement_stale
-
-    @property
-    def body_ready(self) -> bool:
-        return not self._body_dormant and not self._body_restoring
-
-    @height_dependency(NATIVE_WIDGET_HEIGHT)
-    def get_content_height(self, container: Size, viewport: Size, width: int) -> int:
-        if self._body_dormant and self._body_measurement is not None:
-            if width != self._body_measurement[0]:
-                self._body_measurement_stale = True
-            return self._body_measurement[1]
-        height = super().get_content_height(container, viewport, width)
-        self._body_measurement = width, height
-        self._body_measurement_stale = False
-        return height
 
     async def retire_body(self) -> bool:
         if (self._body_dormant or self._body_measurement is None or self.loading

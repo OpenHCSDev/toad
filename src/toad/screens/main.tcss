@@ -75,7 +75,7 @@ Conversation {
     }
 
     Window {                      
-        layout: stream;
+        layout: vertical;
         margin: 0;                
         scrollbar-size-vertical: 2;        
         padding: 0 1 0 0;

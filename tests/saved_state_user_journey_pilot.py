@@ -5,6 +5,7 @@ import json
 import os
 from dataclasses import dataclass
 from pathlib import Path
+from weakref import ReferenceType, ref
 
 from acp.schema import TextContentBlock
 from agent_comms.acp import CommsClient
@@ -15,6 +16,7 @@ from l0a_native_installed_pilot import until
 from native_session_retention_pilot import InstalledApp, conversation_paint
 from runtime_fixture import wait_channel_roster
 from textual.widgets import Input
+from textual.widgets._markdown import MarkdownBlock
 from viewport_recent_tabs_pilot import settled
 
 from toad.screens.comms import CommsScreen
@@ -25,6 +27,7 @@ from toad.widgets.comms_fork_dialog import ForkDialog
 from toad.widgets.comms_menu import ContextMenuItem
 from toad.widgets.comms_sidebar import ChannelGroup, CommsRow
 from toad.widgets.message_notifications import MessageNotifications
+from toad.widgets.prepared_markdown import PreparedConversationMarkdown
 from toad.widgets.session_tabs import SessionLabel
 
 
@@ -104,11 +107,16 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     await until(pilot, lambda: "SAVED_CHANNEL_MESSAGE" in screen_paint(app))
     print("CHANNEL_BAR_CLICK_COMMS_SCREEN_SAVED_HISTORY_PAINT", flush=True)
     await click_tab(app, pilot, first.id)
-    await until(pilot, lambda: "NATIVE_RESPONSE_2" in conversation_paint(app.screen))
+    try:
+        await until(pilot, lambda: "NATIVE_RESPONSE_2" in conversation_paint(app.screen))
+    except TimeoutError:
+        ReaderCheckpoint.record_failed_reader(first, app)
+        raise
     assert len(requests) == 2, "Channel/tab navigation replayed an input"
     print("SAVED_CHANNEL_AGENT_RETURN_NO_REPLAY", flush=True)
     await unopened_participant(app, pilot, comms, channel, entered, release, hold_next, requests)
     await clicked_reader_editor_return(app, pilot, first)
+    await adaptive_reader_journey(app, pilot, requests)
     await fork_and_first_input(app, pilot, comms, first, entered, release, hold_next, requests)
     await channel_reply_feedback(app, pilot, comms, channel, first, entered, release,
                                  hold_next, requests)
@@ -191,12 +199,39 @@ class ReaderCheckpoint:
     history: object
     reader_y: float
     painted: str
+    rendered_bodies: tuple[ReferenceType[MarkdownBlock], ...]
+
+    @staticmethod
+    def record_failed_reader(source, app):
+        view = source.conversation
+        evidence = Path(os.environ["L0A_EVIDENCE"])
+        diagnostic = {
+            "source": source.id,
+            "native_session": view.agent.session_id,
+            "reader_region": str(view.window.region),
+            "reader_virtual_size": str(view.window.virtual_size),
+            "scroll_y": view.window.scroll_y,
+            "max_scroll_y": view.window.max_scroll_y,
+            "markdown": [{
+                "region": str(body.region), "virtual_size": str(body.virtual_size),
+                "display": body.display, "ready": body.body_ready,
+                "children": len(body.children), "parent": type(body.parent).__name__,
+            } for body in view.query(PreparedConversationMarkdown)],
+        }
+        (evidence / "body-return-geometry.json").write_text(json.dumps(diagnostic, indent=2))
+        (evidence / "body-return-reader.txt").write_text(conversation_paint(app.screen))
+        (evidence / "body-return.svg").write_text(app.export_screenshot())
+        print("BODY_RETURN_GEOMETRY_FAILURE", diagnostic, flush=True)
 
     @classmethod
     async def capture(cls, source, app, pilot):
         view = source.conversation
         await settled(pilot, view)
-        await until(pilot, lambda: view.window.max_scroll_y > 0)
+        try:
+            await until(pilot, lambda: view.window.max_scroll_y > 0)
+        except TimeoutError:
+            cls.record_failed_reader(source, app)
+            raise
         view.window.release_anchor()
         view.window.scroll_to(y=min(5, view.window.max_scroll_y - 1),
                               animate=False, immediate=True)
@@ -206,8 +241,14 @@ class ReaderCheckpoint:
         editor.insert("draft-" + source.id)
         editor.history.checkpoint()
         editor.insert(" with undo")
+        region = view.window.scrollable_content_region
+        bodies = tuple(block for markdown in view.query(PreparedConversationMarkdown)
+                       for block in markdown.query(MarkdownBlock)
+                       if block in app.screen._compositor.visible_widgets
+                       if block.region.overlaps(region))
+        assert len(bodies) > 0, "Checkpoint needs actually rendered native Markdown bodies"
         return cls(source, editor.document, editor.history, view.window.scroll_y,
-                   conversation_paint(app.screen))
+                   conversation_paint(app.screen), tuple(ref(block) for block in bodies))
 
     async def verify(self, app, pilot):
         view = self.source.conversation
@@ -218,6 +259,15 @@ class ReaderCheckpoint:
         assert editor.text == "draft-" + self.source.id + " with undo"
         assert view.window.scroll_y == self.reader_y
         assert conversation_paint(app.screen) == self.painted
+        current_bodies = {block for block in view.query(MarkdownBlock)
+                          if block in app.screen._compositor.visible_widgets}
+        for body in self.rendered_bodies:
+            assert body() in current_bodies, (
+                "Native tab return replaced a previously rendered Markdown body",
+                self.source.id, body(),
+            )
+        print("CLICKED_RETURN_ACTUAL_RENDERED_BODY_IDENTITY", self.source.id,
+              len(self.rendered_bodies), flush=True)
 
 
 async def clicked_reader_editor_return(app, pilot, first):
@@ -236,6 +286,60 @@ async def clicked_reader_editor_return(app, pilot, first):
         assert editor.text == "draft-" + checkpoint.source.id
     await click_tab(app, pilot, first.id)
     print("CLICKED_ABA_SAVED_READER_DOCUMENT_HISTORY_DRAFT_UNDO_PRESERVED", flush=True)
+
+
+async def adaptive_reader_journey(app, pilot, requests):
+    """Drive the real selected viewport; observe its existing adaptive owner."""
+    view = app.selected_session.conversation
+    window = view.window
+    lookahead = window.document_viewport.lookahead
+    samples = []
+    window.watch(window, "scroll_y", lambda y: samples.append(
+        (y, lookahead.travel_rows, lookahead.ahead_rows(window.size.height))), init=False)
+    window.release_anchor()
+    window.focus(scroll_visible=False)
+    await pilot.pause(.2)
+    slow_start = len(samples)
+    await pilot.press("down")
+    await pilot.pause(.2)
+    await pilot.press("down")
+    await pilot.pause(.2)
+    slow = samples[slow_start:]
+    assert len(slow) > 0, "Slow key scrolling did not move the real native reader"
+    fast_start = len(samples)
+    await pilot.press("pagedown", "pagedown")
+    await pilot.pause(.1)
+    fast = samples[fast_start:]
+    assert len(fast) > 0, "Fast key scrolling did not move the real native reader"
+    assert max(sample[2] for sample in fast) > max(sample[2] for sample in slow), (
+        "Measured fast travel did not expand preparation beyond slow travel", slow, fast,
+    )
+    reverse_start = len(samples)
+    await pilot.press("pageup")
+    await pilot.pause(.1)
+    reverse = samples[reverse_start:]
+    assert any(sample[1] < 0 for sample in reverse), (
+        "Reverse scrolling did not reverse the existing preparation owner", reverse,
+    )
+    assert all(sample[2] <= window.size.height for sample in samples)
+    await pilot.press("end")
+    await until(pilot, lambda: window.follows_tail)
+    await until(pilot, lambda: "NATIVE_RESPONSE_2" in conversation_paint(app.screen))
+    await settled(pilot, view)
+    await until(pilot, lambda: lookahead.ahead_rows(window.size.height) == 0)
+    await until(pilot, lambda: len(app.preparation._pending) == 0)
+    before = app.preparation.misses, len(requests)
+    await pilot.pause(.5)
+    assert (app.preparation.misses, len(requests)) == before, "Idle reader kept preparing or replaying"
+    assert len(app.preparation._pending) == 0
+    assert app.preparation.retained_bytes <= app.preparation.max_bytes
+    assert len(app.preparation._ready) <= app.preparation.max_entries
+    assert lookahead.ahead_rows(window.size.height) == 0
+    print("REAL_SLOW_FAST_REVERSE_END_IDLE_PREPARATION_BOUNDED", {
+        "slow": slow, "fast": fast, "reverse": reverse,
+        "retained_bytes": app.preparation.retained_bytes,
+        "pending": len(app.preparation._pending),
+    }, flush=True)
 
 
 async def fork_and_first_input(app, pilot, comms, first, entered, release, hold_next, requests):

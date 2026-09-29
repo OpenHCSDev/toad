@@ -2,6 +2,7 @@
 import asyncio
 import cProfile
 import pstats
+import traceback
 import json
 import os
 from pathlib import Path
@@ -14,6 +15,8 @@ from native_session_retention_pilot import InstalledApp, conversation_paint
 from viewport_recent_tabs_pilot import settled
 from toad.screens.main import MainScreen
 from toad.widgets.agent_response import AgentResponse
+from toad.widgets.transcript_history import TranscriptFragmentView
+from textual.widget import Widget
 
 
 async def acceptance(app, pilot, beta, comms, entered, release, hold_next, requests):
@@ -44,22 +47,59 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
         # Both now have durable, actually produced native journals. Establish
         # comparable reader/editor state only after ordinary saved publication.
         states = {}
-        for source, agent in zip(sources, agents):
+        for source_index, (source, agent) in enumerate(zip(sources, agents)):
+            print("CACHE_BEFORE_SELECT", source.id,
+                  [(type(k().parent).__name__, getattr(k().identity.source,"session_id",None),
+                    k().identity.interval.before.offset,k().identity.interval.through.offset,
+                    k().identity.directory_revision,k().body_ready,
+                    1+sum(1 for _ in k().walk_children()))
+                   for k in app.selected_session.conversation.window.document_viewport._warm
+                   if k() is not None and isinstance(k(),TranscriptFragmentView)],flush=True)
             await app.select_session(source.id)
             view = source.conversation
             await until(pilot, lambda: bool(view.window.histories) and view.transcript.displayed_cursor is not None)
+            print("SOURCE_READY_PAINT", source.id, agent.ready, view.agent_ready, view.classes,
+                  view.window.document_viewport.visible_bodies_ready,
+                  [(type(node).__name__, node.region) for node in app.screen._compositor.visible_widgets
+                   if node in view.window.document_viewport.owners],
+                  "FRAME", "\n".join(strip.text for strip in app.screen._compositor.render_strips()), flush=True)
+            print("WINDOW_LAYOUT", [(type(n).__name__, n.display, str(n.styles.height), n.region, n.size, n.virtual_size) for n in view.window.walk_children() if n.parent is view.window or n in view.contents.ancestors_with_self], flush=True)
+            print("SOURCE_BODY_CUSTODY", source.id, view.window.scroll_y, view.window.max_scroll_y,
+                  view.window.document_viewport.reuse_hits,
+                  [(type(node).__name__, type(node.parent).__name__, node.visible, node.display,
+                    node._closing, node._pruning, node.is_running,
+                    app.screen._compositor._full_map.get(node))
+                   for history in view.window.histories for node in history.walk_children()
+                   if isinstance(node, TranscriptFragmentView)], flush=True)
+            await until(pilot, lambda: f"NATIVE_RESPONSE_{2 * (source_index + 1)}" in conversation_paint(frame))
+            await until(pilot, lambda: view.window.max_scroll_y > 0)
             await settled(pilot, view)
             view.window.release_anchor()
-            view.window.scroll_to(y=min(5, view.window.max_scroll_y), animate=False, immediate=True)
+            view.window.scroll_to(y=min(5, view.window.max_scroll_y / 2), animate=False, immediate=True)
             await settled(pilot, view)
-            assert not view.window.follows_tail and view.window.scroll_y < view.window.max_scroll_y
+            assert not view.window.follows_tail and view.window.scroll_y < view.window.max_scroll_y, (
+                view.window.scroll_y, view.window.max_scroll_y,
+                [(type(node).__name__, node.size, node.virtual_size) for node in view.window.histories],
+                conversation_paint(frame),
+                repr(app._exception),
+                [(type(node).__name__, len(node.children), node.is_mounted, node.display,
+                  node.size, node.virtual_size, str(node.styles.height), node.loading)
+                 for history_view in view.window.histories for node in history_view.walk_children()],
+                [(type(node).__name__, node.size, node.virtual_size, node.display, node.loading)
+                 for node in view.window.ancestors_with_self if isinstance(node, Widget)],
+                [(node._body_dormant, node._body_measurement, node._body_measurement_stale)
+                 for node in view.query(TranscriptFragmentView)],
+            )
             editor = view.prompt.prompt_text_area
             editor.insert(f"draft-{source.id}")
             editor.history.checkpoint()
             editor.insert(" with undo")
             states[source.id] = (view.window.scroll_y, conversation_paint(frame), editor.document,
                                  editor.history, agent.process.process, agent.process.runner,
-                                 tuple(ref(body) for body in view.query(AgentResponse)))
+                                 tuple(ref(body) for body in view.query(AgentResponse)
+                                       if body in frame._compositor.visible_widgets
+                                       and body.region.overlaps(view.window.scrollable_content_region)))
+            assert states[source.id][-1], "Saved reader fixture must contain a painted response"
         native_calls = len(requests)
         assert native_calls == 4
         profile = cProfile.Profile() if os.environ.get("NATIVE_RETURN_PROFILE") == "1" else None
@@ -69,11 +109,36 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
                               (sources[0], agents[0]), (sources[1], agents[1]), (sources[0], agents[0])):
             before_hits, before_misses = app.preparation.hits, app.preparation.misses
             started = perf_counter()
+            print("CACHE_BEFORE_SELECT", source.id,
+                  [(type(k().parent).__name__, getattr(k().identity.source,"session_id",None),
+                    k().identity.interval.before.offset,k().identity.interval.through.offset,
+                    k().identity.directory_revision,k().body_ready,
+                    1+sum(1 for _ in k().walk_children()))
+                   for k in app.selected_session.conversation.window.document_viewport._warm
+                   if k() is not None and isinstance(k(),TranscriptFragmentView)],flush=True)
             await app.select_session(source.id)
             view = source.conversation
             await until(pilot, lambda: bool(view.window.histories))
-            await settled(pilot, view)
             y, painted, document, history, process, runner, old_bodies = states[source.id]
+            try:
+                await until(pilot, lambda: conversation_paint(frame) == painted)
+            except TimeoutError:
+                print("FAILED_RETURN", source.id, "reader", view.window.scroll_y, y,
+                      "reuse", view.window.document_viewport.reuse_hits,
+                      "expected", painted, "actual", conversation_paint(frame),
+                      "layout", [(type(n).__name__, n.display, n.region, n.size, n.virtual_size)
+                                 for n in view.window.walk_children()
+                                 if n.parent is view.window or n in view.contents.ancestors_with_self],
+                      "cached", [(type(k()).__name__, type(k().parent).__name__, k().identity)
+                                 for k in view.window.document_viewport._warm if k() is not None], flush=True)
+                raise
+            await settled(pilot, view)
+            print("RETURN_GEOMETRY", source.id, view.window.scroll_y, view.window.max_scroll_y,
+                  [(type(node).__name__, node.size, node.virtual_size, node.display)
+                   for history_view in view.window.histories for node in history_view.walk_children()
+                   if type(node).__name__ in {"TranscriptPageView", "TranscriptFragmentView", "AgentResponse"}],
+                  "REUSE", view.window.document_viewport.reuse_hits,
+                  "PAINT", conversation_paint(frame), flush=True)
             assert view.window.scroll_y == y, (view.window.scroll_y, y)
             assert conversation_paint(frame) == painted
             editor = view.prompt.prompt_text_area
@@ -81,12 +146,21 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
             assert view.agent is agent and agent.process.process is process and agent.process.runner is runner
             assert len(requests) == native_calls, "Tab return replayed input"
             assert app.preparation.retained_bytes <= app.preparation.max_bytes
-            bodies = tuple(view.query(AgentResponse))
+            bodies = tuple(body for body in view.query(AgentResponse)
+                           if body in frame._compositor.visible_widgets
+                           and body.region.overlaps(view.window.scrollable_content_region))
+            reused = sum(any(previous() is body for previous in old_bodies) for body in bodies)
+            if reused == 0:
+                print("CACHE_MISS_ROOTS", [(getattr(n.identity.source,"session_id",None),
+                     n.identity.interval.before.offset,n.identity.interval.through.offset,
+                     n.identity.directory_revision,n.body_ready,
+                     type(n.parent).__name__) for n in view.query(TranscriptFragmentView)],flush=True)
+            assert reused > 0, ("Already-loaded native source discarded every response body", source.id)
             records.append({"source":source.id,"return_painted_ms":(perf_counter()-started)*1000,
                             "reader_y":y,"cache_hits":app.preparation.hits-before_hits,
                             "cache_misses":app.preparation.misses-before_misses,
                             "mounted_response_bodies":len(bodies),
-                            "reused_body_instances":sum(any(previous() is body for previous in old_bodies) for body in bodies),
+                            "reused_body_instances":reused,
                             "prepared_bytes":app.preparation.retained_bytes})
         if profile is not None:
             profile.disable()
@@ -100,6 +174,9 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
         assert app.screen is frame and app._exception is None
         Path(os.environ["NATIVE_RETURN_RECEIPT"]).write_text(json.dumps(records,indent=2))
         print("TWO_LOADED_NATIVE_ABABA_FULL_PAINT_READER_EDITOR_UNDO_CUSTODY_NO_REPLAY", records, flush=True)
+    except BaseException:
+        traceback.print_exc()
+        raise
     finally:
         for agent in agents[1:]:
             await agent.stop()

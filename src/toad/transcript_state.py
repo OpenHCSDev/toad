@@ -97,3 +97,16 @@ class RetiredProjectionTranscript(SuspendedTranscript):
     @classmethod
     def successors(cls):
         return (DetachedTranscript,)
+
+
+class RetiredSourceTranscript(SuspendedTranscript):
+    """A departing pager no longer publishes or owns source coverage."""
+
+    reports_coverage = False
+
+    @classmethod
+    def successors(cls):
+        return (ClosingTranscript, DetachedTranscript)
+
+    def publish(self) -> TranscriptState:
+        raise RuntimeError("A retired source pager cannot publish again")

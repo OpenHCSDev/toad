@@ -2,6 +2,8 @@
 
 from dataclasses import dataclass
 from collections.abc import Iterable
+from math import ceil, exp
+from time import monotonic
 
 from textual.widget import Widget
 
@@ -50,3 +52,56 @@ class PresentationBudget:
 
     def widget_limit(self, viewport_rows: int) -> int:
         return max(self.minimum_widgets, viewport_rows * self.widgets_per_row)
+
+
+class DirectionalPreparation:
+    """Measured travel during preparation, owned by the existing viewport.
+
+    Decay is evaluated on demand: a stationary reader schedules no sampling
+    worker. A destination jump supplies a viewport of urgency independently
+    of the preceding scroll samples.
+    """
+
+    def __init__(self):
+        self.position = 0.0
+        self.sampled_at = monotonic()
+        self.velocity = 0.0
+        self.render_seconds = 1 / 60
+        self.destination_rows = 0
+
+    def observe(self, position: float) -> bool:
+        now = monotonic()
+        elapsed = now - self.sampled_at
+        travel = position - self.position
+        if travel:
+            self.velocity = travel / max(elapsed, self.render_seconds)
+            self.destination_rows = 0
+            self.sampled_at = now
+            self.position = position
+        return bool(travel)
+
+    def settle(self) -> None:
+        self.velocity = 0.0
+        self.destination_rows = 0
+
+    def destination(self, rows: int) -> None:
+        self.destination_rows = rows
+        self.sampled_at = monotonic()
+        self.velocity = 0.0
+
+    def prepared(self, seconds: float) -> None:
+        self.render_seconds = (self.render_seconds + seconds) / 2
+
+    @property
+    def travel_rows(self) -> float:
+        elapsed = monotonic() - self.sampled_at
+        decay = exp(-elapsed / max(self.render_seconds * 2, 1 / 60))
+        return (self.velocity * self.render_seconds + self.destination_rows) * decay
+
+    def ahead_rows(self, viewport_rows: int) -> int:
+        # Resource admission still belongs to PresentationBudget / the viewport
+        # working set; lookahead cannot ask for an entire skipped transcript.
+        return ceil(min(viewport_rows, abs(self.travel_rows)))
+
+    def admission(self, budget: PresentationBudget, viewport_rows: int) -> int:
+        return min(budget.item_limit(0), budget.admission_items + self.ahead_rows(viewport_rows))

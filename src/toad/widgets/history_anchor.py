@@ -89,6 +89,10 @@ class HistoryWindow(VerticalScroll):
     history_layout_ready: asyncio.Event | None = None
     history_paint_ready: asyncio.Event | None = None
 
+    def action_scroll_end(self) -> None:
+        self.document_viewport.destination()
+        super().action_scroll_end()
+
     def prepare_history_layout(self) -> HistoryAnchor | None:
         anchor = self.history_anchor
         if anchor is None:
