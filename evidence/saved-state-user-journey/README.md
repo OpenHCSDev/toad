@@ -147,3 +147,31 @@ first-open. Owned generated runtime scratch cleaned by fixture after receipt
 copy; tiny PR body removed after publication. Parent owns03ed post-welcome fence
 and live gate; this staged d511 receipt does not certify other bytes, every
 UI/error surface, final latency, or a whole-product zero-debt claim.
+
+## Final live-paired installed bytes: single requested rerun
+
+continuous-final-51fdf.log PASS exit0. Exactly one existing complete journey run
+on installed runtime-workspace-navigation-20260929: Toad51fdf2b856963b62d3d569ed110d4581ba8a1bf0,
+core77c2ac671e80018e75e97d9f8c5643cffe1dd39e, Textual1738abd8e3524b7e86171b70256d7f7e52fdb724,
+complete native d3967e8b6ee0cf28. final-51fdf-installed-versions.json records actual
+noneditable installed metadata. Test code ddda2345, PYTHONPATH=tests only,
+controlled local HTTP responses, private new test root; no existing user thread
+mutation or replay. Parent owns separate actual LIVE read-only navigation gate.
+
+Every continuous phase passed: representative saved native startup paint;
+physical channel-bar opening and saved channel paint; physical original tab
+return; unopened Gamma actual attachment; held native input and active
+participant click back to same Gamma with cropped answer paint; clicked A/B/A
+Document/EditHistory/draft/undo/non-tail scroll/paint preservation; physical
+production fork dialog and first native input/answer with unchanged parent and
+zero compaction/replay; physical child first-open/saved answer paint without
+new provider input; painted Responding/Responded plus physical notification
+disclosure gamma: Responded; actual automatic original-author native reply
+observation, saved reply history and no unbounded provider loop. Six bounded
+local provider requests. No added matrix, unchanged broad suite or CI wait.
+
+Own branch synced current main51fdf after execution; source/test helpers remain
+the exact executed code. Test fixture retired all test-owned children and
+removed generated runtime scratch; completed owned scratch closed. No
+remaining concrete blocker within assigned157 journey. This receipt does not
+claim arbitrary saved data, every UI surface, final latency or global coverage.
