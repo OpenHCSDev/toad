@@ -249,3 +249,7 @@ Carver owns urgent ViewportPresentation.prepare/native layout reentrancy;142 has
 Main148b5a40ce is integrated at677563a9. It is terminal crash capture only, not a claim that the reported live RecursionError is fixed. Carver owns its native layout reentrancy sites.
 
 An explicit native after-refresh fence in the recent pilot did not remove the remaining cropped paint mismatch (`recent-native-painted.log`). The same run also exposes an independent canonical-history defect: User divider time changes23:12:33→23:12:34 on source return. Core322 TranscriptEvent has no original native timestamp, while MessageDivider substitutes current time. Core boundary owner requested via142 comment5882920918 to provide canonical event time through existing decode/projections;142 owns the affected Toad caller migration. No second timestamp cache or decoder introduced. Exact full cropped-paint assertion remains unchanged and red.
+
+### Rejected native-extent hypothesis
+
+The fragment trace shows identical admitted12..20 and page89x54 while older/latest AgentResponse heights exchange4/5→5/4. An own experimental capture of committed body extent during retirement did not change this result (`recent-native-extent.log`), so that production patch was removed completely and the installed own wheel restored. No unsupported body-measurement fix is published. The diagnostic caller remains for continued source/leaf investigation. Carver crash sites are still untouched.

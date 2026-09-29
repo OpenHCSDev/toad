@@ -81,6 +81,12 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     print("RECENT_INITIAL_GEOMETRY", [(type(node).__name__, node.region, node.virtual_size,
           node.show_vertical_scrollbar) for node in (window, *window.ancestors) if isinstance(node, Widget)], flush=True)
     source_paint = conversation_paint(frame)
+    source_geometry = [
+        (page.start, page.stop, page.region, tuple(
+            (node.region, tuple(type(child).__name__ for child in node.children))
+            for node in page.children
+        )) for pager in window.histories for page in pager.pages
+    ]
     editor = conversation.prompt.prompt_text_area
     document, history = editor.document, editor.history
     records = []
@@ -114,6 +120,12 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
                 fromfile="departing", tofile="returned")), flush=True)
             print("RECENT_PAINT_GEOMETRY", window.virtual_size, window.region,
                   window.show_vertical_scrollbar, window.scrollable_content_region, flush=True)
+            print("RECENT_FRAGMENT_GEOMETRY", source_geometry, [
+                (page.start, page.stop, page.region, tuple(
+                    (node.region, tuple(type(child).__name__ for child in node.children))
+                    for node in page.children
+                )) for pager in window.histories for page in pager.pages
+            ], flush=True)
         assert conversation_paint(frame) == source_paint
         assert restored.prompt.prompt_text_area is editor
         assert editor.document is document and editor.history is history
