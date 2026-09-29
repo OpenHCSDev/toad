@@ -70,7 +70,7 @@ def row(screen, target: str) -> CommsRow:
 
 
 def open_rows(screen):
-    return screen.app.shared_channels.bar.roster.session_rows
+    return screen.app.workspace_chrome.channels.widget.roster.session_rows
 
 
 async def main() -> None:
@@ -238,16 +238,9 @@ async def main() -> None:
             assert await pilot.hover(session_rows[0])
             assert (
                 session_rows[0].rich_style.color != session_rows[0].rich_style.bgcolor
-            ), (
-                session_rows[0].rich_style,
-                session_rows[0].classes,
-                app.focused,
-                app.sidebar_state,
-                app.screen.query_one(CommsSidebar).navigation_ready.is_set(),
-            )
-            coordination = app.screen.query_one(CoordinationStatus)
-            assert "persistent" in coordination.render().plain
-            assert str(wire_root) in str(coordination.tooltip)
+            ), (session_rows[0].rich_style, session_rows[0].classes, app.focused,
+                app.sidebar_state, app.screen.query_one(CommsSidebar).navigation_ready.is_set())
+            assert not app.screen.query_one("#thread-sidebar", SideBar)._panels_loaded
             shell_sidebar = app.screen.query_one("#channels-sidebar", SideBar)
             panels = list(shell_sidebar.query(SideBarCollapsible))
             assert (
@@ -269,7 +262,11 @@ async def main() -> None:
             await pilot.click(panels[0].query_one("CollapsibleTitle"))
             thread_sidebar = app.screen.query_one("#thread-sidebar", SideBar)
             await pilot.click(thread_sidebar.query_one(SideBarToggle))
+            await thread_sidebar.wait_content_ready()
             await pilot.pause()
+            coordination = app.screen.query_one(CoordinationStatus)
+            assert "persistent" in coordination.render().plain
+            assert str(wire_root) in str(coordination.tooltip)
             assert thread_sidebar.region.x >= conversation.region.right
             thread_panels = list(thread_sidebar.query(SideBarCollapsible))
             assert [panel.title for panel in thread_panels] == [
@@ -414,21 +411,17 @@ async def main() -> None:
             renamed_thread = "Name-this-from-my-first-prompt"
             assert comms.registry.require(managed_thread).name == renamed_thread
             assert app.screen._session_thread == renamed_thread
+            local_sidebar = app.screen.query_one("#thread-sidebar", SideBar)
+            local_sidebar.reveal()
+            await local_sidebar.wait_content_ready()
             assert (
                 renamed_thread
                 in app.screen.query_one(CoordinationStatus).render().plain
             )
-            assert not any(
-                (
-                    item.target_name == managed_thread
-                    for item in app.screen.query(ThreadRow)
-                )
-            )
-            assert [
-                item.mode_name
-                for item in app.screen.query(ThreadRow)
-                if item.target_name == renamed_thread
-            ] == [created_mode]
+            local_sidebar.toggle(focus=False)
+            assert not any(item.target_name == managed_thread for item in app.screen.query(ThreadRow))
+            assert [item.mode_name for item in app.screen.query(ThreadRow)
+                    if item.target_name == renamed_thread] == [created_mode]
             assert (
                 app.session_tracker.get_session(created_mode).title
                 == "Name this from my first prompt"

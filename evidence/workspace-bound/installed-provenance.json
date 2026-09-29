@@ -1,0 +1,22 @@
+{
+  "batrachian-toad": {
+    "url": "file:///home/ts/wt/toad-workspace-bound-sol-20260928",
+    "dir_info": {}
+  },
+  "agent-comms": {
+    "url": "https://github.com/OpenHCSDev/agent-comms.git",
+    "vcs_info": {
+      "vcs": "git",
+      "commit_id": "76855582f4facbdb7cf333ee42f9c42414ef6a1b",
+      "requested_revision": "76855582f4facbdb7cf333ee42f9c42414ef6a1b"
+    }
+  },
+  "textual": {
+    "url": "https://github.com/OpenHCSDev/textual.git",
+    "vcs_info": {
+      "vcs": "git",
+      "commit_id": "d9def32ff25b56304b3e03ad4bf59d750b4d238b",
+      "requested_revision": "d9def32ff25b56304b3e03ad4bf59d750b4d238b"
+    }
+  }
+}

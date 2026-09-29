@@ -1,0 +1,26 @@
+{
+  "root": "src/toad/",
+  "base_revision": "4dea0d6ea7f5b2f5dff518d869f9ffccc8553a4b",
+  "head_revision": "03471e3e0be0364c453453fb997bcde4a2e272dc",
+  "paths": [
+    "src/toad/screens/main.py",
+    "src/toad/session_presentation.py",
+    "src/toad/widgets/session_thread_sidebar.py",
+    "src/toad/widgets/side_bar.py"
+  ],
+  "delta": {
+    "ClassSize:src/toad/screens/main.py::MainScreen": -13,
+    "ClassSize:src/toad/session_presentation.py::SessionSurfaceLifetime": null,
+    "ClassSize:src/toad/session_presentation.py::RetainedSessionPresentation": -6,
+    "ClassSize:src/toad/session_presentation.py::BlankSessionPresentation": -6,
+    "ClassSize:src/toad/widgets/session_thread_sidebar.py::SessionThreadSidebar": null,
+    "ClassSize:src/toad/widgets/side_bar.py::SideBar": 1,
+    "ClassSize:src/toad/session_presentation.py::SessionPresentation": -17,
+    "StringSubscript": 1
+  },
+  "positive_delta": {
+    "ClassSize:src/toad/widgets/side_bar.py::SideBar": 1,
+    "StringSubscript": 1
+  },
+  "note": "Condensed unchanged shared ratchet output; zero deltas omitted; new declarations retain null deltas."
+}

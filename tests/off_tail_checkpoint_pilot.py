@@ -65,8 +65,8 @@ class LocalBarrier(CheckpointBarrier, Static):
 
 
 async def checkpoint(view):
-    view._transcript_dirty = view._needs_transcript_checkpoint = True
-    await view._compact_committed_history().wait()
+    view.transcript.dirty = view.transcript.checkpoint_required = True
+    await view.transcript.request().wait()
 
 
 async def exercise(app, pilot):
@@ -92,7 +92,7 @@ async def exercise(app, pilot):
         position, revision = window.scroll_y, window.scroll_revision
         frames = []
         app.observed = marker, window, frames
-        view.displayed_transcript_cursor = displayed = agent.cursor
+        view.transcript.displayed_cursor = displayed = agent.cursor
         view.prompt.text = "Unsent checkpoint draft"
         local = Static("Local-only note")
         await view.contents.mount(local)
@@ -109,7 +109,7 @@ async def exercise(app, pilot):
             assert history.through == agent.cursor and history.has_newer
             assert tuple(history.pages) == pages and history.fragment_views == fragments
             assert window.scroll_y == position and window.scroll_revision == revision
-            assert not window.follows_tail and view.displayed_transcript_cursor == displayed
+            assert not window.follows_tail and view.transcript.displayed_cursor == displayed
             assert local.is_attached and view.prompt.text == "Unsent checkpoint draft"
         assert frames and set(frames) == {expected_y}, (expected_y, frames)
         app.observed = None
@@ -167,7 +167,7 @@ async def exercise(app, pilot):
         await asyncio.wait_for(agent.entered.wait(), 5)
         # Suppress the scroll watcher's automatic retry while inspecting the
         # superseded transaction; retry explicitly after its assertions.
-        view._transcript_dirty = False
+        view.transcript.dirty = False
         window.scroll_relative(y=1, animate=False, immediate=True)
         await pilot.pause(0)
         agent.release.set()
@@ -203,7 +203,7 @@ async def exercise(app, pilot):
         through = history.through
         await checkpoint(view)
         assert visible.is_attached and history.through == through
-        view._transcript_dirty = False
+        view.transcript.dirty = False
         window.scroll_to(y=position, animate=False, immediate=True)
         await pilot.pause()
         await checkpoint(view)
@@ -249,7 +249,7 @@ async def exercise(app, pilot):
         # which its inactive screen cannot deliver.
         original_mode = app.current_mode
         app.add_mode("checkpoint-parked", Screen)
-        view._transcript_dirty = False
+        view.transcript.dirty = False
         await app.switch_mode("checkpoint-parked")
         hidden = AgentResponse("Committed while inactive")
         agent.events.append(AssistantTranscript('Committed while inactive'))
@@ -257,14 +257,14 @@ async def exercise(app, pilot):
         await checkpoint(view)
         assert not hidden.is_attached and history.through == agent.cursor
         assert history.fragment_views == fragments
-        assert view.displayed_transcript_cursor == displayed and not window.follows_tail
+        assert view.transcript.displayed_cursor == displayed and not window.follows_tail
         await app.switch_mode(original_mode)
         await pilot.pause()
 
         # All retired source content remains navigable from the same pager.
         await missing.remove()
         await local.remove()
-        view._transcript_dirty = False
+        view.transcript.dirty = False
         assert history.through == agent.cursor, (history.through, agent.cursor)
         window.scroll_end(animate=False, immediate=True)
         await pilot.pause()

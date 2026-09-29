@@ -1,0 +1,45 @@
+Process 2352717: toad
+Python v3.14.2 (/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14)
+
+Thread 2352717 (idle): "MainThread"
+    select (selectors.py:452)
+    _run_once (asyncio/base_events.py:2008)
+    run_forever (asyncio/base_events.py:677)
+    run_until_complete (asyncio/base_events.py:706)
+    run (asyncio/runners.py:127)
+    run (asyncio/runners.py:204)
+    <module> (blank_presentation_pilot.py:127)
+Thread 2352782 (idle): "asyncio_0"
+    _worker (concurrent/futures/thread.py:116)
+    run (threading.py:1024)
+    _bootstrap_inner (threading.py:1082)
+    _bootstrap (threading.py:1044)
+Thread 2352814 (idle): "Directory observation: /home/ts/wt/toad-workspace-bound-sol-20260928/.artifacts/native-current/toad-session-surface-1zz2jsqc"
+    select (selectors.py:398)
+    wait (multiprocessing/connection.py:1165)
+    _poll (multiprocessing/connection.py:457)
+    poll (multiprocessing/connection.py:263)
+    run (toad/directory_watcher.py:176)
+    _bootstrap_inner (threading.py:1082)
+    _bootstrap (threading.py:1044)
+Thread 2352824 (idle): "asyncio_1"
+    _worker (concurrent/futures/thread.py:116)
+    run (threading.py:1024)
+    _bootstrap_inner (threading.py:1082)
+    _bootstrap (threading.py:1044)
+Thread 2352861 (idle): "asyncio-waitpid-0"
+    _do_waitpid (asyncio/unix_events.py:931)
+    run (threading.py:1024)
+    _bootstrap_inner (threading.py:1082)
+    _bootstrap (threading.py:1044)
+Thread 2352868 (idle): "asyncio_2"
+    _worker (concurrent/futures/thread.py:116)
+    run (threading.py:1024)
+    _bootstrap_inner (threading.py:1082)
+    _bootstrap (threading.py:1044)
+Thread 2353191 (idle): "DirectoryWatcher(PosixPath('/home/ts/wt/toad-workspace-bound-sol-20260928/.artifacts/native-current/toad-session-surface-1zz2jsqc'), Conversation())"
+    wait (threading.py:369)
+    wait (threading.py:670)
+    run (toad/directory_watcher.py:301)
+    _bootstrap_inner (threading.py:1082)
+    _bootstrap (threading.py:1044)

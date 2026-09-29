@@ -1,4 +1,5 @@
 from toad.block_navigation import ConversationBlock
+from toad.widgets.terminal_projection import TerminalStateProjection
 from dataclasses import dataclass
 
 from time import monotonic
@@ -13,7 +14,7 @@ from textual.message import Message
 from textual.reactive import reactive
 from textual.selection import Selection
 from textual.style import Style
-from textual.geometry import Region, Size
+from textual.geometry import Size
 from textual.scroll_view import ScrollView
 from textual.strip import Strip
 from textual.timer import Timer
@@ -26,7 +27,7 @@ from toad.menus import MenuItem
 ESCAPE_TAP_DURATION = 400 / 1000
 
 
-class Terminal(ConversationBlock, ScrollView, can_focus=True):
+class Terminal(ConversationBlock, TerminalStateProjection, ScrollView, can_focus=True):
     BINDING_GROUP_TITLE = "Terminal"
     HELP = """\
 ## Terminal
@@ -220,18 +221,22 @@ Tap escape *twice* to exit.
             or old_height != self._height
             and not self.is_finalized
         ):
-            from toad.widgets.conversation import Conversation
-
-            try:
-                conversation = self.query_ancestor(Conversation)
-            except NoMatches:
-                pass
-            else:
-                conversation.shell.update_size(self._width, self._height)
+            self.resize_process(self._width, self._height)
 
         self.state.update_size(self._width, height)
         self._terminal_render_cache.clear()
         self.refresh()
+
+    def resize_process(self, width: int, height: int) -> None:
+        from toad.widgets.conversation import Conversation
+
+        try:
+            conversation = self.query_ancestor(Conversation)
+        except NoMatches:
+            pass
+        else:
+            conversation.shell.update_size(width, height)
+
 
     def on_mount(self) -> None:
         self.anchor()
@@ -263,73 +268,17 @@ Tap escape *twice* to exit.
         scrollback_delta, alternate_delta = await self.state.write(
             text, hide_output=hide_output
         )
-        self._update_from_state(scrollback_delta, alternate_delta)
+        self.project_state(scrollback_delta, alternate_delta)
         scrollback_changed = bool(scrollback_delta is None or scrollback_delta)
         alternate_changed = bool(alternate_delta is None or alternate_delta)
 
-        if self._alternate_screen != self.state.alternate_screen:
-            self.post_message(
-                self.AlternateScreenChanged(self, enabled=self.state.alternate_screen)
-            )
-        self._alternate_screen = self.state.alternate_screen
         return scrollback_changed or alternate_changed
+
 
     def on_click(self, event: events.Click) -> None:
         self.focus()
         event.stop()
 
-    def _update_from_state(
-        self, scrollback_delta: set[int] | None, alternate_delta: set[int] | None
-    ) -> None:
-        if self.state.current_directory:
-            self.current_directory = self.state.current_directory
-            self.finalize()
-        width = self.state.width
-        height = self.state.scrollback_buffer.height
-
-        if self.state.alternate_screen:
-            height += self.state.alternate_buffer.height
-        self.virtual_size = Size(min(self.state.buffer.max_line_width, width), height)
-        if self._anchored and not self._anchor_released:
-            self.scroll_y = self.max_scroll_y
-
-        scroll_y = int(self.scroll_y)
-        visible_lines = frozenset(range(scroll_y, scroll_y + height))
-
-        if scrollback_delta is None and alternate_delta is None:
-            self.refresh()
-        else:
-            window_width = self.region.width
-            scrollback_height = self.state.scrollback_buffer.height
-            if scrollback_delta is None:
-                self.refresh(Region(0, 0, window_width, scrollback_height))
-            else:
-                refresh_lines = [
-                    Region(0, y - scroll_y, window_width, 1)
-                    for y in sorted(scrollback_delta & visible_lines)
-                ]
-                if refresh_lines:
-                    self.refresh(*refresh_lines)
-            alternate_height = self.state.alternate_buffer.height
-            if alternate_delta is None:
-                self.refresh(
-                    Region(
-                        0,
-                        scrollback_height - scroll_y,
-                        window_width,
-                        scrollback_height + alternate_height,
-                    )
-                )
-            else:
-                alternate_delta = {
-                    line_no + scrollback_height for line_no in alternate_delta
-                }
-                refresh_lines = [
-                    Region(0, y - scroll_y, window_width, 1)
-                    for y in sorted(alternate_delta & visible_lines)
-                ]
-                if refresh_lines:
-                    self.refresh(*refresh_lines)
 
     def render_line(self, y: int) -> Strip:
         scroll_x, scroll_y = self.scroll_offset

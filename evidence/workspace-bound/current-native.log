@@ -1,0 +1,11 @@
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-workspace-bound-sol-20260928/tests/native_session_retention_pilot.py", line 21, in <module>
+    from toad.screens.main import MainScreen
+  File "/home/ts/wt/toad-workspace-bound-sol-20260928/.venv/lib/python3.14/site-packages/toad/screens/main.py", line 103, in <module>
+    class MainScreen(SessionView, NavigationOwner, can_focus=False):
+    ...<472 lines>...
+                conversation.add_class(f"-scrollbar-{scrollbar}")
+  File "/home/ts/wt/toad-workspace-bound-sol-20260928/.venv/lib/python3.14/site-packages/toad/screens/main.py", line 135, in MainScreen
+    side_bar = getters.query_one(ChannelsSidebar)
+                                 ^^^^^^^^^^^^^^^
+NameError: name 'ChannelsSidebar' is not defined

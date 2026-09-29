@@ -51,8 +51,11 @@ async def main():
             await pilot.pause()
             owner_mode = app.current_mode
             screen = app.screen
-            await screen.on_coordination_update(coordination_update(str(root / 'wire'), 'owner'))
-            screen.query_one("#thread-sidebar", SideBar).reveal()
+            await screen.on_coordination_update(CoordinationUpdate(
+                thread="owner", wire_root=str(root / "wire"), persistence="persistent", transport="stdio"))
+            right = screen.query_one("#thread-sidebar", SideBar)
+            right.reveal()
+            await right.wait_content_ready()
             tree = screen.query_one(ThreadCommsSidebar)
             panel = tree.query_ancestor(SideBarCollapsible)
             panel.collapsed = False
@@ -178,7 +181,7 @@ async def main():
             assert tail.filter.overlay is not None
             assert any(leaf.display and leaf.fragment.events[0].text == "EARLIER_ROUTED_OUTPUT"
                        for leaf in tail.filter.overlay.fragment_views)
-            view.displayed_transcript_cursor = cursor
+            view.transcript.displayed_cursor = cursor
             with patch.object(
                 app.coordination_wire.views, "mark_thread_view_read"
             ) as mark:

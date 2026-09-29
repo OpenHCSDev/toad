@@ -1,0 +1,11 @@
+Resolved 68 packages in 761ms
+   Building batrachian-toad @ file:///home/ts/wt/toad-workspace-bound-sol-20260928
+      Built batrachian-toad @ file:///home/ts/wt/toad-workspace-bound-sol-20260928
+Prepared 1 package in 489ms
+Uninstalled 3 packages in 21ms
+Installed 3 packages in 5ms
+ - agent-comms==0.1.0 (from git+https://github.com/OpenHCSDev/agent-comms.git@76855582f4facbdb7cf333ee42f9c42414ef6a1b)
+ + agent-comms==0.1.0 (from git+https://github.com/OpenHCSDev/agent-comms.git@487ebb9ec4468a70a92fc172dd5f2f50950a3c87)
+ ~ batrachian-toad==0.6.20 (from file:///home/ts/wt/toad-workspace-bound-sol-20260928)
+ - textual==8.2.8 (from git+https://github.com/OpenHCSDev/textual.git@d9def32ff25b56304b3e03ad4bf59d750b4d238b)
+ + textual==8.2.8 (from git+https://github.com/OpenHCSDev/textual.git@c9743801c98dc570f82f82e25915ecce89800f4b)

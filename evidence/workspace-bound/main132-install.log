@@ -1,0 +1,27 @@
+Resolved 98 packages in 0.91ms
+   Building batrachian-toad @ file:///home/ts/wt/toad-workspace-bound-sol-20260928
+      Built batrachian-toad @ file:///home/ts/wt/toad-workspace-bound-sol-20260928
+Prepared 1 package in 501ms
+Uninstalled 3 packages in 29ms
+Installed 19 packages in 33ms
+ - agent-comms==0.1.0 (from git+https://github.com/OpenHCSDev/agent-comms.git@487ebb9ec4468a70a92fc172dd5f2f50950a3c87)
+ + agent-comms==0.1.0 (from git+https://github.com/OpenHCSDev/agent-comms.git@4510dddf737da3d445ba20d90c79f3dcb3f08b27)
+ + ast-serialize==0.11.2
+ ~ batrachian-toad==0.6.20 (from file:///home/ts/wt/toad-workspace-bound-sol-20260928)
+ + execnet==2.1.2
+ + greenlet==3.5.6
+ + librt==0.15.0
+ + msgpack==1.2.2
+ + mypy==2.3.1
+ + mypy-extensions==1.1.0
+ + pillow==12.3.0
+ + playwright==1.63.0
+ + pyee==13.0.1
+ + pyinstrument==5.1.3
+ + pyte==0.8.2
+ + pytest-xdist==3.8.0
+ + python-xlib==0.33
+ - ruff==0.16.9
+ + six==1.17.0
+ + textual-dev==1.8.0
+ + wcwidth==0.9.1

@@ -577,7 +577,11 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
                 for ancestor in self.ancestors:
                     if isinstance(ancestor, Widget):
                         ancestor._check_refresh()
-                self.screen._refresh_layout(self.app.size)
+                # Host activation already committed a complete native layout.
+                # Reflow only if source reconciliation mounted/changed geometry
+                # afterward; source readiness is not another host reflow request.
+                if self.screen._layout_required or self.screen._layout_widgets:
+                    self.screen._refresh_layout(self.app.size)
                 if self.restore_scroll():
                     self.screen._refresh_layout(self.app.size, scroll=True)
                 self.navigation_ready.set()
@@ -737,16 +741,14 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
 
     async def _session_updated(self, update: tuple[str, SessionDetails | None]) -> None:
         if not self.is_attached or self.screen is not self.app.screen:
-            # One update is published to every mounted sidebar. Inactive rows
-            # reconcile from the app's cached projection on activation instead
-            # of walking every hidden widget tree for each new/closed tab.
-            self._last_revision = None
             return
-        mode_name, details = update
-        if details is None or self._last_snapshot is None or mode_name not in self._last_snapshot.session_threads:
-            self._last_revision = None
-            self._refresh()
+        # Session routes/title changes are local projection facts. The wire's
+        # own revision invalidates its snapshot; do not force a full history
+        # read whenever a selected rich Conversation is reconstructed.
+        if self._last_snapshot is not None:
+            await self._present_snapshot(self._snapshot(self._last_snapshot.wire))
         self._mode_changed(cast("ToadApp", self.app).current_mode)
+        self._refresh()
 
     async def sync_sessions(self) -> None:
         """Reconcile tracked rows before a resumed screen can accept input."""
@@ -952,8 +954,22 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
     async def _poll_snapshot(self, revision: WireRevision) -> None:
         service = self._wire
         async with self._snapshot_lock:
-            if self._wire is service:
-                await self._read_snapshot(revision)
+            if self._wire is not service:
+                return
+            if (self._last_snapshot is not None and revision == self._last_revision
+                    and self.visible_filters == self._last_filters):
+                # Selection changes the local route projection, not this
+                # worktree-wide snapshot. A newly painted read cursor may
+                # change its revision, so observe that write before reuse.
+                await cast("ToadApp", self.app).mark_visible_thread_read()
+                revision = service.views.revision()
+                if self._wire is not service:
+                    return
+                if revision == self._last_revision:
+                    self._last_actor = self.session_thread
+                    await self._present_snapshot(self._snapshot(self._last_snapshot.wire))
+                    return
+            await self._read_snapshot(revision)
 
     async def _read_snapshot(self, revision: WireRevision) -> None:
         service = self._wire
