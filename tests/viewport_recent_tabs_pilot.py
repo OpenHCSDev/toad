@@ -130,7 +130,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
                   [index for index, line in enumerate(source_paint.splitlines()) if READER_TEXT in line],
                   [index for index, line in enumerate(current_paint.splitlines()) if READER_TEXT in line], flush=True)
             print("RECENT_READER_DIAGNOSTIC", [(history.fragment_count, history.has_older,
-                  history._loading, history._check_pending, history._selected_categories,
+                  history._loading, history._check_pending, history.selected_categories,
                   history.region, frame._compositor.visible_widgets.get(history))
                   for history in restored.window.histories], flush=True)
         assert restored.window.scroll_y == before_y, (restored.window.scroll_y, before_y, restored.window.max_scroll_y, restored.window.scrollable_content_region)
