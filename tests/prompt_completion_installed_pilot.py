@@ -15,6 +15,19 @@ from toad.widgets.prompt import AgentInfo
 from toad.widgets.prompt_popup import PromptPopup
 from toad.widgets.project_panel import ProjectSearchButton
 from toad.widgets.side_bar import SideBarCollapsible
+from agent_comms.mentions import MentionCandidate
+from textual.widgets.text_area import Selection
+from toad.slash_command import NoArgumentsCommand
+from toad.widgets.channel_prompt import ChannelPrompt
+
+
+class CursorProofCommand(NoArgumentsCommand):
+    help = "Declaration-only cursor acceptance"
+    hint = "DECLARED_CURSOR_HINT"
+
+    async def apply(self, conversation):
+        (conversation.project_path / "cursor-command.txt").write_text("Applied actual local declaration")
+        return True
 
 
 class InstalledApp(ToadApp):
@@ -65,6 +78,58 @@ async def main():
                             map(json.loads, (project / "completion-wire.jsonl").read_text().splitlines())))
                 await until(pilot, lambda: painted(view, "COMPLETION_PEER_EXECUTED /proofcmd"))
                 print("PHYSICAL_ACP_DISCOVERY_KEYBOARD_COMPLETION_AND_ACTUAL_SUBMISSION_PAINTED", flush=True)
+
+                area = prompt.prompt_text_area
+                history = view.input_histories.prompt
+                await history.record("PREVIOUS_DURABLE_CURSOR_INPUT")
+                draft = "Wrapped reader draft " * 24
+                prompt.text = draft
+                prompt.focus()
+                area.move_cursor((0, len(draft)))
+                await until(pilot, lambda: area.wrapped_document.height >= 3)
+                end = area.cursor_location
+                await pilot.press("up")
+                assert area.cursor_location[1] < end[1]
+                assert prompt.text == draft and history.index == 0, (history.index, len(prompt.text), repr(prompt.text[:100]))
+                await pilot.press("down")
+                assert area.cursor_location == end and prompt.text == draft and history.index == 0
+                area.move_cursor((0, 0))
+                await pilot.press("up")
+                await until(pilot, lambda: prompt.text == "PREVIOUS_DURABLE_CURSOR_INPUT")
+                await pilot.press("down")
+                await until(pilot, lambda: prompt.text == draft)
+                area.move_cursor((0, 0))
+                await pilot.press("shift+down")
+                assert prompt.text == draft and history.index == 0 and not area.selection.is_empty
+                print("ACTUAL_WRAPPED_VISUAL_ROWS_HISTORY_EDGE_DRAFT_RETURN_AND_SHIFT_SELECTION_PASS", flush=True)
+
+                prompt.text = "/proofcmd"
+                area.move_cursor((0, len(prompt.text)))
+                await pilot.press("left")
+                assert area.selection == Selection((0, 0), (0, len(prompt.text)))
+                assert area.selected_text == "/proofcmd"
+                await pilot.press("x")
+                assert prompt.text == "x" and not slash.is_open
+                prompt.text = "/proofcmd "
+                await until(pilot, lambda: "ORIGINAL_ACP_HINT" in viewport_text(area))
+                await agent.send_prompt("change-command")
+                await until(pilot, lambda: "UPDATED_ACP_HINT" in viewport_text(area))
+                assert "ORIGINAL_ACP_HINT" not in viewport_text(area)
+                print("WHOLE_COMMAND_BACKWARD_SELECTION_AND_ACTUAL_ACP_HINT_CACHE_REFRESH_PAINTED", flush=True)
+
+                channel = ChannelPrompt(simple_input=True)
+                await app.screen.mount(channel)
+                channel.set_mention_candidates((MentionCandidate("cursor-peer", "Cursor peer"),))
+                channel.focus()
+                await pilot.press("/", "c", "f7", "@", "c", "u")
+                await until(pilot, lambda: channel.mention_list.display)
+                assert all(not popup.is_open for popup in channel.query(PromptPopup))
+                await pilot.press("tab")
+                await until(pilot, lambda: channel.text == "@cursor-peer ")
+                assert channel.prompt_text_area.has_focus
+                await channel.remove()
+                prompt.focus()
+                print("ACTUAL_CHANNEL_SIMPLE_COMPOSER_MENTION_TAB_WITHOUT_SLASH_FOCUS_THEFT_PASS", flush=True)
 
                 prompt.text = "Attach "
                 prompt.focus()
@@ -137,6 +202,23 @@ async def main():
                 await until(pilot, lambda: not picker.is_open and prompt.prompt_text_area.has_focus)
                 assert app._exception is None
                 print("PHYSICAL_ACP_MODEL_SELECTION_POINTER_FOCUS_RETURN_AND_DRAFT_PRESERVED", flush=True)
+                hold = project / "hold-acp-startup"
+                hold.touch()
+                await app.session_navigation.new(app.get_main_screen)
+                starting = app.selected_session.conversation
+                await until(pilot, lambda: starting.agent is not None)
+                try:
+                    assert not starting.agent.ready and not starting.prompt.agent_ready
+                    starting.prompt.text = CursorProofCommand().command + " "
+                    starting.prompt.focus()
+                    await until(pilot, lambda: "DECLARED_CURSOR_HINT" in viewport_text(starting.prompt.prompt_text_area))
+                    await pilot.press("enter")
+                    await until(pilot, lambda: (project / "cursor-command.txt").exists())
+                    assert (project / "cursor-command.txt").read_text() == "Applied actual local declaration"
+                    print("DECLARATION_ONLY_LOCAL_COMMAND_HINT_AND_PHYSICAL_SUBMISSION_BEFORE_ACTUAL_ACP_READY_PASS", flush=True)
+                finally:
+                    hold.unlink()
+                    await starting.agent.stop()
             finally:
                 await agent.stop()
 

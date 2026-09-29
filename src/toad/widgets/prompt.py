@@ -208,7 +208,7 @@ See on-screen instructions for details.
         pass
 
     def watch_slash_commands(self, slash_commands: list[SlashCommand]) -> None:
-        self._clear_caches()
+        self.notify_style_update()
         self.refresh()
 
     def highlight_slash_command(self, text: str) -> Content:

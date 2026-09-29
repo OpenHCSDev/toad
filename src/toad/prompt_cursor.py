@@ -123,8 +123,6 @@ class PromptCursor:
             return
         if previous == current or not current.is_empty:
             return
-        if editor.simple_input:
-            return
         prompt = editor.query_ancestor(Prompt)
         if not prompt.supports_completion:
             return
