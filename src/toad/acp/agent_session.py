@@ -12,6 +12,7 @@ from toad.agent import AgentReady, UnsupportedResumeAgentFail
 from toad.db import DB, SessionMeta
 from agent_comms.acp_failure import ACPFailure
 from agent_comms.input_attempt import NotSentInput
+from agent_comms.session_load import EnsuringSessionLoadAdmission, ExistingSessionLoadAdmission, SessionLoadAdmission
 
 PROTOCOL_VERSION = 1
 
@@ -33,6 +34,7 @@ class AgentSession:
         self.pending_name = None
         self.connected = False
         self.reconnecting = False
+        self.load_admission: SessionLoadAdmission = EnsuringSessionLoadAdmission()
         self.settled = asyncio.Event()
         self.capabilities: protocol.AgentCapabilities = {
             "loadSession": False,
@@ -101,7 +103,25 @@ class AgentSession:
         self.agent.post_message(AgentReady(reconnected=self.reconnecting))
 
 
-    async def reconnect(self) -> None:
+    @property
+    def needs_reattachment(self) -> bool:
+        return not self.connected and self.settled.is_set() and not self.reconnecting
+
+    async def observe_owner(self, presentation) -> None:
+        """A new canonical owner may repair this failed read-only attachment."""
+        if not self.needs_reattachment or presentation is None:
+            return
+        coordination = self.agent.coordination
+        if coordination is None:
+            return
+        binding = presentation.binding
+        if not binding.replaces(coordination.thread, coordination.owner_pid):
+            return
+        if self.load_admission.already_requested(binding):
+            return
+        await self.reconnect(ExistingSessionLoadAdmission(binding))
+
+    async def reconnect(self, admission: SessionLoadAdmission | None = None) -> None:
         """Reattach the existing view after login or an explicit owner start."""
         if self.agent.controller.session.bound and not self.supports_load:
             raise ValueError("This agent cannot resume its session.")
@@ -122,10 +142,11 @@ class AgentSession:
                 f"Reconnect not attempted: maintenance admission denied: {error}"
             ) from error
         target = self.agent.controller.surface.target
-        await self.agent.stop()
         self.reconnecting = True
-        self.settled.clear()
         try:
+            await self.agent.stop()
+            self.load_admission = admission or EnsuringSessionLoadAdmission()
+            self.settled.clear()
             await self.agent.start(target)
             await asyncio.wait_for(self.settled.wait(), timeout=30)
             if not self.connected:
@@ -254,7 +275,8 @@ class AgentSession:
                     self.agent._agent_data = agent_data
 
         with self.agent.request():
-            session_load_response = api.session_load(cwd, [], request_session_id)
+            session_load_response = api.session_load(cwd, [], request_session_id,
+                                                     self.load_admission.metadata())
         response = await session_load_response.wait()
         authority.require()
         if (

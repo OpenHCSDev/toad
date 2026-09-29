@@ -35,7 +35,7 @@ def session_new(
 
 @API.method(name="session/load")
 def session_load(
-    cwd: str, mcpServers: list[protocol.McpServer], sessionId: str
+    cwd: str, mcpServers: list[protocol.McpServer], sessionId: str, _meta: dict | None = None
 ) -> protocol.LoadSessionResponse:
     """https://agentclientprotocol.com/protocol/session-setup#loading-a-session"""
     ...
