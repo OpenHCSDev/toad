@@ -4,6 +4,7 @@ import os
 import tempfile
 from pathlib import Path
 from toad.acp.messages import Update, CommsUpdated
+from toad.acp.agent import Agent
 from runtime_fixture import ToadApp
 from toad.messages import UserInputSubmitted
 from toad.widgets.agent_response import AgentResponse
@@ -11,9 +12,12 @@ from toad.widgets.conversation import Conversation, TurnActivity
 from time import time
 from agent_comms.acp_extension import TurnSettledUpdate, TurnStartedUpdate
 
-class CompactAgent:
+class CompactAgent(Agent):
 
     def __init__(self, conversation):
+        super().__init__(conversation.agent.project_root_path if conversation.agent else Path.cwd(),
+                         {'name': 'compaction-fixture', 'run_command': {'*': 'true'}}, 'fixture')
+        self.controller.compact_context = self.publish_compaction
         self.conversation = conversation
         self.started = asyncio.Event()
         self.release = asyncio.Event()
@@ -21,7 +25,7 @@ class CompactAgent:
         self.summary = '\n\n'.join((f'Decision {i}: ' + 'Keep the design findings. ' * 12 for i in range(35)))
         self.summary += '\n\nCOMPACTION-SUMMARY-END'
 
-    async def compact_context(self, instructions=None):
+    async def publish_compaction(self, instructions=None):
         self.started.set()
         self.conversation.post_message(CommsUpdated(TurnStartedUpdate('compaction', self.started_at, 'working', 'Compacting context')))
         await self.release.wait()

@@ -1,0 +1,22 @@
+INSTALLED_APP_RUN_TEST_ENTER
+Task exception was never retrieved
+future: <Task finished name='Task-523' coro=<SessionObservation._run() done, defined at /home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/session_observation.py:54> exception=InvalidParams('ACP client request belongs to a retired session', id=None, code=<ErrorCode.INVALID_PARAMS: -32602>)>
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/session_observation.py", line 60, in _run
+    result = await self.read(agent)
+             ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/session_observation.py", line 87, in read
+    return await agent.get_goal_snapshot()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/acp/agent.py", line 593, in get_goal_snapshot
+    result = await self.controller.request_owner("goal_snapshot")
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/acp/agent_controller.py", line 300, in request_owner
+    authority.require()
+    ~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-context-measurement-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/acp/client_session.py", line 36, in require
+    raise InvalidParams('ACP client request belongs to a retired session')
+toad.jsonrpc.InvalidParams: ACP client request belongs to a retired session
+INSTALLED_APP_RUN_TEST_YIELDED
+ATTACHED_AND_NAVIGABLE
+PASS physical ordinary/deferred/Send now, exact native queue consumption, retained reply/draft/Document/undo; three loopback requests

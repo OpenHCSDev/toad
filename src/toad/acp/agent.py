@@ -19,20 +19,12 @@ from typing import NamedTuple
 
 import rich.repr
 from agent_comms.acp_extension import (
-    ClearQueueRequest,
-    CommsRequest,
-    CompactionCommittedUpdate,
-    CompactRequest,
     CoordinationChangedUpdate,
-    InputFailedUpdate,
     PromptRequest,
     QueueItem,
-    QueuePromptRequest,
-    SendNowRequest,
     decode_updates,
-    encode_request,
 )
-from agent_comms.acp_failure import ACPFailure, BackendDeliveryFailure
+from agent_comms.acp_failure import ACPFailure
 from agent_comms.field_codec import FieldCodec
 from agent_comms.goal_actions import RetryGoalAction
 from agent_comms.goal_presentation import GoalExecution
@@ -49,9 +41,8 @@ from toad.acp.api import API
 from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
 from toad.acp.comms_updates import CommsUpdateConsumer
 from toad.acp.projection_attachment import ProjectionAttachment
-from toad.acp.prompt import build as build_prompt
 from toad.acp.queue_attachment import QueueAttachment
-from toad.agent import AgentBase, LogAgentFail, UnsupportedResumeAgentFail, AgentReady
+from toad.agent import AgentBase, UnsupportedResumeAgentFail, AgentReady
 from toad.agent_schema import Agent as AgentData
 from toad.db import DB, SessionMeta
 
@@ -72,17 +63,6 @@ class Model(NamedTuple):
     id: str
     name: str
     description: str | None
-
-
-class TokenUsage(NamedTuple):
-    """Tokens used for a single prompt (per-turn)."""
-
-    total_tokens: int
-    input_tokens: int
-    output_tokens: int
-    thought_tokens: int | None
-    cached_read_tokens: int | None
-    cached_write_tokens: int | None
 
 
 def generate_datetime_filename(
@@ -145,7 +125,6 @@ class Agent(AgentBase):
             self.server.expose_instance(owner.resolve(self))
         self._reconnecting = False
         self._connected_ok = False
-        self._deferred_submissions: set[asyncio.Task] = set()
         self._pending_session_name: str | None = None
         self.session_ready_event = asyncio.Event()
         self.done_event = asyncio.Event()
@@ -171,7 +150,6 @@ class Agent(AgentBase):
                 self.presentation.log_path.unlink(missing_ok=True)
         else:
             self.presentation.log_path = paths.get_log() / log_filename
-        self._token_usage: TokenUsage | None = None
         self.context_measurement = ContextUnavailable("Native owner has not reported context usage")
 
     @property
@@ -304,91 +282,8 @@ class Agent(AgentBase):
         self.post_message(AgentReady(reconnected=self._reconnecting))
 
     async def send_prompt(self, prompt: str, *, request: PromptRequest | None = None):
-        return await self.controller.operate(self._send_prompt(
-            prompt, request=request if request is not None else QueuePromptRequest(prompt),
-            request_session_id=self.session_id, request_queue_scope=self.queue_attachment.scope,
-            project=self.project_root_path))
-
-    async def _send_prompt(
-        self, prompt: str, *, request: PromptRequest,
-        request_session_id, request_queue_scope, project
-    ) -> str | None:
-        """Send a prompt to the agent.
-
-        !!! note
-            This method blocks as it may defer to a thread to read resources.
-
-        Args:
-            prompt: Prompt text.
-        """
-        self.presentation.prompt_in_flight += 1
-        submission = asyncio.current_task() if request.defer_display else None
-        if submission is not None:
-            self._deferred_submissions.add(submission)
-        try:
-            prompt_content_blocks = await asyncio.to_thread(
-                build_prompt, project, prompt
-            )
-            if any((block.get("type") == "image" for block in prompt_content_blocks)):
-                supported = (
-                    True
-                    if (self.coordination.wire_root if self.coordination else None)
-                    is not None
-                    else (self.agent_capabilities.get("promptCapabilities") or {}).get(
-                        "image", False
-                    )
-                )
-                if not supported:
-                    raise ValueError(
-                        "This agent owner does not support images yet; refresh it while idle."
-                    )
-            return await self._acp_session_prompt(
-                prompt_content_blocks, request,
-                request_session_id, request_queue_scope
-            )
-        finally:
-            self.presentation.prompt_in_flight -= 1
-            if submission is not None:
-                self._deferred_submissions.discard(submission)
-
-    async def clear_queue(self) -> None:
-        """Drop prompts still awaiting delivery, leaving the turn running."""
-        await self.acp_session_prompt(
-            [{"type": "text", "text": " "}], ClearQueueRequest()
-        )
-
-    async def send_now(self) -> bool:
-        """Interrupt the response for already queued input, without resending text."""
-        if pending := tuple(self._deferred_submissions):
-            await asyncio.gather(*(asyncio.shield(task) for task in pending))
-        result = await self.acp_session_prompt(
-            [{"type": "text", "text": " "}], SendNowRequest()
-        )
-        return result is not None
-
-    async def compact_context(
-        self, instructions: str | None = None
-    ) -> CompactionCommittedUpdate:
-        metadata = encode_request(CompactRequest(instructions))
-        with self.request():
-            request = api.session_prompt(
-                [{"type": "text", "text": " "}], self.session_id, metadata
-            )
-        try:
-            response = await request.wait()
-        except jsonrpc.APIError as error:
-            failure = ACPFailure.from_error(error.code, error.message, error.data)
-            raise ValueError(
-                f"{failure.title}: {failure.detail}\n{failure.input_disposition}\n{failure.action}"
-            ) from error
-        if response is None:
-            raise ValueError("Compaction returned no result")
-        consumer = self.comms_consumer_class(self, self.session_id)
-        for fact in decode_updates(response.get("_meta")):
-            consumer.dispatch_sync(fact)
-        if consumer.compaction_receipt is None:
-            raise ValueError("Compaction result was missing")
-        return consumer.compaction_receipt
+        """AgentBase submission contract, executed by operational custody."""
+        return await self.controller.submit(prompt, request=request)
 
     async def reconnect_after_auth(self) -> None:
         await self.reconnect()
@@ -654,77 +549,6 @@ class Agent(AgentBase):
             messages.CommsUpdated(self.coordination, self, self.session_id)
         )
 
-    async def acp_session_prompt(self, prompt, command=None):
-        return await self.controller.operate(self._acp_session_prompt(
-            prompt, command, self.session_id, self.queue_attachment.scope))
-
-    async def _acp_session_prompt(
-        self, prompt: list[protocol.ContentBlock], command: CommsRequest | None,
-        request_session_id, request_queue_scope
-    ) -> str | None:
-        """Send the prompt to the agent.
-
-        Returns:
-            The stop reason.
-
-        """
-        with self.request():
-            session_prompt = api.session_prompt(
-                prompt,
-                request_session_id,
-                encode_request(command) if command is not None else {},
-            )
-        try:
-            result = await session_prompt.wait()
-        except jsonrpc.APIError as error:
-            failure = ACPFailure.from_error(error.code, error.message, error.data)
-            user_text = command.draft_text if command is not None else None
-            if isinstance(user_text, str) and user_text:
-                self.post_message(
-                    messages.CommsUpdated(
-                        InputFailedUpdate(user_text, failure),
-                        recover_draft=True,
-                        agent=self,
-                        session_id=request_session_id,
-                        queue_scope=request_queue_scope,
-                    )
-                )
-            self.post_message(
-                LogAgentFail(
-                    failure.title,
-                    f"{failure.detail}\n{failure.input_disposition}\n{failure.action}",
-                    log_path=self.presentation.log_path,
-                )
-            )
-            return None
-        except jsonrpc.JSONRPCError as error:
-            user_text = command.draft_text if command is not None else None
-            if isinstance(user_text, str) and user_text:
-                self.post_message(
-                    messages.CommsUpdated(
-                        InputFailedUpdate(
-                            user_text,
-                            BackendDeliveryFailure(
-                                error.message or "Connection failed"
-                            ),
-                        ),
-                        recover_draft=True,
-                        agent=self,
-                        session_id=request_session_id,
-                        queue_scope=request_queue_scope,
-                    )
-                )
-            self.post_message(
-                LogAgentFail(
-                    "Failed to send prompt",
-                    error.message or f"{self._agent_data['name']} returned an error",
-                    log_path=self.presentation.log_path,
-                )
-            )
-            return None
-        assert result is not None
-        return result.get("stopReason")
-
     async def acp_session_set_mode(self, mode_id: str) -> str | None:
         """Update the current mode with the agent."""
         with self.request():
@@ -754,7 +578,7 @@ class Agent(AgentBase):
         ) is None:
             return None, None
         async with asyncio.timeout(3):
-            result = await self._owner_request("goal_snapshot")
+            result = await self.controller.request_owner("goal_snapshot")
         raw_goal, raw_execution = result["goal"], result["goalExecution"]
         goal = FieldCodec.decode(Goal, raw_goal) if raw_goal is not None else None
         execution = (
@@ -771,73 +595,12 @@ class Agent(AgentBase):
     async def get_goal_execution(self) -> GoalExecution | None:
         return (await self.get_goal_snapshot())[1]
 
-    async def _owner_request(self, method: str, **params):
-        if (self.coordination.wire_root if self.coordination else None) is None or (
-            self.coordination.thread.name if self.coordination else None
-        ) is None:
-            raise ValueError("This action requires an agent-comms thread.")
-        from agent_comms.runtime import RuntimeProxy, socket_path
-
-        root, thread = (
-            (self.coordination.wire_root if self.coordination else None),
-            (self.coordination.thread.name if self.coordination else None),
-        )
-        async with self.controller.transcripts.bind(root) as comms:
-
-            def resolve():
-                from toad.owner_preparation import OwnerRequestContext
-
-                owner = comms.registry.require(thread)
-                # RuntimeProxy normally creates another wire when its caller
-                # has no service. Capture the existing service instead of
-                # reparsing the entire registry for each status poll.
-                return RuntimeProxy(
-                    OwnerRequestContext(comms),
-                    owner.name,
-                    socket_path(comms.root, owner.pid),
-                )
-
-            proxy = await asyncio.to_thread(resolve)
-        try:
-            if (root, thread) != (
-                (self.coordination.wire_root if self.coordination else None),
-                (self.coordination.thread.name if self.coordination else None),
-            ):
-                raise ValueError(
-                    "The owner identity changed while preparing the request."
-                )
-            return await proxy.request(method, **params)
-        except RuntimeError as error:
-            raise ValueError(str(error)) from error
-        finally:
-            await proxy.close()
-
-    async def get_input_delivery(self, *, include_history: bool = False) -> dict:
-        if (self.coordination.wire_root if self.coordination else None) is None or (
-            self.coordination.thread.name if self.coordination else None
-        ) is None:
-            return {
-                "inputs": [],
-                "historicalCount": 0,
-                "dismissedHistoricalCount": 0,
-                "historicalInputs": [],
-            }
-        return await self._owner_request(
-            "input_dispositions", include_history=include_history
-        )
-
-    async def dismiss_historical_inputs(self) -> dict:
-        return await self._owner_request("dismiss_historical_inputs")
-
-    async def get_unresolved_inputs(self) -> list[dict]:
-        return (await self.get_input_delivery())["inputs"]
-
     async def get_goal_history(self, goal_id: str):
-        result = await self._owner_request("goal_history", goal_id=goal_id)
+        result = await self.controller.request_owner("goal_history", goal_id=goal_id)
         return result["history"]
 
     async def edit_goal(self, goal: Goal, text: str) -> Goal:
-        result = await self._owner_request(
+        result = await self.controller.request_owner(
             "edit_goal", goal_id=goal.id, expected_revision=goal.revision, text=text
         )
         return FieldCodec.decode(Goal, result["goal"])
@@ -918,7 +681,7 @@ class Agent(AgentBase):
 
     async def update_goal(self, action: str, text: str = "") -> Goal | None:
         if action == "set":
-            result = await self._owner_request("set_goal", text=text)
+            result = await self.controller.request_owner("set_goal", text=text)
         else:
             goal, _ = await self.get_goal_snapshot()
             if goal is None:
@@ -926,11 +689,11 @@ class Agent(AgentBase):
             if action == "retry":
                 if goal.state.toggle is not RetryGoalAction:
                     raise ValueError("The blocked goal changed; refresh its state.")
-                result = await self._owner_request(
+                result = await self.controller.request_owner(
                     "retry_goal", goal_id=goal.id, expected_revision=goal.revision
                 )
             else:
-                result = await self._owner_request(
+                result = await self.controller.request_owner(
                     "update_goal",
                     status=action,
                     goal_id=goal.id,
@@ -952,15 +715,6 @@ class Agent(AgentBase):
         db = DB()
         await db.session_update_title(self.session_pk, name)
 
-    async def acp_session_cancel(self) -> bool:
-        with self.request():
-            response = api.session_cancel(self.session_id, {})
-        try:
-            await response.wait()
-        except jsonrpc.APIError:
-            # No-op if there is nothing to cancel
-            return False
-        return True
-
     async def cancel(self) -> bool:
-        return await self.acp_session_cancel()
+        """AgentBase cancellation contract."""
+        return await self.controller.cancel_prompt()
