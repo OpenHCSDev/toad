@@ -50,9 +50,16 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
             await until(pilot, lambda: bool(view.window.histories) and view.transcript.displayed_cursor is not None)
             await settled(pilot, view)
             view.window.release_anchor()
-            view.window.scroll_to(y=min(5, view.window.max_scroll_y), animate=False, immediate=True)
+            view.window.scroll_to(y=min(5, view.window.max_scroll_y / 2), animate=False, immediate=True)
             await settled(pilot, view)
-            assert not view.window.follows_tail and view.window.scroll_y < view.window.max_scroll_y
+            assert not view.window.follows_tail and view.window.scroll_y < view.window.max_scroll_y, (
+                view.window.scroll_y, view.window.max_scroll_y,
+                [(type(node).__name__, node.size, node.virtual_size) for node in view.window.histories],
+                conversation_paint(frame),
+                repr(app._exception),
+                [(type(node).__name__, len(node.children), node.is_mounted, node.display)
+                 for history_view in view.window.histories for node in history_view.walk_children()],
+            )
             editor = view.prompt.prompt_text_area
             editor.insert(f"draft-{source.id}")
             editor.history.checkpoint()
@@ -74,6 +81,12 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
             await until(pilot, lambda: bool(view.window.histories))
             await settled(pilot, view)
             y, painted, document, history, process, runner, old_bodies = states[source.id]
+            print("RETURN_GEOMETRY", source.id, view.window.scroll_y, view.window.max_scroll_y,
+                  [(type(node).__name__, node.size, node.virtual_size, node.display)
+                   for history_view in view.window.histories for node in history_view.walk_children()
+                   if type(node).__name__ in {"TranscriptPageView", "TranscriptFragmentView", "AgentResponse"}],
+                  "REUSE", view.window.document_viewport.reuse_hits,
+                  "PAINT", conversation_paint(frame), flush=True)
             assert view.window.scroll_y == y, (view.window.scroll_y, y)
             assert conversation_paint(frame) == painted
             editor = view.prompt.prompt_text_area
@@ -82,11 +95,13 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
             assert len(requests) == native_calls, "Tab return replayed input"
             assert app.preparation.retained_bytes <= app.preparation.max_bytes
             bodies = tuple(view.query(AgentResponse))
+            reused = sum(any(previous() is body for previous in old_bodies) for body in bodies)
+            assert reused > 0, ("Already-loaded native source discarded every response body", source.id)
             records.append({"source":source.id,"return_painted_ms":(perf_counter()-started)*1000,
                             "reader_y":y,"cache_hits":app.preparation.hits-before_hits,
                             "cache_misses":app.preparation.misses-before_misses,
                             "mounted_response_bodies":len(bodies),
-                            "reused_body_instances":sum(any(previous() is body for previous in old_bodies) for body in bodies),
+                            "reused_body_instances":reused,
                             "prepared_bytes":app.preparation.retained_bytes})
         if profile is not None:
             profile.disable()

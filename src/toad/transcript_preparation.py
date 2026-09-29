@@ -132,7 +132,7 @@ class PreparedPageSource(ABC):
     @abstractmethod
     async def prefetch(
         self, before: TranscriptCursor | None, after: TranscriptCursor | None,
-        keep_going: Callable[[], bool],
+        keep_going: Callable[[], bool], *, rounds: int = 1,
     ) -> bool:
         pass
 
@@ -202,9 +202,6 @@ class TranscriptPageBuffer(PreparedPageSource):
     still-running read's admission or publish it into a closed view.
     """
 
-    LOOKAHEAD = 8
-    MAX_BYTES = 4 * 1024 * 1024
-
     def __init__(
         self, loader: Callable[..., Awaitable[TranscriptPage]], through: TranscriptCursor,
         runtime: PreparationRuntime,
@@ -228,10 +225,10 @@ class TranscriptPageBuffer(PreparedPageSource):
 
     async def prefetch(
         self, before: TranscriptCursor | None, after: TranscriptCursor | None,
-        keep_going: Callable[[], bool],
+        keep_going: Callable[[], bool], *, rounds: int = 1,
     ) -> bool:
         """Warm both edges fairly; stop hidden/closed work and failed read loops."""
-        for _ in range(self.LOOKAHEAD):
+        for _ in range(min(rounds, self.runtime.max_entries)):
             for older in (True, False):
                 cursor = before if older else after
                 if cursor is None:
@@ -251,16 +248,16 @@ class TranscriptPageBuffer(PreparedPageSource):
                     # A foreground request can retry/report the error. Repeated
                     # layout signals must not keep retrying speculative failures.
                     self._blocked[request] = None
-                    if len(self._blocked) > self.LOOKAHEAD * 2:
+                    if len(self._blocked) > self.runtime.max_entries:
                         self._blocked.popitem(last=False)
                     prepared = None
                 if older:
                     before = (prepared.page.before if prepared is not None
-                              and prepared.page.has_older and prepared.retained_bytes <= self.MAX_BYTES
+                              and prepared.page.has_older and prepared.retained_bytes <= self.runtime.max_bytes
                               else None)
                 else:
                     after = (prepared.page.after if prepared is not None
-                             and prepared.page.has_newer and prepared.retained_bytes <= self.MAX_BYTES
+                             and prepared.page.has_newer and prepared.retained_bytes <= self.runtime.max_bytes
                              else None)
             if before is None and after is None:
                 break
@@ -349,7 +346,7 @@ class ProjectedTranscriptSource(PreparedPageSource):
 
     async def prefetch(
         self, before: TranscriptCursor | None, after: TranscriptCursor | None,
-        keep_going: Callable[[], bool],
+        keep_going: Callable[[], bool], *, rounds: int = 1,
     ) -> bool:
         if self.closed or not keep_going():
             return False
@@ -359,7 +356,7 @@ class ProjectedTranscriptSource(PreparedPageSource):
         if self._upstream is not None and not self._upstream.closed:
             await self._upstream.prefetch(
                 before if before is not None and before.offset <= limit else None,
-                None, keep_going,
+                None, keep_going, rounds=rounds,
             )
             before = None
         if self.closed:
@@ -368,7 +365,7 @@ class ProjectedTranscriptSource(PreparedPageSource):
         return await self._raw.prefetch(
             before if before is not None and before.offset <= limit else None,
             after if after is not None and after.offset < limit else None,
-            keep_going,
+            keep_going, rounds=rounds,
         )
 
     def close(self) -> None:

@@ -166,6 +166,7 @@ class DocumentViewport:
             raise ValueError("max_warm_bodies must be a non-negative integer")
         self.max_warm_bodies = max_warm_bodies
         self.lookahead = DirectionalPreparation()
+        self._settle_timer = None
         self._window = ref(window)
         self.owners = WeakSet()
         self._warm = OrderedDict()
@@ -231,14 +232,34 @@ class DocumentViewport:
         if self._suspended or not self.window.is_attached or self.window._closing:
             return
         self._pending = True
-        self.lookahead.observe(self.window.scroll_y)
+        if self.lookahead.observe(self.window.scroll_y):
+            self._schedule_settle()
         if not self._running:
             self._running = True
             self._worker = self.window.run_worker(partial(self._reconcile), group="viewport-bodies")
 
+    def destination(self) -> None:
+        self.lookahead.destination(self.window.size.height)
+        self._schedule_settle()
+        self.request()
+
+    def _schedule_settle(self) -> None:
+        if self._settle_timer is not None:
+            self._settle_timer.stop()
+        self._settle_timer = self.window.set_timer(self.lookahead.render_seconds * 2, self._settle)
+
+    def _settle(self) -> None:
+        self._settle_timer = None
+        self.lookahead.settle()
+        self.request()
+
     async def suspend_source(self) -> None:
         """Finish the departing source's layout transactions before rebinding."""
         self._suspended = True
+        if self._settle_timer is not None:
+            self._settle_timer.stop()
+            self._settle_timer = None
+        self.lookahead.settle()
         self._pending = False
         self.window.retire_presentation_wait()
         worker, self._worker = self._worker, None
@@ -292,6 +313,22 @@ class DocumentViewport:
                 await self._trim_warm()
                 warm = {key() for key in self._warm} if active else set()
                 retained = protected | warm | visible.keys()
+                # Reuse the same body admission and worker. Restore only the
+                # neighboring destination bodies, not every skipped record.
+                sequence = [node for node in self.window.walk_children() if node in self.owners]
+                visible_indexes = [index for index, node in enumerate(sequence) if node in visible]
+                if visible_indexes:
+                    ahead = self.lookahead.ahead_rows(self.window.size.height)
+                    heights = [sequence[index]._body_measurement[1] for index in visible_indexes
+                               if sequence[index]._body_measurement is not None]
+                    extent = max(1, sum(heights) / len(heights)) if heights else self.window.size.height
+                    count = min(self.max_warm_bodies, int(ahead / max(1, extent)) + bool(ahead))
+                    if self.lookahead.travel_rows < 0:
+                        first = min(visible_indexes)
+                        retained.update(sequence[max(0, first - count):first])
+                    else:
+                        last = max(visible_indexes) + 1
+                        retained.update(sequence[last:last + count])
                 # Restore visible source before retiring unrelated bodies.
                 ordered = sorted(owners, key=lambda owner: owner not in visible)
                 for owner in ordered:

@@ -69,7 +69,7 @@ class DirectionalPreparation:
         self.render_seconds = 1 / 60
         self.destination_rows = 0
 
-    def observe(self, position: float) -> None:
+    def observe(self, position: float) -> bool:
         now = monotonic()
         elapsed = now - self.sampled_at
         travel = position - self.position
@@ -78,6 +78,11 @@ class DirectionalPreparation:
             self.destination_rows = 0
             self.sampled_at = now
             self.position = position
+        return bool(travel)
+
+    def settle(self) -> None:
+        self.velocity = 0.0
+        self.destination_rows = 0
 
     def destination(self, rows: int) -> None:
         self.destination_rows = rows

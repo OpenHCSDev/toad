@@ -639,6 +639,15 @@ class ConversationSessionBinding(containers.Vertical):
         self.prompt.ask_queue.clear()
         self._focusable_terminals.clear()
 
+    def fragment_presentation_identity(self, interval, fragment):
+        """Bind immutable rendering to this source and its filesystem revision."""
+        from toad.widgets.transcript_history import FragmentPresentationIdentity
+        watcher = self._directory_watcher
+        return FragmentPresentationIdentity(
+            self.agent, interval, fragment, str(self.project_path), watcher,
+            watcher.observed_revision if watcher is not None else -1,
+        )
+
 
     async def bind_native_session(self, screen) -> None:
         """Reset values from their declarations, then bind the existing source config."""
@@ -2593,7 +2602,7 @@ class Conversation(ConversationSessionBinding):
         self.prompt.focus()
 
     def jump_to_latest(self) -> None:
-
+        self.window.document_viewport.destination()
         for history in self.query(TranscriptHistory):
             if history.has_newer:
                 history.request_latest()

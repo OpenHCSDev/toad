@@ -41,7 +41,7 @@ from toad.widgets.tool_call import ToolCall
 from toad.widgets.user_input import UserInput
 from toad.widgets.message_divider import AgentActivityDivider, MessageClock
 from toad.widgets.presentation_window import PresentationBudget, protected_presentations
-from toad.widgets.viewport_body import MeasuredViewportBody
+from toad.widgets.viewport_body import MeasuredViewportBody, ViewportBody
 from toad.widgets.committed_presentation import CommittedHistory
 from toad.widgets.message_filter import (
     all_categories, CategorizedBlock, MessageCategory, apply_block_filter, event_category,
@@ -164,6 +164,8 @@ class FragmentPresentationIdentity:
     interval: CommittedInterval
     fragment: TranscriptFragment
     project_path: str
+    directory_watcher: object
+    directory_revision: int
 
 
 class TranscriptFragmentView(MeasuredViewportBody, CategorizedBlock, VerticalGroup):
@@ -194,6 +196,12 @@ class TranscriptFragmentView(MeasuredViewportBody, CategorizedBlock, VerticalGro
     def matches_retained(self, identity: FragmentPresentationIdentity) -> bool:
         return self.identity == identity and self.fragment == identity.fragment and self.body_ready
 
+    @property
+    def body_ready(self) -> bool:
+        return super().body_ready and all(
+            child.body_ready for child in self.walk_children() if isinstance(child, ViewportBody)
+        )
+
     def park_body(self, shelf: Widget) -> bool:
         if not self.body_ready or self.identity is None:
             return False
@@ -205,7 +213,7 @@ class TranscriptFragmentView(MeasuredViewportBody, CategorizedBlock, VerticalGro
         return len(repr(self.fragment).encode("utf-8"))
 
     async def retire_body(self) -> bool:
-        if self._body_dormant or self._body_measurement is None:
+        if not self.body_ready or self._body_measurement is None:
             return False
         self._body_dormant = True
         await self.remove_children()
@@ -301,9 +309,8 @@ class TranscriptPageView(VerticalGroup):
     def _body(self, fragment: TranscriptFragment) -> TranscriptFragmentView:
         from toad.widgets.conversation import Conversation
         view = self.query_ancestor(Conversation)
-        identity = FragmentPresentationIdentity(
-            view.agent, CommittedInterval(self.page.before, self.page.after),
-            fragment, str(view.project_path),
+        identity = view.fragment_presentation_identity(
+            CommittedInterval(self.page.before, self.page.after), fragment,
         )
         body = view.window.document_viewport.claim_retained(identity)
         if body is None:
@@ -320,7 +327,10 @@ class TranscriptPageView(VerticalGroup):
             else:
                 yield body
 
-    def on_mount(self) -> None:
+    async def admit_retained(self) -> None:
+        # Mount handlers run before Textual grants native reparent custody.
+        # The history publication waits here before restoring its reader.
+        await self._mounted_event.wait()
         for index, body in self._returning_bodies:
             before = self.children[index] if index < len(self.children) else None
             body.reparent(self, before=before)
@@ -424,6 +434,7 @@ class TranscriptHistory(ConversationBlock, CommittedHistory, CategorizedBlock, V
         self._page_buffer: PreparedPageSource | None = None
         self._prefetch_worker = None
         self._prefetched_edges = None
+        self._prefetch_intent = None
         self._fragment_budget = self.budget.max_items
         self.window: Window
 
@@ -501,9 +512,11 @@ class TranscriptHistory(ConversationBlock, CommittedHistory, CategorizedBlock, V
             yield page
         yield self.newer
 
-    def on_mount(self) -> None:
+    async def on_mount(self) -> None:
         from toad.widgets.conversation import Window
         self.window = self.query_ancestor(Window)
+        for page in self.pages:
+            await page.admit_retained()
         self.window.histories.add(self)
         self._report_coverage(self.pages[0].page, self.pages[0].fragments)
         self._update_edges()
@@ -537,15 +550,25 @@ class TranscriptHistory(ConversationBlock, CommittedHistory, CategorizedBlock, V
         reader = self._reader()
         edges = (self.pages[0].page.before if self.pages[0].page.has_older else None,
                  self.pages[-1].page.after if self.pages[-1].page.has_newer else None)
-        if (edges == self._prefetched_edges
-                or self._prefetch_worker is not None and not self._prefetch_worker.is_finished):
+        travel = self.window.document_viewport.lookahead.travel_rows
+        if travel < 0:
+            edges = (edges[0], None)
+        elif travel > 0:
+            edges = (None, edges[1])
+        rounds = 1 + self.window.document_viewport.lookahead.ahead_rows(self.window.size.height) // max(1, self.window.size.height // self.budget.admission_items)
+        intent = edges, rounds
+        if intent == self._prefetch_intent:
             return
+        self._prefetch_intent = intent
+        if self._prefetch_worker is not None and not self._prefetch_worker.is_finished:
+            self._prefetch_worker.cancel()
 
         async def prepare() -> None:
             current = lambda: (self.is_attached and self.screen.is_current
                                and self._page_buffer is reader and not reader.closed
+                               and self._prefetch_intent == intent
                                and bool(self._selected_categories))
-            if await reader.prefetch(*edges, current) and current():
+            if await reader.prefetch(*edges, current, rounds=rounds) and current():
                 self._prefetched_edges = edges
 
         self._prefetch_worker = self.run_worker(prepare(), group="history-lookahead", exit_on_error=False)
@@ -747,7 +770,7 @@ class TranscriptHistory(ConversationBlock, CommittedHistory, CategorizedBlock, V
 
     def request_latest(self) -> None:
         if not self._loading:
-            self.window.document_viewport.lookahead.destination(self.window.size.height)
+            self.window.document_viewport.destination()
             if self._prefetch_worker is not None:
                 self._prefetch_worker.cancel()
             self._prefetched_edges = None
@@ -778,6 +801,7 @@ class TranscriptHistory(ConversationBlock, CommittedHistory, CategorizedBlock, V
                 view.visible_categories = self._selected_categories
                 self.pages = deque([view])
                 await self.mount(view, before=self.newer)
+                await view.admit_retained()
                 self._update_edges()
                 self.call_after_refresh(self._anchor_latest, generation, scroll_revision)
         finally:
@@ -885,6 +909,7 @@ class TranscriptHistory(ConversationBlock, CommittedHistory, CategorizedBlock, V
                 )
                 view.visible_categories = self._selected_categories
                 await self.mount(view, before=edge if older else self.newer)
+                await view.admit_retained()
                 self._require_publication()
                 protected.update(view.children)
                 protected.add(view)
