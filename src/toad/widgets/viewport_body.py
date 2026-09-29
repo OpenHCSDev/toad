@@ -339,9 +339,7 @@ class DocumentViewport:
                                  if owner.is_attached and owner.body_dormant]
                         if not batch:
                             continue
-                        started = monotonic()
                         await asyncio.gather(*(owner.prepare_body() for owner in batch))
-                        self.lookahead.prepared(monotonic() - started)
                         for owner in batch:
                             if demand is not self.lookahead.demand or not self.lookahead.travel_rows:
                                 break
@@ -365,4 +363,4 @@ class DocumentViewport:
                     await owner.restore_body()
             else:
                 await owner.restore_body()
-        self.lookahead.prepared(monotonic() - started)
+        self.lookahead.delivered(monotonic() - started)

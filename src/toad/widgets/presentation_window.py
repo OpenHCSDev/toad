@@ -115,8 +115,10 @@ class DestinationPreparation(PreparationDemand):
 class DirectionalPreparation:
     """Measured travel during preparation, owned by the existing viewport.
 
-    Idle expiry measures input cadence, not the last body's render time. Pure
-    worker preparation latency supplies the prediction horizon. The existing
+    Idle expiry measures input cadence, not a renderer's frame rate. Measured
+    foreground body delivery supplies the prediction horizon, including worker
+    waits and native widget construction. Speculative worker batches do not
+    overwrite that distinct measurement. The existing
     presentation budget bounds how much of that prediction can be admitted.
     """
 
@@ -124,7 +126,7 @@ class DirectionalPreparation:
         self.viewport = viewport
         self.position = 0.0
         self.sampled_at = monotonic()
-        self.render_seconds = 0.0
+        self.delivery_seconds = 0.0
         self.demand: PreparationDemand = StationaryPreparation()
 
     @property
@@ -149,19 +151,19 @@ class DirectionalPreparation:
         self.demand = DestinationPreparation(rows)
         self.sampled_at = monotonic()
 
-    def prepared(self, seconds: float) -> None:
-        self.render_seconds = seconds
+    def delivered(self, seconds: float) -> None:
+        self.delivery_seconds = seconds
 
     @property
     def idle_seconds(self) -> float:
-        return max(self.budget.scroll_idle_seconds, self.render_seconds)
+        return max(self.budget.scroll_idle_seconds, self.delivery_seconds)
 
     @property
     def travel_rows(self) -> float:
         elapsed = monotonic() - self.sampled_at
         if elapsed >= self.idle_seconds:
             return 0
-        return self.demand.rows(max(self.budget.lookahead_seconds, self.render_seconds))
+        return self.demand.rows(max(self.budget.lookahead_seconds, self.delivery_seconds))
 
     def ahead_rows(self, viewport_rows: int) -> int:
         # Resource admission still belongs to PresentationBudget / the viewport
