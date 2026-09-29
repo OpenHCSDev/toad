@@ -319,7 +319,7 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
             frame_sequence = [{
                 "reader": reader_marker in reader,
                 "response": "NATIVE_RESPONSE" in reader,
-                "other_source": other_reader in reader,
+                "other_source": other_reader in full,
                 "loading": "Loading new thread" in full,
                 "blank": not reader.strip(),
                 "length": len(reader.strip()),
