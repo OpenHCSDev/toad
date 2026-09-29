@@ -34,8 +34,8 @@ async def main():
             assert '120.0K' in str(view.status)
             agent.rpc_session_update('fixture', compaction_packet(CompactionStart('threshold')))
             await pilot.pause()
-            assert agent._context_usage is None
-            assert 'Context estimate unavailable' in str(view.status)
+            assert not agent.context_measurement.available
+            assert 'Context unavailable' in str(view.status)
             assert '0.0K' not in str(view.status) and '120.0K' not in str(view.status)
             assert 'Compacting context' in view.query_one(TurnActivity).render().plain
             assert view.busy_count == 1
@@ -46,7 +46,7 @@ async def main():
             assert len(notices) == 1
             assert 'Context compacted' in notices[0].source
             assert 'Core-only status' not in notices[0].source
-            assert view.busy_count == 1 and 'Context estimate unavailable' in str(view.status)
+            assert view.busy_count == 1 and 'Context unavailable' in str(view.status)
             agent.rpc_session_update('fixture', compaction_packet(CompactionStart('threshold')))
             failure = 'Compaction provider returned HTTP 400.'
             agent.rpc_session_update('fixture', compaction_packet(ManualCompactionEnd(aborted=True, summary=failure)))
@@ -54,7 +54,7 @@ async def main():
             aborted = [item for item in view.contents.children if isinstance(item, AgentResponse) and 'Compaction aborted' in item.source]
             assert len(aborted) == 1 and view.busy_count == 1
             assert failure in aborted[0].source
-            assert 'Context estimate unavailable' in str(view.status)
+            assert 'Context unavailable' in str(view.status)
             agent.rpc_session_update('fixture', {'sessionUpdate': 'usage_update', 'used': 27000, 'size': 272000})
             await pilot.pause()
             assert '27.0K' in str(view.status)
