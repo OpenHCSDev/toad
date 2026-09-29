@@ -57,12 +57,11 @@ class DiffPermissionPresentation(PermissionPresentation):
     async def show(self, view, request):
         screen = PermissionReview(request, view, self.diffs)
         app = view.app
-        app.terminal_attention.require(screen)
-        app.terminal_attention.notify(f"{view.agent_title} would like to write files",
-                          title="Permissions request", sound="question")
-
-        request.watch(view, screen.retire)
         try:
+            app.terminal_attention.require(screen)
+            app.terminal_attention.notify(f"{view.agent_title} would like to write files",
+                                          title="Permissions request", sound="question")
+            request.watch(view, screen.retire)
             result = await app.push_screen_wait(screen, mode=view.screen.id)
             request.answer(view, result)
         finally:

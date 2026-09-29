@@ -53,6 +53,26 @@ class TerminalTitle(DeclaredFamily, affix="TerminalTitle"):
     def close(self) -> None:
         pass
 
+    def publish(self) -> None:
+        attention = self.attention
+        selected = attention.app.selected_session
+        screen_title = selected.title if selected is not None else attention.app.screen.title
+        title = f"{attention.title} — {screen_title}" if screen_title else attention.title
+        if driver := attention.app._driver:
+            driver.write(f"\033]0;{self.icon()} {title}\007")
+
+
+class DetachedTerminalTitle(TerminalTitle):
+    """Settings may change before App mount or while its screens are retiring."""
+    def reconcile(self) -> TerminalTitle:
+        return self
+
+    def icon(self) -> str:
+        return self.attention.icon
+
+    def publish(self) -> None:
+        pass
+
 
 class QuietTerminalTitle(TerminalTitle):
     def reconcile(self) -> TerminalTitle:
@@ -92,7 +112,7 @@ class TerminalAttention:
     def __init__(self, app: ToadApp) -> None:
         self.app = app
         self.sources: set[Widget] = set()
-        self.state: TerminalTitle = QuietTerminalTitle(self)
+        self.state: TerminalTitle = DetachedTerminalTitle(self)
 
     @property
     def flashing_enabled(self) -> bool:
@@ -109,16 +129,17 @@ class TerminalAttention:
 
     def update(self) -> None:
         self.state = self.state.reconcile()
-        selected = self.app.selected_session
-        screen_title = selected.title if selected is not None else self.app.screen.title
-        title = f"{self.title} — {screen_title}" if screen_title else self.title
-        if driver := self.app._driver:
-            driver.write(f"\033]0;{self.state.icon()} {title}\007")
+        self.state.publish()
+
+    def attach(self) -> None:
+        self.state.close()
+        self.state = QuietTerminalTitle(self)
+        self.update()
 
     def close(self) -> None:
         self.sources.clear()
         self.state.close()
-        self.state = QuietTerminalTitle(self)
+        self.state = DetachedTerminalTitle(self)
 
     def notify(self, message: str, *, title: str = "", sound: str | None = None) -> None:
         """Dispatch the existing declared desktop policy on Textual's worker."""

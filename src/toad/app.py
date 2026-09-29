@@ -1455,7 +1455,7 @@ class ToadApp(WorkspaceSessionShutdown, App, inherit_bindings=False):
         else:
             await self.new_session_screen(self.get_main_screen)
 
-        self.terminal_attention.update()
+        self.terminal_attention.attach()
         self.set_timer(1, self.run_version_check)
         self.set_process_title()
         self.update_show_sessions()
