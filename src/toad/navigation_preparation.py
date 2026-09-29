@@ -81,7 +81,10 @@ class ThreadNavigationRequest(NavigationRequest[ThreadNavigation]):
         thread = comms.registry.require(self.target)
         active = comms.registry.status(thread.name).active
         persisted = bool(thread.session_file and Path(thread.session_file).is_file())
-        attachable = thread.process_alive
+        # An active registration authorizes native attachment while its first
+        # owner is still launching. ACP admission serializes with that launch;
+        # a missing PID/session at this instant is not a direct-message route.
+        attachable = active
         project = Path(thread.worktree)
         if not project.is_dir():
             project = self.project
