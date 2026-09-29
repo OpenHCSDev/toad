@@ -1,0 +1,6 @@
+GEOMETRY Region(x=56, y=3, width=81, height=38) Region(x=56, y=3, width=81, height=31) Region(x=57, y=34, width=79, height=0) Region(x=57, y=34, width=79, height=0) scroll 0 0
+PAGES [(19, 15, 19, Region(x=57, y=35, width=79, height=7), True)]
+RESPONSES [(353, Region(x=57, y=40, width=78, height=1), True, False, True, False)]
+FRAME_NONSPACE 5776 WINDOW_TEXT 391
+PASS: installed captured ACP snapshot 26 events; saved history available independently of all typed cursor statuses
+No prompt, native-owner restart, live installation/history write, or live provider call
