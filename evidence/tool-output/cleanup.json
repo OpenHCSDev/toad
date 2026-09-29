@@ -1,0 +1,71 @@
+{
+  "removed_private_roots": [
+    {
+      "root": "/var/tmp/toad-pilot-fhusri_n",
+      "bytes": 0,
+      "attestation": "own collected runtime-root metadata; no matching TOAD_TEST_ATTEMPT process"
+    },
+    {
+      "root": "/var/tmp/toad-pilot-jdxuc6jx",
+      "bytes": 0,
+      "attestation": "own collected runtime-root metadata; no matching TOAD_TEST_ATTEMPT process"
+    },
+    {
+      "root": "/var/tmp/toad-pilot-6azq3uvn",
+      "bytes": 0,
+      "attestation": "own collected runtime-root metadata; no matching TOAD_TEST_ATTEMPT process"
+    },
+    {
+      "root": "/var/tmp/toad-pilot-mz2n0t7v",
+      "bytes": 0,
+      "attestation": "own collected runtime-root metadata; no matching TOAD_TEST_ATTEMPT process"
+    },
+    {
+      "root": "/var/tmp/toad-pilot-_bvmxgym",
+      "bytes": 0,
+      "attestation": "own collected runtime-root metadata; no matching TOAD_TEST_ATTEMPT process"
+    },
+    {
+      "root": "/var/tmp/toad-pilot-4568j5fg",
+      "bytes": 0,
+      "attestation": "own collected runtime-root metadata; no matching TOAD_TEST_ATTEMPT process"
+    },
+    {
+      "root": "/var/tmp/toad-pilot-rzfvesaz",
+      "bytes": 0,
+      "attestation": "own collected runtime-root metadata; no matching TOAD_TEST_ATTEMPT process"
+    },
+    {
+      "root": "/var/tmp/toad-pilot-9mf3hy8l",
+      "bytes": 0,
+      "attestation": "own collected runtime-root metadata; no matching TOAD_TEST_ATTEMPT process"
+    },
+    {
+      "root": "/var/tmp/toad-pilot-xm3s65lm",
+      "bytes": 0,
+      "attestation": "own collected runtime-root metadata; no matching TOAD_TEST_ATTEMPT process"
+    },
+    {
+      "root": "/var/tmp/toad-pilot-vf3htbw8",
+      "bytes": 0,
+      "attestation": "own collected runtime-root metadata; no matching TOAD_TEST_ATTEMPT process"
+    },
+    {
+      "root": "/var/tmp/toad-pilot-49oy3h1o",
+      "bytes": 0,
+      "attestation": "own collected runtime-root metadata; no matching TOAD_TEST_ATTEMPT process"
+    },
+    {
+      "root": "/var/tmp/toad-pilot-w9otejae",
+      "bytes": 0,
+      "attestation": "own collected runtime-root metadata; no matching TOAD_TEST_ATTEMPT process"
+    },
+    {
+      "root": "/var/tmp/toad-pilot-8m0t4rn4",
+      "bytes": 0,
+      "attestation": "own collected runtime-root metadata; no matching TOAD_TEST_ATTEMPT process"
+    }
+  ],
+  "owned_snapshot_removed": true,
+  "preserved": "all source trees/commits; final compressed raw NRA; predecessor evidence; installed environment"
+}

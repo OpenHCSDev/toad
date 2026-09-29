@@ -1,123 +1,116 @@
-"""Late diff work never publishes into a replaced/collapsed view or stale theme."""
+"""Actual installed render workers survive hide/show, replacement and retirement."""
 
 import asyncio
+import gc
+import warnings
+from importlib.resources import files
 import os
 from pathlib import Path
 import tempfile
-from unittest.mock import patch
 
 from agent_comms.tool_results import ToolDiff, tool_result_content
 from runtime_fixture import ToadApp
 from tool_diff_fixture import wait_for_tool_diff
+from textual.screen import Screen
 from toad.widgets.patch_diff import PatchDiffView
-from toad.render_tasks import execute_render_task
-from toad.render_backend import Renderer
-from toad.widgets.tool_call import ToolCall, ToolCallDiff
+from toad.widgets.tool_call import ToolCall
+from toad.widgets.tool_content import ToolCallDiff
 
-PATCH = "--- x.py\n+++ x.py\n@@ -1,2 +1,2 @@\n context\n-old = 1\n+new = 2\n"
-
-
-class ControlledPool(Renderer):
-    def __init__(self):
-        self.requests = []
-
-    async def run(self, function, *args):
-        future = asyncio.get_running_loop().create_future()
-        self.requests.append((function, args, future))
-        await asyncio.wait((future,))
-        return future.result()
-
-    async def submit(self, task):
-        return await self.run(execute_render_task, task)
-
-    def complete(self, index):
-        function, args, future = self.requests[index]
-        assert function is execute_render_task
-        future.set_result(function(*args))
-
-    async def aclose(self):
-        pass
+PATCH = "--- x.py\n+++ x.py\n@@ -1 +1 @@\n-old = 1\n+new = 2\n"
 
 
-async def requested(pool, count, pilot):
-    async with asyncio.timeout(5):
-        while len(pool.requests) < count:
-            await pilot.pause()
+class InstalledApp(ToadApp):
+    CSS_PATH = files("toad").joinpath("toad.tcss")
 
 
-def tool_data(tool_id, source=PATCH):
-    return {"toolCallId": tool_id, "title": "Edit x.py", "kind": "edit", "status": "completed",
-            "content": tool_result_content(tool_id, "Done", ToolDiff(source))}
+def data(source=PATCH, *, tool_id="actual-output"):
+    return {"toolCallId": tool_id, "title": "Actual edit x.py", "kind": "edit",
+            "status": "completed", "content": tool_result_content(tool_id, "done", ToolDiff(source))}
+
+
+def frame(app):
+    return "\n".join(strip.text for strip in app.screen._compositor.render_strips())
 
 
 async def main():
-    with tempfile.TemporaryDirectory(prefix="toad-diff-lifecycle-") as directory:
+    with tempfile.TemporaryDirectory(prefix="toad-output-life-") as directory:
         root = Path(directory)
         os.environ.update(AGENT_COMMS_ROOT=str(root / "wire"), XDG_CONFIG_HOME=str(root / "config"),
                           XDG_STATE_HOME=str(root / "state"), XDG_DATA_HOME=str(root / "data"))
-        app = ToadApp(project_dir=str(root))
-        pool = ControlledPool()
-        with patch.object(app, "render_processes", pool):
-            async with app.run_test(size=(110, 35)) as pilot:
+        app = InstalledApp(project_dir=directory)
+        async with app.run_test(size=(110, 35)) as pilot:
+            await pilot.pause()
+            body = app.screen.conversation.contents
+            await app.push_screen(Screen())
+            tool = ToolCall(data())
+            await body.mount(tool)
+            await pilot.pause()
+            assert tool.expanded and not tool.query(ToolCallDiff), "Hidden warmup mounted UI"
+            # Real App admission remains owned while the renderer process runs.
+            async with asyncio.timeout(15):
+                while app._background_render_tasks:
+                    await pilot.pause(.02)
+            await app.pop_screen()
+            await pilot.pause()
+            first = await wait_for_tool_diff(tool, pilot)
+            assert "new = 2" in frame(app)
+            assert first.query_one(PatchDiffView).counts == (1, 1)
+
+            fresh = PATCH.replace("new = 2", "fresh = 3")
+            await tool.update_tool_call(data(fresh))
+            current = await wait_for_tool_diff(tool, pilot)
+            assert current is not first and not first.is_attached and not first.prepared.is_set()
+            assert "fresh = 3" in frame(app) and "new = 2" not in frame(app)
+            for theme in ("ansi-light", "ansi-dark"):
+                app.theme = theme
                 await pilot.pause()
-                owner = app.current_mode
-                tool = ToolCall(tool_data("lifecycle"))
-                tool.set_expanded(True)
-                await app.screen.conversation.post(tool)
-                await requested(pool, 1, pilot)
-                first = tool.query_one(ToolCallDiff)
-                app.theme = "ansi-light"
-                await requested(pool, 2, pilot)
-                pool.complete(0)
-                await pilot.pause()
-                assert not first.prepared.is_set() and not first.query(PatchDiffView)
-                pool.complete(1)
                 await wait_for_tool_diff(tool, pilot)
-                assert first._prepared_patch.theme == (True, False)
+                assert "fresh = 3" in frame(app)
 
-                await tool.update_tool_call(tool_data("lifecycle", PATCH.replace("new = 2", "fresh = 3")))
-                await requested(pool, 3, pilot)
-                replaced = tool.query_one(ToolCallDiff)
-                assert replaced is not first and not first.is_attached
-                tool.collapse_block()
+            tool.collapse_block()
+            await pilot.pause()
+            assert not tool.query(ToolCallDiff) and not current.prepared.is_set()
+            tool.expand_block()
+            current = await wait_for_tool_diff(tool, pilot)
+            assert "fresh = 3" in frame(app)
+            await current.remove()
+            await tool.query_one("#tool-content").mount(current)
+            await wait_for_tool_diff(tool, pilot)
+            assert "fresh = 3" in frame(app)
+            await tool.remove()
+            await pilot.pause()
+            assert not current.is_attached and not current.prepared.is_set()
+            assert "fresh = 3" not in frame(app)
+            # A whole autoexpanded ToolCall may be remounted after retirement,
+            # including while hidden; its output lifetime must re-register.
+            auto = ToolCall(data(fresh, tool_id="auto-output"))
+            await body.mount(auto)
+            await wait_for_tool_diff(auto, pilot)
+            await auto.remove()
+            await app.push_screen(Screen())
+            await body.mount(auto)
+            await pilot.pause()
+            assert auto.expanded and not auto.query(ToolCallDiff)
+            # Real Textual worker cancellation before entry: no coroutine has
+            # been created by scheduling, and stale warmup cannot publish.
+            with warnings.catch_warnings(record=True) as observed:
+                warnings.simplefilter("always", RuntimeWarning)
+                auto.output.cancel_preparation()
+                auto.output.prepare_hidden()
+                auto.output.cancel_preparation()
+                worker = auto.run_worker(auto.output.hydrate, group="visible-content")
+                worker.cancel()
                 await pilot.pause()
-                pool.complete(2)
-                await pilot.pause()
-                assert not tool.query(ToolCallDiff) and not replaced.prepared.is_set()
-                tool.expand_block()
-                await requested(pool, 4, pilot)
-                pool.complete(3)
-                current = await wait_for_tool_diff(tool, pilot)
-                assert "fresh = 3" in current.patch
-
-                # A real instance removed/remounted must restart canceled state.
-                body = tool.query_one("#tool-content")
-                await current.remove()
-                await body.mount(current)
-                await requested(pool, 5, pilot)
-                pool.complete(4)
-                await wait_for_tool_diff(tool, pilot)
-                await tool.remove()
-
-                auto = await app.screen.conversation.post(ToolCall(tool_data("auto")))
-                auto.scroll_visible(animate=False)
-                await requested(pool, 6, pilot)
-                async with asyncio.timeout(5):
-                    while not auto.query(ToolCallDiff):
-                        await pilot.pause()
-                pending = auto.query_one(ToolCallDiff)
-                await app.switch_mode("store")
-                await pilot.pause()
-                pool.complete(5)
-                await pilot.pause()
-                assert pending._prepared_patch is not None
-                assert not pending.prepared.is_set() and not pending.query(PatchDiffView)
-                await app.switch_mode(owner)
-                auto.scroll_visible(animate=False)
-                await wait_for_tool_diff(auto, pilot)
-                assert pending._visibility_signal is None
-                assert app._exception is None
-    print("tool diff lifecycle: theme supersession, replacement, collapse, remount and hidden-tab delivery")
+                gc.collect()
+                assert not any("was never awaited" in str(item.message) for item in observed), observed
+            await app.pop_screen()
+            await wait_for_tool_diff(auto, pilot)
+            assert "fresh = 3" in frame(app)
+            await auto.remove()
+            await pilot.pause()
+            assert not app._background_render_tasks and app._exception is None
+        await asyncio.get_running_loop().shutdown_default_executor()
+    print("REAL_RENDERER: hidden preparation/reveal, replacement, theme, collapse/reopen, remount/retirement and actual paint")
 
 
 if __name__ == "__main__":
