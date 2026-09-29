@@ -1,11 +1,9 @@
 from dataclasses import dataclass
-from operator import itemgetter
-from typing import Iterable, Self, Sequence
+from typing import TYPE_CHECKING, Iterable, Self
 
 from textual import on
 from textual.app import ComposeResult
 from textual.binding import Binding
-from textual.content import Content, Span
 
 from textual import getters
 from textual.message import Message
@@ -14,11 +12,14 @@ from textual import containers
 from textual import widgets
 from textual.widgets.option_list import Option
 
-from toad.fuzzy import FuzzySearch
-from toad.messages import Dismiss
+from toad.slash_command_results import SlashCommandResults
 from toad.slash_command import SlashCommand
-from toad.visuals.columns import Columns
 from toad.widgets.selection import SelectionOptionList
+from toad.widgets.prompt_popup import CompletionPopup
+
+
+if TYPE_CHECKING:
+    from toad.widgets.prompt import Prompt
 
 
 class SlashCompleteInput(widgets.Input):
@@ -34,7 +35,7 @@ Search for slash commands by typing a few characters from the command.
 """
 
 
-class SlashComplete(containers.VerticalGroup):
+class SlashComplete(CompletionPopup):
     """A widget to auto-complete slash commands."""
 
     CURSOR_BINDING_GROUP = Binding.Group(description="Select")
@@ -84,22 +85,36 @@ class SlashComplete(containers.VerticalGroup):
         self.slash_commands = list(slash_commands) if slash_commands else []
 
 
-        self.fuzzy_search = FuzzySearch(case_sensitive=False)
+        self.results = SlashCommandResults(case_sensitive=False)
+
+    @classmethod
+    def for_prompt(cls, prompt: Prompt) -> Self | None:
+        from toad.widgets.prompt import Prompt
+        return cls().data_bind(slash_commands=Prompt.slash_commands)
+
+    def admitted(self) -> bool:
+        return self.prompt.supports_completion
+
+    @on(Completed)
+    def insert_command(self, event: Completed) -> None:
+        event.stop()
+        area = self.prompt.prompt_text_area
+        area.clear()
+        area.insert(f"{event.command} ")
+        self.action_dismiss()
 
     def compose(self) -> ComposeResult:
         yield SlashCompleteInput(compact=True, placeholder="fuzzy search")
         yield SelectionOptionList()
 
-    def focus(self, scroll_visible: bool = False) -> Self:
+    def focus_content(self, scroll_visible: bool) -> None:
+        from toad.widgets.conversation import Conversation
+        self.query_ancestor(Conversation).update_slash_commands()
         self.filter_slash_commands("")
         self.input.focus(scroll_visible)
-        return self
 
     def on_mount(self) -> None:
         self.filter_slash_commands("")
-
-    def on_descendant_blur(self) -> None:
-        self.post_message(Dismiss(self))
 
     @on(widgets.Input.Changed)
     def on_input_changed(self, event: widgets.Input.Changed) -> None:
@@ -115,75 +130,7 @@ class SlashComplete(containers.VerticalGroup):
         Args:
             prompt: Text prompt.
         """
-        prompt = prompt.lstrip("/").casefold().rstrip()
-        columns = self.columns = Columns("auto", "flex")
-
-        slash_commands = sorted(
-            self.slash_commands,
-            key=lambda slash_command: slash_command.command.casefold(),
-        )
-        self.fuzzy_search.cache.grow(len(slash_commands))
-
-        if prompt:
-            slash_prompt = f"/{prompt}"
-            scores: list[tuple[float, Sequence[int], SlashCommand]] = [
-                (
-                    *self.fuzzy_search.match(prompt, slash_command.command[1:]),
-                    slash_command,
-                )
-                for slash_command in slash_commands
-            ]
-
-            scores = sorted(
-                [
-                    (
-                        (
-                            score * 2
-                            if slash_command.command.casefold().startswith(slash_prompt)
-                            else score
-                        ),
-                        highlights,
-                        slash_command,
-                    )
-                    for score, highlights, slash_command in scores
-                    if score
-                ],
-                key=itemgetter(0),
-                reverse=True,
-            )
-        else:
-            scores = [(1.0, [], slash_command) for slash_command in slash_commands]
-
-        def make_row(
-            slash_command: SlashCommand, indices: Iterable[int]
-        ) -> tuple[Content, ...]:
-            """Make a row for the Columns display.
-
-            Args:
-                slash_command: The slash command instance.
-                indices: Indices of matching characters.
-
-            Returns:
-                A tuple of `Content` instances for use as a column row.
-            """
-            command = Content.styled(slash_command.command, "$text-success")
-            command = command.add_spans(
-                [Span(index + 1, index + 2, "underline not dim") for index in indices]
-            )
-            return (command, Content.styled(slash_command.help, "dim"))
-
-        rows = [
-            (
-                columns.add_row(
-                    *make_row(slash_command, indices),
-                ),
-                slash_command.command,
-            )
-            for _, indices, slash_command in scores
-        ]
-        self.option_list.set_options(
-            Option(row, id=command_name) for row, command_name in rows
-        )
+        self.option_list.set_options(self.results.options(prompt, self.slash_commands))
         if self.display:
             self.option_list.highlighted = 0
         else:
@@ -195,9 +142,6 @@ class SlashComplete(containers.VerticalGroup):
 
     def action_cursor_up(self) -> None:
         self.option_list.action_cursor_up()
-
-    def action_dismiss(self) -> None:
-        self.post_message(Dismiss(self))
 
     def action_submit(self) -> None:
         option_list = self.option_list

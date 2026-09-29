@@ -354,8 +354,8 @@ async def main() -> None:
             search_button = app.screen.query_one(ProjectSearchButton)
             search_button.action_search()
             await pilot.pause()
-            assert app.selected_session.conversation.prompt.show_path_search
-            app.selected_session.conversation.prompt.show_path_search = False
+            assert app.selected_session.conversation.prompt.path_search.is_open
+            app.selected_session.conversation.prompt.path_search.is_open = False
             owner_mode = app.selected_mode
             sidebar = app.screen.query_one(CommsSidebar)
             new_session_button = sidebar.query_one(NewSessionButton)

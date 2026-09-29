@@ -2,13 +2,11 @@ from __future__ import annotations
 
 
 import asyncio
-import concurrent.futures
 
-from operator import itemgetter
 import os
 from pathlib import Path
 
-from typing import Self, Sequence
+from typing import TYPE_CHECKING, Self, Sequence
 
 
 from textual import on
@@ -20,8 +18,7 @@ from textual import containers
 from textual import events
 from textual.actions import SkipAction
 
-from textual.cache import LRUCache
-from textual.reactive import var, Initialize
+from textual.reactive import var
 from textual.content import Content, Span
 from textual.strip import Strip
 from textual.style import Style
@@ -32,13 +29,16 @@ from textual.widgets import OptionList, Input, DirectoryTree
 from textual.widgets.option_list import Option
 
 from toad import directory
-from toad.fuzzy_index import FuzzyIndex
+from toad.path_search_ranking import PathSearchRanking
 from toad.messages import Dismiss, InsertPath, PromptSuggestion
 from toad.path_filter import PathFilter
 from toad.widgets.project_directory_tree import ProjectDirectoryTree
-from toad._path_fuzzy_search import PathFuzzySearch
-from toad._path_match import match_path
 from toad.widgets.selection import SelectionOptionList
+from toad.widgets.prompt_popup import CompletionPopup
+
+
+if TYPE_CHECKING:
+    from toad.widgets.prompt import Prompt
 
 
 class PathContent(Content):
@@ -129,7 +129,7 @@ The search is *fuzzy*, and will match characters that aren't neccesarily next to
         return super().render_line(y)
 
 
-class PathSearch(containers.VerticalGroup):
+class PathSearch(CompletionPopup):
 
     BINDING_GROUP_TITLE = "Path search"
 
@@ -150,16 +150,9 @@ class PathSearch(containers.VerticalGroup):
         Binding("tab", "switch_picker", "Switch picker", priority=True, show=False),
     ]
 
-    def get_fuzzy_search(self) -> PathFuzzySearch:
-        return PathFuzzySearch(case_sensitive=False)
-
     root: var[Path] = var(Path("./"))
     paths: var[list[Path]] = var(list)
     display_paths: var[list[str]] = var(list)
-    filtered_path_indices: var[list[int]] = var(list)
-    loaded = var(False)
-    filter = var("")
-    fuzzy_search: var[PathFuzzySearch] = var(Initialize(get_fuzzy_search))
     show_tree_picker: var[bool] = var(False)
 
     option_list = getters.query_one(FuzzyPathOptionList)
@@ -170,15 +163,38 @@ class PathSearch(containers.VerticalGroup):
         super().__init__()
         self.set_reactive(PathSearch.root, root)
         self.root = root
-        self.fuzzy_index = FuzzyIndex()
+        self.ranking = PathSearchRanking()
         self._paths_dirty = True
         self._tree_mount_lock = asyncio.Lock()
-        self.pool = concurrent.futures.InterpreterPoolExecutor(
-            thread_name_prefix=f"fuzzy-path-search-{root}"
-        )
-        self.search_cache: LRUCache[str, list[tuple[float, Sequence[int], str]]] = (
-            LRUCache(1024)
-        )
+
+    @classmethod
+    def for_prompt(cls, prompt: Prompt) -> Self | None:
+        from toad.widgets.prompt import Prompt
+        return None if prompt.simple_input else cls(prompt.project_path).data_bind(root=Prompt.project_path)
+
+    def admitted(self) -> bool:
+        return self.prompt.supports_completion
+
+    def watch_root(self) -> None:
+        self.invalidate_paths()
+
+    @on(PromptSuggestion)
+    def suggest_path(self, event: PromptSuggestion) -> None:
+        event.stop()
+        if self.is_open:
+            self.prompt.prompt_text_area.suggestion = event.suggestion
+
+    @on(InsertPath)
+    def insert_path(self, event: InsertPath) -> None:
+        event.stop()
+        area = self.prompt.prompt_text_area
+        if " " in event.path:
+            path = f'"{event.path}"'
+        else:
+            path = event.path
+            if area.get_text_range(*area.selection) != " ":
+                path += " "
+        area.insert(path)
 
     def compose(self) -> ComposeResult:
         with widgets.ContentSwitcher(initial="path-search-fuzzy"):
@@ -216,19 +232,6 @@ class PathSearch(containers.VerticalGroup):
     def action_switch_picker(self) -> None:
         self.show_tree_picker = not self.show_tree_picker
 
-    def fuzzy_match_paths(
-        self, search: str, paths: list[str]
-    ) -> list[tuple[float, Sequence[int], str]]:
-
-        scores = list(
-            self.pool.map(
-                match_path,
-                [(search, path) for path in paths],
-                chunksize=10,
-            )
-        )
-        return scores
-
     async def search(self, search: str) -> None:
         if not search:
             self.option_list.set_options(
@@ -239,33 +242,11 @@ class PathSearch(containers.VerticalGroup):
             )
             return
 
-        display_paths = await self.fuzzy_index.search(search)
-
-        if len(display_paths) > 20:
-            if (scored_paths := self.search_cache.get(search)) is None:
-                scored_paths = await asyncio.to_thread(
-                    self.fuzzy_match_paths, search, display_paths
-                )
-                self.search_cache[search] = scored_paths
-        else:
-            fuzzy_search = self.fuzzy_search
-            scored_paths: list[tuple[float, Sequence[int], str]] = [
-                (
-                    *fuzzy_search.match(search, path),
-                    path,
-                )
-                for path in display_paths
-            ]
-
-        scored_paths = sorted(
-            [score for score in scored_paths if score[0]],
-            key=itemgetter(0),
-            reverse=True,
-        )
+        scored_paths = await self.ranking.search(search)
 
         scores = [
-            (score, highlights, self.highlight_path(path))
-            for score, highlights, path in scored_paths[:30]
+            (match.score, match.offsets, self.highlight_path(match.path))
+            for match in scored_paths[:30]
         ]
 
         def highlight_offsets(path: Content, offsets: Sequence[int]) -> Content:
@@ -302,35 +283,19 @@ class PathSearch(containers.VerticalGroup):
         else:
             self.option_list.action_cursor_up()
 
-    def action_dismiss(self) -> None:
-        self.post_message(Dismiss(self))
-        self.filter = ""
-
-    def on_show(self) -> None:
-        if self._paths_dirty:
-            self.refresh_paths()
-        self.focus()
-
     def invalidate_paths(self) -> None:
         self._paths_dirty = True
         if self.is_on_screen and self.screen is self.app.screen:
             self.refresh_paths()
 
-    def on_unmount(self) -> None:
-        self.pool.shutdown(wait=False, cancel_futures=True)
-
-    def focus(self, scroll_visible: bool = False) -> Self:
+    def focus_content(self, scroll_visible: bool) -> None:
+        self.input.clear()
+        if self._paths_dirty:
+            self.refresh_paths()
         if self.show_tree_picker and (tree := self.query_one_optional(ProjectDirectoryTree)):
-            return tree.focus(scroll_visible=scroll_visible)
-        return self.input.focus(scroll_visible=scroll_visible)
-
-    def on_descendant_blur(self, event: events.DescendantBlur) -> None:
-        if self.show_tree_picker:
-            if event.widget == self.query_one_optional(ProjectDirectoryTree):
-                self.post_message(Dismiss(self))
+            tree.focus(scroll_visible=scroll_visible)
         else:
-            if event.widget == self.input:
-                self.post_message(Dismiss(self))
+            self.input.focus(scroll_visible=scroll_visible)
 
     @classmethod
     def make_relative(cls, path: Path, root: Path) -> Path:
@@ -403,30 +368,13 @@ class PathSearch(containers.VerticalGroup):
                 self.post_message(InsertPath(option.id))
                 self.post_message(Dismiss(self))
 
-    def get_path_filter(self, project_path: Path) -> PathFilter:
-        """Get a PathFilter insance for the give project path.
-
-        Args:
-            project_path: Project path.
-
-        Returns:
-            `PathFilter` object.
-        """
-        path_filter = PathFilter.from_git_root(project_path)
-        return path_filter
-
-    def reset(self) -> None:
-        """Reset and focus input."""
-        self.input.clear()
-        self.input.focus()
-
     @work(exclusive=True)
     async def refresh_paths(self):
         self._paths_dirty = False
         self.option_list.set_loading(True)
         root = self.root
         try:
-            path_filter = await asyncio.to_thread(self.get_path_filter, root)
+            path_filter = await asyncio.to_thread(PathFilter.from_git_root, root)
             if tree := self.query_one_optional(ProjectDirectoryTree):
                 tree.path_filter = path_filter
                 tree.invalidate()
@@ -447,7 +395,8 @@ class PathSearch(containers.VerticalGroup):
                 return [path.absolute() for path in paths]
 
             paths = await asyncio.to_thread(make_absolute, paths)
-            self.root = root
+            if self.root != root:
+                return
             self.paths = paths
         except Exception:
             self.option_list.set_loading(False)
@@ -506,5 +455,5 @@ class PathSearch(containers.VerticalGroup):
         Args:
             paths: A list of paths.
         """
-        await self.fuzzy_index.update_paths(paths)
+        await self.ranking.update_paths(paths)
         self.call_after_refresh(self.option_list.set_loading, False)

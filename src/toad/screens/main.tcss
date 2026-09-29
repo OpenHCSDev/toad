@@ -403,17 +403,7 @@ Prompt {
         }
     }
 
-    &.-show-path-search {
-        PathSearch {
-            display: block
-        }
-    }
-
-    &.-show-slash-complete {
-        SlashComplete {
-            display: block;
-        }
-    }
+    CompletionPopup.-open { display: block; }
 
     Question {
         

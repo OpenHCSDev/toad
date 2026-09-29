@@ -67,7 +67,7 @@ async def main():
             await pilot.press("!")
             await pilot.pause()
             assert not prompt.shell_mode and prompt.text == "!"
-            assert not prompt.show_path_search
+            assert not prompt.path_search.is_open
             prompt.text = ""
             area.post_message(area.RequestShellMode())
             await pilot.pause()
