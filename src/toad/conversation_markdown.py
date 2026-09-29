@@ -211,8 +211,10 @@ class _ThreadLocalPathParser:
 class ConversationMarkdown(Markdown):
     """Markdown widget with custom blocks."""
 
-    BLOCKS = {name: MarkdownBlockContent.declare(block) for name, block in Markdown.BLOCKS.items()}
-    BLOCKS["fence"] = ConversationCodeFence
+    BLOCKS = {
+        **{name: MarkdownBlockContent.declare(block) for name, block in Markdown.BLOCKS.items()},
+        "fence": ConversationCodeFence,
+    }
 
     def __init__(self, *args, **kwargs) -> None:
         kwargs.setdefault("parser_factory", self._make_parser)
