@@ -13,6 +13,7 @@ import sys
 import tempfile
 import threading
 import time
+import traceback
 import psutil
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -288,10 +289,17 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
                 assert navigation.attachable and navigation.thread.process_alive
                 print("ATTACHED_AND_NAVIGABLE", flush=True)
                 if acceptance is not None:
-                    await acceptance(app, pilot, agent, comms, entered, release,
-                                     hold_next, requests)
+                    try:
+                        await acceptance(app, pilot, agent, comms, entered, release,
+                                         hold_next, requests)
+                    except BaseException:
+                        # Textual captures ordinary print output. Persist the
+                        # original assertion before UI teardown can block it.
+                        (evidence / "acceptance-failure.txt").write_text(traceback.format_exc())
+                        raise
                     assert not failures, failures
                     assert app._exception is None
+                    (evidence / "acceptance-complete.txt").write_text("PASS\n")
                     return
                 if notification_only:
                     await notification_feedback(

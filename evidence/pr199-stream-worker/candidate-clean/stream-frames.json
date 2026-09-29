@@ -1,0 +1,1452 @@
+[
+  {
+    "frame": 0,
+    "headers": 0,
+    "live_response_identities": 0,
+    "response_lengths": [],
+    "busy": true
+  },
+  {
+    "frame": 1,
+    "headers": 0,
+    "live_response_identities": 0,
+    "response_lengths": [],
+    "busy": true
+  },
+  {
+    "frame": 2,
+    "headers": 0,
+    "live_response_identities": 0,
+    "response_lengths": [],
+    "busy": true
+  },
+  {
+    "frame": 3,
+    "headers": 0,
+    "live_response_identities": 0,
+    "response_lengths": [],
+    "busy": true
+  },
+  {
+    "frame": 4,
+    "headers": 0,
+    "live_response_identities": 0,
+    "response_lengths": [],
+    "busy": true
+  },
+  {
+    "frame": 5,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      120
+    ],
+    "busy": true
+  },
+  {
+    "frame": 6,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      120
+    ],
+    "busy": true
+  },
+  {
+    "frame": 7,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      160
+    ],
+    "busy": true
+  },
+  {
+    "frame": 8,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      160
+    ],
+    "busy": true
+  },
+  {
+    "frame": 9,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      160
+    ],
+    "busy": true
+  },
+  {
+    "frame": 10,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      160
+    ],
+    "busy": true
+  },
+  {
+    "frame": 11,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      200
+    ],
+    "busy": true
+  },
+  {
+    "frame": 12,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      320
+    ],
+    "busy": true
+  },
+  {
+    "frame": 13,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      320
+    ],
+    "busy": true
+  },
+  {
+    "frame": 14,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      320
+    ],
+    "busy": true
+  },
+  {
+    "frame": 15,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      360
+    ],
+    "busy": true
+  },
+  {
+    "frame": 16,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      360
+    ],
+    "busy": true
+  },
+  {
+    "frame": 17,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      400
+    ],
+    "busy": true
+  },
+  {
+    "frame": 18,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      400
+    ],
+    "busy": true
+  },
+  {
+    "frame": 19,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      440
+    ],
+    "busy": true
+  },
+  {
+    "frame": 20,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      480
+    ],
+    "busy": true
+  },
+  {
+    "frame": 21,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      520
+    ],
+    "busy": true
+  },
+  {
+    "frame": 22,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      520
+    ],
+    "busy": true
+  },
+  {
+    "frame": 23,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      520
+    ],
+    "busy": true
+  },
+  {
+    "frame": 24,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      600
+    ],
+    "busy": true
+  },
+  {
+    "frame": 25,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      600
+    ],
+    "busy": true
+  },
+  {
+    "frame": 26,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      680
+    ],
+    "busy": true
+  },
+  {
+    "frame": 27,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      680
+    ],
+    "busy": true
+  },
+  {
+    "frame": 28,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      680
+    ],
+    "busy": true
+  },
+  {
+    "frame": 29,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      680
+    ],
+    "busy": true
+  },
+  {
+    "frame": 30,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      720
+    ],
+    "busy": true
+  },
+  {
+    "frame": 31,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      720
+    ],
+    "busy": true
+  },
+  {
+    "frame": 32,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      720
+    ],
+    "busy": true
+  },
+  {
+    "frame": 33,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      720
+    ],
+    "busy": true
+  },
+  {
+    "frame": 34,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      760
+    ],
+    "busy": true
+  },
+  {
+    "frame": 35,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      960
+    ],
+    "busy": true
+  },
+  {
+    "frame": 36,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      960
+    ],
+    "busy": true
+  },
+  {
+    "frame": 37,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      960
+    ],
+    "busy": true
+  },
+  {
+    "frame": 38,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      1000
+    ],
+    "busy": true
+  },
+  {
+    "frame": 39,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      1040
+    ],
+    "busy": true
+  },
+  {
+    "frame": 40,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      1120
+    ],
+    "busy": true
+  },
+  {
+    "frame": 41,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      1120
+    ],
+    "busy": true
+  },
+  {
+    "frame": 42,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      1120
+    ],
+    "busy": true
+  },
+  {
+    "frame": 43,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      1160
+    ],
+    "busy": true
+  },
+  {
+    "frame": 44,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      1200
+    ],
+    "busy": true
+  },
+  {
+    "frame": 45,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      1240
+    ],
+    "busy": true
+  },
+  {
+    "frame": 46,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      1240
+    ],
+    "busy": true
+  },
+  {
+    "frame": 47,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      1240
+    ],
+    "busy": true
+  },
+  {
+    "frame": 48,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      1240
+    ],
+    "busy": true
+  },
+  {
+    "frame": 49,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      1240,
+      759,
+      481
+    ],
+    "busy": true
+  },
+  {
+    "frame": 50,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      1240,
+      759,
+      481
+    ],
+    "busy": true
+  },
+  {
+    "frame": 51,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      1280,
+      759,
+      521
+    ],
+    "busy": true
+  },
+  {
+    "frame": 52,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      1280,
+      759,
+      521
+    ],
+    "busy": true
+  },
+  {
+    "frame": 53,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      1280,
+      759,
+      521
+    ],
+    "busy": true
+  },
+  {
+    "frame": 54,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      1280,
+      759,
+      521
+    ],
+    "busy": true
+  },
+  {
+    "frame": 55,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      1280,
+      759,
+      521
+    ],
+    "busy": true
+  },
+  {
+    "frame": 56,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      1400,
+      759,
+      641
+    ],
+    "busy": true
+  },
+  {
+    "frame": 57,
+    "headers": 1,
+    "live_response_identities": 1,
+    "response_lengths": [
+      1400,
+      759,
+      641
+    ],
+    "busy": true
+  },
+  {
+    "frame": 58,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      1400,
+      759,
+      641
+    ],
+    "busy": true
+  },
+  {
+    "frame": 59,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      1400,
+      759,
+      641
+    ],
+    "busy": true
+  },
+  {
+    "frame": 60,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      1400,
+      759,
+      641
+    ],
+    "busy": true
+  },
+  {
+    "frame": 61,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      1560,
+      759,
+      740
+    ],
+    "busy": true
+  },
+  {
+    "frame": 62,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      1560,
+      759,
+      740
+    ],
+    "busy": true
+  },
+  {
+    "frame": 63,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      1560,
+      759,
+      740
+    ],
+    "busy": true
+  },
+  {
+    "frame": 64,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      1560,
+      759,
+      740
+    ],
+    "busy": true
+  },
+  {
+    "frame": 65,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      1560,
+      759,
+      740,
+      61
+    ],
+    "busy": true
+  },
+  {
+    "frame": 66,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      1560,
+      759,
+      740,
+      61
+    ],
+    "busy": true
+  },
+  {
+    "frame": 67,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      1560,
+      759,
+      740,
+      61
+    ],
+    "busy": true
+  },
+  {
+    "frame": 68,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      1560,
+      759,
+      740,
+      61
+    ],
+    "busy": true
+  },
+  {
+    "frame": 69,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      1680,
+      759,
+      740,
+      181
+    ],
+    "busy": true
+  },
+  {
+    "frame": 70,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      1680,
+      759,
+      740,
+      181
+    ],
+    "busy": true
+  },
+  {
+    "frame": 71,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      1680,
+      759,
+      740,
+      181
+    ],
+    "busy": true
+  },
+  {
+    "frame": 72,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      1720,
+      759,
+      740,
+      221
+    ],
+    "busy": true
+  },
+  {
+    "frame": 73,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      1720,
+      759,
+      740,
+      221
+    ],
+    "busy": true
+  },
+  {
+    "frame": 74,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      1800,
+      759,
+      740,
+      301
+    ],
+    "busy": true
+  },
+  {
+    "frame": 75,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      1800,
+      759,
+      740,
+      301
+    ],
+    "busy": true
+  },
+  {
+    "frame": 76,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      1800,
+      759,
+      740,
+      301
+    ],
+    "busy": true
+  },
+  {
+    "frame": 77,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      1800,
+      759,
+      740,
+      301
+    ],
+    "busy": true
+  },
+  {
+    "frame": 78,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      1800,
+      759,
+      740,
+      301
+    ],
+    "busy": true
+  },
+  {
+    "frame": 79,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      1800,
+      759,
+      740,
+      301
+    ],
+    "busy": true
+  },
+  {
+    "frame": 80,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      1800,
+      759,
+      740,
+      301
+    ],
+    "busy": true
+  },
+  {
+    "frame": 81,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      1840,
+      759,
+      740,
+      341
+    ],
+    "busy": true
+  },
+  {
+    "frame": 82,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      1840,
+      759,
+      740,
+      341
+    ],
+    "busy": true
+  },
+  {
+    "frame": 83,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      1840,
+      759,
+      740,
+      341
+    ],
+    "busy": true
+  },
+  {
+    "frame": 84,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      1840,
+      759,
+      740,
+      341
+    ],
+    "busy": true
+  },
+  {
+    "frame": 85,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      1840,
+      759,
+      740,
+      341
+    ],
+    "busy": true
+  },
+  {
+    "frame": 86,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      2040,
+      759,
+      740,
+      541
+    ],
+    "busy": true
+  },
+  {
+    "frame": 87,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      2040,
+      759,
+      740,
+      541
+    ],
+    "busy": true
+  },
+  {
+    "frame": 88,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      2040,
+      759,
+      740,
+      541
+    ],
+    "busy": true
+  },
+  {
+    "frame": 89,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      2040,
+      759,
+      740,
+      541
+    ],
+    "busy": true
+  },
+  {
+    "frame": 90,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      2040,
+      759,
+      740,
+      541
+    ],
+    "busy": true
+  },
+  {
+    "frame": 91,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      2040,
+      759,
+      740,
+      541
+    ],
+    "busy": true
+  },
+  {
+    "frame": 92,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      2040,
+      759,
+      740,
+      541
+    ],
+    "busy": true
+  },
+  {
+    "frame": 93,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      2120,
+      759,
+      740,
+      621
+    ],
+    "busy": true
+  },
+  {
+    "frame": 94,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      2120,
+      759,
+      740,
+      621
+    ],
+    "busy": true
+  },
+  {
+    "frame": 95,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      2120,
+      759,
+      740,
+      621
+    ],
+    "busy": true
+  },
+  {
+    "frame": 96,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      2120,
+      759,
+      740,
+      621
+    ],
+    "busy": true
+  },
+  {
+    "frame": 97,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      2200,
+      759,
+      740,
+      701
+    ],
+    "busy": true
+  },
+  {
+    "frame": 98,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      2200,
+      759,
+      740,
+      701
+    ],
+    "busy": true
+  },
+  {
+    "frame": 99,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      2200,
+      759,
+      740,
+      701
+    ],
+    "busy": true
+  },
+  {
+    "frame": 100,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      2200,
+      740,
+      701
+    ],
+    "busy": true
+  },
+  {
+    "frame": 101,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      2200,
+      740,
+      701
+    ],
+    "busy": true
+  },
+  {
+    "frame": 102,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      2280,
+      740,
+      781
+    ],
+    "busy": true
+  },
+  {
+    "frame": 103,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      2280,
+      740,
+      781
+    ],
+    "busy": true
+  },
+  {
+    "frame": 104,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      2280,
+      740,
+      781
+    ],
+    "busy": true
+  },
+  {
+    "frame": 105,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      2280,
+      740,
+      781
+    ],
+    "busy": true
+  },
+  {
+    "frame": 106,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      2280,
+      740,
+      781
+    ],
+    "busy": true
+  },
+  {
+    "frame": 107,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      2280,
+      740,
+      781
+    ],
+    "busy": true
+  },
+  {
+    "frame": 108,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      2360,
+      740,
+      781
+    ],
+    "busy": true
+  },
+  {
+    "frame": 109,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      2360,
+      740,
+      745,
+      116
+    ],
+    "busy": true
+  },
+  {
+    "frame": 110,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      2360,
+      740,
+      745,
+      116
+    ],
+    "busy": true
+  },
+  {
+    "frame": 111,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      2360,
+      740,
+      745,
+      116
+    ],
+    "busy": true
+  },
+  {
+    "frame": 112,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      2360,
+      740,
+      745,
+      116
+    ],
+    "busy": true
+  },
+  {
+    "frame": 113,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      2480,
+      740,
+      745,
+      236
+    ],
+    "busy": true
+  },
+  {
+    "frame": 114,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      2480,
+      740,
+      745,
+      236
+    ],
+    "busy": true
+  },
+  {
+    "frame": 115,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      2520,
+      740,
+      745,
+      276
+    ],
+    "busy": true
+  },
+  {
+    "frame": 116,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      2520,
+      740,
+      745,
+      276
+    ],
+    "busy": true
+  },
+  {
+    "frame": 117,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      2520,
+      740,
+      745,
+      276
+    ],
+    "busy": true
+  },
+  {
+    "frame": 118,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      2520,
+      740,
+      745,
+      276
+    ],
+    "busy": true
+  },
+  {
+    "frame": 119,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      2640,
+      740,
+      745,
+      396
+    ],
+    "busy": true
+  },
+  {
+    "frame": 120,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      2640,
+      740,
+      745,
+      396
+    ],
+    "busy": true
+  },
+  {
+    "frame": 121,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      2640,
+      740,
+      745,
+      396
+    ],
+    "busy": true
+  },
+  {
+    "frame": 122,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      2640,
+      740,
+      745,
+      396
+    ],
+    "busy": true
+  },
+  {
+    "frame": 123,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      2720,
+      740,
+      745,
+      476
+    ],
+    "busy": true
+  },
+  {
+    "frame": 124,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      2720,
+      740,
+      745,
+      476
+    ],
+    "busy": true
+  },
+  {
+    "frame": 125,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      2720,
+      740,
+      745,
+      476
+    ],
+    "busy": true
+  },
+  {
+    "frame": 126,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      2800,
+      740,
+      745,
+      556
+    ],
+    "busy": false
+  },
+  {
+    "frame": 127,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      2800,
+      740,
+      745,
+      556
+    ],
+    "busy": false
+  },
+  {
+    "frame": 128,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      2800,
+      740,
+      745,
+      556
+    ],
+    "busy": false
+  },
+  {
+    "frame": 129,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      2800,
+      740,
+      745,
+      556
+    ],
+    "busy": false
+  },
+  {
+    "frame": 130,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      2800,
+      740,
+      745,
+      556
+    ],
+    "busy": false
+  },
+  {
+    "frame": 131,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      2800,
+      740,
+      745,
+      556
+    ],
+    "busy": false
+  },
+  {
+    "frame": 132,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      2800,
+      740,
+      745,
+      556
+    ],
+    "busy": false
+  },
+  {
+    "frame": 133,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      2800,
+      740,
+      745,
+      556
+    ],
+    "busy": false
+  },
+  {
+    "frame": 134,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      2800,
+      740,
+      745,
+      556
+    ],
+    "busy": false
+  },
+  {
+    "frame": 135,
+    "headers": 0,
+    "live_response_identities": 1,
+    "response_lengths": [
+      2800,
+      740,
+      745,
+      556
+    ],
+    "busy": false
+  }
+]
