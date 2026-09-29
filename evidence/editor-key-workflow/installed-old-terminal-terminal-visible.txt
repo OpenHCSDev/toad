@@ -1,40 +1,40 @@
-                                                                                                                        
-  ☰     <──    ──>   New Session ×  New Session ×                                                                      
-                      ━━━━━━━━━━━                                                                                       
-▼ Channels                           Name ▾    │                                                                        
-+ New Session                                  │                                                                        
-▾ #any                       Date created ▾    │                                                                        
-▸ #none                      Date created ▾    │                                                                        
-▸ #all                       Date created ▾    │                                                                        
-                                               │                                                                        
-                                               │                                                                        
-                                               │                                                                        
-                                               │                                                                        
-                                               │                                                                        
-                                               │                                                                        
-                                               │                                                                        
-                                               │                                                                        
-                                               │                                                                        
-                                               │                                                                        
-                                               │                                                                        
-                                               │                                                                        
-                                             < │                                                                      < 
-                                               │                                                                        
-                                               │                                                                        
-                                               │                                                                        
-                                               │                                                                        
-                                               │                                                                        
-                                               │                                                                        
-                                               │                                                                        
-                                               │                                                                        
-                                               │                                                                        
-                                               │                                                                        
-                                               │                                                                        
-                                               │                                                                        
-                                               │                                                                        
-                                               │                                                                        
-                                               │▊▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▎   
-                                               │▊ ❯ u                                                               ▎   
-40% ────────────────────────────●───────────   │▊▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▎   
-  ──>   Float                                  │    ~/wt/…/editor-terminal-pcyg8lcj                                     
-⏎ Send ⇧+⏎ Line ^c Interrupt ^g IRC view ^s Channels                                                        ▏^p palette 
+
+  ☰     <──    ──>   New Session ×  New Session ×
+                      ━━━━━━━━━━━
+▼ Channels                           Name ▾    │
++ New Session                                  │
+▾ #any                       Date created ▾    │
+▸ #none                      Date created ▾    │
+▸ #all                       Date created ▾    │
+                                               │
+                                               │
+                                               │
+                                               │
+                                               │
+                                               │
+                                               │
+                                               │
+                                               │
+                                               │
+                                               │
+                                               │
+                                             < │                                                                      <
+                                               │
+                                               │
+                                               │
+                                               │
+                                               │
+                                               │
+                                               │
+                                               │
+                                               │
+                                               │
+                                               │
+                                               │
+                                               │
+                                               │
+                                               │▊▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▎
+                                               │▊ ❯ u                                                               ▎
+40% ────────────────────────────●───────────   │▊▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▎
+  ──>   Float                                  │    ~/wt/…/editor-terminal-pcyg8lcj
+⏎ Send ⇧+⏎ Line ^c Interrupt ^g IRC view ^s Channels                                                        ▏^p palette
