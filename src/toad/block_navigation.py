@@ -82,7 +82,7 @@ class ChildBlockCursor(BlockCursor):
         self.index = self.block.displayed_children.index(widget)
 
 
-class ConversationBlock(Widget):
+class ConversationBlock:
     """Nominal content admission, with an owned atomic cursor by default."""
     @cached_property
     def block_cursor(self) -> BlockCursor:
