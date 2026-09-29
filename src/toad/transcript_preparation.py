@@ -44,12 +44,13 @@ class PageRequest:
 
 def incoming_sequences(events: tuple[TranscriptEvent, ...]) -> frozenset[int]:
     return frozenset(
-        event.routing.requests[0].seq
+        message.seq
         for event in events
         if event_category(event) is InboundCategory
         and event.routing is not None
         and event.routing.requests
-        and event.routing.requests[0].seq > 0
+        for message in event.routing.requests
+        if message.seq > 0
     )
 
 
@@ -60,27 +61,6 @@ class CommittedInterval:
     before: TranscriptCursor
     through: TranscriptCursor
 
-    async def coverage(self, loader, wanted: frozenset[int], runtime: PreparationRuntime,
-                       is_current: Callable[[], bool]) -> frozenset[int] | None:
-        if self.before.session_file != self.through.session_file or self.before.offset > self.through.offset:
-            raise ValueError("Commit does not extend the retained source")
-        found: set[int] = set()
-        cursor = self.before
-        while wanted - found and cursor.offset < self.through.offset:
-            if not is_current():
-                return None
-            page = await loader(after=cursor, through=self.through)
-            if not is_current():
-                return None
-            if (page.before.session_file != cursor.session_file
-                    or page.after.session_file != cursor.session_file
-                    or page.before.offset < cursor.offset
-                    or not cursor.offset < page.after.offset <= self.through.offset):
-                raise ValueError("Committed coverage made no valid cursor progress")
-            sequences = await runtime.run_thread(incoming_sequences, page.events)
-            found.update(sequences & wanted)
-            cursor = page.after
-        return frozenset(found) if is_current() else None
 
 
 @dataclass(frozen=True)
@@ -184,8 +164,8 @@ class TranscriptPageWork(SerializedWork[PreparedTranscriptPage], ScopedWork[Prep
         if cursor is not None:
             edge = page.before if request.before is not None else page.after
             more = page.has_older if request.before is not None else page.has_newer
-            wrong_direction = (edge.offset >= cursor.offset if request.before is not None
-                               else edge.offset <= cursor.offset)
+            wrong_direction = (edge.contains(cursor) if request.before is not None
+                               else cursor.contains(edge))
             if edge.session_file != cursor.session_file or (wrong_direction and more):
                 raise ValueError("Transcript history made no cursor progress")
         if self.scope.closed:
@@ -354,10 +334,10 @@ class ProjectedTranscriptSource(PreparedPageSource):
             return False
         if self._raw is None:
             return True
-        limit = self._boundary.page.before.offset
+        limit = self._boundary.page.before
         if self._upstream is not None and not self._upstream.closed:
             await self._upstream.prefetch(
-                before if before is not None and before.offset <= limit else None,
+                before if before is not None and limit.contains(before) else None,
                 None, keep_going, rounds=rounds,
             )
             before = None
@@ -365,8 +345,8 @@ class ProjectedTranscriptSource(PreparedPageSource):
             return False
         assert self._raw is not None
         return await self._raw.prefetch(
-            before if before is not None and before.offset <= limit else None,
-            after if after is not None and after.offset < limit else None,
+            before if before is not None and limit.contains(before) else None,
+            after if after is not None and limit.contains(after) and after != limit else None,
             keep_going, rounds=rounds,
         )
 
