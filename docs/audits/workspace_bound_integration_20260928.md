@@ -1,5 +1,38 @@
 # Workspace integration and global surface boundary
 
+## Authoritative current reconciliation
+
+Candidate7205784809bea8b6b61a273cac26de592b6d8f1b integrates all published
+116/126 feature ancestry, main13806003aff, and Noether1391a563249.
+Ready12651c901c remains unchanged; predecessor unpublished work is preserved.
+Installed noneditable candidate pins core03b6f9f43e16aef6b86983f2f0e0a327c8293ea7
+and Textualc9743801. PR110's measured switching/resource investigation is carried
+here with the complete workspace source boundary, rather than a second mechanism.
+
+Selected-only Conversation admission, source-backed Agent/queue/permission,
+original editor state, shell PTY/ANSI custody, detached ACP terminal callbacks,
+and awaited sidebar preparation/retirement are implemented. Main138 observation
+owners and their caller/deletion closure are preserved. Noether139 deletes218
+obsolete pilot lines and fixes settled project-tree scroll restoration.
+
+Earlier ProjectDirectoryTree failure is retained in combined-sidebar-retention.log.
+The corrected combined installed64-tab affected run passed exit0; receipt
+combined139-sidebar-retention.json/.log: exactly5 admitted panels at4/16/32/64,
+321 retired widget/tree weakrefs collected, actual returned content painted.
+64UI151552000 bytes,1169tasks,257.80ms settled return median/319.17ms maximum. Parent owns the final paired native
+4/16/32/64 run and deployment. No full combined readiness or performance improvement
+is claimed until that actual gate passes. Prior137 native64 sample167.95MiB,
+999tasks,258.35ms settled switch median predates sidebar combination.
+
+Focused current integration:48 synchronous contracts passed; installed environment
+has no pytest-asyncio, so the actual asynchronous session-observation guard passed
+via asyncio.run directly. No CI gate, live mutations or paid provider calls.
+
+## Historical checkpoints (superseded states retained for provenance)
+
+Statements of pending contracts or incomplete source below describe their original
+checkpoint only; the current status above supersedes them.
+
 PR12651c901c remains unchanged and ready in its own tree. This separate persistent
 worktree integrates published1161cb7c74/126 with Toadmainc3f7b63 and current core.
 Textual8 is merged at main c9743801; its reviewed receipt reports 307 focused
