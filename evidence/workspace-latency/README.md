@@ -11,3 +11,13 @@ Current core897d71b2/Textual73909c04 installed noneditable wheels with own Toad4
 Fresh168 profiling still shows0.65s cumulative reparent/style traversal and0.33s component handling across5returns; these are PROFILER costs, not matched unprofiled switch latency. Final loaded+blank4/16/32/64 latency/native/scroll/frame-tail acceptance remains unfinished. No30–40ms/<50ms claim, CI/finaltarget not useful checkpoint gate. Parent's exported main pair red before this closure is preserved; no default activation by this owner.
 
 NRA/exact authoritative refactor-audit archive applied: IDEN-1/7 identity derives from actual projection inputs, IMPL-4/5 actual HistoryViews caller closure, TIME-9 old roster reconstruction deleted. No second cache/decoder/legacy schema. Existing global PreparationRuntime and viewport bounds remain.
+
+## Current integrated checkpoint
+
+Merged main169/171 into own branch; core c2aebdb32651432faa9ce9a58c50b2e2cbfff3ba combines current370/371/368/372, canonical target projection2af8 and PR374 cursor fix. Textual73909c04 (PR11), native d396. PR174 consumer calls existing `views.thread_presentation(name)` directly; no full-roster scan or notification reconstruction.
+
+Distinct169 physical native Alpha -> Beta -> stoppedDM -> Alpha test reproduced original painted-body loss0/1. Diagnostic found retained fragment identity initially had no directory watcher; on return watcher present invalidated identical native fragment. Native startup now belongs to existing ConversationSessionBinding and initializes the filesystem owner before native publication. No ignored revision, new cache/pool, compatibility, model replay or weakened assertions. Actual installed same continuous navigation test now retains1/1 original response and passes draft/Document/EditHistory/source/resize/native-byte preservation; process EXIT0. Complete final continuous native journey running on this integration; no readiness claim until it exits.
+
+Earlier coherent API/cursor/ancestry actual continuous test passed idle65->65 misses, provider3->3, admitted work[],pending0, rendered leaves13/17/13 with original render-cache identity and raw reads0/0/0; controlled native fork/firstsend/channelreply/author observation EXIT0. Updated final main pair is tested separately because169 revealed distinct first-read lifecycle defect.
+
+Latest exact audit: chain terms+0, foreign absence probes+0. Existing Conversation excess500 shrinks1268->1231; session binding remains below500. NRA/IDEN-1/IDEN-7/IMPL-10: lifecycle creates semantic filesystem identity before source reads; source revision still invalidates genuinely changed render input. Final latency4/16/32/64 target remains follow-up, not this checkpoint gate.
