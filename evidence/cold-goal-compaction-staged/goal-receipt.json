@@ -1,0 +1,16 @@
+{
+  "cold_saved_bytes": 61054,
+  "selected_model_window": 10000,
+  "provider_posts": 17,
+  "goal_inputs": 1,
+  "compactions": 1,
+  "compaction_before_goal": true,
+  "goal_input": {
+    "sequence": null,
+    "target": "beta",
+    "text": "Persistent goal ad6ce9cfc2ba445585104f5062daa3bb: One automatic cold-context continuation\nProgress: \nWork toward this goal while respecting follow-up instructions. Use comms_goal with this goal_id to record useful progress. Set status completed only after verifying success, blocked when you need user input, or active to continue useful work in another turn. When waiting for delegated work, set status standby with explicit wait_for thread names and explain what you need. The goal stays active without polling; a direct message from a named dependency or an explicit user follow-up starts the next goal turn. Do not return empty output or repeatedly announce waiting. Do not wait or poll; the owner schedules continuation.\n\nCoordination context: you are thread 'beta'; parent=None. This identity overrides identities in inherited conversation history. Use your own identity for comms tools. Incoming direct messages automatically start a new turn when you are idle, or are delivered into your current turn. End your turn when done; never sleep or poll waiting for messages. Reply with comms_send when a reply is useful; otherwise call comms_dismiss with the channel to end quietly. Do not echo acknowledgments. Your project directory is '/home/ts/wt/toad-agent-tab-state-latency-20260929/.stream-worker-stages/l0a-native-pzfanpvw/project'. Use comms_set_project(path) to change it persistently without creating another thread. After changing projects, end this turn; the runtime automatically resumes in the new project. When the user asks you to set or start a persistent goal, call comms_set_goal(text) so this same thread continues it autonomously. Peer state: []\n\nContinue working toward the active goal.",
+    "inputId": "turn:a6be2db523c7451c818d5dcbfd61976b",
+    "status": "started"
+  },
+  "summary": "linked"
+}
