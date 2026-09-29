@@ -1,5 +1,4 @@
 """Observe creation, reverse first revisits, then forward and reverse warm returns."""
-from agent_comms.acp_extension import TranscriptSnapshotUpdate
 from toad.acp.messages import CommsUpdated
 
 import argparse
@@ -123,7 +122,7 @@ async def main(*, empty=False, trace=False, observe=False, output=None, peers=0,
             agent.attach_surface(target)
 
             async def deliver():
-                target.post_message(CommsUpdated(TranscriptSnapshotUpdate(page)))
+                await target.transcript.snapshot(page)
                 target.post_message(AgentReady())
 
             agent.process.session_task = asyncio.create_task(deliver())

@@ -1,3 +1,4 @@
+from toad.mounted_message_history import MountedMessageHistory, MarkdownMessageStyle, IrcMessageStyle
 """Partial viewport ACKs retain pending evidence for rows reached by scrolling."""
 from toad.navigation_target import NavigationContext
 
@@ -28,11 +29,11 @@ async def main():
         viewer = comms.messaging.user_identity(str(root)).name
         rows = [comms.messaging.send_message("peer", "#team", f"row {i}\n" + "body\n" * 10) for i in range(8)]
         acknowledged = set()
-        original_mark = CommsChatView._mark_painted_page
+        original_mark = MountedMessageHistory.mark_page
 
         async def checked_mark(chat, page, original_page=None):
             selected = {message.seq for message in page.messages}
-            assert selected <= {seq for source, seq in chat._painted_message_keys() if not source}
+            assert selected <= {seq for source, seq in chat.painted_keys() if not source}
             assert page.display_scope is not None and page.display_scope.displayed is not None
             assert selected == {
                 seq for item in page.display_scope.displayed.conversations for seq in item.sequences
@@ -41,20 +42,20 @@ async def main():
             await original_mark(chat, page, original_page)
 
         app = ToadApp(project_dir=str(root))
-        with patch.object(CommsChatView, "_mark_painted_page", checked_mark):
+        with patch.object(MountedMessageHistory, "mark_page", checked_mark):
             async with app.run_test(size=(90, 24)) as pilot:
                 await pilot.pause()
                 await channel_target("#team").open(NavigationContext(app, app.selected_mode, root, viewer))
                 chat = app.screen.query_one(CommsChatView)
                 async with asyncio.timeout(5):
-                    while not acknowledged or chat._ack_inflight:
+                    while not acknowledged or chat.message_history.ack_inflight:
                         await pilot.pause(.02)
                 seen = comms.bus.reads.seen_sequences(viewer, comms.registry.snapshot())
                 assert 0 < len(seen) < len(rows)
                 assert seen == acknowledged
                 # Revisit every mounted body. Rows from the original page stay
                 # pending even though its first subset has already been ACKed.
-                for message, widget in list(chat._history):
+                for message, widget in list(chat.message_history.rows):
                     if message.seq in seen:
                         continue
                     body = widget.read_ack_widget()
@@ -65,6 +66,18 @@ async def main():
                     async with asyncio.timeout(5):
                         while message.seq not in comms.bus.reads.seen_sequences(viewer, comms.registry.snapshot()):
                             await pilot.pause(.02)
+                assert comms.bus.reads.seen_sequences(viewer, comms.registry.snapshot()) == {row.seq for row in rows}
+                recorded = tuple(message.view_key for message, _ in chat.message_history.rows)
+                await pilot.press('ctrl+t')
+                async with asyncio.timeout(5):
+                    while not isinstance(chat.message_history.style, MarkdownMessageStyle):
+                        await pilot.pause(.02)
+                assert 'row 7' in '\n'.join(strip.text for strip in app.screen._compositor.render_strips())
+                await pilot.press('ctrl+t')
+                async with asyncio.timeout(5):
+                    while not isinstance(chat.message_history.style, IrcMessageStyle):
+                        await pilot.pause(.02)
+                assert tuple(message.view_key for message, _ in chat.message_history.rows) == recorded
                 assert comms.bus.reads.seen_sequences(viewer, comms.registry.snapshot()) == {row.seq for row in rows}
                 assert app._exception is None
         await asyncio.get_running_loop().shutdown_default_executor()

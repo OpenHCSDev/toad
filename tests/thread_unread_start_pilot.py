@@ -1,6 +1,5 @@
 """Persistent native unread counts reach sidebar/tabs; Start uses the core tool."""
 from toad.navigation_target import NavigationContext
-from agent_comms.acp_extension import TranscriptSnapshotUpdate
 from toad.acp.messages import CommsUpdated
 
 from toad.navigation_target import channel_target
@@ -14,7 +13,6 @@ from pathlib import Path
 
 from agent_comms.runtime import socket_path
 from agent_comms.threads import Thread
-from comms_boundary_fixture import snapshot_fact
 from runtime_fixture import ToadApp, private_native_wire
 
 from toad.acp.messages import CommsUpdated
@@ -84,7 +82,7 @@ async def main():
                 + "\n".join((f"- visible line {i}" for i in range(45))),
             )
             page = comms.transcripts.thread_transcript_page("worker")
-            conversation.post_message(CommsUpdated(TranscriptSnapshotUpdate(page)))
+            await conversation.transcript.snapshot(page)
             await pilot.pause()
             await refresh(app, pilot)
             assert comms.views.viewer_snapshot(str(root)).thread_unread["worker"] == 0
@@ -119,7 +117,7 @@ async def main():
                 "-unread"
             )
             page = comms.transcripts.thread_transcript_page("worker")
-            conversation.post_message(CommsUpdated(TranscriptSnapshotUpdate(page)))
+            await conversation.transcript.snapshot(page)
             await pilot.pause()
             await refresh(app, pilot)
             assert app.open_tabs[0].unread == ExactUnread(1)

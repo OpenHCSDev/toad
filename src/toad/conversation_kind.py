@@ -53,11 +53,20 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
         return target
 
     @classmethod
-    def remember_tail(cls, view, page, older):
+    def remember_page(cls, history, page, older):
+        """Only committed mounted pages supply read-receipt authority."""
+        if page.historical_display is not None:
+            history.historical_receipts.update((message.view_key, page) for message in page.messages)
+        else:
+            cls.remember_tail(history, page, older)
+            cls.remember_mounted(history, page)
+
+    @classmethod
+    def remember_tail(cls, history, page, older):
         pass
 
     @classmethod
-    def remember_mounted(cls, view, page):
+    def remember_mounted(cls, history, page):
         pass
 
     @classmethod
@@ -82,7 +91,7 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
 
     @classmethod
     @abstractmethod
-    def painted_page(cls, view, painted): ...
+    def painted_page(cls, history, painted): ...
 
     @classmethod
     @abstractmethod
@@ -130,8 +139,8 @@ class ChannelConversation(ConversationKind):
         return ChannelPrompt(simple_input=True, placeholder=cls.placeholder(target))
 
     @classmethod
-    def remember_mounted(cls, view, page):
-        view._channel_ack_pages.update((message.seq, page) for message in page.messages)
+    def remember_mounted(cls, history, page):
+        history.channel_receipts.update((message.seq, page) for message in page.messages)
 
     @classmethod
     def read_only(cls, catalog, target):
@@ -151,19 +160,19 @@ class ChannelConversation(ConversationKind):
         )
 
     @classmethod
-    def painted_page(cls, view, painted):
+    def painted_page(cls, history, painted):
         mounted = {
-            message.seq for message, _ in view._history if not message.view_key[0]
+            message.seq for message, _ in history.rows if not message.view_key[0]
         }
-        view._channel_ack_pages = {
+        history.channel_receipts = {
             seq: source
-            for seq, source in view._channel_ack_pages.items()
+            for seq, source in history.channel_receipts.items()
             if seq in mounted
         }
         original = next(
             (
                 source
-                for seq, source in view._channel_ack_pages.items()
+                for seq, source in history.channel_receipts.items()
                 if seq in painted
             ),
             None,
@@ -175,7 +184,7 @@ class ChannelConversation(ConversationKind):
             return None
         selected = {
             seq
-            for seq, source in view._channel_ack_pages.items()
+            for seq, source in history.channel_receipts.items()
             if source is original and seq in painted
         }
         return replace(
@@ -253,17 +262,17 @@ class DmConversation(ConversationKind):
         return Prompt(simple_input=True, placeholder=cls.placeholder(target))
 
     @classmethod
-    def remember_tail(cls, view, page, older):
-        if not older and page.messages and page.historical_display is None:
-            view._ack_page = page
+    def remember_tail(cls, history, page, older):
+        if not older and page.messages:
+            history.tail_receipt = page
 
     @classmethod
     async def agent_info(cls, comms, target):
         return await asyncio.to_thread(comms.agents.agent_info_of, target)
 
     @classmethod
-    def painted_page(cls, view, painted):
-        original = view._ack_page
+    def painted_page(cls, history, painted):
+        original = history.tail_receipt
         if original is None or original.newest_seq not in painted:
             return None
         basis = original.display_basis

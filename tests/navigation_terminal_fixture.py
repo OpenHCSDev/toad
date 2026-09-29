@@ -3,7 +3,6 @@
 The ordinary UI and core wire model are used with fixed saved-history responses.
 This isolates renderer/navigation cost from changing production owner schemas.
 """
-from agent_comms.acp_extension import TranscriptSnapshotUpdate
 from toad.acp.messages import CommsUpdated
 from runtime_fixture import coordination_update
 
@@ -32,7 +31,7 @@ from agent_comms.transcript_events import (
     UserTranscript,
 )
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
-from comms_boundary_fixture import coordination_fact, snapshot_fact
+from comms_boundary_fixture import coordination_fact
 from setproctitle import setproctitle
 
 from toad.acp.agent import Agent
@@ -151,7 +150,7 @@ async def main():
 
             async def deliver():
                 initial = await page(agent)
-                target.post_message(CommsUpdated(TranscriptSnapshotUpdate(initial)))
+                await target.transcript.snapshot(initial)
                 target.post_message(AgentReady())
 
             agent.process.session_task = asyncio.create_task(deliver())

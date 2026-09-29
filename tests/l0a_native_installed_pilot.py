@@ -81,12 +81,12 @@ async def notification_feedback(
         detail = {
             "title": str(notification.title),
             "details": str(notification.details.render()),
-            "history": [(m.seq, m.body) for m, _ in channel._history],
+            "history": [(m.seq, m.body) for m, _ in channel.message_history.rows],
             "visible": [m.seq for m, _ in channel._visible_notification_rows()],
         }
         try:
             detail["core"] = repr(
-                comms.views.message_notifications(tuple(m for m, _ in channel._history))
+                comms.views.message_notifications(tuple(m for m, _ in channel.message_history.rows))
             )
         except Exception as error:
             detail["coreError"] = repr(error)
@@ -97,7 +97,7 @@ async def notification_feedback(
 
 async def main(*, notification_only=False, retire_surface=False, app_type=ToadApp,
                acceptance=None, provider_reply=None, provider_usage=None,
-               native_settings=None, prepare_state=None, expected_response_disconnects=frozenset()):
+               native_settings=None, prepare_state=None, expected_response_disconnects=frozenset(), headless=True, provider_request_budget=12):
     evidence = Path(os.environ.get("L0A_EVIDENCE", os.environ["TMPDIR"]))
     evidence.mkdir(parents=True, exist_ok=True)
     package = Path(os.environ["AC_NATIVE_COPIED_PACKAGE"])
@@ -121,7 +121,7 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
                 request_number = len(requests)
                 assert request["model"] == "fixture"
                 assert self.headers["Authorization"] == "Bearer offline-only-fixture"
-                assert len(requests) <= 12, "Unbounded model loop"
+                assert len(requests) <= provider_request_budget, "Unbounded model loop"
                 if hold_next.is_set():
                     hold_next.clear()
                     entered.set()
@@ -256,13 +256,13 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
             "protocol": "acp",
             "run_command": {"*": shlex.join([sys.executable, "-m", "agent_comms.acp"])},
         }
-        if prepare_state is not None:
-            await prepare_state(comms, project, requests, entered, release, hold_next)
-        app = app_type(agent_data=data, project_dir=str(project), agent_session_id="beta")
         agent = None
         try:
+            if prepare_state is not None:
+                await prepare_state(comms, project, requests, entered, release, hold_next)
+            app = app_type(agent_data=data, project_dir=str(project), agent_session_id="beta")
             print("INSTALLED_APP_RUN_TEST_ENTER", flush=True)
-            async with app.run_test(size=(160, 44)) as pilot:
+            async with app.run_test(headless=headless, size=(160, 44)) as pilot:
                 print("INSTALLED_APP_RUN_TEST_YIELDED", flush=True)
                 await pilot.pause()
                 owner_mode = app.selected_mode
@@ -451,7 +451,7 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
                     pilot,
                     lambda: any(
                         row.sender == "beta" and row.body.startswith("NATIVE_RESPONSE_")
-                        for row, _ in dm._history
+                        for row, _ in dm.message_history.rows
                     ),
                 )
                 await until(pilot, lambda: not comms.registry.require("beta").executing)
@@ -545,7 +545,8 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
             for path in stage.glob("acp-debug*"):
                 destination = evidence / path.name
                 destination.write_bytes(path.read_bytes())
-            await asyncio.to_thread(comms.owners.stop, "beta")
+            for name in comms.registry.all_threads():
+                await asyncio.to_thread(comms.owners.stop, name)
             server.shutdown()
             server.server_close()
     print("PASS: installed actual native queue path; loopback model only", flush=True)

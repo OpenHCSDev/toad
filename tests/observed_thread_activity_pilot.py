@@ -144,7 +144,7 @@ async def main():
             # keep their implementations and the actual stores unchanged.
             hidden_reads = []
             original_read = observed.read
-            original_request = dm._history_request
+            original_request = dm.message_history.request
 
             async def counted_read():
                 hidden_reads.append("activity")
@@ -158,7 +158,7 @@ async def main():
             if observed._read_task is not None:
                 await observed._read_task
             observed.read = counted_read
-            dm._history_request = counted_request
+            dm.message_history.request = counted_request
             observed.refresh_observation()
             await dm._refresh()
             await pilot.pause()

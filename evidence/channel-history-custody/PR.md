@@ -1,0 +1,9 @@
+# Mounted channel/DM history ownership
+
+Deletes 416 production lines against merged183/mainb58a11df.
+
+CommsChat's mounted row window, paging locks/edge work, canonical read request/publication, style replacement and exact paint receipts move into MountedMessageHistory. The actual state and effects migrate together; no root forwarding API or second cache/reader/preparation mechanism. ConversationKind's existing channel/DM declarations consume that explicit owner and remember receipts only at committed page publication. Existing ChannelHistoryReader and source identity remain authoritative.
+
+IRC/Markdown style behavior lives on declared WireMessageStyle cases; boolean style dispatch is deleted. CommsChat owns membership-notice/direction rendering and operational send/notifications, with no duplicated row-window/ACK state. Screens and maintained test callers migrate in place. Tesla native source/cache/TranscriptHistory and Noether App/Prompt remain disjoint.
+
+CommsChat732→388; mounted owner382, no class crosses500. Touched-file foreign-absence/chain/excess500 ratchets pass. IDEN-1/3, IMPL-4/5/8, MEMB-1 and TIME-3/9 apply. Ready for parent review: installed physical partial-paint+IRC/Markdown/IRC style and edge-paging lifetime gates PASS; five existing T4 deletion guards PASS; full current maintained installed native/ACP/App/Pilot saved-state journey PASS exit0. Original ACTUAL_NATIVE_PAGE_DELIVERED_WHILE_STATUS_STORE_HELD assertion retained and printed; physical channel/participant/fork first-open, canonical raw reads [0,0,0], body/editor/draft/undo identity, channel notification and automatic reply/no replay all pass. Candidate core19e5a0ad/Textual609b74bf/native9213ee71479d1b20; controlled localhost provider responses only. Parent affected LIVE entry/install remains separate. CI deferred; no live mutations or paid provider calls. Parent owns merge/install.

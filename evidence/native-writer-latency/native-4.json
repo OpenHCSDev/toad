@@ -1,0 +1,104 @@
+[
+  {
+    "loaded_histories": 4,
+    "distinct_native_files": 4,
+    "compositor_median_ms": 208.43921200139448,
+    "writer_median_ms": 219.7771850042045,
+    "writer_max_ms": 345.38056497694924,
+    "raw_page_reads": 0,
+    "prepared_bytes": 133414,
+    "ui_rss_bytes": 172154880,
+    "switches": [
+      {
+        "source": "loaded-2",
+        "first_paint_ms": 220.2461340057198,
+        "last_observed_paint_ms": 340.54543799720705,
+        "painted_frames": 6,
+        "first_written_ms": 223.75182298128493,
+        "last_observed_written_ms": 340.8107809955254,
+        "writer_receipts": 6,
+        "driver": "LinuxDriver"
+      },
+      {
+        "source": "loaded-1",
+        "first_paint_ms": 205.3705500147771,
+        "last_observed_paint_ms": 219.58311699563637,
+        "painted_frames": 2,
+        "first_written_ms": 219.7771850042045,
+        "last_observed_written_ms": 231.5293819992803,
+        "writer_receipts": 2,
+        "driver": "LinuxDriver"
+      },
+      {
+        "source": "beta",
+        "first_paint_ms": 241.11708099371754,
+        "last_observed_paint_ms": 345.2018559910357,
+        "painted_frames": 6,
+        "first_written_ms": 244.89428399829194,
+        "last_observed_written_ms": 345.38056497694924,
+        "writer_receipts": 6,
+        "driver": "LinuxDriver"
+      },
+      {
+        "source": "loaded-1",
+        "first_paint_ms": 206.4909019973129,
+        "last_observed_paint_ms": 222.3005940031726,
+        "painted_frames": 2,
+        "first_written_ms": 209.9743399885483,
+        "last_observed_written_ms": 243.59422200359404,
+        "writer_receipts": 2,
+        "driver": "LinuxDriver"
+      },
+      {
+        "source": "loaded-2",
+        "first_paint_ms": 208.43921200139448,
+        "last_observed_paint_ms": 230.42927900678478,
+        "painted_frames": 2,
+        "first_written_ms": 212.12034398922697,
+        "last_observed_written_ms": 212.12034398922697,
+        "writer_receipts": 1,
+        "driver": "LinuxDriver"
+      },
+      {
+        "source": "loaded-3",
+        "first_paint_ms": 232.05868501099758,
+        "last_observed_paint_ms": 249.32923400774598,
+        "painted_frames": 2,
+        "first_written_ms": 235.8117930125445,
+        "last_observed_written_ms": 253.96870999247767,
+        "writer_receipts": 2,
+        "driver": "LinuxDriver"
+      },
+      {
+        "source": "loaded-2",
+        "first_paint_ms": 215.63971901196055,
+        "last_observed_paint_ms": 228.17323601339012,
+        "painted_frames": 2,
+        "first_written_ms": 228.32188801839948,
+        "last_observed_written_ms": 248.03797801723704,
+        "writer_receipts": 2,
+        "driver": "LinuxDriver"
+      },
+      {
+        "source": "loaded-1",
+        "first_paint_ms": 202.225904999068,
+        "last_observed_paint_ms": 214.45069799665362,
+        "painted_frames": 2,
+        "first_written_ms": 215.50607701647095,
+        "last_observed_written_ms": 228.9259819954168,
+        "writer_receipts": 2,
+        "driver": "LinuxDriver"
+      },
+      {
+        "source": "beta",
+        "first_paint_ms": 197.00653001200408,
+        "last_observed_paint_ms": 232.29349899338558,
+        "painted_frames": 3,
+        "first_written_ms": 201.01321800029837,
+        "last_observed_written_ms": 232.41152300033718,
+        "writer_receipts": 3,
+        "driver": "LinuxDriver"
+      }
+    ]
+  }
+]

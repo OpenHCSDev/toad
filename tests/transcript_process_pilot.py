@@ -25,7 +25,6 @@ from agent_comms.transcript_events import (
     UserTranscript,
 )
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
-from comms_boundary_fixture import snapshot_fact
 from runtime_fixture import ToadApp
 from textual.app import App
 

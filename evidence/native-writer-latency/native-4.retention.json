@@ -1,0 +1,17 @@
+{
+  "entries": 38,
+  "entry_limit": 256,
+  "retained_bytes": 133414,
+  "byte_limit": 67108864,
+  "kinds": {
+    "TabRosterWork": 10,
+    "RenderPreparation": 20,
+    "ThreadRowsWork": 4,
+    "NativeTranscriptReadWork": 4
+  },
+  "page_reads": 0,
+  "body_evictions": 0,
+  "body_reuse_hits": 36,
+  "warm_body_limit": 24,
+  "warm_widget_limit": 330
+}

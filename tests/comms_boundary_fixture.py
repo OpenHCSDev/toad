@@ -2,10 +2,8 @@
 
 from agent_comms.acp_extension import (
     CoordinationChangedUpdate,
-    TranscriptSnapshotUpdate,
 )
 from agent_comms.thread_identity import ThreadIncarnation
-from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 
 
 def coordination_fact(
@@ -30,19 +28,6 @@ def coordination_fact(
         context_usage,
     )
 
-
-def snapshot_fact(events, page=None):
-    return TranscriptSnapshotUpdate(
-        page
-        if page is not None
-        else TranscriptPage(
-            tuple(events),
-            TranscriptCursor("fixture", 0),
-            TranscriptCursor("fixture", len(events)),
-            False,
-            False,
-        )
-    )
 
 
 def attach_coordination(agent, wire_root, thread):

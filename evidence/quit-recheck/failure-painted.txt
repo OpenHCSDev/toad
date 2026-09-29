@@ -1,0 +1,44 @@
+                                                                                                                                  
+                                                                  ▊▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▎ 
+                                                                  ▊  Width of the column                                        ▎ 
+                                                                  ▊▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▎ 
+                                                                                                                                  
+                                                                  ▊▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▎   
+                                                                  ▊  User interface settings                                  ▎   
+                                                                  ▊  The following settings allow you to customize the look   ▎   
+                                                                  ▊  and feel of the User Interface.                          ▎   
+                                                                  ▊                                                           ▎   
+                                                                  ▊  Width of the column                                      ▎   
+                                                                  ▊  Width of the column if enabled. Minimum 40 characters.   ▎   
+                                                                  ▊  default: 100                                             ▎   
+                                                                  ▊                                                           ▎   
+                                                                  ▊ ▊▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▎ ▎   
+                                                                  ▊ ▊  137                                                  ▎ ▎   
+                                                                  ▊ ▊▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▎ ▎   
+                                                                  ▊▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▎   
+                                                                                                                                  
+                                                                                                                                  
+                                                                                                                                  
+                                                                                                                                  
+                                                                                                                                  
+                                                                                                                                  
+                                                                                                                                  
+                                                                                                                                  
+                                                                                                                                  
+                                                                                                                                  
+                                                                                                                                  
+                                                                                                                                  
+                                                                                                                                  
+                                                                    ╭──────────────────────────────────────────────────────────╮  
+                                                                    │ Settings                                                 │  
+                                                                    │ Failed to write                                          │  
+                                                                    │ '/home/ts/wt/toad-quit-save-sol-20260929/.artifacts/quit │  
+                                                                    │ -recheck/tmp/quit-save-uw7gb4l7/config/toad/toad.json';  │  
+                                                                    │ [Errno 21] Is a directory:                               │  
+                                                                    │ '/home/ts/wt/toad-quit-save-sol-20260929/.artifacts/quit │  
+                                                                    │ -recheck/tmp/quit-save-uw7gb4l7/config/toad/.toad.json_t │  
+                                                                    │ mp_ybfevsm7' ->                                          │  
+                                                                    │ '/home/ts/wt/toad-quit-save-sol-20260929/.artifacts/quit │  
+                                                                    │ -recheck/tmp/quit-save-uw7gb4l7/config/toad/toad.json'   │  
+                                                                    ╰──────────────────────────────────────────────────────────╯  
+ esc Dismiss settings  ^s Focus search                                                                                            

@@ -90,24 +90,24 @@ async def main():
             chat = app.screen.query_one(CommsChatView)
             window = chat.window
             for _ in range(3):
-                chat._edge_load_scheduled = True
+                chat.message_history.edge_scheduled = True
                 window.scroll_to(y=1, animate=False, immediate=True)
                 await pilot.pause()
-                marker = chat._history[0][1]
+                marker = chat.message_history.rows[0][1]
                 expected = marker.region.y - window.content_region.y
                 frames = []
                 app.observed = marker, window, frames
-                await chat._load_history_edge()
+                await chat.message_history.load_edge()
                 await pilot.pause()
                 app.observed = None
                 assert frames and set(frames) == {expected}, (expected, frames)
-            assert chat._has_newer, "Fixture must exercise eviction as well as prepending"
+            assert chat.message_history.has_newer, "Fixture must exercise eviction as well as prepending"
 
             # A slow refresh must not re-enable follow after the reader scrolls.
             window.scroll_end(animate=False, immediate=True)
             await pilot.pause()
             entered, release = asyncio.Event(), asyncio.Event()
-            original_refresh = chat._refresh_history
+            original_refresh = chat.message_history.publish
 
             async def delayed_refresh(comms):
                 follow = await original_refresh(comms)
@@ -115,8 +115,8 @@ async def main():
                 await release.wait()
                 return follow
 
-            chat._revision = None
-            with patch.object(chat, "_refresh_history", delayed_refresh):
+            chat.message_history.revision = None
+            with patch.object(chat.message_history, "publish", delayed_refresh):
                 refresh = asyncio.create_task(chat._refresh())
                 async with asyncio.timeout(10):
                     await entered.wait()

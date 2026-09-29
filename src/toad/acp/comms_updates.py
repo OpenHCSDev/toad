@@ -186,9 +186,9 @@ class CommsUpdateConsumer(MroDispatch):
 
     @handles(TranscriptSnapshotUpdate)
     def transcript_snapshot(self, update: TranscriptSnapshotUpdate) -> None:
-        self.agent.post_message(
-            messages.CommsUpdated(update, self.agent, self.session_id)
-        )
+        controller = self.agent.controller
+        controller.start_operation(controller.publish_transcript_snapshot(
+            update, controller.surface, controller.session))
 
     @handles(InputDeliveryChangedUpdate)
     def input_delivery_changed(self, update: InputDeliveryChangedUpdate) -> None:
