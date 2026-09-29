@@ -195,7 +195,13 @@ class FollowTailCheckpoint(CheckpointPlan):
 
     def finish(self, view, cursor):
         view.transcript.painted(cursor)
-        view.call_after_refresh(view.window.anchor)
+        view.call_after_refresh(self.restore_reader, view.window)
+
+    def restore_reader(self, window):
+        # The publication's captured intent owns its deferred layout effect as
+        # well. A later scroll or source return cannot inherit an older anchor.
+        if self.current(window):
+            window.anchor()
 
     @asynccontextmanager
     async def publication(self, view, prepared):
