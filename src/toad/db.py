@@ -8,10 +8,10 @@ from dataclasses import dataclass, field, replace
 from datetime import UTC, datetime
 from pathlib import Path
 from time import time_ns
-from typing import Any
+from typing import Annotated, Any
 
 import aiosqlite
-from agent_comms.field_codec import FieldCodec
+from agent_comms.field_codec import FieldCodec, PathText, TimestampText
 from agent_comms.typed_table import Column, JsonStorage, SqlStorage, TypedTable
 
 from toad import paths
@@ -26,29 +26,15 @@ MODEL_HISTORY_SCHEMA = """
 """
 
 
-class SessionCodec(FieldCodec):
-    """Session paths and timestamps retain their existing text encoding."""
-
-    @classmethod
-    def encode(cls, value):
-        if isinstance(value, Path):
-            return str(value)
-        if isinstance(value, datetime):
-            return value.isoformat()
-        return super().encode(value)
-
-    @classmethod
-    def _decode(cls, target, data):
-        if target is Path:
-            return Path(super()._decode(str, data))
-        if target is datetime:
-            return datetime.fromisoformat(super()._decode(str, data))
-        return super()._decode(target, data)
+SessionTimestamp = Annotated[datetime, TimestampText]
 
 
 class SessionTimestampStorage(SqlStorage):
     sql_type = "TEXT"
-    codec = SessionCodec
+
+    @classmethod
+    def to_sql(cls, value):
+        return FieldCodec.encode(value, SessionTimestamp)
 
     @classmethod
     def accepts(cls, annotation):
@@ -57,14 +43,12 @@ class SessionTimestampStorage(SqlStorage):
 
 @dataclass(frozen=True)
 class SessionMeta:
-    cwd: Path | None = None
+    cwd: Annotated[Path | None, PathText] = None
     # Saved external agent definition, also used when its catalog entry is gone.
     agent_data: dict[str, Any] | None = None
 
 
 class SessionMetaStorage(JsonStorage):
-    codec = SessionCodec
-
     @classmethod
     def accepts(cls, annotation):
         return annotation is SessionMeta
@@ -81,11 +65,11 @@ class Session(TypedTable, declared_name="sessions"):
     title: str
     protocol: str = "acp"
     prompt_count: int = 0
-    created_at: datetime = field(
+    created_at: SessionTimestamp = field(
         default_factory=lambda: datetime.now(UTC),
         metadata={"sql": Column(storage=SessionTimestampStorage)},
     )
-    last_used: datetime = field(
+    last_used: SessionTimestamp = field(
         default_factory=lambda: datetime.now(UTC),
         metadata={"sql": Column(storage=SessionTimestampStorage)},
     )

@@ -6,11 +6,11 @@ import asyncio
 import pickle
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import Annotated, TYPE_CHECKING
 from uuid import UUID
 
 from agent_comms.declared_family import DeclaredFamily
-from agent_comms.field_codec import FieldCodec
+from agent_comms.field_codec import FieldRepresentation
 from toad.render_tasks import RenderTask
 
 if TYPE_CHECKING:
@@ -18,48 +18,72 @@ if TYPE_CHECKING:
     from toad.render_zmq import PersistentRendererPool, RenderSubmission
 
 
-class RenderCodec(FieldCodec):
-    """UUIDs and captured dependency objects extend the existing record codec.
-
-    Markdown tokens and Rich/Textual results use their existing pickle contract.
-    Only the renderer's private owner-only IPC directory accepts these captures.
-    """
-
-    @classmethod
-    def encode(cls, value):
-        if isinstance(value, UUID):
-            return value
-        if isinstance(value, CapturedResult):
-            return pickle.dumps(value.value, protocol=pickle.HIGHEST_PROTOCOL)
-        if isinstance(value, RenderTask):
-            return pickle.dumps(value, protocol=pickle.HIGHEST_PROTOCOL)
-        return super().encode(value)
-
-    @staticmethod
-    def _capture(data: object) -> object:
-        if not isinstance(data, bytes):
-            raise ValueError("Expected a captured renderer byte payload")
-        return pickle.loads(data)
-
-    @classmethod
-    def _decode(cls, target, data):
-        if target is UUID:
-            if not isinstance(data, UUID):
-                raise TypeError("Expected a renderer UUID")
-            return data
-        if target is CapturedResult:
-            return CapturedResult(cls._capture(data))
-        if target is RenderTask:
-            task = cls._capture(data)
-            if type(task) not in RenderTask.members_with(RenderTask):
-                raise TypeError("Expected a declared rendering task")
-            return task
-        return super()._decode(target, data)
-
-
 @dataclass(frozen=True)
 class CapturedResult:
     value: object
+
+
+class RendererIdentity(FieldRepresentation):
+    """The private ZMQ transport carries UUID objects without JSON coercion."""
+
+    @classmethod
+    def encode(cls, value):
+        if not isinstance(value, UUID):
+            raise TypeError("Expected a renderer UUID")
+        return value
+
+    @classmethod
+    def decode(cls, value):
+        return cls.encode(value)
+
+
+class RendererCapture(FieldRepresentation):
+    """Only explicitly declared fields accept the private pickle contract."""
+
+    @classmethod
+    def encode(cls, value):
+        return pickle.dumps(cls.capture(value), protocol=pickle.HIGHEST_PROTOCOL)
+
+    @classmethod
+    def decode(cls, value):
+        if not isinstance(value, bytes):
+            raise ValueError("Expected a captured renderer byte payload")
+        return cls.restore(pickle.loads(value))
+
+    @classmethod
+    @abstractmethod
+    def capture(cls, value: object) -> object: ...
+
+    @classmethod
+    @abstractmethod
+    def restore(cls, value: object) -> object: ...
+
+
+class TaskCapture(RendererCapture):
+    @classmethod
+    def capture(cls, value):
+        return cls.restore(value)
+
+    @classmethod
+    def restore(cls, value):
+        if type(value) not in RenderTask.members_with(RenderTask):
+            raise TypeError("Expected a declared rendering task")
+        return value
+
+
+class ResultCapture(RendererCapture):
+    @classmethod
+    def capture(cls, value):
+        if not isinstance(value, CapturedResult):
+            raise TypeError("Expected a captured rendering result")
+        return value.value
+
+    @classmethod
+    def restore(cls, value):
+        return CapturedResult(value)
+
+
+RenderIdentity = Annotated[UUID, RendererIdentity]
 
 
 class RenderCommandTransport(ABC):
@@ -76,12 +100,12 @@ class RenderCommand(RenderCommandTransport, DeclaredFamily, affix="Render"):
 
 @dataclass(frozen=True)
 class ClientCommand(RenderCommand):
-    client_id: UUID
+    client_id: RenderIdentity
 
 
 @dataclass(frozen=True)
 class RequestCommand(ClientCommand):
-    request_id: UUID
+    request_id: RenderIdentity
 
 
 class InitialRenderRequest(RequestCommand):
@@ -103,7 +127,7 @@ class RetainedRenderRequest(RequestCommand):
 
 @dataclass(frozen=True)
 class SubmitRender(InitialRenderRequest):
-    task: RenderTask
+    task: Annotated[RenderTask, TaskCapture]
 
     def execute(self, service):
         return service.submit(self)
@@ -152,7 +176,7 @@ class RenderReply(RenderReplyProgression, DeclaredFamily, affix="Reply"):
 
 @dataclass(frozen=True)
 class RequestReply(RenderReply):
-    request_id: UUID
+    request_id: RenderIdentity
 
     def request_identity(self) -> UUID:
         return self.request_id
@@ -180,7 +204,7 @@ class PendingReply(RequestReply):
 
 @dataclass(frozen=True)
 class CompleteReply(RequestReply):
-    result: CapturedResult
+    result: Annotated[CapturedResult, ResultCapture]
 
     async def advance(self, submission, client):
         await client.acknowledge(submission)
@@ -218,7 +242,7 @@ class UnknownReply(RequestReply):
 
 @dataclass(frozen=True)
 class AcknowledgedReply(RenderReply):
-    request_id: UUID | None = None
+    request_id: Annotated[UUID | None, RendererIdentity] = None
 
     def request_identity(self):
         return self.request_id

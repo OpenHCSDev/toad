@@ -7,8 +7,8 @@ from dataclasses import dataclass, fields
 import unittest
 from uuid import uuid4
 
+from agent_comms.field_codec import FieldCodec
 from toad.render_protocol import (
-    RenderCodec,
     RenderCommand,
     RenderReply,
     CapturedResult,
@@ -81,17 +81,17 @@ class RenderingFamilyTests(unittest.IsolatedAsyncioTestCase):
                     }
                 )
                 self.assertEqual(
-                    RenderCodec.decode(family, RenderCodec.encode(value)), value
+                    FieldCodec.decode(family, FieldCodec.encode(value)), value
                 )
-        encoded = RenderCodec.encode(
+        encoded = FieldCodec.encode(
             SubmitRender(
                 samples["client_id"], samples["request_id"], CountRenderTask(3)
             )
         )
-        decoded = RenderCodec.decode(RenderCommand, encoded)
+        decoded = FieldCodec.decode(RenderCommand, encoded)
         self.assertEqual(decoded.task.execute(), 3)
         with self.assertRaises(ValueError):
-            RenderCodec.decode(RenderCommand, {"type": "not_a_command"})
+            FieldCodec.decode(RenderCommand, {"type": "not_a_command"})
 
     async def test_each_reply_owns_its_transition_and_new_member(self):
         class QueuedReply(PendingReply):
