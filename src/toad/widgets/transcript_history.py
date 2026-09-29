@@ -28,7 +28,8 @@ from textual.widget import Widget
 from textual.widgets import Static
 
 from toad.transcript_filter import TranscriptFilter
-from toad.transcript_state import TranscriptState, LiveTranscript, ProvisionalTranscript
+from toad.transcript_state import TranscriptState, LiveTranscript, ProvisionalTranscript, RetiredSourceTranscript
+from textual.worker import WorkerCancelled
 from toad.acp import protocol
 from toad.acp.encode_tool_call_id import encode_tool_call_id
 from toad.transcript_preparation import (
@@ -537,6 +538,20 @@ class TranscriptHistory(ConversationBlock, CommittedHistory, CategorizedBlock, V
         self.window.histories.discard(self)
         if self._page_buffer is not None:
             self._page_buffer.close()
+
+    async def retire_source(self) -> None:
+        """End pager mutations before any of its bodies transfer to the shelf."""
+        self._source_state = RetiredSourceTranscript(self._source_state)
+        self._generation += 1
+        self._prefetch_intent = None
+        self.window.histories.discard(self)
+        if self._page_buffer is not None:
+            self._page_buffer.close()
+        for worker in self.workers.cancel_node(self):
+            try:
+                await worker.wait()
+            except WorkerCancelled:
+                pass
 
     def _reader(self) -> PreparedPageSource:
         assert self.loader is not None

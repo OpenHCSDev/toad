@@ -238,6 +238,8 @@ class DocumentViewport:
     async def park_source(self) -> None:
         """Move only admitted warm bodies before the source's pager is removed."""
         await self.suspend_source()
+        for history in tuple(self.window.histories):
+            await history.retire_source()
         await self._trim_warm()
         await self._shelf.acquire(self.window)
         for key in tuple(self._warm):

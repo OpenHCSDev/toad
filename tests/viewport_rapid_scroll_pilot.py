@@ -17,7 +17,9 @@ class FrameApp(ToadApp):
         if self.observed is not None and renderable is not None and not self._batch_count and screen is self.screen:
             end, window, frames = self.observed
             frames.append((window.follows_tail, end in screen._compositor.visible_widgets,
-                           end.body_ready, window.scroll_y, window.max_scroll_y))
+                           end.body_ready, window.scroll_y, window.max_scroll_y,
+                           window.document_viewport.lookahead.admission(
+                               window.document_viewport.budget, window.size.height)))
         super()._display(screen, renderable)
 
 
@@ -91,7 +93,8 @@ async def main():
             await pilot.press("end")
             await settled(view, pilot)
             app.observed = None
-            assert frames and all(y <= maximum for _, _, _, y, maximum in frames)
+            assert frames and all(y <= maximum for _, _, _, y, maximum, _ in frames)
+            print("END_PREPARATION_ADMISSION", [frame[-1] for frame in frames], flush=True)
             assert not any(follow and visible and not ready for follow, visible, ready, *_ in frames), frames
             assert window.follows_tail and window.scroll_y == window.max_scroll_y, (window.follows_tail, window.scroll_y, window.max_scroll_y)
             assert end.body_ready and end in app.screen._compositor.visible_widgets
@@ -99,6 +102,7 @@ async def main():
             viewport = window.document_viewport
             assert viewport._settle_timer is None
             assert viewport.lookahead.travel_rows == 0
+            assert viewport.lookahead.admission(viewport.budget, window.size.height) == viewport.budget.admission_items
             assert not viewport._running and not viewport._pending
             before = psutil.Process().cpu_times()
             await pilot.pause(.3)

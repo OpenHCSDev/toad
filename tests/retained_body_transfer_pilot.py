@@ -31,7 +31,13 @@ async def main():
             await app.select_session(first.id)
             view=await publish()
             assert any(node is old for node in view.query(TranscriptFragmentView) for old in original)
-            assert "BODY_RECORD_3" in conversation_paint(app.screen)
+            if "BODY_RECORD_3" not in conversation_paint(app.screen):
+                before=conversation_paint(app.screen)
+                view.contents.parent.refresh(layout=True)
+                await settled(pilot,view)
+                print("LAYOUT_INVALIDATION_DIAGNOSTIC", "BODY_RECORD_3" in conversation_paint(app.screen),
+                      "before",before,"after",conversation_paint(app.screen),flush=True)
+                raise AssertionError("Ordinary return lacked paint before explicit layout diagnostic")
             assert app._exception is None
     print("RETAINED_BODY_NATIVE_REPARENT_PAINT_EXIT_PASS",flush=True)
 

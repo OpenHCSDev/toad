@@ -56,6 +56,14 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
                   [(type(node).__name__, node.region) for node in app.screen._compositor.visible_widgets
                    if node in view.window.document_viewport.owners],
                   "FRAME", "\n".join(strip.text for strip in app.screen._compositor.render_strips()), flush=True)
+            print("WINDOW_LAYOUT", [(type(n).__name__, n.display, str(n.styles.height), n.region, n.size, n.virtual_size) for n in view.window.walk_children() if n.parent is view.window or n in view.contents.ancestors_with_self], flush=True)
+            print("SOURCE_BODY_CUSTODY", source.id, view.window.scroll_y, view.window.max_scroll_y,
+                  view.window.document_viewport.reuse_hits,
+                  [(type(node).__name__, type(node.parent).__name__, node.visible, node.display,
+                    node._closing, node._pruning, node.is_running,
+                    app.screen._compositor._full_map.get(node))
+                   for history in view.window.histories for node in history.walk_children()
+                   if isinstance(node, TranscriptFragmentView)], flush=True)
             await until(pilot, lambda: f"NATIVE_RESPONSE_{2 * (source_index + 1)}" in conversation_paint(frame))
             await until(pilot, lambda: view.window.max_scroll_y > 0)
             await settled(pilot, view)
@@ -95,7 +103,18 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
             view = source.conversation
             await until(pilot, lambda: bool(view.window.histories))
             y, painted, document, history, process, runner, old_bodies = states[source.id]
-            await until(pilot, lambda: conversation_paint(frame) == painted)
+            try:
+                await until(pilot, lambda: conversation_paint(frame) == painted)
+            except TimeoutError:
+                print("FAILED_RETURN", source.id, "reader", view.window.scroll_y, y,
+                      "reuse", view.window.document_viewport.reuse_hits,
+                      "expected", painted, "actual", conversation_paint(frame),
+                      "layout", [(type(n).__name__, n.display, n.region, n.size, n.virtual_size)
+                                 for n in view.window.walk_children()
+                                 if n.parent is view.window or n in view.contents.ancestors_with_self],
+                      "cached", [(type(k()).__name__, type(k().parent).__name__, k().identity)
+                                 for k in view.window.document_viewport._warm if k() is not None], flush=True)
+                raise
             await settled(pilot, view)
             print("RETURN_GEOMETRY", source.id, view.window.scroll_y, view.window.max_scroll_y,
                   [(type(node).__name__, node.size, node.virtual_size, node.display)

@@ -13,10 +13,12 @@ from dataclasses import dataclass, replace
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from agent_comms.transcript_events import TranscriptEvent
 
-from toad.widgets.transcript_fragments import TranscriptFragment, prepare_transcript_fragments
+from toad.widgets.transcript_fragments import TranscriptFragment
+from toad.render_tasks import TranscriptRenderTask
 from toad.widgets.message_filter import MessageCategory, event_category, keep_events
 from toad.work_preparation import (
     PreparationRuntime,
+    RenderPreparation,
     PreparationScope,
     SerializedWork,
     ScopedWork,
@@ -188,7 +190,7 @@ class TranscriptPageWork(SerializedWork[PreparedTranscriptPage], ScopedWork[Prep
                 raise ValueError("Transcript history made no cursor progress")
         if self.scope.closed:
             raise asyncio.CancelledError
-        fragments = await prepare_transcript_fragments(page.events, runtime.renderer)
+        fragments = await runtime.submit(RenderPreparation(TranscriptRenderTask(page.events)))
         size = await runtime.run_thread(retained_bytes, (page, fragments))
         return PreparedTranscriptPage(page, fragments, size)
 
