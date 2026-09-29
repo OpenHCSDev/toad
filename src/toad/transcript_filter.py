@@ -37,9 +37,19 @@ class FilterSnapshot:
 
 
 class FilterState(DeclaredFamily, affix="Filter"):
+    active = False
     overlay = None
     before = None
     checkpoint_available = True
+
+    @classmethod
+    def for_selection(cls, selected):
+        """Classify the typed UI selection once when its projection is retired."""
+        if selected == all_categories():
+            return NoFilter()
+        if not selected:
+            return EmptyFilter()
+        return SeekingFilter()
 
     def owns_projection(self, projection) -> bool:
         return False
@@ -86,6 +96,31 @@ class NoFilter(FilterState):
         return owner.has_older
 
     def scan_available(self, owner):
+        return False
+
+    def scan_needed(self, owner):
+        return False
+
+    async def advance(self, filtering, snapshot):
+        return False
+
+
+class EmptyFilter(NoFilter):
+    """No category can match; there is no history read to admit."""
+    active = True
+
+    def older_visible(self, owner):
+        return False
+
+    def has_older(self, owner):
+        return False
+
+
+class SeekingFilter(NoFilter):
+    """A restricted selection awaiting its first admitted projection."""
+    active = True
+
+    def scan_available(self, owner):
         return owner.has_older
 
     def scan_needed(self, owner):
@@ -129,6 +164,7 @@ class NoFilter(FilterState):
 
 @dataclass(frozen=True)
 class Filtered(FilterState):
+    active = True
     view: ProjectedTranscriptHistory
 
     @property
@@ -195,8 +231,6 @@ class ScanDemand(DeclaredFamily, affix="ScanDemand"):
 
     def resume(self, filtering: TranscriptFilter, snapshot: FilterSnapshot, admitted: bool) -> None:
         owner = filtering.owner
-        if not owner.filter_publication_available:
-            return
         if snapshot.current(owner) and admitted and filtering.has_older:
             # Committed painted height decides whether this batch fills the view.
             owner.call_after_refresh(owner._check_edges)
@@ -223,7 +257,7 @@ class RequestedScanDemand(ScanDemand):
 class TranscriptFilter:
     def __init__(self, owner: TranscriptHistory):
         self.owner = owner
-        self.state: FilterState = NoFilter()
+        self.state: FilterState = FilterState.for_selection(owner.selected_categories)
         self.demand: ScanDemand = AutomaticScanDemand()
         self.worker: Worker | None = None
 
@@ -244,7 +278,7 @@ class TranscriptFilter:
                 and not self.worker.is_finished)
 
     @property
-    def active(self): return self.owner.selected_categories != all_categories()
+    def active(self): return self.state.active
 
     @property
     def checkpoint_available(self):
@@ -260,7 +294,7 @@ class TranscriptFilter:
     def covers_incoming(self, sequence): return self.state.covers_incoming(sequence)
     def projection_visible(self): return self.state.visible(self.owner)
     def request_force(self): self.demand = RequestedScanDemand()
-    def clear(self): self.state = NoFilter()
+    def clear(self): self.state = FilterState.for_selection(self.owner.selected_categories)
 
     async def remove(self) -> None:
         retired = self.state
@@ -288,8 +322,6 @@ class TranscriptFilter:
         owner._scroll_changed()
 
     def scan_needed(self) -> bool:
-        if not self.active or not self.owner.selected_categories:
-            return False
         return self.has_older and self.state.scan_needed(self.owner)
 
     def check_edges(self) -> None:
@@ -302,8 +334,6 @@ class TranscriptFilter:
 
     def start_scan(self) -> Worker | None:
         if self.scanning or not self.owner.checkpoint_available:
-            return None
-        if not self.active or not self.owner.selected_categories:
             return None
         if not self.state.scan_available(self.owner):
             return None
