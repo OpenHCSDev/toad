@@ -5,7 +5,6 @@ from collections import OrderedDict
 from functools import partial
 from pathlib import Path
 from threading import local
-from typing import Iterable
 from urllib.parse import quote, unquote, urlsplit
 
 from markdown_it import MarkdownIt
@@ -14,23 +13,18 @@ from markdown_it.token import Token
 from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
 from textual.layout import WidgetPlacement
 from textual.widgets import Markdown
-from textual.widgets._markdown import MarkdownBlock
 
 from toad.layout import trim_trailing_margin
-from toad.menus import MenuItem
+from toad.block_content import MarkdownBlockContent
 
 
-class ConversationCodeFence(Markdown.BLOCKS["fence"]):
-    def get_block_menu(self) -> Iterable[MenuItem]:
-        yield from ()
+class ConversationCodeFence(MarkdownBlockContent, Markdown.BLOCKS["fence"]):
+    def get_clipboard_text(self) -> str:
+        return self._content.plain
 
-    def get_block_content(self, destination: str) -> str | None:
-        if destination == "clipboard":
-            return self._content.plain
+    def get_prompt_text(self) -> str:
         return self.source
 
-
-CUSTOM_BLOCKS = {"fence": ConversationCodeFence}
 
 _PATH_PATTERN = re.compile(
     r"(?<![\w:/])"
@@ -217,6 +211,11 @@ class _ThreadLocalPathParser:
 class ConversationMarkdown(Markdown):
     """Markdown widget with custom blocks."""
 
+    BLOCKS = {
+        **{name: MarkdownBlockContent.declare(block) for name, block in Markdown.BLOCKS.items()},
+        "fence": ConversationCodeFence,
+    }
+
     def __init__(self, *args, **kwargs) -> None:
         kwargs.setdefault("parser_factory", self._make_parser)
         kwargs.setdefault("open_links", False)
@@ -256,8 +255,3 @@ class ConversationMarkdown(Markdown):
     @height_dependency(INDEPENDENT_HEIGHT)
     def process_layout(self, placements: list[WidgetPlacement]) -> list[WidgetPlacement]:
         return trim_trailing_margin(placements)
-
-    def get_block_class(self, block_name: str) -> type[MarkdownBlock]:
-        if (custom_block := CUSTOM_BLOCKS.get(block_name)) is not None:
-            return custom_block
-        return super().get_block_class(block_name)

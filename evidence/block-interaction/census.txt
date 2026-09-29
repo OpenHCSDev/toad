@@ -1,0 +1,23 @@
+changed between origin/main..HEAD (touched files, after minus before)
+
+change in counts (origin/main..HEAD): read these first when code was deleted as well as added
+  type_identity_check           +0
+  long_boolean_chain            +0
+  boolean_chain_terms           +0
+  codec_subclass                +0
+  string_key_subscript          +0
+  literal_key_get               +0
+  string_equality               -2
+  none_identity                 +1
+  isinstance_call              -11
+  attribute_by_name             +0
+  getattr_default               +0
+  broad_except                  +0
+  json_loads                    +0
+  long_function                 +0
+  class_definition              +1
+  abstract_base                 -2
+  enum_class                    +0
+  code lines                   -50
+
+(densities omitted: under 500 net code lines, a ratio of changes to net lines is meaningless)

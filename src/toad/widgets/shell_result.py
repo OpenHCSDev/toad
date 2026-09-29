@@ -1,6 +1,5 @@
 from __future__ import annotations
 from toad.block_navigation import ConversationBlock
-from typing import Iterable
 
 from textual.app import ComposeResult
 from textual import containers
@@ -8,7 +7,6 @@ from textual.highlight import highlight
 from textual.widgets import Static
 
 
-from toad.menus import MenuItem
 from toad.widgets.non_selectable_label import NonSelectableLabel
 from toad.widgets.committed_presentation import CheckpointBarrier
 
@@ -30,8 +28,5 @@ class ShellResult(ConversationBlock, CheckpointBarrier, containers.HorizontalGro
         yield NonSelectableLabel("$", id="prompt", markup=False)
         yield Static(highlight(self._command, language="sh"))
 
-    def get_block_menu(self) -> Iterable[MenuItem]:
-        yield from ()
-
-    def get_block_content(self, destination: str) -> str | None:
+    def get_clipboard_text(self) -> str | None:
         return self._command

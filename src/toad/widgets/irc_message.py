@@ -60,7 +60,7 @@ class MembershipNotice(ConversationBlock, Static):
         super().__init__("— " + message.body, markup=False)
         self.message = message
 
-    def get_block_content(self, destination: str) -> str:
+    def get_clipboard_text(self) -> str:
         return self.message.body
 
 
@@ -139,7 +139,7 @@ class IRCMessage(ConversationBlock, VerticalGroup, can_focus=True):
     def action_open_destination(self):
         self.action_open_target(self.message.target)
 
-    def get_block_content(self, destination: str) -> str:
+    def get_clipboard_text(self) -> str:
         return f"{self.message.sender} → {self.message.target}: {self.message.body}"
 
 

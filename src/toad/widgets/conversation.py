@@ -53,7 +53,7 @@ from textual.reactive import var
 from textual.strip import Strip
 from textual.widget import Widget
 from textual.widgets import Static
-from textual.widgets.markdown import MarkdownBlock, MarkdownFence
+from textual.widgets.markdown import MarkdownBlock
 
 from toad import jsonrpc, messages, paths
 from toad.acp import messages as acp_messages
@@ -79,7 +79,6 @@ from toad.widgets.native_history import NativeHistory
 from toad.widgets.observed_thread_activity import ObservedThreadActivity
 from toad.widgets.session_details import SessionDetails
 from toad.private_native_cursor import CursorStatus
-from toad.protocol import ExpandProtocol, MenuProtocol
 from toad.block_navigation import admitted_blocks, ConversationBlock, ContentNavigation, UpCursor, DownCursor
 from functools import cached_property
 from toad.agent_presentation import AgentAttachmentView
@@ -940,12 +939,7 @@ class Conversation(containers.Vertical):
         if action in {"expand_block", "collapse_block"}:
             if (cursor_block := self.cursor_block) is None:
                 return False
-            elif isinstance(cursor_block, ExpandProtocol):
-                if action == "expand_block":
-                    return False if cursor_block.is_block_expanded() else True
-                else:
-                    return True if cursor_block.is_block_expanded() else False
-            return None if action == "expand_block" else False
+            return cursor_block.can_expand() if action == "expand_block" else cursor_block.is_block_expanded()
 
         return True
 
@@ -957,17 +951,15 @@ class Conversation(containers.Vertical):
 
     async def action_expand_block(self) -> None:
         if (cursor_block := self.cursor_block) is not None:
-            if isinstance(cursor_block, ExpandProtocol):
-                cursor_block.expand_block()
-                self.refresh_bindings()
-                self.call_after_refresh(self.cursor.follow, cursor_block)
+            cursor_block.expand_block()
+            self.refresh_bindings()
+            self.call_after_refresh(self.cursor.follow, cursor_block)
 
     async def action_collapse_block(self) -> None:
         if (cursor_block := self.cursor_block) is not None:
-            if isinstance(cursor_block, ExpandProtocol):
-                cursor_block.collapse_block()
-                self.refresh_bindings()
-                self.call_after_refresh(self.cursor.follow, cursor_block)
+            cursor_block.collapse_block()
+            self.refresh_bindings()
+            self.call_after_refresh(self.cursor.follow, cursor_block)
 
     @cached_property
     def navigation(self) -> ContentNavigation:
@@ -980,22 +972,6 @@ class Conversation(containers.Vertical):
     @property
     def cursor_block_child(self) -> Widget | None:
         return self.navigation.selected
-
-    def get_cursor_block[BlockType](
-        self, block_type: type[BlockType] = Widget
-    ) -> BlockType | None:
-        """Get the cursor block if it matches a type.
-
-        Args:
-            block_type: The expected type.
-
-        Returns:
-            The widget next to the cursor, or `None` if the types don't match.
-        """
-        cursor_block = self.cursor_block_child
-        if isinstance(cursor_block, block_type):
-            return cursor_block
-        return None
 
     async def _read_thread_activity(self):
         agent = self.agent
@@ -1547,7 +1523,7 @@ class Conversation(containers.Vertical):
         event.menu.display = False
         if event.action is not None:
             await self.run_action(event.action, {"block": event.owner})
-        if (cursor_block := self.get_cursor_block()) is not None:
+        if (cursor_block := self.cursor_block_child) is not None:
             self.call_after_refresh(self.cursor.follow, cursor_block)
         self.call_after_refresh(event.menu.remove)
 
@@ -2492,7 +2468,7 @@ class Conversation(containers.Vertical):
         self.transcript.request()
 
     async def action_select_block(self) -> None:
-        if (block := self.get_cursor_block(Widget)) is None:
+        if (block := self.cursor_block_child) is None:
             return
 
         menu_options = [
@@ -2501,58 +2477,36 @@ class Conversation(containers.Vertical):
             MenuItem("Open as S[u]V[/]G", "export_to_svg", "v"),
         ]
 
-        print(repr(block))
         if block.allow_maximize:
             menu_options.append(MenuItem("[u]M[/u]aximize", "maximize_block", "m"))
 
-        if isinstance(block, MenuProtocol):
-            menu_options.extend(block.get_block_menu())
-            menu = Menu(block, menu_options)
-        else:
-            menu = Menu(block, menu_options)
+        menu_options.extend(block.get_block_menu())
+        menu = Menu(block, menu_options)
 
         menu.offset = Offset(1, block.region.offset.y)
         await self.mount(menu)
         menu.focus()
 
     def action_copy_to_clipboard(self) -> None:
-        block = self.get_cursor_block()
-        if isinstance(block, MenuProtocol):
-            text = block.get_block_content("clipboard")
-        elif isinstance(block, MarkdownFence):
-            text = block._content.plain
-        elif isinstance(block, MarkdownBlock):
-            text = block.source
-        else:
-            return
-        if text:
+        block = self.cursor_block_child
+        if block is not None and (text := block.get_clipboard_text()):
             self.app.copy_to_clipboard(text)
             self.flash("Copied to clipboard")
 
     def action_copy_to_prompt(self) -> None:
-        block = self.get_cursor_block()
-        if isinstance(block, MenuProtocol):
-            text = block.get_block_content("prompt")
-        elif isinstance(block, MarkdownFence):
-            # Copy to prompt leaves MD formatting
-            text = block.source
-        elif isinstance(block, MarkdownBlock):
-            text = block.source
-        else:
-            return
-
-        if text:
+        block = self.cursor_block_child
+        if block is not None and (text := block.get_prompt_text()):
             self.prompt.append(text)
             self.flash("Copied to prompt")
             self.focus_prompt()
 
     def action_maximize_block(self) -> None:
-        if (block := self.get_cursor_block()) is not None:
+        if (block := self.cursor_block_child) is not None:
             self.screen.maximize(block, container=False)
             block.focus()
 
     def action_export_to_svg(self) -> None:
-        block = self.get_cursor_block()
+        block = self.cursor_block_child
         if block is None:
             return
         import platformdirs

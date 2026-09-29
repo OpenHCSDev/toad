@@ -15,7 +15,7 @@ def test_t4_ownership_and_deletion():
                 assert node.id!='BlockProtocol', (relative,node.lineno)
                 if relative == 'widgets/conversation.py':
                     assert node.id not in {'getattr', 'hasattr'}, (relative,node.lineno)
-    assert 'BlockProtocol' not in (ROOT/'protocol.py').read_text()
+    assert not (ROOT/'protocol.py').exists()
     response=ast.parse((ROOT/'widgets/agent_response.py').read_text())
     for node in ast.walk(response):
         if isinstance(node,(ast.FunctionDef,ast.AsyncFunctionDef)):
@@ -36,3 +36,26 @@ def test_t4_ownership_and_deletion():
         for node in ast.parse((ROOT/relative).read_text()).body:
             if isinstance(node,ast.ClassDef):
                 assert not node.name.endswith('Mixin')
+
+
+def test_nominal_block_interaction_caller_closure():
+    retired = {'MenuProtocol','ExpandProtocol','get_block_content','get_cursor_block','CUSTOM_BLOCKS'}
+    for path in ROOT.rglob('*.py'):
+        for node in ast.walk(ast.parse(path.read_text())):
+            if isinstance(node, ast.Name):
+                assert node.id not in retired, (path,node.lineno,node.id)
+            if isinstance(node, ast.Attribute):
+                assert node.attr not in retired, (path,node.lineno,node.attr)
+            if isinstance(node,(ast.FunctionDef,ast.AsyncFunctionDef)):
+                assert node.name not in retired, (path,node.lineno,node.name)
+    tree=ast.parse((ROOT/'widgets/conversation.py').read_text())
+    methods={'action_copy_to_clipboard','action_copy_to_prompt','action_select_block',
+             'action_expand_block','action_collapse_block'}
+    for method in ast.walk(tree):
+        if isinstance(method,(ast.FunctionDef,ast.AsyncFunctionDef)) and method.name in methods:
+            for node in ast.walk(method):
+                if isinstance(node,ast.Call) and isinstance(node.func,ast.Name):
+                    assert node.func.id not in {'isinstance','issubclass','getattr','hasattr'}, (method.name,node.lineno)
+    from toad.block_content import BlockContent
+    from toad.conversation_markdown import ConversationMarkdown
+    assert all(issubclass(block,BlockContent) for block in ConversationMarkdown.BLOCKS.values())

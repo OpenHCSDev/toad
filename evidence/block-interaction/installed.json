@@ -1,0 +1,32 @@
+{
+  "agent-comms": {
+    "module": "/home/ts/wt/toad-block-interaction-sol-20260928/.venv/lib/python3.14/site-packages/agent_comms/__init__.py",
+    "direct_url": {
+      "url": "https://github.com/OpenHCSDev/agent-comms.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "8ad034a60d91b0bcb8e90bbeca326e01d2dfb7cc",
+        "requested_revision": "8ad034a60d91b0bcb8e90bbeca326e01d2dfb7cc"
+      }
+    }
+  },
+  "textual": {
+    "module": "/home/ts/wt/toad-t4-tab-clipboard-sol-20260928/.venv/lib/python3.14/site-packages/textual/__init__.py",
+    "direct_url": {
+      "url": "https://github.com/OpenHCSDev/textual.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "c9743801c98dc570f82f82e25915ecce89800f4b",
+        "requested_revision": "c9743801c98dc570f82f82e25915ecce89800f4b"
+      }
+    }
+  },
+  "batrachian-toad": {
+    "module": "/home/ts/wt/toad-block-interaction-sol-20260928/.venv/lib/python3.14/site-packages/toad/widgets/conversation.py",
+    "direct_url": {
+      "url": "file:///home/ts/wt/toad-block-interaction-sol-20260928",
+      "dir_info": {}
+    }
+  },
+  "source_head": "d6af76c73cd4f1206431093a06d4e1c5e043a7e3"
+}

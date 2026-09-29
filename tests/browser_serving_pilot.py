@@ -282,7 +282,7 @@ async def main():
         pass
     else:
         raise AssertionError("External public URL accepted")
-    with tempfile.TemporaryDirectory(prefix="wb-", dir="/home/ts/wt") as directory:
+    with tempfile.TemporaryDirectory(prefix="wb-", dir=Path.home()/"wt") as directory:
         async with AsyncExitStack() as stack:
             # Two concurrent local ports must work in one browser cookie jar.
             serve = await stack.enter_async_context(
