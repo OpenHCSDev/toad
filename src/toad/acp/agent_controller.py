@@ -69,6 +69,8 @@ class AgentController:
         self.modes = {}
         self.current_mode = None
         self.commands = []
+        from .terminal_controller import TerminalController
+        self.terminals = TerminalController()
 
     def attach(self, target):
         previous = self.surface.target
@@ -81,11 +83,14 @@ class AgentController:
         self.agent.permissions.present(target)
         if self.agent.ready:
             self.start_operation(self.restore(self.surface))
+        else:
+            self.start_operation(self.terminals.attach(target))
 
     def detach(self, target):
         if self.surface.owns(target):
             self.surface = DetachedSurfaceBinding()
             self.agent.permissions.detach(target)
+            self.terminals.detach()
 
     async def validate(self, session_id, update, metadata):
         return await self.validation.validate(ValidateSessionUpdateTask(session_id, update, metadata))
@@ -108,6 +113,20 @@ class AgentController:
             agent.post_message(AvailableCommandsUpdate(self.commands))
             agent._post_queue_view()
             agent._post_private_cursor()
+            target = binding.target
+            if target is not None:
+                target.call_later(self.start_terminal_presentation, target)
+
+    def start_terminal_presentation(self, target):
+        if self.surface.owns(target):
+            self.start_operation(self.terminals.attach(target))
+
+    def replace_terminal_session(self):
+        from .terminal_controller import TerminalController
+        previous = self.terminals
+        self.terminals = TerminalController()
+        if previous.executions:
+            self.start_operation(previous.close())
 
     def connection_closed(self):
         from .messages import McpClientStopped

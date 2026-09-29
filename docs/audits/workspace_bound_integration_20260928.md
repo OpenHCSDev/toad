@@ -145,3 +145,58 @@ Focused installed turn-navigation/guard tests:3passed2.94s. Receipts:
 main132-retention.json/main132-native.log/main132-navigation.log.
 Shell/terminal and revealed-sidebar closure remain explicitly assigned to Sol129;
 current result is not a claim that those operational paths are accepted.
+
+## Shell source closure
+
+Shell now owns actual PTY/process/reader and existing ANSI TerminalState models;
+nominal ShellOutput leaves present command/terminal state without retaining old
+Conversation/Terminal graphs. Retire clears optional view bindings; prepare paints
+original state. Command bytes are never replayed. Existing Terminal.write delegates
+projection to project_state; no second decoder/model. Legacy Shell.terminal and
+strong Conversation source authority are removed. CWD source state survives detach;
+logical close uses shared process grace and retires owned PTY/task.
+
+Actual installed blank_presentation_pilot now sends sleep1/printf through realPTY,
+checks completion with no view present, same shell process/task, restores same ANSI
+state into returned terminal with compositor-painted marker, preserves drafts and
+actual undo/selection/document, checks logical close reader/process retirement.
+Final receipt shell-width-retention.log exit0. 47terminal/navigation contract tests
+passed. The installed shell checkpoint also passed complete actualACP4/16/32/64
+retention with8loopback calls/painted answers/original editor identity.
+
+A separate concrete gap remains in ACP terminal RPCs: mounted Conversation still
+owns Create/Get/Wait/Kill/Release handling. Sol owns TerminalTool operational source
+extraction and typed terminal controller; Carver requested exact Agent RPC caller
+migration independently on131 comment5881128131. Noether boundary is129 comment
+5881034627: optional sidebar only, MainScreen hooks remain Sol-owned.
+Profiling switch4 found viewer_snapshot and widget compose/CSS as major costs;
+profiling receipts are diagnostic,4cohort timings include profiler overhead.
+
+## ACP terminal operational extraction
+
+The concrete terminal RPC gap is implemented in129: TerminalExecution owns the
+existing Command/ToolState, actual PTY/task, original ANSI model and protocol output.
+TerminalController owns terminal IDs and executions. TerminalTool is only a weak
+optional view projection; source remains alive when rich UI retires. Agent's
+terminal create/output/wait/kill/release callbacks address that source directly.
+Delete Conversation's UI terminal reducers, the five obsolete ACP terminal message
+classes, widget-owned process/output methods and unused Agent terminal counter.
+All callers/imports migrate without aliases. Shared rendering moves to nominal
+TerminalStateProjection; ShellOperationalSource owns shared operational lifecycle.
+Session presentation separates original editor state from OperationalSessionSources.
+Terminal resize behavior is a polymorphic capability: ACP view resizing updates
+its own execution and does not spawn an unrelated conversational shell.
+
+Installed actual native attachment plus production JSON-RPC callback dispatcher
+and realPTY acceptance passed: active terminal finishes while detached; another
+terminal is created/waited/read while absent; unchanged realACP/native owner and
+session remain alive; original ANSI state paints on return; actual running command
+kill, released-ID rejection, task/process cleanup pass. This dispatches callbacks
+through the real server entry; it does not claim Pi spontaneously issued those
+terminal callbacks over its pipe. Receipt acp-terminal-native-final.log.47focused
+ANSI/navigation contracts passed3.05s. No provider calls in terminal acceptance.
+
+Carver's proposed RPC slice had no response while source work proceeded; Sol
+completed that exact terminal-only caller region instead of leaving an unowned
+handoff. Other Agent lifecycle/queue/permission regions remain untouched. Final
+paired4/16/32/64 resource/ACP/editor rerun and switch-caller profile are running.

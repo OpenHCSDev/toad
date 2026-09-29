@@ -239,7 +239,7 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
             "protocol": "acp",
             "run_command": {"*": shlex.join([sys.executable, "-m", "agent_comms.acp"])},
         }
-        app = app_type(project_dir=str(project))
+        app = app_type(agent_data=data, project_dir=str(project), agent_session_id="beta")
         agent = None
         try:
             async with app.run_test(size=(160, 44)) as pilot:
