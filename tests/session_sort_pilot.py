@@ -114,7 +114,7 @@ async def main():
                 and conversation.agent_ready
             )
             await pilot.pause()
-            parent_mode = app.current_mode
+            parent_mode = app.selected_mode
             sidebar = app.screen.query_one(CommsSidebar)
             sidebar._refresh()
             await pilot.pause()
@@ -135,11 +135,11 @@ async def main():
                 next(row for row in sidebar.query(CommsRow) if row.target_name == "old")
             )
             await until(
-                lambda: app.current_mode != parent_mode
+                lambda: app.selected_mode != parent_mode
                 and (conversation := app.screen.query_one_optional(Conversation)) is not None
                 and conversation.agent_ready
             )
-            old_mode = app.current_mode
+            old_mode = app.selected_mode
             await pilot.pause()
             opened = next(
                 row for row in app.screen.query(ThreadRow) if row.mode_name == old_mode
@@ -148,7 +148,7 @@ async def main():
             assert opened.region.height == 2
             await until(lambda: order() == ["project", "new", "old"])
             assert order() == ["project", "new", "old"], order()
-            app.screen.conversation.prompt.text = "Unsubmitted manual input"
+            app.selected_session.conversation.prompt.text = "Unsubmitted manual input"
             comms.threads.heartbeat("old")
             app.screen.query_one(CommsSidebar)._refresh()
             await pilot.pause()

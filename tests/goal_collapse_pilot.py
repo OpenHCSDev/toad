@@ -29,7 +29,7 @@ async def main():
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(100, 38)) as pilot:
             await pilot.pause()
-            view = app.screen.conversation
+            view = app.selected_session.conversation
             goal = Goal("OBJECTIVE " * 150, "goal", progress="PROGRESS", revision=29)
             view.goal_display = GoalDisplay.current(goal)
             view.prompt.text = "Keep this draft"

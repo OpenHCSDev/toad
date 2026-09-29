@@ -49,7 +49,7 @@ async def main():
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(130, 44)) as pilot:
             await pilot.pause()
-            owner_mode = app.current_mode
+            owner_mode = app.selected_mode
             screen = app.screen
             await screen.on_coordination_update(CoordinationUpdate(
                 thread="owner", wire_root=str(root / "wire"), persistence="persistent", transport="stdio"))
@@ -189,7 +189,7 @@ async def main():
                 assert not mark.called, "Hidden replies were acknowledged as displayed"
             await app.new_session_screen(app.get_main_screen)
             await pilot.pause()
-            assert not app.screen.conversation.visible_categories == frozenset(MessageCategory.members_with(RoutedMessage))
+            assert not app.selected_session.conversation.visible_categories == frozenset(MessageCategory.members_with(RoutedMessage))
             await app.switch_mode(owner_mode)
             await pilot.pause()
             assert view.visible_categories == frozenset(MessageCategory.members_with(RoutedMessage)) and all(checkboxes[category].value == (category in frozenset(MessageCategory.members_with(RoutedMessage)))

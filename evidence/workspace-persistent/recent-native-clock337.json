@@ -1,0 +1,29 @@
+[
+  {
+    "return_mode": "session-2",
+    "scroll_y": 19,
+    "rich_views": 1,
+    "native_calls": 4,
+    "prepared_bytes": 37087,
+    "preparation_hits": 12,
+    "preparation_misses": 95
+  },
+  {
+    "return_mode": "session-3",
+    "scroll_y": 19,
+    "rich_views": 1,
+    "native_calls": 4,
+    "prepared_bytes": 37087,
+    "preparation_hits": 13,
+    "preparation_misses": 95
+  },
+  {
+    "return_mode": "session-4",
+    "scroll_y": 19,
+    "rich_views": 1,
+    "native_calls": 4,
+    "prepared_bytes": 37087,
+    "preparation_hits": 14,
+    "preparation_misses": 95
+  }
+]

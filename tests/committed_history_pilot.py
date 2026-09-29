@@ -75,7 +75,7 @@ async def main():
         app = FrameApp(project_dir=str(root))
         async with app.run_test(size=(120, 40)) as pilot:
             await pilot.pause()
-            conversation = app.screen.conversation
+            conversation = app.selected_session.conversation
             await conversation.contents.mount(
                 *[
                     AgentResponse(f"Old block {i}\n\nAnother paragraph")

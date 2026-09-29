@@ -80,7 +80,7 @@ async def check_live_activity():
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(100, 32)) as pilot:
             await pilot.pause()
-            view = app.screen.conversation
+            view = app.selected_session.conversation
             details = view.query_one(SessionDetails)
             activity = view.query_one(TurnActivity)
             view.native_history_status = "none"

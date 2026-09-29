@@ -23,7 +23,7 @@ async def main():
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(100, 35)) as pilot:
             await pilot.pause()
-            conversation = app.screen.conversation
+            conversation = app.selected_session.conversation
             goal = Goal("GOAL_BEGIN\n" + "Long objective with important details.\n" * 100,
                         "goal", progress="Progress details.\n" * 80 + "PROGRESS_END")
             conversation.goal_display = GoalDisplay.current(goal)

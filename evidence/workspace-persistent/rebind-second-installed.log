@@ -1,0 +1,49 @@
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-workspace-persistent-sol-20260928/tests/persistent_workspace_installed_pilot.py", line 44, in <module>
+    if __name__=='__main__':asyncio.run(main())
+                            ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-workspace-persistent-sol-20260928/tests/persistent_workspace_installed_pilot.py", line 35, in main
+    assert restored.document is document and restored.history is history
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+Process Directory observer: /home/ts/wt/toad-workspace-persistent-sol-20260928/.artifacts/runtime/persistent-workspace-0jekhh5y:
+Traceback (most recent call last):
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/process.py", line 320, in _bootstrap
+    self.run()
+    ~~~~~~~~^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/toad/directory_watcher.py", line 146, in _observe_path
+    observer.start()
+    ~~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/watchdog/observers/api.py", line 264, in start
+    emitter.start()
+    ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/watchdog/utils/__init__.py", line 75, in start
+    self.on_thread_start()
+    ~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/watchdog/observers/inotify.py", line 119, in on_thread_start
+    self._inotify = InotifyBuffer(path, recursive=self.watch.is_recursive, event_mask=event_mask)
+                    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/watchdog/observers/inotify_buffer.py", line 30, in __init__
+    self._inotify = Inotify(path, recursive=recursive, event_mask=event_mask)
+                    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/watchdog/observers/inotify_c.py", line 187, in __init__
+    self._add_watch(path, event_mask)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/watchdog/observers/inotify_c.py", line 424, in _add_watch
+    Inotify._raise_error()
+    ~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-workspace-persistent-sol-20260928/.venv/lib/python3.14/site-packages/watchdog/observers/inotify_c.py", line 441, in _raise_error
+    raise OSError(err, os.strerror(err))
+FileNotFoundError: [Errno 2] No such file or directory

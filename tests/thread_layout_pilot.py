@@ -26,7 +26,7 @@ async def main():
         async with app.run_test(size=(140, 50)) as pilot:
             await pilot.pause()
             screen = app.screen
-            owner = app.current_mode
+            owner = app.selected_mode
             left = screen.query_one('#channels-sidebar', SideBar)
             right = screen.query_one('#thread-sidebar', SideBar)
             view = screen.conversation

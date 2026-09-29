@@ -27,7 +27,7 @@ async def main():
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(110, 50)) as pilot:
             await pilot.pause()
-            view = app.screen.conversation
+            view = app.selected_session.conversation
             goal = Goal("Long goal detail.\n" * 100, "resizing", revision=7)
             view.goal_display = GoalDisplay.current(goal)
             view.prompt.text = "Keep draft while resizing"

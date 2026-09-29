@@ -19,8 +19,8 @@ async def main():
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(113, 42)) as pilot:
             await pilot.pause()
-            prompt = app.screen.conversation.prompt.prompt_text_area
-            app.screen.conversation.prompt.text = "retained draft"
+            prompt = app.selected_session.conversation.prompt.prompt_text_area
+            app.selected_session.conversation.prompt.text = "retained draft"
             for identity in ("channels-sidebar", "thread-sidebar"):
                 bar = app.screen.query_one(f"#{identity}", SideBar)
                 toggle = bar.query_one(SideBarToggle)
@@ -34,7 +34,7 @@ async def main():
                         await pilot.pause()
                         assert bar.collapsed != before
                         assert app.focused is prompt, (identity, type(app.focused).__name__)
-                        assert app.screen.conversation.prompt.text == "retained draft"
+                        assert app.selected_session.conversation.prompt.text == "retained draft"
                     assert recompose.call_count == 0
                 # Focus remains available for users reaching the handle by Tab.
                 if not bar.collapsed:

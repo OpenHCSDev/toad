@@ -53,7 +53,7 @@ async def main():
         with patch.object(Agent, "start", start):
             async with app.run_test(size=(110, 36)) as pilot:
                 await pilot.pause()
-                owner, original = app.current_mode, app.screen
+                owner, original = app.selected_mode, app.screen
                 await until(lambda: len(app.pending_tab_shells._available) == app.PREPARED_TAB_SHELLS)
                 prepared_shell = app.pending_tab_shells._available[0]
                 assert not prepared_shell._first_frame_presented and not prepared_shell.is_current

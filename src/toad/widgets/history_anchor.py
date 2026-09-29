@@ -16,7 +16,64 @@ from toad.widgets.viewport_body import DocumentViewport
 
 if TYPE_CHECKING:
     from toad.widgets.tool_call import ToolCall
-    from toad.widgets.transcript_history import TranscriptHistory
+    from toad.widgets.transcript_history import TranscriptHistory, TranscriptPageAdmission
+
+
+class WindowRestoration(ABC):
+    """Apply an owned layout intent without recording another user scroll."""
+
+    def current(self, window: "HistoryWindow") -> bool:
+        return True
+
+    def restore(self, window: "HistoryWindow") -> None:
+        if not self.current(window):
+            return
+        window._restoring = True
+        try:
+            self._restore(window)
+        finally:
+            window._restoring = False
+
+    @abstractmethod
+    def _restore(self, window: "HistoryWindow") -> None: ...
+
+
+class ReaderPosition(WindowRestoration):
+    """Source-owned reader intent, independent of retired widget geometry."""
+
+    @classmethod
+    def capture(cls, window: "HistoryWindow") -> "ReaderPosition":
+        # Follow intent enters from Textual's native scroll boundary once.
+        if window.follows_tail:
+            return TailReaderPosition()
+        return OffsetReaderPosition(window.scroll_y, tuple(
+            page.capture_admission()
+            for history in window.histories for page in history.pages
+        ))
+
+    def prepare_history(self, history: "TranscriptHistory") -> None:
+        """Tail readers use ordinary newest-page admission."""
+
+
+@dataclass(frozen=True)
+class TailReaderPosition(ReaderPosition):
+    def _restore(self, window: "HistoryWindow") -> None:
+        window.anchor()
+
+
+@dataclass(frozen=True)
+class OffsetReaderPosition(ReaderPosition):
+    y: float
+    admissions: tuple["TranscriptPageAdmission", ...]
+
+    def prepare_history(self, history: "TranscriptHistory") -> None:
+        for page in history.pages:
+            for admission in self.admissions:
+                page.restore_admission(admission)
+
+    def _restore(self, window: "HistoryWindow") -> None:
+        window.release_anchor()
+        window.scroll_to(y=self.y, animate=False, immediate=True)
 
 
 class HistoryWindow(VerticalScroll):
@@ -100,11 +157,11 @@ class HistoryWindow(VerticalScroll):
     async def preserve_history(self, widget: Widget | None):
 
         """Serialize with history_lock; reflow retains the current reader position."""
-        from toad.screens.session_view import SessionView
+        from toad.screens.workspace import WorkspaceScreen
 
         screen = self.screen
         self.history_anchor = HistoryAnchor.capture(widget, self) if widget is not None else None
-        if self.history_anchor is not None and isinstance(screen, SessionView):
+        if self.history_anchor is not None and isinstance(screen, WorkspaceScreen):
             screen.viewport_presentation.anchors.add(self)
         try:
             yield
@@ -121,14 +178,14 @@ class HistoryWindow(VerticalScroll):
                 self.call_after_refresh(painted.set)
                 await painted.wait()
         finally:
-            if isinstance(screen, SessionView):
+            if isinstance(screen, WorkspaceScreen):
                 screen.viewport_presentation.anchors.discard(self)
             self.history_anchor = None
             self.history_layout_ready = self.history_paint_ready = None
 
 
 @dataclass(frozen=True)
-class HistoryAnchor(ABC):
+class HistoryAnchor(WindowRestoration):
     widget: Widget
     scroll_y: float
     scroll_revision: int
@@ -177,14 +234,8 @@ class HistoryAnchor(ABC):
             node = node.parent
         return offset
 
-    def restore(self, window: HistoryWindow) -> None:
-        if window.scroll_revision != self.scroll_revision:
-            return
-        window._restoring = True
-        try:
-            self._restore(window)
-        finally:
-            window._restoring = False
+    def current(self, window: HistoryWindow) -> bool:
+        return window.scroll_revision == self.scroll_revision
 
     @abstractmethod
     def _restore(self, window: HistoryWindow) -> None:

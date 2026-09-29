@@ -61,8 +61,8 @@ async def main():
         async with app.run_test(size=(110, 35)) as pilot:
             await asyncio.wait_for(renderer.started.wait(), 3)
             await pilot.pause()
-            first = app.current_mode
-            prompt = app.screen.conversation.prompt
+            first = app.selected_mode
+            prompt = app.selected_session.conversation.prompt
             prompt.focus()
             await pilot.press("h", "i")
             assert prompt.text == "hi"

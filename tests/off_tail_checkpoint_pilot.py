@@ -70,7 +70,7 @@ async def checkpoint(view):
 
 
 async def exercise(app, pilot):
-    view = app.screen.conversation
+    view = app.selected_session.conversation
     agent = PagedAgent()
     view.set_reactive(type(view).agent, agent)
     view.agent_ready = True
@@ -247,7 +247,7 @@ async def exercise(app, pilot):
 
         # A parked tab has no viewport to repaint and must not wait for a frame
         # which its inactive screen cannot deliver.
-        original_mode = app.current_mode
+        original_mode = app.selected_mode
         app.add_mode("checkpoint-parked", Screen)
         view.transcript.dirty = False
         await app.switch_mode("checkpoint-parked")

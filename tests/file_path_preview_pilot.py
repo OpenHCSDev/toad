@@ -45,7 +45,7 @@ async def main():
                 "See plans/tag-channel-view-plan.md: and `plans/tag-channel-view-plan.md` "
                 "but not plans/missing.md or https://example.com/plans/tag-channel-view-plan.md."
             )
-            response = await app.screen.conversation.post(AgentResponse(source))
+            response = await app.selected_session.conversation.post(AgentResponse(source))
             await pilot.pause()
             tokens = response._make_parser().parse(source)
             links = [
@@ -70,7 +70,7 @@ async def main():
                 f"toad-file:{path}", f"toad-file:{path}",
                 "https://example.com/preview.py", "toad-file-search:missing.py",
             ], explicit_links
-            owner_mode = app.current_mode
+            owner_mode = app.selected_mode
             owner = app.screen
             owner.conversation.prompt.text = "Keep this draft"
 
@@ -87,20 +87,20 @@ async def main():
                 assert await pilot.click(copy)
                 await pilot.pause()
                 copied.assert_called_once_with(str(path.resolve()))
-            assert app.current_mode == owner_mode
+            assert app.selected_mode == owner_mode
 
             # Even a pre-existing explicit Markdown file URI is previewed in
             # Toad rather than handed to the external browser.
             response.post_message(Markdown.LinkClicked(response, path.as_uri()))
             await pilot.pause()
             assert app.screen.query_one(FilePreview).path == path
-            await app.close_session_mode(app.current_mode)
-            assert app.current_mode == owner_mode
+            await app.close_session_mode(app.selected_mode)
+            assert app.selected_mode == owner_mode
 
             response.post_message(Markdown.LinkClicked(response, links[0]))
             await pilot.pause()
             assert isinstance(app.screen, FilePreviewScreen)
-            first_mode = app.current_mode
+            first_mode = app.selected_mode
             assert [tab.mode_name for tab in app.open_tabs][:2] == [owner_mode, first_mode]
             preview = app.screen.query_one(FilePreview)
             await preview_ready(app, pilot)
@@ -121,18 +121,18 @@ async def main():
             other.write_text("answer = 42\n")
             second_mode = await app.open_file_preview(other)
             await preview_ready(app, pilot)
-            assert second_mode != first_mode and app.current_mode == second_mode
+            assert second_mode != first_mode and app.selected_mode == second_mode
             assert [tab.mode_name for tab in app.open_tabs][:3] == [
                 owner_mode, first_mode, second_mode]
             python_frame = "\n".join(strip.text for strip in app.screen._compositor.render_strips())
             assert "answer = 42" in python_frame, "Python lexer did not render its source"
             assert await pilot.click(f"#close-{first_mode}")
             await pilot.pause()
-            assert app.current_mode == second_mode and first_mode not in {
+            assert app.selected_mode == second_mode and first_mode not in {
                 tab.mode_name for tab in app.open_tabs}
             assert await pilot.click(f"#close-{second_mode}")
             await pilot.pause()
-            assert app.current_mode == owner_mode
+            assert app.selected_mode == owner_mode
             assert owner.conversation.prompt.text == "Keep this draft"
             assert not owner.query(FilePreview)
 
@@ -144,14 +144,14 @@ async def main():
             assert [tab.mode_name for tab in app.open_tabs][:3] == [
                 owner_mode, first_mode, second_mode]
             await app.screen.action_back()
-            assert app.current_mode == first_mode
+            assert app.selected_mode == first_mode
             assert app.screen.query_one(FilePreview) is first_preview
             assert second_mode in {tab.mode_name for tab in app.open_tabs}
             await app.switch_mode(second_mode)
             await app.close_session_mode(second_mode)
-            assert app.current_mode == first_mode
+            assert app.selected_mode == first_mode
             await app.close_session_mode(first_mode)
-            assert app.current_mode == owner_mode
+            assert app.selected_mode == owner_mode
             assert owner.conversation.prompt.text == "Keep this draft"
 
             large_python = project / "preview.py"
@@ -160,9 +160,9 @@ async def main():
             await preview_ready(app, pilot)
             large_frame = "\n".join(strip.text for strip in app.screen._compositor.render_strips())
             assert "def check(value: int) -> int:" in large_frame, "Large .py preview failed"
-            assert app.current_mode == large_mode and app._exception is None
+            assert app.selected_mode == large_mode and app._exception is None
             await app.close_session_mode(large_mode)
-            assert app.current_mode == owner_mode
+            assert app.selected_mode == owner_mode
 
             oversized = project / "oversized-preview.py"
             oversized.write_text("# FIRST-LINE-MARKER\nanswer = 42\n" + "pass\n" * 230_000)
@@ -171,9 +171,9 @@ async def main():
             oversized_frame = "\n".join(strip.text for strip in app.screen._compositor.render_strips())
             assert "exceeds 1 MiB; showing only the first 64 KiB" in oversized_frame, oversized_frame
             assert "FIRST-LINE-MARKER" in oversized_frame
-            assert app.current_mode == oversized_mode and app._exception is None
+            assert app.selected_mode == oversized_mode and app._exception is None
             await app.close_session_mode(oversized_mode)
-            assert app.current_mode == owner_mode
+            assert app.selected_mode == owner_mode
 
             log_path = project / "session.log"
             log_path.write_text("LOG-PREVIEW-WORKS\n")
@@ -182,7 +182,7 @@ async def main():
             log_frame = "\n".join(strip.text for strip in app.screen._compositor.render_strips())
             assert "LOG-PREVIEW-WORKS" in log_frame and app._exception is None
             await app.close_session_mode(log_mode)
-            assert app.current_mode == owner_mode
+            assert app.selected_mode == owner_mode
 
             # A bare filename in an agent response need not pretend to live
             # at the project root. Resolve it on activation only when unique.
@@ -219,19 +219,19 @@ async def main():
                 assert await pilot.click(copy)
                 await pilot.pause()
                 copied.assert_called_once_with(str(nested))
-            assert app.current_mode == owner_mode
+            assert app.selected_mode == owner_mode
             nested_response.post_message(Markdown.LinkClicked(nested_response, basename_links[0]))
             await pilot.pause()
             assert app.screen.query_one(FilePreview).path == nested
-            await app.close_session_mode(app.current_mode)
-            assert app.current_mode == owner_mode
+            await app.close_session_mode(app.selected_mode)
+            assert app.selected_mode == owner_mode
             duplicate = project / "other" / "declarations.py"
             duplicate.parent.mkdir()
             duplicate.write_text("# ANOTHER DECLARATION\n")
             with patch.object(app, "notify") as notices:
                 nested_response.post_message(Markdown.LinkClicked(nested_response, basename_links[0]))
                 await pilot.pause()
-                assert app.current_mode == owner_mode
+                assert app.selected_mode == owner_mode
                 assert "Several files named declarations.py" in notices.call_args.args[0]
 
             # A file link inside a channel should open directly above that
@@ -249,9 +249,9 @@ async def main():
             assert isinstance(app.screen, FilePreviewScreen)
             assert app.screen.query_one(FilePreview).path == path
             assert [tab.mode_name for tab in app.open_tabs] == [
-                owner_mode, channel, app.current_mode]
-            await app.close_session_mode(app.current_mode)
-            assert app.current_mode == channel
+                owner_mode, channel, app.selected_mode]
+            await app.close_session_mode(app.selected_mode)
+            assert app.selected_mode == channel
             assert owner.conversation.prompt.text == "Keep this draft"
     print("file paths: relative resolution, highlighting, exact source, and terminal preview passed")
 

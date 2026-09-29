@@ -25,7 +25,7 @@ async def main():
             await pilot.pause()
             with patch.object(markdown_module, "highlight", side_effect=AssertionError("User fence highlighted on UI thread")):
                 message = UserInput(source)
-                await app.screen.conversation.contents.mount(message)
+                await app.selected_session.conversation.contents.mount(message)
                 async with asyncio.timeout(15):
                     while not message.query(MarkdownFence):
                         if app._exception is not None:

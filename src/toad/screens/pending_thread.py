@@ -18,7 +18,6 @@ from toad.session_tracker import SidebarState
 from toad.widgets.channels_sidebar import ChannelsSlot
 from toad.widgets.comms_sidebar import SelectTarget
 from toad.widgets.conversation import ThreadLoading
-from toad.workspace_chrome import NavigationSlot
 from toad.widgets.side_bar import SideBar, ThreadSidebar
 from toad.navigation_target import NavigationContext, NavigationOwner
 
@@ -49,12 +48,10 @@ class PendingThreadScreen(SessionView, NavigationOwner, can_focus=False):
         return self.me, ""
 
     def compose(self) -> ComposeResult:
-        yield NavigationSlot()
         with containers.Center():
             # This is the existing owner's cached channel projection, not the
             # unresolved destination. Shared hide/placement/scroll intent stays
             # visible without adding another wire read to route discovery.
-            yield self._channels
             yield ThreadSidebar(
                 SideBar.Panel("Thread", Static("Opening thread…")),
                 right=True, hide=True, navigation=self._thread_sidebar_state,
@@ -128,11 +125,10 @@ class PendingTabShells:
         self.app._pending_thread_index += 1
         mode = f"pending-thread-{self.app._pending_thread_index}"
         screen = PendingThreadScreen()
-        screen.id = mode
-        self.app.add_mode(mode, lambda: screen)
+        self.app.workspace_sessions.register(mode, lambda: screen)
         # Native mounting is asynchronous and does not select the mode. The
         # existing presentation boundary keeps its source callbacks dormant.
-        await self.app._init_mode(mode)
+        await self.app.workspace_sessions.prepare(mode)
         return screen
 
     async def acquire(self, context: NavigationContext) -> PendingThreadScreen:
