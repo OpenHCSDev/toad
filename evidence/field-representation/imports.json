@@ -1,0 +1,24 @@
+{
+  "agent-comms": {
+    "url": "file:///home/ts/wt/comms-field-representation-owner-20260929",
+    "dir_info": {}
+  },
+  "batrachian-toad": {
+    "url": "file:///home/ts/wt/toad-field-representation-owner-20260929",
+    "dir_info": {}
+  },
+  "textual": {
+    "url": "https://github.com/OpenHCSDev/textual.git",
+    "vcs_info": {
+      "vcs": "git",
+      "commit_id": "1738abd8e3524b7e86171b70256d7f7e52fdb724",
+      "requested_revision": "1738abd8e3524b7e86171b70256d7f7e52fdb724"
+    }
+  },
+  "imports": [
+    "/home/ts/wt/toad-field-representation-owner-20260929/.venv/lib/python3.14/site-packages/agent_comms/field_codec.py",
+    "/home/ts/wt/toad-field-representation-owner-20260929/.venv/lib/python3.14/site-packages/toad/db.py",
+    "/home/ts/wt/toad-field-representation-owner-20260929/.venv/lib/python3.14/site-packages/toad/render_protocol.py",
+    "/home/ts/wt/toad-field-representation-owner-20260929/.venv/lib/python3.14/site-packages/textual/__init__.py"
+  ]
+}
