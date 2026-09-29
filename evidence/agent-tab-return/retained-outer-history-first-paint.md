@@ -45,6 +45,12 @@ identity and final-frame assertions. The unprofiled control is invalid:
 `nra-architecture` attachment failed before its warm-return frames. The
 sampled UI profile has many sample errors and is only partial attribution,
 not a measured speedup or a complete CPU breakdown.
+The same profiled video/CPU receipt measured the UI process at 58.3% average
+CPU during warm A, 73.4% during warm B, 97.2% during held PageUp, 97.1%
+during reverse PageUp, and 53.6% during idle; measured preparation worker
+processes were near zero in those intervals. These are phase-wide process
+counter deltas, not per-frame execution time. The py-spy trace had 407 errors
+in 500 sampling attempts, so its named call stacks are only leads.
 
 The recorder invoked `st -e toad-comms` with `AGENT_COMMS_RUNTIME_ROOT` set to
 the isolated candidate runtime. The launcher clears private root/native pins,
@@ -54,7 +60,47 @@ failure and native-pin mismatch were reported, further live-root candidate
 captures were stopped. One owner PID appeared in the recorder's descendant
 cleanup identities; the cleanup may have stopped an owner it launched. This
 remains under parent-owned incident review. Resume recording only against an
-approved default ACP
-or an explicitly complete, matched private root/native environment. The
+approved default ACP or an explicitly complete, matched private root/native environment. The
 parent owns live-route recovery and installed runtime activation; Mendel owns
 the isolated physical-key recording tools.
+
+## Paired private candidate
+
+The exact `5732952d81b0103507bdb17123d25d62a0891934` wheel is installed
+only in `/home/ts/.cache/agent-scratch/toad-retained-outer-history-first-paint-20260929/installed-runtime`.
+Its activation receipt pins Core `fc47c15a`, Textual `412b5a2b` and native
+package `776dc368`. The wheel SHA-256 is
+`4ba3c73065814c11231fdbb540a5f50fce6570f5dec7ffa82171aeba955dbf31`;
+all 297 `toad/` files matched both the worktree source and the isolated
+installation byte for byte. The private physical capture must launch that
+runtime's `toad acp` and Python directly with the fixture's matching root ID
+and native package pins. The `toad-comms` wrapper clears those pins and is
+therefore unsuitable for this candidate capture.
+
+The exact wheel's subsequent matched-private recordings are in Mendel's
+`candidate-private-custody/private-profiled` and `private-unprofiled` directories.
+Both show the previous response number under the selected destination tab
+for several reviewed frames. Physical PageUp/PageDown changes actual native
+history, but End leaves earlier paragraphs and the Jump to Latest control
+visible during idle. Neither recording passes visual acceptance.
+The profiled run measured 85.1% UI CPU during PageUp, 83.3% during reverse,
+and 29.6% during idle. Its sampler reported 368 errors in 369 samples;
+call-stack attribution is insufficient to assign those costs precisely.
+
+After the server interruption, Mendel inspected the original private owners
+and input dispositions, verified a uniquely new controlled input once through
+actual ACP, and stopped only those private fixture owners through Core's
+lifecycle. `custody-resume-acceptance.json` records successful attachment,
+one loopback provider request, and no replay. This custody result is separate
+from the failed visual assessment. No interrupted test is being replayed.
+
+## Remaining style and layout cost
+
+Textual412's `Widget.reparent()` calls `stylesheet.update_nodes()` over every
+descendant and refreshes layout on both old and new parents. This draft parks
+and reclaims the full mounted history through `reparent()`. Preserved fragment
+and widget render caches therefore do not imply preserved layout or a warm
+terminal Strip frame. The source pilot measured a median 244.5 ms from
+selection to first completed display, with `native_activate` around 124–150 ms
+and destination `layout_navigation` around 20–24 ms across its five returns.
+The reparent traversal is a likely contributor, not isolated by that timing.
