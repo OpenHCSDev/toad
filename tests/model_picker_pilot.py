@@ -29,6 +29,11 @@ class TestAgent(AgentBase):
         self.target = target
         self.models = models
         self.calls = []
+        from toad.acp.agent_configuration import AgentConfiguration
+        self.configuration = AgentConfiguration(self)
+
+    def post_message(self, message):
+        return self.target.post_message(message)
 
     def get_info(self):
         return Content("Picker test")

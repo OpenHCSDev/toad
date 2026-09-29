@@ -19,8 +19,6 @@ class AgentPresentation(DeclaredFamily, affix="AgentPresentation"):
     def __init__(self, agent):
         self.agent = agent
         self.auth_methods = []
-        self.thinking_levels = []
-        self.current_thinking_level = None
         self.prompt_in_flight = 0
         self.log_path: Path | None = None
 

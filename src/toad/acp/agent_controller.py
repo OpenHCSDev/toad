@@ -67,8 +67,6 @@ class AgentController(OperationalTerminalOwner):
         self.app = None
         self.coordination = None
         self.session_id = None
-        self.models = {}
-        self.current_model = ""
         self.modes = {}
         self.current_mode = None
         self.commands = []
@@ -99,7 +97,7 @@ class AgentController(OperationalTerminalOwner):
 
     async def restore(self, binding):
         from agent_comms.acp_extension import TranscriptSnapshotUpdate
-        from .messages import CommsUpdated, SetModels, SetModes, SetThinkingLevels, AvailableCommandsUpdate
+        from .messages import CommsUpdated, SetModes, AvailableCommandsUpdate
         agent = self.agent
         if agent.coordination is not None:
             page = await agent.get_transcript_page()
@@ -108,10 +106,9 @@ class AgentController(OperationalTerminalOwner):
             agent.post_message(CommsUpdated(agent.coordination, agent, agent.session_id))
             agent.post_message(CommsUpdated(TranscriptSnapshotUpdate(page), agent, agent.session_id))
         if self.surface is binding:
-            agent.post_message(SetModels(self.current_model, self.models))
+            agent.configuration.publish()
             if self.current_mode is not None:
                 agent.post_message(SetModes(self.current_mode, self.modes))
-            agent.post_message(SetThinkingLevels(agent.presentation.current_thinking_level or "off", agent.presentation.thinking_levels))
             agent.post_message(AvailableCommandsUpdate(self.commands))
             if self.plan_entries is not None:
                 from .messages import Plan
@@ -132,11 +129,6 @@ class AgentController(OperationalTerminalOwner):
         agent._invalidate_attachment_views()
         agent._active_turn_id = None
         agent.post_message(McpClientStopped(agent))
-
-    def publish_models(self, current, models):
-        from .messages import SetModels
-        self.current_model, self.models = current, models
-        self.agent.post_message(SetModels(current, models))
 
     def publish_modes(self, current, modes):
         from .messages import SetModes
