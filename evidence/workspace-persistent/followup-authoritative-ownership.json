@@ -1,0 +1,77 @@
+{
+  "base": "040607c23031450a6c53bb25fdea72256b2ca2ad",
+  "measures": [
+    {
+      "path": "src/toad/screens/workspace.py",
+      "foreign_absence_probe": [
+        11,
+        5
+      ],
+      "boolean_chain_terms": [
+        21,
+        21
+      ]
+    },
+    {
+      "path": "src/toad/session_tracker.py",
+      "foreign_absence_probe": [
+        0,
+        0
+      ],
+      "boolean_chain_terms": [
+        0,
+        0
+      ]
+    },
+    {
+      "path": "src/toad/transcript_publication.py",
+      "foreign_absence_probe": [
+        18,
+        16
+      ],
+      "boolean_chain_terms": [
+        21,
+        21
+      ]
+    },
+    {
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "foreign_absence_probe": [
+        11,
+        11
+      ],
+      "boolean_chain_terms": [
+        39,
+        39
+      ]
+    },
+    {
+      "path": "src/toad/widgets/conversation.py",
+      "foreign_absence_probe": [
+        31,
+        31
+      ],
+      "boolean_chain_terms": [
+        25,
+        25
+      ]
+    },
+    {
+      "path": "src/toad/widgets/history_anchor.py",
+      "foreign_absence_probe": [
+        3,
+        3
+      ],
+      "boolean_chain_terms": [
+        4,
+        4
+      ]
+    }
+  ],
+  "god_class_excess_growth": [],
+  "conversation_lines": [
+    2191,
+    2054
+  ],
+  "binding_lines": 215
+}

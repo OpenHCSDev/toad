@@ -348,7 +348,7 @@ class Agent(AgentBase):
                 self.tool_calls[tool_call_id] = update
                 self.post_message(messages.ToolCall(update))
             case {"sessionUpdate": "plan", "entries": entries}:
-                self.post_message(messages.Plan(decode_plan(entries)))
+                self.controller.publish_plan(decode_plan(entries))
             case {"sessionUpdate": "tool_call_update", "toolCallId": tool_call_id}:
                 if tool_call_id in self.tool_calls:
                     current_tool_call = self.tool_calls[tool_call_id]
