@@ -10,13 +10,49 @@ from time import perf_counter
 from weakref import ref
 
 from agent_comms.threads import Thread
+from agent_comms.goal_actions import SetGoalAction
 from l0a_native_installed_pilot import main as native_fixture, until
 from native_session_retention_pilot import InstalledApp, conversation_paint
+from toad.widgets.session_tabs import SessionLabel
 from viewport_recent_tabs_pilot import settled
 from toad.screens.main import MainScreen
 from toad.widgets.agent_response import AgentResponse
+from toad.widgets.conversation import Conversation
 from toad.widgets.transcript_history import TranscriptFragmentView
 from textual.widget import Widget
+from textual.content import Content
+from toad.acp.messages import UpdateStatusLine
+
+
+class PaintedReturnApp(InstalledApp):
+    """Capture every actual compositor frame during native tab selection."""
+
+    observed_frames = None
+
+    def _display(self, screen, renderable):
+        super()._display(screen, renderable)
+        # Textual calls _display inside batch_update but discards that frame.
+        # Only a completed display is an observable first paint.
+        if (self.observed_frames is not None and renderable is not None
+                and not self._batch_count and screen is self.screen):
+            view = self.selected_session.query_one_optional(Conversation)
+            agent = view.agent if view is not None else None
+            self.observed_frames.append((
+                self.selected_mode, conversation_paint(screen),
+                "\n".join(strip.text for strip in screen._compositor.render_strips()),
+                agent is None or view.status == agent.context_measurement.status(),
+                agent is None or view.turns.owner.busy == agent.current_turn.busy,
+            ))
+
+
+async def click_session(app, pilot, source):
+    tab = next(label for label in app.screen.query(SessionLabel) if label.id == source.id)
+    tab.scroll_visible(animate=False, immediate=True)
+    await pilot.pause()
+    app.observed_frames = []
+    assert await pilot.click(tab), f"Session tab {source.id} was not clickable"
+    frames, app.observed_frames = app.observed_frames, None
+    return frames
 
 
 async def acceptance(app, pilot, beta, comms, entered, release, hold_next, requests):
@@ -44,6 +80,7 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
                     for row in range(12))
                 await asyncio.wait_for(agent.send_prompt(prompt), 25)
                 await until(pilot, lambda: not comms.registry.require(name).executing)
+            comms.goals.update_goal(name, SetGoalAction(text=f"SELECTED_GOAL_{name.upper()}"))
         # Both now have durable, actually produced native journals. Establish
         # comparable reader/editor state only after ordinary saved publication.
         states = {}
@@ -55,9 +92,12 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
                     1+sum(1 for _ in k().walk_children()))
                    for k in app.selected_session.conversation.window.document_viewport._warm
                    if k() is not None and isinstance(k(),TranscriptFragmentView)],flush=True)
-            await app.select_session(source.id)
+            frames = await click_session(app, pilot, source)
             view = source.conversation
             await until(pilot, lambda: bool(view.window.histories) and view.transcript.displayed_cursor is not None)
+            await view.goal_observation.refresh()
+            assert view.goal_display.snapshot is not None
+            assert view.goal_display.snapshot.text == f"SELECTED_GOAL_{agent.session_id.upper()}"
             print("SOURCE_READY_PAINT", source.id, agent.ready, view.agent_ready, view.classes,
                   view.window.document_viewport.visible_bodies_ready,
                   [(type(node).__name__, node.region) for node in app.screen._compositor.visible_widgets
@@ -116,10 +156,30 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
                     1+sum(1 for _ in k().walk_children()))
                    for k in app.selected_session.conversation.window.document_viewport._warm
                    if k() is not None and isinstance(k(),TranscriptFragmentView)],flush=True)
-            await app.select_session(source.id)
+            frames = await click_session(app, pilot, source)
             view = source.conversation
             await until(pilot, lambda: bool(view.window.histories))
             y, painted, document, history, process, runner, old_bodies = states[source.id]
+            print("FIRST_FRAMES", source.id,
+                  [(mode, len(reader.strip()), "NATIVE_RESPONSE" in reader,
+                    "Earlier history" in reader) for mode, reader, _full, _status, _turn in frames[:8]], flush=True)
+            destination_frames = [frame for frame in frames if frame[0] == source.id]
+            reader_marker = f"{agent.session_id} saved reader paragraph"
+            other_reader = "gamma saved reader paragraph" if agent.session_id == "beta" else "beta saved reader paragraph"
+            assert destination_frames and reader_marker in destination_frames[0][1] and other_reader not in destination_frames[0][1], (
+                "First painted return frame did not show the destination reader",
+                source.id, [(mode, reader[:200]) for mode, reader, _full, _status, _turn in frames[:3]],
+            )
+            goal_text = f"SELECTED_GOAL_{agent.session_id.upper()}"
+            other_goal = f"SELECTED_GOAL_{'GAMMA' if agent.session_id == 'beta' else 'BETA'}"
+            assert goal_text in destination_frames[0][2] and other_goal not in destination_frames[0][2], (
+                "First painted return frame showed another agent's goal",
+                source.id, destination_frames[0][2][-1800:],
+            )
+            assert destination_frames[0][3] and destination_frames[0][4], (
+                "First painted status or turn belonged to another agent", source.id,
+            )
+            assert "Loading new thread" not in destination_frames[0][2]
             try:
                 await until(pilot, lambda: conversation_paint(frame) == painted)
             except TimeoutError:
@@ -171,6 +231,38 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
             editor = source.conversation.prompt.prompt_text_area
             editor.undo()
             assert editor.text == f"draft-{source.id}"
+        await app.select_session(sources[0].id)
+        entered.clear()
+        release.clear()
+        hold_next.set()
+        held = asyncio.create_task(agents[1].send_prompt("ACTIVE_GAMMA_RETURN"))
+        await until(pilot, entered.is_set)
+        await until(pilot, lambda: agents[1].current_turn.busy)
+        active_started = perf_counter()
+        active_frames = await click_session(app, pilot, sources[1])
+        active_return_ms = (perf_counter() - active_started) * 1000
+        selected_active = [frame for frame in active_frames if frame[0] == sources[1].id]
+        print("ACTIVE_RETURN_MS", round(active_return_ms, 1), flush=True)
+        print("ACTIVE_FIRST_FRAME", selected_active[0][1][:700] if selected_active else "none",
+              selected_active[0][2][-700:] if selected_active else "none", flush=True)
+        assert selected_active and selected_active[0][3] and selected_active[0][4]
+        assert ("gamma saved reader paragraph" in selected_active[0][1]
+                or "ACTIVE_GAMMA_RETURN" in selected_active[0][1])
+        assert "beta saved reader paragraph" not in selected_active[0][1]
+        assert "SELECTED_GOAL_GAMMA" in selected_active[0][2]
+        assert "Thinking" in selected_active[0][2]
+        assert sources[1].conversation.turns.owner.busy
+        # A status event queued by the departing source may reach the shared
+        # widget after it is rebound. Its content has no destination identity.
+        sources[1].conversation.post_message(UpdateStatusLine(Content("STALE_BETA_STATUS")))
+        await pilot.pause()
+        assert sources[1].conversation.status == agents[1].context_measurement.status()
+        assert "STALE_BETA_STATUS" not in "\n".join(
+            strip.text for strip in frame._compositor.render_strips())
+        release.set()
+        await asyncio.wait_for(held, 25)
+        await until(pilot, lambda: not agents[1].current_turn.busy)
+        assert len(requests) == native_calls + 1
         assert app.screen is frame and app._exception is None
         Path(os.environ["NATIVE_RETURN_RECEIPT"]).write_text(json.dumps(records,indent=2))
         print("TWO_LOADED_NATIVE_ABABA_FULL_PAINT_READER_EDITOR_UNDO_CUSTODY_NO_REPLAY", records, flush=True)
@@ -178,10 +270,11 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
         traceback.print_exc()
         raise
     finally:
+        release.set()
         for agent in agents[1:]:
             await agent.stop()
         await asyncio.to_thread(comms.owners.stop,"gamma")
 
 
 if __name__ == "__main__":
-    asyncio.run(native_fixture(app_type=InstalledApp, acceptance=acceptance))
+    asyncio.run(native_fixture(app_type=PaintedReturnApp, acceptance=acceptance))

@@ -84,15 +84,15 @@ async def main():
 
                 await channel_target("#comms").open(NavigationContext(app, native_mode, root, "peer"))
                 chat = app.screen.query_one(CommsChatView)
-                await until(lambda: chat._history_initialized and not chat._refresh_lock.locked()
-                            and not chat._edge_load_scheduled)
+                await until(lambda: chat.message_history.initialized and not chat.message_history.lock.locked()
+                            and not chat.message_history.edge_scheduled)
                 await pilot.pause()
                 chat._refresh_notifications()
                 await until(lambda: chat._notification_task is not None and chat._notification_task.done())
-                feedback = next(w.query_one(MessageNotifications) for m, w in reversed(chat._history)
-                                if m.view_key in chat._painted_message_keys())
+                feedback = next(w.query_one(MessageNotifications) for m, w in reversed(chat.message_history.rows)
+                                if m.view_key in chat.message_history.painted_keys())
                 assert str(feedback.title).startswith("Checking relevance… (1)"), feedback.title
-                assert 0 < len(calls[-1]) <= len(chat._history) <= 120
+                assert 0 < len(calls[-1]) <= len(chat.message_history.rows) <= 120
                 assert set(calls[-1]) <= {m.view_key for m, _ in chat._visible_notification_rows()}
                 await pilot.click(feedback.query_one("CollapsibleTitle"))
                 await pilot.pause()
@@ -105,7 +105,7 @@ async def main():
                 try:
                     await until(lambda: "Responding…" in str(feedback.title))
                 except TimeoutError:
-                    print("DEBUG", {"title": str(feedback.title), "visible": chat._painted_message_keys(), "calls": calls[-4:], "lock": chat._refresh_lock.locked(), "task": repr(chat._notification_task), "scroll": (chat.window.scroll_y, chat.window.max_scroll_y), "attached": feedback.is_attached}, flush=True)
+                    print("DEBUG", {"title": str(feedback.title), "visible": chat.message_history.painted_keys(), "calls": calls[-4:], "lock": chat.message_history.lock.locked(), "task": repr(chat._notification_task), "scroll": (chat.window.scroll_y, chat.window.max_scroll_y), "attached": feedback.is_attached}, flush=True)
                     raise
                 state, priority, busy = "Checked — no response", 2, False
                 await until(lambda: str(feedback.title).startswith("Checked — no response (1)"))
@@ -131,11 +131,11 @@ async def main():
                 app.pop_screen()
                 await pilot.pause()
                 # Markdown uses the same feedback owner and retains its separate body read proof.
-                await chat.toggle_message_style()
+                await chat.message_history.toggle_style()
                 await pilot.pause()
                 chat._refresh_notifications()
                 await until(lambda: chat._notification_task.done())
-                row = chat._history[-1][1]
+                row = chat.message_history.rows[-1][1]
                 assert not isinstance(row.read_ack_widget(), MessageNotifications)
                 assert "Responded" in str(row.query_one(MessageNotifications).title)
                 row.query_one(MessageNotifications).show_result(())

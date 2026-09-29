@@ -47,8 +47,8 @@ async def main() -> None:
             chat = app.screen.query_one(CommsChatView)
             await chat._refresh()
             await pilot.pause()
-            assert [m.body for m, _ in chat._history] == ["current channel message"]
-            assert not chat._has_older
+            assert [m.body for m, _ in chat.message_history.rows] == ["current channel message"]
+            assert not chat.message_history.has_older
 
             comms.channels.update_tags("carol", add=frozenset({"team"}))
             expanded = comms.views.channel_display_page("#team", worktree=str(root))
@@ -57,7 +57,7 @@ async def main() -> None:
             ]
             await chat._refresh()
             await pilot.pause()
-            assert [m.body for m, _ in chat._history][:2] == [
+            assert [m.body for m, _ in chat.message_history.rows][:2] == [
                 "older newly visible DM", "current channel message"
             ]
         await asyncio.get_running_loop().shutdown_default_executor()

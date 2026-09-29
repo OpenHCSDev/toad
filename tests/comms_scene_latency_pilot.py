@@ -30,8 +30,8 @@ class SceneProbe(ToadApp):
                 and screen is self.screen and getattr(screen, "target", None) == self.target):
             chat = screen.query_one_optional(CommsChatView)
             sidebar = screen.query_one_optional(CommsSidebar)
-            if (chat is not None and chat._history_initialized and chat._history
-                    and sidebar is not None and sidebar.navigation.ready.is_set()
+            if (chat is not None and chat.message_history.initialized and chat.message_history.rows
+                    and sidebar is not None and sidebar.navigation_ready.is_set()
                     and chat.prompt.agent_ready):
                 self.pending.set_result(time.perf_counter())
         return result
@@ -63,8 +63,8 @@ async def main():
                 await channel_target(target).open(NavigationContext(app, owner, root, me))
                 samples.append((await asyncio.wait_for(app.pending, 8) - started) * 1000)
                 sizes.append(len(list(app.screen.query_one(Prompt).walk_children())))
-                assert app.screen.query_one(CommsChatView)._history[0][0].body.startswith("Scene history marker")
-                await app.select_session(owner)
+                assert app.screen.query_one(CommsChatView).message_history.rows[0][0].body.startswith("Scene history marker")
+                await app.switch_mode(owner)
                 await pilot.pause()
             assert app._exception is None
         await asyncio.get_running_loop().shutdown_default_executor()

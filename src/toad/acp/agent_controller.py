@@ -132,7 +132,6 @@ class AgentController(OperationalTerminalOwner):
         return await self.validation.validate(ValidateSessionUpdateTask(session_id, update, metadata))
 
     async def restore(self, binding):
-        from agent_comms.acp_extension import TranscriptSnapshotUpdate
         from .messages import CommsUpdated, SetModes, AvailableCommandsUpdate
         if self.surface is not binding:
             return
@@ -150,18 +149,30 @@ class AgentController(OperationalTerminalOwner):
         agent._post_queue_view()
         agent._post_private_cursor()
         if agent.coordination is not None:
-            binding.post(CommsUpdated(agent.coordination, agent, agent.session_id))
-            page = await agent.get_transcript_page()
+            coordination = agent.coordination
+            authority = ClientSessionRequest(agent, agent.session_id)
+            binding.post(CommsUpdated(coordination, agent, agent.session_id))
+            snapshot = await self.transcripts.snapshot(
+                coordination.wire_root, coordination.thread.name)
             if self.surface is not binding:
                 return
             if self.session is not session:
                 return
-            binding.post(CommsUpdated(TranscriptSnapshotUpdate(page), agent, agent.session_id))
+            self.require_owner(coordination, authority)
+            binding.post(CommsUpdated(snapshot, agent, agent.session_id))
         target = binding.target
         if target is not None:
             target.call_later(self.start_terminal_presentation, target)
 
 
+
+    async def publish_transcript_snapshot(self, update, binding, session):
+        snapshot = await self.transcripts.publication(update)
+        if self.session is not session:
+            return
+        if self.surface is not binding:
+            return
+        binding.post(messages.CommsUpdated(snapshot, self.agent, session.session_id))
 
     def connection_closed(self):
         from .messages import McpClientStopped

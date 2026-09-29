@@ -81,24 +81,24 @@ async def main():
             await pilot.pause()
             await channel_target("#team").open(NavigationContext(app, app.selected_mode, root, viewer))
             chat = app.screen.query_one(CommsChatView)
-            await until(pilot, lambda: chat._history_initialized)
-            assert any(m.body.startswith("LIVE") for m, _ in chat._history)
+            await until(pilot, lambda: chat.message_history.initialized)
+            assert any(m.body.startswith("LIVE") for m, _ in chat.message_history.rows)
             # Scroll as the user does, including source cursor boundary.
             for _ in range(12):
-                if not chat._has_older:
+                if not chat.message_history.has_older:
                     break
-                first = chat._history[0][0].view_cursor
+                first = chat.message_history.rows[0][0].view_cursor
                 chat.window.scroll_home(animate=False, immediate=True)
                 await until(
                     pilot,
                     lambda first=first: (
-                        not chat._has_older or chat._history[0][0].view_cursor != first
+                        not chat.message_history.has_older or chat.message_history.rows[0][0].view_cursor != first
                     ),
                 )
                 await pilot.pause()
-            assert chat._history[0][0].body.startswith("OLD row 0\n")
-            assert len({m.view_key for m, _ in chat._history}) == len(chat._history)
-            assert any(isinstance(m, HistoricalMessage) for m, _ in chat._history)
+            assert chat.message_history.rows[0][0].body.startswith("OLD row 0\n")
+            assert len({m.view_key for m, _ in chat.message_history.rows}) == len(chat.message_history.rows)
+            assert any(isinstance(m, HistoricalMessage) for m, _ in chat.message_history.rows)
             await until(
                 pilot,
                 lambda: bool(
@@ -158,7 +158,7 @@ async def main():
             chat = app.screen.query_one(CommsChatView)
             original_widget = next(
                 widget
-                for message, widget in chat._history
+                for message, widget in chat.message_history.rows
                 if isinstance(message, HistoricalMessage)
             )
             original_widget.action_open_sender()

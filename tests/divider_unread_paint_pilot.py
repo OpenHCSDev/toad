@@ -1,3 +1,4 @@
+from toad.mounted_message_history import MountedMessageHistory
 """A visible divider cannot acknowledge a message whose body is below the viewport."""
 from toad.navigation_target import NavigationContext
 
@@ -34,16 +35,16 @@ async def main() -> None:
         app = ToadApp(project_dir=str(root))
         # Hold automatic ACKs while arranging the divider-only viewport.
         # Initial tail paint may legitimately acknowledge the body with S4.
-        mark_visible = CommsChatView._mark_visible_after_layout
-        with patch.object(CommsChatView, "_mark_visible_after_layout"):
+        mark_visible = MountedMessageHistory.mark_visible
+        with patch.object(MountedMessageHistory, "mark_visible"):
             async with app.run_test(size=(80, 22)) as pilot:
                 await pilot.pause()
                 await channel_target("#team").open(NavigationContext(app, app.selected_mode, root, "peer"))
                 chat = app.screen.query_one(CommsChatView)
                 async with asyncio.timeout(5):
-                    while not chat._history_initialized:
+                    while not chat.message_history.initialized:
                         await pilot.pause(.02)
-                block = next(widget for message, widget in chat._history if message.seq == last.seq)
+                block = next(widget for message, widget in chat.message_history.rows if message.seq == last.seq)
                 divider = block.query_one(MessageDivider)
                 body = block.query_one(IRCMessageText)
                 await pilot.pause()
@@ -55,10 +56,10 @@ async def main() -> None:
                 await pilot.pause()
                 assert divider.region.overlaps(chat.window.content_region)
                 assert not body.region.overlaps(chat.window.content_region)
-                assert last.seq not in {seq for source, seq in chat._painted_message_keys() if not source}
+                assert last.seq not in {seq for source, seq in chat.message_history.painted_keys() if not source}
 
-                page = chat._message_page(comms, after=last.seq - 1)
-                chat._channel_ack_pages[last.seq] = page
+                page = chat.message_history.read_page(comms, after=last.seq - 1)
+                chat.message_history.channel_receipts[last.seq] = page
                 mark_visible(chat)
                 await pilot.pause(.2)
                 assert comms.views.viewer_snapshot(str(root)).channel_unread["#team"] == 1

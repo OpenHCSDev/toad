@@ -1,0 +1,22 @@
+{
+  "running": true,
+  "exit": false,
+  "dirty": true,
+  "width": 137,
+  "editor_value": "137",
+  "bound_value": 137,
+  "focus": "NoneType",
+  "screen": "SettingsScreen",
+  "path": "/home/ts/wt/toad-quit-save-sol-20260929/.artifacts/quit-recheck/tmp/quit-save-uw7gb4l7/config/toad/toad.json",
+  "path_directory": true,
+  "save_path": "/home/ts/wt/toad-quit-save-sol-20260929/.artifacts/quit-recheck/tmp/quit-save-uw7gb4l7/config/toad/toad.json",
+  "exception": "None",
+  "save_locked": false,
+  "notifications": [
+    {
+      "title": "Settings",
+      "message": "Failed to write '/home/ts/wt/toad-quit-save-sol-20260929/.artifacts/quit-recheck/tmp/quit-save-uw7gb4l7/config/toad/toad.json'; [Errno 21] Is a directory: '/home/ts/wt/toad-quit-save-sol-20260929/.artifacts/quit-recheck/tmp/quit-save-uw7gb4l7/config/toad/.toad.json_tmp_ybfevsm7' -> '/home/ts/wt/toad-quit-save-sol-20260929/.artifacts/quit-recheck/tmp/quit-save-uw7gb4l7/config/toad/toad.json'",
+      "severity": "error"
+    }
+  ]
+}
