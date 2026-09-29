@@ -32,10 +32,10 @@ async def main():
         app = ToadApp(agent_data=agent, project_dir=str(old), agent_session_id="saved")
         async with app.run_test(size=(100, 35)) as pilot:
             async with asyncio.timeout(20):
-                while not app.screen.query_one_optional(Conversation) or not app.screen.conversation.agent_ready:
+                while not app.screen.query_one_optional(Conversation) or not app.selected_session.conversation.agent_ready:
                     await asyncio.sleep(.05)
             await pilot.pause()
-            conversation = app.screen.conversation
+            conversation = app.selected_session.conversation
             assert conversation.agent._connected_ok, conversation.agent.presentation.log_path.read_text()
             from runtime_fixture import reveal_project_tree
             await reveal_project_tree(app, pilot)

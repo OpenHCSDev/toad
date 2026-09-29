@@ -18,7 +18,7 @@ async def main():
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(100, 35)) as pilot:
             await pilot.pause()
-            first_mode = app.current_mode
+            first_mode = app.selected_mode
             first = app.screen
             await first.conversation.contents.mount(AgentResponse("Saved text that stays visible"))
             second = await app.new_session_screen(app.get_main_screen)
@@ -35,7 +35,7 @@ async def main():
                     layout.assert_not_called()
                     assert first._layout_required, "Departing screen lost a real invalidation"
             await asyncio.wait_for(pending, 10)
-            assert app.current_mode == second_mode
+            assert app.selected_mode == second_mode
             assert app._pending_mode_switch is None
             await app.switch_mode(first_mode)
             await pilot.pause()

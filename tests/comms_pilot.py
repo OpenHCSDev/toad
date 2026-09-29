@@ -217,18 +217,18 @@ async def main() -> None:
             info_bar = app.screen.query_one("#info-container")
             footer = app.screen.query_one(Footer)
             assert info_bar.region.bottom == footer.region.y
-            throbber = app.screen.conversation.query_one(Throbber)
+            throbber = app.selected_session.conversation.query_one(Throbber)
             throbber.add_class("-busy")
             await pilot.pause()
-            assert throbber.region.bottom == app.screen.conversation.prompt.region.y, (
+            assert throbber.region.bottom == app.selected_session.conversation.prompt.region.y, (
                 throbber.region,
-                app.screen.conversation.prompt.region,
+                app.selected_session.conversation.prompt.region,
             )
             throbber.remove_class("-busy")
             await pilot.click(irc_key)
             await pilot.pause()
             assert isinstance(app.screen, CommsScreen)
-            assert await pilot.click(f"#close-{app.current_mode}")
+            assert await pilot.click(f"#close-{app.selected_mode}")
             await pilot.pause()
             assert isinstance(app.screen, MainScreen)
             assert app.session_tracker.session_count == 1
@@ -246,7 +246,7 @@ async def main() -> None:
             assert (
                 panels[0].query_one("CollapsibleTitle").region.y == panels[0].region.y
             )
-            conversation = app.screen.conversation
+            conversation = app.selected_session.conversation
             assert conversation.prompt.region.x == conversation.region.x
             assert conversation.contents.region.x == conversation.region.x + 1
             assert all(
@@ -307,7 +307,7 @@ async def main() -> None:
             )
             assert shell_sidebar.render() == ">"
             assert sidebar_toggle.tooltip == "Expand sidebar"
-            await pilot.hover(app.screen.conversation.prompt)
+            await pilot.hover(app.selected_session.conversation.prompt)
             collapsed_background = sidebar_toggle.styles.background
             assert await pilot.hover(sidebar_toggle)
             await pilot.pause()
@@ -340,23 +340,23 @@ async def main() -> None:
                 shortcut_snapshot.all_people,
                 app.screen._session_thread,
             )
-            preview_owner_mode = app.current_mode
+            preview_owner_mode = app.selected_mode
             await app.screen.open_file_preview(preview_path)
             await pilot.pause()
             from toad.screens.file_preview import FilePreviewScreen
 
             assert isinstance(app.screen, FilePreviewScreen)
-            preview_mode = app.current_mode
+            preview_mode = app.selected_mode
             assert any((tab.mode_name == preview_mode for tab in app.open_tabs))
             assert app.screen.query_one(FilePreview).query_one(Markdown)
             await app.close_session_mode(preview_mode)
-            assert app.current_mode == preview_owner_mode
+            assert app.selected_mode == preview_owner_mode
             search_button = app.screen.query_one(ProjectSearchButton)
             search_button.action_search()
             await pilot.pause()
-            assert app.screen.conversation.prompt.path_search.is_open
-            app.screen.conversation.prompt.path_search.is_open = False
-            owner_mode = app.current_mode
+            assert app.selected_session.conversation.prompt.path_search.is_open
+            app.selected_session.conversation.prompt.path_search.is_open = False
+            owner_mode = app.selected_mode
             sidebar = app.screen.query_one(CommsSidebar)
             new_session_button = sidebar.query_one(NewSessionButton)
             assert sidebar.children[0] is new_session_button
@@ -368,13 +368,13 @@ async def main() -> None:
             )
             await pilot.click(new_session_button)
             await pilot.pause()
-            created_mode = app.current_mode
+            created_mode = app.selected_mode
             assert created_mode != owner_mode
             assert app.session_tracker.session_count == 2
             session_rows = open_rows(app.screen)
             assert len(session_rows) == 1
             assert app.screen.query_one(f"SessionLabel#{created_mode}")
-            created_conversation = app.screen.conversation
+            created_conversation = app.selected_session.conversation
             assert app.session_tracker.get_session(created_mode).title == "New Session"
             managed_thread = "managed-test-thread"
             comms.threads.register(
@@ -488,7 +488,7 @@ async def main() -> None:
             await app.switch_mode(owner_mode)
             assert await pilot.click(f"SessionLabel#{created_mode}", button=2)
             await pilot.pause()
-            assert app.current_mode == owner_mode
+            assert app.selected_mode == owner_mode
             assert app.session_tracker.session_count == 1
             assert stopped_agents == 1
             owner_sidebar = app.screen.query_one(CommsSidebar)
@@ -531,7 +531,7 @@ async def main() -> None:
             assert menu_items[0].has_focus and (not menu_items[1].has_focus)
             await pilot.press("escape")
             await pilot.pause()
-            conversation = app.screen.conversation
+            conversation = app.selected_session.conversation
             flash = conversation.query_one(Flash)
             flash.flash("Readable notification", duration=10, style="warning")
             await pilot.pause()
@@ -781,7 +781,7 @@ async def main() -> None:
                 "Tab switch rebuilt the warm roster"
             )
             assert all((item.is_attached for item in retained_owner_rows))
-            first_channel_mode = app.current_mode
+            first_channel_mode = app.selected_mode
             chat = app.screen.query_one(CommsChatView)
             assert chat.prompt.prompt_text_area.has_focus
             responses = list(chat.query(IRCMessage))
@@ -814,9 +814,9 @@ async def main() -> None:
             await pilot.click(row(app.screen, "#all"))
             await pilot.pause()
             async with asyncio.timeout(10):
-                while app.current_mode != first_channel_mode:
+                while app.selected_mode != first_channel_mode:
                     await pilot.pause(0.01)
-            assert app.current_mode == first_channel_mode
+            assert app.selected_mode == first_channel_mode
             assert app.session_tracker.session_count == 1
             await pilot.press("escape")
             await pilot.pause()
@@ -874,8 +874,8 @@ async def main() -> None:
             assert app.screen.kind == "dm"
             assert row(app.screen, "peer").selected
             tabs = app.screen.query_one(SessionsTabs)
-            assert tabs.current_session == app.current_mode
-            active_tab = tabs.query_one(f"#{app.current_mode}", SessionLabel)
+            assert tabs.current_session == app.selected_mode
+            active_tab = tabs.query_one(f"#{app.selected_mode}", SessionLabel)
             assert active_tab.has_class("-current")
             assert active_tab.render().plain == "@peer"
             assert app.session_tracker.session_count == 1
@@ -901,13 +901,13 @@ async def main() -> None:
             await pilot.press("escape")
             await pilot.pause()
             assert isinstance(app.screen, CommsScreen) and app.screen.kind == "dm"
-            dm_mode = app.current_mode
+            dm_mode = app.selected_mode
             dm_prompt = app.screen.query_one(Prompt)
             dm_prompt.text = "keep delete"
             dm_prompt.focus()
             await pilot.press("ctrl+w")
             await pilot.pause()
-            assert dm_prompt.text == "keep " and app.current_mode == dm_mode
+            assert dm_prompt.text == "keep " and app.selected_mode == dm_mode
             await pilot.click(f"#close-{dm_mode}")
             await pilot.pause()
             assert app.session_tracker.session_count == 1
@@ -948,16 +948,16 @@ async def main() -> None:
                     channel_row.region,
                     app.screen.query_one("#channels-sidebar", SideBar).collapsed,
                     click_offset,
-                    app.current_mode,
+                    app.selected_mode,
                     app.screen.get_widget_at(x, y)[0],
                 )
                 await pilot.pause()
-                while app.current_mode != first_channel_mode:
+                while app.selected_mode != first_channel_mode:
                     await pilot.pause(0.01)
-            assert app.current_mode == first_channel_mode
+            assert app.selected_mode == first_channel_mode
             await pilot.press("escape")
             await pilot.pause()
-            owner_mode = app.current_mode
+            owner_mode = app.selected_mode
             owner_row = next(
                 (item for item in open_rows(app.screen) if item.mode_name == owner_mode)
             )
@@ -973,13 +973,13 @@ async def main() -> None:
             await pilot.click(close_view)
             await pilot.pause()
             assert app.session_tracker.session_count == 0
-            assert app.current_mode == "store"
+            assert app.selected_mode == "store"
             state_path = root / "state"
             state_path.mkdir()
             paths.get_state = lambda: state_path
             await app.new_session_screen(app.get_main_screen)
             await pilot.pause()
-            saved_mode = app.current_mode
+            saved_mode = app.selected_mode
             saved_db = DB()
             assert await saved_db.create()
             saved_pk = await saved_db.session_new(
@@ -1002,7 +1002,7 @@ async def main() -> None:
             await pilot.click(close_view)
             await pilot.pause()
             assert app.session_tracker.session_count == 0
-            assert app.current_mode == "store"
+            assert app.selected_mode == "store"
             assert await saved_db.session_get(saved_pk) is not None
     print("comms pilot: all interactions passed")
 

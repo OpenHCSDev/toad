@@ -75,7 +75,7 @@ async def main():
                             is_default_css=True, tie_breaker=tie_breaker, scope=scope)
                 app.stylesheet.update_nodes(set(app.screen.walk_children(with_self=True)))
                 await pilot.pause()
-            modes = [app.current_mode]
+            modes = [app.selected_mode]
             tab_count = max(2, int(os.environ.get("TOAD_BENCH_TABS", "2")))
             responses = int(os.environ.get("TOAD_BENCH_RESPONSES", "12"))
             tools = int(os.environ.get("TOAD_BENCH_TOOLS", "0"))
@@ -93,15 +93,15 @@ async def main():
             )
             for _ in range(tab_count - 1):
                 await app.new_session_screen(app.get_main_screen)
-                modes.append(app.current_mode)
+                modes.append(app.selected_mode)
             for mode in modes:
                 await app.switch_mode(mode)
-                await app.screen.conversation.contents.mount(*[
+                await app.selected_session.conversation.contents.mount(*[
                     AgentResponse(f"## Block {i}\n\n" + response_body)
                     for i in range(responses)
                 ])
                 if tools:
-                    await app.screen.conversation.contents.mount(*[
+                    await app.selected_session.conversation.contents.mount(*[
                         ToolCall({"toolCallId": f"{mode}-tool-{index}",
                                   "title": f"Run verification {index}", "kind": "execute",
                                   "status": "completed",
@@ -110,8 +110,8 @@ async def main():
                         for index in range(tools)
                     ])
                 if busy:
-                    app.screen.conversation.busy_count = 1
-                    app.screen.conversation.turns.owner = AgentTurn()
+                    app.selected_session.conversation.busy_count = 1
+                    app.selected_session.conversation.turns.owner = AgentTurn()
                 await pilot.pause()
             timings = []
             profile_path = os.environ.get("TOAD_SWITCH_PROFILE")

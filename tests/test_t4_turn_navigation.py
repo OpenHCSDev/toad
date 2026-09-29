@@ -37,7 +37,7 @@ class T4Tests(unittest.IsolatedAsyncioTestCase):
             app = ToadApp(project_dir=str(root))
             async with app.run_test(size=(120,40)) as pilot:
                 await pilot.pause()
-                view = app.screen.conversation
+                view = app.selected_session.conversation
                 await view.contents.remove_children()
                 note, response, extra = Note("atomic"), AgentResponse("first\n\nsecond"), ExtraBlock("new declaration")
                 await view.contents.mount(note, response, extra)

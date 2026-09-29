@@ -67,7 +67,7 @@ async def check_title(title: str | None) -> None:
             await pilot.pause()
             screen = app.screen
             assert isinstance(screen, MainScreen)
-            mode = app.current_mode
+            mode = app.selected_mode
             agent = Agent(root, agent_data, None)
             agent.agent_capabilities["loadSession"] = True
             screen.conversation.agent = agent
@@ -84,7 +84,7 @@ async def check_title(title: str | None) -> None:
                 created_titles,
                 expected,
             )
-            assert app.current_mode == mode, "No tab switch should be needed"
+            assert app.selected_mode == mode, "No tab switch should be needed"
             assert app.session_tracker.get_session(mode).title == expected
             assert (
                 expected
@@ -108,7 +108,7 @@ async def check_title(title: str | None) -> None:
             ):
                 await resumed.acp_load_session()
             await pilot.pause()
-            assert app.current_mode == loaded.mode_name
+            assert app.selected_mode == loaded.mode_name
             assert app.session_tracker.get_session(loaded.mode_name).title == expected
             assert (
                 expected

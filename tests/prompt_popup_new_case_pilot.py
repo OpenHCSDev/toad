@@ -39,7 +39,7 @@ async def main():
                           XDG_STATE_HOME=str(root / "state"), XDG_DATA_HOME=str(root / "data"))
         app = InstalledApp(project_dir=str(root))
         async with app.run_test(size=(110, 38)) as pilot:
-            prompt = app.screen.conversation.prompt
+            prompt = app.selected_session.conversation.prompt
             popup = prompt.query_one(ReviewPopup)
             assert PromptPopup.decode(ReviewPopup.declared_name) is ReviewPopup
             prompt.text = "Draft retained"

@@ -9,6 +9,7 @@ from collections import OrderedDict
 from weakref import WeakSet, ref
 
 from textual.widget import Widget
+from textual.worker import WorkerCancelled
 
 
 class ViewportBody:
@@ -66,16 +67,17 @@ class ViewportPresentation:
         for window in self.anchors:
             window.retire_presentation_wait()
 
-    def prepare(self, wait_for_bodies: bool) -> bool:
+    def prepare(self) -> bool:
         screen = self.screen
         if not screen.is_current:
             return True
-        if wait_for_bodies:
-            for window in self.windows:
-                if not window.document_viewport.visible_bodies_ready:
-                    window.document_viewport.request()
-                    screen._repaint_required = True
-                    return False
+        # Visible source bodies must be ready on every frame, including rapid
+        # PageDown/End frames outside a session activation.
+        for window in self.windows:
+            if not window.document_viewport.visible_bodies_ready:
+                window.document_viewport.request()
+                screen._repaint_required = True
+                return False
         changed = False
         for window in self.windows:
             changed |= window.check_follow()
@@ -113,6 +115,8 @@ class DocumentViewport:
         self._warm = OrderedDict()
         self._pending = False
         self._running = False
+        self._worker = None
+        self._suspended = False
         window.watch(window, "scroll_y", self.request, init=False)
         window.screen.screen_layout_refresh_signal.subscribe(window, self.request)
         self.membership = WindowMembership(window)
@@ -134,12 +138,29 @@ class DocumentViewport:
         self._warm.pop(ref(owner), None)
 
     def request(self, *_args) -> None:
-        if not self.window.is_attached or self.window._closing:
+        if self._suspended or not self.window.is_attached or self.window._closing:
             return
         self._pending = True
         if not self._running:
             self._running = True
-            self.window.run_worker(self._reconcile(), group="viewport-bodies")
+            self._worker = self.window.run_worker(self._reconcile(), group="viewport-bodies")
+
+    async def suspend_source(self) -> None:
+        """Finish the departing source's layout transactions before rebinding."""
+        self._suspended = True
+        self._pending = False
+        self.window.retire_presentation_wait()
+        worker, self._worker = self._worker, None
+        if worker is not None:
+            worker.cancel()
+            try:
+                await worker.wait()
+            except WorkerCancelled:
+                pass
+
+    def resume_source(self) -> None:
+        self._suspended = False
+        self.request()
 
     def protected(self) -> set[Widget]:
         screen = self.window.screen
@@ -158,8 +179,10 @@ class DocumentViewport:
 
     @property
     def visible_bodies_ready(self) -> bool:
+        if not self.owners:
+            return True
         visible = self.window.screen._compositor.visible_widgets
-        return all(owner.body_ready for owner in self.owners if owner in visible)
+        return all(widget.body_ready for widget in visible if widget in self.owners)
 
     async def _reconcile(self) -> None:
         try:

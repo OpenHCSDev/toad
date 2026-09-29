@@ -151,7 +151,7 @@ async def mounted_checks():
 
         async with app.run_test(size=(110, 35)) as pilot:
             await pilot.pause()
-            view = app.screen.conversation
+            view = app.selected_session.conversation
             initial = page(900, 1000)
             pager = TranscriptHistory(initial, load)
             with patch.object(TranscriptHistory, "_check_edges", lambda self: None):

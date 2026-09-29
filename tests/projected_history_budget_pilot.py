@@ -22,7 +22,7 @@ from toad.widgets.transcript_history import TranscriptHistory
 
 
 async def exercise(app, pilot, count, *, matches=True):
-    view = app.screen.conversation
+    view = app.selected_session.conversation
     view.visible_categories = all_categories()
     events = tuple(
         (ThinkingTranscript if matches and index % 31 == 0 else AssistantTranscript)( f"record-{index}")

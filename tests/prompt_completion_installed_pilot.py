@@ -41,7 +41,7 @@ async def main():
                 "run_command": {"*": shlex.join([sys.executable, str(peer)])}}
         app = InstalledApp(project_dir=str(project), agent_data=data)
         async with app.run_test(size=(130, 44)) as pilot:
-            view = app.screen.conversation
+            view = app.selected_session.conversation
             await until(pilot, lambda: view.agent is not None)
             agent = view.agent
             await until(pilot, agent.session_ready_event.is_set)
@@ -68,7 +68,7 @@ async def main():
 
                 prompt.text = "Attach "
                 prompt.focus()
-                sidebar = await reveal(app.screen, pilot)
+                sidebar = await reveal(app.selected_session, pilot)
                 sidebar.query_one("#project-panel", SideBarCollapsible).collapsed = False
                 await until(pilot, lambda: sidebar.query_one_optional(ProjectSearchButton) is not None)
                 button = sidebar.query_one(ProjectSearchButton)

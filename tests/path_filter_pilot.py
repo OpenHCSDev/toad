@@ -39,7 +39,7 @@ async def main():
         app = ToadApp(project_dir=str(project))
         async with app.run_test(size=(100, 40)) as pilot:
             await pilot.pause()
-            owner = app.current_mode
+            owner = app.selected_mode
             old_screen = app.screen
             from runtime_fixture import reveal_project_tree
             await reveal_project_tree(app, pilot)

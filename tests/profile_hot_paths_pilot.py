@@ -46,7 +46,7 @@ async def main():
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(120, 40)) as pilot:
             await pilot.pause()
-            conversation = app.screen.conversation
+            conversation = app.selected_session.conversation
             await conversation.contents.mount(*[
                 AgentResponse(f"Response {i}\n\n" + "\n".join(f"- list item {j}" for j in range(20)))
                 for i in range(30)

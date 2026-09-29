@@ -36,8 +36,8 @@ async def declared_case():
                           XDG_DATA_HOME=str(root/'data'),AGENT_COMMS_ROOT=str(root/'wire'))
         app=ToadApp(project_dir=str(root))
         async with app.run_test(size=(140,44)) as pilot:
-            await app.screen.wait_content_ready()
-            view=app.screen.conversation
+            await app.selected_session.wait_content_ready()
+            view=app.selected_session.conversation
             view.goal_display=GoalDisplay.current(Goal("Visible goal for control discovery","new-control"))
             await pilot.pause()
             bar=view.query_one(GoalBar)

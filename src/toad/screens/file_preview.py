@@ -14,6 +14,9 @@ from toad.widgets.side_bar import TabHistoryControls
 
 
 class FilePreviewScreen(SessionView, can_focus=False):
+    footer_compact = True
+    shows_channels = False
+
     AUTO_FOCUS = "TextArea, FilePreview"
     BINDINGS = [
         Binding("escape", "back", "Previous tab", show=False),
@@ -26,11 +29,7 @@ class FilePreviewScreen(SessionView, can_focus=False):
 
     def compose(self) -> ComposeResult:
         with Vertical(id="file-preview-content"):
-            with Horizontal(id="tab-navigation-header"):
-                yield TabHistoryControls()
-                yield SessionsTabs()
             yield file_preview(self.project_path / cast(str, self.name))
-        yield Footer(compact=True)
 
     async def action_back(self) -> None:
         if self.id is not None:

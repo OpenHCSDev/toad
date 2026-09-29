@@ -59,8 +59,8 @@ async def main():
         app = FrameApp(project_dir=str(root))
         async with app.run_test(size=(100, 30)) as pilot:
             await pilot.pause()
-            owner = app.current_mode
-            conversation = app.screen.conversation
+            owner = app.selected_mode
+            conversation = app.selected_session.conversation
             response = await conversation.post(
                 AgentResponse("\n\n".join((f"Old paragraph {i}" for i in range(40))))
             )
