@@ -1,0 +1,133 @@
+{
+  "src/toad/conversation_submission.py": {
+    "before": {
+      "foreign_absence": 0,
+      "chain_terms": 0,
+      "class_excess": 0,
+      "class_spans": {}
+    },
+    "after": {
+      "foreign_absence": 0,
+      "chain_terms": 0,
+      "class_excess": 0,
+      "class_spans": {
+        "InputSubmission": 21,
+        "NoInputSubmission": 7,
+        "QueueNowInputSubmission": 13,
+        "ShellInputSubmission": 16,
+        "AgentInputSubmission": 40,
+        "OrdinaryInputSubmission": 9,
+        "DeferredInputSubmission": 14,
+        "ImmediateInputSubmission": 13,
+        "SubmissionExecution": 52,
+        "ConversationSubmissions": 70
+      }
+    }
+  },
+  "src/toad/acp/agent.py": {
+    "before": {
+      "foreign_absence": 2,
+      "chain_terms": 0,
+      "class_excess": 634,
+      "class_spans": {
+        "Mode": 6,
+        "Model": 6,
+        "TokenUsage": 9,
+        "Agent": 1134
+      }
+    },
+    "after": {
+      "foreign_absence": 2,
+      "chain_terms": 0,
+      "class_excess": 633,
+      "class_spans": {
+        "Mode": 6,
+        "Model": 6,
+        "TokenUsage": 9,
+        "Agent": 1133
+      }
+    }
+  },
+  "src/toad/widgets/conversation.py": {
+    "before": {
+      "foreign_absence": 31,
+      "chain_terms": 25,
+      "class_excess": 1436,
+      "class_spans": {
+        "Loading": 9,
+        "PaintOnlyRefresh": 10,
+        "ThreadLoading": 46,
+        "TurnActivity": 19,
+        "Cursor": 45,
+        "CategorizedMount": 13,
+        "Contents": 10,
+        "ContentsGrid": 8,
+        "CursorContainer": 8,
+        "ConversationWindowSettings": 25,
+        "Window": 15,
+        "ConversationSessionBinding": 259,
+        "Conversation": 1936,
+        "ConversationCommsConsumer": 52,
+        "CompactionRenderer": 55
+      }
+    },
+    "after": {
+      "foreign_absence": 27,
+      "chain_terms": 21,
+      "class_excess": 1268,
+      "class_spans": {
+        "Loading": 9,
+        "PaintOnlyRefresh": 10,
+        "ThreadLoading": 46,
+        "TurnActivity": 19,
+        "Cursor": 45,
+        "CategorizedMount": 13,
+        "Contents": 10,
+        "ContentsGrid": 8,
+        "CursorContainer": 8,
+        "ConversationWindowSettings": 25,
+        "Window": 15,
+        "ConversationSessionBinding": 259,
+        "Conversation": 1768,
+        "ConversationCommsConsumer": 52,
+        "CompactionRenderer": 55
+      }
+    }
+  },
+  "src/toad/acp/queue_attachment.py": {
+    "before": {
+      "foreign_absence": 4,
+      "chain_terms": 4,
+      "class_excess": 0,
+      "class_spans": {
+        "QueueAttachment": 59
+      }
+    },
+    "after": {
+      "foreign_absence": 4,
+      "chain_terms": 4,
+      "class_excess": 0,
+      "class_spans": {
+        "QueueAttachment": 65
+      }
+    }
+  },
+  "src/toad/shell_source.py": {
+    "before": {
+      "foreign_absence": 1,
+      "chain_terms": 0,
+      "class_excess": 0,
+      "class_spans": {
+        "ShellOperationalSource": 66
+      }
+    },
+    "after": {
+      "foreign_absence": 1,
+      "chain_terms": 0,
+      "class_excess": 0,
+      "class_spans": {
+        "ShellOperationalSource": 70
+      }
+    }
+  }
+}
