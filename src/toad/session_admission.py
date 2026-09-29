@@ -135,8 +135,8 @@ class HistorySessionAdmission(SessionAdmission):
                            recovery_root=self.recovery_root, wire_root=key.root)
 
     @property
-    def address(self) -> CommsViewKey:
-        return self.key
+    def address(self) -> object:
+        return self.kind.view_identity(self.key)
 
     async def ready(self, sessions: SessionAdmissions) -> None:
         await sessions.app.workspace_sessions.require(self.mode).wait_content_ready()

@@ -29,6 +29,8 @@ from toad.widgets.comms_sidebar import ChannelGroup, CommsRow
 from toad.widgets.message_notifications import MessageNotifications
 from toad.widgets.prepared_markdown import PreparedConversationMarkdown
 from toad.widgets.session_tabs import SessionLabel
+from toad.widgets.side_bar import SideBar
+from toad.widgets.thread_comms import ThreadCommsSidebar
 
 
 class SavedStateSubscriber:
@@ -115,12 +117,22 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
         raise
     assert len(requests) == 2, "Channel/tab navigation replayed an input"
     print("SAVED_CHANNEL_AGENT_RETURN_NO_REPLAY", flush=True)
-    await unopened_participant(app, pilot, comms, channel, entered, release, hold_next, requests)
+    gamma = await unopened_participant(app, pilot, comms, channel, entered, release, hold_next, requests)
+    sidebar = await wait_channel_roster(app, pilot, "#team")
+    row = next(row for row in sidebar.query(CommsRow) if row.target_name == "#team")
+    row.scroll_visible(animate=False, immediate=True)
+    await pilot.pause()
+    assert await pilot.click(row)
+    await until(pilot, lambda: app.selected_session is channel)
+    assert sum(isinstance(app.workspace_sessions.require(entry.mode), CommsScreen)
+               for entry in app.session_navigation.members) == 1
+    print("SAME_CHANNEL_FROM_SECOND_AGENT_REUSES_ONE_EXISTING_TAB", flush=True)
+    await click_tab(app, pilot, gamma.id)
     await clicked_reader_editor_return(app, pilot, first)
     await adaptive_reader_journey(app, pilot, requests)
     await fork_and_first_input(app, pilot, comms, first, entered, release, hold_next, requests)
     await channel_reply_feedback(app, pilot, comms, channel, first, entered, release,
-                                 hold_next, requests)
+                                 hold_next, requests, gamma)
 
 
 async def independent_source_publication(agent, comms):
@@ -210,6 +222,7 @@ async def unopened_participant(app, pilot, comms, channel, entered, release, hol
         raise
     await until(pilot, lambda: comms.registry.require("gamma").executing is False)
     assert len(requests) == 3
+    return gamma
 
 
 @dataclass
@@ -413,9 +426,12 @@ async def fork_and_first_input(app, pilot, comms, first, entered, release, hold_
                 if item.action == ForkAction.declared_name)
     assert await pilot.click(fork)
     await until(pilot, lambda: isinstance(app.screen, ForkDialog))
-    entry = app.screen.query_one(Input)
+    entry = app.screen.query_one("#fork-name", Input)
     assert await pilot.click(entry)
-    entry.value = "journey-child JOURNEY_FORK_INPUT"
+    entry.value = "journey-child"
+    assert app.screen.query_one("#fork-tags", Input).value == "team"
+    app.screen.query_one("#fork-task", Input).value = "JOURNEY_FORK_INPUT"
+    app.screen.query_one("#fork-tags", Input).value = "refactor"
     entered.clear()
     release.clear()
     hold_next.set()
@@ -433,6 +449,7 @@ async def fork_and_first_input(app, pilot, comms, first, entered, release, hold_
     await until(pilot, lambda: len(requests) == before + 1)
     await until(pilot, lambda: comms.registry.require("journey-child").executing is False)
     child = comms.registry.require("journey-child")
+    assert child.tags == frozenset({"refactor"}), child.tags
     assert parent_path.read_bytes() == original
     native = Path(child.session_file).read_text()
     rows = [json.loads(line) for line in native.splitlines()]
@@ -448,11 +465,30 @@ async def fork_and_first_input(app, pilot, comms, first, entered, release, hold_
     assert len(requests) == before + 1, "Opening the fork replayed its first input"
     assert parent_path.read_bytes() == original
     print("FORK_FIRST_OPEN_SAVED_NATIVE_ANSWER_ACTUAL_PAINT_NO_REPLAY", flush=True)
+    right = child_view.query_one("#thread-sidebar", SideBar)
+    right.reveal()
+    await until(pilot, lambda: child_view.query_one_optional(ThreadCommsSidebar) is not None)
+    relationships = child_view.query_one(ThreadCommsSidebar)
+    await until(pilot, lambda: "parent" in relationships.groups
+                and any(row.target_name == "beta"
+                        for row in relationships.groups["parent"].rows.values()))
+    parent_row = next(row for row in relationships.groups["parent"].rows.values()
+                      if row.target_name == "beta")
+    parent_row.scroll_visible(animate=False, immediate=True)
+    await pilot.pause()
+    assert await pilot.click(parent_row), "Right-sidebar Parent row was not physically clickable"
+    await until(pilot, lambda: app.selected_session is first)
+    await until(pilot, lambda: "NATIVE_RESPONSE_2" in conversation_paint(app.screen))
+    assert await click_thread(app, pilot, "journey-child", "#any") is child_view
+    await until(pilot, lambda: f"NATIVE_RESPONSE_{before + 1}" in conversation_paint(app.screen))
+    assert len(requests) == before + 1 and parent_path.read_bytes() == original
+    print("RIGHT_PARENT_ROW_AND_CHANNEL_CHILD_ROW_PHYSICAL_NAVIGATION_NO_REPLAY", flush=True)
     await click_tab(app, pilot, first.id)
 
 
 async def channel_reply_feedback(app, pilot, comms, channel, first, entered, release,
-                                 hold_next, requests):
+                                 hold_next, requests, gamma):
+    from manual_live_turn_status import require_current_activity
     await click_tab(app, pilot, channel.id)
     chat = channel.query_one(CommsChatView)
     before = len(requests)
@@ -464,12 +500,21 @@ async def channel_reply_feedback(app, pilot, comms, channel, first, entered, rel
     participants = chat.query_one(ChannelParticipants)
     await until(pilot, lambda: "gamma" in participants.names.render().plain)
     assert comms.registry.require("gamma").executing
+    await click_tab(app, pilot, gamma.id)
+    await until(pilot, lambda: gamma.conversation.agent.current_turn.busy)
+    require_current_activity(gamma)
+    await click_tab(app, pilot, channel.id)
     await until(pilot, lambda: "Responding" in screen_paint(app))
     print("CHANNEL_NOTIFICATION_ACTUAL_NATIVE_WORKING_STATUS", flush=True)
     release.set()
     await until(pilot, lambda: f"NATIVE_RESPONSE_{before + 1}" in screen_paint(app))
     await until(pilot, lambda: any("Responded" in str(feedback.title)
                                  for feedback in chat.query(MessageNotifications)))
+    await click_tab(app, pilot, gamma.id)
+    await until(pilot, lambda: not gamma.conversation.agent.current_turn.busy)
+    require_current_activity(gamma)
+    assert not comms.registry.require("gamma").executing
+    await click_tab(app, pilot, channel.id)
     feedback = next(feedback for feedback in chat.query(MessageNotifications)
                     if "Responded" in str(feedback.title))
     title = feedback.query_one("CollapsibleTitle")
