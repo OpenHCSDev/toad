@@ -9,7 +9,7 @@ from weakref import ref
 from textual.widget import Widget
 from textual.widgets.text_area import Document, EditHistory, Selection, TextAreaState
 
-from toad.history import History
+from toad.input_history import InputHistories
 from toad.widgets.conversation import Conversation
 from toad.widgets.history_anchor import ReaderPosition
 from toad.widgets.message_filter import MessageCategory
@@ -33,10 +33,7 @@ class SessionViewState:
     visible_categories: frozenset[type[MessageCategory]]
     reader_position: ReaderPosition
     shell_mode: bool
-    prompt_history: History
-    shell_history: History
-    prompt_history_index: int
-    shell_history_index: int
+    input_histories: InputHistories
 
     @classmethod
     def capture(cls, conversation: Conversation) -> "SessionViewState":
@@ -44,17 +41,11 @@ class SessionViewState:
         return cls(
             editor.capture_editor_state(), conversation.visible_categories,
             ReaderPosition.capture(conversation.window),
-            editor.shell_mode, conversation.prompt_history, conversation.shell_history,
-            conversation.prompt_history_index, conversation.shell_history_index,
+            editor.shell_mode, conversation.input_histories,
         )
 
     def restore(self, conversation: Conversation) -> None:
-        conversation.prompt_history = self.prompt_history
-        conversation.shell_history = self.shell_history
-        # Restore reader intent without executing history navigation again.
-        # Its watchers load text and would replace the retained editor document.
-        conversation.set_reactive(Conversation.prompt_history_index, self.prompt_history_index)
-        conversation.set_reactive(Conversation.shell_history_index, self.shell_history_index)
+        conversation.input_histories = self.input_histories
         conversation.visible_categories = self.visible_categories
         editor = conversation.prompt.prompt_text_area
         editor.restore_editor_state(self.editor)
@@ -187,6 +178,7 @@ class NativeSessionSurface:
             if self.owner is not owner or self.widget is None:
                 return
             await owner.release_binding(self.widget, screen)
+            await self.widget.window.document_viewport.park_source()
             await self.widget.release_native_session()
             self.widget.display = False
             self.owner = None
@@ -222,6 +214,7 @@ class NativeSessionSurface:
                     Selection.cursor((0, 0)), 0, 0, None, (), None))
             self.owner, self.view = owner, screen
             conversation.display = True
+            conversation.window.document_viewport.resume_source()
             if not first:
                 conversation.start_native_session()
             conversation.prompt.focus()

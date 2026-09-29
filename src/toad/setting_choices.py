@@ -94,6 +94,24 @@ class NeverSessionBar(SessionBar):
 
 class NotificationPolicy(Choice, DeclaredFamily, affix="Notification"):
     @classmethod
+    def deliver(cls, app, message: str, *, title: str = "", sound: str | None = None) -> None:
+        """Shared delivery belongs to the policy that admits it."""
+        if not cls.enabled(app.app_focus):
+            return
+        from importlib.resources import files
+        from notifypy import Notify
+        import toad
+
+        notification = Notify()
+        notification.message = message
+        notification.title = title
+        notification.application_name = "🐸 Toad" if toad.os == "macos" else "Toad"
+        if sound and app.settings.notifications.enable_sounds:
+            notification.audio = str(files("toad.data").joinpath(f"sounds/{sound}.wav"))
+        notification.icon = str(files("toad.data").joinpath("images/frog.png"))
+        notification.send()
+
+    @classmethod
     @abstractmethod
     def enabled(cls, focused: bool) -> bool: ...
 

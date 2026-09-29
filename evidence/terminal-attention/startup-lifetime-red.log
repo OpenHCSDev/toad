@@ -1,0 +1,71 @@
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-terminal-attention-sol-20260929/tests/terminal_attention_installed_journey.py", line 258, in <module>
+    physical_terminal()
+    ~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-terminal-attention-sol-20260929/tests/terminal_attention_installed_journey.py", line 236, in physical_terminal
+    assert code == 0, output.decode(errors="replace")[-5000:]
+           ^^^^^^^^^
+AssertionError:   File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-terminal-attention-sol-20260929/tests/l0a_native_installed_pilot.py", line 264, in main
+    async with app.run_test(size=(160, 44)) as pilot:
+               ~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 235, in __aexit__
+    await self.gen.athrow(value)
+  File "/home/ts/wt/toad-terminal-attention-sol-20260929/tests/terminal_attention_installed_journey.py", line 101, in run_test
+    async with super().run_test(headless=False, **kwargs) as pilot:
+               ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 235, in __aexit__
+    await self.gen.athrow(value)
+  File "/home/ts/wt/toad-terminal-attention-sol-20260929/tests/runtime_fixture.py", line 61, in run_test
+    async with super().run_test(**kwargs) as pilot:
+               ~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 235, in __aexit__
+    await self.gen.athrow(value)
+  File "/home/ts/.local/share/agent-comms/runtime-context-observation-20260929/lib/python3.14/site-packages/textual/app.py", line 2218, in run_test
+    raise self._exception
+  File "/home/ts/.local/share/agent-comms/runtime-context-observation-20260929/lib/python3.14/site-packages/textual/app.py", line 3478, in _process_messages
+    await self._dispatch_message(load_event)
+  File "/home/ts/.local/share/agent-comms/runtime-context-observation-20260929/lib/python3.14/site-packages/textual/message_pump.py", line 774, in _dispatch_message
+    await self.on_event(message)
+  File "/home/ts/.local/share/agent-comms/runtime-context-observation-20260929/lib/python3.14/site-packages/textual/app.py", line 4148, in on_event
+    await super().on_event(event)
+  File "/home/ts/.local/share/agent-comms/runtime-context-observation-20260929/lib/python3.14/site-packages/textual/message_pump.py", line 855, in on_event
+    await self._on_message(event)
+  File "/home/ts/.local/share/agent-comms/runtime-context-observation-20260929/lib/python3.14/site-packages/textual/message_pump.py", line 876, in _on_message
+    await invoke(method, message)
+  File "/home/ts/.local/share/agent-comms/runtime-context-observation-20260929/lib/python3.14/site-packages/textual/_callback.py", line 96, in invoke
+    return await _invoke(callback, *params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-context-observation-20260929/lib/python3.14/site-packages/textual/_callback.py", line 58, in _invoke
+    result = await result
+             ^^^^^^^^^^^^
+  File "/home/ts/wt/toad-terminal-attention-sol-20260929/.venv/lib/python3.14/site-packages/toad/app.py", line 569, in on_load
+    self.settings.apply_all()
+    ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-terminal-attention-sol-20260929/.venv/lib/python3.14/site-packages/toad/settings.py", line 283, in apply_all
+    self._root._notify(PreferenceChange(bound.kind, bound.value))
+    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-terminal-attention-sol-20260929/.venv/lib/python3.14/site-packages/toad/app.py", line 557, in _apply_preference
+    change.apply(self)
+    ~~~~~~~~~~~~^^^^^^
+  File "/home/ts/wt/toad-terminal-attention-sol-20260929/.venv/lib/python3.14/site-packages/toad/settings.py", line 138, in apply
+    self.field.effect(app, self.value)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-terminal-attention-sol-20260929/.venv/lib/python3.14/site-packages/toad/setting_effects.py", line 57, in blink_title
+    app.terminal_attention.update()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-terminal-attention-sol-20260929/.venv/lib/python3.14/site-packages/toad/terminal_attention.py", line 113, in update
+    screen_title = selected.title if selected is not None else self.app.screen.title
+                                                               ^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtime-context-observation-20260929/lib/python3.14/site-packages/textual/app.py", line 1641, in screen
+    raise ScreenStackError("No screens on stack") from None
+textual.app.ScreenStackError: No screens on stack
+

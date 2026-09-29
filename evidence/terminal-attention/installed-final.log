@@ -1,0 +1,44 @@
+PASS_PHYSICAL_LINUX_DRIVER_OSC_TITLE_BLINK_AND_IDLE_RESTORATION
+{
+  "pass": true,
+  "native_inputs": 1,
+  "answers": [
+    "continue-0",
+    "continue-1",
+    "continue-2"
+  ],
+  "desktop_records": [
+    {
+      "title": "[Native fixture] Question 2",
+      "body": " \u2022 Continue"
+    },
+    {
+      "title": "[Native fixture] Question 1",
+      "body": " \u2022 Continue"
+    },
+    {
+      "title": "[Native fixture] Question 0",
+      "body": " \u2022 Continue"
+    },
+    {
+      "title": "[Native fixture] Cancelled queued attention",
+      "body": " \u2022 Continue"
+    },
+    {
+      "title": "[Native fixture] Retained attention",
+      "body": " \u2022 Continue"
+    },
+    {
+      "title": "Permissions request",
+      "body": "Native fixture would like to write files"
+    },
+    {
+      "title": "Boundary",
+      "body": "Desktop warning"
+    }
+  ],
+  "draft_document_undo_native_preserved": true,
+  "pending_attention": 0,
+  "installed_attached_agent_diff_permission": "allow",
+  "declaration_only_title_case": true
+}

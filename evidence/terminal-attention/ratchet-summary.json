@@ -1,0 +1,9 @@
+{
+  "base": "16cfcb18d9eaacc2d280b04530c65094279280da",
+  "head": "a80a6ab6be54b4e0947c00f08ab6b0f5be66e8e7",
+  "nonzero_delta": {
+    "GodClassExcess:src/toad/app.py::ToadApp": -128,
+    "ForeignAbsenceProbe:src/toad/app.py": -1
+  },
+  "positive_delta": false
+}

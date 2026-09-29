@@ -362,7 +362,7 @@ See on-screen instructions for details.
         if self.selection.is_empty and not select:
             row, _column = self.selection[0]
             if row == 0:
-                self.post_message(messages.HistoryMove(-1, self.shell_mode, self.text))
+                self.post_message(messages.HistoryMove.for_mode(-1, self.shell_mode, self.text))
                 return
         super().action_cursor_up(select)
 
@@ -370,7 +370,7 @@ See on-screen instructions for details.
         if self.selection.is_empty and not select:
             row, _column = self.selection[0]
             if row == (self.wrapped_document.height - 1):
-                self.post_message(messages.HistoryMove(+1, self.shell_mode, self.text))
+                self.post_message(messages.HistoryMove.for_mode(+1, self.shell_mode, self.text))
                 return
         super().action_cursor_down(select)
 
@@ -610,7 +610,6 @@ class Prompt(containers.VerticalGroup):
             ask: An `Ask` instance which contains a question and responses.
         """
         self.ask_queue.append(ask)
-        self.app.terminal_alert()
         if self._ask is None:
             self._ask = self.ask_queue.pop(0)
 
@@ -618,8 +617,6 @@ class Prompt(containers.VerticalGroup):
         """Retire one exact request after its controller has stopped waiting."""
         if self._ask is ask:
             self._ask = self.ask_queue.pop(0) if self.ask_queue else None
-            if self._ask is None:
-                self.app.terminal_alert(False)
         else:
             self.ask_queue = [pending for pending in self.ask_queue if pending is not ask]
 
@@ -767,11 +764,16 @@ class Prompt(containers.VerticalGroup):
             "-working-directory-out-of-bounds",
         )
 
+    def on_unmount(self) -> None:
+        self.app.terminal_attention.release(self)
+
     def watch__ask(self, ask: Ask | None) -> None:
         self.set_class(ask is not None, "-mode-ask")
         if ask is None:
+            self.app.terminal_attention.release(self)
             self.prompt_text_area.focus()
         else:
+            self.app.terminal_attention.require(self)
             self.question.update(ask)
             self.question.focus()
 

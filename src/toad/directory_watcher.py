@@ -253,6 +253,7 @@ class DirectoryWatcher(threading.Thread):
         self._stop_event = threading.Event()
         self._observation: _PathObservation | None = None
         self._dirty = False
+        self._observed_revision = 0
         self._delivery_lock = threading.Lock()
         super().__init__(name=repr(self))
 
@@ -272,7 +273,14 @@ class DirectoryWatcher(threading.Thread):
         """
         with self._delivery_lock:
             self._dirty = True
+            self._observed_revision += 1
         self.notify_if_visible()
+
+    @property
+    def observed_revision(self) -> int:
+        """Source-owned invalidation even while a tab has no visible surface."""
+        with self._delivery_lock:
+            return self._observed_revision
 
     def notify_if_visible(self) -> None:
         """Deliver one deferred invalidation when a hidden tab becomes active."""

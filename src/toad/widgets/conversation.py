@@ -10,7 +10,6 @@ from toad.preferences import SidebarSettings, ShellSettings
 
 import asyncio
 from abc import abstractmethod
-import hashlib
 from contextlib import suppress
 from functools import partial
 from itertools import filterfalse
@@ -46,7 +45,7 @@ from textual.app import ComposeResult, ScreenStackError, UnknownModeError
 from textual.binding import Binding
 from textual.content import Content
 from textual.css.query import NoMatches
-from textual.geometry import Offset, Region, clamp
+from textual.geometry import Offset, Region
 from textual.layout import WidgetPlacement
 from textual.layouts.grid import GridLayout
 from textual.reactive import var
@@ -65,7 +64,7 @@ from toad.answer import Answer
 from toad.app import ToadApp
 from toad.directory_watcher import DirectoryChanged, DirectoryWatcher
 from toad.format_path import format_path
-from toad.history import History
+from toad.input_history import InputHistories
 from toad.widgets.flash import Flash
 from toad.widgets.menu import Menu
 from toad.widgets.note import Note
@@ -427,10 +426,6 @@ class ConversationSessionBinding(containers.Vertical):
     _shell: var[Shell | None] = var(None)
 
 
-    shell_history_index: var[int] = var(0, init=False)
-
-
-    prompt_history_index: var[int] = var(0, init=False)
 
 
     agent: var[AgentBase | None] = var(None, bindings=True)
@@ -557,11 +552,11 @@ class ConversationSessionBinding(containers.Vertical):
         self._focusable_terminals: list[Terminal] = []
 
         self.project_data_path = paths.get_project_data(project_path)
-        self._prompt_history_scope = agent_session_id or (
-            f"session-{session_pk}" if session_pk is not None else ""
+        self.input_histories = InputHistories(
+            self.project_data_path, agent_session_id or (
+                f"session-{session_pk}" if session_pk is not None else ""
+            ),
         )
-        self.shell_history = History(self.project_data_path / "shell_history.jsonl")
-        self.prompt_history = History(self._prompt_history_path())
 
         self.session_start_time: float | None = None
         self._terminal_count = 0
@@ -602,6 +597,15 @@ class ConversationSessionBinding(containers.Vertical):
         self.prompt.ask_queue.clear()
         self._focusable_terminals.clear()
 
+    def fragment_presentation_identity(self, interval, fragment):
+        """Bind immutable rendering to this source and its filesystem revision."""
+        from toad.widgets.transcript_history import FragmentPresentationIdentity
+        watcher = self._directory_watcher
+        return FragmentPresentationIdentity(
+            self.agent, interval, fragment, str(self.project_path), watcher,
+            watcher.observed_revision if watcher is not None else -1,
+        )
+
 
     async def bind_native_session(self, screen) -> None:
         """Reset values from their declarations, then bind the existing source config."""
@@ -620,7 +624,6 @@ class ConversationSessionBinding(containers.Vertical):
         self.prompt.slash_commands = CommandCatalog(
             self.agent_slash_commands, self.command_target_context()).commands
         self.window.anchor()
-        self.window.document_viewport.resume_source()
 
 
 
@@ -805,25 +808,6 @@ class Conversation(ConversationSessionBinding):
             return False
         return self._directory_watcher.enabled
 
-    def validate_shell_history_index(self, index: int) -> int:
-        return clamp(index, -self.shell_history.size, 0)
-
-    def validate_prompt_history_index(self, index: int) -> int:
-        return clamp(index, -self.prompt_history.size, 0)
-
-    def _prompt_history_path(self) -> Path:
-        if not self._prompt_history_scope:
-            return self.project_data_path / "prompt_history.jsonl"
-        digest = hashlib.sha256(self._prompt_history_scope.encode()).hexdigest()[:16]
-        return self.project_data_path / f"prompt_history-{digest}.jsonl"
-
-    def set_prompt_history_scope(self, scope: str) -> None:
-        """Use input history belonging only to one persistent thread or channel."""
-        if scope == self._prompt_history_scope:
-            return
-        self._prompt_history_scope = scope
-        self.prompt_history = History(self._prompt_history_path())
-        self.prompt_history_index = 0
 
     def insert_path_into_prompt(self, path: Path) -> None:
         try:
@@ -848,10 +832,7 @@ class Conversation(ConversationSessionBinding):
         self.project_path = path
         self.working_directory = str(path)
         self.project_data_path = paths.get_project_data(path)
-        self.shell_history = History(self.project_data_path / "shell_history.jsonl")
-        self.prompt_history = History(self._prompt_history_path())
-        self.shell_history_index = 0
-        self.prompt_history_index = 0
+        self.input_histories.bind_project(self.project_data_path)
         if self._directory_watcher is not None:
             await self._directory_watcher.aclose()
             self._directory_watcher = None
@@ -869,27 +850,6 @@ class Conversation(ConversationSessionBinding):
 
                 await DB().session_update_project(session_pk, path)
         self.update_title()
-
-    async def watch_shell_history_index(self, previous_index: int, index: int) -> None:
-        if previous_index == 0:
-            self.shell_history.current = self.prompt.text
-        try:
-            history_entry = await self.shell_history.get_entry(index)
-        except IndexError:
-            pass
-        else:
-            self.prompt.text = history_entry.input
-            self.prompt.shell_mode = True
-
-    async def watch_prompt_history_index(self, previous_index: int, index: int) -> None:
-        if previous_index == 0:
-            self.prompt_history.current = self.prompt.text
-        try:
-            history_entry = await self.prompt_history.get_entry(index)
-        except IndexError:
-            pass
-        else:
-            self.prompt.text = history_entry.input
 
     def _turn_changed(self, owner: TurnOwner) -> None:
         if self.is_mounted:
@@ -1428,9 +1388,7 @@ class Conversation(ConversationSessionBinding):
                     output.focus()
                 await self.shell.send_input(event.body, paste=True)
             else:
-                self.shell_history.current = None
-                self.run_worker(self.shell_history.append(event.body), group="history")
-                self.shell_history_index = 0
+                self.run_worker(partial(self.input_histories.shell.record, event.body), group="history")
                 await self.post_shell(event.body)
             self.jump_to_latest()
         elif text := event.body.strip():
@@ -1446,9 +1404,7 @@ class Conversation(ConversationSessionBinding):
                 await self.post(UserInput(text))
                 self.jump_to_latest()
             # Local feedback precedes persistence and agent metadata work.
-            self.prompt_history.current = None
-            self.run_worker(self.prompt_history.append(event.body), group="history")
-            self.prompt_history_index = 0
+            self.run_worker(partial(self.input_histories.prompt.record, event.body), group="history")
             if queued:
                 self.send_prompt_to_agent(text, queued=True)
                 self.flash("Queue request sent; awaiting authoritative queue state")
@@ -1615,7 +1571,7 @@ class Conversation(ConversationSessionBinding):
                 )
 
         if self.app.settings.notifications.turn_over:
-            self.app.system_notify(
+            self.app.terminal_attention.notify(
                 f"{self.agent_title} has finished working",
                 title="Waiting for input",
                 sound="turn-over",
@@ -1983,30 +1939,9 @@ class Conversation(ConversationSessionBinding):
     @on(messages.HistoryMove)
     async def on_history_move(self, message: messages.HistoryMove) -> None:
         message.stop()
-        if message.shell:
-            await self.shell_history.open()
-
-            if self.shell_history_index == 0:
-                current_shell_command = ""
-            else:
-                current_shell_command = (
-                    await self.shell_history.get_entry(self.shell_history_index)
-                ).input
-            while True:
-                self.shell_history_index += message.direction
-                new_entry = await self.shell_history.get_entry(self.shell_history_index)
-                if new_entry.input != current_shell_command:
-                    break
-                if message.direction == +1 and self.shell_history_index == 0:
-                    break
-                if (
-                    message.direction == -1
-                    and self.shell_history_index <= -self.shell_history.size
-                ):
-                    break
-        else:
-            await self.prompt_history.open()
-            self.prompt_history_index += message.direction
+        history = self.input_histories.history(message.history_kind)
+        entry = await history.navigate(message.direction, message.body)
+        history.present(self.prompt, entry)
 
     @work
     async def request_permissions(self, request) -> None:
@@ -2065,7 +2000,7 @@ class Conversation(ConversationSessionBinding):
         else:
             notify_title = title
         notify_message = "\n".join(f" • {option.text}" for option in options)
-        self.app.system_notify(notify_message, title=notify_title, sound="question")
+        self.app.terminal_attention.notify(notify_message, title=notify_title, sound="question")
 
         ask = Ask(title, options, get_content, callback)
         self.prompt.ask(ask)
@@ -2105,7 +2040,7 @@ class Conversation(ConversationSessionBinding):
         self.app.settings_changed_signal.subscribe(self, self._settings_changed)
         self.app.open_tabs_changed.subscribe(self, self._coordination_changed)
 
-        self.shell_history.complete.add_words(
+        self.input_histories.shell.complete.add_words(
             self.app.settings.shell.allow_commands.split()
         )
         self.start_native_session()
@@ -2257,7 +2192,7 @@ class Conversation(ConversationSessionBinding):
 
     def _settings_changed(self, change: PreferenceChange) -> None:
         if change.field is ShellSettings.allow_commands:
-            self.shell_history.complete.add_words(
+            self.input_histories.shell.complete.add_words(
                 self.app.settings.shell.allow_commands.split()
             )
 
@@ -2536,7 +2471,7 @@ class Conversation(ConversationSessionBinding):
         self.prompt.focus()
 
     def jump_to_latest(self) -> None:
-
+        self.window.document_viewport.destination()
         for history in self.query(TranscriptHistory):
             if history.has_newer:
                 history.request_latest()
