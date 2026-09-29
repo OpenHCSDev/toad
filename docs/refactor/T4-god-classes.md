@@ -158,3 +158,23 @@ retained/live response acceptance now requires compositor text and regions.
 The duplicate weak/captured replay pilot is deleted and the existing history
 pilot is strengthened. Permanent deletion/new-case guards and scoped per-class
 ratchet apply. App/workspace/shell/sidebar lifetimes remain with Tesla/Noether.
+
+## Current remaining dispatch: live output streams (main138, Carver)
+
+Remeasured main06003af: Conversation AST span2709. Its remaining response/thought
+state is two nullable blocks, a shared posting lock, duplicate append loops,
+route-change finishing, turn-settled loading cleanup and manual reset at15
+boundaries. This is transient presentation custody, not source Agent process or
+saved transcript state. Next full slice gives admitted blocks and their
+mutation/finishing to OutputStream cases, and serialization/boundary/retirement
+to LiveOutput. Response delivery belongs to ResponseStream; whitespace-only
+initial thoughts and thought-before-response completion belong to ThoughtStream
+and ResponseStream. Add a new stream declaration without editing scheduler,
+boundary or retirement branches; no hand-maintained kind inventory.
+
+Delete root fields `_agent_response`, `_agent_thought`, `_post_lock` and root
+`post_agent_response`, `post_agent_thought`, `new_block`; migrate all event,
+checkpoint and retained pilot callers. Keep actual cropped live/native and
+retained-read paint acceptance. App/workspace/shell/sidebar and core deployment
+remain excluded. No stores or schemas change. This slice is not yet accepted;
+its complete implementation draft records installed evidence and remaining gates.
