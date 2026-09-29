@@ -80,7 +80,7 @@ async def main() -> None:
                            for y in range(user.region.y, divider.region.y)), (
                     "User accent must not extend above the divider", theme,
                 )
-                assert user.get_block_content("clipboard") == "human text"
+                assert user.get_clipboard_text() == "human text"
 
             await app.open_comms_session(owner_mode=owner, project_path=root,
                                          me=app._main_session_screen(owner)._comms_thread,

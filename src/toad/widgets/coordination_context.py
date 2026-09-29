@@ -1,6 +1,7 @@
 """A readable, inspectable disclosure for context identified by the executing owner."""
 
 from toad.widgets.message_filter import OtherCategory
+from toad.block_content import BlockContent
 
 import asyncio
 
@@ -12,7 +13,7 @@ from toad.coordination_context_format import format_coordination_context, litera
 
 
 
-class OriginalCoordinationContext(Collapsible):
+class OriginalCoordinationContext(BlockContent, Collapsible):
     def __init__(self, content: str) -> None:
         super().__init__(title="Original payload", collapsed=True)
         self.content = content
@@ -24,11 +25,11 @@ class OriginalCoordinationContext(Collapsible):
                                        category=OtherCategory)
             await self.query_one(Collapsible.Contents).mount(self._body)
 
-    def get_block_content(self, destination: str) -> str:
+    def get_clipboard_text(self) -> str:
         return self.content
 
 
-class CoordinationContext(Collapsible):
+class CoordinationContext(BlockContent, Collapsible):
     def __init__(self, content: str) -> None:
         super().__init__(title="Agent coordination context", collapsed=True)
         self.content = content
@@ -55,7 +56,7 @@ class CoordinationContext(Collapsible):
         finally:
             self._preparing = False
 
-    def get_block_content(self, destination: str) -> str:
+    def get_clipboard_text(self) -> str:
         return self.content
 
     def collapse_block(self) -> None:

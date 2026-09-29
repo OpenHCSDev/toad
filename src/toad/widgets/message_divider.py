@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 from toad.block_navigation import ConversationBlock
+from toad.block_content import BlockContent
 
 import math
 import time
@@ -13,7 +14,7 @@ from toad.widgets.message_filter import CategorizedBlock, MessageCategory
 from toad.widgets.committed_presentation import SnapshotPresentation
 
 
-class MessageDivider(Static):
+class MessageDivider(BlockContent, Static):
     """Keep timestamps with the message block, not a second transcript row."""
 
     DEFAULT_CSS = """

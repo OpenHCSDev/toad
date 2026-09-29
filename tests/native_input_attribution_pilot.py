@@ -168,7 +168,7 @@ async def main(*, historical: bool) -> None:
             assert [block.content for block in view.contents.query(UserInput)] == [
                 human
             ]
-            copied = received.get_block_content("clipboard")
+            copied = received.get_clipboard_text()
             assert "peer" in copied and incoming.body in copied
             assert "[agent-comms from" not in copied
             assert comms.bus.pending_count("owner") == pending

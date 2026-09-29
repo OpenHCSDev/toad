@@ -329,3 +329,38 @@ Per-touched-file chain terms do not increase: both new modules0, root -43.
 Shared ratchet has no positive delta. Actual affected installed/native8cases
 pass46.60s; native permission shared Markdown paint/rebind/grant passes
 separately. Receipt explicitly confirms the latest skill source and limits.
+
+## Remaining block interaction caller closure (Noether, after145)
+
+Dispatch main1459830cb24 with core3228ad/Textualc974. Existing ConversationBlock
+and its BlockCursor already own navigation, but Conversation still probes
+ExpandProtocol at3 sites and repeats MenuProtocol/MarkdownBlock/MarkdownFence
+selection/copy classification at3 sites. Its generic get_cursor_block type filter
+has only Widget callers. This batch closes those actual consumers rather than
+introducing another navigation, classifier or state store (IMPL-4/5, BOUND-7).
+
+BlockContent supplies the shared nominal widget capability inherited by existing
+ConversationBlock and selected prefix widgets. Actual widget leaves own copying,
+menu entries and expansion; text targets are separate virtual methods, removing
+the destination-string test. Non-interactive widgets inherit empty behavior.
+Textual's own token-to-widget BLOCKS catalog is the external admission authority;
+ConversationMarkdown derives concrete subclasses with the shared capability once,
+with the existing fence specialization retained. Mounted widget classes carry the
+methods, without a widget wrapper or second hand-maintained catalog (TIME-9,
+MEMB-1/2). Existing Textual metaclass and lifecycle stay authoritative.
+
+Delete protocol.py, both structural protocols, get_cursor_block, get_block_content,
+CUSTOM_BLOCKS, empty leaf menu methods, dead CONVERSATION_MENUS and Note action_hello.
+Migrate all current source and retained pilot callers in this batch. A new nominal
+block needs only its own content/menu declaration, zero root/cursor branch edits;
+an external Textual token class inherits the common capability through its existing
+catalog. Actual installed menu keys, cropped paint, private X11 text round trip,
+prompt destination, resize and tool expansion/collapse protect the affected path.
+Deletion/new-case guards and the shared per-class/chain-term ratchet apply.
+
+Tesla142 owns operational source binding, prepared ranges, reader restoration,
+WorkspaceScreen/App/shell. Carver148 owns CLI crash capture; Dalton ACP/read ACK.
+Coordination recorded directly on142/148 before editing. Existing cursor state
+and viewport custody are preserved. Parent owns merge/live installation. No store
+or wire format changes, paid calls or CI wait. Final evidence under
+evidence/block-interaction; failed first metaclass import is retained honestly.
