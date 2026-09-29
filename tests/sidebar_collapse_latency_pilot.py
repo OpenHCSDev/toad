@@ -47,7 +47,7 @@ async def main():
         async with app.run_test(size=(120, 42)) as pilot:
             await pilot.pause()
             for _ in range(9):
-                await app.session_navigation.new(app.get_main_screen)
+                await app.session_navigation.new(app.session_navigation.default_source)
             conversation = app.selected_session.conversation
             await conversation.contents.mount(*[
                 AgentResponse(f"## Loaded response {index}\n\n" + "paragraph and line\n\n" * 10)

@@ -40,11 +40,6 @@ class CommandPilotApp(ToadApp):
 
     CSS_PATH = files("toad").joinpath("toad.tcss")
 
-    def capture_event(self, *args, **kwargs):
-        pass
-
-    def run_version_check(self, *args, **kwargs):
-        pass
 
 
 async def until(pilot, predicate):

@@ -143,7 +143,7 @@ async def main(*, empty=False, trace=False, observe=False, output=None, peers=0,
                 for name in targets:
                     if empty:
                         mode = (
-                            await app.session_navigation.new(app.get_main_screen)
+                            await app.session_navigation.new(app.session_navigation.default_source)
                         ).mode_name
                     else:
                         mode = await app.thread_navigation.open(

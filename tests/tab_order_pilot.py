@@ -26,7 +26,7 @@ async def main():
             await pilot.pause()
             first = app.selected_mode
             channel = await channel_target("#all").open(NavigationContext(app, first, root, "owner"))
-            second = (await app.session_navigation.new(app.get_main_screen)).mode_name
+            second = (await app.session_navigation.new(app.session_navigation.default_source)).mode_name
             expected = [first, channel, second]
             for mode in expected * 2:
                 await app.switch_mode(mode)

@@ -81,7 +81,7 @@ async def exercise(app, pilot, stage):
                 assert view.prompt.text.endswith("x"), "Typing blocked behind filter mount"
                 assert app._batch_count == 0, "A held page batch suppressed unrelated presentation"
                 owner_mode = app.selected_mode
-                other = await app.session_navigation.new(app.get_main_screen)
+                other = await app.session_navigation.new(app.session_navigation.default_source)
                 await pilot.pause()
                 other_view = app.selected_session.conversation
                 assert other_view.visible_categories == all_categories()

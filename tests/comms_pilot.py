@@ -972,7 +972,7 @@ async def main() -> None:
             state_path = root / "state"
             state_path.mkdir()
             paths.get_state = lambda: state_path
-            await app.session_navigation.new(app.get_main_screen)
+            await app.session_navigation.new(app.session_navigation.default_source)
             await pilot.pause()
             saved_mode = app.selected_mode
             saved_db = DB()

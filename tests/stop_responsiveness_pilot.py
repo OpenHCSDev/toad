@@ -53,7 +53,7 @@ async def main():
             async with app.run_test(size=(125, 40)) as pilot:
                 await pilot.pause()
                 source = app.selected_mode
-                other = (await app.session_navigation.new(app.get_main_screen)).mode_name
+                other = (await app.session_navigation.new(app.session_navigation.default_source)).mode_name
                 dm = await DirectTarget("victim").open(NavigationContext(app, other, root, "actor"))
                 channel = await channel_target("#all").open(NavigationContext(app, other, root, "actor"))
                 await pilot.pause()

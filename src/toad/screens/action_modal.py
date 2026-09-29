@@ -92,7 +92,7 @@ class ActionModal(ModalScreen):
             self._command, env=self._env, cwd=self._cwd
         )
         await action_task
-        self.app.capture_event(
+        self.app.application.usage.publish(
             "agent-action",
             action=self._action,
             agent=self._agent,

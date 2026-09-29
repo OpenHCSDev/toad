@@ -41,7 +41,7 @@ async def main():
             history = editor.history
             document = editor.document
 
-            second_mode = (await app.session_navigation.new(app.get_main_screen)).mode_name
+            second_mode = (await app.session_navigation.new(app.session_navigation.default_source)).mode_name
             await pilot.pause()
             async with asyncio.timeout(5):
                 while first.query(Conversation):
@@ -84,7 +84,7 @@ async def main():
                     await pilot.pause(.02)
             await second.conversation.submit_input(UserInputSubmitted("busy-shell-input", shell=True))
             assert app.focused is shell.output.terminal
-            third = (await app.session_navigation.new(app.get_main_screen)).mode_name
+            third = (await app.session_navigation.new(app.session_navigation.default_source)).mode_name
             assert not second.query(Conversation)
             assert second.presentation.sources.shell is shell
             assert shell._task is shell_task and not shell_task.done()

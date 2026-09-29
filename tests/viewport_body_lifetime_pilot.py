@@ -92,7 +92,7 @@ async def main():
             await asyncio.wait_for(pending, 2)
 
             owner_mode = app.selected_mode
-            other = await app.session_navigation.new(app.get_main_screen)
+            other = await app.session_navigation.new(app.session_navigation.default_source)
             await app.switch_mode(owner_mode)
             await settled(view, pilot)
 

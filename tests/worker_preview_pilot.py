@@ -219,7 +219,7 @@ async def main():
             prompt.focus()
             await pilot.press("r", "e", "a", "d")
             assert prompt.text == "ioworkread"
-            other = (await app.session_navigation.new(app.get_main_screen)).mode_name
+            other = (await app.session_navigation.new(app.session_navigation.default_source)).mode_name
             assert other != owner and not renderer.release.is_set()
             renderer.release.set()
             await app.switch_mode(owner)

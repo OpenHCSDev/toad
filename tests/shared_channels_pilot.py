@@ -100,7 +100,7 @@ async def main():
                 cached_lines = dict(marker._styles_cache._cache)
                 assert cached_lines
                 app.expected_bar = bar
-                second = (await app.session_navigation.new(app.get_main_screen)).mode_name
+                second = (await app.session_navigation.new(app.session_navigation.default_source)).mode_name
                 await wait_channel_roster(app, pilot, "#all")
                 assert app.screen.query_one(ChannelsSidebar) is bar
                 assert app.screen.query_one(Footer) is footer
@@ -243,7 +243,7 @@ async def main():
                     try:
                         assert await asyncio.to_thread(read_entered.wait, 3)
                         os.environ["AGENT_COMMS_ROOT"] = str(new_root)
-                        await app.session_navigation.new(app.get_main_screen)
+                        await app.session_navigation.new(app.session_navigation.default_source)
                         assert app.screen.query_one(ChannelsSidebar) is bar
                         read_release.set()
                         await wait_channel_roster(app, pilot, "#new-source")
@@ -258,7 +258,7 @@ async def main():
                 )
                 remaining = app.selected_mode
                 abandoned = (
-                    await app.session_navigation.new(app.get_main_screen)
+                    await app.session_navigation.new(app.session_navigation.default_source)
                 ).mode_name
                 await app.switch_mode(remaining)
                 bind_entered, bind_release = (asyncio.Event(), asyncio.Event())
