@@ -1,10 +1,10 @@
 # PR202 continuation: existing workspace presentation ownership
 
-This stacked draft follows the whole useful PR202 checkpoint993db402, including
-main209cd791. Its parent remains the shipment owner; no selective reconstruction
-or new cache/renderer/model authority. Native current-pair proof and final READY
-head are recorded in PR202. This draft keeps the original acceptance open while
-the useful checkpoint ships.
+This draft follows whole PR202 checkpoint406253bd, including main209cd791.
+PR202 merged into the snapshot-publication branch as1e2cb39, not main. Kepler208
+carries that entire checkpoint and the typed SDK union to main normally. Parent
+owns paired installation; global remainscd791 pending the affected paint fix.
+No selective reconstruction or new cache/renderer/model authority.
 
 ## Scope and ownership
 
@@ -17,6 +17,10 @@ Conversation activity/status/input/cancel. Kepler208 owns official ACP/model/
 stop/tool consumers. Schrodinger210 owns T5 source/loader operation custody and
 failed attachment -> owner restart -> same open view recovery. Mendel201 owns
 reusable recorder tools; coordinate actual capture, never duplicate the recorder.
+Kepler214 contributes DirectionalPreparation and DocumentViewport demand
+scheduling, existing worker preparation and prefetch after Schrodinger handoff.
+Heisenberg retains source presentation lifetime, reader policy, workspace layout
+and editor focus. Scheduling cannot introduce a semantic source/turn mirror.
 
 No receipt/history operation source edits without Schrodinger handoff.
 Conversation presentation bind/release regions remain disjoint from Arendt's
@@ -33,6 +37,19 @@ or new-candidate same-run video/CPU attribution. Geometry94679c09 has installed
 physical fork/child/Parent/channel proof. Workspace source356cb3 uses detached/
 loading/shown/parked custody and a typed measured native layout record, removing
 three flags/seventeen condition terms. Its provider-free actual UI passed.
+Whole993 installed on Coreab/Textual412/native7817 also passed: five returns,
+sixteen completed destination frames, zero misses, median91.48ms (76.90–108.37ms).
+Final406 adds receipts only.
+
+208 unioncd445 installed acceptance then exposed actual reader loss: correct
+first destination frames at y5, later y145 and response2 instead of response1.
+Identity reuse is insufficient. This concrete failure blocks208 activation,
+independently of final50ms performance. Heisenberg owns reader-policy correction;
+Kepler records anchor caller stacks in the same existing native journey.
+Schrodinger directly handed off SnapshotPublication.publish reader/anchor policy
+and TranscriptPresentation.refresh_revealed/painted reader-restoration portions;
+source operation/frontier/generation/coverage stay his. Do not weaken the paint
+assertion or replay earlier inputs to disguise failure.
 
 1. Same live representative saved-history cohort and physical A/B/A recordings
    for before/after, from selected tab through every completed body frame. Tie
