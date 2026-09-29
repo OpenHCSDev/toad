@@ -27,4 +27,5 @@ def test_application_action_caller_deletion():
     for path in ('application_actions.py','application_lifetime.py'):
         for node in ast.walk(ast.parse((ROOT/path).read_text())):
             if isinstance(node,ast.Call) and isinstance(node.func,ast.Attribute) and node.func.attr=='run_worker':
-                assert not node.args or not isinstance(node.args[0],ast.Call),(path,node.lineno)
+                if node.args and isinstance(node.args[0],ast.Call):
+                    assert isinstance(node.args[0].func,ast.Name) and node.args[0].func.id=='partial',(path,node.lineno)

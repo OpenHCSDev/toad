@@ -17,7 +17,7 @@ from toad.setting_widgets import InputEditor
 from toad.widgets.comms_sidebar import CommsSidebar, NewSessionButton
 from toad.widgets.session_tabs import SessionTabClose
 from textual.command import CommandPalette
-from textual.widgets import Input
+from textual.widgets import Input, OptionList
 
 
 class DeclarationProofAction(ApplicationAction, PaletteAction):
@@ -40,7 +40,7 @@ async def palette(pilot, app, query, completed):
     editor = app.screen.query_one(Input)
     assert await pilot.click(editor)
     await pilot.press(*query)
-    await until(pilot, lambda: app.screen._list.option_count > 0)
+    await until(pilot, lambda: app.screen.query_one(OptionList).option_count > 0)
     await pilot.press('enter')
     await until(pilot, completed)
 
@@ -85,7 +85,7 @@ async def main():
             await pilot.press('home','shift+end','1','2','3','escape')
             await until(pilot,lambda:app.screen is app.workspace_screen and app.settings.ui.column_width==123)
             await until(pilot,lambda:json.loads(settings_path.read_text())['ui']['column-width']==123)
-            assert app.selected_session is source and source.frame_presentation.ready
+            assert app.selected_session is source and app.workspace_screen.frame_presentation.ready
             assert prompt.text==draft and prompt.prompt_text_area.document is document
             print('PHYSICAL_FIRST_REPLY_HELP_SETTINGS_BLUR_SAVE_FRAME_DRAFT_IDENTITY_PASS',flush=True)
             await palette(pilot,app,'Q8 declaration proof',lambda:(project/'declaration-proof.txt').exists())

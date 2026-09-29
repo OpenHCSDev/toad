@@ -9,6 +9,7 @@ from agent_comms.command import Command
 from agent_comms.declared_family import DeclaredFamily
 from textual.binding import Binding
 from textual.command import DiscoveryHit, Hit, Hits, Provider
+from toad.preferences import UiSettings
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
@@ -90,7 +91,8 @@ class ToggleFooterAction(ApplicationAction, PaletteAction):
         return "Hide footer shortcut bar" if app.settings.ui.footer else "Show footer shortcut bar"
 
     async def apply(self, app: ToadApp) -> None:
-        await SetFooterAction(not app.settings.ui.footer).apply(app)
+        UiSettings.footer.toggle(app.settings.ui)
+        await SetFooterAction(app.settings.ui.footer).apply(app)
 
 
 class QuitAction(ApplicationAction, KeyboundAction, PaletteAction):

@@ -162,6 +162,6 @@ class ChannelListSort(SortControl[ChannelSort]):
         for field in self._visibility_fields:
             if field.name == value:
                 group = self.app.settings.sidebar
-                field.__set__(group, not field.__get__(group))
+                field.toggle(group)
                 self.run_worker(self.app.settings.save, group="channel-visibility")
                 return
