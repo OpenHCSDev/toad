@@ -638,9 +638,6 @@ class ConversationSessionBinding(containers.Vertical):
             await self.query(ThreadLoading).remove()
             if self.transcript is not presentation or presentation.view is not self:
                 return
-        if ready and self._directory_watcher is None:
-            self._directory_watcher = DirectoryWatcher(self.project_path, self)
-            self._directory_watcher.start()
         if ready and (agent_data := self._agent_data) is not None:
             welcome = agent_data.get("welcome", None)
             if welcome is not None:
@@ -1882,6 +1879,11 @@ class Conversation(ConversationSessionBinding):
         self.window.anchor()
 
     def start_native_session(self) -> None:
+        # Source identity must include its filesystem owner before the first
+        # saved-history publication, rather than changing after AgentReady.
+        if self._directory_watcher is None:
+            self._directory_watcher = DirectoryWatcher(self.project_path, self)
+            self._directory_watcher.start()
         if self.agent is not None:
             self.agent_ready = self.agent.ready
             return
