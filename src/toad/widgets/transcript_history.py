@@ -673,7 +673,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
     ) -> bool:
         """Advance in bounded native pages and render batches, preserving loaded rows."""
         async with self.window.history_lock:
-            if not self.state.accepts_source_work or not is_current():
+            if not self.checkpoint_available or not is_current():
                 return False
             # Reject scans started with the old bound without discarding their
             # already accepted filtered overlay or its backward cursor.
@@ -735,7 +735,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
 
     def _check_edges(self) -> None:
         self._check_pending = False
-        if (not self.state.accepts_source_work
+        if (not self.checkpoint_available
                 or not self.screen.is_active or not self.selected_categories):
             return
         # Off-screen pagers must not ask for their region: after a scroll that

@@ -17,6 +17,9 @@ class TranscriptState(DeclaredFamily, LifecycleState, affix="Transcript"):
     async def execute(self, owner, work):
         raise RuntimeError("The transcript source has no admitted operation")
 
+    def reserve(self) -> "WorkingTranscript":
+        raise RuntimeError("The transcript source cannot admit another operation")
+
     def observed(self, widget: Widget) -> "TranscriptState":
         # Textual sets these before dispatching Prune/Unmount, including when
         # an ancestor is removed. Decode at this framework boundary so an
@@ -53,6 +56,9 @@ class LiveTranscript(TranscriptState):
     accepts_publication = True
     reports_coverage = True
     accepts_source_work = True
+
+    def reserve(self) -> "WorkingTranscript":
+        return WorkingTranscript(self)
 
     @classmethod
     def successors(cls):

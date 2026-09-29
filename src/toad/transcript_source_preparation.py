@@ -23,9 +23,7 @@ class TranscriptSourcePreparation:
         return self._source_state.observed(self)
 
     def reserve_source_work(self) -> WorkingTranscript:
-        if not self._source_state.accepts_source_work:
-            raise RuntimeError("The transcript source cannot admit another operation")
-        operation = WorkingTranscript(self._source_state)
+        operation = self._source_state.reserve()
         self._source_state = operation
         return operation
 
