@@ -13,7 +13,7 @@ from acp.schema import TextContentBlock
 from agent_comms.acp import CommsClient
 from l0a_native_installed_pilot import main as native_fixture, until
 from native_session_retention_pilot import InstalledApp, conversation_paint
-from saved_state_user_journey_pilot import SavedStateSubscriber
+from saved_state_user_journey_pilot import SavedStateSubscriber, click_tab
 from textual.widgets import Checkbox
 from toad.widgets.message_filter import AgentCategory, MessageCategory, all_categories
 from toad.widgets.side_bar import SideBar, SideBarCollapsible
@@ -96,7 +96,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     editor.history.checkpoint()
     editor.insert(' and undo')
     document, undo, draft = editor.document, editor.history, editor.text
-    original_mode = app.selected_mode
+    original_id = app.selected_session.id
     print('INSTALLED_SAVED_TAIL_PAINT_AND_EDITOR_CAPTURED', flush=True)
 
     await choose(app, pilot, frozenset({AgentCategory}))
@@ -145,6 +145,8 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     assert worker.is_cancelled
     assert not canonical.filter.scanning, 'Cancelled worker stranded scan admission'
     await pilot.pause()
+    selected_scroll = view.window.scroll_y
+    selected_follow = view.window.follows_tail
     await choose(app, pilot, frozenset())
     await until(pilot, lambda: canonical.filter.overlay is None and source.closed)
     assert not canonical.older.display and not canonical.newer.display
@@ -152,7 +154,13 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     print('EMPTY_SELECTION_RETIRES_READER_AND_CANCELLED_WORKER', flush=True)
 
     await choose(app, pilot, frozenset({AgentCategory}))
-    view.window.scroll_to(y=0, animate=False, immediate=True)
+    await until(pilot, lambda: canonical.filter.overlay is not None)
+    await pilot.pause()
+    assert view.window.follows_tail == selected_follow
+    assert view.window.scroll_y == selected_scroll, 'Filter return lost stored reader offset'
+    # Switching restores the previous filtered offset, not the latest row.
+    # Explicit tail intent must paint the exact latest selected native text.
+    view.window.anchor()
     try:
         await until(pilot, lambda: 'SAVED_ANSWER_2_099' in conversation_paint(app.screen), seconds=20)
     except TimeoutError:
@@ -175,15 +183,20 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     other_view.prompt.focus()
     await pilot.press('x')
     assert other_view.prompt.text == 'x'
-    await app.switch_mode(original_mode)
+    await click_tab(app, pilot, original_id)
     await pilot.pause()
-    assert view.visible_categories == frozenset({AgentCategory})
+    returned = app.selected_session.conversation
+    assert returned.visible_categories == frozenset({AgentCategory})
     await app.close_session_mode(other.mode_name)
     await choose(app, pilot, all_categories())
-    view.window.anchor()
+    returned.window.anchor()
     await until(pilot, lambda: 'SAVED_THOUGHT_2_059' in conversation_paint(app.screen), seconds=20)
-    assert canonical.filter.overlay is None
-    assert editor.document is document and editor.history is undo and editor.text == draft
+    current_history = next(history for history in returned.contents.query(TranscriptHistory)
+                           if history.parent is returned.contents)
+    assert current_history.filter.overlay is None
+    returned_editor = returned.prompt.prompt_text_area
+    assert returned_editor.document is document and returned_editor.history is undo
+    assert returned_editor.text == draft
     assert native_file.read_bytes() == native_bytes
     assert len(requests) == 2, 'Filtering sent an input or called provider'
     assert app._exception is None
