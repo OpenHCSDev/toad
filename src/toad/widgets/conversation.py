@@ -634,14 +634,14 @@ class ConversationSessionBinding(containers.Vertical):
         if agent is None or not agent.ready:
             return
         self.status = agent.context_measurement.status()
-        page = await agent.get_transcript_page()
+        page, _ = await asyncio.gather(
+            agent.get_transcript_page(), self.goal_observation.refresh(),
+        )
         if self.agent is not agent:
             return
         await self.transcript.snapshot(page)
-        await self.goal_observation.refresh()
         if self.agent is not agent:
             return
-        await self.delivery_observation.refresh()
         await self.query(ThreadLoading).remove()
         self.remove_class("-initial-loading")
 
@@ -1547,7 +1547,10 @@ class Conversation(ConversationSessionBinding):
 
     @on(acp_messages.UpdateStatusLine)
     async def on_update_status_line(self, message: acp_messages.UpdateStatusLine):
-        self.status = message.status_line
+        # The shared widget can receive a queued status message after its
+        # source changes. The selected Agent owns the measured value.
+        if self.agent is not None:
+            self.status = self.agent.context_measurement.status()
 
     @on(acp_messages.RejectedSessionUpdate)
     async def on_rejected_session_update(
@@ -2103,6 +2106,7 @@ class Conversation(ConversationSessionBinding):
             self.agent_ready = agent.ready
             self.turns.owner = agent.current_turn
             self.busy_count = int(self.turns.owner.busy)
+            self.activity = "Thinking…" if self.turns.owner.busy else ""
             if self.agent_ready:
                 self.call_later(self.goal_observation.refresh)
                 self.call_later(self.delivery_observation.refresh)
