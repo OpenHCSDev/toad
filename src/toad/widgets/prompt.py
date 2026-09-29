@@ -28,7 +28,6 @@ from toad import messages
 from toad.widgets.highlighted_textarea import HighlightedTextArea
 from toad.widgets.condensed_path import CondensedPath
 from toad.widgets.path_search import PathSearch
-from toad.widgets.plan import Plan
 from toad.widgets.question import Ask, Question
 from toad.widgets.slash_complete import SlashComplete
 from toad.widgets.model_switcher import ModelSwitcher
@@ -545,7 +544,6 @@ class Prompt(PromptCompletion, containers.VerticalGroup):
     display_directory = var("")
     agent_info = var(Content(""))
     _ask: var[Ask | None] = var(None)
-    plan: var[list[Plan.Entry]]
     agent_ready: var[bool] = var(False)
     current_mode: var[Mode | None] = var(None)
     modes: var[dict[str, Mode] | None] = var(None)

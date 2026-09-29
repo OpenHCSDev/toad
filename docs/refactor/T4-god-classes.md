@@ -385,3 +385,54 @@ zero unparsed files in the final census. Complete raw723-file Toad/core/Textual
 snapshot is recorded separately before unrelated CLI148 integration; no native
 or DSL equivalence claimed. Latest22:16 NRA/audit reread and pattern application
 confirmed. Parent owns review/merge/live installation; no own-scope blocker.
+
+## Remaining ACP Plan leaf closure (Noether, after149)
+
+Dispatch mainc2534676 includes accepted149 and urgent150 layout correction.
+Noether owns Plan status presentation, the plan-only Agent admission arm and
+Conversation/MainScreen handlers, and their sidebar/Prompt callers in
+~/wt/toad-plan-entry-owner-sol-20260928. Tesla142 owns workspace/source state,
+reader restoration and performance; Carver owns urgent layout/root changes.
+Exact method ranges were coordinated directly on their existing PR threads.
+
+PlanStatus uses the existing shared DeclaredFamily. Its concrete statuses own
+markers and completion decoration, with grid composition inherited from the
+parent. PlanItem carries admitted Content, external priority metadata and a
+typed status class. Existing official SDK validation remains at the real wire
+boundary; decode_plan consumes that validated shape once. UI consumers trust
+those values directly. No codec subclass, adapter, registry or second renderer.
+Priority/status requiredness in the raw ACP declaration now matches the SDK.
+No store or wire-format change: this is transient UI state only.
+
+Delete Plan.Entry/update_status/render_status, the unused PRIORITIES roster,
+dead PlanApp demo, both UI raw decoders, repeated completion assignment and the
+unused Prompt.plan field/import. Migrate every source and retained pilot caller.
+A new declared status owns its marker/decoration with zero widget/root/decoder
+roster edits; external ACP membership still belongs to the official SDK schema.
+Patterns: IMPL-1/4/5, BOUND-1/2, MEMB-1, TIME-6/9, AGENT-8. No chain terms may
+increase; semantic status decisions are not split into artificial rule atoms.
+
+Acceptance runs an actual official-SDK ACP subprocess through the installed
+normal App/Agent, ordered validation worker, conversation and sidebar. Check
+actual cropped markers/text, consecutive completion animation, already-complete
+rows, empty reset, retirement/reveal, resize and malformed external rejection.
+A permanent installed new-case/caller-deletion guard closes the architecture.
+CI is deferred; parent owns merge/live installation. Current code is a draft
+while this affected acceptance and the shared independent ratchets finish.
+
+Physical malformed input exposed a pre-existing boundary hole: the SDK Plan
+model silently skips invalid entries, while sdk_boundary returns the original
+raw payload. NotificationItems uses shared MroDispatch on the actual SDK class
+and a strict TypeAdapter of the SDK's PlanEntry, inside the existing validation
+worker. No repeated entry schema, string discriminator, codec subclass or UI
+startup SDK import. PlanItem.from_acp binds admitted fields at their owner;
+unknown external extension metadata is ignored for presentation, never rewritten.
+The actual subprocess gate now rejects bad status, missing priority and numeric
+content with visible rejection notes while preserving the last valid plan.
+
+Source custody is separately assigned to Tesla142: current detached Agent
+surface drops plan posts and controller.restore has no retained Plan value.
+151 tests actual optional sidebar retirement/prepare/reveal with Conversation
+still attached; it does not claim complete inactive-Agent plan restoration.
+The exact plan-only source hook was requested directly in142 comment5883172179;
+no competing operational store or source-lifetime edit was added here.

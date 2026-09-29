@@ -1,0 +1,25 @@
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-plan-entry-owner-sol-20260928/tests/plan_status_installed_pilot.py", line 121, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-plan-entry-owner-sol-20260928/tests/plan_status_installed_pilot.py", line 62, in main
+    await until(pilot, lambda: "ACP_pending_ITEM" in viewport_text(sidebar.query_one(Plan)))
+  File "/home/ts/wt/toad-plan-entry-owner-sol-20260928/tests/sidebar_retirement_pilot.py", line 35, in until
+    while not condition():
+              ~~~~~~~~~^^
+  File "/home/ts/wt/toad-plan-entry-owner-sol-20260928/tests/plan_status_installed_pilot.py", line 62, in <lambda>
+    await until(pilot, lambda: "ACP_pending_ITEM" in viewport_text(sidebar.query_one(Plan)))
+                                                     ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-plan-entry-owner-sol-20260928/tests/sidebar_retirement_pilot.py", line 59, in viewport_text
+    region, clip = widget.screen._compositor.visible_widgets[widget]
+                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^
+KeyError: Plan(classes='block')
