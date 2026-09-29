@@ -39,7 +39,7 @@ from toad.widgets.agent_response import AgentResponse, ResponseDelivery
 from toad.widgets.agent_thought import AgentThought
 from toad.widgets.tool_call import ToolCall
 from toad.widgets.user_input import UserInput
-from toad.widgets.message_divider import AgentActivityDivider
+from toad.widgets.message_divider import AgentActivityDivider, MessageClock
 from toad.widgets.presentation_window import PresentationBudget, protected_presentations
 from toad.widgets.committed_presentation import CommittedHistory
 from toad.widgets.message_filter import (
@@ -77,17 +77,17 @@ class TranscriptBlockConsumer(MroDispatch):
             message = event.routing.requests[0]
             self.blocks.append(IncomingMessage(
                 message.sender, event.text, message.target, show_header=self.show_divider,
-                sequence=message.seq,
+                sequence=message.seq, clock=MessageClock.recorded(event.timestamp),
             ))
         else:
-            self.blocks.append(UserInput(event.text, show_divider=self.show_divider))
+            self.blocks.append(UserInput(event.text, show_divider=self.show_divider, clock=MessageClock.recorded(event.timestamp)))
 
     @handles(AgentTextTranscript)
     def agent(self, event: AgentTextTranscript):
         self.blocks.append(AgentResponse(
             event.text, delivery=ResponseDelivery.from_route(event.routing.reply if event.routing else None),
             category=event_category(event), paginate=not self.fragment,
-            show_divider=self.show_divider,
+            show_divider=self.show_divider, clock=MessageClock.recorded(event.timestamp),
         ))
 
     @handles(ThinkingTranscript)
@@ -181,7 +181,7 @@ class TranscriptFragmentView(CategorizedBlock, VerticalGroup):
         # It is already a page leaf: re-paging it would recursively remount the
         # same indivisible block forever without producing visible Markdown.
         if self.fragment.starts_agent_activity and not self.fragment.continuation:
-            yield AgentActivityDivider(self._message_category)
+            yield AgentActivityDivider(self._message_category, clock=MessageClock.recorded(self.fragment.events[0].timestamp))
         yield from transcript_blocks(
             self.fragment.events, fragment=True, show_divider=not self.fragment.continuation,
         )

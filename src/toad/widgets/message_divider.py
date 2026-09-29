@@ -4,8 +4,9 @@ from __future__ import annotations
 from toad.block_navigation import ConversationBlock
 from toad.block_content import BlockContent
 
-import math
 import time
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
 
 from textual.content import Content
 from textual.geometry import Size
@@ -14,6 +15,41 @@ from textual.widgets import Static
 
 from toad.widgets.message_filter import CategorizedBlock, MessageCategory
 from toad.widgets.committed_presentation import SnapshotPresentation
+
+
+class MessageClock(ABC):
+    @abstractmethod
+    def display(self) -> tuple[str, str | None]: ...
+
+    @classmethod
+    def recorded(cls, timestamp: float | None) -> MessageClock:
+        return UnknownMessageClock() if timestamp is None else RecordedMessageClock(timestamp)
+
+    @staticmethod
+    def format(timestamp: float) -> tuple[str, str | None]:
+        try:
+            local = time.localtime(timestamp)
+            return time.strftime("%H:%M:%S", local), time.strftime("%Y-%m-%d %H:%M:%S %Z", local)
+        except (OverflowError, OSError, ValueError):
+            return "time unknown", None
+
+
+class LiveMessageClock(MessageClock):
+    def display(self) -> tuple[str, str | None]:
+        return self.format(time.time())
+
+
+@dataclass(frozen=True)
+class RecordedMessageClock(MessageClock):
+    timestamp: float
+
+    def display(self) -> tuple[str, str | None]:
+        return self.format(self.timestamp)
+
+
+class UnknownMessageClock(MessageClock):
+    def display(self) -> tuple[str, str | None]:
+        return "time unknown", None
 
 
 class MessageDivider(BlockContent, Static):
@@ -30,18 +66,10 @@ class MessageDivider(BlockContent, Static):
     MessageDivider:ansi { color: ansi_bright_black; }
     """
 
-    def __init__(self, label: str, *, timestamp: float | None = None) -> None:
+    def __init__(self, label: str, *, clock: MessageClock = LiveMessageClock()) -> None:
         super().__init__(markup=False)
         self.label = label
-        observed = time.time() if timestamp is None else timestamp
-        if type(observed) in (int, float) and math.isfinite(observed):
-            try:
-                self.clock = time.strftime("%H:%M:%S", time.localtime(observed))
-                self.tooltip = time.strftime("%Y-%m-%d %H:%M:%S %Z", time.localtime(observed))
-            except (OverflowError, OSError, ValueError):
-                self.clock = "time unknown"
-        else:
-            self.clock = "time unknown"
+        self.clock, self.tooltip = clock.display()
 
     def render(self) -> Content:
         title = f" {self.label} · {self.clock} "
@@ -69,8 +97,8 @@ class AgentActivityDivider(ConversationBlock, SnapshotPresentation, CategorizedB
 
     ALLOW_SELECT = False
 
-    def __init__(self, category: type[MessageCategory]) -> None:
-        super().__init__("Agent")
+    def __init__(self, category: type[MessageCategory], *, clock: MessageClock = LiveMessageClock()) -> None:
+        super().__init__("Agent", clock=clock)
         self._category = category
 
     @property

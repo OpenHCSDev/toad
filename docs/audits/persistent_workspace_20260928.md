@@ -287,3 +287,31 @@ Current installed paired native result core6bd8c423/Textual1738abd8/native5fde, 
 |64|133.38|229.53|189/189|
 
 This measures one loaded native source among blank logical tabs, includes20ms Pilot settle, ordinaryGC. It is not fully loaded cohort or physical-terminal performance.30–40ms UNMET. Evidence: evidence/workspace-persistent/native-reused-core6bd-textual1738.json. Recent offset19→19 remains proven; unchanged full paint fails on reconstructed clock, Wegener core contract requested5883298325. No core implementation, live edits or CI wait. Full loaded/blank, multi-page/changed interval, final installed suite remain assigned and unfinished. Correct22:16 NRA/refactor-audit skills and dominant-kind chain classification reread; pin-only changes add no source chain terms.
+
+
+## Owner-authorized shipping tranche /2026-09-29
+
+## Ready shipping tranche; full116/110 continues separately
+
+Owner now explicitly authorizes merging substantial progress before the final30–40ms target. This PR ships the complete coherent persistent WorkspaceScreen/reusable source-binding tranche, uniform operational custody, editor/undo retention, globally bounded rich presentation, recent non-tail admission/restoration, bounded reusable preparation, and original saved message clocks. No completion claim for the full performance/refactor plan.
+
+## Paired dependency
+
+Installed acceptance uses core337 b3d17267a0c4b31ac224fb4be70f682ecb2e598f, Textual1738abd8e3524b7e86171b70256d7f7e52fdb724 and native5fde. Parent must merge337 and ship matching core before activating this Toad tranche. Wegener owns core event-time decode;142 only consumes its declared timestamp. No new core codec, timestamp store, converters or live changes.
+
+## Actual affected acceptance
+
+- Installed real Pi/ACP recent-reader pilot PASS: four native requests, three source returns, exact offset19→19 and unchanged FULL cropped conversation paint including original clocks, same Agent/process/runner/editor/Document/EditHistory, no replay. Same PreparedValue reused;37,087 bytes retained within67,108,864 global bound. Receipt evidence/workspace-persistent/recent-native-clock337.json. Previous red clock receipts preserved.
+- Installed rapid PageDown/End, three rounds and cold-tail actual visible-body paint PASS on these paired pins: rapid-shipping-clock337.log.
+- Installed saved/unknown clock caller tests:2pass1.41s. Unknown original time remains unknown; live receipt clock is explicit nominal behavior. IRC/user/agent/activity/inbound callers migrated; obsolete timestamp default/type/finite checks deleted. BOUND-1/IDEN-3/IMPL-4/TIME-9; no touched-file chain-term increase.
+- Latest full fixed-source native4/16/32/64 matrix on core6bd/Textual1738 PASS: eight actual Pi/ACP calls, retained queue/editor/undo/process, one Conversation and cropped reply paint.64 median133.38ms/max229.53ms;189/189>100ms;UI174,206,976 bytes. Includes20ms Pilot settle and one loaded native source among blank tabs; NOT fully loaded matrix or physical-terminal latency.
+
+## Honest performance comparison
+
+Prior142 core311/Textualc974 fixed-source result126.98ms median/210.86ms max. Latest paired result133.38/229.53ms does not demonstrate improvement over that checkpoint. Parent earlier shipped129 result243.01/375.98ms, but different revisions/pins prevent calling that a controlled performance comparison. Shipping justification is the functioning persistent topology, original custody/editor state, global rich bound and corrected exact recent-reader paint, not claiming30–40ms.
+
+## Follow-up assigned to Tesla after merge
+
+Continue in a separate persistent checkout/PR: source preparation and older/multi-page/changed-interval reader reuse; stable30–40ms with reduced spikes; fully loaded+blank matched4/16/32/64 native input/permission/scroll/frame-tail measurements with ordinary GC; canonical installed full-suite migration/classification. Noether151 owns typed Plan boundary; Tesla follow-up owns detached-plan operational retention using that existing contract, no second decode/store. Carver owns first-open and152 AgentProcess; follow-up consumes AttachedChild.identity.pid and avoids duplicate lifecycle work. Existing interrupted full suite110failed43passed is nonfinal and not reported green.
+
+Parent owns merge/deploy. Latest owner scoped shipping instruction supersedes earlier full-scope hold; no CI wait. Old116/110 intent remains explicitly unfinished in the follow-up, no compatibility/retired topology restored.
