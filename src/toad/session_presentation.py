@@ -212,6 +212,10 @@ class NativeSessionSurface:
                                               previous.checkpoint_timer,
                                               previous.checkpoint_max_characters),
                     Selection.cursor((0, 0)), 0, 0, None, (), None))
+            if not first and conversation.agent is not None and conversation.agent.ready:
+                # The switch holds the workspace paint transaction. Reuse its
+                # parked rendered bodies before the destination's first frame.
+                await conversation.present_retained_native_session()
             self.owner, self.view = owner, screen
             conversation.display = True
             conversation.window.document_viewport.resume_source()

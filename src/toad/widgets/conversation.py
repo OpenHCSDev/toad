@@ -571,6 +571,7 @@ class ConversationSessionBinding(containers.Vertical):
         self._directory_watcher: DirectoryWatcher | None = None
 
         self._initial_prompt = initial_prompt
+        self._native_agent_started_here = False
 
         self.goal_observation = GoalObservation(self)
         self.goal_controls = GoalSession(self)
@@ -627,6 +628,23 @@ class ConversationSessionBinding(containers.Vertical):
             self.agent_slash_commands, self.command_target_context()).commands
         self.window.anchor()
 
+    async def present_retained_native_session(self) -> None:
+        """Bring a returning native source into the atomic first frame."""
+        agent = self.agent
+        if agent is None or not agent.ready:
+            return
+        self.status = agent.context_measurement.status()
+        page, _ = await asyncio.gather(
+            agent.get_transcript_page(), self.goal_observation.refresh(),
+        )
+        if self.agent is not agent:
+            return
+        await self.transcript.snapshot(page)
+        if self.agent is not agent:
+            return
+        await self.query(ThreadLoading).remove()
+        self.remove_class("-initial-loading")
+
 
 
     def start_native_session(self) -> None:
@@ -651,6 +669,7 @@ class ConversationSessionBinding(containers.Vertical):
                     self._agent_session_id,
                     self._session_pk,
                 )
+                self._native_agent_started_here = True
                 await self.agent.start(self)
                 self.post_message(
                     messages.SessionUpdate(
@@ -679,7 +698,7 @@ class ConversationSessionBinding(containers.Vertical):
             await self.query(ThreadLoading).remove()
             if self.transcript is not presentation or presentation.view is not self:
                 return
-        if ready and (agent_data := self._agent_data) is not None:
+        if ready and self._native_agent_started_here and (agent_data := self._agent_data) is not None:
             welcome = agent_data.get("welcome", None)
             if welcome is not None:
                 from toad.widgets.markdown_note import MarkdownNote
@@ -698,6 +717,8 @@ class ConversationSessionBinding(containers.Vertical):
                     messages.UserInputSubmitted(self._initial_prompt, shell=False)
                 )
             self._initial_prompt = None
+        if ready:
+            self._native_agent_started_here = False
 
 
 class Conversation(ConversationSessionBinding):
@@ -1526,7 +1547,10 @@ class Conversation(ConversationSessionBinding):
 
     @on(acp_messages.UpdateStatusLine)
     async def on_update_status_line(self, message: acp_messages.UpdateStatusLine):
-        self.status = message.status_line
+        # The shared widget can receive a queued status message after its
+        # source changes. The selected Agent owns the measured value.
+        if self.agent is not None:
+            self.status = self.agent.context_measurement.status()
 
     @on(acp_messages.RejectedSessionUpdate)
     async def on_rejected_session_update(
@@ -2082,6 +2106,7 @@ class Conversation(ConversationSessionBinding):
             self.agent_ready = agent.ready
             self.turns.owner = agent.current_turn
             self.busy_count = int(self.turns.owner.busy)
+            self.activity = "Thinking…" if self.turns.owner.busy else ""
             if self.agent_ready:
                 self.call_later(self.goal_observation.refresh)
                 self.call_later(self.delivery_observation.refresh)
