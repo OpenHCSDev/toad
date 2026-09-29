@@ -28,7 +28,33 @@ Median selection to first completed display was 244.5 ms (five returns). The
 first completed destination frame still changes from reader length 2516 or
 2517 at maximum scroll 42 to 2368 at maximum scroll 43 in later completed
 frames. This source pilot does **not** establish visually stable first paint or
-a speed improvement over PR200. The actual large saved-history `st -e
-toad-comms` recording, including held PageUp/PageDown/reverse/End/idle, remains
-the acceptance boundary. The parent owns installed runtime activation; Mendel
-owns the isolated physical-key recording tools.
+a speed improvement over PR200.
+
+## Installed large-history video
+
+Mendel's isolated Xvfb/st recording used an installed wheel from this draft,
+Core406 and Textual412. It exercised physical A/B/A tab clicks and held
+PageUp/PageDown/reverse/End/idle on the actual saved live history. The
+profiled and unprofiled videos and monotonic event/CPU receipts are under
+`/home/ts/.cache/agent-scratch/toad-video-tools-mendel-20260929/candidate-profiled`
+and `candidate-unprofiled` there. On warm return, the destination tab became
+selected while the previous source's body remained visible for several frames;
+the destination history then filled and shifted across later frames. This
+**fails visual warm-return acceptance**, despite the source pilot's widget
+identity and final-frame assertions. The unprofiled control is invalid:
+`nra-architecture` attachment failed before its warm-return frames. The
+sampled UI profile has many sample errors and is only partial attribution,
+not a measured speedup or a complete CPU breakdown.
+
+The recorder invoked `st -e toad-comms` with `AGENT_COMMS_RUNTIME_ROOT` set to
+the isolated candidate runtime. The launcher clears private root/native pins,
+resolves the project on the active route and starts candidate ACP. This can
+reach live owner attachment during tab clicks. After a live owner attachment
+failure and native-pin mismatch were reported, further live-root candidate
+captures were stopped. One owner PID appeared in the recorder's descendant
+cleanup identities; the cleanup may have stopped an owner it launched. This
+remains under parent-owned incident review. Resume recording only against an
+approved default ACP
+or an explicitly complete, matched private root/native environment. The
+parent owns live-route recovery and installed runtime activation; Mendel owns
+the isolated physical-key recording tools.
