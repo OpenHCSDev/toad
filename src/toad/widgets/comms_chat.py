@@ -300,12 +300,12 @@ class CommsChatView(DeliveryFailureView, Conversation):
                     self.status = "Read-only saved view"
                 show_loading = not self.message_history.initialized
                 if show_loading:
-                    self.throbber.busy = True
+                    self.on_work_started()
                 try:
                     read = await self.app.channel_history_reader.read(self.message_history.request())
                 finally:
-                    if show_loading and self.is_attached:
-                        self.throbber.busy = False
+                    if show_loading:
+                        self.on_work_finished()
                 if not self.is_attached or not self.query_ancestor(SessionView).is_current:
                     return
                 if read.request != self.message_history.request():
