@@ -142,9 +142,7 @@ class CommsUpdateConsumer(MroDispatch):
         from dataclasses import replace
         from pathlib import Path
 
-        from textual.content import Content
-
-        from .agent import ContextUsage
+        from .context_measurement import ContextMeasurement
         from .maintenance_ingress import configured_root
 
         agent = self.agent
@@ -155,18 +153,8 @@ class CommsUpdateConsumer(MroDispatch):
         )
         agent.coordination = replace(update, wire_root=str(root))
         agent.project_root_path = Path(update.worktree)
-        if update.context_usage is None:
-            agent._context_usage = None
-            agent._context_usage_saved = False
-            agent.post_message(
-                messages.UpdateStatusLine(Content("Context estimate unavailable"))
-            )
-        else:
-            agent._context_usage = ContextUsage(
-                update.context_usage.used, update.context_usage.size
-            )
-            agent._context_usage_saved = True
-            agent.update_status_line()
+        agent.context_measurement = ContextMeasurement.saved(update.context_usage)
+        agent.update_status_line()
         agent.post_message(
             messages.CommsUpdated(agent.coordination, agent, self.session_id)
         )
@@ -184,8 +172,8 @@ class CommsUpdateConsumer(MroDispatch):
 
     @handles(CompactionChangedUpdate)
     def compaction_changed(self, update: CompactionChangedUpdate) -> None:
-        self.agent._context_usage = None
-        self.agent._context_usage_saved = False
+        from .context_measurement import ContextUnavailable
+        self.agent.context_measurement = ContextUnavailable("Context measurement invalidated by compaction")
         self.agent.update_status_line()
         self.agent.post_message(
             messages.CommsUpdated(update, self.agent, self.session_id)

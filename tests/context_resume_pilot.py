@@ -57,9 +57,9 @@ async def main():
                     await asyncio.sleep(0.05)
             await pilot.pause()
             agent = app.screen.conversation.agent
-            assert agent._context_usage.used == 38723
-            assert agent._context_usage.size == 272000
-            assert agent._context_usage_saved is True
+            assert agent.context_measurement.used == 38723
+            assert agent.context_measurement.size == 272000
+            assert agent.context_measurement.source_label == "last response"
             assert "38.7K" in app.screen.conversation.status.plain
             assert "last response" in app.screen.conversation.status.plain
             agent.rpc_session_update(
@@ -67,15 +67,15 @@ async def main():
                 {"sessionUpdate": "usage_update", "used": 40000, "size": 272000},
             )
             await pilot.pause()
-            assert agent._context_usage.used == 40000 and (
-                not agent._context_usage_saved
+            assert agent.context_measurement.used == 40000 and (
+                agent.context_measurement.source_label == ""
             )
             assert "last response" not in app.screen.conversation.status.plain
             agent.comms_consumer_class(agent, agent.session_id).dispatch_sync(
                 coordination_fact("saved", str(root / "wire"), context_usage=None)
             )
             await pilot.pause()
-            assert agent._context_usage is None
+            assert not agent.context_measurement.available
             assert "unavailable" in app.screen.conversation.status.plain
             assert not (root / "provider-called").exists()
             assert app._exception is None

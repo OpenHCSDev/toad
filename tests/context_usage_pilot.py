@@ -29,8 +29,8 @@ async def main():
             agent.rpc_session_update("fixture", {"sessionUpdate": "usage_update", "used": 0,
                                                  "size": 272000})
             await pilot.pause()
-            assert agent._context_usage is None
-            assert "Context estimate unavailable" in str(view.status)
+            assert not agent.context_measurement.available
+            assert "Context unavailable" in str(view.status)
             assert "0.0K" not in str(view.status)
             agent.rpc_session_update("fixture", {"sessionUpdate": "usage_update", "used": 27000,
                                                  "size": 272000})

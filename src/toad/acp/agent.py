@@ -1,3 +1,4 @@
+from toad.acp.context_measurement import ContextMeasurement, ContextUnavailable
 from toad.acp.agent_process import AgentProcess
 from toad.acp.agent_controller import AgentController
 from toad.conversation_turn import AgentTurn, ClientTurn
@@ -10,7 +11,6 @@ from contextlib import suppress
 from copy import deepcopy
 from dataclasses import replace
 from datetime import datetime
-from math import floor
 from pathlib import Path
 from typing import Any, NamedTuple, cast
 from urllib.parse import quote
@@ -73,43 +73,6 @@ class Model(NamedTuple):
     id: str
     name: str
     description: str | None
-
-
-class ContextUsage(NamedTuple):
-    """Context window usage."""
-
-    used: int
-    size: int
-    cost: Cost | None = None
-
-    @property
-    def percentage_used(self) -> float:
-        try:
-            return (self.used / self.size) * 100.0
-        except ZeroDivisionError:
-            # Sanity check. If size is 0, then 100% is always used?
-            return 100.0
-
-    @property
-    def percentage_display(self) -> str:
-        return f"{floor(self.percentage_used * 10) / 10:.1f}%"
-
-
-class Cost(NamedTuple):
-    """A cost with associated currency."""
-
-    amount: float
-    currency: str
-
-    def __str__(self) -> str:
-        return f"{self:}"
-
-    def __format__(self, _specifier: str) -> str:
-        from format_currency import format_currency
-
-        amount, currency = self
-        currency_text = format_currency(amount, currency_code=currency).replace(" ", "")
-        return currency_text
 
 
 class TokenUsage(NamedTuple):
@@ -210,8 +173,7 @@ class Agent(AgentBase):
         else:
             self.presentation.log_path = paths.get_log() / log_filename
         self._token_usage: TokenUsage | None = None
-        self._context_usage: ContextUsage | None = None
-        self._context_usage_saved = False
+        self.context_measurement = ContextUnavailable("Native owner has not reported context usage")
         self._model_config_id: str | None = None
         self._thinking_config_id: str | None = None
 
@@ -423,46 +385,12 @@ class Agent(AgentBase):
                 title = update.get("title")
                 self.post_message(messages.SessionInfoUpdate(title))
             case {"sessionUpdate": "usage_update", "used": used, "size": size}:
-                self._context_usage_saved = False
-                if used <= 0 or size <= 0:
-                    self._context_usage = None
-                    self.post_message(
-                        messages.UpdateStatusLine(
-                            Content("Context estimate unavailable")
-                        )
-                    )
-                    return
-                match update.get("cost"):
-                    case {"amount": amount, "currency": currency}:
-                        self._context_usage = ContextUsage(
-                            used, size, Cost(amount, currency)
-                        )
-                    case _:
-                        self._context_usage = ContextUsage(used, size)
+                self.context_measurement = ContextMeasurement.live(used, size, update.get("cost"))
                 self.update_status_line()
 
     def update_status_line(self) -> None:
-        """Update the current status line."""
-        if self._context_usage is None:
-            self.post_message(messages.UpdateStatusLine(Content("Context estimate unavailable")))
-            return
-        if (usage := self._context_usage) is not None:
-            status: list[Content] = []
-            status.append(
-                Content.assemble(
-                    f"{usage.used / 1000:.1f}K",
-                    " (",
-                    (f"{usage.percentage_display}", "bold"),
-                    ")",
-                )
-            )
-            if self._context_usage_saved:
-                status.append(Content("last response"))
-            if (cost := usage.cost) is not None:
-                status.append(Content.assemble((f"{cost}", "bold")))
-
-            status_line = Content(" • ").join(status)
-            self.post_message(messages.UpdateStatusLine(status_line))
+        """The measurement owns availability and source-specific presentation."""
+        self.post_message(messages.UpdateStatusLine(self.context_measurement.status()))
 
     @jsonrpc.expose("session/request_permission")
     async def rpc_request_permission(
