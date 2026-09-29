@@ -35,6 +35,23 @@ class WorkspaceChrome:
         screen.frame_presentation.defer(roster, roster.navigation.start)
         return changed
 
+    def sidebar_geometry(self, screen):
+        """Resolve both mounted bars in the workspace's screen coordinates."""
+        from toad.widgets.side_bar import SideBar
+
+        bars = {bar.id: bar for bar in screen.query(SideBar)
+                if bar.id in screen.app.sidebar_layout.placements and bar.display
+                and all(ancestor.display for ancestor in bar.ancestors)}
+        resolved = screen.app.sidebar_layout.resolve(
+            screen.size.width, {identity: bar.collapsed for identity, bar in bars.items()})
+        channels = bars.get(self.channels.id)
+        gutters = {"left": 0, "right": 0}
+        if channels is not None:
+            placement = screen.app.sidebar_layout.get(channels.id)
+            if channels.collapsed or not placement.floating:
+                gutters[placement.side] = resolved.bars[channels.id].width
+        return resolved, gutters
+
     async def select(self, view: "SessionView") -> None:
         roster = self.channels.roster
         roster.navigation.capture()

@@ -772,21 +772,15 @@ class SideBar(SidebarDecorations, containers.Vertical):
             return False
         placement = app.sidebar_layout.get(self.id)
         parent = self.parent
-        if parent is None:
+        if parent is None or not self.display or not all(
+                ancestor.display for ancestor in self.ancestors if isinstance(ancestor, Widget)):
+            self._presented_layout = None
             return False
-        siblings = {bar.id: bar for bar in parent.children if isinstance(bar, SideBar)
-                    and bar.id in app.sidebar_layout.placements}
-        other = next((bar for bar in siblings.values() if bar is not self), None)
-        peer = app.sidebar_layout.get(other.id) if other is not None else None
-        # Applying intent invalidates geometry. A fresh region lookup here can
-        # synchronously lay out the entire transcript before the queued frame.
-        # Use the parent's native committed extent; resize commits reapply this
-        # model through the ordinary resize notification path.
-        viewport = parent.outer_size.region.shrink(parent.styles.gutter).width or app.size.width
-        resolved = app.sidebar_layout.resolve(viewport, {key: bar.collapsed for key, bar in siblings.items()})
+        resolved, shared_gutters = app.workspace_chrome.sidebar_geometry(self.screen)
         geometry = resolved.bars[self.id]
         width = geometry.width
-        key = (placement, peer, geometry, resolved.left_gutter, resolved.right_gutter, self.collapsed)
+        key = (placement, geometry, resolved.left_gutter, resolved.right_gutter,
+               shared_gutters["left"], shared_gutters["right"], self.collapsed)
         if key == self._presented_layout:
             return False
         self._presented_layout = key
@@ -796,10 +790,15 @@ class SideBar(SidebarDecorations, containers.Vertical):
             toggle.right = self.right
             toggle.set_collapsed(self.collapsed)
         self.styles.width = self.styles.min_width = self.styles.max_width = width
-        self.styles.dock = "none"
+        shared = self is app.workspace_chrome.channels
+        self.styles.dock = placement.side if not shared else "none"
         self.styles.position = "absolute"
         self.styles.overlay = "screen"
-        self.offset = (geometry.x, 0)
+        if shared or placement.side == "left":
+            offset_x = geometry.x if shared else geometry.x - shared_gutters["left"]
+        else:
+            offset_x = geometry.x + width - self.screen.size.width + shared_gutters["right"]
+        self.offset = (offset_x, 0)
         if handle := self.query_one_optional(SidebarResizeHandle):
             handle.display = not self.collapsed
         if self._panels_loaded and (controls := self.query_one_optional("#sidebar-controls")):
@@ -832,7 +831,17 @@ class SideBar(SidebarDecorations, containers.Vertical):
         content = next((child for child in parent.children
                         if child.display and not isinstance(child, SideBar)), None)
         if content is not None:
-            content.styles.margin = (0, resolved.right_gutter, 0, resolved.left_gutter)
+            local_dock = width if not shared else 0
+            content.styles.margin = (
+                0,
+                shared_gutters["right"] if shared else (
+                    resolved.right_gutter - shared_gutters["right"]
+                    - (local_dock if placement.side == "right" else 0)),
+                0,
+                shared_gutters["left"] if shared else (
+                    resolved.left_gutter - shared_gutters["left"]
+                    - (local_dock if placement.side == "left" else 0)),
+            )
         return True
 
     def _layout_changed(self, _update: None) -> None:
