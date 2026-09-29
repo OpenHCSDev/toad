@@ -1036,17 +1036,16 @@ class Conversation(containers.Vertical):
     async def on_agent_ready(self, message: AgentReady) -> None:
         self.remove_class("-initial-loading")
         await self.query(ThreadLoading).remove()
-        if message.reconnected:
-            return
-        self.session_start_time = monotonic()
-        if self.agent is not None:
-            content = Content.assemble(self.agent.get_info(), " connected")
-            self.flash(content, style="success")
-            if self._agent_data is not None:
-                self.app.capture_event(
-                    "agent-session-begin",
-                    agent=self._agent_data["identity"],
-                )
+        if not message.reconnected:
+            self.session_start_time = monotonic()
+            if self.agent is not None:
+                content = Content.assemble(self.agent.get_info(), " connected")
+                self.flash(content, style="success")
+                if self._agent_data is not None:
+                    self.app.capture_event(
+                        "agent-session-begin",
+                        agent=self._agent_data["identity"],
+                    )
 
         self.agent_ready = True
         self.call_later(self.goal_observation.refresh)

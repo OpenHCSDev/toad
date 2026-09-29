@@ -25,10 +25,11 @@ class TranscriptPublication(ABC):
     def current(self) -> bool:
         from toad.widgets.conversation import Window, Contents
         view = self.owner.view
-        return (view is not None and view.is_attached and not view._closing
-                and self.generation == self.owner.generation
-                and view.agent is self.agent
-                and self.window.is_attached and self.contents.is_attached
+        if view is None or not view.is_attached or view._closing:
+            return False
+        if self.generation != self.owner.generation or view.agent is not self.agent:
+            return False
+        return (self.window.is_attached and self.contents.is_attached
                 and view.query_one_optional(Window) is self.window
                 and view.query_one_optional(Contents) is self.contents)
 
@@ -228,6 +229,13 @@ class TranscriptPresentation:
             await publication.publish()
 
     async def snapshot(self, page: TranscriptPage) -> None:
+        frontier = self.displayed_cursor
+        if frontier is not None and frontier.session_file == page.after.session_file:
+            if frontier.offset < page.after.offset:
+                # The existing evidence/viewport policy advances retained content;
+                # a load response is not a reason to append its whole page twice.
+                self.require_checkpoint()
+            return
         self.invalidate()
         await self.publish(SnapshotPublication, page)
 
@@ -239,9 +247,13 @@ class TranscriptPresentation:
         generation, agent = self.generation, view.agent
         window, contents = view.query_one_optional(Window), view.query_one_optional(Contents)
         def record() -> None:
-            if (self.view is view and view.is_attached and self.generation == generation
-                    and view.agent is agent and window is not None and contents is not None
-                    and window.is_attached and contents.is_attached):
+            if self.view is not view or not view.is_attached:
+                return
+            if self.generation != generation or view.agent is not agent:
+                return
+            if window is None or contents is None:
+                return
+            if window.is_attached and contents.is_attached:
                 self.displayed_cursor = cursor
         view.call_after_refresh(record)
 
