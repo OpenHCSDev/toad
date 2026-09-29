@@ -181,9 +181,17 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
                              else OperationalSessionPresentation())
 
     async def prepare_presentation(self) -> None:
+        from toad.widgets.session_thread_sidebar import SessionThreadSidebar
+
         await self.presentation.prepare(self)
+        if sidebar := self.query_one_optional(SessionThreadSidebar):
+            await sidebar.prepare_presentation()
 
     async def retire_presentation(self) -> None:
+        from toad.widgets.session_thread_sidebar import SessionThreadSidebar
+
+        if sidebar := self.query_one_optional(SessionThreadSidebar):
+            await sidebar.retire_presentation()
         await self.presentation.retire(self)
 
     def watch_title(self, title: str) -> None:
