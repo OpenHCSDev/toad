@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from toad.conversation_submission import ConversationSubmissions
-from toad.live_output import LiveOutput, ResponseStream, ThoughtStream
+from toad.live_output import LiveOutput, ThoughtStream
 from toad.transcript_publication import TranscriptPresentation
 from toad.goal_interaction import GoalSession
 from toad.widgets.message_filter import OtherCategory
@@ -1642,20 +1642,15 @@ class Conversation(ConversationSessionBinding):
 
     @on(acp_messages.Update)
     async def on_acp_agent_message(self, message: acp_messages.Update):
-        from toad.widgets.agent_response import AgentResponse
-
         message.stop()
-        if not self.turns.owner.busy:
-            # Owner notices (including manual compaction) are complete messages,
-            # not a live response waiting for a future turn-settled event.
-            await self.post(AgentResponse(message.text, delivery=ResponseDelivery.from_route(message.route)))
+        if message.agent is not self.agent:
             return
         if self.turns.owner.busy:
             self.turns.describe("Writing response…")
             self.post_message(
                 messages.SessionUpdate(state="busy", summary="Writing response")
             )
-        await self.output.append(ResponseStream(ResponseDelivery.from_route(message.route)), message.text)
+        await self.output.append(message.stream, message.text)
 
     async def on_turn_started(self, message: acp_messages.CommsUpdated) -> None:
         if not self.turns.start(message):

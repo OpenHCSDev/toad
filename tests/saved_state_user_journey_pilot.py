@@ -29,6 +29,85 @@ from toad.widgets.comms_sidebar import ChannelGroup, CommsRow
 from toad.widgets.message_notifications import MessageNotifications
 from toad.widgets.prepared_markdown import PreparedConversationMarkdown
 from toad.widgets.session_tabs import SessionLabel
+from toad.widgets.agent_response import AgentResponse
+from toad.widgets.transcript_history import TranscriptFragmentView
+from toad.widgets.message_divider import MessageDivider
+
+
+# 2,800 characters / forty characters per SSE delta = 70 native chunks. Only
+# the first gamma reply is long, keeping the rest of the continuous journey small.
+_reply_body = "NATIVE_RESPONSE_3\n\n" + "\n\n".join(
+    f"Streamed paragraph {row}: the native owner delivers one continuous answer. "
+    "Queued UI events must retain the response identity captured at ACP ingress."
+    for row in range(20)
+)
+_reply_end = "\n\nSTREAM_REPLY_END_3\n"
+STREAM_REPLY = _reply_body[:2800 - len(_reply_end)] + _reply_end
+assert len(STREAM_REPLY) == 2800
+
+
+def streamed_reply(request, number):
+    content = STREAM_REPLY if number == 3 else f"NATIVE_RESPONSE_{number}"
+    if any("IGNORE" in str(message.get("content")) and "FULL" in str(message.get("content"))
+           for message in request["messages"]):
+        content = '{"decision":"IGNORE"}'
+    return {"role": "assistant", "content": content}, "stop"
+
+
+class StreamJourneyApp(InstalledApp):
+    """Observe every composited frame, including transient and saved headers."""
+    stream_view = None
+
+    def observe_stream(self, view):
+        self.stream_view = view
+        self.stream_frames = []
+        self.stream_live_blocks = set()
+        self.stream_violations = []
+
+    def _display(self, screen, renderable):
+        super()._display(screen, renderable)
+        view = self.stream_view
+        if (view is None or renderable is None or self._batch_count
+                or screen is not self.screen or self.selected_session.conversation is not view):
+            return
+        viewport = view.window.scrollable_content_region
+        visible = screen._compositor.visible_widgets
+        blocks = [block for block in view.query(AgentResponse)
+                  if block in visible and block.region.overlaps(viewport)]
+        live = [block for block in blocks
+                if not isinstance(block.parent, TranscriptFragmentView)]
+        # Weak references preserve observations without retaining retired bodies.
+        self.stream_live_blocks.update(ref(block) for block in live)
+        headers = [header for block in blocks for header in block.query(MessageDivider)
+                   if header in visible and header.region.overlaps(viewport)]
+        frame = {
+            "frame": len(self.stream_frames), "headers": len(headers),
+            "live_response_identities": len(self.stream_live_blocks),
+            "response_lengths": [len(block.source) for block in blocks],
+            "busy": view.turns.owner.busy,
+        }
+        self.stream_frames.append(frame)
+        if len(headers) > 1 or len(self.stream_live_blocks) > 1:
+            self.stream_violations.append(frame)
+            if len(self.stream_violations) == 1:
+                evidence = Path(os.environ["L0A_EVIDENCE"])
+                (evidence / "first-duplicate-header.txt").write_text(conversation_paint(screen))
+                (evidence / "first-duplicate-header.svg").write_text(self.export_screenshot())
+
+    def require_continuous_stream(self):
+        evidence = Path(os.environ["L0A_EVIDENCE"])
+        (evidence / "stream-frames.json").write_text(json.dumps(self.stream_frames, indent=2))
+        assert not self.stream_violations, (
+            "One native reply created multiple painted Agent headers", self.stream_violations[:3]
+        )
+        assert self.stream_frames and max(frame["headers"] for frame in self.stream_frames) == 1
+        assert len(self.stream_live_blocks) == 1, "The journey never painted a live response"
+        print("EVERY_STREAM_FRAME_ONE_CONTINUOUS_RESPONSE", {
+            "characters": len(STREAM_REPLY), "sse_chunks": 70,
+            "frames": len(self.stream_frames), "live_response_identities": 1,
+            "max_visible_headers": 1,
+        }, flush=True)
+        self.stream_view = None
 from toad.widgets.side_bar import SideBar
 from toad.widgets.thread_comms import ThreadCommsSidebar
 
@@ -89,7 +168,7 @@ async def click_tab(app, pilot, session_id):
     tab = next(label for label in app.screen.query(SessionLabel) if label.id == session_id)
     tab.scroll_visible(animate=False, immediate=True)
     await pilot.pause()
-    assert await pilot.click(tab), f"Tab {session_id} was not physically clickable"
+    assert await pilot.click(tab, offset=(tab.size.width // 2, 0)), f"Tab {session_id} was not physically clickable"
     await until(pilot, lambda: app.selected_session.id == session_id)
 
 
@@ -202,9 +281,11 @@ async def unopened_participant(app, pilot, comms, channel, entered, release, hol
     assert await pilot.click(names, offset=(offset, 0)), "Participant link not physically clickable"
     await until(pilot, lambda: app.selected_session is gamma)
     print("CHANNEL_ACTIVE_PARTICIPANT_CLICK_SAME_NATIVE_TAB", flush=True)
+    app.observe_stream(gamma.conversation)
     release.set()
     try:
-        await until(pilot, lambda: "NATIVE_RESPONSE_3" in conversation_paint(app.screen))
+        await until(pilot, lambda: app.stream_violations
+                    or "STREAM_REPLY_END_3" in conversation_paint(app.screen))
     except TimeoutError:
         view = gamma.conversation
         print("PARTICIPANT_RETURN_READER", {
@@ -220,7 +301,11 @@ async def unopened_participant(app, pilot, comms, channel, entered, release, hol
         (evidence / "participant-return-painted.txt").write_text(conversation_paint(app.screen))
         (evidence / "participant-return.svg").write_text(app.export_screenshot())
         raise
+    if app.stream_violations:
+        app.require_continuous_stream()
     await until(pilot, lambda: comms.registry.require("gamma").executing is False)
+    await pilot.pause(.3)
+    app.require_continuous_stream()
     assert len(requests) == 3
     return gamma
 
@@ -538,5 +623,6 @@ async def channel_reply_feedback(app, pilot, comms, channel, first, entered, rel
 
 if __name__ == "__main__":
     asyncio.run(native_fixture(
-        app_type=InstalledApp, prepare_state=prepare_saved_state, acceptance=acceptance,
+        app_type=StreamJourneyApp, prepare_state=prepare_saved_state, acceptance=acceptance,
+        provider_reply=streamed_reply, provider_chunk_characters=40,
     ))
