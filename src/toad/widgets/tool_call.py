@@ -213,7 +213,6 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
     def tool_call_header_content(self) -> Content:
         tool_call = self.tool_call
         assert tool_call is not None
-        _kind = tool_call.get("kind", "tool")
         title = tool_call.get("title", "title")
         status = tool_call.get("status", "pending")
 

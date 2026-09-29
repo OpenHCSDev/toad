@@ -31,6 +31,14 @@ def test_root_content_mechanisms_are_deleted():
     for relative in ("src/toad/tool_output.py", "src/toad/widgets/tool_content.py"):
         source = (ROOT / relative).read_text()
         assert "__registry__ =" not in source and "Enum" not in source
+        assert "Fallback" not in source
+        for node in ast.walk(ast.parse(source)):
+            if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute) and node.func.attr == "run_worker":
+                # Coroutines are created by Textual after worker entry. A
+                # cancelled queued worker must own only an async callable.
+                assert not isinstance(node.args[0], ast.Call) or (
+                    isinstance(node.args[0].func, ast.Name) and node.args[0].func.id == "partial"
+                ), (relative, node.lineno)
 
 
 def test_new_case_adopts_the_installed_consumer_without_catalog_edits(tmp_path, monkeypatch):

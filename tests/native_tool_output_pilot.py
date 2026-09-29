@@ -59,6 +59,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
         await until(pilot, lambda: len(requests) == 4 or not comms.registry.require("beta").executing, 25)
         assert len(requests) == 4, (len(requests), [row.get("tools") for row in requests])
         await until(pilot, lambda: len(view.query(ToolCall)) == 3)
+        await until(pilot, lambda: all(tool.tool_call["status"] == "completed" for tool in view.query(ToolCall)))
         tools = list(view.query(ToolCall))
         read, edit, bash = tools
         assert (project / "example.py").read_text() == source.replace("value = 1", "value = 2")

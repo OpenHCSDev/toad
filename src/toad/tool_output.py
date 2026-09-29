@@ -74,7 +74,7 @@ class TextToolOutputPart(ToolOutputPart):
         # heuristic, and new cases never add a second consumer inventory.
         candidates = [member for member in cls.members_with(SpecificTextToolOutputPart)
                       if member.accepts(text, read_path)] or [
-                          member for member in cls.members_with(FallbackTextToolOutputPart)
+                          member for member in cls.members_with(LiteralTextToolOutputPart)
                           if member.accepts(text, read_path)
                       ]
         if len(candidates) != 1:
@@ -90,7 +90,7 @@ class SpecificTextToolOutputPart(TextToolOutputPart):
     """An attested Read/ANSI/Markdown interpretation takes precedence."""
 
 
-class FallbackTextToolOutputPart(TextToolOutputPart):
+class LiteralTextToolOutputPart(TextToolOutputPart):
     """The remaining text is literal; member order is never priority."""
 
 
@@ -115,7 +115,7 @@ class RetainedTextToolOutputPart(TextToolOutputPart):
         return True
 
 
-class PlainTextToolOutputPart(RetainedTextToolOutputPart, FallbackTextToolOutputPart):
+class PlainTextToolOutputPart(RetainedTextToolOutputPart, LiteralTextToolOutputPart):
     @classmethod
     def accepts(cls, text: str, read_path: str | None) -> bool:
         return read_path is None
@@ -411,6 +411,8 @@ class ToolOutput:
         from toad.widgets.conversation import Window
 
         self.cancel_preparation()
+        self._awaiting_visible = False
+        self._hydration_scheduled = False
         try:
             self.view.query_ancestor(Window).pending_tool_content.discard(self.view)
         except NoMatches:
