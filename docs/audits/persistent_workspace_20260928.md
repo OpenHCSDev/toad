@@ -114,3 +114,27 @@ The native path alternately exposes detached cached Conversation geometry or
 message-processing timeout. No assertion/deadline is weakened. CLI thread search
 found no Noether handle; direct existing143 thread request5882012192 scopes only
 viewport_recent_tabs_pilot adaptation in own tree, no production overlap.
+
+## Concrete source-swap fix — actual native PASS
+
+Standalone fix commitdef847717e56e593e1a1e6b25a6a5a429ad997a7 changes only
+SessionObservation.refresh. Exact native diagnostic proved source-close cancels
+GoalObservation._run while its UI callback awaits shield(task); cancellation then
+escaped into the Conversation message pump with cancelling()==0. Textual exits
+the retained pump, leaving detached cached geometry/missing Prompt. The existing
+shared observation owner now consumes its own retired-read cancellation while
+preserving genuine caller cancellation. No UI leaf catch, replay or restart.
+
+Noneditable actual core3110a1f126d/Textualc974/native5fde native4/16/32/64
+acceptance exited0. Eight actual loopback Pi/ACP calls; one rich Conversation;
+original Agent/process/queue/native session and real Document/EditHistory/undo
+retained; original editor widget reused; response cropped paint all cohorts.
+Receipt native-reused-core311-observation-owner.json. At64:169635840 UI RSS,
+741 tasks, median126.98ms/max210.86ms,189/189 over100ms. This is improved from
+258.69ms but remains adverse against stable30–40ms/spike frequency target.
+Measurement includes20ms pilot settle and is not native terminal latency.
+
+Next ordered obligations: recent non-tail reuse/real rebuild count/bounded memory,
+final loaded+blank/native input/scroll/frame tails/ordinary GC, then canonical
+installed suite classifying49 predecessor failures without skips/deadline growth.
+116 stays draft until unique recent behavior/tests are represented.

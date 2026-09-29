@@ -2092,11 +2092,9 @@ class Conversation(containers.Vertical):
         return ask
 
     def command_target_context(self):
-        from toad.navigation_target import NavigationOwner
+        from toad.screens.main import MainScreen
         from toad.target_commands import ThreadContext
-        if not isinstance(self.screen, NavigationOwner):
-            return None
-        nav = self.screen.navigation_context
+        nav = self.query_ancestor(MainScreen).navigation_context
         comms = self.app.coordination_wire
         from agent_comms.errors import UnregisteredThreadError
         try:
