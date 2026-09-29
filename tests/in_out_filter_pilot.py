@@ -178,7 +178,7 @@ async def main():
             assert tail.filter.overlay is not None
             assert any(leaf.display and leaf.fragment.events[0].text == "EARLIER_ROUTED_OUTPUT"
                        for leaf in tail.filter.overlay.fragment_views)
-            view.displayed_transcript_cursor = cursor
+            view.transcript.displayed_cursor = cursor
             with patch.object(
                 app.coordination_wire.views, "mark_thread_view_read"
             ) as mark:

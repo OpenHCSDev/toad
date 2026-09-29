@@ -186,7 +186,7 @@ class FollowTailCheckpoint(CheckpointPlan):
         return PreparedCommit(None, fragments, incoming_sequences(page.events))
 
     def finish(self, view, cursor):
-        view.call_after_refresh(view._record_displayed_transcript, cursor)
+        view.transcript.painted(cursor)
         view.call_after_refresh(view.window.anchor)
 
     @asynccontextmanager

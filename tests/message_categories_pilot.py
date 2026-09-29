@@ -126,7 +126,7 @@ async def main():
                 with patch.object(
                     app.coordination_wire.views, "mark_thread_view_read"
                 ) as mark:
-                    view.displayed_transcript_cursor = cursor
+                    view.transcript.displayed_cursor = cursor
                     await app.mark_visible_thread_read()
                     mark.assert_not_called()
 

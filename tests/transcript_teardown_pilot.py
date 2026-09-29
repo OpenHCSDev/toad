@@ -41,9 +41,9 @@ async def main():
             agent = DelayedSnapshotAgent(page)
             view.set_reactive(type(view).agent, agent)
             view.agent_ready = True
-            view._transcript_dirty = view._needs_transcript_checkpoint = True
+            view.transcript.dirty = view.transcript.checkpoint_required = True
             view.window.anchor()
-            worker = view._compact_committed_history()
+            worker = view.transcript.request()
             await asyncio.wait_for(agent.entered.wait(), timeout=5)
             # Descendants disappear before Conversation itself during teardown.
             await view.window.remove()
