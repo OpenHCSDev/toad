@@ -2,6 +2,7 @@
 import asyncio
 import cProfile
 import pstats
+import traceback
 import json
 import os
 from pathlib import Path
@@ -50,6 +51,11 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
             await app.select_session(source.id)
             view = source.conversation
             await until(pilot, lambda: bool(view.window.histories) and view.transcript.displayed_cursor is not None)
+            print("SOURCE_READY_PAINT", source.id, agent.ready, view.agent_ready, view.classes,
+                  view.window.document_viewport.visible_bodies_ready,
+                  [(type(node).__name__, node.region) for node in app.screen._compositor.visible_widgets
+                   if node in view.window.document_viewport.owners],
+                  "FRAME", "\n".join(strip.text for strip in app.screen._compositor.render_strips()), flush=True)
             await until(pilot, lambda: f"NATIVE_RESPONSE_{2 * (source_index + 1)}" in conversation_paint(frame))
             await until(pilot, lambda: view.window.max_scroll_y > 0)
             await settled(pilot, view)
@@ -125,6 +131,9 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
         assert app.screen is frame and app._exception is None
         Path(os.environ["NATIVE_RETURN_RECEIPT"]).write_text(json.dumps(records,indent=2))
         print("TWO_LOADED_NATIVE_ABABA_FULL_PAINT_READER_EDITOR_UNDO_CUSTODY_NO_REPLAY", records, flush=True)
+    except BaseException:
+        traceback.print_exc()
+        raise
     finally:
         for agent in agents[1:]:
             await agent.stop()

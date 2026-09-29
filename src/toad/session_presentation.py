@@ -187,6 +187,7 @@ class NativeSessionSurface:
             if self.owner is not owner or self.widget is None:
                 return
             await owner.release_binding(self.widget, screen)
+            await self.widget.window.document_viewport.park_source()
             await self.widget.release_native_session()
             self.widget.display = False
             self.owner = None

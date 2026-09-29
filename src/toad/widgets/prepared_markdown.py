@@ -35,7 +35,7 @@ from toad.widgets.viewport_body import ViewportBody, MeasuredViewportBody
 class PreparedConversationMarkdown(MeasuredViewportBody, ConversationMarkdown):
     @property
     def body_ready(self) -> bool:
-        return super().body_ready and not self.loading and not self.lock.is_locked
+        return super().body_ready and not self.loading
 
     def _measured_virtual_size_requires_layout(self) -> bool:
         # Markdown extent comes from its arranged blocks, not a separately

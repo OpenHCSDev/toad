@@ -65,7 +65,6 @@ class TranscriptBlockConsumer(MroDispatch):
         self.blocks: list[Widget] = []
         self.tools: dict[str, protocol.ToolCall] = {}
         self.fragment = fragment
-        self._retained_bytes = retained_bytes(fragment)
         self.show_divider = show_divider
 
     @handles(ContextTranscript)
@@ -177,6 +176,7 @@ class TranscriptFragmentView(MeasuredViewportBody, CategorizedBlock, VerticalGro
     def __init__(self, fragment: TranscriptFragment, selected=None, *, identity=None):
         super().__init__()
         self.fragment = fragment
+        self._retained_bytes = retained_bytes(fragment)
         self.identity = identity
         self._body_viewport = None
         self._message_category = (event_category(fragment.events[0]) if fragment.events
@@ -208,8 +208,6 @@ class TranscriptFragmentView(MeasuredViewportBody, CategorizedBlock, VerticalGro
         if not self.body_ready or self.identity is None:
             return False
         if not self.is_attached or self._closing or self._pruning:
-            return False
-        if not shelf.is_mounted or not shelf.is_attached or shelf._closing or shelf._pruning:
             return False
         self.reparent(shelf)
         return True

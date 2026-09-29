@@ -592,7 +592,6 @@ class ConversationSessionBinding(containers.Vertical):
             await self._directory_watcher.aclose()
             self._directory_watcher = None
         await self.window.document_viewport.suspend_source()
-        await self.window.document_viewport.park_source()
         await asyncio.gather(self.goal_observation.close(),
                              self.delivery_observation.close())
         self.agent = None

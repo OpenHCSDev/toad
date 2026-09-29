@@ -48,6 +48,10 @@ class ViewportBody:
     def retained_source_bytes(self) -> int:
         return 0
 
+    @property
+    def measured_rows(self) -> int:
+        raise NotImplementedError
+
 
 class MeasuredViewportBody(ViewportBody):
     """Shared native extent and restoration state for body-owning widgets."""
@@ -71,6 +75,10 @@ class MeasuredViewportBody(ViewportBody):
     def body_ready(self) -> bool:
         return not self._body_dormant and not self._body_restoring
 
+    @property
+    def measured_rows(self) -> int:
+        return self._body_measurement[1] if self._body_measurement is not None else 0
+
     @height_dependency(NATIVE_WIDGET_HEIGHT)
     def get_content_height(self, container: Size, viewport: Size, width: int) -> int:
         if self._body_dormant and self._body_measurement is not None:
@@ -87,6 +95,10 @@ class RetainedBodyShelf(Widget):
     """Placement for the existing viewport's bounded warm bodies, never a tab."""
 
     DEFAULT_CSS = "RetainedBodyShelf { display: none; }"
+
+    async def acquire(self, window: Widget) -> None:
+        if not self.is_mounted:
+            await window.mount(self)
 
 
 class ViewportPresentation:
@@ -225,9 +237,9 @@ class DocumentViewport:
 
     async def park_source(self) -> None:
         """Move only admitted warm bodies before the source's pager is removed."""
+        await self.suspend_source()
         await self._trim_warm()
-        if not self._shelf.is_mounted:
-            await self.window.mount(self._shelf)
+        await self._shelf.acquire(self.window)
         for key in tuple(self._warm):
             owner = key()
             if owner is not None and owner.parent is not self._shelf:
@@ -323,12 +335,13 @@ class DocumentViewport:
                 retained = protected | warm | visible.keys()
                 # Reuse the same body admission and worker. Restore only the
                 # neighboring destination bodies, not every skipped record.
-                sequence = [node for node in self.window.walk_children() if node in self.owners]
+                sequence = [node for node in self.window.walk_children()
+                            if node in self.owners and node.parent is not self._shelf]
                 visible_indexes = [index for index, node in enumerate(sequence) if node in visible]
                 if visible_indexes:
                     ahead = self.lookahead.ahead_rows(self.window.size.height)
-                    heights = [sequence[index]._body_measurement[1] for index in visible_indexes
-                               if sequence[index]._body_measurement is not None]
+                    heights = [sequence[index].measured_rows for index in visible_indexes
+                               if sequence[index].measured_rows]
                     extent = max(1, sum(heights) / len(heights)) if heights else self.window.size.height
                     count = min(self.max_warm_bodies, int(ahead / max(1, extent)) + bool(ahead))
                     if self.lookahead.travel_rows < 0:
