@@ -1,0 +1,17 @@
+[
+  {
+    "mode": "session-1",
+    "view": "session-1",
+    "stored_watcher": "DirectoryWatcher(PosixPath('/home/ts/wt/toad-first-fork-startup-sol-20260929/.artifacts/single-tab-sdk-678fxyko'), MainScreen(id='session-1'))"
+  },
+  {
+    "mode": "comms-1",
+    "view": "comms-1",
+    "stored_watcher": null
+  },
+  {
+    "mode": "session-2",
+    "view": "session-2",
+    "stored_watcher": "None"
+  }
+]
