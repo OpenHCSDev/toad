@@ -250,9 +250,10 @@ class PermissionsScreen(Screen[Answer]):
 
 class PermissionReview(PermissionsScreen):
     """Admission at mount uses the same pending request and source binding."""
-    def __init__(self, request, view, diffs):
+    def __init__(self, request, view, diffs, binding):
         super().__init__(request.options, diffs, agent_name=view.agent_title or "The Agent")
         self.request = request
+        self.binding = binding
         self._view = ref(view)
 
     def retire(self):
@@ -264,6 +265,6 @@ class PermissionReview(PermissionsScreen):
 
     def on_mount(self, event):
         view = self._view()
-        if view is None or not self.request.pending or not self.request.controller.agent.controller.surface.owns(view):
+        if view is None or not self.request.pending or self.request.controller.agent.controller.surface is not self.binding:
             event.prevent_default()
             self.retire()
