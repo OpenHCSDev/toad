@@ -79,6 +79,11 @@ def goal_reply(request, count):
         text = GOAL_ANSWER
     else:
         text = SUMMARY
+    Path(os.environ["L0A_EVIDENCE"], "provider-progress.json").write_text(json.dumps({
+        "request_count": count, "goal_requests": sorted(goal_requests),
+        "last_request_model": request.get("model"), "last_request_max_tokens": request.get("max_tokens"),
+        "last_message": json.dumps(request["messages"][-1])[-500:],
+    }, indent=2))
     return {"role": "assistant", "content": text}, "stop"
 
 
@@ -86,6 +91,11 @@ def hold_goal_response(request_number, index):
     if request_number in goal_requests and index == 0:
         goal_started.set()
         assert goal_release.wait(20), "UI did not release the goal response"
+
+
+def goal_usage(request, count):
+    used = 0 if count <= 2 else 100
+    return {"prompt_tokens": used, "completion_tokens": 0, "total_tokens": used}
 
 
 async def prepare_cold_goal(comms, project, requests, entered, release, hold_next):
@@ -112,12 +122,13 @@ async def prepare_cold_goal(comms, project, requests, entered, release, hold_nex
         await asyncio.to_thread(comms.owners.stop, "beta")
     assert len(requests) == 2
     session = Path(comms.registry.require("beta").session_file)
-    assert SAVED_ANSWER in session.read_text()
+    assert "COLD_RETAINED_LONG_ANSWER" in session.read_text() and session.stat().st_size > 50000
     config = Path(os.environ["PI_CODING_AGENT_DIR"])
     models = json.loads((config / "models.json").read_text())
     selected = models["providers"]["selected-offline"]["models"][0]
     selected.update(contextWindow=10000, maxTokens=1000)
     (config / "models.json").write_text(json.dumps(models))
+    await asyncio.to_thread(comms.owners.start, "beta")
     # Reopen this real saved context cold under the smaller selected model.
     # The usage remains low; native stored-context admission must decide.
     entered.clear()
@@ -185,9 +196,11 @@ if __name__ == "__main__":
     if "--goal" in sys.argv:
         asyncio.run(main(app_type=InstalledApp, acceptance=goal_acceptance,
                         prepare_state=prepare_cold_goal, provider_reply=goal_reply,
-                        provider_after_chunk=hold_goal_response, provider_request_budget=8,
+                        provider_usage=goal_usage,
+                        provider_after_chunk=hold_goal_response, provider_request_budget=40,
                         native_settings={"compaction": {
-                            "enabled": True, "reserveTokens": 1000, "keepRecentTokens": 100}}))
+                            "enabled": True, "reserveTokens": 1000, "keepRecentTokens": 100},
+                            "retry": {"enabled": False}}))
     else:
         asyncio.run(main(app_type=InstalledApp, acceptance=acceptance, provider_usage=usage,
                         provider_reply=reply, native_settings={"compaction": {
