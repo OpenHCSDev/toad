@@ -43,7 +43,7 @@ async def main():
                 "run_command": {"*": shlex.join([sys.executable, str(peer)])}}
         app = InstalledApp(project_dir=str(root), agent_data=data)
         async with app.run_test(size=(130, 44)) as pilot:
-            view = app.screen.conversation
+            view = app.selected_session.conversation
             await until(pilot, lambda: view.agent is not None)
             agent = view.agent
             await until(pilot, agent.session_ready_event.is_set)
@@ -62,8 +62,8 @@ async def main():
                     assert entry.status is PlanStatus.decode(raw["status"])
                     assert entry.content.plain == raw["content"]
                     assert entry.status.marker().plain.strip() in viewport_text(plan)
-                assert sidebar.query_one(Plan).entries is plan.entries
                 await until(pilot, lambda: painted(sidebar.query_one(Plan), "ACP_pending_ITEM"))
+                assert sidebar.query_one(Plan).entries is plan.entries
                 print("ACP_STDIO_ALL_STATUS_MARKERS_AND_PLAN_SIDEBAR_PAINTED", flush=True)
 
                 (root / "plan-advance-0").touch()

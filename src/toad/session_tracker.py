@@ -6,6 +6,7 @@ from operator import attrgetter
 from typing import Iterable, Literal, Sequence
 
 from textual.signal import Signal
+from textual.widget import Widget
 from agent_comms.presentation import CoordinationSnapshot
 
 type SessionState = Literal["notready", "busy", "asking", "idle"]
@@ -100,6 +101,12 @@ class SidebarState:
     selected: SidebarSelection | None = None
     channel_scroll_y: float = 0
     panel_scroll_y: float = 0
+
+    def restore_scroll(self, channel: Widget, panels: Widget) -> bool:
+        before = channel.scroll_y, panels.scroll_y
+        channel.scroll_to(y=self.channel_scroll_y, animate=False, immediate=True)
+        panels.scroll_to(y=self.panel_scroll_y, animate=False, immediate=True)
+        return before != (channel.scroll_y, panels.scroll_y)
 
 
 @dataclass

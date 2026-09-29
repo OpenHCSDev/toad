@@ -626,12 +626,10 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
         self._selection_applied = True
 
     def restore_scroll(self) -> bool:
+        if self._last_snapshot is None:
+            return False
         if self._restore_navigation and self.is_attached and self.screen is self.app.screen:
-            channel, panels = self.scroll_containers
-            before = channel.scroll_y, panels.scroll_y
-            channel.scroll_to(y=self.navigation.channel_scroll_y, animate=False, immediate=True)
-            panels.scroll_to(y=self.navigation.panel_scroll_y, animate=False, immediate=True)
-            return before != (channel.scroll_y, panels.scroll_y)
+            return self.navigation.restore_scroll(*self.scroll_containers)
         return False
 
     def on_mount(self) -> None:
