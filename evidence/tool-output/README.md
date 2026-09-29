@@ -1,10 +1,10 @@
-# T4 Tool output ownership — ready for parent review
+# T4 Tool output ownership — permission caller closure included
 
-Source00d016e includes current main144/4147eb1. Parent owns merge/live activation.
+Current correction includes merged main14719de70c (including14613dd52b). Parent owns merge/live activation.
 No own-scope blocker remains; CI deferred. Actual installed provenance is in
-installed.json: Toad wheel from this own persistent tree, core306 b77db612 and
-Textual8 c9743801. Parent is independently staging newer core311; this receipt
-claims the current Toad main dependency pin, not an untested newer deployment.
+installed.json: Toad wheel from this own persistent tree, current main147 pin corec338e8ab and
+Textual8 c9743801. Previous receipts below were run against core306; corrected
+permission-installed acceptance uses the current main147 dependency pin.
 
 ## Implementation and deletion
 
@@ -21,15 +21,21 @@ Delete root content dispatch/classifier, raw snapshots, lock, cache/worker field
 warmup/hydration helpers, dead ToolCallItem and standalone demo. Migrate every
 actual moved-widget import. Private hidden renderer/cache goldens are deleted;
 controlled lifetime and historical foreground-read substitution are replaced by
-real rendering behavior. No Conversation/Agent/workspace/shell/read ACK edits.
+real rendering behavior. No Conversation/Agent/workspace/shell/read ACK edits. The agreed146 inline
+permission presentation caller migrates in this slice.
 
 New text case: one declared SpecificTextToolOutputPart subclass, zero root,
 classifier inventory, registry, scheduler or retirement edits. The installed
 new-case guard mounts/paints/collapses/reopens such a declaration. Root keeps
 Textual handlers, header/expansion intent and existing viewport participation.
-The adjacent existing permission-only ACPToolCallContent raw preview stays in
-Carver's Conversation/permission surface, whose presentation policy is distinct;
-it is not restored as a second ToolCall output path.
+Correction: the prior receipt incorrectly excluded the agreed146 permission
+caller. InlinePermissionPresentation now decodes once at request admission via
+decode_content and captures typed parts. ToolOutputPart.permission_preview owns
+the existing Markdown-for-all-text/file-diff-only policy; other content remains
+unpresented. ACPToolCallContent composes those parts through compose(Widget),
+with no raw match, make_diff, renderer fork or ToolCall-pretending adapter.
+Removal/rebinding keeps the captured values even if the original ACP dictionary
+changes. Request/source/modal retirement stays with merged146.
 
 ## Verified affected paths
 
@@ -76,3 +82,69 @@ are authored semantic patches, not claimed as an NRA-proved DSL transaction.
 Owned disposable scan snapshot, raw JSON superseded by compressed receipts and
 inactive attested failed-test roots are removed; source/commits/predecessors are
 preserved. cleanup.json records the boundary. No live changes or paid calls.
+
+## Permission caller correction acceptance
+
+permission-closure.txt:5 passed14.61s on the noneditable corrected wheel and
+main147 dependency pins. Actual Agent JSONRPC/controller + normal installed
+Toad mounts mixed inline Markdown and file diff, verifies terminal paint (not
+just nodes), original Markdown interpretation and ignored resource content, then
+removes/rebinds the surface and proves original captured paint survives raw
+producer mutation; grant/reject/session replacement/stop and modal cancellation
+remain covered. Both deletion/family guards pass. No mock renderer or transport.
+
+permission-native-painted.txt uses the existing146 replay: physical pinned Pi, real
+MCP SDK child, actual Comms owner/RuntimeServer/RuntimeProxy and installed Toad,
+painted shared Markdown content (the actual ACCEPTANCE_ECHO arguments) and
+permission choices, source removal/rebind and granted execution. Model
+responses only are local deterministic loopback; no paid calls/live changes.
+Exit0; native MCP child cleanup verified. Shared final ratchet has no positive
+deltas. No unchanged64 matrix.
+
+## Latest audit pattern closure
+
+Actually reread both NRA and refactor-audit skills, then the corrected Sep28 22:16
+archive at /home/ts/.local/share/agent-comms/skills/refactor-audit-20260928-2216/refactor-audit:
+SKILL.md, patterns/README.md, full implementation/over-time/agent-defaults and
+boundaries patterns, updated IMPL-14 final section and scripts/audit/chain_terms.py.
+The earlier18:41 source was superseded. No automatic rule-per-Boolean conversion.
+
+- IMPL-4/IMPL-5, BOUND-1/2, TIME-9: delete ACPToolCallContent raw dispatcher,
+  direct Markdown/make_diff and raw mirror. InlinePermissionPresentation owns
+  captured decoded parts on admission; all render through the existing cases.
+  No stored format changes, codec subclass, adapter, converter or dual reader.
+- IMPL-10: replace ToolOutput awaiting/scheduled flags with one declared
+  Idle/Waiting/Scheduled ToolHydration lifecycle. Replace ToolCallDiff's
+  presentable flag + optional prepared value with Waiting/Prepared/Published
+  PatchPublication states, which own composition and publication. Source owner
+  ToolCall owns the repeated manual/auto/window exposure decision for all users.
+- IDEN-1: compare one PatchPreparationTicket(generation, PatchRenderTask)
+  instead of repeated generation/source/theme predicates. IDEN-3: the existing
+  PatchPreparation lifetime reports ready results from its captured future;
+  consumers no longer probe future done/cancelled/source fields in one chain.
+  Passive PatchWarmup remains its captured data record, no redundant lifetime.
+- AGENT-8: actual updated skill census/overlay and shared installed ratchet used;
+  no cloned measurement mechanism. New deletion guard prevents the old raw
+  renderer, hydration/publication flags and >=4-term chains from returning.
+
+Source2ba9a27 includes main147. state-final-acceptance.txt:8 passed46.60s on its
+noneditable wheel, current main147 corec338e8ab/Textualc974 pins. Includes actual
+native Read/Edit/Bash, installed permission mixed Markdown/file-diff paint and
+raw-mutation removal/rebind, real renderer hide/reveal/update/theme/collapse/
+remount/retirement/cancellation-before-entry, diff sparse/large/malformed and
+family/deletion guards. The earlier state-acceptance.txt additionally verifies
+retained text against its same state implementation (8 passed37.83s).
+No mock renderer/native transport or unchanged workspace matrix.
+
+ratchet-state-final.txt: zero positive existing-measure delta. Updated
+pattern-census-final.json: every touched file BooleanChainTerms delta <=0;
+new tool_output/tool_content files both0, ToolCall -43. Per-file guard is explicit,
+not a net-count claim. Production deleted/added and test counts are recorded in
+line-counts-permission.json; net growth supplies explicit state/capture owners
+while root rendering and duplicate consumer mechanisms are removed.
+
+NRA raw structural scans are retained separately from executed acceptance.
+The state scan captures4b43f4a before the final ready-result method moved to its
+existing preparation lifetime2ba9a27; it is not misreported as final exact-source
+or native equivalence proof. Final shared ratchet/census/installed acceptance
+apply to2ba9a27. No own-scope blocker; parent owns merge/install.

@@ -1,0 +1,34 @@
+{
+  "agent-comms": {
+    "location": "/home/ts/wt/toad-tool-content-owner-sol-20260928/.venv/lib/python3.14/site-packages",
+    "version": "0.1.0",
+    "direct_url": {
+      "url": "https://github.com/OpenHCSDev/agent-comms.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "c338e8abccd099b1778d71a3d894671759e3c11c",
+        "requested_revision": "c338e8abccd099b1778d71a3d894671759e3c11c"
+      }
+    }
+  },
+  "textual": {
+    "location": "/home/ts/wt/toad-t4-tab-clipboard-sol-20260928/.venv/lib/python3.14/site-packages",
+    "version": "8.2.8",
+    "direct_url": {
+      "url": "https://github.com/OpenHCSDev/textual.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "c9743801c98dc570f82f82e25915ecce89800f4b",
+        "requested_revision": "c9743801c98dc570f82f82e25915ecce89800f4b"
+      }
+    }
+  },
+  "batrachian-toad": {
+    "location": "/home/ts/wt/toad-tool-content-owner-sol-20260928/.venv/lib/python3.14/site-packages",
+    "version": "0.6.20",
+    "direct_url": {
+      "url": "file:///home/ts/wt/toad-tool-content-owner-sol-20260928",
+      "dir_info": {}
+    }
+  }
+}
