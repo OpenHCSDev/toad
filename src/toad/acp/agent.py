@@ -51,7 +51,7 @@ from toad.acp.projection_attachment import ProjectionAttachment
 from toad.acp.prompt import build as build_prompt
 from toad.acp.queue_attachment import QueueAttachment
 from toad.acp.sdk_boundary import validate_session_update
-from toad.agent import AgentBase, AgentFail, AgentReady
+from toad.agent import AgentBase, LogAgentFail, UnsupportedResumeAgentFail, AgentReady
 from toad.agent_schema import Agent as AgentData
 from toad.db import DB, SessionMeta
 
@@ -617,10 +617,9 @@ class Agent(AgentBase):
                 else:
                     if not self.agent_capabilities.get("loadSession", False):
                         self.post_message(
-                            AgentFail(
+                            UnsupportedResumeAgentFail(
                                 "Resume not supported",
                                 f"{self._agent_data['name']} does not currently support resuming sessions.",
-                                help="no_resume",
                             )
                         )
                         self.session_ready_event.set()
@@ -631,8 +630,8 @@ class Agent(AgentBase):
                         await db.session_update_last_used(self.session_pk)
                 self._connected_ok = True
             except jsonrpc.APIError as error:
-                failure = ACPFailure.from_error(error.code, error.message, error.data)
-                self.post_message(AgentFail(failure.title, failure.feedback))
+                self.process.session_failed(ACPFailure.from_error(error.code, error.message, error.data))
+                return
         self.session_ready_event.set()
         self.post_message(AgentReady(reconnected=self._reconnecting))
 
@@ -1084,10 +1083,10 @@ class Agent(AgentBase):
                     )
                 )
             self.post_message(
-                AgentFail(
+                LogAgentFail(
                     failure.title,
                     f"{failure.detail}\n{failure.input_disposition}\n{failure.action}",
-                    help="prompt",
+                    log_path=self.presentation.log_path,
                 )
             )
             return None
@@ -1109,10 +1108,10 @@ class Agent(AgentBase):
                     )
                 )
             self.post_message(
-                AgentFail(
+                LogAgentFail(
                     "Failed to send prompt",
                     error.message or f"{self._agent_data['name']} returned an error",
-                    help="prompt",
+                    log_path=self.presentation.log_path,
                 )
             )
             return None

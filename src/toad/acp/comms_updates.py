@@ -231,9 +231,9 @@ class CommsUpdateConsumer(MroDispatch):
 
     @handles(RequestFailedUpdate)
     def request_failed(self, update):
-        from toad.agent import AgentFail
+        from toad.agent import LogAgentFail
 
         failure = update.failure
         self.agent.post_message(
-            AgentFail(failure.title, failure.feedback, help="prompt")
+            LogAgentFail(failure.title, failure.feedback, log_path=self.agent.presentation.log_path)
         )

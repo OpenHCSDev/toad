@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 from agent_comms.declared_family import DeclaredFamily
 from toad import jsonrpc
-from toad.agent import AgentFail
+from toad.agent import LogAgentFail
 from toad.acp.wire_message import IncomingWireMessage
 
 
@@ -70,7 +70,7 @@ class AgentProcess:
         except Exception as error:
             self.agent._connected_ok = False
             self.agent.session_ready_event.set()
-            self.agent.post_message(AgentFail("Failed to start agent", details=str(error)))
+            self.agent.post_message(LogAgentFail("Failed to start agent", details=str(error), log_path=self.agent.presentation.log_path))
             return
         self.disposition = ActiveProcessDisposition()
         self.retirement = None
@@ -156,14 +156,34 @@ class AgentProcess:
         finally:
             await self.retire()
 
+    def session_finished(self, task):
+        if task.cancelled():
+            return
+        error = task.exception()
+        if error is not None and self.accepts_updates:
+            self.startup_failed(f"{type(error).__name__}: {error}")
+            if self.runner is not None:
+                self.runner.cancel()
+
+    def session_failed(self, failure):
+        self.close()
+        self.agent.session_ready_event.set()
+        self.agent.post_message(LogAgentFail(failure.title, failure.feedback, log_path=self.agent.presentation.log_path))
+
+    def startup_failed(self, details):
+        self.close()
+        self.agent.session_ready_event.set()
+        self.agent.post_message(LogAgentFail("ACP session startup failed", details=details, log_path=self.agent.presentation.log_path))
+
     async def communicate(self) -> None:
         """Task to communicate with the agent subprocess."""
         agent = self.agent
         env = (self.env or os.environ).copy()
         env["TOAD_CWD"] = str(Path("./").absolute())
         if (command := agent.command) is None:
+            agent.session_ready_event.set()
             agent.post_message(
-                AgentFail("Failed to start agent; no run command for this OS")
+                LogAgentFail("Failed to start agent; no run command for this OS", log_path=agent.presentation.log_path)
             )
             return
         try:
@@ -179,9 +199,10 @@ class AgentProcess:
         except Exception as error:
             agent._connected_ok = False
             agent.session_ready_event.set()
-            agent.post_message(AgentFail("Failed to start agent", details=str(error)))
+            agent.post_message(LogAgentFail("Failed to start agent", details=str(error), log_path=self.agent.presentation.log_path))
             return
         self.session_task = asyncio.create_task(agent.run())
+        self.session_task.add_done_callback(self.session_finished)
         assert process.stdout is not None
         assert process.stdin is not None
 
@@ -212,9 +233,12 @@ class AgentProcess:
                 continue
             await incoming.receive(agent, call_jsonrpc, self)
         if process.returncode and self.accepts_updates:
+            agent.session_ready_event.set()
             assert process.stderr is not None
             fail_details = (await process.stderr.read()).decode("utf-8", "replace")
-            agent.post_message(AgentFail(
+            agent.post_message(LogAgentFail(
                 f"Agent returned a failure code: [b]{process.returncode}",
-                details=fail_details,
+                details=fail_details, log_path=agent.presentation.log_path,
             ))
+        elif self.accepts_updates and not agent.session_ready_event.is_set():
+            self.startup_failed("ACP process closed before session initialization completed.")
