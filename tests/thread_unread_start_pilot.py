@@ -13,7 +13,6 @@ from pathlib import Path
 
 from agent_comms.runtime import socket_path
 from agent_comms.threads import Thread
-from comms_boundary_fixture import snapshot_fact
 from runtime_fixture import ToadApp, private_native_wire
 
 from toad.acp.messages import CommsUpdated

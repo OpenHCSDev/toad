@@ -18,7 +18,6 @@ from agent_comms.comms import wire
 from agent_comms.threads import Thread
 from agent_comms.transcript_events import AssistantTranscript
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
-from comms_boundary_fixture import snapshot_fact
 from runtime_fixture import ToadApp
 from textual.widget import Widget
 

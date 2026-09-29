@@ -12,7 +12,6 @@ from agent_comms.acp_extension import TextRouteUpdate, encode_updates
 from agent_comms.input_disposition import InputDispositions
 from agent_comms.routing import MessageRoute, ScheduledTurn, TurnRouting
 from agent_comms.threads import Thread
-from comms_boundary_fixture import snapshot_fact
 from runtime_fixture import ToadApp
 
 from toad.widgets.message_filter import MessageCategory, RoutedMessage

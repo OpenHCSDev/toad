@@ -10,7 +10,7 @@ from unittest.mock import patch
 
 from agent_comms.comms import wire
 from agent_comms.threads import Thread
-from comms_boundary_fixture import attach_coordination, snapshot_fact
+from comms_boundary_fixture import attach_coordination
 from runtime_fixture import ToadApp
 
 from toad.acp.agent import Agent

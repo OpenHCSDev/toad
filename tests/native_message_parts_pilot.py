@@ -10,6 +10,7 @@ from agent_comms.threads import Thread
 from agent_comms.comms import wire
 from agent_comms.acp_extension import TranscriptSnapshotUpdate, encode_updates
 from runtime_fixture import ToadApp
+from l0a_native_installed_pilot import until
 from textual.widgets._markdown import MarkdownBulletList, MarkdownFence
 from toad.acp.agent import Agent
 from toad.widgets.agent_response import AgentResponse
@@ -46,7 +47,7 @@ async def main():
                 "content": {"type": "text", "text": ""},
                 "_meta": encode_updates(TranscriptSnapshotUpdate(saved, read.identity)),
             })
-            await pilot.pause()
+            await until(pilot, lambda: bool(view.contents.query(AgentResponse)))
             assert len(view.contents.query(MessageDivider)) == 1, "one native row gained extra timestamps"
             body = view.contents.query_one(AgentResponse)
             assert body.source == "".join(parts)

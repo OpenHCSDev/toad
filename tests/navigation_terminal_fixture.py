@@ -31,7 +31,7 @@ from agent_comms.transcript_events import (
     UserTranscript,
 )
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
-from comms_boundary_fixture import coordination_fact, snapshot_fact
+from comms_boundary_fixture import coordination_fact
 from setproctitle import setproctitle
 
 from toad.acp.agent import Agent

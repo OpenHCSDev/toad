@@ -1,0 +1,42 @@
+[
+  {
+    "file": "src/toad/acp/agent_controller.py",
+    "class": "AgentController",
+    "before": 268,
+    "after": 276,
+    "excess_before": 0,
+    "excess_after": 0
+  },
+  {
+    "file": "src/toad/acp/transcript_reader.py",
+    "class": "NativeTranscriptReadWork",
+    "before": 10,
+    "after": 13,
+    "excess_before": 0,
+    "excess_after": 0
+  },
+  {
+    "file": "src/toad/acp/transcript_reader.py",
+    "class": "PublishedNativeTranscriptReadWork",
+    "before": 0,
+    "after": 7,
+    "excess_before": 0,
+    "excess_after": 0
+  },
+  {
+    "file": "src/toad/acp/transcript_reader.py",
+    "class": "CoordinationTranscriptReader",
+    "before": 49,
+    "after": 67,
+    "excess_before": 0,
+    "excess_after": 0
+  },
+  {
+    "file": "src/toad/work_preparation.py",
+    "class": "PreparationRuntime",
+    "before": 126,
+    "after": 128,
+    "excess_before": 0,
+    "excess_after": 0
+  }
+]
