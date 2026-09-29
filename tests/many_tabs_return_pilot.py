@@ -100,9 +100,9 @@ async def main(*, empty=False, trace=False, observe=False, output=None, peers=0,
         source_names = [f"return-{index}" for index in range(source_threads or tabs)]
         targets = source_names[:tabs]
         for name in source_names:
-            wire(root / "wire").threads.register(Thread(name, frozenset(), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
+            wire(root / "wire").registry.declare(Thread(name, frozenset(), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
         for index in range(peers):
-            wire(root / "wire").threads.register(
+            wire(root / "wire").registry.declare(
                 Thread(
                     f"peer-{index}",
                     frozenset({"fixture", *(f"fixture-{i}" for i in range(channels))}),

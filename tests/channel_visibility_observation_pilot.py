@@ -24,7 +24,7 @@ async def main():
         os.environ.update(AGENT_COMMS_ROOT=str(root/'wire'), XDG_CONFIG_HOME=str(root/'config'),
                           XDG_STATE_HOME=str(root/'state'), XDG_DATA_HOME=str(root/'data'))
         comms = wire(root/'wire')
-        comms.threads.register(Thread('peer', frozenset({'one', 'two'}), str(root)))
+        comms.registry.declare(Thread('peer', frozenset({'one', 'two'}), str(root)))
         comms.messaging.send('peer', '#one', 'FIRST')
         comms.messaging.send('peer', '#two', 'SECOND')
         app = ToadApp(project_dir=str(root))

@@ -20,7 +20,7 @@ async def main():
         root = Path(directory)
         os.environ.update(XDG_CONFIG_HOME=str(root / "config"), XDG_STATE_HOME=str(root / "state"),
                           XDG_DATA_HOME=str(root / "data"), AGENT_COMMS_ROOT=str(root / "wire"))
-        wire(root / "wire").threads.register(Thread("fixture", frozenset({"test"}), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
+        wire(root / "wire").registry.declare(Thread("fixture", frozenset({"test"}), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(120, 40)) as pilot:
             await pilot.pause()

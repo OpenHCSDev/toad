@@ -43,7 +43,7 @@ async def main():
         source = root / "session.jsonl"
         source.write_text(record("one", "First"))
         comms = Comms(root / "wire")
-        comms.threads.register(
+        comms.registry.declare(
             Thread("fixture", frozenset(), str(root), session_file=str(source))
         )
         agent = Agent(
@@ -79,7 +79,7 @@ async def main():
             other = Comms(root / "other-wire")
             second = root / "other.jsonl"
             second.write_text(record("other", "Other wire"))
-            other.threads.register(
+            other.registry.declare(
                 Thread("fixture", frozenset(), str(root), session_file=str(second))
             )
             attach_coordination(

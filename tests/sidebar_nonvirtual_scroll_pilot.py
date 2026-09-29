@@ -28,7 +28,7 @@ async def check_left() -> None:
             TOAD_BENCH_VIRTUAL_CHANNELS="",
         )
         name = "long-thread-name-" * 5
-        wire(root / "wire").threads.register(
+        wire(root / "wire").registry.declare(
             Thread(name, frozenset({"alpha"}), str(root))
         )
         app = ToadApp(project_dir=str(root))
@@ -67,7 +67,7 @@ async def check_right() -> None:
         comms = wire(root / "wire")
         name = "long-collaborator-" * 5
         for peer in ("owner", name):
-            comms.threads.register(Thread(peer, frozenset(), str(root)))
+            comms.registry.declare(Thread(peer, frozenset(), str(root)))
         comms.relationships.edit(
             "owner", "add", name, "Review the whole implementation"
         )

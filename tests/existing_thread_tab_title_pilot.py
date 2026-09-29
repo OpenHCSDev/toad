@@ -31,7 +31,7 @@ async def main(title: str | None = None, *, cold_metadata: bool = False) -> None
         comms = wire(root / "wire")
         project = root / "other-project"
         project.mkdir()
-        comms.threads.register(
+        comms.registry.declare(
             Thread(
                 "owner",
                 frozenset({"acp"}),
@@ -40,7 +40,7 @@ async def main(title: str | None = None, *, cold_metadata: bool = False) -> None
                 title="Owner",
             )
         )
-        comms.threads.register(
+        comms.registry.declare(
             Thread(
                 "existing-thread",
                 frozenset({"acp"}),

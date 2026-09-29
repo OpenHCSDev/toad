@@ -1,0 +1,20 @@
+CORE /home/ts/wt/comms-wire-receipt-identity-20260929/.artifacts/installed/lib/python3.14/site-packages/agent_comms/__init__.py TOAD /home/ts/.local/share/agent-comms/runtime-idle-warm-source-20260929/lib/python3.14/site-packages/toad/__init__.py
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=9, pipe_handle=15)
+                                                  ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/spawn.py", line 122, in spawn_main
+    exitcode = _main(fd, parent_sentinel)
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/spawn.py", line 131, in _main
+    prepare(preparation_data)
+    ~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/spawn.py", line 246, in prepare
+    _fixup_main_from_path(data['init_main_from_path'])
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/spawn.py", line 297, in _fixup_main_from_path
+    main_content = runpy.run_path(main_path,
+                                  run_name="__mp_main__")
+  File "<frozen runpy>", line 286, in run_path
+  File "<frozen runpy>", line 254, in _get_code_from_file
+FileNotFoundError: [Errno 2] No such file or directory: '/home/ts/wt/toad-registration-authority-callers-20260929/<stdin>'
+{"action": "comms_stop", "subject": "sender", "stopped": true, "installed_toad": "/home/ts/.local/share/agent-comms/runtime-idle-warm-source-20260929/lib/python3.14/site-packages/toad/__init__.py", "installed_core": "/home/ts/wt/comms-wire-receipt-identity-20260929/.artifacts/installed/lib/python3.14/site-packages/agent_comms/__init__.py", "mocked_calls": false}

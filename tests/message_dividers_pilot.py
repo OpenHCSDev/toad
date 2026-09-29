@@ -33,9 +33,9 @@ async def main() -> None:
                           XDG_DATA_HOME=str(root / "data"),
                           AGENT_COMMS_ROOT=str(root / "wire"))
         comms = wire(root / "wire")
-        comms.threads.register(Thread("peer", frozenset(), str(root)))
+        comms.registry.declare(Thread("peer", frozenset(), str(root)))
         me = session_thread_name(root)
-        comms.threads.register(Thread(me, frozenset(), str(root)))
+        comms.registry.declare(Thread(me, frozenset(), str(root)))
         sent = comms.messaging.send_message("peer", "#all", "incoming wire")
         outbound = comms.messaging.send_message(me, "#all", "outbound wire")
         app = ToadApp(project_dir=str(root))
