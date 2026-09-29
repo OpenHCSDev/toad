@@ -13,6 +13,33 @@ from toad.widgets.committed_presentation import SnapshotPresentation
 
 
 class UserInput(ConversationBlock, SnapshotPresentation, CategorizedBlock, containers.VerticalGroup):
+    DEFAULT_CSS = """
+    UserInput {
+        background: transparent;
+        padding: 0;
+        margin: 0 1 1 0;
+        & > .user-input-body {
+            border-left: blank $secondary;
+            background: $secondary 15%;
+            padding: 0 1 0 0;
+        }
+        Markdown {
+            padding:0 2 0 0;
+        }
+        MarkdownFence {
+            margin: 0 2 1 0;
+        }
+        #prompt {
+            margin: 0 1 0 0;
+            color: $text-secondary;
+        }
+        &:ansi > .user-input-body {
+            background: ansi_default;
+            border-left: tall ansi_cyan;
+        }
+    }
+    """
+
     @property
     def message_category(self) -> type[MessageCategory]:
         return UserCategory

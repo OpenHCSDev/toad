@@ -225,5 +225,6 @@ class NativeSessionSurface:
                 if self.owner is not None and self.view is not None:
                     await self.owner.release_binding(self.widget, self.view)
                 await self.widget.release_native_session()
+                await self.widget.window.document_viewport.close()
                 await self.widget.remove()
             self.widget = self.owner = self.view = None

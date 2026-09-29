@@ -61,6 +61,16 @@ class RoutedResponse(ResponseDelivery):
 
 
 class AgentResponse(ConversationBlock, CategorizedBlock, StreamingMarkdown):
+    DEFAULT_CSS = """
+    AgentResponse {
+        min-height: 1;
+        padding: 0 0 0 0;
+        overflow-x: auto;
+        scrollbar-size-horizontal: 0;
+        layout: stream;
+    }
+    """
+
     DEFAULT_CLASSES = "block"
 
     @property
