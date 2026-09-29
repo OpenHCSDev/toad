@@ -424,5 +424,3 @@ class MountedMessageHistory:
             self.ack_inflight = False
             if self.attached:
                 self.view.call_after_refresh(self.mark_visible)
-
-

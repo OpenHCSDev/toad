@@ -215,7 +215,7 @@ async def main():
                 comms.messaging.send("edge-reader", "#short", f"Small {index}")
             await channel_target("#short").open(NavigationContext(app, owner, root, "edge-reader"))
             short = app.screen.query_one(CommsChatView)
-            await until(lambda: len(short._history) == 12 and not short.message_history.edge_scheduled)
+            await until(lambda: len(short.message_history.rows) == 12 and not short.message_history.edge_scheduled)
             assert not short.message_history.has_older and app._exception is None
         await asyncio.get_running_loop().shutdown_default_executor()
     print("history-edge scheduling: bounded wait, typing, no-progress/error, latest viewport, tab return, late IO, close and underfill OK")

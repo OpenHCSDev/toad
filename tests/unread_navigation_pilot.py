@@ -77,7 +77,7 @@ async def main() -> None:
             dm_mode = await DirectTarget("sender").open(NavigationContext(app, owner, root, viewer.name))
             dm = app.screen.query_one(CommsChatView)
             await wait_for(pilot, lambda: any(
-                item.body == "dm-pending" for item, _ in dm._history
+                item.body == "dm-pending" for item, _ in dm.message_history.rows
             ))
             await wait_for(pilot, lambda: dm_unread() == 0)
             await badge_cleared(app, pilot, dm_mode)
@@ -91,7 +91,7 @@ async def main() -> None:
             aggregate_mode = await FeedTarget().open(NavigationContext(app, owner, root, viewer.name))
             aggregate = app.screen.query_one(CommsChatView)
             await wait_for(pilot, lambda: any(
-                item.body == "aggregate-pending" for item, _ in aggregate._history
+                item.body == "aggregate-pending" for item, _ in aggregate.message_history.rows
             ))
             await wait_for(pilot, lambda: aggregate_unread() == 0)
             await badge_cleared(app, pilot, aggregate_mode)

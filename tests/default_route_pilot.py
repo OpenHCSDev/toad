@@ -137,8 +137,8 @@ async def main() -> None:
                 await pilot.pause()
                 assert view._wire.root == first
                 assert any(
-                    "OLD-WIRE-ONLY" in str(message) for message, _ in view._history
-                ), view._history
+                    "OLD-WIRE-ONLY" in str(message) for message, _ in view.message_history.rows
+                ), view.message_history.rows
 
                 # A read already in flight when the route flips must not paint
                 # a late page from the former wire into the successor view.
@@ -164,7 +164,7 @@ async def main() -> None:
                 view.message_history.has_newer = True
                 await view.message_history.load_edge()
                 assert all(
-                    "LATE-OLD-EDGE" not in str(message) for message, _ in view._history
+                    "LATE-OLD-EDGE" not in str(message) for message, _ in view.message_history.rows
                 )
                 await view._refresh()
                 app.screen.query_one(CommsSidebar)._refresh()
@@ -186,11 +186,11 @@ async def main() -> None:
                 await pilot.pause()
                 assert new_view.display and new_view._wire.root == second
                 assert any(
-                    "NEW-WIRE-ONLY" in str(message) for message, _ in new_view._history
-                ), new_view._history
+                    "NEW-WIRE-ONLY" in str(message) for message, _ in new_view.message_history.rows
+                ), new_view.message_history.rows
                 assert all(
                     "OLD-WIRE-ONLY" not in str(message)
-                    for message, _ in new_view._history
+                    for message, _ in new_view.message_history.rows
                 )
 
                 # A proven pre-append rejection remains editable; unlike an

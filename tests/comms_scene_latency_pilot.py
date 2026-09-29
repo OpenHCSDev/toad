@@ -63,7 +63,7 @@ async def main():
                 await channel_target(target).open(NavigationContext(app, owner, root, me))
                 samples.append((await asyncio.wait_for(app.pending, 8) - started) * 1000)
                 sizes.append(len(list(app.screen.query_one(Prompt).walk_children())))
-                assert app.screen.query_one(CommsChatView)._history[0][0].body.startswith("Scene history marker")
+                assert app.screen.query_one(CommsChatView).message_history.rows[0][0].body.startswith("Scene history marker")
                 await app.switch_mode(owner)
                 await pilot.pause()
             assert app._exception is None
