@@ -82,6 +82,9 @@ class OperationalTerminalOwner(ClientRequestOwner, ABC):
     @jsonrpc.expose("terminal/wait_for_exit")
     async def terminal_wait_for_exit(self, sessionId: str, terminalId: str, _meta: dict | None = None) -> protocol.WaitForTerminalExitResponse:
         authority = self.session_request(sessionId)
-        code, signal = await self.terminals.wait(terminalId)
+        terminals = self.terminals
+        code, signal = await terminals.wait(terminalId)
         authority.require()
+        if self.terminals is not terminals:
+            raise jsonrpc.InvalidParams("ACP terminal owner was replaced while awaiting exit")
         return {"exitCode": code, "signal": signal}

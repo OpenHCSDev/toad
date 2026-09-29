@@ -77,3 +77,35 @@ def test_new_client_capability_registers_without_roster_or_agent_edit(tmp_path):
         assert (await rpc(agent, 'test/session_echo', session='retired'))['error']['code'] == -32602
         await agent.stop()
     asyncio.run(run())
+
+
+def test_terminal_wait_rejects_same_session_return_after_owner_replacement(tmp_path, monkeypatch):
+    async def run():
+        agent = make_agent(tmp_path)
+        created = await rpc(agent, 'terminal/create', command='sh', args=['-c', 'sleep 30'])
+        terminal_id = created['result']['terminalId']
+        original = agent.controller.terminals
+        execution = original.require(terminal_id)
+        entered, release = asyncio.Event(), asyncio.Event()
+        real_wait = original.wait
+        async def pending_wait(terminal_id):
+            entered.set()
+            result = await real_wait(terminal_id)
+            await release.wait()
+            return result
+        monkeypatch.setattr(original, 'wait', pending_wait)
+        waiting = asyncio.create_task(rpc(agent, 'terminal/wait_for_exit', terminalId=terminal_id))
+        await entered.wait()
+        disposition = agent.process.disposition
+        agent.session_id = 'after'
+        agent.session_id = 'before'
+        assert agent.process.disposition is disposition
+        await original.close()
+        release.set()
+        result = await waiting
+        assert result['error']['code'] == -32602
+        assert 'owner was replaced' in result['error']['message']
+        assert execution._process.returncode is not None
+        assert not original.executions and not agent.controller.terminals.executions
+        await agent.stop()
+    asyncio.run(run())

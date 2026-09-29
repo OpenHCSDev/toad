@@ -18,3 +18,5 @@ AC_NATIVE_COPIED_PACKAGE=/home/ts/.local/share/agent-comms/native-current-d3967e
 ```
 
 No further unchanged matrix. Parent owns integration and affected live entry gate. This closes inbound client-session effects; it does not claim all T4/Agent responsibilities complete or arbitrary cancellation of multiple terminal-close operations verified.
+
+Review correction: terminal/wait_for_exit now captures existing TerminalController identity and refuses completion after session A→B→A replaces it, even when ProcessDisposition/session string match again. Noneditable installed registered-RPC actual shell-process progression PASS (wait-correction.log; four cases). Native/Pilot continuation receipt unchanged and retained. First correction run was old installed wheel because environment has no pip; retained wait-old-installed-red.log, then uv-installed corrected package and proved progression. No new epoch/token/state.
