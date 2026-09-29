@@ -13,3 +13,7 @@ Verification: ten focused installed cases passed, including five pending handsha
 Candidate aligned to core381 main13d92f80, Textual609b74bf, native9213ee71479d1b20. Initial stale dependency attempts preserved as RED receipts; no product failure attributed. Parent owns merge/live install. CI deferred.
 
 Actual journey found and fixed same-session reconnect retaining retired TerminalController, then missing presentation of its replacement. AgentSession.starting clears readiness before async admission; AgentProcess replaces existing terminal custody only after publishing ActiveProcessDisposition, and existing terminal owner presents its replacement to actual surface. No new scheduler/token/store. RED receipts retained; full final ACP and viewport SVG committed. Parent live-entry/deploy gate remains separate.
+
+## Current-main180 preservation correction
+
+Ordinary merge36d3ba35 restores currentmain262e ancestry completely, including controls-before-I/O and captured SessionBinding guard in AgentController.restore. Maintained continuous saved_state_user_journey_pilot.py is identical to main262e, original held-status assertion unchanged. Affected full installed CURRENT pair core19e5/Textual609b/native9213 PASS exit0, including literal ACTUAL_NATIVE_PAGE_DELIVERED_WHILE_STATUS_STORE_HELD. See CURRENT-MAIN-RESTORATION.md and current-pair-journey.log. No acceptance weakened and no unrelated suite rerun.
