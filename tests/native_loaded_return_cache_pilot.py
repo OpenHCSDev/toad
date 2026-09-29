@@ -48,6 +48,13 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
         # comparable reader/editor state only after ordinary saved publication.
         states = {}
         for source_index, (source, agent) in enumerate(zip(sources, agents)):
+            print("CACHE_BEFORE_SELECT", source.id,
+                  [(type(k().parent).__name__, getattr(k().identity.source,"session_id",None),
+                    k().identity.interval.before.offset,k().identity.interval.through.offset,
+                    k().identity.directory_revision,k().body_ready,
+                    1+sum(1 for _ in k().walk_children()))
+                   for k in app.selected_session.conversation.window.document_viewport._warm
+                   if k() is not None and isinstance(k(),TranscriptFragmentView)],flush=True)
             await app.select_session(source.id)
             view = source.conversation
             await until(pilot, lambda: bool(view.window.histories) and view.transcript.displayed_cursor is not None)
@@ -99,6 +106,13 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
                               (sources[0], agents[0]), (sources[1], agents[1]), (sources[0], agents[0])):
             before_hits, before_misses = app.preparation.hits, app.preparation.misses
             started = perf_counter()
+            print("CACHE_BEFORE_SELECT", source.id,
+                  [(type(k().parent).__name__, getattr(k().identity.source,"session_id",None),
+                    k().identity.interval.before.offset,k().identity.interval.through.offset,
+                    k().identity.directory_revision,k().body_ready,
+                    1+sum(1 for _ in k().walk_children()))
+                   for k in app.selected_session.conversation.window.document_viewport._warm
+                   if k() is not None and isinstance(k(),TranscriptFragmentView)],flush=True)
             await app.select_session(source.id)
             view = source.conversation
             await until(pilot, lambda: bool(view.window.histories))
@@ -131,6 +145,11 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
             assert app.preparation.retained_bytes <= app.preparation.max_bytes
             bodies = tuple(view.query(AgentResponse))
             reused = sum(any(previous() is body for previous in old_bodies) for body in bodies)
+            if reused == 0:
+                print("CACHE_MISS_ROOTS", [(getattr(n.identity.source,"session_id",None),
+                     n.identity.interval.before.offset,n.identity.interval.through.offset,
+                     n.identity.directory_revision,n.body_ready,
+                     type(n.parent).__name__) for n in view.query(TranscriptFragmentView)],flush=True)
             assert reused > 0, ("Already-loaded native source discarded every response body", source.id)
             records.append({"source":source.id,"return_painted_ms":(perf_counter()-started)*1000,
                             "reader_y":y,"cache_hits":app.preparation.hits-before_hits,

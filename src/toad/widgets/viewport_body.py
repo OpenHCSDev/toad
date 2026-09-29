@@ -170,8 +170,8 @@ class WindowMembership:
 class DocumentViewport:
     """One bounded warm working set for a history window, not one per message."""
 
-    DEFAULT_WARM_BODIES = 8
-    """Initial working-set budget; callers may tune it, including zero."""
+    DEFAULT_WARM_BODIES = PresentationBudget().item_limit(0)
+    """Use the shared presentation admission budget; explicit tuning may be zero."""
 
     def __init__(self, window, *, max_warm_bodies: int = DEFAULT_WARM_BODIES):
         if type(max_warm_bodies) is not int or max_warm_bodies < 0:
