@@ -71,12 +71,19 @@ async def click_session(app, pilot, source):
     wrapped = []
     previous = app.workspace_sessions.selected
     native = app.workspace_chrome.native
+    conversation = native.widget
+    viewport = conversation.window.document_viewport if conversation is not None else None
     targets = [
         (previous, "retire_presentation", "retire_presentation"),
         (app.workspace_chrome, "select", "chrome_select"),
         (source, "prepare_presentation", "prepare_presentation"),
         (native, "retire", "native_retire"),
         (native, "activate", "native_activate"),
+        (viewport, "park_source", "viewport_park_source"),
+        (viewport, "suspend_source", "viewport_suspend_source"),
+        (conversation, "release_native_session", "conversation_release"),
+        (conversation, "bind_native_session", "conversation_bind"),
+        (conversation, "present_retained_native_session", "conversation_present_retained"),
         (app.workspace_screen, "prepare_navigation", "prepare_navigation"),
         (app.workspace_screen, "layout_navigation", "layout_navigation"),
     ]
