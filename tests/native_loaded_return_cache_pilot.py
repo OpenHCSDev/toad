@@ -96,7 +96,10 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
             editor.insert(" with undo")
             states[source.id] = (view.window.scroll_y, conversation_paint(frame), editor.document,
                                  editor.history, agent.process.process, agent.process.runner,
-                                 tuple(ref(body) for body in view.query(AgentResponse)))
+                                 tuple(ref(body) for body in view.query(AgentResponse)
+                                       if body in frame._compositor.visible_widgets
+                                       and body.region.overlaps(view.window.scrollable_content_region)))
+            assert states[source.id][-1], "Saved reader fixture must contain a painted response"
         native_calls = len(requests)
         assert native_calls == 4
         profile = cProfile.Profile() if os.environ.get("NATIVE_RETURN_PROFILE") == "1" else None
@@ -143,7 +146,9 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
             assert view.agent is agent and agent.process.process is process and agent.process.runner is runner
             assert len(requests) == native_calls, "Tab return replayed input"
             assert app.preparation.retained_bytes <= app.preparation.max_bytes
-            bodies = tuple(view.query(AgentResponse))
+            bodies = tuple(body for body in view.query(AgentResponse)
+                           if body in frame._compositor.visible_widgets
+                           and body.region.overlaps(view.window.scrollable_content_region))
             reused = sum(any(previous() is body for previous in old_bodies) for body in bodies)
             if reused == 0:
                 print("CACHE_MISS_ROOTS", [(getattr(n.identity.source,"session_id",None),
