@@ -568,7 +568,7 @@ class CommsChatView(DeliveryFailureView, Conversation):
     def _refresh_notifications(self) -> None:
         """One bounded batch for the painted window; independent of bus revision."""
         if (not self.is_attached or self._wire is None
-                or not self.query_ancestor(SessionView).is_current or not self.display
+                or not self.display
                 or self._notification_task is not None and not self._notification_task.done()):
             return
         rows = self._visible_notification_rows()
@@ -636,6 +636,8 @@ class CommsChatView(DeliveryFailureView, Conversation):
             try:
                 comms = self._wire
                 catalog = await asyncio.to_thread(comms.channels.catalog.read)
+                if not self.is_attached or not self.query_ancestor(SessionView).is_current:
+                    return
                 read_only = self.conversation_kind.read_only(catalog, self.target)
                 if read_only:
                     self.prompt.prompt_text_area.disabled = True
@@ -649,12 +651,12 @@ class CommsChatView(DeliveryFailureView, Conversation):
                 finally:
                     if show_loading and self.is_attached:
                         self.throbber.busy = False
-                if not self.is_attached or read.request != self._history_request():
+                if not self.is_attached or not self.query_ancestor(SessionView).is_current:
+                    return
+                if read.request != self._history_request():
                     return
                 if not root_is_current(comms.root):
                     self.display = False
-                    return
-                if not self.query_ancestor(SessionView).is_current:
                     return
                 self.update_slash_commands()
                 revision = read.revision

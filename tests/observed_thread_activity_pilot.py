@@ -16,7 +16,6 @@ from runtime_fixture import ToadApp
 
 from toad import messages
 from toad.acp.agent import Agent
-from toad.screens.session_view import SessionView
 from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.observed_thread_activity import ObservedThreadActivity
 from toad.widgets.session_details import SessionDetails
@@ -108,7 +107,8 @@ async def main():
             assert tracker.summary == "Ready" and not details.has_class("-attention")
             comms.threads.register(Thread("dm-peer", frozenset({"comms"}), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
             await app.open_comms_session(owner_mode=owner, project_path=root, me="peer", target=DirectTarget("dm-peer"))
-            dm = app.screen.query_one(CommsChatView)
+            dm_mode = app.selected_mode
+            dm = app.selected_session.query_one(CommsChatView)
             observed = dm.query_one(ObservedThreadActivity)
             for detail in ("Checking #comms message", "Responding in #comms"):
                 comms.agents.set_activity("dm-peer", ActivityState.THINKING, detail)
@@ -162,7 +162,7 @@ async def main():
             await dm._refresh()
             await pilot.pause()
             assert hidden_reads == [], hidden_reads
-            await app.select_session(dm.query_ancestor(SessionView).mode_name)
+            await app.select_session(dm_mode)
             observed.refresh_observation()
             await until(lambda: "activity" in hidden_reads)
 
