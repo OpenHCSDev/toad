@@ -14,6 +14,7 @@ from agent_comms.acp_extension import (
     InputDeliveryChangedUpdate,
     InputFailedUpdate,
     InputStartedUpdate,
+    PromptCancelledUpdate,
     McpClientReceiptUpdate,
     QueueChangedUpdate,
     RequestFailedUpdate,
@@ -242,6 +243,10 @@ class CommsUpdateConsumer(MroDispatch):
         self.agent.post_message(
             LogAgentFail(failure.title, failure.feedback, log_path=self.agent.presentation.log_path)
         )
+
+    @handles(PromptCancelledUpdate)
+    def prompt_cancelled(self, update):
+        self.agent.post_message(messages.CommsUpdated(update, self.agent, self.session_id))
 
 
 class OwnerSnapshotConsumer(CommsUpdateConsumer):

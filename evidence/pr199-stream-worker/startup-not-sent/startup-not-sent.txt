@@ -1,0 +1,44 @@
+                                                                                                                                                                
+  ☰     <──    ──>   beta ×                                                                                                                                    
+                      ━━━━                                                                                                                                      
+▼ Channels                                           Name ▾    │                                                                                                
++ New Session                                                  │                                                                                                
+▾ #any                                       Date created ▾    │                                                                                                
+  ✓ beta                                                       │                                                                                                
+    Ready                                                      │                                                                                                
+▸ #none                                      Date created ▾    │                                                                                                
+▸ #all                                       Date created ▾    │                                                                                                
+▸ #team                                      Date created ▾    │                                                                                                
+                                                               │                                                                                                
+                                                               │                                                                                                
+                                                               │                                                                                                
+                                                               │                                                                                                
+                                                               │                                                                                                
+                                                               │                                                                                                
+                                                               │                                                                                                
+                                                               │                                                                                                
+                                                               │                                                                                                
+                                                               │                                                                                                
+                                                               │                                                                                                
+                                                             < │                                                                                              < 
+                                                               │                                                                                                
+                                                               │                                                                                                
+                                                               │                                                                                                
+                                                               │                                                                                                
+                                                               │                                                                                                
+                                                               │                                                                                                
+                                                               │                                                                                                
+                                                               │                                                                                                
+                                                               │ ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓      
+                                                               │▌┃Request failed — The saved thread belongs to a different working directory.            ┃      
+                                                               │▌┃Not sent — input not retried                                                           ┃      
+                                                               │▌┃Inspect the input delivery status before deciding whether to send again.               ┃      
+                                                               │▌┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛      
+                                                               │                                                                                                
+                                                               │                                                                                                
+                                                               │                                                                                                
+                                                               │▊▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▎   
+                                                               │▊ ❯                                                                                         ▎   
+40% ───────────────────────────────────────●────────────────   │▊▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▎   
+  ──>   Float                                                  │  Native fixture  project Context unavailable · Native owner has not reported context usage     
+⏎ Send ⇧+⏎ Line ^c Interrupt ^g IRC view ^s Channels                                                                                                ▏^p palette 

@@ -1,0 +1,27 @@
+INSTALLED_APP_RUN_TEST_ENTER
+INSTALLED_APP_RUN_TEST_YIELDED
+ATTACHED_AND_NAVIGABLE
+REAL_AGENT_CHANNEL_MESSAGE_AND_NATIVE_RECEIPT
+SAME_OPEN_VIEW_NATIVE_ACTIVITY_AND_HISTORY_PRESSURE_NO_REPLAY
+REAL_ACP_RECONNECT_NO_PROVIDER_REPLAY
+ACTUAL_HISTORY_GEOMETRY 110 45.173262616995146
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-inbound-reconnect-history-20260929/tests/inbound_history_reprojection_installed_pilot.py", line 104, in <module>
+    asyncio.run(main(acceptance=acceptance, provider_reply=reply, provider_request_budget=3))
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-inbound-reconnect-history-20260929/tests/l0a_native_installed_pilot.py", line 293, in main
+    await acceptance(app, pilot, agent, comms, entered, release,
+                     hold_next, requests)
+  File "/home/ts/wt/toad-inbound-reconnect-history-20260929/tests/inbound_history_reprojection_installed_pilot.py", line 87, in acceptance
+    assert matching(view, message.seq) == [original]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError

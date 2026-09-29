@@ -105,6 +105,11 @@ class CommittedHistory(SnapshotPresentation):
     def covered_sequences(self, sequences: frozenset[int]) -> frozenset[int]:
         return frozenset(sequence for sequence in sequences if self.covers_incoming(sequence))
 
+    async def source_coverage(self, sequences: frozenset[int], runtime,
+                              is_current: Callable[[], bool]) -> frozenset[int] | None:
+        """Resolve exact wire identities against the committed source, not DOM presence."""
+        raise NotImplementedError
+
 
 def retirement_candidates(widgets: Iterable[Widget], evidence: CommitEvidence) -> list[Widget]:
     return [widget for widget in widgets
