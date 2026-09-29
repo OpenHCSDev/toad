@@ -12,8 +12,9 @@ then signaled adopted live processes during cleanup. This crossed the durable
 comms-owner custody boundary. The control receipt includes owner1497687 under
 st1497309. Its frames already show that owner exited before attachment; final
 cleanup occurred later. A causal link to later owner1498168 death is unverified;
-no 1498168 membership was found in this recorder's retained receipts. Both the
-incident control and profiled footage remain intact. No affected input is replayed.
+no 1498168 membership was found in this recorder's retained receipts. The incident
+control remains intact. Superseded profile diagnostics were removed only after
+retaining their receipts, profiles and useful frames. No affected input is replayed.
 
 The replacement uses installed `agent_comms.child_process.Platform` launch,
 `ParentedProcess` handles, process-group membership and identity-bound pidfd
