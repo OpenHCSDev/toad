@@ -64,12 +64,20 @@ mutable producer state to reconstruct earlier events. NativeHistory is a
 nonfocusable, markup-disabled Static row separate from input delivery/queue UI.
 It displays only these constants:
 
-- `Native history: selected source proof available`
-- `Native history: source coverage only (no injected input)`
-- `Native history: no current-owner cursor`
-- `Native history: unavailable`
+- `Bus history: prior messages included in model input`
+- `Bus history: checked; no model input yet`
+- `Bus history: no verified input for this session yet`
+- `Bus input verification unavailable — check the ACP log; saved history is separate`
 
-Tooltip: `Read-only provenance, not input acceptance, consumption, completion or ACK.`
+Session details derives `Saved history available` from the retained
+`TranscriptHistory` read owner and its publication state, including an empty
+saved page. Before a saved page is retained it says `Saved history not loaded`.
+These observations are independent of native cursor proof. A missing or
+unavailable cursor must never relabel an existing transcript as unavailable.
+The unavailable proof label remains an attention state; it is not suppressed by
+available saved history. Check the ACP log rather than resending input solely
+because proof is missing. This provenance is not input acceptance, consumption,
+completion or ACK.
 No IDs, paths, raw metadata, private source content, or controls are rendered.
 
 ## Provider-free acceptance

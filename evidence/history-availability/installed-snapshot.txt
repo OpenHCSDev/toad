@@ -1,0 +1,2 @@
+PASS: installed captured ACP snapshot 26 events; saved history available independently of all typed cursor statuses
+No prompt, native-owner restart, live installation/history write, or live provider call
