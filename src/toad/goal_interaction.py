@@ -143,8 +143,9 @@ class GoalSession:
 
     def owns(self, agent) -> bool:
         view = self.view
-        return (view is not None and view.is_attached
-                and view.goal_controls is self and view.agent is agent)
+        if view is None or not view.is_attached:
+            return False
+        return view.goal_controls is self and view.agent is agent
 
     def present(self, modal) -> None:
         self._modal = ref(modal)
