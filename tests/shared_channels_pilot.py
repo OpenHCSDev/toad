@@ -144,7 +144,7 @@ async def main():
                 }
                 with patch.object(ThreadNavigationRequest, "read", blocked):
                     opening = asyncio.create_task(
-                        app.open_thread_session(
+                        app.thread_navigation.open(
                             owner_mode=owner, project_path=root, target="peer"
                         )
                     )

@@ -176,7 +176,7 @@ async def main():
             stopped_row.scroll_visible(animate=False)
             await pilot.pause()
             chat.prompt.text = "Keep my draft"
-            stopped_view = await app.open_thread_session(
+            stopped_view = await app.thread_navigation.open(
                 owner_mode=owner_mode, project_path=root, target="stopped"
             )
             await pilot.pause()

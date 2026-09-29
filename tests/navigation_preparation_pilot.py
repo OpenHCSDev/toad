@@ -142,7 +142,7 @@ async def mounted() -> None:
                         assert not app._comms_modes, (
                             "Superseded route created an unused tab"
                         )
-                        assert not app._thread_openings
+                        assert not app.thread_navigation.pending
                 finally:
                     release.set()
                     if opening is not None:
@@ -154,7 +154,7 @@ async def mounted() -> None:
             existing.initial_coordination_root = str(root / "wire")
             existing._comms_thread = "metadata-peer"
             comms.registry.rename("metadata-peer", "metadata-renamed")
-            reused = await app.open_thread_session(
+            reused = await app.thread_navigation.open(
                 owner_mode=owner,
                 project_path=root,
                 target="metadata-peer",

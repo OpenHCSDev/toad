@@ -44,9 +44,9 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     await until(pilot, lambda: "immediate-fork" in comms.registry.all_threads())
     navigation = ThreadNavigationRequest(str(comms.root), 'immediate-fork', project, ()).read()
     child = navigation.thread
-    print('FIRST_VISIBLE_NAVIGATION', navigation.active, navigation.resumable,
+    print('FIRST_VISIBLE_NAVIGATION', type(navigation).__name__, navigation.attachable,
           child.process_alive, bool(child.session_file), flush=True)
-    if not navigation.resumable:
+    if not navigation.attachable:
         raise AssertionError('Active immediate-fork startup routed to empty DirectTarget')
     user = comms.messaging.user_identity(str(project)).name
     previous_modes = tuple(app.tab_order.names)

@@ -38,8 +38,7 @@ from toad.render_backend import Renderer
 from toad.channel_preparation import ChannelHistoryReader
 from toad.conversation_kind import ConversationKind
 from toad.navigation_preparation import (
-    ThreadOpening,
-    CommsNavigationRequest, NavigationReader, OpenThread, ThreadNavigationRequest,
+    CommsNavigationRequest, NavigationReader,
 )
 from toad.db import DB
 from toad.preferences import ToadSettings
@@ -56,6 +55,7 @@ from toad.settings import PreferenceChange
 from toad.sidebar_layout import SidebarLayout
 from toad.clipboard import Clipboard
 from toad.tab_order import TabOrder
+from toad.thread_navigation import ThreadNavigator
 from toad.terminal_attention import TerminalAttention
 
 if TYPE_CHECKING:
@@ -376,7 +376,7 @@ class ToadApp(WorkspaceSessionShutdown, App, inherit_bindings=False):
         )
         self._session_tracker = SessionTracker(self.session_update_signal)
         self._comms_modes: dict[CommsViewKey, str] = {}
-        self._thread_openings: dict[tuple[str, str, str], ThreadOpening] = {}
+        self.thread_navigation = ThreadNavigator(self)
         self._file_preview_modes: dict[Path, str] = {}
         self._file_preview_return: dict[str, str] = {}
         self._file_preview_index = 0
@@ -412,6 +412,7 @@ class ToadApp(WorkspaceSessionShutdown, App, inherit_bindings=False):
 
     async def on_unmount(self) -> None:
         self.terminal_attention.close()
+        await self.thread_navigation.close()
         await self.navigation_reader.aclose()
         await self.render_processes.aclose()
         if self._background_render_tasks:
@@ -1001,183 +1002,6 @@ class ToadApp(WorkspaceSessionShutdown, App, inherit_bindings=False):
                 f"Imported @{receipt.thread} ({receipt.imported_messages} messages) as a stopped thread",
                 title="Thread Import",
             )
-
-    async def open_thread_session(
-        self,
-        *,
-        owner_mode: str,
-        project_path: Path,
-        target: str,
-    ) -> str:
-        """Open or reuse a resumable wire thread as a tracked agent session."""
-        source = self._main_session_screen(owner_mode)
-        if source is None:
-            from toad.screens.comms import CommsScreen
-
-            owner_view = self.workspace_sessions.views.get(owner_mode)
-            if isinstance(owner_view, CommsScreen):
-                source = self._main_session_screen(owner_view.owner_mode)
-        if source is None:
-            return self.selected_mode
-        source_identity = source._comms_thread
-        source_root = source.coordination_root
-        try:
-            requested_root = str(current_root())
-        except (OSError, ValueError, RuntimeError) as error:
-            self.notify(str(error), title="Thread unavailable", severity="error")
-            return self.selected_mode
-        # A mounted destination already owns its root/thread identity. Focus it
-        # before publishing a loading tab or doing route discovery. Unknown
-        # aliases and noncanonical roots still use authoritative off-loop reads.
-        mounted_root = str(Path(requested_root).expanduser())
-        for details in self.session_tracker.ordered_sessions:
-            screen = self._main_session_screen(details.mode_name)
-            if (
-                screen is not None
-                and screen.coordination_root == mounted_root
-                and screen._comms_thread == target
-            ):
-                await self.select_session(details.mode_name)
-                return details.mode_name
-        open_threads = tuple(
-            OpenThread(details.mode_name, screen.coordination_root, screen._comms_thread)
-            for details in self.session_tracker.ordered_sessions
-            if (screen := self._main_session_screen(details.mode_name)) is not None
-            and screen.coordination_root is not None
-        )
-        opening = ThreadOpening(
-            owner_mode,
-            ThreadNavigationRequest(requested_root, target, project_path, open_threads),
-            asyncio.get_running_loop().create_future(),
-        )
-        if pending := self._thread_openings.get(opening.key):
-            return await asyncio.shield(pending.completion)
-        self._thread_openings[opening.key] = opening
-        return_mode = self.selected_mode
-        result = return_mode
-        try:
-            result = await self._finish_open_thread_session(
-                opening.request, owner_mode, project_path, source,
-                source_identity, source_root, return_mode,
-            )
-            return result
-        finally:
-            self._thread_openings.pop(opening.key)
-            if not opening.completion.done():
-                opening.completion.set_result(result)
-
-    async def _finish_open_thread_session(
-        self,
-        request: ThreadNavigationRequest,
-        owner_mode: str,
-        project_path: Path,
-        source: "MainScreen",
-        source_identity: str,
-        source_root: str | None,
-        return_mode: str,
-    ) -> str:
-        from toad.screens.main import MainScreen
-
-        try:
-            prepared = await self.navigation_reader.read(
-                request
-            )
-        except Exception as error:
-            self.notify(str(error), title="Thread unavailable", severity="error")
-            return self.selected_mode
-        if (
-            prepared is None
-            or self.selected_mode != return_mode
-            or not source.is_attached
-            or owner_mode not in self.workspace_sessions.factories
-            or source._comms_thread != source_identity
-            or source.coordination_root != source_root
-            or not root_is_current(request.root)
-        ):
-            return self.selected_mode
-        coordination_root, thread = prepared.root, prepared.thread
-        if not prepared.active:
-            self.notify(
-                f"@{thread.name} is stopped; choose Start thread to resume it",
-                title="Thread view",
-            )
-            return await self.open_comms_session(
-                owner_mode=owner_mode, project_path=project_path,
-                me=source._comms_thread, target=DirectTarget(thread.name),
-            )
-        if existing := prepared.existing:
-            screen = self._main_session_screen(existing.mode)
-            if (
-                screen is not None
-                and screen.coordination_root == existing.root
-                and screen._comms_thread == existing.name
-            ):
-                await self.select_session(existing.mode)
-                return existing.mode
-            # A view changed identity during discovery; don't create a duplicate
-            # using an obsolete snapshot of the available open threads.
-            return self.selected_mode
-
-        if not prepared.resumable:
-            source = self._main_session_screen(owner_mode)
-            if source is None:
-                return owner_mode
-            me = source._comms_thread
-            if thread.name == me:
-                await self.select_session(owner_mode)
-                return owner_mode
-            return await self.open_comms_session(
-                owner_mode=owner_mode,
-                project_path=project_path,
-                me=me,
-                target=DirectTarget(thread.name),
-
-            )
-
-        if source._agent is None:
-            self.notify(
-                "The owning agent session is unavailable",
-                title="Thread unavailable",
-                severity="error",
-            )
-            return owner_mode
-
-        def get_screen() -> MainScreen:
-            screen = MainScreen(
-                prepared.project,
-                source._agent,
-                agent_session_id=thread.name,
-                agent_session_title=thread.name,
-            )
-            screen.initial_coordination_root = coordination_root
-            screen._comms_thread = thread.name
-            screen.set_reactive(MainScreen.column, self.column)
-            screen.set_reactive(MainScreen.column_width, self.column_width)
-            screen.set_reactive(MainScreen.scrollbar, self.scrollbar)
-            screen.watch(
-                self,
-                "column",
-                lambda value: setattr(screen, "column", value),
-                init=False,
-            )
-            screen.watch(
-                self,
-                "column_width",
-                lambda value: setattr(screen, "column_width", value),
-                init=False,
-            )
-            screen.watch(
-                self,
-                "scrollbar",
-                lambda value: setattr(screen, "scrollbar", value),
-                init=False,
-            )
-            return screen
-
-        details = await self.new_session_screen(get_screen, title=thread.name)
-        if screen := self._main_session_screen(details.mode_name):
-            await screen.wait_content_ready()
-        return details.mode_name if self.workspace_sessions.views.get(details.mode_name) else self.selected_mode
 
     def sync_coordination_identity(
         self, owner_mode: str, previous: str, current: str

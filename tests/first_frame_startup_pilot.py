@@ -55,7 +55,7 @@ async def main():
                 await until(lambda: app._sidebar_snapshot is not None)
                 owner_screen._agent = {"name": "Fixture", "identity": "fixture", "short_name": "fixture",
                                        "run_command": {"*": "/bin/false"}, "protocol": "acp"}
-                opening = asyncio.create_task(app.open_thread_session(
+                opening = asyncio.create_task(app.thread_navigation.open(
                     owner_mode=owner, project_path=root, target="visible-peer"))
                 await until(lambda: app.selected_mode.startswith("session-")
                             and app.selected_mode != owner and app.selected_session in written)
@@ -71,7 +71,7 @@ async def main():
                 assert started == ["visible-peer"], "A second flush restarted the agent"
 
                 await app.select_session(owner)
-                opening = asyncio.create_task(app.open_thread_session(
+                opening = asyncio.create_task(app.thread_navigation.open(
                     owner_mode=owner, project_path=root, target="closed-peer"))
                 await until(lambda: app.selected_mode.startswith("session-")
                             and app.selected_mode not in {owner, mode} and app.selected_session in written)

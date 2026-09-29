@@ -77,11 +77,11 @@ async def main():
                 )
                 assert tuple(app.tab_order.names) == order
                 assert destination.conversation.prompt.text == "Keep this draft"
-                assert not app._thread_openings
+                assert not app.thread_navigation.pending
                 # Repeated/self links reuse the very same mounted screen too.
                 for _ in range(2):
                     assert (
-                        await app.open_thread_session(
+                        await app.thread_navigation.open(
                             owner_mode=existing,
                             project_path=root,
                             target="peer",

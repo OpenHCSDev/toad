@@ -146,7 +146,7 @@ async def main(*, empty=False, trace=False, observe=False, output=None, peers=0,
                             await app.new_session_screen(app.get_main_screen)
                         ).mode_name
                     else:
-                        mode = await app.open_thread_session(
+                        mode = await app.thread_navigation.open(
                             owner_mode=owner, project_path=root, target=name
                         )
                         async with asyncio.timeout(20):

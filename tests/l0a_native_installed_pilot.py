@@ -275,7 +275,7 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
                 navigation = await asyncio.to_thread(
                     ThreadNavigationRequest(str(comms.root), "beta", project, ()).read
                 )
-                assert navigation.resumable and navigation.thread.process_alive
+                assert navigation.attachable and navigation.thread.process_alive
                 print("ATTACHED_AND_NAVIGABLE", flush=True)
                 if acceptance is not None:
                     await acceptance(app, pilot, agent, comms, entered, release,

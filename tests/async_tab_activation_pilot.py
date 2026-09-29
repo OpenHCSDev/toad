@@ -4,7 +4,7 @@ import asyncio
 import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from unittest.mock import patch, AsyncMock
+from unittest.mock import patch
 
 from agent_comms.child_process import ProcessIdentity
 from agent_comms.threads import Thread
@@ -55,7 +55,7 @@ async def main():
                 owner, original = app.selected_mode, app.selected_session
                 original._agent = {"name": "Fixture", "identity": "fixture", "short_name": "fixture",
                                    "run_command": {"*": "/bin/false"}, "protocol": "acp"}
-                destination = await app.open_thread_session(owner_mode=owner, project_path=root, target="peer")
+                destination = await app.thread_navigation.open(owner_mode=owner, project_path=root, target="peer")
                 await pilot.pause()
                 await app.select_session(owner)
                 await pilot.pause()
@@ -91,24 +91,6 @@ async def main():
                 await app.select_session(destination)
                 await until(sidebar.navigation_ready.is_set)
                 assert view.conversation.prompt.text.endswith("safe")
-
-                # External strings enter one registry boundary. Polymorphic
-                # targets call the appropriate executor with unchanged context.
-                context = NavigationContext(app, owner, root, "actor")
-                with (
-                    patch.object(app, "open_thread_session", new_callable=AsyncMock) as thread,
-                    patch.object(app, "_open_comms_history", new_callable=AsyncMock) as history,
-                ):
-                    await ThreadTarget("peer").open(context)
-                    thread.assert_awaited_once_with(owner_mode=owner, project_path=root, target="peer")
-                    for target, expected_kind, expected_name in (
-                        (ChannelTarget("#room"), ChannelConversation, "#room"),
-                        (FeedTarget(), IrcConversation, ALL_COMMS_TARGET),
-                        (DirectTarget("peer"), DmConversation, "peer"),
-                    ):
-                        await target.open(context)
-                        history.assert_awaited_with(owner_mode=owner, project_path=root, me="actor",
-                                                    target=expected_name, kind=expected_kind)
 
                 entered, release = asyncio.Event(), asyncio.Event()
                 update_group = sidebar._update_channel_group

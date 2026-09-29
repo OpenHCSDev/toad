@@ -112,15 +112,15 @@ async def main():
 
             with patch.object(ThreadNavigationRequest, "read", gated):
                 assert await pilot.click(group._members["fresh-peer"])
-                opening = asyncio.create_task(app.open_thread_session(
+                opening = asyncio.create_task(app.thread_navigation.open(
                     owner_mode=owner, project_path=root, target="fresh-peer"))
                 try:
                     assert await asyncio.to_thread(entered.wait, 3)
-                    duplicate = asyncio.create_task(app.open_thread_session(
+                    duplicate = asyncio.create_task(app.thread_navigation.open(
                         owner_mode=owner, project_path=root, target="fresh-peer"))
                     await pilot.pause()
                     assert tuple(app.tab_order.names) == initial_modes
-                    assert len(app._thread_openings) == 1 and not duplicate.done()
+                    assert len(app.thread_navigation.pending) == 1 and not duplicate.done()
                     release.set()
                     await until(pilot, lambda: (root / "load-entered-fresh-peer").exists())
                     mode = app.selected_mode
