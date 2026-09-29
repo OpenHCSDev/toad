@@ -1,5 +1,15 @@
 # PR169: App session admission and root operation lifetime
 
+## Latest core372 physical gate
+
+**PASS EXIT0**, source `30487e35153d53a545705c015788642491bc7bfc` with noneditable installed merged core372 `8cae0ae84d7fc094d9a8e45f1dd42199c9c12868`; same current merged Toad main168/170/171/172, Textual1738 and physical native d396. This is the new cold-fork acceptance; earlier results below are retained with their original heads.
+
+Actual canonical ForkAction menu/dialog creates a NEW worker. Physical sidebar click writes ACP session/load while its RPC socket is absent. The same actual worker remains alive/registered with its original ProcessIdentity for **5.4seconds after that write**, exceeding the deleted five-second unsent-connect expiry. It remains uninitialized with no socket throughout the hold. After one resume it attaches, paints inherited history, obtains the correct child title, and **physical Enter** sends the first NEW input. Distinct `NATIVE_RESPONSE_3` paints exactly once in the same logical tab/Agent/SessionDetails. Exactly3 controlled localhost provider inputs; one saved first-new-input entry; the same original ProcessIdentity still owns the child through that reply. No startup retry, restart, user-input replay, paid call, UI/transport mock or live-root change.
+
+Installed core import is own `.venv/lib/python3.14/site-packages/agent_comms`; actual installed RuntimeProxy module equals merged372 source. Own detached persistent core source `/home/ts/wt/core372-noether-gate-20260929` at8cae supplied its noneditable wheel; unrelated dependencies remain borrowed read-only from the immutable paired runtime. See [core372-fork.log](core372-fork.log),[core372-fresh-fork.json](core372-fresh-fork.json),[core372-imports.json](core372-imports.json).
+
+Existing command above now imports this installed core372, with `L0A_EVIDENCE=$PWD/.artifacts/installed-core372-cold-fork`. No other unchanged test matrix rerun. Production source unchanged since3405; the new17-line harness correction exercises the actual historical expiry plus physical submission/same-process proof. Parent/Tesla current continuous-idle/saved-warm RED remains separately owned; **no new default or whole continuous-journey success is claimed**. Parent owns merge/install/affected LIVE gate. No final owned native worker remains.
+
 ## Deleted first
 
 778 App lines deleted,33 added against merged main168 `8b5f410e`. App AST span1510 ->769; god-class excess over500 falls741. Removed App's comms/preview membership maps and reverse indices, preview return map, opening Futures, cached route/service fields, action pending set and opening/action/transfer/sync/close implementations. All actual callers now use the existing semantic owners. No retired API alias, parallel session registry, native-startup retry, format converter or compatibility path remains.
