@@ -1,0 +1,9 @@
+Resolved 68 packages in 135ms
+   Building batrachian-toad @ file:///home/ts/wt/toad-workspace-bound-sol-20260928
+      Built batrachian-toad @ file:///home/ts/wt/toad-workspace-bound-sol-20260928
+Prepared 1 package in 523ms
+Uninstalled 2 packages in 10ms
+Installed 2 packages in 6ms
+ ~ batrachian-toad==0.6.20 (from file:///home/ts/wt/toad-workspace-bound-sol-20260928)
+ - textual==8.2.8 (from git+https://github.com/OpenHCSDev/textual.git@16ede007c34bec893b2dbedb3999223381129678)
+ + textual==8.2.8 (from git+https://github.com/OpenHCSDev/textual.git@d9def32ff25b56304b3e03ad4bf59d750b4d238b)

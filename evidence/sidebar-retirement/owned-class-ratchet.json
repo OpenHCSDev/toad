@@ -1,0 +1,26 @@
+[
+  {
+    "class": "SessionThreadSidebar",
+    "before": 70,
+    "after": 38,
+    "delta": -32
+  },
+  {
+    "class": "ProjectSearchButton",
+    "before": 29,
+    "after": 29,
+    "delta": 0
+  },
+  {
+    "class": "ProjectPanel",
+    "before": 48,
+    "after": 48,
+    "delta": 0
+  },
+  {
+    "class": "FilePreview",
+    "before": 84,
+    "after": 84,
+    "delta": 0
+  }
+]

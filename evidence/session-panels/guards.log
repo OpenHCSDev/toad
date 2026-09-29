@@ -1,0 +1,19 @@
+.F...                                                                    [100%]
+=================================== FAILURES ===================================
+_________ test_view_mount_and_agent_readiness_do_not_activate_a_shell __________
+
+    def test_view_mount_and_agent_readiness_do_not_activate_a_shell():
+        source = Path(__file__).resolve().parents[1] / "src" / "toad" / "widgets" / "conversation.py"
+        tree = ast.parse(source.read_text())
+        for node in ast.walk(tree):
+            if isinstance(node, ast.AsyncFunctionDef) and node.name in {"initialize_view", "watch_agent_ready"}:
+>               assert not any(isinstance(item, ast.Attribute) and item.attr == "shell"
+                               for item in ast.walk(node)), node.name
+E               AssertionError: initialize_view
+E               assert not True
+E                +  where True = any(<generator object test_view_mount_and_agent_readiness_do_not_activate_a_shell.<locals>.<genexpr> at 0x7f989bde6ea0>)
+
+tests/test_workspace_chrome_ownership.py:25: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_workspace_chrome_ownership.py::test_view_mount_and_agent_readiness_do_not_activate_a_shell
+1 failed, 4 passed in 1.85s

@@ -1,0 +1,7 @@
+# T4 saved transcript publication — Carver
+
+Dispatch140f4ec98b, Conversation AST span2667. This slice transfers actual generation/dirty/required-checkpoint/displayed cursor/worker state and mutations into TranscriptPresentation. TranscriptPublication public ABC owns captured source, window, contents and generation fencing; SnapshotPublication and CheckpointPublication own full prepare/publish transactions. Existing CheckpointPlan/CommitEvidence/CommitParticipant remain sole viewport/evidence policies. No competing history mechanism.
+
+Delete root generation/dirty/checkpoint/cursor fields and snapshot/change/record/compact methods. Typed Comms dispatcher, prompt/turn invalidation, viewport retry, covered-history event and FollowTailCheckpoint callers migrate directly. Tesla owns one App read-receipt caller; exact new boundary is conversation.transcript.displayed_cursor. Requested in129existing thread, awaiting committed caller closure without editing their files. No App/MainScreen/workspace/panels/core changes here.
+
+New publication behavior declares one TranscriptPublication subclass and boundary admission; shared source/resource/generation fence and lifetime need zero root/scheduler/retirement case branches. Previously it needed a root method and raw root generation/state manipulation across event/worker/read callbacks. Installed family/native/retained paint validation pending; no readiness claimed.

@@ -302,6 +302,11 @@ class DirectoryWatcher(threading.Thread):
         finally:
             _shared_observer_manager.unregister(self._path, self)
 
+    def rebind(self, widget: Widget) -> None:
+        """Move notification custody without restarting the path observation."""
+        with self._delivery_lock:
+            self._widget = widget
+
     def stop(self) -> None:
         """Stop the watcher."""
         self._stop_event.set()

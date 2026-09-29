@@ -1,0 +1,254 @@
+╭───────────────────── Traceback (most recent call last) ──────────────────────╮
+│ /home/ts/wt/toad-workspace-bound-sol-20260928/.venv/lib/python3.14/site-pack │
+│ ages/toad/app.py:709 in on_load                                              │
+│                                                                              │
+│    706 │   │   self.settings_changed_signal.publish(change)                  │
+│    707 │                                                                     │
+│    708 │   async def on_load(self) -> None:                                  │
+│ ❱  709 │   │   self._prewarm_conversation_css()                              │
+│    710 │   │   db = await self.get_db()                                      │
+│    711 │   │   await db.create()                                             │
+│    712 │   │   settings_path = self.settings_path                            │
+│                                                                              │
+│ ╭──────────────────────── locals ────────────────────────╮                   │
+│ │ self = InstalledApp(                                   │                   │
+│ │        │   title='InstalledApp',                       │                   │
+│ │        │   classes={'-dark-mode'},                     │                   │
+│ │        │   pseudo_classes={                            │                   │
+│ │        │   │   'focus',                                │                   │
+│ │        │   │   'nocolor',                              │                   │
+│ │        │   │   'dark'                                  │                   │
+│ │        │   }                                           │                   │
+│ │        )                                               │                   │
+│ ╰────────────────────────────────────────────────────────╯                   │
+│                                                                              │
+│ /home/ts/wt/toad-workspace-bound-sol-20260928/.venv/lib/python3.14/site-pack │
+│ ages/toad/app.py:731 in _prewarm_conversation_css                            │
+│                                                                              │
+│    728 │   │   from textual.widgets._footer import KeyGroup                  │
+│    729 │   │   from textual.widgets.markdown import Markdown                 │
+│    730 │   │                                                                 │
+│ ❱  731 │   │   from toad.screens import comms, main  # noqa: F401 - register │
+│    732 │   │   from toad.widgets import irc_message, tool_call  # noqa: F401 │
+│    733 │   │                                                                 │
+│    734 │   │   started = monotonic()                                         │
+│                                                                              │
+│ ╭──────────────────────── locals ────────────────────────╮                   │
+│ │ self = InstalledApp(                                   │                   │
+│ │        │   title='InstalledApp',                       │                   │
+│ │        │   classes={'-dark-mode'},                     │                   │
+│ │        │   pseudo_classes={                            │                   │
+│ │        │   │   'focus',                                │                   │
+│ │        │   │   'nocolor',                              │                   │
+│ │        │   │   'dark'                                  │                   │
+│ │        │   }                                           │                   │
+│ │        )                                               │                   │
+│ ╰────────────────────────────────────────────────────────╯                   │
+│                                                                              │
+│ /home/ts/wt/toad-workspace-bound-sol-20260928/.venv/lib/python3.14/site-pack │
+│ ages/toad/screens/comms.py:28 in <module>                                    │
+│                                                                              │
+│    25 from toad.widgets.thread_comms import RelationshipSort, ThreadCommsSid │
+│    26                                                                        │
+│    27                                                                        │
+│ ❱  28 class CommsScreen(SessionView, NavigationOwner, can_focus=False):      │
+│    29 │   """A channel or DM represented as a native concurrent Toad session │
+│    30 │                                                                      │
+│    31 │   AUTO_FOCUS = "CommsChatView Prompt TextArea"                       │
+│                                                                              │
+│ ╭───────────────────────────────── locals ─────────────────────────────────╮ │
+│ │       asyncio = <module 'asyncio' from                                   │ │
+│ │                 '/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x… │ │
+│ │ ComposeResult = typing.Iterable[textual.widget.Widget]                   │ │
+│ │    containers = <module 'textual.containers' from                        │ │
+│ │                 '/home/ts/wt/toad-workspace-bound-sol-20260928/.venv/li… │ │
+│ │       getters = <module 'textual.getters' from                           │ │
+│ │                 '/home/ts/wt/toad-workspace-bound-sol-20260928/.venv/li… │ │
+│ │      messages = <module 'toad.messages' from                             │ │
+│ │                 '/home/ts/wt/toad-workspace-bound-sol-20260928/.venv/li… │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
+│                                                                              │
+│ /home/ts/wt/toad-workspace-bound-sol-20260928/.venv/lib/python3.14/site-pack │
+│ ages/toad/screens/comms.py:132 in CommsScreen                                │
+│                                                                              │
+│   129 │   │   │   return                                                     │
+│   130 │   │   self.app.push_screen(HistoricalSessions(comms, threads, name=e │
+│   131 │                                                                      │
+│ ❱ 132 │   @on(Button.Pressed, "#historical-sessions")                        │
+│   133 │   async def action_historical_sessions(self) -> None:                │
+│   134 │   │   from toad.screens.historical_sessions import HistoricalSession │
+│   135 │   │   comms = self.app.coordination_wire                             │
+│                                                                              │
+│ ╭───────────────────────────────── locals ─────────────────────────────────╮ │
+│ │                      app = <textual.getters.app object at                │ │
+│ │                            0x7fd1b5335150>                               │ │
+│ │               AUTO_FOCUS = 'CommsChatView Prompt TextArea'               │ │
+│ │                 BINDINGS = [                                             │ │
+│ │                            │   Binding(                                  │ │
+│ │                            │   │   key='escape',                         │ │
+│ │                            │   │   action='back_to_agent',               │ │
+│ │                            │   │   description='Agent session',          │ │
+│ │                            │   │   show=True,                            │ │
+│ │                            │   │   key_display=None,                     │ │
+│ │                            │   │   priority=False,                       │ │
+│ │                            │   │   tooltip='',                           │ │
+│ │                            │   │   id=None,                              │ │
+│ │                            │   │   system=False,                         │ │
+│ │                            │   │   group=None                            │ │
+│ │                            │   ),                                        │ │
+│ │                            │   Binding(                                  │ │
+│ │                            │   │   key='ctrl+h',                         │ │
+│ │                            │   │   action='historical_sessions',         │ │
+│ │                            │   │   description='Saved sessions',         │ │
+│ │                            │   │   show=True,                            │ │
+│ │                            │   │   key_display=None,                     │ │
+│ │                            │   │   priority=False,                       │ │
+│ │                            │   │   tooltip='',                           │ │
+│ │                            │   │   id=None,                              │ │
+│ │                            │   │   system=False,                         │ │
+│ │                            │   │   group=None                            │ │
+│ │                            │   ),                                        │ │
+│ │                            │   Binding(                                  │ │
+│ │                            │   │   key='ctrl+g',                         │ │
+│ │                            │   │   action='toggle_irc',                  │ │
+│ │                            │   │   description='IRC view',               │ │
+│ │                            │   │   show=True,                            │ │
+│ │                            │   │   key_display=None,                     │ │
+│ │                            │   │   priority=False,                       │ │
+│ │                            │   │   tooltip='',                           │ │
+│ │                            │   │   id=None,                              │ │
+│ │                            │   │   system=False,                         │ │
+│ │                            │   │   group=None                            │ │
+│ │                            │   ),                                        │ │
+│ │                            │   Binding(                                  │ │
+│ │                            │   │   key='ctrl+b,f20',                     │ │
+│ │                            │   │   action='show_sidebar',                │ │
+│ │                            │   │   description='Sidebar',                │ │
+│ │                            │   │   show=True,                            │ │
+│ │                            │   │   key_display=None,                     │ │
+│ │                            │   │   priority=False,                       │ │
+│ │                            │   │   tooltip='',                           │ │
+│ │                            │   │   id=None,                              │ │
+│ │                            │   │   system=False,                         │ │
+│ │                            │   │   group=None                            │ │
+│ │                            │   ),                                        │ │
+│ │                            │   Binding(                                  │ │
+│ │                            │   │   key='ctrl+t',                         │ │
+│ │                            │   │   action='message_style',               │ │
+│ │                            │   │   description='IRC / Markdown',         │ │
+│ │                            │   │   show=True,                            │ │
+│ │                            │   │   key_display=None,                     │ │
+│ │                            │   │   priority=False,                       │ │
+│ │                            │   │   tooltip='',                           │ │
+│ │                            │   │   id=None,                              │ │
+│ │                            │   │   system=False,                         │ │
+│ │                            │   │   group=None                            │ │
+│ │                            │   ),                                        │ │
+│ │                            │   Binding(                                  │ │
+│ │                            │   │   key='ctrl+left_square_bracket',       │ │
+│ │                            │   │   action='session_previous',            │ │
+│ │                            │   │   description='Previous session',       │ │
+│ │                            │   │   show=True,                            │ │
+│ │                            │   │   key_display=None,                     │ │
+│ │                            │   │   priority=False,                       │ │
+│ │                            │   │   tooltip='',                           │ │
+│ │                            │   │   id=None,                              │ │
+│ │                            │   │   system=False,                         │ │
+│ │                            │   │   group=Group(                          │ │
+│ │                            │   │   │   description='Sessions',           │ │
+│ │                            │   │   │   compact=False                     │ │
+│ │                            │   │   )                                     │ │
+│ │                            │   ),                                        │ │
+│ │                            │   Binding(                                  │ │
+│ │                            │   │   key='ctrl+right_square_bracket',      │ │
+│ │                            │   │   action='session_next',                │ │
+│ │                            │   │   description='Next session',           │ │
+│ │                            │   │   show=True,                            │ │
+│ │                            │   │   key_display=None,                     │ │
+│ │                            │   │   priority=False,                       │ │
+│ │                            │   │   tooltip='',                           │ │
+│ │                            │   │   id=None,                              │ │
+│ │                            │   │   system=False,                         │ │
+│ │                            │   │   group=Group(                          │ │
+│ │                            │   │   │   description='Sessions',           │ │
+│ │                            │   │   │   compact=False                     │ │
+│ │                            │   │   )                                     │ │
+│ │                            │   )                                         │ │
+│ │                            ]                                             │ │
+│ │        coordination_root = <property object at 0x7fd1b53748b0>           │ │
+│ │                 CSS_PATH = ['main.tcss', 'comms.tcss']                   │ │
+│ │ SESSION_NAVIGATION_GROUP = Group(description='Sessions', compact=False)  │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
+╰──────────────────────────────────────────────────────────────────────────────╯
+NameError: name 'Button' is not defined
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-workspace-bound-sol-20260928/.venv/lib/python3.14/site-packages/textual/app.py", line 2210, in run_test
+    yield pilot
+  File "/home/ts/wt/toad-workspace-bound-sol-20260928/tests/runtime_fixture.py", line 62, in run_test
+    yield pilot
+  File "/home/ts/wt/toad-workspace-bound-sol-20260928/tests/l0a_native_installed_pilot.py", line 257, in main
+    await pilot.pause()
+  File "/home/ts/wt/toad-workspace-bound-sol-20260928/.venv/lib/python3.14/site-packages/textual/pilot.py", line 547, in pause
+    self.app.screen._on_timer_update()
+    ^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-workspace-bound-sol-20260928/.venv/lib/python3.14/site-packages/textual/app.py", line 1641, in screen
+    raise ScreenStackError("No screens on stack") from None
+textual.app.ScreenStackError: No screens on stack
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-workspace-bound-sol-20260928/tests/native_session_retention_pilot.py", line 142, in <module>
+    asyncio.run(native_fixture(app_type=InstalledApp, acceptance=acceptance))
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-workspace-bound-sol-20260928/tests/l0a_native_installed_pilot.py", line 256, in main
+    async with app.run_test(size=(160, 44)) as pilot:
+               ~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 235, in __aexit__
+    await self.gen.athrow(value)
+  File "/home/ts/wt/toad-workspace-bound-sol-20260928/tests/runtime_fixture.py", line 61, in run_test
+    async with super().run_test(**kwargs) as pilot:
+               ~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 235, in __aexit__
+    await self.gen.athrow(value)
+  File "/home/ts/wt/toad-workspace-bound-sol-20260928/.venv/lib/python3.14/site-packages/textual/app.py", line 2218, in run_test
+    raise self._exception
+  File "/home/ts/wt/toad-workspace-bound-sol-20260928/.venv/lib/python3.14/site-packages/textual/app.py", line 3478, in _process_messages
+    await self._dispatch_message(load_event)
+  File "/home/ts/wt/toad-workspace-bound-sol-20260928/.venv/lib/python3.14/site-packages/textual/message_pump.py", line 774, in _dispatch_message
+    await self.on_event(message)
+  File "/home/ts/wt/toad-workspace-bound-sol-20260928/.venv/lib/python3.14/site-packages/textual/app.py", line 4148, in on_event
+    await super().on_event(event)
+  File "/home/ts/wt/toad-workspace-bound-sol-20260928/.venv/lib/python3.14/site-packages/textual/message_pump.py", line 855, in on_event
+    await self._on_message(event)
+  File "/home/ts/wt/toad-workspace-bound-sol-20260928/.venv/lib/python3.14/site-packages/textual/message_pump.py", line 876, in _on_message
+    await invoke(method, message)
+  File "/home/ts/wt/toad-workspace-bound-sol-20260928/.venv/lib/python3.14/site-packages/textual/_callback.py", line 96, in invoke
+    return await _invoke(callback, *params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-workspace-bound-sol-20260928/.venv/lib/python3.14/site-packages/textual/_callback.py", line 58, in _invoke
+    result = await result
+             ^^^^^^^^^^^^
+  File "/home/ts/wt/toad-workspace-bound-sol-20260928/.venv/lib/python3.14/site-packages/toad/app.py", line 709, in on_load
+    self._prewarm_conversation_css()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-workspace-bound-sol-20260928/.venv/lib/python3.14/site-packages/toad/app.py", line 731, in _prewarm_conversation_css
+    from toad.screens import comms, main  # noqa: F401 - register widget classes
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-workspace-bound-sol-20260928/.venv/lib/python3.14/site-packages/toad/screens/comms.py", line 28, in <module>
+    class CommsScreen(SessionView, NavigationOwner, can_focus=False):
+    ...<247 lines>...
+                await self.app.close_session_mode(self.id)
+  File "/home/ts/wt/toad-workspace-bound-sol-20260928/.venv/lib/python3.14/site-packages/toad/screens/comms.py", line 132, in CommsScreen
+    @on(Button.Pressed, "#historical-sessions")
+        ^^^^^^
+NameError: name 'Button' is not defined
