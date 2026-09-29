@@ -225,46 +225,27 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
         return widget, offset
 
     async def prepare_navigation(self) -> None:
-        from toad.widgets.comms_sidebar import CommsSidebar
         from toad.widgets.session_tabs import SessionsTabs
-        from toad.widgets.side_bar import SideBar, SideBarCollapsible
 
         self.frame_presentation.begin()
-        self._navigation_changed = False
-        for side_bar in self.query(SideBar):
-            panels = tuple(side_bar.query(SideBarCollapsible))
-            before = tuple(panel.collapsed for panel in panels)
-            self._navigation_changed |= side_bar.restore_navigation()
-            self._navigation_changed |= before != tuple(panel.collapsed for panel in panels)
-            side_bar.schedule_hydration()
-        if sidebar := self.query_one_optional(CommsSidebar):
-            sidebar.prepare_navigation()
-            self.frame_presentation.defer(sidebar, sidebar.start_navigation_hydration)
+        self._navigation_changed = await self.app.selected_session.prepare_navigation()
+        self._navigation_changed |= self.app.workspace_chrome.prepare_navigation(self)
 
         if tabs := self.query_one_optional(SessionsTabs):
             await tabs._sync_tabs()
 
     async def layout_navigation(self) -> None:
-        """Measure the complete tree, then position its viewport before painting."""
-        from toad.widgets.comms_sidebar import CommsSidebar
-
-        sidebar = self.query_one_optional(CommsSidebar)
+        """Measure the selected source and restore its own sidebar position."""
+        roster = self.app.workspace_chrome.channels.roster
         if (self._navigation_applied and not self._navigation_changed
                 and self._size == self.app.size and not self._layout_required
                 and not self._scroll_required and not self._layout_widgets):
-            # Textual's ScreenResume already reflowed this mounted screen.
-            # Repeating its full compositor pass on every tab activation is
-            # unnecessary when navigation/geometry did not change.
-            if sidebar is not None:
-                if sidebar.restore_scroll():
-                    self._refresh_layout(self.app.size, scroll=True)
+            if roster.restore_scroll():
+                self._refresh_layout(self.app.size, scroll=True)
             return
         self._refresh_layout(self.app.size)
-        if sidebar is not None:
-            if sidebar.restore_scroll():
-                self._refresh_layout(self.app.size, scroll=True)
-        # The native resize handlers and sidebar hydration complete normally
-        # after the shell is presented, rather than holding a global paint mask.
+        if roster.restore_scroll():
+            self._refresh_layout(self.app.size, scroll=True)
         self._layout_required = False
         self._scroll_required = False
         self._dirty_widgets.clear()

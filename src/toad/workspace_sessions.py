@@ -40,7 +40,6 @@ class WorkspaceSessions:
         if previous is destination:
             return destination
         if previous is not None:
-            previous.capture_navigation()
             previous.display = False
             await previous.retire_presentation()
         self.selected = destination

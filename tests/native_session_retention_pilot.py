@@ -24,10 +24,52 @@ from l0a_native_installed_pilot import main as native_fixture, until
 from toad.screens.main import MainScreen
 from toad.widgets.conversation import Conversation
 from toad.widgets.side_bar import SideBar
+from toad.widgets.session_tabs import SessionLabel
+from toad.navigation_target import ThreadTarget
 
 
 class InstalledApp(ToadApp):
     CSS_PATH = files("toad").joinpath("toad.tcss")
+
+
+class PaintedSwitchApp(InstalledApp):
+    """Observe production selection and actual composited output; never replace it."""
+    observed_destination = None
+    observed_started = None
+    observed_frames = None
+    observed_expected = None
+
+    def select_session(self, mode, *, history_index=None):
+        if mode == self.observed_destination and self.observed_started is None:
+            self.observed_started = time.monotonic()
+        return super().select_session(mode, history_index=history_index)
+
+    def _display(self, screen, renderable):
+        super()._display(screen, renderable)
+        if (self.observed_started is not None and renderable is not None
+                and not self._batch_count and screen is self.screen
+                and self.selected_mode == self.observed_destination
+                and screen.frame_presentation.ready):
+            paint = "\n".join(strip.text for strip in screen._compositor.render_strips())
+            if all(marker in paint for marker in self.observed_expected):
+                self.observed_frames.append((time.monotonic() - self.observed_started) * 1000)
+
+
+async def physical_painted_switch(app, pilot, mode, expected):
+    tab = next(label for label in app.screen.query(SessionLabel) if label.id == mode)
+    tab.scroll_visible(animate=False, immediate=True)
+    await pilot.pause()
+    app.observed_destination = mode
+    app.observed_started = None
+    app.observed_frames = []
+    app.observed_expected = expected
+    assert await pilot.click(tab), f"Tab {mode} was not physically clickable"
+    await until(pilot, lambda: bool(app.observed_frames))
+    frames = tuple(app.observed_frames)
+    app.observed_destination = None
+    app.observed_started = None
+    return {"first_paint_ms": frames[0], "last_observed_paint_ms": frames[-1],
+            "painted_frames": len(frames)}
 
 
 def conversation_paint(screen):
@@ -69,20 +111,30 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     session_id = agent.session_id
     acp_process, acp_task = agent.process.process, agent.process.runner
     owner = comms.registry.require("beta").process_identity
-    modes = [owner_mode]
+    await until(pilot, lambda: "NATIVE_RESPONSE_2" in conversation_paint(app.screen))
+    alpha_mode = await ThreadTarget("alpha").open(owner_view.navigation_context)
+    await until(pilot, lambda: "NATIVE_RESPONSE_1" in conversation_paint(app.screen))
+    modes = [owner_mode, alpha_mode]
+    loaded_modes = frozenset(modes)
     records = []
+    markers = {owner_mode: ("untouched native draft with undo", "NATIVE_RESPONSE_2"),
+               alpha_mode: ("NATIVE_RESPONSE_1",)}
     active_prompt = None
     try:
-        for count in (4, 16, 32, 64):
+        for count in tuple(map(int, os.environ.get("WORKSPACE_COHORTS", "4,16,32,64").split(","))):
             while len(modes) < count:
                 index = len(modes)
                 details = await app.session_navigation.new(lambda: MainScreen(
                     original.project_path, agent_session_id=f"cohort-{index}"))
                 modes.append(details.mode_name)
+                marker = f"BLANK_TAB_DRAFT_{index}"
+                app.selected_session.conversation.prompt.prompt_text_area.insert(marker)
+                markers[details.mode_name] = (marker,)
                 await pilot.pause(.02)
             # Each cohort uses the same three strict visit phases. Do not hide
             # a bad phase with the predecessor's optional diagnostic filtering.
             durations = []
+            painted = []
             profile_path = os.environ.get("WORKSPACE_SWITCH_PROFILE")
             profiler = cProfile.Profile() if count == 4 and profile_path else None
             if profiler is not None:
@@ -91,12 +143,12 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
                 for mode in order:
                     if mode == app.selected_mode:
                         continue
-                    before = time.monotonic()
-                    await app.select_session(mode)
-                    await pilot.pause(.02)
+                    timing = await physical_painted_switch(app, pilot, mode, markers[mode])
+                    painted.append({"mode": mode, "source": "loaded-native" if mode in loaded_modes else "blank",
+                                    **timing})
                     assert app.selected_mode == mode and app.selected_session.id == mode
                     assert app.screen is workspace, "Tab change replaced native WorkspaceScreen"
-                    durations.append((time.monotonic() - before) * 1000)
+                    durations.append(timing["first_paint_ms"])
             if profiler is not None:
                 profiler.disable()
                 with Path(profile_path).open("w") as stream:
@@ -134,9 +186,12 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
                 "switch_median_ms": statistics.median(durations),
                 "switch_max_ms": max(durations),
                 "switches_over_100ms": sum(value > 100 for value in durations),
-                "switch_count": len(durations), "fixed_native_owners": 1,
-                "fixed_acp_attachments": 1,
-                "measurement": "headless switch completion plus20ms pilot settle; not native terminal latency",
+                "switch_count": len(durations), "fixed_native_owners": 2,
+                "fixed_acp_attachments": 2,
+                "measurement": "physical Pilot tab click: production selection to first actual compositor output with destination draft; no fixed settle added, headless not terminal writer latency",
+                "painted_switches": painted,
+                "blank_median_ms": statistics.median(item["first_paint_ms"] for item in painted if item["source"] == "blank"),
+                "loaded_median_ms": statistics.median(item["first_paint_ms"] for item in painted if item["source"] == "loaded-native"),
                 **resource_snapshot(owner, acp_process),
             }
             release.set()
@@ -168,6 +223,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
                     "paint": conversation_paint(app.screen),
                 }), flush=True)
                 raise
+            markers[owner_mode] = ("untouched native draft with undo", expected)
             record["native_calls"] = len(requests) - before_requests
             record["native_answer_painted"] = True
             records.append(record)
@@ -186,4 +242,5 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
 
 
 if __name__ == "__main__":
-    asyncio.run(native_fixture(app_type=InstalledApp, acceptance=acceptance))
+    from thread_navigation_installed_journey import prepare as prepare_loaded_histories
+    asyncio.run(native_fixture(app_type=PaintedSwitchApp, prepare_state=prepare_loaded_histories, acceptance=acceptance))

@@ -26,8 +26,18 @@ class WorkspaceChrome:
         self.footer = Footer(id="workspace-footer")
         self.native = NativeSessionSurface(app)
 
+    def prepare_navigation(self, screen) -> bool:
+        """Restore the single shared Channels surface independently of tab-local panels."""
+        changed = self.channels.restore_navigation()
+        self.channels.schedule_hydration()
+        roster = self.channels.roster
+        roster.prepare_navigation()
+        screen.frame_presentation.defer(roster, roster.start_navigation_hydration)
+        return changed
+
     async def select(self, view: "SessionView") -> None:
         roster = self.channels.roster
+        roster.capture_navigation()
         await roster.bind_wire(view.app.coordination_access.service)
         actor, target = view.channels_context()
         roster.session_thread = actor
