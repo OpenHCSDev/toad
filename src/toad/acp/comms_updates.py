@@ -69,7 +69,7 @@ class CommsUpdateConsumer(MroDispatch):
     @handles(TurnStartedUpdate)
     def turn_started(self, update: TurnStartedUpdate) -> None:
         agent = self.agent
-        if self.session_id != agent.session_id or agent.process.stopping:
+        if self.session_id != agent.session_id or not agent.process.accepts_updates:
             return
         agent._active_turn_id = update.turn_id
         agent._turn_lifecycle_sequence += 1
@@ -85,7 +85,7 @@ class CommsUpdateConsumer(MroDispatch):
     @handles(TurnSettledUpdate)
     def turn_settled(self, update: TurnSettledUpdate) -> None:
         agent = self.agent
-        if self.session_id != agent.session_id or agent.process.stopping:
+        if self.session_id != agent.session_id or not agent.process.accepts_updates:
             return
         if (
             agent._active_turn_id is not None
@@ -148,10 +148,10 @@ class CommsUpdateConsumer(MroDispatch):
         from .maintenance_ingress import configured_root
 
         agent = self.agent
-        attached_env = (agent._maintenance_env or os.environ).copy()
+        attached_env = (agent.process.env or os.environ).copy()
         attached_env["AGENT_COMMS_ROOT"] = update.wire_root
         root = configured_root(
-            attached_env, agent._maintenance_cwd or agent.project_root_path.resolve()
+            attached_env, agent.process.cwd or agent.project_root_path.resolve()
         )
         agent.coordination = replace(update, wire_root=str(root))
         agent.project_root_path = Path(update.worktree)

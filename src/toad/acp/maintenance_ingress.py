@@ -9,11 +9,12 @@ from __future__ import annotations
 import asyncio
 import concurrent.futures
 import os
-import signal
 import time
 from contextlib import ExitStack, contextmanager
 from pathlib import Path
 from typing import Any, Iterator, Mapping
+from agent_comms.child_process import AttachedChild
+from .shell_command import ShellCommand
 
 
 _pending_spawns = 0
@@ -86,7 +87,11 @@ def preflight(
         pass
 
 
-async def admitted_spawn(command: str, *, root: str | None = None, **kwargs: Any) -> asyncio.subprocess.Process:
+async def admitted_spawn(
+    command: str, *, root: str | None = None, env: dict[str, str] | None = None,
+    cwd: str | Path | None = None, pass_fds: tuple[int, ...] = (),
+    input_enabled: bool = True, limit: int = 65536,
+) -> AttachedChild:
     """Hold the core wire lock until the asynchronous ACP spawn settles.
 
     Acquiring a process lock on the Toad event loop can deadlock if another task
@@ -98,8 +103,8 @@ async def admitted_spawn(command: str, *, root: str | None = None, **kwargs: Any
     this helper does not purport to provide a bounded retirement deadline.
     """
     loop = asyncio.get_running_loop()
-    child_env = (kwargs["env"] if kwargs.get("env") is not None else os.environ).copy()
-    child_cwd = str(Path(kwargs["cwd"] if kwargs.get("cwd") is not None else os.getcwd()).resolve())
+    child_env = (env if env is not None else os.environ).copy()
+    child_cwd = str(Path(cwd if cwd is not None else os.getcwd()).resolve())
     ingress_root = configured_root(child_env, child_cwd)
     from toad.comms_root import selected_write
 
@@ -110,9 +115,7 @@ async def admitted_spawn(command: str, *, root: str | None = None, **kwargs: Any
     # The gate and child must use the *same* target even if an alias symlink
     # changes after admission but before exec. Never inherit a relative root.
     child_env["AGENT_COMMS_ROOT"] = str(ingress_root)
-    kwargs["env"] = child_env
-    kwargs["cwd"] = child_cwd
-    process_ready: concurrent.futures.Future[asyncio.subprocess.Process] = concurrent.futures.Future()
+    process_ready: concurrent.futures.Future[AttachedChild] = concurrent.futures.Future()
     decision: concurrent.futures.Future[bool] = concurrent.futures.Future()
 
     global _pending_spawns
@@ -126,53 +129,6 @@ async def admitted_spawn(command: str, *, root: str | None = None, **kwargs: Any
                 return await asyncio.shield(task), cancelled
             except asyncio.CancelledError:
                 cancelled = True
-
-    def live_group_members(group: int) -> bool:
-        """A zombie is exited, but an orphaned running member is not retired."""
-        import psutil
-
-        for member in psutil.process_iter():
-            try:
-                if os.getpgid(member.pid) == group and member.status() != psutil.STATUS_ZOMBIE:
-                    return True
-            except (ProcessLookupError, psutil.NoSuchProcess):
-                continue
-        return False
-
-    async def retire(process: asyncio.subprocess.Process) -> None:
-        group = process.pid if os.name != "nt" and kwargs.get("start_new_session") else None
-        if process.returncode is None:
-            try:
-                if group is not None:
-                    os.killpg(group, signal.SIGTERM)
-                else:
-                    process.terminate()
-            except ProcessLookupError:
-                pass
-            wait = asyncio.create_task(asyncio.wait_for(process.wait(), timeout=2))
-            try:
-                await settle(wait)
-            except TimeoutError:
-                try:
-                    if group is not None:
-                        os.killpg(group, signal.SIGKILL)
-                    else:
-                        process.kill()
-                except ProcessLookupError:
-                    pass
-                await settle(asyncio.create_task(process.wait()))
-        if group is not None:
-            # Shell wait alone does not prove its marker-only ACP descendants
-            # stopped. Keep the wire lock until every same-group live member
-            # exits. An unkillable member conservatively stalls the pause.
-            escalation = time.monotonic() + 0.2
-            while await asyncio.to_thread(live_group_members, group):
-                if time.monotonic() >= escalation:
-                    try:
-                        os.killpg(group, signal.SIGKILL)
-                    except ProcessLookupError:
-                        pass
-                await asyncio.sleep(0.02)
 
     def spawn_under_lock() -> None:
         try:
@@ -206,7 +162,11 @@ async def admitted_spawn(command: str, *, root: str | None = None, **kwargs: Any
                     # belong to that explicit root before launching anything.
                     private_nk_launch(ingress_root, child_env)
                 future = asyncio.run_coroutine_threadsafe(
-                    asyncio.create_subprocess_shell(command, **kwargs), loop
+                    AttachedChild.start(
+                        ShellCommand.current().argv(command), env=child_env,
+                        cwd=child_cwd, pass_fds=pass_fds,
+                        input_enabled=input_enabled, limit=limit,
+                    ), loop
                 )
                 process = future.result()
                 process_ready.set_result(process)
@@ -215,7 +175,7 @@ async def admitted_spawn(command: str, *, root: str | None = None, **kwargs: Any
                 if not decision.result():
                     while True:
                         try:
-                            asyncio.run_coroutine_threadsafe(retire(process), loop).result()
+                            asyncio.run_coroutine_threadsafe(process.stop(), loop).result()
                         except Exception:
                             # If inspection/retirement is uncertain, do not
                             # release the wire lock and certify a safe pause.

@@ -1,0 +1,128 @@
+{
+  "src/toad/acp/agent_controller.py": {
+    "before": {
+      "classes": {
+        "SurfaceBinding": 8,
+        "DetachedSurfaceBinding": 3,
+        "AttachedSurfaceBinding": 11,
+        "ValidationOwner": 3,
+        "HeadlessValidationOwner": 3,
+        "ApplicationValidationOwner": 6,
+        "AgentController": 95
+      },
+      "chain_terms": 0
+    },
+    "after": {
+      "classes": {
+        "SurfaceBinding": 8,
+        "DetachedSurfaceBinding": 3,
+        "AttachedSurfaceBinding": 11,
+        "ValidationOwner": 3,
+        "HeadlessValidationOwner": 3,
+        "ApplicationValidationOwner": 6,
+        "AgentController": 92
+      },
+      "chain_terms": 0
+    }
+  },
+  "src/toad/acp/maintenance_ingress.py": {
+    "before": {
+      "classes": {},
+      "chain_terms": 4
+    },
+    "after": {
+      "classes": {},
+      "chain_terms": 4
+    }
+  },
+  "src/toad/acp/agent.py": {
+    "before": {
+      "classes": {
+        "Mode": 6,
+        "Model": 6,
+        "ContextUsage": 18,
+        "Cost": 15,
+        "TokenUsage": 9,
+        "Agent": 1311
+      },
+      "chain_terms": 0
+    },
+    "after": {
+      "classes": {
+        "Mode": 6,
+        "Model": 6,
+        "ContextUsage": 18,
+        "Cost": 15,
+        "TokenUsage": 9,
+        "Agent": 1257
+      },
+      "chain_terms": 0
+    }
+  },
+  "src/toad/acp/comms_updates.py": {
+    "before": {
+      "classes": {
+        "CommsUpdateConsumer": 208
+      },
+      "chain_terms": 0
+    },
+    "after": {
+      "classes": {
+        "CommsUpdateConsumer": 208
+      },
+      "chain_terms": 0
+    }
+  },
+  "src/toad/acp/shell_command.py": {
+    "before": {
+      "classes": {},
+      "chain_terms": 0
+    },
+    "after": {
+      "classes": {
+        "ShellCommand": 7,
+        "PosixShellCommand": 3,
+        "NtShellCommand": 3
+      },
+      "chain_terms": 0
+    }
+  },
+  "src/toad/acp/agent_process.py": {
+    "before": {
+      "classes": {
+        "ProcessControl": 19,
+        "PosixProcessControl": 43,
+        "WindowsProcessControl": 16,
+        "AgentProcess": 119
+      },
+      "chain_terms": 0
+    },
+    "after": {
+      "classes": {
+        "ProcessDisposition": 5,
+        "ActiveProcessDisposition": 6,
+        "ClosedProcessDisposition": 2,
+        "AgentProcess": 189
+      },
+      "chain_terms": 0
+    }
+  },
+  "src/toad/acp/wire_message.py": {
+    "before": {
+      "classes": {
+        "IncomingWireMessage": 18,
+        "WireResponse": 5,
+        "WireCall": 11
+      },
+      "chain_terms": 0
+    },
+    "after": {
+      "classes": {
+        "IncomingWireMessage": 18,
+        "WireResponse": 5,
+        "WireCall": 11
+      },
+      "chain_terms": 0
+    }
+  }
+}

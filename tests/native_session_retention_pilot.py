@@ -50,7 +50,7 @@ def resource_snapshot(owner, acp_process):
             continue  # An independent renderer child may finish during sampling.
     return {"scope_rss_bytes": sum(rss.values()), "scope_processes": len(rss),
             "native_owner_rss_bytes": native.memory_info().rss,
-            "acp_rss_bytes": psutil.Process(acp_process.pid).memory_info().rss}
+            "acp_rss_bytes": psutil.Process(acp_process.identity.pid).memory_info().rss}
 
 
 async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):
