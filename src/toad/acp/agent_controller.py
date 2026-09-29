@@ -7,6 +7,7 @@ from weakref import ref
 
 from agent_comms.declared_family import DeclaredFamily
 from toad.render_tasks import ValidateSessionUpdateTask
+from .terminal_owner import OperationalTerminalOwner
 
 
 class SurfaceBinding(DeclaredFamily, affix="SurfaceBinding"):
@@ -55,9 +56,10 @@ class ApplicationValidationOwner(ValidationOwner):
         return await self.processes.submit(task)
 
 
-class AgentController:
+class AgentController(OperationalTerminalOwner):
     """One operational source; the surface is an optional weak projection."""
     def __init__(self, agent):
+        super().__init__()
         self.agent = agent
         self.surface: SurfaceBinding = DetachedSurfaceBinding()
         self.validation: ValidationOwner = HeadlessValidationOwner()
@@ -69,8 +71,6 @@ class AgentController:
         self.modes = {}
         self.current_mode = None
         self.commands = []
-        from .terminal_controller import TerminalController
-        self.terminals = TerminalController()
 
     def attach(self, target):
         previous = self.surface.target
@@ -117,16 +117,7 @@ class AgentController:
             if target is not None:
                 target.call_later(self.start_terminal_presentation, target)
 
-    def start_terminal_presentation(self, target):
-        if self.surface.owns(target):
-            self.start_operation(self.terminals.attach(target))
 
-    def replace_terminal_session(self):
-        from .terminal_controller import TerminalController
-        previous = self.terminals
-        self.terminals = TerminalController()
-        if previous.executions:
-            self.start_operation(previous.close())
 
     def connection_closed(self):
         from .messages import McpClientStopped
