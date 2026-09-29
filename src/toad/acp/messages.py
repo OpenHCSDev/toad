@@ -21,7 +21,8 @@ from .permission_controller import PermissionRequest
 
 if TYPE_CHECKING:
     from textual.content import Content
-    from toad.acp.agent import Mode, Model
+    from toad.acp.agent import Model
+    from toad.acp.agent_session import Mode
 
 
 class AgentMessage(Message):

@@ -68,8 +68,7 @@ class AgentProcess:
                 cwd=self.cwd,
             )
         except Exception as error:
-            self.agent._connected_ok = False
-            self.agent.session_ready_event.set()
+            self.agent.session.failed()
             self.agent.post_message(LogAgentFail("Failed to start agent", details=str(error), log_path=self.agent.presentation.log_path))
             return
         self.disposition = ActiveProcessDisposition()
@@ -171,12 +170,12 @@ class AgentProcess:
 
     def session_failed(self, failure):
         self.close()
-        self.agent.session_ready_event.set()
+        self.agent.session.failed()
         self.agent.post_message(LogAgentFail(failure.title, failure.feedback, log_path=self.agent.presentation.log_path))
 
     def startup_failed(self, details):
         self.close()
-        self.agent.session_ready_event.set()
+        self.agent.session.failed()
         self.agent.post_message(LogAgentFail("ACP session startup failed", details=details, log_path=self.agent.presentation.log_path))
 
     async def communicate(self) -> None:
@@ -185,7 +184,7 @@ class AgentProcess:
         env = (self.env or os.environ).copy()
         env["TOAD_CWD"] = str(Path("./").absolute())
         if (command := agent.command) is None:
-            agent.session_ready_event.set()
+            agent.session.failed()
             agent.post_message(
                 LogAgentFail("Failed to start agent; no run command for this OS", log_path=agent.presentation.log_path)
             )
@@ -201,11 +200,10 @@ class AgentProcess:
                 limit=10 * 1024 * 1024,
             )
         except Exception as error:
-            agent._connected_ok = False
-            agent.session_ready_event.set()
+            agent.session.failed()
             agent.post_message(LogAgentFail("Failed to start agent", details=str(error), log_path=self.agent.presentation.log_path))
             return
-        self.session_task = asyncio.create_task(agent.run())
+        self.session_task = asyncio.create_task(agent.session.run())
         self.session_task.add_done_callback(self.session_finished)
         assert process.stdout is not None
         assert process.stdin is not None
@@ -237,12 +235,12 @@ class AgentProcess:
                 continue
             await incoming.receive(agent, call_jsonrpc, self)
         if process.returncode and self.accepts_updates:
-            agent.session_ready_event.set()
+            agent.session.failed()
             assert process.stderr is not None
             fail_details = (await process.stderr.read()).decode("utf-8", "replace")
             agent.post_message(LogAgentFail(
                 f"Agent returned a failure code: [b]{process.returncode}",
                 details=fail_details, log_path=agent.presentation.log_path,
             ))
-        elif self.accepts_updates and not agent.session_ready_event.is_set():
+        elif self.accepts_updates and not agent.session.settled.is_set():
             self.startup_failed("ACP process closed before session initialization completed.")

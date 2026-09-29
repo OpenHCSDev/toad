@@ -1,0 +1,296 @@
+{
+  "src/toad/acp/agent.py": {
+    "before": {
+      "absence": 0,
+      "chain": 0,
+      "excess500": 127,
+      "classes": {
+        "Mode": 6,
+        "Model": 6,
+        "Agent": 627
+      }
+    },
+    "after": {
+      "absence": 0,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {
+        "Model": 6,
+        "Agent": 377
+      }
+    }
+  },
+  "src/toad/acp/agent_controller.py": {
+    "before": {
+      "absence": 2,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {
+        "SessionBinding": 6,
+        "SurfaceBinding": 8,
+        "DetachedSurfaceBinding": 3,
+        "AttachedSurfaceBinding": 11,
+        "ValidationOwner": 3,
+        "HeadlessValidationOwner": 3,
+        "ApplicationValidationOwner": 6,
+        "AgentController": 262
+      }
+    },
+    "after": {
+      "absence": 2,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {
+        "SessionBinding": 10,
+        "SurfaceBinding": 8,
+        "DetachedSurfaceBinding": 3,
+        "AttachedSurfaceBinding": 11,
+        "ValidationOwner": 3,
+        "HeadlessValidationOwner": 3,
+        "ApplicationValidationOwner": 6,
+        "AgentController": 262
+      }
+    }
+  },
+  "src/toad/acp/agent_process.py": {
+    "before": {
+      "absence": 4,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {
+        "ProcessDisposition": 5,
+        "ActiveProcessDisposition": 6,
+        "ClosedProcessDisposition": 2,
+        "AgentProcess": 217
+      }
+    },
+    "after": {
+      "absence": 4,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {
+        "ProcessDisposition": 5,
+        "ActiveProcessDisposition": 6,
+        "ClosedProcessDisposition": 2,
+        "AgentProcess": 215
+      }
+    }
+  },
+  "src/toad/acp/comms_updates.py": {
+    "before": {
+      "absence": 4,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {
+        "CommsUpdateConsumer": 201
+      }
+    },
+    "after": {
+      "absence": 3,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {
+        "CommsUpdateConsumer": 197
+      }
+    }
+  },
+  "src/toad/acp/messages.py": {
+    "before": {
+      "absence": 0,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {
+        "AgentMessage": 2,
+        "InputDispositionsChanged": 2,
+        "RejectedSessionUpdate": 2,
+        "McpClientStopped": 4,
+        "Thinking": 3,
+        "UpdateStatusLine": 2,
+        "Update": 4,
+        "UserMessage": 3,
+        "RequestPermission": 2,
+        "Plan": 2,
+        "ToolCall": 7,
+        "ToolCallUpdate": 8,
+        "AvailableCommandsUpdate": 4,
+        "SetModes": 5,
+        "ModeUpdate": 4,
+        "SetModels": 5,
+        "SetThinkingLevels": 5,
+        "SessionInfoUpdate": 4,
+        "CommsUpdated": 9,
+        "UsageUpdage": 6
+      }
+    },
+    "after": {
+      "absence": 0,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {
+        "AgentMessage": 2,
+        "InputDispositionsChanged": 2,
+        "RejectedSessionUpdate": 2,
+        "McpClientStopped": 4,
+        "Thinking": 3,
+        "UpdateStatusLine": 2,
+        "Update": 4,
+        "UserMessage": 3,
+        "RequestPermission": 2,
+        "Plan": 2,
+        "ToolCall": 7,
+        "ToolCallUpdate": 8,
+        "AvailableCommandsUpdate": 4,
+        "SetModes": 5,
+        "ModeUpdate": 4,
+        "SetModels": 5,
+        "SetThinkingLevels": 5,
+        "SessionInfoUpdate": 4,
+        "CommsUpdated": 9,
+        "UsageUpdage": 6
+      }
+    }
+  },
+  "src/toad/thread_actions.py": {
+    "before": {
+      "absence": 1,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {
+        "ThreadActions": 41,
+        "ThreadActionExecution": 18,
+        "ThreadActionContext": 6,
+        "ChannelAction": 2,
+        "ThreadAction": 36,
+        "StartAction": 22,
+        "FinishedAction": 7,
+        "StopAction": 7,
+        "ArchiveAction": 7,
+        "AcknowledgeAction": 9,
+        "ForkAction": 30
+      }
+    },
+    "after": {
+      "absence": 1,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {
+        "ThreadActions": 41,
+        "ThreadActionExecution": 18,
+        "ThreadActionContext": 6,
+        "ChannelAction": 2,
+        "ThreadAction": 36,
+        "StartAction": 22,
+        "FinishedAction": 7,
+        "StopAction": 7,
+        "ArchiveAction": 7,
+        "AcknowledgeAction": 9,
+        "ForkAction": 30
+      }
+    }
+  },
+  "src/toad/widgets/conversation.py": {
+    "before": {
+      "absence": 27,
+      "chain": 21,
+      "excess500": 1231,
+      "classes": {
+        "Loading": 9,
+        "PaintOnlyRefresh": 10,
+        "ThreadLoading": 46,
+        "TurnActivity": 19,
+        "Cursor": 45,
+        "CategorizedMount": 13,
+        "Contents": 10,
+        "ContentsGrid": 8,
+        "CursorContainer": 8,
+        "ConversationWindowSettings": 25,
+        "Window": 15,
+        "ConversationSessionBinding": 296,
+        "Conversation": 1731,
+        "ConversationCommsConsumer": 52,
+        "CompactionRenderer": 55
+      }
+    },
+    "after": {
+      "absence": 27,
+      "chain": 21,
+      "excess500": 1231,
+      "classes": {
+        "Loading": 9,
+        "PaintOnlyRefresh": 10,
+        "ThreadLoading": 46,
+        "TurnActivity": 19,
+        "Cursor": 45,
+        "CategorizedMount": 13,
+        "Contents": 10,
+        "ContentsGrid": 8,
+        "CursorContainer": 8,
+        "ConversationWindowSettings": 25,
+        "Window": 15,
+        "ConversationSessionBinding": 296,
+        "Conversation": 1731,
+        "ConversationCommsConsumer": 52,
+        "CompactionRenderer": 55
+      }
+    }
+  },
+  "src/toad/widgets/prompt.py": {
+    "before": {
+      "absence": 4,
+      "chain": 5,
+      "excess500": 0,
+      "classes": {
+        "ModeSwitcher": 11,
+        "AgentInfo": 2,
+        "SendNow": 9,
+        "ModeInfo": 2,
+        "StatusLine": 7,
+        "QueueSummary": 14,
+        "PromptContainer": 8,
+        "PromptSubmission": 9,
+        "PromptTextArea": 305,
+        "Prompt": 419,
+        "Submitted": 4,
+        "RequestShellMode": 2,
+        "CancelShell": 2
+      }
+    },
+    "after": {
+      "absence": 4,
+      "chain": 5,
+      "excess500": 0,
+      "classes": {
+        "ModeSwitcher": 11,
+        "AgentInfo": 2,
+        "SendNow": 9,
+        "ModeInfo": 2,
+        "StatusLine": 7,
+        "QueueSummary": 14,
+        "PromptContainer": 8,
+        "PromptSubmission": 9,
+        "PromptTextArea": 305,
+        "Prompt": 419,
+        "Submitted": 4,
+        "RequestShellMode": 2,
+        "CancelShell": 2
+      }
+    }
+  },
+  "src/toad/acp/agent_session.py": {
+    "before": {
+      "absence": 0,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {}
+    },
+    "after": {
+      "absence": 0,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {
+        "Mode": 6,
+        "AgentSession": 297
+      }
+    }
+  }
+}
