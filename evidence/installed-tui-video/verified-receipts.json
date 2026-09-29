@@ -1,0 +1,628 @@
+{
+  "scratch_owner": "Mendel",
+  "persistent_evidence_root": "/home/ts/.cache/agent-scratch/toad-video-tools-mendel-20260929",
+  "visual_review": {
+    "owner": "Mendel",
+    "assessment": "candidate visual acceptance not established; custody accepted separately",
+    "candidate_toad_git": "5732952d81b0103507bdb17123d25d62a0891934",
+    "core_git": "fc47c15a",
+    "textual_git": "412b5",
+    "native_route": "native-current-776dc36857e630da",
+    "wheel_proof": "../candidate-wheel-proof-573.json",
+    "private_custody_receipt": "custody-resume-acceptance.json",
+    "default_runtime_limit": "This earlier explicit candidate pair does not verify current Core409/Toad199 default; no activation changed.",
+    "native_gamma_route_check": {
+      "session_id": "01a0ef0a-8d61-72d4-9ee3-398c1d048797",
+      "expected_response": "NATIVE_RESPONSE_3",
+      "seed": "NEW_PRIVATE_GAMMA_HISTORY_SEED",
+      "evidence": [
+        "retained-native-sessions/gamma.jsonl",
+        "preserved-fixture-after-acceptance/wire/registry.json"
+      ],
+      "limit": "Saved native session matches declared gamma route; visible participant aggregate conflict remains unresolved."
+    },
+    "media": {
+      "profiled_fps": "60/1",
+      "profiled_seconds": 48.55,
+      "unprofiled_fps": "60/1",
+      "unprofiled_seconds": 48.05,
+      "review_sheets_fps": 8,
+      "slow_factor": 8
+    },
+    "profile_quality": {
+      "sample_count": 369,
+      "sampling_errors": 368,
+      "alignment_nominal_uncertainty_seconds": 0.06613268399727532,
+      "trace_to_video_offset_seconds": -0.3435364539909642,
+      "sampling_quality": "partial; inspect errors and missing thread intervals"
+    },
+    "phases": [
+      {
+        "label": "warm-a",
+        "profiled_video_seconds": [
+          15.142336632008664,
+          17.010629055992467
+        ],
+        "profiled_ui_average_cpu_percent": 28.90339826184948,
+        "sampled_ui_frames_partial": [
+          {
+            "function": "_worker",
+            "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/thread.py",
+            "line": 116,
+            "self_sampled_wall_seconds": 2.239270828000741
+          },
+          {
+            "function": "_projections",
+            "filename": "/home/ts/.cache/agent-scratch/toad-retained-outer-history-first-paint-20260929/installed-runtime/lib/python3.14/site-packages/agent_comms/field_codec.py",
+            "line": 326,
+            "self_sampled_wall_seconds": 2.069969423983803
+          },
+          {
+            "function": "select",
+            "filename": "/home/ts/.cache/agent-scratch/toad-retained-outer-history-first-paint-20260929/installed-runtime/lib/python3.14/site-packages/agent_comms/notification_assignment.py",
+            "line": 79,
+            "self_sampled_wall_seconds": 1.6961870199668638
+          },
+          {
+            "function": "_decode",
+            "filename": "/home/ts/.cache/agent-scratch/toad-retained-outer-history-first-paint-20260929/installed-runtime/lib/python3.14/site-packages/agent_comms/field_codec.py",
+            "line": 393,
+            "self_sampled_wall_seconds": 1.4944859140003715
+          },
+          {
+            "function": "_dispatch_message",
+            "filename": "/home/ts/.cache/agent-scratch/toad-retained-outer-history-first-paint-20260929/installed-runtime/lib/python3.14/site-packages/textual/message_pump.py",
+            "line": 771,
+            "self_sampled_wall_seconds": 1.029310509983432
+          },
+          {
+            "function": "arrange_widget",
+            "filename": "/home/ts/.cache/agent-scratch/toad-retained-outer-history-first-paint-20260929/installed-runtime/lib/python3.14/site-packages/textual/_compositor.py",
+            "line": 745,
+            "self_sampled_wall_seconds": 0.8025139140003716
+          }
+        ],
+        "unprofiled_video_seconds": [
+          15.196491276001325,
+          16.97441782199894
+        ],
+        "unprofiled_ui_average_cpu_percent": 29.81,
+        "visible_finding": "Selected beta retains gamma response3 before destination body changes; route/status conflict confounds render attribution.",
+        "supporting_artifacts": [
+          "private-profiled/warm-a-frames.png",
+          "private-unprofiled/warm-a-frames.png"
+        ]
+      },
+      {
+        "label": "warm-b",
+        "profiled_video_seconds": [
+          17.010629055992467,
+          18.84739719700883
+        ],
+        "profiled_ui_average_cpu_percent": 29.39946463254717,
+        "sampled_ui_frames_partial": [
+          {
+            "function": "select",
+            "filename": "/home/ts/.cache/agent-scratch/toad-retained-outer-history-first-paint-20260929/installed-runtime/lib/python3.14/site-packages/agent_comms/notification_assignment.py",
+            "line": 79,
+            "self_sampled_wall_seconds": 5.183143933032525
+          },
+          {
+            "function": "_projections",
+            "filename": "/home/ts/.cache/agent-scratch/toad-retained-outer-history-first-paint-20260929/installed-runtime/lib/python3.14/site-packages/agent_comms/field_codec.py",
+            "line": 326,
+            "self_sampled_wall_seconds": 1.836768141016364
+          },
+          {
+            "function": "__exit__",
+            "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py",
+            "line": 364,
+            "self_sampled_wall_seconds": 1.836768141016364
+          },
+          {
+            "function": "__exit__",
+            "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py",
+            "line": 147,
+            "self_sampled_wall_seconds": 0.9730136509997962
+          },
+          {
+            "function": "_dispatch_message",
+            "filename": "/home/ts/.cache/agent-scratch/toad-retained-outer-history-first-paint-20260929/installed-runtime/lib/python3.14/site-packages/textual/message_pump.py",
+            "line": 771,
+            "self_sampled_wall_seconds": 0.7188724900165688
+          },
+          {
+            "function": "<genexpr>",
+            "filename": "/home/ts/.cache/agent-scratch/toad-retained-outer-history-first-paint-20260929/installed-runtime/lib/python3.14/site-packages/agent_comms/notification_assignment.py",
+            "line": 66,
+            "self_sampled_wall_seconds": 0.327160490016567
+          }
+        ],
+        "unprofiled_video_seconds": [
+          16.97441782199894,
+          18.816090360021917
+        ],
+        "unprofiled_ui_average_cpu_percent": 29.86,
+        "visible_finding": "Selected gamma retains beta response2 through sampled17.849\u201318.724s; gamma IdentityConflict makes clean attach/performance acceptance invalid.",
+        "supporting_artifacts": [
+          "private-profiled/warm-b-frames.png",
+          "private-unprofiled/warm-b-frames.png"
+        ]
+      },
+      {
+        "label": "warm-return",
+        "profiled_video_seconds": [
+          18.84739719700883,
+          20.792911041993648
+        ],
+        "profiled_ui_average_cpu_percent": 35.466208671744745,
+        "sampled_ui_frames_partial": [
+          {
+            "function": "select",
+            "filename": "/home/ts/.cache/agent-scratch/toad-retained-outer-history-first-paint-20260929/installed-runtime/lib/python3.14/site-packages/agent_comms/notification_assignment.py",
+            "line": 79,
+            "self_sampled_wall_seconds": 4.434820038969836
+          },
+          {
+            "function": "_projections",
+            "filename": "/home/ts/.cache/agent-scratch/toad-retained-outer-history-first-paint-20260929/installed-runtime/lib/python3.14/site-packages/agent_comms/field_codec.py",
+            "line": 326,
+            "self_sampled_wall_seconds": 1.9455138449848164
+          },
+          {
+            "function": "__exit__",
+            "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py",
+            "line": 364,
+            "self_sampled_wall_seconds": 1.9455138449848164
+          },
+          {
+            "function": "active_owners",
+            "filename": "/home/ts/.cache/agent-scratch/toad-retained-outer-history-first-paint-20260929/installed-runtime/lib/python3.14/site-packages/agent_comms/notification_assignment.py",
+            "line": 104,
+            "self_sampled_wall_seconds": 1.2474440000000016
+          },
+          {
+            "function": "__init__",
+            "filename": "/home/ts/.cache/agent-scratch/toad-retained-outer-history-first-paint-20260929/installed-runtime/lib/python3.14/site-packages/rich/control.py",
+            "line": 63,
+            "self_sampled_wall_seconds": 1.0121554959846115
+          },
+          {
+            "function": "__exit__",
+            "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py",
+            "line": 147,
+            "self_sampled_wall_seconds": 0.8546633490002051
+          }
+        ],
+        "unprofiled_video_seconds": [
+          18.816090360021917,
+          20.820914842013735
+        ],
+        "unprofiled_ui_average_cpu_percent": 34.42,
+        "visible_finding": "Gamma response3 remains under selected beta18.847\u201319.722s; beta response2 appears by19.847s. This is stale-body evidence, not isolated renderer latency.",
+        "supporting_artifacts": [
+          "private-profiled/warm-return-frames.png",
+          "private-unprofiled/warm-return-frames.png"
+        ]
+      },
+      {
+        "label": "up",
+        "profiled_video_seconds": [
+          22.55206223099958,
+          27.355895554006565
+        ],
+        "profiled_ui_average_cpu_percent": 85.14033949537291,
+        "sampled_ui_frames_partial": [
+          {
+            "function": "_worker",
+            "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/thread.py",
+            "line": 116,
+            "self_sampled_wall_seconds": 18.333939662009026
+          },
+          {
+            "function": "select",
+            "filename": "/home/ts/.cache/agent-scratch/toad-retained-outer-history-first-paint-20260929/installed-runtime/lib/python3.14/site-packages/agent_comms/notification_assignment.py",
+            "line": 79,
+            "self_sampled_wall_seconds": 3.2769626300189074
+          },
+          {
+            "function": "_store_lock",
+            "filename": "/home/ts/.cache/agent-scratch/toad-retained-outer-history-first-paint-20260929/installed-runtime/lib/python3.14/site-packages/agent_comms/store_files.py",
+            "line": 38,
+            "self_sampled_wall_seconds": 1.6688710079975309
+          },
+          {
+            "function": "__init__",
+            "filename": "/home/ts/.cache/agent-scratch/toad-retained-outer-history-first-paint-20260929/installed-runtime/lib/python3.14/site-packages/rich/control.py",
+            "line": 63,
+            "self_sampled_wall_seconds": 0.7943993150094535
+          },
+          {
+            "function": "_trusted_root",
+            "filename": "/home/ts/.cache/agent-scratch/toad-retained-outer-history-first-paint-20260929/installed-runtime/lib/python3.14/site-packages/agent_comms/private_registry_guard.py",
+            "line": 114,
+            "self_sampled_wall_seconds": 0.7393933150094547
+          },
+          {
+            "function": "_start",
+            "filename": "/home/ts/.cache/agent-scratch/toad-retained-outer-history-first-paint-20260929/installed-runtime/lib/python3.14/site-packages/textual/worker.py",
+            "line": 416,
+            "self_sampled_wall_seconds": 0.46668299999999974
+          }
+        ],
+        "unprofiled_video_seconds": [
+          22.547149796999292,
+          27.309325056005036
+        ],
+        "unprofiled_ui_average_cpu_percent": 85.68,
+        "visible_finding": "Four-second held Prior moves beta response2 tail147\u2013159 to response1 paragraphs112\u2013124; actual history focus confirmed.",
+        "supporting_artifacts": [
+          "private-profiled/up-frames.png",
+          "private-unprofiled/up-frames.png"
+        ]
+      },
+      {
+        "label": "down",
+        "profiled_video_seconds": [
+          28.153295136988163,
+          32.97893350900267
+        ],
+        "profiled_ui_average_cpu_percent": 62.78962007538696,
+        "sampled_ui_frames_partial": [
+          {
+            "function": "_worker",
+            "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/thread.py",
+            "line": 116,
+            "self_sampled_wall_seconds": 11.244274153049894
+          },
+          {
+            "function": "_store_lock",
+            "filename": "/home/ts/.cache/agent-scratch/toad-retained-outer-history-first-paint-20260929/installed-runtime/lib/python3.14/site-packages/agent_comms/store_files.py",
+            "line": 38,
+            "self_sampled_wall_seconds": 4.8256383720145095
+          },
+          {
+            "function": "_preflight",
+            "filename": "/home/ts/.cache/agent-scratch/toad-retained-outer-history-first-paint-20260929/installed-runtime/lib/python3.14/site-packages/agent_comms/recovery_projection.py",
+            "line": 181,
+            "self_sampled_wall_seconds": 4.493102962993635
+          },
+          {
+            "function": "_open",
+            "filename": "/home/ts/.cache/agent-scratch/toad-retained-outer-history-first-paint-20260929/installed-runtime/lib/python3.14/site-packages/agent_comms/private_registry_guard.py",
+            "line": 139,
+            "self_sampled_wall_seconds": 3.232640962993635
+          },
+          {
+            "function": "layers",
+            "filename": "/home/ts/.cache/agent-scratch/toad-retained-outer-history-first-paint-20260929/installed-runtime/lib/python3.14/site-packages/textual/_compositor.py",
+            "line": 913,
+            "self_sampled_wall_seconds": 1.4353604090208734
+          },
+          {
+            "function": "reflow",
+            "filename": "/home/ts/.cache/agent-scratch/toad-retained-outer-history-first-paint-20260929/installed-runtime/lib/python3.14/site-packages/textual/_compositor.py",
+            "line": 472,
+            "self_sampled_wall_seconds": 1.2562679629936397
+          }
+        ],
+        "unprofiled_video_seconds": [
+          28.026198390027275,
+          32.82635047502117
+        ],
+        "unprofiled_ui_average_cpu_percent": 68.54,
+        "visible_finding": "Four-second held Next returns toward beta response2 tail; history direction confirmed.",
+        "supporting_artifacts": [
+          "private-profiled/down-frames.png",
+          "private-unprofiled/down-frames.png"
+        ]
+      },
+      {
+        "label": "reverse",
+        "profiled_video_seconds": [
+          33.76318677800009,
+          38.51535684600822
+        ],
+        "profiled_ui_average_cpu_percent": 83.33035104654485,
+        "sampled_ui_frames_partial": [
+          {
+            "function": "_worker",
+            "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/thread.py",
+            "line": 116,
+            "self_sampled_wall_seconds": 7.512452836017076
+          },
+          {
+            "function": "_store_lock",
+            "filename": "/home/ts/.cache/agent-scratch/toad-retained-outer-history-first-paint-20260929/installed-runtime/lib/python3.14/site-packages/agent_comms/store_files.py",
+            "line": 38,
+            "self_sampled_wall_seconds": 6.7440263680073045
+          },
+          {
+            "function": "_preflight",
+            "filename": "/home/ts/.cache/agent-scratch/toad-retained-outer-history-first-paint-20260929/installed-runtime/lib/python3.14/site-packages/agent_comms/recovery_projection.py",
+            "line": 181,
+            "self_sampled_wall_seconds": 4.752170068008127
+          },
+          {
+            "function": "__exit__",
+            "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py",
+            "line": 364,
+            "self_sampled_wall_seconds": 2.435421000000005
+          },
+          {
+            "function": "select",
+            "filename": "/home/ts/.cache/agent-scratch/toad-retained-outer-history-first-paint-20260929/installed-runtime/lib/python3.14/site-packages/agent_comms/notification_assignment.py",
+            "line": 79,
+            "self_sampled_wall_seconds": 1.9918872999991777
+          },
+          {
+            "function": "reflow",
+            "filename": "/home/ts/.cache/agent-scratch/toad-retained-outer-history-first-paint-20260929/installed-runtime/lib/python3.14/site-packages/textual/_compositor.py",
+            "line": 472,
+            "self_sampled_wall_seconds": 0.7207367680089476
+          }
+        ],
+        "unprofiled_video_seconds": [
+          33.52959304701653,
+          38.32806481301668
+        ],
+        "unprofiled_ui_average_cpu_percent": 83.36,
+        "visible_finding": "Four-second held Prior reverses to earlier history; sampled pages keep readable text.",
+        "supporting_artifacts": [
+          "private-profiled/reverse-frames.png",
+          "private-unprofiled/reverse-frames.png"
+        ]
+      },
+      {
+        "label": "end",
+        "profiled_video_seconds": [
+          39.34352712100372,
+          41.14343174701207
+        ],
+        "profiled_ui_average_cpu_percent": 68.33695420449962,
+        "sampled_ui_frames_partial": [
+          {
+            "function": "_store_lock",
+            "filename": "/home/ts/.cache/agent-scratch/toad-retained-outer-history-first-paint-20260929/installed-runtime/lib/python3.14/site-packages/agent_comms/store_files.py",
+            "line": 38,
+            "self_sampled_wall_seconds": 4.418636453019751
+          },
+          {
+            "function": "_worker",
+            "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/thread.py",
+            "line": 116,
+            "self_sampled_wall_seconds": 1.5995682010030379
+          },
+          {
+            "function": "__exit__",
+            "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py",
+            "line": 364,
+            "self_sampled_wall_seconds": 1.1053002010030397
+          },
+          {
+            "function": "select",
+            "filename": "/home/ts/.cache/agent-scratch/toad-retained-outer-history-first-paint-20260929/installed-runtime/lib/python3.14/site-packages/agent_comms/notification_assignment.py",
+            "line": 79,
+            "self_sampled_wall_seconds": 1.0495818500106395
+          },
+          {
+            "function": "render_regions",
+            "filename": "/home/ts/.cache/agent-scratch/toad-retained-outer-history-first-paint-20260929/installed-runtime/lib/python3.14/site-packages/textual/_compositor.py",
+            "line": 1368,
+            "self_sampled_wall_seconds": 0.7680184250053159
+          },
+          {
+            "function": "_preflight",
+            "filename": "/home/ts/.cache/agent-scratch/toad-retained-outer-history-first-paint-20260929/installed-runtime/lib/python3.14/site-packages/agent_comms/recovery_projection.py",
+            "line": 181,
+            "self_sampled_wall_seconds": 0.6946044250053163
+          }
+        ],
+        "unprofiled_video_seconds": [
+          39.20158369001001,
+          41.01553717200295
+        ],
+        "unprofiled_ui_average_cpu_percent": 68.91,
+        "visible_finding": "Native End after reverse remains at response1 through39.969s; by40.094s response2 paragraphs019\u2013031 then later pages appear. Destination preparation visibly progresses rather than showing the bottom immediately.",
+        "supporting_artifacts": [
+          "private-profiled/end-frames.png",
+          "private-unprofiled/end-frames.png"
+        ]
+      },
+      {
+        "label": "idle",
+        "profiled_video_seconds": [
+          41.14343174701207,
+          45.980568158003734
+        ],
+        "profiled_ui_average_cpu_percent": 29.56294548052316,
+        "sampled_ui_frames_partial": [
+          {
+            "function": "select",
+            "filename": "/home/ts/.cache/agent-scratch/toad-retained-outer-history-first-paint-20260929/installed-runtime/lib/python3.14/site-packages/agent_comms/notification_assignment.py",
+            "line": 79,
+            "self_sampled_wall_seconds": 11.420807447978788
+          },
+          {
+            "function": "run",
+            "filename": "/home/ts/.cache/agent-scratch/toad-retained-outer-history-first-paint-20260929/installed-runtime/lib/python3.14/site-packages/textual/drivers/_writer_thread.py",
+            "line": 74,
+            "self_sampled_wall_seconds": 4.837136410991661
+          },
+          {
+            "function": "_store_lock",
+            "filename": "/home/ts/.cache/agent-scratch/toad-retained-outer-history-first-paint-20260929/installed-runtime/lib/python3.14/site-packages/agent_comms/store_files.py",
+            "line": 38,
+            "self_sampled_wall_seconds": 4.799540396990892
+          },
+          {
+            "function": "reflow",
+            "filename": "/home/ts/.cache/agent-scratch/toad-retained-outer-history-first-paint-20260929/installed-runtime/lib/python3.14/site-packages/textual/_compositor.py",
+            "line": 472,
+            "self_sampled_wall_seconds": 4.184672611994699
+          },
+          {
+            "function": "_worker",
+            "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/thread.py",
+            "line": 116,
+            "self_sampled_wall_seconds": 3.7394157989969656
+          },
+          {
+            "function": "registry_digest",
+            "filename": "/home/ts/.cache/agent-scratch/toad-retained-outer-history-first-paint-20260929/installed-runtime/lib/python3.14/site-packages/agent_comms/private_registry_guard.py",
+            "line": 45,
+            "self_sampled_wall_seconds": 1.3127739999999974
+          }
+        ],
+        "unprofiled_video_seconds": [
+          41.01553717200295,
+          45.93104984299862
+        ],
+        "unprofiled_ui_average_cpu_percent": 34.79,
+        "visible_finding": "Viewport continues changing after idle marker41.143s; phase-idle-done.png eventually shows response2 paragraphs147\u2013159, the known bottom. End reaches bottom late; no stationary-idle/no-hiccup pass.",
+        "supporting_artifacts": [
+          "private-profiled/idle-frames.png",
+          "private-unprofiled/idle-frames.png"
+        ]
+      }
+    ],
+    "limits": [
+      "Inspected marker screenshots and timestamped8FPS contact sheets; no claim to have certified every60FPS frame or absence of single-frame blanking.",
+      "No whole-body blank or void past bottom seen in reviewed samples; padded empty sheet tiles are not captured video frames.",
+      "Control reproduces visible stale-body and delayed End/idle motion; no assumed profiler overhead subtraction.",
+      "Kernel counters measure per-process CPU only. Partial py-spy wall spans are not function CPU, exact calls, or proof of redundancy; idle renderer spans with zero CPU are not hot work.",
+      "Native action markers bracket commands, not paint ACKs; screenshots and encoder startup introduce offsets."
+    ],
+    "next_owners": {
+      "Heisenberg": "Retained presentation/background renderer fix and next exact paired private video; investigate End/reflow with candidate2025523ecec.",
+      "parent": "Core participant aggregate identity/routing defect review; no restart or live-root capture."
+    }
+  },
+  "custody": {
+    "assessment": "custody accepted; video assessment separate",
+    "original_owners": {
+      "beta": {
+        "pid": 1554038,
+        "start_ticks": 19246618,
+        "alive": true
+      },
+      "gamma": {
+        "pid": 1554487,
+        "start_ticks": 19247641,
+        "alive": true
+      }
+    },
+    "attachable_after_capture": true,
+    "new_controlled_input_worked": true,
+    "new_input": "NEW_PRIVATE_POST_CAPTURE_CUSTODY_INPUT_AFTER_SERVER_RESTART_20260929",
+    "new_loopback_provider_requests": 1,
+    "replayed_input": false,
+    "capture_receipts": [
+      "private-startup",
+      "private-profiled",
+      "private-unprofiled"
+    ],
+    "recovery": "Original fixture parent/provider lost at server restart; existing provider handler restored on its original loopback port. Exact original owners retained.",
+    "cleanup": "Private fixture lifecycle teardown follows recorded acceptance; no owner restart",
+    "private_owners_stopped_by_fixture_lifecycle": true
+  },
+  "capture_identity_leaks": {
+    "checked_identities": 91,
+    "still_live": [],
+    "authority": "installed ProcessIdentity.alive on saved exact identities; no global scan"
+  },
+  "final_terminal_custody": {
+    "recorder_source_sha256": "53d38fac5c4f85ab40658840100a420d1505f6b0d58425c65f64a714c6915511",
+    "cases": {
+      "abrupt_terminal_exit": "separate program session cleaned",
+      "runtime_verification_failure": "custody acquired before failed verification",
+      "profiler_abrupt_exit": "exact terminal and program leases recovered"
+    },
+    "display": ":8136",
+    "cleanup": {
+      "remaining_owned_pids": [],
+      "errors": [],
+      "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+      "processes": [
+        {
+          "pid": 1609190,
+          "start_ticks": 19424404,
+          "returncode": 0
+        },
+        {
+          "pid": 1609192,
+          "start_ticks": 19424412,
+          "returncode": -9
+        },
+        {
+          "pid": 1609193,
+          "start_ticks": 19424418,
+          "custody": "verified launch identity transferred to installed ObservedProcess"
+        },
+        {
+          "pid": 1609195,
+          "start_ticks": 19424434,
+          "returncode": 1
+        },
+        {
+          "pid": 1609196,
+          "start_ticks": 19424440,
+          "custody": "verified launch identity transferred to installed ObservedProcess"
+        },
+        {
+          "pid": 1609227,
+          "start_ticks": 19424486,
+          "returncode": -9
+        },
+        {
+          "pid": 1609267,
+          "start_ticks": 19424528,
+          "custody": "verified launch identity transferred to installed ObservedProcess"
+        },
+        {
+          "pid": 1609269,
+          "start_ticks": 19424534,
+          "custody": "verified launch identity transferred to installed ObservedProcess"
+        }
+      ]
+    },
+    "still_live": []
+  },
+  "incident": {
+    "owner": "Mendel",
+    "defect": "Recorder adopted descendants across comms custody boundaries; replaced with installed process-group custody and registry authority",
+    "causality": "1497687 exited before attachment in control; final cleanup later. 1498168 death causal link unverified",
+    "membership": {
+      "1497687": [
+        {
+          "receipt": "/home/ts/.cache/agent-scratch/toad-video-tools-mendel-20260929/candidate-unprofiled/receipt.json",
+          "capture_parent_pid": 1497309,
+          "start_ticks": 19103347
+        }
+      ],
+      "1498168": []
+    }
+  },
+  "disposable_cleanup": [
+    {
+      "path": "/home/ts/.cache/agent-scratch/toad-video-tools-mendel-20260929/installed-literal-journey",
+      "removed_bytes": 21185946,
+      "retained_evidence": "/home/ts/.cache/agent-scratch/toad-video-tools-mendel-20260929/retired-diagnostic-receipts/installed-literal-journey"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/toad-video-tools-mendel-20260929/profiled-installed-journey",
+      "removed_bytes": 23280832,
+      "retained_evidence": "/home/ts/.cache/agent-scratch/toad-video-tools-mendel-20260929/retired-diagnostic-receipts/profiled-installed-journey"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/toad-video-tools-mendel-20260929/profiled-ui-journey",
+      "removed_bytes": 25473281,
+      "retained_evidence": "/home/ts/.cache/agent-scratch/toad-video-tools-mendel-20260929/retired-diagnostic-receipts/profiled-ui-journey"
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/toad-video-tools-mendel-20260929/candidate-profiled",
+      "removed_bytes": 25204058,
+      "retained_evidence": "/home/ts/.cache/agent-scratch/toad-video-tools-mendel-20260929/retired-diagnostic-receipts/candidate-profiled"
+    }
+  ]
+}
