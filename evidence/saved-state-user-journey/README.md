@@ -54,3 +54,16 @@ scroll/custody retained; normal production fork and first input; channel
 notification/automatic reply/history/status. Existing installed return-cache
 pilot is reused for reader/editor expectations; Tesla owns its file. No blanket
 whole-journey or affected-live-entrypoint claim from this first RED checkpoint.
+
+## Repaired installed checkpoint
+
+Same saved-state physical-click journey PASS on staged installed Toad420b9930,
+core942f9824, native d3967e8b, Textual1738. Production imported site-packages.
+Real two-turn native journal -> actual saved-history UI paint -> actual shared
+channel click -> CommsScreen/SAVED_CHANNEL_MESSAGE paint -> clicked original
+tab -> savednative history paint, exactly2 providercalls/no replay, no App error.
+Receipt repaired-channel-click.log. This is the affected physical native/App
+entry path for the channel hotfix, not whole-journey/finallatency completion.
+Parent owns affected LIVE path/activation; no live mutation here.
+Production selected NavigationOwner now comes from app.selected_session,
+resolving the sibling event-bubbling gap. Later feature scenarios continue here.
