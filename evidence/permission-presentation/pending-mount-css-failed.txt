@@ -1,0 +1,404 @@
+╭───────────────────── Traceback (most recent call last) ──────────────────────╮
+│ /home/ts/wt/toad-agent-controller-sol-20260928/.venv/lib/python3.14/site-pac │
+│ kages/textual/worker.py:385 in _run                                          │
+│                                                                              │
+│   382 │   │   │   self.state = WorkerState.RUNNING                           │
+│   383 │   │   │   app.log.worker(self)                                       │
+│   384 │   │   │   try:                                                       │
+│ ❱ 385 │   │   │   │   self._result = await self.run()                        │
+│   386 │   │   │   except asyncio.CancelledError as error:                    │
+│   387 │   │   │   │   self.state = WorkerState.CANCELLED                     │
+│   388 │   │   │   │   self._error = error                                    │
+│                                                                              │
+│ ╭───────────────────────────────── locals ─────────────────────────────────╮ │
+│ │           app = ToadApp(                                                 │ │
+│ │                 │   title='ToadApp',                                     │ │
+│ │                 │   classes={                                            │ │
+│ │                 │   │   '-theme-ansi-dark',                              │ │
+│ │                 │   │   '-dark-mode',                                    │ │
+│ │                 │   │   '-show-sessions-bar'                             │ │
+│ │                 │   },                                                   │ │
+│ │                 │   pseudo_classes={                                     │ │
+│ │                 │   │   'focus',                                         │ │
+│ │                 │   │   'nocolor',                                       │ │
+│ │                 │   │   'ansi',                                          │ │
+│ │                 │   │   'dark'                                           │ │
+│ │                 │   }                                                    │ │
+│ │                 )                                                        │ │
+│ │         error = StylesheetError("unable to read CSS file                 │ │
+│ │                 '/home/ts/wt/toad-permission-presentation-sol-20260928/… │ │
+│ │          self = <Worker                                                  │ │
+│ │                 │   ERROR                                                │ │
+│ │                 │   name='request_permissions'                           │ │
+│ │                 │                                                        │ │
+│ │                 description='request_permissions(<toad.acp.permission_c… │ │
+│ │                 object'+20                                               │ │
+│ │                 >                                                        │ │
+│ │ worker_failed = WorkerFailed('Worker raised exception:                   │ │
+│ │                 StylesheetError("unable to read CSS file                 │ │
+│ │                 \'/home/ts/wt/toad-permission-presentation-sol-20260928… │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
+│                                                                              │
+│ /home/ts/wt/toad-agent-controller-sol-20260928/.venv/lib/python3.14/site-pac │
+│ kages/textual/worker.py:371 in run                                           │
+│                                                                              │
+│   368 │   │   Returns:                                                       │
+│   369 │   │   │   Return value of the work.                                  │
+│   370 │   │   """                                                            │
+│ ❱ 371 │   │   return await (                                                 │
+│   372 │   │   │   self._run_threaded() if self._thread_worker else self._run │
+│   373 │   │   )                                                              │
+│   374                                                                        │
+│                                                                              │
+│ ╭───────────────────────────────── locals ─────────────────────────────────╮ │
+│ │ self = <Worker                                                           │ │
+│ │        │   ERROR                                                         │ │
+│ │        │   name='request_permissions'                                    │ │
+│ │        │                                                                 │ │
+│ │        description='request_permissions(<toad.acp.permission_controller… │ │
+│ │        object'+20                                                        │ │
+│ │        >                                                                 │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
+│                                                                              │
+│ /home/ts/wt/toad-agent-controller-sol-20260928/.venv/lib/python3.14/site-pac │
+│ kages/textual/worker.py:356 in _run_async                                    │
+│                                                                              │
+│   353 │   │   │   or hasattr(self._work, "func")                             │
+│   354 │   │   │   and inspect.iscoroutinefunction(self._work.func)           │
+│   355 │   │   ):                                                             │
+│ ❱ 356 │   │   │   return await self._work()                                  │
+│   357 │   │   elif inspect.isawaitable(self._work):                          │
+│   358 │   │   │   return await self._work                                    │
+│   359 │   │   elif callable(self._work):                                     │
+│                                                                              │
+│ ╭───────────────────────────────── locals ─────────────────────────────────╮ │
+│ │ self = <Worker                                                           │ │
+│ │        │   ERROR                                                         │ │
+│ │        │   name='request_permissions'                                    │ │
+│ │        │                                                                 │ │
+│ │        description='request_permissions(<toad.acp.permission_controller… │ │
+│ │        object'+20                                                        │ │
+│ │        >                                                                 │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
+│                                                                              │
+│ /home/ts/wt/toad-permission-presentation-sol-20260928/.venv/lib/python3.14/s │
+│ ite-packages/toad/widgets/conversation.py:1942 in request_permissions        │
+│                                                                              │
+│   1939 │                                                                     │
+│   1940 │   @work                                                             │
+│   1941 │   async def request_permissions(self, request) -> None:             │
+│ ❱ 1942 │   │   await request.presentation.present(self, request)             │
+│   1943 │                                                                     │
+│   1944 │   async def post_tool_call(                                         │
+│   1945 │   │   self, tool_call_update: acp_protocol.ToolCallUpdate           │
+│                                                                              │
+│ ╭───────────────────────────────── locals ─────────────────────────────────╮ │
+│ │ request = <toad.acp.permission_controller.ToolPermissionRequest object   │ │
+│ │           at 0x7fac49e578c0>                                             │ │
+│ │    self = Conversation()                                                 │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
+│                                                                              │
+│ /home/ts/wt/toad-permission-presentation-sol-20260928/.venv/lib/python3.14/s │
+│ ite-packages/toad/permission_presentation.py:38 in present                   │
+│                                                                              │
+│    35 │   │   if not request.pending or not request.controller.agent.control │
+│    36 │   │   │   return                                                     │
+│    37 │   │   view.post_message(messages.SessionUpdate(state="asking"))      │
+│ ❱  38 │   │   await self.show(view, request)                                 │
+│    39 │                                                                      │
+│    40 │   @abstractmethod                                                    │
+│    41 │   async def show(self, view, request): ...                           │
+│                                                                              │
+│ ╭───────────────────────────────── locals ─────────────────────────────────╮ │
+│ │ request = <toad.acp.permission_controller.ToolPermissionRequest object   │ │
+│ │           at 0x7fac49e578c0>                                             │ │
+│ │    self = <toad.permission_presentation.DiffPermissionPresentation       │ │
+│ │           object at 0x7fac49e57a10>                                      │ │
+│ │    view = Conversation()                                                 │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
+│                                                                              │
+│ /home/ts/wt/toad-permission-presentation-sol-20260928/.venv/lib/python3.14/s │
+│ ite-packages/toad/permission_presentation.py:84 in show                      │
+│                                                                              │
+│    81 │   │                                                                  │
+│    82 │   │   request.watch(view, screen.retire)                             │
+│    83 │   │   try:                                                           │
+│ ❱  84 │   │   │   result = await app.push_screen_wait(screen, mode=view.scre │
+│    85 │   │   │   request.answer(view, result)                               │
+│    86 │   │   finally:                                                       │
+│    87 │   │   │   app.terminal_alert(False)                                  │
+│                                                                              │
+│ ╭───────────────────────────────── locals ─────────────────────────────────╮ │
+│ │     app = ToadApp(                                                       │ │
+│ │           │   title='ToadApp',                                           │ │
+│ │           │   classes={                                                  │ │
+│ │           │   │   '-theme-ansi-dark',                                    │ │
+│ │           │   │   '-dark-mode',                                          │ │
+│ │           │   │   '-show-sessions-bar'                                   │ │
+│ │           │   },                                                         │ │
+│ │           │   pseudo_classes={'focus', 'nocolor', 'ansi', 'dark'}        │ │
+│ │           )                                                              │ │
+│ │ request = <toad.acp.permission_controller.ToolPermissionRequest object   │ │
+│ │           at 0x7fac49e578c0>                                             │ │
+│ │  screen = PermissionReview()                                             │ │
+│ │    self = <toad.permission_presentation.DiffPermissionPresentation       │ │
+│ │           object at 0x7fac49e57a10>                                      │ │
+│ │    view = Conversation()                                                 │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
+│                                                                              │
+│ /home/ts/wt/toad-agent-controller-sol-20260928/.venv/lib/python3.14/site-pac │
+│ kages/textual/app.py:2998 in push_screen_wait                                │
+│                                                                              │
+│   2995 │   │   await self._flush_next_callbacks()                            │
+│   2996 │   │   # The shield prevents the cancellation of the current task fr │
+│   2997 │   │   return await asyncio.shield(                                  │
+│ ❱ 2998 │   │   │   self.push_screen(screen, wait_for_dismiss=True, mode=mode │
+│   2999 │   │   )                                                             │
+│   3000 │                                                                     │
+│   3001 │   def switch_screen(self, screen: Screen | str) -> AwaitComplete:   │
+│                                                                              │
+│ ╭───────────────────────────── locals ─────────────────────────────╮         │
+│ │   mode = 'session-1'                                             │         │
+│ │ screen = PermissionReview()                                      │         │
+│ │   self = ToadApp(                                                │         │
+│ │          │   title='ToadApp',                                    │         │
+│ │          │   classes={                                           │         │
+│ │          │   │   '-theme-ansi-dark',                             │         │
+│ │          │   │   '-dark-mode',                                   │         │
+│ │          │   │   '-show-sessions-bar'                            │         │
+│ │          │   },                                                  │         │
+│ │          │   pseudo_classes={                                    │         │
+│ │          │   │   'focus',                                        │         │
+│ │          │   │   'nocolor',                                      │         │
+│ │          │   │   'ansi',                                         │         │
+│ │          │   │   'dark'                                          │         │
+│ │          │   }                                                   │         │
+│ │          )                                                       │         │
+│ ╰──────────────────────────────────────────────────────────────────╯         │
+│                                                                              │
+│ /home/ts/wt/toad-agent-controller-sol-20260928/.venv/lib/python3.14/site-pac │
+│ kages/textual/app.py:2952 in push_screen                                     │
+│                                                                              │
+│   2949 │   │   │   message_pump = self.app                                   │
+│   2950 │   │                                                                 │
+│   2951 │   │   next_screen._push_result_callback(message_pump, callback, fut │
+│ ❱ 2952 │   │   self._load_screen_css(next_screen)                            │
+│   2953 │   │   next_screen._update_auto_focus()                              │
+│   2954 │   │   screen_stack.append(next_screen)                              │
+│   2955 │   │   if next_screen.is_active:                                     │
+│                                                                              │
+│ ╭───────────────────────────────── locals ─────────────────────────────────╮ │
+│ │      await_mount = AwaitMount(                                           │ │
+│ │                    │   parent=PermissionReview(),                        │ │
+│ │                    │   widgets=[PermissionReview()]                      │ │
+│ │                    )                                                     │ │
+│ │         callback = None                                                  │ │
+│ │           future = <Future pending>                                      │ │
+│ │             loop = <_UnixSelectorEventLoop running=True closed=False     │ │
+│ │                    debug=False>                                          │ │
+│ │     message_pump = ToadApp(                                              │ │
+│ │                    │   title='ToadApp',                                  │ │
+│ │                    │   classes={                                         │ │
+│ │                    │   │   '-theme-ansi-dark',                           │ │
+│ │                    │   │   '-dark-mode',                                 │ │
+│ │                    │   │   '-show-sessions-bar'                          │ │
+│ │                    │   },                                                │ │
+│ │                    │   pseudo_classes={                                  │ │
+│ │                    │   │   'focus',                                      │ │
+│ │                    │   │   'nocolor',                                    │ │
+│ │                    │   │   'ansi',                                       │ │
+│ │                    │   │   'dark'                                        │ │
+│ │                    │   }                                                 │ │
+│ │                    )                                                     │ │
+│ │             mode = 'session-1'                                           │ │
+│ │      mode_screen = MainScreen(id='session-1', classes='-wide')           │ │
+│ │      next_screen = PermissionReview()                                    │ │
+│ │           screen = PermissionReview()                                    │ │
+│ │     screen_stack = [MainScreen(id='session-1', classes='-wide')]         │ │
+│ │             self = ToadApp(                                              │ │
+│ │                    │   title='ToadApp',                                  │ │
+│ │                    │   classes={                                         │ │
+│ │                    │   │   '-theme-ansi-dark',                           │ │
+│ │                    │   │   '-dark-mode',                                 │ │
+│ │                    │   │   '-show-sessions-bar'                          │ │
+│ │                    │   },                                                │ │
+│ │                    │   pseudo_classes={                                  │ │
+│ │                    │   │   'focus',                                      │ │
+│ │                    │   │   'nocolor',                                    │ │
+│ │                    │   │   'ansi',                                       │ │
+│ │                    │   │   'dark'                                        │ │
+│ │                    │   }                                                 │ │
+│ │                    )                                                     │ │
+│ │ wait_for_dismiss = True                                                  │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
+│                                                                              │
+│ /home/ts/wt/toad-permission-presentation-sol-20260928/.venv/lib/python3.14/s │
+│ ite-packages/toad/app.py:823 in _load_screen_css                             │
+│                                                                              │
+│    820 │   def _load_screen_css(self, screen: Screen) -> None:               │
+│    821 │   │   from toad.screens.session_view import SessionView             │
+│    822 │   │                                                                 │
+│ ❱  823 │   │   super()._load_screen_css(screen)                              │
+│    824 │   │   if isinstance(screen, SessionView) and not screen.is_mounted: │
+│    825 │   │   │   # Registration applies current styles to each newly mount │
+│    826 │   │   │   # Mark this fresh root current too, avoiding Textual's tw │
+│                                                                              │
+│ ╭───────────────────────────── locals ─────────────────────────────╮         │
+│ │ screen = PermissionReview()                                      │         │
+│ │   self = ToadApp(                                                │         │
+│ │          │   title='ToadApp',                                    │         │
+│ │          │   classes={                                           │         │
+│ │          │   │   '-theme-ansi-dark',                             │         │
+│ │          │   │   '-dark-mode',                                   │         │
+│ │          │   │   '-show-sessions-bar'                            │         │
+│ │          │   },                                                  │         │
+│ │          │   pseudo_classes={                                    │         │
+│ │          │   │   'focus',                                        │         │
+│ │          │   │   'nocolor',                                      │         │
+│ │          │   │   'ansi',                                         │         │
+│ │          │   │   'dark'                                          │         │
+│ │          │   }                                                   │         │
+│ │          )                                                       │         │
+│ ╰──────────────────────────────────────────────────────────────────╯         │
+│                                                                              │
+│ /home/ts/wt/toad-agent-controller-sol-20260928/.venv/lib/python3.14/site-pac │
+│ kages/textual/app.py:2831 in _load_screen_css                                │
+│                                                                              │
+│   2828 │   │   update = False                                                │
+│   2829 │   │   for path in screen.css_path:                                  │
+│   2830 │   │   │   if not self.stylesheet.has_source(str(path), ""):         │
+│ ❱ 2831 │   │   │   │   self.stylesheet.read(path)                            │
+│   2832 │   │   │   │   update = True                                         │
+│   2833 │   │   if screen.CSS:                                                │
+│   2834 │   │   │   try:                                                      │
+│                                                                              │
+│ ╭───────────────────────────────── locals ─────────────────────────────────╮ │
+│ │   path = PosixPath('/home/ts/wt/toad-permission-presentation-sol-202609… │ │
+│ │ screen = PermissionReview()                                              │ │
+│ │   self = ToadApp(                                                        │ │
+│ │          │   title='ToadApp',                                            │ │
+│ │          │   classes={                                                   │ │
+│ │          │   │   '-theme-ansi-dark',                                     │ │
+│ │          │   │   '-dark-mode',                                           │ │
+│ │          │   │   '-show-sessions-bar'                                    │ │
+│ │          │   },                                                          │ │
+│ │          │   pseudo_classes={'focus', 'nocolor', 'ansi', 'dark'}         │ │
+│ │          )                                                               │ │
+│ │ update = False                                                           │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
+│                                                                              │
+│ /home/ts/wt/toad-agent-controller-sol-20260928/.venv/lib/python3.14/site-pac │
+│ kages/textual/css/stylesheet.py:333 in read                                  │
+│                                                                              │
+│    330 │   │   │   │   css = css_file.read()                                 │
+│    331 │   │   │   path = os.path.abspath(filename)                          │
+│    332 │   │   except Exception:                                             │
+│ ❱  333 │   │   │   raise StylesheetError(f"unable to read CSS file {filename │
+│    334 │   │   self.source[(str(path), "")] = CssSource(css, False, 0)       │
+│    335 │   │   self._require_parse = True                                    │
+│    336                                                                       │
+│                                                                              │
+│ ╭───────────────────────────────── locals ─────────────────────────────────╮ │
+│ │ filename = '/home/ts/wt/toad-permission-presentation-sol-20260928/.venv… │ │
+│ │     self = <Stylesheet                                                   │ │
+│ │            │   [                                                         │ │
+│ │            │   │   (                                                     │ │
+│ │            │   │   │                                                     │ │
+│ │            '/home/ts/wt/toad-permission-presentation-sol-20260928/src/t… │ │
+│ │            │   │   │   ''                                                │ │
+│ │            │   │   ),                                                    │ │
+│ │            │   │   (                                                     │ │
+│ │            │   │   │                                                     │ │
+│ │            '/home/ts/wt/toad-agent-controller-sol-20260928/.venv/lib/py… │ │
+│ │            │   │   │   'App.DEFAULT_CSS'                                 │ │
+│ │            │   │   ),                                                    │ │
+│ │            │   │   (                                                     │ │
+│ │            │   │   │                                                     │ │
+│ │            '/home/ts/wt/toad-permission-presentation-sol-20260928/.venv… │ │
+│ │            │   │   │   'CondensedPath.DEFAULT_CSS'                       │ │
+│ │            │   │   ),                                                    │ │
+│ │            │   │   (                                                     │ │
+│ │            │   │   │                                                     │ │
+│ │            '/home/ts/wt/toad-agent-controller-sol-20260928/.venv/lib/py… │ │
+│ │            │   │   │   'Widget.DEFAULT_CSS'                              │ │
+│ │            │   │   ),                                                    │ │
+│ │            │   │   (                                                     │ │
+│ │            │   │   │                                                     │ │
+│ │            '/home/ts/wt/toad-permission-presentation-sol-20260928/.venv… │ │
+│ │            │   │   │   'StrikeText.DEFAULT_CSS'                          │ │
+│ │            │   │   ),                                                    │ │
+│ │            │   │   (                                                     │ │
+│ │            │   │   │                                                     │ │
+│ │            '/home/ts/wt/toad-permission-presentation-sol-20260928/.venv… │ │
+│ │            │   │   │   'ChannelsSlot.DEFAULT_CSS'                        │ │
+│ │            │   │   ),                                                    │ │
+│ │            │   │   (                                                     │ │
+│ │            │   │   │                                                     │ │
+│ │            '/home/ts/wt/toad-permission-presentation-sol-20260928/.venv… │ │
+│ │            │   │   │   'NavigationSlot.DEFAULT_CSS'                      │ │
+│ │            │   │   ),                                                    │ │
+│ │            │   │   (                                                     │ │
+│ │            │   │   │                                                     │ │
+│ │            '/home/ts/wt/toad-permission-presentation-sol-20260928/.venv… │ │
+│ │            │   │   │   'FooterSlot.DEFAULT_CSS'                          │ │
+│ │            │   │   ),                                                    │ │
+│ │            │   │   (                                                     │ │
+│ │            │   │   │                                                     │ │
+│ │            '/home/ts/wt/toad-permission-presentation-sol-20260928/.venv… │ │
+│ │            │   │   │   'SideBarCollapsible.DEFAULT_CSS'                  │ │
+│ │            │   │   ),                                                    │ │
+│ │            │   │   (                                                     │ │
+│ │            │   │   │                                                     │ │
+│ │            '/home/ts/wt/toad-permission-presentation-sol-20260928/.venv… │ │
+│ │            │   │   │   'MessageNotifications.DEFAULT_CSS'                │ │
+│ │            │   │   ),                                                    │ │
+│ │            │   │   ... +109                                              │ │
+│ │            │   ]                                                         │ │
+│ │            >                                                             │ │
+│ ╰──────────────────────────────────────────────────────────────────────────╯ │
+╰──────────────────────────────────────────────────────────────────────────────╯
+StylesheetError: unable to read CSS file 
+'/home/ts/wt/toad-permission-presentation-sol-20260928/.venv/lib/python3.14/site
+-packages/toad/permissions.tcss'
+
+NOTE: 1 of 2 errors shown. Run with textual run --dev to see all errors.
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-agent-controller-sol-20260928/.venv/lib/python3.14/site-packages/textual/app.py", line 2210, in run_test
+    yield pilot
+  File "/home/ts/wt/toad-permission-presentation-sol-20260928/tests/runtime_fixture.py", line 62, in run_test
+    yield pilot
+  File "/home/ts/wt/toad-permission-presentation-sol-20260928/tests/permission_pending_mount_pilot.py", line 57, in main
+    assert app._exception is None
+           ^^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-permission-presentation-sol-20260928/tests/permission_pending_mount_pilot.py", line 62, in <module>
+    if __name__=='__main__':asyncio.run(main())
+                            ~~~~~~~~~~~^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-permission-presentation-sol-20260928/tests/permission_pending_mount_pilot.py", line 20, in main
+    async with app.run_test(size=(120,40)) as pilot:
+               ~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 235, in __aexit__
+    await self.gen.athrow(value)
+  File "/home/ts/wt/toad-permission-presentation-sol-20260928/tests/runtime_fixture.py", line 61, in run_test
+    async with super().run_test(**kwargs) as pilot:
+               ~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 235, in __aexit__
+    await self.gen.athrow(value)
+  File "/home/ts/wt/toad-agent-controller-sol-20260928/.venv/lib/python3.14/site-packages/textual/app.py", line 2218, in run_test
+    raise self._exception
+textual.worker.WorkerFailed: Worker raised exception: StylesheetError("unable to read CSS file '/home/ts/wt/toad-permission-presentation-sol-20260928/.venv/lib/python3.14/site-packages/toad/permissions.tcss'")
+<sys>:0: RuntimeWarning: coroutine 'CommsSidebar._refresh_checked' was never awaited
+RuntimeWarning: Enable tracemalloc to get the object allocation traceback

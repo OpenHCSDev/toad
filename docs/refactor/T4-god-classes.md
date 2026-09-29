@@ -269,9 +269,37 @@ historical foreground-reader substitutions are deleted. New declaration adopts
 installed composition without root/catalog/worker edits. Final raw audit covers
 all709 Python files across Toad/core/Textual; runtime evidence is separate.
 
-Noether has no own-scope blocker. Root retains header/expansion/viewport handlers;
-permission-only ACPToolCallContent remains Carver's existing permission-preview
-surface with distinct policy, not a competing ToolCall output implementation.
-Tesla142/Carver Conversation/Dalton read ACK stay separately owned. Parent owns
+Root retains header/expansion/viewport handlers. Noether145 owns the agreed
+permission-only ACPToolCallContent shared decoding/presentation caller closure;
+Carver146 owns permission lifetime. Tesla142/Carver Conversation/Dalton read ACK
+stay separately owned. Parent owns
 merge/live activation; no unchanged143 or64 matrix is repeated. Receipts under
 evidence/tool-output state exact installed pins and earlier diagnostic failures.
+## Current remaining dispatch: permission presentation (Carver, after144)
+
+Ready144 remeasure Conversation2287 AST span. Root still decodes external tool
+content, chooses a diff modal or inline question and owns display/retirement
+closures. Agent PermissionController already owns pending futures, source
+attachment, completion and cancellation. This slice decodes presentation once at
+ToolPermissionRequest admission into PermissionPresentation declarations; shared
+present owns eligibility, Diff/Inline own complete rendering/retirement. Existing
+Agent lifetime is unchanged, no new source store or presentation flags. Delete
+root raw dispatcher and request raw-tool mirror; actual callers use the decoded
+request. A new presentation adds one declaration with admission/behavior, zero
+root/controller case edits. Tesla owns source/workspace; Noether renderer is
+untouched. Conversation2287→2204; request classes unchanged AST span45/13.
+Existing permission lifecycle pilot now checks actual inline/diff paint through
+installed RPC, removal/rebinding and final grant/reject/cancel. Obsolete97-line
+raw-future pilot deleted. Physical Pi/MCP + actual runtime proxy + installed UI cropped choices, source
+removal/rebind, granted execution and child cleanup pass with loopback-only
+model. Final shared per-class/debt ratchet has zero positive deltas. Parent owns
+merge/install; no own-scope blocker.
+
+146 pending-mount review closes a concrete preattachment permission race.
+Request-bound PermissionReview in existing permissions.py admits on mount/resume
+using original request and source authority; expired requests never leave a
+worker waiting on a stale modal. Active-screen retirement avoids duplicate pops.
+Actual installed controlled callback flush cancellation/source replacement,
+painted replacement grant and zero async callback errors pass; no additional
+flags/futures or fake mounted screen. Existing145 ToolOutput owns shared ACP
+content renderer integration; exact contract coordination recorded on145.
