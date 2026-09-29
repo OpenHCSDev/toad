@@ -176,9 +176,9 @@ class GoalCommand(SlashCommand, LocalCommand):
 
     async def apply(self, conversation: Conversation) -> bool:
         if self.control is not None:
-            await conversation.change_goal(self.control.action.declared_name)
+            await conversation.goal_controls.change(self.control.action)
         elif self.objective:
-            await conversation.change_goal(SetGoalAction.declared_name, self.objective)
+            await conversation.goal_controls.change(SetGoalAction, self.objective)
         else:
             await conversation.goal_observation.refresh()
             conversation.flash(

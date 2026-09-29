@@ -204,6 +204,39 @@ migrate here. New-case/invalidation/retirement, actual native committed-page rea
 plus cropped paint and retained NRA source paint are acceptance gates. PR141
 is the existing scoped draft; no live changes or CI wait.
 
+## Current remaining dispatch: goal interaction custody (Carver, after141)
+
+Remeasured1413faecdf: Conversation2455 AST-span lines. Source goal snapshots are
+already GoalObservation-owned. Root still stores goal modal, repeats action
+strings across five UI controls, gates polling on modal/current screen, writes
+goals and binds editor saves through its mutable current Agent. GoalBar keeps a
+second hand-written control inventory and collapse/disabled/toggle decisions.
+Next full slice transfers modal/poll/write/edit custody to GoalSession and UI
+behavior to GoalInteraction declarations. GoalObservation remains read authority;
+core GoalAction/GoalState remain persistent behavior and transition authorities.
+Delete root _goal_modal/_poll_goal/change_goal and action ladder; derive controls
+and presentation from declarations and migrate slash/current native callers.
+One new control adds one declaration, zero root/bar/list branches.
+
+Tesla reusable source initialization owns Conversation constructor/mount binding,
+WorkspaceScreen/pool and shell. GoalSession is source-bound: replace after close,
+one existing Widget timer dynamically addresses the current owner. Edit captures
+Agent+Goal and refuses another source. Noether panels remain untouched. Parent's
+partial async-callable worker fix and App cursor closure are consumed exactly in
+the isolated continuation; shipping141/shared trees are unchanged.
+
+
+### Goal interaction completion (merged main129)
+
+Main129e46f8cb remeasure Conversation2358 →2287, GoalBar249 →238,
+GoalControl19 →19. Productiona7bda05 transfers complete custody above and removes
+all actual root/caller branches. Actual installed native owner/backend goal UI
+and final installed declaration/fence/cropped-control paint guard pass;
+independent shared per-class/debt ratchet has zero positive deltas. PR144 receipts
+separate native backend, controlled UI and parent ACP shipping proofs. No
+own-scope blocker. Tesla consumes source-bound GoalSession in reusable view
+initialization; parent retains merge/deployment and completed141/143 gates.
+
 ## Remaining large class: tool output (main129 e46f8cb, Noether)
 
 Remeasured ToolCall AST span469. It repeats raw ACP content classification in
