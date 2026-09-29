@@ -1,0 +1,706 @@
+BEGIN 42: pilot.pause()
+END 42: pilot.pause()
+BEGIN 43: app.screen.conversation.post(AgentResponse(f'[Open ACP log]({log})'))
+END 43: app.screen.conversation.post(AgentResponse(f'[Open ACP log]({log})'))
+BEGIN 49: pilot.pause()
+END 49: pilot.pause()
+BEGIN 50: pilot.click(paragraph, offset=(5, 0))
+END 50: pilot.click(paragraph, offset=(5, 0))
+BEGIN 55: asyncio.wait_for(view.wait_ready(), 10)
+END 55: asyncio.wait_for(view.wait_ready(), 10)
+BEGIN 56: pilot.pause()
+END 56: pilot.pause()
+BEGIN 61: pilot.click('#log-events')
+END 61: pilot.click('#log-events')
+BEGIN 62: pilot.pause()
+END 62: pilot.pause()
+BEGIN 64: pilot.click('#log-raw')
+END 64: pilot.click('#log-raw')
+BEGIN 65: pilot.pause()
+END 65: pilot.pause()
+BEGIN 67: pilot.click('#log-wrap')
+END 67: pilot.click('#log-wrap')
+BEGIN 68: pilot.pause()
+END 68: pilot.pause()
+BEGIN 74: pilot.press('end')
+END 74: pilot.press('end')
+BEGIN 75: pilot.pause()
+END 75: pilot.pause()
+BEGIN 78: pilot.press('shift+home')
+END 78: pilot.press('shift+home')
+BEGIN 79: pilot.pause()
+END 79: pilot.pause()
+BEGIN 82: pilot.resize_terminal(50, 24)
+END 82: pilot.resize_terminal(50, 24)
+BEGIN 83: pilot.pause()
+END 83: pilot.pause()
+TASK message pump Window()
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 615 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/widget.py 4719 _message_loop_exit
+TASK message pump Underline()
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump SidebarHeader(classes='group-header')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump TextArea(id='log-text')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump Button(id='log-wrap', classes='-style-default')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump ChannelGroup()
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump MainMenuButton(id='main-menu')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump SidebarMembers(classes='group-members channel-members')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump WorkspaceHeader(id='tab-navigation-header')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump NavigationSlot()
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump Center()
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump ScrollBarCorner()
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump ScrollBar(name='vertical', classes='-textual-system', window_virtual_size=100, window_size=0, position=0, thickness=2)
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK complete removal
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/await_remove.py 53 _finish
+TASK message pump ChannelUnread()
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump ItemGrid(classes='log-controls')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump ChannelGroup()
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump TabHistoryControls()
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump AcpLogPreview(id='file-preview')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump SideBarToggle()
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump SidebarSlider(id='sidebar-width-slider')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump MessageDivider()
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump Footer(id='workspace-footer')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump FooterKey(classes='-command-palette')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK Task-2
+/home/ts/wt/toad-workspace-shipping-20260928/.artifacts/log-ui-diagnostic.py 13 _dump
+TASK message pump Button(id='log-earlier', classes='-style-default')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump SidebarViewport(id='sidebar-panels')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump TabHistoryControls()
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump Button(id='log-errors', classes='log-view -style-default')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump ChannelDisclosure()
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump CollapsibleTitle()
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump Footer(classes='-compact')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump Vertical(id='session-content')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 615 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/widget.py 4719 _message_loop_exit
+TASK message pump ChannelUnread()
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump Button(id='log-events', classes='log-view -style-default')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump SessionLabel(id='preview-1', classes='-current')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump HorizontalGroup(id='title-container')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump SessionTabClose(id='close-session-1')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump Conversation()
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 615 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/widget.py 4719 _message_loop_exit
+TASK message pump ContentsGrid()
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 615 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/widget.py 4719 _message_loop_exit
+TASK message pump MainMenuButton(id='main-menu')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK set_interval#1
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/timer.py 148 _run_timer
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/timer.py 164 _run
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump SessionsTabs()
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump CommsRow(classes='channel-header group-title')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump ChannelUnread()
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump SessionLabel(id='session-1', classes='-current')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump SidebarHeader(classes='group-header')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump SessionTabClose(id='close-preview-1')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump Center()
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 615 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/widget.py 4719 _message_loop_exit
+TASK message pump SidebarHeader(classes='group-header')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump SidebarResizeHandle(id='sidebar-resize-handle')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK set_interval#1
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/timer.py 148 _run_timer
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/timer.py 177 _run
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_time.py 43 sleep
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py 702 sleep
+TASK message pump Contents(id='contents')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 615 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/widget.py 4719 _message_loop_exit
+TASK message pump Vertical(id='pending-thread-content')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump NewSessionButton()
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump SidebarMembers(classes='group-members channel-members')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump ChannelListSort()
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump ChannelGroup()
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump SidebarMembers(classes='group-members channel-members')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK run_test ToadApp(title='ToadApp', classes={'-dark-mode'}, pseudo_classes={'dark', 'nocolor', 'focus'})
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/app.py 2191 run_app
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/app.py 3493 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/app.py 3461 run_process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump SessionTabClose(id='close-preview-1')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump Horizontal(id='sidebar-layout-actions')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump ChannelsSlot()
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump SessionSort()
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump Vertical(id='file-preview-content')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump SessionLabel(id='preview-1')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump SidebarViewport(id='sidebar-panels')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump HorizontalGroup(id='title-container')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump MainScreen(id='session-1')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 615 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/toad/screens/session_view.py 109 _message_loop_exit
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/screen.py 1316 _message_loop_exit
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/widget.py 4719 _message_loop_exit
+TASK message pump SideBarCollapsible(classes='-flex')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump ChannelDisclosure()
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK set_interval#1
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/timer.py 148 _run_timer
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/timer.py 177 _run
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_time.py 43 sleep
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py 702 sleep
+TASK message pump SidebarAction(id='sidebar-right', classes='-direction')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump SessionLabel(id='session-1')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK auto refresh ThreadLoading()
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/timer.py 148 _run_timer
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/timer.py 177 _run
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_time.py 43 sleep
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/tasks.py 702 sleep
+TASK message pump CommsRow(classes='channel-header group-title')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump TabHistoryButton(id='tab-back')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump FooterKey()
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump ChannelsSidebar(id='channels-sidebar')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK Task-1
+/home/ts/wt/toad-workspace-shipping-20260928/.artifacts/log-ui-diagnostic.py 56 main
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py 235 __aexit__
+TASK message pump CommsSidebar()
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump SideBarToggle()
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump ScrollBar(name='horizontal', classes='-textual-system', window_virtual_size=100, window_size=0, position=0)
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump SidebarResizeHandle(id='sidebar-resize-handle')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump TabHistoryButton(id='tab-forward')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump SidebarAction(id='sidebar-left', classes='-direction')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump Button(id='log-raw', classes='log-view -style-default')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump Contents()
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump SidebarAction(id='sidebar-float')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump Static(classes='log-status')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump ChannelDisclosure()
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK Animator
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/timer.py 148 _run_timer
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/timer.py 164 _run
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump TabHistoryButton(id='tab-forward')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump PendingThreadScreen(id='pending-thread-1')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump ThreadLoading()
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK screen_update
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/timer.py 148 _run_timer
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/timer.py 164 _run
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump AgentResponse(classes='block -message-agent -unrouted')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 703 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 786 _dispatch_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 876 _on_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_callback.py 96 invoke
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_callback.py 58 _invoke
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/toad/conversation_markdown.py 254 on_markdown_link_clicked
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/toad/screens/main.py 467 open_file_preview
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/toad/app.py 1007 open_file_preview
+TASK message pump Button(id='log-latest', classes='-style-default')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK screen_update
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/timer.py 148 _run_timer
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/timer.py 164 _run
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump CommsRow(classes='channel-header group-title')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump FooterKey()
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK Task-50
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/toad/app.py 864 _switch_mode_ready
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/toad/session_presentation.py 319 park_away_from
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/toad/session_presentation.py 253 _release_owner
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/toad/session_presentation.py 180 retire
+TASK complete removal
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/await_remove.py 53 _finish
+TASK message pump Horizontal(id='tab-navigation-header')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump TabHistoryButton(id='tab-back')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump SessionSort()
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump FilePreviewScreen(id='preview-1', name='observed-acp.txt')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump SessionsTabs()
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump Underline()
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump SessionSort()
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump FooterKey(classes='-command-palette')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump Static(classes='log-path')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK set_interval#1
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/timer.py 148 _run_timer
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/timer.py 164 _run
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump ThreadSidebar(id='thread-sidebar', classes='-right')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump Vertical(id='sidebar-controls')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump SidebarHeader(classes='sidebar-header')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump Vertical(id='sidebar-controls')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK message pump SessionTabClose(id='close-session-1')
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 604 _process_messages
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 681 _process_messages_loop
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/message_pump.py 385 _get_message
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/_queue.py 41 get
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait
+TASK set_interval#1
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/timer.py 148 _run_timer
+/home/ts/.local/share/agent-comms/runtime-send-admission-20260928/lib/python3.14/site-packages/textual/timer.py 164 _run
+/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py 213 wait

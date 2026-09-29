@@ -1,0 +1,1 @@
+Original current installed UI pilot stopped after >165s without completion; not a pass. Process confirmed by cwd and exact stdout destination. Test children reaped. Remote diagnostic attach denied ptrace access. First cleanup preflight safely refused because process-title rewriting cleared /proc environment.

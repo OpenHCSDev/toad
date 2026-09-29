@@ -2,6 +2,7 @@ import asyncio
 import os
 import re
 from collections import OrderedDict
+from functools import partial
 from pathlib import Path
 from threading import local
 from typing import Iterable
@@ -250,10 +251,9 @@ class ConversationMarkdown(Markdown):
             self.app.open_url(event.href)
             return
         event.stop()
-        open_preview = getattr(screen, "open_file_preview", None)
-        if open_preview is None:
-            open_preview = self.app.open_file_preview
-        await open_preview(path)
+        # Navigation may retire this widget. Its message pump must return before
+        # the application waits for the departing conversation to be removed.
+        self.app.run_worker(partial(self.app.open_file_preview, path))
 
     @height_dependency(INDEPENDENT_HEIGHT)
     def process_layout(self, placements: list[WidgetPlacement]) -> list[WidgetPlacement]:
