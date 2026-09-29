@@ -16,6 +16,7 @@ from runtime_fixture import ToadApp
 
 from toad import messages
 from toad.acp.agent import Agent
+from toad.screens.session_view import SessionView
 from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.observed_thread_activity import ObservedThreadActivity
 from toad.widgets.session_details import SessionDetails
@@ -136,6 +137,34 @@ async def main():
             comms.agents.set_drain_diagnostic("dm-peer", identity, None)
             await until(lambda: observed.presentation is not None and not observed.presentation.attention)
             assert str(observed.render()) == "Ready"
+            # All logical tabs share the active native WorkspaceScreen. A
+            # hidden DM must not keep reading/publishing just because that
+            # frame remains active. Instrument the real request callbacks;
+            # keep their implementations and the actual stores unchanged.
+            hidden_reads = []
+            original_read = observed.read
+            original_request = dm._history_request
+
+            async def counted_read():
+                hidden_reads.append("activity")
+                return await original_read()
+
+            def counted_request():
+                hidden_reads.append("history")
+                return original_request()
+
+            await app.select_session(owner)
+            if observed._read_task is not None:
+                await observed._read_task
+            observed.read = counted_read
+            dm._history_request = counted_request
+            observed.refresh_observation()
+            await dm._refresh()
+            await pilot.pause()
+            assert hidden_reads == [], hidden_reads
+            await app.select_session(dm.query_ancestor(SessionView).mode_name)
+            observed.refresh_observation()
+            await until(lambda: "activity" in hidden_reads)
 
         print(
             "PASS: actual registry/activity/core ThreadView -> ACP reader/native conversation and DM; Checking/Responding target, Ready override and idle recovery; no provider/process launch"
