@@ -43,23 +43,22 @@ async def main():
         async with app.run_test(size=(100, 36)) as pilot:
             await pilot.pause()
             owner = app.selected_mode
-            source = app.screen
+            source = app.selected_session
             source.initial_coordination_root = str(wire_root)
             source._comms_thread = "owner"
             foreign = (await app.new_session_screen(app.get_main_screen)).mode_name
-            app.screen.initial_coordination_root = str(root / "foreign-wire")
-            app.screen._comms_thread = "peer"
+            app.selected_session.initial_coordination_root = str(root / "foreign-wire")
+            app.selected_session._comms_thread = "peer"
             existing = (await app.new_session_screen(app.get_main_screen)).mode_name
-            destination = app.screen
+            destination = app.selected_session
             destination.initial_coordination_root = str(wire_root)
             destination._comms_thread = "peer"
             destination.conversation.prompt.text = "Keep this draft"
-            await app.switch_mode(owner)
+            await app.select_session(owner)
             link = ThreadLink("peer")
             await source.conversation.contents.mount(link)
             await pilot.pause()
             order = tuple(app.tab_order.names)
-            pending_index = app._pending_thread_index
             with (
                 patch.object(app, "add_mode", wraps=app.add_mode) as added,
                 patch.object(
@@ -71,15 +70,14 @@ async def main():
                 async with asyncio.timeout(3):
                     while app.selected_mode != existing:
                         await pilot.pause(0.05)
-                assert app.screen is destination and app.selected_mode != foreign
+                assert app.selected_session is destination and app.selected_mode != foreign
                 assert added.call_count == 0, "Existing link created a transient tab"
                 assert reads.call_count == 0, (
                     "Existing mounted identity needed route discovery"
                 )
-                assert app._pending_thread_index == pending_index
                 assert tuple(app.tab_order.names) == order
                 assert destination.conversation.prompt.text == "Keep this draft"
-                assert not app._pending_thread_modes
+                assert not app._thread_openings
                 # Repeated/self links reuse the very same mounted screen too.
                 for _ in range(2):
                     assert (
@@ -119,7 +117,7 @@ async def main():
                 async with asyncio.timeout(3):
                     while app.selected_mode != existing:
                         await pilot.pause(0.05)
-                assert app.screen is destination
+                assert app.selected_session is destination
                 assert added.call_count == 0
                 assert tuple(app.tab_order.names) == order
                 assert destination.conversation.prompt.text == "Keep this draft"

@@ -1,0 +1,19 @@
+Timeout (0:00:05)!
+Thread 0x00007f217effd6c0 [DirectoryWatche] (most recent call first):
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py", line 369 in wait
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py", line 670 in wait
+  File "/home/ts/wt/toad-first-fork-startup-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/directory_watcher.py", line 302 in run
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py", line 1082 in _bootstrap_inner
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py", line 1044 in _bootstrap
+
+Thread 0x00007f217f7fe6c0 [Directory obser] (most recent call first):
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/selectors.py", line 398 in select
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/connection.py", line 1165 in wait
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/connection.py", line 457 in _poll
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/connection.py", line 263 in poll
+  File "/home/ts/wt/toad-first-fork-startup-sol-20260929/.artifacts/installed/lib/python3.14/site-packages/toad/directory_watcher.py", line 177 in run
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py", line 1082 in _bootstrap_inner
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py", line 1044 in _bootstrap
+
+Thread 0x00007f21a13bd780 [python] (most recent call first):
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/threading.py", line 1583 in _shutdown

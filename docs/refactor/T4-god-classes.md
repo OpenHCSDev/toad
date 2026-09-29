@@ -436,3 +436,60 @@ surface drops plan posts and controller.restore has no retained Plan value.
 still attached; it does not claim complete inactive-Agent plan restoration.
 The exact plan-only source hook was requested directly in142 comment5883172179;
 no competing operational store or source-lifetime edit was added here.
+
+## Prompt popup custody (Noether, after151)
+
+Dispatch mainc2534676. Prompt still stores separate completion flags and its
+PromptCompletion mixin changes the same root self. Path/Slash/Model widgets repeat
+opening, blur and dismissal with a root identity ladder; composition repeats
+the membership list. Noether owns this entire presentation/caller/deletion batch
+in ~/wt/toad-prompt-completion-sol-20260929. Tesla142 source/Workspace/editor/shell,
+Carver152 AgentProcess/startup and Boyle/Dalton first-input failures are excluded.
+Exact coordination is in142 comments5883486201/5883601482 and152 comment5883486372.
+
+PromptPopup combines the existing DeclaredFamily/Textual metaclasses and is the
+public owning ABC on the actual mounted widgets. CompletionPopup and InfoPopup
+are abstract capability views; composition derives members from declarations.
+The widget owns its single is_open reactive, mutual exclusion, focus return and
+blur. Actual PathSearch/SlashComplete leaves own selection and eligibility.
+Delete PromptCompletion, show_path_search/show_slash_complete, InvokeFileSearch,
+root completion selection/dismiss/insert/watchers and both root CSS flags.
+Migrate the MainScreen ProjectSearchButton caller and retained pilots directly.
+
+PathSearchRanking takes the index/scorer/cache custody and keys cached results
+on the query plus captured candidates. Delete the interpreter pool and duplicate
+141-line _path_match implementation; all result sizes use the existing richer
+PathFuzzySearch. SlashCommandResults inherits existing FuzzySearch and owns
+ranked command row production. Typed match records replace anonymous row tuples.
+No persisted schema/store/wire change or second renderer/registry is introduced.
+
+A new popup requires one declaration implementing its construction/focus and
+case behavior, zero Prompt composition/flag/selection/dismiss roster edits.
+The shared focus implementation invokes the leaf focus_content hook; selection
+and admission remain declaration-owned. Prompt.supports_completion owns the
+composer state answer so leaves do not repeat foreign absence probes.
+IMPL-4/5/8/12/13, MEMB-1/2, IDEN-1/3, TIME-1/6/9 and AGENT-8 apply.
+The exact newest archive principle13 governs class size: small correct owners
+may absorb behavior, no class crosses500 and no existing god class grows.
+Touched-file chain terms and foreign absence probes cannot increase. Existing root submission fields are outside this batch.
+
+Actual installed acceptance uses an official-SDK ACP subprocess for command
+discovery, submitted completion and model selection; actual filesystem scan,
+Project Search click, fuzzy/tree keyboard focus, quoted insertion, changed
+catalog, resize, focus return and cropped compositor text protect presentation.
+The new-case guard must mount a fresh declared popup through normal installed
+App composition without changing a consumer. The installed physical ACP and
+declaration-only new-case gates pass at the current branch: commands/models,
+Project Search click, real files/tree focus/resize/changed catalog and cropped
+text are all exercised. InfoPopup mounts against Prompt rather than following
+the info row's horizontal text, so its model choices remain visible beside both
+sidebars. The owner width limits it to the composer. Early actual failures and
+final evidence are retained in evidence/prompt-completion. No whole-T4/live
+installation claim is made.
+
+Tesla142 acknowledged detached typed Plan retention in comment5883513100,
+explicitly retained in the operational source continuation. 151 does not claim
+that separately owned acceptance complete. Parent owns review/merge/live pins.
+
+
+PR154 final review checkpoint: main040607 integrated normally at0ec22684; actual popup pilots use selected_session/selected_mode rather than retired Screen ownership. Installed physical ACP/files/model/new-declaration paint and three deletion/lifetime/admission guards pass with core9251/Textual1738. Product445lines deleted/294added; no chain/foreign-absence/codec growth. Detailed current boundary is evidence/prompt-completion/CHECKPOINT.md. Parent owns merge/install and actual live popup/entry check; independent CommsScreen/first-open bugs remain Carver/Tesla. No remaining assigned popup implementation blocker.
