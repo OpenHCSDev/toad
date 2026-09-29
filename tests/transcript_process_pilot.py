@@ -181,16 +181,14 @@ async def main():
                 ):
                     before = tuple(conversation.contents.children)
                     pool.hold()
-                    stale_snapshot = asyncio.create_task(conversation.on_transcript_snapshot(
-                        TranscriptSnapshotUpdate(snapshot),
-                    ))
+                    stale_snapshot = asyncio.create_task(conversation.transcript.snapshot(snapshot))
                     await until(pool.entered.is_set)
-                    conversation._transcript_generation += 1
+                    conversation.transcript.invalidate()
                     pool.release.set()
                     await stale_snapshot
                     assert tuple(conversation.contents.children) == before
                     with patch("toad.widgets.transcript_history.transcript_fragments", side_effect=AssertionError):
-                        await conversation.on_transcript_snapshot(TranscriptSnapshotUpdate(snapshot))
+                        await conversation.transcript.snapshot(snapshot)
                     first = conversation.contents.query_one(TranscriptHistory)
                     assert first.pages[0].fragments == transcript_fragments(
                         snapshot.events
