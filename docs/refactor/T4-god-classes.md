@@ -252,5 +252,7 @@ root/controller case edits. Tesla owns source/workspace; Noether renderer is
 untouched. Conversation2287→2204; request classes unchanged semantic span.
 Existing permission lifecycle pilot now checks actual inline/diff paint through
 installed RPC, removal/rebinding and final grant/reject/cancel. Obsolete97-line
-raw-future pilot deleted. Physical native acceptance remains being verified;
-parent owns merge/install.
+raw-future pilot deleted. Physical Pi/MCP + actual runtime proxy + installed UI cropped choices, source
+removal/rebind, granted execution and child cleanup pass with loopback-only
+model. Final shared per-class/debt ratchet has zero positive deltas. Parent owns
+merge/install; no own-scope blocker.

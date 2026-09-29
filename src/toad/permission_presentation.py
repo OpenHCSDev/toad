@@ -87,6 +87,8 @@ class InlinePermissionPresentation(PermissionPresentation):
 
     async def show(self, view, request):
         def answer(answer):
+            if not request.controller.agent.controller.surface.owns(view):
+                return
             request.answer(view, answer)
             if not view.prompt.ask_queue:
                 view.post_message(messages.SessionUpdate(state="busy"))

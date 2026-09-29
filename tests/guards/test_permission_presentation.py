@@ -29,6 +29,11 @@ async def new_case():
     assert ProbePermissionPresentation.present is PermissionPresentation.present
 
 
+def test_new_case():
+    import asyncio
+    asyncio.run(new_case())
+
+
 if __name__=='__main__':
     import asyncio
     test_deleted_dispatch()

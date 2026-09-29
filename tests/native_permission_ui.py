@@ -137,10 +137,10 @@ async def open_observer(case: str, artifact_dir: Path) -> AsyncIterator[Observer
                 assert len(observer.receipts) == 1
                 assert observer.permissions == (0 if case == "no_controller" else 1)
                 assert observer.disconnected_seen == (case == "disconnect")
-                assert not notes(view) and view._mcp_live_turn is None
+                assert not notes(observer.view) and observer.view._mcp_live_turn is None
                 assert app._exception is None
                 (root / "toad-evidence.json").write_text(json.dumps({
-                    "case": case, "session": agent.session_id,
+                    "case": case, "session": observer.agent.session_id,
                     "renderedReceipts": observer.receipts,
                     "permissionDialogs": observer.permissions,
                     "negativeBoundariesPassed": True, "liveProjectionCleared": True,
