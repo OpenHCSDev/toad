@@ -1,0 +1,37 @@
+PREPARED_REAL_NATIVE_SAVED_HISTORY_AND_CHANNEL 2
+INSTALLED_APP_RUN_TEST_ENTER
+INSTALLED_APP_RUN_TEST_YIELDED
+ATTACHED_AND_NAVIGABLE
+SAVED_HISTORY_STARTUP_ACTUAL_PAINT
+CHANNEL_BAR_CLICK_COMMS_SCREEN_SAVED_HISTORY_PAINT
+SAVED_CHANNEL_AGENT_RETURN_NO_REPLAY
+UNOPENED_THREAD_PHYSICAL_CLICK_ACTUAL_ATTACHMENT
+CHANNEL_ACTIVE_PARTICIPANT_CLICK_SAME_NATIVE_TAB
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-saved-state-user-journey-20260929/tests/saved_state_user_journey_pilot.py", line 406, in <module>
+    asyncio.run(native_fixture(
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^
+        app_type=InstalledApp, prepare_state=prepare_saved_state, acceptance=acceptance,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ))
+    ^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-saved-state-user-journey-20260929/tests/l0a_native_installed_pilot.py", line 278, in main
+    await acceptance(app, pilot, agent, comms, entered, release,
+                     hold_next, requests)
+  File "/home/ts/wt/toad-saved-state-user-journey-20260929/tests/saved_state_user_journey_pilot.py", line 114, in acceptance
+    await clicked_reader_editor_return(app, pilot, first)
+  File "/home/ts/wt/toad-saved-state-user-journey-20260929/tests/saved_state_user_journey_pilot.py", line 249, in clicked_reader_editor_return
+    await checkpoint.verify(app, pilot)
+  File "/home/ts/wt/toad-saved-state-user-journey-20260929/tests/saved_state_user_journey_pilot.py", line 233, in verify
+    assert body() in current_bodies, (
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ('Native tab return replaced a previously rendered Markdown body', 'session-1', None)
