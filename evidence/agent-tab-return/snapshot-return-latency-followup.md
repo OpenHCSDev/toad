@@ -31,3 +31,26 @@ was 195.9 ms and it did not reduce the measured parking/publication phases.
 That code was discarded. The saved-history duplicate-body fixture was also
 corrected in #197: it now uses a project directory separate from generated
 wire/config/state data, so its directory watcher revision stays stable.
+
+## Complete page transfer checkpoint
+
+A phase probe on the five-return native path found `TranscriptPageView` body
+admission at median 26.8 ms of 33.3 ms snapshot publication; preparation
+submission was 1.9 ms. The viewport now parks a fully admitted page as one
+mounted subtree when all its bodies are in the same bounded warm set. A return
+claims that page only when its source page, prepared fragments, admitted range,
+category selection, and each fragment identity still match. It uses the same
+warm cache and eviction budget. Partial or changed pages use the existing
+fragment admission, and an interrupted claim releases its warm lookup keys.
+
+The provider-free Textual pilot exited 0 for whole-page object reuse, paint,
+and a rewritten-row return that reused only the unchanged bodies. The native
+Pi/ACP pilot exited 0 with five physical A/B/A returns: all reclaimed one
+original page object, reused painted response bodies, had zero preparation
+misses, and passed reader, editor/undo, turn/goal, settlement and no-replay
+checks. In that cohort, median snapshot publication was 27.2 ms and
+selection-to-first-paint 181.4 ms, versus 33.3 ms and 181.9 ms in the earlier
+instrumented cohort. It demonstrates page reuse and a shorter publication
+phase in a small cohort, **not** a reliable first-paint improvement. This still
+mounts a new outer history and reads the owner before first paint. Retaining
+that outer presentation is the next source-lifecycle change to evaluate.

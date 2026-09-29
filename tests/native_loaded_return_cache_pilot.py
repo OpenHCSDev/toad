@@ -21,7 +21,7 @@ from toad.widgets.conversation import Conversation
 from toad.widgets.conversation import TurnActivity
 from toad.widgets.prompt import Prompt
 from toad.widgets.throbber import Throbber
-from toad.widgets.transcript_history import TranscriptFragmentView
+from toad.widgets.transcript_history import TranscriptFragmentView, TranscriptHistory, TranscriptPageView
 from textual.widget import Widget
 from textual.content import Content
 from toad.acp.messages import UpdateStatusLine
@@ -77,6 +77,7 @@ async def click_session(app, pilot, source):
     native = app.workspace_chrome.native
     conversation = native.widget
     viewport = conversation.window.document_viewport if conversation is not None else None
+    contents = conversation.contents if conversation is not None else None
     targets = [
         (previous, "retire_presentation", "retire_presentation"),
         (app.workspace_chrome, "select", "chrome_select"),
@@ -92,6 +93,9 @@ async def click_session(app, pilot, source):
         (GoalObservation, "read", "goal_read"),
         (TranscriptPresentation, "snapshot", "transcript_snapshot"),
         (SnapshotPublication, "publish", "snapshot_publish"),
+        (contents, "mount", "contents_mount"),
+        (TranscriptPageView, "admit_retained", "page_admit_retained"),
+        (TranscriptHistory, "admit_retained_pages", "history_admit_retained_pages"),
         (app.preparation, "submit", "preparation_submit"),
         (app.workspace_screen, "prepare_navigation", "prepare_navigation"),
         (app.workspace_screen, "layout_navigation", "layout_navigation"),
@@ -226,8 +230,10 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
                                  editor.history, agent.process.process, agent.process.runner,
                                  tuple(ref(body) for body in view.query(AgentResponse)
                                        if body in frame._compositor.visible_widgets
-                                       and body.region.overlaps(view.window.scrollable_content_region)))
-            assert states[source.id][-1], "Saved reader fixture must contain a painted response"
+                                       and body.region.overlaps(view.window.scrollable_content_region)),
+                                 tuple(ref(page) for history_view in view.window.histories
+                                       for page in history_view.pages))
+            assert states[source.id][-2], "Saved reader fixture must contain a painted response"
         native_calls = len(requests)
         assert native_calls == 2 * prompt_count
         profile = cProfile.Profile() if os.environ.get("NATIVE_RETURN_PROFILE") == "1" else None
@@ -258,7 +264,7 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
             frames = await click_session(app, pilot, source)
             view = source.conversation
             await until(pilot, lambda: bool(view.window.histories))
-            y, painted, document, history, process, runner, old_bodies = states[source.id]
+            y, painted, document, history, process, runner, old_bodies, old_pages = states[source.id]
             print("FIRST_FRAMES", source.id,
                   [(mode, len(reader.strip()), "NATIVE_RESPONSE" in reader,
                     "Earlier history" in reader) for mode, reader, _full, _status, _turn in frames[:8]], flush=True)
@@ -309,6 +315,9 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
                            if body in frame._compositor.visible_widgets
                            and body.region.overlaps(view.window.scrollable_content_region))
             reused = sum(any(previous() is body for previous in old_bodies) for body in bodies)
+            reused_pages = sum(any(previous() is page for previous in old_pages)
+                               for history_view in view.window.histories for page in history_view.pages)
+            assert reused_pages > 0, "Warm native return rebuilt every admitted page"
             if reused == 0:
                 print("CACHE_MISS_ROOTS", [(getattr(n.identity.source,"session_id",None),
                      n.identity.interval.before.offset,n.identity.interval.through.offset,
@@ -329,6 +338,7 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
                             "cache_misses":app.preparation.misses-before_misses,
                             "mounted_response_bodies":len(bodies),
                             "reused_body_instances":reused,
+                            "reused_page_instances":reused_pages,
                             "retained_body_reuse_hits":viewport.reuse_hits-before_reuse,
                             "retained_body_evictions":viewport.body_evictions-before_evictions,
                             "warm_bodies":sum(key() is not None for key in viewport._warm.values()),
