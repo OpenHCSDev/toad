@@ -385,3 +385,37 @@ zero unparsed files in the final census. Complete raw723-file Toad/core/Textual
 snapshot is recorded separately before unrelated CLI148 integration; no native
 or DSL equivalence claimed. Latest22:16 NRA/audit reread and pattern application
 confirmed. Parent owns review/merge/live installation; no own-scope blocker.
+
+## Remaining ACP Plan leaf closure (Noether, after149)
+
+Dispatch mainc2534676 includes accepted149 and urgent150 layout correction.
+Noether owns Plan status presentation, the plan-only Agent admission arm and
+Conversation/MainScreen handlers, and their sidebar/Prompt callers in
+~/wt/toad-plan-entry-owner-sol-20260928. Tesla142 owns workspace/source state,
+reader restoration and performance; Carver owns urgent layout/root changes.
+Exact method ranges were coordinated directly on their existing PR threads.
+
+PlanStatus uses the existing shared DeclaredFamily. Its concrete statuses own
+markers and completion decoration, with grid composition inherited from the
+parent. PlanItem carries admitted Content, external priority metadata and a
+typed status class. Existing official SDK validation remains at the real wire
+boundary; decode_plan consumes that validated shape once. UI consumers trust
+those values directly. No codec subclass, adapter, registry or second renderer.
+Priority/status requiredness in the raw ACP declaration now matches the SDK.
+No store or wire-format change: this is transient UI state only.
+
+Delete Plan.Entry/update_status/render_status, the unused PRIORITIES roster,
+dead PlanApp demo, both UI raw decoders, repeated completion assignment and the
+unused Prompt.plan field/import. Migrate every source and retained pilot caller.
+A new declared status owns its marker/decoration with zero widget/root/decoder
+roster edits; external ACP membership still belongs to the official SDK schema.
+Patterns: IMPL-1/4/5, BOUND-1/2, MEMB-1, TIME-6/9, AGENT-8. No chain terms may
+increase; semantic status decisions are not split into artificial rule atoms.
+
+Acceptance runs an actual official-SDK ACP subprocess through the installed
+normal App/Agent, ordered validation worker, conversation and sidebar. Check
+actual cropped markers/text, consecutive completion animation, already-complete
+rows, empty reset, retirement/reveal, resize and malformed external rejection.
+A permanent installed new-case/caller-deletion guard closes the architecture.
+CI is deferred; parent owns merge/live installation. Current code is a draft
+while this affected acceptance and the shared independent ratchets finish.

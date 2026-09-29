@@ -53,6 +53,7 @@ from toad.acp.queue_attachment import QueueAttachment
 from toad.acp.sdk_boundary import validate_session_update
 from toad.agent import AgentBase, AgentFail, AgentReady
 from toad.agent_schema import Agent as AgentData
+from toad.plan import decode_plan
 from toad.db import DB, SessionMeta
 
 PROTOCOL_VERSION = 1
@@ -438,7 +439,7 @@ class Agent(AgentBase):
                 self.tool_calls[tool_call_id] = update
                 self.post_message(messages.ToolCall(update))
             case {"sessionUpdate": "plan", "entries": entries}:
-                self.post_message(messages.Plan(entries))
+                self.post_message(messages.Plan(decode_plan(entries)))
             case {"sessionUpdate": "tool_call_update", "toolCallId": tool_call_id}:
                 if tool_call_id in self.tool_calls:
                     current_tool_call = self.tool_calls[tool_call_id]
