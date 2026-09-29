@@ -6,6 +6,7 @@ The window owns admission; documents implement their own retirement/restoration.
 """
 
 from collections import OrderedDict
+from dataclasses import dataclass
 from functools import partial
 from weakref import WeakSet, ref
 from time import monotonic
@@ -107,6 +108,16 @@ class RetainedBodyShelf(Widget):
             # every tab return; their actual destination styles are reconciled
             # when the same bodies are admitted back into a history page.
             await window.screen.mount(self)
+
+
+@dataclass(frozen=True)
+class RetainedHistoryKey:
+    """The existing viewport's mounted source, bounded with its warm bodies."""
+
+    agent: object
+    project: str
+    watcher: object
+    directory_revision: int
 
 
 class ViewportPresentation:
@@ -260,6 +271,26 @@ class DocumentViewport:
             self.reuse_hits += 1
         return parked
 
+    def claim_retained_history(self, identity: RetainedHistoryKey, contents):
+        from toad.widgets.transcript_history import TranscriptHistory
+
+        retained = self._warm.pop(identity, None)
+        history = retained() if retained is not None else None
+        if (not isinstance(history, TranscriptHistory) or not history.is_attached
+                or history.parent is None or history.parent is self._shelf):
+            return None
+        before = contents.children[0] if contents.children else None
+        history.reparent(contents, before=before)
+        for node in history.walk_children():
+            if isinstance(node, ViewportBody):
+                self.owners.add(node)
+                key = ref(node)
+                self._warm[key] = key
+        for node in history.walk_children(with_self=True):
+            if isinstance(node, TranscriptHistory):
+                self.window.histories.add(node)
+        return history
+
     def release_retained_page(self, page) -> None:
         """Return an unadmitted page's bodies to their native lookup keys."""
         if page.parent is not self._shelf:
@@ -281,20 +312,43 @@ class DocumentViewport:
             _, retained = self._warm.popitem(last=False)
             owner = retained()
             parent = owner.parent if owner is not None else None
+            from toad.widgets.transcript_history import TranscriptHistory
+            if isinstance(owner, TranscriptHistory) and parent is not None:
+                self.body_evictions += 1
+                await owner.remove()
+                continue
             if parent is not None and (parent is self._shelf or parent.parent is self._shelf):
                 self.body_evictions += 1
                 await owner.remove()
                 if parent is not self._shelf and not parent.children:
                     await parent.remove()
 
-    async def park_source(self) -> None:
+    async def park_source(self, *, retained_history=None, retained_slot=None,
+                          retained_key: RetainedHistoryKey | None = None) -> None:
         """Move only admitted warm bodies before the source's pager is removed."""
         await self.suspend_source()
         histories = tuple(self.window.histories)
+        retain = (retained_history in histories and retained_slot is not None
+                  and retained_key is not None and retained_history.is_attached
+                  and retained_slot.is_attached
+                  and retained_history.retained_source_bytes <= self.window.app.preparation.max_bytes
+                  and 1 + retained_history.widget_count <= self.budget.widget_limit(self.window.size.height))
+        retained_nodes = (set(retained_history.walk_children(with_self=True)) if retain else set())
         for history in histories:
-            await history.retire_source()
+            await history.retire_source(parked=history in retained_nodes)
         await self._trim_warm()
         await self._shelf.acquire(self.window)
+        if retain:
+            for key, retained in tuple(self._warm.items()):
+                if retained() in retained_nodes:
+                    self._warm.pop(key)
+            for node in retained_nodes:
+                if isinstance(node, ViewportBody):
+                    self.owners.discard(node)
+            retained_history.reparent(retained_slot)
+            self._warm[retained_key] = ref(retained_history)
+            await self._trim_warm()
+            histories = tuple(history for history in histories if history not in retained_nodes)
         for history in histories:
             for page in history.pages:
                 children = tuple(page.children)
@@ -305,9 +359,11 @@ class DocumentViewport:
                     for child in children:
                         retained = self._warm.pop(ref(child))
                         self._warm[child.retained_key] = retained
+        from toad.widgets.transcript_history import TranscriptHistory
         for key, retained in tuple(self._warm.items()):
             owner = retained()
-            if (owner is not None and owner.parent is not self._shelf
+            if (owner is not None and not isinstance(owner, TranscriptHistory)
+                    and owner.parent is not self._shelf
                     and (owner.parent is None or owner.parent.parent is not self._shelf)
                     and owner.park_body(self._shelf)):
                 self._warm.pop(key)
@@ -367,6 +423,11 @@ class DocumentViewport:
         await self.suspend_source()
         if self._shelf.is_mounted:
             await self._shelf.remove()
+        from toad.widgets.transcript_history import TranscriptHistory
+        for retained in tuple(self._warm.values()):
+            owner = retained()
+            if isinstance(owner, TranscriptHistory) and owner.is_attached:
+                await owner.remove()
         self._warm.clear()
         self.owners.clear()
 

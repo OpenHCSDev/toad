@@ -542,6 +542,11 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
     def widget_count(self) -> int:
         return sum(1 for _ in self.walk_children())
 
+    @property
+    def retained_source_bytes(self) -> int:
+        return sum(node.retained_source_bytes for node in self.walk_children()
+                   if isinstance(node, ViewportBody))
+
     def compose(self) -> ComposeResult:
         yield self.older
         from toad.widgets.conversation import Conversation

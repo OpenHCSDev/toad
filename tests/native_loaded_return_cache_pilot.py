@@ -66,6 +66,8 @@ class PaintedReturnApp(InstalledApp):
                 "\n".join(strip.text for strip in screen._compositor.render_strips()),
                 agent is None or view.status == agent.context_measurement.status(),
                 agent is None or view.turns.owner.busy == agent.current_turn.busy,
+                view.window.scroll_y if view is not None else None,
+                view.window.max_scroll_y if view is not None else None,
             ))
 
 
@@ -272,8 +274,10 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
                                        if body in frame._compositor.visible_widgets
                                        and body.region.overlaps(view.window.scrollable_content_region)),
                                  tuple(ref(page) for history_view in view.window.histories
-                                       for page in history_view.pages))
-            assert states[source.id][-2], "Saved reader fixture must contain a painted response"
+                                       for page in history_view.pages),
+                                 ref(next(history_view for history_view in view.contents.children
+                                          if isinstance(history_view, TranscriptHistory))))
+            assert states[source.id][-3], "Saved reader fixture must contain a painted response"
         native_calls = len(requests)
         assert native_calls == 2 * prompt_count
         profile = cProfile.Profile() if os.environ.get("NATIVE_RETURN_PROFILE") == "1" else None
@@ -304,10 +308,11 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
             frames = await click_session(app, pilot, source)
             view = source.conversation
             await until(pilot, lambda: bool(view.window.histories))
-            y, painted, document, history, process, runner, old_bodies, old_pages = states[source.id]
+            y, painted, document, history, process, runner, old_bodies, old_pages, old_history = states[source.id]
             print("FIRST_FRAMES", source.id,
                   [(mode, len(reader.strip()), "NATIVE_RESPONSE" in reader,
-                    "Earlier history" in reader) for mode, reader, _full, _status, _turn in frames[:8]], flush=True)
+                    "Earlier history" in reader, y, maximum)
+                   for mode, reader, _full, _status, _turn, y, maximum in frames[:8]], flush=True)
             destination_frames = [frame for frame in frames if frame[0] == source.id]
             reader_marker = f"{agent.session_id} saved reader paragraph"
             other_reader = "gamma saved reader paragraph" if agent.session_id == "beta" else "beta saved reader paragraph"
@@ -318,7 +323,9 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
                 "loading": "Loading new thread" in full,
                 "blank": not reader.strip(),
                 "length": len(reader.strip()),
-            } for _mode, reader, full, _status, _turn in destination_frames]
+                "reader_y": y,
+                "maximum_y": maximum,
+            } for _mode, reader, full, _status, _turn, y, maximum in destination_frames]
             assert frame_sequence and all(
                 item["reader"] and item["response"] and not item["other_source"]
                 and not item["loading"] and not item["blank"]
@@ -326,7 +333,7 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
             ), ("A completed destination frame lost the saved reader", source.id, frame_sequence)
             assert destination_frames and reader_marker in destination_frames[0][1] and other_reader not in destination_frames[0][1], (
                 "First painted return frame did not show the destination reader",
-                source.id, [(mode, reader[:200]) for mode, reader, _full, _status, _turn in frames[:3]],
+                source.id, [(mode, reader[:200]) for mode, reader, _full, _status, _turn, _y, _maximum in frames[:3]],
             )
             goal_text = f"SELECTED_GOAL_{agent.session_id.upper()}"
             other_goal = f"SELECTED_GOAL_{'GAMMA' if agent.session_id == 'beta' else 'BETA'}"
@@ -370,6 +377,9 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
             reused = sum(any(previous() is body for previous in old_bodies) for body in bodies)
             reused_pages = sum(any(previous() is page for previous in old_pages)
                                for history_view in view.window.histories for page in history_view.pages)
+            reused_history = any(history_view is old_history()
+                                 for history_view in view.contents.children)
+            assert reused_history, "Warm return rebuilt the mounted outer history"
             assert reused_pages > 0, "Warm native return rebuilt every admitted page"
             if reused == 0:
                 print("CACHE_MISS_ROOTS", [(getattr(n.identity.source,"session_id",None),
@@ -393,6 +403,7 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
                             "cache_misses":app.preparation.misses-before_misses,
                             "mounted_response_bodies":len(bodies),
                             "reused_body_instances":reused,
+                            "reused_outer_history":reused_history,
                             "reused_page_instances":reused_pages,
                             "retained_body_reuse_hits":viewport.reuse_hits-before_reuse,
                             "retained_body_evictions":viewport.body_evictions-before_evictions,

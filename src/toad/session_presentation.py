@@ -13,6 +13,7 @@ from toad.input_history import InputHistories
 from toad.widgets.conversation import Conversation
 from toad.widgets.history_anchor import ReaderPosition
 from toad.widgets.message_filter import MessageCategory
+from toad.widgets.viewport_body import RetainedHistoryKey
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
@@ -178,7 +179,20 @@ class NativeSessionSurface:
             if self.owner is not owner or self.widget is None:
                 return
             await owner.release_binding(self.widget, screen)
-            await self.widget.window.document_viewport.park_source()
+            from toad.widgets.transcript_history import TranscriptHistory
+            history = next((child for child in self.widget.contents.children
+                            if isinstance(child, TranscriptHistory)), None)
+            watcher = (owner.sources.directory_watcher
+                       if isinstance(owner, OperationalSessionPresentation) else None)
+            retained_key = (RetainedHistoryKey(owner.sources.agent, str(screen.project_path),
+                                               watcher, watcher.observed_revision)
+                            if history is not None and watcher is not None
+                            and owner.sources.agent is not None else None)
+            await self.widget.window.document_viewport.park_source(
+                retained_history=history if retained_key is not None else None,
+                retained_slot=screen.query_one(SessionSurfaceSlot) if retained_key is not None else None,
+                retained_key=retained_key,
+            )
             await self.widget.release_native_session()
             self.widget.display = False
             self.owner = None
@@ -212,9 +226,21 @@ class NativeSessionSurface:
                                               previous.checkpoint_timer,
                                               previous.checkpoint_max_characters),
                     Selection.cursor((0, 0)), 0, 0, None, (), None))
-            if not first and conversation.agent is not None and conversation.agent.ready:
-                # The switch holds the workspace paint transaction. Reuse its
-                # parked rendered bodies before the destination's first frame.
+            retained_history = None
+            if (not first and isinstance(owner, OperationalSessionPresentation)
+                    and conversation.agent is not None and conversation.agent.ready
+                    and owner.sources.directory_watcher is not None):
+                watcher = owner.sources.directory_watcher
+                retained_history = conversation.window.document_viewport.claim_retained_history(
+                    RetainedHistoryKey(conversation.agent, str(screen.project_path),
+                                       watcher, watcher.observed_revision), conversation.contents,
+                )
+            if retained_history is not None:
+                agent = conversation.agent
+                await conversation.transcript.reveal_retained(retained_history)
+                conversation.status = agent.context_measurement.status()
+                await conversation.goal_observation.refresh()
+            elif not first and conversation.agent is not None and conversation.agent.ready:
                 await conversation.present_retained_native_session()
             self.owner, self.view = owner, screen
             conversation.display = True
@@ -222,6 +248,15 @@ class NativeSessionSurface:
             if not first:
                 conversation.start_native_session()
             conversation.prompt.focus()
+            if retained_history is not None:
+                def refresh_after_paint() -> None:
+                    if (self.widget is conversation and self.owner is owner
+                            and conversation.agent is agent):
+                        conversation.run_worker(
+                            conversation.transcript.refresh_revealed(agent),
+                            group="retained-native-refresh", exclusive=True,
+                        )
+                conversation.call_after_refresh(refresh_after_paint)
 
     async def close(self) -> None:
         async with self._lock:
