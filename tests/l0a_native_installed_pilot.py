@@ -246,6 +246,7 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
         )
         comms = Comms(Path(wire_dir) / "wire")
         root_id = comms.messaging.initialize_private_initial_protocol()
+        comms.owners.pin_private_nk_launch(comms.root, root_id, package)
         comms.registry.declare(
             Thread(
                 "beta",

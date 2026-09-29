@@ -1,0 +1,992 @@
+[
+  {
+    "source": "session-1",
+    "return_painted_ms": 332.7466770133469,
+    "click_completed_ms": 429.4458419899456,
+    "selection_to_paint_ms": 103.080172004411,
+    "phases_ms": {
+      "viewport_suspend_source": 0.01718199928291142,
+      "native_retire": 0.2807220153044909,
+      "retire_presentation": 1.3042119971942157,
+      "chrome_select": 0.5165890033822507,
+      "preparation_submit": 7.13592697866261,
+      "transcript_snapshot": 0.0822950096335262,
+      "goal_read": 32.59556301054545,
+      "native_activate": 34.089894994394854,
+      "prepare_presentation": 34.12858801311813,
+      "native_page_read": 16.44598800339736
+    },
+    "first_paint_trace": [
+      {
+        "phase": "viewport_suspend_source",
+        "start_ms": 36.004133988171816,
+        "end_ms": 36.02131598745473
+      },
+      {
+        "phase": "native_retire",
+        "start_ms": 35.98661097930744,
+        "end_ms": 36.267332994611934
+      },
+      {
+        "phase": "retire_presentation",
+        "start_ms": 34.96533498400822,
+        "end_ms": 36.26954698120244
+      },
+      {
+        "phase": "chrome_select",
+        "start_ms": 36.330672999611124,
+        "end_ms": 36.847262002993375
+      },
+      {
+        "phase": "preparation_submit",
+        "start_ms": 58.67295799544081,
+        "end_ms": 65.17189799342304
+      },
+      {
+        "phase": "transcript_snapshot",
+        "start_ms": 67.53478798782453,
+        "end_ms": 67.57454300532117
+      },
+      {
+        "phase": "goal_read",
+        "start_ms": 44.205941987456754,
+        "end_ms": 69.94304299587384
+      },
+      {
+        "phase": "native_activate",
+        "start_ms": 36.855337995802984,
+        "end_ms": 70.94523299019784
+      },
+      {
+        "phase": "prepare_presentation",
+        "start_ms": 36.850718985078856,
+        "end_ms": 70.97930699819699
+      },
+      {
+        "phase": "compositor_reflow",
+        "start_ms": 75.47795597929507,
+        "end_ms": 81.3131169998087
+      },
+      {
+        "phase": "screen_layout",
+        "start_ms": 75.35683599417098,
+        "end_ms": 82.39721300196834
+      },
+      {
+        "phase": "styled_strip_miss",
+        "start_ms": 96.7900879913941,
+        "end_ms": 96.84025298338383
+      },
+      {
+        "phase": "widget_rasterize",
+        "start_ms": 97.22204599529505,
+        "end_ms": 97.36838398384862
+      },
+      {
+        "phase": "styled_strip_miss",
+        "start_ms": 97.21184699446894,
+        "end_ms": 97.39043598528951
+      },
+      {
+        "phase": "widget_rasterize",
+        "start_ms": 97.44389698607847,
+        "end_ms": 97.53091199672781
+      },
+      {
+        "phase": "styled_strip_miss",
+        "start_ms": 97.43530099513009,
+        "end_ms": 97.53949800506234
+      },
+      {
+        "phase": "widget_rasterize",
+        "start_ms": 97.58823100128211,
+        "end_ms": 97.67232000012882
+      },
+      {
+        "phase": "styled_strip_miss",
+        "start_ms": 97.58042599423788,
+        "end_ms": 97.68095597974025
+      },
+      {
+        "phase": "widget_rasterize",
+        "start_ms": 97.74728197953664,
+        "end_ms": 97.83332498045638
+      },
+      {
+        "phase": "styled_strip_miss",
+        "start_ms": 97.73801398114301,
+        "end_ms": 97.84189099445939
+      },
+      {
+        "phase": "widget_rasterize",
+        "start_ms": 97.89032299886458,
+        "end_ms": 97.96936297789216
+      },
+      {
+        "phase": "styled_strip_miss",
+        "start_ms": 97.88225797819905,
+        "end_ms": 97.9775789892301
+      },
+      {
+        "phase": "widget_rasterize",
+        "start_ms": 98.0245679966174,
+        "end_ms": 98.06591598317027
+      },
+      {
+        "phase": "styled_strip_miss",
+        "start_ms": 98.01662300014868,
+        "end_ms": 98.07432198431343
+      },
+      {
+        "phase": "styled_strip_miss",
+        "start_ms": 99.1926119895652,
+        "end_ms": 99.57706098794006
+      },
+      {
+        "phase": "widget_rasterize",
+        "start_ms": 99.64043099898845,
+        "end_ms": 99.74561998387799
+      },
+      {
+        "phase": "styled_strip_miss",
+        "start_ms": 99.63134399731643,
+        "end_ms": 99.75672198925167
+      },
+      {
+        "phase": "styled_strip_miss",
+        "start_ms": 99.79912199196406,
+        "end_ms": 99.82485100044869
+      },
+      {
+        "phase": "widget_rasterize",
+        "start_ms": 99.86738098086789,
+        "end_ms": 99.90240799379535
+      },
+      {
+        "phase": "styled_strip_miss",
+        "start_ms": 99.85942600178532,
+        "end_ms": 99.91883899783716
+      },
+      {
+        "phase": "styled_strip_miss",
+        "start_ms": 99.98646698659286,
+        "end_ms": 100.00682598911226
+      },
+      {
+        "phase": "widget_rasterize",
+        "start_ms": 100.84765998180956,
+        "end_ms": 100.94238899182528
+      },
+      {
+        "phase": "styled_strip_miss",
+        "start_ms": 100.83837198908441,
+        "end_ms": 100.95560399349779
+      },
+      {
+        "phase": "widget_rasterize",
+        "start_ms": 101.02534599718638,
+        "end_ms": 101.08816498541273
+      },
+      {
+        "phase": "styled_strip_miss",
+        "start_ms": 101.01729098823853,
+        "end_ms": 101.09763298532926
+      },
+      {
+        "phase": "widget_rasterize",
+        "start_ms": 101.14276898093522,
+        "end_ms": 101.17723399889655
+      },
+      {
+        "phase": "styled_strip_miss",
+        "start_ms": 101.13414298393764,
+        "end_ms": 101.18607099866495
+      },
+      {
+        "phase": "compositor_render_update",
+        "start_ms": 95.08531598839909,
+        "end_ms": 102.97337899100967
+      },
+      {
+        "phase": "display",
+        "start_ms": 102.97609498957172,
+        "end_ms": 103.080172004411
+      }
+    ],
+    "completed_frame_sequence": [
+      {
+        "reader": true,
+        "response": true,
+        "other_source": false,
+        "loading": false,
+        "blank": false,
+        "length": 2367,
+        "reader_y": 5,
+        "maximum_y": 145
+      },
+      {
+        "reader": true,
+        "response": true,
+        "other_source": false,
+        "loading": false,
+        "blank": false,
+        "length": 2367,
+        "reader_y": 5,
+        "maximum_y": 145
+      },
+      {
+        "reader": true,
+        "response": true,
+        "other_source": false,
+        "loading": false,
+        "blank": false,
+        "length": 2367,
+        "reader_y": 5,
+        "maximum_y": 145
+      }
+    ],
+    "fixture_total_ms": 1019.4221469864715,
+    "reader_y": 5,
+    "cache_hits": 2,
+    "cache_misses": 0,
+    "mounted_response_bodies": 1,
+    "reused_body_instances": 1,
+    "reused_outer_history": true,
+    "reused_page_instances": 1,
+    "retained_body_evictions": 0,
+    "warm_bodies": 20,
+    "prepared_bytes": 119924
+  },
+  {
+    "source": "session-2",
+    "return_painted_ms": 308.41187402256764,
+    "click_completed_ms": 399.4846330024302,
+    "selection_to_paint_ms": 93.79840601468459,
+    "phases_ms": {
+      "viewport_suspend_source": 0.01443698420189321,
+      "native_retire": 0.20644199685193598,
+      "retire_presentation": 0.9267870045732707,
+      "chrome_select": 0.3520179889164865,
+      "preparation_submit": 4.5192269899416715,
+      "transcript_snapshot": 0.07053298759274185,
+      "goal_read": 22.43028100929223,
+      "native_activate": 22.174417012138292,
+      "prepare_presentation": 22.213982010725886,
+      "native_page_read": 9.941135998815298
+    },
+    "first_paint_trace": [
+      {
+        "phase": "viewport_suspend_source",
+        "start_ms": 30.40338700520806,
+        "end_ms": 30.417823989409953
+      },
+      {
+        "phase": "native_retire",
+        "start_ms": 30.387466016691178,
+        "end_ms": 30.593908013543114
+      },
+      {
+        "phase": "retire_presentation",
+        "start_ms": 29.668603994650766,
+        "end_ms": 30.595390999224037
+      },
+      {
+        "phase": "chrome_select",
+        "start_ms": 30.639594013337046,
+        "end_ms": 30.991612002253532
+      },
+      {
+        "phase": "preparation_submit",
+        "start_ms": 45.75097199995071,
+        "end_ms": 49.26732799503952
+      },
+      {
+        "phase": "transcript_snapshot",
+        "start_ms": 50.450761016691104,
+        "end_ms": 50.49047601642087
+      },
+      {
+        "phase": "goal_read",
+        "start_ms": 35.452709009405226,
+        "end_ms": 52.3388700094074
+      },
+      {
+        "phase": "native_activate",
+        "start_ms": 30.997722991742194,
+        "end_ms": 53.172140003880486
+      },
+      {
+        "phase": "prepare_presentation",
+        "start_ms": 30.99445698899217,
+        "end_ms": 53.208438999718055
+      },
+      {
+        "phase": "compositor_reflow",
+        "start_ms": 57.60768899926916,
+        "end_ms": 62.65275299665518
+      },
+      {
+        "phase": "screen_layout",
+        "start_ms": 57.58080800296739,
+        "end_ms": 64.7937610046938
+      },
+      {
+        "phase": "styled_strip_miss",
+        "start_ms": 88.46815201104619,
+        "end_ms": 88.52416800800711
+      },
+      {
+        "phase": "styled_strip_miss",
+        "start_ms": 89.68043001368642,
+        "end_ms": 90.0663509964943
+      },
+      {
+        "phase": "widget_rasterize",
+        "start_ms": 90.12972100754268,
+        "end_ms": 90.24893699097447
+      },
+      {
+        "phase": "styled_strip_miss",
+        "start_ms": 90.11942200595513,
+        "end_ms": 90.25996801210567
+      },
+      {
+        "phase": "styled_strip_miss",
+        "start_ms": 90.30230899224989,
+        "end_ms": 90.32712600310333
+      },
+      {
+        "phase": "widget_rasterize",
+        "start_ms": 90.36753201507963,
+        "end_ms": 90.40611499221995
+      },
+      {
+        "phase": "styled_strip_miss",
+        "start_ms": 90.35980800399557,
+        "end_ms": 90.42287699412555
+      },
+      {
+        "phase": "styled_strip_miss",
+        "start_ms": 90.5943920079153,
+        "end_ms": 90.61522199772298
+      },
+      {
+        "phase": "widget_rasterize",
+        "start_ms": 91.32075900561176,
+        "end_ms": 91.41751300194301
+      },
+      {
+        "phase": "styled_strip_miss",
+        "start_ms": 91.31230300408788,
+        "end_ms": 91.43231099005789
+      },
+      {
+        "phase": "widget_rasterize",
+        "start_ms": 91.52505701058544,
+        "end_ms": 91.61681099794805
+      },
+      {
+        "phase": "styled_strip_miss",
+        "start_ms": 91.51358500821516,
+        "end_ms": 91.62776099401526
+      },
+      {
+        "phase": "widget_rasterize",
+        "start_ms": 91.68996900552884,
+        "end_ms": 91.73748901230283
+      },
+      {
+        "phase": "styled_strip_miss",
+        "start_ms": 91.68002000660636,
+        "end_ms": 91.7492019943893
+      },
+      {
+        "phase": "compositor_render_update",
+        "start_ms": 86.92868301295675,
+        "end_ms": 93.71089001069777
+      },
+      {
+        "phase": "display",
+        "start_ms": 93.71252299752086,
+        "end_ms": 93.79840601468459
+      }
+    ],
+    "completed_frame_sequence": [
+      {
+        "reader": true,
+        "response": true,
+        "other_source": false,
+        "loading": false,
+        "blank": false,
+        "length": 2367,
+        "reader_y": 5,
+        "maximum_y": 145
+      },
+      {
+        "reader": true,
+        "response": true,
+        "other_source": false,
+        "loading": false,
+        "blank": false,
+        "length": 2367,
+        "reader_y": 5,
+        "maximum_y": 145
+      },
+      {
+        "reader": true,
+        "response": true,
+        "other_source": false,
+        "loading": false,
+        "blank": false,
+        "length": 2367,
+        "reader_y": 5,
+        "maximum_y": 145
+      }
+    ],
+    "fixture_total_ms": 990.0279729918111,
+    "reader_y": 5,
+    "cache_hits": 2,
+    "cache_misses": 0,
+    "mounted_response_bodies": 1,
+    "reused_body_instances": 1,
+    "reused_outer_history": true,
+    "reused_page_instances": 1,
+    "retained_body_evictions": 0,
+    "warm_bodies": 20,
+    "prepared_bytes": 119924
+  },
+  {
+    "source": "session-1",
+    "return_painted_ms": 319.82124398928136,
+    "click_completed_ms": 409.21849600272253,
+    "selection_to_paint_ms": 97.19601698452607,
+    "phases_ms": {
+      "viewport_suspend_source": 0.020818988559767604,
+      "native_retire": 0.20510901231318712,
+      "retire_presentation": 1.024381024762988,
+      "chrome_select": 0.4701009893324226,
+      "preparation_submit": 3.7101540074218065,
+      "transcript_snapshot": 0.07791799725964665,
+      "goal_read": 28.231219010194764,
+      "native_activate": 24.977980996482074,
+      "prepare_presentation": 25.02720500342548,
+      "native_page_read": 16.688908013748005
+    },
+    "first_paint_trace": [
+      {
+        "phase": "viewport_suspend_source",
+        "start_ms": 26.84731499175541,
+        "end_ms": 26.86813398031518
+      },
+      {
+        "phase": "native_retire",
+        "start_ms": 26.828157977433875,
+        "end_ms": 27.033266989747062
+      },
+      {
+        "phase": "retire_presentation",
+        "start_ms": 26.01058897562325,
+        "end_ms": 27.034970000386238
+      },
+      {
+        "phase": "chrome_select",
+        "start_ms": 27.100985986180604,
+        "end_ms": 27.571086975513026
+      },
+      {
+        "phase": "preparation_submit",
+        "start_ms": 39.046019985107705,
+        "end_ms": 42.20227399491705
+      },
+      {
+        "phase": "transcript_snapshot",
+        "start_ms": 46.828644000925124,
+        "end_ms": 46.86528298771009
+      },
+      {
+        "phase": "goal_read",
+        "start_ms": 31.94905599229969,
+        "end_ms": 51.28762699314393
+      },
+      {
+        "phase": "native_activate",
+        "start_ms": 27.577889995882288,
+        "end_ms": 52.55587099236436
+      },
+      {
+        "phase": "prepare_presentation",
+        "start_ms": 27.573801984544843,
+        "end_ms": 52.60100698797032
+      },
+      {
+        "phase": "compositor_reflow",
+        "start_ms": 58.35200898582116,
+        "end_ms": 62.90029099909589
+      },
+      {
+        "phase": "screen_layout",
+        "start_ms": 58.322302997112274,
+        "end_ms": 64.94383499375544
+      },
+      {
+        "phase": "styled_strip_miss",
+        "start_ms": 91.80653898511082,
+        "end_ms": 91.85837800032459
+      },
+      {
+        "phase": "styled_strip_miss",
+        "start_ms": 93.04628998506814,
+        "end_ms": 93.44536598655395
+      },
+      {
+        "phase": "widget_rasterize",
+        "start_ms": 93.51146197877824,
+        "end_ms": 93.64848097902723
+      },
+      {
+        "phase": "styled_strip_miss",
+        "start_ms": 93.50195399019867,
+        "end_ms": 93.66143599618226
+      },
+      {
+        "phase": "styled_strip_miss",
+        "start_ms": 93.7055499816779,
+        "end_ms": 93.73168897582218
+      },
+      {
+        "phase": "widget_rasterize",
+        "start_ms": 93.77194498665631,
+        "end_ms": 93.81307297735475
+      },
+      {
+        "phase": "styled_strip_miss",
+        "start_ms": 93.7641809869092,
+        "end_ms": 93.83069697651081
+      },
+      {
+        "phase": "styled_strip_miss",
+        "start_ms": 93.90204199007712,
+        "end_ms": 93.92345297965221
+      },
+      {
+        "phase": "widget_rasterize",
+        "start_ms": 94.68435499002226,
+        "end_ms": 94.7994329908397
+      },
+      {
+        "phase": "styled_strip_miss",
+        "start_ms": 94.67334399232641,
+        "end_ms": 94.81695599970408
+      },
+      {
+        "phase": "compositor_render_update",
+        "start_ms": 90.17193099134602,
+        "end_ms": 97.08349299035035
+      },
+      {
+        "phase": "display",
+        "start_ms": 97.08635899005458,
+        "end_ms": 97.19601698452607
+      }
+    ],
+    "completed_frame_sequence": [
+      {
+        "reader": true,
+        "response": true,
+        "other_source": false,
+        "loading": false,
+        "blank": false,
+        "length": 2367,
+        "reader_y": 5,
+        "maximum_y": 145
+      },
+      {
+        "reader": true,
+        "response": true,
+        "other_source": false,
+        "loading": false,
+        "blank": false,
+        "length": 2367,
+        "reader_y": 5,
+        "maximum_y": 145
+      },
+      {
+        "reader": true,
+        "response": true,
+        "other_source": false,
+        "loading": false,
+        "blank": false,
+        "length": 2367,
+        "reader_y": 5,
+        "maximum_y": 145
+      }
+    ],
+    "fixture_total_ms": 1014.9466500151902,
+    "reader_y": 5,
+    "cache_hits": 2,
+    "cache_misses": 0,
+    "mounted_response_bodies": 1,
+    "reused_body_instances": 1,
+    "reused_outer_history": true,
+    "reused_page_instances": 1,
+    "retained_body_evictions": 0,
+    "warm_bodies": 20,
+    "prepared_bytes": 119924
+  },
+  {
+    "source": "session-2",
+    "return_painted_ms": 325.6516859983094,
+    "click_completed_ms": 418.60636198543943,
+    "selection_to_paint_ms": 107.83270100364462,
+    "phases_ms": {
+      "viewport_suspend_source": 0.015489000361412764,
+      "native_retire": 0.245675997575745,
+      "retire_presentation": 1.0245830053463578,
+      "chrome_select": 0.454772001830861,
+      "preparation_submit": 3.9841429970692843,
+      "transcript_snapshot": 0.10043097427114844,
+      "goal_read": 28.821045969380066,
+      "native_activate": 25.96231800271198,
+      "prepare_presentation": 26.010097994003445,
+      "native_page_read": 20.016194990603253
+    },
+    "first_paint_trace": [
+      {
+        "phase": "viewport_suspend_source",
+        "start_ms": 29.25626200158149,
+        "end_ms": 29.271751001942903
+      },
+      {
+        "phase": "native_retire",
+        "start_ms": 29.24081200035289,
+        "end_ms": 29.486487997928634
+      },
+      {
+        "phase": "retire_presentation",
+        "start_ms": 28.46433999366127,
+        "end_ms": 29.488922999007627
+      },
+      {
+        "phase": "chrome_select",
+        "start_ms": 29.54442799091339,
+        "end_ms": 29.999199992744252
+      },
+      {
+        "phase": "preparation_submit",
+        "start_ms": 42.58658198523335,
+        "end_ms": 46.31537100067362
+      },
+      {
+        "phase": "transcript_snapshot",
+        "start_ms": 50.75986700830981,
+        "end_ms": 50.81000199425034
+      },
+      {
+        "phase": "goal_read",
+        "start_ms": 35.29525001067668,
+        "end_ms": 54.8887740005739
+      },
+      {
+        "phase": "native_activate",
+        "start_ms": 30.006674001924694,
+        "end_ms": 55.968992004636675
+      },
+      {
+        "phase": "prepare_presentation",
+        "start_ms": 30.002646992215887,
+        "end_ms": 56.01274498621933
+      },
+      {
+        "phase": "compositor_reflow",
+        "start_ms": 62.00783999520354,
+        "end_ms": 67.52534900442697
+      },
+      {
+        "phase": "screen_layout",
+        "start_ms": 61.97303399676457,
+        "end_ms": 70.21930601331405
+      },
+      {
+        "phase": "styled_strip_miss",
+        "start_ms": 101.88568700687028,
+        "end_ms": 101.94914700696245
+      },
+      {
+        "phase": "styled_strip_miss",
+        "start_ms": 103.51969499606639,
+        "end_ms": 104.00594701059163
+      },
+      {
+        "phase": "widget_rasterize",
+        "start_ms": 104.08820299198851,
+        "end_ms": 104.24766500364058
+      },
+      {
+        "phase": "styled_strip_miss",
+        "start_ms": 104.0750480024144,
+        "end_ms": 104.26211199956015
+      },
+      {
+        "phase": "styled_strip_miss",
+        "start_ms": 104.31779798818752,
+        "end_ms": 104.34973798692226
+      },
+      {
+        "phase": "widget_rasterize",
+        "start_ms": 104.40399099024944,
+        "end_ms": 104.45715198875405
+      },
+      {
+        "phase": "styled_strip_miss",
+        "start_ms": 104.39304998726584,
+        "end_ms": 104.4795339985285
+      },
+      {
+        "phase": "styled_strip_miss",
+        "start_ms": 104.57069700350985,
+        "end_ms": 104.59785899729468
+      },
+      {
+        "phase": "widget_rasterize",
+        "start_ms": 105.57559199514799,
+        "end_ms": 105.68140298710205
+      },
+      {
+        "phase": "styled_strip_miss",
+        "start_ms": 105.56610400089994,
+        "end_ms": 105.6948879850097
+      },
+      {
+        "phase": "compositor_render_update",
+        "start_ms": 99.73937799804844,
+        "end_ms": 107.72070899838582
+      },
+      {
+        "phase": "display",
+        "start_ms": 107.72284300765023,
+        "end_ms": 107.83270100364462
+      }
+    ],
+    "completed_frame_sequence": [
+      {
+        "reader": true,
+        "response": true,
+        "other_source": false,
+        "loading": false,
+        "blank": false,
+        "length": 2367,
+        "reader_y": 5,
+        "maximum_y": 145
+      },
+      {
+        "reader": true,
+        "response": true,
+        "other_source": false,
+        "loading": false,
+        "blank": false,
+        "length": 2367,
+        "reader_y": 5,
+        "maximum_y": 145
+      },
+      {
+        "reader": true,
+        "response": true,
+        "other_source": false,
+        "loading": false,
+        "blank": false,
+        "length": 2367,
+        "reader_y": 5,
+        "maximum_y": 145
+      }
+    ],
+    "fixture_total_ms": 1015.1534909964539,
+    "reader_y": 5,
+    "cache_hits": 2,
+    "cache_misses": 0,
+    "mounted_response_bodies": 1,
+    "reused_body_instances": 1,
+    "reused_outer_history": true,
+    "reused_page_instances": 1,
+    "retained_body_evictions": 0,
+    "warm_bodies": 20,
+    "prepared_bytes": 119924
+  },
+  {
+    "source": "session-1",
+    "return_painted_ms": 323.25320900417864,
+    "click_completed_ms": 412.1580980136059,
+    "selection_to_paint_ms": 94.42760900128633,
+    "phases_ms": {
+      "viewport_suspend_source": 0.018015009118244052,
+      "native_retire": 0.19465899094939232,
+      "retire_presentation": 0.7845170039217919,
+      "chrome_select": 0.29882602393627167,
+      "preparation_submit": 3.8899140199646354,
+      "transcript_snapshot": 0.10190301691181958,
+      "goal_read": 26.97536800405942,
+      "native_activate": 22.481398016680032,
+      "prepare_presentation": 22.526323999045417,
+      "native_page_read": 23.286273994017392
+    },
+    "first_paint_trace": [
+      {
+        "phase": "viewport_suspend_source",
+        "start_ms": 25.8313289959915,
+        "end_ms": 25.849344005109742
+      },
+      {
+        "phase": "native_retire",
+        "start_ms": 25.817423011176288,
+        "end_ms": 26.01208200212568
+      },
+      {
+        "phase": "retire_presentation",
+        "start_ms": 25.229207996744663,
+        "end_ms": 26.013725000666454
+      },
+      {
+        "phase": "chrome_select",
+        "start_ms": 26.058980991365388,
+        "end_ms": 26.35780701530166
+      },
+      {
+        "phase": "preparation_submit",
+        "start_ms": 36.11839099903591,
+        "end_ms": 39.45458499947563
+      },
+      {
+        "phase": "transcript_snapshot",
+        "start_ms": 44.40017099841498,
+        "end_ms": 44.44833201705478
+      },
+      {
+        "phase": "goal_read",
+        "start_ms": 30.729143996722996,
+        "end_ms": 47.79943500761874
+      },
+      {
+        "phase": "native_activate",
+        "start_ms": 26.363848999608308,
+        "end_ms": 48.84524701628834
+      },
+      {
+        "phase": "prepare_presentation",
+        "start_ms": 26.360332005424425,
+        "end_ms": 48.88665600446984
+      },
+      {
+        "phase": "compositor_reflow",
+        "start_ms": 55.09191899909638,
+        "end_ms": 60.72210299316794
+      },
+      {
+        "phase": "screen_layout",
+        "start_ms": 55.05622201599181,
+        "end_ms": 63.428422989090905
+      },
+      {
+        "phase": "styled_strip_miss",
+        "start_ms": 89.41804201458581,
+        "end_ms": 89.47683399310336
+      },
+      {
+        "phase": "styled_strip_miss",
+        "start_ms": 90.6439560058061,
+        "end_ms": 91.03247299208306
+      },
+      {
+        "phase": "widget_rasterize",
+        "start_ms": 91.10166400205344,
+        "end_ms": 91.22927600401454
+      },
+      {
+        "phase": "styled_strip_miss",
+        "start_ms": 91.09169500879943,
+        "end_ms": 91.2413090118207
+      },
+      {
+        "phase": "styled_strip_miss",
+        "start_ms": 91.28513201721944,
+        "end_ms": 91.31011899444275
+      },
+      {
+        "phase": "widget_rasterize",
+        "start_ms": 91.35086601600051,
+        "end_ms": 91.39140299521387
+      },
+      {
+        "phase": "styled_strip_miss",
+        "start_ms": 91.34301100857556,
+        "end_ms": 91.40888601541519
+      },
+      {
+        "phase": "styled_strip_miss",
+        "start_ms": 91.48999000899494,
+        "end_ms": 91.51269300491549
+      },
+      {
+        "phase": "widget_rasterize",
+        "start_ms": 92.3475960153155,
+        "end_ms": 92.44691400090232
+      },
+      {
+        "phase": "styled_strip_miss",
+        "start_ms": 92.33774701715447,
+        "end_ms": 92.46094099944457
+      },
+      {
+        "phase": "compositor_render_update",
+        "start_ms": 87.80515499529429,
+        "end_ms": 94.32106700842269
+      },
+      {
+        "phase": "display",
+        "start_ms": 94.32328099501319,
+        "end_ms": 94.42760900128633
+      }
+    ],
+    "completed_frame_sequence": [
+      {
+        "reader": true,
+        "response": true,
+        "other_source": false,
+        "loading": false,
+        "blank": false,
+        "length": 2367,
+        "reader_y": 5,
+        "maximum_y": 145
+      },
+      {
+        "reader": true,
+        "response": true,
+        "other_source": false,
+        "loading": false,
+        "blank": false,
+        "length": 2367,
+        "reader_y": 5,
+        "maximum_y": 145
+      },
+      {
+        "reader": true,
+        "response": true,
+        "other_source": false,
+        "loading": false,
+        "blank": false,
+        "length": 2367,
+        "reader_y": 5,
+        "maximum_y": 145
+      }
+    ],
+    "fixture_total_ms": 1008.075571997324,
+    "reader_y": 5,
+    "cache_hits": 2,
+    "cache_misses": 0,
+    "mounted_response_bodies": 1,
+    "reused_body_instances": 1,
+    "reused_outer_history": true,
+    "reused_page_instances": 1,
+    "retained_body_evictions": 0,
+    "warm_bodies": 20,
+    "prepared_bytes": 119924
+  }
+]

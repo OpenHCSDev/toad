@@ -1,4 +1,4 @@
-"""Per-session editor state and one application-owned blank presentation."""
+"""Session-owned mounted presentation, with one bounded workspace admission owner."""
 
 import asyncio
 from abc import ABC, abstractmethod
@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 from weakref import ref
 
 from textual.widget import Widget
-from textual.widgets.text_area import Document, EditHistory, Selection, TextAreaState
+from textual.widgets.text_area import TextAreaState
 
 from toad.input_history import InputHistories
 from toad.widgets.conversation import Conversation
@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 
 
 class SessionSurfaceSlot(Widget):
-    """A blank session declares placement but owns no second editor tree."""
+    """The session's stable placement for its admitted native presentation."""
 
     DEFAULT_CSS = "SessionSurfaceSlot { display: none; }"
 
@@ -34,6 +34,7 @@ class SessionViewState:
     reader_position: ReaderPosition
     shell_mode: bool
     input_histories: InputHistories
+    initial_prompt: str | None
 
     @classmethod
     def capture(cls, conversation: Conversation) -> "SessionViewState":
@@ -41,7 +42,7 @@ class SessionViewState:
         return cls(
             editor.capture_editor_state(), conversation.visible_categories,
             ReaderPosition.capture(conversation.window),
-            editor.shell_mode, conversation.input_histories,
+            editor.shell_mode, conversation.input_histories, conversation._initial_prompt,
         )
 
     def restore(self, conversation: Conversation) -> None:
@@ -135,11 +136,12 @@ class OperationalSessionSources:
 
 
 class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
-    """The operational Agent survives; only the selected rich view is mounted."""
+    """Own the actual mounted view; eviction retains only its existing editor state."""
 
     def __init__(self) -> None:
         super().__init__()
         self.sources = OperationalSessionSources()
+        self.widget: Conversation | None = None
 
     def compose_content(self, screen: "MainScreen") -> Widget:
         return SessionSurfaceSlot()
@@ -151,7 +153,6 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
         await screen.app.workspace_chrome.native.retire(screen, self)
 
     async def release_binding(self, conversation: Conversation, screen: "MainScreen") -> None:
-        self.state = SessionViewState.capture(conversation)
         await self.sources.detach(conversation, screen)
 
     async def attach_binding(self, conversation: Conversation) -> None:
@@ -159,76 +160,144 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
         await self.sources.present(conversation)
 
     async def close(self, screen: "MainScreen") -> None:
+        await screen.app.workspace_chrome.native.evict(screen, self)
         await self.sources.close(screen)
         self.state = None
 
 
 class NativeSessionSurface:
-    """One bounded rich native surface; each logical owner retains its real state."""
+    """Admit session-owned trees without moving their ancestry or copying their state."""
 
     def __init__(self, app: "ToadApp") -> None:
         self._app = ref(app)
-        self.widget: Conversation | None = None
-        self.owner: EditorSessionSurfaceLifetime | None = None
+        self.owner: OperationalSessionPresentation | None = None
         self.view: MainScreen | None = None
         self._lock = asyncio.Lock()
 
-    async def retire(self, screen: "MainScreen", owner: EditorSessionSurfaceLifetime) -> None:
+    @property
+    def widget(self) -> Conversation | None:
+        return self.owner.widget if self.owner is not None else None
+
+    def _presentations(self):
+        app = self._app()
+        return tuple(presentation for view in app.workspace_sessions.views.values()
+                     for presentation in view.retained_native_presentations())
+
+    async def retire(self, screen: "MainScreen", owner: OperationalSessionPresentation) -> None:
         async with self._lock:
             if self.owner is not owner or self.widget is None:
                 return
-            await owner.release_binding(self.widget, screen)
-            await self.widget.window.document_viewport.park_source()
-            await self.widget.release_native_session()
-            self.widget.display = False
+            conversation = self.widget
+            await conversation.window.document_viewport.suspend_source()
+            await conversation.transcript.suspend()
+            for history in tuple(conversation.window.histories):
+                await history.retire_source(parked=True)
+            await owner.release_binding(conversation, screen)
+            conversation.display = False
             self.owner = None
             self.view = None
 
-    async def activate(self, screen: "MainScreen", owner: EditorSessionSurfaceLifetime) -> None:
+    async def activate(self, screen: "MainScreen", owner: OperationalSessionPresentation) -> None:
         async with self._lock:
             if self.owner is owner and self.view is screen:
                 return
-            slot = screen.query_one(SessionSurfaceSlot)
-            content = slot.parent
-            assert isinstance(content, Widget)
-            first = self.widget is None
-            if first:
-                self.widget = screen._make_conversation()
-                await content.mount(self.widget, before=slot)
-            else:
-                assert self.owner is None, "Departing source must retire before admitting the next source"
-                self.widget.reparent(content, before=slot)
-                await self.widget.bind_native_session(screen)
-            conversation = self.widget
+            assert self.owner is None, "Departing source must retire before admitting the next source"
+            returning = owner.widget is not None
+            if not returning:
+                slot = screen.query_one(SessionSurfaceSlot)
+                content = slot.parent
+                assert isinstance(content, Widget)
+                owner.widget = screen._make_conversation()
+                if owner.sources.agent is not None:
+                    from toad.widgets.conversation import ConversationSessionBinding
+
+                    owner.widget.set_reactive(ConversationSessionBinding.agent, owner.sources.agent)
+                if owner.state is not None:
+                    owner.widget._initial_prompt = owner.state.initial_prompt
+                await content.mount(owner.widget, before=slot)
+            conversation = owner.widget
+            self.owner, self.view = owner, screen
             await owner.attach_binding(conversation)
             if owner.state is not None:
                 owner.state.restore(conversation)
                 owner.state = None
-            elif not first:
-                editor = conversation.prompt.prompt_text_area
-                previous = editor.history
-                editor.restore_editor_state(TextAreaState(
-                    Document(""), EditHistory(previous.max_checkpoints,
-                                              previous.checkpoint_timer,
-                                              previous.checkpoint_max_characters),
-                    Selection.cursor((0, 0)), 0, 0, None, (), None))
-            if not first and conversation.agent is not None and conversation.agent.ready:
-                # The switch holds the workspace paint transaction. Reuse its
-                # parked rendered bodies before the destination's first frame.
+            retained_history = None
+            if returning:
+                from toad.widgets.transcript_history import TranscriptHistory
+                retained_history = next((child for child in conversation.contents.children
+                                         if isinstance(child, TranscriptHistory)), None)
+            if retained_history is not None:
+                agent = conversation.agent
+                await conversation.transcript.reveal_retained(retained_history)
+                conversation.status = agent.context_measurement.status()
+                conversation.turns.bind(agent)
+                await conversation.goal_observation.refresh()
+            elif conversation.agent is not None and conversation.agent.ready:
                 await conversation.agent.presentation.restore_saved_history(conversation)
-            self.owner, self.view = owner, screen
             conversation.display = True
             conversation.window.document_viewport.resume_source()
-            if not first:
+            if returning:
                 conversation.start_native_session()
             conversation.prompt.focus()
+            await self._trim_retained(conversation)
+            if retained_history is not None:
+                def refresh_after_paint() -> None:
+                    if (self.widget is conversation and self.owner is owner
+                            and conversation.agent is agent):
+                        conversation.run_worker(
+                            conversation.transcript.refresh_revealed(agent),
+                            group="retained-native-refresh", exclusive=True,
+                        )
+                conversation.call_after_refresh(refresh_after_paint)
+
+    async def _trim_retained(self, selected: Conversation) -> None:
+        """Bound inactive native trees using the existing viewport resource policy.
+
+        The selected viewport has its ordinary protected/visible admission. Tab
+        order owns recency; the logical session registry owns all retained trees.
+        There is no second presentation lookup or model store.
+        """
+        app = self._app()
+        budget = selected.window.document_viewport.budget
+        candidates = {screen.id: (screen, owner) for screen, owner in self._presentations()
+                      if owner is not self.owner}
+        widgets = source_bytes = 0
+        for identity in app.tab_order.recent:
+            if identity not in candidates:
+                continue
+            screen, owner = candidates[identity]
+            widget = owner.widget
+            viewport = widget.window.document_viewport
+            count = 1 + sum(1 for _ in widget.walk_children())
+            size = sum(body.retained_source_bytes for key in viewport._warm.values()
+                       if (body := key()) is not None)
+            if (widgets + count > budget.widget_limit(app.size.height)
+                    or source_bytes + size > app.preparation.max_bytes):
+                await self._evict(screen, owner)
+            else:
+                widgets += count
+                source_bytes += size
+
+    async def _evict(self, screen: "MainScreen", owner: OperationalSessionPresentation) -> None:
+        if (conversation := owner.widget) is None:
+            return
+        owner.state = SessionViewState.capture(conversation)
+        await conversation.release_native_session()
+        await conversation.window.document_viewport.close()
+        await conversation.remove()
+        owner.widget = None
+
+    async def evict(self, screen: "MainScreen", owner: OperationalSessionPresentation) -> None:
+        async with self._lock:
+            if self.owner is owner:
+                await owner.release_binding(owner.widget, screen)
+                self.owner = self.view = None
+            await self._evict(screen, owner)
 
     async def close(self) -> None:
         async with self._lock:
-            if self.widget is not None:
-                if self.owner is not None and self.view is not None:
-                    await self.owner.release_binding(self.widget, self.view)
-                await self.widget.release_native_session()
-                await self.widget.window.document_viewport.close()
-                await self.widget.remove()
-            self.widget = self.owner = self.view = None
+            if self.owner is not None:
+                await self.owner.release_binding(self.widget, self.view)
+            self.owner = self.view = None
+            for screen, owner in self._presentations():
+                await self._evict(screen, owner)

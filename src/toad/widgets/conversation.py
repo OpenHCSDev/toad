@@ -576,35 +576,6 @@ class ConversationSessionBinding(containers.Vertical):
         self.prompt.ask_queue.clear()
         self._focusable_terminals.clear()
 
-    def fragment_presentation_identity(self, interval, fragment):
-        """Bind immutable rendering to this source and its filesystem revision."""
-        from toad.widgets.transcript_history import FragmentPresentationIdentity
-        watcher = self._directory_watcher
-        return FragmentPresentationIdentity(
-            self.agent, interval, fragment, str(self.project_path), watcher,
-            watcher.observed_revision if watcher is not None else -1,
-        )
-
-
-    async def bind_native_session(self, screen) -> None:
-        """Reset values from their declarations, then bind the existing source config."""
-        for name, declaration in ConversationSessionBinding._reactives.items():
-            if name in ConversationSessionBinding.__dict__:
-                self.set_reactive(declaration, declaration._default_value(self))
-        self._initialize_session(screen.project_path, screen._agent,
-                                 screen._agent_session_id, screen._session_pk,
-                                 screen._agent_session_title, screen._initial_prompt)
-        await self.contents.mount(*ThreadLoading.initial_contents(self._agent_data))
-        # Refresh cwd-bound editor projections, without replaying semantic
-        # history-navigation watchers against the restored document.
-        self.mutate_reactive(ConversationSessionBinding.project_path)
-        self.mutate_reactive(ConversationSessionBinding.working_directory)
-        self.column = screen.column
-        self.prompt.slash_commands = CommandCatalog(
-            self.agent_slash_commands, self.command_target_context()).commands
-        self.query_one(GoalBar).watch_goal_display()
-        self.window.anchor()
-
     async def present_retained_native_session(self) -> None:
         """Bring a returning native source into the atomic first frame."""
         agent = self.agent
@@ -2261,11 +2232,7 @@ class Conversation(ConversationSessionBinding):
         self.prompt.focus()
 
     def jump_to_latest(self) -> None:
-        self.window.document_viewport.destination()
-        for history in self.query(TranscriptHistory):
-            if history.has_newer:
-                history.request_latest()
-        self.window.anchor()
+        self.window.jump_to_latest()
         self.transcript.request()
 
     async def action_select_block(self) -> None:

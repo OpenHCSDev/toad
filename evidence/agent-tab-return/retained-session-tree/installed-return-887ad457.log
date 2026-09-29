@@ -1,0 +1,274 @@
+INSTALLED_APP_RUN_TEST_ENTER
+INSTALLED_APP_RUN_TEST_YIELDED
+ATTACHED_AND_NAVIGABLE
+StaleRevision exception in shielded future
+future: <Task finished name='prepare-NativeTranscriptReadWork' coro=<PreparationRuntime._execute() done, defined at /home/ts/wt/toad-retained-outer-history-first-paint-20260929/.artifacts/sidebar-geometry-package/runtime/lib/python3.14/site-packages/toad/work_preparation.py:320> exception=StaleRevision('Transcript read inputs changed during preparation')>
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-retained-outer-history-first-paint-20260929/.artifacts/sidebar-geometry-package/runtime/lib/python3.14/site-packages/toad/work_preparation.py", line 321, in _execute
+    result = await work.execute(self)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-retained-outer-history-first-paint-20260929/.artifacts/sidebar-geometry-package/runtime/lib/python3.14/site-packages/toad/work_preparation.py", line 151, in execute
+    return await runtime.run_thread(self.prepare)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-retained-outer-history-first-paint-20260929/.artifacts/sidebar-geometry-package/runtime/lib/python3.14/site-packages/toad/work_preparation.py", line 267, in run_thread
+    return await asyncio.shield(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/threads.py", line 25, in to_thread
+    return await loop.run_in_executor(None, func_call)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/thread.py", line 86, in run
+    result = ctx.run(self.task)
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/thread.py", line 73, in run
+    return fn(*args, **kwargs)
+  File "/home/ts/wt/toad-retained-outer-history-first-paint-20260929/.artifacts/sidebar-geometry-package/runtime/lib/python3.14/site-packages/toad/acp/transcript_reader.py", line 34, in prepare
+    return self.read.read()
+           ~~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-retained-outer-history-first-paint-20260929/.artifacts/sidebar-geometry-package/runtime/lib/python3.14/site-packages/agent_comms/transcripts.py", line 90, in read
+    raise StaleRevision("Transcript read inputs changed during preparation")
+agent_comms.coordination_errors.StaleRevision: Transcript read inputs changed during preparation
+SOURCE_READY_PAINT session-1 True True frozenset({'-scrollbar-normal'}) True [('TranscriptFragmentView', Region(x=65, y=26, width=89, height=4)), ('TranscriptFragmentView', Region(x=65, y=24, width=89, height=2)), ('TranscriptFragmentView', Region(x=65, y=12, width=89, height=12)), ('TranscriptFragmentView', Region(x=65, y=-2, width=89, height=14))] FRAME
+  ☰     <──    ──>   ✓ beta (1) ×  ✓ gamma (1) ×
+                      ━━━━━━━━━━
+▼ Channels                                           Name ▾    │▌▊
++ New Session                                                  │▌▊  beta saved reader paragraph 1: canonical loaded source.
+▾ #any                                       Date created ▾    │▌▊
+  (1) ✓ gamma                                                  │▌▊  beta saved reader paragraph 2: canonical loaded source.
+    Ready                                                      │▌▊
+  (1) ✓ beta                                                   │▌▊  beta saved reader paragraph 3: canonical loaded source.
+    Ready                                                      │▌▊
+▸ #none                                      Date created ▾    │▌▊  beta saved reader paragraph 4: canonical loaded source.
+▸ #all                                       Date created ▾    │▌
+▸ #team                                      Date created ▾    │▌▊  beta saved reader paragraph 5: canonical loaded source.
+                                                               │▌▊
+                                                               │▌▊  beta saved reader paragraph 6: canonical loaded source.
+                                                               │▌▊
+                                                               │▌▊  beta saved reader paragraph 7: canonical loaded source.
+                                                               │▌▊
+                                                               │▌▊  beta saved reader paragraph 8: canonical loaded source.
+                                                               │▌▊
+                                                               │▌▊  beta saved reader paragraph 9: canonical loaded source.
+                                                               │▌▊
+                                                             < │▌▊  beta saved reader paragraph 10: canonical loaded source.                                  <
+                                                               │▌                                                                                         ▂▂
+                                                               │▌▊  beta saved reader paragraph 11: canonical loaded source.
+                                                               │▌
+                                                               │▌
+                                                               │▌─────────────────────────────────── Agent · 18:43:08 ───────────────────────────────────
+                                                               │▌NATIVE_RESPONSE_2
+                                                               │▌
+                                                               │
+                                                               │
+                                                               │ ▶ Session details · Ready · Saved history available
+                                                               │
+                                                               │─────────────────────────────────────────────────────────────────────────────────────────────
+                                                               │ Goal · blocked · rev 2
+                                                               │ Objective: SELECTED_GOAL_BETA
+                                                               │ Progress: Goal launch grant unavailable; explicit Retry required.
+                                                               │ History  Collapse  Retry  Edit  Clear
+                                                               │▊▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▎
+                                                               │▊ ❯                                                                                         ▎
+40% ───────────────────────────────────────●────────────────   │▊▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▎
+  ──>   Float                                                  │  selected-offline/fixture · off  ~/wt/…/l0a-native-gwa56g23/project            0.1K (0.3%)
+⏎ Send ⇧+⏎ Line ^c Interrupt ^g IRC view ^s Channels                                                                                                ▏^p palette
+WINDOW_LAYOUT [('ContentsGrid', True, 'auto', Region(x=64, y=-88, width=90, height=118), Size(width=90, height=118), Size(width=90, height=118)), ('Contents', True, 'auto', Region(x=65, y=-88, width=89, height=118), Size(width=89, height=118), Size(width=89, height=118))]
+SOURCE_BODY_CUSTODY session-1 91 91 8 [('TranscriptFragmentView', 'TranscriptPageView', True, True, False, False, True, None), ('TranscriptFragmentView', 'TranscriptPageView', True, True, False, False, True, None), ('TranscriptFragmentView', 'TranscriptPageView', True, True, False, False, True, None), ('TranscriptFragmentView', 'TranscriptPageView', True, True, False, False, True, None), ('TranscriptFragmentView', 'TranscriptPageView', True, True, False, False, True, None), ('TranscriptFragmentView', 'TranscriptPageView', True, True, False, False, True, None), ('TranscriptFragmentView', 'TranscriptPageView', True, True, False, False, True, None), ('TranscriptFragmentView', 'TranscriptPageView', True, True, False, False, True, None)]
+SOURCE_READY_PAINT session-2 True True frozenset() True [('TranscriptFragmentView', Region(x=65, y=26, width=89, height=4)), ('TranscriptFragmentView', Region(x=65, y=24, width=89, height=2)), ('TranscriptFragmentView', Region(x=65, y=12, width=89, height=12)), ('TranscriptFragmentView', Region(x=65, y=-2, width=89, height=14))] FRAME
+  ☰     <──    ──>   ✓ beta (1) ×  ✓ gamma ×
+                                    ━━━━━━━
+▼ Channels                                           Name ▾    │▌▊
++ New Session                                                  │▌▊  gamma saved reader paragraph 1: canonical loaded source.
+▾ #any                                       Date created ▾    │▌▊
+  ✓ gamma                                                      │▌▊  gamma saved reader paragraph 2: canonical loaded source.
+    Ready                                                      │▌▊
+  (1) ✓ beta                                                   │▌▊  gamma saved reader paragraph 3: canonical loaded source.
+    Ready                                                      │▌▊
+▸ #none                                      Date created ▾    │▌▊  gamma saved reader paragraph 4: canonical loaded source.
+▸ #all                                       Date created ▾    │▌
+▸ #team                                      Date created ▾    │▌▊  gamma saved reader paragraph 5: canonical loaded source.
+                                                               │▌▊
+                                                               │▌▊  gamma saved reader paragraph 6: canonical loaded source.
+                                                               │▌▊
+                                                               │▌▊  gamma saved reader paragraph 7: canonical loaded source.                              ▄▄
+                                                               │▌▊
+                                                               │▌▊  gamma saved reader paragraph 8: canonical loaded source.
+                                                               │▌▊
+                                                               │▌▊  gamma saved reader paragraph 9: canonical loaded source.
+                                                               │▌▊
+                                                             < │▌▊  gamma saved reader paragraph 10: canonical loaded source.                                 <
+                                                               │▌
+                                                               │▌▊  gamma saved reader paragraph 11: canonical loaded source.
+                                                               │▌
+                                                               │▌
+                                                               │▌─────────────────────────────────── Agent · 18:43:26 ───────────────────────────────────
+                                                               │▌NATIVE_RESPONSE_4
+                                                               │▌
+                                                               │
+                                                               │
+                                                               │ ▶ Session details · Ready · Saved history not loaded
+                                                               │
+                                                               │─────────────────────────────────────────────────────────────────────────────────────────────
+                                                               │ Goal · blocked · rev 2
+                                                               │ Objective: SELECTED_GOAL_GAMMA
+                                                               │ Progress: Goal launch grant unavailable; explicit Retry required.
+                                                               │ History  Collapse  Retry  Edit  Clear
+                                                               │▊▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▎
+                                                               │▊ ❯                                                                                         ▎
+40% ───────────────────────────────────────●────────────────   │▊▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▎
+  ──>   Float                                                  │  selected-offline/fixture · off  ~/wt/…/l0a-native-gwa56g23/project            0.1K (0.3%)
+⏎ Send ⇧+⏎ Line ^c Interrupt ^g IRC view ^s Channels                                                                                                ▏^p palette
+WINDOW_LAYOUT [('ContentsGrid', True, 'auto', Region(x=64, y=-24, width=90, height=54), Size(width=90, height=54), Size(width=90, height=54)), ('Contents', True, 'auto', Region(x=65, y=-24, width=89, height=54), Size(width=89, height=54), Size(width=89, height=54))]
+SOURCE_BODY_CUSTODY session-2 27 27 8 [('TranscriptFragmentView', 'TranscriptPageView', True, True, False, False, True, MapGeometry(region=Region(x=65, y=-23, width=89, height=12), order=((0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, -1), (0, 0, -1), (0, False, -1), (0, 0, -1), (0, 0, -1), (0, 0, -8)), clip=Region(x=65, y=3, width=89, height=27), virtual_size=Size(width=89, height=12), container_size=Size(width=89, height=12), virtual_region=Region(x=0, y=0, width=89, height=12), dock_gutter=Spacing(top=0, right=0, bottom=0, left=0))), ('TranscriptFragmentView', 'TranscriptPageView', True, True, False, False, True, MapGeometry(region=Region(x=65, y=-11, width=89, height=2), order=((0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, -1), (0, 0, -1), (0, False, -1), (0, 0, -1), (0, 0, -1), (0, 0, -7)), clip=Region(x=65, y=3, width=89, height=27), virtual_size=Size(width=89, height=2), container_size=Size(width=89, height=2), virtual_region=Region(x=0, y=12, width=89, height=2), dock_gutter=Spacing(top=0, right=0, bottom=0, left=0))), ('TranscriptFragmentView', 'TranscriptPageView', True, True, False, False, True, MapGeometry(region=Region(x=65, y=-9, width=89, height=4), order=((0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, -1), (0, 0, -1), (0, False, -1), (0, 0, -1), (0, 0, -1), (0, 0, -6)), clip=Region(x=65, y=3, width=89, height=27), virtual_size=Size(width=89, height=4), container_size=Size(width=89, height=4), virtual_region=Region(x=0, y=14, width=89, height=4), dock_gutter=Spacing(top=0, right=0, bottom=0, left=0))), ('TranscriptFragmentView', 'TranscriptPageView', True, True, False, False, True, MapGeometry(region=Region(x=65, y=-5, width=89, height=3), order=((0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, -1), (0, 0, -1), (0, False, -1), (0, 0, -1), (0, 0, -1), (0, 0, -5)), clip=Region(x=65, y=3, width=89, height=27), virtual_size=Size(width=89, height=3), container_size=Size(width=89, height=3), virtual_region=Region(x=0, y=18, width=89, height=3), dock_gutter=Spacing(top=0, right=0, bottom=0, left=0))), ('TranscriptFragmentView', 'TranscriptPageView', True, True, False, False, True, MapGeometry(region=Region(x=65, y=-2, width=89, height=14), order=((0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, -1), (0, 0, -1), (0, False, -1), (0, 0, -1), (0, 0, -1), (0, 0, -4)), clip=Region(x=65, y=3, width=89, height=27), virtual_size=Size(width=89, height=14), container_size=Size(width=89, height=14), virtual_region=Region(x=0, y=21, width=89, height=14), dock_gutter=Spacing(top=0, right=0, bottom=0, left=0))), ('TranscriptFragmentView', 'TranscriptPageView', True, True, False, False, True, MapGeometry(region=Region(x=65, y=12, width=89, height=12), order=((0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, -1), (0, 0, -1), (0, False, -1), (0, 0, -1), (0, 0, -1), (0, 0, -3)), clip=Region(x=65, y=3, width=89, height=27), virtual_size=Size(width=89, height=12), container_size=Size(width=89, height=12), virtual_region=Region(x=0, y=35, width=89, height=12), dock_gutter=Spacing(top=0, right=0, bottom=0, left=0))), ('TranscriptFragmentView', 'TranscriptPageView', True, True, False, False, True, MapGeometry(region=Region(x=65, y=24, width=89, height=2), order=((0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, -1), (0, 0, -1), (0, False, -1), (0, 0, -1), (0, 0, -1), (0, 0, -2)), clip=Region(x=65, y=3, width=89, height=27), virtual_size=Size(width=89, height=2), container_size=Size(width=89, height=2), virtual_region=Region(x=0, y=47, width=89, height=2), dock_gutter=Spacing(top=0, right=0, bottom=0, left=0))), ('TranscriptFragmentView', 'TranscriptPageView', True, True, False, False, True, MapGeometry(region=Region(x=65, y=26, width=89, height=4), order=((0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, -1), (0, 0, -1), (0, False, -1), (0, 0, -1), (0, 0, -1), (0, 0, -1)), clip=Region(x=65, y=3, width=89, height=27), virtual_size=Size(width=89, height=4), container_size=Size(width=89, height=4), virtual_region=Region(x=0, y=49, width=89, height=4), dock_gutter=Spacing(top=0, right=0, bottom=0, left=0)))]
+FIRST_FRAMES session-1 [('session-1', 2367, True, False, 5, 91), ('session-1', 2367, True, False, 5, 91), ('session-1', 2367, True, False, 5, 91)]
+RETURN_GEOMETRY session-1 5 91 [('TranscriptPageView', Size(width=89, height=53), Size(width=89, height=53), True), ('TranscriptFragmentView', Size(width=89, height=12), Size(width=0, height=0), True), ('TranscriptFragmentView', Size(width=89, height=2), Size(width=0, height=0), True), ('TranscriptFragmentView', Size(width=89, height=4), Size(width=0, height=0), True), ('AgentResponse', Size(width=88, height=3), Size(width=0, height=0), True), ('TranscriptFragmentView', Size(width=89, height=3), Size(width=0, height=0), True), ('TranscriptFragmentView', Size(width=89, height=14), Size(width=89, height=14), True), ('TranscriptFragmentView', Size(width=89, height=12), Size(width=89, height=12), True), ('TranscriptFragmentView', Size(width=89, height=2), Size(width=89, height=2), True), ('TranscriptFragmentView', Size(width=89, height=4), Size(width=89, height=4), True), ('AgentResponse', Size(width=88, height=3), Size(width=88, height=3), True)] REUSE 8 PAINT ▌▊
+▌▊  beta saved reader paragraph 1: canonical loaded source.
+▌▊
+▌▊  beta saved reader paragraph 2: canonical loaded source.
+▌▊
+▌▊  beta saved reader paragraph 3: canonical loaded source.
+▌▊
+▌▊  beta saved reader paragraph 4: canonical loaded source.
+▌▊
+▌▊  beta saved reader paragraph 5: canonical loaded source.
+▌▊
+▌▊  beta saved reader paragraph 6: canonical loaded source.
+▌▊
+▌▊  beta saved reader paragraph 7: canonical loaded source.
+▌▊
+▌▊  beta saved reader paragraph 8: canonical loaded source.
+▌▊
+▌▊  beta saved reader paragraph 9: canonical loaded source.
+▌▊
+▌▊  beta saved reader paragraph 10: canonical loaded source.
+▌▊
+▌▊  beta saved reader paragraph 11: canonical loaded source.
+▌
+▌
+▌─────────────────────────────────── Agent · 18:43:02 ───────────────────────────────────
+▌NATIVE_RESPONSE_1
+▌
+FIRST_FRAMES session-2 [('session-2', 2368, True, False, 21, 43), ('session-2', 2368, True, False, 21, 43), ('session-2', 2368, True, False, 21, 43)]
+RETURN_GEOMETRY session-2 21 43 [('TranscriptPageView', Size(width=89, height=70), Size(width=89, height=70), True), ('TranscriptFragmentView', Size(width=89, height=3), Size(width=0, height=0), True), ('TranscriptFragmentView', Size(width=89, height=14), Size(width=89, height=14), True), ('TranscriptFragmentView', Size(width=89, height=12), Size(width=89, height=12), True), ('TranscriptFragmentView', Size(width=89, height=2), Size(width=89, height=2), True), ('TranscriptFragmentView', Size(width=89, height=4), Size(width=89, height=4), True), ('AgentResponse', Size(width=88, height=3), Size(width=88, height=3), True), ('TranscriptFragmentView', Size(width=89, height=3), Size(width=89, height=3), True), ('TranscriptFragmentView', Size(width=89, height=14), Size(width=89, height=14), True), ('TranscriptFragmentView', Size(width=89, height=12), Size(width=89, height=12), True), ('TranscriptFragmentView', Size(width=89, height=2), Size(width=89, height=2), True), ('TranscriptFragmentView', Size(width=89, height=4), Size(width=89, height=4), True), ('AgentResponse', Size(width=88, height=3), Size(width=88, height=3), True)] REUSE 10 PAINT ▌▊  gamma saved reader paragraph 7: canonical loaded source.
+▌▊
+▌▊  gamma saved reader paragraph 8: canonical loaded source.
+▌▊
+▌▊  gamma saved reader paragraph 9: canonical loaded source.
+▌▊
+▌▊  gamma saved reader paragraph 10: canonical loaded source.
+▌
+▌▊  gamma saved reader paragraph 11: canonical loaded source.
+▌
+▌
+▌─────────────────────────────────── Agent · 18:43:19 ───────────────────────────────────
+▌NATIVE_RESPONSE_3
+▌
+▌▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔
+▌  ▶ Agent coordination context
+▌
+▌
+▌─────────────────────────────────── User · 18:43:25 ────────────────────────────────────
+▌▊❯ CACHE_GAMMA_1
+▌▊
+▌▊  gamma saved reader paragraph 0: canonical loaded source.
+▌▊
+▌▊  gamma saved reader paragraph 1: canonical loaded source.
+▌▊
+▌▊  gamma saved reader paragraph 2: canonical loaded source.
+▌▊
+FIRST_FRAMES session-1 [('session-1', 2367, True, False, 5, 91), ('session-1', 2367, True, False, 5, 91), ('session-1', 2367, True, False, 5, 91)]
+RETURN_GEOMETRY session-1 5 91 [('TranscriptPageView', Size(width=89, height=53), Size(width=89, height=53), True), ('TranscriptFragmentView', Size(width=89, height=12), Size(width=0, height=0), True), ('TranscriptFragmentView', Size(width=89, height=2), Size(width=0, height=0), True), ('TranscriptFragmentView', Size(width=89, height=4), Size(width=0, height=0), True), ('AgentResponse', Size(width=88, height=3), Size(width=0, height=0), True), ('TranscriptFragmentView', Size(width=89, height=3), Size(width=0, height=0), True), ('TranscriptFragmentView', Size(width=89, height=14), Size(width=89, height=14), True), ('TranscriptFragmentView', Size(width=89, height=12), Size(width=89, height=12), True), ('TranscriptFragmentView', Size(width=89, height=2), Size(width=89, height=2), True), ('TranscriptFragmentView', Size(width=89, height=4), Size(width=89, height=4), True), ('AgentResponse', Size(width=88, height=3), Size(width=88, height=3), True)] REUSE 8 PAINT ▌▊
+▌▊  beta saved reader paragraph 1: canonical loaded source.
+▌▊
+▌▊  beta saved reader paragraph 2: canonical loaded source.
+▌▊
+▌▊  beta saved reader paragraph 3: canonical loaded source.
+▌▊
+▌▊  beta saved reader paragraph 4: canonical loaded source.
+▌▊
+▌▊  beta saved reader paragraph 5: canonical loaded source.
+▌▊
+▌▊  beta saved reader paragraph 6: canonical loaded source.
+▌▊
+▌▊  beta saved reader paragraph 7: canonical loaded source.
+▌▊
+▌▊  beta saved reader paragraph 8: canonical loaded source.
+▌▊
+▌▊  beta saved reader paragraph 9: canonical loaded source.
+▌▊
+▌▊  beta saved reader paragraph 10: canonical loaded source.
+▌▊
+▌▊  beta saved reader paragraph 11: canonical loaded source.
+▌
+▌
+▌─────────────────────────────────── Agent · 18:43:02 ───────────────────────────────────
+▌NATIVE_RESPONSE_1
+▌
+FIRST_FRAMES session-2 [('session-2', 2368, True, False, 21, 43), ('session-2', 2368, True, False, 21, 43), ('session-2', 2368, True, False, 21, 43)]
+RETURN_GEOMETRY session-2 21 43 [('TranscriptPageView', Size(width=89, height=70), Size(width=89, height=70), True), ('TranscriptFragmentView', Size(width=89, height=3), Size(width=0, height=0), True), ('TranscriptFragmentView', Size(width=89, height=14), Size(width=89, height=14), True), ('TranscriptFragmentView', Size(width=89, height=12), Size(width=89, height=12), True), ('TranscriptFragmentView', Size(width=89, height=2), Size(width=89, height=2), True), ('TranscriptFragmentView', Size(width=89, height=4), Size(width=89, height=4), True), ('AgentResponse', Size(width=88, height=3), Size(width=88, height=3), True), ('TranscriptFragmentView', Size(width=89, height=3), Size(width=89, height=3), True), ('TranscriptFragmentView', Size(width=89, height=14), Size(width=89, height=14), True), ('TranscriptFragmentView', Size(width=89, height=12), Size(width=89, height=12), True), ('TranscriptFragmentView', Size(width=89, height=2), Size(width=89, height=2), True), ('TranscriptFragmentView', Size(width=89, height=4), Size(width=89, height=4), True), ('AgentResponse', Size(width=88, height=3), Size(width=88, height=3), True)] REUSE 10 PAINT ▌▊  gamma saved reader paragraph 7: canonical loaded source.
+▌▊
+▌▊  gamma saved reader paragraph 8: canonical loaded source.
+▌▊
+▌▊  gamma saved reader paragraph 9: canonical loaded source.
+▌▊
+▌▊  gamma saved reader paragraph 10: canonical loaded source.
+▌
+▌▊  gamma saved reader paragraph 11: canonical loaded source.
+▌
+▌
+▌─────────────────────────────────── Agent · 18:43:19 ───────────────────────────────────
+▌NATIVE_RESPONSE_3
+▌
+▌▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔
+▌  ▶ Agent coordination context
+▌
+▌
+▌─────────────────────────────────── User · 18:43:25 ────────────────────────────────────
+▌▊❯ CACHE_GAMMA_1
+▌▊
+▌▊  gamma saved reader paragraph 0: canonical loaded source.
+▌▊
+▌▊  gamma saved reader paragraph 1: canonical loaded source.
+▌▊
+▌▊  gamma saved reader paragraph 2: canonical loaded source.
+▌▊
+FIRST_FRAMES session-1 [('session-1', 2367, True, False, 5, 91), ('session-1', 2367, True, False, 5, 91), ('session-1', 2367, True, False, 5, 91)]
+RETURN_GEOMETRY session-1 5 91 [('TranscriptPageView', Size(width=89, height=53), Size(width=89, height=53), True), ('TranscriptFragmentView', Size(width=89, height=12), Size(width=0, height=0), True), ('TranscriptFragmentView', Size(width=89, height=2), Size(width=0, height=0), True), ('TranscriptFragmentView', Size(width=89, height=4), Size(width=0, height=0), True), ('AgentResponse', Size(width=88, height=3), Size(width=0, height=0), True), ('TranscriptFragmentView', Size(width=89, height=3), Size(width=0, height=0), True), ('TranscriptFragmentView', Size(width=89, height=14), Size(width=89, height=14), True), ('TranscriptFragmentView', Size(width=89, height=12), Size(width=89, height=12), True), ('TranscriptFragmentView', Size(width=89, height=2), Size(width=89, height=2), True), ('TranscriptFragmentView', Size(width=89, height=4), Size(width=89, height=4), True), ('AgentResponse', Size(width=88, height=3), Size(width=88, height=3), True)] REUSE 8 PAINT ▌▊
+▌▊  beta saved reader paragraph 1: canonical loaded source.
+▌▊
+▌▊  beta saved reader paragraph 2: canonical loaded source.
+▌▊
+▌▊  beta saved reader paragraph 3: canonical loaded source.
+▌▊
+▌▊  beta saved reader paragraph 4: canonical loaded source.
+▌▊
+▌▊  beta saved reader paragraph 5: canonical loaded source.
+▌▊
+▌▊  beta saved reader paragraph 6: canonical loaded source.
+▌▊
+▌▊  beta saved reader paragraph 7: canonical loaded source.
+▌▊
+▌▊  beta saved reader paragraph 8: canonical loaded source.
+▌▊
+▌▊  beta saved reader paragraph 9: canonical loaded source.
+▌▊
+▌▊  beta saved reader paragraph 10: canonical loaded source.
+▌▊
+▌▊  beta saved reader paragraph 11: canonical loaded source.
+▌
+▌
+▌─────────────────────────────────── Agent · 18:43:02 ───────────────────────────────────
+▌NATIVE_RESPONSE_1
+▌
+ACTIVE_RETURN_MS 1679.6
+ACTIVE_FIRST_FRAME ▌▊  gamma saved reader paragraph 7: canonical loaded source.
+▌▊
+▌▊  gamma saved reader paragraph 8: canonical loaded source.
+▌▊
+▌▊  gamma saved reader paragraph 9: canonical loaded source.
+▌▊
+▌▊  gamma saved reader paragraph 10: canonical loaded source.
+▌                                                               ▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▎
+                                                               │▊ ❯ draft-session-2                                                                         ▎
+40% ───────────────────────────────────────●────────────────   │▊▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▎
+  ──>   Float                                                  │  selected-offline/fixture · off  ~/wt/…/l0a-native-gwa56g23/project            0.1K (0.3%)
+⏎ Send ⇧+⏎ Line ^g IRC view ^s Channels                                                                                                             ▏^p palette
+TWO_LOADED_NATIVE_ABABA_FULL_PAINT_READER_EDITOR_UNDO_CUSTODY_NO_REPLAY [{'source': 'session-1', 'return_painted_ms': 285.35364000708796, 'click_completed_ms': 386.58823500736617, 'selection_to_paint_ms': 84.01640702504665, 'phases_ms': {'viewport_suspend_source': 0.020789011614397168, 'native_retire': 0.2671570109669119, 'retire_presentation': 0.9413149964530021, 'chrome_select': 0.44623701251111925, 'preparation_submit': 5.695529020158574, 'transcript_snapshot': 0.09324701386503875, 'goal_read': 34.71395198721439, 'native_activate': 30.43456800514832, 'prepare_presentation': 30.48072598176077, 'native_page_read': 19.11413299967535}, 'first_paint_trace': [{'phase': 'viewport_suspend_source', 'start_ms': 22.343437012750655, 'end_ms': 22.364226024365053}, {'phase': 'native_retire', 'start_ms': 22.325272002490237, 'end_ms': 22.59242901345715}, {'phase': 'retire_presentation', 'start_ms': 21.653478004736826, 'end_ms': 22.594793001189828}, {'phase': 'chrome_select', 'start_ms': 22.66566699836403, 'end_ms': 23.11190401087515}, {'phase': 'preparation_submit', 'start_ms': 43.64353499840945, 'end_ms': 48.64705202635378}, {'phase': 'transcript_snapshot', 'start_ms': 50.98613700829446, 'end_ms': 51.040781021583825}, {'phase': 'goal_read', 'start_ms': 27.237687027081847, 'end_ms': 52.82122700009495}, {'phase': 'native_activate', 'start_ms': 23.119809018680826, 'end_ms': 53.55437702382915}, {'phase': 'prepare_presentation', 'start_ms': 23.11515001929365, 'end_ms': 53.59587600105442}, {'phase': 'compositor_reflow', 'start_ms': 57.440315023995936, 'end_ms': 62.91827201494016}, {'phase': 'screen_layout', 'start_ms': 57.32804202125408, 'end_ms': 63.89372202102095}, {'phase': 'styled_strip_miss', 'start_ms': 77.61271501658484, 'end_ms': 77.66477399854921}, {'phase': 'widget_rasterize', 'start_ms': 78.13196899951436, 'end_ms': 78.34765801089816}, {'phase': 'styled_strip_miss', 'start_ms': 78.11521799885668, 'end_ms': 78.37317700614221}, {'phase': 'widget_rasterize', 'start_ms': 78.4333310148213, 'end_ms': 78.53005401557311}, {'phase': 'styled_strip_miss', 'start_ms': 78.42289100517519, 'end_ms': 78.53953199810348}, {'phase': 'widget_rasterize', 'start_ms': 78.59079900663346, 'end_ms': 78.67850601905957}, {'phase': 'styled_strip_miss', 'start_ms': 78.58252400183119, 'end_ms': 78.68753300863318}, {'phase': 'widget_rasterize', 'start_ms': 78.73754799948074, 'end_ms': 78.82263901410624}, {'phase': 'styled_strip_miss', 'start_ms': 78.72956202481873, 'end_ms': 78.8311850046739}, {'phase': 'widget_rasterize', 'start_ms': 78.88110002386384, 'end_ms': 78.9650290098507}, {'phase': 'styled_strip_miss', 'start_ms': 78.87287400080822, 'end_ms': 78.97341501666233}, {'phase': 'widget_rasterize', 'start_ms': 79.02299900888465, 'end_ms': 79.065880010603}, {'phase': 'styled_strip_miss', 'start_ms': 79.01478302665055, 'end_ms': 79.0738350187894}, {'phase': 'styled_strip_miss', 'start_ms': 80.19380900077522, 'end_ms': 80.6017320137471}, {'phase': 'widget_rasterize', 'start_ms': 80.66870900802314, 'end_ms': 80.77191500342451}, {'phase': 'styled_strip_miss', 'start_ms': 80.65969200106338, 'end_ms': 80.7831870042719}, {'phase': 'styled_strip_miss', 'start_ms': 80.8335620095022, 'end_ms': 80.86030301637948}, {'phase': 'widget_rasterize', 'start_ms': 80.90277301380411, 'end_ms': 80.940615007421}, {'phase': 'styled_strip_miss', 'start_ms': 80.89465802186169, 'end_ms': 80.9580180211924}, {'phase': 'styled_strip_miss', 'start_ms': 81.03021502029151, 'end_ms': 81.05163602158427}, {'phase': 'widget_rasterize', 'start_ms': 81.7900360270869, 'end_ms': 81.88322201021947}, {'phase': 'styled_strip_miss', 'start_ms': 81.78165002027526, 'end_ms': 81.89579600002617}, {'phase': 'widget_rasterize', 'start_ms': 81.96591900195926, 'end_ms': 82.02786699985154}, {'phase': 'styled_strip_miss', 'start_ms': 81.95766300195828, 'end_ms': 82.03724402119406}, {'phase': 'widget_rasterize', 'start_ms': 82.08766000461765, 'end_ms': 82.12418900802732}, {'phase': 'styled_strip_miss', 'start_ms': 82.07859302638099, 'end_ms': 82.13199401507154}, {'phase': 'compositor_render_update', 'start_ms': 76.01949400850572, 'end_ms': 83.9047150220722}, {'phase': 'display', 'start_ms': 83.90684900223278, 'end_ms': 84.01640702504665}], 'completed_frame_sequence': [{'reader': True, 'response': True, 'other_source': False, 'loading': False, 'blank': False, 'length': 2367, 'reader_y': 5, 'maximum_y': 91}, {'reader': True, 'response': True, 'other_source': False, 'loading': False, 'blank': False, 'length': 2367, 'reader_y': 5, 'maximum_y': 91}, {'reader': True, 'response': True, 'other_source': False, 'loading': False, 'blank': False, 'length': 2367, 'reader_y': 5, 'maximum_y': 91}], 'fixture_total_ms': 946.0264579975046, 'reader_y': 5, 'cache_hits': 2, 'cache_misses': 0, 'mounted_response_bodies': 1, 'reused_body_instances': 1, 'reused_outer_history': True, 'reused_page_instances': 1, 'retained_body_evictions': 0, 'warm_bodies': 10, 'prepared_bytes': 126115}, {'source': 'session-2', 'return_painted_ms': 241.16128598689102, 'click_completed_ms': 307.02754700905643, 'selection_to_paint_ms': 81.56504898215644, 'phases_ms': {'viewport_suspend_source': 0.025387998903170228, 'native_retire': 0.2131850051227957, 'retire_presentation': 0.8713020069990307, 'chrome_select': 0.3025640035048127, 'preparation_submit': 5.702634021872655, 'transcript_snapshot': 0.08487002924084663, 'goal_read': 17.582289001438767, 'native_activate': 22.04381799674593, 'prepare_presentation': 22.084876021835953, 'native_page_read': 17.58802999393083}, 'first_paint_trace': [{'phase': 'viewport_suspend_source', 'start_ms': 18.68598099099472, 'end_ms': 18.711368989897892}, {'phase': 'native_retire', 'start_ms': 18.67072199820541, 'end_ms': 18.883907003328204}, {'phase': 'retire_presentation', 'start_ms': 18.014106986811385, 'end_ms': 18.885408993810415}, {'phase': 'chrome_select', 'start_ms': 18.935012980364263, 'end_ms': 19.237576983869076}, {'phase': 'preparation_submit', 'start_ms': 30.097598995780572, 'end_ms': 35.582709999289364}, {'phase': 'transcript_snapshot', 'start_ms': 37.1707409794908, 'end_ms': 37.22727799322456}, {'phase': 'goal_read', 'start_ms': 22.904629993718117, 'end_ms': 40.486918995156884}, {'phase': 'native_activate', 'start_ms': 19.244349998189136, 'end_ms': 41.288167994935066}, {'phase': 'prepare_presentation', 'start_ms': 19.240492983954027, 'end_ms': 41.32536900578998}, {'phase': 'compositor_reflow', 'start_ms': 45.17560900421813, 'end_ms': 52.05594497965649}, {'phase': 'screen_layout', 'start_ms': 45.14680500142276, 'end_ms': 53.97032498149201}, {'phase': 'styled_strip_miss', 'start_ms': 75.94604400219396, 'end_ms': 75.99692099029198}, {'phase': 'styled_strip_miss', 'start_ms': 77.20165498903953, 'end_ms': 77.59047200670466}, {'phase': 'widget_rasterize', 'start_ms': 77.6550050068181, 'end_ms': 77.78831798350438}, {'phase': 'styled_strip_miss', 'start_ms': 77.64522600336932, 'end_ms': 77.79954900615849}, {'phase': 'styled_strip_miss', 'start_ms': 77.84272098797373, 'end_ms': 77.86734699038789}, {'phase': 'widget_rasterize', 'start_ms': 77.90827497956343, 'end_ms': 77.95003399951383}, {'phase': 'styled_strip_miss', 'start_ms': 77.89976900676265, 'end_ms': 77.96687597874552}, {'phase': 'styled_strip_miss', 'start_ms': 78.03698899806477, 'end_ms': 78.05740798357874}, {'phase': 'widget_rasterize', 'start_ms': 78.78927499405108, 'end_ms': 78.88424600241706}, {'phase': 'styled_strip_miss', 'start_ms': 78.78019800409675, 'end_ms': 78.89737997902557}, {'phase': 'compositor_render_update', 'start_ms': 74.29608597885817, 'end_ms': 81.47433699923567}, {'phase': 'display', 'start_ms': 81.47652097977698, 'end_ms': 81.56504898215644}], 'completed_frame_sequence': [{'reader': True, 'response': True, 'other_source': False, 'loading': False, 'blank': False, 'length': 2368, 'reader_y': 21, 'maximum_y': 43}, {'reader': True, 'response': True, 'other_source': False, 'loading': False, 'blank': False, 'length': 2368, 'reader_y': 21, 'maximum_y': 43}, {'reader': True, 'response': True, 'other_source': False, 'loading': False, 'blank': False, 'length': 2368, 'reader_y': 21, 'maximum_y': 43}], 'fixture_total_ms': 852.4123920069542, 'reader_y': 21, 'cache_hits': 2, 'cache_misses': 0, 'mounted_response_bodies': 1, 'reused_body_instances': 1, 'reused_outer_history': True, 'reused_page_instances': 1, 'retained_body_evictions': 0, 'warm_bodies': 12, 'prepared_bytes': 126115}, {'source': 'session-1', 'return_painted_ms': 238.18399000447243, 'click_completed_ms': 329.28988902131096, 'selection_to_paint_ms': 77.72053900407627, 'phases_ms': {'viewport_suspend_source': 0.014798017218708992, 'native_retire': 0.18883799202740192, 'retire_presentation': 0.9252240124624223, 'chrome_select': 0.32480599475093186, 'preparation_submit': 6.742254015989602, 'transcript_snapshot': 0.07418100722134113, 'goal_read': 19.62317799916491, 'native_activate': 23.656086006667465, 'prepare_presentation': 23.691092006629333, 'native_page_read': 21.531136007979512}, 'first_paint_trace': [{'phase': 'viewport_suspend_source', 'start_ms': 18.105380004271865, 'end_ms': 18.120178021490574}, {'phase': 'native_retire', 'start_ms': 18.09260601294227, 'end_ms': 18.28144400496967}, {'phase': 'retire_presentation', 'start_ms': 17.3576730012428, 'end_ms': 18.282897013705224}, {'phase': 'chrome_select', 'start_ms': 18.326640012674034, 'end_ms': 18.651446007424966}, {'phase': 'preparation_submit', 'start_ms': 29.259850998641923, 'end_ms': 35.48092700657435}, {'phase': 'transcript_snapshot', 'start_ms': 37.0040750131011, 'end_ms': 37.02872199937701}, {'phase': 'goal_read', 'start_ms': 21.999655000399798, 'end_ms': 41.62283299956471}, {'phase': 'native_activate', 'start_ms': 18.65754701429978, 'end_ms': 42.313633020967245}, {'phase': 'prepare_presentation', 'start_ms': 18.653740000445396, 'end_ms': 42.34483200707473}, {'phase': 'compositor_reflow', 'start_ms': 46.115932025713846, 'end_ms': 50.3622840042226}, {'phase': 'screen_layout', 'start_ms': 46.0875480202958, 'end_ms': 51.97421999764629}, {'phase': 'styled_strip_miss', 'start_ms': 72.67031300580129, 'end_ms': 72.72290301625617}, {'phase': 'styled_strip_miss', 'start_ms': 73.98307201219723, 'end_ms': 74.3984300061129}, {'phase': 'widget_rasterize', 'start_ms': 74.46451499708928, 'end_ms': 74.5931190031115}, {'phase': 'styled_strip_miss', 'start_ms': 74.45375501993112, 'end_ms': 74.6047310240101}, {'phase': 'styled_strip_miss', 'start_ms': 74.64734200038947, 'end_ms': 74.67674699728377}, {'phase': 'widget_rasterize', 'start_ms': 74.7180960024707, 'end_ms': 74.75861301645637}, {'phase': 'styled_strip_miss', 'start_ms': 74.71014102338813, 'end_ms': 74.77628599735908}, {'phase': 'styled_strip_miss', 'start_ms': 74.85102801001631, 'end_ms': 74.87280902569182}, {'phase': 'widget_rasterize', 'start_ms': 75.63760899938643, 'end_ms': 75.73515400872566}, {'phase': 'styled_strip_miss', 'start_ms': 75.62811102252454, 'end_ms': 75.74830899829976}, {'phase': 'compositor_render_update', 'start_ms': 71.03928001015447, 'end_ms': 77.62188202468678}, {'phase': 'display', 'start_ms': 77.62436699704267, 'end_ms': 77.72053900407627}], 'completed_frame_sequence': [{'reader': True, 'response': True, 'other_source': False, 'loading': False, 'blank': False, 'length': 2367, 'reader_y': 5, 'maximum_y': 91}, {'reader': True, 'response': True, 'other_source': False, 'loading': False, 'blank': False, 'length': 2367, 'reader_y': 5, 'maximum_y': 91}, {'reader': True, 'response': True, 'other_source': False, 'loading': False, 'blank': False, 'length': 2367, 'reader_y': 5, 'maximum_y': 91}], 'fixture_total_ms': 881.3697779842187, 'reader_y': 5, 'cache_hits': 2, 'cache_misses': 0, 'mounted_response_bodies': 1, 'reused_body_instances': 1, 'reused_outer_history': True, 'reused_page_instances': 1, 'retained_body_evictions': 0, 'warm_bodies': 10, 'prepared_bytes': 126115}, {'source': 'session-2', 'return_painted_ms': 245.93784101307392, 'click_completed_ms': 337.3060279991478, 'selection_to_paint_ms': 88.3244150027167, 'phases_ms': {'viewport_suspend_source': 0.018225022358819842, 'native_retire': 0.1978750224225223, 'retire_presentation': 0.8937139937188476, 'chrome_select': 0.599787017563358, 'preparation_submit': 5.337870999937877, 'transcript_snapshot': 0.12754197814501822, 'goal_read': 19.87716997973621, 'native_activate': 24.317639006767422, 'prepare_presentation': 24.366110999835655, 'native_page_read': 16.284757992252707}, 'first_paint_trace': [{'phase': 'viewport_suspend_source', 'start_ms': 19.533347978722304, 'end_ms': 19.551573001081124}, {'phase': 'native_retire', 'start_ms': 19.517477980116382, 'end_ms': 19.715353002538905}, {'phase': 'retire_presentation', 'start_ms': 18.823391990736127, 'end_ms': 19.717105984454975}, {'phase': 'chrome_select', 'start_ms': 19.759055983740836, 'end_ms': 20.358843001304194}, {'phase': 'preparation_submit', 'start_ms': 33.3704249933362, 'end_ms': 38.46326199709438}, {'phase': 'transcript_snapshot', 'start_ms': 39.67592099797912, 'end_ms': 39.72396199242212}, {'phase': 'goal_read', 'start_ms': 23.873297002865, 'end_ms': 43.75046698260121}, {'phase': 'native_activate', 'start_ms': 20.367990975501016, 'end_ms': 44.68562998226844}, {'phase': 'prepare_presentation', 'start_ms': 20.362710987683386, 'end_ms': 44.72882198751904}, {'phase': 'compositor_reflow', 'start_ms': 49.207764997845516, 'end_ms': 54.62273198645562}, {'phase': 'screen_layout', 'start_ms': 49.17847897741012, 'end_ms': 56.59482200280763}, {'phase': 'styled_strip_miss', 'start_ms': 81.53835797565989, 'end_ms': 81.58906397875398}, {'phase': 'styled_strip_miss', 'start_ms': 82.80168299097568, 'end_ms': 83.19926698459312}, {'phase': 'widget_rasterize', 'start_ms': 83.26436099014245, 'end_ms': 83.40963599039242}, {'phase': 'styled_strip_miss', 'start_ms': 83.2545220036991, 'end_ms': 83.42551600071602}, {'phase': 'styled_strip_miss', 'start_ms': 83.48671198473312, 'end_ms': 83.5227310017217}, {'phase': 'widget_rasterize', 'start_ms': 83.58611099538393, 'end_ms': 83.6464649764821}, {'phase': 'styled_strip_miss', 'start_ms': 83.57336698099971, 'end_ms': 83.67252498283051}, {'phase': 'styled_strip_miss', 'start_ms': 83.77895600278862, 'end_ms': 83.80933399894275}, {'phase': 'widget_rasterize', 'start_ms': 84.8323339887429, 'end_ms': 84.93293498759158}, {'phase': 'styled_strip_miss', 'start_ms': 84.8223950015381, 'end_ms': 84.9474519782234}, {'phase': 'compositor_render_update', 'start_ms': 79.31955097592436, 'end_ms': 88.22013798635453}, {'phase': 'display', 'start_ms': 88.22279298328795, 'end_ms': 88.3244150027167}], 'completed_frame_sequence': [{'reader': True, 'response': True, 'other_source': False, 'loading': False, 'blank': False, 'length': 2368, 'reader_y': 21, 'maximum_y': 43}, {'reader': True, 'response': True, 'other_source': False, 'loading': False, 'blank': False, 'length': 2368, 'reader_y': 21, 'maximum_y': 43}, {'reader': True, 'response': True, 'other_source': False, 'loading': False, 'blank': False, 'length': 2368, 'reader_y': 21, 'maximum_y': 43}], 'fixture_total_ms': 896.6469749866519, 'reader_y': 21, 'cache_hits': 2, 'cache_misses': 0, 'mounted_response_bodies': 1, 'reused_body_instances': 1, 'reused_outer_history': True, 'reused_page_instances': 1, 'retained_body_evictions': 0, 'warm_bodies': 12, 'prepared_bytes': 126115}, {'source': 'session-1', 'return_painted_ms': 310.5291360116098, 'click_completed_ms': 377.3538940004073, 'selection_to_paint_ms': 89.09052799572237, 'phases_ms': {'goal_read': 25.654764991486445, 'viewport_suspend_source': 0.03498699516057968, 'native_retire': 0.31778300763107836, 'retire_presentation': 1.4339989866130054, 'chrome_select': 0.6844380113761872, 'preparation_submit': 2.696121984627098, 'transcript_snapshot': 0.06387001485563815, 'native_activate': 25.779500982025638, 'prepare_presentation': 25.815710017923266, 'native_page_read': 11.357043986208737}, 'first_paint_trace': [{'phase': 'viewport_suspend_source', 'start_ms': 27.280045993393287, 'end_ms': 27.315032988553867}, {'phase': 'native_retire', 'start_ms': 27.257302979705855, 'end_ms': 27.575085987336934}, {'phase': 'retire_presentation', 'start_ms': 26.14401199389249, 'end_ms': 27.578010980505496}, {'phase': 'chrome_select', 'start_ms': 27.6707669836469, 'end_ms': 28.355204995023087}, {'phase': 'preparation_submit', 'start_ms': 44.29118198459037, 'end_ms': 46.55393198481761}, {'phase': 'transcript_snapshot', 'start_ms': 50.55477897985838, 'end_ms': 50.58356298832223}, {'phase': 'goal_read', 'start_ms': 35.8381439873483, 'end_ms': 53.45409599249251}, {'phase': 'native_activate', 'start_ms': 28.364603000227362, 'end_ms': 54.144103982253}, {'phase': 'prepare_presentation', 'start_ms': 28.358861978631467, 'end_ms': 54.17457199655473}, {'phase': 'compositor_reflow', 'start_ms': 58.00470398389734, 'end_ms': 62.23575698095374}, {'phase': 'screen_layout', 'start_ms': 57.97629099106416, 'end_ms': 63.79634598852135}, {'phase': 'styled_strip_miss', 'start_ms': 83.98477599257603, 'end_ms': 84.0376669948455}, {'phase': 'styled_strip_miss', 'start_ms': 85.35151797696017, 'end_ms': 85.75613499851897}, {'phase': 'widget_rasterize', 'start_ms': 85.82524600205943, 'end_ms': 85.95696598058566}, {'phase': 'styled_strip_miss', 'start_ms': 85.8153369918, 'end_ms': 85.96845797728747}, {'phase': 'styled_strip_miss', 'start_ms': 86.01260097930208, 'end_ms': 86.03807998588309}, {'phase': 'widget_rasterize', 'start_ms': 86.07843599747866, 'end_ms': 86.12158798496239}, {'phase': 'styled_strip_miss', 'start_ms': 86.07063099043444, 'end_ms': 86.13888098625466}, {'phase': 'styled_strip_miss', 'start_ms': 86.21046697953716, 'end_ms': 86.23142598662525}, {'phase': 'widget_rasterize', 'start_ms': 86.99890098068863, 'end_ms': 87.09605599869974}, {'phase': 'styled_strip_miss', 'start_ms': 86.99036500183865, 'end_ms': 87.10977199370973}, {'phase': 'compositor_render_update', 'start_ms': 82.27833098499104, 'end_ms': 88.99758098414168}, {'phase': 'display', 'start_ms': 88.99933498469181, 'end_ms': 89.09052799572237}], 'completed_frame_sequence': [{'reader': True, 'response': True, 'other_source': False, 'loading': False, 'blank': False, 'length': 2367, 'reader_y': 5, 'maximum_y': 91}, {'reader': True, 'response': True, 'other_source': False, 'loading': False, 'blank': False, 'length': 2367, 'reader_y': 5, 'maximum_y': 91}, {'reader': True, 'response': True, 'other_source': False, 'loading': False, 'blank': False, 'length': 2367, 'reader_y': 5, 'maximum_y': 91}], 'fixture_total_ms': 920.7856240100227, 'reader_y': 5, 'cache_hits': 2, 'cache_misses': 0, 'mounted_response_bodies': 1, 'reused_body_instances': 1, 'reused_outer_history': True, 'reused_page_instances': 1, 'retained_body_evictions': 0, 'warm_bodies': 10, 'prepared_bytes': 126115}]
