@@ -194,6 +194,9 @@ class MainScreen(SessionView, NavigationOwner, can_focus=False):
             await sidebar.retire_presentation()
         await self.presentation.retire(self)
 
+    def retained_native_presentations(self):
+        return ((self, self.presentation),) if self.presentation.widget is not None else ()
+
     def watch_title(self, title: str) -> None:
         self.app.terminal_attention.update()
 

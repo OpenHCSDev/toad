@@ -611,25 +611,6 @@ class ConversationSessionBinding(containers.Vertical):
         )
 
 
-    async def bind_native_session(self, screen) -> None:
-        """Reset values from their declarations, then bind the existing source config."""
-        for name, declaration in ConversationSessionBinding._reactives.items():
-            if name in ConversationSessionBinding.__dict__:
-                self.set_reactive(declaration, declaration._default_value(self))
-        self._initialize_session(screen.project_path, screen._agent,
-                                 screen._agent_session_id, screen._session_pk,
-                                 screen._agent_session_title, screen._initial_prompt)
-        await self.contents.mount(*ThreadLoading.initial_contents(self._agent_data))
-        # Refresh cwd-bound editor projections, without replaying semantic
-        # history-navigation watchers against the restored document.
-        self.mutate_reactive(ConversationSessionBinding.project_path)
-        self.mutate_reactive(ConversationSessionBinding.working_directory)
-        self.column = screen.column
-        self.prompt.slash_commands = CommandCatalog(
-            self.agent_slash_commands, self.command_target_context()).commands
-        self.query_one(GoalBar).watch_goal_display()
-        self.window.anchor()
-
     async def present_retained_native_session(self) -> None:
         """Bring a returning native source into the atomic first frame."""
         agent = self.agent

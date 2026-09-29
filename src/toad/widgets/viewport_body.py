@@ -6,7 +6,6 @@ The window owns admission; documents implement their own retirement/restoration.
 """
 
 from collections import OrderedDict
-from dataclasses import dataclass
 from functools import partial
 from weakref import WeakSet, ref
 from time import monotonic
@@ -38,16 +37,6 @@ class ViewportBody:
 
     async def restore_body(self) -> None:
         raise NotImplementedError
-
-    def matches_retained(self, identity) -> bool:
-        return False
-
-    @property
-    def retained_key(self):
-        return ref(self)
-
-    def park_body(self, shelf: Widget) -> bool:
-        return False
 
     @property
     def retained_source_bytes(self) -> int:
@@ -96,30 +85,6 @@ class MeasuredViewportBody(ViewportBody):
         return height
 
 
-class RetainedBodyShelf(Widget):
-    """Placement for the existing viewport's bounded warm bodies, never a tab."""
-
-    DEFAULT_CSS = "RetainedBodyShelf { display: none; }"
-
-    async def acquire(self, window: Widget) -> None:
-        if not self.is_mounted:
-            # The workspace frame outlives source placement. Parked bodies must
-            # not join the active Conversation's reparent/style traversal on
-            # every tab return; their actual destination styles are reconciled
-            # when the same bodies are admitted back into a history page.
-            await window.screen.mount(self)
-
-
-@dataclass(frozen=True)
-class RetainedHistoryKey:
-    """The existing viewport's mounted source, bounded with its warm bodies."""
-
-    agent: object
-    project: str
-    watcher: object
-    directory_revision: int
-
-
 class ViewportPresentation:
     """Own the selected screen's window membership and paint preparation."""
 
@@ -160,12 +125,16 @@ class ViewportPresentation:
         # Visible source bodies must be ready on every frame, including rapid
         # PageDown/End frames outside a session activation.
         for window in self.windows:
+            if window.document_viewport._suspended:
+                continue
             if not window.document_viewport.visible_bodies_ready:
                 window.document_viewport.request()
                 screen._repaint_required = True
                 return False
         changed = False
         for window in self.windows:
+            if window.document_viewport._suspended:
+                continue
             changed |= window.check_follow()
         if changed:
             # Native UpdateScroll owns reflow; do not reenter layout or paint stale geometry.
@@ -196,8 +165,6 @@ class DocumentViewport:
         self._window = ref(window)
         self.owners = WeakSet()
         self._warm = OrderedDict()
-        self._shelf = RetainedBodyShelf()
-        self.reuse_hits = 0
         self.body_evictions = 0
         self._pending = False
         self._running = False
@@ -223,83 +190,6 @@ class DocumentViewport:
     def discard(self, owner: ViewportBody) -> None:
         self.owners.discard(owner)
         self._warm.pop(ref(owner), None)
-        key = owner.retained_key
-        retained = self._warm.get(key)
-        if retained is not None and retained() is owner:
-            self._warm.pop(key)
-
-    def claim_retained(self, identity):
-        retained = self._warm.get(identity)
-        owner = retained() if retained is not None else None
-        parked = (owner is not None and (owner.parent is self._shelf
-                  or owner.parent is not None and owner.parent.parent is self._shelf))
-        if parked and owner.matches_retained(identity):
-            self._warm.pop(identity)
-            self.reuse_hits += 1
-            return owner
-        return None
-
-    def claim_retained_page(self, page, view):
-        """Transfer a complete admitted page through the same warm-body cache."""
-        from dataclasses import replace
-        from toad.transcript_preparation import CommittedInterval
-
-        if page.start == page.stop:
-            return None
-        interval = CommittedInterval(page.page.before, page.page.after)
-        first = replace(view.fragment_presentation_identity(
-            interval, page.fragments[page.start]), position=page.start)
-        retained = self._warm.get(first)
-        body = retained() if retained is not None else None
-        parked = body.parent if body is not None else None
-        if (parked is None or type(parked) is not type(page) or parked.parent is not self._shelf
-                or parked.start != page.start or parked.stop != page.stop
-                or parked.page != page.page or parked.fragments != page.fragments
-                or parked.visible_categories != page.visible_categories
-                or len(parked.children) != page.stop - page.start):
-            return None
-        for index, child in enumerate(parked.children, page.start):
-            identity = replace(view.fragment_presentation_identity(
-                interval, page.fragments[index]), position=index)
-            key = self._warm.get(identity)
-            if key is None or key() is not child or not child.matches_retained(identity):
-                return None
-        for child in parked.children:
-            self._warm.pop(child.retained_key)
-            key = ref(child)
-            self._warm[key] = key
-            self.reuse_hits += 1
-        return parked
-
-    def claim_retained_history(self, identity: RetainedHistoryKey, contents):
-        from toad.widgets.transcript_history import TranscriptHistory
-
-        retained = self._warm.pop(identity, None)
-        history = retained() if retained is not None else None
-        if (not isinstance(history, TranscriptHistory) or not history.is_attached
-                or history.parent is None or history.parent is self._shelf):
-            return None
-        before = contents.children[0] if contents.children else None
-        history.reparent(contents, before=before)
-        for node in history.walk_children():
-            if isinstance(node, ViewportBody):
-                self.owners.add(node)
-                key = ref(node)
-                self._warm[key] = key
-        for node in history.walk_children(with_self=True):
-            if isinstance(node, TranscriptHistory):
-                self.window.histories.add(node)
-        return history
-
-    def release_retained_page(self, page) -> None:
-        """Return an unadmitted page's bodies to their native lookup keys."""
-        if page.parent is not self._shelf:
-            return
-        for child in page.children:
-            retained = self._warm.pop(ref(child), None)
-            if retained is not None:
-                self._warm[child.retained_key] = retained
-
     async def _trim_warm(self) -> None:
         def source_bytes():
             return sum(owner.retained_source_bytes for key in self._warm.values()
@@ -309,65 +199,8 @@ class DocumentViewport:
                        if (owner := key()) is not None)
         while (source_bytes() > self.window.app.preparation.max_bytes or
                widget_count() > self.budget.widget_limit(self.window.size.height)):
-            _, retained = self._warm.popitem(last=False)
-            owner = retained()
-            parent = owner.parent if owner is not None else None
-            from toad.widgets.transcript_history import TranscriptHistory
-            if isinstance(owner, TranscriptHistory) and parent is not None:
-                self.body_evictions += 1
-                await owner.remove()
-                continue
-            if parent is not None and (parent is self._shelf or parent.parent is self._shelf):
-                self.body_evictions += 1
-                await owner.remove()
-                if parent is not self._shelf and not parent.children:
-                    await parent.remove()
-
-    async def park_source(self, *, retained_history=None, retained_slot=None,
-                          retained_key: RetainedHistoryKey | None = None) -> None:
-        """Move only admitted warm bodies before the source's pager is removed."""
-        await self.suspend_source()
-        histories = tuple(self.window.histories)
-        retain = (retained_history in histories and retained_slot is not None
-                  and retained_key is not None and retained_history.is_attached
-                  and retained_slot.is_attached
-                  and retained_history.retained_source_bytes <= self.window.app.preparation.max_bytes
-                  and 1 + retained_history.widget_count <= self.budget.widget_limit(self.window.size.height))
-        retained_nodes = (set(retained_history.walk_children(with_self=True)) if retain else set())
-        for history in histories:
-            await history.retire_source(parked=history in retained_nodes)
-        await self._trim_warm()
-        await self._shelf.acquire(self.window)
-        if retain:
-            for key, retained in tuple(self._warm.items()):
-                if retained() in retained_nodes:
-                    self._warm.pop(key)
-            for node in retained_nodes:
-                if isinstance(node, ViewportBody):
-                    self.owners.discard(node)
-            retained_history.reparent(retained_slot)
-            self._warm[retained_key] = ref(retained_history)
-            await self._trim_warm()
-            histories = tuple(history for history in histories if history not in retained_nodes)
-        for history in histories:
-            for page in history.pages:
-                children = tuple(page.children)
-                if (children and len(children) == page.stop - page.start
-                        and all(child.retained_key is not None and child.body_ready
-                                and ref(child) in self._warm for child in children)):
-                    page.reparent(self._shelf)
-                    for child in children:
-                        retained = self._warm.pop(ref(child))
-                        self._warm[child.retained_key] = retained
-        from toad.widgets.transcript_history import TranscriptHistory
-        for key, retained in tuple(self._warm.items()):
-            owner = retained()
-            if (owner is not None and not isinstance(owner, TranscriptHistory)
-                    and owner.parent is not self._shelf
-                    and (owner.parent is None or owner.parent.parent is not self._shelf)
-                    and owner.park_body(self._shelf)):
-                self._warm.pop(key)
-                self._warm[owner.retained_key] = retained
+            self._warm.popitem(last=False)
+            self.body_evictions += 1
 
     def request(self, *_args) -> None:
         if self._suspended or not self.window.is_attached or self.window._closing:
@@ -414,20 +247,11 @@ class DocumentViewport:
 
     def resume_source(self) -> None:
         self._suspended = False
-        self.window.layout.clear_cache()
-        self.window.refresh(layout=True)
         self.request()
 
     async def close(self) -> None:
         """Release this working set before its window's final retirement."""
         await self.suspend_source()
-        if self._shelf.is_mounted:
-            await self._shelf.remove()
-        from toad.widgets.transcript_history import TranscriptHistory
-        for retained in tuple(self._warm.values()):
-            owner = retained()
-            if isinstance(owner, TranscriptHistory) and owner.is_attached:
-                await owner.remove()
         self._warm.clear()
         self.owners.clear()
 
@@ -473,7 +297,7 @@ class DocumentViewport:
                 # Reuse the same body admission and worker. Restore only the
                 # neighboring destination bodies, not every skipped record.
                 sequence = [node for node in self.window.walk_children()
-                            if node in self.owners and node.parent is not self._shelf]
+                            if node in self.owners]
                 visible_indexes = [index for index, node in enumerate(sequence) if node in visible]
                 if visible_indexes:
                     ahead = self.lookahead.ahead_rows(self.window.size.height)
@@ -491,8 +315,6 @@ class DocumentViewport:
                 ordered = sorted(owners, key=lambda owner: owner not in visible)
                 for owner in ordered:
                     if not owner.is_attached or owner._closing:
-                        continue
-                    if owner.parent is self._shelf:
                         continue
                     wanted = owner in retained
                     if owner.body_dormant and wanted:

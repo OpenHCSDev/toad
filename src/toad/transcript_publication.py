@@ -65,7 +65,6 @@ class SnapshotPublication(TranscriptPublication):
                 self.window.anchor()
         with view.app.batch_update():
             await self.contents.mount(history)
-            await history.admit_retained_pages()
         if not self.current():
             if history.is_attached:
                 await history.remove()
@@ -415,8 +414,12 @@ class TranscriptPresentation:
             self.request()
 
     async def close(self) -> None:
-        self.invalidate()
         self._view = lambda: None
+        await self.suspend()
+
+    async def suspend(self) -> None:
+        """Revoke in-flight publications while retaining this source's mounted frontier."""
+        self.invalidate()
         worker, self.worker = self.worker, None
         if worker is not None:
             worker.cancel()

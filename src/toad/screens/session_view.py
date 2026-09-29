@@ -63,6 +63,10 @@ class SessionView(SidebarFocusOwner, Vertical):
     async def close_presentation(self) -> None:
         """Views without retained operational sources need no domain finalization."""
 
+    def retained_native_presentations(self):
+        """Declare admitted native trees; non-native views own no such trees."""
+        return ()
+
     async def on_unmount(self) -> None:
         await self.close_presentation()
 

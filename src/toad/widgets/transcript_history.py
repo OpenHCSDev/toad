@@ -204,26 +204,11 @@ class TranscriptFragmentView(MeasuredViewportBody, CategorizedBlock, VerticalGro
         if self._body_viewport is not None:
             self._body_viewport.discard(self)
 
-    def matches_retained(self, identity: FragmentPresentationIdentity) -> bool:
-        return self.identity == identity and self.body_ready
-
-    @property
-    def retained_key(self) -> FragmentPresentationIdentity:
-        return self.identity
-
     @property
     def body_ready(self) -> bool:
         return super().body_ready and all(
             child.body_ready for child in self.walk_children() if isinstance(child, ViewportBody)
         )
-
-    def park_body(self, shelf: Widget) -> bool:
-        if not self.body_ready or self.identity is None:
-            return False
-        if not self.is_attached or self._closing or self._pruning:
-            return False
-        self.reparent(shelf)
-        return True
 
     @property
     def retained_source_bytes(self) -> int:
@@ -324,7 +309,6 @@ class TranscriptPageView(VerticalGroup):
         self.start = max(0, len(self.fragments) - self.batch_size) if newest else 0
         self.stop = min(len(self.fragments), self.start + self.batch_size)
         self.visible_categories = all_categories()
-        self._returning_bodies = []
 
     def _body(self, fragment: TranscriptFragment, position: int) -> TranscriptFragmentView:
         from toad.widgets.conversation import Conversation
@@ -332,37 +316,11 @@ class TranscriptPageView(VerticalGroup):
         identity = replace(view.fragment_presentation_identity(
             CommittedInterval(self.page.before, self.page.after), fragment,
         ), position=position)
-        body = view.window.document_viewport.claim_retained(identity)
-        if body is None:
-            body = TranscriptFragmentView(fragment, self.visible_categories, identity=identity)
-        else:
-            body.set_categories(self.visible_categories)
-        return body
+        return TranscriptFragmentView(fragment, self.visible_categories, identity=identity)
 
     def compose(self) -> ComposeResult:
         for index, fragment in enumerate(self.fragments[self.start:self.stop]):
-            body = self._body(fragment, self.start + index)
-            if body.is_mounted:
-                self._returning_bodies.append((index, body))
-            else:
-                yield body
-
-    async def admit_retained(self) -> None:
-        # Mount handlers run before Textual grants native reparent custody.
-        # The history publication waits here before restoring its reader.
-        await self._mounted_event.wait()
-        for index, body in self._returning_bodies:
-            before = self.children[index] if index < len(self.children) else None
-            await self._admit_body(body, before=before)
-        self._returning_bodies.clear()
-
-    async def _admit_body(self, body: TranscriptFragmentView, *, before=None) -> None:
-        previous = body.parent
-        body.reparent(self, before=before)
-        body._body_viewport.register(body)
-        if (isinstance(previous, TranscriptPageView)
-                and previous.parent is body._body_viewport._shelf and not previous.children):
-            await previous.remove()
+            yield self._body(fragment, self.start + index)
 
     def capture_admission(self) -> TranscriptPageAdmission:
         return TranscriptPageAdmission(
@@ -387,10 +345,7 @@ class TranscriptPageView(VerticalGroup):
         before = self.children[0] if older and self.children else None
         for index in range(start, stop):
             body = self._body(self.fragments[index], index)
-            if body.is_mounted:
-                await self._admit_body(body, before=before)
-            else:
-                await self.mount(body, before=before)
+            await self.mount(body, before=before)
         if older:
             self.start = start
         else:
@@ -416,10 +371,7 @@ class TranscriptPageView(VerticalGroup):
             child = previous.get(index)
             if child is None:
                 body = self._body(fragments[index], index)
-                if body.is_mounted:
-                    await self._admit_body(body)
-                else:
-                    await self.mount(body)
+                await self.mount(body)
             elif child.fragment != fragments[index]:
                 await child.update_fragment(fragments[index])
         self.start, self.stop = start, stop
@@ -445,8 +397,6 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         self.pages = deque([TranscriptPageView(
             page, fragments=fragments, batch_size=self.budget.admission_items,
         )])
-        self._returning_pages = []
-        self._retained_admission = None
         self.older = HistoryEdge("↑ Earlier history loads as you scroll")
         self.older.tooltip = "Click or press Enter to load earlier history, including in In/out only mode"
         self.newer = JumpToLatest("↓ Jump to latest")
@@ -550,44 +500,17 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
 
     def compose(self) -> ComposeResult:
         yield self.older
-        from toad.widgets.conversation import Conversation
-        view = self.query_ancestor(Conversation)
-        pages = deque()
         for page in self.pages:
             page.visible_categories = self.selected_categories
-            retained = view.window.document_viewport.claim_retained_page(page, view)
-            pages.append(retained or page)
-            if retained is None:
-                yield page
-            else:
-                self._returning_pages.append(retained)
-        self.pages = pages
+            yield page
         yield self.newer
 
     async def on_mount(self) -> None:
         from toad.widgets.conversation import Window
         self.window = self.query_ancestor(Window)
-        if self._returning_pages:
-            # Textual marks the history mounted after its Mount callback. Its
-            # retained page can be moved only after that native boundary.
-            self._retained_admission = self.run_worker(self._admit_mounted_history())
-        else:
-            await self._finish_mount()
-
-    async def admit_retained_pages(self) -> None:
-        if self._retained_admission is not None:
-            await self._retained_admission.wait()
-
-    async def _admit_mounted_history(self) -> None:
-        await self._mounted_event.wait()
-        for page in self._returning_pages:
-            page.reparent(self, before=self.newer)
-        self._returning_pages.clear()
         await self._finish_mount()
 
     async def _finish_mount(self) -> None:
-        for page in self.pages:
-            await page.admit_retained()
         self.window.histories.add(self)
         self._report_coverage(self.pages[0].page, self.pages[0].fragments)
         self._update_edges()
@@ -597,9 +520,6 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         self._warm_pages()
 
     def on_unmount(self) -> None:
-        for page in self._returning_pages:
-            self.window.document_viewport.release_retained_page(page)
-        self._returning_pages.clear()
         self._generation += 1
         self._prefetch_intent = None
         self.window.histories.discard(self)
@@ -851,7 +771,6 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
 
                 self.pages = deque([view])
                 await self.mount(view, before=self.newer)
-                await view.admit_retained()
                 self._update_edges()
                 self.call_after_refresh(self._anchor_latest, generation, scroll_revision)
         finally:
@@ -947,7 +866,6 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
                 )
                 view.visible_categories = self.selected_categories
                 await self.mount(view, before=edge if older else self.newer)
-                await view.admit_retained()
                 self._require_publication()
                 protected.update(view.children)
                 protected.add(view)

@@ -75,7 +75,7 @@ class PaintedReturnApp(InstalledApp):
                 window.scroll_y if window is not None else None,
                 window.max_scroll_y if window is not None else None,
                 (label.has_class("-current") if (label := screen.query_one_optional(
-                    f"#{self.expected_source_id}", SessionLabel)) is not None else False),
+                    f"SessionLabel#{self.expected_source_id}", SessionLabel)) is not None else False),
             ))
 
 
@@ -101,18 +101,14 @@ async def click_session(app, pilot, source):
         (source, "prepare_presentation", "prepare_presentation"),
         (native, "retire", "native_retire"),
         (native, "activate", "native_activate"),
-        (viewport, "park_source", "viewport_park_source"),
         (viewport, "suspend_source", "viewport_suspend_source"),
         (conversation, "release_native_session", "conversation_release"),
-        (conversation, "bind_native_session", "conversation_bind"),
         (conversation, "present_retained_native_session", "conversation_present_retained"),
         (Agent, "get_transcript_page", "native_page_read"),
         (GoalObservation, "read", "goal_read"),
         (TranscriptPresentation, "snapshot", "transcript_snapshot"),
         (SnapshotPublication, "publish", "snapshot_publish"),
         (contents, "mount", "contents_mount"),
-        (TranscriptPageView, "admit_retained", "page_admit_retained"),
-        (TranscriptHistory, "admit_retained_pages", "history_admit_retained_pages"),
         (app.preparation, "submit", "preparation_submit"),
     ]
     for owner, method, label in targets:
@@ -225,6 +221,13 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
                 await until(pilot, lambda: not comms.registry.require(name).executing)
                 await until(pilot, lambda: not agent.current_turn.busy)
             comms.goals.update_goal(name, SetGoalAction(text=f"SELECTED_GOAL_{name.upper()}"))
+            # Establish saved publication through its real owner. Retaining an
+            # actual Conversation no longer turns tab navigation into a forced
+            # remount of otherwise below-pressure live response blocks.
+            await until(pilot, lambda: not view.turns.owner.busy)
+            view.transcript.require_checkpoint()
+            await until(pilot, lambda: bool(view.window.histories)
+                        and view.transcript.displayed_cursor is not None)
         # Both now have durable, actually produced native journals. Establish
         # comparable reader/editor state only after ordinary saved publication.
         states = {}
@@ -249,7 +252,7 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
                   "FRAME", "\n".join(strip.text for strip in app.screen._compositor.render_strips()), flush=True)
             print("WINDOW_LAYOUT", [(type(n).__name__, n.display, str(n.styles.height), n.region, n.size, n.virtual_size) for n in view.window.walk_children() if n.parent is view.window or n in view.contents.ancestors_with_self], flush=True)
             print("SOURCE_BODY_CUSTODY", source.id, view.window.scroll_y, view.window.max_scroll_y,
-                  view.window.document_viewport.reuse_hits,
+                  sum(history.fragment_count for history in view.window.histories),
                   [(type(node).__name__, type(node.parent).__name__, node.visible, node.display,
                     node._closing, node._pruning, node.is_running,
                     app.screen._compositor._full_map.get(node))
@@ -306,7 +309,7 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
                               (sources[0], agents[0]), (sources[1], agents[1]), (sources[0], agents[0])):
             before_hits, before_misses = app.preparation.hits, app.preparation.misses
             viewport = app.workspace_chrome.native.widget.window.document_viewport
-            before_reuse, before_evictions = viewport.reuse_hits, viewport.body_evictions
+            before_evictions = viewport.body_evictions
             started = perf_counter()
             print("CACHE_BEFORE_SELECT", source.id,
                   [(type(k().parent).__name__, getattr(k().identity.source,"session_id",None),
@@ -367,7 +370,7 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
                 await until(pilot, lambda: conversation_paint(frame) == painted)
             except TimeoutError:
                 print("FAILED_RETURN", source.id, "reader", view.window.scroll_y, y,
-                      "reuse", view.window.document_viewport.reuse_hits,
+                      "reuse", sum(history.fragment_count for history in view.window.histories),
                       "expected", painted, "actual", conversation_paint(frame),
                       "layout", [(type(n).__name__, n.display, n.region, n.size, n.virtual_size)
                                  for n in view.window.walk_children()
@@ -380,7 +383,7 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
                   [(type(node).__name__, node.size, node.virtual_size, node.display)
                    for history_view in view.window.histories for node in history_view.walk_children()
                    if type(node).__name__ in {"TranscriptPageView", "TranscriptFragmentView", "AgentResponse"}],
-                  "REUSE", view.window.document_viewport.reuse_hits,
+                  "REUSE", sum(history.fragment_count for history in view.window.histories),
                   "PAINT", conversation_paint(frame), flush=True)
             assert view.window.scroll_y == y, (view.window.scroll_y, y)
             assert conversation_paint(frame) == painted
@@ -423,7 +426,6 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
                             "reused_body_instances":reused,
                             "reused_outer_history":reused_history,
                             "reused_page_instances":reused_pages,
-                            "retained_body_reuse_hits":viewport.reuse_hits-before_reuse,
                             "retained_body_evictions":viewport.body_evictions-before_evictions,
                             "warm_bodies":sum(key() is not None for key in viewport._warm.values()),
                             "prepared_bytes":app.preparation.retained_bytes})
