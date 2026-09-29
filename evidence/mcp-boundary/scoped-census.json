@@ -1,0 +1,191 @@
+{
+  "src/toad/mcp_inventory.py": {
+    "boolean_chain_terms": [
+      16,
+      0
+    ],
+    "foreign_absence_probe": [
+      1,
+      1
+    ],
+    "codec_subclass": [
+      0,
+      0
+    ],
+    "type_identity_check": [
+      2,
+      0
+    ],
+    "string_key_subscript": [
+      1,
+      0
+    ],
+    "literal_key_get": [
+      23,
+      0
+    ],
+    "largest_class": 2
+  },
+  "src/toad/mcp_declarations.py": {
+    "boolean_chain_terms": [
+      0,
+      0
+    ],
+    "foreign_absence_probe": [
+      0,
+      0
+    ],
+    "codec_subclass": [
+      0,
+      0
+    ],
+    "type_identity_check": [
+      0,
+      0
+    ],
+    "string_key_subscript": [
+      0,
+      4
+    ],
+    "literal_key_get": [
+      0,
+      0
+    ],
+    "largest_class": 48
+  },
+  "src/toad/mcp_commands.py": {
+    "boolean_chain_terms": [
+      0,
+      0
+    ],
+    "foreign_absence_probe": [
+      0,
+      0
+    ],
+    "codec_subclass": [
+      0,
+      0
+    ],
+    "type_identity_check": [
+      0,
+      0
+    ],
+    "string_key_subscript": [
+      0,
+      0
+    ],
+    "literal_key_get": [
+      0,
+      0
+    ],
+    "largest_class": 26
+  },
+  "src/toad/mcp_outcomes.py": {
+    "boolean_chain_terms": [
+      0,
+      0
+    ],
+    "foreign_absence_probe": [
+      0,
+      0
+    ],
+    "codec_subclass": [
+      0,
+      0
+    ],
+    "type_identity_check": [
+      0,
+      0
+    ],
+    "string_key_subscript": [
+      0,
+      0
+    ],
+    "literal_key_get": [
+      0,
+      0
+    ],
+    "largest_class": 2
+  },
+  "src/toad/mcp_decision.py": {
+    "boolean_chain_terms": [
+      9,
+      0
+    ],
+    "foreign_absence_probe": [
+      5,
+      2
+    ],
+    "codec_subclass": [
+      0,
+      0
+    ],
+    "type_identity_check": [
+      0,
+      0
+    ],
+    "string_key_subscript": [
+      0,
+      0
+    ],
+    "literal_key_get": [
+      0,
+      0
+    ],
+    "largest_class": 150
+  },
+  "src/toad/screens/mcp_inventory.py": {
+    "boolean_chain_terms": [
+      0,
+      0
+    ],
+    "foreign_absence_probe": [
+      0,
+      0
+    ],
+    "codec_subclass": [
+      0,
+      0
+    ],
+    "type_identity_check": [
+      0,
+      0
+    ],
+    "string_key_subscript": [
+      0,
+      0
+    ],
+    "literal_key_get": [
+      0,
+      0
+    ],
+    "largest_class": 130
+  },
+  "src/toad/screens/mcp_decision.py": {
+    "boolean_chain_terms": [
+      0,
+      0
+    ],
+    "foreign_absence_probe": [
+      0,
+      0
+    ],
+    "codec_subclass": [
+      0,
+      0
+    ],
+    "type_identity_check": [
+      0,
+      0
+    ],
+    "string_key_subscript": [
+      0,
+      0
+    ],
+    "literal_key_get": [
+      0,
+      0
+    ],
+    "largest_class": 101
+  }
+}
