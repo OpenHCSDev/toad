@@ -57,6 +57,10 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     conversation = source.conversation
     await settled(pilot, conversation)
     window = conversation.window
+    # Visible text can precede the pager's next measured layout. Establish a
+    # real scroll range before selecting a non-tail record; zero is not a saved
+    # reader position for this acceptance path.
+    await until(pilot, lambda: window.max_scroll_y > 0)
     candidates = [node for node in conversation.query(TranscriptFragmentView)
                   if any(READER_TEXT in event.text
                          for event in node.fragment.events if isinstance(event, TextTranscript))]

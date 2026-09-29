@@ -225,3 +225,13 @@ test files to selected_session.conversation/selected_mode; generic Textual App
 mode tests remain native. No compatibility forwarding added. Final canonical
 suite is not complete, and this interrupted changing-install run is not final
 acceptance. Owned test-generated browser/menu receipts restored from own HEAD.
+
+## Main145 paired source checkpoint
+
+Current142 integrates main1459830cb24, including146/147 ancestry; core3228ad034a60d91b0bcb8e90bbeca326e01d2dfb7cc/Textualc9743801. Merge preserved actual tool-owner production contracts and deleted superseded hidden_diff_warmup test. New tool test callers use selected_session without native Screen compatibility aliases.
+
+IMPL-12: ReaderPosition and HistoryAnchor now share WindowRestoration's existing internal scroll-revision custody. There is one restoration template; it suppresses recording internal compensation as a user navigation. Official22:16 chain-term ratchet stays history_anchor4→4/recent pilot0→0.
+
+Installed main145 rapid PageDown/End and cold-tail return passed cropped visible-body paint (`evidence/workspace-persistent/rapid-main145.log`). Recent source native test remains red (`recent-native-main145.log`): saved non-tail19 returns0/max0; returned history admits4 fragments. Same native input/process checks precede the reader assertion. Source admission/range retention is unresolved, owned in142. Initial position gate now waits for actual max_scroll_y>0, using existing native deadline, before selecting the non-tail record. Exact return offset and cropped paint assertions remain unchanged.
+
+This is not full116/110 performance completion or final canonical suite acceptance. Prepared source custody must retain native admitted reader intent with bounded existing PreparationRuntime storage, without a second cache or retained widget tree.
