@@ -1,0 +1,32 @@
+{
+  "tests/saved_state_user_journey_pilot.py": {
+    "before": {
+      "boolean_chain_terms": 0,
+      "foreign_absence_probe": 1
+    },
+    "after": {
+      "boolean_chain_terms": 0,
+      "foreign_absence_probe": 0
+    }
+  },
+  "tests/native_session_retention_pilot.py": {
+    "before": {
+      "boolean_chain_terms": 0,
+      "foreign_absence_probe": 3
+    },
+    "after": {
+      "boolean_chain_terms": 0,
+      "foreign_absence_probe": 3
+    }
+  },
+  "tests/l0a_native_installed_pilot.py": {
+    "before": {
+      "boolean_chain_terms": 0,
+      "foreign_absence_probe": 23
+    },
+    "after": {
+      "boolean_chain_terms": 0,
+      "foreign_absence_probe": 23
+    }
+  }
+}
