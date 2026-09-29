@@ -252,6 +252,8 @@ class TranscriptFragmentView(MeasuredViewportBody, CategorizedBlock, VerticalGro
         return self._message_category
 
     def set_categories(self, selected: frozenset[type[MessageCategory]]) -> None:
+        if getattr(self, "selected_categories", None) == selected:
+            return
         self.selected_categories = selected
         apply_block_filter(self, selected)
 
@@ -352,7 +354,6 @@ class TranscriptPageView(VerticalGroup):
         for index, body in self._returning_bodies:
             before = self.children[index] if index < len(self.children) else None
             body.reparent(self, before=before)
-            body.refresh(layout=True)
             body._body_viewport.register(body)
         self._returning_bodies.clear()
 
