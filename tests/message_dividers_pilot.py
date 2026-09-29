@@ -86,9 +86,9 @@ async def main() -> None:
             await channel_target("#all").open(NavigationContext(app, owner, root, app.session_navigation.source(owner)._comms_thread))
             chat = app.screen.query_one(CommsChatView)
             async with asyncio.timeout(5):
-                while not any(message.seq == sent.seq for message, _ in chat._history):
+                while not any(message.seq == sent.seq for message, _ in chat.message_history.rows):
                     await pilot.pause(.05)
-            wire_block = next(widget for message, widget in chat._history
+            wire_block = next(widget for message, widget in chat.message_history.rows
                               if message.seq == sent.seq)
             assert isinstance(wire_block, IRCMessage)
             assert len(wire_block.query(MessageDivider)) == 1
@@ -101,12 +101,12 @@ async def main() -> None:
                 inbound_divider.render().plain,
             )
             assert "Inbound" in wire_block.query_one(MessageDivider).render().plain
-            outgoing_block = next(widget for message, widget in chat._history
+            outgoing_block = next(widget for message, widget in chat.message_history.rows
                                   if message.seq == outbound.seq)
             assert "Outbound" in outgoing_block.query_one(MessageDivider).render().plain
-            await chat.toggle_message_style()
+            await chat.message_history.toggle_style()
             await pilot.pause()
-            wire_block = next(widget for message, widget in chat._history
+            wire_block = next(widget for message, widget in chat.message_history.rows
                               if message.seq == sent.seq)
             assert isinstance(wire_block, WireMarkdownMessage)
             assert len(wire_block.query(MessageDivider)) == 1

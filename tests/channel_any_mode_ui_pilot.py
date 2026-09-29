@@ -57,9 +57,9 @@ async def main() -> None:
             await channel_target("#team").open(NavigationContext(app, owner, root, "alice"))
             chat = app.screen.query_one(CommsChatView)
             async with asyncio.timeout(5):
-                while not chat._history_initialized:
+                while not chat.message_history.initialized:
                     await pilot.pause(.02)
-            assert [message.body for message, _ in chat._history] == [
+            assert [message.body for message, _ in chat.message_history.rows] == [
                 "exact route", "outbound from member", "inbound to member",
             ]
             await app.switch_mode(owner)

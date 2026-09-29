@@ -1,0 +1,85 @@
+{
+  "src/toad/conversation_kind.py": {
+    "before": {
+      "absence": 8,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {
+        "ConversationKind": 77,
+        "ChannelConversation": 112,
+        "DmConversation": 97,
+        "IrcConversation": 14
+      }
+    },
+    "after": {
+      "absence": 8,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {
+        "ConversationKind": 86,
+        "ChannelConversation": 112,
+        "DmConversation": 97,
+        "IrcConversation": 14
+      }
+    }
+  },
+  "src/toad/screens/comms.py": {
+    "before": {
+      "absence": 0,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {
+        "CommsScreen": 267
+      }
+    },
+    "after": {
+      "absence": 0,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {
+        "CommsScreen": 267
+      }
+    }
+  },
+  "src/toad/widgets/comms_chat.py": {
+    "before": {
+      "absence": 15,
+      "chain": 9,
+      "excess500": 232,
+      "classes": {
+        "HistoryLoading": 2,
+        "ChannelActivityTray": 2,
+        "CommsChatView": 732
+      }
+    },
+    "after": {
+      "absence": 11,
+      "chain": 9,
+      "excess500": 0,
+      "classes": {
+        "HistoryLoading": 2,
+        "ChannelActivityTray": 2,
+        "CommsChatView": 388
+      }
+    }
+  },
+  "src/toad/mounted_message_history.py": {
+    "before": {
+      "absence": 0,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {}
+    },
+    "after": {
+      "absence": 0,
+      "chain": 0,
+      "excess500": 0,
+      "classes": {
+        "WireMessageStyle": 6,
+        "IrcMessageStyle": 5,
+        "MarkdownMessageStyle": 5,
+        "MountedMessageHistory": 382
+      }
+    }
+  }
+}

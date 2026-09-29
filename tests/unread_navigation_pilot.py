@@ -53,8 +53,8 @@ async def main() -> None:
             name = app.screen._comms_thread
             mode = await channel_target("#all").open(NavigationContext(app, owner, root, name))
             chat = app.screen.query_one(CommsChatView)
-            await wait_for(pilot, lambda: chat._history_initialized)
-            assert any(item.body == "first-pending" for item, _ in chat._history)
+            await wait_for(pilot, lambda: chat.message_history.initialized)
+            assert any(item.body == "first-pending" for item, _ in chat.message_history.rows)
             await wait_for(pilot, lambda: unread() == 0)
             await badge_cleared(app, pilot, mode)
             await app.switch_mode(owner)
@@ -63,7 +63,7 @@ async def main() -> None:
             await app.switch_mode(mode)
             chat = app.screen.query_one(CommsChatView)
             await wait_for(pilot, lambda: any(
-                item.body == "second-pending" for item, _ in chat._history
+                item.body == "second-pending" for item, _ in chat.message_history.rows
             ))
             await wait_for(pilot, lambda: unread() == 0)
             await badge_cleared(app, pilot, mode)
