@@ -19,7 +19,26 @@ if TYPE_CHECKING:
     from toad.widgets.transcript_history import TranscriptHistory
 
 
-class ReaderPosition(ABC):
+class WindowRestoration(ABC):
+    """Apply an owned layout intent without recording another user scroll."""
+
+    def current(self, window: "HistoryWindow") -> bool:
+        return True
+
+    def restore(self, window: "HistoryWindow") -> None:
+        if not self.current(window):
+            return
+        window._restoring = True
+        try:
+            self._restore(window)
+        finally:
+            window._restoring = False
+
+    @abstractmethod
+    def _restore(self, window: "HistoryWindow") -> None: ...
+
+
+class ReaderPosition(WindowRestoration):
     """Source-owned reader intent, independent of retired widget geometry."""
 
     @classmethod
@@ -27,13 +46,10 @@ class ReaderPosition(ABC):
         # Follow intent enters from Textual's native scroll boundary once.
         return TailReaderPosition() if window.follows_tail else OffsetReaderPosition(window.scroll_y)
 
-    @abstractmethod
-    def restore(self, window: "HistoryWindow") -> None: ...
-
 
 @dataclass(frozen=True)
 class TailReaderPosition(ReaderPosition):
-    def restore(self, window: "HistoryWindow") -> None:
+    def _restore(self, window: "HistoryWindow") -> None:
         window.anchor()
 
 
@@ -41,7 +57,7 @@ class TailReaderPosition(ReaderPosition):
 class OffsetReaderPosition(ReaderPosition):
     y: float
 
-    def restore(self, window: "HistoryWindow") -> None:
+    def _restore(self, window: "HistoryWindow") -> None:
         window.release_anchor()
         window.scroll_to(y=self.y, animate=False, immediate=True)
 
@@ -155,7 +171,7 @@ class HistoryWindow(VerticalScroll):
 
 
 @dataclass(frozen=True)
-class HistoryAnchor(ABC):
+class HistoryAnchor(WindowRestoration):
     widget: Widget
     scroll_y: float
     scroll_revision: int
@@ -204,14 +220,8 @@ class HistoryAnchor(ABC):
             node = node.parent
         return offset
 
-    def restore(self, window: HistoryWindow) -> None:
-        if window.scroll_revision != self.scroll_revision:
-            return
-        window._restoring = True
-        try:
-            self._restore(window)
-        finally:
-            window._restoring = False
+    def current(self, window: HistoryWindow) -> bool:
+        return window.scroll_revision == self.scroll_revision
 
     @abstractmethod
     def _restore(self, window: HistoryWindow) -> None:

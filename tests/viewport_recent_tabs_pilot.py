@@ -12,11 +12,22 @@ from pathlib import Path
 from l0a_native_installed_pilot import main as native_fixture, until
 from native_session_retention_pilot import InstalledApp, conversation_paint
 from toad.screens.main import MainScreen
+from textual.widget import Widget
 from toad.widgets.transcript_history import TranscriptFragmentView
 from agent_comms.transcript_events import TextTranscript
 
 
 READER_TEXT = "READER_POSITION_3"
+
+
+async def settled(pilot, view):
+    window = view.window
+    await until(pilot, lambda: (
+        not window.document_viewport._running
+        and window.document_viewport.visible_bodies_ready
+        and all(not history._loading
+                for history in window.histories)
+    ))
 
 
 async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requests):
@@ -35,11 +46,16 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     # Reopen through the ordinary source owner before choosing a saved reader
     # record. Direct Agent input doesn't synthesize the UI's live UserInput;
     # the actual native journal snapshot publishes that canonical content.
-    initial_blank = await app.new_session_screen(lambda: MainScreen(
-        original_agent.project_root_path, agent_session_id="recent-return-initial"))
+    modes = []
+    for index in range(3):
+        details = await app.new_session_screen(lambda: MainScreen(
+            original_agent.project_root_path, agent_session_id=f"recent-return-{index}"))
+        modes.append(details.mode_name)
+        await pilot.pause(.02)
     await app.select_session(source.id)
     await until(pilot, lambda: "NATIVE_RESPONSE_4" in conversation_paint(frame))
     conversation = source.conversation
+    await settled(pilot, conversation)
     window = conversation.window
     candidates = [node for node in conversation.query(TranscriptFragmentView)
                   if any(READER_TEXT in event.text
@@ -49,17 +65,14 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     window.scroll_to_widget(candidates[0], animate=False, immediate=True, top=True)
     await until(pilot, lambda: READER_TEXT in conversation_paint(frame))
     print("RECENT_POSITION", window.scroll_y, window.max_scroll_y, window.follows_tail, flush=True)
+    await settled(pilot, conversation)
     before_y = window.scroll_y
     assert before_y < window.max_scroll_y and not window.follows_tail
+    print("RECENT_INITIAL_GEOMETRY", [(type(node).__name__, node.region, node.virtual_size,
+          node.show_vertical_scrollbar) for node in (window, *window.ancestors) if isinstance(node, Widget)], flush=True)
     source_paint = conversation_paint(frame)
     editor = conversation.prompt.prompt_text_area
     document, history = editor.document, editor.history
-    modes = [initial_blank.mode_name]
-    for index in range(2):
-        details = await app.new_session_screen(lambda: MainScreen(
-            original_agent.project_root_path, agent_session_id=f"recent-return-{index}"))
-        modes.append(details.mode_name)
-        await pilot.pause(.02)
     records = []
     for mode in modes:
         await app.select_session(mode)
@@ -67,11 +80,23 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
         await app.select_session(source.id)
         await until(pilot, lambda: READER_TEXT in conversation_paint(frame))
         restored = source.conversation
+        await settled(pilot, restored)
         assert restored is conversation and app.screen is frame
         assert restored.agent is original_agent
         assert agent.process.process is process and agent.process.runner is runner
         assert process.returncode is None and not runner.done()
         assert not restored.window.follows_tail
+        if restored.window.scroll_y != before_y:
+            print("RECENT_RETURN_GEOMETRY", [(type(node).__name__, node.region, node.virtual_size,
+                  node.show_vertical_scrollbar) for node in (restored.window, *restored.window.ancestors) if isinstance(node, Widget)], flush=True)
+            current_paint = conversation_paint(frame)
+            print("RECENT_PAINT_DIAGNOSTIC", source_paint == current_paint,
+                  [index for index, line in enumerate(source_paint.splitlines()) if READER_TEXT in line],
+                  [index for index, line in enumerate(current_paint.splitlines()) if READER_TEXT in line], flush=True)
+            print("RECENT_READER_DIAGNOSTIC", [(history.fragment_count, history.has_older,
+                  history._loading, history._check_pending, history._selected_categories,
+                  history.region, frame._compositor.visible_widgets.get(history))
+                  for history in restored.window.histories], flush=True)
         assert restored.window.scroll_y == before_y, (restored.window.scroll_y, before_y, restored.window.max_scroll_y, restored.window.scrollable_content_region)
         assert conversation_paint(frame) == source_paint
         assert restored.prompt.prompt_text_area is editor
