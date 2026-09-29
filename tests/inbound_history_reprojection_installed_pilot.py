@@ -7,6 +7,10 @@ from agent_comms.threads import Thread
 from l0a_native_installed_pilot import main, until
 from receiver_inbound_installed_pilot import paint
 from toad.widgets.incoming_message import IncomingMessage
+from toad.widgets.comms_sidebar import CommsRow
+from toad.widgets.session_tabs import SessionLabel
+from toad.screens.comms import CommsScreen
+from runtime_fixture import wait_channel_roster
 from toad.widgets.observed_thread_activity import ObservedThreadActivity
 
 
@@ -84,6 +88,8 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     await until(pilot, lambda: not comms.registry.require("beta").executing)
     observed.refresh_observation()
     await pilot.pause(.3)
+    print("OLD_WIRE_PRESENTATIONS_AFTER_PRESSURE", len(matching(view, message.seq)),
+          [block is original for block in matching(view, message.seq)], flush=True)
     assert matching(view, message.seq) == [original]
     assert len(matching(view, fresh.seq)) == 1
     assert len(requests) == 3
@@ -92,6 +98,28 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     assert str(original.query_one(".assignment-handling").render()) == f"Handling: {expected}"
     assert app._exception is None
     print("FRESH_INPUT_ONE_WIRE_IDENTITY_AND_LATE_HANDLING_IN_PLACE", flush=True)
+
+    first = app.selected_session
+    sidebar = await wait_channel_roster(app, pilot, "#team")
+    row = next(item for item in sidebar.query(CommsRow) if item.target_name == "#team")
+    row.scroll_visible(animate=False, immediate=True)
+    await pilot.pause()
+    assert await pilot.click(row)
+    await until(pilot, lambda: isinstance(app.selected_session, CommsScreen))
+    label = next(item for item in app.screen.query(SessionLabel) if item.id == first.id)
+    label.scroll_visible(animate=False, immediate=True)
+    await pilot.pause()
+    assert await pilot.click(label, offset=(label.size.width // 2, 0))
+    await until(pilot, lambda: app.selected_session is first)
+    returned = first.conversation
+    observed = returned.query_one(ObservedThreadActivity)
+    observed.refresh_observation()
+    await until(pilot, lambda: bool(matching(returned, message.seq)) and bool(matching(returned, fresh.seq)))
+    assert len(matching(returned, message.seq)) == len(matching(returned, fresh.seq)) == 1
+    assert matching(returned, message.seq)[0].clock.timestamp == message.timestamp
+    assert len(requests) == 3
+    assert app._exception is None
+    print("PHYSICAL_CHANNEL_BAR_AND_RECIPIENT_TAB_RETURN_ONE_RECORDED_WIRE_MESSAGE_NO_REPLAY", flush=True)
 
 
 def reply(request, number):
