@@ -2,7 +2,6 @@
 from __future__ import annotations
 import asyncio
 from dataclasses import dataclass
-from functools import partial
 from pathlib import Path
 from agent_comms.comms import Comms, wire
 from agent_comms.presentation import WireRevision

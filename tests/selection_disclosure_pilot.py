@@ -27,7 +27,7 @@ async def main():
         async with app.run_test(size=(120, 42)) as pilot:
             await pilot.pause()
             sidebar = app.screen.query_one(CommsSidebar)
-            await sidebar._read_snapshot(comms.views.revision())
+            await sidebar.observation.read(comms.views.revision())
             group = next(group for group in sidebar.query(ChannelGroup) if group.row.target_name == "#review")
             if not group.expanded:
                 group.toggle_members()

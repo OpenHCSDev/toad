@@ -65,12 +65,12 @@ async def main(*, finish_before_layout=False):
     completion_attempts = []
 
     def before_layout(sidebar, callback, *args, **kwargs):
-        if callback == sidebar._finish_navigation:
+        if callback == sidebar.navigation.finish:
             if not sidebar.navigation.ready.is_set():
                 completion_attempts.append(
                     (
                         sidebar.display,
-                        sidebar.navigation.channel_scroll_y,
+                        sidebar.navigation.state.channel_scroll_y,
                         sidebar.navigation.scroll_containers[0].max_scroll_y,
                     )
                 )

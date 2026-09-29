@@ -36,6 +36,7 @@ from toad.acp.agent import Agent
 from toad.acp.messages import CommsUpdated
 from toad.agent import AgentReady
 from toad.widgets.comms_sidebar import ChannelGroup, CommsSidebar
+from toad.sidebar_projection import SidebarProjection
 from toad.widgets.footer import Footer
 from toad.widgets.session_sidebar import ThreadStatusRow
 from toad.widgets.session_tabs import SessionLabel, SessionsTabs
@@ -415,7 +416,7 @@ async def main(*, empty=False, trace=False, observe=False, output=None, peers=0,
                                                               (BlankSessionSurface, "activate"),
                                                               (SessionsTabs, "_sync_tabs"),
                                                               (PreparationRuntime, "submit"),
-                                                              (CommsSidebar, "_present_snapshot"),
+                                                              (SidebarProjection, "publish"),
                                                              (SidebarGroup, "reconcile_rows")):
                                         instrumentation.enter_context(patch.object(
                                             instance, method, asynchronous(method, getattr(instance, method))))

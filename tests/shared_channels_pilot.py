@@ -238,7 +238,7 @@ async def main():
                     return result
 
                 with patch.object(old_service.views, "viewer_snapshot", held_read):
-                    roster._last_revision = None
+                    roster.observation.invalidate()
                     roster.observation.refresh()
                     try:
                         assert await asyncio.to_thread(read_entered.wait, 3)

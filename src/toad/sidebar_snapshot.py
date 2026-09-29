@@ -2,7 +2,6 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from collections.abc import Mapping
-from pathlib import Path
 from agent_comms.presentation import CoordinationSnapshot, ThreadView
 
 @dataclass(frozen=True)

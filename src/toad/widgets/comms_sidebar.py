@@ -15,15 +15,12 @@ from __future__ import annotations
 
 import asyncio
 import os
-from collections.abc import Callable, Mapping
+from collections.abc import Mapping
 from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
-from agent_comms.comms import Comms, wire
-from agent_comms.presentation import ChannelView, CoordinationSnapshot, ThreadView, WireRevision
-from textual import on
-from textual.app import ComposeResult
+from agent_comms.presentation import ChannelView, ThreadView
 from textual.binding import Binding
 from textual.content import Content
 from textual.dom import DOMNode
@@ -32,26 +29,15 @@ from textual.reactive import reactive
 from textual.widget import Widget
 from textual.widgets import Static
 
-from toad.constants import COMMS_REFRESH_INTERVAL
 
-from toad.session_tracker import UnreadPresentation, ExactUnread
 from toad import messages
-from toad.constants import ALL_COMMS_TARGET
 from toad.navigation_target import NavigationOwner
-from toad.preferences import SidebarSettings
-from toad.session_tracker import (
-    SessionDetails,
-    SidebarSelection,
-    SidebarState,
-)
-from toad.settings import PreferenceChange
 from toad.sidebar_preparation import ThreadRowInput, ThreadRowsWork
-from toad.widgets.activity_spinner import FRAMES
 from toad.widgets.session_sidebar import ThreadStatusRow
-from toad.widgets.session_sort import ChannelListSort, SessionSort
+from toad.widgets.session_sort import SessionSort
 from toad.widgets.sidebar_tree import SidebarDisclosure, SidebarGroup, TargetTree
 from toad.widgets.side_bar import SidebarVisibilityObserver
-from toad.navigation_target import NavigationTarget, channel_target, person_target
+from toad.navigation_target import NavigationTarget, person_target
 from toad.sidebar_snapshot import SidebarSnapshot
 
 if TYPE_CHECKING:
@@ -229,7 +215,7 @@ class CommsRow(ThreadStatusRow):
 
     def show_menu(self, sidebar, offset) -> None:
         if self.mode_name is None:
-            sidebar._select(self)
+            self.focus()
         self.target.show_menu(sidebar, offset, mode_name=self.mode_name, channel=self.query_ancestor(ChannelGroup).row.target_name)
 
 
@@ -538,5 +524,3 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
             return
         row.show_menu(self, event.screen_offset)
 
-    def _select(self, row: CommsRow) -> None:
-        row.focus()

@@ -1,7 +1,6 @@
 """Hydration and painted selection of the existing shared channel hierarchy."""
 from __future__ import annotations
 import asyncio
-from functools import partial
 from textual.widget import Widget
 from toad.session_tracker import SidebarSelection, SidebarState
 from toad.constants import ALL_COMMS_TARGET
