@@ -25,6 +25,7 @@ from toad.widgets.transcript_history import TranscriptFragmentView
 from textual.widget import Widget
 from textual.content import Content
 from toad.acp.messages import UpdateStatusLine
+from toad.render_tasks import TranscriptRenderTask
 
 
 class PaintedReturnApp(InstalledApp):
@@ -224,6 +225,15 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
         profile = cProfile.Profile() if os.environ.get("NATIVE_RETURN_PROFILE") == "1" else None
         if profile is not None:
             profile.enable()
+        render_submissions = []
+        original_render_submit = app.render_processes.submit
+
+        async def count_render_submit(task):
+            if isinstance(task, TranscriptRenderTask):
+                render_submissions.append(task)
+            return await original_render_submit(task)
+
+        app.render_processes.submit = count_render_submit
         for source, agent in ((sources[0], agents[0]), (sources[1], agents[1]),
                               (sources[0], agents[0]), (sources[1], agents[1]), (sources[0], agents[0])):
             before_hits, before_misses = app.preparation.hits, app.preparation.misses
@@ -297,6 +307,10 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
                      n.identity.directory_revision,n.body_ready,
                      type(n.parent).__name__) for n in view.query(TranscriptFragmentView)],flush=True)
             assert reused > 0, ("Already-loaded native source discarded every response body", source.id)
+            assert not render_submissions, (
+                "Warm tab return re-fragmented a saved native page", source.id,
+                len(render_submissions),
+            )
             records.append({"source":source.id,
                             "return_painted_ms":app.last_click_metrics[0],
                             "click_completed_ms":app.last_click_metrics[1],
@@ -311,6 +325,7 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
                             "retained_body_evictions":viewport.body_evictions-before_evictions,
                             "warm_bodies":sum(key() is not None for key in viewport._warm.values()),
                             "prepared_bytes":app.preparation.retained_bytes})
+        app.render_processes.submit = original_render_submit
         if profile is not None:
             profile.disable()
             with Path(os.environ["NATIVE_RETURN_RECEIPT"]).with_suffix(".profile.txt").open("w") as stream:

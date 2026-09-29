@@ -31,6 +31,19 @@ hashable. Its full equality still rejects changed content, watcher and source
 identity. Active bodies retain weak-reference keys; only parked fragments use
 their native identity. The viewport still owns one cache and one eviction
 budget. The duplicate fragment comparison after identity equality was removed.
+The retained-body UI pilot now uses two equal saved events at distinct page
+positions and requires each to reclaim its own original widget.
+
+Snapshot and follow-tail checkpoint publication now submit
+`TranscriptRenderTask` through the existing application `PreparationRuntime`.
+Previously both sent the same saved events directly to the renderer on each
+source return, bypassing its bounded reusable result. The native A/B/A pilot
+now observes actual renderer submissions after both sources are established
+and rejects any saved-page refragmentation during warm returns. A focused
+source run with the real one-worker render pool submitted the same immutable
+page twice, returned independent equal fragments, and measured one miss, one
+hit, zero shared work and 2,180 retained bytes. This proves the preparation
+route, not the still-pending native UI latency result.
 
 The parent's actual large-history profile is read-only at
 `/home/ts/.cache/agent-scratch/toad-pr194-turn-20260929/live-large-return.prof`.
@@ -60,7 +73,8 @@ The existing provider-free `retained_body_transfer_pilot.py` also spun before
 its first paint and was stopped; it supplied no cache acceptance. Logs for
 these owned failed attempts are in
 `/home/ts/.cache/agent-scratch/toad-warm-return-followup-20260929/`.
-That goal path belongs to the parent. The indexed-cache change has a passing
-direct canonical-identity lookup and syntax/diff checks, but **no native
+That goal path belongs to the parent. The indexed-cache and preparation changes
+have a passing direct canonical-identity lookup, real render-pool reuse, and
+syntax/diff checks, but **no native
 acceptance or speedup claim** yet. The global installation is owned by the
 parent.
