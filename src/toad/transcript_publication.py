@@ -74,6 +74,48 @@ class SnapshotPublication(TranscriptPublication):
         self.owner.painted(self.page.after, reader_revision=self.scroll_revision)
 
 
+class AssignedInboundPublication(TranscriptPublication):
+    """One sequence claim belongs to its source even while its body is unmounted."""
+
+    def __init__(self, owner, view, window, contents, notifications):
+        super().__init__(owner, view, window, contents)
+        self.notifications = notifications
+
+    async def publish(self) -> None:
+        from toad.widgets.committed_presentation import CommittedHistory
+        from toad.widgets.incoming_message import AssignedIncomingMessage, IncomingMessage
+        from toad.widgets.message_divider import MessageClock
+
+        wanted = frozenset(receipt.message.seq for receipt in self.notifications
+                           if receipt.message is not None and receipt.message.seq > 0)
+        covered = frozenset()
+        for history in tuple(self.contents.children):
+            if isinstance(history, CommittedHistory):
+                found = await history.source_coverage(
+                    wanted - covered, self.owner.view.app.preparation, self.current,
+                )
+                if found is None or not self.current():
+                    return
+                covered |= found
+        if not self.current():
+            return
+        for receipt in reversed(self.notifications):
+            message = receipt.message
+            if message is None or message.seq <= 0:
+                continue
+            blocks = [block for block in self.contents.query(IncomingMessage)
+                      if block.sequence == message.seq]
+            if not blocks and message.seq not in covered:
+                block = AssignedIncomingMessage(
+                    message.sender, message.body, message.target,
+                    sequence=message.seq, clock=MessageClock.recorded(message.timestamp),
+                )
+                await self.owner.view.post(block)
+                blocks.append(block)
+            for block in blocks:
+                await block.show_handling(receipt.state, receipt.detail)
+
+
 class CheckpointPublication(TranscriptPublication):
     def __init__(self, owner, view, window, contents):
         from toad.widgets.committed_presentation import checkpoint_plan
