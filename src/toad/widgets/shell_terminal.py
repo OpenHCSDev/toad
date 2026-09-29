@@ -33,7 +33,7 @@ class ShellTerminal(Terminal):
             yield MenuItem("Interrupt", "interrupt", "i")
             yield MenuItem("Focus", f"focus_block({self.id!r})", "f")
 
-    def get_block_content(self, destination: str) -> str | None:
+    def get_clipboard_text(self) -> str | None:
         return "\n".join(line.content.plain for line in self.state.buffer.lines)
 
     def on_mount(self) -> None:

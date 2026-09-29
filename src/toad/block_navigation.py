@@ -3,6 +3,7 @@ from abc import abstractmethod
 from functools import cached_property
 from agent_comms.declared_family import DeclaredFamily
 from textual.widget import Widget
+from toad.block_content import BlockContent
 
 
 class CursorDirection(DeclaredFamily, affix="Cursor"):
@@ -82,7 +83,7 @@ class ChildBlockCursor(BlockCursor):
         self.index = self.block.displayed_children.index(widget)
 
 
-class ConversationBlock:
+class ConversationBlock(BlockContent):
     """Nominal content admission, with an owned atomic cursor by default."""
     @cached_property
     def block_cursor(self) -> BlockCursor:

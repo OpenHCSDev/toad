@@ -36,7 +36,7 @@ async def main():
                 fence = message.query_one(MarkdownFence)
                 assert fence._highlighted_code.plain == ("value = calculate(123)\n" * 600).rstrip()
                 assert fence._highlighted_code.spans
-                assert message.get_block_content("clipboard") == source
+                assert message.get_clipboard_text() == source
                 assert app._exception is None
         await asyncio.get_running_loop().shutdown_default_executor()
     print("user Markdown: shared-worker syntax, native fence styling, source/copy retained")

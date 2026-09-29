@@ -108,7 +108,7 @@ async def main():
             assert "| Thread | Status | Activity | Details |" in body.source
             assert "Read \\| review" in body.source
             assert "Review the changes." in body.source
-            assert readable.get_block_content("clipboard") == raw
+            assert readable.get_clipboard_text() == raw
             original = readable.query_one(OriginalCoordinationContext)
             assert original.collapsed and not original.query(AgentResponse)
             original.collapsed = False
@@ -116,7 +116,7 @@ async def main():
                 while not original.query(MarkdownFence):
                     await pilot.pause(.02)
             assert original.query_one(MarkdownFence).code.rstrip("\n") == raw
-            assert original.get_block_content("clipboard") == raw
+            assert original.get_clipboard_text() == raw
             assert not readable.query(MessageDivider)
             assert app._exception is None
         await asyncio.get_running_loop().shutdown_default_executor()

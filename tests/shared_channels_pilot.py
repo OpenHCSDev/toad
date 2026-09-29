@@ -285,7 +285,7 @@ async def main():
                 assert conversation._shell is None
                 await conversation.post_shell("printf 'workspace-shell-ready\\n'")
                 async with asyncio.timeout(5):
-                    while not any("workspace-shell-ready" in terminal.get_block_content("copy")
+                    while not any("workspace-shell-ready" in terminal.get_clipboard_text()
                                   for terminal in conversation.query("ShellTerminal")):
                         await pilot.pause(.02)
                 assert conversation._shell is not None

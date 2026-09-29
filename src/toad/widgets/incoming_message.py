@@ -53,6 +53,6 @@ class IncomingMessage(ConversationBlock, CommitParticipant, CategorizedBlock, Ve
             yield IncomingSender(self.sender, self.target)
         yield AgentResponse(self.text, show_divider=False).add_class("routed-body")
 
-    def get_block_content(self, destination: str) -> str:
+    def get_clipboard_text(self) -> str:
         route = MessageRoute(self.sender, (self.target,) if self.target else ())
         return f"{route.incoming_label}\n{self.text}"

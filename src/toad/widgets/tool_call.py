@@ -95,11 +95,8 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
     def action_expand(self) -> None:
         self.set_expanded(True)
 
-    def get_block_content(self, destination: str) -> str | None:
-        return None
-
     def can_expand(self) -> bool:
-        return self.has_content
+        return not self.expanded
 
     def expand_block(self) -> None:
         self.set_expanded(True)
