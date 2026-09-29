@@ -7,6 +7,8 @@ import math
 import time
 
 from textual.content import Content
+from textual.geometry import Size
+from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
 from textual.widgets import Static
 
 from toad.widgets.message_filter import CategorizedBlock, MessageCategory
@@ -52,6 +54,13 @@ class MessageDivider(Static):
             (title, "bold $text-muted"),
             ("─" * right, "$text-muted"),
         )
+
+    @height_dependency(INDEPENDENT_HEIGHT)
+    def get_content_height(self, container: Size, viewport: Size, width: int) -> int:
+        # The separator truncates to one line. Measuring render() before the
+        # new native width is committed would wrap the *previous* width's rule
+        # and incorrectly report two rows to a stream layout.
+        return 1
 
 
 class AgentActivityDivider(ConversationBlock, SnapshotPresentation, CategorizedBlock, MessageDivider):
