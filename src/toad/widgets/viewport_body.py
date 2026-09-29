@@ -80,10 +80,7 @@ class ViewportPresentation:
         for window in self.windows:
             changed |= window.check_follow()
         if changed:
-            # check_follow uses Textual's native scroll setter. Its pending
-            # UpdateScroll owns the next reflow; laying out here would reenter
-            # _compositor_refresh -> prepare on this same stack. Do not paint
-            # the old geometry while that queued scroll transaction is pending.
+            # Native UpdateScroll owns reflow; do not reenter layout or paint stale geometry.
             return False
         return True
 
