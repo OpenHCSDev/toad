@@ -15,6 +15,7 @@ from weakref import ref
 from agent_comms.comms import wire
 from agent_comms.threads import Thread
 from runtime_fixture import ToadApp
+from toad.plan import PlanItem, PendingPlanStatus, InProgressPlanStatus
 from toad.widgets.plan import Plan
 from toad.widgets.project_directory_tree import ProjectDirectoryTree
 from toad.widgets.session_thread_sidebar import SessionThreadSidebar
@@ -102,7 +103,7 @@ async def exercise(screen, pilot, root):
     gc.collect()
     assert all(widget() is None for widget in saved), "Retired panel graph remains reachable"
     assert tree_ref() is None, "Retired DirectoryTree remains reachable"
-    latest = [Plan.Entry(Content("Latest while absent"), "high", "in_progress")]
+    latest = [PlanItem(Content("Latest while absent"), "high", InProgressPlanStatus)]
     sidebar.update_plan(latest)
     await sidebar.prepare_presentation()
     async with asyncio.timeout(12):

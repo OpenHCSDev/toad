@@ -1,0 +1,88 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+_______________ test_plan_raw_consumers_and_switches_are_deleted _______________
+
+    def test_plan_raw_consumers_and_switches_are_deleted():
+        for path in (ROOT / "src/toad").rglob("*.py"):
+            tree = ast.parse(path.read_text())
+            for node in ast.walk(tree):
+                if isinstance(node, ast.Attribute) and node.attr == "Entry":
+                    assert not isinstance(node.value, ast.Name) or node.value.id != "Plan", (path, node.lineno)
+                if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name == "on_acp_plan":
+>                   assert not any(isinstance(child, ast.Subscript) for child in ast.walk(node)), path
+E                   AssertionError: PosixPath('/home/ts/wt/toad-plan-entry-owner-sol-20260928/src/toad/widgets/conversation.py')
+E                   assert not True
+E                    +  where True = any(<generator object test_plan_raw_consumers_and_switches_are_deleted.<locals>.<genexpr> at 0x7fc376ce33e0>)
+
+tests/guards/test_plan_presentation.py:20: AssertionError
+_______ test_new_status_owns_installed_rendering_without_consumer_edits ________
+
+tmp_path = PosixPath('/home/ts/wt/toad-plan-entry-owner-sol-20260928/.artifacts/pytest-guard/test_new_status_owns_installed0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fc377019480>
+
+    def test_new_status_owns_installed_rendering_without_consumer_edits(tmp_path, monkeypatch):
+        from runtime_fixture import ToadApp
+        from sidebar_retirement_pilot import until, viewport_text
+        from toad.widgets.plan import Plan
+    
+        class ReviewingPlanStatus(PlanStatus):
+            @classmethod
+            def marker(cls):
+                return Content(" R ")
+    
+        class InstalledApp(ToadApp):
+            CSS_PATH = files("toad").joinpath("toad.tcss")
+    
+        for name, leaf in (("AGENT_COMMS_ROOT", "wire"), ("XDG_CONFIG_HOME", "config"),
+                           ("XDG_DATA_HOME", "data"), ("XDG_STATE_HOME", "state")):
+            monkeypatch.setenv(name, str(tmp_path / leaf))
+        assert PlanStatus.decode(ReviewingPlanStatus.declared_name) is ReviewingPlanStatus
+    
+        async def run():
+            app = InstalledApp(project_dir=str(tmp_path))
+            async with app.run_test(size=(100, 32)) as pilot:
+                plan = Plan([PlanItem(Content("DECLARED_REVIEWING_PLAN"), "medium", ReviewingPlanStatus)])
+                await app.screen.conversation.post(plan)
+                plan.scroll_visible(animate=False, immediate=True)
+                await until(pilot, lambda: "DECLARED_REVIEWING_PLAN" in viewport_text(plan))
+                assert "R" in viewport_text(plan)
+                assert not plan.all_complete
+                assert app._exception is None
+            await asyncio.get_running_loop().shutdown_default_executor()
+    
+>       asyncio.run(run())
+
+tests/guards/test_plan_presentation.py:69: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../../.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py:204: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+../../.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py:127: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py:719: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests/guards/test_plan_presentation.py:63: in run
+    await until(pilot, lambda: "DECLARED_REVIEWING_PLAN" in viewport_text(plan))
+tests/sidebar_retirement_pilot.py:35: in until
+    while not condition():
+              ^^^^^^^^^^^
+tests/guards/test_plan_presentation.py:63: in <lambda>
+    await until(pilot, lambda: "DECLARED_REVIEWING_PLAN" in viewport_text(plan))
+                                                            ^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+widget = Plan(classes='-message-other -unrouted block')
+
+    def viewport_text(widget):
+        """Crop actual compositor strips to the visible native widget viewport."""
+>       region, clip = widget.screen._compositor.visible_widgets[widget]
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: Plan(classes='-message-other -unrouted block')
+
+tests/sidebar_retirement_pilot.py:59: KeyError
+=========================== short test summary info ============================
+FAILED tests/guards/test_plan_presentation.py::test_plan_raw_consumers_and_switches_are_deleted
+FAILED tests/guards/test_plan_presentation.py::test_new_status_owns_installed_rendering_without_consumer_edits
+2 failed in 2.87s
