@@ -5,6 +5,7 @@ import asyncio
 from abc import abstractmethod
 from agent_comms.declared_family import DeclaredFamily
 from toad.answer import Answer
+from toad.permission_presentation import PermissionPresentation
 
 
 class PermissionRequest(DeclaredFamily, affix="PermissionRequest"):
@@ -58,7 +59,6 @@ class ToolPermissionRequest(PermissionRequest):
     def __init__(self, controller, options, tool_call):
         super().__init__(controller)
         self._options = [Answer(option["name"], option["optionId"], option["kind"]) for option in options]
-        from toad.permission_presentation import PermissionPresentation
         self._presentation = PermissionPresentation.from_acp(tool_call)
 
     @property
