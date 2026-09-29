@@ -666,7 +666,6 @@ class ConversationSessionBinding(containers.Vertical):
         self.prompt.slash_commands = CommandCatalog(
             self.agent_slash_commands, self.command_target_context()).commands
         self.window.anchor()
-        self.window.document_viewport.resume_source()
 
 
 

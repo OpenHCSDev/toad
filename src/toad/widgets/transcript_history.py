@@ -42,6 +42,7 @@ from toad.widgets.user_input import UserInput
 from toad.widgets.message_divider import AgentActivityDivider, MessageClock
 from toad.widgets.presentation_window import PresentationBudget, protected_presentations
 from toad.widgets.viewport_body import MeasuredViewportBody, ViewportBody
+from toad.work_preparation import retained_bytes
 from toad.widgets.committed_presentation import CommittedHistory
 from toad.widgets.message_filter import (
     all_categories, CategorizedBlock, MessageCategory, apply_block_filter, event_category,
@@ -64,6 +65,7 @@ class TranscriptBlockConsumer(MroDispatch):
         self.blocks: list[Widget] = []
         self.tools: dict[str, protocol.ToolCall] = {}
         self.fragment = fragment
+        self._retained_bytes = retained_bytes(fragment)
         self.show_divider = show_divider
 
     @handles(ContextTranscript)
@@ -205,12 +207,16 @@ class TranscriptFragmentView(MeasuredViewportBody, CategorizedBlock, VerticalGro
     def park_body(self, shelf: Widget) -> bool:
         if not self.body_ready or self.identity is None:
             return False
+        if not self.is_attached or self._closing or self._pruning:
+            return False
+        if not shelf.is_mounted or not shelf.is_attached or shelf._closing or shelf._pruning:
+            return False
         self.reparent(shelf)
         return True
 
     @property
     def retained_source_bytes(self) -> int:
-        return len(repr(self.fragment).encode("utf-8"))
+        return self._retained_bytes
 
     async def retire_body(self) -> bool:
         if not self.body_ready or self._body_measurement is None:
@@ -258,6 +264,7 @@ class TranscriptFragmentView(MeasuredViewportBody, CategorizedBlock, VerticalGro
         previous_fragment = self.fragment
         old_events, new_events = previous_fragment.events, fragment.events
         self.fragment = fragment
+        self._retained_bytes = retained_bytes(fragment)
         category = event_category(new_events[0]) if new_events else OtherCategory
         if category != self._message_category:
             self.remove_class(f"-message-{self._message_category.declared_name}")
@@ -334,6 +341,7 @@ class TranscriptPageView(VerticalGroup):
         for index, body in self._returning_bodies:
             before = self.children[index] if index < len(self.children) else None
             body.reparent(self, before=before)
+            body.refresh(layout=True)
             body._body_viewport.register(body)
         self._returning_bodies.clear()
 
@@ -527,6 +535,7 @@ class TranscriptHistory(ConversationBlock, CommittedHistory, CategorizedBlock, V
 
     def on_unmount(self) -> None:
         self._generation += 1
+        self._prefetch_intent = None
         self.window.histories.discard(self)
         if self._page_buffer is not None:
             self._page_buffer.close()
@@ -541,6 +550,7 @@ class TranscriptHistory(ConversationBlock, CommittedHistory, CategorizedBlock, V
                 self.loader, self.through, self.app.preparation,
             )
             self._prefetched_edges = None
+            self._prefetch_intent = None
         return reader
 
     def _warm_pages(self) -> None:
@@ -556,7 +566,7 @@ class TranscriptHistory(ConversationBlock, CommittedHistory, CategorizedBlock, V
         elif travel > 0:
             edges = (None, edges[1])
         rounds = 1 + self.window.document_viewport.lookahead.ahead_rows(self.window.size.height) // max(1, self.window.size.height // self.budget.admission_items)
-        intent = edges, rounds
+        intent = edges, rounds, self._selected_categories
         if intent == self._prefetch_intent:
             return
         self._prefetch_intent = intent
@@ -564,10 +574,8 @@ class TranscriptHistory(ConversationBlock, CommittedHistory, CategorizedBlock, V
             self._prefetch_worker.cancel()
 
         async def prepare() -> None:
-            current = lambda: (self.is_attached and self.screen.is_current
-                               and self._page_buffer is reader and not reader.closed
-                               and self._prefetch_intent == intent
-                               and bool(self._selected_categories))
+            current = lambda: (self._prefetch_intent is intent
+                               and self._page_buffer is reader and self.screen.is_current)
             if await reader.prefetch(*edges, current, rounds=rounds) and current():
                 self._prefetched_edges = edges
 
@@ -774,6 +782,7 @@ class TranscriptHistory(ConversationBlock, CommittedHistory, CategorizedBlock, V
             if self._prefetch_worker is not None:
                 self._prefetch_worker.cancel()
             self._prefetched_edges = None
+            self._prefetch_intent = None
             self._loading = True
             self.run_worker(self._jump_latest())
 
@@ -781,6 +790,7 @@ class TranscriptHistory(ConversationBlock, CommittedHistory, CategorizedBlock, V
         self._generation += 1
         generation = self._generation
         window, loader = self.window, self.loader
+        destination_admission = window.document_viewport.lookahead.admission(self.budget, window.size.height)
         scroll_revision = window.scroll_revision
         try:
             if loader is None:
@@ -796,7 +806,7 @@ class TranscriptHistory(ConversationBlock, CommittedHistory, CategorizedBlock, V
                 await self.remove_children(list(self.pages))
                 view = TranscriptPageView(
                     page, fragments=fragments,
-                    batch_size=window.document_viewport.lookahead.admission(self.budget, window.size.height),
+                    batch_size=destination_admission,
                 )
                 view.visible_categories = self._selected_categories
                 self.pages = deque([view])

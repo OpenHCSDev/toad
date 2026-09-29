@@ -14,6 +14,8 @@ from native_session_retention_pilot import InstalledApp, conversation_paint
 from viewport_recent_tabs_pilot import settled
 from toad.screens.main import MainScreen
 from toad.widgets.agent_response import AgentResponse
+from toad.widgets.transcript_history import TranscriptFragmentView
+from textual.widget import Widget
 
 
 async def acceptance(app, pilot, beta, comms, entered, release, hold_next, requests):
@@ -44,10 +46,12 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
         # Both now have durable, actually produced native journals. Establish
         # comparable reader/editor state only after ordinary saved publication.
         states = {}
-        for source, agent in zip(sources, agents):
+        for source_index, (source, agent) in enumerate(zip(sources, agents)):
             await app.select_session(source.id)
             view = source.conversation
             await until(pilot, lambda: bool(view.window.histories) and view.transcript.displayed_cursor is not None)
+            await until(pilot, lambda: f"NATIVE_RESPONSE_{2 * (source_index + 1)}" in conversation_paint(frame))
+            await until(pilot, lambda: view.window.max_scroll_y > 0)
             await settled(pilot, view)
             view.window.release_anchor()
             view.window.scroll_to(y=min(5, view.window.max_scroll_y / 2), animate=False, immediate=True)
@@ -57,8 +61,13 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
                 [(type(node).__name__, node.size, node.virtual_size) for node in view.window.histories],
                 conversation_paint(frame),
                 repr(app._exception),
-                [(type(node).__name__, len(node.children), node.is_mounted, node.display)
+                [(type(node).__name__, len(node.children), node.is_mounted, node.display,
+                  node.size, node.virtual_size, str(node.styles.height), node.loading)
                  for history_view in view.window.histories for node in history_view.walk_children()],
+                [(type(node).__name__, node.size, node.virtual_size, node.display, node.loading)
+                 for node in view.window.ancestors_with_self if isinstance(node, Widget)],
+                [(node._body_dormant, node._body_measurement, node._body_measurement_stale)
+                 for node in view.query(TranscriptFragmentView)],
             )
             editor = view.prompt.prompt_text_area
             editor.insert(f"draft-{source.id}")
@@ -79,8 +88,9 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
             await app.select_session(source.id)
             view = source.conversation
             await until(pilot, lambda: bool(view.window.histories))
-            await settled(pilot, view)
             y, painted, document, history, process, runner, old_bodies = states[source.id]
+            await until(pilot, lambda: conversation_paint(frame) == painted)
+            await settled(pilot, view)
             print("RETURN_GEOMETRY", source.id, view.window.scroll_y, view.window.max_scroll_y,
                   [(type(node).__name__, node.size, node.virtual_size, node.display)
                    for history_view in view.window.histories for node in history_view.walk_children()

@@ -222,6 +222,7 @@ class NativeSessionSurface:
                     Selection.cursor((0, 0)), 0, 0, None, (), None))
             self.owner, self.view = owner, screen
             conversation.display = True
+            conversation.window.document_viewport.resume_source()
             if not first:
                 conversation.start_native_session()
             conversation.prompt.focus()

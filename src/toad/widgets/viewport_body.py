@@ -9,7 +9,7 @@ from collections import OrderedDict
 from functools import partial
 from weakref import WeakSet, ref
 from time import monotonic
-from toad.widgets.presentation_window import DirectionalPreparation
+from toad.widgets.presentation_window import DirectionalPreparation, PresentationBudget
 
 from textual.widget import Widget
 from textual._measurement import NATIVE_WIDGET_HEIGHT, height_dependency
@@ -166,6 +166,7 @@ class DocumentViewport:
             raise ValueError("max_warm_bodies must be a non-negative integer")
         self.max_warm_bodies = max_warm_bodies
         self.lookahead = DirectionalPreparation()
+        self.budget = PresentationBudget()
         self._settle_timer = None
         self._window = ref(window)
         self.owners = WeakSet()
@@ -210,8 +211,12 @@ class DocumentViewport:
         def source_bytes():
             return sum(owner.retained_source_bytes for key in self._warm
                        if (owner := key()) is not None)
+        def widget_count():
+            return sum(1 + sum(1 for _ in owner.walk_children()) for key in self._warm
+                       if (owner := key()) is not None)
         while (len(self._warm) > self.max_warm_bodies or
-               source_bytes() > self.window.app.preparation.max_bytes):
+               source_bytes() > self.window.app.preparation.max_bytes or
+               widget_count() > self.budget.widget_limit(self.window.size.height)):
             key, _ = self._warm.popitem(last=False)
             owner = key()
             if owner is not None and owner.parent is self._shelf:
@@ -239,6 +244,7 @@ class DocumentViewport:
             self._worker = self.window.run_worker(partial(self._reconcile), group="viewport-bodies")
 
     def destination(self) -> None:
+        self.lookahead.observe(self.window.scroll_y)
         self.lookahead.destination(self.window.size.height)
         self._schedule_settle()
         self.request()
@@ -272,6 +278,8 @@ class DocumentViewport:
 
     def resume_source(self) -> None:
         self._suspended = False
+        self.window.layout.clear_cache()
+        self.window.refresh(layout=True)
         self.request()
 
     def protected(self) -> set[Widget]:
