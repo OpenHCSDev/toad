@@ -1,5 +1,7 @@
 """Two loaded actual Pi/ACP histories return without replay or source-state loss."""
 import asyncio
+import cProfile
+import pstats
 import json
 import os
 from pathlib import Path
@@ -60,6 +62,9 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
                                  tuple(ref(body) for body in view.query(AgentResponse)))
         native_calls = len(requests)
         assert native_calls == 4
+        profile = cProfile.Profile() if os.environ.get("NATIVE_RETURN_PROFILE") == "1" else None
+        if profile is not None:
+            profile.enable()
         for source, agent in ((sources[0], agents[0]), (sources[1], agents[1]),
                               (sources[0], agents[0]), (sources[1], agents[1]), (sources[0], agents[0])):
             before_hits, before_misses = app.preparation.hits, app.preparation.misses
@@ -83,6 +88,10 @@ async def acceptance(app, pilot, beta, comms, entered, release, hold_next, reque
                             "mounted_response_bodies":len(bodies),
                             "reused_body_instances":sum(any(previous() is body for previous in old_bodies) for body in bodies),
                             "prepared_bytes":app.preparation.retained_bytes})
+        if profile is not None:
+            profile.disable()
+            with Path(os.environ["NATIVE_RETURN_RECEIPT"]).with_suffix(".profile.txt").open("w") as stream:
+                pstats.Stats(profile, stream=stream).sort_stats("cumulative").print_stats(60)
         for source in sources:
             await app.select_session(source.id)
             editor = source.conversation.prompt.prompt_text_area
