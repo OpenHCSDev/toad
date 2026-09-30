@@ -1,7 +1,7 @@
 # Foreground layout, preparation and retained resource continuation
 
 Base: current main1141a2d6, including merged PR242. Integration owner Heisenberg.
-Kepler is the read-only profile/video/NativeProxy clock-correlation helper.
+Kepler is the read-only profile/video and recorded-clock assessment helper.
 This main-based followup carries every unfinished workspace performance, editor,
 TC1/T9 and growing-end requirement; merging242 did not close or reduce them.
 
@@ -18,8 +18,8 @@ TC1/T9 and growing-end requirement; merging242 did not close or reduce them.
   history. Body selection0.499→0.0071ms is only the selected resource seam.
 - Actual measured UI CPU remains25.3% idle and87–104% fastscroll, including
   diagnostic export and concurrent fleet work. No overallCPU reduction proven.
-- Source/root selection clock and NativeProxy correlation must be checked from
-  the existing raw protocol/timing records. Never treat changed-stack transition
+- Source/root selection clocks must be checked from the existing raw
+  protocol/timing records. Never treat changed-stack transition
   counts or Chrome B/E spans as CPU/sample counts or duration attribution.
 - ColdB loading is visible. Immediate warm firstpaint/Strip retention, 60fps
   partial gaps, foreground layout/preparation and wholeCPU remain open.
@@ -175,3 +175,74 @@ publication authority used by production; a second settlement flag is unnecessar
 This disposes the source gate's unfenced-observation risk without claiming full
 TC1/T9 lifecycle or old failure attribution. The installed physical gate still
 must verify this resource-cost source checkpoint in the current declared pair.
+
+## Current installed cohort and resource gate
+
+Normal main integration `1de10e3f` includes Toad8a924. The immutable owned prefix
+is `.artifacts/installed-body-cost-245`, installed from Git, with Core6feb634b,
+Textual2e49cb83, SDK0.12.1 and native593b. All68 frozen requirements are exact,
+noneditable and compatible; all273 Toad source files match this checkout and the
+installed Core verifies the entire native package tree. `installed-cohort.json`
+records package provenance. No default launcher or global package was changed.
+
+The same actual resource pilot against this installed cohort passes:
+555 native descendants,24 body roots, zero descendant walks for100 admissions,
+0.056ms per profiled admission. Actual content change invalidates the cost;
+retirement retains it and restoration uses the current native tree. Held native
+Mount reproduces the partial5/6 custody boundary, rejects its paint, then proves
+equality under the original history lock. `installed-resource.json` records the
+result; raw output is `.artifacts/body-cost-245-installed-current`.
+
+The native NodeList generation also changes for a changed display constraint.
+This conservatively invalidates cost, without another narrower epoch. Textual's
+existing unchanged-constraint guard returns before invalidation, so repeated
+unchanged constraint requests do not recount. No claim of a custody-only token
+or overall CPU reduction is made.
+
+One fresh original41MB/13MB saved-history capture completed through the normal
+`toad-comms` launcher with the owned runtime override and current published593b
+route. `actual_gate.py` reuses the accepted242 driver, with fresh source/process
+witnesses and owned output. It sends no prompt or provider request, and never
+restarts owners. Its raw path is
+`/home/ts/.cache/agent-scratch/toad-body-cost-245-20260930-attempt01`.
+The84.811s installed journey passes all16native checks: heldPageUp/PageDown,
+reverse, End and15second idle, physical peer opening and A-return, retained ready
+bodies/window/reader/editor, draft andCtrlZ. Both current original owners and
+journal hashes are unchanged; cleanup has zero remaining owned processes/errors.
+The recorder exits0; FFmpeg's255 is its accepted SIGINT stop result.
+
+All7 completed-phase PNGs show readable history. The retained8fps/24frame Down
+sheet shows source progression; the warm-return sheet shows the destination
+without an observed whole-body loading presentation. ColdB shows loading before
+its completed readable body. The return-a marker screenshot precedes the click;
+a-return is the actual completed A-return. These samples do not exclude33ms or
+60fps gaps, or establish exact click-to-first-paint/terminalStrip reuse.
+
+`installed-actual/receipt.json` records source/runtime identity, nativechecks,
+physical review, original custody, coarse CPU and raw artifact hashes. Four
+reviewed physical PNGs are committed beside it. Raw1254GIL samples have0errors.
+Actual UI CPU remains high: Up91.75%,Down104.95%,reverse91.23%,idle26.82%,
+A-return47.88%, including diagnostic export/profiling. Prior242 had different
+Core/native/owner pins; no controlled overallCPU reduction is established.
+
+This is READY for the scoped resource-cost checkpoint: one production owner
+18added/3deleted lines, all three native retirement consumers inherit its cost
+invalidation. FullCPU/foreground/raster/firstpaint/editor/TC1/T9/growing-end scope
+remains assigned. This candidate has not been merged or installed as default;
+parent owns paired release. No extra baseline or unchanged capture is needed.
+
+## Remaining structural lifetime questions from current main
+
+Parent's273-file parse identifies three remaining6-or-more-term T9 sites:
+`transcript_publication.py:269` (8terms, checkpoint admission),
+`widgets/streaming_markdown.py:67` (6terms, pager retirement), and
+`widgets/transcript_history.py:769` (7terms, prepared edge admission).
+Original T9 requires zero globally; this resource-cost checkpoint does not
+close those sites or claim TC1 below its pre129 foreign-probe baseline.
+
+Heisenberg owns streaming/pager retirement and archive/viewport resource
+questions. Sch owns the T5 canonical source/publication transition contract;
+the publication and history admission crossings are being coordinated directly
+before edits. Replace the actual lifetime/admission relation at that owner,
+with all consumers inherited or removed, rather than distributing the same
+predicate into boolean helpers, artificial classes or mirrored state.
