@@ -1,0 +1,17 @@
+{
+  "stage": "/home/ts/.local/share/agent-comms/runtime-goal-observation-20260930",
+  "baseline": "/home/ts/.local/share/agent-comms/runtime-owner-cli-config-20260930",
+  "pins": {
+    "agent-comms": "4295d680a5e63885a3f338a299afc07dbb34bd85",
+    "batrachian-toad": "629cca65be1e342124df0bd6ff673e1d50dd8be3",
+    "textual": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347"
+  },
+  "sdk": "0.12.1",
+  "native_package": "/home/ts/.local/share/agent-comms/native-current-e36a1dde326b7017/node_modules/@earendil-works/pi-coding-agent",
+  "frozen_package_count": 68,
+  "only_changed_requirement": "batrachian-toad",
+  "requirements_sha256": "7ca132cdb642d3e8cd0dd56a1ebf633c2b967058bc96f9f0c82883518b3bcaf2",
+  "parent_activation_required": true,
+  "defaults_changed": false,
+  "owners_restarted": false
+}

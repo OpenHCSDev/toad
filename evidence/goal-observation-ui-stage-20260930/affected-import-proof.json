@@ -1,0 +1,20 @@
+{
+  "state": "affected-imports-pass",
+  "goal_owner": "toad.session_observation.GoalObservation",
+  "projection_owner": "toad.widgets.conversation.ConversationSessionBinding",
+  "projection_async": false,
+  "ui_launched": false,
+  "public_root_loaded": false,
+  "native_inputs": 0,
+  "provider_calls": 0,
+  "setup_history": [
+    {
+      "state": "read-only import probe failed after metadata/runtime preflight passed",
+      "error": "ImportError: cannot import name GoalObservation from toad.transcript_publication",
+      "cause": "Probe assumed incorrect declaration module; actual owner is toad.session_observation",
+      "product_failure": false,
+      "rebuilds": 0,
+      "repeated_preflight": false
+    }
+  ]
+}

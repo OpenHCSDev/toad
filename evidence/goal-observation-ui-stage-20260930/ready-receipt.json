@@ -1,0 +1,47 @@
+{
+  "state": "READY-IMMUTABLE-UI-ONLY-STAGE-AWAITING-PARENT-ACTIVATION",
+  "stage": "/home/ts/.local/share/agent-comms/runtime-goal-observation-20260930",
+  "pins": {
+    "agent-comms": "4295d680a5e63885a3f338a299afc07dbb34bd85",
+    "batrachian-toad": "629cca65be1e342124df0bd6ff673e1d50dd8be3",
+    "textual": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347"
+  },
+  "sdk": "0.12.1",
+  "native_package": "/home/ts/.local/share/agent-comms/native-current-e36a1dde326b7017/node_modules/@earendil-works/pi-coding-agent",
+  "native_unchanged": true,
+  "frozen_packages": 68,
+  "toad_python_files_equal": 273,
+  "only_changed_requirement": "batrachian-toad",
+  "source_delta": {
+    "production_added": 5,
+    "production_deleted": 5,
+    "owners": [
+      "ConversationSessionBinding.refresh_native_projection",
+      "TranscriptPresentation",
+      "existing GoalObservation.invalidate"
+    ]
+  },
+  "metadata_published_from_same_staging_receipt": true,
+  "runtime_preflight_pass": true,
+  "affected_imports_pass": true,
+  "builds": 1,
+  "public_default_changes": 0,
+  "public_owner_restarts": 0,
+  "new_ui_runs": 0,
+  "paid_calls": 0,
+  "native_inputs": 0,
+  "owned_probe_cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 3374348,
+        "start_ticks": 25449833,
+        "returncode": 0
+      }
+    ]
+  },
+  "accepted_scope": "Sch238 existing matcheddef49 actual held-read firstpaint A/B/A and ACP acceptance +4guards;273sourcebytes match new629 merged wheel; no repeated gate",
+  "remaining_scope": "Actual mid-active compaction attribution remains open with original owner. Existing default UI controls PASS with fresh NRA InboxUnavailable/UNKNOWN overallReadyfalse remains explicitly separate."
+}
