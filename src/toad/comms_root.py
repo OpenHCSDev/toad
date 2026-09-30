@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
-from collections.abc import Callable, Iterator
+from collections.abc import Callable, Iterator, Mapping
 from contextlib import contextmanager, nullcontext
 from pathlib import Path
 from typing import TYPE_CHECKING, TypeVar
@@ -35,6 +35,19 @@ class RouteSelection:
         if source is not None and Path(source).expanduser().resolve() != selection.root:
             raise ValueError("Comms route changed; reopen this view")
         return selection
+
+    @classmethod
+    def for_child(cls, env: Mapping[str, str], cwd: str | Path) -> RouteSelection:
+        """Capture selection before projecting a root into a child environment."""
+        from agent_comms.active_route import resolve_comms_route
+        from toad.acp.maintenance_ingress import configured_root
+
+        root = configured_root(env, cwd)
+        implicit = "AGENT_COMMS_ROOT" not in env
+        route = resolve_comms_route() if implicit else resolve_comms_route(root)
+        if route.observe_root() != root:
+            raise ValueError("ACP route changed while selecting its child")
+        return cls(route, root, implicit)
 
 
 @dataclass(frozen=True)
