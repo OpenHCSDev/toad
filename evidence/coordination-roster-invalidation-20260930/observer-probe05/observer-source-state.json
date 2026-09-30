@@ -1,0 +1,591 @@
+{
+  "app_revision": {
+    "files": [
+      [
+        14696398,
+        2934,
+        1790764593249219990,
+        1790764593249933620
+      ],
+      [
+        14696386,
+        515,
+        1790764592071912586,
+        1790764592072912604
+      ],
+      [
+        14696350,
+        0,
+        1790764572253558725,
+        1790764572253558725
+      ],
+      null,
+      [
+        14696391,
+        76,
+        1790764585510744313,
+        1790764585510744313
+      ],
+      [
+        14696388,
+        189,
+        1790764585449847295,
+        1790764585450794362
+      ],
+      [
+        14696354,
+        85,
+        1790764592088136788,
+        1790764592088912889
+      ],
+      null,
+      [
+        14696345,
+        393216,
+        1790764593242933495,
+        1790764593242933495
+      ],
+      null
+    ],
+    "expiry_tick": 1790764601
+  },
+  "canonical_revision": {
+    "files": [
+      [
+        14696398,
+        2934,
+        1790764593249219990,
+        1790764593249933620
+      ],
+      [
+        14696386,
+        515,
+        1790764592071912586,
+        1790764592072912604
+      ],
+      [
+        14696350,
+        0,
+        1790764572253558725,
+        1790764572253558725
+      ],
+      null,
+      [
+        14696391,
+        76,
+        1790764585510744313,
+        1790764585510744313
+      ],
+      [
+        14696388,
+        189,
+        1790764585449847295,
+        1790764585450794362
+      ],
+      [
+        14696354,
+        85,
+        1790764592088136788,
+        1790764592088912889
+      ],
+      null,
+      [
+        14696345,
+        393216,
+        1790764593242933495,
+        1790764593242933495
+      ],
+      null
+    ],
+    "expiry_tick": 1790764602
+  },
+  "app_service_root": "/home/ts/wt/cw233-observer05/private-root/wire",
+  "app_service_is_sidebar_service": true,
+  "app_task": "<Task finished name='Task-1105' coro=<CoordinationAccess.observe() done, defined at /home/ts/wt/toad-fork-task-editor-20260930/.artifacts/installed-core440-fork/lib/python3.14/site-packages/toad/comms_root.py:139> result=None>",
+  "app_timer": "Timer(0.05, name='set_interval#1')",
+  "app_timer_active": true,
+  "app_timer_task": "<Task pending name='set_interval#1' coro=<Timer._run_timer() running at /home/ts/wt/toad-fork-task-editor-20260930/.artifacts/installed-core440-fork/lib/python3.14/site-packages/textual/timer.py:148> wait_for=<Future pending cb=[Task.task_wakeup()]>>",
+  "route_stamp": [
+    [
+      7904083,
+      254,
+      1790758865345916698,
+      1790758866040361413
+    ],
+    [
+      14696353,
+      818,
+      1790764572289677375,
+      1790764572290559385
+    ]
+  ],
+  "current_route_stamp": [
+    [
+      7904083,
+      254,
+      1790758865345916698,
+      1790758866040361413
+    ],
+    [
+      14696353,
+      818,
+      1790764572289677375,
+      1790764572290559385
+    ]
+  ],
+  "observer_identity": null,
+  "observer_revision": {
+    "files": [
+      [
+        14696398,
+        2934,
+        1790764593249219990,
+        1790764593249933620
+      ],
+      [
+        14696386,
+        515,
+        1790764592071912586,
+        1790764592072912604
+      ],
+      [
+        14696350,
+        0,
+        1790764572253558725,
+        1790764572253558725
+      ],
+      null,
+      [
+        14696391,
+        76,
+        1790764585510744313,
+        1790764585510744313
+      ],
+      [
+        14696388,
+        189,
+        1790764585449847295,
+        1790764585450794362
+      ],
+      [
+        14696354,
+        85,
+        1790764592088136788,
+        1790764592088912889
+      ],
+      null,
+      [
+        14696345,
+        393216,
+        1790764593242933495,
+        1790764593242933495
+      ],
+      null
+    ],
+    "expiry_tick": 1790764602
+  },
+  "observer_task": "<Task finished name='Task-1107' coro=<SidebarObservation.refresh_checked() done, defined at /home/ts/wt/toad-fork-task-editor-20260930/.artifacts/installed-core440-fork/lib/python3.14/site-packages/toad/sidebar_observation.py:211> result=None>",
+  "accepts_observation": true,
+  "canonical_channels": [
+    "#any",
+    "#none",
+    "#all",
+    "#fork-added",
+    "#team"
+  ],
+  "projected_channels": [
+    "#any",
+    "#none",
+    "#all",
+    "#team"
+  ],
+  "frame_callbacks": [
+    "(CommsSidebar(), <bound method SidebarObservation.start_read of <toad.sidebar_observation.SidebarObservation object at 0x7fead4918440>>)"
+  ],
+  "screen_callbacks": [],
+  "screen_refresh_pending": false,
+  "screen_batch_count": 0,
+  "signal_subscribers": [
+    "CommsSidebar()",
+    "ObservedThreadActivity()"
+  ],
+  "sidebar_next_callbacks": [],
+  "atomic_mode_switch": false,
+  "read_exceptions": [
+    {
+      "function": "SidebarObservation.read",
+      "offset": 172,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.read",
+      "offset": 1270,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.poll",
+      "offset": 900,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.poll",
+      "offset": 1050,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.refresh_checked",
+      "offset": 340,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.read",
+      "offset": 172,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.read",
+      "offset": 1270,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.poll",
+      "offset": 900,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.poll",
+      "offset": 1050,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.refresh_checked",
+      "offset": 340,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.read",
+      "offset": 172,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.read",
+      "offset": 1270,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.poll",
+      "offset": 900,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.poll",
+      "offset": 1050,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.refresh_checked",
+      "offset": 340,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.read",
+      "offset": 172,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.read",
+      "offset": 1270,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.poll",
+      "offset": 900,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.poll",
+      "offset": 1050,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.refresh_checked",
+      "offset": 340,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.read",
+      "offset": 172,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.read",
+      "offset": 1270,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.poll",
+      "offset": 900,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.poll",
+      "offset": 1050,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.refresh_checked",
+      "offset": 340,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.read",
+      "offset": 172,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.read",
+      "offset": 1270,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.poll",
+      "offset": 900,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.poll",
+      "offset": 1050,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.refresh_checked",
+      "offset": 340,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.read",
+      "offset": 172,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.read",
+      "offset": 1270,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.poll",
+      "offset": 900,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.poll",
+      "offset": 1050,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.refresh_checked",
+      "offset": 340,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.read",
+      "offset": 172,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.read",
+      "offset": 1270,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.poll",
+      "offset": 900,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.poll",
+      "offset": 1050,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.refresh_checked",
+      "offset": 340,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.read",
+      "offset": 172,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.read",
+      "offset": 1270,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.poll",
+      "offset": 900,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.poll",
+      "offset": 1050,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.refresh_checked",
+      "offset": 340,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.read",
+      "offset": 172,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.read",
+      "offset": 1270,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.poll",
+      "offset": 900,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.poll",
+      "offset": 1050,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.refresh_checked",
+      "offset": 340,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.read",
+      "offset": 172,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.read",
+      "offset": 1270,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.poll",
+      "offset": 900,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.poll",
+      "offset": 1050,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.refresh_checked",
+      "offset": 340,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.read",
+      "offset": 172,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.read",
+      "offset": 1270,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.poll",
+      "offset": 900,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.poll",
+      "offset": 1050,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.refresh_checked",
+      "offset": 340,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.read",
+      "offset": 172,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.read",
+      "offset": 1270,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.poll",
+      "offset": 900,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.poll",
+      "offset": 1050,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.refresh_checked",
+      "offset": 340,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.read",
+      "offset": 172,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.read",
+      "offset": 1270,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.poll",
+      "offset": 900,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.poll",
+      "offset": 1050,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.refresh_checked",
+      "offset": 340,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.read",
+      "offset": 172,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.read",
+      "offset": 1270,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.poll",
+      "offset": 900,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.poll",
+      "offset": 1050,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    },
+    {
+      "function": "SidebarObservation.refresh_checked",
+      "offset": 340,
+      "error": "AttributeError(\"'TranscriptHistory' object has no attribute '_loading'\")"
+    }
+  ]
+}
