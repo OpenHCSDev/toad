@@ -672,6 +672,27 @@ def review_recording(args):
     return output
 
 
+def capture_loaded_state(output, name, identity, owner, env, *, timeout):
+    """Use the existing live exporter for the exact owned UI launch identity."""
+    if not identity.alive():
+        raise RuntimeError("UI identity exited before state capture")
+    helper = Path(__file__).resolve().parents[2] / "tools/performance/capture_live.py"
+    epoch = float(env["TOAD_VIDEO_EPOCH"])
+    observation = {"started_seconds": time.monotonic() - epoch}
+    try:
+        with (output / f"{name}-capture.log").open("w") as log:
+            owner.run([sys.executable, str(helper), "--pid", str(identity.pid),
+                       "--output-dir", str(output), "--name", name,
+                       "--state", "--screen", "--sudo"], env,
+                      stdout=log, stderr=subprocess.STDOUT, timeout=timeout)
+        observation["manifest"] = json.loads((output / f"{name}-manifest.json").read_text())
+    except (OSError, subprocess.SubprocessError, ValueError) as error:
+        # Retain the actual video even when diagnostic attachment fails.
+        observation["error"] = f"{type(error).__name__}: {error}"
+    observation["finished_seconds"] = time.monotonic() - epoch
+    return observation
+
+
 def record(args):
     output = args.output.expanduser().resolve()
     scratch = (Path.home() / ".cache/agent-scratch").resolve()
@@ -787,6 +808,9 @@ def record(args):
                 transferred_program = terminal_program(owner, terminal.child.identity, time.monotonic() + 10)
             receipt["ui_identity"] = {"pid": transferred_program.child.identity.pid,
                                       "start_ticks": transferred_program.child.identity.start_time}
+            if args.capture_state:
+                from agent_comms.field_codec import FieldCodec
+                env["TOAD_VIDEO_UI_IDENTITY"] = json.dumps(FieldCodec.encode(transferred_program.child.identity))
             env["TOAD_VIDEO_TERMINAL"] = str(terminal_pid)
             window = owner.run(["xdotool", "search", "--sync", "--pid", str(terminal_pid)], env,
                                stdout=subprocess.PIPE, timeout=10, text=True).stdout.splitlines()[0]
@@ -803,6 +827,7 @@ def record(args):
             started = time.monotonic()
             deadline = started + args.max_duration
             env["TOAD_VIDEO_EPOCH"] = str(started)
+            env["TOAD_VIDEO_DEADLINE"] = str(deadline)
             receipt["capture_launch_monotonic"] = started
             receipt["terminal_pid"] = terminal_pid
             print(f"Recording isolated display {env['DISPLAY']}: {output}", flush=True)
@@ -820,23 +845,8 @@ def record(args):
             def capture_state(name):
                 if not args.capture_state:
                     return
-                identity = transferred_program.child.identity
-                if not identity.alive():
-                    raise RuntimeError("UI identity exited before state capture")
-                helper = Path(__file__).resolve().parents[2] / "tools/performance/capture_live.py"
-                observation = {"started_seconds": time.monotonic() - started}
-                receipt.setdefault("state_captures", {})[name] = observation
-                try:
-                    with (output / f"{name}-capture.log").open("w") as log:
-                        owner.run([sys.executable, str(helper), "--pid", str(identity.pid),
-                                   "--output-dir", str(output), "--name", name,
-                                   "--state", "--screen", "--sudo"], env,
-                                  stdout=log, stderr=subprocess.STDOUT, timeout=remaining())
-                    observation["manifest"] = json.loads((output / f"{name}-manifest.json").read_text())
-                except (OSError, subprocess.SubprocessError, ValueError) as error:
-                    # Retain the actual video even when diagnostic attachment fails.
-                    observation["error"] = f"{type(error).__name__}: {error}"
-                observation["finished_seconds"] = time.monotonic() - started
+                receipt.setdefault("state_captures", {})[name] = capture_loaded_state(
+                    output, name, transferred_program.child.identity, owner, env, timeout=remaining())
 
             time.sleep(min(args.startup_wait, remaining()))
             screenshot("before.png")
@@ -914,7 +924,7 @@ def record(args):
                                            for label, start, seconds in intervals]
             names = ["terminal.mp4", "before.png", "after.png"]
             if args.capture_state:
-                names.extend(path.name for name in ("before", "after")
+                names.extend(path.name for name in ("before", "after", "phase")
                              for path in output.glob(f"{name}-*") if path.is_file() and path.stat().st_size)
             if args.profile:
                 names.extend(["cpu-profile.json", "profile-review.json", "profile-launch.json", "profile-terminal.json", "profiler.log"])
@@ -980,6 +990,15 @@ def mark(label):
             owner.run(["import", "-display", display, "-window", "root", str(output / name)],
                       os.environ.copy(), timeout=5)
             event["screenshot"] = name
+            if os.environ.get("TOAD_VIDEO_UI_IDENTITY"):
+                from agent_comms.child_process import ProcessIdentity
+                from agent_comms.field_codec import FieldCodec
+                identity = FieldCodec.decode(ProcessIdentity, json.loads(os.environ["TOAD_VIDEO_UI_IDENTITY"]))
+                remaining = float(os.environ["TOAD_VIDEO_DEADLINE"]) - time.monotonic()
+                if remaining <= 0:
+                    raise TimeoutError("Recording diagnostic budget exhausted")
+                event["state_capture"] = capture_loaded_state(
+                    output, f"phase-{label}", identity, owner, os.environ.copy(), timeout=remaining)
         finally:
             owner.cleanup()
     with (output / "events.jsonl").open("a") as target:
@@ -1026,7 +1045,7 @@ def main():
                         help="Clip encoding lifetime: " + ", ".join(ReviewTiming.names()))
     parser.add_argument("--profile", action="store_true", help="Sample actual UI and Python workers with installed py-spy")
     parser.add_argument("--capture-state", action="store_true",
-                        help="Capture existing loaded DTOs and Textual SVG before/after via capture_live --sudo")
+                        help="Export loaded DTOs/SVG at before/after and physical phase markers using capture_live --sudo")
     parser.add_argument("--profile-rate", type=int, default=25, help="Bounded sampling rate (10-49 Hz)")
     parser.add_argument("--profile-sampling", type=ProfileSampling.decode, default=ConsistentSampling,
                         help="Stack read policy: " + ", ".join(ProfileSampling.names()))
