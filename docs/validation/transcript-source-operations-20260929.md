@@ -13,8 +13,9 @@ Read-only failed attachment recovery consumes the canonical RegistrySnapshot
 binding in ThreadPresentation. Core carries the ORIGINAL failed load command's
 full owner/process witness in its typed RequestError disposition. The existing
 load command slot retains that failed disposition; it never permits replay,
-input or owner start. Accepted attachments use their original trusted queue
-owner scope. A strictly newer generation for the same incarnation detects even
+input or owner start. Accepted attachments use their original successful load response
+proof through the same WitnessedSessionLoadAdmission family. Queue admission
+counters are never compared with registry owner generations. A strictly newer generation for the same incarnation detects even
 PID reuse; the new load revalidates complete OwnerIdentity and ProcessIdentity.
 No last-PID field, last-owner cache, prebind-floor trust or second recovery path.
 
@@ -54,3 +55,17 @@ source publication and target recipient handling. It will delete the synthetic
 AssignedInboundPublication path and update same-frontier original handling
 through existing source/notification owners. This follow-up does not hold the
 useful #426/#210 recovery checkpoint.
+
+
+## Original accepted load correction
+
+Concrete review caught different counter domains in the initial accepted-path
+comparison. The queue-scope recovery consumer is deleted; both ACP new/load
+successful responses retain their ORIGINAL registry owner/process proof in the
+existing load command record. The same witnessed-command family handles failure
+and success without a current-owner cache or prebind evidence promotion.
+Owner=950/admission=914 same-process, same PID/new birth/generation, rename and
+absent proof negatives pass; source ratchets have zero positive measures.
+Exact affected installed accepted-record assertions remain to run when the
+active #425 native fixture retires. Previous receipt proves the failed path,
+not this new accepted-path closure. Parent owns final paired activation.
