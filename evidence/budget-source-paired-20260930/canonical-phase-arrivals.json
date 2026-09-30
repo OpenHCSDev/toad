@@ -1,0 +1,351 @@
+{
+  "scope": "Canonical decoded callback arrivals; not provider queue/reasoning dwell estimates",
+  "callbacks": 168,
+  "turn_arrivals": [
+    {
+      "test": "tests/test_native_fork_first_input.py::test_underbudget_physical_native_owner_answers_without_compaction[fork_owner]",
+      "elapsed_seconds": 7.534785106952768,
+      "active_id": "e567c09844d444d1b985e847f3a3bd46",
+      "phase": {
+        "kind": "preparing",
+        "detail": "hey Boss"
+      }
+    },
+    {
+      "test": "tests/test_native_fork_first_input.py::test_underbudget_physical_native_owner_answers_without_compaction[fork_owner]",
+      "elapsed_seconds": 7.580341640976258,
+      "active_id": "e567c09844d444d1b985e847f3a3bd46",
+      "phase": {
+        "kind": "preparing",
+        "detail": "hey Boss"
+      }
+    },
+    {
+      "test": "tests/test_native_fork_first_input.py::test_underbudget_physical_native_owner_answers_without_compaction[fork_owner]",
+      "elapsed_seconds": 11.343453805951867,
+      "active_id": "e567c09844d444d1b985e847f3a3bd46",
+      "phase": {
+        "kind": "prompt_acceptance",
+        "detail": ""
+      }
+    },
+    {
+      "test": "tests/test_native_fork_first_input.py::test_underbudget_physical_native_owner_answers_without_compaction[fork_owner]",
+      "elapsed_seconds": 12.74186920595821,
+      "active_id": "e567c09844d444d1b985e847f3a3bd46",
+      "phase": {
+        "kind": "model_wait",
+        "detail": ""
+      }
+    },
+    {
+      "test": "tests/test_native_fork_first_input.py::test_underbudget_physical_native_owner_answers_without_compaction[fork_owner]",
+      "elapsed_seconds": 12.904215307964478,
+      "active_id": "e567c09844d444d1b985e847f3a3bd46",
+      "phase": {
+        "kind": "settling_stats",
+        "detail": ""
+      }
+    },
+    {
+      "test": "tests/test_native_fork_first_input.py::test_underbudget_physical_native_owner_answers_without_compaction[fork_owner]",
+      "elapsed_seconds": 12.9661197179812,
+      "active_id": "e567c09844d444d1b985e847f3a3bd46",
+      "phase": {
+        "kind": "publishing",
+        "detail": ""
+      }
+    },
+    {
+      "test": "tests/test_native_fork_first_input.py::test_underbudget_physical_native_owner_answers_without_compaction[fork_owner]",
+      "elapsed_seconds": 13.022087125980761,
+      "active_id": null,
+      "phase": null
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 17.175513889000285,
+      "active_id": null,
+      "phase": null
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 17.24888549296884,
+      "active_id": null,
+      "phase": null
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 17.32368981000036,
+      "active_id": "018c8670d8c946b68e5165224923070f",
+      "phase": {
+        "kind": "preparing",
+        "detail": "RETAINED_NATIVE_HISTORY_questioner"
+      }
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 17.325734350946732,
+      "active_id": "018c8670d8c946b68e5165224923070f",
+      "phase": {
+        "kind": "preparing",
+        "detail": "RETAINED_NATIVE_HISTORY_questioner"
+      }
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 17.356772763945628,
+      "active_id": "018c8670d8c946b68e5165224923070f",
+      "phase": {
+        "kind": "prompt_acceptance",
+        "detail": ""
+      }
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 17.35788527096156,
+      "active_id": "018c8670d8c946b68e5165224923070f",
+      "phase": {
+        "kind": "prompt_acceptance",
+        "detail": ""
+      }
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 19.945186734956224,
+      "active_id": "018c8670d8c946b68e5165224923070f",
+      "phase": {
+        "kind": "model_wait",
+        "detail": ""
+      }
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 19.946068905992433,
+      "active_id": "018c8670d8c946b68e5165224923070f",
+      "phase": {
+        "kind": "model_wait",
+        "detail": ""
+      }
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 20.095122327969875,
+      "active_id": "018c8670d8c946b68e5165224923070f",
+      "phase": {
+        "kind": "settling_stats",
+        "detail": ""
+      }
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 20.096510596980806,
+      "active_id": "018c8670d8c946b68e5165224923070f",
+      "phase": {
+        "kind": "settling_stats",
+        "detail": ""
+      }
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 20.175591551989783,
+      "active_id": "018c8670d8c946b68e5165224923070f",
+      "phase": {
+        "kind": "publishing",
+        "detail": ""
+      }
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 20.176755585998762,
+      "active_id": "018c8670d8c946b68e5165224923070f",
+      "phase": {
+        "kind": "publishing",
+        "detail": ""
+      }
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 20.228605827956926,
+      "active_id": null,
+      "phase": null
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 20.229050389956683,
+      "active_id": null,
+      "phase": null
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 20.328431092959363,
+      "active_id": null,
+      "phase": null
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 20.386578659992665,
+      "active_id": "b8d95d68130e460f92112fee451a817f",
+      "phase": {
+        "kind": "preparing",
+        "detail": "RETAINED_NATIVE_HISTORY_answerer"
+      }
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 20.410788562963717,
+      "active_id": "b8d95d68130e460f92112fee451a817f",
+      "phase": {
+        "kind": "prompt_acceptance",
+        "detail": ""
+      }
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 22.974449801957235,
+      "active_id": "b8d95d68130e460f92112fee451a817f",
+      "phase": {
+        "kind": "model_wait",
+        "detail": ""
+      }
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 23.09911527496297,
+      "active_id": "b8d95d68130e460f92112fee451a817f",
+      "phase": {
+        "kind": "settling_stats",
+        "detail": ""
+      }
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 23.145900164963678,
+      "active_id": "b8d95d68130e460f92112fee451a817f",
+      "phase": {
+        "kind": "publishing",
+        "detail": ""
+      }
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 23.19492119899951,
+      "active_id": null,
+      "phase": null
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 35.95130665594479,
+      "active_id": null,
+      "phase": null
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 35.97227462998126,
+      "active_id": null,
+      "phase": null
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 36.035516162985004,
+      "active_id": "b832b53b0e5b4daca23aac6d1b10e7e8",
+      "phase": {
+        "kind": "preparing",
+        "detail": "EXPLICIT_POST_RESTART_INPUT"
+      }
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 36.03705545695266,
+      "active_id": "b832b53b0e5b4daca23aac6d1b10e7e8",
+      "phase": {
+        "kind": "preparing",
+        "detail": "EXPLICIT_POST_RESTART_INPUT"
+      }
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 39.945183747971896,
+      "active_id": "b832b53b0e5b4daca23aac6d1b10e7e8",
+      "phase": {
+        "kind": "prompt_acceptance",
+        "detail": ""
+      }
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 39.946240939956624,
+      "active_id": "b832b53b0e5b4daca23aac6d1b10e7e8",
+      "phase": {
+        "kind": "prompt_acceptance",
+        "detail": ""
+      }
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 41.41137559094932,
+      "active_id": "b832b53b0e5b4daca23aac6d1b10e7e8",
+      "phase": {
+        "kind": "model_wait",
+        "detail": ""
+      }
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 41.41245909198187,
+      "active_id": "b832b53b0e5b4daca23aac6d1b10e7e8",
+      "phase": {
+        "kind": "model_wait",
+        "detail": ""
+      }
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 41.60471588297514,
+      "active_id": "b832b53b0e5b4daca23aac6d1b10e7e8",
+      "phase": {
+        "kind": "settling_stats",
+        "detail": ""
+      }
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 41.60575282695936,
+      "active_id": "b832b53b0e5b4daca23aac6d1b10e7e8",
+      "phase": {
+        "kind": "settling_stats",
+        "detail": ""
+      }
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 41.669635732949246,
+      "active_id": "b832b53b0e5b4daca23aac6d1b10e7e8",
+      "phase": {
+        "kind": "publishing",
+        "detail": ""
+      }
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 41.670278219971806,
+      "active_id": "b832b53b0e5b4daca23aac6d1b10e7e8",
+      "phase": {
+        "kind": "publishing",
+        "detail": ""
+      }
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 41.73398249800084,
+      "active_id": null,
+      "phase": null
+    },
+    {
+      "test": "tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]",
+      "elapsed_seconds": 41.73457023099763,
+      "active_id": null,
+      "phase": null
+    }
+  ]
+}

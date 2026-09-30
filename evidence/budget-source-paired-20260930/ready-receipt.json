@@ -1,0 +1,59 @@
+{
+  "state": "READY-SCOPED-INSTALLED-NATIVE-ACP-TOAD-USER-JOURNEYS",
+  "overall_product_ready": false,
+  "stage": "/home/ts/.local/share/agent-comms/runtime-native-budget-source-resume-20260930",
+  "pins": {
+    "agent-comms": "a4df958946a35d9b9f57c610764da8a559039f83",
+    "batrachian-toad": "7da9c061ca69848a64620bac19a67cf58bfe918d",
+    "textual": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347"
+  },
+  "sdk": "0.12.1",
+  "native_package": "/home/ts/.local/share/agent-comms/native-current-7616293d01862aba/node_modules/@earendil-works/pi-coding-agent",
+  "native_backend_workflows": {
+    "existing_two_tests": [
+      "/home/ts/wt/comms-cleanup-live-integration-20260929/tests/test_native_fork_first_input.py::test_underbudget_physical_native_owner_answers_without_compaction[fork_owner]",
+      "/home/ts/wt/comms-cleanup-live-integration-20260929/tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]"
+    ],
+    "pytest_seconds": 42.73,
+    "wrapper_seconds": 43.53575539594749,
+    "first_fork_send_seconds": 9.602401704003569,
+    "controlled_posts": 7,
+    "callbacks": 168,
+    "automatic_channel_reply": true,
+    "guarded_saved_restart_no_replay": true
+  },
+  "installed_ui": {
+    "existing_driver": "first_fork_native_installed_pilot.default_acceptance",
+    "elapsed_seconds": 40.09069373901002,
+    "controlled_posts": 2,
+    "actual_app_pilot_compositor": true,
+    "physical_st_xvfb_gate": false,
+    "actual_fork_dialog_and_tag_editing": true,
+    "canonical_registration_to_roster_immediate_open": true,
+    "open_before_real_socket_with_same_owner": true,
+    "first_input_native_answer_single_tab_once_painted": true
+  },
+  "raw_root": "/home/ts/wt/g453e",
+  "historical_failed_ui_attempt": {
+    "root": "/home/ts/wt/g453e/u01",
+    "proof": "/home/ts/wt/g453e/u01-proof",
+    "controlled_posts": 1,
+    "cause": "Own wrapper omitted __main__ guard; multiprocessing spawn reexecuted evidence.mkdir and broke real pool. Corrected wrapper freshu02; no production patch/no original-input retry. Raw failure/source/dispositions retained.",
+    "wrapper_result_before_hang_cleanup": 1,
+    "terminal_tool_exit_after_attested_ui_cleanup": 143,
+    "cleanup": "Attempt-tag helper removed resource_tracker; unique ownedlogFD+birth attest onlyoldUI gracefulterminate. No publicsignals."
+  },
+  "total_controlled_posts_including_failed_attempt": 10,
+  "paid_calls": 0,
+  "public_root_inputs_or_mutations": 0,
+  "account_changes": 0,
+  "unknown_replays": 0,
+  "cleanup": {
+    "all_native_or_ui_attempt_processes_absent": true,
+    "live_fixture_pids": []
+  },
+  "test_production_source_pythonpath": false,
+  "source_production_edits": 0,
+  "production_deleted_lines": 0,
+  "remaining_scope": "454 newModelWait.source ABI/nativeb7b2 excluded from frozenpair; its owner gate separate. No realpaidprovider400/originalstate/fullperformance readiness claim. Parentpubliccutover and sole affected default startup remainpending."
+}

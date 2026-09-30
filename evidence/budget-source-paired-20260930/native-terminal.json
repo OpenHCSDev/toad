@@ -1,0 +1,13 @@
+{
+  "exit_code": 0,
+  "elapsed_seconds": 43.53575539594749,
+  "tests": [
+    "/home/ts/wt/comms-cleanup-live-integration-20260929/tests/test_native_fork_first_input.py::test_underbudget_physical_native_owner_answers_without_compaction[fork_owner]",
+    "/home/ts/wt/comms-cleanup-live-integration-20260929/tests/test_native_channel_reply_roundtrip.py::test_native_channel_reply_automatically_reaches_original_sender[saved-restart]"
+  ],
+  "one_execution": true,
+  "manual_replays": 0,
+  "paid_calls": 0,
+  "public_mutations": 0,
+  "limitations": "No tool-running coverage or real-provider queue/reasoning split; original400 budget failures independent"
+}

@@ -1,0 +1,9 @@
+# Installed budget/source pair continuous journeys
+
+Exact immutable Corea4df/Toad7da9/Text2e/SDK0.12.1/native761. Existing Core native fork-first-input and saved-restart channel roundtrip:2PASS42.73s,43.5358s wrapper, first fork9.6024s. Seven controlled localhost posts,168 canonical ACP callbacks. Original sender receives channel reply automatically; guarded saved restart does not replay.
+
+Existing installed Toad first_fork_native_installed_pilot default acceptance:40.0907s exit0,2 controlled posts. Actual application/Pilot clicks/compositor and native/ACP processes, no replacements. Fork from sidebar context dialog, inherit/edit tags, canonical roster publication, open real child before socket; attachment remains pending past old5s then same owner answers. Inherited history and first new input/answer paint once, one logical tab. This is an installed UI fixture; it is not an isolated st/Xvfb physical capture.
+
+Historical u01 wrapper omitted __main__ guard; real spawned workers reexecuted evidence.mkdir, causing FileExistsError/BrokenProcessPool. One controlled seed post completed. Original native history/dispositions retained, never retried. Guard corrected and fresh u02 used. Old fixture-only resource tracker cleanup plus uniquely attested UI graceful termination left no processes. Raw failure,38.674s wrapper result1 and tool143 cleanup disposition remain recorded.
+
+All private fixture processes absent; zero public inputs, account changes, paid calls or UNKNOWN replay. Current454 ModelWait.source/newNative ABI excluded after this pair freeze; no wholeperformance/realprovider400 readiness claim. No production changes or deletions; fixture evidence only. [Ready receipt](../../evidence/budget-source-paired-20260930/ready-receipt.json). Parent owns publication/owner restart and affected short default entrypoint check.

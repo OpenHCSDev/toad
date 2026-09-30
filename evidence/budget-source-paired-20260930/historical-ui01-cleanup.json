@@ -1,0 +1,7 @@
+{
+  "owned_ui_pid": 3662773,
+  "birth": 1790789759.26,
+  "attestation": "Unique owned u01 log FD and observed wrapper birth; no public UI or owner",
+  "action": "terminated",
+  "original_attempt": "failed wrapper __main__ spawn; input/journal retained; no retry"
+}
