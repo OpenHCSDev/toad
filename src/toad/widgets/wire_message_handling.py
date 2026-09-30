@@ -1,16 +1,14 @@
 """Original wire identity is the join for both DM and IRC feedback."""
 
-from abc import ABC, abstractmethod
-
 from agent_comms.message_reference import MessageReference
 
 
-class WireMessageHandling(ABC):
+class WireMessageHandling:
     show_header: bool
 
     @property
-    @abstractmethod
-    def message_reference(self) -> MessageReference | None: ...
+    def message_reference(self) -> MessageReference | None:
+        raise NotImplementedError
 
     @property
     def handling_references(self) -> tuple[MessageReference, ...]:
