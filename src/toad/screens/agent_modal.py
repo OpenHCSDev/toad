@@ -91,13 +91,13 @@ class AgentModal(ModalScreen[LaunchAgent | None]):
 
     @on(widgets.Select.Changed)
     def on_select_changed(self, event: widgets.Select.Changed) -> None:
-        self.query_one("#run-action", widgets.Button).disabled = event.value is widgets.Select.BLANK
+        self.query_one("#run-action", widgets.Button).disabled = event.value is widgets.Select.NULL
 
     @work
     @on(widgets.Button.Pressed, "#run-action")
     async def on_run_action(self) -> None:
         action = self.action_select.value
-        if action is not widgets.Select.BLANK and action.available(self):
+        if action is not widgets.Select.NULL and action.available(self):
             await action.apply(self)
 
     async def action_launch(self) -> None:
