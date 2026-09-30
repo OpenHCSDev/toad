@@ -1,0 +1,36 @@
+{
+  "removed": [
+    {
+      "path": "/home/ts/wt/toad-agent-tab-warm-return-followup-20260929",
+      "allocated_bytes": 39927808,
+      "branch_preserved": "perf/agent-tab-warm-return-followup-20260929",
+      "head": "0570413677b70d02c6583d0272936f0175225b03"
+    },
+    {
+      "path": "/home/ts/wt/toad-pr116-workspace-closure-20260929",
+      "allocated_bytes": 39555072,
+      "branch_preserved": "fix/pr116-workspace-closure-20260929",
+      "head": "607c9534f53b6f6b6329b3e4b041b33ea4a79793"
+    },
+    {
+      "path": "/home/ts/wt/toad-snapshot-publication-return-latency-20260929",
+      "allocated_bytes": 39985152,
+      "branch_preserved": "perf/snapshot-publication-return-latency-20260929",
+      "head": "0eb8f3d9ffe79c2fa7ab8a4c7a16900410647ac0"
+    },
+    {
+      "path": "/home/ts/wt/toad-thread-spawn-app-binding-20260929",
+      "allocated_bytes": 39993344,
+      "branch_preserved": "fix/thread-spawn-app-binding-20260929",
+      "head": "bcb3c3a440d8d4e17e6c87e58646e9dc0f7ca15c"
+    }
+  ],
+  "total_allocated_bytes": 159461376,
+  "process_and_default_registration_dependencies": [],
+  "protected": [
+    "/home/ts/wt/toad-retained-outer-history-first-paint-20260929: active PR217 and failure evidence",
+    "/home/ts/wt/toad-agent-tab-state-latency-20260929: other owner uncommitted native/provider evidence",
+    "/home/ts/wt/toad-presentation-final-disposal-20260929: final cleanup commit not in main; review proof retained",
+    "/home/ts/wt/comms-adaptive-summary-publication-20260929: handed-off native/artifacts preserved pending exact audit"
+  ]
+}
