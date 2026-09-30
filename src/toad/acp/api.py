@@ -36,7 +36,7 @@ def session_new(
 @API.method(name="session/load")
 def session_load(
     cwd: str, mcpServers: schema.LoadSessionRequest.model_fields["mcp_servers"].annotation,
-    sessionId: str, _meta: schema.LoadSessionRequest.model_fields.get("field_meta").annotation = None,
+    sessionId: str, _meta: schema.LoadSessionRequest.model_fields["field_meta"].annotation = None,
 ) -> schema.LoadSessionResponse:
     """https://agentclientprotocol.com/protocol/session-setup#loading-a-session"""
     ...

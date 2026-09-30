@@ -10,6 +10,7 @@ from agent_comms.threads import Thread
 from agent_comms.comms import wire
 from toad.app import ToadApp
 from toad.widgets.transcript_history import TranscriptHistory
+from toad.render_tasks import TranscriptBodyPreparation
 
 
 async def until(predicate):
@@ -60,6 +61,14 @@ async def main():
                 assert history.fragment_count <= history.fragment_limit
                 assert len(history.query("AgentResponse")) <= history.fragment_limit
             assert history.pages[0].page.events[0].text.startswith("Record 0\n")
+            # Exercise the actual decoded source and shared renderer before
+            # navigation consumes its prepared bodies. All MRO handlers,
+            # including the undisclosed base, obey the async dispatch contract.
+            preparation = TranscriptBodyPreparation(
+                app.render_processes, app.native_ansi_color, app.current_theme.dark,
+            )
+            for event in history.pages[0].page.events:
+                await preparation.dispatch(event)
             # End addresses the native source tail rather than each intervening
             # admitted page. Actual key delivery must work during an edge read.
             while history.pages[-1].stop < len(history.pages[-1].fragments):
