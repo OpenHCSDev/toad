@@ -180,6 +180,7 @@ class CheckpointPublication(TranscriptPublication):
 
     async def publish(self) -> None:
         from agent_comms.errors import UnregisteredThreadError
+        from agent_comms.coordination_errors import StaleRevision
 
         from toad.acp.agent import Agent
         from toad.widgets.committed_presentation import (
@@ -234,7 +235,7 @@ class CheckpointPublication(TranscriptPublication):
             if not page.events or not is_current():
                 return
             prepared = await plan.prepare(view, history, page, before_read, is_current)
-        except UnregisteredThreadError:
+        except (UnregisteredThreadError, StaleRevision):
             # Deletion can retire the model before the attachment's final
             # transcript notification has drained. Its view is closing too.
             return

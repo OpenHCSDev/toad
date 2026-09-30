@@ -210,6 +210,8 @@ class TranscriptPageBuffer(PreparedPageSource):
         keep_going: Callable[[], bool], *, rounds: int = 1,
     ) -> bool:
         """Warm both edges fairly; stop hidden/closed work and failed read loops."""
+        from agent_comms.coordination_errors import StaleRevision
+
         for _ in range(min(rounds, self.runtime.max_entries)):
             for older in (True, False):
                 cursor = before if older else after
@@ -226,6 +228,10 @@ class TranscriptPageBuffer(PreparedPageSource):
                     continue
                 try:
                     prepared = await self.get(request)
+                except StaleRevision:
+                    # A revoked source is not a failed page identity to cache.
+                    # Leave the original mounted source and terminate this read.
+                    return False
                 except (OSError, ValueError):
                     # A foreground request can retry/report the error. Repeated
                     # layout signals must not keep retrying speculative failures.
