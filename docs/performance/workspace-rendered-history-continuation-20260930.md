@@ -3,15 +3,14 @@
 Integration owner: Heisenberg. Physical driver/video/profile contributor: Kepler.
 Current crossing reassignment: Sch owns the separate mid-compaction UI hang,
 NativeSessionSurface/GoalObservation and Conversation/TranscriptPresentation
-retained restoration and before-paint projection seam. Heisenberg released its
+retained restoration and before-paint projection seam (merged238, main629cca65). Heisenberg released its
 uncommitted proposal; PR236 retains buffer, warm resources and whole workspace
 integration, without competing edits to those methods. Mendel owns the independent
 comms428 backend latency investigation. Kepler f6422a65 tools are normally inherited.
 This draft inherits ALL unfinished PR227 scope, not just its installed resource
 checkpoint. PR227 freezes at cb77ce9ad347c3b77a3e1abcb15a8a7ab05aeebb; exact installed
-production is486dedb197565a55589a3bc70431217ede34c0a8. Base is main; normal main94cfc
-and221ff35 integration is included. After parent merges227, integrate actual main
-normally; do not recreate its source or hide a stacked base.
+production is486dedb197565a55589a3bc70431217ede34c0a8. Base is main; normal main629cca65 integration is included. PR227 is merged.
+Continue normal main integration; do not recreate source or hide a stacked base.
 
 ## Preserved plans and completed boundaries
 
@@ -86,14 +85,16 @@ owned by original readers; resource cursor coverage is not a proof cache.
 
 Heisenberg owns production integration through existing owners:
 
-- session_presentation.py: NativeSessionSurface admission/retire/activate/trim/
-  evict/dispose/close; SessionViewState actual editor/reader resource custody.
+- session_presentation.py: SessionViewState editor/reader resource custody and
+  bounded parked resources. NativeSessionSurface activation and projection seam
+  belongs to Sch238; directly coordinate lifetime crossings before any edit.
 - workspace_sessions.py, workspace_chrome.py, screens/workspace.py: canonical
   workspace lifecycle, original source validation, chrome placement/geometry.
 - transcript_state.py, transcript_source_preparation.py: source lifecycle,
   prepared reader/scope, prepare_scroll, resume/retire and final release.
-- transcript_publication.py: generic Snapshot resource validation/frontier and
-  retained refresh, coordinated directly with Sch's captured-source semantics.
+- transcript_publication.py: Sch owns captured-source admission and before-paint
+  projection. Heisenberg owns resource-lifetime integration; shared edits require
+  direct handoff, not a competing SnapshotPublication implementation.
 - widgets/viewport_body.py, widgets/presentation_window.py: DocumentViewport,
   native body working set, velocity/direction/destination/idle demand, bounds.
 - Existing preparation/render owners and history page geometry when needed;
@@ -104,9 +105,9 @@ Heisenberg owns production integration through existing owners:
 - Remaining TC1 terminal_execution.py and widgets/project_tree_intent.py plus
   Sidebar placement dispatch are in this assignment, after T9/owner census.
 
-Kepler owns tests/tools recording/click/focus/profile helpers, next sole physical
-comparison and direct adaptive preparation contribution only after named method
-claims with Heisenberg. No second integration coordinator, viewport policy,
+Kepler owns tests/tools recording/click/focus/profile helpers and raw frame/profile
+assessment. Heisenberg is sole actual capturer for this checkpoint; any adaptive
+production contribution requires named method claims directly with Heisenberg. No second integration coordinator, viewport policy,
 renderer, semantic cache/store or source registry is created. Current221ff35 tools
 are inherited normally. New source changes and their physical receipts must
 remain one coherent version.
@@ -128,7 +129,10 @@ Original saved-history readonly capture remains preferred for render/scroll.
 Before public UI use, require current approved default ACP or a complete matched
 private root/runtime/native receipt. Never candidate wire(root).owners/start an
 unbound public route. Reuse OriginalTypedCapture through its owner, not a new carry
-adapter, fallback reader or firstUI/Core000 backport.
+adapter, fallback reader or firstUI/Core000 backport. OriginalTypedCapture was
+used only for the certified pre-cutover copy. Current public observation now uses
+CurrentTypedCapture447 and its retained launch owner; no old producer is launched
+against the post-cutover public root.
 
 All source and notes stay in the existing persistent ~/wt checkout. Record owned
 scratch and protect raw journals/proofs and other owners. Serial bounded runs,
@@ -137,3 +141,27 @@ No global package/default mutation or user/native owner restart here. No final50
 gate or whole TC1 hold for a useful working checkpoint. Publish substantial tested
 production/deletion checkpoints, label proof limits, and open the next full-scope
 draft before long work after a merge.
+
+## Three-viewport checkpoint boundary (479 source)
+
+`ui.history-buffer-viewports` defaults to3 through PresentationBudget; native body
+retention and transcript prefetch/trim use the same message-area spatial runway.
+Both directions retain a floor; velocity/delivery prediction and existing widget/
+byte/runtime bounds remain. The source-native runway and reversible live setting
+proof is in `evidence/workspace-rendered-history-236/spatial-runway/`.
+
+Actual copied original41MB attempt03 runs noneditable479 with Core4295d680,
+Textual2e49cb838af44d69aa5a6d76b2a1d74cfbe67347, SDK0.12.1/nativee36. HeldUp,
+Down, reverse, End15s idle and A return are readable; canonical mounted cursor
+ranges move older/newer/older and return to the same original tail. Original
+Window/editor/prepared resources/draft/actual Undo remain. Source-aware review
+uses retained native cursors, never layout-offset sign or copied text. Cold B
+was selected before loading; later inactive pages do not prove readable/warm B
+first paint. Original failed recorder receipt and all capture/profiler data are
+preserved in `evidence/workspace-rendered-history-236/physical-attempt03/`.
+
+This is a useful original-history buffer checkpoint, not full warm/raster/first-
+paint, gap-free growing-end, CPU, editor-active/postcancel or TC1/T9 completion.
+All remaining scope above transfers to the next main-based draft on checkpoint
+merge. No repeated completed physical/native gate is needed for disjoint238
+normal integration. Deployment/default installed verification remains parent-owned.
