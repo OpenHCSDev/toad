@@ -62,6 +62,24 @@ of the newer public pair. Raw outputs are owned at `.artifacts/history-projectio
 and `.artifacts/body-order-242`; profiles and failure logs remain there. No
 public source/owner/history/installed-package changes were made.
 
+## Exact installed source/resource boundary
+
+Own78MiB prefix `.artifacts/installed-history-projection-242` contains all68
+normal frozen noneditable Git/package requirements, not a borrowed site-path or
+source override. Toad5739ec31 has identical production bytes to3d/8923. Core29bbe95,
+Text2e49, SDK0.12.1 and full trusted nativececa match the current declared cohort.
+`installed-pins.json` records each import, direct_url and changed-file SHA;
+pipcheck passes. `history-projection-installed.json` and
+`body-order-installed.json` repeat the affected resource checks against that
+installed current pair with PYTHONPATH=tests only, no src import.
+
+The installed body-order seam measures0.499→0.0071ms on the same555native nodes.
+Actual native Mount under the real snapshot tree lock, canonical acceptance,
+reorder/removal/reverse/End/resize and normal application exit pass. These are
+provider-free installed headless resource checks; the physical original41MB
+entrypoint gate remains separate. Kepler owns the preceding release capture;
+Heisenberg owns the sole242 comparison after it finishes.
+
 ## Remaining installed journey and full scope
 
 After meaningful code publication, run one coherent noneditable current declared
