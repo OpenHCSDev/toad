@@ -494,26 +494,16 @@ class StoreScreen(Screen):
             self.app.open_url("https://github.com/sponsors/willmcgugan")
             return
         assert isinstance(event.widget, AgentItem)
-        from toad.screens.agent_modal import AgentModal
-
-        modal_response = await self.app.push_screen_wait(AgentModal(event.widget.agent))
-        await self.app.settings.save()
-        if modal_response == "launch":
-            self.post_message(messages.LaunchAgent(event.widget.agent.identity))
+        await self.show_agent(event.widget.agent)
 
     @on(OpenAgentDetails)
     @work
     async def open_agent_detail(self, message: OpenAgentDetails) -> None:
-        from toad.screens.agent_modal import AgentModal
-
         try:
             agent = self._agents[message.identity]
         except KeyError:
             return
-        modal_response = await self.app.push_screen_wait(AgentModal(agent))
-        await self.app.settings.save()
-        if modal_response == "launch":
-            self.post_message(messages.LaunchAgent(agent.identity))
+        await self.show_agent(agent)
 
     @on(GridSelect.Selected, "#launcher GridSelect")
     @work
@@ -521,14 +511,15 @@ class StoreScreen(Screen):
         launcher_item = event.widget
         assert isinstance(launcher_item, LauncherItem)
 
+        await self.show_agent(launcher_item.agent)
+
+    async def show_agent(self, agent: AgentDefinition) -> None:
         from toad.screens.agent_modal import AgentModal
 
-        modal_response = await self.app.push_screen_wait(
-            AgentModal(launcher_item.agent)
-        )
+        modal_response = await self.app.push_screen_wait(AgentModal(agent))
         await self.app.settings.save()
-        if modal_response == "launch":
-            self.post_message(messages.LaunchAgent(launcher_item.agent.identity))
+        if modal_response is not None:
+            self.post_message(modal_response)
 
     @on(ChangeDirectory)
     def on_change_directory(self, event: ChangeDirectory) -> None:
