@@ -108,9 +108,7 @@ class AgentSession:
         if coordination is None:
             return
         binding = presentation.binding
-        scope = self.agent.queue_attachment.scope
-        attached_owner = scope.owner if scope is not None else None
-        if not self.load_admission.superseded_by(binding, attached_owner):
+        if not self.load_admission.superseded_by(binding):
             return
         await self.reconnect(ExistingSessionLoadAdmission(binding))
 
@@ -277,6 +275,7 @@ class AgentSession:
         ):
             return
         assert response is not None
+        self.load_admission = SessionLoadAdmission.at_response(response.field_meta)
         self.agent._receive_comms_metadata(response.field_meta, cursor_token, queue_token)
 
         self.publish_configuration(response)
