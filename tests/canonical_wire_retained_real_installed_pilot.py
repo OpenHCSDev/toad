@@ -13,6 +13,7 @@ import shutil
 import stat
 import sys
 import tempfile
+import threading
 import time
 from pathlib import Path
 
@@ -39,7 +40,7 @@ from l0a_native_installed_pilot import until
 from runtime_fixture import stop_test_children
 
 
-async def capture_lock_custody(root: Path, stop: asyncio.Event, evidence: Path):
+def capture_lock_custody(root: Path, stop: threading.Event, evidence: Path):
     """Record kernel custody of this fixture's actual admission locks only."""
     began = time.monotonic()
     samples = []
@@ -52,11 +53,9 @@ async def capture_lock_custody(root: Path, stop: asyncio.Event, evidence: Path):
                 identities[f'{os.major(info.st_dev):02x}:{os.minor(info.st_dev):02x}:{info.st_ino}'] = name
         rows = [line for line in Path('/proc/locks').read_text().splitlines()
                 if any(identity in line.split() for identity in identities)]
-        samples.append({'elapsed': round(time.monotonic() - began, 3), 'locks': rows})
-        try:
-            await asyncio.wait_for(stop.wait(), timeout=0.2)
-        except TimeoutError:
-            pass
+        samples.append({'elapsed': round(time.monotonic() - began, 3),
+                        'identities': identities, 'locks': rows})
+        stop.wait(0.2)
     (evidence / 'kernel-lock-custody.json').write_text(json.dumps(samples, indent=2))
 
 
@@ -132,8 +131,9 @@ async def main():
         receipt = {'provider': source.model, 'thinking': source.thinking_level.declared_name,
                    'source_bytes': source_file.stat().st_size, 'original_inputs_replayed': 0,
                    'completed_phases': []}
-        lock_capture_stop = asyncio.Event()
-        lock_capture = asyncio.create_task(capture_lock_custody(service.root, lock_capture_stop, evidence))
+        lock_capture_stop = threading.Event()
+        lock_capture = asyncio.create_task(asyncio.to_thread(
+            capture_lock_custody, service.root, lock_capture_stop, evidence))
         try:
             async with sender_app.run_test(size=(160, 44)) as sp, \
                        receiver_app.run_test(size=(160, 44)) as rp, \
@@ -151,6 +151,11 @@ async def main():
                 await until(ip, lambda: irc.message_history.initialized)
                 receipt['completed_phases'].append('irc_open_before_send')
                 profile.enable()
+                if os.environ.get('AC_REAL_READ_ONLY_CUSTODY') == '1':
+                    (evidence / 'read-only-ready.json').write_text(json.dumps({'pid': os.getpid()}))
+                    await rp.pause(40)
+                    receipt['read_only_source_custody'] = True
+                    return
                 original = await asyncio.to_thread(service.messaging.send_message, 'alpha', '#team',
                     '@beta Bounded acceptance only. Do not resume prior work or use tools. '
                     'Reply exactly REAL_RETAINED_WIRE_REPLY to this channel message.')
