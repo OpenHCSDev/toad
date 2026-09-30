@@ -119,7 +119,7 @@ class ThreadAction(DeclaredFamily, Command, Generic[Result], affix="Action"):
 
     @classmethod
     def available(cls, status: ThreadStatus, owner_pid: int) -> bool:
-        return status.allows_control(cls.tool.declared_name, owner_pid=owner_pid)
+        return cls.tool.available_for(status, owner_pid=owner_pid)
 
     @classmethod
     def menu(cls) -> tuple[type[ThreadAction], ...]:

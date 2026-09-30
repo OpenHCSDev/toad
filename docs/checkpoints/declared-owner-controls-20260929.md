@@ -19,3 +19,16 @@ root, global package/default activation, owner restart or paid provider calls.
 Persistent WT /home/ts/wt/toad-declared-owner-controls-20260929.
 Scratch owner Mendel /home/ts/.cache/agent-scratch/toad-declared-owner-controls-20260929.
 Native slot is currently coordinated425/431/430; no additional worker launched.
+
+Source checkpoint: ThreadAction.available now queries its declared ToolRequest
+capability, paired with Core421. Core removes all three string-policy methods;
+its existing ThreadStatus owns eligibility, shared OwnerLifecycleControl owns
+command membership, and start owns its distinct start query. No copied status,
+control roster or compatibility method remains. Actual menu declaration calls
+exercise archived/running/stopped eligibility.63 Core focused checks passed.
+
+Existing thread_action_deletion_pilot now rejects the deleted consumer and passes.
+Its scoped history witness grew0->1 when cccbe4aa created thread_actions.py;
+candidate0. Scratch control-guard-history.json records this narrow measurement.
+Mounted installed UI/native acceptance remains coordinated to425/215; no source
+test or guard is reported as installed readiness.
