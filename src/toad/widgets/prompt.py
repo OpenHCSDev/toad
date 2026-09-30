@@ -632,13 +632,16 @@ class Prompt(containers.VerticalGroup):
         queued = [row.text for row in projection.items]
         restored = [row.text for row in projection.restored]
         feedback = projection.feedback(self.queue_supported)
-        delivering = self.submissions.delivering if self.submissions else ""
+        delivering = self.submissions.delivering if self.submissions else ()
         self.set_class(bool(queued or restored or delivering or feedback), "-has-queue")
         parts: list[str] = []
         if feedback:
             parts.append(feedback)
         if delivering:
-            parts.append("Sending next: " + " ".join(delivering.split())[:100])
+            parts.append(
+                f"Submitting ({len(delivering)}): "
+                + " · ".join(" ".join(text.split())[:100] for text in delivering[:3])
+            )
         if queued:
             parts.append(
                 f"Queued ({len(queued)}): "
@@ -650,7 +653,7 @@ class Prompt(containers.VerticalGroup):
                 + " · ".join(" ".join(text.split())[:100] for text in restored[:3])
             )
         summary = self.query_one(".queue-summary", Label)
-        summary.tooltip = "Read-only queue projection, not input consumption, completion or ACK. Restored rows are not local drafts."
+        summary.tooltip = "Submitting is an outstanding local request, not acceptance. Queued is the producer's accepted input, not consumption or completion. Restored rows are not local drafts."
         summary.update(Content(" | ".join(parts)))
 
     @on(messages.SendPromptNow)
