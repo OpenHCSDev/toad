@@ -117,6 +117,10 @@
     "switch-b-frames.png": {
       "bytes": 828060,
       "sha256": "7825979456df3efc394cd5d5b7b90f60bb4675063dd42b191f494f3f24a95338"
+    },
+    "terminal.mp4": {
+      "bytes": 6816434,
+      "sha256": "728b64f16c971a6b60209661d00b946189a9af2013b35be35970d2239e558ac9"
     }
   },
   "source_custody_gate": "../source-receipt.json",

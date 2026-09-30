@@ -130,3 +130,9 @@ protected at the path in installed-actual/receipt.json. No second capture.
 SCOPEDREADY for native sidebar custody/selection only after this installed gate
 and the focused held-removal source gate. Full residual assignment above stays
 open; this is neither a fullTC1/T9 closure nor a final performance target.
+
+Kepler additionally owns the exact on_turn_changed removal of
+self.submissions.reset(): original execution.send/finally→finish retires transport
+resources, not unrelated idle turn publication. Source-binding/reset/release
+lifetime remains with Heisenberg. Existing post/preserve_history may be called
+for input paint; changing their implementation requires direct method handoff.
