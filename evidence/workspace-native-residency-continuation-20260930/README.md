@@ -76,6 +76,35 @@ existing body's resource capability; IDEN-1 keeps resident cost distinct from
 reconstruction reservation without a second store. A new native body inherits
 the default actual-tree contract; measured bodies inherit revision validity.
 
-This is source/resource proof, not installed current-source physical acceptance
-or fullCPU/firstpaint readiness. One affected installed saved-history gate is
-next. No native provider process, input/replay, public source or owner change.
+## Installed scoped acceptance
+
+Immutable Git-installed Toad386500df/Core6feb/Textual2e49/SDK0.12.1/native593b
+passes all68 exact noneditable dependency/import checks, all273 Toad source-file
+comparisons, pipcheck and full native-tree trust. `installed-cohort.json` records
+the owned stage `.artifacts/installed-native-residency-248`; no global mutation.
+
+ONE actual original41MB/13MB saved-history journey through normal toad-comms in
+isolated st/Xvfb passes16native checks in84.780s: held Up/Down/reverse/End15idle,
+physical peer opening/A-return, prepared body/window/reader/editor/draft/Undo
+retention. Both original593b owner identities and journal hashes stay unchanged;
+driver0/empty cleanup. FFmpeg255 is the accepted SIGINT stop, not an app failure.
+
+All7 completed-phase PNGs are reviewed/readable. Down24frames at8fps progress
+through history; warm A-return24samples show the retained destination without an
+observed whole-body loading frame; ColdB loading remains visible. Samples do not
+exclude33ms/60fps gaps or prove immediate firstpaint/Stripreuse. Four reviewed
+physical images plus runtime/custody/rawhash receipts are in `installed-actual/`.
+Raw protected evidence is
+`/home/ts/.cache/agent-scratch/toad-native-residency-248-20260930-attempt01/capture`.
+
+Actual1261GIL samples/0errors; measured UI CPU Up95.54%,Down102.03%,reverse88.66%,
+idle24.77%,A-return43.68%, including diagnostic export and profiling. Same paired
+Core/native/Text as245, but scroll geometry/host work vary; no consistent overall
+CPU reduction or controlled causal wholeCPU claim. Frame0 acquisition is still
+unrecorded, so profiler-origin bounds cannot establish exact click-to-paint.
+
+READY scoped resident-cost and history budget/trim checkpoint: two production
+files26added/2deleted, all cost consumers inherit one original resource contract.
+No input/provider/replay/owner restart/public source/global install. Candidate
+not merged/default-installed; parent owns pairing. Full foreground/raster/focus/
+growing-end/TC1/T9 remains assigned; no repeated gate or optionalCI needed.

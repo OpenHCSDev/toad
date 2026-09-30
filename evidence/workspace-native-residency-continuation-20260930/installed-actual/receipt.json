@@ -1,0 +1,397 @@
+{
+  "assessment": "PASS scoped original-body resident-cost and history budget/trim caller checkpoint; fullCPU/firstpaint/focus/TC1/T9 open",
+  "source_head": "386500df100c7e01ba35be8f613deb7b117aedb4",
+  "raw": "/home/ts/.cache/agent-scratch/toad-native-residency-248-20260930-attempt01/capture",
+  "production_changes": {
+    "src/toad/widgets/viewport_body.py": {
+      "added": 13,
+      "deleted": 0,
+      "sha256": "ea7bdd65edc9337e5fb349d706ed4e59c1a211f3c5baa5c1353762e413940f5e"
+    },
+    "src/toad/widgets/transcript_history.py": {
+      "added": 13,
+      "deleted": 2,
+      "sha256": "be41349fd84cdc4d4293806136ec6e48fd7fbf26cbb3eccb3593b0328a04b1fd"
+    }
+  },
+  "runtime": {
+    "selection": "AGENT_COMMS_RUNTIME_ROOT",
+    "bin_directory": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/bin",
+    "launcher": "/home/ts/.agent-comms/stack/bin/toad-comms",
+    "launcher_sha256": "80382c0f935a0f069c0128c21ca530c8dd277684b6d778611315646ab82040ad",
+    "launcher_links": {
+      "command": {
+        "selected_path": "/home/ts/bin/toad-comms",
+        "resolved_path": "/home/ts/.agent-comms/stack/bin/toad-comms",
+        "sha256": "80382c0f935a0f069c0128c21ca530c8dd277684b6d778611315646ab82040ad"
+      },
+      "acp": {
+        "selected_path": "/home/ts/.local/bin/agent-comms-acp",
+        "resolved_path": "/home/ts/.local/share/agent-comms/runtime-viewport-native-cost-20260930/bin/agent-comms-acp",
+        "sha256": "4619c0a2c1a54ffa4867a6479d996ce63e3e8f49147f5c84289824d497023d9e"
+      }
+    },
+    "entrypoints": {
+      "toad": {
+        "path": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/bin/toad",
+        "sha256": "d2f8ef5fa7486100ce101705a6725350458b369a01a97e917a35441ad77fa7fd"
+      },
+      "agent-comms-acp": {
+        "path": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/bin/agent-comms-acp",
+        "sha256": "57dfbe2fbdec0762eae59448fd5f132e659fca288310916b9ca7c129a3428e0e"
+      }
+    },
+    "activation_path": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/activation.json",
+    "activation_sha256": "802fc3e080f4fa008a859a834b8c3d00846a2d07030db8fb944ddad835c49d84",
+    "activation": {
+      "stage": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248",
+      "pins": {
+        "agent-comms": "6feb634ba184d94d763028406152fff07027cccc",
+        "batrachian-toad": "386500df100c7e01ba35be8f613deb7b117aedb4",
+        "textual": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347"
+      },
+      "sdk": "0.12.1",
+      "native_package": "/home/ts/.local/share/agent-comms/native-current-593b978a717ae8f6/node_modules/@earendil-works/pi-coding-agent",
+      "state": "verified-immutable-cohort",
+      "staging_receipt_sha256": "347cffafe908b04945fc277f8ea753a01e7c5650423af8a2cc9d40d0083bfaac"
+    },
+    "observed": {
+      "python": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/bin/python",
+      "prefix": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248",
+      "packages": {
+        "toad": {
+          "origin": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/lib/python3.14/site-packages/toad/__init__.py",
+          "module_sha256": "dd5b5084de47f965aef80813e00aaac76cb186af163a9e0fe1a764037aa46337",
+          "source_tree_sha256": "7340ddb674391a1d85a7e52fc162b482fbbb4b41def9bb080c66dfda7b345b4b",
+          "distribution": "batrachian-toad",
+          "version": "0.6.20",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/toad.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "386500df100c7e01ba35be8f613deb7b117aedb4",
+              "requested_revision": "386500df100c7e01ba35be8f613deb7b117aedb4"
+            }
+          }
+        },
+        "textual": {
+          "origin": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/lib/python3.14/site-packages/textual/__init__.py",
+          "module_sha256": "fcd1524975df6075497bbb5c47fe564c6909d2b4b9651708e28ead65e7492671",
+          "source_tree_sha256": "37c099bc828f724a755c8434bc0fcf674352d66f91312c95a3482a162d8304cd",
+          "distribution": "textual",
+          "version": "8.2.8",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/textual.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347",
+              "requested_revision": "2e49cb838af44d69aa5a6d76b2a1d74cfbe67347"
+            }
+          }
+        },
+        "agent_comms": {
+          "origin": "/home/ts/wt/toad-workspace-native-residency-continuation-20260930/.artifacts/installed-native-residency-248/lib/python3.14/site-packages/agent_comms/__init__.py",
+          "module_sha256": "302424efabe07e591de8d139721b7de369c362dae6c942d2d23ebf01f7dd617e",
+          "source_tree_sha256": "fa3db3a3e80d11bee64d74d5aa100e72298b464a09f750e515bdb0260415c812",
+          "distribution": "agent-comms",
+          "version": "0.1.0",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/agent-comms.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "6feb634ba184d94d763028406152fff07027cccc",
+              "requested_revision": "6feb634ba184d94d763028406152fff07027cccc"
+            }
+          }
+        }
+      },
+      "route": {
+        "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+        "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+        "native_package": "/home/ts/.local/share/agent-comms/native-current-593b978a717ae8f6/node_modules/@earendil-works/pi-coding-agent"
+      }
+    }
+  },
+  "duration_seconds": 84.77980403299443,
+  "native_checks": {
+    "original_saved_history_loaded": true,
+    "peer_saved_history_loaded": true,
+    "history_scroll_extent": true,
+    "scroll_keys_focus_history": true,
+    "held_page_up_admitted_older_source": true,
+    "held_page_down_admitted_newer_source": true,
+    "reverse_page_up_admitted_older_source": true,
+    "draft_typed": true,
+    "peer_selected": true,
+    "source_retained": true,
+    "editor_retained": true,
+    "history_window_retained": true,
+    "draft_retained": true,
+    "reader_position_retained": true,
+    "ready_body_resources_retained": true,
+    "undo_restored_original_draft": true
+  },
+  "originals_unchanged": true,
+  "sources_before": [
+    {
+      "thread": "nra-architecture",
+      "owner": {
+        "pid": 3697925,
+        "start_time": 26677204
+      },
+      "journal": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+      "bytes": 41270257,
+      "sha256": "888b79c4afea78a87c8e591928dbc015eeaaa3123e82477c56d40f3739bcf10c"
+    },
+    {
+      "thread": "nra-domain-mapping",
+      "owner": {
+        "pid": 3697958,
+        "start_time": 26677478
+      },
+      "journal": "/home/ts/.pi/agent/sessions/--home-ts-code-projects-nominal-refactor-advisor--/2026-09-22T22-37-11-574Z_01a0cb44-1415-76ac-b5a0-26d3eb905f55.jsonl",
+      "bytes": 13212421,
+      "sha256": "197905b1c1ead0a6ae7bea70c8d2975c2b7312c1c58524ead5b1fcacc70a4799"
+    }
+  ],
+  "sources_after": [
+    {
+      "thread": "nra-architecture",
+      "owner": {
+        "pid": 3697925,
+        "start_time": 26677204
+      },
+      "journal": "/home/ts/.pi/agent/sessions/--home-ts-.agent-comms--/2026-09-22T03-53-05-423Z_01a0c73e-ee8f-729a-b53b-1a999b6c2353.jsonl",
+      "bytes": 41270257,
+      "sha256": "888b79c4afea78a87c8e591928dbc015eeaaa3123e82477c56d40f3739bcf10c"
+    },
+    {
+      "thread": "nra-domain-mapping",
+      "owner": {
+        "pid": 3697958,
+        "start_time": 26677478
+      },
+      "journal": "/home/ts/.pi/agent/sessions/--home-ts-code-projects-nominal-refactor-advisor--/2026-09-22T22-37-11-574Z_01a0cb44-1415-76ac-b5a0-26d3eb905f55.jsonl",
+      "bytes": 13212421,
+      "sha256": "197905b1c1ead0a6ae7bea70c8d2975c2b7312c1c58524ead5b1fcacc70a4799"
+    }
+  ],
+  "active_route": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+    "native_package": "/home/ts/.local/share/agent-comms/native-current-593b978a717ae8f6/node_modules/@earendil-works/pi-coding-agent",
+    "version": 1
+  },
+  "driver_exit_code": 0,
+  "ffmpeg_stop_returncode": 255,
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": []
+  },
+  "sample_count": 1261,
+  "sampling_errors": 0,
+  "ui_phase_cpu": [
+    {
+      "label": "warm-start",
+      "cpu_seconds": 1.6399999999999988,
+      "average_cpu_percent": 27.48524268932242
+    },
+    {
+      "label": "draft",
+      "cpu_seconds": 0.620000000000001,
+      "average_cpu_percent": 28.111511585152947
+    },
+    {
+      "label": "focused",
+      "cpu_seconds": 0.75,
+      "average_cpu_percent": 30.59737507310823
+    },
+    {
+      "label": "up",
+      "cpu_seconds": 5.429999999999998,
+      "average_cpu_percent": 95.53902454793774
+    },
+    {
+      "label": "up-done",
+      "cpu_seconds": 1.4700000000000024,
+      "average_cpu_percent": 103.05576943692847
+    },
+    {
+      "label": "down",
+      "cpu_seconds": 6.07,
+      "average_cpu_percent": 102.0277155087656
+    },
+    {
+      "label": "down-done",
+      "cpu_seconds": 0.9499999999999993,
+      "average_cpu_percent": 69.53959896499342
+    },
+    {
+      "label": "reverse",
+      "cpu_seconds": 5.07,
+      "average_cpu_percent": 88.65753386156456
+    },
+    {
+      "label": "reverse-done",
+      "cpu_seconds": 1.3900000000000006,
+      "average_cpu_percent": 99.07509267196556
+    },
+    {
+      "label": "end",
+      "cpu_seconds": 2.469999999999999,
+      "average_cpu_percent": 96.19003986498123
+    },
+    {
+      "label": "idle",
+      "cpu_seconds": 4.109999999999999,
+      "average_cpu_percent": 24.77124235182629
+    },
+    {
+      "label": "idle-done",
+      "cpu_seconds": 0.36999999999999744,
+      "average_cpu_percent": 27.912966161128068
+    },
+    {
+      "label": "switch-b",
+      "cpu_seconds": 3.1099999999999994,
+      "average_cpu_percent": 55.06900608185069
+    },
+    {
+      "label": "b-open",
+      "cpu_seconds": 1.1600000000000037,
+      "average_cpu_percent": 105.69193087688949
+    },
+    {
+      "label": "return-a",
+      "cpu_seconds": 1.8900000000000006,
+      "average_cpu_percent": 43.68202929636886
+    },
+    {
+      "label": "a-return",
+      "cpu_seconds": 1.1899999999999977,
+      "average_cpu_percent": 26.86595690186411
+    }
+  ],
+  "physical_review": {
+    "completed_pngs_reviewed": [
+      "phase-up-done.png",
+      "phase-down-done.png",
+      "phase-reverse-done.png",
+      "phase-idle-done.png",
+      "phase-b-open.png",
+      "phase-a-return.png",
+      "phase-undo.png"
+    ],
+    "completed_history_readable": true,
+    "sampled_intervals": [
+      {
+        "label": "main",
+        "start": 0,
+        "seconds": 3
+      },
+      {
+        "label": "down",
+        "start": 30.801883317006286,
+        "seconds": 3
+      },
+      {
+        "label": "return-a",
+        "start": 72.46917733701412,
+        "seconds": 3
+      },
+      {
+        "label": "switch-b",
+        "start": 65.72418811602984,
+        "seconds": 3
+      }
+    ],
+    "observations": [
+      "Down progresses through real saved source; no entire-body blank in its24sampled8fpsframes",
+      "Warm A-return shows destination without an intermediate whole-body loading presentation in these24samples",
+      "Cold B loading remains visible before completed peer readiness",
+      "Phase return-a captures BEFORE the physical tab click; phase a-return is completed A",
+      "8fps samples do not exclude33ms/60fps gaps or establish exact click-to-firstpaint/Stripreuse"
+    ]
+  },
+  "limitations": [
+    "WholeCPU remains high; Up95.54/Down102.03/reverse88.66/idle24.77% includes diagnosticexport/profiling",
+    "SameCore/native/SDK/Text as245; phase geometry and hostwork vary, descriptive deltas not overallcausalCPU proof",
+    "Terminalframe0 acquisition timestamp is not recorded; profiler-origin uncertainty is not a videoalignment bound",
+    "No input/provider/replay/restart/publiclifecycle/globalpackage/deployment; draftUndo local copiedUIstate",
+    "Fullresource/warm/focus/lifetime/growingEnd scope preserved in parentREADME"
+  ],
+  "retained_raw": {
+    "receipt.json": {
+      "bytes": 407993,
+      "sha256": "7816a0f02985d24321746e74265faed2e691b441aae6dbb0b21a6cb602c649da"
+    },
+    "warm-scroll-review.json": {
+      "bytes": 58716,
+      "sha256": "a5445e2d2123841ea8fae6c86b2f2408beb25e57f3fd476d6c3947cec3b0a357"
+    },
+    "profile-review.json": {
+      "bytes": 227720,
+      "sha256": "96e8dbb785aaffdf45c4b84108edddfdbaa40e1181531521653736cb496ec2d0"
+    },
+    "review-receipt.json": {
+      "bytes": 2271,
+      "sha256": "60817e4bfcaf064679a19cd799368e03f65471b2bda37a40d2169d55e9cab964"
+    },
+    "cpu-profile.json": {
+      "bytes": 10040426,
+      "sha256": "675bb86b64ac017344a2ffa31cf374728b369716d98341cd93df34789aeba12d"
+    },
+    "terminal.mp4": {
+      "bytes": 7329933,
+      "sha256": "0fa0ca3ca32b46130b0414ebbdd2ae0dd00058889972a7aee02472c295c3eb6d"
+    },
+    "profiler.log": {
+      "bytes": 359,
+      "sha256": "96876facc5a5cccfe3d59cacd3c575d88c0ba7fc237eb351f235bf4f1ac7d787"
+    },
+    "terminal.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "phase-up-done.png": {
+      "bytes": 123125,
+      "sha256": "b8242e5f17c66e24ae36a4f6779a3c04a7e9dbf9a75715b77cb3379752024e3a"
+    },
+    "phase-down-done.png": {
+      "bytes": 109525,
+      "sha256": "c3694e0cd8444919b2fcfd9bab655562f6d2bafe50f07b525d498f674ad88ea7"
+    },
+    "phase-reverse-done.png": {
+      "bytes": 120408,
+      "sha256": "b0a29a6004d35398cf30a80d1f94f6a2add4628db9d9389c7741da5dc942616e"
+    },
+    "phase-idle-done.png": {
+      "bytes": 110500,
+      "sha256": "a67f7f922c4c8df43274ab7687773befbaf78d44872c8d6f0f51db98989b06a3"
+    },
+    "phase-b-open.png": {
+      "bytes": 116796,
+      "sha256": "7144d51cae296a4ee1b418fdddc9e60c36ce0ba912b31bbd40dd3d58c116a8f9"
+    },
+    "phase-a-return.png": {
+      "bytes": 112550,
+      "sha256": "901343873793f94950496ec28cc88d11ac3093f4433644c6d52b591cf59bdc4b"
+    },
+    "phase-undo.png": {
+      "bytes": 111651,
+      "sha256": "94c2a18f177c73ec24bcfb79afa7df4b406c6cff741bd290db982089ab068cea"
+    },
+    "down-frames.png": {
+      "bytes": 1378392,
+      "sha256": "fcee01fa917e0ae484da1482f33be71e1c4d3a8bedf21a5de7c9036fb4412772"
+    },
+    "return-a-frames.png": {
+      "bytes": 1087967,
+      "sha256": "c767f60545bf0d377598b88c3d2949180b35a48926f5622e4350f5bdde224e04"
+    },
+    "switch-b-frames.png": {
+      "bytes": 823456,
+      "sha256": "8aab3a76f8896ecff1e3d20680bca25e64d6e960c4173cfa951706c399fb3b94"
+    }
+  }
+}
