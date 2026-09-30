@@ -1,0 +1,28 @@
+{
+  "raw": "/home/ts/.cache/agent-scratch/toad-workspace-warm-236-20260930-attempt02/capture",
+  "original_receipt_unchanged": true,
+  "checks": {
+    "original_saved_history_loaded": false,
+    "peer_saved_history_loaded": false,
+    "history_scroll_extent": false,
+    "scroll_keys_focus_history": true,
+    "held_page_up_moved": false,
+    "held_page_down_moved": false,
+    "reverse_page_up_moved": false,
+    "draft_typed": true,
+    "peer_selected": true,
+    "source_retained": true,
+    "editor_retained": true,
+    "history_window_retained": true,
+    "draft_retained": true,
+    "reader_position_retained": true,
+    "ready_body_resources_retained": true,
+    "undo_restored_original_draft": true
+  },
+  "validation": {
+    "rejected": true,
+    "error": "Warm scroll native journey failed: original_saved_history_loaded, peer_saved_history_loaded, history_scroll_extent, held_page_up_moved, held_page_down_moved, reverse_page_up_moved"
+  },
+  "physical_review": "phase-idle-done.png shows stopped-agent session load refusal; zero history scroll extent throughout",
+  "limits": "Real retained-native observer replay only; no UI, source, provider or original raw artifacts changed"
+}
