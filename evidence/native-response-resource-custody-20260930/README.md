@@ -13,7 +13,7 @@ Frozen installed Core6fab/Toad250b3b firstfork attempt
 /home/ts/wt/g458e/u01/proof; ui-firstinput01.log at its parent WT.
 response-census.json: NATIVE_RESPONSE_2 mounted twice and painted twice while
 inherited NATIVE_RESPONSE_1 remains once. Terminal46.275s failure retained.
-Arendt confirms canonical child ACP log emitted ONE response2 text chunk and
+Einstein confirms canonical child ACP log emitted ONE response2 text chunk and
 one input_started. This establishes the frontend resource failure, not yet its
 causal publication order. No retry or replay of the original input.
 
@@ -23,7 +23,7 @@ pre-read cohort, exact native source/frontier and serialized admission/retiremen
 under existing window custody. Correct all consumers; no text comparisons, seen
 lists, mirrored completion flags, fallback readers or separate source registry.
 
-Arendt347d traces original native/ACP facts read-only. Sch460 currently owns Core
+Einstein347d traces original native/ACP facts read-only. Sch460 currently owns Core
 S14 and T5 producer contracts, not frontend methods; direct request sent before
 mutation of shared source contracts. Kepler251 owns accepted submission/queue and
 native USER paint. Granted his exact TranscriptBlockConsumer.user constructor
