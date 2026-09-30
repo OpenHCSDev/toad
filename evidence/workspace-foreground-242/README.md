@@ -45,6 +45,17 @@ existing registration/lifetime contract, no independent order/cache update.
   execution with the existing Python3.14 dependency environment. That environment
   has no pytest; no packages were mutated to run these pure assertion functions.
 
+The same native-source pilot now also holds actual fragment Mount after its
+original registration, under SnapshotPublication's real window lock. The derived
+body order includes that pending resource and becomes exactly the accepted native
+fragment tree after release. No invented widget/app or parallel registry is used.
+
+`session-details-callers.json` binds all three directly imported widget constructor
+call sites to the actual signature: Conversation, PrivateMessageKind and the
+disclosure pilot. The unrelated tracker homonym is excluded by declaration, not
+name. No retired read_history supplier caller remains. Main3625 (243/244) is
+normally merged; no login/auth consumer tests are repeated here.
+
 Source commands use PYTHONPATH=src:tests and the existing immutable239 dependency
 interpreter. They are source checks against Core4295/Text2e49/SDK0.12.1, not proof
 of the newer public pair. Raw outputs are owned at `.artifacts/history-projection-242`

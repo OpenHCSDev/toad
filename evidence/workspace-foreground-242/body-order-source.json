@@ -3,11 +3,13 @@
   "body_roots": 24,
   "profiled_selection_walks": 0,
   "unprofiled_selection_ms": {
-    "expanded_native_tree": 0.5032654220121913,
-    "registered_body_boundaries": 0.007216586032882333
+    "expanded_native_tree": 0.492692104075104,
+    "registered_body_boundaries": 0.007074275985360146
   },
   "native_reorder": true,
   "removed_body_released": true,
   "fast_reverse_end": true,
-  "resize": true
+  "resize": true,
+  "pending_native_mount": true,
+  "accepted_canonical_tree": true
 }

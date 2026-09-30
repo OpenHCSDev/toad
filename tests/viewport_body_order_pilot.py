@@ -12,9 +12,14 @@ from pathlib import Path
 import pstats
 from tempfile import TemporaryDirectory
 from time import perf_counter
+from unittest.mock import patch
 
 from agent_comms.comms import Comms
+from agent_comms.threads import Thread
 from toad.app import ToadApp
+from toad.acp.agent import Agent
+from toad.agent_schema import AgentDefinition
+from toad.widgets.transcript_history import TranscriptHistory, TranscriptFragmentView
 from toad.widgets.agent_response import AgentResponse
 
 
@@ -92,8 +97,47 @@ async def main():
             await settle()
             assert viewport.visible_bodies_ready
             assert app._exception is None
+            # Pause actual fragment Mount after its original registration. The
+            # snapshot owns the native window lock while composition is pending;
+            # owner order must derive this same tree without a stale catalog.
+            service = Comms(root / 'wire')
+            journal = root / 'saved.jsonl'
+            journal.write_text(''.join(json.dumps({'type': 'message', 'message': {
+                'role': 'assistant', 'content': f'Saved custody row {i}. Native pending mount.'
+            }}) + '\n' for i in range(6)))
+            service.registry.declare(Thread('saved', frozenset(), str(root), session_file=str(journal)))
+            agent = Agent(root, AgentDefinition('body-order', 'body-order', {}), None)
+            view.set_reactive(type(view).agent, agent)
+            entered, release = asyncio.Event(), asyncio.Event()
+            mounting = []
+            original_mount = TranscriptFragmentView.on_mount
+
+            async def held_mount(body):
+                original_mount(body)
+                mounting.append(body)
+                entered.set()
+                await release.wait()
+
+            with patch.object(TranscriptFragmentView, 'on_mount', held_mount):
+                task = asyncio.create_task(view.transcript.snapshot(
+                    service.transcripts.thread_transcript_page('saved')))
+                try:
+                    await asyncio.wait_for(entered.wait(), 5)
+                    assert window.history_mutating()
+                    assert mounting[0] in tuple(viewport.body_roots())
+                    assert all(body.parent is not None for body in viewport.body_roots())
+                finally:
+                    release.set()
+                    await asyncio.wait_for(task, 10)
+            await settle()
+            history = view.contents.query_children(TranscriptHistory).first()
+            assert history.state.reports_coverage
+            assert tuple(viewport.body_roots()) == history.fragment_views
+            assert agent.process.process is None and agent.process.runner is None
+            assert app._exception is None
             receipt.update(native_reorder=True, removed_body_released=True,
-                           fast_reverse_end=True, resize=True)
+                           fast_reverse_end=True, resize=True, pending_native_mount=True,
+                           accepted_canonical_tree=True)
             (evidence / 'receipt.json').write_text(json.dumps(receipt, indent=2) + '\n')
             print(json.dumps(receipt))
 
