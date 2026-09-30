@@ -15,7 +15,6 @@ from agent_comms.threads import Thread
 from comms_boundary_fixture import attach_coordination
 from runtime_fixture import ToadApp
 
-from toad import messages
 from toad.acp.agent import Agent
 from toad.agent_schema import AgentDefinition
 from toad.widgets.comms_chat import CommsChatView
@@ -64,7 +63,7 @@ async def main():
             attach_coordination(agent, str(comms.root), "peer")
             native.set_reactive(type(native).agent, agent)
             owner = app.selected_mode
-            tracker = app.session_tracker.sessions[owner]
+            details = native.query_one(SessionDetails)
             for detail in ("Checking #comms message", "Responding in #comms"):
                 comms.agents.set_activity("peer", ActivityState.THINKING, detail)
                 await until(
@@ -75,7 +74,7 @@ async def main():
                 )
                 await pilot.pause()
                 assert observed.display and observed.has_class("-working")
-                assert tracker.state == "busy" and detail in tracker.summary
+                assert detail in str(details.title)
                 assert native.turns.managed_id is None and not native.turns.owner.busy
             comms.agents.set_activity("peer", ActivityState.IDLE)
             await until(
@@ -85,20 +84,20 @@ async def main():
                 )
             )
             await pilot.pause()
-            assert tracker.state == "idle" and tracker.summary == "Ready"
+            assert "Ready" in str(details.title)
             identity = comms.registry.snapshot().owner_identity("peer")
             failure = UnavailableDrainDiagnostic(identity, "SchemaVersionError", "cohort schema missing")
             comms.agents.set_drain_diagnostic("peer", identity, failure)
             await until(lambda: observed.presentation is not None and observed.presentation.attention)
             await pilot.pause()
-            assert tracker.state == "idle" and "Inbox unavailable" in tracker.summary
+            assert "Inbox unavailable" in str(details.title)
             assert observed.has_class("-unavailable") and not observed.has_class("-working")
             details = native.query_one(SessionDetails)
             assert details.has_class("-attention") and "Inbox unavailable" in str(details.title)
             comms.agents.set_drain_diagnostic("peer", identity, None)
             await until(lambda: observed.presentation is not None and not observed.presentation.attention)
             await pilot.pause()
-            assert tracker.summary == "Ready" and not details.has_class("-attention")
+            assert "Ready" in str(details.title) and not details.has_class("-attention")
             comms.registry.declare(Thread("dm-peer", frozenset({"comms"}), str(root), process_identity=ProcessIdentity.capture(os.getpid())))
             await DirectTarget("dm-peer").open(NavigationContext(app, owner, root, "peer"))
             dm_mode = app.selected_mode
@@ -161,7 +160,7 @@ async def main():
             await until(lambda: "activity" in hidden_reads)
 
         print(
-            "PASS: actual registry/activity/core ThreadView -> ACP reader/native conversation and DM; Checking/Responding target, Ready override and idle recovery; no provider/process launch"
+            "PASS: actual registry/activity/core ThreadView -> ACP reader/native conversation and DM; Checking/Responding target, actual SessionDetails and idle recovery; no provider/process launch"
         )
 
 
