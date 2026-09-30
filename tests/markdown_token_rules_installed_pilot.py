@@ -6,7 +6,7 @@ import json
 import os
 from pathlib import Path
 
-from rich.style import Style
+from textual.style import Style
 from textual.widgets import Markdown
 from textual.widgets._markdown import MarkdownParagraph
 from agent_comms.comms import Comms
@@ -31,8 +31,8 @@ async def main():
     stage.mkdir(mode=0o700, parents=True, exist_ok=False)
     project = stage / 'project'
     project.mkdir()
-    target = project / 'file.py'
-    target.write_text('# REAL_MARKDOWN_FILE_PREVIEW\nvalue = 42\n')
+    target = project / 'file.md'
+    target.write_text('# REAL_MARKDOWN_FILE_PREVIEW\n\n```python\nvalue = 42\n```\n')
     os.environ.update(
         AGENT_COMMS_ROOT=str(stage / 'wire'),
         XDG_CONFIG_HOME=str(stage / 'config'), XDG_STATE_HOME=str(stage / 'state'),
@@ -45,7 +45,7 @@ async def main():
             owner = app.selected_session
             conversation = owner.conversation
             conversation.prompt.text = 'KEEP_MARKDOWN_DRAFT'
-            source = 'file.py and `file.py` but `run file.py`; [website](https://example.com).'
+            source = 'file.md and `file.md` but `run file.md`; [website](https://example.com).'
             response = await conversation.post(AgentResponse(source, paginate=False))
             await until(pilot, lambda: bool(response.query(MarkdownParagraph)))
             paragraph = response.query_one(MarkdownParagraph)

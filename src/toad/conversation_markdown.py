@@ -123,7 +123,7 @@ class ProjectTokenRule(DeclaredFamily, affix="TokenRule"):
         def native_rule(renderer, tokens, index, options, env):
             return cls.resolve(renderer, tokens[index], env["project_tokens"])
 
-        parser.add_render_rule(cls.declared_name, native_rule, fmt="textual-tokens")
+        parser.add_render_rule(cls.declared_name, native_rule, fmt=ProjectTokenRenderer.__output__)
 
     @classmethod
     @abstractmethod
