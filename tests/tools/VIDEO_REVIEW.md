@@ -10,9 +10,11 @@ running registered thread, derives the active route, and verifies that the
 original native ProcessIdentity remains alive and unchanged through cleanup. No global runtime changes
 are needed. Actual saved state, UI, ACP and native processing remain intact.
 
-Run the recorder with the selected installed runtime's Python. Reuse
-`tests/l0a_native_installed_pilot.py` and its saved-state preparation callback:
-its loopback provider is bounded and never reaches a paid service. Fixture
+Run the recorder with the selected installed runtime's Python. Reuse the
+existing candidate-compatible private-original fixture through its owner;
+`OriginalTypedCapture` carries an authentic retained source once into the strict
+current format. Do not substitute a tiny loopback-provider history for a reported
+original-history performance failure. Fixture
 setup owns the native processes; the recorder only attaches. Configuration,
 projects, saved-session evidence and video belong under named persistent agent
 scratch. Current Core's `nk_foreground` requires a disposable private `/var/tmp`
@@ -37,9 +39,9 @@ Run with the default installed runtime Python, and preserve original history.
 
 ```sh
 /ABS/DEFAULT-RUNTIME/bin/python tests/tools/record_installed_tui.py \
-  --write-journey-script /home/ts/.cache/agent-scratch/YOUR-RUN/scroll.xdo
+  --capture-state --write-journey-script /home/ts/.cache/agent-scratch/YOUR-RUN/scroll.xdo
 /ABS/DEFAULT-RUNTIME/bin/python tests/tools/record_installed_tui.py \
-  --capture-target existing_thread --owner YOUR-OWNER \
+  --capture-target existing_thread --owner YOUR-OWNER --capture-state \
   --actions /home/ts/.cache/agent-scratch/YOUR-RUN/scroll.xdo \
   --output /home/ts/.cache/agent-scratch/YOUR-RUN/capture \
   --fit-window --startup-wait 12 --max-duration 50 \
@@ -47,6 +49,36 @@ Run with the default installed runtime Python, and preserve original history.
   --review-phase up --review-phase down --review-phase reverse \
   --review-phase end --review-phase idle -- toad-comms nra-architecture
 ```
+
+`scroll` focuses the native captured HistoryWindow gutter, translated from the
+actual committed terminal cell and st pixel grid. It never clicks a guessed
+message-body coordinate. `--scroll-hold-seconds` controls the three held-key
+intervals; `--scroll-idle-seconds 15` observes the known delayed-blank case.
+Supply the same parameters when generating and running a journey script.
+
+## One warm-return scroll journey
+
+Use `--journey warm_scroll --capture-state --profile` in the **existing matched
+private-original fixture**, with its copied `XDG_STATE_HOME` under agent scratch.
+Generate the script with that same journey and options. Its native editor click
+adds an unsent draft suffix, then the shared native gutter click focuses chat
+for held PageUp, PageDown, reverse PageUp, End and stationary observation. Actual
+peer-roster and original-tab clicks perform A/B/A, then a native editor click and
+Ctrl+Z exercise retained Undo. It sends no prompt and changes no native journal.
+Set `--other-agent-x/y`, `--return-tab-x` and `--close-tab-y` to controls verified
+in that candidate's actual frame; do not reuse coordinates from another layout.
+
+`warm-scroll-review.json` reports source/editor/window identity, reader position,
+draft text, actual Undo result and ready body resources across return. Native
+checks and physical review remain separate: a retained window or body identity
+does not prove warm first paint, skipped preparation or retained raster output.
+Review the same run's phase PNGs and video for buffer arrival, voids, hiccups and
+first paint. `profile-review.json` links each CPU interval to its exact boundary
+screenshots and native state files, including capture start/finish offsets.
+Snapshot/export overhead lies within those intervals and must be reported.
+The real 41MB source and fixture ownership receipt remain part of the acceptance
+record. Do not repeat an unchanged baseline or the known pre-UI public-format
+failure; close source integration while waiting for a fresh compatible candidate.
 
 The recording is evidence, not a visual pass. Inspect readable glyphs, physical
 focus, pending real lazy source reads, ahead-before-edge preparation and
@@ -134,11 +166,11 @@ This proves disposal only, independently of the known scroll blanking defect.
 Generate an editable native script, then append it to the opening/tab script:
 
 ```sh
-"$candidate_python" tests/tools/record_installed_tui.py --write-journey-script \
+"$candidate_python" tests/tools/record_installed_tui.py --capture-state --write-journey-script \
   /home/ts/.cache/agent-scratch/YOUR-RUN/scroll.xdo
 ```
 
-The generated script physically clicks the message area at `700,260`, captures
+The generated script physically clicks the captured native history gutter, captures
 `focused`, and runs this sequence with timestamp/screenshot markers around each
 phase:
 
@@ -190,8 +222,8 @@ owner's preparation evidence.
 nonblocking` selects py-spy's nonblocking reads explicitly. The actual policy
 is recorded with the launch command and profile review. Consistent sampling
 briefly pauses Python; nonblocking sampling can read an inconsistent stack.
-Inspect reported sampling errors and missing intervals, and compare a short
-unprofiled capture of the same actions before attributing a visible delay.
+Inspect reported sampling errors and missing intervals, using compatible
+unprofiled evidence or a new comparison only when an attribution question remains.
 Neither a profiler exit code nor a sparse profile establishes correctness.
 
 `AGENT_COMMS_RUNTIME_ROOT` selects a reviewed candidate **bin directory** holding
@@ -322,8 +354,10 @@ CPU deltas and hot sampled functions. Background worker identities and stacks
 are included when py-spy sees them. The summary records py-spy sample/error
 counts and marks attribution partial when errors occur. Idle or exited threads
 can retain long Chrome stack spans; do not assign those spans CPU cost when
-the kernel counters show no CPU change. Self and inclusive sampled wall spans
-are both retained, with self spans used for ranking. Sampled activation, preparation, layout and
+the kernel counters show no CPU change. The decoder records changed stack groups
+and leaf appearances, not per-function CPU time or call counts. Chrome traces
+compress unchanged samples; transition counts are not sample counts or durations.
+Observed activation, preparation, layout and
 paint functions provide phase activity; existing pilot instrumentation has no
 production enable flag, so these are not exact phase entry/exit events.
 
@@ -332,15 +366,15 @@ records observation of py-spy's sampling-ready message. Those bounds align the
 trace's relative clock with the video origin. Alignment uses their midpoint,
 with half the bound width plus one sample period as nominal uncertainty;
 scheduler delay or sampler errors can increase it. Keep the raw clocks/trace,
-profiler log and this uncertainty in every correlation report. Nested sampled stack spans are
-inclusive wall activity, not exact call counts, per-function CPU attribution or
-proof of redundant work. The kernel deltas are the measured CPU totals.
+profiler log and this uncertainty in every correlation report. Observed stacks
+are activity evidence, not per-function CPU attribution or proof of redundant
+work. The kernel deltas are the measured CPU totals.
 
-Run a short **unprofiled** comparison serially with the same runtime, viewport,
-history sources and physical actions. Mark it separately in the assessment and
-compare the visible switch/scroll/End behavior. Record perturbation and changes
-in timing; never subtract an assumed profiler overhead or certify a candidate
-from the profiled run alone. Associate inspected stall frame intervals with the
+Reuse compatible retained unprofiled evidence to assess observer perturbation.
+Run another short unprofiled comparison only when a concrete attribution or
+perturbation question remains, with the same runtime, sources and actions.
+Record timing differences; never subtract assumed profiler overhead or certify
+physical behavior from sampled stacks alone. Associate inspected stall frame intervals with the
 matching `profile-review.json` phase and supporting sampled stacks in the local
 `assessment.json`. Leave absent/unsampled phases explicit. The performance owner
 must decide whether sampled work is redundant and implement its fix.

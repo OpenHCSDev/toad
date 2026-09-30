@@ -57,7 +57,7 @@ def disposition_rows(service):
     return InputDispositions(service.root / InputDispositions.filename).read().rows
 
 
-async def main():
+async def main(*, readonly_acceptance=None, app_type=ResourceJourneyApp):
     assert os.environ['AC_REAL_PROVIDER_AUTHORIZED'] == 'Sol/high retained acceptance'
     stage = Path(os.environ['AC_REAL_FIXTURE_STAGE'])
     evidence = Path(os.environ['L0A_EVIDENCE'])
@@ -121,7 +121,7 @@ async def main():
         'short_name': 'resource', 'protocol': 'acp',
         'run_command': {'*': shlex.join([sys.executable, '-m', 'agent_comms.acp'])},
     })
-    app = ResourceJourneyApp(agent_data=definition, project_dir=str(project),
+    app = app_type(agent_data=definition, project_dir=str(project),
                              agent_session_id='resource436')
     app.began = time.monotonic()
     receipt = {'provider': source.model, 'thinking': source.thinking_level.declared_name,
@@ -165,6 +165,21 @@ async def main():
             await until(pilot, lambda: view.agent is not None and view.agent_ready, 50)
             await until(pilot, lambda: bool(view.contents.query(TranscriptHistory)), 30)
             receipt['completed_phases'].append('original_saved_history_open')
+            if (os.environ.get('AC_REAL_READ_ONLY_CUSTODY') == '1'
+                    and readonly_acceptance is not None):
+                await readonly_acceptance(app, pilot, service, project, evidence)
+                with sqlite3.connect((service.root / 'coordination.sqlite3').as_uri() + '?mode=ro', uri=True) as db:
+                    assert db.execute('SELECT count(*) FROM native_runtime_input').fetchone()[0] == 0
+                assert disposition_rows(service) == {}
+                with original.open('rb') as stream:
+                    assert hashlib.file_digest(stream, 'sha256').hexdigest() == source_digest
+                current = capture.require_current()
+                assert current.process_identity == source.process_identity
+                receipt['original_source_custody'] = {'sha256': source_digest,
+                    'owner': FieldCodec.encode(current.process_identity), 'unchanged': True}
+                receipt['complete'] = True
+                receipt['completed_phases'].append('readonly_resource_acceptance')
+                return
             if os.environ.get('AC_REAL_READ_ONLY_CUSTODY') == '1':
                 from toad.widgets.side_bar import SideBar
                 from toad.widgets.conversation import Window

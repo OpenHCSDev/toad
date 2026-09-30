@@ -44,15 +44,13 @@ class TranscriptSourcePreparation:
 
     async def retire_source(self, *, parked: bool = False) -> None:
         """End pager mutations before any of its bodies transfer to the shelf."""
-        if not isinstance(self._source_state, ParkedSourceTranscript):
-            source = self._source_state.retirement_source()
-            self._source_state = (ParkedSourceTranscript(source) if parked
-                                  else RetiredSourceTranscript(source))
+        source = self._source_state.retirement_source()
+        self._source_state = (ParkedSourceTranscript(source) if parked
+                              else RetiredSourceTranscript(source))
         self._generation += 1
         self._prefetch_intent = None
         self.window.histories.discard(self)
-        if self._page_buffer is not None:
-            self._page_buffer.close()
+        self._source_state.retire_preparation(self._page_buffer)
         for worker in self.workers.cancel_node(self):
             try:
                 await worker.wait()
@@ -60,11 +58,7 @@ class TranscriptSourcePreparation:
                 pass
 
     def resume_source(self) -> None:
-        state = self._source_state
-        if not isinstance(state, ParkedSourceTranscript):
-            raise RuntimeError("Only a parked transcript can resume publication")
-        self._source_state = state.resume()
-        self._page_buffer = None
+        self._source_state = self._source_state.resume()
         self._prefetch_intent = None
         self.window.histories.add(self)
         if self._source_state.reports_coverage:

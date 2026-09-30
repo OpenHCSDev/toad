@@ -12,6 +12,10 @@ def capture(*, expected_pid, output_prefix):
     import time
     import traceback
     from textual._context import active_app
+    from textual.geometry import Offset
+    from toad.widgets.conversation import CursorContainer
+    from toad.widgets.history_anchor import HistoryWindow
+    from toad.widgets.prompt import PromptTextArea
 
     prefix = str(output_prefix)
     started = time.monotonic_ns()
@@ -54,6 +58,10 @@ def capture(*, expected_pid, output_prefix):
         frame = vars(screen).get("frame_presentation")
         metadata["screen"] = {
             **node_identity(screen), "current_mode": app.current_mode,
+            "focused": None if screen.focused is None else {
+                **node_identity(screen.focused),
+                "ancestors": [node_identity(node) for node in screen.focused.ancestors_with_self],
+            },
             "selected_mode": app.selected_mode, "is_current": screen.is_current,
             "scroll_offset": tuple(screen.scroll_offset),
             "max_scroll": [screen.max_scroll_x, screen.max_scroll_y],
@@ -94,6 +102,13 @@ def capture(*, expected_pid, output_prefix):
             if model is not None:
                 payload[name] = dict(model.placements) if name == "sidebar_layout" else asdict(model)
         metadata["theme"] = namespace.get("_reactive_theme")
+        metadata["terminal_geometry"] = None
+        if os.isatty(sys.__stdin__.fileno()):
+            import fcntl
+            import struct
+            import termios
+            metadata["terminal_geometry"] = struct.unpack(
+                "HHHH", fcntl.ioctl(sys.__stdin__.fileno(), termios.TIOCGWINSZ, bytes(8)))
         try:
             metadata["size"] = tuple(app.size)
         except Exception:
@@ -133,12 +148,19 @@ def capture(*, expected_pid, output_prefix):
                         view["visible_categories"] = tuple(data.get("_reactive_visible_categories", ()))
                         view["goal"] = data.get("_reactive_goal")
                         view["goal_execution"] = data.get("_reactive_goal_execution")
-                    if kind in {"PromptTextArea", "ChannelTextArea"}:
-                        document = data.get("document")
-                        lines = vars(document).get("_lines") if document is not None else None
-                        selection = data.get("_reactive_selection")
-                        view["drafts"].append({"lines": tuple(lines) if lines is not None else None,
-                                               "selection": tuple(tuple(point) for point in selection) if selection is not None else None})
+                    if isinstance(node, PromptTextArea):
+                        geometry = compositor._visible_map.get(node) if compositor._visible_map is not None else None
+                        focus_target = None
+                        if geometry is not None:
+                            region = geometry.region.intersection(geometry.clip)
+                            if region:
+                                cell = Offset(*(int(value) for value in region.center))
+                                if node.screen.get_focusable_widget_at(*cell) is node:
+                                    focus_target = {"widget": node_identity(node), "cell": tuple(cell)}
+                        view["drafts"].append({"object_id": id(node), "lines": tuple(node.text.split("\n")),
+                                               "selection": tuple(tuple(point) for point in node.selection),
+                                               "focus_target": focus_target,
+                                               "region": tuple(geometry.region) if geometry is not None else None})
                     if kind == "Contents" and type(node).__module__ == "toad.widgets.conversation":
                         for child in tuple(children._nodes) if children is not None else ():
                             child_data = vars(child)
@@ -163,9 +185,24 @@ def capture(*, expected_pid, output_prefix):
                             "generation": node._generation,
                             "source_state": type(node._source_state).__name__,
                         })
-                    if kind in {"Window", "HistoryWindow"}:
-                        window = {key: data.get(key) for key in (
-                            "_reactive_scroll_y", "_reactive_scroll_x", "_is_anchored", "_anchor_released")}
+                    if isinstance(node, HistoryWindow):
+                        window = {**node_identity(node), **{key: data.get(key) for key in (
+                            "_reactive_scroll_y", "_reactive_scroll_x", "_is_anchored", "_anchor_released")}}
+                        geometry = compositor._visible_map.get(node) if compositor._visible_map is not None else None
+                        window["region"] = tuple(geometry.region) if geometry is not None else None
+                        window["focus_target"] = None
+                        cursor = next(iter(node.query(CursorContainer)), None)
+                        cursor_geometry = (compositor._visible_map.get(cursor)
+                                           if compositor._visible_map is not None else None)
+                        if geometry is not None and cursor_geometry is not None:
+                            region = cursor_geometry.region.intersection(cursor_geometry.clip).intersection(geometry.region)
+                            if region:
+                                cell = Offset(*(int(value) for value in region.center))
+                                native_screen = node.screen
+                                hit, _ = native_screen.get_widget_at(*cell)
+                                focusable = native_screen.get_focusable_widget_at(*cell)
+                                if hit is cursor and focusable is node:
+                                    window["focus_target"] = {"widget": node_identity(cursor), "cell": tuple(cell)}
                         virtual_size = data.get("_reactive_virtual_size")
                         window["_reactive_virtual_size"] = tuple(virtual_size) if virtual_size is not None else None
                         window["scroll_y"] = node.scroll_y
@@ -190,6 +227,10 @@ def capture(*, expected_pid, output_prefix):
                                 "visible_dormant": sum(body.body_dormant for body in owners if body in visible),
                                 "reconciling": manager._running,
                                 "suspended": manager._suspended,
+                                "owners": [{**node_identity(body), "ready": body.body_ready,
+                                            "dormant": body.body_dormant, "visible": body in visible,
+                                            "measured_rows": body.measured_rows}
+                                           for body in owners],
                             }
                         view["history_windows"].append(window)
                     if data.get("_id") in {"channels-sidebar", "thread-sidebar"}:
