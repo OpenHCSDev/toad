@@ -1,0 +1,401 @@
+{
+  "status": "LIVE_VERIFIED_SCOPED_DEFAULT_DELETE_END",
+  "owner": "Kepler",
+  "default_activation_owner": "parent",
+  "product_focus_owner": "Heisenberg227",
+  "actual_entrypoint": [
+    "/home/ts/bin/toad-comms",
+    "nra-architecture"
+  ],
+  "duration_seconds": 26.300412828975823,
+  "provider_calls": 0,
+  "prompt_submissions": 0,
+  "public_mutations": 0,
+  "native_input_replays": 0,
+  "runtime_overrides_absent": true,
+  "runtime_unchanged": true,
+  "source": {
+    "before": {
+      "selection": "PATH agent-comms-acp",
+      "bin_directory": "/home/ts/.local/share/agent-comms/runtime-first-ui-end-keypad-20260930/bin",
+      "launcher_links": {
+        "command": {
+          "selected_path": "/home/ts/bin/toad-comms",
+          "resolved_path": "/home/ts/.agent-comms/stack/bin/toad-comms",
+          "sha256": "80382c0f935a0f069c0128c21ca530c8dd277684b6d778611315646ab82040ad"
+        },
+        "acp": {
+          "selected_path": "/home/ts/.local/bin/agent-comms-acp",
+          "resolved_path": "/home/ts/.local/share/agent-comms/runtime-first-ui-end-keypad-20260930/bin/agent-comms-acp",
+          "sha256": "888cc68bb6180fdc8d447d25e1986812013c8da0c3a99b311d14569788973a27"
+        }
+      },
+      "activation_sha256": "895cc745456b76ca3fe3c4277a6ed947a990910508a73e2a35d3733563ba15f1",
+      "pins": {
+        "agent-comms": "000a31c562b6d048e26e288b24fcd3f1ac64f803",
+        "batrachian-toad": "9354b391880980c9c987f421e16b9a1fd59b3f3b",
+        "textual": "4e8d13d21bf98e4ad52e610277d7d06c9035ccfa"
+      },
+      "sdk": "0.12.1",
+      "native_package": "/home/ts/.local/share/agent-comms/native-current-e36a1dde326b7017/node_modules/@earendil-works/pi-coding-agent",
+      "actual_python_sources": {
+        "toad": {
+          "source_tree_sha256": "86716939c1d713f97147f10514da7e8e17569ba30f073609c28077ca7cdc6135",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/toad.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "9354b391880980c9c987f421e16b9a1fd59b3f3b",
+              "requested_revision": "9354b391880980c9c987f421e16b9a1fd59b3f3b"
+            }
+          }
+        },
+        "textual": {
+          "source_tree_sha256": "37c099bc828f724a755c8434bc0fcf674352d66f91312c95a3482a162d8304cd",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/textual.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "4e8d13d21bf98e4ad52e610277d7d06c9035ccfa",
+              "requested_revision": "4e8d13d21bf98e4ad52e610277d7d06c9035ccfa"
+            }
+          }
+        },
+        "agent_comms": {
+          "source_tree_sha256": "e465d405f279fd80cc0bee0791f6608e9cc0a9e93992e0d6058118052e14af74",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/agent-comms.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "000a31c562b6d048e26e288b24fcd3f1ac64f803",
+              "requested_revision": "000a31c562b6d048e26e288b24fcd3f1ac64f803"
+            }
+          }
+        }
+      }
+    },
+    "after": {
+      "selection": "PATH agent-comms-acp",
+      "bin_directory": "/home/ts/.local/share/agent-comms/runtime-first-ui-end-keypad-20260930/bin",
+      "launcher_links": {
+        "command": {
+          "selected_path": "/home/ts/bin/toad-comms",
+          "resolved_path": "/home/ts/.agent-comms/stack/bin/toad-comms",
+          "sha256": "80382c0f935a0f069c0128c21ca530c8dd277684b6d778611315646ab82040ad"
+        },
+        "acp": {
+          "selected_path": "/home/ts/.local/bin/agent-comms-acp",
+          "resolved_path": "/home/ts/.local/share/agent-comms/runtime-first-ui-end-keypad-20260930/bin/agent-comms-acp",
+          "sha256": "888cc68bb6180fdc8d447d25e1986812013c8da0c3a99b311d14569788973a27"
+        }
+      },
+      "activation_sha256": "895cc745456b76ca3fe3c4277a6ed947a990910508a73e2a35d3733563ba15f1",
+      "pins": {
+        "agent-comms": "000a31c562b6d048e26e288b24fcd3f1ac64f803",
+        "batrachian-toad": "9354b391880980c9c987f421e16b9a1fd59b3f3b",
+        "textual": "4e8d13d21bf98e4ad52e610277d7d06c9035ccfa"
+      },
+      "sdk": "0.12.1",
+      "native_package": "/home/ts/.local/share/agent-comms/native-current-e36a1dde326b7017/node_modules/@earendil-works/pi-coding-agent",
+      "actual_python_sources": {
+        "toad": {
+          "source_tree_sha256": "86716939c1d713f97147f10514da7e8e17569ba30f073609c28077ca7cdc6135",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/toad.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "9354b391880980c9c987f421e16b9a1fd59b3f3b",
+              "requested_revision": "9354b391880980c9c987f421e16b9a1fd59b3f3b"
+            }
+          }
+        },
+        "textual": {
+          "source_tree_sha256": "37c099bc828f724a755c8434bc0fcf674352d66f91312c95a3482a162d8304cd",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/textual.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "4e8d13d21bf98e4ad52e610277d7d06c9035ccfa",
+              "requested_revision": "4e8d13d21bf98e4ad52e610277d7d06c9035ccfa"
+            }
+          }
+        },
+        "agent_comms": {
+          "source_tree_sha256": "e465d405f279fd80cc0bee0791f6608e9cc0a9e93992e0d6058118052e14af74",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/agent-comms.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "000a31c562b6d048e26e288b24fcd3f1ac64f803",
+              "requested_revision": "000a31c562b6d048e26e288b24fcd3f1ac64f803"
+            }
+          }
+        }
+      }
+    }
+  },
+  "native_phases": {
+    "startup": {
+      "mode": "session-1",
+      "focused_editor": {
+        "object_id": 139879637394576,
+        "class": "PromptTextArea",
+        "module": "toad.widgets.prompt"
+      },
+      "drafts": [
+        {
+          "object_id": 139879637394576,
+          "lines": [
+            ""
+          ],
+          "selection": [
+            [
+              0,
+              0
+            ],
+            [
+              0,
+              0
+            ]
+          ]
+        }
+      ],
+      "history_window": {
+        "object_id": 139879605136720,
+        "region": [
+          71,
+          3,
+          105,
+          32
+        ],
+        "scroll_y": 59,
+        "maximum": 59,
+        "follows_tail": true,
+        "layout_ready": null,
+        "paint_ready": null
+      }
+    },
+    "edited": {
+      "mode": "session-1",
+      "focused_editor": {
+        "object_id": 139879637394576,
+        "class": "PromptTextArea",
+        "module": "toad.widgets.prompt"
+      },
+      "drafts": [
+        {
+          "object_id": 139879637394576,
+          "lines": [
+            "abcf"
+          ],
+          "selection": [
+            [
+              0,
+              4
+            ],
+            [
+              0,
+              4
+            ]
+          ]
+        }
+      ],
+      "history_window": {
+        "object_id": 139879605136720,
+        "region": [
+          71,
+          3,
+          105,
+          32
+        ],
+        "scroll_y": 59,
+        "maximum": 59,
+        "follows_tail": true,
+        "layout_ready": null,
+        "paint_ready": null
+      }
+    },
+    "end": {
+      "mode": "session-1",
+      "focused_editor": {
+        "object_id": 139879637394576,
+        "class": "PromptTextArea",
+        "module": "toad.widgets.prompt"
+      },
+      "drafts": [
+        {
+          "object_id": 139879637394576,
+          "lines": [
+            "abcf"
+          ],
+          "selection": [
+            [
+              0,
+              4
+            ],
+            [
+              0,
+              4
+            ]
+          ]
+        }
+      ],
+      "history_window": {
+        "object_id": 139879605136720,
+        "region": [
+          71,
+          3,
+          105,
+          32
+        ],
+        "scroll_y": 59,
+        "maximum": 59,
+        "follows_tail": true,
+        "layout_ready": null,
+        "paint_ready": null
+      }
+    },
+    "stationary": {
+      "mode": "session-1",
+      "focused_editor": {
+        "object_id": 139879637394576,
+        "class": "PromptTextArea",
+        "module": "toad.widgets.prompt"
+      },
+      "drafts": [
+        {
+          "object_id": 139879637394576,
+          "lines": [
+            "abcf"
+          ],
+          "selection": [
+            [
+              0,
+              4
+            ],
+            [
+              0,
+              4
+            ]
+          ]
+        }
+      ],
+      "history_window": {
+        "object_id": 139879605136720,
+        "region": [
+          71,
+          3,
+          105,
+          32
+        ],
+        "scroll_y": 59,
+        "maximum": 59,
+        "follows_tail": true,
+        "layout_ready": null,
+        "paint_ready": null
+      }
+    }
+  },
+  "history_click": {
+    "ui_identity": {
+      "pid": 2983293,
+      "start_time": 23998220
+    },
+    "mode": "session-1",
+    "history_window": 139879605136720,
+    "target": {
+      "widget": {
+        "object_id": 139879605137360,
+        "class": "CursorContainer",
+        "module": "toad.widgets.conversation",
+        "id": "cursor-container",
+        "parent_object_id": 139879605132240
+      },
+      "cell": [
+        71,
+        19
+      ]
+    },
+    "terminal_geometry": [
+      43,
+      179,
+      1253,
+      860
+    ],
+    "pixel": [
+      503,
+      400
+    ]
+  },
+  "original": {
+    "name": "nra-architecture",
+    "owner": {
+      "pid": 2823983,
+      "start_time": 23393932
+    },
+    "bytes": 41270257,
+    "sha256": "888b79c4afea78a87c8e591928dbc015eeaaa3123e82477c56d40f3739bcf10c",
+    "active_turn": null
+  },
+  "original_unchanged": true,
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption"
+  },
+  "artifacts": {
+    "receipt.json": {
+      "path": "/home/ts/.cache/agent-scratch/toad-editor-default-keypad-end-20260930-run03/capture/receipt.json",
+      "bytes": 39076,
+      "sha256": "b84925588a98a4cd758869773dde5090d16a2ba411872d563efc02e8477721c8"
+    },
+    "terminal.mp4": {
+      "path": "/home/ts/.cache/agent-scratch/toad-editor-default-keypad-end-20260930-run03/capture/terminal.mp4",
+      "bytes": 624467,
+      "sha256": "3f254689ed63a81e5f12e36ed1effaa1ce7a7b5f7beb716297a0138270552353"
+    },
+    "phase-startup.png": {
+      "path": "/home/ts/.cache/agent-scratch/toad-editor-default-keypad-end-20260930-run03/capture/phase-startup.png",
+      "bytes": 107362,
+      "sha256": "9cda282a0bc7509e3f849f146ca8f1da769095bd9a9c85ae0e1eb8c8e64e3710"
+    },
+    "phase-edited.png": {
+      "path": "/home/ts/.cache/agent-scratch/toad-editor-default-keypad-end-20260930-run03/capture/phase-edited.png",
+      "bytes": 107776,
+      "sha256": "0e7f5627cbefe34df5fdcce345f4c238dba457655113409b11d9461f24118fac"
+    },
+    "phase-end.png": {
+      "path": "/home/ts/.cache/agent-scratch/toad-editor-default-keypad-end-20260930-run03/capture/phase-end.png",
+      "bytes": 107794,
+      "sha256": "b5a808ad6a867ecc71f80f74d446e2fca7464637f49602c58aebb97aff8d3578"
+    },
+    "phase-stationary.png": {
+      "path": "/home/ts/.cache/agent-scratch/toad-editor-default-keypad-end-20260930-run03/capture/phase-stationary.png",
+      "bytes": 107794,
+      "sha256": "b5a808ad6a867ecc71f80f74d446e2fca7464637f49602c58aebb97aff8d3578"
+    },
+    "history-click-target.json": {
+      "path": "/home/ts/.cache/agent-scratch/toad-editor-default-keypad-end-20260930-run03/capture/history-click-target.json",
+      "bytes": 504,
+      "sha256": "9d6890ba02a5210807bb849f7f4f3a49f80c101f4d664b215d0d0316aa083def"
+    },
+    "events.jsonl": {
+      "path": "/home/ts/.cache/agent-scratch/toad-editor-default-keypad-end-20260930-run03/capture/events.jsonl",
+      "bytes": 9799,
+      "sha256": "b1595023e0e83cc9040b28a66e502b3797e07b2559a5d4de00f409381c0eba48"
+    }
+  },
+  "physical_review": {
+    "startup": "saved history, menu, roster, tabs and composer readable",
+    "edited": "abcf/caret4, no Help panel",
+    "end": "body and chrome readable, window scroll59=max59 follows_tailTrue",
+    "stationary": "same body/chrome readable after4seconds, draft retained",
+    "boundary": "startup and End at retained source tail only; no PageUp, warm A/B/A, intermittent arrows, or full focus workflow closure"
+  },
+  "counterevidence": {
+    "first_pre_ui": "/home/ts/.cache/agent-scratch/toad-editor-default-keypad-end-20260930 (unregistered bounded journey; rejected before UI)",
+    "run02_exporter": "/home/ts/.cache/agent-scratch/toad-editor-default-keypad-end-20260930-run02 (physical editing readable; diagnostic queried logical MainScreen, no DTO/End proof)",
+    "exporter_fix": "d04b7034: native node.screen owns hit/focus queries; no product/package/default changes",
+    "narrowing_timing": "corrected short run was already underway before parent requested only remaining End/nativeDTO review; no further capture launched"
+  }
+}

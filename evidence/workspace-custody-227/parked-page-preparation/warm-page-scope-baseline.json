@@ -1,0 +1,64 @@
+{
+  "pins": {
+    "batrachian-toad": {
+      "url": "https://github.com/OpenHCSDev/toad.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "b6fa2a725d7f42a2bf0202b2d0eb2374d652c3a4",
+        "requested_revision": "b6fa2a72"
+      }
+    },
+    "agent-comms": {
+      "url": "https://github.com/OpenHCSDev/agent-comms.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "2519fb653d3dde780da729d8979b55df68026b95",
+        "requested_revision": "2519fb653d3dde780da729d8979b55df68026b95"
+      }
+    },
+    "textual": {
+      "url": "https://github.com/OpenHCSDev/textual.git",
+      "vcs_info": {
+        "vcs": "git",
+        "commit_id": "65053c5a2df12249ef1c4193beeff7023c1f75d7",
+        "requested_revision": "65053c5a2df12249ef1c4193beeff7023c1f75d7"
+      }
+    }
+  },
+  "boundary": "Actual private native source and resource journey, no ACP/provider/original root.",
+  "parked": {
+    "scope_closed": true,
+    "prepared_page_retained": false
+  },
+  "final_retirement": {
+    "scope_closed": true,
+    "prepared_page_retained": false
+  },
+  "returns": [
+    {
+      "reader_reused": false,
+      "prepared_page_reused": false,
+      "native_body_reused": true,
+      "native_children_reused": true,
+      "editor_reused": true,
+      "draft_preserved": true,
+      "reader_preserved": true,
+      "settled_return_ms": 329.8434199823532,
+      "retained_bytes": 130705,
+      "within_budget": true
+    },
+    {
+      "reader_reused": false,
+      "prepared_page_reused": false,
+      "native_body_reused": true,
+      "native_children_reused": true,
+      "editor_reused": true,
+      "draft_preserved": true,
+      "reader_preserved": true,
+      "settled_return_ms": 338.59119401313365,
+      "retained_bytes": 130705,
+      "within_budget": true
+    }
+  ],
+  "application_exit": "normal"
+}

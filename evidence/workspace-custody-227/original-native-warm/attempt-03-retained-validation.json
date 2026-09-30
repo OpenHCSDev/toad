@@ -1,0 +1,21 @@
+{
+  "view_reused": true,
+  "old_attached": false,
+  "old_registered": false,
+  "old_state": "ClosingTranscript",
+  "old_scope_closed": true,
+  "old_through": "TranscriptCursor(session_file='/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/private-original-warm-03/native-forks/sessions/--home-ts-wt-toad-workspace-growing-end-continuity-20260930-.artifacts-private-original-warm-03-project--/2026-09-30T11-13-39-027Z_01a0f205-26d3-759c-953f-ccf578db294c.jsonl', offset=41270329, receipts=AssignedSourceCursor(root='/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/private-original-warm-03/wire', recipient=ThreadIncarnation(name='resource436', created_at=1790766820.1591527), sequence=0))",
+  "old_after": "TranscriptCursor(session_file='/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/private-original-warm-03/native-forks/sessions/--home-ts-wt-toad-workspace-growing-end-continuity-20260930-.artifacts-private-original-warm-03-project--/2026-09-30T11-13-39-027Z_01a0f205-26d3-759c-953f-ccf578db294c.jsonl', offset=41270329, receipts=AssignedSourceCursor(root='/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/private-original-warm-03/wire', recipient=ThreadIncarnation(name='resource436', created_at=1790766820.1591527), sequence=0))",
+  "new_after": "TranscriptCursor(session_file='/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/private-original-warm-03/native-forks/sessions/--home-ts-wt-toad-workspace-growing-end-continuity-20260930-.artifacts-private-original-warm-03-project--/2026-09-30T11-13-39-027Z_01a0f205-26d3-759c-953f-ccf578db294c.jsonl', offset=41270329, receipts=AssignedSourceCursor(root='/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/private-original-warm-03/wire', recipient=ThreadIncarnation(name='resource436', created_at=1790766820.1591527), sequence=0))",
+  "old_events": 31,
+  "new_events": 31,
+  "differences": [],
+  "attached_histories": [
+    {
+      "state": "LiveTranscript",
+      "registered": true,
+      "original": false,
+      "through": "TranscriptCursor(session_file='/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/private-original-warm-03/native-forks/sessions/--home-ts-wt-toad-workspace-growing-end-continuity-20260930-.artifacts-private-original-warm-03-project--/2026-09-30T11-13-39-027Z_01a0f205-26d3-759c-953f-ccf578db294c.jsonl', offset=41270329, receipts=AssignedSourceCursor(root='/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/private-original-warm-03/wire', recipient=ThreadIncarnation(name='resource436', created_at=1790766820.1591527), sequence=0))"
+    }
+  ]
+}

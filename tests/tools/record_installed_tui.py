@@ -347,17 +347,58 @@ class RuntimeSelection:
 
 
 class PhysicalJourney(DeclaredFamily, affix="Journey"):
-    """Declare the bounded, input-free physical journeys permitted on a live owner."""
+    """Declare bounded physical journeys that never submit native inputs."""
+
+    review_artifacts = ()
 
     @classmethod
     @abstractmethod
     def script(cls, args): ...
 
+    @classmethod
+    def review(cls, output, receipt):
+        return None
+
 
 class ScrollJourney(PhysicalJourney):
     @classmethod
     def script(cls, args):
-        return scroll_script(idle_seconds=args.scroll_idle_seconds)
+        if not args.capture_state:
+            raise ValueError("Scrolling requires --capture-state for the native history focus target")
+        return scroll_script(idle_seconds=args.scroll_idle_seconds, hold_seconds=args.scroll_hold_seconds)
+
+
+class WarmScrollJourney(ScrollJourney):
+    """Use one scroll journey and actual A/B/A clicks to observe retained resources."""
+
+    draft_suffix = "warm-scroll-draft"
+    review_artifacts = ("warm-scroll-review.json",)
+
+    @classmethod
+    def script(cls, args):
+        if not args.capture_state:
+            raise ValueError("Warm scrolling requires --capture-state")
+        state_home = Path(os.environ["XDG_STATE_HOME"]).resolve()
+        if not state_home.is_relative_to((Path.home() / ".cache/agent-scratch").resolve()):
+            raise ValueError("Warm draft editing requires a copied private UI state under agent scratch")
+        marker = marker_command()
+        settle = f"sleep {args.navigation_settle_seconds:g}"
+        return "\n".join([
+            marker + "warm-start", native_click_command("phase-warm-start-state.pickle", target="editor"),
+            "key ctrl+End", f"type --clearmodifiers --delay 80 {cls.draft_suffix}", settle, marker + "draft",
+            scroll_script(idle_seconds=args.scroll_idle_seconds, hold_seconds=args.scroll_hold_seconds,
+                          state="phase-draft-state.pickle"),
+            marker + "switch-b", f"mousemove --sync {args.other_agent_x} {args.other_agent_y}", "click 1",
+            settle, marker + "b-open", marker + "return-a",
+            f"mousemove --sync {args.return_tab_x} {args.close_tab_y}", "click 1", settle, marker + "a-return",
+            native_click_command("phase-a-return-state.pickle", target="editor"), "key ctrl+z", settle,
+            marker + "undo", "",
+        ])
+
+    @classmethod
+    def review(cls, output, receipt):
+        from scroll_observation import review_warm_return
+        return review_warm_return(output, receipt, suffix=cls.draft_suffix)
 
 
 class SavedTabCloseJourney(PhysicalJourney):
@@ -597,7 +638,7 @@ def profile_launch(command):
 
 
 def profile_review(output, receipt, rate):
-    """Decode py-spy's Chrome trace once and map samples to native action spans."""
+    """Decode py-spy's Chrome transitions once and align them with physical actions."""
     trace_path = output / "cpu-profile.json"
     if trace_path.stat().st_size > 128 * 1024 * 1024:
         raise RuntimeError("CPU profile exceeds the 128 MiB review bound")
@@ -672,6 +713,8 @@ def profile_review(output, receipt, rate):
                                  "stack_presence_transition_groups": counts[0],
                                  "leaf_transition_groups": counts[1]}
                                 for key, counts in sorted(hot.items(), key=lambda item: item[1][1], reverse=True)[:20]],
+            "physical_evidence": {"start": phase_evidence(output, event),
+                                  "end": phase_evidence(output, following)},
             "visible_stall_assessment": "unreviewed; correlate with phase video and actual frames"})
     (output / "profile-review.json").write_text(json.dumps(result, indent=2) + "\n")
     return result
@@ -967,6 +1010,7 @@ def record(args):
             receipt["events"] = events
             if args.profile:
                 receipt["profile_review"] = profile_review(output, receipt, args.profile_rate)
+            receipt["journey_review"] = args.journey.review(output, receipt)
             intervals = [(None, args.review_start, min(args.review_seconds, duration - args.review_start))]
             for label in args.review_phase:
                 index = next((i for i, event in enumerate(events) if event["label"] == label), None)
@@ -986,6 +1030,8 @@ def record(args):
                              for path in output.glob(f"{name}-*") if path.is_file() and path.stat().st_size)
             if args.profile:
                 names.extend(["cpu-profile.json", "profile-review.json", "profile-launch.json", "profile-terminal.json", "profiler.log"])
+            names.extend(args.journey.review_artifacts)
+            names.extend(path.name for path in output.glob("*-click-target.json"))
             names.extend(args.review_timing.generate(output, args, env, owner, receipt["review_intervals"]))
             receipt["artifacts"] = {name: {"bytes": (output / name).stat().st_size,
                                          "sha256": digest(output / name)} for name in names}
@@ -1069,13 +1115,28 @@ def marker_command():
     return f"exec --sync {shlex.quote(sys.executable)} {shlex.quote(str(Path(__file__).resolve()))} --mark "
 
 
-def scroll_script(*, idle_seconds: float = 4):
+def native_click_command(state, *, target="history"):
+    helper = Path(__file__).resolve().parents[2] / "tools/performance/click_history.py"
+    return (f"exec --sync {shlex.quote(sys.executable)} {shlex.quote(str(helper))}"
+            f" --target {shlex.quote(target)} --state {shlex.quote(state)}")
+
+
+def phase_evidence(output, event):
+    """Link actual phase files and attachment timing, without guessing visual success."""
+    prefix = f"phase-{event['label']}"
+    return {"screenshot": event.get("screenshot"), "state_capture": event.get("state_capture"),
+            "native_state": f"{prefix}-state.pickle" if (output / f"{prefix}-state.pickle").exists() else None,
+            "native_metadata": f"{prefix}-state.json" if (output / f"{prefix}-state.json").exists() else None}
+
+
+def scroll_script(*, idle_seconds: float = 4, hold_seconds: float = 4, state="before-state.pickle"):
     marker = marker_command()
+    hold = f"sleep {hold_seconds:g}"
     return "\n".join([
-        "mousemove --sync 700 260", "click 1", marker + "focused", "sleep 1",
-        marker + "up", "keydown Prior", "sleep 4", "keyup Prior", marker + "up-done",
-        marker + "down", "keydown Next", "sleep 4", "keyup Next", marker + "down-done",
-        marker + "reverse", "keydown Prior", "sleep 4", "keyup Prior", marker + "reverse-done",
+        native_click_command(state), marker + "focused", "sleep 1",
+        marker + "up", "keydown Prior", hold, "keyup Prior", marker + "up-done",
+        marker + "down", "keydown Next", hold, "keyup Next", marker + "down-done",
+        marker + "reverse", "keydown Prior", hold, "keyup Prior", marker + "reverse-done",
         marker + "end", "key End", "sleep 1", marker + "idle", f"sleep {idle_seconds:g}", marker + "idle-done", "",
     ])
 
@@ -1112,6 +1173,8 @@ def main():
                         help="Physical navigation observation interval within the capture deadline")
     parser.add_argument("--scroll-idle-seconds", type=float, default=4,
                         help="Stationary observation in the shared scroll script; use15 for the original-history delayed-blank reproducer")
+    parser.add_argument("--scroll-hold-seconds", type=float, default=4,
+                        help="Hold PageUp, PageDown and reverse PageUp for this measured interval")
     parser.add_argument("--review-phase", action="append", default=[], help="Also review this native script marker (up to 8)")
     parser.add_argument("--review-recording", type=Path, help="Encode a retained capture; no UI, ACP or native process launches")
     parser.add_argument("--review-timing", type=ReviewTiming.decode, default=InlineReviewTiming,
@@ -1141,6 +1204,8 @@ def main():
     args = parser.parse_args()
     if not math.isfinite(args.scroll_idle_seconds) or not 0 < args.scroll_idle_seconds < args.max_duration:
         parser.error("Scroll idle observation must be positive and shorter than capture duration")
+    if not math.isfinite(args.scroll_hold_seconds) or not 0 < args.scroll_hold_seconds < args.max_duration:
+        parser.error("Scroll hold must be positive and shorter than capture duration")
     if not (all(0 <= value < args.width for value in
                 (args.close_tab_x, args.other_agent_x, args.return_tab_x, args.reopen_agent_x))
             and all(0 <= value < args.height for value in

@@ -1,0 +1,14 @@
+{
+  "provider": "openai-codex/gpt-6.1-sol",
+  "thinking": "off",
+  "original_bytes": 41270257,
+  "original_inputs_replayed": 0,
+  "completed_phases": [
+    "original_saved_history_open"
+  ],
+  "core": "2519fb653d3dde780da729d8979b55df68026b95",
+  "toad": "0433dc37422cb5d6fb83c48830f49fad2bf8f4cc",
+  "inputs": [],
+  "elapsed_seconds": 41.039,
+  "children_retired": true
+}

@@ -97,7 +97,11 @@ class SnapshotPublication(TranscriptPublication):
             CommitEvidence, retirement_candidates,
         )
         async with self.window.history_lock:
-            if not self.current() or not self.admitted():
+            if not self.current():
+                return
+            for history in self.contents.query(TranscriptHistory):
+                history.state.validate_snapshot(history, self.page)
+            if not self.admitted():
                 return
         fragments = await self.owner.view.app.preparation.submit(
             RenderPreparation(TranscriptRenderTask(self.page.events))
@@ -376,7 +380,6 @@ class TranscriptPresentation:
         self.displayed_cursor: TranscriptCursor | None = None
         self.worker: Worker[None] | None = None
         self.reader_position: ReaderPosition | None = None
-        self._revealed_history: TranscriptHistory | None = None
         self.source_requests = SourcePublicationRequests(self)
 
     @property
@@ -422,7 +425,6 @@ class TranscriptPresentation:
         view = self.view
         if view is None or not view.is_attached:
             return
-        self._revealed_history = history
         self.displayed_cursor = history.committed_cursor
         self.reader_position = None
         if (loading := view.query_one_optional(ThreadLoading)) is not None:
@@ -432,35 +434,13 @@ class TranscriptPresentation:
 
     async def refresh_revealed(self, agent) -> None:
         """Validate the retained reader after its first completed display."""
-        from toad.transcript_state import ParkedSourceTranscript
-        from toad.widgets.transcript_history import TranscriptHistory
-
         generation = self.generation
         page = await agent.get_transcript_page()
         view = self.view
         if (view is None or view.agent is not agent or generation != self.generation
                 or not view.is_attached):
             return
-        history = self._revealed_history
-        if history is None or not history.is_attached:
-            await self.snapshot(page)
-            return
-        latest = history.pages[-1].page
-        if (page.after.session_file == history.through.session_file
-                and page.after.offset >= history.through.offset
-                and (page.after.offset > history.through.offset or page.events == latest.events)):
-            for node in history.walk_children(with_self=True):
-                if (isinstance(node, TranscriptHistory)
-                        and isinstance(node._source_state, ParkedSourceTranscript)):
-                    node.resume_source()
-            self._revealed_history = None
-            await self.snapshot(page)
-        else:
-            self._revealed_history = None
-            await history.remove()
-            self.displayed_cursor = None
-            self.invalidate()
-            await self.publish(SnapshotPublication, page)
+        await self.snapshot(page)
 
     def capture(self, kind: type[TranscriptPublication], *args) -> TranscriptPublication | None:
         """Admit an operation with its original attachment and resource custody."""
@@ -506,7 +486,6 @@ class TranscriptPresentation:
     def source_changed(self) -> None:
         self.source_requests.cancel()
         self.invalidate()
-        self._revealed_history = None
         self.dirty = self.checkpoint_required = False
         self.displayed_cursor = None
         self.reader_position = None

@@ -1,0 +1,79 @@
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-warm-page-scope/lib/python3.14/site-packages/textual/app.py", line 2212, in run_test
+    yield pilot
+  File "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/tests/original_turn_resource_real_installed_pilot.py", line 170, in main
+    await readonly_acceptance(app, pilot, service, project, evidence)
+  File "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/tests/readonly_saved_reader_pilot.py", line 271, in private_original_warm
+    await warm_pages(app, pilot, channel, original, evidence)
+  File "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/tests/readonly_saved_reader_pilot.py", line 109, in warm_pages
+    await select(app, pilot, first)
+  File "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/tests/readonly_saved_reader_pilot.py", line 80, in select
+    assert await pilot.click(label)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-warm-page-scope/lib/python3.14/site-packages/textual/pilot.py", line 238, in click
+    return await self._post_mouse_events(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<8 lines>...
+    )
+    ^
+  File "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-warm-page-scope/lib/python3.14/site-packages/textual/pilot.py", line 470, in _post_mouse_events
+    await self.pause()
+  File "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-warm-page-scope/lib/python3.14/site-packages/textual/pilot.py", line 547, in pause
+    self.app.screen._on_timer_update()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-warm-page-scope/lib/python3.14/site-packages/toad/screens/workspace.py", line 172, in _on_timer_update
+    super()._on_timer_update()
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-warm-page-scope/lib/python3.14/site-packages/textual/screen.py", line 1279, in _on_timer_update
+    self._refresh_layout(scroll=self._scroll_required)
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-warm-page-scope/lib/python3.14/site-packages/toad/screens/workspace.py", line 206, in _refresh_layout
+    super()._refresh_layout(size, scroll)
+    ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-warm-page-scope/lib/python3.14/site-packages/textual/screen.py", line 1441, in _refresh_layout
+    self._compositor_refresh()
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-warm-page-scope/lib/python3.14/site-packages/textual/screen.py", line 1254, in _compositor_refresh
+    app._display(self, update)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/tests/readonly_saved_reader_pilot.py", line 42, in _display
+    view = self.selected_session.conversation
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'CommsScreen' object has no attribute 'conversation'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/tests/original_turn_resource_real_installed_pilot.py", line 163, in main
+    async with app.run_test(size=(160, 44)) as pilot:
+               ~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 235, in __aexit__
+    await self.gen.athrow(value)
+  File "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-warm-page-scope/lib/python3.14/site-packages/textual/app.py", line 2220, in run_test
+    raise self._exception
+  File "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-warm-page-scope/lib/python3.14/site-packages/textual/timer.py", line 199, in _tick
+    await invoke(self._callback)
+  File "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-warm-page-scope/lib/python3.14/site-packages/textual/_callback.py", line 96, in invoke
+    return await _invoke(callback, *params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-warm-page-scope/lib/python3.14/site-packages/textual/_callback.py", line 56, in _invoke
+    result = callback(*params[:parameter_count])
+  File "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-warm-page-scope/lib/python3.14/site-packages/toad/screens/workspace.py", line 172, in _on_timer_update
+    super()._on_timer_update()
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-warm-page-scope/lib/python3.14/site-packages/textual/screen.py", line 1279, in _on_timer_update
+    self._refresh_layout(scroll=self._scroll_required)
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-warm-page-scope/lib/python3.14/site-packages/toad/screens/workspace.py", line 206, in _refresh_layout
+    super()._refresh_layout(size, scroll)
+    ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-warm-page-scope/lib/python3.14/site-packages/textual/screen.py", line 1441, in _refresh_layout
+    self._compositor_refresh()
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/.artifacts/installed-warm-page-scope/lib/python3.14/site-packages/textual/screen.py", line 1254, in _compositor_refresh
+    app._display(self, update)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "/home/ts/wt/toad-workspace-growing-end-continuity-20260930/tests/readonly_saved_reader_pilot.py", line 42, in _display
+    view = self.selected_session.conversation
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'CommsScreen' object has no attribute 'conversation'
