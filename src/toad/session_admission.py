@@ -88,7 +88,7 @@ class NativeSessionAdmission(SessionAdmission):
         source = self.source(sessions)
         if source is None or not source.has_agent():
             return False
-        if source._agent["identity"] != agent_identity:
+        if source._agent.identity != agent_identity:
             return False
         live = source.conversation.agent
         if session_id in {source._agent_session_id, live.session_id if live else None}:

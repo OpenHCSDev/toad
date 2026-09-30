@@ -1,6 +1,6 @@
 """The pager's source-owned read, lookahead and retirement lifetime."""
 from textual.worker import WorkerCancelled
-from toad.transcript_state import TranscriptState, RetiredSourceTranscript, WorkingTranscript
+from toad.transcript_state import TranscriptState, RetiredSourceTranscript, ParkedSourceTranscript, WorkingTranscript
 from toad.transcript_preparation import PreparedPageSource, TranscriptPageBuffer
 
 
@@ -32,13 +32,17 @@ class TranscriptSourcePreparation:
         # old operation cannot publish again or settle a newer source's work.
         if self._source_state is operation:
             self._source_state = operation.source
+            operation.pending_request.apply(self)
             if self.state.accepts_publication:
                 self.window.check_follow()
                 self._scroll_changed()
 
-    async def retire_source(self) -> None:
+    async def retire_source(self, *, parked: bool = False) -> None:
         """End pager mutations before any of its bodies transfer to the shelf."""
-        self._source_state = RetiredSourceTranscript(self._source_state)
+        if not isinstance(self._source_state, ParkedSourceTranscript):
+            source = self._source_state.retirement_source()
+            self._source_state = (ParkedSourceTranscript(source) if parked
+                                  else RetiredSourceTranscript(source))
         self._generation += 1
         self._prefetch_intent = None
         self.window.histories.discard(self)
@@ -49,6 +53,20 @@ class TranscriptSourcePreparation:
                 await worker.wait()
             except WorkerCancelled:
                 pass
+
+    def resume_source(self) -> None:
+        state = self._source_state
+        if not isinstance(state, ParkedSourceTranscript):
+            raise RuntimeError("Only a parked transcript can resume publication")
+        self._source_state = state.resume()
+        self._page_buffer = None
+        self._prefetched_edges = self._prefetch_intent = None
+        self.window.histories.add(self)
+        if self._source_state.reports_coverage:
+            self.post_message(self.Covered(tuple(self.coverage_events), self))
+        self.window.check_follow()
+        self._scroll_changed()
+        self._warm_pages()
 
 
     def _reader(self) -> PreparedPageSource:

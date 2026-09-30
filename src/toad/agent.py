@@ -1,4 +1,5 @@
 from toad.agent_presentation import LocalAgentPresentation
+from toad.acp.status import StopReason
 from toad.conversation_turn import NoTurn
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
@@ -94,7 +95,7 @@ class AgentBase(ABC):
         """Consume a published canonical change; unmanaged agents need no binding."""
 
     @abstractmethod
-    async def send_prompt(self, prompt: str) -> str | None:
+    async def send_prompt(self, prompt: str) -> type[StopReason] | None:
         """Send a prompt; return its stop reason."""
 
     async def set_mode(self, mode_id: str) -> str | None:

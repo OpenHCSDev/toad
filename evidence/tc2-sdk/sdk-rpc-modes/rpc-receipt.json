@@ -1,0 +1,1 @@
+{"permission": {"outcome": {"optionId": "allow", "_meta": null, "outcome": "selected"}, "_meta": null}, "output": {"output": "SDK_TERMINAL_PAINT\r\n", "truncated": false, "exitStatus": {"exitCode": 0, "signal": null, "_meta": null}, "_meta": null}, "killed": {"output": "", "truncated": false, "exitStatus": {"exitCode": null, "signal": "SIGKILL", "_meta": null}, "_meta": null}}

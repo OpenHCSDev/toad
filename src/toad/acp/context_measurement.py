@@ -41,11 +41,7 @@ class ContextMeasurement(ABC):
         # Decode that boundary sentinel once; never paint it as known 0%.
         if used <= 0 or size <= 0:
             return ContextUnavailable("Native owner has not supplied a usable context measurement")
-        match cost:
-            case {"amount": amount, "currency": currency}:
-                return LiveContextMeasurement(used, size, Cost(amount, currency))
-            case _:
-                return LiveContextMeasurement(used, size)
+        return LiveContextMeasurement(used, size, Cost(cost.amount, cost.currency) if cost else None)
 
 
 @dataclass(frozen=True)

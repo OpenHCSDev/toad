@@ -58,10 +58,11 @@ from textual.widgets.markdown import MarkdownBlock
 
 from toad import jsonrpc, messages, paths
 from toad.acp import messages as acp_messages
-from toad.acp import protocol as acp_protocol
+from acp import schema as acp_protocol
+from toad.acp.status import StopReason, EndTurnStopReason
 from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
 from toad.agent import AgentBase, AgentFail, AgentReady
-from toad.agent_schema import Agent as AgentData
+from toad.agent_schema import AgentDefinition
 from toad.answer import Answer
 from toad.app import ToadApp
 from toad.directory_watcher import DirectoryChanged, DirectoryWatcher
@@ -116,7 +117,7 @@ def make_session_title(prompt: str) -> str:
 
 if TYPE_CHECKING:
     from toad.acp.agent import Model
-    from toad.acp.agent_session import Mode
+    from acp.schema import SessionMode
     from toad.widgets.agent_response import AgentResponse
     from toad.widgets.question import Ask
     from toad.widgets.terminal import Terminal
@@ -143,32 +144,6 @@ Ask on {HELP_URL} if you need assistance.
 
 """
 
-STOP_REASON_MAX_TOKENS = f"""\
-## Maximum tokens reached
-
-$AGENT reported that your account is out of tokens.
-
-- You may need to purchase additional tokens, or fund your account.
-- If your account has tokens, try running any login or auth process again.
-
-If that fails, ask on {HELP_URL}
-"""
-
-STOP_REASON_MAX_TURN_REQUESTS = f"""\
-## Maximum model requests reached
-
-$AGENT has exceeded the maximum number of model requests in a single turn.
-
-Need help? Ask on {HELP_URL}
-"""
-
-STOP_REASON_REFUSAL = f"""\
-## Agent refusal
- 
-$AGENT has refused to continue. 
-
-Need help? Ask on {HELP_URL}
-"""
 
 
 class Loading(ConversationBlock, Static):
@@ -447,10 +422,10 @@ class ConversationSessionBinding(containers.Vertical):
     agent_ready: var[bool] = var(False)
 
 
-    modes: var[dict[str, Mode]] = var({}, bindings=True)
+    modes: var[dict[str, SessionMode]] = var({}, bindings=True)
 
 
-    current_mode: var[Mode | None] = var(None)
+    current_mode: var[SessionMode | None] = var(None)
 
 
     models: var[dict[str, Model]] = var({}, bindings=True)
@@ -507,7 +482,7 @@ class ConversationSessionBinding(containers.Vertical):
     def __init__(
         self,
         project_path: Path,
-        agent: AgentData | None = None,
+        agent: AgentDefinition | None = None,
         agent_session_id: str | None = None,
         session_pk: int | None = None,
         session_title: str | None = None,
@@ -541,7 +516,7 @@ class ConversationSessionBinding(containers.Vertical):
         self._agent_data = agent
         self.set_class(agent is not None, "-initial-loading")
         self.set_reactive(
-            ConversationSessionBinding.model_history_scope, agent["identity"] if agent else ""
+            ConversationSessionBinding.model_history_scope, agent.identity if agent else ""
         )
         self._agent_session_id = agent_session_id
         self._session_pk = session_pk
@@ -600,35 +575,6 @@ class ConversationSessionBinding(containers.Vertical):
         self.prompt._ask = None
         self.prompt.ask_queue.clear()
         self._focusable_terminals.clear()
-
-    def fragment_presentation_identity(self, interval, fragment):
-        """Bind immutable rendering to this source and its filesystem revision."""
-        from toad.widgets.transcript_history import FragmentPresentationIdentity
-        watcher = self._directory_watcher
-        return FragmentPresentationIdentity(
-            self.agent, interval, fragment, str(self.project_path), watcher,
-            watcher.observed_revision if watcher is not None else -1,
-        )
-
-
-    async def bind_native_session(self, screen) -> None:
-        """Reset values from their declarations, then bind the existing source config."""
-        for name, declaration in ConversationSessionBinding._reactives.items():
-            if name in ConversationSessionBinding.__dict__:
-                self.set_reactive(declaration, declaration._default_value(self))
-        self._initialize_session(screen.project_path, screen._agent,
-                                 screen._agent_session_id, screen._session_pk,
-                                 screen._agent_session_title, screen._initial_prompt)
-        await self.contents.mount(*ThreadLoading.initial_contents(self._agent_data))
-        # Refresh cwd-bound editor projections, without replaying semantic
-        # history-navigation watchers against the restored document.
-        self.mutate_reactive(ConversationSessionBinding.project_path)
-        self.mutate_reactive(ConversationSessionBinding.working_directory)
-        self.column = screen.column
-        self.prompt.slash_commands = CommandCatalog(
-            self.agent_slash_commands, self.command_target_context()).commands
-        self.query_one(GoalBar).watch_goal_display()
-        self.window.anchor()
 
     async def present_retained_native_session(self) -> None:
         """Bring a returning native source into the atomic first frame."""
@@ -701,7 +647,7 @@ class ConversationSessionBinding(containers.Vertical):
             if self.transcript is not presentation or presentation.view is not self:
                 return
         if ready and self._native_agent_started_here and (agent_data := self._agent_data) is not None:
-            welcome = agent_data.get("welcome", None)
+            welcome = agent_data.welcome
             if welcome is not None:
                 from toad.widgets.markdown_note import MarkdownNote
 
@@ -860,7 +806,7 @@ class Conversation(ConversationSessionBinding):
     @property
     def agent_title(self) -> str | None:
         if self._agent_data is not None:
-            return self._agent_data["name"]
+            return self._agent_data.name
         return None
 
     @property
@@ -1191,7 +1137,7 @@ class Conversation(ConversationSessionBinding):
                 if self._agent_data is not None:
                     self.app.application.usage.publish(
                         "agent-session-begin",
-                        agent=self._agent_data["identity"],
+                        agent=self._agent_data.identity,
                     )
 
         self.agent_ready = True
@@ -1254,7 +1200,7 @@ class Conversation(ConversationSessionBinding):
             session_time = monotonic() - self.session_start_time
             await self.app.application.usage.publish(
                 "agent-session-end",
-                agent=self._agent_data["identity"],
+                agent=self._agent_data.identity,
                 duration=session_time,
                 agent_session_fail=self._agent_fail,
                 shell_count=self._shell_count,
@@ -1274,7 +1220,7 @@ class Conversation(ConversationSessionBinding):
         if self._agent_data is not None:
             self.app.application.usage.publish(
                 "agent-session-error",
-                agent=self._agent_data["identity"],
+                agent=self._agent_data.identity,
                 message=message.message,
                 details=message.details,
             )
@@ -1328,28 +1274,28 @@ class Conversation(ConversationSessionBinding):
                     max(0, self.prompt.region.y - len(methods) - 4),
                 ),
                 "Connect a provider",
-                [(method["id"], method["name"]) for method in methods],
+                [(method.id, method.name) for method in methods],
             ),
             mode="workspace",
         )
         if not method_id:
             self.prompt.focus()
             return
-        method = next(method for method in methods if method["id"] == method_id)
+        method = next(method for method in methods if method.id == method_id)
         try:
-            if method.get("type", "agent") == "terminal":
+            if isinstance(method, acp_protocol.TerminalAuthMethod):
                 command = agent.command
                 if not command:
                     raise ValueError("This agent has no configured login program")
-                arguments = method.get("args") or []
+                arguments = method.args or []
                 command = command + (" " + shlex.join(arguments) if arguments else "")
                 code = await self.app.push_screen_wait(
                     ActionModal(
                         "login",
                         self.model_history_scope,
-                        method["name"],
+                        method.name,
                         command,
-                        env=method.get("env") or {},
+                        env=method.env or {},
                         cwd=str(self.project_path),
                     ),
                     mode="workspace",
@@ -1441,7 +1387,7 @@ class Conversation(ConversationSessionBinding):
         """Wire views override the same submission boundary."""
         await self.submissions.submit(event)
 
-    async def agent_turn_over(self, stop_reason: str | None) -> None:
+    async def agent_turn_over(self, stop_reason: type[StopReason] | None) -> None:
         """Called when the agent's turn is over.
 
         Args:
@@ -1449,7 +1395,7 @@ class Conversation(ConversationSessionBinding):
         """
         self.turns.finish_client()
         self._agent_activity_boundary.reset()
-        if stop_reason == "end_turn" and self.current_model is not None:
+        if stop_reason is not None and stop_reason.completed and self.current_model is not None:
             from toad.db import DB
 
             await DB().record_model_usage(
@@ -1472,32 +1418,8 @@ class Conversation(ConversationSessionBinding):
             messages.SessionUpdate(state="idle", summary="Ready for review")
         )
 
-        if stop_reason != "end_turn":
-            from toad.widgets.markdown_note import MarkdownNote
-
-            agent = (self.agent_title or "agent").title()
-
-            if stop_reason == "max_tokens":
-                await self.post(
-                    MarkdownNote(
-                        STOP_REASON_MAX_TOKENS.replace("$AGENT", agent),
-                        classes="-stop-reason",
-                    )
-                )
-            elif stop_reason == "max_turn_requests":
-                await self.post(
-                    MarkdownNote(
-                        STOP_REASON_MAX_TURN_REQUESTS.replace("$AGENT", agent),
-                        classes="-stop-reason",
-                    )
-                )
-            elif stop_reason == "refusal":
-                await self.post(
-                    MarkdownNote(
-                        STOP_REASON_REFUSAL.replace("$AGENT", agent),
-                        classes="-stop-reason",
-                    )
-                )
+        if stop_reason is not None:
+            await stop_reason.present(self)
 
         if self.app.settings.notifications.turn_over:
             self.app.terminal_attention.notify(
@@ -1653,7 +1575,7 @@ class Conversation(ConversationSessionBinding):
         self.submissions.reset()
         self.app.open_tabs_changed.publish(None)
         if message.update.turn_id is not None:
-            await self.agent_turn_over("end_turn")
+            await self.agent_turn_over(EndTurnStopReason)
             return
         self.post_message(messages.SessionUpdate(state="idle", summary="Ready for review"))
 
@@ -1749,14 +1671,7 @@ class Conversation(ConversationSessionBinding):
         from toad.widgets.tool_call import ToolCall
 
         tool_call = message.tool_call
-        status = tool_call.get("status")
-        title = tool_call.get("title") or "Using tool"
-        if status in {None, "pending", "in_progress"}:
-            self.turns.describe(" ".join(title.splitlines()))
-            self.post_message(messages.SessionUpdate(state="busy", summary=title))
-
-        if status in (None, "completed"):
-            self.output.boundary()
+        tool_call.activity(self, tool_call.call.title or 'Using tool')
 
         tool_id = message.tool_id
         try:
@@ -1849,36 +1764,6 @@ class Conversation(ConversationSessionBinding):
     @work
     async def request_permissions(self, request) -> None:
         await request.presentation.present(self, request)
-
-    async def post_tool_call(
-        self, tool_call_update: acp_protocol.ToolCallUpdate
-    ) -> None:
-        if (contents := tool_call_update.get("content")) is None:
-            return
-
-        for content in contents:
-            match content:
-                case {
-                    "type": "diff",
-                    "oldText": old_text,
-                    "newText": new_text,
-                    "path": path,
-                }:
-                    await self.post_diff(path, old_text, new_text)
-
-    async def post_diff(self, path: str, before: str | None, after: str) -> None:
-        """Post a diff view.
-
-        Args:
-            path: Path to the file.
-            before: Content of file before edit.
-            after: Content of file after edit.
-        """
-
-        from toad.widgets.diff_view import make_diff
-
-        diff_view = make_diff(path, path, before, after, classes="block")
-        await self.post(diff_view)
 
     def ask(
         self,
@@ -2346,11 +2231,7 @@ class Conversation(ConversationSessionBinding):
         self.prompt.focus()
 
     def jump_to_latest(self) -> None:
-        self.window.document_viewport.destination()
-        for history in self.query(TranscriptHistory):
-            if history.has_newer:
-                history.request_latest()
-        self.window.anchor()
+        self.window.jump_to_latest()
         self.transcript.request()
 
     async def action_select_block(self) -> None:

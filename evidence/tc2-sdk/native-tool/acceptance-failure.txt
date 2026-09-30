@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/tests/l0a_native_installed_pilot.py", line 303, in main
+    await acceptance(app, pilot, agent, comms, entered, release,
+                     hold_next, requests)
+  File "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/tests/native_tool_output_pilot.py", line 54, in acceptance
+    view = app.screen.conversation
+           ^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'WorkspaceScreen' object has no attribute 'conversation'
