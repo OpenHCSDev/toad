@@ -4,7 +4,6 @@ import json
 import os
 from pathlib import Path
 import psutil
-from contextlib import asynccontextmanager
 from agent_comms.child_process import ProcessIdentity
 from agent_comms.runtime import socket_path
 from importlib.resources import files
@@ -62,10 +61,10 @@ async def dialog_content_only():
 class InstalledApp(ToadApp):
     CSS_PATH = files('toad').joinpath('toad.tcss')
 
-    @asynccontextmanager
-    async def input_presentation_gate(self, view, pilot, comms, text):
-        """A specialized physical input journey may hold its owned fixture worker."""
-        yield
+    async def submit_editor(self, view, pilot, comms, text):
+        """Specialized journeys control admission at this same physical entry."""
+        from saved_state_user_journey_pilot import submit_editor
+        await submit_editor(pilot, view.prompt.prompt_text_area, text)
 
 
 async def open_fork_dialog(app, pilot, comms, release, hold_next):
@@ -74,9 +73,7 @@ async def open_fork_dialog(app, pilot, comms, release, hold_next):
     release.set()
     hold_next.clear()
     await until(pilot, lambda: parent_view.agent_ready)
-    from saved_state_user_journey_pilot import submit_editor
-    async with app.input_presentation_gate(parent_view, pilot, comms, 'FORK_PARENT_SEED'):
-        await submit_editor(pilot, parent_view.prompt.prompt_text_area, 'FORK_PARENT_SEED')
+    await app.submit_editor(parent_view, pilot, comms, 'FORK_PARENT_SEED')
     await until(pilot, lambda: response_painted(app, parent_view, 'NATIVE_RESPONSE_1'))
     await until(pilot, lambda: not comms.registry.require('beta').executing)
     from runtime_fixture import wait_channel_roster
@@ -278,9 +275,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
         print('FIRST_FORK_INHERITED_HISTORY_PAINTED', flush=True)
         await until(pilot, lambda: not comms.registry.require(child.name).executing, 30)
         assert len(requests) == 1, 'An empty fork task must not make an automatic provider request'
-        from saved_state_user_journey_pilot import submit_editor
-        async with app.input_presentation_gate(view, pilot, comms, 'FIRST_FORK_NEW_INPUT'):
-            await submit_editor(pilot, view.prompt.prompt_text_area, 'FIRST_FORK_NEW_INPUT')
+        await app.submit_editor(view, pilot, comms, 'FIRST_FORK_NEW_INPUT')
         await until(pilot, lambda: len(requests) == 2, 30)
         await until(pilot, lambda: response_painted(app, view, 'NATIVE_RESPONSE_2'), 30)
         await until(pilot, lambda: not comms.registry.require(child.name).executing

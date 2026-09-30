@@ -233,11 +233,16 @@ async def independent_source_publication(agent, comms):
             await observation
 
 
-async def submit_editor(pilot, editor, text):
+async def prepare_editor(pilot, editor, text):
+    """Reveal and physically focus the original composer before submission."""
     editor.scroll_visible(animate=False, immediate=True)
     await pilot.pause()
     assert await pilot.click(editor), "Native composer was not physically clickable"
     editor.insert(text)
+
+
+async def submit_editor(pilot, editor, text):
+    await prepare_editor(pilot, editor, text)
     await pilot.press("enter")
 
 
