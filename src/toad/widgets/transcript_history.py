@@ -381,9 +381,6 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         self.older = HistoryEdge("↑ Earlier history loads as you scroll")
         self.older.tooltip = "Click or press Enter to load earlier history, including in In/out only mode"
         self.newer = JumpToLatest("↓ Jump to latest")
-        self._loading = False
-        self._latest_revision: int | None = None
-        self._advancing = False
         self._check_pending = False
         self._saturated_widget_limit = 0
         self.filter = TranscriptFilter(self)
@@ -565,8 +562,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
 
     @property
     def checkpoint_available(self) -> bool:
-        return (self.state.accepts_publication and not self._loading and not self._advancing
-                and self.filter.checkpoint_available)
+        return self.state.accepts_source_work and self.filter.checkpoint_available
 
     def retain_committed(self, through: TranscriptCursor) -> None:
         """Extend access to saved source without moving the displayed page window."""
@@ -583,34 +579,32 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
     ) -> bool:
         """Advance in bounded native pages and render batches, preserving loaded rows."""
         async with self.window.history_lock:
-            if not self.is_attached or not is_current():
+            if not self.checkpoint_available or not is_current():
                 return False
             # Reject scans started with the old bound without discarding their
             # already accepted filtered overlay or its backward cursor.
             self.retain_committed(through)
-            self._advancing = True
-        try:
-            while self.has_newer:
-                if not is_current() or not self.is_attached:
-                    return False
-                edge = self.pages[-1]
-                previous = edge.page.after, edge.stop
-                await self._load_page(False)
-                edge = self.pages[-1]
-                if previous == (edge.page.after, edge.stop):
-                    return False
-                # Let the bounded batch paint before selecting the next batch's
-                # visible anchors. Never mount an entire oversized native row.
-                refreshed = asyncio.get_running_loop().create_future()
-                self.call_after_refresh(
-                    lambda future=refreshed: future.done() or future.set_result(None)
-                )
-                await refreshed
-            return is_current()
-        finally:
-            self._advancing = False
-            if self.is_attached:
-                self._scroll_changed()
+            operation = self.reserve_source_work()
+        return await operation.execute(self, partial(self._advance_committed, is_current))
+
+    async def _advance_committed(self, is_current: Callable[[], bool]) -> bool:
+        while self.has_newer:
+            if not is_current() or not self.state.accepts_publication:
+                return False
+            edge = self.pages[-1]
+            previous = edge.page.after, edge.stop
+            await self._load_page(False)
+            edge = self.pages[-1]
+            if previous == (edge.page.after, edge.stop):
+                return False
+            # Let the bounded batch paint before selecting the next batch's
+            # visible anchors. Never mount an entire oversized native row.
+            refreshed = asyncio.get_running_loop().create_future()
+            self.call_after_refresh(
+                lambda future=refreshed: future.done() or future.set_result(None)
+            )
+            await refreshed
+        return is_current()
 
     async def update_live(self, page: TranscriptPage, *,
                           fragments: tuple[TranscriptFragment, ...] | None = None,
@@ -641,13 +635,13 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
             self._scroll_changed()
 
     def _scroll_changed(self, _y: float = 0) -> None:
-        if not self._loading and not self._check_pending:
+        if self.state.accepts_source_work and not self._check_pending:
             self._check_pending = True
             self.call_after_refresh(self._check_edges)
 
     def _check_edges(self) -> None:
         self._check_pending = False
-        if (self._loading or self._advancing or not self.state.accepts_publication
+        if (not self.checkpoint_available
                 or not self.screen.is_active or not self.selected_categories):
             return
         # Off-screen pagers must not ask for their region: after a scroll that
@@ -691,60 +685,44 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         event.stop()
         if self.filter.active:
             self.filter.request_older()
-        elif self.has_older and not self._loading:
+        elif self.has_older and self.state.accepts_source_work:
             self._request_page(True)
 
     def request_latest(self) -> None:
-        self._latest_revision = self.window.scroll_revision
+        self.window.document_viewport.destination()
         if self._prefetch_worker is not None:
             self._prefetch_worker.cancel()
-        self._prefetched_edges = None
         self._prefetch_intent = None
-        if not self._loading:
-            self._finish_page_request()
+        self.state.request_latest(self)
 
-    def _finish_page_request(self) -> None:
-        """A destination supersedes an edge read without admitting skipped pages."""
-        self._loading = False
-        if self._latest_revision is not None and self.state.accepts_publication:
-            revision, self._latest_revision = self._latest_revision, None
-            if self.window.scroll_revision == revision:
-                self._loading = True
-                self.run_worker(self._jump_latest(revision))
-                return
-        if self.is_attached:
-            self.window.check_follow()
-            self._scroll_changed()
-
-    async def _jump_latest(self, scroll_revision: int) -> None:
+    async def _jump_latest(self) -> None:
         self._generation += 1
         generation = self._generation
         window, loader = self.window, self.loader
         destination_admission = window.document_viewport.lookahead.admission(self.budget, window.size.height)
-        try:
-            if loader is None:
-                page, fragments = self.pages[-1].page, self.pages[-1].fragments
-            else:
-                prepared = await self._reader().get(PageRequest(before=self.through))
-                page, fragments = prepared.page, prepared.fragments
-            async with window.history_lock:
-                if (not self.state.accepts_publication or self.window is not window or self.loader is not loader
-                        or generation != self._generation or window.scroll_revision != scroll_revision):
-                    return
-                self._saturated_widget_limit = 0
-                await self.remove_children(list(self.pages))
-                view = TranscriptPageView(
-                    page, fragments=fragments,
-                    batch_size=destination_admission,
-                )
-                view.visible_categories = self.selected_categories
+        scroll_revision = window.scroll_revision
+        if loader is None:
+            page, fragments = self.pages[-1].page, self.pages[-1].fragments
+        else:
+            prepared = await self._reader().get(PageRequest(before=self.through))
+            page, fragments = prepared.page, prepared.fragments
+        async with window.history_lock:
+            if (not self.is_attached or self.window is not window or self.loader is not loader
+                    or generation != self._generation or window.scroll_revision != scroll_revision):
+                return
+            self._saturated_widget_limit = 0
+            await self.remove_children(list(self.pages))
+            view = TranscriptPageView(
+                page, fragments=fragments,
+                batch_size=destination_admission,
+            )
+            view.visible_categories = self.selected_categories
 
-                self.pages = deque([view])
-                await self.mount(view, before=self.newer)
-                self._update_edges()
-                self.call_after_refresh(self._anchor_latest, generation, scroll_revision)
-        finally:
-            self._finish_page_request()
+            self.pages = deque([view])
+            await self.mount(view, before=self.newer)
+            await view.admit_retained()
+            self._update_edges()
+            self.call_after_refresh(self._anchor_latest, generation, scroll_revision)
 
     def _anchor_latest(self, generation: int, scroll_revision: int) -> None:
         if (self.is_attached and generation == self._generation
@@ -752,9 +730,8 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
             self.window.anchor()
 
     def _request_page(self, older: bool) -> None:
-        if not self._loading:
-            self._loading = True
-            self.run_worker(partial(self._load_page, older))
+        if self.state.accepts_source_work:
+            self.reserve_source_work().schedule(self, partial(self._load_page, older))
 
     async def _load_page(self, older: bool) -> None:
         window, loader = self.window, self.loader
@@ -812,7 +789,8 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         except (OSError, ValueError) as error:
             self.notify(str(error), title="History", severity="error")
         finally:
-            self._finish_page_request()
+            if self.state.accepts_publication:
+                self.window.check_follow()
 
     async def _extend_and_trim(
         self, edge: TranscriptPageView, older: bool, local: bool,
@@ -914,7 +892,7 @@ class ProjectedTranscriptHistory(TranscriptHistory):
         # A slow/held row batch must not strand the page's own message pump in
         # Compose, where input-settlement barriers would wait on its startup.
         self.pages[0].stop = self.pages[0].start
-        self._loading = True
+        self.reserve_source_work()
         self.add_class("filtered-history-results")
 
     @property
@@ -927,19 +905,16 @@ class ProjectedTranscriptHistory(TranscriptHistory):
 
     async def load_older(self) -> None:
         if self.older_page_available:
-            self._loading = True
-            await self._load_page(True)
+            await self.reserve_source_work().execute(self, partial(self._load_page, True))
 
     async def admit_initial(self) -> None:
-        try:
-            self._require_publication()
-            await self.pages[0].extend(False)
-            self._require_publication()
-            self._update_edges()
-        finally:
-            self._loading = False
-            if self.state.accepts_publication:
-                self._scroll_changed()
+        await self._source_state.execute(self, self._admit_initial)
+
+    async def _admit_initial(self) -> None:
+        self._require_publication()
+        await self.pages[0].extend(False)
+        self._require_publication()
+        self._update_edges()
 
     @property
     def state(self) -> TranscriptState:

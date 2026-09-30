@@ -1,6 +1,6 @@
 """The pager's source-owned read, lookahead and retirement lifetime."""
 from textual.worker import WorkerCancelled
-from toad.transcript_state import TranscriptState, RetiredSourceTranscript, ParkedSourceTranscript
+from toad.transcript_state import TranscriptState, RetiredSourceTranscript, ParkedSourceTranscript, WorkingTranscript
 from toad.transcript_preparation import PreparedPageSource, TranscriptPageBuffer
 
 
@@ -14,7 +14,6 @@ class TranscriptSourcePreparation:
         self._generation = 0
         self._page_buffer: PreparedPageSource | None = None
         self._prefetch_worker = None
-        self._prefetched_edges = None
         self._prefetch_intent = None
         super().__init__(*args, **kwargs)
 
@@ -22,13 +21,28 @@ class TranscriptSourcePreparation:
     def state(self) -> TranscriptState:
         return self._source_state.observed(self)
 
+    def reserve_source_work(self) -> WorkingTranscript:
+        operation = self._source_state.reserve()
+        self._source_state = operation
+        return operation
+
+    def finish_source_work(self, operation: WorkingTranscript) -> None:
+        # Retirement or replacement revokes this exact admission. A cancelled
+        # old operation cannot publish again or settle a newer source's work.
+        if self._source_state is operation:
+            self._source_state = operation.source
+            operation.pending_request.apply(self)
+            if self.state.accepts_publication:
+                self.window.check_follow()
+                self._scroll_changed()
+
     async def retire_source(self, *, parked: bool = False) -> None:
         """End pager mutations before any of its bodies transfer to the shelf."""
         if not isinstance(self._source_state, ParkedSourceTranscript):
-            self._source_state = (ParkedSourceTranscript(self._source_state) if parked
-                                  else RetiredSourceTranscript(self._source_state))
+            source = self._source_state.retirement_source()
+            self._source_state = (ParkedSourceTranscript(source) if parked
+                                  else RetiredSourceTranscript(source))
         self._generation += 1
-        self._latest_revision = None
         self._prefetch_intent = None
         self.window.histories.discard(self)
         if self._page_buffer is not None:
@@ -45,11 +59,12 @@ class TranscriptSourcePreparation:
             raise RuntimeError("Only a parked transcript can resume publication")
         self._source_state = state.resume()
         self._page_buffer = None
-        self._prefetched_edges = self._prefetch_intent = None
+        self._prefetch_intent = None
         self.window.histories.add(self)
         if self._source_state.reports_coverage:
             self.post_message(self.Covered(tuple(self.coverage_events), self))
-        self._finish_page_request()
+        self.window.check_follow()
+        self._scroll_changed()
         self.prepare_scroll()
 
 
@@ -62,7 +77,6 @@ class TranscriptSourcePreparation:
             self._page_buffer = reader = TranscriptPageBuffer(
                 self.loader, self.through, self.app.preparation,
             )
-            self._prefetched_edges = None
             self._prefetch_intent = None
         return reader
 
@@ -95,8 +109,7 @@ class TranscriptSourcePreparation:
             # intent. One owned snapshot identity is the publication fence.
             current = lambda: (self._prefetch_intent is intent
                                and demand is lookahead.demand)
-            if await reader.prefetch(*edges, current, rounds=rounds) and current():
-                self._prefetched_edges = edges
+            await reader.prefetch(*edges, current, rounds=rounds)
 
         self._prefetch_worker = self.run_worker(prepare(), group="history-lookahead", exit_on_error=False)
 

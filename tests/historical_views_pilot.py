@@ -138,7 +138,7 @@ async def main():
                         history.window.content_region,
                         history.window.scroll_y,
                         history.window.max_scroll_y,
-                        history._loading,
+                        (not history.state.accepts_source_work),
                         history.state.accepts_publication,
                         history.window.follows_tail,
                         history.fragment_count,
