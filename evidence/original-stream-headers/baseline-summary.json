@@ -1,0 +1,13 @@
+{
+  "baseline": "installed173/Core000/Text650/nativee36",
+  "wrapper_exit": 1,
+  "provider_requests": 1,
+  "native_users": 1,
+  "canonical_answer_events": 1,
+  "observations": 59,
+  "observed_repeated_headers": 37,
+  "both_first_duplicate_bodies_painted": true,
+  "provider_chunks": 39,
+  "input_replays": 0,
+  "prior01_disposition": "native response completed; unrecorded visual samples lost after invalid multiline literal paint predicate; originalroot cw229h01 preserved; not replayed"
+}
