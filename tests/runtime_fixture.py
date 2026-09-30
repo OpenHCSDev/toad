@@ -1,7 +1,7 @@
 """Test-owned daemons need explicit teardown; closing a UI deliberately leaves them running."""
 
 import asyncio
-from contextlib import asynccontextmanager
+from contextlib import AsyncExitStack, asynccontextmanager
 import os
 from pathlib import Path
 
@@ -55,19 +55,26 @@ async def stop_test_children(attempt: str | None) -> None:
             continue
 
 
+@asynccontextmanager
+async def _cleanup_on_exit(callback, *args):
+    try:
+        yield
+    finally:
+        await callback(*args)
+
+
 class ToadApp(Application):
     CSS_PATH = Path(__file__).resolve().parents[1] / "src/toad/toad.tcss"
 
     @asynccontextmanager
     async def run_test(self, **kwargs):
         root = resolve_comms_route().observe_root()
-        try:
+        async with AsyncExitStack() as cleanup:
+            await cleanup.enter_async_context(_cleanup_on_exit(asyncio.to_thread, _clear_wire_locks, root))
+            await cleanup.enter_async_context(_cleanup_on_exit(stop_test_children, os.environ.get("TOAD_TEST_ATTEMPT")))
+            await cleanup.enter_async_context(_cleanup_on_exit(asyncio.to_thread, stop_test_owners, root))
             async with super().run_test(**kwargs) as pilot:
                 yield pilot
-        finally:
-            await asyncio.to_thread(stop_test_owners, root)
-            await stop_test_children(os.environ.get("TOAD_TEST_ATTEMPT"))
-            await asyncio.to_thread(_clear_wire_locks, root)
 
 
 def _clear_wire_locks(root: Path) -> None:
