@@ -1,0 +1,15 @@
+{
+  "base": "94cfc1d2fef3a57f0d958db24c56c5c91978515b",
+  "head": "92ea38b43b0b8112bc789d131bf16041cfa326c9",
+  "positive_numeric_deltas": {},
+  "StringDispatchAgentModal": [
+    1,
+    0
+  ],
+  "StringDispatchArmsAgentModal": [
+    3,
+    0
+  ],
+  "existing_guard_functions_direct_invocation": "2 PASS",
+  "original_conditional_witnesses_removed": 7
+}

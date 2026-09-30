@@ -1,0 +1,146 @@
+[
+  {
+    "attempt": "native01",
+    "scratch": "/home/ts/.cache/agent-scratch/toad-catalog-action-commands-20260930/native01",
+    "cleanup.json": {
+      "registry_owner_alive": {
+        "beta": false,
+        "user": false
+      },
+      "exact_attempt_leaks": []
+    }
+  },
+  {
+    "attempt": "native02",
+    "scratch": "/home/ts/.cache/agent-scratch/toad-catalog-action-commands-20260930/native02",
+    "cleanup.json": {
+      "registry_owner_alive": {
+        "beta": false,
+        "user": false
+      },
+      "exact_attempt_leaks": [],
+      "input_disposition": "actual ACP input_state not_sent; no replay"
+    },
+    "provider-failures.json": {
+      "errors": [],
+      "requests": []
+    }
+  },
+  {
+    "attempt": "native03",
+    "scratch": "/home/ts/.cache/agent-scratch/toad-catalog-action-commands-20260930/native03",
+    "cleanup.json": {
+      "registry_owner_alive": {
+        "beta": false,
+        "user": false
+      },
+      "exact_attempt_leaks": [],
+      "driver_failure": "actual Textual ctrl+a is line-start, f7 is select-all; original input/root preserved"
+    },
+    "provider-failures.json": {
+      "errors": [],
+      "requests": [
+        {
+          "model": "fixture",
+          "max_tokens": null,
+          "messages_characters": 3850
+        }
+      ]
+    }
+  },
+  {
+    "attempt": "native04",
+    "scratch": "/home/ts/.cache/agent-scratch/toad-catalog-action-commands-20260930/native04",
+    "cleanup.json": {
+      "registry_owner_alive": {
+        "beta": false,
+        "user": false
+      },
+      "exact_attempt_leaks": [],
+      "driver_failure": "strict held-output line matching did not account for actual terminal decoration; proof retained"
+    },
+    "provider-failures.json": {
+      "errors": [],
+      "requests": [
+        {
+          "model": "fixture",
+          "max_tokens": null,
+          "messages_characters": 3923
+        }
+      ]
+    }
+  },
+  {
+    "attempt": "native05",
+    "scratch": "/home/ts/.cache/agent-scratch/toad-catalog-action-commands-20260930/native05",
+    "cleanup.json": {
+      "registry_owner_alive": {
+        "beta": false,
+        "user": false
+      },
+      "exact_attempt_leaks": [],
+      "driver_failure": "headless run_test disables toast notifications by native contract; completion proof now uses visible Button resource"
+    },
+    "provider-failures.json": {
+      "errors": [],
+      "requests": [
+        {
+          "model": "fixture",
+          "max_tokens": null,
+          "messages_characters": 3850
+        }
+      ]
+    }
+  },
+  {
+    "attempt": "native06",
+    "scratch": "/home/ts/.cache/agent-scratch/toad-catalog-action-commands-20260930/native06",
+    "cleanup.json": {
+      "registry_owner_alive": {
+        "beta": false,
+        "user": false
+      },
+      "exact_attempt_leaks": [],
+      "driver_failure": "wide completion marker did not satisfy visible-frame assertion; no completion-frame diagnostic was retained; subsequent short AUDIT_0 marker succeeds"
+    },
+    "provider-failures.json": {
+      "errors": [],
+      "requests": [
+        {
+          "model": "fixture",
+          "max_tokens": null,
+          "messages_characters": 3923
+        }
+      ]
+    }
+  },
+  {
+    "attempt": "native07",
+    "scratch": "/home/ts/.cache/agent-scratch/toad-catalog-action-commands-20260930/native07",
+    "cleanup.json": {
+      "registry_owner_alive": {
+        "beta": false,
+        "user": false,
+        "project": false
+      },
+      "exact_attempt_leaks": [],
+      "driver_failure": "actual highlighted launcher item click opened modal; redundant Enter expanded native Select overlay; first Escape closed overlay rather than modal",
+      "passed_before_failure": [
+        "new declaration visible AUDIT_0",
+        "login failure and success",
+        "grid native launch without prompt",
+        "original process/draft/document/undo retained"
+      ]
+    },
+    "provider-failures.json": {
+      "errors": [],
+      "requests": [
+        {
+          "model": "fixture",
+          "max_tokens": null,
+          "messages_characters": 3850
+        }
+      ]
+    }
+  }
+]

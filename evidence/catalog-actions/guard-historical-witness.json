@@ -1,0 +1,41 @@
+{
+  "base": "4a0bcc6755bcba2ae7e8108a9608aa6e4eb1eefe",
+  "source_case_sites": {
+    "screens/agent_modal.py": [
+      {
+        "line": 118,
+        "code": "action == '__launch__'"
+      },
+      {
+        "line": 163,
+        "code": "action in {'install', 'install-acp'}"
+      },
+      {
+        "line": 70,
+        "code": "'install_acp' in commands"
+      }
+    ],
+    "screens/action_modal.py": [
+      {
+        "line": 70,
+        "code": "self._action == 'login'"
+      }
+    ],
+    "screens/store.py": [
+      {
+        "line": 501,
+        "code": "modal_response == 'launch'"
+      },
+      {
+        "line": 515,
+        "code": "modal_response == 'launch'"
+      },
+      {
+        "line": 530,
+        "code": "modal_response == 'launch'"
+      }
+    ]
+  },
+  "candidate_cases": 0,
+  "existing_T3_guards_passed": 2
+}
