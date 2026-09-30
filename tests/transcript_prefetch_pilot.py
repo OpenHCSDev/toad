@@ -44,12 +44,14 @@ async def model_checks():
         return page(before.offset - 10, before.offset) if before else page(after.offset, after.offset + 10)
 
     buffer = TranscriptPageBuffer(load, cursor(1000), runtime)
-    await buffer.prefetch(cursor(500), cursor(510), lambda: True)
+    async for _ in buffer.prefetch(cursor(500), cursor(510), lambda: True, rounds=8):
+        pass
     assert len(reads) == 16 and len(runtime._ready) == 16
     assert all(identity != threading.get_ident() for identity in renderer.threads)
     expected = await buffer.get(PageRequest(before=cursor(500)))
     assert expected.page.before == cursor(490) and len(reads) == 16
-    await buffer.prefetch(cursor(400), cursor(610), lambda: True)
+    async for _ in buffer.prefetch(cursor(400), cursor(610), lambda: True, rounds=8):
+        pass
     assert len(runtime._ready) <= runtime.max_entries and runtime.retained_bytes <= runtime.max_bytes
 
     # Two consumers share a blocked read. Cancellation keeps the underlying
@@ -114,7 +116,8 @@ async def model_checks():
 
     broken = TranscriptPageBuffer(duplicate, cursor(1000), runtime)
     for _ in range(5):
-        await broken.prefetch(cursor(110), None, lambda: True)
+        async for _ in broken.prefetch(cursor(110), None, lambda: True):
+            pass
     assert failures == 1, "Speculative no-progress reads must not loop"
     try:
         await broken.get(request)

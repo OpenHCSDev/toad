@@ -1,0 +1,31 @@
+{
+  "owner": "TC2 PR221",
+  "removed": [
+    {
+      "path": "/home/ts/.cache/agent-scratch/toad-viewport-demand-20260929/native-unprofiled-ced/unprofiled/end-slow.mp4",
+      "bytes": 131472
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/toad-viewport-demand-20260929/native-unprofiled-ced/unprofiled/down-slow.mp4",
+      "bytes": 523336
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/toad-viewport-demand-20260929/native-unprofiled-ced/unprofiled/slow.mp4",
+      "bytes": 207307
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/toad-viewport-demand-20260929/native-unprofiled-ced/unprofiled/idle-slow.mp4",
+      "bytes": 295279
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/toad-viewport-demand-20260929/native-unprofiled-ced/unprofiled/reverse-slow.mp4",
+      "bytes": 525420
+    },
+    {
+      "path": "/home/ts/.cache/agent-scratch/toad-viewport-demand-20260929/native-unprofiled-ced/unprofiled/up-slow.mp4",
+      "bytes": 466296
+    }
+  ],
+  "removed_bytes": 2149110,
+  "preserved": "raw terminal.mp4, events, native journal, all frame sheets, full capture and review receipts"
+}
