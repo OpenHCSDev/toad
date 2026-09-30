@@ -13,7 +13,6 @@ from toad.db import DB, SessionMeta
 from agent_comms.acp_failure import ACPFailure
 from agent_comms.input_attempt import NotSentInput
 from agent_comms.session_load import EnsuringSessionLoadAdmission, ExistingSessionLoadAdmission, FailedSessionLoadAdmission, SessionLoadAdmission
-from agent_comms.field_codec import FieldCodec
 
 PROTOCOL_VERSION = 1
 
@@ -267,10 +266,9 @@ class AgentSession:
             response = await session_load_response.wait()
         except jsonrpc.APIError as error:
             authority.require()
-            if (isinstance(error.data, dict) and "agentCommsLoadFailure" in error.data
-                    and self.agent.queue_attachment.is_current_request(queue_token)):
-                self.load_admission = FieldCodec.decode(
-                    FailedSessionLoadAdmission, error.data["agentCommsLoadFailure"])
+            if self.agent.queue_attachment.is_current_request(queue_token):
+                if failed_command := FailedSessionLoadAdmission.from_failure(error.data):
+                    self.load_admission = failed_command
             raise
         authority.require()
         if (
