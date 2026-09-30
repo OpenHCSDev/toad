@@ -259,7 +259,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
         await until(pilot, lambda: details.title == child.name)
         assert view.agent.session_id == child.name
         assert not details.title.startswith('@')
-        print('FIRST_FORK_INITIALIZED_TITLE', details.title, details.state, flush=True)
+        print('FIRST_FORK_INITIALIZED_TITLE', details.title, view.turns.owner.session_state, flush=True)
         evidence = Path(os.environ["L0A_EVIDENCE"])
         (evidence / 'immediate-open.svg').write_text(app.export_screenshot())
         print('FIRST_FORK_INHERITED_HISTORY_PAINTED', flush=True)
