@@ -1,0 +1,117 @@
+{
+  "state": "passed",
+  "ui_launches": 0,
+  "native_inputs": 0,
+  "provider_calls": 0,
+  "method": "RuntimeSelection.publish_verified_stage -> existing receipt/runtime-probe/native-route guard",
+  "preflight": {
+    "selection": "AGENT_COMMS_RUNTIME_ROOT",
+    "bin_directory": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/installed-first-ui-end-keypad/bin",
+    "launcher": "/home/ts/.agent-comms/stack/bin/toad-comms",
+    "launcher_sha256": "80382c0f935a0f069c0128c21ca530c8dd277684b6d778611315646ab82040ad",
+    "launcher_links": {
+      "command": {
+        "selected_path": "/home/ts/bin/toad-comms",
+        "resolved_path": "/home/ts/.agent-comms/stack/bin/toad-comms",
+        "sha256": "80382c0f935a0f069c0128c21ca530c8dd277684b6d778611315646ab82040ad"
+      },
+      "acp": {
+        "selected_path": "/home/ts/.local/bin/agent-comms-acp",
+        "resolved_path": "/home/ts/.local/share/agent-comms/runtime-canonical-source-publication-20260930/bin/agent-comms-acp",
+        "sha256": "9399d06c4fbcca679743d27dc20ba347256d1502ca81915c5c67c29e37b07e4e"
+      }
+    },
+    "entrypoints": {
+      "toad": {
+        "path": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/installed-first-ui-end-keypad/bin/toad",
+        "sha256": "2df62365ce2d01d142564d58c980a0dae26e1345a0ec221f81f18b63648f966d"
+      },
+      "agent-comms-acp": {
+        "path": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/installed-first-ui-end-keypad/bin/agent-comms-acp",
+        "sha256": "0e1b1436bed477b08300a2be269bbca7736cf56303e62a9617db2a4d708ab99c"
+      }
+    },
+    "activation_path": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/installed-first-ui-end-keypad/activation.json",
+    "activation_sha256": "575c361e6d7df90ac428f9fcfbfbb3ab8abf1f0721ff541c0e45e85d3968b82a",
+    "activation": {
+      "stage": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/installed-first-ui-end-keypad",
+      "pins": {
+        "agent-comms": "000a31c562b6d048e26e288b24fcd3f1ac64f803",
+        "batrachian-toad": "9354b391880980c9c987f421e16b9a1fd59b3f3b",
+        "textual": "4e8d13d21bf98e4ad52e610277d7d06c9035ccfa"
+      },
+      "sdk": "0.12.1",
+      "native_package": "/home/ts/.local/share/agent-comms/native-current-e36a1dde326b7017/node_modules/@earendil-works/pi-coding-agent",
+      "state": "verified-immutable-cohort",
+      "staging_receipt_sha256": "d28cba5aac4649a9dc711a3fc8b52fd6bab626926da328d1c6cb254fe2c2b139"
+    },
+    "observed": {
+      "python": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/installed-first-ui-end-keypad/bin/python",
+      "prefix": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/installed-first-ui-end-keypad",
+      "packages": {
+        "toad": {
+          "origin": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/installed-first-ui-end-keypad/lib/python3.14/site-packages/toad/__init__.py",
+          "module_sha256": "dd5b5084de47f965aef80813e00aaac76cb186af163a9e0fe1a764037aa46337",
+          "source_tree_sha256": "86716939c1d713f97147f10514da7e8e17569ba30f073609c28077ca7cdc6135",
+          "distribution": "batrachian-toad",
+          "version": "0.6.20",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/toad.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "9354b391880980c9c987f421e16b9a1fd59b3f3b",
+              "requested_revision": "9354b391880980c9c987f421e16b9a1fd59b3f3b"
+            }
+          }
+        },
+        "textual": {
+          "origin": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/installed-first-ui-end-keypad/lib/python3.14/site-packages/textual/__init__.py",
+          "module_sha256": "fcd1524975df6075497bbb5c47fe564c6909d2b4b9651708e28ead65e7492671",
+          "source_tree_sha256": "37c099bc828f724a755c8434bc0fcf674352d66f91312c95a3482a162d8304cd",
+          "distribution": "textual",
+          "version": "8.2.8",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/textual.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "4e8d13d21bf98e4ad52e610277d7d06c9035ccfa",
+              "requested_revision": "4e8d13d21bf98e4ad52e610277d7d06c9035ccfa"
+            }
+          }
+        },
+        "agent_comms": {
+          "origin": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/installed-first-ui-end-keypad/lib/python3.14/site-packages/agent_comms/__init__.py",
+          "module_sha256": "302424efabe07e591de8d139721b7de369c362dae6c942d2d23ebf01f7dd617e",
+          "source_tree_sha256": "e465d405f279fd80cc0bee0791f6608e9cc0a9e93992e0d6058118052e14af74",
+          "distribution": "agent-comms",
+          "version": "0.1.0",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/agent-comms.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "000a31c562b6d048e26e288b24fcd3f1ac64f803",
+              "requested_revision": "000a31c562b6d048e26e288b24fcd3f1ac64f803"
+            }
+          }
+        }
+      },
+      "route": {
+        "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+        "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+        "native_package": "/home/ts/.local/share/agent-comms/native-current-e36a1dde326b7017/node_modules/@earendil-works/pi-coding-agent"
+      }
+    }
+  },
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 2931878,
+        "start_ticks": 23810233,
+        "returncode": 0
+      }
+    ]
+  }
+}

@@ -1,0 +1,1515 @@
+{
+  "status": "SCOPED_DELETE_PASS_WHOLE_FOCUS_NOT_READY",
+  "physical_owner": "Kepler",
+  "integration_owner": "parent; Heisenberg227 owns pure history-focus gap",
+  "duration_seconds": 46.04230093600927,
+  "actual_entrypoint": [
+    "/home/ts/bin/toad-comms",
+    "nra-architecture"
+  ],
+  "selection": "AGENT_COMMS_RUNTIME_ROOT",
+  "textual_code_head": "4e8d13d21bf98e4ad52e610277d7d06c9035ccfa",
+  "textual_publication_head": "f0051410e33ac51056739fb6d5868b73f7dc41ce",
+  "textual_source_diff_exit": 0,
+  "production_diff": {
+    "added": 12,
+    "deleted": 0
+  },
+  "runtime_before": {
+    "selection": "AGENT_COMMS_RUNTIME_ROOT",
+    "bin_directory": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/installed-first-ui-end-keypad/bin",
+    "launcher": "/home/ts/.agent-comms/stack/bin/toad-comms",
+    "launcher_sha256": "80382c0f935a0f069c0128c21ca530c8dd277684b6d778611315646ab82040ad",
+    "launcher_links": {
+      "command": {
+        "selected_path": "/home/ts/bin/toad-comms",
+        "resolved_path": "/home/ts/.agent-comms/stack/bin/toad-comms",
+        "sha256": "80382c0f935a0f069c0128c21ca530c8dd277684b6d778611315646ab82040ad"
+      },
+      "acp": {
+        "selected_path": "/home/ts/.local/bin/agent-comms-acp",
+        "resolved_path": "/home/ts/.local/share/agent-comms/runtime-canonical-source-publication-20260930/bin/agent-comms-acp",
+        "sha256": "9399d06c4fbcca679743d27dc20ba347256d1502ca81915c5c67c29e37b07e4e"
+      }
+    },
+    "entrypoints": {
+      "toad": {
+        "path": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/installed-first-ui-end-keypad/bin/toad",
+        "sha256": "2df62365ce2d01d142564d58c980a0dae26e1345a0ec221f81f18b63648f966d"
+      },
+      "agent-comms-acp": {
+        "path": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/installed-first-ui-end-keypad/bin/agent-comms-acp",
+        "sha256": "0e1b1436bed477b08300a2be269bbca7736cf56303e62a9617db2a4d708ab99c"
+      }
+    },
+    "activation_path": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/installed-first-ui-end-keypad/activation.json",
+    "activation_sha256": "e185f573964af53707f5d44723b95cb89bfc54012f3ee72511926f5adb023b30",
+    "activation": {
+      "state": "staged-exact-package-trusted-not-activated",
+      "stage": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/installed-first-ui-end-keypad",
+      "pins": {
+        "agent-comms": "000a31c562b6d048e26e288b24fcd3f1ac64f803",
+        "batrachian-toad": "9354b391880980c9c987f421e16b9a1fd59b3f3b",
+        "textual": "4e8d13d21bf98e4ad52e610277d7d06c9035ccfa"
+      },
+      "sdk": "0.12.1",
+      "native_package": "/home/ts/.local/share/agent-comms/native-current-e36a1dde326b7017/node_modules/@earendil-works/pi-coding-agent",
+      "all_68_requirements_checked": true,
+      "default_launchers_unchanged": true,
+      "entrypoints": {
+        "toad": {
+          "path": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/installed-first-ui-end-keypad/bin/toad",
+          "sha256": "2df62365ce2d01d142564d58c980a0dae26e1345a0ec221f81f18b63648f966d"
+        },
+        "agent-comms": {
+          "path": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/installed-first-ui-end-keypad/bin/agent-comms",
+          "sha256": "e4bf7585a5ebbbed09ae7dbedf14cc467d5463001960511dbac04150bd3bc934"
+        },
+        "agent-comms-acp": {
+          "path": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/installed-first-ui-end-keypad/bin/agent-comms-acp",
+          "sha256": "0e1b1436bed477b08300a2be269bbca7736cf56303e62a9617db2a4d708ab99c"
+        },
+        "agent-comms-agent": {
+          "path": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/installed-first-ui-end-keypad/bin/agent-comms-agent",
+          "sha256": "c26865c228abc9e30e1acfa4f03f063453ae54b3e6d70d870f5af21c065cdb81"
+        },
+        "pi-comms-native": {
+          "path": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/installed-first-ui-end-keypad/bin/pi-comms-native",
+          "sha256": "626c554d7a5cde66fa07eea21f2033541b04a76547cf8a03c5bb9e573c0e1182"
+        }
+      },
+      "pending": "Kepler sole physical editor focus gate; parent activation only"
+    },
+    "observed": {
+      "python": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/installed-first-ui-end-keypad/bin/python",
+      "prefix": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/installed-first-ui-end-keypad",
+      "packages": {
+        "toad": {
+          "origin": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/installed-first-ui-end-keypad/lib/python3.14/site-packages/toad/__init__.py",
+          "module_sha256": "dd5b5084de47f965aef80813e00aaac76cb186af163a9e0fe1a764037aa46337",
+          "source_tree_sha256": "86716939c1d713f97147f10514da7e8e17569ba30f073609c28077ca7cdc6135",
+          "distribution": "batrachian-toad",
+          "version": "0.6.20",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/toad.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "9354b391880980c9c987f421e16b9a1fd59b3f3b",
+              "requested_revision": "9354b391880980c9c987f421e16b9a1fd59b3f3b"
+            }
+          }
+        },
+        "textual": {
+          "origin": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/installed-first-ui-end-keypad/lib/python3.14/site-packages/textual/__init__.py",
+          "module_sha256": "fcd1524975df6075497bbb5c47fe564c6909d2b4b9651708e28ead65e7492671",
+          "source_tree_sha256": "37c099bc828f724a755c8434bc0fcf674352d66f91312c95a3482a162d8304cd",
+          "distribution": "textual",
+          "version": "8.2.8",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/textual.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "4e8d13d21bf98e4ad52e610277d7d06c9035ccfa",
+              "requested_revision": "4e8d13d21bf98e4ad52e610277d7d06c9035ccfa"
+            }
+          }
+        },
+        "agent_comms": {
+          "origin": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/installed-first-ui-end-keypad/lib/python3.14/site-packages/agent_comms/__init__.py",
+          "module_sha256": "302424efabe07e591de8d139721b7de369c362dae6c942d2d23ebf01f7dd617e",
+          "source_tree_sha256": "e465d405f279fd80cc0bee0791f6608e9cc0a9e93992e0d6058118052e14af74",
+          "distribution": "agent-comms",
+          "version": "0.1.0",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/agent-comms.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "000a31c562b6d048e26e288b24fcd3f1ac64f803",
+              "requested_revision": "000a31c562b6d048e26e288b24fcd3f1ac64f803"
+            }
+          }
+        }
+      },
+      "route": {
+        "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+        "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+        "native_package": "/home/ts/.local/share/agent-comms/native-current-e36a1dde326b7017/node_modules/@earendil-works/pi-coding-agent"
+      }
+    }
+  },
+  "runtime_after": {
+    "selection": "AGENT_COMMS_RUNTIME_ROOT",
+    "bin_directory": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/installed-first-ui-end-keypad/bin",
+    "launcher": "/home/ts/.agent-comms/stack/bin/toad-comms",
+    "launcher_sha256": "80382c0f935a0f069c0128c21ca530c8dd277684b6d778611315646ab82040ad",
+    "launcher_links": {
+      "command": {
+        "selected_path": "/home/ts/bin/toad-comms",
+        "resolved_path": "/home/ts/.agent-comms/stack/bin/toad-comms",
+        "sha256": "80382c0f935a0f069c0128c21ca530c8dd277684b6d778611315646ab82040ad"
+      },
+      "acp": {
+        "selected_path": "/home/ts/.local/bin/agent-comms-acp",
+        "resolved_path": "/home/ts/.local/share/agent-comms/runtime-canonical-source-publication-20260930/bin/agent-comms-acp",
+        "sha256": "9399d06c4fbcca679743d27dc20ba347256d1502ca81915c5c67c29e37b07e4e"
+      }
+    },
+    "entrypoints": {
+      "toad": {
+        "path": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/installed-first-ui-end-keypad/bin/toad",
+        "sha256": "2df62365ce2d01d142564d58c980a0dae26e1345a0ec221f81f18b63648f966d"
+      },
+      "agent-comms-acp": {
+        "path": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/installed-first-ui-end-keypad/bin/agent-comms-acp",
+        "sha256": "0e1b1436bed477b08300a2be269bbca7736cf56303e62a9617db2a4d708ab99c"
+      }
+    },
+    "activation_path": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/installed-first-ui-end-keypad/activation.json",
+    "activation_sha256": "e185f573964af53707f5d44723b95cb89bfc54012f3ee72511926f5adb023b30",
+    "activation": {
+      "state": "staged-exact-package-trusted-not-activated",
+      "stage": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/installed-first-ui-end-keypad",
+      "pins": {
+        "agent-comms": "000a31c562b6d048e26e288b24fcd3f1ac64f803",
+        "batrachian-toad": "9354b391880980c9c987f421e16b9a1fd59b3f3b",
+        "textual": "4e8d13d21bf98e4ad52e610277d7d06c9035ccfa"
+      },
+      "sdk": "0.12.1",
+      "native_package": "/home/ts/.local/share/agent-comms/native-current-e36a1dde326b7017/node_modules/@earendil-works/pi-coding-agent",
+      "all_68_requirements_checked": true,
+      "default_launchers_unchanged": true,
+      "entrypoints": {
+        "toad": {
+          "path": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/installed-first-ui-end-keypad/bin/toad",
+          "sha256": "2df62365ce2d01d142564d58c980a0dae26e1345a0ec221f81f18b63648f966d"
+        },
+        "agent-comms": {
+          "path": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/installed-first-ui-end-keypad/bin/agent-comms",
+          "sha256": "e4bf7585a5ebbbed09ae7dbedf14cc467d5463001960511dbac04150bd3bc934"
+        },
+        "agent-comms-acp": {
+          "path": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/installed-first-ui-end-keypad/bin/agent-comms-acp",
+          "sha256": "0e1b1436bed477b08300a2be269bbca7736cf56303e62a9617db2a4d708ab99c"
+        },
+        "agent-comms-agent": {
+          "path": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/installed-first-ui-end-keypad/bin/agent-comms-agent",
+          "sha256": "c26865c228abc9e30e1acfa4f03f063453ae54b3e6d70d870f5af21c065cdb81"
+        },
+        "pi-comms-native": {
+          "path": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/installed-first-ui-end-keypad/bin/pi-comms-native",
+          "sha256": "626c554d7a5cde66fa07eea21f2033541b04a76547cf8a03c5bb9e573c0e1182"
+        }
+      },
+      "pending": "Kepler sole physical editor focus gate; parent activation only"
+    },
+    "observed": {
+      "python": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/installed-first-ui-end-keypad/bin/python",
+      "prefix": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/installed-first-ui-end-keypad",
+      "packages": {
+        "toad": {
+          "origin": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/installed-first-ui-end-keypad/lib/python3.14/site-packages/toad/__init__.py",
+          "module_sha256": "dd5b5084de47f965aef80813e00aaac76cb186af163a9e0fe1a764037aa46337",
+          "source_tree_sha256": "86716939c1d713f97147f10514da7e8e17569ba30f073609c28077ca7cdc6135",
+          "distribution": "batrachian-toad",
+          "version": "0.6.20",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/toad.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "9354b391880980c9c987f421e16b9a1fd59b3f3b",
+              "requested_revision": "9354b391880980c9c987f421e16b9a1fd59b3f3b"
+            }
+          }
+        },
+        "textual": {
+          "origin": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/installed-first-ui-end-keypad/lib/python3.14/site-packages/textual/__init__.py",
+          "module_sha256": "fcd1524975df6075497bbb5c47fe564c6909d2b4b9651708e28ead65e7492671",
+          "source_tree_sha256": "37c099bc828f724a755c8434bc0fcf674352d66f91312c95a3482a162d8304cd",
+          "distribution": "textual",
+          "version": "8.2.8",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/textual.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "4e8d13d21bf98e4ad52e610277d7d06c9035ccfa",
+              "requested_revision": "4e8d13d21bf98e4ad52e610277d7d06c9035ccfa"
+            }
+          }
+        },
+        "agent_comms": {
+          "origin": "/home/ts/wt/toad-first-ui-end-keypad-20260930/.artifacts/installed-first-ui-end-keypad/lib/python3.14/site-packages/agent_comms/__init__.py",
+          "module_sha256": "302424efabe07e591de8d139721b7de369c362dae6c942d2d23ebf01f7dd617e",
+          "source_tree_sha256": "e465d405f279fd80cc0bee0791f6608e9cc0a9e93992e0d6058118052e14af74",
+          "distribution": "agent-comms",
+          "version": "0.1.0",
+          "direct_url": {
+            "url": "https://github.com/OpenHCSDev/agent-comms.git",
+            "vcs_info": {
+              "vcs": "git",
+              "commit_id": "000a31c562b6d048e26e288b24fcd3f1ac64f803",
+              "requested_revision": "000a31c562b6d048e26e288b24fcd3f1ac64f803"
+            }
+          }
+        }
+      },
+      "route": {
+        "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+        "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+        "native_package": "/home/ts/.local/share/agent-comms/native-current-e36a1dde326b7017/node_modules/@earendil-works/pi-coding-agent"
+      }
+    }
+  },
+  "toad_source_equivalence": [
+    {
+      "code_head": "9354b391880980c9c987f421e16b9a1fd59b3f3b",
+      "publication_head": "bf561ec24b998cf75fba5f015541d7400fae07ae",
+      "src_diff_exit": 0,
+      "changed_files": [
+        "docs/validation/first-ui-end-keypad-20260930.md",
+        "evidence/first-ui-end-keypad-20260930/lock-resolution.log",
+        "evidence/first-ui-end-keypad-20260930/requirements.txt",
+        "evidence/first-ui-end-keypad-20260930/staging-receipt.json",
+        "evidence/first-ui-end-keypad-20260930/staging.log"
+      ]
+    },
+    {
+      "code_head": "9354b391880980c9c987f421e16b9a1fd59b3f3b",
+      "publication_head": "718030c740c0d3d700c87e43c80819a1166ca8cf",
+      "src_diff_exit": 0,
+      "changed_files": [
+        "docs/validation/first-ui-end-keypad-20260930.md",
+        "evidence/first-ui-end-keypad-20260930/candidate-activation.json",
+        "evidence/first-ui-end-keypad-20260930/lock-resolution.log",
+        "evidence/first-ui-end-keypad-20260930/requirements.txt",
+        "evidence/first-ui-end-keypad-20260930/staging-receipt.json",
+        "evidence/first-ui-end-keypad-20260930/staging.log"
+      ]
+    }
+  ],
+  "observed_phases": {
+    "typed": {
+      "focused_editor": {
+        "object_id": 140425345526160,
+        "class": "PromptTextArea",
+        "module": "toad.widgets.prompt",
+        "id": null,
+        "parent_object_id": 140425345525520,
+        "ancestors": [
+          {
+            "object_id": 140425345526160,
+            "class": "PromptTextArea",
+            "module": "toad.widgets.prompt",
+            "id": null,
+            "parent_object_id": 140425345525520
+          },
+          {
+            "object_id": 140425345525520,
+            "class": "HorizontalGroup",
+            "module": "textual.containers",
+            "id": "text-prompt",
+            "parent_object_id": 140425345524880
+          },
+          {
+            "object_id": 140425345524880,
+            "class": "PromptContainer",
+            "module": "toad.widgets.prompt",
+            "id": "prompt-container",
+            "parent_object_id": 140425306647568
+          },
+          {
+            "object_id": 140425306647568,
+            "class": "Prompt",
+            "module": "toad.widgets.prompt",
+            "id": null,
+            "parent_object_id": 140425306646608
+          },
+          {
+            "object_id": 140425306646608,
+            "class": "Vertical",
+            "module": "textual.containers",
+            "id": "prompt-stack",
+            "parent_object_id": 140425312276944
+          },
+          {
+            "object_id": 140425312276944,
+            "class": "Conversation",
+            "module": "toad.widgets.conversation",
+            "id": null,
+            "parent_object_id": 140425312862928
+          },
+          {
+            "object_id": 140425312862928,
+            "class": "Vertical",
+            "module": "textual.containers",
+            "id": "session-content",
+            "parent_object_id": 140425306482608
+          },
+          {
+            "object_id": 140425306482608,
+            "class": "Center",
+            "module": "textual.containers",
+            "id": null,
+            "parent_object_id": 140425312276624
+          },
+          {
+            "object_id": 140425312276624,
+            "class": "MainScreen",
+            "module": "toad.screens.main",
+            "id": "session-1",
+            "parent_object_id": 140425312885056
+          },
+          {
+            "object_id": 140425312885056,
+            "class": "Container",
+            "module": "textual.containers",
+            "id": "workspace-session-host",
+            "parent_object_id": 140425312884720
+          },
+          {
+            "object_id": 140425312884720,
+            "class": "Horizontal",
+            "module": "textual.containers",
+            "id": "workspace-body",
+            "parent_object_id": 140425312879008
+          },
+          {
+            "object_id": 140425312879008,
+            "class": "WorkspaceScreen",
+            "module": "toad.screens.workspace",
+            "id": "workspace",
+            "parent_object_id": 140425379414096
+          },
+          {
+            "object_id": 140425379414096,
+            "class": "ToadApp",
+            "module": "toad.app",
+            "id": null,
+            "parent_object_id": null
+          }
+        ]
+      },
+      "drafts": [
+        {
+          "view": "session-1",
+          "object_id": 140425345526160,
+          "lines": [
+            "abcdef"
+          ],
+          "selection": [
+            [
+              0,
+              6
+            ],
+            [
+              0,
+              6
+            ]
+          ]
+        }
+      ]
+    },
+    "edited": {
+      "focused_editor": {
+        "object_id": 140425345526160,
+        "class": "PromptTextArea",
+        "module": "toad.widgets.prompt",
+        "id": null,
+        "parent_object_id": 140425345525520,
+        "ancestors": [
+          {
+            "object_id": 140425345526160,
+            "class": "PromptTextArea",
+            "module": "toad.widgets.prompt",
+            "id": null,
+            "parent_object_id": 140425345525520
+          },
+          {
+            "object_id": 140425345525520,
+            "class": "HorizontalGroup",
+            "module": "textual.containers",
+            "id": "text-prompt",
+            "parent_object_id": 140425345524880
+          },
+          {
+            "object_id": 140425345524880,
+            "class": "PromptContainer",
+            "module": "toad.widgets.prompt",
+            "id": "prompt-container",
+            "parent_object_id": 140425306647568
+          },
+          {
+            "object_id": 140425306647568,
+            "class": "Prompt",
+            "module": "toad.widgets.prompt",
+            "id": null,
+            "parent_object_id": 140425306646608
+          },
+          {
+            "object_id": 140425306646608,
+            "class": "Vertical",
+            "module": "textual.containers",
+            "id": "prompt-stack",
+            "parent_object_id": 140425312276944
+          },
+          {
+            "object_id": 140425312276944,
+            "class": "Conversation",
+            "module": "toad.widgets.conversation",
+            "id": null,
+            "parent_object_id": 140425312862928
+          },
+          {
+            "object_id": 140425312862928,
+            "class": "Vertical",
+            "module": "textual.containers",
+            "id": "session-content",
+            "parent_object_id": 140425306482608
+          },
+          {
+            "object_id": 140425306482608,
+            "class": "Center",
+            "module": "textual.containers",
+            "id": null,
+            "parent_object_id": 140425312276624
+          },
+          {
+            "object_id": 140425312276624,
+            "class": "MainScreen",
+            "module": "toad.screens.main",
+            "id": "session-1",
+            "parent_object_id": 140425312885056
+          },
+          {
+            "object_id": 140425312885056,
+            "class": "Container",
+            "module": "textual.containers",
+            "id": "workspace-session-host",
+            "parent_object_id": 140425312884720
+          },
+          {
+            "object_id": 140425312884720,
+            "class": "Horizontal",
+            "module": "textual.containers",
+            "id": "workspace-body",
+            "parent_object_id": 140425312879008
+          },
+          {
+            "object_id": 140425312879008,
+            "class": "WorkspaceScreen",
+            "module": "toad.screens.workspace",
+            "id": "workspace",
+            "parent_object_id": 140425379414096
+          },
+          {
+            "object_id": 140425379414096,
+            "class": "ToadApp",
+            "module": "toad.app",
+            "id": null,
+            "parent_object_id": null
+          }
+        ]
+      },
+      "drafts": [
+        {
+          "view": "session-1",
+          "object_id": 140425345526160,
+          "lines": [
+            "abcf"
+          ],
+          "selection": [
+            [
+              0,
+              4
+            ],
+            [
+              0,
+              4
+            ]
+          ]
+        }
+      ]
+    },
+    "history-edit": {
+      "focused_editor": {
+        "object_id": 140424086565136,
+        "class": "PromptTextArea",
+        "module": "toad.widgets.prompt",
+        "id": null,
+        "parent_object_id": 140424086564496,
+        "ancestors": [
+          {
+            "object_id": 140424086565136,
+            "class": "PromptTextArea",
+            "module": "toad.widgets.prompt",
+            "id": null,
+            "parent_object_id": 140424086564496
+          },
+          {
+            "object_id": 140424086564496,
+            "class": "HorizontalGroup",
+            "module": "textual.containers",
+            "id": "text-prompt",
+            "parent_object_id": 140424086562896
+          },
+          {
+            "object_id": 140424086562896,
+            "class": "PromptContainer",
+            "module": "toad.widgets.prompt",
+            "id": "prompt-container",
+            "parent_object_id": 140425041785744
+          },
+          {
+            "object_id": 140425041785744,
+            "class": "Prompt",
+            "module": "toad.widgets.prompt",
+            "id": null,
+            "parent_object_id": 140425041782864
+          },
+          {
+            "object_id": 140425041782864,
+            "class": "Vertical",
+            "module": "textual.containers",
+            "id": "prompt-stack",
+            "parent_object_id": 140424108753616
+          },
+          {
+            "object_id": 140424108753616,
+            "class": "Conversation",
+            "module": "toad.widgets.conversation",
+            "id": null,
+            "parent_object_id": 140425041772624
+          },
+          {
+            "object_id": 140425041772624,
+            "class": "Vertical",
+            "module": "textual.containers",
+            "id": "session-content",
+            "parent_object_id": 140425299329744
+          },
+          {
+            "object_id": 140425299329744,
+            "class": "Center",
+            "module": "textual.containers",
+            "id": null,
+            "parent_object_id": 140425302850960
+          },
+          {
+            "object_id": 140425302850960,
+            "class": "MainScreen",
+            "module": "toad.screens.main",
+            "id": "session-2",
+            "parent_object_id": 140425312885056
+          },
+          {
+            "object_id": 140425312885056,
+            "class": "Container",
+            "module": "textual.containers",
+            "id": "workspace-session-host",
+            "parent_object_id": 140425312884720
+          },
+          {
+            "object_id": 140425312884720,
+            "class": "Horizontal",
+            "module": "textual.containers",
+            "id": "workspace-body",
+            "parent_object_id": 140425312879008
+          },
+          {
+            "object_id": 140425312879008,
+            "class": "WorkspaceScreen",
+            "module": "toad.screens.workspace",
+            "id": "workspace",
+            "parent_object_id": 140425379414096
+          },
+          {
+            "object_id": 140425379414096,
+            "class": "ToadApp",
+            "module": "toad.app",
+            "id": null,
+            "parent_object_id": null
+          }
+        ]
+      },
+      "drafts": [
+        {
+          "view": "session-1",
+          "object_id": 140425345526160,
+          "lines": [
+            "abcf"
+          ],
+          "selection": [
+            [
+              0,
+              4
+            ],
+            [
+              0,
+              4
+            ]
+          ]
+        },
+        {
+          "view": "session-2",
+          "object_id": 140424086565136,
+          "lines": [
+            "abcf"
+          ],
+          "selection": [
+            [
+              0,
+              4
+            ],
+            [
+              0,
+              4
+            ]
+          ]
+        }
+      ]
+    },
+    "child-open": {
+      "focused_editor": {
+        "object_id": 140424500080912,
+        "class": "PromptTextArea",
+        "module": "toad.widgets.prompt",
+        "id": null,
+        "parent_object_id": 140424500080272,
+        "ancestors": [
+          {
+            "object_id": 140424500080912,
+            "class": "PromptTextArea",
+            "module": "toad.widgets.prompt",
+            "id": null,
+            "parent_object_id": 140424500080272
+          },
+          {
+            "object_id": 140424500080272,
+            "class": "HorizontalGroup",
+            "module": "textual.containers",
+            "id": "text-prompt",
+            "parent_object_id": 140424500078992
+          },
+          {
+            "object_id": 140424500078992,
+            "class": "PromptContainer",
+            "module": "toad.widgets.prompt",
+            "id": "prompt-container",
+            "parent_object_id": 140424500619024
+          },
+          {
+            "object_id": 140424500619024,
+            "class": "Prompt",
+            "module": "toad.widgets.prompt",
+            "id": null,
+            "parent_object_id": 140424500615824
+          },
+          {
+            "object_id": 140424500615824,
+            "class": "Vertical",
+            "module": "textual.containers",
+            "id": "prompt-stack",
+            "parent_object_id": 140425305472400
+          },
+          {
+            "object_id": 140425305472400,
+            "class": "Conversation",
+            "module": "toad.widgets.conversation",
+            "id": null,
+            "parent_object_id": 140424527476880
+          },
+          {
+            "object_id": 140424527476880,
+            "class": "Vertical",
+            "module": "textual.containers",
+            "id": "session-content",
+            "parent_object_id": 140424527474640
+          },
+          {
+            "object_id": 140424527474640,
+            "class": "Center",
+            "module": "textual.containers",
+            "id": null,
+            "parent_object_id": 140424527465040
+          },
+          {
+            "object_id": 140424527465040,
+            "class": "MainScreen",
+            "module": "toad.screens.main",
+            "id": "session-3",
+            "parent_object_id": 140425312885056
+          },
+          {
+            "object_id": 140425312885056,
+            "class": "Container",
+            "module": "textual.containers",
+            "id": "workspace-session-host",
+            "parent_object_id": 140425312884720
+          },
+          {
+            "object_id": 140425312884720,
+            "class": "Horizontal",
+            "module": "textual.containers",
+            "id": "workspace-body",
+            "parent_object_id": 140425312879008
+          },
+          {
+            "object_id": 140425312879008,
+            "class": "WorkspaceScreen",
+            "module": "toad.screens.workspace",
+            "id": "workspace",
+            "parent_object_id": 140425379414096
+          },
+          {
+            "object_id": 140425379414096,
+            "class": "ToadApp",
+            "module": "toad.app",
+            "id": null,
+            "parent_object_id": null
+          }
+        ]
+      },
+      "drafts": [
+        {
+          "view": "session-1",
+          "object_id": 140425345526160,
+          "lines": [
+            "abcf"
+          ],
+          "selection": [
+            [
+              0,
+              4
+            ],
+            [
+              0,
+              4
+            ]
+          ]
+        },
+        {
+          "view": "session-2",
+          "object_id": 140424086565136,
+          "lines": [
+            "abcf"
+          ],
+          "selection": [
+            [
+              0,
+              4
+            ],
+            [
+              0,
+              4
+            ]
+          ]
+        },
+        {
+          "view": "session-3",
+          "object_id": 140424500080912,
+          "lines": [
+            ""
+          ],
+          "selection": [
+            [
+              0,
+              0
+            ],
+            [
+              0,
+              0
+            ]
+          ]
+        }
+      ]
+    },
+    "parent-return-edit": {
+      "focused_editor": {
+        "object_id": 140425345526160,
+        "class": "PromptTextArea",
+        "module": "toad.widgets.prompt",
+        "id": null,
+        "parent_object_id": 140425345525520,
+        "ancestors": [
+          {
+            "object_id": 140425345526160,
+            "class": "PromptTextArea",
+            "module": "toad.widgets.prompt",
+            "id": null,
+            "parent_object_id": 140425345525520
+          },
+          {
+            "object_id": 140425345525520,
+            "class": "HorizontalGroup",
+            "module": "textual.containers",
+            "id": "text-prompt",
+            "parent_object_id": 140425345524880
+          },
+          {
+            "object_id": 140425345524880,
+            "class": "PromptContainer",
+            "module": "toad.widgets.prompt",
+            "id": "prompt-container",
+            "parent_object_id": 140425306647568
+          },
+          {
+            "object_id": 140425306647568,
+            "class": "Prompt",
+            "module": "toad.widgets.prompt",
+            "id": null,
+            "parent_object_id": 140425306646608
+          },
+          {
+            "object_id": 140425306646608,
+            "class": "Vertical",
+            "module": "textual.containers",
+            "id": "prompt-stack",
+            "parent_object_id": 140425312276944
+          },
+          {
+            "object_id": 140425312276944,
+            "class": "Conversation",
+            "module": "toad.widgets.conversation",
+            "id": null,
+            "parent_object_id": 140425312862928
+          },
+          {
+            "object_id": 140425312862928,
+            "class": "Vertical",
+            "module": "textual.containers",
+            "id": "session-content",
+            "parent_object_id": 140425306482608
+          },
+          {
+            "object_id": 140425306482608,
+            "class": "Center",
+            "module": "textual.containers",
+            "id": null,
+            "parent_object_id": 140425312276624
+          },
+          {
+            "object_id": 140425312276624,
+            "class": "MainScreen",
+            "module": "toad.screens.main",
+            "id": "session-1",
+            "parent_object_id": 140425312885056
+          },
+          {
+            "object_id": 140425312885056,
+            "class": "Container",
+            "module": "textual.containers",
+            "id": "workspace-session-host",
+            "parent_object_id": 140425312884720
+          },
+          {
+            "object_id": 140425312884720,
+            "class": "Horizontal",
+            "module": "textual.containers",
+            "id": "workspace-body",
+            "parent_object_id": 140425312879008
+          },
+          {
+            "object_id": 140425312879008,
+            "class": "WorkspaceScreen",
+            "module": "toad.screens.workspace",
+            "id": "workspace",
+            "parent_object_id": 140425379414096
+          },
+          {
+            "object_id": 140425379414096,
+            "class": "ToadApp",
+            "module": "toad.app",
+            "id": null,
+            "parent_object_id": null
+          }
+        ]
+      },
+      "drafts": [
+        {
+          "view": "session-1",
+          "object_id": 140425345526160,
+          "lines": [
+            "abcfabcf"
+          ],
+          "selection": [
+            [
+              0,
+              8
+            ],
+            [
+              0,
+              8
+            ]
+          ]
+        },
+        {
+          "view": "session-2",
+          "object_id": 140424086565136,
+          "lines": [
+            "abcf"
+          ],
+          "selection": [
+            [
+              0,
+              4
+            ],
+            [
+              0,
+              4
+            ]
+          ]
+        },
+        {
+          "view": "session-3",
+          "object_id": 140424500080912,
+          "lines": [
+            ""
+          ],
+          "selection": [
+            [
+              0,
+              0
+            ],
+            [
+              0,
+              0
+            ]
+          ]
+        }
+      ]
+    },
+    "channel-edit": {
+      "focused_editor": {
+        "object_id": 140425302176304,
+        "class": "ChannelTextArea",
+        "module": "toad.widgets.channel_prompt",
+        "id": null,
+        "parent_object_id": 140424084988752,
+        "ancestors": [
+          {
+            "object_id": 140425302176304,
+            "class": "ChannelTextArea",
+            "module": "toad.widgets.channel_prompt",
+            "id": null,
+            "parent_object_id": 140424084988752
+          },
+          {
+            "object_id": 140424084988752,
+            "class": "HorizontalGroup",
+            "module": "textual.containers",
+            "id": "text-prompt",
+            "parent_object_id": 140424084990672
+          },
+          {
+            "object_id": 140424084990672,
+            "class": "PromptContainer",
+            "module": "toad.widgets.prompt",
+            "id": "prompt-container",
+            "parent_object_id": 140425313736016
+          },
+          {
+            "object_id": 140425313736016,
+            "class": "ChannelPrompt",
+            "module": "toad.widgets.channel_prompt",
+            "id": null,
+            "parent_object_id": 140424092024208
+          },
+          {
+            "object_id": 140424092024208,
+            "class": "Vertical",
+            "module": "textual.containers",
+            "id": "prompt-stack",
+            "parent_object_id": 140424097904784
+          },
+          {
+            "object_id": 140424097904784,
+            "class": "CommsChatView",
+            "module": "toad.widgets.comms_chat",
+            "id": null,
+            "parent_object_id": 140424092018128
+          },
+          {
+            "object_id": 140424092018128,
+            "class": "Vertical",
+            "module": "textual.containers",
+            "id": "comms-content",
+            "parent_object_id": 140424092016528
+          },
+          {
+            "object_id": 140424092016528,
+            "class": "Center",
+            "module": "textual.containers",
+            "id": null,
+            "parent_object_id": 140424092015888
+          },
+          {
+            "object_id": 140424092015888,
+            "class": "CommsScreen",
+            "module": "toad.screens.comms",
+            "id": "comms-1",
+            "parent_object_id": 140425312885056
+          },
+          {
+            "object_id": 140425312885056,
+            "class": "Container",
+            "module": "textual.containers",
+            "id": "workspace-session-host",
+            "parent_object_id": 140425312884720
+          },
+          {
+            "object_id": 140425312884720,
+            "class": "Horizontal",
+            "module": "textual.containers",
+            "id": "workspace-body",
+            "parent_object_id": 140425312879008
+          },
+          {
+            "object_id": 140425312879008,
+            "class": "WorkspaceScreen",
+            "module": "toad.screens.workspace",
+            "id": "workspace",
+            "parent_object_id": 140425379414096
+          },
+          {
+            "object_id": 140425379414096,
+            "class": "ToadApp",
+            "module": "toad.app",
+            "id": null,
+            "parent_object_id": null
+          }
+        ]
+      },
+      "drafts": [
+        {
+          "view": "session-1",
+          "object_id": 140425345526160,
+          "lines": [
+            "abcfabcf"
+          ],
+          "selection": [
+            [
+              0,
+              8
+            ],
+            [
+              0,
+              8
+            ]
+          ]
+        },
+        {
+          "view": "session-2",
+          "object_id": 140424086565136,
+          "lines": [
+            "abcf"
+          ],
+          "selection": [
+            [
+              0,
+              4
+            ],
+            [
+              0,
+              4
+            ]
+          ]
+        },
+        {
+          "view": "session-3",
+          "object_id": 140424500080912,
+          "lines": [
+            ""
+          ],
+          "selection": [
+            [
+              0,
+              0
+            ],
+            [
+              0,
+              0
+            ]
+          ]
+        },
+        {
+          "view": "comms-1",
+          "object_id": 140425302176304,
+          "lines": [
+            "abcf"
+          ],
+          "selection": [
+            [
+              0,
+              4
+            ],
+            [
+              0,
+              4
+            ]
+          ]
+        }
+      ]
+    },
+    "channel-return-edit": {
+      "focused_editor": {
+        "object_id": 140425345526160,
+        "class": "PromptTextArea",
+        "module": "toad.widgets.prompt",
+        "id": null,
+        "parent_object_id": 140425345525520,
+        "ancestors": [
+          {
+            "object_id": 140425345526160,
+            "class": "PromptTextArea",
+            "module": "toad.widgets.prompt",
+            "id": null,
+            "parent_object_id": 140425345525520
+          },
+          {
+            "object_id": 140425345525520,
+            "class": "HorizontalGroup",
+            "module": "textual.containers",
+            "id": "text-prompt",
+            "parent_object_id": 140425345524880
+          },
+          {
+            "object_id": 140425345524880,
+            "class": "PromptContainer",
+            "module": "toad.widgets.prompt",
+            "id": "prompt-container",
+            "parent_object_id": 140425306647568
+          },
+          {
+            "object_id": 140425306647568,
+            "class": "Prompt",
+            "module": "toad.widgets.prompt",
+            "id": null,
+            "parent_object_id": 140425306646608
+          },
+          {
+            "object_id": 140425306646608,
+            "class": "Vertical",
+            "module": "textual.containers",
+            "id": "prompt-stack",
+            "parent_object_id": 140425312276944
+          },
+          {
+            "object_id": 140425312276944,
+            "class": "Conversation",
+            "module": "toad.widgets.conversation",
+            "id": null,
+            "parent_object_id": 140425312862928
+          },
+          {
+            "object_id": 140425312862928,
+            "class": "Vertical",
+            "module": "textual.containers",
+            "id": "session-content",
+            "parent_object_id": 140425306482608
+          },
+          {
+            "object_id": 140425306482608,
+            "class": "Center",
+            "module": "textual.containers",
+            "id": null,
+            "parent_object_id": 140425312276624
+          },
+          {
+            "object_id": 140425312276624,
+            "class": "MainScreen",
+            "module": "toad.screens.main",
+            "id": "session-1",
+            "parent_object_id": 140425312885056
+          },
+          {
+            "object_id": 140425312885056,
+            "class": "Container",
+            "module": "textual.containers",
+            "id": "workspace-session-host",
+            "parent_object_id": 140425312884720
+          },
+          {
+            "object_id": 140425312884720,
+            "class": "Horizontal",
+            "module": "textual.containers",
+            "id": "workspace-body",
+            "parent_object_id": 140425312879008
+          },
+          {
+            "object_id": 140425312879008,
+            "class": "WorkspaceScreen",
+            "module": "toad.screens.workspace",
+            "id": "workspace",
+            "parent_object_id": 140425379414096
+          },
+          {
+            "object_id": 140425379414096,
+            "class": "ToadApp",
+            "module": "toad.app",
+            "id": null,
+            "parent_object_id": null
+          }
+        ]
+      },
+      "drafts": [
+        {
+          "view": "session-1",
+          "object_id": 140425345526160,
+          "lines": [
+            "abcfabcfabcf"
+          ],
+          "selection": [
+            [
+              0,
+              12
+            ],
+            [
+              0,
+              12
+            ]
+          ]
+        },
+        {
+          "view": "session-2",
+          "object_id": 140424086565136,
+          "lines": [
+            "abcf"
+          ],
+          "selection": [
+            [
+              0,
+              4
+            ],
+            [
+              0,
+              4
+            ]
+          ]
+        },
+        {
+          "view": "session-3",
+          "object_id": 140424500080912,
+          "lines": [
+            ""
+          ],
+          "selection": [
+            [
+              0,
+              0
+            ],
+            [
+              0,
+              0
+            ]
+          ]
+        },
+        {
+          "view": "comms-1",
+          "object_id": 140425302176304,
+          "lines": [
+            ""
+          ],
+          "selection": [
+            [
+              0,
+              0
+            ],
+            [
+              0,
+              0
+            ]
+          ]
+        }
+      ]
+    }
+  },
+  "originals": {
+    "nra-architecture": {
+      "owner": {
+        "pid": 2823983,
+        "start_time": 23393932
+      },
+      "parent": "agent-comms-ux",
+      "bytes": 41270257,
+      "sha256": "888b79c4afea78a87c8e591928dbc015eeaaa3123e82477c56d40f3739bcf10c",
+      "active_turn": null
+    },
+    "nra-domain-mapping": {
+      "owner": {
+        "pid": 2824036,
+        "start_time": 23394202
+      },
+      "parent": "nra-architecture",
+      "bytes": 13212421,
+      "sha256": "197905b1c1ead0a6ae7bea70c8d2975c2b7312c1c58524ead5b1fcacc70a4799",
+      "active_turn": null
+    }
+  },
+  "originals_unchanged": true,
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption",
+    "processes": [
+      {
+        "pid": 2918055,
+        "start_ticks": 23751976,
+        "returncode": 0
+      },
+      {
+        "pid": 2918057,
+        "start_ticks": 23752043,
+        "returncode": 0
+      },
+      {
+        "pid": 2918065,
+        "start_ticks": 23752051,
+        "returncode": 0
+      },
+      {
+        "pid": 2918066,
+        "start_ticks": 23752056,
+        "custody": "verified launch identity transferred to installed ObservedProcess"
+      },
+      {
+        "pid": 2918079,
+        "start_ticks": 23752108,
+        "returncode": 0
+      },
+      {
+        "pid": 2918080,
+        "start_ticks": 23752117,
+        "returncode": 0
+      },
+      {
+        "pid": 2918081,
+        "start_ticks": 23752125,
+        "returncode": 0
+      },
+      {
+        "pid": 2918082,
+        "start_ticks": 23752135,
+        "returncode": 255
+      },
+      {
+        "pid": 2918307,
+        "start_ticks": 23753337,
+        "returncode": 0
+      },
+      {
+        "pid": 2918342,
+        "start_ticks": 23753362,
+        "returncode": 0
+      },
+      {
+        "pid": 2918358,
+        "start_ticks": 23753394,
+        "returncode": 0
+      },
+      {
+        "pid": 2919161,
+        "start_ticks": 23756682,
+        "returncode": 0
+      },
+      {
+        "pid": 2919166,
+        "start_ticks": 23756709,
+        "returncode": 0
+      },
+      {
+        "pid": 2919241,
+        "start_ticks": 23756761,
+        "returncode": 0
+      },
+      {
+        "pid": 2919242,
+        "start_ticks": 23756831,
+        "returncode": 0
+      },
+      {
+        "pid": 2919349,
+        "start_ticks": 23757065,
+        "returncode": 0
+      }
+    ]
+  },
+  "artifacts": {
+    "receipt.json": {
+      "path": "/home/ts/.cache/agent-scratch/toad-editor-focus-227-20260930-candidate02/capture/receipt.json",
+      "bytes": 59389,
+      "sha256": "a33d7d3afe7e2d7857d538887ce91972922943aa6b04e96f246ed387d7d83249"
+    },
+    "terminal.mp4": {
+      "path": "/home/ts/.cache/agent-scratch/toad-editor-focus-227-20260930-candidate02/capture/terminal.mp4",
+      "bytes": 1676183,
+      "sha256": "98f1148de19a7129c9f802dc8eb420d8c92799bd3dc7167a27eb8269e7f5c60f"
+    },
+    "phase-edited.png": {
+      "path": "/home/ts/.cache/agent-scratch/toad-editor-focus-227-20260930-candidate02/capture/phase-edited.png",
+      "bytes": 107794,
+      "sha256": "b5a808ad6a867ecc71f80f74d446e2fca7464637f49602c58aebb97aff8d3578"
+    },
+    "phase-history-edit.png": {
+      "path": "/home/ts/.cache/agent-scratch/toad-editor-focus-227-20260930-candidate02/capture/phase-history-edit.png",
+      "bytes": 92913,
+      "sha256": "38144dd40b2b830a194dd9480e7eebc2bf5ad229bbdd95588b355a55cf26aa99"
+    },
+    "phase-child-open.png": {
+      "path": "/home/ts/.cache/agent-scratch/toad-editor-focus-227-20260930-candidate02/capture/phase-child-open.png",
+      "bytes": 121231,
+      "sha256": "6993483ca095e16294ffd8ccf1bd3fb2a751ac87b35712af463f1f3f9791240f"
+    },
+    "phase-parent-return-edit.png": {
+      "path": "/home/ts/.cache/agent-scratch/toad-editor-focus-227-20260930-candidate02/capture/phase-parent-return-edit.png",
+      "bytes": 110586,
+      "sha256": "f9e2442b5a60148abdbcd1878a63d53bea5932fc44f2f658ed4bb8a3faa64f92"
+    },
+    "phase-channel-edit.png": {
+      "path": "/home/ts/.cache/agent-scratch/toad-editor-focus-227-20260930-candidate02/capture/phase-channel-edit.png",
+      "bytes": 116476,
+      "sha256": "1b1d73a23c1510d134c6f23164d1b1679ded68026e8e378dd7b2c125ea030f6c"
+    },
+    "phase-channel-return-edit.png": {
+      "path": "/home/ts/.cache/agent-scratch/toad-editor-focus-227-20260930-candidate02/capture/phase-channel-return-edit.png",
+      "bytes": 110080,
+      "sha256": "91ed543d419fa5ace8400bdd2c25680172c91c8a6188573be4b99cac7e26f162"
+    },
+    "events.jsonl": {
+      "path": "/home/ts/.cache/agent-scratch/toad-editor-focus-227-20260930-candidate02/capture/events.jsonl",
+      "bytes": 21272,
+      "sha256": "59b2f188daf3fcb22c8cc46c8222ba35c40247e0da44702fb32dae4fac7abba9"
+    }
+  },
+  "physical_review": {
+    "reviewed_frames": [
+      "phase-edited.png",
+      "phase-history-edit.png",
+      "phase-child-open.png",
+      "phase-parent-return-edit.png",
+      "phase-channel-edit.png",
+      "phase-channel-return-edit.png"
+    ],
+    "agent_and_channel_delete": "abcdef -> abcf / caret4; no Help panel",
+    "parent_returns": "same native editor 140425345526160 retains abcf, then abcfabcf, then abcfabcfabcf",
+    "raw_assertion_result": "FAIL protected unchanged; history click (750,350) hit outbound comms428 link, opened separate session-2, so additive-parent expectation was invalid",
+    "not_accepted": [
+      "pure history click/PageUp focus",
+      "intermittent Backspace/arrow failure resolution",
+      "inline/suspend/resume physical coverage",
+      "whole focus workflow readiness",
+      "default activation"
+    ]
+  },
+  "side_effect_boundary": {
+    "prompt_submissions": 0,
+    "provider_calls": 0,
+    "public_mutations": 0,
+    "native_input_replays": 0,
+    "default_changes": 0
+  },
+  "protected_counterevidence": [
+    "/home/ts/.cache/agent-scratch/toad-editor-focus-227-20260930-run01",
+    "/home/ts/.cache/agent-scratch/toad-editor-focus-227-20260930-run02",
+    "/home/ts/.cache/agent-scratch/toad-editor-focus-227-20260930-candidate01",
+    "/home/ts/.cache/agent-scratch/toad-editor-focus-227-20260930-candidate02/editing-acceptance.json"
+  ]
+}
