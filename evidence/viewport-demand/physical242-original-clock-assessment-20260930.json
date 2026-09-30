@@ -1,0 +1,343 @@
+{
+  "scope": "Read-only existing recorder/ProfileTrace derived clock and observer assessment; no new producer clock",
+  "native_proxy": "Parent/Heisenberg corrected NativeProxy as a wrong term; no proxy clock/artifact/owner is claimed",
+  "limits": [
+    "A changed-stack observation is not sample count, CPU duration, invocation count or causal proof",
+    "Kernel counters are phase CPU authority and include diagnostics",
+    "Profiler-origin exec/readiness bounds are nominal; profiler timestamp semantics not independently traced here",
+    "No FFmpeg first-frame monotonic witness; video alignment error not bounded by profiler-origin uncertainty",
+    "UNIX wall captured_ns/manifest started_ns cannot join native hrtime without original measured binding",
+    "Observer-overlapping or phase-boundary-overlapping stacks stay ambiguous; no midpoint stage allocation",
+    "These queries overlap; do not add group counts as disjoint time"
+  ],
+  "runs": {
+    "release02": {
+      "raw": "/home/ts/.cache/agent-scratch/kepler-all-merged-ui-20260930-attempt02/capture",
+      "receipt_sha256": "93417a9761833f3b6059987d806e24e61d1fe284a0839da4cfdd1956d77e8388",
+      "original_ui": {
+        "pid": 3605915,
+        "birth": 26320577
+      },
+      "profiler_origin_monotonic_bounds": [
+        263206.292200683,
+        263206.371328126
+      ],
+      "capture_launch_monotonic": 263206.674640784,
+      "nominal_profiler_origin_uncertainty_seconds": 0.079563721511513,
+      "video_first_frame_monotonic": null,
+      "observer_intervals": [
+        {
+          "label": "warm-start",
+          "start": 263220.147990079,
+          "end": 263220.47201323
+        },
+        {
+          "label": "draft",
+          "start": 263226.166929496,
+          "end": 263226.482602644
+        },
+        {
+          "label": "focused",
+          "start": 263228.440718019,
+          "end": 263228.811688961
+        },
+        {
+          "label": "up",
+          "start": 263231.031858539,
+          "end": 263231.34234804
+        },
+        {
+          "label": "up-done",
+          "start": 263236.790141635,
+          "end": 263237.136937373
+        },
+        {
+          "label": "down",
+          "start": 263238.242307555,
+          "end": 263238.609898095
+        },
+        {
+          "label": "down-done",
+          "start": 263244.091962335,
+          "end": 263244.403370406
+        },
+        {
+          "label": "reverse",
+          "start": 263245.47209591,
+          "end": 263245.836996095
+        },
+        {
+          "label": "reverse-done",
+          "start": 263251.404140134,
+          "end": 263251.757812335
+        },
+        {
+          "label": "end",
+          "start": 263252.936851594,
+          "end": 263253.278885614
+        },
+        {
+          "label": "idle",
+          "start": 263255.684222841,
+          "end": 263255.996508324
+        },
+        {
+          "label": "idle-done",
+          "start": 263272.207666678,
+          "end": 263272.622837437
+        },
+        {
+          "label": "switch-b",
+          "start": 263273.698435037,
+          "end": 263274.021710213
+        },
+        {
+          "label": "b-open",
+          "start": 263275.841855274,
+          "end": 263279.001371746
+        },
+        {
+          "label": "return-a",
+          "start": 263280.375287107,
+          "end": 263280.701840722
+        },
+        {
+          "label": "a-return",
+          "start": 263284.693172916,
+          "end": 263284.998377148
+        },
+        {
+          "label": "undo",
+          "start": 263289.147498609,
+          "end": 263289.517279879
+        }
+      ],
+      "phases": [
+        {
+          "label": "down",
+          "ui_changed_stack_groups_intersecting_nominal_phase": 125,
+          "phase_boundary_ambiguous": 4,
+          "observer_interval_overlapping": 4,
+          "owner_queries": {
+            "diagnostic": {
+              "matching_groups": 1,
+              "outside_observer_and_boundary_ambiguity": 0
+            },
+            "layout_paint": {
+              "matching_groups": 48,
+              "outside_observer_and_boundary_ambiguity": 48
+            },
+            "preparation_history": {
+              "matching_groups": 48,
+              "outside_observer_and_boundary_ambiguity": 45
+            }
+          }
+        },
+        {
+          "label": "idle",
+          "ui_changed_stack_groups_intersecting_nominal_phase": 78,
+          "phase_boundary_ambiguous": 5,
+          "observer_interval_overlapping": 6,
+          "owner_queries": {
+            "diagnostic": {
+              "matching_groups": 5,
+              "outside_observer_and_boundary_ambiguity": 0
+            },
+            "layout_paint": {
+              "matching_groups": 4,
+              "outside_observer_and_boundary_ambiguity": 4
+            },
+            "preparation_history": {
+              "matching_groups": 38,
+              "outside_observer_and_boundary_ambiguity": 36
+            }
+          }
+        },
+        {
+          "label": "return-a",
+          "ui_changed_stack_groups_intersecting_nominal_phase": 43,
+          "phase_boundary_ambiguous": 6,
+          "observer_interval_overlapping": 5,
+          "owner_queries": {
+            "diagnostic": {
+              "matching_groups": 3,
+              "outside_observer_and_boundary_ambiguity": 0
+            },
+            "layout_paint": {
+              "matching_groups": 5,
+              "outside_observer_and_boundary_ambiguity": 5
+            },
+            "preparation_history": {
+              "matching_groups": 20,
+              "outside_observer_and_boundary_ambiguity": 15
+            }
+          }
+        }
+      ]
+    },
+    "candidate242": {
+      "raw": "/home/ts/.cache/agent-scratch/toad-history-projection-242-20260930-attempt01/capture",
+      "receipt_sha256": "20733714b8c0be39b82f125848e56d2b622d81cc144a28b628b9538daa1c2a53",
+      "original_ui": {
+        "pid": 3613471,
+        "birth": 26352594
+      },
+      "profiler_origin_monotonic_bounds": [
+        263526.46654292,
+        263526.501772649
+      ],
+      "capture_launch_monotonic": 263526.769646289,
+      "nominal_profiler_origin_uncertainty_seconds": 0.05761486451141536,
+      "video_first_frame_monotonic": null,
+      "observer_intervals": [
+        {
+          "label": "warm-start",
+          "start": 263540.143836809,
+          "end": 263540.461190316
+        },
+        {
+          "label": "draft",
+          "start": 263545.839904831,
+          "end": 263546.147674147
+        },
+        {
+          "label": "focused",
+          "start": 263547.882861395,
+          "end": 263548.202872314
+        },
+        {
+          "label": "up",
+          "start": 263550.381209618,
+          "end": 263550.682428759
+        },
+        {
+          "label": "up-done",
+          "start": 263556.08917188,
+          "end": 263556.458876902
+        },
+        {
+          "label": "down",
+          "start": 263557.625582868,
+          "end": 263557.913953186
+        },
+        {
+          "label": "down-done",
+          "start": 263563.392840819,
+          "end": 263563.744439571
+        },
+        {
+          "label": "reverse",
+          "start": 263564.794759431,
+          "end": 263565.0983376
+        },
+        {
+          "label": "reverse-done",
+          "start": 263570.597977848,
+          "end": 263570.972560258
+        },
+        {
+          "label": "end",
+          "start": 263572.082032514,
+          "end": 263572.459099519
+        },
+        {
+          "label": "idle",
+          "start": 263574.785701216,
+          "end": 263575.103221559
+        },
+        {
+          "label": "idle-done",
+          "start": 263591.376800469,
+          "end": 263591.692982458
+        },
+        {
+          "label": "switch-b",
+          "start": 263592.730517587,
+          "end": 263593.032850759
+        },
+        {
+          "label": "b-open",
+          "start": 263594.619129703,
+          "end": 263597.148927564
+        },
+        {
+          "label": "return-a",
+          "start": 263598.558423128,
+          "end": 263598.879689637
+        },
+        {
+          "label": "a-return",
+          "start": 263602.980583931,
+          "end": 263603.3080604
+        },
+        {
+          "label": "undo",
+          "start": 263607.402443083,
+          "end": 263607.788420374
+        }
+      ],
+      "phases": [
+        {
+          "label": "down",
+          "ui_changed_stack_groups_intersecting_nominal_phase": 122,
+          "phase_boundary_ambiguous": 7,
+          "observer_interval_overlapping": 7,
+          "owner_queries": {
+            "diagnostic": {
+              "matching_groups": 2,
+              "outside_observer_and_boundary_ambiguity": 0
+            },
+            "layout_paint": {
+              "matching_groups": 43,
+              "outside_observer_and_boundary_ambiguity": 43
+            },
+            "preparation_history": {
+              "matching_groups": 33,
+              "outside_observer_and_boundary_ambiguity": 28
+            }
+          }
+        },
+        {
+          "label": "idle",
+          "ui_changed_stack_groups_intersecting_nominal_phase": 85,
+          "phase_boundary_ambiguous": 4,
+          "observer_interval_overlapping": 3,
+          "owner_queries": {
+            "diagnostic": {
+              "matching_groups": 2,
+              "outside_observer_and_boundary_ambiguity": 0
+            },
+            "layout_paint": {
+              "matching_groups": 9,
+              "outside_observer_and_boundary_ambiguity": 9
+            },
+            "preparation_history": {
+              "matching_groups": 39,
+              "outside_observer_and_boundary_ambiguity": 35
+            }
+          }
+        },
+        {
+          "label": "return-a",
+          "ui_changed_stack_groups_intersecting_nominal_phase": 45,
+          "phase_boundary_ambiguous": 3,
+          "observer_interval_overlapping": 6,
+          "owner_queries": {
+            "diagnostic": {
+              "matching_groups": 2,
+              "outside_observer_and_boundary_ambiguity": 0
+            },
+            "layout_paint": {
+              "matching_groups": 5,
+              "outside_observer_and_boundary_ambiguity": 4
+            },
+            "preparation_history": {
+              "matching_groups": 19,
+              "outside_observer_and_boundary_ambiguity": 19
+            }
+          }
+        }
+      ]
+    }
+  }
+}
