@@ -54,6 +54,10 @@ def capture(*, expected_pid, output_prefix):
         frame = vars(screen).get("frame_presentation")
         metadata["screen"] = {
             **node_identity(screen), "current_mode": app.current_mode,
+            "focused": None if screen.focused is None else {
+                **node_identity(screen.focused),
+                "ancestors": [node_identity(node) for node in screen.focused.ancestors_with_self],
+            },
             "selected_mode": app.selected_mode, "is_current": screen.is_current,
             "scroll_offset": tuple(screen.scroll_offset),
             "max_scroll": [screen.max_scroll_x, screen.max_scroll_y],
@@ -137,7 +141,7 @@ def capture(*, expected_pid, output_prefix):
                         document = data.get("document")
                         lines = vars(document).get("_lines") if document is not None else None
                         selection = data.get("_reactive_selection")
-                        view["drafts"].append({"lines": tuple(lines) if lines is not None else None,
+                        view["drafts"].append({"object_id": id(node), "lines": tuple(lines) if lines is not None else None,
                                                "selection": tuple(tuple(point) for point in selection) if selection is not None else None})
                     if kind == "Contents" and type(node).__module__ == "toad.widgets.conversation":
                         for child in tuple(children._nodes) if children is not None else ():
