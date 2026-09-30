@@ -1,0 +1,1944 @@
+{
+  "profiler": "py-spy",
+  "rate_hz": 25,
+  "sampling": "consistent",
+  "trace": "cpu-profile.json",
+  "trace_origin_monotonic_estimate": 207991.702368123,
+  "trace_to_video_offset_seconds": -0.4235746150079649,
+  "ui_pid": 2076485,
+  "trace_origin_monotonic_bounds": [
+    207991.66730028,
+    207991.737435966
+  ],
+  "alignment": "profiler exec to sampling-ready observation bound; approximate midpoint",
+  "alignment_nominal_uncertainty_seconds": 0.07506784299679567,
+  "limits": [
+    "Scheduler delays and sampling errors can increase clock uncertainty",
+    "Consistent sampling briefly pauses Python; compare an unprofiled journey for observer overhead",
+    "Stack spans are sampled wall activity, not exact call counts or CPU time",
+    "Kernel counter deltas give per-process CPU time at action boundaries",
+    "Sampled functions identify activation/preparation/layout/paint activity; no production event hook supplies exact phase timestamps",
+    "No automatic inference that a UI frame passed or a function is redundant"
+  ],
+  "processes": [
+    "2076485",
+    "2076509",
+    "2076556",
+    "2076660",
+    "2076754",
+    "2076762"
+  ],
+  "phases": [
+    {
+      "label": "focused",
+      "video_start_seconds": 12.738991952006472,
+      "video_end_seconds": 14.526002827013144,
+      "cpu": [
+        {
+          "pid": "2076485",
+          "command": "toad                                                                                                                                                                                                                                                                                                                             ",
+          "cpu_seconds": 0.4500000000000002,
+          "average_cpu_percent": 25.181715807874983
+        },
+        {
+          "pid": "2076762",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=26) --multiprocessing-fork ",
+          "cpu_seconds": 0.030000000000000027,
+          "average_cpu_percent": 1.6787810538583332
+        },
+        {
+          "pid": "2076556",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=15) --multiprocessing-fork ",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.5595936846194444
+        },
+        {
+          "pid": "2076482",
+          "command": "st -e /home/ts/wt/toad-viewport-demand-20260929/.venv/bin/toad acp /home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -m agent_comms.acp /home/ts/.cache/agent-scratch/toad-viewport-demand-20260929/native-profiled-6be/l0a-native-54hkjyio/project --session beta ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2076754",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=24) --multiprocessing-fork ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2076660",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -m agent_comms.acp ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2076509",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -c from multiprocessing.resource_tracker import main;main(5) ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ],
+      "hot_sampled_frames": [
+        {
+          "pid": "2076485",
+          "function": "select",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/notification_assignment.py",
+          "line": 79,
+          "inclusive_sampled_wall_seconds": 6.649024067041125,
+          "self_sampled_wall_seconds": 6.649024067041125
+        },
+        {
+          "pid": "2076485",
+          "function": "encode",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 240,
+          "inclusive_sampled_wall_seconds": 1.787010875006672,
+          "self_sampled_wall_seconds": 1.787010875006672
+        },
+        {
+          "pid": "2076485",
+          "function": "read_metadata_unlocked",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/wire_log.py",
+          "line": 549,
+          "inclusive_sampled_wall_seconds": 1.787010875006672,
+          "self_sampled_wall_seconds": 1.787010875006672
+        },
+        {
+          "pid": "2076762",
+          "function": "<module>",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/html/entities.py",
+          "line": 2510,
+          "inclusive_sampled_wall_seconds": 1.787010875006672,
+          "self_sampled_wall_seconds": 1.787010875006672
+        },
+        {
+          "pid": "2076754",
+          "function": "_recv_bytes",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/connection.py",
+          "line": 448,
+          "inclusive_sampled_wall_seconds": 1.787010875006672,
+          "self_sampled_wall_seconds": 1.787010875006672
+        },
+        {
+          "pid": "2076660",
+          "function": "visit",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/native_package.py",
+          "line": 80,
+          "inclusive_sampled_wall_seconds": 10.722065250040032,
+          "self_sampled_wall_seconds": 1.787010875006672
+        },
+        {
+          "pid": "2076485",
+          "function": "run",
+          "filename": "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/.venv/lib/python3.14/site-packages/textual/drivers/_writer_thread.py",
+          "line": 74,
+          "inclusive_sampled_wall_seconds": 1.787010875006672,
+          "self_sampled_wall_seconds": 1.787010875006672
+        },
+        {
+          "pid": "2076556",
+          "function": "<genexpr>",
+          "filename": "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/.venv/lib/python3.14/site-packages/textual/dom.py",
+          "line": 624,
+          "inclusive_sampled_wall_seconds": 1.787010875006672,
+          "self_sampled_wall_seconds": 1.787010875006672
+        },
+        {
+          "pid": "2076485",
+          "function": "arrange_widget",
+          "filename": "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/.venv/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 744,
+          "inclusive_sampled_wall_seconds": 1.616263,
+          "self_sampled_wall_seconds": 1.616263
+        },
+        {
+          "pid": "2076485",
+          "function": "select",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/notification_assignment.py",
+          "line": 65,
+          "inclusive_sampled_wall_seconds": 1.392385432985563,
+          "self_sampled_wall_seconds": 1.392385432985563
+        },
+        {
+          "pid": "2076485",
+          "function": "select",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/notification_assignment.py",
+          "line": 51,
+          "inclusive_sampled_wall_seconds": 0.4990194329855626,
+          "self_sampled_wall_seconds": 0.4990194329855626
+        },
+        {
+          "pid": "2076485",
+          "function": "_store_lock",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/store_files.py",
+          "line": 38,
+          "inclusive_sampled_wall_seconds": 0.38472544202110903,
+          "self_sampled_wall_seconds": 0.38472544202110903
+        },
+        {
+          "pid": "2076485",
+          "function": "_decode",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 410,
+          "inclusive_sampled_wall_seconds": 0.055895442021109076,
+          "self_sampled_wall_seconds": 0.055895442021109076
+        },
+        {
+          "pid": "2076485",
+          "function": "_on_timer_update",
+          "filename": "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/.venv/lib/python3.14/site-packages/textual/screen.py",
+          "line": 1270,
+          "inclusive_sampled_wall_seconds": 0.05475200000000058,
+          "self_sampled_wall_seconds": 0.05475200000000058
+        },
+        {
+          "pid": "2076485",
+          "function": "__aenter__",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/locks.py",
+          "line": 14,
+          "inclusive_sampled_wall_seconds": 0.04843200000000003,
+          "self_sampled_wall_seconds": 0.04843200000000003
+        },
+        {
+          "pid": "2076485",
+          "function": "render_widget",
+          "filename": "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/.venv/lib/python3.14/site-packages/textual/_styles_cache.py",
+          "line": 126,
+          "inclusive_sampled_wall_seconds": 0.011668432985562305,
+          "self_sampled_wall_seconds": 0.011668432985562305
+        },
+        {
+          "pid": "2076485",
+          "function": "with_segments",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/pathlib/__init__.py",
+          "line": 162,
+          "inclusive_sampled_wall_seconds": 0.00990000000000002,
+          "self_sampled_wall_seconds": 0.00990000000000002
+        },
+        {
+          "pid": "2076485",
+          "function": "render_lines",
+          "filename": "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/.venv/lib/python3.14/site-packages/textual/widget.py",
+          "line": 4478,
+          "inclusive_sampled_wall_seconds": 0.011668432985562305,
+          "self_sampled_wall_seconds": 0.0
+        },
+        {
+          "pid": "2076485",
+          "function": "_get_renders",
+          "filename": "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/.venv/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 1235,
+          "inclusive_sampled_wall_seconds": 0.011668432985562305,
+          "self_sampled_wall_seconds": 0.0
+        },
+        {
+          "pid": "2076485",
+          "function": "_render_chops",
+          "filename": "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/.venv/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 1410,
+          "inclusive_sampled_wall_seconds": 0.011668432985562305,
+          "self_sampled_wall_seconds": 0.0
+        }
+      ],
+      "visible_stall_assessment": "unreviewed; correlate with phase video and actual frames"
+    },
+    {
+      "label": "up",
+      "video_start_seconds": 14.526002827013144,
+      "video_end_seconds": 19.280706574994838,
+      "cpu": [
+        {
+          "pid": "2076485",
+          "command": "toad                                                                                                                                                                                                                                                                                                                             ",
+          "cpu_seconds": 3.389999999999999,
+          "average_cpu_percent": 71.2978174810367
+        },
+        {
+          "pid": "2076482",
+          "command": "st -e /home/ts/wt/toad-viewport-demand-20260929/.venv/bin/toad acp /home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -m agent_comms.acp /home/ts/.cache/agent-scratch/toad-viewport-demand-20260929/native-profiled-6be/l0a-native-54hkjyio/project --session beta ",
+          "cpu_seconds": 0.1,
+          "average_cpu_percent": 2.10318045666775
+        },
+        {
+          "pid": "2076556",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=15) --multiprocessing-fork ",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.2103180456667752
+        },
+        {
+          "pid": "2076754",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=24) --multiprocessing-fork ",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.2103180456667752
+        },
+        {
+          "pid": "2076762",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=26) --multiprocessing-fork ",
+          "cpu_seconds": 0.009999999999999898,
+          "average_cpu_percent": 0.21031804566677284
+        },
+        {
+          "pid": "2076660",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -m agent_comms.acp ",
+          "cpu_seconds": 0.009999999999999787,
+          "average_cpu_percent": 0.2103180456667705
+        },
+        {
+          "pid": "2076509",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -c from multiprocessing.resource_tracker import main;main(5) ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ],
+      "hot_sampled_frames": [
+        {
+          "pid": "2076485",
+          "function": "select",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/notification_assignment.py",
+          "line": 79,
+          "inclusive_sampled_wall_seconds": 15.192360611921169,
+          "self_sampled_wall_seconds": 15.192360611921169
+        },
+        {
+          "pid": "2076762",
+          "function": "<module>",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/html/entities.py",
+          "line": 2510,
+          "inclusive_sampled_wall_seconds": 4.754703747981694,
+          "self_sampled_wall_seconds": 4.754703747981694
+        },
+        {
+          "pid": "2076754",
+          "function": "_recv_bytes",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/connection.py",
+          "line": 448,
+          "inclusive_sampled_wall_seconds": 4.754703747981694,
+          "self_sampled_wall_seconds": 4.754703747981694
+        },
+        {
+          "pid": "2076660",
+          "function": "visit",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/native_package.py",
+          "line": 80,
+          "inclusive_sampled_wall_seconds": 28.52822248789016,
+          "self_sampled_wall_seconds": 4.754703747981694
+        },
+        {
+          "pid": "2076485",
+          "function": "run",
+          "filename": "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/.venv/lib/python3.14/site-packages/textual/drivers/_writer_thread.py",
+          "line": 74,
+          "inclusive_sampled_wall_seconds": 4.754703747981694,
+          "self_sampled_wall_seconds": 4.754703747981694
+        },
+        {
+          "pid": "2076556",
+          "function": "<genexpr>",
+          "filename": "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/.venv/lib/python3.14/site-packages/textual/dom.py",
+          "line": 624,
+          "inclusive_sampled_wall_seconds": 4.754703747981694,
+          "self_sampled_wall_seconds": 4.754703747981694
+        },
+        {
+          "pid": "2076485",
+          "function": "_store_lock",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/store_files.py",
+          "line": 38,
+          "inclusive_sampled_wall_seconds": 4.617835747981696,
+          "self_sampled_wall_seconds": 4.617835747981696
+        },
+        {
+          "pid": "2076485",
+          "function": "encode",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 240,
+          "inclusive_sampled_wall_seconds": 2.5913735579788906,
+          "self_sampled_wall_seconds": 2.5913735579788906
+        },
+        {
+          "pid": "2076485",
+          "function": "realpath",
+          "filename": "<frozen posixpath>",
+          "line": 457,
+          "inclusive_sampled_wall_seconds": 2.497656000000001,
+          "self_sampled_wall_seconds": 2.497656000000001
+        },
+        {
+          "pid": "2076485",
+          "function": "_worker",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/thread.py",
+          "line": 116,
+          "inclusive_sampled_wall_seconds": 2.2660231900028016,
+          "self_sampled_wall_seconds": 2.2660231900028016
+        },
+        {
+          "pid": "2076485",
+          "function": "read_metadata_unlocked",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/wire_log.py",
+          "line": 549,
+          "inclusive_sampled_wall_seconds": 1.7871085579788897,
+          "self_sampled_wall_seconds": 1.7871085579788897
+        },
+        {
+          "pid": "2076485",
+          "function": "open",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/pathlib/__init__.py",
+          "line": 771,
+          "inclusive_sampled_wall_seconds": 1.743348190002802,
+          "self_sampled_wall_seconds": 1.743348190002802
+        },
+        {
+          "pid": "2076485",
+          "function": "walk_depth_first",
+          "filename": "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/.venv/lib/python3.14/site-packages/textual/walk.py",
+          "line": 86,
+          "inclusive_sampled_wall_seconds": 0.9186881900028006,
+          "self_sampled_wall_seconds": 0.9186881900028006
+        },
+        {
+          "pid": "2076485",
+          "function": "_from_parsed_string",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/pathlib/__init__.py",
+          "line": 277,
+          "inclusive_sampled_wall_seconds": 0.7871641900028017,
+          "self_sampled_wall_seconds": 0.7871641900028017
+        },
+        {
+          "pid": "2076485",
+          "function": "fdopen",
+          "filename": "<frozen os>",
+          "line": 1076,
+          "inclusive_sampled_wall_seconds": 0.6804440000000014,
+          "self_sampled_wall_seconds": 0.6804440000000014
+        },
+        {
+          "pid": "2076485",
+          "function": "encode",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 212,
+          "inclusive_sampled_wall_seconds": 0.6020179999999993,
+          "self_sampled_wall_seconds": 0.6020179999999993
+        },
+        {
+          "pid": "2076485",
+          "function": "_decode",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 410,
+          "inclusive_sampled_wall_seconds": 0.3939075579788902,
+          "self_sampled_wall_seconds": 0.3939075579788902
+        },
+        {
+          "pid": "2076485",
+          "function": "_parent",
+          "filename": "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 185,
+          "inclusive_sampled_wall_seconds": 0.2692640000000015,
+          "self_sampled_wall_seconds": 0.2692640000000015
+        },
+        {
+          "pid": "2076485",
+          "function": "__exit__",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py",
+          "line": 364,
+          "inclusive_sampled_wall_seconds": 0.2432581900028019,
+          "self_sampled_wall_seconds": 0.2432581900028019
+        },
+        {
+          "pid": "2076485",
+          "function": "viewer_snapshot",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/history_views.py",
+          "line": 334,
+          "inclusive_sampled_wall_seconds": 1.4893110000000007,
+          "self_sampled_wall_seconds": 0.15557199999999938
+        }
+      ],
+      "visible_stall_assessment": "unreviewed; correlate with phase video and actual frames"
+    },
+    {
+      "label": "up-done",
+      "video_start_seconds": 19.280706574994838,
+      "video_end_seconds": 20.00144483600161,
+      "cpu": [
+        {
+          "pid": "2076485",
+          "command": "toad                                                                                                                                                                                                                                                                                                                             ",
+          "cpu_seconds": 0.120000000000001,
+          "average_cpu_percent": 16.649594796365804
+        },
+        {
+          "pid": "2076482",
+          "command": "st -e /home/ts/wt/toad-viewport-demand-20260929/.venv/bin/toad acp /home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -m agent_comms.acp /home/ts/.cache/agent-scratch/toad-viewport-demand-20260929/native-profiled-6be/l0a-native-54hkjyio/project --session beta ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2076556",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=15) --multiprocessing-fork ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2076754",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=24) --multiprocessing-fork ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2076660",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -m agent_comms.acp ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2076762",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=26) --multiprocessing-fork ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2076509",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -c from multiprocessing.resource_tracker import main;main(5) ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ],
+      "hot_sampled_frames": [
+        {
+          "pid": "2076485",
+          "function": "select",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/notification_assignment.py",
+          "line": 79,
+          "inclusive_sampled_wall_seconds": 1.4381675220135435,
+          "self_sampled_wall_seconds": 1.4381675220135435
+        },
+        {
+          "pid": "2076485",
+          "function": "walk_depth_first",
+          "filename": "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/.venv/lib/python3.14/site-packages/textual/walk.py",
+          "line": 86,
+          "inclusive_sampled_wall_seconds": 0.7207382610067725,
+          "self_sampled_wall_seconds": 0.7207382610067725
+        },
+        {
+          "pid": "2076485",
+          "function": "_store_lock",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/store_files.py",
+          "line": 38,
+          "inclusive_sampled_wall_seconds": 0.7207382610067725,
+          "self_sampled_wall_seconds": 0.7207382610067725
+        },
+        {
+          "pid": "2076485",
+          "function": "open",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/pathlib/__init__.py",
+          "line": 771,
+          "inclusive_sampled_wall_seconds": 0.7207382610067725,
+          "self_sampled_wall_seconds": 0.7207382610067725
+        },
+        {
+          "pid": "2076485",
+          "function": "_worker",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/thread.py",
+          "line": 116,
+          "inclusive_sampled_wall_seconds": 0.7207382610067725,
+          "self_sampled_wall_seconds": 0.7207382610067725
+        },
+        {
+          "pid": "2076485",
+          "function": "_from_parsed_string",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/pathlib/__init__.py",
+          "line": 277,
+          "inclusive_sampled_wall_seconds": 0.7207382610067725,
+          "self_sampled_wall_seconds": 0.7207382610067725
+        },
+        {
+          "pid": "2076485",
+          "function": "__exit__",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py",
+          "line": 364,
+          "inclusive_sampled_wall_seconds": 0.7207382610067725,
+          "self_sampled_wall_seconds": 0.7207382610067725
+        },
+        {
+          "pid": "2076762",
+          "function": "<module>",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/html/entities.py",
+          "line": 2510,
+          "inclusive_sampled_wall_seconds": 0.7207382610067725,
+          "self_sampled_wall_seconds": 0.7207382610067725
+        },
+        {
+          "pid": "2076754",
+          "function": "_recv_bytes",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/connection.py",
+          "line": 448,
+          "inclusive_sampled_wall_seconds": 0.7207382610067725,
+          "self_sampled_wall_seconds": 0.7207382610067725
+        },
+        {
+          "pid": "2076660",
+          "function": "visit",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/native_package.py",
+          "line": 80,
+          "inclusive_sampled_wall_seconds": 4.324429566040635,
+          "self_sampled_wall_seconds": 0.7207382610067725
+        },
+        {
+          "pid": "2076485",
+          "function": "run",
+          "filename": "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/.venv/lib/python3.14/site-packages/textual/drivers/_writer_thread.py",
+          "line": 74,
+          "inclusive_sampled_wall_seconds": 0.7207382610067725,
+          "self_sampled_wall_seconds": 0.7207382610067725
+        },
+        {
+          "pid": "2076556",
+          "function": "<genexpr>",
+          "filename": "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/.venv/lib/python3.14/site-packages/textual/dom.py",
+          "line": 624,
+          "inclusive_sampled_wall_seconds": 0.7207382610067725,
+          "self_sampled_wall_seconds": 0.7207382610067725
+        },
+        {
+          "pid": "2076485",
+          "function": "registry_digest",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/private_registry_guard.py",
+          "line": 56,
+          "inclusive_sampled_wall_seconds": 0.0033090000000015607,
+          "self_sampled_wall_seconds": 0.0033090000000015607
+        },
+        {
+          "pid": "2076485",
+          "function": "recent",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/presentation.py",
+          "line": 100,
+          "inclusive_sampled_wall_seconds": 2.8796440440270885,
+          "self_sampled_wall_seconds": 0.0
+        },
+        {
+          "pid": "2076485",
+          "function": "verify",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/private_registry_guard.py",
+          "line": 185,
+          "inclusive_sampled_wall_seconds": 0.0033090000000015607,
+          "self_sampled_wall_seconds": 0.0
+        },
+        {
+          "pid": "2076485",
+          "function": "private_guard_unlocked",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/registry_store.py",
+          "line": 119,
+          "inclusive_sampled_wall_seconds": 0.7240472610067741,
+          "self_sampled_wall_seconds": 0.0
+        },
+        {
+          "pid": "2076485",
+          "function": "_read_unlocked",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/registry_store.py",
+          "line": 50,
+          "inclusive_sampled_wall_seconds": 0.7240472610067741,
+          "self_sampled_wall_seconds": 0.0
+        },
+        {
+          "pid": "2076485",
+          "function": "reading",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/locked_store.py",
+          "line": 78,
+          "inclusive_sampled_wall_seconds": 0.7240472610067741,
+          "self_sampled_wall_seconds": 0.0
+        },
+        {
+          "pid": "2076485",
+          "function": "__enter__",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py",
+          "line": 141,
+          "inclusive_sampled_wall_seconds": 2.8862620440270916,
+          "self_sampled_wall_seconds": 0.0
+        },
+        {
+          "pid": "2076485",
+          "function": "require",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/registration.py",
+          "line": 318,
+          "inclusive_sampled_wall_seconds": 0.0033090000000015607,
+          "self_sampled_wall_seconds": 0.0
+        }
+      ],
+      "visible_stall_assessment": "unreviewed; correlate with phase video and actual frames"
+    },
+    {
+      "label": "down",
+      "video_start_seconds": 20.00144483600161,
+      "video_end_seconds": 24.746675127011258,
+      "cpu": [
+        {
+          "pid": "2076485",
+          "command": "toad                                                                                                                                                                                                                                                                                                                             ",
+          "cpu_seconds": 2.959999999999999,
+          "average_cpu_percent": 62.37842672479014
+        },
+        {
+          "pid": "2076482",
+          "command": "st -e /home/ts/wt/toad-viewport-demand-20260929/.venv/bin/toad acp /home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -m agent_comms.acp /home/ts/.cache/agent-scratch/toad-viewport-demand-20260929/native-profiled-6be/l0a-native-54hkjyio/project --session beta ",
+          "cpu_seconds": 0.09,
+          "average_cpu_percent": 1.8966413531186197
+        },
+        {
+          "pid": "2076660",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -m agent_comms.acp ",
+          "cpu_seconds": 0.010000000000000231,
+          "average_cpu_percent": 0.21073792812429595
+        },
+        {
+          "pid": "2076556",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=15) --multiprocessing-fork ",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.21073792812429126
+        },
+        {
+          "pid": "2076754",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=24) --multiprocessing-fork ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2076762",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=26) --multiprocessing-fork ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2076509",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -c from multiprocessing.resource_tracker import main;main(5) ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ],
+      "hot_sampled_frames": [
+        {
+          "pid": "2076485",
+          "function": "select",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/notification_assignment.py",
+          "line": 79,
+          "inclusive_sampled_wall_seconds": 9.230084840000071,
+          "self_sampled_wall_seconds": 9.230084840000071
+        },
+        {
+          "pid": "2076485",
+          "function": "_from_parsed_string",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/pathlib/__init__.py",
+          "line": 277,
+          "inclusive_sampled_wall_seconds": 4.745230291009648,
+          "self_sampled_wall_seconds": 4.745230291009648
+        },
+        {
+          "pid": "2076485",
+          "function": "__exit__",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py",
+          "line": 364,
+          "inclusive_sampled_wall_seconds": 4.745230291009648,
+          "self_sampled_wall_seconds": 4.745230291009648
+        },
+        {
+          "pid": "2076762",
+          "function": "<module>",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/html/entities.py",
+          "line": 2510,
+          "inclusive_sampled_wall_seconds": 4.745230291009648,
+          "self_sampled_wall_seconds": 4.745230291009648
+        },
+        {
+          "pid": "2076754",
+          "function": "_recv_bytes",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/connection.py",
+          "line": 448,
+          "inclusive_sampled_wall_seconds": 4.745230291009648,
+          "self_sampled_wall_seconds": 4.745230291009648
+        },
+        {
+          "pid": "2076660",
+          "function": "visit",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/native_package.py",
+          "line": 80,
+          "inclusive_sampled_wall_seconds": 28.471381746057887,
+          "self_sampled_wall_seconds": 4.745230291009648
+        },
+        {
+          "pid": "2076485",
+          "function": "run",
+          "filename": "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/.venv/lib/python3.14/site-packages/textual/drivers/_writer_thread.py",
+          "line": 74,
+          "inclusive_sampled_wall_seconds": 4.745230291009648,
+          "self_sampled_wall_seconds": 4.745230291009648
+        },
+        {
+          "pid": "2076556",
+          "function": "<genexpr>",
+          "filename": "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/.venv/lib/python3.14/site-packages/textual/dom.py",
+          "line": 624,
+          "inclusive_sampled_wall_seconds": 4.745230291009648,
+          "self_sampled_wall_seconds": 4.745230291009648
+        },
+        {
+          "pid": "2076485",
+          "function": "_worker",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/thread.py",
+          "line": 116,
+          "inclusive_sampled_wall_seconds": 4.185011548990424,
+          "self_sampled_wall_seconds": 4.185011548990424
+        },
+        {
+          "pid": "2076485",
+          "function": "open",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/pathlib/__init__.py",
+          "line": 771,
+          "inclusive_sampled_wall_seconds": 4.134937548990425,
+          "self_sampled_wall_seconds": 4.134937548990425
+        },
+        {
+          "pid": "2076485",
+          "function": "_write_to_self",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/selector_events.py",
+          "line": 152,
+          "inclusive_sampled_wall_seconds": 3.0917527420192243,
+          "self_sampled_wall_seconds": 3.0917527420192243
+        },
+        {
+          "pid": "2076485",
+          "function": "_store_lock",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/store_files.py",
+          "line": 38,
+          "inclusive_sampled_wall_seconds": 1.7956675489904264,
+          "self_sampled_wall_seconds": 1.7956675489904264
+        },
+        {
+          "pid": "2076485",
+          "function": "registry_digest",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/private_registry_guard.py",
+          "line": 56,
+          "inclusive_sampled_wall_seconds": 1.5417839999999998,
+          "self_sampled_wall_seconds": 1.5417839999999998
+        },
+        {
+          "pid": "2076485",
+          "function": "stat",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/pathlib/__init__.py",
+          "line": 654,
+          "inclusive_sampled_wall_seconds": 1.4077787420192216,
+          "self_sampled_wall_seconds": 1.4077787420192216
+        },
+        {
+          "pid": "2076485",
+          "function": "scrollable_content_region",
+          "filename": "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/.venv/lib/python3.14/site-packages/textual/widget.py",
+          "line": 2421,
+          "inclusive_sampled_wall_seconds": 0.7931169999999987,
+          "self_sampled_wall_seconds": 0.7931169999999987
+        },
+        {
+          "pid": "2076485",
+          "function": "<genexpr>",
+          "filename": "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/.venv/lib/python3.14/site-packages/textual/css/match.py",
+          "line": 21,
+          "inclusive_sampled_wall_seconds": 0.6280057420192229,
+          "self_sampled_wall_seconds": 0.6280057420192229
+        },
+        {
+          "pid": "2076485",
+          "function": "isdir",
+          "filename": "<frozen genericpath>",
+          "line": 51,
+          "inclusive_sampled_wall_seconds": 0.610342742019224,
+          "self_sampled_wall_seconds": 0.610342742019224
+        },
+        {
+          "pid": "2076485",
+          "function": "_store_lock",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/store_files.py",
+          "line": 19,
+          "inclusive_sampled_wall_seconds": 0.6102927420192223,
+          "self_sampled_wall_seconds": 0.6102927420192223
+        },
+        {
+          "pid": "2076485",
+          "function": "walk_depth_first",
+          "filename": "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/.venv/lib/python3.14/site-packages/textual/walk.py",
+          "line": 86,
+          "inclusive_sampled_wall_seconds": 0.5043265489904236,
+          "self_sampled_wall_seconds": 0.5043265489904236
+        },
+        {
+          "pid": "2076485",
+          "function": "_decode",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 379,
+          "inclusive_sampled_wall_seconds": 0.21025174201922425,
+          "self_sampled_wall_seconds": 0.21025174201922425
+        }
+      ],
+      "visible_stall_assessment": "unreviewed; correlate with phase video and actual frames"
+    },
+    {
+      "label": "down-done",
+      "video_start_seconds": 24.746675127011258,
+      "video_end_seconds": 25.48126663599396,
+      "cpu": [
+        {
+          "pid": "2076485",
+          "command": "toad                                                                                                                                                                                                                                                                                                                             ",
+          "cpu_seconds": 0.13000000000000078,
+          "average_cpu_percent": 17.696910243358367
+        },
+        {
+          "pid": "2076762",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=26) --multiprocessing-fork ",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 1.3613007879506367
+        },
+        {
+          "pid": "2076482",
+          "command": "st -e /home/ts/wt/toad-viewport-demand-20260929/.venv/bin/toad acp /home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -m agent_comms.acp /home/ts/.cache/agent-scratch/toad-viewport-demand-20260929/native-profiled-6be/l0a-native-54hkjyio/project --session beta ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2076556",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=15) --multiprocessing-fork ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2076754",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=24) --multiprocessing-fork ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2076660",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -m agent_comms.acp ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2076509",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -c from multiprocessing.resource_tracker import main;main(5) ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ],
+      "hot_sampled_frames": [
+        {
+          "pid": "2076485",
+          "function": "isdir",
+          "filename": "<frozen genericpath>",
+          "line": 51,
+          "inclusive_sampled_wall_seconds": 0.7345915089827031,
+          "self_sampled_wall_seconds": 0.7345915089827031
+        },
+        {
+          "pid": "2076485",
+          "function": "<genexpr>",
+          "filename": "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/.venv/lib/python3.14/site-packages/textual/css/match.py",
+          "line": 21,
+          "inclusive_sampled_wall_seconds": 0.7345915089827031,
+          "self_sampled_wall_seconds": 0.7345915089827031
+        },
+        {
+          "pid": "2076485",
+          "function": "_store_lock",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/store_files.py",
+          "line": 19,
+          "inclusive_sampled_wall_seconds": 0.7345915089827031,
+          "self_sampled_wall_seconds": 0.7345915089827031
+        },
+        {
+          "pid": "2076485",
+          "function": "__exit__",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py",
+          "line": 364,
+          "inclusive_sampled_wall_seconds": 0.7345915089827031,
+          "self_sampled_wall_seconds": 0.7345915089827031
+        },
+        {
+          "pid": "2076485",
+          "function": "_decode",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 379,
+          "inclusive_sampled_wall_seconds": 0.7345915089827031,
+          "self_sampled_wall_seconds": 0.7345915089827031
+        },
+        {
+          "pid": "2076485",
+          "function": "stat",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/pathlib/__init__.py",
+          "line": 654,
+          "inclusive_sampled_wall_seconds": 0.7345915089827031,
+          "self_sampled_wall_seconds": 0.7345915089827031
+        },
+        {
+          "pid": "2076485",
+          "function": "select",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/notification_assignment.py",
+          "line": 79,
+          "inclusive_sampled_wall_seconds": 0.7345915089827031,
+          "self_sampled_wall_seconds": 0.7345915089827031
+        },
+        {
+          "pid": "2076762",
+          "function": "<module>",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/html/entities.py",
+          "line": 2510,
+          "inclusive_sampled_wall_seconds": 0.7345915089827031,
+          "self_sampled_wall_seconds": 0.7345915089827031
+        },
+        {
+          "pid": "2076754",
+          "function": "_recv_bytes",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/connection.py",
+          "line": 448,
+          "inclusive_sampled_wall_seconds": 0.7345915089827031,
+          "self_sampled_wall_seconds": 0.7345915089827031
+        },
+        {
+          "pid": "2076660",
+          "function": "visit",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/native_package.py",
+          "line": 80,
+          "inclusive_sampled_wall_seconds": 4.4075490538962185,
+          "self_sampled_wall_seconds": 0.7345915089827031
+        },
+        {
+          "pid": "2076485",
+          "function": "run",
+          "filename": "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/.venv/lib/python3.14/site-packages/textual/drivers/_writer_thread.py",
+          "line": 74,
+          "inclusive_sampled_wall_seconds": 0.7345915089827031,
+          "self_sampled_wall_seconds": 0.7345915089827031
+        },
+        {
+          "pid": "2076485",
+          "function": "_write_to_self",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/selector_events.py",
+          "line": 152,
+          "inclusive_sampled_wall_seconds": 0.7345915089827031,
+          "self_sampled_wall_seconds": 0.7345915089827031
+        },
+        {
+          "pid": "2076556",
+          "function": "<genexpr>",
+          "filename": "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/.venv/lib/python3.14/site-packages/textual/dom.py",
+          "line": 624,
+          "inclusive_sampled_wall_seconds": 0.7345915089827031,
+          "self_sampled_wall_seconds": 0.7345915089827031
+        },
+        {
+          "pid": "2076485",
+          "function": "_from_parsed_string",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/pathlib/__init__.py",
+          "line": 277,
+          "inclusive_sampled_wall_seconds": 0.4908502579807781,
+          "self_sampled_wall_seconds": 0.4908502579807781
+        },
+        {
+          "pid": "2076485",
+          "function": "<genexpr>",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/checkpoint_seals.py",
+          "line": 42,
+          "inclusive_sampled_wall_seconds": 0.48748250200385,
+          "self_sampled_wall_seconds": 0.243741251001925
+        },
+        {
+          "pid": "2076485",
+          "function": "_from_parsed_parts",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/pathlib/__init__.py",
+          "line": 270,
+          "inclusive_sampled_wall_seconds": 0.4908502579807781,
+          "self_sampled_wall_seconds": 0.0
+        },
+        {
+          "pid": "2076485",
+          "function": "parent",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/pathlib/__init__.py",
+          "line": 389,
+          "inclusive_sampled_wall_seconds": 0.4908502579807781,
+          "self_sampled_wall_seconds": 0.0
+        },
+        {
+          "pid": "2076485",
+          "function": "_trusted_root",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/private_registry_guard.py",
+          "line": 128,
+          "inclusive_sampled_wall_seconds": 0.4908502579807781,
+          "self_sampled_wall_seconds": 0.0
+        },
+        {
+          "pid": "2076485",
+          "function": "_open",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/private_registry_guard.py",
+          "line": 133,
+          "inclusive_sampled_wall_seconds": 0.4908502579807781,
+          "self_sampled_wall_seconds": 0.0
+        },
+        {
+          "pid": "2076485",
+          "function": "verify",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/private_registry_guard.py",
+          "line": 180,
+          "inclusive_sampled_wall_seconds": 0.4908502579807781,
+          "self_sampled_wall_seconds": 0.0
+        }
+      ],
+      "visible_stall_assessment": "unreviewed; correlate with phase video and actual frames"
+    },
+    {
+      "label": "reverse",
+      "video_start_seconds": 25.48126663599396,
+      "video_end_seconds": 30.26159220401314,
+      "cpu": [
+        {
+          "pid": "2076485",
+          "command": "toad                                                                                                                                                                                                                                                                                                                             ",
+          "cpu_seconds": 2.790000000000001,
+          "average_cpu_percent": 58.36422562231659
+        },
+        {
+          "pid": "2076482",
+          "command": "st -e /home/ts/wt/toad-viewport-demand-20260929/.venv/bin/toad acp /home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -m agent_comms.acp /home/ts/.cache/agent-scratch/toad-viewport-demand-20260929/native-profiled-6be/l0a-native-54hkjyio/project --session beta ",
+          "cpu_seconds": 0.08000000000000002,
+          "average_cpu_percent": 1.6735261827187549
+        },
+        {
+          "pid": "2076556",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=15) --multiprocessing-fork ",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.2091907728398445
+        },
+        {
+          "pid": "2076509",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -c from multiprocessing.resource_tracker import main;main(5) ",
+          "cpu_seconds": 0.010000000000000002,
+          "average_cpu_percent": 0.20919077283984436
+        },
+        {
+          "pid": "2076754",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=24) --multiprocessing-fork ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2076660",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -m agent_comms.acp ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2076762",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=26) --multiprocessing-fork ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ],
+      "hot_sampled_frames": [
+        {
+          "pid": "2076485",
+          "function": "__exit__",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py",
+          "line": 364,
+          "inclusive_sampled_wall_seconds": 5.139798387040287,
+          "self_sampled_wall_seconds": 5.139798387040287
+        },
+        {
+          "pid": "2076485",
+          "function": "select",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/notification_assignment.py",
+          "line": 79,
+          "inclusive_sampled_wall_seconds": 5.005452387040286,
+          "self_sampled_wall_seconds": 5.005452387040286
+        },
+        {
+          "pid": "2076762",
+          "function": "<module>",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/html/entities.py",
+          "line": 2510,
+          "inclusive_sampled_wall_seconds": 4.78032556801918,
+          "self_sampled_wall_seconds": 4.78032556801918
+        },
+        {
+          "pid": "2076754",
+          "function": "_recv_bytes",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/connection.py",
+          "line": 448,
+          "inclusive_sampled_wall_seconds": 4.78032556801918,
+          "self_sampled_wall_seconds": 4.78032556801918
+        },
+        {
+          "pid": "2076660",
+          "function": "visit",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/native_package.py",
+          "line": 80,
+          "inclusive_sampled_wall_seconds": 28.681953408115078,
+          "self_sampled_wall_seconds": 4.78032556801918
+        },
+        {
+          "pid": "2076485",
+          "function": "run",
+          "filename": "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/.venv/lib/python3.14/site-packages/textual/drivers/_writer_thread.py",
+          "line": 74,
+          "inclusive_sampled_wall_seconds": 4.78032556801918,
+          "self_sampled_wall_seconds": 4.78032556801918
+        },
+        {
+          "pid": "2076485",
+          "function": "_write_to_self",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/selector_events.py",
+          "line": 152,
+          "inclusive_sampled_wall_seconds": 4.78032556801918,
+          "self_sampled_wall_seconds": 4.78032556801918
+        },
+        {
+          "pid": "2076556",
+          "function": "<genexpr>",
+          "filename": "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/.venv/lib/python3.14/site-packages/textual/dom.py",
+          "line": 624,
+          "inclusive_sampled_wall_seconds": 4.78032556801918,
+          "self_sampled_wall_seconds": 4.78032556801918
+        },
+        {
+          "pid": "2076485",
+          "function": "stat",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/pathlib/__init__.py",
+          "line": 654,
+          "inclusive_sampled_wall_seconds": 4.666739748998076,
+          "self_sampled_wall_seconds": 4.666739748998076
+        },
+        {
+          "pid": "2076485",
+          "function": "<genexpr>",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/checkpoint_seals.py",
+          "line": 42,
+          "inclusive_sampled_wall_seconds": 7.27718549799615,
+          "self_sampled_wall_seconds": 3.638592748998075
+        },
+        {
+          "pid": "2076485",
+          "function": "_decode",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 379,
+          "inclusive_sampled_wall_seconds": 3.4541367489980743,
+          "self_sampled_wall_seconds": 3.4541367489980743
+        },
+        {
+          "pid": "2076485",
+          "function": "read_metadata_unlocked",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/wire_log.py",
+          "line": 536,
+          "inclusive_sampled_wall_seconds": 2.4579989999999974,
+          "self_sampled_wall_seconds": 2.4579989999999974
+        },
+        {
+          "pid": "2076485",
+          "function": "open",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/pathlib/__init__.py",
+          "line": 771,
+          "inclusive_sampled_wall_seconds": 2.435257,
+          "self_sampled_wall_seconds": 2.435257
+        },
+        {
+          "pid": "2076485",
+          "function": "_trusted_root",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/private_registry_guard.py",
+          "line": 130,
+          "inclusive_sampled_wall_seconds": 2.0147510000000004,
+          "self_sampled_wall_seconds": 2.0147510000000004
+        },
+        {
+          "pid": "2076485",
+          "function": "_open",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/private_registry_guard.py",
+          "line": 136,
+          "inclusive_sampled_wall_seconds": 1.1417328190211045,
+          "self_sampled_wall_seconds": 1.1417328190211045
+        },
+        {
+          "pid": "2076485",
+          "function": "arrange_widget",
+          "filename": "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/.venv/lib/python3.14/site-packages/textual/_compositor.py",
+          "line": 687,
+          "inclusive_sampled_wall_seconds": 1.129450000000002,
+          "self_sampled_wall_seconds": 1.129450000000002
+        },
+        {
+          "pid": "2076485",
+          "function": "_store_lock",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/store_files.py",
+          "line": 38,
+          "inclusive_sampled_wall_seconds": 0.9672240000000016,
+          "self_sampled_wall_seconds": 0.9672240000000016
+        },
+        {
+          "pid": "2076485",
+          "function": "_decode",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/private_registry_guard.py",
+          "line": 79,
+          "inclusive_sampled_wall_seconds": 0.7547080000000008,
+          "self_sampled_wall_seconds": 0.7547080000000008
+        },
+        {
+          "pid": "2076485",
+          "function": "dispatch_key",
+          "filename": "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/.venv/lib/python3.14/site-packages/textual/_dispatch_key.py",
+          "line": 39,
+          "inclusive_sampled_wall_seconds": 0.6800858190211052,
+          "self_sampled_wall_seconds": 0.6800858190211052
+        },
+        {
+          "pid": "2076485",
+          "function": "_parent",
+          "filename": "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/.venv/lib/python3.14/site-packages/textual/message_pump.py",
+          "line": 185,
+          "inclusive_sampled_wall_seconds": 0.6482859999999988,
+          "self_sampled_wall_seconds": 0.6482859999999988
+        }
+      ],
+      "visible_stall_assessment": "unreviewed; correlate with phase video and actual frames"
+    },
+    {
+      "label": "reverse-done",
+      "video_start_seconds": 30.26159220401314,
+      "video_end_seconds": 31.095493236003676,
+      "cpu": [
+        {
+          "pid": "2076485",
+          "command": "toad                                                                                                                                                                                                                                                                                                                             ",
+          "cpu_seconds": 0.14999999999999858,
+          "average_cpu_percent": 17.98774605686074
+        },
+        {
+          "pid": "2076482",
+          "command": "st -e /home/ts/wt/toad-viewport-demand-20260929/.venv/bin/toad acp /home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -m agent_comms.acp /home/ts/.cache/agent-scratch/toad-viewport-demand-20260929/native-profiled-6be/l0a-native-54hkjyio/project --session beta ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2076556",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=15) --multiprocessing-fork ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2076754",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=24) --multiprocessing-fork ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2076660",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -m agent_comms.acp ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2076762",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=26) --multiprocessing-fork ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2076509",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -c from multiprocessing.resource_tracker import main;main(5) ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ],
+      "hot_sampled_frames": [
+        {
+          "pid": "2076485",
+          "function": "select",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/notification_assignment.py",
+          "line": 79,
+          "inclusive_sampled_wall_seconds": 1.6678020639810711,
+          "self_sampled_wall_seconds": 1.6678020639810711
+        },
+        {
+          "pid": "2076485",
+          "function": "__exit__",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py",
+          "line": 364,
+          "inclusive_sampled_wall_seconds": 1.6101142129694281,
+          "self_sampled_wall_seconds": 1.6101142129694281
+        },
+        {
+          "pid": "2076485",
+          "function": "dispatch_key",
+          "filename": "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/.venv/lib/python3.14/site-packages/textual/_dispatch_key.py",
+          "line": 39,
+          "inclusive_sampled_wall_seconds": 0.8339010319905356,
+          "self_sampled_wall_seconds": 0.8339010319905356
+        },
+        {
+          "pid": "2076485",
+          "function": "_open",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/private_registry_guard.py",
+          "line": 136,
+          "inclusive_sampled_wall_seconds": 0.8339010319905356,
+          "self_sampled_wall_seconds": 0.8339010319905356
+        },
+        {
+          "pid": "2076485",
+          "function": "encode",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 204,
+          "inclusive_sampled_wall_seconds": 0.8339010319905356,
+          "self_sampled_wall_seconds": 0.8339010319905356
+        },
+        {
+          "pid": "2076762",
+          "function": "<module>",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/html/entities.py",
+          "line": 2510,
+          "inclusive_sampled_wall_seconds": 0.8339010319905356,
+          "self_sampled_wall_seconds": 0.8339010319905356
+        },
+        {
+          "pid": "2076754",
+          "function": "_recv_bytes",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/connection.py",
+          "line": 448,
+          "inclusive_sampled_wall_seconds": 0.8339010319905356,
+          "self_sampled_wall_seconds": 0.8339010319905356
+        },
+        {
+          "pid": "2076660",
+          "function": "visit",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/native_package.py",
+          "line": 80,
+          "inclusive_sampled_wall_seconds": 5.003406191943213,
+          "self_sampled_wall_seconds": 0.8339010319905356
+        },
+        {
+          "pid": "2076485",
+          "function": "run",
+          "filename": "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/.venv/lib/python3.14/site-packages/textual/drivers/_writer_thread.py",
+          "line": 74,
+          "inclusive_sampled_wall_seconds": 0.8339010319905356,
+          "self_sampled_wall_seconds": 0.8339010319905356
+        },
+        {
+          "pid": "2076485",
+          "function": "_write_to_self",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/selector_events.py",
+          "line": 152,
+          "inclusive_sampled_wall_seconds": 0.8339010319905356,
+          "self_sampled_wall_seconds": 0.8339010319905356
+        },
+        {
+          "pid": "2076556",
+          "function": "<genexpr>",
+          "filename": "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/.venv/lib/python3.14/site-packages/textual/dom.py",
+          "line": 624,
+          "inclusive_sampled_wall_seconds": 0.8339010319905356,
+          "self_sampled_wall_seconds": 0.8339010319905356
+        },
+        {
+          "pid": "2076485",
+          "function": "update_wrapper",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/functools.py",
+          "line": 61,
+          "inclusive_sampled_wall_seconds": 0.45915985101164125,
+          "self_sampled_wall_seconds": 0.45915985101164125
+        },
+        {
+          "pid": "2076485",
+          "function": "_str_normcase",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/pathlib/__init__.py",
+          "line": 208,
+          "inclusive_sampled_wall_seconds": 0.3747411809788943,
+          "self_sampled_wall_seconds": 0.3747411809788943
+        },
+        {
+          "pid": "2076485",
+          "function": "get_args",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/typing.py",
+          "line": 2529,
+          "inclusive_sampled_wall_seconds": 0.05768785101164298,
+          "self_sampled_wall_seconds": 0.05768785101164298
+        },
+        {
+          "pid": "2076485",
+          "function": "__eq__",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/pathlib/__init__.py",
+          "line": 220,
+          "inclusive_sampled_wall_seconds": 0.3747411809788943,
+          "self_sampled_wall_seconds": 0.0
+        },
+        {
+          "pid": "2076485",
+          "function": "_trusted_root",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/private_registry_guard.py",
+          "line": 128,
+          "inclusive_sampled_wall_seconds": 0.3747411809788943,
+          "self_sampled_wall_seconds": 0.0
+        },
+        {
+          "pid": "2076485",
+          "function": "_open",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/private_registry_guard.py",
+          "line": 133,
+          "inclusive_sampled_wall_seconds": 0.3747411809788943,
+          "self_sampled_wall_seconds": 0.0
+        },
+        {
+          "pid": "2076485",
+          "function": "verify",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/private_registry_guard.py",
+          "line": 180,
+          "inclusive_sampled_wall_seconds": 1.2086422129694299,
+          "self_sampled_wall_seconds": 0.0
+        },
+        {
+          "pid": "2076485",
+          "function": "private_guard_unlocked",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/registry_store.py",
+          "line": 119,
+          "inclusive_sampled_wall_seconds": 1.2086422129694299,
+          "self_sampled_wall_seconds": 0.0
+        },
+        {
+          "pid": "2076485",
+          "function": "_read_unlocked",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/registry_store.py",
+          "line": 50,
+          "inclusive_sampled_wall_seconds": 2.1002310959716084,
+          "self_sampled_wall_seconds": 0.0
+        }
+      ],
+      "visible_stall_assessment": "unreviewed; correlate with phase video and actual frames"
+    },
+    {
+      "label": "end",
+      "video_start_seconds": 31.095493236003676,
+      "video_end_seconds": 32.85482689400669,
+      "cpu": [
+        {
+          "pid": "2076485",
+          "command": "toad                                                                                                                                                                                                                                                                                                                             ",
+          "cpu_seconds": 1.0,
+          "average_cpu_percent": 56.83970152285269
+        },
+        {
+          "pid": "2076482",
+          "command": "st -e /home/ts/wt/toad-viewport-demand-20260929/.venv/bin/toad acp /home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -m agent_comms.acp /home/ts/.cache/agent-scratch/toad-viewport-demand-20260929/native-profiled-6be/l0a-native-54hkjyio/project --session beta ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2076556",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=15) --multiprocessing-fork ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2076754",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=24) --multiprocessing-fork ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2076660",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -m agent_comms.acp ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2076762",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=26) --multiprocessing-fork ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2076509",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -c from multiprocessing.resource_tracker import main;main(5) ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ],
+      "hot_sampled_frames": [
+        {
+          "pid": "2076485",
+          "function": "select",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/notification_assignment.py",
+          "line": 79,
+          "inclusive_sampled_wall_seconds": 2.410076806991377,
+          "self_sampled_wall_seconds": 2.410076806991377
+        },
+        {
+          "pid": "2076485",
+          "function": "encode",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 204,
+          "inclusive_sampled_wall_seconds": 1.7593336580030154,
+          "self_sampled_wall_seconds": 1.7593336580030154
+        },
+        {
+          "pid": "2076485",
+          "function": "get_args",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/typing.py",
+          "line": 2529,
+          "inclusive_sampled_wall_seconds": 1.7593336580030154,
+          "self_sampled_wall_seconds": 1.7593336580030154
+        },
+        {
+          "pid": "2076762",
+          "function": "<module>",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/html/entities.py",
+          "line": 2510,
+          "inclusive_sampled_wall_seconds": 1.7593336580030154,
+          "self_sampled_wall_seconds": 1.7593336580030154
+        },
+        {
+          "pid": "2076754",
+          "function": "_recv_bytes",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/connection.py",
+          "line": 448,
+          "inclusive_sampled_wall_seconds": 1.7593336580030154,
+          "self_sampled_wall_seconds": 1.7593336580030154
+        },
+        {
+          "pid": "2076660",
+          "function": "visit",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/native_package.py",
+          "line": 80,
+          "inclusive_sampled_wall_seconds": 10.556001948018093,
+          "self_sampled_wall_seconds": 1.7593336580030154
+        },
+        {
+          "pid": "2076485",
+          "function": "run",
+          "filename": "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/.venv/lib/python3.14/site-packages/textual/drivers/_writer_thread.py",
+          "line": 74,
+          "inclusive_sampled_wall_seconds": 1.7593336580030154,
+          "self_sampled_wall_seconds": 1.7593336580030154
+        },
+        {
+          "pid": "2076485",
+          "function": "_write_to_self",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/selector_events.py",
+          "line": 152,
+          "inclusive_sampled_wall_seconds": 1.7593336580030154,
+          "self_sampled_wall_seconds": 1.7593336580030154
+        },
+        {
+          "pid": "2076485",
+          "function": "update_wrapper",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/functools.py",
+          "line": 61,
+          "inclusive_sampled_wall_seconds": 1.7593336580030154,
+          "self_sampled_wall_seconds": 1.7593336580030154
+        },
+        {
+          "pid": "2076556",
+          "function": "<genexpr>",
+          "filename": "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/.venv/lib/python3.14/site-packages/textual/dom.py",
+          "line": 624,
+          "inclusive_sampled_wall_seconds": 1.7593336580030154,
+          "self_sampled_wall_seconds": 1.7593336580030154
+        },
+        {
+          "pid": "2076485",
+          "function": "_open",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/private_registry_guard.py",
+          "line": 136,
+          "inclusive_sampled_wall_seconds": 1.2128716580030172,
+          "self_sampled_wall_seconds": 1.2128716580030172
+        },
+        {
+          "pid": "2076485",
+          "function": "_worker",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/thread.py",
+          "line": 116,
+          "inclusive_sampled_wall_seconds": 1.1085675090146552,
+          "self_sampled_wall_seconds": 1.1085675090146552
+        },
+        {
+          "pid": "2076485",
+          "function": "open",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/pathlib/__init__.py",
+          "line": 771,
+          "inclusive_sampled_wall_seconds": 1.1085485090146534,
+          "self_sampled_wall_seconds": 1.1085485090146534
+        },
+        {
+          "pid": "2076485",
+          "function": "__exit__",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py",
+          "line": 364,
+          "inclusive_sampled_wall_seconds": 0.6507661489883603,
+          "self_sampled_wall_seconds": 0.6507661489883603
+        },
+        {
+          "pid": "2076485",
+          "function": "_store_lock",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/store_files.py",
+          "line": 55,
+          "inclusive_sampled_wall_seconds": 0.5465039999999988,
+          "self_sampled_wall_seconds": 0.5465039999999988
+        },
+        {
+          "pid": "2076485",
+          "function": "__eq__",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/pathlib/__init__.py",
+          "line": 220,
+          "inclusive_sampled_wall_seconds": 0.5047515090146533,
+          "self_sampled_wall_seconds": 0.5047515090146533
+        },
+        {
+          "pid": "2076485",
+          "function": "dispatch_key",
+          "filename": "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/.venv/lib/python3.14/site-packages/textual/_dispatch_key.py",
+          "line": 39,
+          "inclusive_sampled_wall_seconds": 0.39529514898836027,
+          "self_sampled_wall_seconds": 0.39529514898836027
+        },
+        {
+          "pid": "2076485",
+          "function": "stat",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/pathlib/__init__.py",
+          "line": 654,
+          "inclusive_sampled_wall_seconds": 0.3384879999999981,
+          "self_sampled_wall_seconds": 0.3384879999999981
+        },
+        {
+          "pid": "2076485",
+          "function": "__bool__",
+          "filename": "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/.venv/lib/python3.14/site-packages/textual/_node_list.py",
+          "line": 59,
+          "inclusive_sampled_wall_seconds": 0.30222200000000043,
+          "self_sampled_wall_seconds": 0.30222200000000043
+        },
+        {
+          "pid": "2076485",
+          "function": "_check_type",
+          "filename": "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/.venv/lib/python3.14/site-packages/textual/css/model.py",
+          "line": 72,
+          "inclusive_sampled_wall_seconds": 0.15047299999999808,
+          "self_sampled_wall_seconds": 0.15047299999999808
+        }
+      ],
+      "visible_stall_assessment": "unreviewed; correlate with phase video and actual frames"
+    },
+    {
+      "label": "idle",
+      "video_start_seconds": 32.85482689400669,
+      "video_end_seconds": 37.60885462799342,
+      "cpu": [
+        {
+          "pid": "2076485",
+          "command": "toad                                                                                                                                                                                                                                                                                                                             ",
+          "cpu_seconds": 0.9699999999999989,
+          "average_cpu_percent": 20.403751393064677
+        },
+        {
+          "pid": "2076556",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=15) --multiprocessing-fork ",
+          "cpu_seconds": 0.020000000000000018,
+          "average_cpu_percent": 0.42069590501164367
+        },
+        {
+          "pid": "2076482",
+          "command": "st -e /home/ts/wt/toad-viewport-demand-20260929/.venv/bin/toad acp /home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -m agent_comms.acp /home/ts/.cache/agent-scratch/toad-viewport-demand-20260929/native-profiled-6be/l0a-native-54hkjyio/project --session beta ",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.21034795250582183
+        },
+        {
+          "pid": "2076754",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=24) --multiprocessing-fork ",
+          "cpu_seconds": 0.010000000000000009,
+          "average_cpu_percent": 0.21034795250582183
+        },
+        {
+          "pid": "2076660",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -m agent_comms.acp ",
+          "cpu_seconds": 0.009999999999999787,
+          "average_cpu_percent": 0.2103479525058172
+        },
+        {
+          "pid": "2076762",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=26) --multiprocessing-fork ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        },
+        {
+          "pid": "2076509",
+          "command": "/home/ts/wt/toad-viewport-demand-20260929/.venv/bin/python -c from multiprocessing.resource_tracker import main;main(5) ",
+          "cpu_seconds": 0,
+          "average_cpu_percent": 0.0
+        }
+      ],
+      "hot_sampled_frames": [
+        {
+          "pid": "2076485",
+          "function": "select",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/notification_assignment.py",
+          "line": 79,
+          "inclusive_sampled_wall_seconds": 12.215107948993676,
+          "self_sampled_wall_seconds": 12.215107948993676
+        },
+        {
+          "pid": "2076485",
+          "function": "get_args",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/typing.py",
+          "line": 2529,
+          "inclusive_sampled_wall_seconds": 7.207124733986731,
+          "self_sampled_wall_seconds": 7.207124733986731
+        },
+        {
+          "pid": "2076762",
+          "function": "<module>",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/html/entities.py",
+          "line": 2510,
+          "inclusive_sampled_wall_seconds": 4.754027733986732,
+          "self_sampled_wall_seconds": 4.754027733986732
+        },
+        {
+          "pid": "2076754",
+          "function": "_recv_bytes",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/connection.py",
+          "line": 448,
+          "inclusive_sampled_wall_seconds": 4.754027733986732,
+          "self_sampled_wall_seconds": 4.754027733986732
+        },
+        {
+          "pid": "2076660",
+          "function": "visit",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/native_package.py",
+          "line": 80,
+          "inclusive_sampled_wall_seconds": 28.52416640392039,
+          "self_sampled_wall_seconds": 4.754027733986732
+        },
+        {
+          "pid": "2076485",
+          "function": "run",
+          "filename": "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/.venv/lib/python3.14/site-packages/textual/drivers/_writer_thread.py",
+          "line": 74,
+          "inclusive_sampled_wall_seconds": 4.754027733986732,
+          "self_sampled_wall_seconds": 4.754027733986732
+        },
+        {
+          "pid": "2076485",
+          "function": "_write_to_self",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/selector_events.py",
+          "line": 152,
+          "inclusive_sampled_wall_seconds": 4.754027733986732,
+          "self_sampled_wall_seconds": 4.754027733986732
+        },
+        {
+          "pid": "2076485",
+          "function": "update_wrapper",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/functools.py",
+          "line": 61,
+          "inclusive_sampled_wall_seconds": 4.754027733986732,
+          "self_sampled_wall_seconds": 4.754027733986732
+        },
+        {
+          "pid": "2076556",
+          "function": "<genexpr>",
+          "filename": "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/.venv/lib/python3.14/site-packages/textual/dom.py",
+          "line": 624,
+          "inclusive_sampled_wall_seconds": 4.754027733986732,
+          "self_sampled_wall_seconds": 4.754027733986732
+        },
+        {
+          "pid": "2076485",
+          "function": "encode",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 204,
+          "inclusive_sampled_wall_seconds": 4.6332594909853455,
+          "self_sampled_wall_seconds": 4.6332594909853455
+        },
+        {
+          "pid": "2076485",
+          "function": "_open",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/private_registry_guard.py",
+          "line": 136,
+          "inclusive_sampled_wall_seconds": 3.9821114909853463,
+          "self_sampled_wall_seconds": 3.9821114909853463
+        },
+        {
+          "pid": "2076485",
+          "function": "_worker",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/concurrent/futures/thread.py",
+          "line": 116,
+          "inclusive_sampled_wall_seconds": 1.980047490985342,
+          "self_sampled_wall_seconds": 1.980047490985342
+        },
+        {
+          "pid": "2076485",
+          "function": "check",
+          "filename": "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/.venv/lib/python3.14/site-packages/textual/css/model.py",
+          "line": 200,
+          "inclusive_sampled_wall_seconds": 1.6005109999999974,
+          "self_sampled_wall_seconds": 1.6005109999999974
+        },
+        {
+          "pid": "2076485",
+          "function": "lstat",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/pathlib/__init__.py",
+          "line": 661,
+          "inclusive_sampled_wall_seconds": 1.4695050000000052,
+          "self_sampled_wall_seconds": 1.4695050000000052
+        },
+        {
+          "pid": "2076485",
+          "function": "_end_update",
+          "filename": "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/.venv/lib/python3.14/site-packages/textual/app.py",
+          "line": 4602,
+          "inclusive_sampled_wall_seconds": 0.758981999999996,
+          "self_sampled_wall_seconds": 0.758981999999996
+        },
+        {
+          "pid": "2076485",
+          "function": "_check_type",
+          "filename": "/home/ts/wt/toad-cleanup-tc2-sdk-20260929/.venv/lib/python3.14/site-packages/textual/css/model.py",
+          "line": 72,
+          "inclusive_sampled_wall_seconds": 0.7348622430013876,
+          "self_sampled_wall_seconds": 0.7348622430013876
+        },
+        {
+          "pid": "2076485",
+          "function": "__eq__",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/pathlib/__init__.py",
+          "line": 220,
+          "inclusive_sampled_wall_seconds": 0.6847804909853465,
+          "self_sampled_wall_seconds": 0.6847804909853465
+        },
+        {
+          "pid": "2076485",
+          "function": "stat",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/pathlib/__init__.py",
+          "line": 654,
+          "inclusive_sampled_wall_seconds": 0.639130999999999,
+          "self_sampled_wall_seconds": 0.639130999999999
+        },
+        {
+          "pid": "2076485",
+          "function": "open",
+          "filename": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/pathlib/__init__.py",
+          "line": 771,
+          "inclusive_sampled_wall_seconds": 0.6126804909853405,
+          "self_sampled_wall_seconds": 0.6126804909853405
+        },
+        {
+          "pid": "2076485",
+          "function": "_decode",
+          "filename": "/home/ts/wt/toad-viewport-demand-20260929/.venv/lib/python3.14/site-packages/agent_comms/field_codec.py",
+          "line": 364,
+          "inclusive_sampled_wall_seconds": 0.49867399999999407,
+          "self_sampled_wall_seconds": 0.49867399999999407
+        }
+      ],
+      "visible_stall_assessment": "unreviewed; correlate with phase video and actual frames"
+    }
+  ],
+  "sample_count": 654,
+  "sampling_errors": 0,
+  "sampling_quality": "no reported sampling errors"
+}
