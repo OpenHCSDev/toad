@@ -336,12 +336,27 @@ class PhysicalJourney(DeclaredFamily, affix="Journey"):
     def script(cls, args): ...
 
     @classmethod
+    def actions(cls, args):
+        script = cls.script(args)
+        if args.actions is not None and args.actions.read_text() != script:
+            raise ValueError("Actions must match the selected canonical physical journey")
+        return script
+
+    @classmethod
     def review(cls, output, receipt):
         return None
 
     @classmethod
     def validate_review(cls, review):
         """The journey owns required native checks; footage review stays separate."""
+
+
+class ObserveJourney(PhysicalJourney):
+    """Record stationary output without executing physical input."""
+
+    @classmethod
+    def script(cls, args):
+        return ""
 
 
 class ScrollJourney(PhysicalJourney):
@@ -493,8 +508,6 @@ class ExistingThreadCapture(CaptureTarget):
             raise ValueError("Existing-thread capture derives its root from the canonical active route")
         if len(command) != 2 or Path(command[0]).name != "toad-comms":
             raise ValueError("Existing-thread capture requires toad-comms and one explicit registered thread")
-        if args.actions is not None and args.actions.read_text() != args.journey.script(args):
-            raise ValueError("Existing-thread capture requires the selected canonical input-free physical journey")
         # Match the real default launcher's environment, not a copied private
         # route or thread identity that would redirect its retained history.
         for key in ("AGENT_COMMS_ROOT", "AGENT_COMMS_PRIVATE_NK_WIRE_ROOT_ID", "AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE",
@@ -809,6 +822,7 @@ def record(args):
     env.pop("DISPLAY", None)
     env.pop("NO_COLOR", None)
     env.pop("PYTHONPATH", None)  # The installed toad-comms launcher also clears it.
+    script = args.journey.actions(args)
     target = args.capture_target.admit(args, command, env)
     private_root = target.root
     selection = target.selection
@@ -956,8 +970,7 @@ def record(args):
                 "command": Path(f"/proc/{identity.pid}/cmdline").read_bytes().replace(b"\0", b" ").decode(errors="replace")}
                 for group in (transferred_terminal or terminal, transferred_program)
                 for identity in group.members() if Path(f"/proc/{identity.pid}/cmdline").exists()}
-            if args.actions:
-                script = args.actions.read_text()
+            if script:
                 (output / "actions.xdo").write_text(script)
                 receipt["driver_started_seconds"] = time.monotonic() - started
                 # Installed xdotool stdin mode continued after failed execs in
@@ -1204,7 +1217,7 @@ def main():
     parser.add_argument("--capture-target", type=CaptureTarget.decode, default=PrivateCapture,
                         help="Authorized launch target: " + ", ".join(CaptureTarget.names()))
     parser.add_argument("--actions", type=Path,
-                        help="One checked xdotool argv line per action; no shell or shared window stack")
+                        help="Optional retained script; must match the selected journey, which runs automatically")
     parser.add_argument("--journey", type=PhysicalJourney.decode, default=ScrollJourney,
                         help="Canonical physical journey: " + ", ".join(PhysicalJourney.names()))
     parser.add_argument("--peer-thread", help="Actual existing private peer for the warm native roster click")
